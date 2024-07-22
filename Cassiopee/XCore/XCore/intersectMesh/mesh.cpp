@@ -33,36 +33,36 @@
 #include "ray.h"
 
 struct DEdge {
-    E_Int p, q;
+    Int p, q;
 
-    DEdge(E_Int P, E_Int Q) : p(P), q(Q) {}
+    DEdge(Int P, Int Q) : p(P), q(Q) {}
 
     bool operator<(const DEdge &f) const
     {
-        E_Int ep = std::min(p, q);
-        E_Int eq = std::max(p, q);
-        E_Int fp = std::min(f.p, f.q);
-        E_Int fq = std::max(f.p, f.q);
+        Int ep = std::min(p, q);
+        Int eq = std::max(p, q);
+        Int fp = std::min(f.p, f.q);
+        Int fq = std::max(f.p, f.q);
         return (ep < fp) || (ep == fp && eq < fq);
     }
 };
 
 void IMesh::make_edges()
 {
-    std::map<DEdge, E_Int> edges;
+    std::map<DEdge, Int> edges;
 
     ne = 0;
 
     F2E.resize(nf);
 
-    for (E_Int i = 0; i < nf; i++) {
+    for (Int i = 0; i < nf; i++) {
         const auto &pn = F[i];
         
         F2E[i].resize(pn.size());
 
         for (size_t j = 0; j < pn.size(); j++) {
-            E_Int p = pn[j];
-            E_Int q = pn[(j+1)%pn.size()];
+            Int p = pn[j];
+            Int q = pn[(j+1)%pn.size()];
             DEdge e(p, q); 
             auto it = edges.find(e);
             if (it == edges.end()) {
@@ -84,14 +84,14 @@ void IMesh::make_edges()
 }
 
 
-std::vector<pointFace> IMesh::locate(E_Float px, E_Float py,
-    const std::set<E_Int> &patch) const
+std::vector<pointFace> IMesh::locate(Float px, Float py,
+    const std::set<Int> &patch) const
 {
-    E_Int a, b, c;
-    E_Int hit;
+    Int a, b, c;
+    Int hit;
     std::vector<pointFace> hits;
 
-    for (E_Int face : patch) {
+    for (Int face : patch) {
         assert(face_is_active(face));
 
         const auto &cn = F[face];
@@ -128,10 +128,10 @@ void IMesh::init_adaptation_data()
 {
     flevel.resize(nf, 0);
 
-    for (E_Int i = 0; i < nf; i++) factive.insert(i);
+    for (Int i = 0; i < nf; i++) factive.insert(i);
 }
 
-bool IMesh::faces_are_dups(E_Int mface, E_Int sface, const IMesh &S)
+bool IMesh::faces_are_dups(Int mface, Int sface, const IMesh &S)
 {
     const auto &pnm = F[mface];
     const auto &pns = S.F[sface];
@@ -141,12 +141,12 @@ bool IMesh::faces_are_dups(E_Int mface, E_Int sface, const IMesh &S)
 
     if (pnm.size() != pns.size()) return false;
 
-    E_Int mfound[4] = { 0, 0, 0, 0 };
+    Int mfound[4] = { 0, 0, 0, 0 };
 
     for (size_t i = 0; i < pnm.size(); i++) {
-        E_Int pm = pnm[i];
+        Int pm = pnm[i];
         for (size_t j = 0; j < pns.size(); j++) {
-            E_Int ps = pns[j];
+            Int ps = pns[j];
             if (cmp_points(X[pm], Y[pm], S.X[ps], S.Y[ps]) == 0) {
                 assert(mfound[i] == 0);
                 mfound[i] = 1;
@@ -163,7 +163,7 @@ bool IMesh::faces_are_dups(E_Int mface, E_Int sface, const IMesh &S)
 IMesh::IMesh()
 {}
 
-IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
+IMesh::IMesh(K_FLD::FldArrayI &cn, Float *x, Float *y, Float *z, Int npts)
 {
     np = npts;
     ne = 0;
@@ -173,32 +173,32 @@ IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npt
     X.resize(np);
     Y.resize(np);
     Z.resize(np);
-    for (E_Int i = 0; i < np; i++) {
+    for (Int i = 0; i < np; i++) {
         X[i] = x[i];
         Y[i] = y[i];
         Z[i] = z[i];
     }
 
     F.reserve(nf);
-    E_Int *indPG = cn.getIndPG();
-    E_Int *ngon = cn.getNGon();
-    for (E_Int i = 0; i < nf; i++) {
-        E_Int np = -1;
-        E_Int *pn = cn.getFace(i, np, ngon, indPG);
-        std::vector<E_Int> points(np);
-        for (E_Int j = 0; j < np; j++)
+    Int *indPG = cn.getIndPG();
+    Int *ngon = cn.getNGon();
+    for (Int i = 0; i < nf; i++) {
+        Int np = -1;
+        Int *pn = cn.getFace(i, np, ngon, indPG);
+        std::vector<Int> points(np);
+        for (Int j = 0; j < np; j++)
             points[j] = pn[j] - 1;
         F.push_back(points);
     }
 
     C.reserve(nc);
-    E_Int *indPH = cn.getIndPH();
-    E_Int *nface = cn.getNFace();
-    for (E_Int i = 0; i < nc; i++) {
-        E_Int nf = -1;
-        E_Int *pf = cn.getElt(i, nf, nface, indPH);
-        std::vector<E_Int> faces(nf);
-        for (E_Int j = 0; j < nf; j++)
+    Int *indPH = cn.getIndPH();
+    Int *nface = cn.getNFace();
+    for (Int i = 0; i < nc; i++) {
+        Int nf = -1;
+        Int *pf = cn.getElt(i, nf, nface, indPH);
+        std::vector<Int> faces(nf);
+        for (Int j = 0; j < nf; j++)
             faces[j] = pf[j] - 1;
         C.push_back(faces);
     }
@@ -223,9 +223,9 @@ void IMesh::make_point_faces()
     P2F.clear();
     P2F.resize(np);
     
-    for (E_Int face : factive) {
+    for (Int face : factive) {
         const auto &pn = F[face];
-        for (E_Int p : pn) P2F[p].push_back(face);
+        for (Int p : pn) P2F[p].push_back(face);
     }
 }
 
@@ -254,7 +254,7 @@ IMesh::IMesh(const char *fname)
 
     int ret;
 
-    for (E_Int i = 0; i < np; i++) {
+    for (Int i = 0; i < np; i++) {
         ret = fscanf(fh, "%lf %lf %lf\n", &X[i], &Y[i], &Z[i]);
         if (ret != 3) abort();
         //assert(ret == 3);
@@ -272,13 +272,13 @@ IMesh::IMesh(const char *fname)
 
     F.resize(nf);
 
-    for (E_Int i = 0; i < nf; i++) {
-        E_Int stride;
+    for (Int i = 0; i < nf; i++) {
+        Int stride;
         ret = fscanf(fh, SF_D_ " ", &stride);
         if (ret != 1) abort();
         auto &cn = F[i];
         cn.resize(stride);
-        for (E_Int j = 0; j < stride-1; j++) {
+        for (Int j = 0; j < stride-1; j++) {
             ret = fscanf(fh, SF_D_ " ", &cn[j]);
             if (ret != 1) abort();
         }
@@ -298,13 +298,13 @@ IMesh::IMesh(const char *fname)
 
     C.resize(nc);
 
-    for (E_Int i = 0; i < nc; i++) {
-        E_Int stride;
+    for (Int i = 0; i < nc; i++) {
+        Int stride;
         ret = fscanf(fh, SF_D_ " ", &stride);
         if (ret != 1) abort();
         auto &cn = C[i];
         cn.resize(stride);
-        for (E_Int j = 0; j < stride-1; j++) {
+        for (Int j = 0; j < stride-1; j++) {
             ret = fscanf(fh, SF_D_ " ", &cn[j]);
             if (ret != 1) abort();
         }
@@ -329,10 +329,10 @@ IMesh::IMesh(const char *fname)
 
 void IMesh::make_bbox()
 {
-    xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
-    xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
+    xmin = ymin = zmin = std::numeric_limits<Float>::max();
+    xmax = ymax = zmax = std::numeric_limits<Float>::min();
 
-    for (E_Int i = 0; i < np; i++) {
+    for (Int i = 0; i < np; i++) {
         if (X[i] < xmin) xmin = X[i];
         if (Y[i] < ymin) ymin = Y[i];
         if (Z[i] < zmin) zmin = Z[i];
@@ -349,15 +349,15 @@ void IMesh::make_skin()
 {
     skin.clear();
 
-    std::vector<E_Int> count(nf, 0);
+    std::vector<Int> count(nf, 0);
     
     for (const auto &cn : C) {
-        for (E_Int face : cn)
+        for (Int face : cn)
             count[face]++;
     }
 
-    for (E_Int i = 0; i < nf; i++) {
-        E_Int c = count[i];
+    for (Int i = 0; i < nf; i++) {
+        Int c = count[i];
         assert(c == 1 || c == 2);
         if (c == 1) skin.push_back(i);
     }
@@ -367,23 +367,23 @@ void IMesh::hash_skin()
 {
     // Throw out the z-coordinate and hash the AABB of the skin faces to a
     // 2D array.
-    //std::vector<E_Int, std::vector<E_Int>> box_to_faces;
+    //std::vector<Int, std::vector<Int>> box_to_faces;
 
     NBIN = 100;
     DX = (xmax - xmin);
     DY = (ymax - ymin);
     DZ = (zmax - zmin);
 
-    std::vector<E_Int> pbins(np, -1);
+    std::vector<Int> pbins(np, -1);
 
     // Hash the points
     // TODO: hash only the skin points
-    for (E_Int i = 0; i < np; i++) {
-        E_Float px = X[i];
-        E_Float py = Y[i];
-        E_Int I = floor(px / DX * NBIN);
-        E_Int J = floor(py / DY * NBIN);
-        E_Int bin = I + NBIN * J;
+    for (Int i = 0; i < np; i++) {
+        Float px = X[i];
+        Float py = Y[i];
+        Int I = floor(px / DX * NBIN);
+        Int J = floor(py / DY * NBIN);
+        Int bin = I + NBIN * J;
         pbins[i] = bin;
     }
 
@@ -391,33 +391,33 @@ void IMesh::hash_skin()
     // A face belongs to as many buckets as its points
     bin_faces.clear();
 
-    for (E_Int face : skin) {
+    for (Int face : skin) {
         const auto &cn = F[face];
-        E_Float xmin, xmax, ymin, ymax;
-        xmin = ymin = std::numeric_limits<E_Float>::max();
-        xmax = ymax = std::numeric_limits<E_Float>::min();
-        for (E_Int p : cn) {
+        Float xmin, xmax, ymin, ymax;
+        xmin = ymin = std::numeric_limits<Float>::max();
+        xmax = ymax = std::numeric_limits<Float>::min();
+        for (Int p : cn) {
             xmin = std::min(X[p], xmin);
             xmax = std::max(X[p], xmax);
             ymin = std::min(Y[p], ymin);
             ymax = std::max(Y[p], ymax);
         }
 
-        E_Int Imin = floor(xmin / DX * NBIN);
-        E_Int Imax = floor(xmax / DX * NBIN);
-        E_Int Jmin = floor(ymin / DY * NBIN);
-        E_Int Jmax = floor(ymax / DY * NBIN);
+        Int Imin = floor(xmin / DX * NBIN);
+        Int Imax = floor(xmax / DX * NBIN);
+        Int Jmin = floor(ymin / DY * NBIN);
+        Int Jmax = floor(ymax / DY * NBIN);
 
-        for (E_Int J = Jmin; J < Jmax; J++) {
-            for (E_Int I = Imin; I < Imax; I++) {
-                E_Int bin = I + NBIN * J;
+        for (Int J = Jmin; J < Jmax; J++) {
+            for (Int I = Imin; I < Imax; I++) {
+                Int bin = I + NBIN * J;
                 bin_faces[bin].insert(face);
             }
         }
     }
 }
 
-bool IMesh::is_point_inside(E_Float px, E_Float py, E_Float pz)
+bool IMesh::is_point_inside(Float px, Float py, Float pz)
 {
     // point must be in bounding box
     if (!(xmin <= px && px <= xmax &&
@@ -428,17 +428,17 @@ bool IMesh::is_point_inside(E_Float px, E_Float py, E_Float pz)
     return true;
 
     // Count the hits
-    E_Int hits = 0;
+    Int hits = 0;
 
     TriangleIntersection TI;
-    E_Int a, b, c, hit;
+    Int a, b, c, hit;
 
     // Choose a random ray direction
-    E_Float dx = 0;
-    E_Float dy = 0;
-    E_Float dz = 1;
+    Float dx = 0;
+    Float dy = 0;
+    Float dz = 1;
 
-    for (E_Int face : skin) {
+    for (Int face : skin) {
         const auto &cn = F[face];
 
         // First triangle
@@ -474,15 +474,15 @@ void IMesh::write_ngon(const char *fname)
 
     fprintf(fh, "POINTS\n");
     fprintf(fh, SF_D_ "\n", np);
-    for (E_Int i = 0; i < np; i++) {
+    for (Int i = 0; i < np; i++) {
         fprintf(fh, "%f %f %f\n", X[i], Y[i], Z[i]);
     }
 
     fprintf(fh, "INDPG\n");
     fprintf(fh, SF_D_ "\n", nf+1);
-    E_Int sizeNGon = 0;
+    Int sizeNGon = 0;
     fprintf(fh, SF_D_ " ", sizeNGon);
-    for (E_Int i = 0; i < nf; i++) {
+    for (Int i = 0; i < nf; i++) {
         sizeNGon += F[i].size();
         fprintf(fh, SF_D_ " ", sizeNGon);
     }
@@ -490,17 +490,17 @@ void IMesh::write_ngon(const char *fname)
 
     fprintf(fh, "NGON\n");
     fprintf(fh, SF_D_ "\n", sizeNGon);
-    for (E_Int i = 0; i < nf; i++) {
-        for (E_Int p : F[i])
+    for (Int i = 0; i < nf; i++) {
+        for (Int p : F[i])
             fprintf(fh, SF_D_ " ", p);
     }
     fprintf(fh, "\n");
 
     fprintf(fh, "INDPH\n");
     fprintf(fh, SF_D_ "\n", nc+1);
-    E_Int sizeNFace = 0;
+    Int sizeNFace = 0;
     fprintf(fh, SF_D_ " ", sizeNFace);
-    for (E_Int i = 0; i < nc; i++) {
+    for (Int i = 0; i < nc; i++) {
         sizeNFace += C[i].size();
         fprintf(fh, SF_D_ " ", sizeNFace);
     }
@@ -508,8 +508,8 @@ void IMesh::write_ngon(const char *fname)
 
     fprintf(fh, "NFace\n");
     fprintf(fh, SF_D_ "\n", sizeNFace);
-    for (E_Int i = 0; i < nc; i++) {
-        for (E_Int p : C[i])
+    for (Int i = 0; i < nc; i++) {
+        for (Int p : C[i])
             fprintf(fh, SF_D_ " ", p);
     }
     fprintf(fh, "\n");
@@ -518,22 +518,22 @@ void IMesh::write_ngon(const char *fname)
 }
 
 
-bool IMesh::face_contains_sface(E_Int face, E_Int sface, const IMesh &S) const
+bool IMesh::face_contains_sface(Int face, Int sface, const IMesh &S) const
 {
     // face containes mface iff it contains all its points
     assert(S.face_is_active(sface));
     const auto &cn = S.F[sface];
-    for (E_Int p : cn) {
+    for (Int p : cn) {
         if (face_contains_point(face, S.X[p], S.Y[p]) == -1) return false;
     }
     return true;
 }
 
-E_Int IMesh::face_contains_point(E_Int face, E_Float x, E_Float y) const
+Int IMesh::face_contains_point(Int face, Float x, Float y) const
 {
     const auto &cn = F[face];
 
-    E_Int hit, a, b, c;
+    Int hit, a, b, c;
 
     if (face_is_quad(face)) {
 
@@ -565,7 +565,7 @@ E_Int IMesh::face_contains_point(E_Int face, E_Float x, E_Float y) const
     return -1;
 }
 
-UEdge::UEdge(E_Int P, E_Int Q)
+UEdge::UEdge(Int P, Int Q)
 {
     p = std::min(P, Q);
     q = std::max(P, Q);
@@ -579,17 +579,17 @@ bool UEdge::operator<(const UEdge &E) const
 IMesh IMesh::extract_conformized()
 {
     // Keep all the points
-    std::vector<E_Float> new_X(X), new_Y(Y), new_Z(Z);
+    std::vector<Float> new_X(X), new_Y(Y), new_Z(Z);
 
     // Conformize the faces
 
-    std::vector<std::vector<E_Int>> new_F(factive.size());
+    std::vector<std::vector<Int>> new_F(factive.size());
 
-    E_Int new_nf = 0;
+    Int new_nf = 0;
     
-    std::map<E_Int, E_Int> new_fids;
+    std::map<Int, Int> new_fids;
 
-    for (E_Int face : factive) {
+    for (Int face : factive) {
         new_fids[face] = new_nf;
 
         const auto &pn = F[face];
@@ -597,8 +597,8 @@ IMesh IMesh::extract_conformized()
         auto &new_face = new_F[new_nf];
 
         for (size_t j = 0; j < pn.size(); j++) {
-            E_Int p = pn[j];
-            E_Int q = pn[(j+1)%pn.size()];
+            Int p = pn[j];
+            Int q = pn[(j+1)%pn.size()];
 
             UEdge e(p, q);
 
@@ -617,22 +617,22 @@ IMesh IMesh::extract_conformized()
 
     // Update cell connectivity
 
-    std::vector<std::vector<E_Int>> new_C(C.size());
+    std::vector<std::vector<Int>> new_C(C.size());
 
-    for (E_Int i = 0; i < nc; i++) {
+    for (Int i = 0; i < nc; i++) {
         const auto &pf = C[i];
 
         auto &new_cell = new_C[i];
 
-        for (E_Int face : pf) {
+        for (Int face : pf) {
 
             if (face_is_active(face)) {
                 new_cell.push_back(new_fids[face]);
             } else {
-                std::vector<E_Int> fleaves;
+                std::vector<Int> fleaves;
                 get_fleaves(face, fleaves);
 
-                for (E_Int fleaf : fleaves)
+                for (Int fleaf : fleaves)
                     new_cell.push_back(new_fids[fleaf]);
             }
         }
@@ -648,29 +648,29 @@ IMesh IMesh::extract_conformized()
     new_M.nc = nc;
     new_M.C = new_C;
 
-    for (E_Int face : patch) {
+    for (Int face : patch) {
         new_M.patch.insert(new_fids[face]);
     }
 
     return new_M;
 }
 
-void IMesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
+void IMesh::get_fleaves(Int face, std::vector<Int> &fleaves)
 {
     if (face_is_active(face)) {
         fleaves.push_back(face);
         return;
     }
 
-    for (E_Int child : fchildren.at(face)) get_fleaves(child, fleaves);
+    for (Int child : fchildren.at(face)) get_fleaves(child, fleaves);
 }
 
 PyObject *IMesh::export_karray()
 {
-    E_Int sizeNGon = 0, sizeNFace = 0;
+    Int sizeNGon = 0, sizeNFace = 0;
 
-    for (const auto &pn : F) sizeNGon += (E_Int)pn.size();
-    for (const auto &pf : C) sizeNFace += (E_Int)pf.size();
+    for (const auto &pn : F) sizeNGon += (Int)pn.size();
+    for (const auto &pf : C) sizeNFace += (Int)pf.size();
 
     const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
 
@@ -681,37 +681,37 @@ PyObject *IMesh::export_karray()
     K_FLD::FldArrayI *cn;
     K_ARRAY::getFromArray3(ret, f, cn);
 
-    E_Float *px = f->begin(1);
-    for (E_Int i = 0; i < np; i++) px[i] = X[i];
-    E_Float *py = f->begin(2);
-    for (E_Int i = 0; i < np; i++) py[i] = Y[i];
-    E_Float *pz = f->begin(3);
-    for (E_Int i = 0; i < np; i++) pz[i] = Z[i];
+    Float *px = f->begin(1);
+    for (Int i = 0; i < np; i++) px[i] = X[i];
+    Float *py = f->begin(2);
+    for (Int i = 0; i < np; i++) py[i] = Y[i];
+    Float *pz = f->begin(3);
+    for (Int i = 0; i < np; i++) pz[i] = Z[i];
 
-    E_Int *indPG = cn->getIndPG();
-    E_Int *ngon = cn->getNGon();
-    E_Int *indPH = cn->getIndPH();
-    E_Int *nface = cn->getNFace();
+    Int *indPG = cn->getIndPG();
+    Int *ngon = cn->getNGon();
+    Int *indPH = cn->getIndPH();
+    Int *nface = cn->getNFace();
 
     indPG[0] = indPH[0] = 0;
-    for (E_Int i = 0; i < nf; i++) indPG[i+1] = indPG[i] + (E_Int)F[i].size();
-    for (E_Int i = 0; i < nc; i++) indPH[i+1] = indPH[i] + (E_Int)C[i].size();
+    for (Int i = 0; i < nf; i++) indPG[i+1] = indPG[i] + (Int)F[i].size();
+    for (Int i = 0; i < nc; i++) indPH[i+1] = indPH[i] + (Int)C[i].size();
 
     assert(indPG[nf] == sizeNGon);
     assert(indPH[nc] == sizeNFace);
 
-    E_Int *ptr = ngon;
+    Int *ptr = ngon;
 
-    for (E_Int i = 0; i < nf; i++) {
+    for (Int i = 0; i < nf; i++) {
         const auto &pn = F[i];
-        for (E_Int p : pn) *ptr++ = p+1;
+        for (Int p : pn) *ptr++ = p+1;
     }
 
     ptr = nface;
 
-    for (E_Int i = 0; i < nc; i++) {
+    for (Int i = 0; i < nc; i++) {
         const auto &pf = C[i];
-        for (E_Int f : pf) *ptr++ = f+1;
+        for (Int f : pf) *ptr++ = f+1;
     }
 
     return ret;

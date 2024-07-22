@@ -37,7 +37,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     Karray marray;
     Karray sarray;
 
-    E_Int ret;
+    Int ret;
 
     ret = Karray_parse_ngon(MASTER, marray);
 
@@ -51,8 +51,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
 
     // Check intersection patch
-    E_Int *patch = NULL;
-    E_Int patch_size = -1;
+    Int *patch = NULL;
+    Int patch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, true);
     if (ret != 1) {
         Karray_free_ngon(marray);
@@ -62,19 +62,19 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
 
     // Zero-based
-    for (E_Int i = 0; i < patch_size; i++) patch[i] -= 1;
+    for (Int i = 0; i < patch_size; i++) patch[i] -= 1;
 
     // Init and orient marray mesh
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
 
-    E_Float *Xs = sarray.X;
-    E_Float *Ys = sarray.Y;
-    E_Float *Zs = sarray.Z;
+    Float *Xs = sarray.X;
+    Float *Ys = sarray.Y;
+    Float *Zs = sarray.Z;
 
-    E_Int ni = sarray.ni;
-    E_Int nj = sarray.nj;
-    E_Int nk = sarray.nk;
-    E_Int nij = ni * nj;
+    Int ni = sarray.ni;
+    Int nj = sarray.nj;
+    Int nk = sarray.nk;
+    Int nij = ni * nj;
 
     /**************************************************************************/
 
@@ -82,14 +82,14 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     // Get projected points coordinates
 
     // Max plane index that doesn't intersection with marray bbox (zero-based)
-    E_Int kmax = 0;
+    Int kmax = 0;
 
-    for (E_Int k = 0; k < nk; k++) {
-        E_Int inside = 0;
+    for (Int k = 0; k < nk; k++) {
+        Int inside = 0;
 
-        for (E_Int j = 0; j < nj && !inside; j++) {
-            for (E_Int i = 0; i < ni; i++) {
-                E_Int p = i + ni*j + nij*k;
+        for (Int j = 0; j < nj && !inside; j++) {
+            for (Int i = 0; i < ni; i++) {
+                Int p = i + ni*j + nij*k;
 
                 if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
                     inside = 1;
@@ -105,12 +105,12 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     assert(kmax > 1);
 
     // points to be projected nij*(kmax-1) .. nij*kmax
-    std::vector<E_Int> proj_points;
-    E_Int kshift = (kmax-1)*nij;
+    std::vector<Int> proj_points;
+    Int kshift = (kmax-1)*nij;
 
-    for (E_Int j = 0; j < nj; j++) {
-        for (E_Int i = 0; i < ni; i++) {
-            E_Int ind = i + j*ni + kshift;
+    for (Int j = 0; j < nj; j++) {
+        for (Int i = 0; i < ni; i++) {
+            Int ind = i + j*ni + kshift;
             proj_points.push_back(ind);
         }
     }
@@ -120,18 +120,18 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     /**************************************************************************/
 
     // Project points onto marray surface
-    std::unordered_map<E_Int, TriangleIntersection> point_hit_table;
+    std::unordered_map<Int, TriangleIntersection> point_hit_table;
 
-    for (E_Int i = 0; i < nij; i++) {
-        E_Int p = proj_points[i];
-        E_Int q = p + nij;
+    for (Int i = 0; i < nij; i++) {
+        Int p = proj_points[i];
+        Int q = p + nij;
 
-        E_Float px = Xs[p];
-        E_Float py = Ys[p];
-        E_Float pz = Zs[p];
-        E_Float dx = Xs[q]-px;
-        E_Float dy = Ys[q]-py;
-        E_Float dz = Zs[q]-pz;
+        Float px = Xs[p];
+        Float py = Ys[p];
+        Float pz = Zs[p];
+        Float dx = Xs[q]-px;
+        Float dy = Ys[q]-py;
+        Float dz = Zs[q]-pz;
 
         const auto &X = M.X;
         const auto &Y = M.Y;
@@ -139,11 +139,11 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
         TriangleIntersection TI;
 
-        E_Int A, B, C;
-        E_Int hit = -1;
+        Int A, B, C;
+        Int hit = -1;
 
-        for (E_Int fid = 0; fid < patch_size; fid++) {
-            E_Int face = patch[fid];
+        for (Int fid = 0; fid < patch_size; fid++) {
+            Int face = patch[fid];
             const auto &pn = M.F[face];
 
             A = pn[0]; B = pn[1]; C = pn[2];
@@ -197,15 +197,15 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     char *varString, *eltType;
     K_ARRAY::getFromArray3(tpl, varString, f, ni, nj, nk, c, eltType);
 
-    E_Float* xt = f->begin(1);
-    E_Float* yt = f->begin(2);
-    E_Float* zt = f->begin(3);
+    Float* xt = f->begin(1);
+    Float* yt = f->begin(2);
+    Float* zt = f->begin(3);
 
     // Copy all the points up to kmax
-    for (E_Int k = 0; k < kmax; k++) {
-        for (E_Int j = 0; j < nj; j++) {
-            for (E_Int i = 0; i < ni; i++) {
-                E_Int ind = i + j*ni + k*nij;
+    for (Int k = 0; k < kmax; k++) {
+        for (Int j = 0; j < nj; j++) {
+            for (Int i = 0; i < ni; i++) {
+                Int ind = i + j*ni + k*nij;
                 xt[ind] = Xs[ind];
                 yt[ind] = Ys[ind];
                 zt[ind] = Zs[ind];
@@ -214,12 +214,12 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
 
     // Copy the projected points
-    for (E_Int i = 0; i < nij; i++) {
-        E_Int p = proj_points[i];
+    for (Int i = 0; i < nij; i++) {
+        Int p = proj_points[i];
         auto EH = point_hit_table[p];
-        E_Float x = EH.x;
-        E_Float y = EH.y;
-        E_Float z = EH.z;
+        Float x = EH.x;
+        Float y = EH.y;
+        Float z = EH.z;
         xt[p+nij] = x;
         yt[p+nij] = y;
         zt[p+nij] = z;
@@ -230,9 +230,9 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     dims[1] = 1;
     dims[0] = (npy_intp)ni*nj*nk;
     PyArrayObject *tag = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    E_Float *ptag = (E_Float *)PyArray_DATA(tag);
-    for (E_Int i = 0; i < nij*kmax; i++) ptag[i] = 0.0;
-    for (E_Int i = nij*kmax; i < nij*nk; i++) ptag[i] = 1.0;
+    Float *ptag = (Float *)PyArray_DATA(tag);
+    for (Int i = 0; i < nij*kmax; i++) ptag[i] = 0.0;
+    for (Int i = nij*kmax; i < nij*nk; i++) ptag[i] = 1.0;
 
     PyObject *out = PyList_New(0);
     PyList_Append(out, tpl);

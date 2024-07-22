@@ -506,6 +506,14 @@ PyObject *export_BE_mesh(Mesh *M)
     // Comm is undefined
     PyList_Append(out, Py_None);
 
+    // Procs
+    PyObject *PROCS = PyList_New(0);
+    for (Int i = 0; i < M->npp; i++) {
+        PyList_Append(PROCS, PyLong_FromLong(M->pps[i].nei));
+    }
+    PyList_Append(out, PROCS);
+    Py_DECREF(PROCS);
+
     return out;
 }
 
@@ -667,10 +675,13 @@ PyObject *export_conformal_mesh(Mesh *M)
     PyList_Append(out, pps);
     Py_DECREF(pps);
 
+    // Procs
+    PyList_Append(out, Py_None);
+
     return out;
 }
 
-PyObject *Mesh_export_karray(Mesh *M, int conformize)
+PyObject *Mesh_export_karray(Mesh *M, Int conformize)
 {
     if (conformize) return export_conformal_mesh(M);
 

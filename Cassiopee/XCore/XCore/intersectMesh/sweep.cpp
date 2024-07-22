@@ -26,10 +26,10 @@
 #include "event.h"
 
 static
-E_Int report_intersection_(const std::vector<Segment *> &L,
+Int report_intersection_(const std::vector<Segment *> &L,
     const std::vector<Segment *> &C, const std::vector<Segment *> &U)
 {
-    E_Int ncolors[2] = {0, 0};
+    Int ncolors[2] = {0, 0};
 
     for (Segment *s : L) ncolors[s->color]++;
     for (Segment *s : C) ncolors[s->color]++;
@@ -115,7 +115,7 @@ void sweep(Queue &Q, Status &T, std::vector<Segment *> &S,
 
         // Resolve dcel intersections
         if (L.size() + C.size() + U.size() > 1) {
-            E_Int intersect = report_intersection_(L, C, U);
+            Int intersect = report_intersection_(L, C, U);
             if (intersect) Dcel::resolve(p, L, C, U, H);
         }
 

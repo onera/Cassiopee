@@ -31,26 +31,26 @@ void point_write(const char *fname, const std::vector<Vertex *> &I)
     fclose(fh);
 }
 
-void point_write(const char *fname, E_Float *Xs, E_Float *Ys, E_Float *Zs,
-    const std::vector<E_Int> &P)
+void point_write(const char *fname, Float *Xs, Float *Ys, Float *Zs,
+    const std::vector<Int> &P)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", P.size());
-    for (E_Int p : P) fprintf(fh, "%f %f %f\n", Xs[p], Ys[p], Zs[p]);
+    for (Int p : P) fprintf(fh, "%f %f %f\n", Xs[p], Ys[p], Zs[p]);
     fclose(fh);
 }
 
-void edge_write(const char *fname, E_Float *X, E_Float *Y, E_Float *Z,
-    const std::unordered_map<E_Int, TriangleIntersection> &point_hits)
+void edge_write(const char *fname, Float *X, Float *Y, Float *Z,
+    const std::unordered_map<Int, TriangleIntersection> &point_hits)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", 2 * point_hits.size());
     for (const auto &pdata : point_hits) {
-        E_Int pt = pdata.first;
+        Int pt = pdata.first;
         const auto &TI = pdata.second;
         fprintf(fh, "%f %f %f\n", X[pt], Y[pt], Z[pt]);
         fprintf(fh, "%f %f %f\n", TI.x, TI.y, TI.z);

@@ -196,13 +196,13 @@ void Mesh_update_ppatches(Mesh *M);
 void Mesh_update_global_face_ids(Mesh *M);
 
 inline
-Int *Mesh_get_cell(Mesh *M, int cid)
+Int *Mesh_get_cell(Mesh *M, Int cid)
 {
     return &M->cells[24*cid];
 }
 
 inline
-Int *Mesh_get_crange(Mesh *M, int cid)
+Int *Mesh_get_crange(Mesh *M, Int cid)
 {
     return &M->crange[6*cid];
 }
@@ -222,13 +222,13 @@ Int Mesh_get_sizeNFace(Mesh *M)
 }
 
 inline
-Int *Mesh_get_face(Mesh *M, int fid)
+Int *Mesh_get_face(Mesh *M, Int fid)
 {
     return &M->faces[8*fid];
 }
 
 inline
-Int *Mesh_get_frange(Mesh *M, int fid)
+Int *Mesh_get_frange(Mesh *M, Int fid)
 {
     return &M->frange[4*fid];
 }
@@ -326,7 +326,7 @@ void Mesh_free(Mesh *M);
 
 Mesh *Mesh_from_Karray(Karray *karray);
 
-PyObject *Mesh_export_karray(Mesh *M, int conformize);
+PyObject *Mesh_export_karray(Mesh *M, Int conformize);
 
 
 /* Parallel */
@@ -357,7 +357,7 @@ void Mesh_sort_ref_entities_by_level(Mesh *M,
 void Mesh_refine(Mesh *M, std::vector<Int> &ref_cells,
     std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges);
 
-int Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf);
+Int Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf);
 
 void Mesh_conformize_face_edge(Mesh *M);
 

@@ -56,9 +56,6 @@ Int *compute_cell_weights(Mesh *M)
     for (Int i = 0; i < M->nc; i++) {
         Int cval = M->cref[i];
 
-        //weights[i] = 1.0;
-        //if (cval > 0) weights[i] += gnc;
-
         weights[i] = 1 << (3*cval);
     }
 
@@ -70,8 +67,6 @@ Int *compute_cell_weights(Mesh *M)
 
     Float gmin_weight;
     MPI_Allreduce(&min_weight, &gmin_weight, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-    
-    //assert(gmin_weight == 1);
 
     Float sum = 0.0;
     for (Int weight : weights) sum += weight;
@@ -179,8 +174,6 @@ Int *map_cell_graph(Mesh *M, Int *cwgts)
     SCOTCH_dgraphExit(&graph);
     SCOTCH_stratExit(&strat);
 
-    //for (Int i = 0; i < M->nc; i++) cmap[i] = M->pid;
-
     return cmap;
 }
 
@@ -205,10 +198,6 @@ struct xyz {
         return (sx < 0) ||
                (sx == 0 && sy < 0) ||
                (sx == 0 && sy == 0 && sz < 0);
-
-        //return (x < p.x) ||
-        //       (x == p.x && y < p.y) ||
-        //       (x == p.x && y == p.y && z < p.z);
     }
 };
 
@@ -385,9 +374,6 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     MPI_Alltoallv(scells, scount, sdist, XMPI_INT,
                   rcells, rcount, rdist, XMPI_INT,
                   MPI_COMM_WORLD);
-
-
-
 
     // Faces
 

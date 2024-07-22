@@ -21,20 +21,21 @@
 #include <vector>
 
 #include "xcore.h"
+#include "common/common.h"
 
 struct Hedge;
 struct Vertex;
 
 struct Cycle {
     Hedge *rep;
-    E_Int inout;
+    Int inout;
     Vertex *left;
     Cycle *prev;
     Cycle *next;
 
-    static E_Int INNER;
-    static E_Int OUTER;
-    static E_Int DEGEN;
+    static Int INNER;
+    static Int OUTER;
+    static Int DEGEN;
 
     Cycle(Hedge *Rep);
     void print() const;

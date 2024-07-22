@@ -30,12 +30,12 @@ Hedge::Hedge(Vertex *v)
 {}
 
 static
-E_Int _partition(std::vector<Hedge *> &H, E_Int low, E_Int high)
+Int _partition(std::vector<Hedge *> &H, Int low, Int high)
 {
     Hedge *pivot = H[high];
-    E_Int i = low-1;
+    Int i = low-1;
 
-    for (E_Int j = low; j < high; j++) {
+    for (Int j = low; j < high; j++) {
         if (Hedge::cmp_cwise(H[j], pivot) <= 0) {
             i++;
             std::swap(H[i], H[j]);
@@ -47,46 +47,46 @@ E_Int _partition(std::vector<Hedge *> &H, E_Int low, E_Int high)
     return i;
 }
 
-void Hedge::sort_cwise(std::vector<Hedge *> &H, E_Int low, E_Int high)
+void Hedge::sort_cwise(std::vector<Hedge *> &H, Int low, Int high)
 {
     if (low >= high)
         return;
 
-    E_Int p = _partition(H, low, high);
+    Int p = _partition(H, low, high);
 
     sort_cwise(H, low, p - 1);
     sort_cwise(H, p + 1, high);
 }
 
-void Hedge::sort_ccwise(std::vector<Hedge *> &H, E_Int low, E_Int high)
+void Hedge::sort_ccwise(std::vector<Hedge *> &H, Int low, Int high)
 {
     sort_cwise(H, low, high);
     std::reverse(H.begin(), H.end());
 }
 
-E_Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
+Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
 {
     assert(h->orig == w->orig);
     Vertex *c = h->orig;
     Vertex *a = h->twin->orig;
     Vertex *b = w->twin->orig;
 
-    E_Float ax = a->x;
-    E_Float ay = a->y;
-    E_Float bx = b->x;
-    E_Float by = b->y;
-    E_Float cx = c->x;
-    E_Float cy = c->y;
+    Float ax = a->x;
+    Float ay = a->y;
+    Float bx = b->x;
+    Float by = b->y;
+    Float cx = c->x;
+    Float cy = c->y;
 
     long double acx = (long double)ax - (long double)cx;
     long double acy = (long double)ay - (long double)cy;
     long double bcx = (long double)bx - (long double)cx;
     long double bcy = (long double)by - (long double)cy;
 
-    E_Int sign_acx = Sign(acx);
-    E_Int sign_acy = Sign(acy);
-    E_Int sign_bcx = Sign(bcx);
-    E_Int sign_bcy = Sign(bcy);
+    Int sign_acx = Sign(acx);
+    Int sign_acy = Sign(acy);
+    Int sign_bcx = Sign(bcx);
+    Int sign_bcy = Sign(bcy);
 
     if (sign_acx >= 0 && sign_bcx < 0)
         return -1;
@@ -104,9 +104,9 @@ E_Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
         else return 1;
     }
     
-    E_Float det = acx * bcy - bcx * acy;
-    //E_Float det = DifferenceOfProducts(acx, bcy, bcx, acy);
-    E_Int cmp = Sign(det);
+    Float det = acx * bcy - bcx * acy;
+    //Float det = DifferenceOfProducts(acx, bcy, bcx, acy);
+    Int cmp = Sign(det);
 
     if (cmp < 0)
         return -1;

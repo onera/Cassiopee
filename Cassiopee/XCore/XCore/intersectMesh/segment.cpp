@@ -24,7 +24,7 @@
 #include "hedge.h"
 #include "dcel.h"
 
-Segment::Segment(Vertex *P, Vertex *Q, E_Int Id)
+Segment::Segment(Vertex *P, Vertex *Q, Int Id)
 {
     p = P;
     q = Q;
@@ -40,7 +40,7 @@ Segment::Segment(Vertex *P)
 : p(P), q(P), dx(0.0), dy(0.0), rep(NULL), id(-1), color(Dcel::NO_IDEA)
 {}
 
-Segment::Segment(Hedge *h, E_Int Id)
+Segment::Segment(Hedge *h, Int Id)
 {
     p = h->orig;
     Hedge *t = h->twin;
@@ -59,24 +59,24 @@ Segment::Segment(Hedge *h, E_Int Id)
 
 bool Segment::overlaps(const Segment &s)
 {
-    E_Float sdx = s.dx;
-    E_Float sdy = s.dy;
-    E_Float sqx = s.q->x;
-    E_Float sqy = s.q->y;
-    E_Float px = p->x;
-    E_Float py = p->y;
+    Float sdx = s.dx;
+    Float sdy = s.dy;
+    Float sqx = s.q->x;
+    Float sqy = s.q->y;
+    Float px = p->x;
+    Float py = p->y;
 
-    E_Float T1 = dy * sdx - sdy * dx;
-    E_Int sign1 = Sign(T1);
+    Float T1 = dy * sdx - sdy * dx;
+    Int sign1 = Sign(T1);
 
     if (sign1 == 0) {
-        E_Float mdx = sqx - px;
-        E_Float mdy = sqy - py;
+        Float mdx = sqx - px;
+        Float mdy = sqy - py;
 
-        E_Int sign2 = Sign(dy * mdx - mdy * dx);
+        Int sign2 = Sign(dy * mdx - mdy * dx);
 
         if (sign2 == 0) {
-            E_Int sign3 = Sign(sdy * mdx - mdy * sdx);
+            Int sign3 = Sign(sdy * mdx - mdy * sdx);
 
             assert(sign3 == 0);
 
@@ -90,13 +90,13 @@ bool Segment::overlaps(const Segment &s)
 }
 
 static
-E_Int _partition(std::vector<Segment *> &S, E_Int low, E_Int high,
-    E_Int (*cmp)(const Segment &, const Segment &))
+Int _partition(std::vector<Segment *> &S, Int low, Int high,
+    Int (*cmp)(const Segment &, const Segment &))
 {
     Segment *pivot = S[high];
-    E_Int i = low-1;
+    Int i = low-1;
 
-    for (E_Int j = low; j < high; j++) {
+    for (Int j = low; j < high; j++) {
         if (cmp(*S[j], *pivot) <= 0) {
             i++;
             std::swap(S[i], S[j]);
@@ -108,12 +108,12 @@ E_Int _partition(std::vector<Segment *> &S, E_Int low, E_Int high,
     return i;
 }
 
-void Segment::sort(std::vector<Segment *> &S, E_Int start, E_Int end,
-    E_Int (*cmp)(const Segment &, const Segment &))
+void Segment::sort(std::vector<Segment *> &S, Int start, Int end,
+    Int (*cmp)(const Segment &, const Segment &))
 {
     if (start >= end) return;
 
-    E_Int p = _partition(S, start, end, cmp);
+    Int p = _partition(S, start, end, cmp);
 
     sort(S, start, p - 1, cmp);
     sort(S, p + 1, end, cmp);

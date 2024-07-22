@@ -28,7 +28,14 @@
     exit(0); \
   } while (0);
 
-#define RAISE(error) PyErr_SetString(PyExc_ValueError, (error))
+#define RAISE(error) \
+    do { \
+        char msg[1024] = {}; \
+        strcat(msg, __func__); \
+        strcat(msg, ": "); \
+        strcat(msg, error); \
+        PyErr_SetString(PyExc_ValueError, msg); \
+    } while (0);
 
 #define IntArray(n) (Int *)XCALLOC(n, sizeof(Int))
 #define FloatArray(n) (Float *)XCALLOC(n, sizeof(Float))
@@ -43,7 +50,8 @@ typedef E_Float Float;
 
 void parray(Int *arr, Int n);
 
-inline Int Get_pos(Int e, Int *pn, Int size)
+inline
+Int Get_pos(Int e, Int *pn, Int size)
 {
     for (E_Int i = 0; i < size; i++) {
         if (pn[i] == e) return i;
@@ -54,7 +62,8 @@ inline Int Get_pos(Int e, Int *pn, Int size)
     return -1;
 }
 
-inline void Right_shift(E_Int *pn, E_Int pos, E_Int size)
+inline
+void Right_shift(E_Int *pn, E_Int pos, E_Int size)
 {
     E_Int tmp[24];
     assert(size <= 24);

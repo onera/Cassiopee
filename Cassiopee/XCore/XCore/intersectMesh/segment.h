@@ -27,23 +27,23 @@ struct Hedge;
 struct Segment {
     Vertex *p;
     Vertex *q;
-    E_Float dx;
-    E_Float dy;
+    Float dx;
+    Float dy;
     Hedge *rep;
-    E_Int id;
-    E_Int color;
+    Int id;
+    Int color;
 
-    inline E_Float X1() const { return p->x; }
-    inline E_Float Y1() const { return p->y; }
-    inline E_Float X2() const { return q->x; }
-    inline E_Float Y2() const { return q->y; }
+    inline Float X1() const { return p->x; }
+    inline Float Y1() const { return p->y; }
+    inline Float X2() const { return q->x; }
+    inline Float Y2() const { return q->y; }
     
-    Segment(Vertex *p, Vertex *q, E_Int Id);
-    Segment(Hedge *h, E_Int Id);
+    Segment(Vertex *p, Vertex *q, Int Id);
+    Segment(Hedge *h, Int Id);
     Segment(Vertex *P);
 
     bool overlaps(const Segment &seg);
 
-    static void sort(std::vector<Segment *> &S, E_Int start, E_Int end,
-        E_Int (*cmp)(const Segment &, const Segment &));
+    static void sort(std::vector<Segment *> &S, Int start, Int end,
+        Int (*cmp)(const Segment &, const Segment &));
 };

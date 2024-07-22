@@ -19,7 +19,7 @@
 #include "Mesh.h"
 #include "common/mem.h"
 
-int Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf)
+Int Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf)
 {
     Int *cell = Mesh_get_cell(M, cid);
     Int *crange = Mesh_get_crange(M, cid);

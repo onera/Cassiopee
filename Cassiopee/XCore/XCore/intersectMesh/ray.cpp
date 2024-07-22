@@ -19,41 +19,41 @@
 #include "ray.h"
 #include "primitives.h"
 
-E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
-    E_Float dz, E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by, E_Float bz,
-    E_Float cx, E_Float cy, E_Float cz, TriangleIntersection &TI)
+Int MollerTrumbore(Float px, Float py, Float pz, Float dx, Float dy,
+    Float dz, Float ax, Float ay, Float az, Float bx, Float by, Float bz,
+    Float cx, Float cy, Float cz, TriangleIntersection &TI)
 {
-    E_Float e1x = bx - ax;
-    E_Float e1y = by - ay;
-    E_Float e1z = bz - az;
+    Float e1x = bx - ax;
+    Float e1y = by - ay;
+    Float e1z = bz - az;
 
-    E_Float e2x = cx - ax;
-    E_Float e2y = cy - ay;
-    E_Float e2z = cz - az;
+    Float e2x = cx - ax;
+    Float e2y = cy - ay;
+    Float e2z = cz - az;
 
-    E_Float pvecx = dy * e2z - dz * e2y;
-    E_Float pvecy = dz * e2x - dx * e2z;
-    E_Float pvecz = dx * e2y - dy * e2x;
+    Float pvecx = dy * e2z - dz * e2y;
+    Float pvecy = dz * e2x - dx * e2z;
+    Float pvecz = dx * e2y - dy * e2x;
 
-    E_Float det = e1x * pvecx + e1y * pvecy + e1z * pvecz;
+    Float det = e1x * pvecx + e1y * pvecy + e1z * pvecz;
 
     if (det > -TOL && det < TOL)
         return 0;
 
-    E_Float inv_det = 1.0 / det;
+    Float inv_det = 1.0 / det;
 
-    E_Float tvecx = px - ax;
-    E_Float tvecy = py - ay;
-    E_Float tvecz = pz - az;
+    Float tvecx = px - ax;
+    Float tvecy = py - ay;
+    Float tvecz = pz - az;
 
     TI.u = inv_det * (tvecx * pvecx + tvecy * pvecy + tvecz * pvecz);
 
     if (TI.u < 0 || TI.u > 1)
         return 0;
 
-    E_Float qvecx = tvecy * e1z - tvecz * e1y;
-    E_Float qvecy = tvecz * e1x - tvecx * e1z;
-    E_Float qvecz = tvecx * e1y - tvecy * e1x;
+    Float qvecx = tvecy * e1z - tvecz * e1y;
+    Float qvecy = tvecz * e1x - tvecx * e1z;
+    Float qvecz = tvecx * e1y - tvecy * e1x;
 
     TI.v = inv_det * (dx * qvecx + dy * qvecy + dz * qvecz);
 

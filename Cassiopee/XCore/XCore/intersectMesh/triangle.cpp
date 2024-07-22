@@ -23,14 +23,14 @@
 #include "primitives.h"
 
 static
-E_Int orient(E_Float ax, E_Float ay, E_Float bx, E_Float by, E_Float cx, E_Float cy)
+Int orient(Float ax, Float ay, Float bx, Float by, Float cx, Float cy)
 {
-    E_Float det = (bx - ax)*(cy - ay) - (by - ay)*(cx - ax);
+    Float det = (bx - ax)*(cy - ay) - (by - ay)*(cx - ax);
     return Sign(det);
 }
 
-E_Int Triangle::ispointInside(E_Float px, E_Float py, E_Float ax, E_Float ay,
-    E_Float bx, E_Float by, E_Float cx, E_Float cy)
+Int Triangle::ispointInside(Float px, Float py, Float ax, Float ay,
+    Float bx, Float by, Float cx, Float cy)
 {
     if (orient(ax, ay, bx, by, px, py) < 0) return 0;
     if (orient(bx, by, cx, cy, px, py) < 0) return 0;

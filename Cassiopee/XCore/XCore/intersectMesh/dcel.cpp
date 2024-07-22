@@ -33,9 +33,9 @@
 #include "face.h"
 #include "cycle.h"
 
-E_Int Dcel::RED = 0;
-E_Int Dcel::BLACK = 1;
-E_Int Dcel::NO_IDEA = 2;
+Int Dcel::RED = 0;
+Int Dcel::BLACK = 1;
+Int Dcel::NO_IDEA = 2;
 
 void Dcel::resolve(Vertex *p, const std::vector<Segment *> &L,
     const std::vector<Segment *> &C, const std::vector<Segment *> &U,
@@ -115,7 +115,7 @@ void Dcel::find_intersections()
 {
     Status T;
 
-    E_Float BIG = 1;
+    Float BIG = 1;
 
     for (Vertex *p : V) {
         while (fabs(p->x) >= BIG || fabs(p->y) >= BIG) {
@@ -219,11 +219,11 @@ void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
     FILE *fh = fopen(fname, "w");
     assert(fh);
 
-    E_Int np = 0;
-    E_Int ne = 0;
-    E_Int nf = (E_Int)faces.size();
+    Int np = 0;
+    Int ne = 0;
+    Int nf = (Int)faces.size();
 
-    std::map<Vertex *, E_Int> vmap;
+    std::map<Vertex *, Int> vmap;
     std::vector<Vertex *> new_pids;
 
     for (Face *f : faces) {
@@ -254,9 +254,9 @@ void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
     
     fprintf(fh, "INDPG\n");
     fprintf(fh, SF_D_ "\n", ne+1);
-    E_Int sizeNGon = 0;
+    Int sizeNGon = 0;
     fprintf(fh, SF_D_ " ", sizeNGon);
-    for (E_Int i = 0; i < ne; i++) {
+    for (Int i = 0; i < ne; i++) {
         sizeNGon += 2;
         fprintf(fh, SF_D_ " ", sizeNGon);
     }
@@ -282,7 +282,7 @@ void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
 
     fprintf(fh, "INDPH\n");
     fprintf(fh, SF_D_ "\n", nf+1);
-    E_Int sizeNFace = 0;
+    Int sizeNFace = 0;
     fprintf(fh, SF_D_ " ", sizeNFace);
     for (Face *f : faces) {
         Hedge *h = f->rep;
@@ -299,26 +299,26 @@ void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
 
     fprintf(fh, "NFACE\n");
     fprintf(fh, SF_D_ "\n", sizeNFace);
-    for (E_Int i = 0; i < sizeNFace; i++)
+    for (Int i = 0; i < sizeNFace; i++)
         fprintf(fh, SF_D_ " ", i);
 
     fclose(fh);
 }
 
 std::vector<Face *> Dcel::extract_faces_of_indices(
-    const std::vector<E_Int> &indices)
+    const std::vector<Int> &indices)
 {
     std::vector<Face *> ret;
     ret.reserve(indices.size());
 
-    for (E_Int index : indices) ret.push_back(F[index]);
+    for (Int index : indices) ret.push_back(F[index]);
 
     return ret;
 }
 
-std::vector<E_Int> Dcel::extract_indices_of_type(E_Int type)
+std::vector<Int> Dcel::extract_indices_of_type(Int type)
 {
-    std::vector<E_Int> ret;
+    std::vector<Int> ret;
 
     for (size_t i = 0; i < C.size(); i++) {
         if (C[i]->inout == type)
@@ -372,7 +372,7 @@ void Dcel::set_face_labels(std::vector<Face *> &F)
 
         Hedge *R = NULL;
         Hedge *B = NULL;
-        E_Int RB = 0;
+        Int RB = 0;
 
         if (h->color == Dcel::RED) {
             R = h;
@@ -402,7 +402,7 @@ void Dcel::set_face_labels(std::vector<Face *> &F)
     }
 }
 
-Hedge *Dcel::get_hedge_of_color(Face *f, E_Int color)
+Hedge *Dcel::get_hedge_of_color(Face *f, Int color)
 {
     Hedge *h = f->rep;
     if (h->color == color) return h;
@@ -440,11 +440,11 @@ void Dcel::init_vertices(const Smesh &M0, const Smesh &M1)
 {
     assert(Q.empty());
 
-    for (E_Int i = 0; i < M0.np; i++) {
+    for (Int i = 0; i < M0.np; i++) {
         Q.insert(M0.X[i], M0.Y[i], M0.l2gp.at(i), Dcel::RED);
     }
 
-    for (E_Int i = 0; i < M1.np; i++) {
+    for (Int i = 0; i < M1.np; i++) {
         Q.insert(M1.X[i], M1.Y[i], M1.l2gp.at(i), Dcel::BLACK);
     }
 }
@@ -471,7 +471,7 @@ Dcel::Dcel(const Smesh &M0, const Smesh &M1)
     assert(check_faces(H, F));
 }
 
-void Dcel::init_hedges_and_faces(const Smesh &M, E_Int color)
+void Dcel::init_hedges_and_faces(const Smesh &M, Int color)
 {
     size_t nh = H.size();
     size_t nhh = nh + 2 * M.E.size();
@@ -480,11 +480,11 @@ void Dcel::init_hedges_and_faces(const Smesh &M, E_Int color)
 
     std::vector<std::vector<Hedge *>> list(M.np);
 
-    for (E_Int i = 0; i < M.ne; i++) {
+    for (Int i = 0; i < M.ne; i++) {
         const auto &e = M.E[i];
 
-        E_Int p = e.p;
-        E_Int q = e.q;
+        Int p = e.p;
+        Int q = e.q;
 
         Event *xit = Q.lookup(M.X[p], M.Y[p]);
         assert(xit);
@@ -528,10 +528,10 @@ void Dcel::init_hedges_and_faces(const Smesh &M, E_Int color)
         xit->key->rep = hedges[0];
     }
 
-    for (E_Int i = 0; i < M.nf; i++) {
+    for (Int i = 0; i < M.nf; i++) {
         const auto &edges = M.F2E[i];
-        E_Int first_edge = edges[0];
-        E_Int where = nh + 2 * first_edge;
+        Int first_edge = edges[0];
+        Int where = nh + 2 * first_edge;
         Hedge *h = H[where];
         Hedge *t = H[where + 1];
         assert(h->twin == t);
@@ -540,9 +540,9 @@ void Dcel::init_hedges_and_faces(const Smesh &M, E_Int color)
         Face *f = new Face;
         f->oid[color] = M.l2gf.at(i);
 
-        assert(M.E2F[first_edge][0] == (E_Int)i || M.E2F[first_edge][1] == E_Int(i));
+        assert(M.E2F[first_edge][0] == (Int)i || M.E2F[first_edge][1] == Int(i));
 
-        Hedge *REP = (M.E2F[first_edge][0] == (E_Int)i) ? h : t;
+        Hedge *REP = (M.E2F[first_edge][0] == (Int)i) ? h : t;
 
         f->rep = REP;
         REP->left = f;
@@ -573,7 +573,7 @@ void Dcel::init_hedges_and_faces(const Smesh &M, E_Int color)
     }
 }
 
-E_Int Dcel::check_hedges(const std::vector<Hedge *> &H)
+Int Dcel::check_hedges(const std::vector<Hedge *> &H)
 {
     for (size_t i = 0; i < H.size(); i++) {
         Hedge *h = H[i];
@@ -590,7 +590,7 @@ E_Int Dcel::check_hedges(const std::vector<Hedge *> &H)
 }
 
 
-E_Int Dcel::check_faces(const std::vector<Hedge *> &H,
+Int Dcel::check_faces(const std::vector<Hedge *> &H,
     const std::vector<Face *> &F)
 {
     for (size_t i = 0; i < H.size(); i++) {
@@ -621,9 +621,9 @@ Dcel::~Dcel()
 
 void Dcel::set_cycles_inout()
 {
-    E_Int inner = 0;
-    E_Int outer = 0;
-    E_Int degen = 0;
+    Int inner = 0;
+    Int outer = 0;
+    Int degen = 0;
 
     for (Cycle *c : C) {
         // Get the leftmost vertex in the cycle
@@ -636,7 +636,7 @@ void Dcel::set_cycles_inout()
         Hedge *w = h->next;
         while (w != h) {
             Vertex *p = w->orig;
-            E_Int cmp = compare(*p, *v);
+            Int cmp = compare(*p, *v);
             if (cmp < 0) {
                 v = p;
                 e2 = w;
@@ -656,11 +656,11 @@ void Dcel::set_cycles_inout()
 
         // If the angle from e1 to e2 is less than 180°, c is an outer cycle.
         // Else, c is an inner cycle.
-        E_Float px = v->x - a->x;
-        E_Float py = v->y - a->y;
-        E_Float nx = b->x - v->x;
-        E_Float ny = b->y - v->y;
-        E_Int cmp = Sign(px * ny - py * nx);
+        Float px = v->x - a->x;
+        Float py = v->y - a->y;
+        Float nx = b->x - v->x;
+        Float ny = b->y - v->y;
+        Int cmp = Sign(px * ny - py * nx);
 
         if (cmp < 0) {
             c->inout = Cycle::INNER;

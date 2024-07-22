@@ -39,9 +39,12 @@ def AdaptMesh_Adapt(AM):
     return xcore.AdaptMesh_Adapt(AM)
 
 def AdaptMesh_ExtractMesh(t, conformize=1):
-    mesh, bcs, comm = xcore.AdaptMesh_ExtractMesh(t, conformize)
+    mesh, bcs, comm, procs = xcore.AdaptMesh_ExtractMesh(t, conformize)
     name = 'Proc' + '%d'%Cmpi.rank
     zone = I.createZoneNode(name, mesh)
+
+    if procs is not None and len(procs) > 0:
+        I.newUserDefinedData(name='NeighbourProcessors', value=procs, parent=zone)
 
     if comm is not None:
         for data in comm:
