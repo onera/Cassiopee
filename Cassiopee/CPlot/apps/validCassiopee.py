@@ -1477,45 +1477,6 @@ def export2Text():
     file.close()
 
 #==============================================================================
-# Functions returning the names of the remote repo & branch and the commit hash
-#==============================================================================    
-def getGitOrigin(cassiopeeIncDir):    
-    if mySystem == 'mingw' or mySystem == 'windows':
-        lpath = cassiopeeIncDir.replace('/', '\\')
-        cmd = "cd {} && git config --get remote.origin.url".format(lpath)
-    else: # unix 
-        lpath = cassiopeeIncDir    
-        cmd = "cd {}; git config --get remote.origin.url 2>/dev/null".format(lpath)
-    try:
-        origin = subprocess.check_output(cmd, shell=True)
-        return origin.decode('utf-8', 'ignore').strip()
-    except: return "unknown"
-
-def getGitBranch(cassiopeeIncDir):
-    if mySystem == 'mingw' or mySystem == 'windows':
-        lpath = cassiopeeIncDir.replace('/', '\\')
-        cmd = "cd {} && git rev-parse --abbrev-ref HEAD".format(lpath)
-    else: # unix
-        lpath = cassiopeeIncDir    
-        cmd = "cd {}; git rev-parse --abbrev-ref HEAD 2>/dev/null".format(lpath)
-    try:
-        branchName = subprocess.check_output(cmd, shell=True)
-        return branchName.decode('utf-8', 'ignore').strip()
-    except: return "unknown"
-
-def getGitHash(cassiopeeIncDir):
-    if mySystem == 'mingw' or mySystem == 'windows':
-        lpath = cassiopeeIncDir.replace('/', '\\')
-        cmd = "cd {} && git rev-parse --short HEAD".format(lpath)
-    else: # unix 
-        lpath = cassiopeeIncDir    
-        cmd = "cd {}; git rev-parse --short HEAD 2>/dev/null".format(lpath)
-    try:
-        sha = subprocess.check_output(cmd, shell=True)
-        return sha.decode('utf-8', 'ignore').strip()
-    except: return "unknown"
-    
-#==============================================================================
 # writeSessionLog: write log and baseTime
 #==============================================================================
 def createEmptySessionLog():
@@ -1524,9 +1485,9 @@ def createEmptySessionLog():
     
 def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
-    gitOrigin = getGitOrigin(cassiopeeIncDir)
-    gitBranch = getGitBranch(cassiopeeIncDir)
-    gitHash = getGitHash(cassiopeeIncDir)[:7]
+    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
+    gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
     gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
         gitOrigin, gitBranch, gitHash)
     
@@ -1543,9 +1504,9 @@ def writeSessionLog():
 #============================================================================== 
 def notifyValidOK():
     cassiopeeIncDir = getInstallPaths()[0]
-    gitOrigin = getGitOrigin(cassiopeeIncDir)
-    gitBranch = getGitBranch(cassiopeeIncDir)
-    gitHash = getGitHash(cassiopeeIncDir)
+    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
+    gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
     gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
         gitOrigin, gitBranch, gitHash)
 
@@ -1700,6 +1661,8 @@ def parseArgs():
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
                         help="Run selected tests")
+    parser.add_argument("-u", "--update", action="store_true",
+                        help="Update local database")
 
     # Parse arguments
     return parser.parse_args()
@@ -1895,8 +1858,7 @@ if __name__ == '__main__':
         ProgressLabel = NoDisplayLabel()
         Filter = NoDisplayStringVar()
         TextFilter = NoDisplayEntry()
-        UpdateButton = NoDisplayButton()
-        WIDGETS['UpdateButton'] = UpdateButton
+        WIDGETS['UpdateButton'] = NoDisplayButton()
         Threads = NoDisplayStringVar()
         TextThreads = NoDisplayEntry()
         getThreads()
@@ -1913,4 +1875,8 @@ if __name__ == '__main__':
         if vcargs.run:
             selectAll()
             runTests()
+            Quit()
+        elif vcargs.update:
+            selectAll()
+            updateTests()
             Quit()
