@@ -1,4 +1,4 @@
-# Installation on msys2 (windows)
+# Installation on windows (using msys2)
 
 ## Install msys2
 Download msys2 (https://www.msys2.org)

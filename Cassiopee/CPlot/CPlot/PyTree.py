@@ -1131,6 +1131,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs):
 
 #==============================================================================
 # display360 (offscreen=1, 2 or 7)
+# type360=0 (360 degres), =1 (180 degres)
 #==============================================================================
 def display360(t, type360=0, **kwargs):
     """Display for 360 images."""
@@ -1175,21 +1176,19 @@ def display360(t, type360=0, **kwargs):
         if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
         else: export2 = export+'_2'
 
+        # common
         v1 = Vector.sub(posEye, posCam)
         vz = Vector.normalize(dirCam)
         v2 = Vector.cross(vz, v1)
         v2 = Vector.normalize(v2)
+
+        # stereo mode: convergent: decalage de la posCam a gauche, puis rotation du centre decale
         v3 = Vector.mul(stereoDist, v2)
         posCam = Vector.add(posCam, v3)
-    
+
         display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs)
+
         if Cmpi.rank == 0:
-            #if offscreen == 7: foffscreen = 1
-            #else: foffscreen = offscreen
-            #a = C.newPyTree(['Base'])
-            #display(a, panorama=1,
-            #        offscreen=foffscreen, export=export2, exportResolution=exportRez)
-            #finalizeExport(foffscreen)
             panorama(export2, exportRez, type360=type360)
 
             # assemble images

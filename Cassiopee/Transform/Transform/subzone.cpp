@@ -43,7 +43,7 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   E_Int imjm = im*jm;
 
   if (res == 1)
@@ -77,6 +77,8 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
     }
     
     // Construit l'array resultat
+    //E_Int api = f->getApi();
+    //if (api == 2) api=3;
     PyObject* tpl= K_ARRAY::buildArray3(nfld, varString, in, jn, kn);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF subzone0(injn*kn, nfld, fnp, true);

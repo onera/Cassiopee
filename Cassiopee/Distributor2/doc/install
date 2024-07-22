@@ -6,29 +6,14 @@ if [ "$CASSIOPEE" = "" ]; then
     exit
 fi
 
-if ([ $# -eq 0 ])
-then
-    PRODUCTION=0
-    # Destination docs
-    DEST="./doc"
-    # Destination tests unitaires
-    DEST2="$DEST/Examples/Distributor2"
-    # Destination des release notes
-    DEST3="$DEST"
-elif ([ $# -eq 2 ])
-then
-    PRODUCTION=1
-    # Destination docs
-    DEST="$CASSIOPEE/docs/doc"
-    # Destination tests unitaires
-    DEST2="$DEST/Examples/Distributor2"
-    # Destination des release notes
-    DEST3="$CASSIOPEE/docs/Download"
-else
-    echo 'install: install locally'
-    echo 'install 1 2: install in docs/doc.'
-    exit
-fi
+
+PRODUCTION=1
+# Destination docs
+DEST="$CASSIOPEE/docs/doc"
+# Destination tests unitaires
+DEST2="$DEST/Examples/Distributor2"
+# Destination des release notes
+DEST3="$CASSIOPEE/docs/Download"
 
 # Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])

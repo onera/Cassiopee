@@ -1,4 +1,4 @@
-# Installation on ubuntu (linux)
+# Installation on linux (ubuntu)
 
 Tested on ubuntu 24.04.
 

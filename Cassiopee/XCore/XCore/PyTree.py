@@ -108,19 +108,16 @@ def loadAndSplitElt(fileName):
   zones = I.getZones(dt)
   
   if len(zones) > 1:
-    raise TypeError("chunk2part: one zone only.")
+    raise TypeError("loadAndSplitElt: one zone only.")
 
   z = zones[0]
-
-  XYZ = []
 
   cx = I.getNodeFromName2(z, 'CoordinateX')[1]
   cy = I.getNodeFromName2(z, 'CoordinateY')[1]
   cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
 
-  XYZ.append(cx)
-  XYZ.append(cy)
-  XYZ.append(cz)
+  XYZ = []
+  XYZ.append(cx); XYZ.append(cy); XYZ.append(cz)
 
   cns = I.getNodesFromType(z, 'Elements_t')
 
@@ -135,8 +132,8 @@ def loadAndSplitElt(fileName):
 
   zones = []
 
-  for i in range(len(parts)):
-    z = I.createZoneNode('Zone' + '%d'%Cmpi.rank + '_%d'%i, parts[i])
+  for i, p in enumerate(parts):
+    z = I.createZoneNode('Zone' + '%d'%Cmpi.rank + '_%d'%i, p)
     zones.append(z)
 
   t = C.newPyTree(['Base', zones])

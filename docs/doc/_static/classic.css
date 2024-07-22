@@ -15,21 +15,28 @@
 
 html {
     /* CSS hack for macOS's scrollbar (see #1125) */
-    background-color: #FFFFFF;
+    background-color: var(--background-color);
+}
+
+hr {
+    border: 1px solid var(--border-color);
+    margin-bottom: 5%;
+    margin-top: 5%;
 }
 
 body {
     font-family: sans-serif;
     font-size: 100%;
-    background-color: #11303d;
-    color: #000;
+    background-color: var(--background-color);
+    color: var(--font-color);
     margin: 0;
     padding: 0;
+    margin-top: 30px;
 }
 
 div.document {
     display: flex;
-    background-color: #1c4e63;
+    background-color: var(--background-color);
 }
 
 div.documentwrapper {
@@ -39,64 +46,57 @@ div.documentwrapper {
 
 div.bodywrapper {
     margin: 0 0 0 230px;
+    padding-right: 70px;
 }
 
 div.body {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: var(--background-color);
+    color: var(--font-color);
     padding: 0 20px 30px 20px;
+    margin: 0 0 0 135px;
 }
 
 div.footer {
-    color: #ffffff;
+    color: var(--font-color);
     width: 100%;
     padding: 9px 0 9px 0;
     text-align: center;
     font-size: 75%;
 }
 
-div.footer a {
-    color: #ffffff;
-    text-decoration: underline;
-}
-
 div.related {
-    background-color: #133f52;
+    background-color: var(--background-color);
     line-height: 30px;
-    color: #ffffff;
+    color: var(--font-color);
 }
 
-div.related a {
-    color: #ffffff;
-}
-
-div.sphinxsidebar {
-}
+/* div.sphinxsidebar {
+    position: fixed;
+    top: 40px;
+    bottom: 40px;
+    border-right: var(--border);
+} */
 
 div.sphinxsidebar h3 {
     font-family: 'Trebuchet MS', sans-serif;
-    color: #ffffff;
-    font-size: 1.4em;
-    font-weight: normal;
+    color: var(--font-color);
+    font-size: 160%;
+    font-weight: bold;
     margin: 0;
     padding: 0;
 }
 
-div.sphinxsidebar h3 a {
-    color: #ffffff;
-}
-
 div.sphinxsidebar h4 {
     font-family: 'Trebuchet MS', sans-serif;
-    color: #ffffff;
+    color: var(--font-color);
     font-size: 1.3em;
     font-weight: normal;
-    margin: 5px 0 0 0;
+    margin: -5px 0 0 0;
     padding: 0;
 }
 
 div.sphinxsidebar p {
-    color: #ffffff;
+    color: var(--font-color);
 }
 
 div.sphinxsidebar p.topless {
@@ -106,35 +106,28 @@ div.sphinxsidebar p.topless {
 div.sphinxsidebar ul {
     margin: 10px;
     padding: 0;
-    color: #ffffff;
+    color: var(--font-color);
+    font-size: 100%;
+    margin-bottom: 20px;
 }
 
-div.sphinxsidebar a {
-    color: #98dbcc;
+div.sphinxsidebar ul ul li {
+    list-style: circle;
 }
-
-div.sphinxsidebar input {
-    border: 1px solid #98dbcc;
-    font-family: sans-serif;
-    font-size: 1em;
-}
-
-
 
 /* -- hyperlink styles ------------------------------------------------------ */
 
 a {
-    color: #355f7c;
     text-decoration: none;
 }
-
-a:visited {
-    color: #551a8b;
-    text-decoration: none;
+a:link, a:visited {
+color: var(--link-color);
 }
-
-a:hover {
-    text-decoration: underline;
+a:hover, a:active {
+color: red;
+}
+a strong {
+text-decoration: underline;
 }
 
 
@@ -148,12 +141,11 @@ div.body h4,
 div.body h5,
 div.body h6 {
     font-family: 'Trebuchet MS', sans-serif;
-    background-color: #f2f2f2;
-    font-weight: normal;
-    color: #20435c;
-    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+    color: var(--font-color);
     margin: 20px -20px 10px -20px;
     padding: 3px 0 3px 10px;
+    border-radius: var(--border-radius);
 }
 
 div.body h1 { margin-top: 0; font-size: 200%; }
@@ -176,8 +168,17 @@ a.headerlink:hover {
 }
 
 div.body p, div.body dd, div.body li, div.body blockquote {
-    text-align: justify;
+    text-align: left;
     line-height: 130%;
+}
+
+#name-standardisation table p {
+    text-align: center;
+    line-height: 130%;
+}
+
+#list-of-functions td {
+    width: 50%;
 }
 
 div.admonition p.admonition-title + p {
@@ -197,13 +198,29 @@ div.admonition ul, div.admonition ol {
 }
 
 div.note {
-    background-color: #eee;
-    border: 1px solid #ccc;
+    padding: 4px;
+    border: 2px solid #d19a66;
+    background-color: rgb(209, 154, 102, 0.2);
+    border-radius: var(--border-radius);
+    width: 95%;
+}
+
+.note .admonition-title {
+    color: #d19a66;
+    margin-left: 10px;
 }
 
 div.seealso {
-    background-color: #ffc;
-    border: 1px solid #ff6;
+    padding: 4px;
+    border: 2px solid #c678dd;
+    background-color: rgb(198, 120, 221, 0.2);
+    border-radius: var(--border-radius);
+    width: 95%;
+}
+
+.seealso .admonition-title {
+    color: #c678dd;
+    margin-left: 10px;
 }
 
 nav.contents,
@@ -213,8 +230,16 @@ div.topic {
 }
 
 div.warning {
-    background-color: #ffe4e4;
-    border: 1px solid #f66;
+    padding: 4px;
+    border: 2px solid #c12e3a;
+    background-color: rgb(193, 46, 58, 0.2);
+    border-radius: var(--border-radius);
+    width: 95%;
+}
+
+.warning .admonition-title {
+    color: #c12e3a;
+    margin-left: 10px;
 }
 
 p.admonition-title {
@@ -230,7 +255,6 @@ pre {
     background-color: unset;
     color: unset;
     line-height: 120%;
-    border: 1px solid #ac9;
     border-left: none;
     border-right: none;
 }
@@ -242,7 +266,17 @@ code {
 }
 
 th, dl.field-list > dt {
-    background-color: #ede;
+    padding: 10px;
+    border: 2px solid #282a35;
+
+    border-radius: var(--border-radius);
+    margin-bottom: 3px;
+}
+
+th, dl.field-list > dd {
+    padding: 10px;
+    border-radius: var(--border-radius);
+    margin-bottom: 3px;
 }
 
 .warning code {
@@ -264,6 +298,10 @@ div.viewcode-block:target {
 }
 
 div.code-block-caption {
-    color: #efefef;
-    background-color: #1c4e63;
+    color: var(--font-color);
+    background-color: var(--background-color);
+}
+
+#myBtn {
+    box-shadow: none;
 }

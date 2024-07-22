@@ -9,6 +9,28 @@
  *
  */
 
+ /* FAST */
+ /* :root {
+    --border-width: 2px;
+    --border-color: #f0fdff;
+    --border: var(--border-width) solid var(--border-color);
+    --border-radius: 8px;
+    --background-color: #282a35;
+    --font-color: white;
+    --link-color: rgb(35, 187, 35);
+  } */
+
+  /* CASSIOPEE */
+  :root { 
+    --border-width: 2px;
+    --border-color: #282a35;
+    --border: var(--border-width) solid var(--border-color);
+    --border-radius: 8px;
+    --background-color: #f0fdff;
+    --font-color: black; 
+    --link-color: green;
+  }
+
 /* -- main layout ----------------------------------------------------------- */
 
 div.clearer {
@@ -25,7 +47,8 @@ div.section::after {
 
 div.related {
     width: 100%;
-    font-size: 90%;
+    font-size: 1px;
+    visibility: hidden;
 }
 
 div.related h3 {
@@ -56,10 +79,15 @@ div.sphinxsidebarwrapper {
 div.sphinxsidebar {
     float: left;
     width: 230px;
-    margin-left: -100%;
+    margin-left: 30px;
+    padding-right: 45px;
+    padding-bottom: 20px;
+    padding-top: 0%;
     font-size: 90%;
     word-wrap: break-word;
     overflow-wrap : break-word;
+    position: fixed;
+    border-right: var(--border);
 }
 
 div.sphinxsidebar ul {
@@ -77,15 +105,16 @@ div.sphinxsidebar ul ul {
     margin-bottom: 0;
 }
 
-div.sphinxsidebar form {
+/* div.sphinxsidebar form {
     margin-top: 10px;
-}
+} */
 
-div.sphinxsidebar input {
+/* div.sphinxsidebar input {
     border: 1px solid #98dbcc;
     font-family: sans-serif;
     font-size: 1em;
-}
+    margin-bottom: 10px;
+} */
 
 div.sphinxsidebar #searchbox form.search {
     overflow: hidden;
@@ -96,14 +125,28 @@ div.sphinxsidebar #searchbox input[type="text"] {
     width: 80%;
     padding: 0.25em;
     box-sizing: border-box;
+    background-color: white;
+    border-color: black;
+    border-radius: 8px;
+    border: 2px solid;
+    outline: none;
+    margin-right: 1%;
+    margin-top: 5%;
+    margin-bottom: 5%;
 }
 
 div.sphinxsidebar #searchbox input[type="submit"] {
     float: left;
-    width: 20%;
-    border-left: none;
+    width: 19%;
     padding: 0.25em;
     box-sizing: border-box;
+    background-color: white;
+    border-color: black;
+    border-radius: 8px;
+    border: 2px solid;
+    outline: none;
+    margin-top: 5%;
+    margin-bottom: 5%;
 }
 
 
@@ -164,6 +207,10 @@ span.linkdescr {
 
 /* -- general index --------------------------------------------------------- */
 
+table{
+    font-size: 1vw;
+}
+
 table.indextable {
     width: 100%;
 }
@@ -181,6 +228,7 @@ table.indextable ul {
 
 table.indextable > tbody > tr > td > ul {
     padding-left: 0em;
+    width: 100%;
 }
 
 table.indextable tr.pcap {
@@ -199,15 +247,15 @@ img.toggler {
 }
 
 div.modindex-jumpbox {
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+    border-top: 2px solid #282a35;
+    border-bottom: 2px solid #282a35;
     margin: 1em 0 1em 0;
     padding: 0.4em;
 }
 
 div.genindex-jumpbox {
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+    border-top: 2px solid #282a35;
+    border-bottom: 2px solid #282a35;
     margin: 1em 0 1em 0;
     padding: 0.4em;
 }
@@ -222,8 +270,13 @@ table.modindextable td {
 /* -- general body styles --------------------------------------------------- */
 
 div.body {
-    min-width: 360px;
-    max-width: 800px;
+    min-width: 1%;
+    max-width: 80%;
+}
+
+div.bodywrapper {
+    min-width: 1%;
+    max-width: 80%;
 }
 
 div.body p, div.body dd, div.body li, div.body blockquote {
@@ -259,7 +312,8 @@ div.body p.caption {
 }
 
 div.body td {
-    text-align: left;
+    text-align: center;
+    width: 20%;
 }
 
 .first {
@@ -403,6 +457,7 @@ table.docutils {
     margin-bottom: 10px;
     border: 0;
     border-collapse: collapse;
+    width: 100%;
 }
 
 table.align-center {
@@ -424,10 +479,7 @@ table caption span.caption-text {
 
 table.docutils td, table.docutils th {
     padding: 1px 8px 1px 5px;
-    border-top: 0;
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 1px solid #aaa;
+    border: 2px solid #aaa;
 }
 
 th {
@@ -510,6 +562,7 @@ table.hlist td {
 
 .sig {
 	font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-size: 1.2vw;
 }
 
 .sig-name, code.descname {
@@ -518,11 +571,11 @@ table.hlist td {
 }
 
 .sig-name {
-	font-size: 1.1em;
+    font-size: 1.5vw;
 }
 
 code.descname {
-    font-size: 1.2em;
+    font-size: 1.2vw;
 }
 
 .sig-prename, code.descclassname {
@@ -530,11 +583,11 @@ code.descname {
 }
 
 .optional {
-    font-size: 1.3em;
+    font-size: 1.5vw;
 }
 
 .sig-paren {
-    font-size: larger;
+    font-size: 1.5vw;
 }
 
 .sig-param.n {
@@ -794,7 +847,7 @@ table.highlighttable {
 }
 
 table.highlighttable tbody {
-    display: block;
+    width:100%;
 }
 
 table.highlighttable tr {

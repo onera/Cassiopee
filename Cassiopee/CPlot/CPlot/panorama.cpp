@@ -19,6 +19,9 @@
 #include "cplot.h"
 #include "Data.h"
 
+#define M_PI 3.1415926535897932384626433832795
+
+// in texture interpolation
 void interp(E_Int ind, 
             E_Float* final1, E_Float* final2, E_Float* final3, E_Float* final4,
             E_Float* im1, E_Float* im2, E_Float* im3, E_Float* im4, 
@@ -38,10 +41,60 @@ void interp(E_Int ind,
   E_Float by = 1.-ay;
   //printf("%g %g // %g %d\n", ax, ay, py, nj1);
   final1[ind] = bx*by*im1[ind1]+ax*by*im1[ind2]+bx*ay*im1[ind3]+ax*ay*im1[ind4];
-  //printf("ind=%d %g\n", ind, final1[ind]);
   final2[ind] = bx*by*im2[ind1]+ax*by*im2[ind2]+bx*ay*im2[ind3]+ax*ay*im2[ind4];
   final3[ind] = bx*by*im3[ind1]+ax*by*im3[ind2]+bx*ay*im3[ind3]+ax*ay*im3[ind4];
   final4[ind] = bx*by*im4[ind1]+ax*by*im4[ind2]+bx*ay*im4[ind3]+ax*ay*im4[ind4];
+}
+
+
+// IN: sigma: in pixels
+// IN: n: half size of kernel
+// OUT: c: half kernel coefficients
+void createGaussFilter(E_Float sigma, E_Int n, E_Float* c)
+{
+  E_Float sigma2 = (sigma*sigma);
+  for (E_Int i = 0; i <= n; i++)
+  {
+    c[i] = exp( -(i*i) / (2.*sigma2)) / (sigma*sqrt(2.)*M_PI);
+  }
+  printf("gaussian coefficients: ");
+  for (E_Int i = 0; i <= n; i++) printf("%g ", c[i]);
+  printf("\n");
+
+}
+
+// IN: in: color array
+// IN: ni,nj: image size
+// IN: c: kernel coef
+// IN: n: kernel half size
+// OUT: out: color array (already allocated)
+void gaussianBlur(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float* out)
+{
+  // filter en i
+  for (E_Int j = 0; j < nj; j++)
+  for (E_Int i = n; i < ni-n; i++)
+  {
+    out[i+j*ni] = in[i+j*ni]*c[0];
+
+    for (E_Int k = 1; k < n; k++)
+    {
+      out[i+j*ni] += in[i-k+j*ni]*c[k];
+      out[i+j*ni] += in[i+k+j*ni]*c[k];
+    }
+  }
+
+  // filter en j
+  for (E_Int j = n; j < nj-n; j++)
+  for (E_Int i = 0; i < ni; i++)
+  {
+    in[i+j*ni] = out[i+j*ni]*c[0];
+
+    for (E_Int k = 1; k < n; k++)
+    {
+      in[i+j*ni] += out[i+(j-k)*ni]*c[k];
+      in[i+j*ni] += out[i+(j+k)*ni]*c[k];
+    }
+  }
 }
 
 // perform the stitching (identical to panorama.frag but on the cpu)
@@ -135,8 +188,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   }
 
   // code
-#define M_PI 3.1415926535897932384626433832795
-
   E_Int nijl = nil*njl;
   E_Int nil1 = nil-1;
   E_Int njl1 = njl-1;
@@ -178,6 +229,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   E_Float* final3 = final->begin(6);
   E_Float* final4 = final->begin(7);
   E_Float tinf, tsup;
+
   if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
   else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
@@ -274,6 +326,38 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
       }
     }
   }
+
+  // gaussian blur needed for headsets
+  E_Float blurSigma = -1.;
+  if (blurSigma > 0.)
+  {
+    E_Int n = 3; // half kernel size
+    E_Float* c = new E_Float [n+1]; // kernel coeff
+    createGaussFilter(blurSigma, n, c);
+    FldArrayF out(nil*njl, 3);
+    E_Float* out1 = out.begin(1);
+    E_Float* out2 = out.begin(2);
+    E_Float* out3 = out.begin(3);
+
+    gaussianBlur(final1, nil, njl, c, n, out1);
+    gaussianBlur(final2, nil, njl, c, n, out2);
+    gaussianBlur(final3, nil, njl, c, n, out3);
+    
+    /*
+    #pragma omp parallel
+    {
+      #pragma omp for
+      for (E_Int ind = 0; ind < nil*njl; ind++) 
+      {  
+        final1[ind] = out1[ind];
+        final2[ind] = out2[ind];
+        final3[ind] = out3[ind];
+      }
+    }
+    */
+    delete [] c;
+  }
+
   return Py_None;
 }
 

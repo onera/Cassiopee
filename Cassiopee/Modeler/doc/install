@@ -1,34 +1,20 @@
 #!/bin/sh
 echo 'Installing Modeler tests and doc'
 
-if ([ $# -eq 0 ])
-then
-    if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in your environment."
-        echo "This variable specifies the installation path of *Cassiopee*."
-        exit
-    fi
-    PRODUCTION=0
-    # Destination docs
-    DEST="./doc"
-    # Destination tests unitaires
-    DEST2="$DEST/Examples/Modeler"
-    # Destination des release notes
-    DEST3="$DEST"
-elif ([ $# -eq 2 ])
-then
-    PRODUCTION=1
-    # Destination docs
-    DEST="$CASSIOPEE/docs/doc"
-    # Destination tests unitaires
-    DEST2="$DEST/Examples/Modeler"
-    # Destination des release notes
-    DEST3="$CASSIOPEE/docs/Download"
-else
-    echo 'install: install locally'
-    echo 'install 1 2: install in docs/doc.'
+
+if [ "$CASSIOPEE" = "" ]; then
+    echo "You must specify a CASSIOPEE variable in your environment."
+    echo "This variable specifies the installation path of *Cassiopee*."
     exit
 fi
+
+PRODUCTION=1
+# Destination docs
+DEST="$CASSIOPEE/docs/doc"
+# Destination tests unitaires
+DEST2="$DEST/Examples/Modeler"
+# Destination des release notes
+DEST3="$CASSIOPEE/docs/Download"
 
 # Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
