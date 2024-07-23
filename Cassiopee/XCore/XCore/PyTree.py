@@ -73,6 +73,15 @@ def AdaptMesh_ExtractMesh(t, conformize=1):
     t = C.newPyTree([name, zone])
     return t
 
+def AdaptMesh_ExtractOwners(AM):
+    return xcore.AdaptMesh_ExtractOwners(AM)
+
+def AdaptMesh_ExtractCellLevels(AM):
+    return xcore.AdaptMesh_ExtractCellLevels(AM)
+
+def AdaptMesh_ExtractNeighbourCellLevels(AM):
+    return xcore.AdaptMesh_ExtractNeighbourCellLevels(AM)
+
 
 ################################################################################
 
