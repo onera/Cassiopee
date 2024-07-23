@@ -472,7 +472,7 @@ Exchanges
 Actions
 -------------
 
-.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, fileName="proc")
+.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, fileName="stdout")
 
     Enable to monitor CPU usage and memory usage for each node/process.
     If fileName="stdout", information is written to standard output with the processor number. 

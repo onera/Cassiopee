@@ -212,7 +212,7 @@ def isFinite(t, var=None):
 # si stdout=True, ecrit a l'ecran
 # si reset, vide le fichier log
 # si filename="stdout", ecrit a l'ecran, sinon ecrit dans le fichier filename
-def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fileName="proc"):
+def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fileName="stdout"):
     """Write a trace of cpu and memory in a file or to stdout for current node."""
     global PREVFULLTIME
     msg = text
