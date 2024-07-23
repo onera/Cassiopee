@@ -381,20 +381,21 @@ def setPaths():
         paths = [fastIncDir, pmodulesIncDir]
         for path in paths:
             if path is None: continue
-            if loc == 'LOCAL': print('Info: getting local module tests in: {}.'.format(path))
-            else: print('Info: getting global module tests in: {}.'.format(path))
+            print('Info: getting {} module tests in: {}.'.format(
+                loc.lower(), path))
 
             try: mods = os.listdir(path)
             except: mods = []
             for i in mods:
                 if i not in notTested and i not in MODULESDIR[loc]:
+                    if loc == 'GLOBAL' and i not in MODULESDIR['LOCAL']:
+                        # Skip modules which aren't found locally - would hang
+                        continue
                     a = os.access(os.path.join(path, i, 'test'), os.F_OK)
-                    if a:
-                        MODULESDIR[loc][i] = path
+                    if a: MODULESDIR[loc][i] = path
         
-        
-        if loc == 'LOCAL': print('Info: getting local module names in: {}.'.format(cassiopeeIncDir))
-        else: print('Info: getting global module names in: {}.'.format(cassiopeeIncDir))
+        print('Info: getting {} module names in: {}.'.format(
+            loc.lower(), cassiopeeIncDir))
         try: mods = os.listdir(cassiopeeIncDir)
         except: mods = []
         for i in mods:
@@ -994,6 +995,7 @@ def buildTestList(loadSession=False, modules=[]):
     ncolumns = 8
     logname = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], "session-*.log")))
     if len(logname): logname = logname[-1]
+    else: loadSession = False
 
     if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
         print("Loading last session: {}".format(logname))
