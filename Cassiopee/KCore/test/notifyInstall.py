@@ -45,12 +45,14 @@ if __name__ == '__main__':
   baseState = 'OK'
   messageText = "Installation of Cassiopee, Fast and all "\
     "PModules:\n{}\n\n{}\n\n\n".format(48*'-', gitInfo)
+  messageText += '{:^20} | {:^30} | {:^10}\n{}\n'.format(
+      "PROD.", "DATE", "STATUS", 67*'-')
   for log_machine in log_entries:
     prod = log_machine[0]
     date = strptime(log_machine[1], "%y%m%d-%H%M%S")
     date = strftime("%d/%m/%y at %T", date)
     status = log_machine[2]
-    messageText += '{:>20} |      {}      | {:>10}\n'.format(prod, date, status)
+    messageText += '{:^20} | {:^30} | {:^10}\n'.format(prod, date, status)
     if 'FAILED' in log_machine: baseState = 'FAILED'
     
   if baseState == 'FAILED':
