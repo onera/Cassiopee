@@ -129,8 +129,6 @@ PyObject *K_XCORE::AdaptMesh_ExtractNeighbourCellLevels(PyObject *self, PyObject
     for (Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        P->sbuf_i = (Int *)XRESIZE(P->sbuf_i, P->nf * sizeof(Int));
-
         PyObject *LVL = PyList_GetItem(out, i);
 
         Int *pl = (Int *)PyArray_DATA((PyArrayObject *)LVL);
