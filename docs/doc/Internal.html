@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Internal: CGNS/Python tree management &#8212; Converter 4.0 documentation</title>
+    <title>Converter.Internal: CGNS/Python tree management &#8212; Converter 4.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -30,7 +30,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Internal: CGNS/Python tree management</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Converter.Internal: CGNS/Python tree management</a></li> 
       </ul>
     </div>  
 
@@ -40,7 +40,7 @@
           <div class="body" role="main">
             
   <section id="internal-cgns-python-tree-management">
-<h1>Internal: CGNS/Python tree management</h1>
+<h1>Converter.Internal: CGNS/Python tree management</h1>
 <section id="preamble">
 <h2>Preamble</h2>
 <p>This module provides simple and efficient functions for
@@ -6039,7 +6039,7 @@ If parent is not None, attach it to parent node.</p>
   <div>
     <h3><a href="Converter.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">Internal: CGNS/Python tree management</a><ul>
+<li><a class="reference internal" href="#">Converter.Internal: CGNS/Python tree management</a><ul>
 <li><a class="reference internal" href="#preamble">Preamble</a></li>
 <li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
 <li><a class="reference internal" href="#contents">Contents</a></li>
@@ -6060,7 +6060,6 @@ If parent is not None, attach it to parent node.</p>
 </div>
 <script>document.getElementById('searchbox').style.display = "block"</script><a  href="Internal.pdf" target="_self">Download pdf version</a>
 <p></p>
-<a  href="../index.html" target="_self">Back to main page</a>
 <head>
 <style>
 #myBtn {
@@ -6071,28 +6070,48 @@ If parent is not None, attach it to parent node.</p>
   z-index: 99;
   border: none;
   outline: none;
-  background-color: rgba(26,85,85,0.5);
-  color: rgb(0, 0, 0);
+  background-color: #282a35;
   cursor: pointer;
   padding: 15px;
   border-radius: 10px;
-  box-shadow: 6px 6px 6px black;
 }
 
 #myBtn:hover {
   background-color: rgb(26,85,85);
-  color: rgb(255, 255, 255);
 }
+
+#myImg {
+  position: fixed;
+  top: 50px;
+  left: 50px;
+  z-index: 99;
+  padding: 15px;
+  width: 200px;
+}
+
+#myImg img {
+  height: auto;
+  width: 90%;
+  border: none;
+  border-radius: 0px;
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
 </style>
 </head>
-<body>
 
 <button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
 
-<script>
-// When the user scrolls down 20px from the top of the document, show the button
-window.onscroll = function() {scrollFunction()};
+<a href="../index.html" id="myImg"><img src="../Images/CassiopeeLogo.png"></a>
 
+
+<script>
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
 function scrollFunction() {
     if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
         document.getElementById("myBtn").style.display = "block";
@@ -6106,29 +6125,22 @@ function topFunction() {
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
 }
-</script>
-</body>
-<!-- <img src="logo-onera-ident.png">>
 
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Internal: CGNS/Python tree management</a></li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright ONERA.
-    </div>
-  </body>
-</html>
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+    }
+}
+
+</script>

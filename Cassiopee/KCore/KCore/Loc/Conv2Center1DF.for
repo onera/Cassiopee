@@ -62,7 +62,7 @@ C_OUT
       REAL_E fieldcenter(0:ni-2)
       
 C_LOCAL
-      INTEGER_E i, j, indcenter
+      INTEGER_E i, indcenter
       INTEGER_E ind0, ind1
       INTEGER_E nic
       

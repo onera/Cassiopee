@@ -106,14 +106,16 @@ img {
 
 footer {
   width: 30%;
-  margin-bottom: 60px;
-  margin-top: 60px;
+  margin-bottom: 158px;
+  margin-top: 158px;
   margin-left: auto;
   margin-right: auto;
 }
 footer img {
   height: auto;
-  width: 100%;
+  width: 80%;
+  margin-left: 10%;
+  margin-right: 10%;
   border: none;
   border-radius: 0px;
 }

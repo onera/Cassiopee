@@ -79,10 +79,10 @@ div.sphinxsidebarwrapper {
 div.sphinxsidebar {
     float: left;
     width: 230px;
-    margin-left: 30px;
+    margin-left: 40px;
     padding-right: 45px;
-    padding-bottom: 20px;
-    padding-top: 0%;
+    padding-bottom: 50px;
+    padding-top: 250px;
     font-size: 90%;
     word-wrap: break-word;
     overflow-wrap : break-word;

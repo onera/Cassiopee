@@ -108,7 +108,7 @@ div.sphinxsidebar ul {
     padding: 0;
     color: var(--font-color);
     font-size: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
 }
 
 div.sphinxsidebar ul ul li {
@@ -267,7 +267,7 @@ code {
 
 th, dl.field-list > dt {
     padding: 10px;
-    border: 2px solid #282a35;
+    border: var(--border);
 
     border-radius: var(--border-radius);
     margin-bottom: 3px;
