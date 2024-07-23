@@ -628,7 +628,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     {
         intRecvBuf = (E_Int*) recvBuf;
 
-        nOctets = intRecvBuf[0] ; recvBuf+=4;
+        nOctets = intRecvBuf[0]; recvBuf+=4;
 
         // def buffer pour une data
         char* buf = new char[nOctets];

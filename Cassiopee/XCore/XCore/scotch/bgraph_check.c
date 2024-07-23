@@ -95,7 +95,8 @@ const Bgraph * restrict const grafptr)
   const GraphPart * restrict const  parttax = grafptr->parttax;
   const Gnum * restrict const       frontab = grafptr->frontab;
 
-    /*
+  /*
+  Remove because this test fails on i8/gcc
   if (grafptr->compload0avg != (Gnum) (((double) (grafptr->s.velosum + grafptr->vfixload[0] + grafptr->vfixload[1]) * (double) grafptr->domnwght[0]) /
                                        (double) (grafptr->domnwght[0] + grafptr->domnwght[1])) - grafptr->vfixload[0]) {
     printf("%ld\n", grafptr->compload0avg);

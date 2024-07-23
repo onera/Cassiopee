@@ -142,7 +142,12 @@
 #include            <pthread.h>
 #else /* COMMON_PTHREAD */
 #ifndef HAVE_NOT_SYS_WAIT_H
+#ifndef _WIN32
 #include            <sys/wait.h>                  /* For waitpid () */
+#else
+#define COMMON_PTHREAD_FILE
+#include            <pthread.h>
+#endif
 #endif /* HAVE_NOT_SYS_WAIT_H */
 #endif /* COMMON_PTHREAD */
 
