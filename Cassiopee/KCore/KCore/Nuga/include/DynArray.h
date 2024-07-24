@@ -20,7 +20,6 @@
 
 #ifndef _KCORE_DYNARRAY_H_
 #define _KCORE_DYNARRAY_H_
-#include <locale>
 #include <iterator>
 #include "Nuga/include/defs.h"
 #ifndef NUGALIB
