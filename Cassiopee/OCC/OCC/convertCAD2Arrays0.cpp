@@ -127,7 +127,7 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
   {
     IGESControl_Controller::Init();
     IGESControl_Reader reader;
-    IFSelect_ReturnStatus stat = reader.ReadFile(inFileName);
+    reader.ReadFile(inFileName);
     reader.SetReadVisible(Standard_True);
     reader.PrintCheckLoad(Standard_True, IFSelect_GeneralInfo);
     reader.ClearShapes();

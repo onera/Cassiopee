@@ -90,7 +90,10 @@ E_Int import_iges(const char* fname, TopoDS_Shape& sh)
     
   if (occ_list.IsNull()) return 1;
 
-  Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
+#ifdef DEBUG_CAD_READER
+  Standard_Integer nb_transfered_faces =
+#endif 
+  reader.TransferList(occ_list);
   
 #ifdef DEBUG_CAD_READER
   Standard_Integer nb_cad_faces = occ_list->Length();
