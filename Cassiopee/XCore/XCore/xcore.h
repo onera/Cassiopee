@@ -48,8 +48,9 @@ namespace K_XCORE
     PyObject *AdaptMesh_ExtractMesh(PyObject *self, PyObject *args);
 
     PyObject *AdaptMesh_ExtractOwners(PyObject *self, PyObject *args);
+    PyObject *AdaptMesh_ExtractNeighbours(PyObject *self, PyObject *args);
     PyObject *AdaptMesh_ExtractCellLevels(PyObject *self, PyObject *args);
-    PyObject *AdaptMesh_ExtractNeighbourCellLevels(PyObject *self, PyObject *args);
+    PyObject *AdaptMesh_ExtractHaloCellLevels(PyObject *self, PyObject *args);
 
     PyObject *intersectSurf(PyObject *self, PyObject *args);
     PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
