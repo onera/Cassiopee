@@ -52,18 +52,25 @@ cd ..
 # Build html
 touch source/*.rst
 sphinx-build -b html ./source ./build
+[ $? != 0 ] && exit 1;
 
 if ([ $PRODUCTION -eq 1 ])
 then
     # Build pdf
     sphinx-build -b latex ./source ./build
+    [ $? != 0 ] && exit 1;
     cd build
     sed -i 's/longtable}{LL}/longtable}{ll}/g' Internal.tex
-    pdflatex Internal >& /dev/null
-    pdflatex Filter >& /dev/null
-    pdflatex ConverterMpi >& /dev/null
-    pdflatex elsAProfile >& /dev/null
-    pdflatex Converter >& /dev/null
+    pdflatex Internal
+    [ $? != 0 ] && exit 1;
+    pdflatex Filter
+    [ $? != 0 ] && exit 1;
+    pdflatex ConverterMpi
+    [ $? != 0 ] && exit 1;
+    pdflatex elsAProfile
+    [ $? != 0 ] && exit 1;
+    pdflatex Converter
+    [ $? != 0 ] && exit 1;
     cd ..
 fi
 

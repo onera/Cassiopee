@@ -53,13 +53,17 @@ cd ..
 # Build html
 touch source/*.rst
 sphinx-build -b html ./source ./build
+[ $? != 0 ] && exit 1;
 if ([ $PRODUCTION -eq 1 ])
 then
 # Build pdf
     sphinx-build -b latex ./source ./build
+    [ $? != 0 ] && exit 1;
     cd build
-    pdflatex Generator >& /dev/null
-    pdflatex Generator_IBM >& /dev/null
+    pdflatex Generator
+    [ $? != 0 ] && exit 1;
+    pdflatex Generator_IBM
+    [ $? != 0 ] && exit 1;
     cd ..
 fi
 

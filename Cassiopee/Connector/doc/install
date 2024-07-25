@@ -52,13 +52,17 @@ cd ..
 # Build html
 touch source/*.rst
 sphinx-build -b html ./source ./build
+[ $? != 0 ] && exit 1;
 if ([ $PRODUCTION -eq 1 ])
 then
     # Build pdf
     sphinx-build -b latex ./source ./build
+    [ $? != 0 ] && exit 1;
     cd build
-    pdflatex Connector >& /dev/null
-    pdflatex Connector_IBM >& /dev/null
+    pdflatex Connector
+    [ $? != 0 ] && exit 1;
+    pdflatex Connector_IBM
+    [ $? != 0 ] && exit 1;
     #pdflatex ConnectorMpi
     #pdflatex OversetData
     #pdflatex OversetDataElsA
@@ -82,7 +86,6 @@ then
     #cp build/ConnectorMpi.pdf $DEST
     #cp build/OversetData.pdf $DEST
     #cp build/OversetDataElsA.pdf $DEST
-
     sed -i 's/Connector.Connector_IBM.Connector.Connector_IBM/Connector.Connector_IBM/g' build/Connector_IBM.html
     sed -i 's/Connector\.pdf/Connector_IBM\.pdf/g' build/Connector_IBM.html
     cp build/Connector_IBM.html $DEST

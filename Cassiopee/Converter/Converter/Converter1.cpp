@@ -570,7 +570,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   E_Int rsize     = rs;
   E_Int endianess = 1;
   E_Int colormap  = c;
-
+  
   if (K_STRING::cmp(e, "little") == 0) endianess = 0;
   else if (K_STRING::cmp(e, "big") == 0) endianess = 1;
   else
@@ -600,6 +600,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
       "convertArrays2File: zoneNames argument must be a list.");
     return NULL;
   }
+
   // Building zoneNames vector
   vector<char*> zoneNames;
   for (int z = 0; z < PyList_Size(zoneNamesO); z++)
@@ -642,6 +643,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   E_Int res;
   vector<FldArrayF*> fieldu; // non structure
   vector<FldArrayI*> connectu;
+  vector<PyObject*> tplc; vector<PyObject*> tplu;
   for (E_Int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(arrays, i);
@@ -654,6 +656,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
       {
         ni.push_back(nil); nj.push_back(njl); nk.push_back(nkl);
         fieldc.push_back(f);
+        tplc.push_back(tpl);
       }
       else 
         printf("Warning: convertArrays2File: array " SF_D_ " is empty.\n", i);
@@ -684,7 +687,8 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
         if (allNodes)
         {
           ni.push_back(f->getSize()); nj.push_back(1); nk.push_back(1);
-          fieldc.push_back(f); 
+          fieldc.push_back(f);
+          tplc.push_back(tpl);
         }
         else if (allValid)
         {
@@ -697,6 +701,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
           //}
           elt.push_back(ids[0]); // only first connect of ME
           eltIds.push_back(ids); // all ids
+          tplu.push_back(tpl);
         }
       }
       else 
@@ -966,13 +971,11 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   printf("done.\n"); fflush(stdout);
   
   // Deleting fields
-  E_Int sizefieldc = fieldc.size();
-  for (E_Int i = 0; i < sizefieldc; i++) delete fieldc[i];
+  for (size_t i = 0; i < fieldc.size(); i++) RELEASESHAREDS(tplc[i], fieldc[i]);
   
-  E_Int sizefieldu = fieldu.size();  
-  for (E_Int i = 0; i < sizefieldu; i++)
+  for (size_t i = 0; i < fieldu.size(); i++)
   {
-    delete fieldu[i]; delete connectu[i];
+    RELEASESHAREDU(tplu[i], fieldu[i], connectu[i]);
   }
   
   Py_INCREF(Py_None);

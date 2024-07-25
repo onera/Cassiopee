@@ -52,15 +52,21 @@ cd ..
 # Build html
 touch source/*.rst
 sphinx-build -b html ./source ./build
+[ $? != 0 ] && exit 1;
 if ([ $PRODUCTION -eq 1 ])
 then
     # Build pdf
     sphinx-build -b latex ./source ./build
+    [ $? != 0 ] && exit 1;
     cd build
-    pdflatex CPlot >& /dev/null
-    pdflatex tkCassiopee >& /dev/null
-    pdflatex tkPlotXY >& /dev/null
-    pdflatex Decorator >& /dev/null
+    pdflatex CPlot
+    [ $? != 0 ] && exit 1;
+    pdflatex tkCassiopee
+    [ $? != 0 ] && exit 1;
+    pdflatex tkPlotXY
+    [ $? != 0 ] && exit 1;
+    pdflatex Decorator
+    [ $? != 0 ] && exit 1;
     cd ..
 fi
 
