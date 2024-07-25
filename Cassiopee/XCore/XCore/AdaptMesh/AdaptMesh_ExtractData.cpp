@@ -35,7 +35,7 @@ PyObject *K_XCORE::AdaptMesh_ExtractOwners(PyObject *self, PyObject *args)
 
     Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
 
-    if (M->pid == 0) puts("Extracting owners...");
+    if (M->pid == 0) puts("Extracting face owners...");
 
     npy_intp dims[2];
 
@@ -68,7 +68,7 @@ PyObject *K_XCORE::AdaptMesh_ExtractNeighbours(PyObject *self, PyObject *args)
 
     Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
 
-    if (M->pid == 0) puts("Extracting owners...");
+    if (M->pid == 0) puts("Extracting face neighbours...");
 
     npy_intp dims[2];
 
@@ -119,6 +119,39 @@ PyObject *K_XCORE::AdaptMesh_ExtractCellLevels(PyObject *self, PyObject *args)
 }
 
 
+PyObject *K_XCORE::AdaptMesh_ExtractCellRanges(PyObject *self, PyObject *args)
+{
+    PyObject *MESH;
+
+    if (!PYPARSETUPLE_(args, O_, &MESH)) {
+        RAISE("Wrong input.");
+        return NULL;
+    }
+
+    if (!PyCapsule_IsValid(MESH, "AdaptMesh")) {
+        RAISE("Bad mesh hook.");
+        return NULL;
+    }
+
+    Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
+
+    if (M->pid == 0) puts("Extracting cell ranges...");
+
+    PyObject *STR = K_NUMPY::buildNumpyArray(M->nc, 6, 1, 1);
+
+    Int *ptr = K_NUMPY::getNumpyPtrI(STR);
+
+    for (Int cid = 0; cid < M->nc; cid++) {
+        Int *crange = Mesh_get_crange(M, cid);
+
+        for (Int j = 0; j < M->cstride[cid]; j++) {
+            ptr[cid + j*M->nc] = crange[j];
+        }
+    }
+
+    return (PyObject *)STR;
+}
+
 PyObject *K_XCORE::AdaptMesh_ExtractHaloCellLevels(PyObject *self, PyObject *args)
 {
     PyObject *MESH;
@@ -135,7 +168,7 @@ PyObject *K_XCORE::AdaptMesh_ExtractHaloCellLevels(PyObject *self, PyObject *arg
 
     Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
 
-    if (M->pid == 0) puts("Extracting neighbour cell levels...");
+    if (M->pid == 0) puts("Extracting halo cell levels...");
 
     // Allocate
 

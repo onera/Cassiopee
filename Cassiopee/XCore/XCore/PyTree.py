@@ -82,6 +82,9 @@ def AdaptMesh_ExtractNeighbours(AM):
 def AdaptMesh_ExtractCellLevels(AM):
     return xcore.AdaptMesh_ExtractCellLevels(AM)
 
+def AdaptMesh_ExtractCellRanges(AM):
+    return xcore.AdaptMesh_ExtractCellRanges(AM)
+
 def AdaptMesh_ExtractHaloCellLevels(AM):
     return xcore.AdaptMesh_ExtractHaloCellLevels(AM)
 

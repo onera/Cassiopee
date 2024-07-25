@@ -41,6 +41,7 @@ static PyMethodDef Pyxcore [] =
     {"AdaptMesh_ExtractOwners", K_XCORE::AdaptMesh_ExtractOwners, METH_VARARGS},
     {"AdaptMesh_ExtractNeighbours", K_XCORE::AdaptMesh_ExtractNeighbours, METH_VARARGS},
     {"AdaptMesh_ExtractCellLevels", K_XCORE::AdaptMesh_ExtractCellLevels, METH_VARARGS},
+    {"AdaptMesh_ExtractCellRanges", K_XCORE::AdaptMesh_ExtractCellRanges, METH_VARARGS},
     {"AdaptMesh_ExtractHaloCellLevels", K_XCORE::AdaptMesh_ExtractHaloCellLevels, METH_VARARGS},
 
     {"intersectSurf", K_XCORE::intersectSurf, METH_VARARGS},

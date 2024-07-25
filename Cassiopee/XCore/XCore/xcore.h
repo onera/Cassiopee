@@ -50,6 +50,7 @@ namespace K_XCORE
     PyObject *AdaptMesh_ExtractOwners(PyObject *self, PyObject *args);
     PyObject *AdaptMesh_ExtractNeighbours(PyObject *self, PyObject *args);
     PyObject *AdaptMesh_ExtractCellLevels(PyObject *self, PyObject *args);
+    PyObject *AdaptMesh_ExtractCellRanges(PyObject *self, PyObject *args);
     PyObject *AdaptMesh_ExtractHaloCellLevels(PyObject *self, PyObject *args);
 
     PyObject *intersectSurf(PyObject *self, PyObject *args);
