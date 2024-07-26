@@ -143,7 +143,7 @@ Actions
     :type displayIsoLegend: int
     :param meshStyle: 0: white solid and red wireframe, 1: colored wireframe, 2: colored solid and wireframe, 3: cyan solid and black wireframe (default: 2)
     :type meshStyle: int
-    :param solidStyle: 0: blue, 1: colored by zone, 3: white, 4: colored by zone outlined (default: 1)
+    :param solidStyle: 0: blue, 1: colored by zone, 3: white, 4: colored by zone outlined (default: 0)
     :type solidStyle: int
     :param scalarStyle: 0: banded, 1: banded+mesh, 2: lines, 3: lines+mesh (default: 0)
     :type scalarStyle: int
