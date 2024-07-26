@@ -118,7 +118,7 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
 
     Create a point of coordinates P=(x,y,z).
 
-    :param P:  (x,y,z) of point
+    :param P: (x,y,z) of point
     :type P: 3-tuple of floats 
     :return: a point
     :rtype: one array/zone (NODE)

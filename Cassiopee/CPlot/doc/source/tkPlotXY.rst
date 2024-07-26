@@ -1,7 +1,7 @@
 .. tkPlotXY documentation master file
 
-tkPlotXY : plot of curves
-==========================
+tkPlotXY: plot of curves
+=========================
 
 Preamble
 ########
