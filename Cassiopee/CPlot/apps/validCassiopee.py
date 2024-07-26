@@ -917,7 +917,6 @@ def runTests():
         if STOP == 1: STOP = 0; displayStatus(0); return
     displayStatus(0)
     THREAD=None
-    if len(selection) == len(TESTS): notifyValidOK()
     writeSessionLog()
     
 def runTestsInThread():
@@ -1724,7 +1723,7 @@ if __name__ == '__main__':
         file.add_command(label='Load last session', command=loadSessionWithArgs)
         file.add_command(label='Purge session', command=buildTestList)
         file.add_command(label='Export to text file', command=export2Text)
-        file.add_command(label='Notify Ready for commit', command=notifyValidOK)
+        #file.add_command(label='Notify Ready for commit', command=notifyValidOK)
         file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
         view.add_command(label='Show FAILED', command=showFilter)
         showFilterWithArgs = partial(showFilter, "FAILEDMEM")
