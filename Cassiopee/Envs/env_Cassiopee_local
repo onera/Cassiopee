@@ -791,6 +791,7 @@ if ($?PATHL != 0) then
     set OLD_LD_LIBRARY_PATHL=$LD_LIBRARY_PATHL
     set OLD_PYTHONPATHL=$PYTHONPATHL
 endif
+
 if ($?PYTHONEXE) then
     if ($PYTHONEXE == "python3") then
         alias python python3
@@ -801,9 +802,16 @@ if ($?PYTHONEXE) then
 else
     set pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 endif
+set pylib="lib"
+set pysite="site-packages"
+if ($MAC == "ubuntu") then
+    set pylib="local/"$pylib
+    set pysite="dist-packages"
+endif
+
 setenv PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
 setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-setenv PYTHONPATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/"$pyversion"/site-packages
+setenv PYTHONPATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib"/"$pyversion"/"$pysite
 
 if ($?OLD_PATHL != 0) then
     setenv PATH `echo "$PATH" | sed "s|$OLD_PATHL||g"`
