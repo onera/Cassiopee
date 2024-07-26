@@ -25,7 +25,7 @@ CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 1)
 
 # solid (mode 1)
-CPlot.display([a], mode='solid', offscreen=offscreen, export=LOCAL+'/out.png')
+CPlot.display([a], mode='solid', solidStyle=1, offscreen=offscreen, export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 2)
 
