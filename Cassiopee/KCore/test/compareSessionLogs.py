@@ -179,6 +179,7 @@ if __name__ == '__main__':
     compStr += failedTestsHeader
     for test in failedTests:
       compStr += stringify(test)
+    baseState = 'FAILED'
   else: compStr += failedTestsHeader + "[none]\n"
   
   execTime = []
