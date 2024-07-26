@@ -331,14 +331,14 @@ Actions
 
     .. A2.O0.D1
 
-    For array interface:
-    ::
+    For array interface::
+    
         CPlot.replace(A, no, a)
         
     Performs A[no]=a, keeping plotter coherent.
     
-    For pyTree interface:
-    ::
+    For pyTree interface::
+    
         CPlot.replace(A, nob, noz, a)
         
     Performs t[2][nob][2][noz]=a, keeping plotter coherent. 

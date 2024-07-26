@@ -80,7 +80,7 @@ sed -i 's/Post\.Post/Post/g' $FILE
 sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
 
 sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' $FILE
-sed -i 's/CPlot\.CPlot/cplot/g' $FILE
+sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
 #sed -i 's/CPlot\:{/CPlot\:{/g' $FILE
 
 sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
@@ -93,11 +93,11 @@ sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/
 sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
 sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
 sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
-sed -i 's/Converter\.Converter/Converter/g' $FILE
+sed -i 's/Converter\.Converter/Converter/g' $FILE # FAIL 
 #sed -i 's/Converter\:{/converter\:{/g' $FILE
 
 sed -i 's/Geom\.IBM\.Geom\.IBM/Geom\.IBM/g' $FILE
-sed -i 's/Geom\.Geom/Geom/g' $FILE
+sed -i 's/Geom\.Geom/Geom/g' $FILE # FAIL   
 #sed -i 's/Geom\:{/geom\:{/g' $FILE
 
 sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
@@ -117,7 +117,7 @@ sed -i 's/Post\.Post/Post/g' $FILE
 sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
 
 sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' $FILE
-sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
+sed -i 's/CPlot\.CPlot/CPlot/g' $FILE # FAIL 
 #sed -i 's/CPlot\:{/cplot\:{/g' $FILE
 
 sed -i 's/Intersector\.Intersector/Intersector/g' $FILE

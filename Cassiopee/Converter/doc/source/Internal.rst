@@ -3,7 +3,7 @@
 :tocdepth: 2
 
 Converter.Internal: CGNS/Python tree management
-=========================================
+===============================================
 
 
 Preamble

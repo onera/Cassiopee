@@ -4,7 +4,7 @@
 
 
 Post.ExtraVariables2: derived fields from primitive variables 
-=========================================================
+==============================================================
 
 This module compute derived fields from primitive variables.
 

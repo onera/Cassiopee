@@ -3,7 +3,8 @@
 :tocdepth: 2
 
 Generator: mesh generation module
-=========================================
+==================================
+
 
 Preamble
 ########
@@ -1218,6 +1219,7 @@ Operations on meshes
     * `Mesh closing (pyTree) <Examples/Generator/closePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/closePT.py
+        
 ---------------------------------------
 
 .. py:function:: Generator.zip(a, tol=1.e-12)

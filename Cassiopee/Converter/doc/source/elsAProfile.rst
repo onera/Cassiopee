@@ -151,9 +151,9 @@ Conversion
 .. py:function:: Converter.elsAProfile.overlapGC2BC(t)
     
     Convert the 'Overset' grid connectivity nodes compliant with Cassiopee to an 'Overlap' BC compliant with elsA.
-    The created BC node is attached to a family of BC of name 'Fam_Ovlp'+baseName, where baseName is the name of the parent base. Prefix 'Fam_Ovlp_' of the family BC of 'Overlap' BCs can be redefined
+    The created BC node is attached to a family of BC of name 'Fam_Ovlp'+baseName, where baseName is the name of the parent base. Prefix 'Fam_Ovlp\_' of the family BC of 'Overlap' BCs can be redefined
     using Converter.elsAProfile.__FAMOVERLAPBC__ container (e.g. Converter.elsAProfile.__FAMOVERLAPBC__="OVERLAP").
-    In case of a doubly defined overlap grid connectivity, the default name of the family of bcs is prefixed by 'Fam_OvlpDD_'.
+    In case of a doubly defined overlap grid connectivity, the default name of the family of bcs is prefixed by 'Fam_OvlpDD\_'.
     In that case, there is one family of classical overlap BCs per receptor base and one family of doubly defined overlap BCs too (if classical and doubly defined overlap bcs exist 
     in that base).
     A '.Solver#Overlap' node is created in each family of BCs and contains the node 'NeighbourList' (where donor zones can be specified). The value is empty here.
