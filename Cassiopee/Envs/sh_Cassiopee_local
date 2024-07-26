@@ -43,12 +43,12 @@ MAC0=$(echo $KC | grep 'WDAAA161Z'); if [ "$MAC0" != "" ]; then export MAC="WDAA
 
 # Detect the type of integer that is used
 INTTYPE=""
-if [[ $MACHINE == *_i8 ]]; then
+if [ "$MACHINE" = *_i8 ]; then
     export MAC=${MACHINE%"_i8"}
     INTTYPE="_i8"
-elif [[ "$MACHINE" == "i8" ]]; then
+elif [ "$MACHINE" = "i8" ]; then
     INTTYPE="_i8"
-elif [[ "$MACHINE" != "" ]]; then
+elif [ -n "$MACHINE" ]; then
     export MAC=$MACHINE
 fi
 
@@ -746,10 +746,17 @@ if [ "$PYTHONEXE" = "python3" ]; then
 else
     pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 fi
+pylib="lib"
+if [ "$MAC" = "ubuntu" ]; then
+    pylib="local/"$pylib
+    pysite="dist-packages"
+else
+    pysite="site-packages"
+fi
 
 export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
-export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/"$pyversion"/site-packages
+export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib"
+export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib"/"$pyversion"/"$pysite"
 
 if ! [ -z $OLD_PATHL ]; then
     # Remove all occurences of old paths
