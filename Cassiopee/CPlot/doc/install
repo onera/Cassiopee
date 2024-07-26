@@ -73,15 +73,16 @@ fi
 # Copie dans le DEST
 if ([ $PRODUCTION -eq 1 ])
 then
-    sed -i 's/CPlot.CPlot/CPlot/g' build/CPlot.html
+    sed -i 's/CPlot.CPlot/.CPlot/g' build/CPlot.html
     cp build/CPlot.html $DEST
-
+    
     sed -i 's/CPlot.pdf/tkCassiopee.pdf/g' build/tkCassiopee.html
     cp build/tkCassiopee.html $DEST
 
     sed -i 's/CPlot.pdf/tkPlotXY.pdf/g' build/tkPlotXY.html
     cp build/tkPlotXY.html $DEST
 
+    sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' build/Decorator.html
     sed -i 's/CPlot.pdf/Decorator.pdf/g' build/Decorator.html
     cp build/Decorator.html $DEST
     

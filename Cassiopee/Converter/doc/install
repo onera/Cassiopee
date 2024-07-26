@@ -89,7 +89,7 @@ then
     sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/g' build/elsAProfile.html
     sed -i 's/Converter\.pdf/elsAProfile\.pdf/g' build/elsAProfile.html
     cp build/elsAProfile.html $DEST
-    sed -i 's/Converter\.Converter/Converter/g' build/Converter.html
+    sed -i 's/Converter\.Converter/\.Converter/g' build/Converter.html
     cp build/Converter.html $DEST
 
     cp build/Internal.pdf $DEST
