@@ -299,7 +299,10 @@ def writeInstallPath():
          pythonLib = distutils.sysconfig.get_python_lib()
          pythonLib = pythonLib.split('/')
          Lib = pythonLib[-3]
-    p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))
+    if os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
+        p.write('libPath = \'%s/local/%s\'\n'%(prefix,Lib))
+    else:
+        p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))
     p.write('includePath = \'%s\'\n'%(os.getcwd()))
     p.close()
     
