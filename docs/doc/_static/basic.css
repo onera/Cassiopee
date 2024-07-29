@@ -271,12 +271,14 @@ table.modindextable td {
 
 div.body {
     min-width: 1%;
-    max-width: 80%;
+    /* max-width: 100%; */
+    width: 80%;
 }
 
 div.bodywrapper {
     min-width: 1%;
-    max-width: 80%;
+    /* max-width: 100%; */
+    width: 80%;
 }
 
 div.body p, div.body dd, div.body li, div.body blockquote {
@@ -742,8 +744,16 @@ dl > dd:last-child > :last-child {
     margin-bottom: 0;
 }
 
-dt:target, span.highlighted {
-    background-color: #fbe54e;
+dt:target {
+    background-color: rgb(255, 221, 0, 0.2);
+    border: 2px solid rgb(255, 221, 0);
+    border-radius: var(--border-radius);
+    color: black;
+    padding: 5px;
+}
+
+span.highlighted {
+    color: rgb(255, 221, 0);
 }
 
 rect.highlighted {

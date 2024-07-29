@@ -52,25 +52,28 @@ cd ..
 # Build html
 touch source/*.rst
 sphinx-build -b html ./source ./build
-
+[ $? != 0 ] && exit 1;
 if ([ $PRODUCTION -eq 1 ])
 then
 # Build pdf
     sphinx-build -b latex ./source ./build
+    [ $? != 0 ] && exit 1;
     cd build
-    pdflatex Geom >& /dev/null
-    pdflatex Geom_IBM >& /dev/null 
+    pdflatex Geom
+    [ $? != 0 ] && exit 1;
+    pdflatex Geom_IBM
+    [ $? != 0 ] && exit 1;
     cd ..
 fi
 
 # Copie dans le DEST
 if ([ $PRODUCTION -eq 1 ])
 then
-    sed -i 's/Geom.Geom/Geom/g' build/Geom.html
+    sed -i 's/Geom.Geom/.Geom/g' build/Geom.html
     cp build/Geom.html $DEST
     cp build/Geom.pdf $DEST
 
-    sed -i 's/Geom.Geom_IBM.Geom.Geom_IBM/Geom.Geom_IBM/g' build/Geom_IBM.html
+    sed -i 's/Geom.IBM.Geom.IBM/Geom.IBM/g' build/Geom_IBM.html
     sed -i 's/Geom\.pdf/Geom_IBM\.pdf/g' build/Geom_IBM.html
     cp build/Geom_IBM.html $DEST
     cp build/Geom_IBM.pdf $DEST

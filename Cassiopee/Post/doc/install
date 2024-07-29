@@ -53,15 +53,21 @@ cd ..
 # Build html
 touch source/*.rst
 sphinx-build -b html ./source ./build
+[ $? != 0 ] && exit 1;
 if ([ $PRODUCTION -eq 1 ])
 then
 # Build pdf
     sphinx-build -b latex ./source ./build
+    [ $? != 0 ] && exit 1;
     cd build
-    pdflatex Post >& /dev/null
-    pdflatex Rotor >& /dev/null
-    pdflatex ExtraVariables2 >& /dev/null
-    pdflatex Post_IBM >& /dev/null
+    pdflatex Post
+    [ $? != 0 ] && exit 1;
+    pdflatex Rotor
+    [ $? != 0 ] && exit 1;
+    pdflatex ExtraVariables2
+    [ $? != 0 ] && exit 1;
+    pdflatex Post_IBM
+    [ $? != 0 ] && exit 1;
     cd ..
 fi
 

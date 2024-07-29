@@ -98,11 +98,9 @@ else if ($MAC == "ld") then
         module purge
         module load occt/7.6.1-gnu831
         module load python/3.8.14-gnu831
-        #module load intel/21.2.0
         module load gcc/10.2.0
         module load lapack/3.9.1-gnu831
         module load hdf5/1.10.5-gnu831-ompi405
-        unset I_MPI_PMI_LIBRARY
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
         # Set next line only if python is not python
@@ -111,6 +109,8 @@ else if ($MAC == "ld") then
         set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
         @ ncpu++
         setenv OMP_NUM_THREADS $ncpu
+        setenv ASAN_OPTIONS verify_asan_link_order=false
+        #setenv LD_PRELOAD /opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
 else if ($MAC == "eos814") then
 #-------------------------- ld centos 8 + python 3.8 -----------------------------
@@ -681,7 +681,9 @@ else if ($MAC == "juno_gcc") then
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
         unsetenv SLURM*
         unsetenv OMP_PLACES
-
+        setenv ASAN_OPTIONS verify_asan_link_order=false
+        #setenv LD_PRELOAD /opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+        
 else if ($MAC == "juno_gpu") then
 #----------------------------- juno gpu ------------------------------------
         setenv ELSAPROD juno_gpu
@@ -793,6 +795,7 @@ if ($?PATHL != 0) then
     set OLD_LD_LIBRARY_PATHL=$LD_LIBRARY_PATHL
     set OLD_PYTHONPATHL=$PYTHONPATHL
 endif
+
 if ($?PYTHONEXE) then
     if ($PYTHONEXE == "python3") then
         alias python python3
@@ -803,9 +806,16 @@ if ($?PYTHONEXE) then
 else
     set pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 endif
-setenv PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
-setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-setenv PYTHONPATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/"$pyversion"/site-packages
+set pylib=lib
+set pysite=site-packages
+if ($MAC == "ubuntu") then
+    set pylib=local/"$pylib"
+    set pysite=dist-packages
+endif
+
+setenv PATHL "$CASSIOPEE"/Dist/bin/"$ELSAPROD":"$CASSIOPEE"/Dist/bin/"$ELSAPROD"/bin
+setenv LD_LIBRARY_PATHL "$CASSIOPEE"/Dist/bin/"$ELSAPROD":"$CASSIOPEE"/Dist/bin/"$ELSAPROD"/lib
+setenv PYTHONPATHL "$CASSIOPEE"/Dist/bin/"$ELSAPROD":"$CASSIOPEE"/Dist/bin/"$ELSAPROD"/"$pylib"/"$pyversion"/"$pysite"
 
 if ($?OLD_PATHL != 0) then
     setenv PATH `echo "$PATH" | sed "s|$OLD_PATHL||g"`

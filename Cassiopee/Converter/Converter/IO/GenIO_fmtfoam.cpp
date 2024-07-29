@@ -227,7 +227,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       if (strcmp(buf, "uniform") == 0) {
         readWord(ptrFile, buf);
         E_Float val = strtod(buf, NULL);
-        printf("uniform " SF_F_ "\n", val);
+        printf("Info: foamread: uniform " SF_F_ "\n", val);
         for (E_Int j = 0; j < bcsize; j++) {
           bcf[i] = val;
         }
@@ -244,7 +244,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
         readInt(buf, 1024, pos, nfaces);
         assert(nfaces == bcsize);
 
-        printf("non uniform list of size " SF_D_ "\n", nfaces);
+        printf("Info: foamread: non uniform list of size " SF_D_ ".\n", nfaces);
 
         skipLine(ptrFile); // (
 
@@ -273,7 +273,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       char buf[128];
       readWord(ptrFile, buf);
       E_Float val = strtod(buf, NULL);
-      printf("uniform " SF_F_ "\n", val);
+      printf("Info; foamread: uniform " SF_F_ ".\n", val);
       for (E_Int j = 0; j < bcsize; j++) {
         bcf[j] = val;
       }
@@ -291,7 +291,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       if (strcmp(buf, "uniform") == 0) {
         readWord(ptrFile, buf);
         E_Float val = strtod(buf, NULL);
-        printf("uniform " SF_F_ "\n", val);
+        printf("Info; foamread: uniform " SF_F_ ".\n", val);
         for (E_Int j = 0; j < bcsize; j++) {
           bcf[i] = val;
         }
@@ -308,7 +308,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
         readInt(buf, 1024, pos, nfaces);
         assert(nfaces == bcsize);
 
-        printf("non uniform list of size " SF_D_ "\n", nfaces);
+        printf("Info: foamread: non uniform list of size " SF_D_ ".\n", nfaces);
 
         skipLine(ptrFile); // (
 
@@ -336,7 +336,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       readInt(buf, 1024, pos, nfaces);
       assert(nfaces == bcsize);
       
-      printf("non uniform list of size " SF_D_ "\n", nfaces);
+      printf("Info: foamread: non uniform list of size " SF_D_ ".\n", nfaces);
       skipLine(ptrFile); // (
       
       for (E_Int j = 0; j < nfaces; j++)
@@ -352,14 +352,14 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       char buf[128];
       readWord(ptrFile, buf);
       E_Float val = strtod(buf, NULL);
-      printf("uniform " SF_F_ "\n", val);
+      printf("Info; foamread: uniform " SF_F_ ".\n", val);
       for (E_Int j = 0; j < bcsize; j++) {
         bcf[j] = val;
       }
     }
 
     else {
-      fprintf(stderr, "Unsupported boundary condition %s\n", type);
+      printf("Warning: foamread: unsupported boundary condition %s.\n", type);
       return 0;
     }
 
@@ -462,7 +462,7 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
 
       readWord(ptrFile, buf);
       E_Float valz = strtod(buf, NULL);
-      printf("uniform (" SF_F3_ ")\n", valx, valy, valz);
+      printf("Info: foamread: uniform (" SF_F3_ ").\n", valx, valy, valz);
 
       for (E_Int j = 0; j < bcsize; j++) {
         bcfx[j] = valx;
@@ -494,7 +494,7 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
       readInt(buf, 1024, pos, nfaces);
       assert(nfaces == bcsize);
 
-      printf(SF_D_ " faces", nfaces);
+      printf("Info; foamread: " SF_D_ " faces.", nfaces);
 
       skipLine(ptrFile);
 
@@ -508,7 +508,7 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
     }
     
     else {
-      fprintf(stderr, "Unsupported boundary condition %s\n", type);
+      printf("Warning: foamread: unsupported boundary condition %s.\n", type);
       return 0;
     }
 
@@ -629,7 +629,7 @@ E_Int K_IO::GenIO::foamread(
   // compute NFace
   FldArrayI cNFace; E_Int nelts;
   K_CONNECT::connectFE2NFace(PE, cNFace, nelts);
-  printf("cells: " SF_D_ "\n", nelts);
+  printf("Info: foamread: ncells: " SF_D_ ".\n", nelts);
 
   // Merge
   E_Int sizeNGon = cNGon.getSize();
@@ -761,13 +761,13 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
   closedir(d);
 
   if (max_time == -1.0) {
-    printf("Warning: no time directory found. Skipping field read.\n");
+    printf("Warning: foamread: no time directory found. Skipping field read.\n");
     return 0;
   } else if (max_time == 0) {
-    printf("Warning: skipping time directory 0.\n");
+    printf("Warning: foamread: skipping time directory 0.\n");
     return 0;
   } else {
-    printf("Reading fields from time directory %s\n", dir_name);
+    printf("Info: foamread: reading fields from time directory %s\n", dir_name);
   }
 
   fullPath[0] = '\0';
@@ -874,15 +874,15 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
         size++;
       }
       if (size == MAX_FIELDS) {
-        fprintf(stderr, "Warning: foamread: Trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
-        exit(1);
+        printf("Warning: foamread: trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
+        exit(1); // must return 
       }
       fclose(fh);
     }
   }
   closedir(d);
 
-  printf("nflds: " SF_D_ "\n", nflds);
+  printf("Info: foamread: nflds: " SF_D_ ".\n", nflds);
 
   // delete the last comma
   varStringc[strlen(varStringc)-1] = '\0';
@@ -1699,7 +1699,7 @@ E_Int K_IO::GenIO::foamwrite(
 #endif
       else 
       {
-        printf("Bad " SF_D_ "-th bcname %s\n", j, name);
+        printf("Error: foamwrite: bad bcname no " SF_D_ ".\n", j);
         return 1;
       }
 

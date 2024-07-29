@@ -294,7 +294,7 @@ E_Int __meshEdge3(const TopoDS_Edge& E,
 {
   BRepAdaptor_Curve C0(E);
   Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
-  Standard_Real pFirst=aFirst, pEnd=aEnd;
+  Standard_Real pFirst=aFirst;
   Handle(Geom_Curve) aCurve = BRep_Tool::Curve(E, aFirst, aEnd);
   E_Float* px = coords.begin(1);
   E_Float* py = coords.begin(2);
@@ -819,7 +819,7 @@ PyObject* K_OCC::meshEdgesByFace2(PyObject* self, PyObject* args)
   TopExp_Explorer expl;
 
   const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
-  E_Int npts = 0; PyObject* ge;
+  PyObject* ge;
 
   for (expl.Init(surfaces(noFace), TopAbs_EDGE); expl.More(); expl.Next())
   {
@@ -869,7 +869,7 @@ PyObject* K_OCC::meshEdgesByFace3(PyObject* self, PyObject* args)
 #endif
 
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopExp_Explorer expl;
 
   const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
@@ -880,7 +880,6 @@ PyObject* K_OCC::meshEdgesByFace3(PyObject* self, PyObject* args)
   if (forientation == TopAbs_FORWARD) printf("face orientation=forward\n");
   else if (forientation == TopAbs_REVERSED) printf("face orientation=reversed\n");
 
-  E_Int npts = 0;
   PyObject* out = PyList_New(0); // sortie par wire
   
   for (expl.Init(surfaces(noFace), TopAbs_WIRE); expl.More(); expl.Next())
@@ -898,8 +897,8 @@ PyObject* K_OCC::meshEdgesByFace3(PyObject* self, PyObject* args)
     if (wclosed == BRepCheck_NoError) printf("wire correctly closed\n");
     else printf("WIRE BADLY closed\n");
     
-    E_Boolean isOuter = false;
-    if (W == OW) { printf("is outer wire\n"); isOuter = true; }
+    //E_Boolean isOuter = false;
+    //if (W == OW) { printf("is outer wire\n"); isOuter = true; }
     //status = check.CheckOuterBound();
     //if (status == BRepCheck_NoError) printf("is outer (test2)\n");
     //else printf("is inner (test2)\n");
@@ -1111,7 +1110,7 @@ PyObject* K_OCC::getEdgeNoByFace(PyObject* self, PyObject* args)
     for (expl2.Init(W, F); expl2.More(); expl2.Next())
     {
       const TopoDS_Edge& E = TopoDS::Edge(expl2.Current());
-      TopAbs_Orientation eorientation = E.Orientation();
+      //TopAbs_Orientation eorientation = E.Orientation();
       /* find edge number in global edge list */
       E_Int i = 0;
       for (i=1; i <= edges.Extent(); i++)

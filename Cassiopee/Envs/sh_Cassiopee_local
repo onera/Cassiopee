@@ -43,12 +43,14 @@ MAC0=$(echo $KC | grep 'WDAAA161Z'); if [ "$MAC0" != "" ]; then export MAC="WDAA
 
 # Detect the type of integer that is used
 INTTYPE=""
-if [[ $MACHINE == *_i8 ]]; then
+posend=${#MACHINE}
+posbeg=$((posend - 3))
+if [ "${MACHINE:posbeg:posend}" = _i8 ]; then
     export MAC=${MACHINE%"_i8"}
     INTTYPE="_i8"
-elif [[ "$MACHINE" == "i8" ]]; then
+elif [ "$MACHINE" = "i8" ]; then
     INTTYPE="_i8"
-elif [[ "$MACHINE" != "" ]]; then
+elif [ -n "$MACHINE" ]; then
     export MAC=$MACHINE
 fi
 
@@ -76,24 +78,25 @@ if [ "$MAC" = "ld_eos8" ]; then
     export OMP_NUM_THREADS=$ncpu
 
 elif [ "$MAC" = "ld" ]; then
-#------------------------------- ld centos 8 + python 3 -----------------------------------
+#------------------------------- ld rocky 8 + python 3 -----------------------------------
     export ELSAPROD=ld
     export ELSAPROD=$ELSAPROD$INTTYPE
     . /etc/profile.d/modules-onera.sh
     module purge
     module load occt/7.6.1-gnu831
     module load python/3.8.14-gnu831
-    #module load intel/21.2.0
     module load gcc/10.2.0
     module load lapack/3.9.1-gnu831
     module load hdf5/1.10.5-gnu831-ompi405
-    unset I_MPI_PMI_LIBRARY
     export PRODMODE=1
+    setenv PIP_DISABLE_PIP_VERSION_CHECK 1
     export PYTHONEXE=python3
     # Nbre de threads
     ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
     ncpu=$((ncpu + 1))
     export OMP_NUM_THREADS=$ncpu
+    export ASAN_OPTIONS=verify_asan_link_order=false
+    #export LD_PRELOAD=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "ld_python2" ]; then
 #------------------------------- ld centos 7 -----------------------------------
@@ -502,7 +505,7 @@ elif [ "$MAC" = "spiro_pgi" ]; then
     module load subversion/1.14.1-gnu831
 
 elif [ "$MAC" = "spiro_gpu" ]; then
-#----------------------------- juno gpu ------------------------------------
+#----------------------------- spiro gpu ------------------------------------
         export ELSAPROD=spiro_gpu
         export ELSAPROD="$ELSAPROD$INTTYPE"
         source /opt/tools/Modules/init/bash
@@ -547,7 +550,7 @@ elif [ "$MAC" = "juno" ]; then
     export OMP_PLACES=cores
 
 elif [ "$MAC" = "juno_gcc" ]; then
-#----------------------------- juno -----------------------------------------
+#----------------------------- juno gcc ---------------------------------------
     export ELSAPROD=juno_gcc
     export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
@@ -568,6 +571,8 @@ elif [ "$MAC" = "juno_gcc" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset $(env | grep SLURM | cut -d'=' -f 1)
     unset OMP_PLACES
+    export ASAN_OPTIONS=verify_asan_link_order=false
+    #export LD_PRELOAD=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "juno_gpu" ]; then
 #----------------------------- juno gpu ------------------------------------
@@ -733,7 +738,6 @@ elif [ "$MAC" = "WDAAA161Z" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
 fi
 
-
 #-------------------------- Common to all prods --------------------------------
 # Chemin de l'executable python
 if ! [ -z $PATHL ]; then
@@ -748,10 +752,17 @@ if [ "$PYTHONEXE" = "python3" ]; then
 else
     pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 fi
+pylib="lib"
+if [ "$MAC" = "ubuntu" ]; then
+    pylib="local/"$pylib
+    pysite="dist-packages"
+else
+    pysite="site-packages"
+fi
 
 export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
-export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/"$pyversion"/site-packages
+export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib"
+export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib"/"$pyversion"/"$pysite"
 
 if ! [ -z $OLD_PATHL ]; then
     # Remove all occurences of old paths

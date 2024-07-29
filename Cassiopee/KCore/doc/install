@@ -56,12 +56,10 @@ sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/
 sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
 sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
 sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
-sed -i 's/Converter\.Converter/converter/g' $FILE
-#sed -i 's/Converter\:{/converter\:{/g' $FILE
+sed -i 's/Converter\.Converter/\.Converter/g' $FILE # add . to avoid mismatch
 
 sed -i 's/Geom\.IBM\.Geom\.IBM/Geom\.IBM/g' $FILE
-sed -i 's/Geom\.Geom/geom/g' $FILE
-#sed -i 's/Geom\:{/geom\:{/g' $FILE
+sed -i 's/Geom\.Geom/\.Geom/g' $FILE # add . to avoid mismatch 
 
 sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
 sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
@@ -74,16 +72,17 @@ sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
 sed -i 's/Post\.Rotor\.Post\.Rotor/Post\.Rotor/g' $FILE
 sed -i 's/Post\.IBM\.Post\.IBM/Post\.IBM/g' $FILE
 sed -i 's/Post\.ExtraVariables2\.Post\.ExtraVariables2/Post\.ExtraVariables2/g' $FILE
-sed -i 's/Post\.Post/post/g' $FILE
-#sed -i 's/Post\:{/post\:{/g' $FILE
+sed -i 's/Post\.Post/Post/g' $FILE
 
 sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
 
 sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' $FILE
-sed -i 's/CPlot\.CPlot/cplot/g' $FILE
-#sed -i 's/CPlot\:{/cplot\:{/g' $FILE
+sed -i 's/CPlot\.CPlot/\.CPlot/g' $FILE # FAIL
+#sed -i 's/CPlot\:{/CPlot\:{/g' $FILE
 
 sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
+sed -i 's/OCC\.OCC/OCC/g' $FILE
+
 
 # meme modif de genindex
 FILE=build/genindex.html
@@ -93,11 +92,11 @@ sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/
 sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
 sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
 sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
-sed -i 's/Converter\.Converter/converter/g' $FILE
+sed -i 's/Converter\.Converter/Converter/g' $FILE
 #sed -i 's/Converter\:{/converter\:{/g' $FILE
 
 sed -i 's/Geom\.IBM\.Geom\.IBM/Geom\.IBM/g' $FILE
-sed -i 's/Geom\.Geom/geom/g' $FILE
+sed -i 's/Geom\.Geom/Geom/g' $FILE
 #sed -i 's/Geom\:{/geom\:{/g' $FILE
 
 sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
@@ -111,16 +110,16 @@ sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
 sed -i 's/Post\.IBM\.Post\.IBM/Post\.IBM/g' $FILE
 sed -i 's/Post\.Rotor\.Post\.Rotor/Post\.Rotor/g' $FILE
 sed -i 's/Post\.ExtraVariables2\.Post\.ExtraVariables2/Post\.ExtraVariables2/g' $FILE
-sed -i 's/Post\.Post/post/g' $FILE
-#sed -i 's/Post\:{/post\:{/g' $FILE
+sed -i 's/Post\.Post/Post/g' $FILE
 
 sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
 
 sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' $FILE
-sed -i 's/CPlot\.CPlot/cplot/g' $FILE
+sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
 #sed -i 's/CPlot\:{/cplot\:{/g' $FILE
 
 sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
+sed -i 's/OCC\.OCC/OCC/g' $FILE
 
 cp build/searchindex.js $DEST
 cp build/genindex.html $DEST

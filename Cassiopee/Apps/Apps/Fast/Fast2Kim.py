@@ -443,12 +443,10 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
                         self.write_fortran_block(fich, z[2][0][1].reshape(z[2][0][1].shape[0]*z[2][0][1].shape[1]), DOUBLE_SIZE) #Z
                         self.write_fortran_block(fich, pressure[2][0][1].reshape(pressure[2][0][1].shape[0]*pressure[2][0][1].shape[1]), DOUBLE_SIZE) #P
                         fich.close()
-                    #itglob += 1
                     else:
                         C.convertPyTree2File(cz, kimAeroFile, 'fmt_tp')
                         #C.convertPyTree2File(cz,'out%d.cgns'%itglob )
                     #checkZones.append(cz)
-
                     itglob += 1
 
             # Container courant
@@ -457,8 +455,6 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
             paths += ['CGNSTree/Base/%s/FlowSolution'%(zone[0])]
             print(paths)
             nodes2 = Distributed.readNodesFromPaths(self.config['filename'], paths)
-            #print(nodes2)
-            #exit()
             px = Internal.getNodeFromName(nodes2[0], 'CoordinateX')[1]
             time = Internal.getNodeFromName(nodes2[2], 'time')[1]
             nrec = px.shape[0]-1 # 50
@@ -495,9 +491,8 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
                         self.write_fortran_block(fich, z[2][0][1].reshape(z[2][0][1].shape[0]*z[2][0][1].shape[1]), DOUBLE_SIZE) #Z
                         self.write_fortran_block(fich, pressure[2][0][1].reshape(pressure[2][0][1].shape[0]*pressure[2][0][1].shape[1]), DOUBLE_SIZE) #P
                         fich.close()
-                            #itglob += 1
                     else:
-                        C.convertPyTree2File(cz, kimAeroFile, 'fmt_tp')      
+                        C.convertPyTree2File(cz, kimAeroFile, 'fmt_tp')
                     itglob += 1
                     
         #Internal.printTree(checkZones)

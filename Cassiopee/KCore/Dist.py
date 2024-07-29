@@ -299,7 +299,10 @@ def writeInstallPath():
          pythonLib = distutils.sysconfig.get_python_lib()
          pythonLib = pythonLib.split('/')
          Lib = pythonLib[-3]
-    p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))
+    if os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
+        p.write('libPath = \'%s/local/%s\'\n'%(prefix,Lib))
+    else:
+        p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))
     p.write('includePath = \'%s\'\n'%(os.getcwd()))
     p.close()
     
@@ -846,8 +849,8 @@ def getCArgs():
         return options
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
         if DEBUG: 
-           options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
-           #options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC', '-fsanitize=address']
+            options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
+            options += ['-fsanitize=address']
         else: options += ['-DNDEBUG', '-O3', '-Wall', '-Werror=return-type']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -2042,12 +2045,16 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
+
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libstdc++.a', additionalLibPaths)
-
         if l is not None:
             libs += ['stdc++']; paths += [l]
+
+        if DEBUG:
+            l = checkLibFile__('libasan.so*', additionalLibPaths)
+            if l is not None: libs += ["asan"]
 
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)

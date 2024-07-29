@@ -312,9 +312,9 @@ Exists also as an in-place function (_rmGCOverlap) that modifies t and returns N
 <dt class="sig sig-object py" id="Converter.elsAProfile.overlapGC2BC">
 <span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">overlapGC2BC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Convert the &#8216;Overset&#8217; grid connectivity nodes compliant with Cassiopee to an &#8216;Overlap&#8217; BC compliant with elsA.
-The created BC node is attached to a family of BC of name &#8216;Fam_Ovlp&#8217;+baseName, where baseName is the name of the parent base. Prefix &#8216;<a href="#id1"><span class="problematic" id="id2">Fam_Ovlp_</span></a>&#8217; of the family BC of &#8216;Overlap&#8217; BCs can be redefined
+The created BC node is attached to a family of BC of name &#8216;Fam_Ovlp&#8217;+baseName, where baseName is the name of the parent base. Prefix &#8216;Fam_Ovlp_&#8217; of the family BC of &#8216;Overlap&#8217; BCs can be redefined
 using Converter.elsAProfile.__FAMOVERLAPBC__ container (e.g. Converter.elsAProfile.__FAMOVERLAPBC__=&#8221;OVERLAP&#8221;).
-In case of a doubly defined overlap grid connectivity, the default name of the family of bcs is prefixed by &#8216;<a href="#id3"><span class="problematic" id="id4">Fam_OvlpDD_</span></a>&#8217;.
+In case of a doubly defined overlap grid connectivity, the default name of the family of bcs is prefixed by &#8216;Fam_OvlpDD_&#8217;.
 In that case, there is one family of classical overlap BCs per receptor base and one family of doubly defined overlap BCs too (if classical and doubly defined overlap bcs exist
 in that base).
 A &#8216;.Solver#Overlap&#8217; node is created in each family of BCs and contains the node &#8216;NeighbourList&#8217; (where donor zones can be specified). The value is empty here.
@@ -1234,3 +1234,24 @@ function resizeFunction() {
 }
 
 </script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Converter.elsAProfile: specific elsA CGNS functions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

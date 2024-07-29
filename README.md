@@ -1,9 +1,20 @@
 # Cassiopee 4
 
+**C**omputational **F**luid **D**ynamics pre- and post-processing python modules.
+
 -- Under construction --
+
+- [Documentation](https://onera.github.io/Cassiopee)
+
+- Tutorials
+
+## Installation from binaries
+
+<!--- - with pip -->
+<!-- - On windows, download setup.exe -->
 
 ## Installation from sources
 
-On windows: [see install page](https://github.com/onera/Cassiopee/blob/main/docs/developers/Install/msys2.md)
+- [On windows](https://github.com/onera/Cassiopee/blob/main/docs/developers/Install/msys2.md)
 
-On linux ubuntu: [see install page.](https://github.com/onera/Cassiopee/blob/main/docs/developers/Install/ubuntu.md)
+- [On linux ubuntu](https://github.com/onera/Cassiopee/blob/main/docs/developers/Install/ubuntu.md)

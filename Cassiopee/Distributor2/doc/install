@@ -6,7 +6,6 @@ if [ "$CASSIOPEE" = "" ]; then
     exit
 fi
 
-
 PRODUCTION=1
 # Destination docs
 DEST="$CASSIOPEE/docs/doc"
@@ -53,12 +52,15 @@ cd ..
 # Build html
 touch source/*.rst
 sphinx-build -b html ./source ./build
+[ $? != 0 ] && exit 1;
 if ([ $PRODUCTION -eq 1 ])
 then
 # Build pdf
     sphinx-build -b latex ./source ./build
+    [ $? != 0 ] && exit 1;
     cd build
-    pdflatex Distributor2 >& /dev/null
+    pdflatex Distributor2
+    [ $? != 0 ] && exit 1;
     cd ..
 fi
 

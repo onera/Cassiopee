@@ -61,11 +61,11 @@ struct Poly {
   : stride(s)
   {}
 
-  void set(E_Int *p)
+  void set(E_Int *p) 
   {
-    std::sort(p, p+stride);
     for (E_Int i = 0; i < stride; i++)
       n[i] = p[i];
+    std::sort(n, n+stride);
   }
 
   bool operator==(const Poly &P) const

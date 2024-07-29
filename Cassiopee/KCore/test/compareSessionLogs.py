@@ -179,6 +179,7 @@ if __name__ == '__main__':
     compStr += failedTestsHeader
     for test in failedTests:
       compStr += stringify(test)
+    baseState = 'FAILED'
   else: compStr += failedTestsHeader + "[none]\n"
   
   execTime = []
@@ -202,7 +203,7 @@ if __name__ == '__main__':
   baseStateMsg = ""
   exitStatus = 0
   if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS']) and
-          script_args.logs[0].startswith('REF-')):
+          os.path.basename(script_args.logs[0]).startswith('REF-')):
       if os.access(script_args.logs[0], os.W_OK):
         import shutil
         os.remove(script_args.logs[0])

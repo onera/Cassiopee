@@ -63,13 +63,13 @@ if [ $PRODMODE -le 1 ]; then
     rm -f build/lib.*/KCore/kcore.*
     rm -f build/lib.*/KCore/kcore-*.*
     python -c "import Dist; Dist.symLinks()"
-    if [ $PRODMODE -eq 0 ]; then
+    if [ $PRODMODE -eq 0 ]; then # setup
         python setup.py install --prefix="$INSTALLPATH"
         [ $? != 0 ] && exit 1;
-    elif [ $PRODMODE -eq 1 ]; then
-        #rep=`python -c "import sys; print('%d.%d'%(sys.version_info[0],sys.version_info[1]))"`
-        #rep="$INSTALLPATH/lib/python"$rep"/site-packages"
-        #python -m pip install --ignore-installed --upgrade --target=$rep .
+    elif [ $PRODMODE -eq 1 ]; then # pip+no wheel
+        python -m pip install --no-cache-dir --no-binary=KCore --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 2 ]; then # pip+wheel
         python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
         [ $? != 0 ] && exit 1;
     fi
