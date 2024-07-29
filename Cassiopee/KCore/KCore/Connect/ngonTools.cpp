@@ -292,7 +292,7 @@ void K_CONNECT::reversi_connex(E_Int *pgs, E_Int *xpgs, E_Int npgs,
 
     for (E_Int i = xpgs[K]; i < xpgs[K+1]; i++) {
       E_Int nei = neighbours[i];
-      if (processed[nei] || nei == -1)
+      if (nei == -1 || processed[nei])
         continue;
 
       // get the shared edge between face K and face nei
