@@ -109,6 +109,8 @@ else if ($MAC == "ld") then
         set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
         @ ncpu++
         setenv OMP_NUM_THREADS $ncpu
+        setenv ASAN_OPTIONS verify_asan_link_order=false
+        #setenv LD_PRELOAD /opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
 else if ($MAC == "eos814") then
 #-------------------------- ld centos 8 + python 3.8 -----------------------------
@@ -679,7 +681,9 @@ else if ($MAC == "juno_gcc") then
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
         unsetenv SLURM*
         unsetenv OMP_PLACES
-
+        setenv ASAN_OPTIONS verify_asan_link_order=false
+        #setenv LD_PRELOAD /opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+        
 else if ($MAC == "juno_gpu") then
 #----------------------------- juno gpu ------------------------------------
         setenv ELSAPROD juno_gpu
