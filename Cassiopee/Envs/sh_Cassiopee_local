@@ -49,6 +49,9 @@ case $MACHINE in
         MACHINE_TMP=${MACHINE%"_DBG"}
         DBGMODE="_DBG"
         ;;
+    DBG)
+        DBGMODE="_DBG"
+        ;;
     *)
         MACHINE_TMP=$MACHINE
         ;;
@@ -58,7 +61,7 @@ case $MACHINE_TMP in
         export MAC=${MACHINE_TMP%"_i8"}
         INTTYPE="_i8"
         ;;
-    i8)
+    i8*)
         INTTYPE="_i8"
         ;;
     *)
