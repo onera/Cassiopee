@@ -43,7 +43,9 @@ MAC0=$(echo $KC | grep 'WDAAA161Z'); if [ "$MAC0" != "" ]; then export MAC="WDAA
 
 # Detect the type of integer that is used
 INTTYPE=""
-if [ "$MACHINE" = *_i8 ]; then
+posend=${#MACHINE}
+posbeg=$((posend - 3))
+if [ "${MACHINE:posbeg:posend}" = _i8 ]; then
     export MAC=${MACHINE%"_i8"}
     INTTYPE="_i8"
 elif [ "$MACHINE" = "i8" ]; then
