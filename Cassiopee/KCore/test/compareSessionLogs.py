@@ -203,7 +203,7 @@ if __name__ == '__main__':
   baseStateMsg = ""
   exitStatus = 0
   if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS']) and
-          script_args.logs[0].startswith('REF-')):
+          os.path.basename(script_args.logs[0]).startswith('REF-')):
       if os.access(script_args.logs[0], os.W_OK):
         import shutil
         os.remove(script_args.logs[0])
