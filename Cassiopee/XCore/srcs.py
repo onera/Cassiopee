@@ -52,6 +52,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/AdaptMesh/AdaptMesh_ExtractMesh.cpp',
             'XCore/AdaptMesh/AdaptMesh_AssignRefData.cpp',
             'XCore/AdaptMesh/AdaptMesh_Adapt.cpp',
+            'XCore/AdaptMesh/AdaptMesh_Exit.cpp',
 
             'XCore/AdaptMesh/AdaptMesh_ExtractData.cpp',
             

@@ -37,6 +37,7 @@ static PyMethodDef Pyxcore [] =
     {"AdaptMesh_LoadBalance", K_XCORE::AdaptMesh_LoadBalance, METH_VARARGS},
     {"AdaptMesh_Adapt", K_XCORE::AdaptMesh_Adapt, METH_VARARGS},
     {"AdaptMesh_ExtractMesh", K_XCORE::AdaptMesh_ExtractMesh, METH_VARARGS},
+    {"AdaptMesh_Exit", K_XCORE::AdaptMesh_Exit, METH_VARARGS},
 
     {"AdaptMesh_ExtractOwners", K_XCORE::AdaptMesh_ExtractOwners, METH_VARARGS},
     {"AdaptMesh_ExtractNeighbours", K_XCORE::AdaptMesh_ExtractNeighbours, METH_VARARGS},
