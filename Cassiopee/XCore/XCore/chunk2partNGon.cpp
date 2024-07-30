@@ -427,7 +427,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   }
 
   std::vector<E_Int> part(ncells);
-  ret = SCOTCH_dgraphPart(&graph, nproc, &strat, &part[0]); 
+  ret = SCOTCH_dgraphPart(&graph, nproc, &strat, &part[0]);
 
   if (ret != 0) {
     fprintf(stderr, "SCOTCH_dgraphPart(): Failed to map graph\n");
@@ -435,6 +435,9 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
   if (rank == 0)
     printf("Graph map OK\n");
+
+  SCOTCH_dgraphExit(&graph);
+  SCOTCH_stratExit(&strat);
 
   // Send cells to their target proc!
   std::vector<int> c_scount(nproc, 0);
@@ -790,6 +793,9 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
                 &rdata[0], &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
+
+  XFREE(faces_dist);
+
   std::vector<E_Int> pneis; 
 
   E_Int nif = 0;
@@ -1063,7 +1069,13 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     Py_DECREF(f);
     Py_DECREF(n);
     PyList_Append(comm_data, arr);
+
+    delete ppatches[i];
   }
+
+  delete [] ppatches; 
+
+  
 
   PyList_Append(out, comm_data);
   Py_DECREF(comm_data);
@@ -1118,6 +1130,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     Py_DECREF(clist);
   }
 
+  XFREE(cells_dist);
+
   // 9 must be an array of FlowSolutions chunks
   o = PyList_GetItem(l, 8);
   E_Int psize = PyList_Size(o);
@@ -1166,6 +1180,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     Py_DECREF(plist);
   }
 
+  XFREE(points_dist);
+
   // 10 must be an array of PointList chunks
   o = PyList_GetItem(l, 9);
   E_Int nbc = PyList_Size(o);
@@ -1190,6 +1206,9 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
       // Note(Imad): we could free up plists[i] and bcsize[i] here
     }
+
+    XFREE(plists);
+    XFREE(bcsize);
 
     // make local PE
     std::unordered_map<E_Int, std::vector<E_Int>> lPE;

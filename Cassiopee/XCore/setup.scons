@@ -56,25 +56,20 @@ if mpi: libraries += mpiLibs
 libraryDirs += paths; libraries += libs
 
 # Specific options for scotch
-#opt1 =['-DCOMMON_FILE_COMPRESS_GZ','-DCOMMON_PTHREAD',
-#       '-DCOMMON_RANDOM_FIXED_SEED', '-DSCOTCH_DETERMINISTIC',
-#       '-DSCOTCH_RENAME','-DIDXSIZE64','-DSCOTCH_MPI_ASYNC_COLL',
-#       '-DSCOTCH_PTHREAD','-DSCOTCH_PTHREAD_MPI',
-#       '-DSCOTCH_VERSION_NUM=7','-DSCOTCH_RELEASE_NUM=0','-DSCOTCH_PATCHLEVEL_NUM=4',
-#       '-IXCore/scotch']
-
-opt1 =['-DCOMMON_FILE_COMPRESS_GZ',
+opt1 =['-DCOMMON_FILE_COMPRESS_GZ','-DCOMMON_PTHREAD',
        '-DCOMMON_RANDOM_FIXED_SEED', '-DSCOTCH_DETERMINISTIC',
        '-DSCOTCH_RENAME','-DIDXSIZE64','-DSCOTCH_MPI_ASYNC_COLL',
+       '-DSCOTCH_PTHREAD','-DSCOTCH_PTHREAD_MPI',
        '-DSCOTCH_VERSION_NUM=7','-DSCOTCH_RELEASE_NUM=0','-DSCOTCH_PATCHLEVEL_NUM=4',
        '-IXCore/scotch']
 
 opt1_1 = ['-DSCOTCH_PTSCOTCH']
-#opt1_1 = []
+
+if Dist.DEBUG: opt1 += ['-DSCOTCH_DEBUG_FULL']
 
 if Dist.GDOUBLEINT: opt1 += ['-DINTSIZE64']
 else: opt1 += ['-DINTSIZE32']
-if cc == 'gcc': opt1 += [] # ['-Wrestrict']
+if cc == 'gcc': opt1 += ['-Drestrict=__restrict'] # ['-Wrestrict']
 elif cc == 'pgcc': opt1 += []
 elif cc == 'nvc': opt1 += []
 elif cc == 'icx': opt1 += []

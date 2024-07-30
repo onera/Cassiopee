@@ -47,15 +47,15 @@ void Mesh_get_ref_entities(Mesh *M, std::vector<Int> &ref_cells,
     for (Int fid : ref_faces) {
         Int *face = Mesh_get_face(M, fid);
         Int *frange = Mesh_get_frange(M, fid);
+        Int size = 2 * M->fstride[fid];
+        assert(size == 8);
 
-        for (Int i = 0; i < M->fstride[fid]; i++) {
-            if (frange[i] == 2) continue;
+        for (Int i = 0; i < size; i += 2) {
+            if (frange[i/2] == 2) continue;
 
-            Int *pn = face + 2*i;
-
-            Int p = pn[0];
-            assert(pn[1] == -1);
-            Int q = pn[2];
+            Int p = face[i];
+            assert(face[i+1] == -1);
+            Int q = face[(i+2)%size];
 
             UEdge E(p, q);
             auto it = ref_edges.find(E);

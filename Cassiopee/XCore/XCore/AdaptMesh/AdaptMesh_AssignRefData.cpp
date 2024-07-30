@@ -35,16 +35,18 @@ PyObject *K_XCORE::AdaptMesh_AssignRefData(PyObject *self, PyObject *args)
 
     Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
 
-    //assert(M->cref == NULL);
-    //assert(M->fref == NULL);
-    XFREE(M->cref);
-
+    Int *ptr = NULL;
     Int ret, nfld, size;
-    ret = K_NUMPY::getFromNumpyArray(CREF, M->cref, size, nfld, false);
+    ret = K_NUMPY::getFromNumpyArray(CREF, ptr, size, nfld, true);
     if (ret != 1 || size != M->nc || nfld != 1) {
         RAISE("Bad cref input.");
         return NULL;
     }
+
+    M->cref = (Int *)XRESIZE(M->cref, M->nc * sizeof(Int));
+    for (Int i = 0; i < M->nc; i++) M->cref[i] = ptr[i];
+
+    Py_DECREF(CREF);
 
     // Allocate patch buffers
 

@@ -76,11 +76,17 @@ def AdaptMesh_ExtractMesh(t, conformize=1):
 def AdaptMesh_ExtractOwners(AM):
     return xcore.AdaptMesh_ExtractOwners(AM)
 
+def AdaptMesh_ExtractNeighbours(AM):
+    return xcore.AdaptMesh_ExtractNeighbours(AM)
+
 def AdaptMesh_ExtractCellLevels(AM):
     return xcore.AdaptMesh_ExtractCellLevels(AM)
 
-def AdaptMesh_ExtractNeighbourCellLevels(AM):
-    return xcore.AdaptMesh_ExtractNeighbourCellLevels(AM)
+def AdaptMesh_ExtractCellRanges(AM):
+    return xcore.AdaptMesh_ExtractCellRanges(AM)
+
+def AdaptMesh_ExtractHaloCellLevels(AM):
+    return xcore.AdaptMesh_ExtractHaloCellLevels(AM)
 
 
 ################################################################################

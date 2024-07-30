@@ -575,6 +575,8 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     
     assert(rpdist[M->npc] == np);
     
+    XFREE(rpoints);
+
     // Send coordinates
 
     if (M->pid == 0) puts("    Exchanging point coordinates...");

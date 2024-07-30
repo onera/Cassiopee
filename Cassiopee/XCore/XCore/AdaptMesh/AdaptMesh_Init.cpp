@@ -98,8 +98,12 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         assert(PyList_Size(PATCH) == 4);
 
         // TODO(Imad): error check
-        K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 0), M->bps[i].pf,
-            M->bps[i].nf, false);
+        Int *ptr = NULL;
+        K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 0), ptr,
+            M->bps[i].nf, true);
+        
+        M->bps[i].pf = IntArray(M->bps[i].nf);
+        for (Int j = 0; j < M->bps[i].nf; j++) M->bps[i].pf[j] = ptr[j];
         
         M->bps[i].gid = PyLong_AsLong(PyList_GetItem(PATCH, 1));
 
@@ -153,12 +157,20 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         M->pps[i].nei = PyLong_AsLong(PyList_GetItem(PATCH, 0));
 
         // TODO(Imad): error check
+        Int *ptr = NULL;
         K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 1),
-            M->pps[i].pf, M->pps[i].nf, false);
+            ptr, M->pps[i].nf, true);
+        
+        M->pps[i].pf = IntArray(M->pps[i].nf);
+        memcpy(M->pps[i].pf, ptr, M->pps[i].nf * sizeof(Int));
         
         // TODO(Imad): error check
+        ptr = NULL;
         K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 2),
-            M->pps[i].pn, M->pps[i].nf, false);
+            ptr, M->pps[i].nf, true);
+
+        M->pps[i].pn = IntArray(M->pps[i].nf);
+        memcpy(M->pps[i].pn, ptr, M->pps[i].nf * sizeof(Int));
 
         // Zero-based
         for (Int j = 0; j < M->pps[i].nf; j++) {

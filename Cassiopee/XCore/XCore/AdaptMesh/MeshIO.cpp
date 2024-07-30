@@ -610,6 +610,8 @@ PyObject *export_conformal_mesh(Mesh *M)
         }
     }
 
+    RELEASESHAREDU(karray, f, cn);
+
     PyObject *out = PyList_New(0);
 
     PyList_Append(out, karray);
