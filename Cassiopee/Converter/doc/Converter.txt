@@ -1,6 +1,6 @@
 ==============================================================================
 Converter
-Require: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore
+Requires: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore
 Optional: libhdf5 > 1.8.6 (hdf file format)
 Optional: extractBCOfType, extractBCOfName requires Transform 
 Optional: Mpi requires mpi4py
