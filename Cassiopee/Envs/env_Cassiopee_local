@@ -49,6 +49,9 @@ else
         set INTTYPE="_i8"
     else if ("$MACHINE" == "DBG") then
         set DBGMODE="_DBG"
+    else if ("$MACHINE" == "i8_DBG") then
+        set INTTYPE="_i8"
+        set DBGMODE="_DBG"
     else if ("$MACHINE" =~ "*_DBG") then
         set MAC=`echo $MACHINE | rev | cut -c 5- | rev`
         set DBGMODE="_DBG"
