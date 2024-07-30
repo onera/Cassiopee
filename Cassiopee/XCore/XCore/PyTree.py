@@ -246,17 +246,17 @@ def loadAndSplitNGon(fileName):
         I.newDataArray(name, value=solc[n], parent=cont)
 
     # add bcs
-    for i in range(len(bcs)):
-        if len(bcs[i]) != 0:
+    for i, bc in enumerate(bcs):
+        if len(bc) != 0:
             cont = I.createUniqueChild(zo, 'ZoneBC', 'ZoneBC_t')
             val = bcTypes[bcNames[i]]
             tag = bcTags[bcNames[i]]
-            bc = []
+            bcn = []
             if val not in BCType_l:
-                bc = I.newBC(name=bcNames[i], pointList=bcs[i], family=val, parent=cont)
+                bcn = I.newBC(name=bcNames[i], pointList=bc, family=val, parent=cont)
             else:
-                bc = I.newBC(name=bcNames[i], pointList=bcs[i], btype=val, parent=cont)
-            I.newUserDefinedData(name='Tag', value=tag, parent=bc)
+                bcn = I.newBC(name=bcNames[i], pointList=bc, btype=val, parent=cont)
+            I.newUserDefinedData(name='Tag', value=tag, parent=bcn)
 
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)

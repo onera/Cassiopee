@@ -48,12 +48,17 @@ NPROCS="0"
 NTHREADS="0"
 # more args for mpirun (-a)
 ARGS=""
+# SANITIZE (-s)
+SANITIZE="0"
 
-while getopts :hpn:t:a: OPTION
+while getopts :hpsn:t:a: OPTION
 do
      case $OPTION in
          h)
-             echo 'kpython -n 5 -t 2 script.py'      
+             echo 'ex: kpython -n 5 -t 2 script.py'
+             echo 'Run 5 processes with 2 threads.'
+             echo 'kpython -a "args": pass args to mpi run.'
+             echo 'kpython -s: use sanitize if compiled in debug.'    
              exit 1
              ;;
          n)
@@ -73,6 +78,10 @@ do
          p) 
              ARGS+="-m cProfile -s tottime"
              ;;
+         s) 
+             SANITIZE="1"
+             ;;
+        
          \?)
              PYARGS+=$OPTARG
              ;;
@@ -119,7 +128,14 @@ if [ "$NPROCS" = "0" ]
 then
     export MPIRUN=0
     export OMP_NUM_THREADS=$NTHREADS
-    $PYTHONEXE $ARGS $SCRIPT
+    if [ $SANITIZE = '1' ]
+    then
+        export LD_PRELOAD=$ASAN_LIB
+        $PYTHONEXE $ARGS $SCRIPT
+        unset LD_PRELOAD
+    else
+        $PYTHONEXE $ARGS $SCRIPT
+    fi
     export OMP_NUM_THREADS=$OMPNUMTHREADSINIT
     unset MPIRUN
 else
@@ -134,10 +150,17 @@ else
         [ $? != 0 ] && exit 1;
     elif [ "$ELSAPROD" = 'ld' ] || [ "$ELSAPROD" = 'ld_i8' ] # ld
     then
-        set -x
-        # openMpi
-        mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
-        set +x
+        # openMpi    
+        if [ $SANITIZE = '1' ]
+        then
+            set -x
+            mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -x LD_PRELOAD=$ASAN_LIB -np $NPROCS $PYTHONEXE $SCRIPT
+            set +x
+        else
+            set -x
+            mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
+            set +x
+        fi
         [ $? != 0 ] && exit 1;
     elif [ "$ELSAPROD" = 'visung_r8' ] || [ "$ELSAPROD" = 'visung_r8_i8' ] # visung
     then
@@ -169,24 +192,31 @@ else
         [ $? != 0 ] && exit 1;
     elif [ "$ELSAPROD" = 'spiro_el8' ] || [ "$ELSAPROD" = 'spiro_el8_i8' ] || [ "$ELSAPROD" = 'spiro_amdrm_r8' ] || [ "$ELSAPROD" = 'spiro_amdnp_r8' ] || [ "$ELSAPROD" = 'spiro_sky_r8' ] || [ "$ELSAPROD" = 'spiro_cas_r8' ] # spiro
     then
-    set -x
+        set -x
         # intelMpi
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ "$ELSAPROD" = 'juno' ] || [ "$ELSAPROD" = 'juno_i8' ] # juno
     then
-    set -x
+        set -x
         # intelMpi
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ "$ELSAPROD" = 'juno_gcc' ] || [ "$ELSAPROD" = 'juno_gcc_i8' ] # juno gcc
     then
-    set -x
         # openMpi
-        mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
-        set +x
+        if [ $SANITIZE = '1' ]
+        then
+            set -x
+            mpirun $ARGS -x LD_PRELOAD=$ASAN_LIB -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
+            set +x
+        else
+            set -x
+            mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
+            set +x
+        fi
         [ $? != 0 ] && exit 1;    
     elif [ "$ELSAPROD" = 'cob_r8' ] # cobalt
     then
