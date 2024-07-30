@@ -64,6 +64,11 @@ case $MACHINETMP in
     i8*)
         INTTYPE="_i8"
         ;;
+    "")
+        if [ -z "$MAC" ]; then
+            echo 'Your machine is not known by uname. Try to set MACHINE.'
+        fi
+        ;;
     *)
         export MAC=$MACHINETMP
         ;;
