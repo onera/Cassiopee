@@ -18,11 +18,12 @@
 */
 #include "cplot.h"
 #include "Data.h"
+#include <math.h>
 
 #define M_PI 3.1415926535897932384626433832795
 
 // in texture interpolation
-void interp(E_Int ind, 
+void interp(E_Int ind,
             E_Float* final1, E_Float* final2, E_Float* final3, E_Float* final4,
             E_Float* im1, E_Float* im2, E_Float* im3, E_Float* im4, 
             E_Float px, E_Float py, E_Int ni1, E_Int nj1)
@@ -47,6 +48,7 @@ void interp(E_Int ind,
 }
 
 
+// Create 1D half gaussian kernel coefficients
 // IN: sigma: in pixels
 // IN: n: half size of kernel
 // OUT: c: half kernel coefficients
@@ -63,6 +65,7 @@ void createGaussFilter(E_Float sigma, E_Int n, E_Float* c)
 
 }
 
+// Apply gaussian blur to in
 // IN: in: color array
 // IN: ni,nj: image size
 // IN: c: kernel coef
@@ -101,6 +104,8 @@ void gaussianBlur(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float*
 // it doesnt have the texture size limit
 // si type360=0 -> 360 deg
 // si type360=1 -> 180 deg
+// shift: eye shift
+// fov2: fov enlargement
 PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
 {
   // Get the 4 arrays of cube images (left, right, bottom, top, back, front)
@@ -110,7 +115,8 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   PyObject* finalArray;
   E_Int type360;
   if (!PYPARSETUPLE_(args, OOOO_ OOO_ I_, &leftArray, &rightArray,
-    &bottomArray, &topArray, &backArray, &frontArray, &finalArray, &type360))
+    &bottomArray, &topArray, &backArray, &frontArray, &finalArray, 
+    &type360))
   {
     return NULL;
   }
@@ -233,11 +239,15 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
   else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
+  // fov of each image
+  E_Float fov = 90.;
+  printf("fov=%g\n", fov);
+  
   #pragma omp parallel
   {
     E_Int ii, jj;
     E_Float tx, ty, px, py;
-    E_Float theta, phi, x, y, z; 
+    E_Float theta, phi, x, y, z;
     E_Float scale;
     # pragma omp for
     for (E_Int ind = 0; ind < nijl; ind++)
@@ -248,7 +258,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
       ty = (1.*jj) / njl1;
 
       theta = tinf + tx * tsup; // between -pi and pi
-      phi = -M_PI/2. + ty * M_PI; // between -pi/2 and pi/2
+      phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
 
       x = cos(phi) * sin(theta);
       y = sin(phi);
@@ -262,7 +272,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
           scale = -1.0 / x;
           px = ( z*scale + 1.0) / 2.0;
           py = ( y*scale + 1.0) / 2.0;
-          //printf("1px=%g %g\n", px, py);
           interp(ind, final1, final2, final3, final4,
                  left1, left2, left3, left4,
                  px, py, ni1, nj1);
@@ -272,7 +281,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
           scale = 1.0 / x;
           px = (-z*scale + 1.0) / 2.0;
           py = ( y*scale + 1.0) / 2.0;
-          //printf("2px=%g %g\n", px, py);
           interp(ind, final1, final2, final3, final4,
                  right1, right2, right3, right4, 
                  px, py, ni1, nj1);
@@ -283,9 +291,8 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
         if (y > 0.0)
         {
           scale = -1.0 / y;
-          px = (-x*scale + 1.0) / 2.0; // a shifter a droite
+          px = (-x*scale + 1.0) / 2.0;
           py = ( z*scale + 1.0) / 2.0;
-          //printf("3px=%g %g\n", px, py);
           interp(ind, final1, final2, final3, final4,
                  bottom1, bottom2, bottom3, bottom4, 
                  px, py, ni1, nj1);
@@ -295,7 +302,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
           scale = 1.0 / y;
           px = (-x*scale + 1.0) / 2.0;
           py = (-z*scale + 1.0) / 2.0;
-          //printf("4px=%g %g\n", px, py);
           interp(ind, final1, final2, final3, final4,
                  top1, top2, top3, top4,
                  px, py, ni1, nj1);
@@ -308,7 +314,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
           scale = -1.0 / z;
           px = (-x*scale + 1.0) / 2.0;
           py = ( y*scale + 1.0) / 2.0;
-          //printf("5px=%g %g\n", px, py);
           interp(ind, final1, final2, final3, final4,
                  back1, back2, back3, back4, 
                  px, py, ni1, nj1);
@@ -316,9 +321,8 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
         else
         {
           scale = 1.0 / z;
-          px = ( x*scale + 1.0) / 2.0;      
+          px = ( x*scale + 1.0) / 2.0;
           py = ( y*scale + 1.0) / 2.0;
-          //printf("6px=%g %g\n", px, py);
           interp(ind, final1, final2, final3, final4,
                  front1, front2, front3, front4, 
                  px, py, ni1, nj1);
@@ -358,6 +362,155 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
     delete [] c;
   }
 
+  RELEASESHAREDS(frontArray, front);
+  RELEASESHAREDS(backArray, back);
+  RELEASESHAREDS(leftArray, left);
+  RELEASESHAREDS(rightArray, right);
+  RELEASESHAREDS(topArray, top);
+  RELEASESHAREDS(bottomArray, bottom);
+  RELEASESHAREDS(finalArray, final);
+  
   return Py_None;
 }
 
+//===========================================================================
+
+PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
+{
+  // Get the n arrays of cube images
+  PyObject* arrays;
+  PyObject* finalArray;
+  E_Int type360;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arrays, &finalArray, &type360))
+  {
+    return NULL;
+  }
+
+  E_Int nangles = PyList_Size(arrays);
+  printf("nangles=%d\n", nangles);
+
+  char* varString;
+  E_Int ni, nj, nk, res;
+  FldArrayF* array; FldArrayI* cn; char* eltType;
+  std::vector<FldArrayF*> images(nangles);
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    res = K_ARRAY::getFromArray3(PyList_GetItem(arrays, i), varString, images[i], 
+                                 ni, nj, nk, cn, eltType);
+    if (res != 1) 
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "panorama: requires a structured array.");
+      return NULL;
+    }
+  }
+
+  FldArrayF* final;
+  E_Int nil, njl, nkl;
+  res = K_ARRAY::getFromArray3(finalArray, varString, final, 
+                               nil, njl, nkl, cn, eltType);
+  if (res != 1)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "panorama: requires a structured array (final).");
+    return NULL;
+  }
+
+  assert(njl == nj);
+
+  // cube image pointers
+  std::vector<E_Float*> im1(nangles);
+  std::vector<E_Float*> im2(nangles);
+  std::vector<E_Float*> im3(nangles);
+  std::vector<E_Float*> im4(nangles);
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    im1[i] = images[i]->begin(4);
+    im2[i] = images[i]->begin(5);
+    im3[i] = images[i]->begin(6);
+    im4[i] = images[i]->begin(7);
+  }
+
+  // final image pointers
+  E_Float* final1 = final->begin(4); // r,g,b,a
+  E_Float* final2 = final->begin(5);
+  E_Float* final3 = final->begin(6);
+  E_Float* final4 = final->begin(7);
+
+  E_Float tinf, tsup;
+
+  if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
+  else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
+
+  // fov of each cube image
+  E_Float fov = 90.;
+
+  E_Int nijl = nil*njl; // final image
+  E_Int nil1 = nil-1;
+  E_Int njl1 = njl-1;
+  E_Int ni1 = ni-1; // cube image
+  E_Int nj1 = nj-1;
+  printf("ni=%d, nj=%d\n", ni, nj);
+
+  E_Int ind;
+  E_Int mid = ni/2;
+  
+  // direct sliting
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    for (E_Int j = 0; j < njl; j++)
+    {
+      ind = i + j*nil;
+      final1[ind] = im1[i][mid+j*ni];
+      final2[ind] = im2[i][mid+j*ni];
+      final3[ind] = im3[i][mid+j*ni];
+      final4[ind] = im4[i][mid+j*ni];
+    }
+  }
+  
+  // transformation
+  E_Float theta = 0.;
+  E_Float x, y, z, scale, py, phi, ty;
+
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    // 1D interpolation
+    for (E_Int j = 0; j < njl; j++)
+    {
+      ty = (1.*j)/nj1;
+      phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
+  
+      ind = i + j*nil;
+      
+      x = 0.;
+      y = sin(phi); // entre -1 et 1
+      z = cos(phi); // entre 0 et 0
+
+      if (phi > -M_PI/4. && phi < M_PI/4.)
+      {
+        scale = 1.0 / z;
+        py = ( y*scale + 1.0) / 2.0;
+        printf("%g %g\n", py, phi);
+        interp(ind, final1, final2, final3, final4,
+              im1[i], im2[i], im3[i], im4[i],
+              0.5, py, ni1, nj1);
+      }
+      else
+      {
+        final1[ind] = 0.;
+        final2[ind] = 0.;
+        final3[ind] = 0.;
+        final4[ind] = 255.;
+      }
+    }
+  }
+
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(arrays, i), images[i]);
+  }
+  
+  RELEASESHAREDS(finalArray, final);
+  
+  return Py_None;
+}
