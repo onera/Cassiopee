@@ -148,7 +148,7 @@ else
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'ld' ] || [ "$ELSAPROD" = 'ld_i8' ] # ld
+    elif [ "$ELSAPROD" = 'ld' ] || [ "$ELSAPROD" = 'ld_i8' ] || [ "$ELSAPROD" = 'ld_DBG' ] || [ "$ELSAPROD" = 'ld_i8_DBG' ] # ld
     then
         # openMpi    
         if [ $SANITIZE = '1' ]
@@ -197,14 +197,14 @@ else
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'juno' ] || [ "$ELSAPROD" = 'juno_i8' ] # juno
+    elif [ "$ELSAPROD" = 'juno' ] || [ "$ELSAPROD" = 'juno_i8' ] || [ "$ELSAPROD" = 'juno_DBG' ] || [ "$ELSAPROD" = 'juno_i8_DBG' ] # juno
     then
         set -x
         # intelMpi
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'juno_gcc' ] || [ "$ELSAPROD" = 'juno_gcc_i8' ] # juno gcc
+    elif [ "$ELSAPROD" = 'juno_gcc' ] || [ "$ELSAPROD" = 'juno_gcc_i8' ] || [ "$ELSAPROD" = 'juno_gcc_DBG' ] || [ "$ELSAPROD" = 'juno_gcc_i8_DBG' ] # juno gcc
     then
         # openMpi
         if [ $SANITIZE = '1' ]
