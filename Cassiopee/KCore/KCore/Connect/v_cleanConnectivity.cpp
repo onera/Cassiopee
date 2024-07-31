@@ -209,8 +209,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   // --- 4. Reindex & Compress connectivities ---
   E_Int j, k; // write pointers
   E_Int ind; // read pointer, same for i
-  E_Int itrl, nv, nvins, vidx, nf, nfins, fidx;
-  E_Int indirPHi, indirPHitrl;
+  E_Int itrl, nv, nvins, vidx, nf, nfins, fidx, indirPHi;
   E_Int sizeFN2 = sizeFN, sizeEF2 = sizeEF;
 
   // 4.a Compress FN connectivity
@@ -268,18 +267,12 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     for (E_Int i = 0; i < nelts; i++)
     {
       cn.getElt(i, nf, nface, indPH);
-      if (rmDirtyElts)
-      {
-        indirPHi = indirPH[i]; indirPHitrl = indirPH[itrl];
-      }
-      else
-      {
-        indirPHi = i; indirPHitrl = itrl;
-      }
+      if (rmDirtyElts) indirPHi = indirPH[i];
+      else indirPHi = i;
 
       // Detect duplicated or collapsed elements
       if ((indirPHi == COLLAPSED) ||
-          (rmDirtyElts && (itrl != -1 && indirPH[i] - indirPHitrl != 1)))
+          (rmDirtyElts && itrl != -1 && indirPHi - indirPH[itrl] != 1))
       {
         // Shift read pointer and skip
         ind += nf+shift;
