@@ -662,6 +662,7 @@ else if ($MAC == "juno") then
         module load occt/7.6.1-gnu831
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
+        module load texlive/2021
         unsetenv I_MPI_FABRICS_LIST
         unsetenv I_MPI_FABRICS
         unsetenv I_MPI_PMI_LIBRARY

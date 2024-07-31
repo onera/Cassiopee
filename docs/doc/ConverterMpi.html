@@ -888,45 +888,26 @@ All processors then see the same tree.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="Converter.Mpi.trace">
 <span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stdout'</span></span></em><span class="sig-paren">)</span></dt>
-<dd><blockquote>
-<div><p>Enable to monitor CPU usage and memory usage for each node/process.
+<dd><p>Enable to monitor CPU usage and memory usage for each node/process.
 If fileName=&#8221;stdout&#8221;, information is written to standard output with the processor number.
 If fileName is another name, information is written in &#8220;filenameXXX&#8221; files, one for each process. If filename does not have a format for the process number and/or an file extension, it is appended &#8220;%03d&#8221; and &#8220;.out&#8221;, respectively.
 If cpu=True, time elapsed since the previous call to &#8220;trace&#8221; by this node is written.
 If mem=True, the current usage of memory of each process is written.</p>
 <dl class="field-list simple">
-<dt class="field-odd">param text<span class="colon">:</span></dt>
-<dd class="field-odd"><p>text to write</p>
-</dd>
-<dt class="field-even">type text<span class="colon">:</span></dt>
-<dd class="field-even"><p>string</p>
-</dd>
-<dt class="field-odd">param cpu<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True to write cpu usage information</p>
-</dd>
-<dt class="field-even">type cpu<span class="colon">:</span></dt>
-<dd class="field-even"><p>boolean</p>
-</dd>
-<dt class="field-odd">param mem<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True to write memory usage information</p>
-</dd>
-<dt class="field-even">type mem<span class="colon">:</span></dt>
-<dd class="field-even"><p>boolean</p>
-</dd>
-<dt class="field-odd">param filename<span class="colon">:</span></dt>
-<dd class="field-odd"><p>name of the file to write information to or &#8220;stdout&#8221;</p>
-</dd>
-<dt class="field-even">type filename<span class="colon">:</span></dt>
-<dd class="field-even"><p>string</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>string</em>) &#8211; text to write</p></li>
+<li><p><strong>cpu</strong> (<em>boolean</em>) &#8211; True to write cpu usage information</p></li>
+<li><p><strong>mem</strong> (<em>boolean</em>) &#8211; True to write memory usage information</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; name of the file to write information to or &#8220;stdout&#8221;</p></li>
+</ul>
 </dd>
 </dl>
 <p><em>Example of use:</em></p>
-</div></blockquote>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/tracePT.py">Write a trace (pyTree)</a>:</p></li>
 </ul>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - trace (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - trace (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
 
@@ -937,7 +918,6 @@ If mem=True, the current usage of memory of each process is written.</p>
 <span class="c1">#&gt;&gt; 0: &gt;&gt;&gt; After cart [0.0060176 secs][9.2 MB]</span>
 </pre></div>
 </div>
-</div></blockquote>
 </dd></dl>
 
 <hr class="docutils" />
