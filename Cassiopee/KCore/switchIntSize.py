@@ -77,9 +77,14 @@ def check_elsaprod(intSize):
   elsaprod = os.getenv("ELSAPROD")
   if elsaprod is not None:
     if intSize == 4 and "_i8" in elsaprod:
-      print("Remove '_i8' suffix from $ELSAPROD: {}".format(elsaprod[:-3]))
+      print("Remove '_i8' suffix from $ELSAPROD: {}".format(
+          elsaprod.replace('_i8', '')))
     elif intSize == 8 and "_i8" not in elsaprod:
-      print("Add '_i8' suffix to $ELSAPROD: {}_i8".format(elsaprod))
+      if elsaprod.endswith('_DBG'):
+        print("Add '_i8_DBG' suffix to $ELSAPROD: {}_i8_DBG".format(
+            elsaprod[:-4]))
+      else:
+        print("Add '_i8' suffix to $ELSAPROD: {}_i8".format(elsaprod))
   return
   
 if __name__ == '__main__':
