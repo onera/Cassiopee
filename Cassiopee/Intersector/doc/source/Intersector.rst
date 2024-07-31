@@ -1015,12 +1015,12 @@ Extraction Functions
 
     Returns the cells in t1 having specified faces or cell ids.
 
-    :param           a:  Input mesh
-    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param           ids:  face or cell ids
-    :type            ids:  numpy of ints
-    :param           are_face_ids:  Tells whether the ids are referring to faces or cells.
-    :type            are_face_ids:  boolean
+    :param     a:  Input mesh
+    :type      a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param     ids:  face or cell ids
+    :type      ids:  numpy of ints
+    :param     are_face_ids:  Tells whether the ids are referring to faces or cells.
+    :type      are_face_ids:  boolean
 
     *Example of use:*
 

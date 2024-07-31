@@ -486,12 +486,12 @@ Actions
     :type cpu: boolean
     :param mem: True to write memory usage information
     :type mem: boolean
-    :param filename: name of the file to write information to or "stdout"
-    :type filename: string
-    
+    :param fileName: name of the file to write information to or "stdout"
+    :type fileName: string
+
     *Example of use:*
 
-   * `Write a trace (pyTree) <Examples/Converter/tracePT.py>`_:
+    * `Write a trace (pyTree) <Examples/Converter/tracePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/tracePT.py
 

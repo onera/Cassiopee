@@ -806,7 +806,6 @@ pyTree creation and manipulation
 
     .. literalinclude:: ../build/Examples/Converter/rmBCDataVarsPT.py
 
-    .. note:: new in version 2.7.
 
 ---------------------------------------------------------------------------
 
@@ -1406,7 +1405,7 @@ Array / PyTree common manipulations
 
     .. literalinclude:: ../build/Examples/Converter/initVarsByEq.py
 
-    .. note:: When initializing variables using string formulas, functions correspond to the numpy library.
+    .. note:: When initializing variables using string formulas, function names must match the names of the numpy library.
     
     * `Init a variable to a constant value (pyTree) <Examples/Converter/initVarsPT.py>`_:
 
@@ -2050,7 +2049,7 @@ Array / PyTree analysis
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param var: variable name
     :type var: string
-    :rtype: L0 norm
+    :rtype: float
 
     *Example of use:*
 
@@ -2072,7 +2071,7 @@ Array / PyTree analysis
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param var: variable name
     :type var: string
-    :rtype: L2 norm
+    :rtype: float
 
     *Example of use:*
 
@@ -2187,8 +2186,6 @@ Array / PyTree analysis
 
     .. literalinclude:: ../build/Examples/Converter/isFinitePT.py
 
-    .. note:: new in version 3.2.
-
 
 .. Array / PyTree conversion
 .. --------------------------------
@@ -2202,7 +2199,7 @@ Array / PyTree analysis
     :type path: string
     :param t: pyTree
     :type t: pyTree
-    :return array
+    :return: array
     :rtype: Converter array
 
     *Example of use:*
@@ -2286,7 +2283,6 @@ Array / PyTree input/output
     :param options: reading options (see ReadOptions_)
     :type options: keywords
     :return: a pyTree
-    :rtype: pyTree
     
     *Example of use:*
 

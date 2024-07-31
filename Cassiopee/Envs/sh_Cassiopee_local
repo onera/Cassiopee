@@ -557,6 +557,7 @@ elif [ "$MAC" = "juno" ]; then
     module load occt/7.6.1-gnu831
     module load subversion/1.14.1-gnu831
     module load emacs/27.2-gnu831
+    module load texlive/2021
     alias inspxe-cl="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect mi3 -- python3 "
     alias inspxe-cl2="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect ti3 -- python3 "
     alias inspxe-gui="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
