@@ -1,6 +1,8 @@
-# Send a notification by email to a list of recipients about the validation
-# status of different prods. Please set the environment variable CASSIOPEE_EMAIL
-# Usage: python notifyValid.py --recipients='a.b@onera.fr c.d@onera.fr'
+# Notify a user about the validation status of different prods, either in the
+# terminal window (default) or by email (set the environment variable
+# CASSIOPEE_EMAIL and run on localhost)
+# Usage: python notifyValid.py
+#        python notifyValid.py --email --recipients='a.b@onera.fr c.d@onera.fr'
 import sys
 from time import strptime, strftime
 
@@ -9,6 +11,8 @@ def parseArgs():
   import argparse
   # Create argument parser
   parser = argparse.ArgumentParser()
+  parser.add_argument("-e", "--email", action="store_true",
+                        help="Email results. Default: print in terminal")
   parser.add_argument("-r", "--recipients", type=str, default='',
                       help="Single-quoted space-separated list of recipients")
   # Parse arguments
@@ -44,7 +48,7 @@ if __name__ == '__main__':
   
   vnvState = 'OK'
   messageText = "Non-regression testing of Cassiopee, Fast and all "\
-    "PModules:\n{}\n\n{}\n\n\n".format(58*'-', gitInfo)
+    "PModules:\n{}\n\n{}\n\n".format(58*'-', gitInfo)
   messageText += '{:^20} | {:^30} | {:^10}\n{}\n'.format(
       "PROD.", "DATE", "STATUS", 67*'-')
   for log_machine in log_entries:
@@ -55,11 +59,15 @@ if __name__ == '__main__':
     messageText += '{:^20} | {:^30} | {:^10}\n'.format(prod, date, status)
     if 'FAILED' in log_machine: vnvState = 'FAILED'
     
+  messageSubject = "[V&V Cassiopee] State: {}".format(vnvState)
   if vnvState == 'FAILED':
     messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
       'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
       'vincent.casseau@onera.fr'
   
-  notify(recipients=recipients,
-         messageSubject="[V&V Cassiopee] State: {}".format(vnvState),
-         messageText=messageText)
+  if script_args.email:
+    notify(recipients=recipients,
+           messageSubject=messageSubject,
+           messageText=messageText)
+  else:
+    print("{0}\n|{1:^65}|\n{0}\n{2}".format(67*'-', messageSubject, messageText))

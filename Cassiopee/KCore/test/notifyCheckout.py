@@ -1,6 +1,8 @@
-# Send a notification by email to a list of recipients about the checkout
-# status of different prods. Please set the environment variable CASSIOPEE_EMAIL
-# Usage: python notifyCheckout.py --recipients='a.b@onera.fr c.d@onera.fr'
+# Notify a user about the checkout status of different prods, either in the
+# terminal window (default) or by email (set the environment variable
+# CASSIOPEE_EMAIL and run on localhost)
+# Usage: python notifyCheckout.py
+#        python notifyCheckout.py --email --recipients='a.b@onera.fr c.d@onera.fr'
 import sys
 from time import strptime, strftime
 
@@ -9,6 +11,8 @@ def parseArgs():
   import argparse
   # Create argument parser
   parser = argparse.ArgumentParser()
+  parser.add_argument("-e", "--email", action="store_true",
+                        help="Email results. Default: print in terminal")
   parser.add_argument("-r", "--recipients", type=str, default='',
                       help="Single-quoted space-separated list of recipients")
   # Parse arguments
@@ -35,7 +39,9 @@ if __name__ == '__main__':
   log_entries.sort(key=lambda x: x[1], reverse=True)
   
   # Do not send a notification when everything is OK
-  if not any('FAILED' in log_machine for log_machine in log_entries): sys.exit()
+  if not any('FAILED' in log_machine for log_machine in log_entries):
+    if script_args.email: sys.exit()
+    else: print("[Checkout Cassiopee] State: OK")
   
   # Get git info
   cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
@@ -45,9 +51,9 @@ if __name__ == '__main__':
   gitInfo = "Git origin: {}\nGit branch: {}\nCommit hash: {}".format(
     gitOrigin, gitBranch, gitHash)
       
-  baseState = 'FAILED'
+  messageSubject = "[Checkout Cassiopee] State: FAILED"
   messageText = "Pulling updates for Cassiopee, Fast and all "\
-    "PModules:\n{}\n\n{}\n\n\n".format(52*'-', gitInfo)
+    "PModules:\n{}\n\n{}\n\n".format(52*'-', gitInfo)
   messageText += '{:^20} | {:^15} | {:^30} | {:^10}\n{}\n'.format(
       "PROD.", "PCKG.", "DATE", "STATUS", 85*'-')
   for log_machine in log_entries:
@@ -63,6 +69,9 @@ if __name__ == '__main__':
     'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
     'vincent.casseau@onera.fr'
   
-  notify(recipients=recipients,
-         messageSubject="[Checkout Cassiopee] State: {}".format(baseState),
-         messageText=messageText)
+  if script_args.email:
+    notify(recipients=recipients,
+           messageSubject=messageSubject,
+           messageText=messageText)
+  else:
+    print("{0}\n|{1:^65}|\n{0}\n{2}".format(67*'-', messageSubject, messageText))
