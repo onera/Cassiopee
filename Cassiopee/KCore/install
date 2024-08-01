@@ -81,5 +81,13 @@ fi
 # Install libkcore
 python installLib.py
 
+# Copie les scripts de notification d'installation et validation
+cp test/notifyCheckout.py "$INSTALLPATH"
+cp test/notifyCheckout "$INSTALLPATH"
+cp test/notifyInstall.py "$INSTALLPATH"
+cp test/notifyInstall "$INSTALLPATH"
+cp test/notifyValid.py "$INSTALLPATH"
+cp test/notifyValid "$INSTALLPATH"
+
 # Check installation
 python test/t1.py
