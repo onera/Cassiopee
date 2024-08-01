@@ -338,10 +338,10 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
 #ifdef __MESA__
     E_Int screenSize = _view.w * _view.h; 
     // Get the depth buffer partiel -> depth
-    void* depthl;
     float* depth = (float*)malloc(screenSize * sizeof(float));
     
 #if GETDEPTH == 0
+    void* depthl;
     // depth buffer par OSMESA
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;

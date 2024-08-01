@@ -378,24 +378,52 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
 {
   // Get the n arrays of cube images
-  PyObject* arrays;
+  PyObject* front;
+  PyObject* top;
+  PyObject* bottom;
   PyObject* finalArray;
   E_Int type360;
-  if (!PYPARSETUPLE_(args, OO_ I_, &arrays, &finalArray, &type360))
+  if (!PYPARSETUPLE_(args, OOOO_ I_, &front, &top, &bottom, &finalArray, &type360))
   {
     return NULL;
   }
 
-  E_Int nangles = PyList_Size(arrays);
+  E_Int nangles = PyList_Size(front);
   printf("nangles=%d\n", nangles);
 
   char* varString;
   E_Int ni, nj, nk, res;
   FldArrayF* array; FldArrayI* cn; char* eltType;
-  std::vector<FldArrayF*> images(nangles);
+  std::vector<FldArrayF*> frontImages(nangles);
   for (E_Int i = 0; i < nangles; i++)
   {
-    res = K_ARRAY::getFromArray3(PyList_GetItem(arrays, i), varString, images[i], 
+    res = K_ARRAY::getFromArray3(PyList_GetItem(front, i), varString, frontImages[i], 
+                                 ni, nj, nk, cn, eltType);
+    if (res != 1) 
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "panorama: requires a structured array.");
+      return NULL;
+    }
+  }
+
+  std::vector<FldArrayF*> topImages(nangles);
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    res = K_ARRAY::getFromArray3(PyList_GetItem(top, i), varString, topImages[i], 
+                                 ni, nj, nk, cn, eltType);
+    if (res != 1) 
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "panorama: requires a structured array.");
+      return NULL;
+    }
+  }
+
+  std::vector<FldArrayF*> botImages(nangles);
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    res = K_ARRAY::getFromArray3(PyList_GetItem(bottom, i), varString, botImages[i], 
                                  ni, nj, nk, cn, eltType);
     if (res != 1) 
     {
@@ -418,18 +446,41 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
 
   assert(njl == nj);
 
-  // cube image pointers
-  std::vector<E_Float*> im1(nangles);
-  std::vector<E_Float*> im2(nangles);
-  std::vector<E_Float*> im3(nangles);
-  std::vector<E_Float*> im4(nangles);
+  // slit image pointers
+  std::vector<E_Float*> imf1(nangles);
+  std::vector<E_Float*> imf2(nangles);
+  std::vector<E_Float*> imf3(nangles);
+  std::vector<E_Float*> imf4(nangles);
   for (E_Int i = 0; i < nangles; i++)
   {
-    im1[i] = images[i]->begin(4);
-    im2[i] = images[i]->begin(5);
-    im3[i] = images[i]->begin(6);
-    im4[i] = images[i]->begin(7);
+    imf1[i] = frontImages[i]->begin(4);
+    imf2[i] = frontImages[i]->begin(5);
+    imf3[i] = frontImages[i]->begin(6);
+    imf4[i] = frontImages[i]->begin(7);
   }
+  std::vector<E_Float*> imt1(nangles);
+  std::vector<E_Float*> imt2(nangles);
+  std::vector<E_Float*> imt3(nangles);
+  std::vector<E_Float*> imt4(nangles);
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    imt1[i] = topImages[i]->begin(4);
+    imt2[i] = topImages[i]->begin(5);
+    imt3[i] = topImages[i]->begin(6);
+    imt4[i] = topImages[i]->begin(7);
+  }
+  std::vector<E_Float*> imb1(nangles);
+  std::vector<E_Float*> imb2(nangles);
+  std::vector<E_Float*> imb3(nangles);
+  std::vector<E_Float*> imb4(nangles);
+  for (E_Int i = 0; i < nangles; i++)
+  {
+    imb1[i] = botImages[i]->begin(4);
+    imb2[i] = botImages[i]->begin(5);
+    imb3[i] = botImages[i]->begin(6);
+    imb4[i] = botImages[i]->begin(7);
+  }
+
 
   // final image pointers
   E_Float* final1 = final->begin(4); // r,g,b,a
@@ -461,13 +512,14 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
     for (E_Int j = 0; j < njl; j++)
     {
       ind = i + j*nil;
-      final1[ind] = im1[i][mid+j*ni];
-      final2[ind] = im2[i][mid+j*ni];
-      final3[ind] = im3[i][mid+j*ni];
-      final4[ind] = im4[i][mid+j*ni];
+      final1[ind] = imb1[i][mid+j*ni];
+      final2[ind] = imb2[i][mid+j*ni];
+      final3[ind] = imb3[i][mid+j*ni];
+      final4[ind] = imb4[i][mid+j*ni];
     }
   }
-  
+  //return Py_None;
+
   // transformation
   E_Float theta = 0.;
   E_Float x, y, z, scale, py, phi, ty;
@@ -490,25 +542,46 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
       {
         scale = 1.0 / z;
         py = ( y*scale + 1.0) / 2.0;
-        printf("%g %g\n", py, phi);
+        //printf("%g %g\n", py, phi);
         interp(ind, final1, final2, final3, final4,
-              im1[i], im2[i], im3[i], im4[i],
+              imf1[i], imf2[i], imf3[i], imf4[i],
               0.5, py, ni1, nj1);
       }
-      else
+      else if (phi > M_PI/4.) // bottom
       {
-        final1[ind] = 0.;
-        final2[ind] = 0.;
-        final3[ind] = 0.;
-        final4[ind] = 255.;
+        scale = -1.0 / y;
+        py = ( z*scale + 1.0) / 2.0;
+        //printf("%g %g\n", py, phi);
+        interp(ind, final1, final2, final3, final4,
+              imb1[i], imb2[i], imb3[i], imb4[i],
+              0.5, py, ni1, nj1);
+        //final1[ind] = 0.;
+        //final2[ind] = 0.;
+        //final3[ind] = 0.;
+        //final4[ind] = 255.;
+      }
+      else if (phi < -M_PI/4.) // top
+      {
+        scale = -1.0 / y;
+        py = ( z*scale + 1.0) / 2.0;
+        //printf("%g %g\n", py, phi);
+        interp(ind, final1, final2, final3, final4,
+              imt1[i], imt2[i], imt3[i], imt4[i],
+              0.5, py, ni1, nj1);
+        //final1[ind] = 255.;
+        //final2[ind] = 0.;
+        //final3[ind] = 0.;
+        //final4[ind] = 255.;
       }
     }
   }
 
   for (E_Int i = 0; i < nangles; i++)
   {
-    RELEASESHAREDS(PyList_GetItem(arrays, i), images[i]);
-  }
+    RELEASESHAREDS(PyList_GetItem(front, i), frontImages[i]);
+    RELEASESHAREDS(PyList_GetItem(top, i), topImages[i]);
+    RELEASESHAREDS(PyList_GetItem(bottom, i), botImages[i]);
+  } 
   
   RELEASESHAREDS(finalArray, final);
   
