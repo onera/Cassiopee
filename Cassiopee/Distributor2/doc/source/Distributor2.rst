@@ -304,8 +304,6 @@ Various operations
 
     .. literalinclude:: ../build/Examples/Distributor2/printProcStatsPT.py    
     
-    .. note:: new in version 2.7.
-
 
 
 .. toctree::

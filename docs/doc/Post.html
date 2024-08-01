@@ -1437,23 +1437,16 @@ For NGON grids, indices are the NGON face indices, starting from 1.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="Post.frontFaces">
 <span class="sig-prename descclassname"><span class="pre">Post.</span></span><span class="sig-name descname"><span class="pre">frontFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span></dt>
-<dd><blockquote>
-<div><p>Select faces that are located at the boundary where a tag indicator change from 0 to 1.</p>
+<dd><p>Select faces that are located at the boundary where a tag indicator change from 0 to 1.</p>
 <dl class="field-list simple">
-<dt class="field-odd">param a<span class="colon">:</span></dt>
-<dd class="field-odd"><p>input data</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>tag</strong> (<em>string</em>) &#8211; variable name</p></li>
+</ul>
 </dd>
-<dt class="field-even">type a<span class="colon">:</span></dt>
-<dd class="field-even"><p>[array, list of arrays] or [pyTree, base, zone, list of zones]</p>
-</dd>
-<dt class="field-odd">param tag<span class="colon">:</span></dt>
-<dd class="field-odd"><p>variable name</p>
-</dd>
-<dt class="field-even">type tag<span class="colon">:</span></dt>
-<dd class="field-even"><p>string</p>
-</dd>
-<dt class="field-odd">rtype<span class="colon">:</span></dt>
-<dd class="field-odd"><p>zone</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>zone</p>
 </dd>
 </dl>
 <p><em>Example of use:</em></p>
@@ -1475,12 +1468,10 @@ For NGON grids, indices are the NGON face indices, starting from 1.</p>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">f</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div></blockquote>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/frontFacesPT.py">Select a front in a tag (pyTree)</a>:</p></li>
 </ul>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - frontFaces (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - frontFaces (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
@@ -1495,7 +1486,6 @@ For NGON grids, indices are the NGON face indices, starting from 1.</p>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div></blockquote>
 </dd></dl>
 
 <hr class="docutils" />
@@ -2757,14 +2747,11 @@ Converter arrays interface or pyTree interface. For arrays, fields
 must be input separately, for pyTree, they must be defined in
 each zone.</p>
 </div></blockquote>
+<hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Post.integ">
 <span class="sig-prename descclassname"><span class="pre">Post.</span></span><span class="sig-name descname"><span class="pre">integ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<hr class="docutils" />
-<blockquote>
-<div><p>Compute the integral <span class="math notranslate nohighlight">\(\int F.dS\)</span> of a scalar field (whose name is in var string) over
+<dd><p>Compute the integral <span class="math notranslate nohighlight">\(\int F.dS\)</span> of a scalar field (whose name is in var string) over
 the geometry defined by arrays containing the coordinates + field ( + an optional &#8220;ratio&#8221; field ).
 Solution and ratio can be located at nodes or at centers.</p>
 <p>For array interface:</p>
@@ -2777,23 +2764,17 @@ is specified, all the fields located at nodes and centers are integrated:</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">param A<span class="colon">:</span></dt>
-<dd class="field-odd"><p>input data</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>A</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>var</strong> (<em>string</em>) &#8211; field name</p></li>
+</ul>
 </dd>
-<dt class="field-even">type  A<span class="colon">:</span></dt>
-<dd class="field-even"><p>[array, list of arrays] or [pyTree, base, zone, list of zones]</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the result of integration</p>
 </dd>
-<dt class="field-odd">param var<span class="colon">:</span></dt>
-<dd class="field-odd"><p>field name</p>
-</dd>
-<dt class="field-even">type var<span class="colon">:</span></dt>
-<dd class="field-even"><p>string</p>
-</dd>
-<dt class="field-odd">return<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the result of integration</p>
-</dd>
-<dt class="field-even">rtype<span class="colon">:</span></dt>
-<dd class="field-even"><p>a list of 1 float</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a list of 1 float</p>
 </dd>
 </dl>
 <p>Exists also as parallel distributed version (P.Mpi.integ).</p>
@@ -2835,7 +2816,8 @@ is specified, all the fields located at nodes and centers are integrated:</p>
 <span class="c1">#&gt;&gt; [99.99999999999989]</span>
 </pre></div>
 </div>
-</div></blockquote>
+</dd></dl>
+
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Post.integNorm">
@@ -3256,3 +3238,24 @@ function resizeFunction() {
 }
 
 </script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post: post-processing module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

@@ -711,7 +711,7 @@ Solution selection
 
     .. literalinclude:: ../build/Examples/Post/frontFaces.py
 
-   * `Select a front in a tag (pyTree) <Examples/Post/frontFacesPT.py>`_:
+    * `Select a front in a tag (pyTree) <Examples/Post/frontFacesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/frontFacesPT.py
 
@@ -1329,9 +1329,9 @@ Solution integration
     must be input separately, for pyTree, they must be defined in
     each zone.
 
-.. py:function:: Post.integ(A, var='F')
-
 ---------------------------------------
+
+.. py:function:: Post.integ(A, var='F')
 
     Compute the integral :math:`\int F.dS` of a scalar field (whose name is in var string) over
     the geometry defined by arrays containing the coordinates + field ( + an optional "ratio" field ).
