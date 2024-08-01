@@ -34,20 +34,21 @@ FILE* Data::fopenw(const char* path, const char* mode)
   }
   if (start > 0) // dirname exists
   {
-    char* dirname = new char [end];
+    char* dirname = new char [end+1];
     for (E_Int i = 0; i < start; i++) dirname[i] = path[i];
     dirname[start] = '\0';
     
     r = fopen(dirname, "rb");
     if (r == NULL) 
     { 
-      //printf("Info: CPlot: %s not found. creating.\n", dirname); 
+      printf("Info: CPlot: directory %s not found. creating.\n", dirname); 
 #ifdef _WIN32
       mkdir(dirname);
 #else
       mkdir(dirname, 0755);
 #endif
-    };
+    }
+    else fclose(r);
     delete [] dirname;
   }
 
