@@ -6,9 +6,6 @@ __version__ = Initiator.__version__
 from .MeshSize import meshSize
 from .Adim import adim1, adim2, adim3, dim1, dim2, dim3, dim4
 
-try: range = xrange
-except: pass
-
 try:
     import Converter
     import Converter.PyTree as C
@@ -270,8 +267,7 @@ def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
     """Overlay the field of zone1 and zone2 in a unique zone."""
     nodes = Internal.getZones(t1)
     nodes2 = Internal.getZones(t2)
-    for c in range(len(nodes)):
-        z1 = nodes[c]
+    for c, z1 in enumerate(nodes):
         if loc == 'centers':
             a1 = C.getAllFields(z1, 'centers')[0]
             x1 = C.getFields(Internal.__GridCoordinates__, z1)[0]
