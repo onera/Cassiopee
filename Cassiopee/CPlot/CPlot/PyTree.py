@@ -1184,7 +1184,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     for i in range(nangles):
         
         # simple parallel hack  
-        #if i%Cmpi.size != Cmpi.rank: continue
+        if i%Cmpi.size != Cmpi.rank: continue
         
         theta = i*360./nangles-180.
 
@@ -1219,7 +1219,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
         point = T.rotate(point, (0,0,0), v2p, -90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
         
-        posEye0 = Vector.add(v1z, posCam0)
+        posEye0 = Vector.add(v1z, posCam)
         dirCam0 = v2z
         print('top %d / %d'%(i,nangles))
 
@@ -1240,7 +1240,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
         point = T.rotate(point, (0,0,0), v2p, 90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
         
-        posEye0 = Vector.add(v1z, posCam0)
+        posEye0 = Vector.add(v1z, posCam)
         dirCam0 = v2z
         print('bot %d / %d'%(i,nangles))
 
