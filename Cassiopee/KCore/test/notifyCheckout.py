@@ -40,8 +40,8 @@ if __name__ == '__main__':
   
   # Do not send a notification when everything is OK
   if not any('FAILED' in log_machine for log_machine in log_entries):
-    if script_args.email: sys.exit()
-    else: print("[Checkout Cassiopee] State: OK")
+    if not script_args.email: print("[Checkout Cassiopee] State: OK")
+    sys.exit()
   
   # Get git info
   cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
