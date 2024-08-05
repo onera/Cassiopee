@@ -29,6 +29,9 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
 
     return xcore.AdaptMesh_Init(array, normal2D, bcs, comm, gcells, gfaces)
 
+def AdaptMesh_Exit(AM):
+    return xcore.AdaptMesh_Exit(AM)
+
 def AdaptMesh_AssignRefData(AM, REF):
     return xcore.AdaptMesh_AssignRefData(AM, REF)
 
@@ -38,8 +41,8 @@ def AdaptMesh_LoadBalance(AM):
 def AdaptMesh_Adapt(AM):
     return xcore.AdaptMesh_Adapt(AM)
 
-def AdaptMesh_ExtractMesh(t, conformize=1):
-    mesh, bcs, comm, procs = xcore.AdaptMesh_ExtractMesh(t, conformize)
+def AdaptMesh_ExtractMesh(AM, conformize=1):
+    mesh, bcs, comm, procs = xcore.AdaptMesh_ExtractMesh(AM, conformize)
     name = 'Proc' + '%d'%Cmpi.rank
     zone = I.createZoneNode(name, mesh)
 

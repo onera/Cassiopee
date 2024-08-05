@@ -46,6 +46,8 @@ namespace K_XCORE
     PyObject *AdaptMesh_Adapt(PyObject *self, PyObject *args);
 
     PyObject *AdaptMesh_ExtractMesh(PyObject *self, PyObject *args);
+    
+    PyObject *AdaptMesh_Exit(PyObject *self, PyObject *args);
 
     PyObject *AdaptMesh_ExtractOwners(PyObject *self, PyObject *args);
     PyObject *AdaptMesh_ExtractNeighbours(PyObject *self, PyObject *args);

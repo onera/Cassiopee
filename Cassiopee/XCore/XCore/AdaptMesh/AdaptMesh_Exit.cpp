@@ -17,8 +17,9 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Mesh.h"
+#include "common/mem.h"
 
-PyObject *K_XCORE::AdaptMesh_LoadBalance(PyObject *self, PyObject *args)
+PyObject *K_XCORE::AdaptMesh_Exit(PyObject *self, PyObject *args)
 {
     PyObject *MESH;
 
@@ -34,23 +35,19 @@ PyObject *K_XCORE::AdaptMesh_LoadBalance(PyObject *self, PyObject *args)
 
     Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
 
-    if (M->npc == 1) return Py_None;
+    Mesh_reset_base_data(M);
 
-    // Make global cell-cell connectivity
-    Mesh_make_cell_cells(M);
+    Mesh_reset_boundary_data(M);
 
-    // Load balance
-    Int ret = Mesh_load_balance(M);
+    Mesh_reset_adaptation_data(M);
 
-    if (ret != 0) {
-        RAISE("Failed to load-balance the mesh.");
-        return NULL;
-    }
+    Mesh_reset_comm_data(M);
 
-    if (M->pid == 0) puts("Setting mesh orientation...");
-    Mesh_set_orientation(M);
+    Mesh_reset_parallel_data(M);
 
-    if (M->pid == 0) puts("OK LoadBalance.");
+    XFREE(M->reqs);
+
+    delete M;
 
     return Py_None;
 }
