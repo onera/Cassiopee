@@ -22,11 +22,11 @@ C._addState(tb, 'EquationDimension', 2)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 C._addState(tb, 'TurbulenceModel', 'OneEquation_SpalartAllmaras')
 
-base=Internal.getNodeByName(tb,'IBCFil_Base1')
+base = Internal.getNodeByName(tb, 'IBCFil_Base1')
 Internal.addChild(base, D.line((-0.09128554453599108,-0.19576248199991644,0), (0.09128554453599105,0.19576248199991644,0),N=800))
 
-uinf            = 69.22970250694424*numpy.cos(4* numpy.pi/180)
-Lcharac         = 0.03362355
+uinf         = 69.22970250694424*numpy.cos(4* numpy.pi/180)
+Lcharac      = 0.03362355
 C._addState(tb, adim='dim4', UInf=uinf, TInf=298.15, PInf=101325., LInf=Lcharac,Mus=1.78938e-5)
 D_IBM._setSnear(tb, 0.0025)
 D_IBM._setDfar(tb, 0.75)
@@ -50,8 +50,8 @@ test.testT(t , 1)
 test.testT(tc, 2)
 
 ##NEEDED FOR THE MPI version
-C.convertPyTree2File(t ,LOCAL+'/t_WMM.cgns')
-C.convertPyTree2File(tc,LOCAL+'/tc_WMM.cgns')
+C.convertPyTree2File(t , LOCAL+'/t_WMM.cgns')
+C.convertPyTree2File(tc, LOCAL+'/tc_WMM.cgns')
 
 ##COMPUTE
 NIT           = 25  # number of iterations 

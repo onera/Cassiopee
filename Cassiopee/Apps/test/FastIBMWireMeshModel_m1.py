@@ -12,14 +12,14 @@ import numpy
 
 LOCAL = test.getLocal()
 
-tFile                 = 't_WMM.cgns'
-tcFile                = 'tc_WMM.cgns'
+tFile   = LOCAL+'/t_WMM.cgns'
+tcFile  = LOCAL+'/tc_WMM.cgns'
 
 ##READING SERIAL & DISTRIBUTING
-App._distribute(LOCAL+'/'+tFile, LOCAL+'/'+tcFile, NP=Cmpi.size)
+App._distribute(tFile, tcFile, NP=Cmpi.size)
 
 t       = Fast.loadTree(tFile , split='single', directory=LOCAL, mpirun=True)
-tc,graph= Fast.loadFile(LOCAL+'/'+tcFile, split='single',  mpirun=True, graph=True)
+tc,graph= Fast.loadFile(tcFile, split='single',  mpirun=True, graph=True)
 
 ##COMPUTE
 NIT                        = 25   # number of iterations 

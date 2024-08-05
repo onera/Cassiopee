@@ -1046,87 +1046,215 @@ def loadImageFiles(t, offscreen=0):
         CPlot.setState(billBoards=out, offscreen=offscreen)
     return None
 
-# subfunction of display 360. DIsplay the 6 views.
-def display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs):
+# subfunction of display 360. Display the 6 views.
+def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     import KCore.Vector as Vector
     
+    # resolution for the square view images
+    locRez = exportRez.split('x')[1]
+    locRez = int(locRez)//2
+    locRez = max(locRez, 100) # minimum 100 pixels
+    locRez = min(locRez, 8192) # maximum 8192 pixels, generally the max texture size
+    locRez = "%dx%d"%(locRez, locRez)
+
     # Compute all view vectors
-    v1 = Vector.sub(posEye, posCam)
+    v1 = Vector.sub(posEye, posCam) # view vector
     vz = Vector.normalize(dirCam)
     # orthogonalisation de v1
     s = Vector.dot(v1, vz)
     v1 = Vector.sub(v1, Vector.mul(s, vz))
-    v2 = Vector.cross(vz, v1)
+    v2 = Vector.cross(vz, v1) # second view vector
     n = Vector.norm(v1)
-    v3 = Vector.mul(n, vz)
+    v3 = Vector.mul(n, vz) # third view vector
 
-    # right
-    posEye0 = Vector.sub(posCam, v2); dirCam0 = dirCam
     lkwargs = kwargs.copy()
-    lkwargs['posCam'] = posCam
+    fov = 90.
+    
+    # right
+    posCam0 = posCam
+    posEye0 = Vector.sub(posCam, v2)
+    dirCam0 = dirCam
+    print('right', posCam, posCam0, posEye0, dirCam0)
+    lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
-    lkwargs['viewAngle'] = 90.
+    lkwargs['viewAngle'] = fov
     lkwargs['exportResolution'] = locRez
-    lkwargs['export'] = 'cube_right.png'
+    lkwargs['export'] = 'run/cube_right.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)
 
     # left
-    posEye0 = Vector.add(posCam, v2); dirCam0 = dirCam
-    lkwargs['posCam'] = posCam
+    posCam0 = posCam 
+    posEye0 = Vector.add(posCam, v2)
+    dirCam0 = dirCam
+    print('left', posCam, posCam0, posEye0, dirCam0)
+    lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
-    lkwargs['viewAngle'] = 90.
+    lkwargs['viewAngle'] = fov
     lkwargs['exportResolution'] = locRez
-    lkwargs['export'] = 'cube_left.png'
+    lkwargs['export'] = 'run/cube_left.png'
     display(t, **lkwargs)
-    finalizeExport(offscreen)    
+    finalizeExport(offscreen)   
 
     # front
-    posEye0 = posEye; dirCam0 = dirCam
-    lkwargs['posCam'] = posCam
+    posCam0 = posCam
+    print('front', posCam, posCam0, posEye0, dirCam0)
+    posEye0 = posEye
+    dirCam0 = dirCam
+    lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
-    lkwargs['viewAngle'] = 90.
+    lkwargs['viewAngle'] = fov
     lkwargs['exportResolution'] = locRez
-    lkwargs['export'] = 'cube_front.png'
+    lkwargs['export'] = 'run/cube_front.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)    
 
     # back
-    posEye0 = Vector.sub(posCam, v1); dirCam0 = dirCam
-    lkwargs['posCam'] = posCam
+    posCam0 = posCam
+    posEye0 = Vector.sub(posCam, v1)
+    dirCam0 = dirCam
+    print('back', posCam, posCam0, posEye0, dirCam0)
+    lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
-    lkwargs['viewAngle'] = 90.
+    lkwargs['viewAngle'] = fov
     lkwargs['exportResolution'] = locRez
-    lkwargs['export'] = 'cube_back.png'
+    lkwargs['export'] = 'run/cube_back.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)
 
     # top
-    posEye0 = Vector.add(posCam, v3); dirCam0 = Vector.mul(-1, v1)
+    posEye0 = Vector.add(posCam, v3)
+    dirCam0 = Vector.mul(-1, v1)
     lkwargs['posCam'] = posCam
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
-    lkwargs['viewAngle'] = 90.
+    lkwargs['viewAngle'] = fov
     lkwargs['exportResolution'] = locRez
-    lkwargs['export'] = 'cube_top.png'
+    lkwargs['export'] = 'run/cube_top.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)
 
-    # bot
-    posEye0 = Vector.sub(posCam, v3); dirCam0 = Vector.mul(+1, v1)
+    # bottom
+    posEye0 = Vector.sub(posCam, v3)
+    dirCam0 = Vector.mul(+1, v1)
     lkwargs['posCam'] = posCam
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
-    lkwargs['viewAngle'] = 90.
+    lkwargs['viewAngle'] = fov
     lkwargs['exportResolution'] = locRez
-    lkwargs['export'] = 'cube_bottom.png'
+    lkwargs['export'] = 'run/cube_bottom.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)
 
+    return None
+
+# subfunction of display 360. Display the n views.
+def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift, kwargs):
+
+    import Converter.Mpi as Cmpi
+    import KCore.Vector as Vector
+    lkwargs = kwargs.copy()
+
+    # number of images, 1 per pixel
+    nangles = exportRez.split('x')[0]
+    nangles = int(nangles)
+    # fov of each image
+    fov = 90.
+
+    # locrez of each image
+    locRez = exportRez.split('x')[1]
+    locRez1 = 2
+    locRez2 = int(locRez)
+    locRez = "%dx%d"%(locRez1, locRez2)
+
+    # Compute all front view vectors
+    v1 = Vector.sub(posEye, posCam) # view vector
+    vz = Vector.normalize(dirCam) # third view vector
+    v2 = Vector.cross(vz, v1) # second view vector
+    v2 = Vector.normalize(v2)
+
+    import Geom.PyTree as D
+    import Transform.PyTree as T
+
+    # start from -pi to pi and rotate left
+    for i in range(nangles):
+        
+        # simple parallel hack  
+        if i%Cmpi.size != Cmpi.rank: continue
+        
+        theta = i*360./nangles-180.
+
+        point = D.point(v1)
+        point = T.rotate(point, (0,0,0), vz, theta)
+        v1p = C.getValue(point, 'GridCoordinates', 0)
+        point = D.point(v2)
+        point = T.rotate(point, (0,0,0), vz, theta)
+        v2p = C.getValue(point, 'GridCoordinates', 0)
+        dv = Vector.mul(stereoShift, v2p)
+
+        # front image
+        posCam0 = Vector.add(posCam, dv)
+        posEye0 = Vector.add(v1p, posCam)
+        dirCam0 = dirCam
+        print('front %d / %d'%(i,nangles))
+
+        lkwargs['posCam'] = posCam0
+        lkwargs['posEye'] = posEye0
+        lkwargs['dirCam'] = dirCam0
+        lkwargs['viewAngle'] = fov
+        lkwargs['exportResolution'] = locRez
+        lkwargs['export'] = 'run/front_%05d.png'%i
+        display(t, **lkwargs)
+        finalizeExport(offscreen)
+
+        # top image
+        point = D.point(v1p)
+        point = T.rotate(point, (0,0,0), v2p, -90)
+        v1z = C.getValue(point, 'GridCoordinates', 0)
+        point = D.point(dirCam)
+        point = T.rotate(point, (0,0,0), v2p, -90)
+        v2z = C.getValue(point, 'GridCoordinates', 0)
+        
+        posEye0 = Vector.add(v1z, posCam)
+        dirCam0 = v2z
+        print('top %d / %d'%(i,nangles))
+
+        lkwargs['posCam'] = posCam0
+        lkwargs['posEye'] = posEye0
+        lkwargs['dirCam'] = dirCam0
+        lkwargs['viewAngle'] = fov
+        lkwargs['exportResolution'] = locRez
+        lkwargs['export'] = 'run/top_%05d.png'%i
+        display(t, **lkwargs)
+        finalizeExport(offscreen)
+
+        # bottom image
+        point = D.point(v1p)
+        point = T.rotate(point, (0,0,0), v2p, 90)
+        v1z = C.getValue(point, 'GridCoordinates', 0)
+        point = D.point(dirCam)
+        point = T.rotate(point, (0,0,0), v2p, 90)
+        v2z = C.getValue(point, 'GridCoordinates', 0)
+        
+        posEye0 = Vector.add(v1z, posCam)
+        dirCam0 = v2z
+        print('bot %d / %d'%(i,nangles))
+
+        lkwargs['posCam'] = posCam0
+        lkwargs['posEye'] = posEye0
+        lkwargs['dirCam'] = dirCam0
+        lkwargs['viewAngle'] = fov
+        lkwargs['exportResolution'] = locRez
+        lkwargs['export'] = 'run/bottom_%05d.png'%i
+        display(t, **lkwargs)
+        finalizeExport(offscreen)
+
+    print("done", flush=True)
+    Cmpi.barrier() # wait for completion
     return None
 
 #==============================================================================
@@ -1148,106 +1276,65 @@ def display360(t, type360=0, **kwargs):
     stereoDist = kwargs.get("stereoDist", 0.07) # stereoDist is in real world distance
     if stereo == 1: kwargs['stereo'] = 0
 
-    # resolution for the 6 view images
-    locRez = exportRez.split('x')[1]
-    locRez = int(locRez)//2
-    locRez = max(locRez, 100) # minimum 100 pixels
-    locRez = min(locRez, 8192) # maximum 8192 pixels, generally the max texture size
-    locRez = "%dx%d"%(locRez, locRez)
-
-    # display 6 views
-    display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs)
-
-    # Create the 360 image from cube images
     import Converter.Mpi as Cmpi
-    if Cmpi.rank == 0:
-        #if offscreen == 7: foffscreen = 1
-        #else: foffscreen = offscreen
-        #a = C.newPyTree(['Base'])
-        #display(a, panorama=1,
-        #        offscreen=foffscreen, export=export, exportResolution=exportRez)
-        #finalizeExport(foffscreen)
-        panorama(export, exportRez, type360=type360)
-    Cmpi.barrier() # wait for completion
+        
+    # display
+    if stereo == 0:
+        # display 6 views 
+        display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs)
+        # Create the 360 image from cube images
+        if Cmpi.rank == 0:
+            panorama(export, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
 
-    if stereo == 1: # left eye
-        import Generator.PyTree as G
+    else: # stereo (ODS)
+
+        export1 = export.rsplit('.', 1)
+        if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
+        else: export1 = export+'_1'
         export2 = export.rsplit('.', 1)
         if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
         else: export2 = export+'_2'
 
-        # common
-        v1 = Vector.sub(posEye, posCam)
-        vz = Vector.normalize(dirCam)
-        v2 = Vector.cross(vz, v1)
-        v2 = Vector.normalize(v2)
-
-        # stereo mode: convergent: decalage de la posCam a gauche, puis rotation du centre decale
-        v3 = Vector.mul(stereoDist, v2)
-        posCam = Vector.add(posCam, v3)
-
-        display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs)
-
+        # right eye
+        #stereoDist = 0. # forced to 0 for debug
+        display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
         if Cmpi.rank == 0:
-            panorama(export2, exportRez, type360=type360)
-
-            # assemble images
-            a1 = C.convertFile2PyTree(export)
-            a2 = C.convertFile2PyTree(export2)
-            a1 = Internal.getZones(a1)[0]
-            a2 = Internal.getZones(a2)[0]
-            a1[0] = "right"; a2[0] = "left"
-            locRez = exportRez.split('x')
-            if type360 == 0: # 360
-                ni = int(locRez[0]); nj = int(locRez[1])
-                a = G.cart((0,0,0), (1,1,1), (ni,2*nj,1))
-                C._addVars(a, ['r','g','b','a'])
-                for v in ['r','g','b','a']:
-                    pr = Internal.getNodeFromName2(a, v)[1]
-                    pr1 = Internal.getNodeFromName2(a1, v)
-                    pr2 = Internal.getNodeFromName2(a2, v)
-                    if pr1 is not None and pr2 is not None:
-                        pr1 = pr1[1]; pr2 = pr2[1]
-                        pr[0:ni,0:nj] = pr1[0:ni,0:nj]
-                        pr[0:ni,nj:2*nj] = pr2[0:ni,0:nj]
-                    else:
-                        pr[0:ni, 0:2*nj] = 1.
-            else: # 180
-                ni = int(locRez[1]); nj = int(locRez[1])
-                a = G.cart((0,0,0), (1,1,1), (2*ni,nj,1))
-                C._addVars(a, ['r','g','b','a'])
-                for v in ['r','g','b','a']:
-                    pr = Internal.getNodeFromName2(a, v)[1]
-                    pr1 = Internal.getNodeFromName2(a1, v)
-                    pr2 = Internal.getNodeFromName2(a2, v)
-                    if pr1 is not None and pr2 is not None:
-                        pr1 = pr1[1]; pr2 = pr2[1]
-                        pr[0:ni,0:nj] = pr1[0:ni,0:nj]
-                        pr[ni:2*ni,0:nj] = pr2[0:ni,0:nj]
-                    else:
-                        pr[0:2*ni,0:nj] = 1.
-            C.convertPyTree2File(a, export) # finale
+            panoramaODS(export1, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
+
+        # left eye
+        display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
+        if Cmpi.rank == 0:
+            panoramaODS(export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+        # stitch
+        if Cmpi.rank == 0:
+            panoramaStereo(export, export1, export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
     return None
 
-# type360=0 -> 360, mode=1 -> 180
-def panorama(export, exportResolution, type360=0):
-    res = exportResolution.split('x')
+# assemble 6 cube images en une image panoramique
+# type360=0 -> 360, type360=1 -> 180
+def panorama(export, exportRez, type360=0):
+    res = exportRez.split('x')
     if type360 == 0: resx = int(res[0]); resy = int(res[1])
     else: resx = int(res[1]); resy = int(res[1])
     import Generator.PyTree as G
     import CPlot.cplot
-    a1 = C.convertFile2PyTree('cube_left.png')
+    a1 = C.convertFile2PyTree('run/cube_left.png')
     a1 = C.getFields('nodes', a1, api=3)[0]
-    a2 = C.convertFile2PyTree('cube_right.png')
+    a2 = C.convertFile2PyTree('run/cube_right.png')
     a2 = C.getFields('nodes', a2, api=3)[0]
-    a3 = C.convertFile2PyTree('cube_bottom.png')
+    a3 = C.convertFile2PyTree('run/cube_bottom.png')
     a3 = C.getFields('nodes', a3, api=3)[0]
-    a4 = C.convertFile2PyTree('cube_top.png')
+    a4 = C.convertFile2PyTree('run/cube_top.png')
     a4 = C.getFields('nodes', a4, api=3)[0]
-    a5 = C.convertFile2PyTree('cube_back.png')
+    a5 = C.convertFile2PyTree('run/cube_back.png')
     a5 = C.getFields('nodes', a5, api=3)[0]
-    a6 = C.convertFile2PyTree('cube_front.png')
+    a6 = C.convertFile2PyTree('run/cube_front.png')
     a6 = C.getFields('nodes', a6, api=3)[0]
     a7 = G.cart((0,0,0), (1,1,1), (resx, resy,1))
     C._addVars(a7, ['r','g','b','a'])
@@ -1255,3 +1342,80 @@ def panorama(export, exportResolution, type360=0):
     CPlot.cplot.panorama(a1, a2, a3, a4, a5, a6, a7f, type360)
     C.convertPyTree2File(a7, export)
     return a7
+
+# assemble 2 images panoramiques en une image panoramique stereo
+def panoramaStereo(export, export1, export2, exportRez, type360=0):
+    import Generator.PyTree as G
+    # assemble 2 panoramic images in a single stereo image
+    a1 = C.convertFile2PyTree(export1)
+    a2 = C.convertFile2PyTree(export2)
+    a1 = Internal.getZones(a1)[0]
+    a2 = Internal.getZones(a2)[0]
+    a1[0] = "right"; a2[0] = "left"
+    locRez = exportRez.split('x')
+    if type360 == 0: # 360
+        ni = int(locRez[0]); nj = int(locRez[1])
+        a = G.cart((0,0,0), (1,1,1), (ni,2*nj,1))
+        C._addVars(a, ['r','g','b','a'])
+        for v in ['r','g','b','a']:
+            pr = Internal.getNodeFromName2(a, v)[1]
+            pr1 = Internal.getNodeFromName2(a1, v)
+            pr2 = Internal.getNodeFromName2(a2, v)
+            if pr1 is not None and pr2 is not None:
+                pr1 = pr1[1]; pr2 = pr2[1]
+                pr1 = pr1[:,::-1]
+                pr2 = pr2[:,::-1]
+                pr[0:ni,0:nj] = pr1[0:ni, 0:nj]
+                pr[0:ni,nj:2*nj] = pr2[0:ni, 0:nj]
+            else:
+                if v == 'a': pr[0:ni, 0:2*nj] = 255 
+                else: pr[0:ni, 0:2*nj] = 0
+    else: # 180
+        ni = int(locRez[1]); nj = int(locRez[1])
+        a = G.cart((0,0,0), (1,1,1), (2*ni,nj,1))
+        C._addVars(a, ['r','g','b','a'])
+        for v in ['r','g','b','a']:
+            pr = Internal.getNodeFromName2(a, v)[1]
+            pr1 = Internal.getNodeFromName2(a1, v)
+            pr2 = Internal.getNodeFromName2(a2, v)
+            if pr1 is not None and pr2 is not None:
+                pr1 = pr1[1]; pr2 = pr2[1]
+                pr[0:ni,0:nj] = pr1[0:ni,0:nj]
+                pr[ni:2*ni,0:nj] = pr2[0:ni,0:nj]
+            else:
+                if v == 'a': pr[0:2*ni,0:nj] = 255
+                else: pr[0:2*ni,0:nj] = 0
+
+    C.convertPyTree2File(a, export) # finale
+
+# assemble n cube images en une image panoramique
+# type360=0 -> 360, type360=1 -> 180
+def panoramaODS(export, exportRez, type360=0):
+
+    res = exportRez.split('x')
+    if type360 == 0: resx = int(res[0]); resy = int(res[1])
+    else: resx = int(res[1]); resy = int(res[1])
+    import Generator.PyTree as G
+    import CPlot.cplot
+    
+    nangles = exportRez.split('x')[0]
+    nangles = int(nangles)
+
+    front = []; top = []; bottom = []   
+    for i in range(nangles):
+        a1 = C.convertFile2PyTree('run/front_%05d.png'%i)
+        a1 = C.getFields('nodes', a1, api=3)[0]
+        front.append(a1)
+        a1 = C.convertFile2PyTree('run/top_%05d.png'%i)
+        a1 = C.getFields('nodes', a1, api=3)[0]
+        top.append(a1)
+        a1 = C.convertFile2PyTree('run/bottom_%05d.png'%i)
+        a1 = C.getFields('nodes', a1, api=3)[0]
+        bottom.append(a1)
+        
+    a7 = G.cart((0,0,0), (1,1,1), (resx, resy,1))
+    C._addVars(a7, ['r','g','b','a'])
+    a7f = C.getFields('nodes', a7, api=3)[0]
+    CPlot.cplot.panoramaODS(front, top, bottom, a7f, type360)
+    C.convertPyTree2File(a7, export)
+    

@@ -1,8 +1,6 @@
 # -- Internal --
 # -- PyTree node manipulations --
 from sys import version_info
-try: range = xrange
-except: pass
 
 import numpy
 import fnmatch # unix wildcards

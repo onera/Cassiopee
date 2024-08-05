@@ -133,6 +133,6 @@ PyObject* K_KCORE::empty(PyObject* self, PyObject* args)
     Py_INCREF(arr);
     FLAG2(arr);
   }
-  free(buf);
+  //free(buf);
   return arr;
 }

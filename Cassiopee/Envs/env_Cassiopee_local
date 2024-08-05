@@ -24,7 +24,7 @@ set MAC0=`echo $KC | grep 'visio'`; if ($%MAC0 != 0) set MAC="visio"
 set MAC0=`echo $KC | grep 'austri'`; if ($%MAC0 != 0) set MAC="austri"
 set MAC0=`echo $KC | grep 'laura'`; if ($%MAC0 != 0) set MAC="laura"
 set MAC0=`echo $KC | grep 'celeste'`; if ($%MAC0 != 0) set MAC="visio"
-set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="visung"
+set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'giulia'`; if ($%MAC0 != 0) set MAC="giulia"
 set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_cas"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
@@ -48,6 +48,9 @@ else
     if ("$MACHINE" == "i8") then
         set INTTYPE="_i8"
     else if ("$MACHINE" == "DBG") then
+        set DBGMODE="_DBG"
+    else if ("$MACHINE" == "i8_DBG") then
+        set INTTYPE="_i8"
         set DBGMODE="_DBG"
     else if ("$MACHINE" =~ "*_DBG") then
         set MAC=`echo $MACHINE | rev | cut -c 5- | rev`
@@ -659,6 +662,7 @@ else if ($MAC == "juno") then
         module load occt/7.6.1-gnu831
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
+        module load texlive/2021
         unsetenv I_MPI_FABRICS_LIST
         unsetenv I_MPI_FABRICS
         unsetenv I_MPI_PMI_LIBRARY

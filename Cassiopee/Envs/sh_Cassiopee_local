@@ -25,7 +25,7 @@ MAC0=$(echo $KC | grep 'ubuntu'); if [ "$MAC0" != "" ]; then export MAC="ubuntu"
 MAC0=$(echo $KC | grep 'visio'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
 MAC0=$(echo $KC | grep 'austri'); if [ "$MAC0" != "" ]; then export MAC="austri"; fi
 MAC0=$(echo $KC | grep 'celeste'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
-MAC0=$(echo $KC | grep 'visung'); if [ "$MAC0" != "" ]; then export MAC="visung"; fi
+MAC0=$(echo $KC | grep 'visung'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
 MAC0=$(echo $KC | grep 'giulia'); if [ "$MAC0" != "" ]; then export MAC="giulia"; fi
 MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_cas"; fi
 MAC0=$(echo $KC | grep 'jean-zay'); if [ "$MAC0" != "" ]; then export MAC="jean-zay"; fi
@@ -63,6 +63,11 @@ case $MACHINETMP in
         ;;
     i8*)
         INTTYPE="_i8"
+        ;;
+    "")
+        if [ -z "$MAC" ]; then
+            echo 'Your machine is not known by uname. Try to set MACHINE.'
+        fi
         ;;
     *)
         export MAC=$MACHINETMP
@@ -552,6 +557,7 @@ elif [ "$MAC" = "juno" ]; then
     module load occt/7.6.1-gnu831
     module load subversion/1.14.1-gnu831
     module load emacs/27.2-gnu831
+    module load texlive/2021
     alias inspxe-cl="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect mi3 -- python3 "
     alias inspxe-cl2="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect ti3 -- python3 "
     alias inspxe-gui="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"

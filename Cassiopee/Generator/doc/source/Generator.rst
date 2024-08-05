@@ -1241,7 +1241,7 @@ Operations on meshes
 
     .. literalinclude:: ../build/Examples/Generator/zip.py
 
-    * `Mesh closing (pyTree) <Examples/Generator/zipPT.py>`_:
+    * `Border closing (pyTree) <Examples/Generator/zipPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/zipPT.py
 
@@ -2311,8 +2311,6 @@ Operations on distributions
     :type  a:  array or pyTree
     :param x0:  I-location of the refinement point
     :type  x0:  float
-    :return: index of enforced point
-    :rtype: integer
     :return: modified reference copy of a
     :rtype: array or pyTree
 

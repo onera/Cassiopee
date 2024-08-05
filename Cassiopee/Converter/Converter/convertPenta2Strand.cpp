@@ -214,5 +214,8 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
   delete [] shellVert;
   delete [] no;
 
+  RELEASESHAREDU(array, f, cnl);
+  RELEASESHAREDU(tpl, f2, cnl2);
+
   return tpl;
 }
