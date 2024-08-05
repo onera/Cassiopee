@@ -78,10 +78,6 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("Adapting...");
 
-    // Orient mesh
-    if (M->pid == 0) puts("    Orienting mesh...");
-    Mesh_set_orientation(M);
-
     // Isolate cells/faces/edges to be refined
     
     std::vector<Int> ref_cells, ref_faces;

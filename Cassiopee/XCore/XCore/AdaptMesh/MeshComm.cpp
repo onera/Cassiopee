@@ -148,19 +148,6 @@ Int *map_cell_graph(Mesh *M, Int *cwgts)
         return NULL;
     }
 
-    SCOTCH_Num straval = 0;
-    straval |= SCOTCH_STRATBALANCE;
-    //straval |= SCOTCH_STRATQUALITY;
-    //straval |= SCOTCH_STRATSPEED;
-    Float balcoef = 0.05;
-
-    ret = SCOTCH_stratDgraphMapBuild(&strat, straval, M->npc, M->npc, balcoef);
-
-    if (ret != 0) {
-        merr("Failed to build strat.");
-        return NULL;
-    }
-
     Int *cmap = IntArray(M->nc);
 
     if (M->pid == 0) puts("Partitionning graph...");
@@ -954,6 +941,110 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
                   rtype, rtypecount, rtypedist, MPI_CHAR,
                   MPI_COMM_WORLD);
 
+    // Parse boundary patches
+
+    if (M->pid == 0) puts("Creating boundary patches...");
+
+    Int nbp = 0;
+
+    std::map<Int, Int> gbc_to_lbc;
+    std::map<Int, Int> lbc_to_gbc;
+    std::map<Int, Int> lbc_to_size;
+
+    for (Int i = 0; i < M->npc; i++) {
+        Int *pf = &rbdata[rbdist[i]];
+
+        for (Int j = 0; j < rbcount[i]; ) {
+            Int gid = pf[j++];
+
+            // skip gfid
+            j++;
+            //Int gfid = pf[j++];
+            //assert(g2lf.find(gfid) != g2lf.end());
+
+            auto it = gbc_to_lbc.find(gid);
+
+            if (it == gbc_to_lbc.end()) {
+                gbc_to_lbc[gid] = nbp;
+                lbc_to_gbc[nbp] = gid;
+                lbc_to_size[nbp]++;
+                nbp++;
+            } else {
+                lbc_to_size[it->second]++;
+            }
+        }
+    }
+
+    BPatch *bps = (BPatch *)XCALLOC(nbp, sizeof(BPatch));
+
+    for (Int i = 0; i < nbp; i++) {
+        BPatch *P = &bps[i];
+        P->gid = lbc_to_gbc[i];
+        P->nf = lbc_to_size[i];
+        P->pf = IntArray(P->nf);
+        P->nf = 0; // Reset for next loop.
+        P->name = NULL;
+        P->type = NULL;
+    }
+
+    for (Int i = 0; i < M->npc; i++) {
+        Int *tptr = &rtag[rtagdist[i]];
+        char *nptr = &rname[rnamedist[i]];
+        char *Tptr = &rtype[rtypedist[i]];
+
+        for (Int j = 0; j < rtagcount[i]; j++) {
+            Int tag = tptr[j];
+
+            // bcname
+            char bcname[1024];
+            char c;
+            Int k = 0;
+            while ((c = *nptr++)) {
+                bcname[k++] = c;
+            }
+            bcname[k] = '\0';
+
+            // bctype
+            char bctype[1024];
+            k = 0;
+            while ((c = *Tptr++)) {
+                bctype[k++] = c;
+            }
+            bctype[k] = '\0';
+
+            Int ltag = gbc_to_lbc.at(tag);
+            BPatch *P = &bps[ltag];
+            if (P->name) continue;
+
+            P->name = (char *)XMALLOC(strlen(bcname)+1);
+            strcpy(P->name, bcname);
+            assert(P->name[strlen(P->name)] == '\0');
+
+            assert(P->type == NULL);
+
+            P->type = (char *)XMALLOC(strlen(bctype)+1);
+            strcpy(P->type, bctype);
+            assert(P->type[strlen(P->type)] == '\0');
+        }
+    }
+
+    for (Int i = 0; i < M->npc; i++) {
+        Int *pf = &rbdata[rbdist[i]];
+
+        for (Int j = 0; j < rbcount[i]; ) {
+            Int gbc = pf[j++];
+            Int gfid = pf[j++];
+
+            Int lbc = gbc_to_lbc[gbc];
+
+            BPatch *P = &bps[lbc];
+
+            P->pf[P->nf] = g2lf[gfid];
+
+            P->nf++;
+        }
+    }
+
     // Warning(Imad): reusing scount, rcount, sdist and rdist
     memset(scount, 0, M->npc * sizeof(int));
 
@@ -1151,110 +1242,6 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
         P->pf = pf;
         P->pn = pn;
-    }
-
-    // Parse boundary patches
-
-    if (M->pid == 0) puts("Creating boundary patches...");
-
-    Int nbp = 0;
-
-    std::map<Int, Int> gbc_to_lbc;
-    std::map<Int, Int> lbc_to_gbc;
-    std::map<Int, Int> lbc_to_size;
-
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &rbdata[rbdist[i]];
-
-        for (Int j = 0; j < rbcount[i]; ) {
-            Int gid = pf[j++];
-
-            // skip gfid
-            j++;
-            //Int gfid = pf[j++];
-            //assert(g2lf.find(gfid) != g2lf.end());
-
-            auto it = gbc_to_lbc.find(gid);
-
-            if (it == gbc_to_lbc.end()) {
-                gbc_to_lbc[gid] = nbp;
-                lbc_to_gbc[nbp] = gid;
-                lbc_to_size[nbp]++;
-                nbp++;
-            } else {
-                lbc_to_size[it->second]++;
-            }
-        }
-    }
-
-    BPatch *bps = (BPatch *)XCALLOC(nbp, sizeof(BPatch));
-
-    for (Int i = 0; i < nbp; i++) {
-        BPatch *P = &bps[i];
-        P->gid = lbc_to_gbc[i];
-        P->nf = lbc_to_size[i];
-        P->pf = IntArray(P->nf);
-        P->nf = 0; // Reset for next loop.
-        P->name = NULL;
-        P->type = NULL;
-    }
-
-    for (Int i = 0; i < M->npc; i++) {
-        Int *tptr = &rtag[rtagdist[i]];
-        char *nptr = &rname[rnamedist[i]];
-        char *Tptr = &rtype[rtypedist[i]];
-
-        for (Int j = 0; j < rtagcount[i]; j++) {
-            Int tag = tptr[j];
-
-            // bcname
-            char bcname[1024];
-            char c;
-            Int k = 0;
-            while ((c = *nptr++)) {
-                bcname[k++] = c;
-            }
-            bcname[k] = '\0';
-
-            Int ltag = gbc_to_lbc.at(tag);
-            BPatch *P = &bps[ltag];
-            if (P->name) continue;
-
-            P->name = (char *)XMALLOC(strlen(bcname)+1);
-            strcpy(P->name, bcname);
-            assert(P->name[strlen(P->name)] == '\0');
-
-            // bctype
-            char bctype[1024];
-            k = 0;
-            while ((c = *Tptr++)) {
-                bctype[k++] = c;
-            }
-            bctype[k] = '\0';
-
-            assert(P->type == NULL);
-
-            P->type = (char *)XMALLOC(strlen(bctype)+1);
-            strcpy(P->type, bctype);
-            assert(P->type[strlen(P->type)] == '\0');
-        }
-    }
-
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &rbdata[rbdist[i]];
-
-        for (Int j = 0; j < rbcount[i]; ) {
-            Int gbc = pf[j++];
-            Int gfid = pf[j++];
-
-            Int lbc = gbc_to_lbc[gbc];
-
-            BPatch *P = &bps[lbc];
-
-            P->pf[P->nf] = g2lf[gfid];
-
-            P->nf++;
-        }
     }
 
     // Redistribute cref/clevel/ctype
