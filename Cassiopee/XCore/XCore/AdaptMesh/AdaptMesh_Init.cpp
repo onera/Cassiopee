@@ -237,6 +237,9 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->fparent = IntArray(M->nf);
     for (Int i = 0; i < M->nf; i++) M->fparent[i] = i;
 
+    M->cref = IntArray(M->nc);
+    M->fref = IntArray(M->nf);
+
     // Clean-up
 
     Karray_free_ngon(karray);
