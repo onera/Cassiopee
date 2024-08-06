@@ -938,6 +938,7 @@ def _rmNodes(z, name):
 # Upgrade tree (applique apres lecture)
 def _upgradeTree(t, uncompress=True, oldcompress=False):
   #Internal._adaptTypes(t)
+  _relaxCGNSProfile__(t)
   Internal._correctPyTree(t, level=10) # force CGNS names
   Internal._correctPyTree(t, level=2) # force unique name
   Internal._correctPyTree(t, level=7) # create familyNames
@@ -1162,27 +1163,45 @@ def checkLinks__(links, t):
 
 # Force periodic nodes to be R4 (old CGNS norm)
 def _forceR4PeriodicNodes__(t):
-  nodes = Internal.getNodesFromName(t, "RotationCenter")
-  nodes += Internal.getNodesFromName(t, "RotationAngle")
-  nodes += Internal.getNodesFromName(t, "RotationRateVector")
-  nodes += Internal.getNodesFromName(t, "Translation")
-  for n in nodes:
-    n[1] = n[1].astype(numpy.float32)
+  periodicNodeNames = ["RotationCenter", "RotationAngle", "RotationRateVector",
+                       "Translation"]
+  for name in periodicNodeNames:
+    nodes = Internal.getNodesFromName(t, name)
+    Internal._adaptValueType(nodes, numpy.float32)
   return None
 
-# Force specific type nodes imposed by v4 CGNS norm
+# Force type of specific nodes as prescribed by v4 CGNS norm
 def _forceCGNSProfile__(t):
-  # version node (R4)
-  n = Internal.getNodeFromName1(t, "CGNSVersion")
+  # CGNS version (R4)
+  n = Internal.getNodeFromType1(t, "CGNSVersion_t")
   if n is not None: n[1] = n[1].astype(numpy.float32)
-  # base node (I4)
-  nodes = Internal.getNodesFromName1(t, "CGNSBase_t")
-  for n in nodes:
-    n[1] = n[1].astype(numpy.int32)
-  # Elements_t (i4)
-  nodes = Internal.getNodesFromName2(t, "Elements_t")
-  for n in nodes:
-    n[1] = n[1].astype(numpy.int32)
+  #if FORCER4PERIODIC: _forceR4PeriodicNodes__(t)
+
+  # CGNSBase_t, Elements_t, Rind_t, BaseIterativeData_t, Ordinal_t,
+  # ConvergenceHistory_t (I4)
+  nodes = Internal.getNodesFromType1(t, "CGNSBase_t")
+  if nodes is not None:
+    for n in nodes: n[1] = n[1].astype(numpy.int32)
+  nodeTypes2 = ["Elements_t", "BaseIterativeData_t", "ConvergenceHistory_t"]
+  for ntype in nodeTypes2:
+    nodes = Internal.getNodesFromType2(t, ntype)
+    Internal._adaptValueType(nodes, numpy.int32)
+  zones = Internal.getZones(t)
+  for z in zones:
+    #nodes = Internal.getNodesFromType1(z, "Rind_t")
+    #Internal._adaptValueType(nodes, numpy.int32)
+    nodes = Internal.getNodesFromType(z, "Ordinal_t")
+    Internal._adaptValueType(nodes, numpy.int32)
+  return None
+
+# Relax type of specific nodes as prescribed by v4 CGNS norm
+def _relaxCGNSProfile__(t):
+  if Internal.E_NpyInt == numpy.int32: return None
+  # Rind_t cannot be forced to I4 internally
+  zones = Internal.getZones(t)
+  for z in zones:
+    nodes = Internal.getNodesFromType1(z, "Rind_t")
+    Internal._adaptValueType(nodes, Internal.E_NpyInt)
   return None
 
 # -- convertPyTree2File
@@ -1191,7 +1210,6 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   """Write a pyTree to a file.
   Usage: convertPyTree2File(t, fileName, format, options)"""
   if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
-  #if FORCER4PERIODIC: _forceR4PeriodicNodes__(t)
   if links is not None: links = checkLinks__(links, t)
   if format is None:
     format = Converter.convertExt2Format__(fileName)
@@ -1200,6 +1218,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
     tp, ntype = Internal.node2PyTree(t)
     Internal._adaptZoneNamesForSlash(tp)
     Internal._correctBaseZonesDim(t, splitBases=False)
+    _forceCGNSProfile__(tp)
     Converter.converter.convertPyTree2File(tp[2], fileName, format, links)
   elif format == 'bin_pickle':
     try: import cPickle as pickle

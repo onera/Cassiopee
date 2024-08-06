@@ -227,7 +227,7 @@ def isChild2(start, node):
 def setValue(node, value=None):
     """Set given value in node."""
     if node[3] == 'CGNSLibraryVersion_t':
-        if isinstance(value, int) or isinstance(value, float): node[1] = numpy.array([value], 'f')
+        if isinstance(value, (int, float)): node[1] = numpy.array([value], 'f')
         elif isinstance(value, numpy.ndarray): node[1] = numpy.array(value, 'f')
         else: raise TypeError("setValue: CGNSLibraryVersion node value should be a float.")
     else:
@@ -235,16 +235,18 @@ def setValue(node, value=None):
         elif isinstance(value, numpy.ndarray):
             if value.flags.f_contiguous: node[1] = value
             else: node[1] = numpy.asfortranarray(value)
-        elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64) or isinstance(value,numpy.intc): node[1] = numpy.array([value], dtype=E_NpyInt)
-        elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value], dtype=numpy.float64)
+        elif isinstance(value, (int, numpy.integer)):
+            node[1] = numpy.array([value], dtype=E_NpyInt)
+        elif isinstance(value, (float, numpy.floating)):
+            node[1] = numpy.array([value], dtype=numpy.float64)
         elif isinstance(value, str):
             node[1] = numpy.array([c for c in value], 'c')
         elif isinstance(value, list):
             testValue = value
             while isinstance(testValue, list): testValue = testValue[0]
-            if isinstance(testValue, float) or isinstance(testValue, numpy.float32) or isinstance(testValue, numpy.float64):
+            if isinstance(testValue, (float, numpy.floating)):
                 node[1] = numpy.array(value, dtype=numpy.float64, order='F')
-            elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64) or isinstance(testValue,numpy.intc):
+            elif isinstance(testValue, (int, numpy.integer)):
                 node[1] = numpy.array(value, dtype=E_NpyInt, order='F')
             elif isinstance(testValue, str):
                 if isinstance(value[0], str):
@@ -271,9 +273,9 @@ def setValue(node, value=None):
         elif isinstance(value, tuple):
             testValue = value
             while isinstance(testValue, tuple): testValue = testValue[0]
-            if isinstance(testValue, float) or isinstance(testValue, numpy.float32) or isinstance(testValue, numpy.float64):
+            if isinstance(testValue, (float, numpy.floating)):
                 node[1] = numpy.array(value, dtype=numpy.float64, order='F')
-            elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64):
+            elif isinstance(testValue, (int, numpy.integer)):
                 node[1] = numpy.array(value, dtype=E_NpyInt, order='F')
             elif isinstance(testValue, str):
                 if isinstance(value[0], str):
@@ -439,7 +441,7 @@ def _createNodesFromPath(t, path):
 
 # -- Create a CGNS version node
 def createCGNSVersionNode():
-    version = numpy.array([4.0], dtype=numpy.float32)
+    version = numpy.array([4.0], dtype=numpy.float32) # force R4
     return ['CGNSLibraryVersion', version, [], 'CGNSLibraryVersion_t']
 
 # -- Cree le noeud root de l'arbre
@@ -450,8 +452,7 @@ def createRootNode(name='CGNSTree', children=None):
 # -- Create base node named name with dim
 # cellDim=2 (cells surfaciques), cellDim=3 (cells volumiques)
 def createBaseNode(name, cellDim):
-    a = numpy.empty((2), dtype=E_NpyInt)
-    #a = numpy.empty((2), dtype=numpy.int32)
+    a = numpy.empty((2), dtype=numpy.int32) # force I4
     a[0] = cellDim; a[1] = 3
     return [name, a, [], 'CGNSBase_t']
 
@@ -639,6 +640,7 @@ def newOrdinal(value=0, parent=None):
         node = createNode('Ordinal', 'Ordinal_t', value=value)
     else: node = createUniqueChild(parent, 'Ordinal',
                                    'Ordinal_t', value=value)
+    node[1] = node[1].astype(numpy.int32) # force I4
     return node
 
 # -- newDiscreteData
@@ -668,6 +670,7 @@ def newElements(name='Elements', etype='UserDefined',
         node = createNode(name, 'Elements_t', value=[etp,eboundary])
     else: 
         node = createUniqueChild(parent, name, 'Elements_t', value=[etp,eboundary])
+    #node[1] = node[1].astype(numpy.int32) # force I4
     newDataArray('ElementConnectivity', econnectivity, parent=node)
     #if erange is None: erange = numpy.ones(2, dtype=numpy.int32)
     newPointRange('ElementRange', erange, parent=node)
@@ -865,7 +868,7 @@ def newAverageInterface(value='Null', parent=None):
 
 # -- newZoneSubRegion
 def newZoneSubRegion(name='SubRegion', pointRange=None, pointList=None,
-                    bcName=None, gcName=None, gridLocation=None, parent=None):
+                     bcName=None, gcName=None, gridLocation=None, parent=None):
     """Create a new ZoneSubRegion node."""
     if parent is None:
         node = createNode(name, 'ZoneSubRegion_t')
@@ -1072,7 +1075,8 @@ def newBaseIterativeData(name='BaseIterativeData', nsteps=0,
         node = createNode(name, 'BaseIterativeData_t', value=nsteps)
     else: node = createUniqueChild(parent, name, 'BaseIterativeData_t',
                                    value=nsteps)
-    newDataArray(itype, value=numpy.arange(1,nsteps+1, dtype=E_NpyInt), parent=node)
+    newDataArray(itype, value=numpy.arange(1,nsteps+1, dtype=numpy.int32),
+                 parent=node) # force I4
     return node
 
 # -- newZoneIterativeData
@@ -1125,6 +1129,7 @@ def newConvergenceHistory(name='GlobalConvergenceHistory',
         node = createNode(name, 'ConvergenceHistory_t', value=value)
     else: node = createUniqueChild(parent, name, 'ConvergenceHistory_t',
                                    value=value)
+    node[1] = node[1].astype(numpy.int32) # force I4
     return node
 
 # -- newFamily (zones)
@@ -2615,7 +2620,7 @@ def getSizeOf(a):
 # -- Conversion zones, bases, listes de zones <-> tree + noms + ranges --
 #==============================================================================
 
-# -- Converti un noeud zone, liste de zones, base, liste de bases,
+# -- Convertit un noeud zone, liste de zones, base, liste de bases,
 # tree en pyTree (avec les memes adresses)
 # Retourne (t, ntype) avec ntype=1 (zone), 2 (liste de zones), 3 (tree),
 # 4 (base), 5 (liste de bases)
@@ -2642,7 +2647,7 @@ def node2PyTree(node):
     else: t = node
     return t, ntype
 
-# -- Converti un pyTree en noeud de type fourni (avec les memes adresses)
+# -- Convertit un pyTree en noeud de type fourni (avec les memes adresses)
 # IN: type=1 (zone), 2 (liste de zones), 3 (tree), 4 (base), 5 (liste de bases)
 def pyTree2Node(t, type):
     if type == 1: # zone: renvoie une zone ou une liste de zones
@@ -2971,6 +2976,7 @@ def createZoneNode(name, array, array2=[],
       neltstot = 0
       for c in range(len(etype)):
         i = numpy.empty((2), dtype=E_NpyInt); i[0] = etype[c]; i[1] = 0
+        #i = numpy.empty((2), dtype=numpy.int32); i[0] = etype[c]; i[1] = 0 # force I4
         if etype[c] == 22: # Faces->Nodes and Elements->Faces connectivities (NGON array)
             if isinstance(array[2], list): # Array2 or array3
                 setElementConnectivity2(zone, array)
@@ -3962,6 +3968,7 @@ def setElementConnectivity(z, array):
   etype, stype = eltName2EltNo(array[3])
   GENodes = getElementNodes(z)
   i = numpy.empty((2), dtype=E_NpyInt); i[0] = etype; i[1] = 0
+  #i = numpy.empty((2), dtype=numpy.int32); i[0] = etype; i[1] = 0 # force I4
   if GENodes == []:
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           z[2].append(['GridElements', i, [], 'Elements_t'])
@@ -3993,6 +4000,7 @@ def setElementConnectivity(z, array):
           # Creation du noeud NFACE_n: connectivite Elements->Faces
           etype,stype = eltName2EltNo('NFACE')
           i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
+          #i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0 # force I4
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
@@ -4045,6 +4053,7 @@ def setElementConnectivity(z, array):
           # Creation du noeud NFACE_n : connectivite Elements->Faces
           etype, stype = eltName2EltNo('NFACE')
           i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
+          #i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0 # force I4
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
@@ -4074,6 +4083,7 @@ def setElementConnectivity2(z, array):
     for nc, gc in enumerate(array[2]):
       etype, stype = eltName2EltNo(estring[nc])
       i = numpy.empty((2), E_NpyInt); i[0] = etype; i[1] = 0
+      #i = numpy.empty((2), numpy.int32); i[0] = etype; i[1] = 0 # force I4
       if nc in cnames: cname = cnames[nc]
       elif nc == 0: cname = 'GridElements'
       else: cname = 'GridElements%d'%nc
@@ -4085,6 +4095,7 @@ def setElementConnectivity2(z, array):
       _updateElementRange(z)
   else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
       i = numpy.empty((2), E_NpyInt); i[0] = etype0; i[1] = 0
+      #i = numpy.empty((2), numpy.int32); i[0] = etype0; i[1] = 0 # force I4
       info = z[2]
       # Creation du noeud NGON_n: connectivite Faces->Noeuds
       info.append(['NGonElements', i, [], 'Elements_t'])
@@ -4105,6 +4116,7 @@ def setElementConnectivity2(z, array):
       # Creation du noeud NFACE_n: connectivite Elements->Faces
       etype,stype = eltName2EltNo('NFACE')
       i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
+      #i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0 # force I4
       info.append(['NFaceElements', i2, [], 'Elements_t'])
       info2 = info[len(info)-1][2]
       # Size of ElementRange
@@ -4275,6 +4287,7 @@ def _adaptPE2NFace(t, remove=True):
             cFE = parentElt[1]
             cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
             p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
+            #p[1] = p[1].astype(numpy.int32) # force I4
             createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
             createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
             if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
@@ -4465,16 +4478,19 @@ def _adaptBCFace2BCC(t, remove=True):
                     (BAR,TRI,QUAD) = converter.adaptBCFace2BCC(a1[1], connect[1], dims[3])
                     if BAR.size > 0:
                         n = createNode('Bnd_BAR', 'Elements_t', value=[2,BAR.size])
+                        #n[1] = n[1].astype(numpy.int32) # force I4
                         _addChild(z, n)
                         createChild(n, 'ElementRange', 'IndexRange_t', value=[1,BAR.size])
                         createChild(n, 'ElementConnectivity', 'DataArray_t', value=BAR)
                     if TRI.size > 0:
                         n = createNode('Bnd_TRI', 'Elements_t', value=[3,TRI.size])
+                        #n[1] = n[1].astype(numpy.int32) # force I4
                         _addChild(z, n)
                         createChild(n, 'ElementRange', 'IndexRange_t', value=[1,TRI.size])
                         createChild(n, 'ElementConnectivity', 'DataArray_t', value=TRI)
                     if QUAD.size > 0:
                         n = createNode('Bnd_QUAD', 'Elements_t', value=[4,QUAD.size])
+                        #n[1] = n[1].astype(numpy.int32) # force I4
                         _addChild(z, n)
                         createChild(n, 'ElementRange', 'IndexRange_t', value=[1,QUAD.size])
                         createChild(n, 'ElementConnectivity', 'DataArray_t', value=QUAD)
@@ -4627,6 +4643,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         cFE = cFE.reshape((sh[0]//2,2), order='F'); parentElt[1] = cFE
                     cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
                     p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
+                    #p[1] = p[1].astype(numpy.int32) # force I4
                     createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
                     createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
                     if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
@@ -5489,6 +5506,12 @@ def getGlob2Loc(z):
     if b is not None: b = getValue(b)
     return b, a
 
+# Edit the type of the value for each node
+def _adaptValueType(nodes, newType):
+  if nodes is not None:
+    for n in nodes:
+      n[1] = n[1].astype(newType)
+
 # change les numpy R4 en R8 et les numpy i8 en i4
 # dans FlowSolution/Coordinates et Elements_t
 def _adaptTypes(t, convertR42R8=True, convertI82I4=True, convertR82R4=False, convertI42I8=False):
@@ -5561,7 +5584,8 @@ def _adaptTypes(t, convertR42R8=True, convertI82I4=True, convertR82R4=False, con
                 pt2[:] = pt1[:]
             nodes = getNodesFromType1(z, 'Elements_t')
             for no in nodes:
-                if no[1] is not None and no[1].dtype == numpy.int32:
+                # Elements_t forced to I4
+                if no[1] is not None and no[1].dtype == numpy.int32: # TODO comment out this paragraph
                     pt1 = no[1].ravel('k')
                     no[1] = numpy.empty(no[1].shape, dtype=numpy.int64, order='F')
                     pt2 = no[1].ravel('k')
