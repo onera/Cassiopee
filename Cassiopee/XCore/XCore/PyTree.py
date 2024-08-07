@@ -16,16 +16,16 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     if zonebc is not None:
         zbc = I.getNodesFromType(zonebc, 'BC_t')
 
-    bc_count = 0
+        bc_count = 0
 
-    for bc in zbc:
-        plist = I.getNodeFromName(bc, 'PointList')
-        name = bc[0]
-        #tag = I.getNodeFromName(bc, 'Tag')[1][0]
-        try: tag = I.getNodeFromName(bc, 'Tag')[1][0]
-        except: tag = bc_count; bc_count += 1
-        bctype = I.getValue(bc)
-        bcs.append([plist[1], tag, name, bctype])
+        for bc in zbc:
+            plist = I.getNodeFromName(bc, 'PointList')
+            name = bc[0]
+            #tag = I.getNodeFromName(bc, 'Tag')[1][0]
+            try: tag = I.getNodeFromName(bc, 'Tag')[1][0]
+            except: tag = bc_count; bc_count += 1
+            bctype = I.getValue(bc)
+            bcs.append([plist[1], tag, name, bctype])
 
     return xcore.AdaptMesh_Init(array, normal2D, bcs, comm, gcells, gfaces)
 
@@ -298,6 +298,41 @@ def removeIntersectingKPlanes(master, slave, patch_name):
 
     t = C.newPyTree(["Base", zo])
     return t
+
+#def prepareMeshesForIntersection(master, slave, patch_name):
+#    zm = I.getZones(master)[0]
+#    zs = I.getZones(slave)[0]
+#
+#    m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+#    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+#
+#    patch = I.getNodeFromName(zm, patch_name)
+#    if patch is None:
+#        raise ValueError(patch_name + "not found.")
+#  
+#    faces = I.getNodeFromName(patch, "PointList")
+#    faces = I.getValue(faces)[0]
+#
+#    tag = I.getNodeFromName2(zs, "tag")
+#    if tag is None:
+#        raise ValueError("Tag field not found in slave mesh.")
+#    tag = I.getValue(tag)
+#
+#    minter, sinter = xcore.prepareMeshesForIntersection(m, s, faces, tag)
+#
+#    zmo = I.createZoneNode("M_adapted", minter)
+#    zso = I.createZoneNode("S_adapted", sinter)
+#
+#    tm = C.newPyTree(["Base", zmo])
+#    ts = C.newPyTree(["Base", zso])
+#
+#    try: import Intersector.PyTree as XOR
+#    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
+#
+#    tm = XOR.closeCells(tm)
+#    ts = XOR.closeCells(ts)
+#
+#    return tm, ts
 
 def intersectSurf(master, slave, patch_name):
     zm = I.getZones(master)[0]
