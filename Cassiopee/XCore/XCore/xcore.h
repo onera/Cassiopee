@@ -57,6 +57,7 @@ namespace K_XCORE
 
     PyObject *intersectSurf(PyObject *self, PyObject *args);
     PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
+    PyObject *prepareMeshesForIntersection(PyObject *self, PyObject *args);
 }
 
 #endif

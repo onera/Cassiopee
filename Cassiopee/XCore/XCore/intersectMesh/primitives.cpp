@@ -33,11 +33,26 @@ Int Sign(Float x)
     return 0;
 }
 
+Int cmp_points_3D(Float x1, Float y1, Float z1, Float x2, Float y2, Float z2)
+{
+    Float t = x1 - x2;
+    Int s = Sign(t);
+    if (s) return s;
+    
+    t = y1 - y2;
+    s = Sign(t);
+    if (s) return s;
+
+    t = z1 - z2;
+    return Sign(t);
+}
+
 Int cmp_points(Float x1, Float y1, Float x2, Float y2)
 {
     Float t = x1 - x2;
     Int s = Sign(t);
     if (s) return s;
+    
     t = y1 - y2;
     return Sign(t);
 }

@@ -22,6 +22,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
 
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
             'XCore/intersectMesh/intersectSurf.cpp',
+            'XCore/intersectMesh/prepareMeshesForIntersection.cpp',
             'XCore/intersectMesh/cycle.cpp',
             'XCore/intersectMesh/dcel.cpp',
             'XCore/intersectMesh/event.cpp',

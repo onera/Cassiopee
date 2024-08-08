@@ -111,7 +111,7 @@ struct IMesh {
 
     size_t refine(std::set<Int> &mpatch, std::set<Int> &spatch, IMesh &S);
 
-    std::vector<pointFace> locate(Float x, Float y,
+    std::vector<pointFace> locate(Int p, Float x, Float y, Float z,
         const std::set<Int> &patch) const;
     
     inline bool face_is_active(Int face) const
@@ -133,7 +133,7 @@ struct IMesh {
 
     void refine_edge(const UEdge &edge);
 
-    Int face_contains_point(Int face, Float x, Float y) const;
+    Int face_contains_point(Int face, Float x, Float y, Float z) const;
 
     IMesh extract_conformized();
 

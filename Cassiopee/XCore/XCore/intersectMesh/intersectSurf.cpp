@@ -366,6 +366,9 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
         if (keep) S.patch.insert(i);
     }
 
+    printf("M.patch.size(): %lu\n", M.patch.size());
+    printf("S.patch.size(): %lu\n", S.patch.size());
+
     ret = meshes_mutual_refinement(M, S);
     if (ret != 0) {
         Karray_free_ngon(marray);
@@ -376,8 +379,14 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     IMesh new_M = M.extract_conformized();
     IMesh new_S = S.extract_conformized();
 
+    new_M.write_ngon("new_M");
+    new_S.write_ngon("new_S");
+
     new_M.orient_skin(OUT);
     new_S.orient_skin(IN);
+
+    printf("M.patch.size(): %lu\n", new_M.patch.size());
+    printf("S.patch.size(): %lu\n", new_S.patch.size());
 
     // Extract surface meshes
     Smesh Mf(new_M);

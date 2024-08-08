@@ -82,10 +82,12 @@ Smesh::Smesh(const IMesh &M)
     np = g2lp.size();
     X.resize(np);
     Y.resize(np);
+    Z.resize(np);
 
     for (const auto &pids : g2lp) {
         X[pids.second] = M.X[pids.first];
         Y[pids.second] = M.Y[pids.first];
+        Z[pids.second] = M.Z[pids.first];
     }
 
     // Faces should already be oriented ccw
@@ -215,28 +217,28 @@ void Smesh::make_edges()
             Int nei = neis[j];
             
             Int p = face[j];
-            //Int q = face[(j+1)%face.size()];
+            Int q = face[(j+1)%face.size()];
             
             Int e = edgs[j];
             
             if (nei == -1) {
-                //assert(E[e].p == p);
-                //assert(E[e].q == q);
+                assert(E[e].p == p);
+                assert(E[e].q == q);
                 continue;
             }
 
             if (visited[nei]) {
-                //assert(E2F[e][0] == nei);
-                //assert(E2F[e][1] == f);
-                //assert(E[e].p == q);
-                //assert(E[e].q == p);
+                assert(E2F[e][0] == nei);
+                assert(E2F[e][1] == f);
+                assert(E[e].p == q);
+                assert(E[e].q == p);
                 continue;
             }
  
             if (E[e].p != p) {
                 assert(visited[nei] == 0);
-                //assert(E[e].q == p);
-                //assert(E[e].p == q);
+                assert(E[e].q == p);
+                assert(E[e].p == q);
                 std::swap(E[e].p, E[e].q);
                 E2F[e][0] = f;
                 E2F[e][1] = nei;
@@ -246,7 +248,6 @@ void Smesh::make_edges()
     }
 
     // Check
-    /*
     for (Int i = 0; i < nf; i++) {
         auto &face = F[i];
         for (size_t j = 0; j < face.size(); j++) {
@@ -265,7 +266,6 @@ void Smesh::make_edges()
             }
         }
     }
-    */
 }
 
 #define TRI 5
@@ -500,12 +500,13 @@ bool Smesh::face_contains_Mface(Int face, Int mface, const Smesh &M) const
     assert(M.face_is_active(mface));
     const auto &cn = M.F[mface];
     for (Int p : cn) {
-        if (face_contains_point(face, M.X[p], M.Y[p]) == -1) return false;
+        if (face_contains_point(face, M.X[p], M.Y[p], M.Z[p]) == -1)
+            return false;
     }
     return true;
 }
 
-Int Smesh::face_contains_point(Int face, Float x, Float y) const
+Int Smesh::face_contains_point(Int face, Float x, Float y, Float z) const
 {
     const auto &cn = F[face];
 
@@ -517,14 +518,16 @@ Int Smesh::face_contains_point(Int face, Float x, Float y) const
 
         a = cn[0], b = cn[1], c = cn[2];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 0;
 
         // Second triangle
         a = cn[0], b = cn[2], c = cn[3];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 1;
     } else {
@@ -533,7 +536,8 @@ Int Smesh::face_contains_point(Int face, Float x, Float y) const
 
         a = cn[0], b = cn[1], c = cn[2];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 0;
     }
@@ -541,7 +545,7 @@ Int Smesh::face_contains_point(Int face, Float x, Float y) const
     return -1;
 }
 
-std::vector<pointFace> Smesh::locate(Float x, Float y) const
+std::vector<pointFace> Smesh::locate(Float x, Float y, Float z) const
 {
     Int a, b, c;
     Int hit = 0;
@@ -552,23 +556,23 @@ std::vector<pointFace> Smesh::locate(Float x, Float y) const
         if (cn.size() == 4) {
             // First triangle
             a = cn[0], b = cn[1], c = cn[2];
-            hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c],
-                Y[c]);
+            hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+                X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
             if (hit) {
                 HITS.push_back(pointFace(face, 0));
             } else {
                 // Second triangle
                 a = cn[0], b = cn[2], c = cn[3];
-                hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c],
-                    Y[c]);
+                hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+                    X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
                 if (hit) {
                     HITS.push_back(pointFace(face, 1));
                 }
             }
         } else {
             a = cn[0], b = cn[1], c = cn[2];
-            hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c],
-                Y[c]);
+            hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+                X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
             if (hit) {
                 HITS.push_back(pointFace(face, 0));
             }

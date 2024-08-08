@@ -28,7 +28,7 @@ size_t Smesh::refine(Smesh &M)
     pfs.reserve(M.np);
 
     for (Int i = 0; i < M.np; i++) {
-        auto pf = locate(M.X[i], M.Y[i]);
+        auto pf = locate(M.X[i], M.Y[i], M.Z[i]);
         pfs.push_back(pf);
     }
 

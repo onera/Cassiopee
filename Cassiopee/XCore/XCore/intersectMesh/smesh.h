@@ -38,7 +38,7 @@ struct o_edge {
 struct Smesh {
     Int np, ne, nf;
 
-    std::vector<Float> X, Y;
+    std::vector<Float> X, Y, Z;
     std::vector<std::vector<Int>> P2F;
     
     std::vector<o_edge> E;
@@ -94,7 +94,7 @@ struct Smesh {
 
     size_t refine(Smesh &M);
 
-    std::vector<pointFace> locate(Float x, Float y) const;
+    std::vector<pointFace> locate(Float x, Float y, Float z) const;
 
     void write_su2(const char *fname, const std::vector<Int> &faces);
 
@@ -106,7 +106,7 @@ struct Smesh {
 
     bool face_contains_Mface(Int face, Int mface, const Smesh &M) const;
 
-    Int face_contains_point(Int face, Float x, Float y) const;
+    Int face_contains_point(Int face, Float x, Float y, Float z) const;
 
     std::vector<Int> smooth_ref_data(std::map<Int, std::vector<Int>> &sensor);
 

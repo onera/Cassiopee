@@ -47,6 +47,7 @@ static PyMethodDef Pyxcore [] =
 
     {"intersectSurf", K_XCORE::intersectSurf, METH_VARARGS},
     {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
+    {"prepareMeshesForIntersection", K_XCORE::prepareMeshesForIntersection, METH_VARARGS},
     
     {NULL, NULL}
 };

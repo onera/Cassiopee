@@ -155,6 +155,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
                                  TI);
 
             if (hit) {
+                TI.face = face;
+                TI.tri = 0;
                 point_hit_table[p] = TI;
                 break;
             }
@@ -172,6 +174,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
                                  TI);
 
             if (hit) {
+                TI.face = face;
+                TI.tri = 1;
                 point_hit_table[p] = TI;
                 break;
             }
@@ -180,6 +184,15 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         // point must hit!
         assert(hit == 1);
     }
+
+    FILE *fh = fopen("hit_faces", "w");
+    assert(fh);
+    for (const auto hit : point_hit_table) {
+        Int pt = hit.first;
+        const auto &TI = hit.second;
+        fprintf(fh, "%d %d\n", pt + nij, TI.face);
+    }
+    fclose(fh);
 
     edge_write("projection", Xs, Ys, Zs, point_hit_table);
 

@@ -57,8 +57,8 @@ void edge_write(const char *fname, Float *X, Float *Y, Float *Z,
     }
     fprintf(fh, "EDGES\n");
     fprintf(fh, "%zu\n", point_hits.size());
-    for (size_t i = 0; i < point_hits.size(); i += 2) {
-        fprintf(fh, "%zu %zu ", i, i+1);
+    for (size_t i = 0; i < 2*point_hits.size(); i++) {
+        fprintf(fh, "%zu ", i);
     }
     fprintf(fh, "\n");
     fclose(fh);
