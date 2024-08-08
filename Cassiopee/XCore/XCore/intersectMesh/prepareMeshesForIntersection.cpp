@@ -104,17 +104,6 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
         if (keep) S.patch.insert(i);
     }
 
-    /*
-    double ax = 0, ay = 0, az = 0;
-    double bx = 1, by = 0, bz = 0;
-    double cx = 0, cy = 1, cz = 0;
-    double px = 1, py = 0, pz = 0;
-    if (Triangle::isPointInside(px, py, pz, ax, ay, az, bx, by, bz,
-            cx, cy, cz)) puts("inside");
-    else
-        puts("outside");
-    */
-
     ret = meshes_mutual_refinement(M, S);
     if (ret != 0) {
         Karray_free_ngon(marray);
@@ -136,6 +125,29 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     Py_DECREF(Sout);
     Karray_free_ngon(marray);
     Karray_free_ngon(sarray);
+
+
+    // Extract master and slave patches
+    npy_intp dims[2];
+    dims[1] = 1;
+    
+    dims[0] = (npy_intp)M.patch.size();
+    PyArrayObject *MP = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+    Int *mptr = (Int *)PyArray_DATA(MP);
+    Int *ptr = mptr;
+    for (Int face : M.patch) *ptr++ = face;
+
+    dims[0] = (npy_intp)S.patch.size();
+    PyArrayObject *SP = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+    Int *sptr = (Int *)PyArray_DATA(SP);
+    ptr = sptr;
+    for (Int face : S.patch) *ptr++ = face;
+
+    PyList_Append(Out, (PyObject *)MP);
+    PyList_Append(Out, (PyObject *)SP);
+    Py_DECREF(MP);
+    Py_DECREF(SP);
+
 
     return Out;
 }

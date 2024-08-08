@@ -84,6 +84,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     // Max plane index that doesn't intersection with marray bbox (zero-based)
     Int kmax = 0;
 
+    std::vector<Int> inside_point;
+
     for (Int k = 0; k < nk; k++, kmax++) {
         Int inside = 0;
 
@@ -92,7 +94,9 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         for (Int l = 0; l < nij; l++, p++) {
 
             if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
+                inside_point.push_back(p);
                 inside = 1;
+                printf("bad kmax: %d\n", kmax);
                 break;
             }
             
@@ -101,6 +105,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
         if (inside) break;
     }
+
+    point_write("inside", Xs, Ys, Zs, inside_point);
 
     printf("kmax: %d\n", kmax);
 
@@ -185,6 +191,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         assert(hit == 1);
     }
 
+    /*
     FILE *fh = fopen("hit_faces", "w");
     assert(fh);
     for (const auto hit : point_hit_table) {
@@ -193,6 +200,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         fprintf(fh, "%d %d\n", pt + nij, TI.face);
     }
     fclose(fh);
+    */
 
     edge_write("projection", Xs, Ys, Zs, point_hit_table);
 
@@ -259,6 +267,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     Py_DECREF(tag);
     Karray_free_ngon(marray);
     Karray_free_structured(sarray);
+
+    delete patch;
 
     return out;
 }

@@ -293,9 +293,9 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 
 PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
 {
-    PyObject *MASTER, *SLAVE, *PATCH, *TAG;
+    PyObject *MASTER, *SLAVE, *MPATCH, *SPATCH;
   
-    if (!PYPARSETUPLE_(args, OOOO_, &MASTER, &SLAVE, &PATCH, &TAG)) {
+    if (!PYPARSETUPLE_(args, OOOO_, &MASTER, &SLAVE, &MPATCH, &SPATCH)) {
         RAISE("Bad input.");
         return NULL;
     }
@@ -320,10 +320,10 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
-    // Check intersection patch
+    // Check master intersection patch (zero-based)
     Int *mpatch = NULL;
     Int mpatch_size = -1;
-    ret = K_NUMPY::getFromNumpyArray(PATCH, mpatch, mpatch_size, true);
+    ret = K_NUMPY::getFromNumpyArray(MPATCH, mpatch, mpatch_size, true);
     if (ret != 1) {
         Karray_free_ngon(marray);
         Karray_free_ngon(sarray);
@@ -333,72 +333,36 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
 
     printf("Master patch: " SF_D_ " faces\n", mpatch_size);
 
-    for (Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]);
-
-    // Check slave point tags
-    Float *tag = NULL;
-    Int tag_size = -1;
-    ret = K_NUMPY::getFromNumpyArray(TAG, tag, tag_size, true);
+    // Check slave intersection patch (zero-based)
+    Int *spatch = NULL;
+    Int spatch_size = -1;
+    ret = K_NUMPY::getFromNumpyArray(SPATCH, spatch, spatch_size, true);
     if (ret != 1) {
         Karray_free_ngon(marray);
         Karray_free_ngon(sarray);
-        RAISE("Bad slave points tag.");
+        RAISE("Bad slave patch.");
         return NULL;
     }
- 
-    // Extract Mf and Sf, the planar surfaces to intersect
-    // TODO(Imad): quasi-planar surfaces
-    for (Int i = 0; i < S.nf; i++) {
-        const auto &pn = S.F[i];
-        size_t stride = pn.size();
-        assert(stride == 3 || stride == 4);
 
-        Int keep = 1;
+    printf("Slave patch: " SF_D_ " faces\n", spatch_size);
 
-        for (size_t j = 0; j < stride; j++) {
-            Int point = pn[j];
-            if (tag[point] == 0) {
-                keep = 0;
-                break;
-            }
-        }
+    for (Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]);
+    for (Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]);
 
-        if (keep) S.patch.insert(i);
-    }
-
-    printf("M.patch.size(): %lu\n", M.patch.size());
-    printf("S.patch.size(): %lu\n", S.patch.size());
-
-    ret = meshes_mutual_refinement(M, S);
-    if (ret != 0) {
-        Karray_free_ngon(marray);
-        Karray_free_ngon(sarray);
-        return NULL;
-    }
-    
-    IMesh new_M = M.extract_conformized();
-    IMesh new_S = S.extract_conformized();
-
-    new_M.write_ngon("new_M");
-    new_S.write_ngon("new_S");
-
-    new_M.orient_skin(OUT);
-    new_S.orient_skin(IN);
-
-    printf("M.patch.size(): %lu\n", new_M.patch.size());
-    printf("S.patch.size(): %lu\n", new_S.patch.size());
+    M.orient_skin(OUT);
+    S.orient_skin(IN);
 
     // Extract surface meshes
-    Smesh Mf(new_M);
-    Smesh Sf(new_S);
+    Smesh Mf(M);
+    Smesh Sf(S);
 
     Dcel D(Mf, Sf);
  
     D.find_intersections();
 
-    IMesh M_inter = reconstruct_mesh(new_M, D, Dcel::RED);
+    IMesh M_inter = reconstruct_mesh(M, D, Dcel::RED);
     
-    IMesh S_inter = reconstruct_mesh(new_S, D, Dcel::BLACK);
+    IMesh S_inter = reconstruct_mesh(S, D, Dcel::BLACK);
 
     // Export
     PyObject *Mout = M_inter.export_karray();

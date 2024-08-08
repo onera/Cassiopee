@@ -318,13 +318,13 @@ def prepareMeshesForIntersection(master, slave, patch_name):
         raise ValueError("Tag field not found in slave mesh.")
     tag = I.getValue(tag)
 
-    minter, sinter = xcore.prepareMeshesForIntersection(m, s, faces, tag)
+    m, s, mpatch, spatch = xcore.prepareMeshesForIntersection(m, s, faces, tag)
 
-    zmo = I.createZoneNode("M_adapted", minter)
-    zso = I.createZoneNode("S_adapted", sinter)
+    zmo = I.createZoneNode("M_adapted", m)
+    zso = I.createZoneNode("S_adapted", s)
 
-    tm = C.newPyTree(["Base", zmo])
-    ts = C.newPyTree(["Base", zso])
+    tm = C.newPyTree(["M_adapted", zmo])
+    ts = C.newPyTree(["S_adapted", zso])
 
     try: import Intersector.PyTree as XOR
     except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
@@ -332,34 +332,22 @@ def prepareMeshesForIntersection(master, slave, patch_name):
     tm = XOR.closeCells(tm)
     ts = XOR.closeCells(ts)
 
-    return tm, ts
+    return tm, ts, mpatch, spatch
 
-def intersectSurf(master, slave, patch_name):
+def intersectSurf(master, slave, mpatch, spatch):
     zm = I.getZones(master)[0]
     zs = I.getZones(slave)[0]
 
     m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
     s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
 
-    patch = I.getNodeFromName(zm, patch_name)
-    if patch is None:
-        raise ValueError(patch_name + "not found.")
-  
-    faces = I.getNodeFromName(patch, "PointList")
-    faces = I.getValue(faces)[0]
-
-    tag = I.getNodeFromName2(zs, "tag")
-    if tag is None:
-        raise ValueError("Tag field not found in slave mesh.")
-    tag = I.getValue(tag)
-
-    minter, sinter = xcore.intersectSurf(m, s, faces, tag)
+    minter, sinter = xcore.intersectSurf(m, s, mpatch, spatch)
 
     zmo = I.createZoneNode("M_inter", minter)
     zso = I.createZoneNode("S_inter", sinter)
 
-    tm = C.newPyTree(["Base", zmo])
-    ts = C.newPyTree(["Base", zso])
+    tm = C.newPyTree(["M_inter", zmo])
+    ts = C.newPyTree(["S_inter", zso])
 
     try: import Intersector.PyTree as XOR
     except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")

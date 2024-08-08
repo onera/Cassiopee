@@ -96,8 +96,6 @@ std::vector<pointFace> IMesh::locate(Int p, Float px, Float py, Float pz,
 
         const auto &cn = F[face];
 
-        assert(face_is_quad(face));
-
         // First triangle
 
         a = cn[0], b = cn[1], c = cn[2];
@@ -434,9 +432,9 @@ bool IMesh::is_point_inside(Float px, Float py, Float pz)
     Int a, b, c, hit;
 
     // Choose a random ray direction
-    Float dx = 0;
-    Float dy = 0;
-    Float dz = -1;
+    Float dx = 0.2;
+    Float dy = -0.5;
+    Float dz = 0.4;
 
     for (Int face : skin) {
         const auto &cn = F[face];
