@@ -716,5 +716,9 @@ PyObject *IMesh::export_karray()
         for (Int f : pf) *ptr++ = f+1;
     }
 
+    delete f;
+    delete cn;
+
+
     return ret;
 }

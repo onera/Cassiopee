@@ -268,7 +268,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     Karray_free_ngon(marray);
     Karray_free_structured(sarray);
 
-    delete patch;
+    delete [] patch;
 
     return out;
 }
