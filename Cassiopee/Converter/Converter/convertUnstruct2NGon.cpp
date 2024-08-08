@@ -378,7 +378,13 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
 
   // Clean connectivity
   E_Float tol = 1.e-12;
-  tpl = K_CONNECT::V_cleanConnectivity(varString, *f2, *cn2, "NGON", tol);
+  E_Bool rmOverlappingPts=true; E_Bool rmOrphanPts=false;
+  E_Bool rmDuplicatedFaces=true; E_Bool rmDuplicatedElts=false;
+  E_Bool rmDegeneratedFaces=false; E_Bool rmDegeneratedElts=false;
+  tpl = K_CONNECT::V_cleanConnectivity(varString, *f2, *cn2, "NGON", tol,
+                                       rmOverlappingPts, rmOrphanPts,
+                                       rmDuplicatedFaces, rmDuplicatedElts,
+                                       rmDegeneratedFaces, rmDegeneratedElts);
   delete f2; delete cn2;
   return tpl;  
 }
