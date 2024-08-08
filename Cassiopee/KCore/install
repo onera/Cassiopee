@@ -88,6 +88,8 @@ cp test/notifyInstall.py "$INSTALLPATH"
 cp test/notifyInstall "$INSTALLPATH"
 cp test/notifyValid.py "$INSTALLPATH"
 cp test/notifyValid "$INSTALLPATH"
+cp test/compareSessionLogs.py "$INSTALLPATH"
+cp test/compareSessionLogs "$INSTALLPATH"
 
 # Check installation
 python test/t1.py
