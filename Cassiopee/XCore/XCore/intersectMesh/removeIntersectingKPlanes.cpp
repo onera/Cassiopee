@@ -53,7 +53,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     // Check intersection patch
     Int *patch = NULL;
     Int patch_size = -1;
-    ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, true);
+    ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, false);
     if (ret != 1) {
         Karray_free_ngon(marray);
         Karray_free_structured(sarray);
@@ -84,38 +84,36 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     // Max plane index that doesn't intersection with marray bbox (zero-based)
     Int kmax = 0;
 
-    for (Int k = 0; k < nk; k++) {
+    for (Int k = 0; k < nk; k++, kmax++) {
         Int inside = 0;
 
-        for (Int j = 0; j < nj && !inside; j++) {
-            for (Int i = 0; i < ni; i++) {
-                Int p = i + ni*j + nij*k;
+        Int p = nij*k;
 
-                if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
-                    inside = 1;
-                    kmax = k;
-                    break;
-                }
+        for (Int l = 0; l < nij; l++, p++) {
+
+            if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
+                inside = 1;
+                break;
             }
+            
+            //p++;
         }
 
         if (inside) break;
     }
 
-    assert(kmax > 1);
+    printf("kmax: %d\n", kmax);
 
     // points to be projected nij*(kmax-1) .. nij*kmax
     std::vector<Int> proj_points;
-    Int kshift = (kmax-1)*nij;
+    Int ind = (kmax-1)*nij;
 
-    for (Int j = 0; j < nj; j++) {
-        for (Int i = 0; i < ni; i++) {
-            Int ind = i + j*ni + kshift;
-            proj_points.push_back(ind);
-        }
+    for (Int l = 0; l < nij; l++) {
+        proj_points.push_back(ind);
+        ind++;
     }
 
-    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+    point_write("proj_points", Xs, Ys, Zs, proj_points);
 
     /**************************************************************************/
 
@@ -186,6 +184,10 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     edge_write("projection", Xs, Ys, Zs, point_hit_table);
 
     /*************************************************************************/
+    
+    // planes: 0 .... kmax-1
+    // plane kmax was removed
+    // numbers of planes: kmax + 1
 
     // Make out cartesian mesh
     PyObject *tpl;
@@ -214,15 +216,17 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
 
     // Copy the projected points
+    ind = nij*kmax;
     for (Int i = 0; i < nij; i++) {
         Int p = proj_points[i];
         auto EH = point_hit_table[p];
         Float x = EH.x;
         Float y = EH.y;
         Float z = EH.z;
-        xt[p+nij] = x;
-        yt[p+nij] = y;
-        zt[p+nij] = z;
+        xt[ind] = x;
+        yt[ind] = y;
+        zt[ind] = z;
+        ind++;
     }
 
     // Tag the projected points
