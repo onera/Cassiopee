@@ -183,7 +183,7 @@ void Smesh::make_edges()
     }
 
     // Make faces neighbourhood
-    std::vector<std::vector<Int>> F2F(nf);
+    F2F.resize(nf);
     for (size_t i = 0; i < F2E.size(); i++) {
         auto &face = F2E[i];
         auto &neis = F2F[i];
@@ -582,49 +582,6 @@ std::vector<pointFace> Smesh::locate(Float x, Float y, Float z) const
     return HITS;
 }
 
-void Smesh::write_su2(const char *fname, const std::vector<Int> &faces)
-{
-    std::map<Int, Int> pmap;
-
-    Int np = 0;
-
-    for (size_t i = 0; i < faces.size(); i++) {
-        Int f = faces[i];
-        const auto &cn = F[f];
-        for (auto p : cn) {
-            if (pmap.find(p) == pmap.end()) {
-                pmap[p] = np++;
-            }
-        }
-    }
-
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-    fprintf(fh, "NDIME= 2\n");
-    fprintf(fh, "NELEM= %zu\n", faces.size());
-
-    for (size_t i = 0; i < faces.size(); i++) {
-        Int f = faces[i];
-        const auto &cn = F[f];
-        if (cn.size() == 4) fprintf(fh, "%d ", QUAD);
-        else fprintf(fh, "%d ", TRI);
-        for (auto p : cn) fprintf(fh, SF_D_ " ", pmap[p]);
-        fprintf(fh, "%zu\n", i);
-    }
-
-    std::vector<Int> ipmap(pmap.size());
-    for (auto &pdata : pmap) ipmap[pdata.second] = pdata.first;
-
-    fprintf(fh, "NPOIN= %zu\n", ipmap.size());
-    for (size_t i = 0; i < ipmap.size(); i++) {
-        Int op = ipmap[i];
-        fprintf(fh, "%f %f ", X[op], Y[op]);
-        fprintf(fh, "%zu\n", i);
-    }
-
-    fclose(fh);
-}
-
 void Smesh::init_adaptation_data()
 {
     flevel.resize(nf, 0);
@@ -648,6 +605,17 @@ void Smesh::make_point_faces()
         const auto &cn = F[face];
         for (auto p : cn)
             P2F[p].push_back(face);
+    }
+}
+
+void Smesh::make_point_edges()
+{
+    P2E.clear();
+    P2E.resize(np);
+
+    for (Int eid = 0; eid < ne; eid++) {
+        P2E[E[eid].p].push_back(eid);
+        P2E[E[eid].q].push_back(eid);
     }
 }
 
@@ -758,6 +726,39 @@ Smesh Smesh::extract_conformized()
     return ret;
 }
 
+void Smesh::write_faces(const char *fname, const std::vector<Int> &faces)
+{
+    std::map<Int, Int> pmap;
+
+    Int np = 0;
+
+    for (size_t i = 0; i < faces.size(); i++) {
+        Int f = faces[i];
+        const auto &cn = F[f];
+        for (auto p : cn) {
+            if (pmap.find(p) == pmap.end()) {
+                pmap[p] = np++;
+            }
+        }
+    }
+
+    std::vector<Int> ipmap(pmap.size());
+    for (auto &pdata : pmap) ipmap[pdata.second] = pdata.first;
+
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%d\n", np);
+    for (size_t i = 0; i < ipmap.size(); i++) {
+        Int op = ipmap[i];
+        fprintf(fh, "%f %f %f\n", X[op], Y[op], Z[op]);
+    }
+
+    fclose(fh);
+}
+
+
 void Smesh::write_ngon(const char *fname)
 {
     FILE *fh = fopen(fname, "w");
@@ -766,7 +767,7 @@ void Smesh::write_ngon(const char *fname)
     fprintf(fh, "POINTS\n");
     fprintf(fh, SF_D_ "\n", np);
     for (Int i = 0; i < np; i++) {
-        fprintf(fh, "%f %f 0.0\n", X[i], Y[i]);
+        fprintf(fh, "%f %f %f\n", X[i], Y[i], Z[i]);
     }
 
     fprintf(fh, "INDPG\n");

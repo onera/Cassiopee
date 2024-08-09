@@ -40,12 +40,14 @@ struct Smesh {
 
     std::vector<Float> X, Y, Z;
     std::vector<std::vector<Int>> P2F;
+    std::vector<std::vector<Int>> P2E;
     
     std::vector<o_edge> E;
     std::vector<std::array<Int, 2>> E2F;
 
     std::vector<std::vector<Int>> F;
     std::vector<std::vector<Int>> F2E;
+    std::vector<std::vector<Int>> F2F;
 
     Int M_np;
     Int M_ne;
@@ -85,6 +87,8 @@ struct Smesh {
     void make_edges();
 
     void make_point_faces();
+    
+    void make_point_edges();
 
     inline bool edge_is_active(Int edge) const
     { return eactive.find(edge) != eactive.end(); }
@@ -96,7 +100,7 @@ struct Smesh {
 
     std::vector<pointFace> locate(Float x, Float y, Float z) const;
 
-    void write_su2(const char *fname, const std::vector<Int> &faces);
+    void write_faces(const char *fname, const std::vector<Int> &faces);
 
     void write_ngon(const char *fname);
 

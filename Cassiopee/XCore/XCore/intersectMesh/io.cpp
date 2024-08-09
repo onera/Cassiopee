@@ -42,6 +42,16 @@ void point_write(const char *fname, Float *Xs, Float *Ys, Float *Zs,
     fclose(fh);
 }
 
+void point_write(const char *fname, const std::vector<point> &P)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%zu\n", P.size());
+    for (auto p : P) fprintf(fh, "%f %f %f\n", p.x, p.y, p.z);
+    fclose(fh);
+}
+
 void edge_write(const char *fname, Float *X, Float *Y, Float *Z,
     const std::unordered_map<Int, TriangleIntersection> &point_hits)
 {

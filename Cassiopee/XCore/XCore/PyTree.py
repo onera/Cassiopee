@@ -334,6 +334,15 @@ def prepareMeshesForIntersection(master, slave, patch_name):
 
     return tm, ts, mpatch, spatch
 
+def intersectMesh(master, slave, mpatch, spatch):
+    zm = I.getZones(master)[0]
+    zs = I.getZones(slave)[0]
+
+    m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    minter, sinter = xcore.intersectMesh(m, s, mpatch, spatch)
+
 def intersectSurf(master, slave, mpatch, spatch):
     zm = I.getZones(master)[0]
     zs = I.getZones(slave)[0]

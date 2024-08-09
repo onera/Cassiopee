@@ -25,6 +25,9 @@
 #include "vertex.h"
 #include "triangleIntersection.h"
 #include "common/common.h"
+#include "point.h"
+
+void point_write(const char *fname, const std::vector<point> &P);
 
 void point_write(const char *fname, const std::vector<Vertex *> &I);
 

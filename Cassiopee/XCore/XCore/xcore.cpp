@@ -46,6 +46,7 @@ static PyMethodDef Pyxcore [] =
     {"AdaptMesh_ExtractHaloCellLevels", K_XCORE::AdaptMesh_ExtractHaloCellLevels, METH_VARARGS},
 
     {"intersectSurf", K_XCORE::intersectSurf, METH_VARARGS},
+    {"intersectMesh", K_XCORE::intersectMesh, METH_VARARGS},
     {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
     {"prepareMeshesForIntersection", K_XCORE::prepareMeshesForIntersection, METH_VARARGS},
     

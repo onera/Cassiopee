@@ -23,7 +23,7 @@
 #include "primitives.h"
 #include "event.h"
 
-Float TOL = 1e-10;
+Float TOL = 1e-8;
 
 Int Sign(Float x)
 {
