@@ -36,6 +36,16 @@ struct Hedge {
     Int color;
     Cycle *cycle;
 
+    // Projection of orig
+    Float proj_ox = -10000;
+    Float proj_oy = -10000;
+    Float proj_oz = -10000;
+
+    // Projection of tail
+    Float proj_tx = -10000;
+    Float proj_ty = -10000;
+    Float proj_tz = -10000;
+
     Hedge(Vertex *Orig);
 
     static Int cmp_cwise(const Hedge *h, const Hedge *w);

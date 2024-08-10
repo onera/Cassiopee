@@ -45,12 +45,14 @@ struct Dcel {
     static Int BLACK;
     static Int NO_IDEA;
 
-    Dcel(const Smesh &M0, const Smesh &M1);
+    Dcel(Smesh &M0, Smesh &M1);
     ~Dcel();
     
     void init_vertices(const Smesh &M0, const Smesh &M1);
 
-    void init_hedges_and_faces(const Smesh &M, Int color);
+    void init_hedges_and_faces(Smesh &M, Int color);
+    
+    //void make_hedges_and_faces(const Smesh &M, Int color);
 
     static Int check_hedges(const std::vector<Hedge *> &H);
 

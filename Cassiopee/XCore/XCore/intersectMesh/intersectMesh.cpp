@@ -153,6 +153,9 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Mf.make_point_edges();
     Sf.make_point_edges();
 
+    Dcel D(Mf, Sf);
+
+
     // Locate spoints within mfaces
 
     std::map<Int, std::vector<Int>> spoints_to_mfaces;
@@ -364,10 +367,10 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     }
     
     point_write("xpoints", xpoints);
-
+   
     
+    return Py_None;
 
-    //Dcel D(Mf, Sf);
 
 
 

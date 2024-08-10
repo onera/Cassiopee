@@ -608,6 +608,19 @@ void Smesh::make_point_faces()
     }
 }
 
+void Smesh::make_point_faces_all()
+{
+    assert(P2F.empty());
+    P2F.clear();
+    P2F.resize(np);
+
+    for (Int face = 0; face < nf; face++) {
+        const auto &cn = F[face];
+        for (auto p : cn)
+            P2F[p].push_back(face);
+    }
+}
+
 void Smesh::make_point_edges()
 {
     P2E.clear();

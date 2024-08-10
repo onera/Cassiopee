@@ -449,16 +449,142 @@ void Dcel::init_vertices(const Smesh &M0, const Smesh &M1)
     }
 }
 
+/*
 Dcel::Dcel(const Smesh &M0, const Smesh &M1)
+{
+    // Removes duplicate points
+    init_vertices(M0, M1);
+
+    // Put points in a vector
+    Q.inorder(V);
+
+    // Number the vertices
+    for (size_t i = 0; i < V.size(); i++) {
+        V[i]->id = i;
+    }
+
+    // Create the half-edges
+    make_hedges_and_faces(M0, Dcel::RED);
+    make_hedges_and_faces(M1, Dcel::BLACK);
+    
+    assert(check_hedges(H));
+
+    assert(check_faces(H, F));
+}
+        
+void Dcel::make_hedges_and_faces(const Smesh &M, Int color)
+{
+    size_t nh = H.size();
+    size_t nhh = nh + 2 * M.E.size();
+
+    H.resize(nhh, NULL);
+
+    std::vector<Int> visited(M.ne, 0);
+
+    for (Int fid = 0; fid < M.nf; fid++) {
+        const auto &pn = M.F[fid];
+        const auto &pe = M.F2E[fid];
+
+        assert(pn.size() == pe.size());
+
+        std::vector<Hedge *> list(pn.size(), NULL);
+
+        for (size_t i = 0; i < pn.size(); i++) {
+            Int e = pe[i];
+            
+            Int p = pn[i];
+
+            Vertex *P = Q.lookup(M.X[p], M.Y[p], M.Z[p])->key;
+
+            // Take care of boundary edge
+            if (M.E2F[e][1] == -1) {
+
+                assert(visited[e] == 0);
+                
+                visited[e] = 1;
+
+                Int q = pn[(i+1)%pn.size()];
+
+                Vertex *V = Q.lookup(M.X[q], M.Y[q], M.Z[q])->key;
+
+                Hedge *h = new Hedge(P);
+                Hedge *t = new Hedge(V);
+                h->twin = t;
+                t->twin = h;
+
+                H[e + nh] = h;
+                H[e + M.ne + nh] = t; 
+
+                list[i] = h;
+
+            } else {
+            
+                if (!visited[e]) {
+                    
+                    visited[e] = 1;
+
+                    Hedge *h = new Hedge(P);
+
+                    h->color = color;
+
+                    H[e + nh] = h;
+                    
+                    list[i] = h;
+
+                } else {
+
+                    Hedge *t = H[e];
+
+                    Hedge *h = new Hedge(P);
+
+                    h->color = color;
+
+                    H[e + M.ne + nh] = h; 
+
+                    list[i] = h;
+
+                    h->twin = t;
+                    t->twin = h;
+
+                }
+            }
+        }
+
+        // Create face record
+
+        Face *f = new Face;
+        f->oid[color] = M.l2gf.at(fid);
+        f->rep = list[0];
+        F.push_back(f);
+        
+        for (size_t i = 0; i < list.size(); i++) {
+            Hedge *h = list[i];
+            Hedge *w = list[(i+1)%list.size()];
+
+            h->next = w;
+            w->prev = h;
+
+            h->left = f;
+        } 
+    }
+
+    // Create the unbounded faces
+    f_unbounded[color] = new Face;
+    f_unbounded[color]->oid[color] = -1;
+
+    // Set it as the left face for hedges without a left face
+    for (size_t i = nh; i < nhh; i++) {
+        if (H[i]->left == NULL)
+            H[i]->left = f_unbounded[color];
+    }
+}
+*/
+
+Dcel::Dcel(Smesh &M0, Smesh &M1)
 {
     init_vertices(M0, M1);
     Q.inorder(V);
     for (size_t i = 0; i < V.size(); i++) {
-        Vertex *v = V[i];
-        if (v->oid[0] != -1 && v->oid[1] != -1) {
-            printf("Vertex %zu is dup (" SF_D_ " " SF_D_ ")\n", i,
-                v->oid[0], v->oid[1]);
-        }
         V[i]->id = i;
     }
 
@@ -471,8 +597,32 @@ Dcel::Dcel(const Smesh &M0, const Smesh &M1)
     assert(check_faces(H, F));
 }
 
-void Dcel::init_hedges_and_faces(const Smesh &M, Int color)
+void mat3_mult(Float A[3][3], Float B[3][3], Float C[3][3])
 {
+    for (Int i = 0; i < 3; i++) {
+        for (Int j = 0; j < 3; j++) {
+            C[i][j] = 0;
+
+            for (Int k = 0; k < 3; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+}
+
+void mat3_vec(Float A[3][3], Float x[3], Float b[3])
+{
+    for (Int i = 0; i < 3; i++) {
+        b[i] = 0;
+        for (Int j = 0; j < 3; j++) {
+            b[i] += A[i][j] * x[j];
+        }
+    }
+}
+
+void Dcel::init_hedges_and_faces(Smesh &M, Int color)
+{
+    printf("Doing color %d\n", color);
     size_t nh = H.size();
     size_t nhh = nh + 2 * M.E.size();
 
@@ -489,13 +639,18 @@ void Dcel::init_hedges_and_faces(const Smesh &M, Int color)
         Event *xit = Q.lookup(M.X[p], M.Y[p], M.Z[p]);
         assert(xit);
 
-        Hedge *h = new Hedge(xit->key);
+        Vertex *P = xit->key;
+
+        Hedge *h = new Hedge(P);
 
         list[p].push_back(h);
 
         xit = Q.lookup(M.X[q], M.Y[q], M.Z[q]);
         assert(xit);        
-        Hedge *t = new Hedge(xit->key);
+
+        Vertex *V = xit->key;
+        
+        Hedge *t = new Hedge(V);
 
         list[q].push_back(t);
 
@@ -508,15 +663,136 @@ void Dcel::init_hedges_and_faces(const Smesh &M, Int color)
         H.push_back(h);
         H.push_back(t);
     }
+    
+    // Face normals
 
-    for (size_t i = 0; i < list.size(); i++) {
-        auto &hedges = list[i];
+    std::vector<Float> normals(3*M.nf, 0);
 
+    for (Int fid = 0; fid < M.nf; fid++) {
+        const auto &pn = M.F[fid];
+
+        Float o[3] = {0, 0, 0};
+        for (Int p : pn) {
+            o[0] += M.X[p];
+            o[1] += M.Y[p];
+            o[2] += M.Z[p];
+        }
+        for (int i = 0; i < 3; i++) o[i] /= pn.size();
+
+        Int a = pn[0];
+        Int b = pn[1];
+
+        Float oa[3] = {M.X[a]-o[0], M.Y[a]-o[1], M.Z[a]-o[2]};
+        Float ob[3] = {M.X[b]-o[0], M.Y[b]-o[1], M.Z[b]-o[2]};
+
+        Float *N = &normals[3*fid];
+        K_MATH::cross(oa, ob, N);
+    }
+
+    // Point normals: aggregate of shared faces normals
+
+    std::vector<Float> pnormals(3*M.np, 0);
+
+    M.make_point_faces_all();
+
+    for (Int pid = 0; pid < M.np; pid++) {
+        const auto &faces = M.P2F[pid];
+
+        Float *N = &pnormals[3*pid];
+
+        for (Int fid : faces) {
+            Float *fN = &normals[3*fid];
+            for (Int i = 0; i < 3; i++) N[i] += fN[i];
+        }
+
+        Float NORM = K_MATH::norm(N, 3);
+
+        for (Int i = 0; i < 3; i++) N[i] /= NORM;
+    }
+
+    // Sort hedges
+
+    Float ez[3] = {0, 0, 1};
+    Float I[3][3] = {}; I[0][0] = I[1][1] = I[2][2] = 1;
+
+    for (Int pid = 0; pid < M.np; pid++) {
+        auto &hedges = list[pid];
+        Float *N = &pnormals[3*pid];
+
+        // Project the hedges tails onto the plane (i, N)
+
+        for (size_t i = 0; i < hedges.size(); i++) {
+            Hedge *h = hedges[i];
+            Hedge *t = h->twin;
+
+            Vertex *tail = t->orig;
+
+            Float dp = tail->x*N[0] + tail->y*N[1] + tail->z*N[2];
+
+            h->proj_tx = tail->x - dp * N[0]; 
+            h->proj_ty = tail->y - dp * N[1]; 
+            h->proj_tz = tail->z - dp * N[2]; 
+        }
+
+        // Rotation axis
+        Float r[3];
+        K_MATH::cross(N, ez, r);
+        Float normr = K_MATH::norm(r, 3);
+        for (int i = 0; i < 3; i++) r[i] /= normr;
+
+        // Rotation angle
+        Float costheta = K_MATH::dot(N, ez, 3) / (K_MATH::norm(N, 3) * K_MATH::norm(ez, 3));
+        assert(costheta > -1-TOL && costheta < 1+TOL);
+
+        Float sintheta = sqrt(1 - costheta*costheta); 
+
+        // Create the rotation matrix
+        Float K[3][3];
+        K[0][0] = 0;     K[0][1] = -r[2]; K[0][2] = r[1];
+        K[1][0] = r[2];  K[1][1] = 0;     K[1][2] = -r[0];
+        K[2][0] = -r[1]; K[2][1] = r[0];  K[2][2] = 0;
+
+        Float K2[3][3];
+        mat3_mult(K, K, K2);
+
+        // Find the rotation matrix
+        Float R[3][3] = {};
+        
+        for (Int i = 0; i < 3; i++) {
+            for (Int j = 0; j < 3; j++) {
+                R[i][j] = I[i][j] + sintheta * K[i][j] + (1-costheta)*K2[i][j];
+                //printf("%.3f ", R[i][j]);
+            }
+        }
+    
+        // Project the origin
+        Vertex *orig = Q.lookup(M.X[pid], M.Y[pid], M.Z[pid])->key;
+        Float o[3] = {M.X[pid], M.Y[pid], M.Z[pid]};
+        Float proj_o[3] = {};
+        mat3_vec(R, o, proj_o);
+
+        for (size_t i = 0; i < hedges.size(); i++) {
+            Hedge *h = hedges[i];
+            assert(h->orig == orig);
+
+            h->proj_ox = proj_o[0];
+            h->proj_oy = proj_o[1];
+            h->proj_oz = proj_o[2];
+
+            Float t[3] = {h->proj_tx, h->proj_ty, h->proj_tz};
+            Float proj_t[3];
+            mat3_vec(R, t, proj_t);
+
+            h->proj_tx = proj_t[0];
+            h->proj_ty = proj_t[1];
+            h->proj_tz = proj_t[2];
+        }
+            
         Hedge::sort_cwise(hedges, 0, hedges.size()-1);
 
-        for (size_t j = 0; j < hedges.size(); j++) {
-            Hedge *h = hedges[j];
-            Hedge *w = hedges[(j + 1) % hedges.size()];
+        for (size_t i = 0; i < hedges.size(); i++) {
+            Hedge *h = hedges[i];
+            Hedge *w = hedges[(i+1)%hedges.size()];
             h->twin->next = w;
             w->prev = h->twin;
         }
@@ -540,15 +816,17 @@ void Dcel::init_hedges_and_faces(const Smesh &M, Int color)
         Face *f = new Face;
         f->oid[color] = M.l2gf.at(i);
 
-        assert(M.E2F[first_edge][0] == (Int)i || M.E2F[first_edge][1] == Int(i));
 
+        assert(M.E2F[first_edge][0] == (Int)i || M.E2F[first_edge][1] == Int(i));
         Hedge *REP = (M.E2F[first_edge][0] == (Int)i) ? h : t;
+
+        assert(REP->left == NULL);
 
         f->rep = REP;
         REP->left = f;
         Hedge *w = REP->next;
         while (w != REP) { w->left = f; w = w->next; }
-
+        
         F.push_back(f);
     }
 

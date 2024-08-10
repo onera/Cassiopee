@@ -88,6 +88,8 @@ struct Smesh {
 
     void make_point_faces();
     
+    void make_point_faces_all();
+    
     void make_point_edges();
 
     inline bool edge_is_active(Int edge) const

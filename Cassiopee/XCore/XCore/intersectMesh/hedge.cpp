@@ -71,12 +71,28 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
     Vertex *a = h->twin->orig;
     Vertex *b = w->twin->orig;
 
+    // a is tail of h
+    // b is tail of w
+    // c is orig
+
+    Float ax = h->proj_tx;
+    Float ay = h->proj_ty;
+    Float bx = w->proj_tx;
+    Float by = w->proj_ty;
+    Float cx = h->proj_ox;
+    Float cy = h->proj_oy;
+
+    assert(Sign(cx-w->proj_ox) == 0);
+    assert(Sign(cy-w->proj_oy) == 0);
+
+    /*
     Float ax = a->x;
     Float ay = a->y;
     Float bx = b->x;
     Float by = b->y;
     Float cx = c->x;
     Float cy = c->y;
+    */
 
     long double acx = (long double)ax - (long double)cx;
     long double acy = (long double)ay - (long double)cy;
