@@ -33,7 +33,7 @@ Int Sign(Float x)
     return 0;
 }
 
-Int cmp_points_3D(Float x1, Float y1, Float z1, Float x2, Float y2, Float z2)
+Int cmp_points(Float x1, Float y1, Float z1, Float x2, Float y2, Float z2)
 {
     Float t = x1 - x2;
     Int s = Sign(t);
@@ -47,6 +47,7 @@ Int cmp_points_3D(Float x1, Float y1, Float z1, Float x2, Float y2, Float z2)
     return Sign(t);
 }
 
+/*
 Int cmp_points(Float x1, Float y1, Float x2, Float y2)
 {
     Float t = x1 - x2;
@@ -56,6 +57,7 @@ Int cmp_points(Float x1, Float y1, Float x2, Float y2)
     t = y1 - y2;
     return Sign(t);
 }
+*/
 
 Int cmp_segments
 (
@@ -119,7 +121,7 @@ Int cmp_segments
 // exact routines.
 Int compare(const Vertex &a, const Vertex &b)
 {
-    return cmp_points(a.x, a.y, b.x, b.y);
+    return cmp_points(a.x, a.y, a.z, b.x, b.y, b.z);
 }
 
 Int compare(const Segment &s1, const Segment &s2, Float rx, Float ry)
@@ -133,7 +135,8 @@ Int compare(const Segment &s1, const Segment &s2, Float rx, Float ry)
 
 Int cmp_mySeg(const Segment &s1, const Segment &s2)
 {
-    Int cmp = cmp_points(s1.p->x, s1.p->y, s2.p->x, s2.p->y);
+    Int cmp = cmp_points(s1.p->x, s1.p->y, s1.p->z, s2.p->x, s2.p->y,
+        s2.p->z);
     if (cmp) return cmp;
 
     cmp = Sign(s1.color - s2.color);
@@ -172,10 +175,10 @@ void compute_intersection(Queue &Q, Snode *sit0, Snode *sit1,
     x /= w;
     y /= w;
 
-    Event *xit = Q.lookup(x, y);
+    Event *xit = Q.lookup(x, y, 0);
 
     if (xit == NULL) {
-        xit = Q.insert(x, y);
+        xit = Q.insert(x, y, 0);
         xit->key->id = I.size();
         I.push_back(xit->key);
     }

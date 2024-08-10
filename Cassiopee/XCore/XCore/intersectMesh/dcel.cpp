@@ -139,10 +139,10 @@ void Dcel::find_intersections()
     Segment::sort(S, 0, S.size()-1, cmp_mySeg);
     //std::reverse(S.begin(), S.end());
 
-    Vertex *lowerLeft = new Vertex(-BIG, -BIG);
-    Vertex *lowerRight = new Vertex(BIG, -BIG);
-    Vertex *upperLeft = new Vertex(-BIG, BIG);
-    Vertex *upperRight = new Vertex(BIG, BIG);
+    Vertex *lowerLeft = new Vertex(-BIG, -BIG, 0);
+    Vertex *lowerRight = new Vertex(BIG, -BIG, 0);
+    Vertex *upperLeft = new Vertex(-BIG, BIG, 0);
+    Vertex *upperRight = new Vertex(BIG, BIG, 0);
 
     Segment *lowerSentinel = new Segment(lowerLeft, lowerRight, S.size());
     Segment *upperSentinel = new Segment(upperLeft, upperRight, S.size()+1);
@@ -441,11 +441,11 @@ void Dcel::init_vertices(const Smesh &M0, const Smesh &M1)
     assert(Q.empty());
 
     for (Int i = 0; i < M0.np; i++) {
-        Q.insert(M0.X[i], M0.Y[i], M0.l2gp.at(i), Dcel::RED);
+        Q.insert(M0.X[i], M0.Y[i], M0.Z[i], M0.l2gp.at(i), Dcel::RED);
     }
 
     for (Int i = 0; i < M1.np; i++) {
-        Q.insert(M1.X[i], M1.Y[i], M1.l2gp.at(i), Dcel::BLACK);
+        Q.insert(M1.X[i], M1.Y[i], M1.Z[i], M1.l2gp.at(i), Dcel::BLACK);
     }
 }
 
@@ -486,14 +486,14 @@ void Dcel::init_hedges_and_faces(const Smesh &M, Int color)
         Int p = e.p;
         Int q = e.q;
 
-        Event *xit = Q.lookup(M.X[p], M.Y[p]);
+        Event *xit = Q.lookup(M.X[p], M.Y[p], M.Z[p]);
         assert(xit);
 
         Hedge *h = new Hedge(xit->key);
 
         list[p].push_back(h);
 
-        xit = Q.lookup(M.X[q], M.Y[q]);
+        xit = Q.lookup(M.X[q], M.Y[q], M.Z[q]);
         assert(xit);        
         Hedge *t = new Hedge(xit->key);
 

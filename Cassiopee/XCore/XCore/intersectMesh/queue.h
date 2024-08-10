@@ -35,13 +35,13 @@ struct Queue {
 
     Queue();
 
-    Event *insert(Float X, Float Y, Int oid, Int color);
+    Event *insert(Float X, Float Y, Float Z, Int oid, Int color);
 
-    Event *insert(Float X, Float Y);
+    Event *insert(Float X, Float Y, Float Z);
 
     Event *lookup(Vertex *key);
     
-    Event *lookup(Float x, Float y);
+    Event *lookup(Float x, Float y, Float z);
     
     inline bool empty() { return root == NULL; }
 
@@ -53,11 +53,11 @@ struct Queue {
 
     void inorder(std::vector<Vertex *> &V) const;
     
-    Event *insert_(Event *&root, Float x, Float y, Int oid, Int color);
+    Event *insert_(Event *&root, Float x, Float y, Float z, Int oid, Int color);
 
-    Event *insert_(Event *&root, Float x, Float y);
+    Event *insert_(Event *&root, Float x, Float y, Float z);
 
-    Event *lookup_(Event *root, Float x, Float y);
+    Event *lookup_(Event *root, Float x, Float y, Float z);
 
     Event *erase_(Event *root, Vertex *p);
 };

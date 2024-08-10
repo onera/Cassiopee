@@ -18,15 +18,15 @@
 */
 #include "vertex.h"
 
-Vertex::Vertex(Float X, Float Y, Int Oid, Int color)
-: x(X), y(Y), rep(NULL), id(-1), left(NULL)
+Vertex::Vertex(Float X, Float Y, Float Z, Int Oid, Int color)
+: x(X), y(Y), z(Z), rep(NULL), id(-1), left(NULL)
 {
     oid[color] = Oid;
     oid[(color+1)%2] = -1;
 }
 
-Vertex::Vertex(Float X, Float Y)
-: x(X), y(Y), rep(NULL), id(-1), left(NULL)
+Vertex::Vertex(Float X, Float Y, Float Z)
+: x(X), y(Y), z(Z), rep(NULL), id(-1), left(NULL)
 {
     oid[0] = -1;
     oid[1] = -1;

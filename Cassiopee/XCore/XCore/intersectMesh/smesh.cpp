@@ -356,7 +356,7 @@ bool Smesh::faces_are_dups(Int face, Int mface, const Smesh &M)
         Int p = pn[i];
         for (size_t j = 0; j < pnm.size(); j++) {
             Int pm = pnm[j];
-            if (cmp_points(X[p], Y[p], M.X[pm], M.Y[pm]) == 0) {
+            if (cmp_points(X[p], Y[p], Z[p], M.X[pm], M.Y[pm], M.Z[pm]) == 0) {
                 assert(mfound[i] == 0);
                 mfound[i] = 1;
                 break;

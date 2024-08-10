@@ -147,7 +147,7 @@ bool IMesh::faces_are_dups(Int mface, Int sface, const IMesh &S)
         Int pm = pnm[i];
         for (size_t j = 0; j < pns.size(); j++) {
             Int ps = pns[j];
-            if (cmp_points_3D(X[pm], Y[pm], Z[pm], S.X[ps], S.Y[ps], S.Z[ps]) == 0) {
+            if (cmp_points(X[pm], Y[pm], Z[pm], S.X[ps], S.Y[ps], S.Z[ps]) == 0) {
                 assert(mfound[i] == 0);
                 mfound[i] = 1;
                 break;

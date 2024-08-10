@@ -26,15 +26,15 @@
 struct Hedge;
 
 struct Vertex {
-    Float x, y;
+    Float x, y, z;
     Hedge *rep;
     Int id;
     Hedge *left;
     Int oid[2];
 
-    Vertex(Float X, Float Y, Int Oid, Int color);
+    Vertex(Float X, Float Y, Float Z, Int Oid, Int color);
 
-    Vertex(Float X, Float Y);
+    Vertex(Float X, Float Y, Float Z);
 
-    inline void print() { printf("P" SF_D_ ": %f %f\n", id, x, y); }
+    inline void print() { printf("P" SF_D_ ": %f %f %f\n", id, x, y, z); }
 };

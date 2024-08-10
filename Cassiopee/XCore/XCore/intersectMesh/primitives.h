@@ -35,8 +35,8 @@ Int compare(const Segment &s0, const Segment &s1, Float rx, Float ry);
 
 Int cmp_mySeg(const Segment &s1, const Segment &s2);
 
-Int cmp_points_3D(Float x1, Float y1, Float z1, Float x2, Float y2, Float z2);
-Int cmp_points(Float x1, Float y1, Float x2, Float y2);
+Int cmp_points(Float x1, Float y1, Float z1, Float x2, Float y2, Float z2);
+//Int cmp_points(Float x1, Float y1, Float x2, Float y2);
 
 Float DifferenceOfProducts(Float a, Float b, Float c, Float d);
 

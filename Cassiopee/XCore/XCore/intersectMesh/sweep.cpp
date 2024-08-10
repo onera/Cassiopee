@@ -150,7 +150,7 @@ void sweep(Queue &Q, Status &T, std::vector<Segment *> &S,
             seg = U[i];
 
             // TODO: optimize
-            Event *xit = Q.lookup(seg->q->x, seg->q->y);
+            Event *xit = Q.lookup(seg->q->x, seg->q->y, seg->q->z);
             assert(xit);
             xit->inf = seg;
 
