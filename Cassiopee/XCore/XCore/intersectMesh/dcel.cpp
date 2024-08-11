@@ -738,6 +738,7 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
         Float r[3];
         K_MATH::cross(N, ez, r);
         Float normr = K_MATH::norm(r, 3);
+        if (Sign(normr == 0)) normr = 1;
         for (int i = 0; i < 3; i++) r[i] /= normr;
 
         // Rotation angle
