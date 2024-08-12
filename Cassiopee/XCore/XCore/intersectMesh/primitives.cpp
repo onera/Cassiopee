@@ -200,3 +200,23 @@ Float dRand(Float dMin, Float dMax)
     Float d = (Float) rand() / RAND_MAX;
     return dMin + d * (dMax - dMin);
 }
+
+Int is_point_on_segment(Float px, Float py, Float pz, Float ax, Float ay,
+    Float az, Float bx, Float by, Float bz)
+{
+    Float Vab[3] = {bx-ax, by-ay, bz-az};
+    Float Vap[3] = {px-ax, py-ay, pz-az};
+    Float N[3];
+    K_MATH::cross(Vab, Vap, N);
+    if (Sign(K_MATH::norm(N, 3)) != 0) return 0;
+
+    Float Vbp[3] = {px-bx, py-by, pz-bz};
+
+    Float dp = K_MATH::dot(Vap, Vab, 3);
+    if (dp < -TOL) return 0;
+
+    dp = K_MATH::dot(Vbp, Vab, 3);
+    if (dp > TOL) return 0;
+
+    return 1;
+}

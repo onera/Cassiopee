@@ -82,6 +82,70 @@ Int EdgeEdgeIntersect(Float ax, Float ay, Float az, Float bx, Float by,
     return 1;
 }
 
+struct PointLoc {
+    Int fid = -1;
+    Int v_idx = -1;
+    Int e_idx = -1;
+};
+
+std::vector<PointLoc> locate_points(const Smesh &M, const Smesh &S)
+{
+    std::vector<PointLoc> spoints_loc;
+    spoints_loc.reserve(S.np);
+
+    for (Int sp = 0; sp < S.np; sp++) {
+
+        Int found = 0;
+
+        for (Int mf = 0; mf < M.nf && !found; mf++) {
+
+            const auto &pn = M.F[mf];
+
+            Float o[3] = {0, 0, 0};
+
+            for (Int p : pn) {
+                o[0] += M.X[p];
+                o[1] += M.Y[p];
+                o[2] += M.Z[p];
+            }
+            for (Int i = 0; i < 3; i++) o[i] /= pn.size(); 
+    
+            for (size_t i = 0; i < pn.size(); i++) {
+                Int p = pn[i];
+                Int q = pn[(i+1)%pn.size()];
+
+                Float u, v, w;
+
+                if (Triangle::is_point_inside(
+                    S.X[sp], S.Y[sp], S.Z[sp],
+                    M.X[p], M.Y[p], M.Z[p],
+                    M.X[q], M.Y[q], M.Z[q],
+                    o[0], o[1], o[2],
+                    u, v, w)) {
+
+                    found = 1;
+                    
+                    PointLoc ploc;
+                    ploc.fid = mf;
+
+                    if (Sign(v) == 0) ploc.e_idx = i;
+                    else if (Sign(1-u) == 0) ploc.v_idx = (i+1)%pn.size();
+                    else if (Sign(1-w) == 0) ploc.v_idx = i;
+
+                    spoints_loc.push_back(ploc); 
+
+                    break;
+                }
+            }
+        }
+
+        assert(found);
+    }
+
+    return spoints_loc;
+}
+
+
 PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 {
     PyObject *MASTER, *SLAVE, *MPATCH, *SPATCH;
@@ -155,8 +219,13 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     Dcel D(Mf, Sf);
 
-
     // Locate spoints within mfaces
+
+    auto spoints_loc = locate_points(Mf, Sf);
+
+    puts("ok point loc");
+
+    return Py_None;
 
     std::map<Int, std::vector<Int>> spoints_to_mfaces;
 
@@ -178,10 +247,13 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
                 Int p = cn[i];
                 Int q = cn[(i+1)%cn.size()];
 
-                if (Triangle::isPointInside(Sf.X[sp], Sf.Y[sp], Sf.Z[sp],
-                    o[0], o[1], o[2],
+                Float u, v, w;
+
+                if (Triangle::is_point_inside(Sf.X[sp], Sf.Y[sp], Sf.Z[sp],
                     Mf.X[p], Mf.Y[p], Mf.Z[p],
-                    Mf.X[q], Mf.Y[q], Mf.Z[q])) {
+                    Mf.X[q], Mf.Y[q], Mf.Z[q],
+                    o[0], o[1], o[2],
+                    u, v, w)) {
                     spoints_to_mfaces[sp].push_back(mf);
                     break;
                 }

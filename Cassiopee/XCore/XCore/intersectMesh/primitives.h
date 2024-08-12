@@ -47,3 +47,6 @@ Int Sign(Float x);
 Int orient3D(Float *A, Float *B, Float *C, Float *D);
 
 Float dRand(Float dMin, Float dMax);
+
+Int is_point_on_segment(Float px, Float py, Float pz, Float ax, Float ay,
+    Float az, Float bx, Float by, Float bz);

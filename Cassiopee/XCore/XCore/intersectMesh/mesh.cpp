@@ -100,7 +100,7 @@ std::vector<pointFace> IMesh::locate(Int p, Float px, Float py, Float pz,
 
         a = cn[0], b = cn[1], c = cn[2];
 
-        hit = Triangle::isPointInside(px, py, pz, X[a], Y[a], Z[a],
+        hit = Triangle::is_point_inside(px, py, pz, X[a], Y[a], Z[a],
             X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
 
         if (hit) {
@@ -113,7 +113,7 @@ std::vector<pointFace> IMesh::locate(Int p, Float px, Float py, Float pz,
         // Second triangle
         a = cn[0], b = cn[2], c = cn[3];
 
-        hit = Triangle::isPointInside(px, py, pz, X[a], Y[a], Z[a],
+        hit = Triangle::is_point_inside(px, py, pz, X[a], Y[a], Z[a],
             X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
 
         if (hit) {
@@ -540,7 +540,7 @@ Int IMesh::face_contains_point(Int face, Float x, Float y, Float z) const
 
         a = cn[0], b = cn[1], c = cn[2];
         
-        hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
             X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 0;
@@ -548,7 +548,7 @@ Int IMesh::face_contains_point(Int face, Float x, Float y, Float z) const
         // Second triangle
         a = cn[0], b = cn[2], c = cn[3];
         
-        hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
             X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 1;
@@ -558,7 +558,7 @@ Int IMesh::face_contains_point(Int face, Float x, Float y, Float z) const
 
         a = cn[0], b = cn[1], c = cn[2];
         
-        hit = Triangle::isPointInside(x, y, z, X[a], Y[a], Z[a],
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
             X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 0;
