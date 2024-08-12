@@ -198,7 +198,7 @@ def checkEnvironment():
   #    sys.exit()
 
 #==============================================================================
-# Simulate check_output since it doesn't existe for early version of python
+# Simulate check_output since it doesn't exist for early version of python
 # Retourne le resultat de cmd comme une string
 #==============================================================================
 def check_output(cmd, shell, stderr):
@@ -329,30 +329,27 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
         testr = os.path.splitext(test)
         fileTime = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.time')
         fileStar = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.star')
-    a = os.access(fileTime, os.F_OK)
-    if a:
-        f = open(fileTime, 'r')
-        list = f.read()
-        f.close()
-        list = list.split('\n')
-        if len(list) > 0: refDate = list[0]
+
+    if os.access(fileTime, os.F_OK):
+        with open(fileTime, 'r') as f:
+            fileData = f.read()
+        fileData = fileData.split('\n')
+        if len(fileData) > 0: refDate = fileData[0]
         else: refDate = '...'
-        if len(list) > 1: refCPUtime = list[1]
+        if len(fileData) > 1: refCPUtime = fileData[1]
         else: refCPUtime = '...'
-        if len(list) > 3 and list[2] != '': refCoverage = list[2]
+        if len(fileData) > 3 and fileData[2] != '': refCoverage = fileData[2]
         else: refCoverage = '...%'
     else:
         refDate = '...'
         refCPUtime = '...'
         refCoverage = '...%'
 
-    a = os.access(fileStar, os.F_OK)
-    if a:
-        f = open(fileStar, 'r')
-        list = f.read()
-        f.close()
-        list = list.split('\n')
-        if (len(list) > 0): refTag = list[0]
+    if os.access(fileStar, os.F_OK):
+        with open(fileStar, 'r') as f:
+            fileData = f.read()
+        fileData = fileData.split('\n')
+        if len(fileData) > 0: refTag = fileData[0]
         else: refTag = ' '
     else: refTag = ' '
 
@@ -584,6 +581,7 @@ def extractCPUTime(output1, output2, nreps=1):
 #=============================================================================
 def extractCPUTime2(output, nreps=1):
     i1 = output.find('real')
+    if i1 == -1: i1 = output.find('user')  # ubuntu
     output = output[i1+4:]
     output = output.replace(',', '.')
     output = output.lstrip()
@@ -694,16 +692,15 @@ def runSingleUnitaryTest(no, module, test):
                     if np.all(relDMem > tolMem): success = -1
 
         # Recupere le CPU time
+        CPUtime = 'Unknown'
         if mySystem == 'mingw' or mySystem == 'windows':
             try: CPUtime = extractCPUTime(output1, output2, nreps=nreps)
-            except: CPUtime = 'Unknown'
+            except: pass
         else:
             i1 = output.find('\nreal')
-            if i1 == -1: CPUtime = 'Unknown'
-            else:
-                try: CPUtime = extractCPUTime2(output, nreps=nreps)
-                except: CPUtime = 'Unknown'
-                #CPUtime = output[i1+5:i1+15]; CPUtime = CPUtime.strip()
+            if i1 == -1: i1 = output.find('\nuser')  # ubuntu
+            try: CPUtime = extractCPUTime2(output, nreps=nreps)
+            except: pass
 
         # Recupere le coverage
         i1 = output.find('coverage=')
@@ -821,15 +818,15 @@ def runSingleCFDTest(no, module, test):
         if regSegmentation.search(output) is not None: success = False
 
         # Recupere le CPU time
+        CPUtime = 'Unknown'
         if mySystem == 'mingw' or mySystem == 'windows':
             CPUtime = extractCPUTime(output1, output2)
         else:
             i1 = output.find('real')
-            if i1 == -1: CPUtime = 'Unknown'
+            if i1 == -1: i1 = output.find('user')  # ubuntu
             else:
                 try: CPUtime = extractCPUTime2(output)
-                except: CPUtime = 'Unknown'
-                #CPUtime = output[i1+4:i1+14]; CPUtime = CPUtime.strip()
+                except: pass
         # Recupere le coverage
         coverage = '100%'
 
@@ -1482,7 +1479,8 @@ def export2Text():
 #==============================================================================
 def createEmptySessionLog():
     # Create an empty session log
-    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f: f.write("")
+    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f:
+        f.write("")
     
 def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
