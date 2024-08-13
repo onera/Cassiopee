@@ -91,4 +91,6 @@ struct Dcel {
     void write_inner_faces(const char *fname);
 
     static std::vector<Vertex *> get_face_vertices(Face *f);
+
+    void locate_spoints(const Smesh &M, const Smesh &S);
 };

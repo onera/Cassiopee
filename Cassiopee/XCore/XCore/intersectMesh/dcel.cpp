@@ -32,6 +32,7 @@
 #include "event.h"
 #include "face.h"
 #include "cycle.h"
+#include "triangle.h"
 
 Int Dcel::RED = 0;
 Int Dcel::BLACK = 1;
@@ -969,4 +970,59 @@ std::vector<Vertex *> Dcel::get_face_vertices(Face *f)
         w = w->next;
     }
     return ret;
+}
+
+void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
+{
+    for (Int sp = 0; sp < S.np; sp++) {
+
+        Event *xit = Q.lookup(S.X[sp], S.Y[sp], S.Z[sp]);
+        assert(xit);
+
+        Vertex *v = xit->key;
+        auto &ploc = v->loc;
+
+        Int found = 0;
+
+        for (Int mf = 0; mf < M.nf && !found; mf++) {
+
+            const auto &pn = M.F[mf];
+
+            Float o[3] = {0, 0, 0};
+
+            for (Int p : pn) {
+                o[0] += M.X[p];
+                o[1] += M.Y[p];
+                o[2] += M.Z[p];
+            }
+            for (Int i = 0; i < 3; i++) o[i] /= pn.size(); 
+    
+            for (size_t i = 0; i < pn.size(); i++) {
+                Int p = pn[i];
+                Int q = pn[(i+1)%pn.size()];
+
+                Float u, v, w;
+
+                if (Triangle::is_point_inside(
+                    S.X[sp], S.Y[sp], S.Z[sp],
+                    M.X[p], M.Y[p], M.Z[p],
+                    M.X[q], M.Y[q], M.Z[q],
+                    o[0], o[1], o[2],
+                    u, v, w)) {
+
+                    found = 1;
+                    
+                    ploc.fid = mf;
+
+                    if (Sign(v) == 0) ploc.e_idx = i;
+                    else if (Sign(1-u) == 0) ploc.v_idx = (i+1)%pn.size();
+                    else if (Sign(1-w) == 0) ploc.v_idx = i;
+
+                    break;
+                }
+            }
+        }
+
+        assert(found);
+    }
 }

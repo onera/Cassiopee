@@ -23,6 +23,12 @@
 #include "xcore.h"
 #include "common/common.h"
 
+struct PointLoc {
+    Int fid = -1;
+    Int v_idx = -1;
+    Int e_idx = -1;
+};
+
 struct Hedge;
 
 struct Vertex {
@@ -31,6 +37,8 @@ struct Vertex {
     Int id;
     Hedge *left;
     Int oid[2];
+
+    PointLoc loc;
 
     Vertex(Float X, Float Y, Float Z, Int Oid, Int color);
 
