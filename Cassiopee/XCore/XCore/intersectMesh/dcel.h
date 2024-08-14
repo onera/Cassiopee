@@ -102,4 +102,10 @@ struct Dcel {
     void init_Cp(const Smesh &M, const Smesh &S);
 
     void find_intersections_3D(const Smesh &M, const Smesh &S);
+
+    void cut_hedge(Vertex *x, Hedge *h);
+
+    void resolve_hedges(const Smesh &M, const Smesh &S);
+
+    void reconstruct();
 };

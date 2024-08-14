@@ -66,6 +66,7 @@ void Hedge::sort_ccwise(std::vector<Hedge *> &H, Int low, Int high)
 
 Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
 {
+    assert(h != w);
     assert(h->orig == w->orig);
     Vertex *c = h->orig;
     Vertex *a = h->twin->orig;
@@ -84,15 +85,6 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
 
     assert(Sign(cx-w->proj_ox) == 0);
     assert(Sign(cy-w->proj_oy) == 0);
-
-    /*
-    Float ax = a->x;
-    Float ay = a->y;
-    Float bx = b->x;
-    Float by = b->y;
-    Float cx = c->x;
-    Float cy = c->y;
-    */
 
     long double acx = (long double)ax - (long double)cx;
     long double acy = (long double)ay - (long double)cy;
@@ -130,7 +122,33 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
         return 1;
 
     // Overlapping segments
-    
+    /*
+    if (h->color == w->color) {
+        assert(h->orig == w->orig);
+        FILE *fh = fopen("bad_h", "w");
+        fprintf(fh, "POINTS\n");
+        fprintf(fh, "2\n");
+        fprintf(fh, "%f %f %f\n", h->orig->x, h->orig->y, h->orig->z);
+        Vertex *tail = h->twin->orig;
+        fprintf(fh, "%f %f %f\n", tail->x, tail->y, tail->z);
+        fprintf(fh, "EDGES\n");
+        fprintf(fh, "1\n");
+        fprintf(fh, "0 1\n");
+        fclose(fh);
+
+
+        fh = fopen("bad_w", "w");
+        fprintf(fh, "POINTS\n");
+        fprintf(fh, "2\n");
+        fprintf(fh, "%f %f %f\n", w->orig->x, w->orig->y, w->orig->z);
+        tail = w->twin->orig;
+        fprintf(fh, "%f %f %f\n", tail->x, tail->y, tail->z);
+        fprintf(fh, "EDGES\n");
+        fprintf(fh, "1\n");
+        fprintf(fh, "0 1\n");
+        fclose(fh);
+    }
+    */
     assert(h->color != w->color);
 
     // If right half, red before black

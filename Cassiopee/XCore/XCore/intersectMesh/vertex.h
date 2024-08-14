@@ -40,6 +40,8 @@ struct Vertex {
 
     PointLoc loc;
 
+    Hedge *xhedge;
+
     Vertex(Float X, Float Y, Float Z, Int Oid, Int color);
 
     Vertex(Float X, Float Y, Float Z);

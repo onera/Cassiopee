@@ -27,7 +27,7 @@ void point_write(const char *fname, const std::vector<Vertex *> &I)
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", I.size());
-    for (auto &v : I) fprintf(fh, "%f %f 0\n", v->x, v->y);
+    for (auto &v : I) fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
     fclose(fh);
 }
 

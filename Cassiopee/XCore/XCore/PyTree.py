@@ -341,8 +341,21 @@ def intersectMesh(master, slave, mpatch, spatch):
     m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
     s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
     
-    return xcore.intersectMesh(m, s, mpatch, spatch)
-    #minter, sinter = xcore.intersectMesh(m, s, mpatch, spatch)
+    minter, sinter = xcore.intersectMesh(m, s, mpatch, spatch)
+
+    zmo = I.createZoneNode("M_inter", minter)
+    zso = I.createZoneNode("S_inter", sinter)
+
+    tm = C.newPyTree(["M_inter", zmo])
+    ts = C.newPyTree(["S_inter", zso])
+
+    try: import Intersector.PyTree as XOR
+    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
+
+    tm = XOR.closeCells(tm)
+    ts = XOR.closeCells(ts)
+
+    return tm, ts
 
 def intersectSurf(master, slave, mpatch, spatch):
     zm = I.getZones(master)[0]

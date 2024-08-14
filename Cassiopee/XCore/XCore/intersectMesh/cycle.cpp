@@ -56,7 +56,7 @@ void Cycle::write_vertices(const char *fname, const std::vector<Cycle *> &C)
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", V.size());
     for (const auto &v : V) {
-        fprintf(fh, "%f %f 0.0\n", v->x, v->y);
+        fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
     }
     
 

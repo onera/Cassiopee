@@ -28,6 +28,7 @@
 #include "io.h"
 #include "cycle.h"
 
+static
 IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 {
     // Isolate patch faces
