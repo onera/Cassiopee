@@ -46,3 +46,5 @@ struct Vertex {
 
     inline void print() { printf("P" SF_D_ ": %f %f %f\n", id, x, y, z); }
 };
+
+Int cmp_vtx(Vertex *a, Vertex *b);

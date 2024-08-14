@@ -62,6 +62,12 @@ struct Smesh {
     std::map<Int, Int> g2le;
     std::map<Int, Int> l2ge;
 
+    std::vector<Float> fnormals;
+    std::vector<Float> pnormals;
+
+    void make_fnormals();
+    void make_pnormals();
+
     // Adaptation
     void get_leaves(Int face, std::vector<Int> &leaves) const;
 

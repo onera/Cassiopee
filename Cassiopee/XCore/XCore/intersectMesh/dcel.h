@@ -20,6 +20,7 @@
 
 #include <vector>
 #include <cstddef>
+#include <map>
 
 #include "common/common.h"
 #include "queue.h"
@@ -44,6 +45,10 @@ struct Dcel {
     static Int RED;
     static Int BLACK;
     static Int NO_IDEA;
+
+    std::map<Vertex *, std::vector<Hedge *>> Up;
+    std::map<Vertex *, std::vector<Hedge *>> Cp;
+    std::map<Vertex *, std::vector<Hedge *>> Lp;
 
     Dcel(Smesh &M0, Smesh &M1);
     ~Dcel();
@@ -93,4 +98,8 @@ struct Dcel {
     static std::vector<Vertex *> get_face_vertices(Face *f);
 
     void locate_spoints(const Smesh &M, const Smesh &S);
+
+    void init_Cp(const Smesh &M, const Smesh &S);
+
+    void find_intersections_3D(const Smesh &M, const Smesh &S);
 };

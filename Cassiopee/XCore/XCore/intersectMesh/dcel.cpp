@@ -644,6 +644,8 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
 
         Hedge *h = new Hedge(P);
 
+        Up[P].push_back(h);
+
         list[p].push_back(h);
 
         xit = Q.lookup(M.X[q], M.Y[q], M.Z[q]);
@@ -653,8 +655,13 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
         
         Hedge *t = new Hedge(V);
 
+        Up[V].push_back(t);
+
         list[q].push_back(t);
 
+        Lp[P].push_back(t);
+        Lp[V].push_back(h);
+        
         h->twin = t;
         t->twin = h;
 
@@ -665,60 +672,16 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
         H.push_back(t);
     }
     
-    // Face normals
-
-    std::vector<Float> normals(3*M.nf, 0);
-
-    for (Int fid = 0; fid < M.nf; fid++) {
-        const auto &pn = M.F[fid];
-
-        Float o[3] = {0, 0, 0};
-        for (Int p : pn) {
-            o[0] += M.X[p];
-            o[1] += M.Y[p];
-            o[2] += M.Z[p];
-        }
-        for (int i = 0; i < 3; i++) o[i] /= pn.size();
-
-        Int a = pn[0];
-        Int b = pn[1];
-
-        Float oa[3] = {M.X[a]-o[0], M.Y[a]-o[1], M.Z[a]-o[2]};
-        Float ob[3] = {M.X[b]-o[0], M.Y[b]-o[1], M.Z[b]-o[2]};
-
-        Float *N = &normals[3*fid];
-        K_MATH::cross(oa, ob, N);
-    }
-
-    // Point normals: aggregate of shared faces normals
-
-    std::vector<Float> pnormals(3*M.np, 0);
-
-    M.make_point_faces_all();
-
-    for (Int pid = 0; pid < M.np; pid++) {
-        const auto &faces = M.P2F[pid];
-
-        Float *N = &pnormals[3*pid];
-
-        for (Int fid : faces) {
-            Float *fN = &normals[3*fid];
-            for (Int i = 0; i < 3; i++) N[i] += fN[i];
-        }
-
-        Float NORM = K_MATH::norm(N, 3);
-
-        for (Int i = 0; i < 3; i++) N[i] /= NORM;
-    }
-
     // Sort hedges
+
+    const auto &pnormals = M.pnormals;
 
     Float ez[3] = {0, 0, 1};
     Float I[3][3] = {}; I[0][0] = I[1][1] = I[2][2] = 1;
 
     for (Int pid = 0; pid < M.np; pid++) {
         auto &hedges = list[pid];
-        Float *N = &pnormals[3*pid];
+        const Float *N = &pnormals[3*pid];
 
         // Project the hedges tails onto the plane (i, N)
 
@@ -1026,3 +989,170 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
         assert(found);
     }
 }
+
+void Dcel::init_Cp(const Smesh &M, const Smesh &S)
+{
+    for (Int i = 0; i < S.np; i++) {
+        Vertex *v = Q.lookup(S.X[i], S.Y[i], S.Z[i])->key;
+        
+        const auto &ploc = v->loc;
+        
+        if (ploc.e_idx != -1) {
+            assert(ploc.v_idx == -1);
+        
+            Int mf = ploc.fid;
+            const auto &pe = M.F2E[mf];
+            Int me = pe[ploc.e_idx];
+
+            Hedge *mh = H[2*me];
+            {
+                Int p = M.E[me].p;
+                assert(mh->orig == Q.lookup(M.X[p], M.Y[p], M.Z[p])->key);
+            }
+
+            Cp[v].push_back(mh);
+        }
+    }
+}
+
+void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
+{
+    std::vector<Hedge *> s_hedges;
+
+    for (size_t i = 2*M.ne; i < H.size(); i += 2) {
+        Hedge *h = H[i];
+        assert(h->twin = H[i+1]);
+        Hedge *t = h->twin;
+        Vertex *p = h->orig;
+        Vertex *q = t->orig;
+        if (cmp_vtx(p, q) <= 0) {
+            s_hedges.push_back(h);
+        } else {
+            s_hedges.push_back(t);
+        }
+    }
+
+    std::sort(s_hedges.begin(), s_hedges.end(), [&] (Hedge *h, Hedge *w)
+    {
+        return cmp_vtx(h->orig, w->orig) <= 0;
+    });
+
+
+    std::vector<point> xpoints;
+
+    for (Hedge *sh : s_hedges) {
+        // Compute dir
+        Vertex *p = sh->orig;
+        Vertex *q = sh->twin->orig;
+
+        Float dir[3] = {q->x-p->x, q->y-p->y, q->z-p->z};
+
+        const auto &ploc = p->loc;
+        Int current = ploc.fid;
+        Int found = 0;
+        Int max_walks = 10;
+        Int walk = 0;
+
+        Float px = p->x, py = p->y, pz = p->z;
+
+        Int last_hit_edge = -1;
+
+        while (!found && walk < max_walks) {
+
+            // If q within current, stop
+
+            const auto &qloc = q->loc;
+
+            if (qloc.fid == current) {
+                found = 1;
+                break;
+            }
+
+            // Get current mface plane normal
+            
+            const Float *fN = &M.fnormals[3*current];
+
+            // Project pq onto current face plane
+
+            Float proj[3] = {};
+            Float dp = K_MATH::dot(dir, fN, 3);
+            for (Int i = 0; i < 3; i++)
+                proj[i] = dir[i] - dp * fN[i];
+
+            // Shoot a ray {p, proj}, get the intersected edge
+
+            Float qx = px + proj[0];
+            Float qy = py + proj[1];
+            Float qz = pz + proj[2];
+
+            Int hit = 0;
+            Float ix, iy, iz;
+
+            const auto &medges = M.F2E[current];
+
+            for (size_t i = 0; i < medges.size(); i++) {
+                Int me = medges[i];
+                if (me == last_hit_edge) continue;
+
+                ix = iy = iz = 0;
+
+                Int a = M.E[me].p;
+                Int b = M.E[me].q;
+
+                Float ax = M.X[a], ay = M.Y[a], az = M.Z[a];
+                Float bx = M.X[b], by = M.Y[b], bz = M.Z[b];
+
+                hit = EdgeEdgeIntersect(
+                    px, py, pz,
+                    qx, qy, qz,
+                    ax, ay, az,
+                    bx, by, bz,
+                    ix, iy, iz);
+
+                if (hit) {
+
+                    last_hit_edge = me;
+                    xpoints.push_back(point(ix, iy, iz));
+                    
+                    if (cmp_points(ix, iy, iz, ax, ay, az) == 0) {
+
+                        const auto &faces = M.P2F[a];
+
+
+                        assert(0);
+
+                    }
+
+                    else if (cmp_points(ix, iy, iz, bx, by, bz) == 0) {
+                        
+                        const auto &faces = M.P2F[b];
+
+                        assert(0);
+
+                    }
+
+                    else {
+
+                        current = M.F2F[current][i];
+                        assert(current != -1);
+                        break;
+
+                    }
+
+                    px = ix;
+                    py = iy;
+                    pz = iz;
+                }
+            }
+
+            assert(hit);
+            walk++;
+        }
+    }
+
+    point_write("xpoints", xpoints);
+}
+
+
+
+

@@ -220,3 +220,47 @@ Int is_point_on_segment(Float px, Float py, Float pz, Float ax, Float ay,
 
     return 1;
 }
+
+Int EdgeEdgeIntersect(Float ax, Float ay, Float az, Float bx, Float by,
+    Float bz, Float px, Float py, Float pz, Float qx, Float qy, Float qz,
+    Float &ix, Float &iy, Float &iz)
+{
+    Float d1[3] = {bx-ax, by-ay, bz-az};
+    Float d2[3] = {qx-px, qy-py, qz-pz};
+    Float r[3] = {px-ax, py-ay, pz-az};
+
+    Float d1d2[3];
+    K_MATH::cross(d1, d2, d1d2);
+    Float denom = K_MATH::dot(d1d2, d1d2, 3);
+
+    if (Sign(denom) == 0) {
+
+        Float colli[3];
+        K_MATH::cross(d1, r, colli);
+        Float NORM = K_MATH::norm(colli, 3);
+        if (Sign(NORM) == 0) {
+            assert("collinear!" && 0);
+        } else {
+            return 0;
+        }
+    }
+
+    Float tmp[3];
+    K_MATH::cross(r, d2, tmp);
+    Float t = K_MATH::dot(tmp, d1d2, 3);
+    t /= denom;
+    if (t < -TOL) return 0;
+
+    K_MATH::cross(r, d1, tmp);
+    Float u = K_MATH::dot(tmp, d1d2, 3);
+    u /= denom;
+    if (u < -TOL || u > 1 + TOL) return 0;
+
+    ix = px + u*(qx - px);
+    iy = py + u*(qy - py);
+    iz = pz + u*(qz - pz);
+
+    return 1;
+}
+
+

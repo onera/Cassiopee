@@ -819,3 +819,58 @@ void Smesh::write_ngon(const char *fname)
 
     fclose(fh);
 }
+
+void Smesh::make_fnormals()
+{
+    fnormals.clear();
+    fnormals.resize(3*nf);
+    
+    for (Int fid = 0; fid < nf; fid++) {
+        const auto &pn = F[fid];
+
+        Float o[3] = {0, 0, 0};
+        for (Int p : pn) {
+            o[0] += X[p];
+            o[1] += Y[p];
+            o[2] += Z[p];
+        }
+        for (int i = 0; i < 3; i++) o[i] /= pn.size();
+
+        Int a = pn[0];
+        Int b = pn[1];
+
+        Float oa[3] = {X[a]-o[0], Y[a]-o[1], Z[a]-o[2]};
+        Float ob[3] = {X[b]-o[0], Y[b]-o[1], Z[b]-o[2]};
+
+        Float *N = &fnormals[3*fid];
+        K_MATH::cross(oa, ob, N);
+        Float NORM = K_MATH::norm(N, 3);
+        assert(Sign(NORM) != 0);
+        for (Int i = 0; i < 3; i++) N[i] /= NORM;
+    }
+}
+
+void Smesh::make_pnormals()
+{
+    make_fnormals();
+
+    pnormals.clear();
+    pnormals.resize(3*np);
+    
+    // Point normals: aggregate of shared faces normals
+
+    for (Int pid = 0; pid < np; pid++) {
+        const auto &faces = P2F[pid];
+
+        Float *N = &pnormals[3*pid];
+
+        for (Int fid : faces) {
+            Float *fN = &fnormals[3*fid];
+            for (Int i = 0; i < 3; i++) N[i] += fN[i];
+        }
+
+        Float NORM = K_MATH::norm(N, 3);
+
+        for (Int i = 0; i < 3; i++) N[i] /= NORM;
+    }
+}

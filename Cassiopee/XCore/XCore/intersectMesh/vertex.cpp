@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "vertex.h"
+#include "primitives.h"
 
 Vertex::Vertex(Float X, Float Y, Float Z, Int Oid, Int color)
 : x(X), y(Y), z(Z), rep(NULL), id(-1), left(NULL)
@@ -30,4 +31,9 @@ Vertex::Vertex(Float X, Float Y, Float Z)
 {
     oid[0] = -1;
     oid[1] = -1;
+}
+
+Int cmp_vtx(Vertex *a, Vertex *b)
+{
+    return cmp_points(a->x, a->y, a->z, b->x, b->y, b->z);
 }
