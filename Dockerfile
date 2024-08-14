@@ -62,8 +62,10 @@ RUN curl -fSL "https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-$HDF5_VERS
 	&& make -j"$(nproc)" \
 	&& make install \
 	&& rm -rf /usr/src/hdf5
+	
+ENV HDF5_DIR="${HDF5_INSTALL_DIR}"
 
-RUN curl -fSL "https://github.com/CGNS/CGNS/archive/v$CGNS_VERSION.tar.gz" -o cgns.tar.gz \
+RUN curl -fSL "https://github.com/CGNS/CGNS/archive/refs/tags/v$CGNS_VERSION.tar.gz" -o cgns.tar.gz \
 	&& mkdir -p /usr/src/cgns \
 	&& tar -xf cgns.tar.gz -C /usr/src/cgns --strip-components=1 \
 	&& rm cgns.tar.gz* \
@@ -75,7 +77,6 @@ RUN curl -fSL "https://github.com/CGNS/CGNS/archive/v$CGNS_VERSION.tar.gz" -o cg
 	&& rm -rf /usr/src/cgns
 
 ENV LD_LIBRARY_PATH="${CGNS_INSTALL_DIR}/lib:${HDF5_INSTALL_DIR}/lib:${LD_LIBRARY_PATH}" PATH="${CGNS_INSTALL_DIR}/bin:${HDF5_INSTALL_DIR}/bin:$PATH"
-ENV HDF5_DIR="${HDF5_INSTALL_DIR}"
 ENV CGNS_DIR="${CGNS_INSTALL_DIR}"
     
 # Set environment variables
