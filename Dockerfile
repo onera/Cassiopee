@@ -18,20 +18,23 @@ RUN apt-get update && apt-get install -y \
     python3-mpi4py \
     libhdf5-openmpi-dev \
     python3-tk \
-    libglu1-mesa-dev \
     mesa-common-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
     libosmesa6-dev \
     xorg-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    time
     
 ENV PIP_ROOT_USER_ACTION=ignore
 
 # Install opencascade and remove cache files after installing packages
-#RUN apt-get update && apt-get install -y \
-#    build-essential \
-#    cmake \
-#    git \
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gedit \
+    cmake \
+    git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 #    tcl \
 #    tk \
 #    doxygen \
@@ -39,13 +42,7 @@ ENV PIP_ROOT_USER_ACTION=ignore
 #    libxmu-dev \
 #    libxi-dev \
 #    libxext-dev \
-#    libgl1-mesa-dev \
-#    libocct-foundation-7.6t64 \
 #    libocct-ocaf-7.6t64 \
-#    libocct-draw-7.6t64 \
-#    libocct-visualization-7.6t64 \
-#    && apt-get clean \
-#    && rm -rf /var/lib/apt/lists/*
     
 # Set environment variables
 #ENV PATH=/OCCT/bin:$PATH
