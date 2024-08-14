@@ -31,6 +31,7 @@ ENV PIP_ROOT_USER_ACTION=ignore
 RUN apt-get update && apt-get install -y \
     build-essential \
     gedit \
+    meld \
     cmake \
     git \
     && apt-get clean \
@@ -43,12 +44,49 @@ RUN apt-get update && apt-get install -y \
 #    libxi-dev \
 #    libxext-dev \
 #    libocct-ocaf-7.6t64 \
+
+# Install latest versions of HDF5 and CGNS tools
+# Adapted from James Clark's Dockerfile
+# https://github.com/jameshclrk/cgns-hdf5-parmetis-docker/blob/master/Dockerfile
+ARG HDF5_VERSION=1.10.5
+ARG CGNS_VERSION=4.4.0
+ARG HDF5_INSTALL_DIR="/opt/hdf5"
+ARG CGNS_INSTALL_DIR="/opt/cgns"
+
+RUN curl -fSL "https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-$HDF5_VERSION.tar.gz" -o hdf5.tar.gz \
+	&& mkdir -p /usr/src/hdf5 \
+	&& tar -xf hdf5.tar.gz -C /usr/src/hdf5 --strip-components=1 \
+	&& rm hdf5.tar.gz* \
+	&& cd /usr/src/hdf5 \
+	&& CC=mpicc ./configure --prefix=${HDF5_INSTALL_DIR} --enable-parallel \
+	&& make -j"$(nproc)" \
+	&& make install \
+	&& rm -rf /usr/src/hdf5
+
+RUN curl -fSL "https://github.com/CGNS/CGNS/archive/v$CGNS_VERSION.tar.gz" -o cgns.tar.gz \
+	&& mkdir -p /usr/src/cgns \
+	&& tar -xf cgns.tar.gz -C /usr/src/cgns --strip-components=1 \
+	&& rm cgns.tar.gz* \
+	&& cd /usr/src/cgns \
+	&& mkdir build && cd build \
+	&& PATH="${HDF5_INSTALL_DIR}/bin:$PATH" cmake -DCGNS_ENABLE_HDF5=ON -DCMAKE_INSTALL_PREFIX:PATH=${CGNS_INSTALL_DIR} -DHDF5_NEED_MPI=ON .. \
+	&& make -j"$(nproc)" \
+	&& make install \
+	&& rm -rf /usr/src/cgns
+
+ENV LD_LIBRARY_PATH="${CGNS_INSTALL_DIR}/lib:${HDF5_INSTALL_DIR}/lib:${LD_LIBRARY_PATH}" PATH="${CGNS_INSTALL_DIR}/bin:${HDF5_INSTALL_DIR}/bin:$PATH"
+ENV HDF5_DIR="${HDF5_INSTALL_DIR}"
+ENV CGNS_DIR="${CGNS_INSTALL_DIR}"
     
 # Set environment variables
 #ENV PATH=/OCCT/bin:$PATH
 #ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/
 ENV CASSIOPEE=/Cassiopee
 ENV MACHINE=ubuntu
+
+# Do not prevent mpirun to run as root
+ENV OMPI_ALLOW_RUN_AS_ROOT=1
+ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 
 # Set the working directory in the container
 WORKDIR $CASSIOPEE
@@ -66,4 +104,4 @@ RUN . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 \
 
 # Define the default command to run the application: start an interactive shell
 # session
-CMD ["bash"]
+CMD ["source", "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"]
