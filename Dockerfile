@@ -102,6 +102,10 @@ RUN . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 \
     && cd $CASSIOPEE/Cassiopee \
     && ./install
 
+# Change the default shell to be the bash shell
+SHELL ["/bin/bash", "-c"] 
+
 # Define the default command to run the application: start an interactive shell
 # session
-CMD ["source", "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"]
+ENTRYPOINT . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 && /bin/bash
+#CMD ["source" "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"]
