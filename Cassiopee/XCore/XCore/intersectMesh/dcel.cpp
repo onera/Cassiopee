@@ -1224,6 +1224,23 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
         
         std::vector<Hedge *> leaving;
 
+        for (Hedge *h : Up[v]) {
+            assert(h->orig == v);
+            leaving.push_back(h);
+        }
+
+        Int do_sort = 0;
+
+        for (size_t i = 1; i < leaving.size(); i++) {
+            if (leaving[i]->color != leaving[0]->color) {
+                do_sort = 1;
+                break;
+            }
+        }
+
+        if (!do_sort) continue;
+        
+
         E_Float N[3]= { };
 
         // M point
@@ -1307,12 +1324,6 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
 
         Float NORM = K_MATH::norm(N, 3);
         assert(Sign(NORM -1) == 0);
-        
-
-        for (Hedge *h : Up[v]) {
-            assert(h->orig == v);
-            leaving.push_back(h);
-        }
         
         for (Hedge *h : leaving) {
 
