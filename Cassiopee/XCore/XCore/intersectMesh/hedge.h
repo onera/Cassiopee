@@ -52,3 +52,5 @@ struct Hedge {
     static void sort_cwise(std::vector<Hedge *> &H, Int start, Int end);
     static void sort_ccwise(std::vector<Hedge *> &H, Int start, Int end);
 };
+
+Int hedge_contains_vertex(Hedge *h, Vertex *v);

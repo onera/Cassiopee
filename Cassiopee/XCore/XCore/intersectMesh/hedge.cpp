@@ -68,13 +68,6 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
 {
     assert(h != w);
     assert(h->orig == w->orig);
-    Vertex *c = h->orig;
-    Vertex *a = h->twin->orig;
-    Vertex *b = w->twin->orig;
-
-    // a is tail of h
-    // b is tail of w
-    // c is orig
 
     Float ax = h->proj_tx;
     Float ay = h->proj_ty;
@@ -122,33 +115,6 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
         return 1;
 
     // Overlapping segments
-    /*
-    if (h->color == w->color) {
-        assert(h->orig == w->orig);
-        FILE *fh = fopen("bad_h", "w");
-        fprintf(fh, "POINTS\n");
-        fprintf(fh, "2\n");
-        fprintf(fh, "%f %f %f\n", h->orig->x, h->orig->y, h->orig->z);
-        Vertex *tail = h->twin->orig;
-        fprintf(fh, "%f %f %f\n", tail->x, tail->y, tail->z);
-        fprintf(fh, "EDGES\n");
-        fprintf(fh, "1\n");
-        fprintf(fh, "0 1\n");
-        fclose(fh);
-
-
-        fh = fopen("bad_w", "w");
-        fprintf(fh, "POINTS\n");
-        fprintf(fh, "2\n");
-        fprintf(fh, "%f %f %f\n", w->orig->x, w->orig->y, w->orig->z);
-        tail = w->twin->orig;
-        fprintf(fh, "%f %f %f\n", tail->x, tail->y, tail->z);
-        fprintf(fh, "EDGES\n");
-        fprintf(fh, "1\n");
-        fprintf(fh, "0 1\n");
-        fclose(fh);
-    }
-    */
     assert(h->color != w->color);
 
     // If right half, red before black
@@ -162,4 +128,14 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
     } else {
         return -cmp;
     }
+}
+
+Int hedge_contains_vertex(Hedge *h, Vertex *v)
+{
+    Vertex *a = h->orig;
+    Vertex *b = h->twin->orig;
+    return is_point_on_segment(
+        v->x, v->y, v->z,
+        a->x, a->y, a->z,
+        b->x, b->y, b->z);
 }

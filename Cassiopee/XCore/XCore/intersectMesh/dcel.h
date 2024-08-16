@@ -99,13 +99,18 @@ struct Dcel {
 
     void locate_spoints(const Smesh &M, const Smesh &S);
 
-    void init_Cp(const Smesh &M, const Smesh &S);
-
     void find_intersections_3D(const Smesh &M, const Smesh &S);
 
-    void cut_hedge(Vertex *x, Hedge *h);
+    void cut_hedge_at_vertex(Hedge *h, Vertex *v);
 
     void resolve_hedges(const Smesh &M, const Smesh &S);
 
     void reconstruct();
+
+    Int get_next_face(const Smesh &M, Float px, Float py, Float pz,
+        const std::vector<Int> &pf, Float dir[3]);
+
+    void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
+
+    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S);
 };

@@ -54,3 +54,6 @@ Int is_point_on_segment(Float px, Float py, Float pz, Float ax, Float ay,
 Int EdgeEdgeIntersect(Float ax, Float ay, Float az, Float bx, Float by,
     Float bz, Float px, Float py, Float pz, Float qx, Float qy, Float qz,
     Float &ix, Float &iy, Float &iz);
+
+Int EdgeEdgeIntersect(Float ax, Float ay, Float az, Float bx, Float by,
+    Float bz, Float px, Float py, Float pz, Float qx, Float qy, Float qz);

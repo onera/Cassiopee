@@ -363,9 +363,6 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Smesh Mf(M);
     Smesh Sf(S);
     
-    //for (Float &z : Mf.Z) z = 0;
-    //for (Float &z : Sf.Z) z = 0;
-
     Mf.write_ngon("Mf");
     Sf.write_ngon("Sf");
 
@@ -381,8 +378,6 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Dcel D(Mf, Sf);
 
     D.locate_spoints(Mf, Sf);
-
-    D.init_Cp(Mf, Sf);
 
     D.find_intersections_3D(Mf, Sf);
 

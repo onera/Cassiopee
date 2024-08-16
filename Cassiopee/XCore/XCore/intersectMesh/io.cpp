@@ -20,6 +20,70 @@
 #include <cassert>
 
 #include "io.h"
+#include "face.h"
+
+void face_write(const char *fname, Face *f)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    Int np = 1;
+    Hedge *h = f->rep;
+    Hedge *w = h->next;
+    while (w != h) {
+        np++;
+        w = w->next;
+    }
+    
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%d\n", np);
+    h = f->rep;
+    Vertex *v = h->orig;
+    fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
+    w = h->next;
+    while (w != h) {
+        v = w->orig;
+        fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
+        w = w->next;
+    }
+    fclose(fh);
+}
+
+void hedge_write(const char *fname, Hedge *h)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "2\n");
+    Vertex *p = h->orig;
+    Vertex *q = h->twin->orig;
+    fprintf(fh, "%f %f %f\n", p->x, p->y, p->z);
+    fprintf(fh, "%f %f %f\n", q->x, q->y, q->z);
+    fprintf(fh, "EDGES\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "0 1\n");
+    fclose(fh);
+}
+
+void point_write(const char *fname, Float x, Float y, Float z)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "%f %f %f\n", x, y, z);
+    fclose(fh);
+}
+
+void point_write(const char *fname, Vertex *v)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
+    fclose(fh);
+}
 
 void point_write(const char *fname, const std::vector<Vertex *> &I)
 {
