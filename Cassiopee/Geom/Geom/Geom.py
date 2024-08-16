@@ -492,7 +492,7 @@ def getTangent(a):
     if len(b)==1: return b[0]
     else: return b
 
-# Obsolete
+# Obsolete (use lineDrive)
 def lineGenerate(a, d):
     return lineDrive(a, d)
 
@@ -936,3 +936,19 @@ def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
     a = Converter.initVars(a, '_u_', 0.)
     a = Converter.initVars(a, '_v_', 0.)
     return geom.getUV(a, normalDeviationWeight, texResolution, fields)
+
+# Init _u_ et _v_ from i,j (struct surface)
+def getUVFromIJ(a):
+    import Converter
+    a = Converter.initVars(a, '_u_', 0.)
+    a = Converter.initVars(a, '_v_', 0.)
+    if isinstance(a[1], list): # array2/3
+        pu = a[1][3].ravel('k'); pv = a[1][4].ravel('k')
+    else: # array1 
+        pu = a[1][3].ravel('k'); pv = a[1][4].ravel('k')
+    ni = a[2]; nj = a[3]
+    for j in range(nj):
+        for i in range(ni):
+            pu[i+j*ni] = j*1./(nj-1)
+            pv[i+j*ni] = i*1./(ni-1)
+    return a
