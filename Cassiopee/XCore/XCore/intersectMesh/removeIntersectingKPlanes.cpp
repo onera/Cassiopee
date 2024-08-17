@@ -25,17 +25,19 @@
 #include "ray.h"
 #include "io.h"
 
+static
+PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patch);
+
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
-    PyObject *MASTER, *SLAVE, *PATCH;
+    PyObject *MASTER, *SLAVES, *PATCH;
   
-    if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVE, &PATCH)) {
+    if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVES, &PATCH)) {
         RAISE("Bad input.");
         return NULL;
     }
 
     Karray marray;
-    Karray sarray;
 
     Int ret;
 
@@ -43,20 +45,37 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     if (ret != 0) return NULL;
 
-    ret = Karray_parse_structured(SLAVE, sarray);
+    Int nslaves = PyList_Size(SLAVES);
+    Int i;
+
+    std::vector<Karray> sarrays(nslaves);
+
+    for (i = 0; i < nslaves; i++) {
+        Karray sarray;
+        PyObject *SLAVE = PyList_GetItem(SLAVES, i);
+        ret = Karray_parse_structured(SLAVE, sarray);
+
+        if (ret != 0) {
+            break;
+        }
+
+        sarrays[i] = sarray;
+    }
 
     if (ret != 0) {
         Karray_free_ngon(marray);
+        for (Int j = 0; j < i; j++)
+            Karray_free_structured(sarrays[j]);
         return NULL;
     }
-
+    
     // Check intersection patch
     Int *patch = NULL;
     Int patch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, false);
     if (ret != 1) {
         Karray_free_ngon(marray);
-        Karray_free_structured(sarray);
+        for (Int i = 0; i < nslaves; i++) Karray_free_structured(sarrays[i]);
         RAISE("Bad master patch.");
         return NULL;
     }
@@ -67,6 +86,25 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     // Init and orient marray mesh
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
 
+    PyObject *out = PyList_New(0);
+
+    for (Int i = 0; i < nslaves; i++) {
+        PyObject *st = handle_slave(M, sarrays[i], patch_size, patch);
+        PyList_Append(out, st);
+        Py_DECREF(st);
+        Karray_free_structured(sarrays[i]);
+    }
+
+    Karray_free_ngon(marray);
+
+    delete [] patch;
+
+    return out;
+}
+
+static
+PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patch)
+{
     Float *Xs = sarray.X;
     Float *Ys = sarray.Y;
     Float *Zs = sarray.Z;
@@ -96,19 +134,17 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
             if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
                 inside_point.push_back(p);
                 inside = 1;
-                printf("bad kmax: %d\n", kmax);
                 break;
             }
             
-            //p++;
         }
 
         if (inside) break;
     }
 
-    point_write("inside", Xs, Ys, Zs, inside_point);
+    //point_write("inside", Xs, Ys, Zs, inside_point);
 
-    printf("kmax: %d\n", kmax);
+    printf("Intersection plane index k: %d\n", kmax);
 
     // points to be projected nij*(kmax-1) .. nij*kmax
     std::vector<Int> proj_points;
@@ -119,7 +155,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         ind++;
     }
 
-    point_write("proj_points", Xs, Ys, Zs, proj_points);
+    //point_write("proj_points", Xs, Ys, Zs, proj_points);
 
     /**************************************************************************/
 
@@ -149,6 +185,9 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         for (Int fid = 0; fid < patch_size; fid++) {
             Int face = patch[fid];
             const auto &pn = M.F[face];
+
+            // TODO: handle any polygon
+            assert(pn.size() == 4);
 
             A = pn[0]; B = pn[1]; C = pn[2];
 
@@ -202,7 +241,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     fclose(fh);
     */
 
-    edge_write("projection", Xs, Ys, Zs, point_hit_table);
+    //edge_write("projection", Xs, Ys, Zs, point_hit_table);
 
     /*************************************************************************/
     
@@ -265,10 +304,6 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     RELEASESHAREDS(tpl, f);
     Py_DECREF(tpl);
     Py_DECREF(tag);
-    Karray_free_ngon(marray);
-    Karray_free_structured(sarray);
-
-    delete [] patch;
-
+    
     return out;
 }

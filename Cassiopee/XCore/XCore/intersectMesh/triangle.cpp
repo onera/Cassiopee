@@ -22,13 +22,6 @@
 #include "triangle.h"
 #include "primitives.h"
 
-static
-Int orient(Float ax, Float ay, Float bx, Float by, Float cx, Float cy)
-{
-    Float det = (bx - ax)*(cy - ay) - (by - ay)*(cx - ax);
-    return Sign(det);
-}
-
 Int Triangle::is_point_inside(Float px, Float py, Float pz,
     Float ax, Float ay, Float az,
     Float bx, Float by, Float bz,

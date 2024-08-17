@@ -278,10 +278,16 @@ def loadAndSplitNGon(fileName):
 
 def removeIntersectingKPlanes(master, slave, patch_name):
     zm = I.getZones(master)[0]
-    zs = I.getZones(slave)[0]
-
+    
     master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
-    slave = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    zs = I.getZones(slave)
+
+    slaves = []
+
+    for z in zs:
+        smesh = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+        slaves.append(smesh)
 
     patch = I.getNodeFromName(zm, patch_name)
     if patch is None:
@@ -290,13 +296,20 @@ def removeIntersectingKPlanes(master, slave, patch_name):
     faces = I.getNodeFromName(patch, "PointList")
     faces = I.getValue(faces)[0]
 
-    mesh, tag = xcore.removeIntersectingKPlanes(master, slave, faces)
+    new_slaves_and_tags = xcore.removeIntersectingKPlanes(master, slaves, faces)
 
-    zo = I.createZoneNode("struct", mesh)
-    cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
-    I.newDataArray("tag", value=tag, parent=cont)
+    zos = []
 
-    t = C.newPyTree(["Base", zo])
+    for i in range(len(new_slaves_and_tags)):
+        new_slave, tag = new_slaves_and_tags[i]
+        zname = zs[i][0]
+        zo = I.createZoneNode(zname, new_slave)
+        cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
+        I.newDataArray("tag", value=tag, parent=cont)
+        zos.append(zo)
+
+    t = C.newPyTree(["Projected_struct", zos])
+    
     return t
 
 def prepareMeshesForIntersection(master, slave, patch_name):

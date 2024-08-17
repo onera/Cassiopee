@@ -90,7 +90,7 @@ struct IMesh {
 
     void write_faces(const char *fname, const std::vector<Int> &faces);
 
-    bool is_point_inside(Float px, Float py, Float pz);
+    bool is_point_inside(Float px, Float py, Float pz) const;
 
     IMesh reconstruct_after_smesh_adaptation(const Smesh &Mf, Int patchc);
 

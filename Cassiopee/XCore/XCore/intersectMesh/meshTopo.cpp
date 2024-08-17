@@ -56,7 +56,7 @@ Int IMesh::orient_skin(Int normal_direction)
     Int nconnex = K_CONNECT::colorConnexParts(&fneighbours[0], &xadj[0],
         nefaces, &colors[0]);
 
-    printf("orient_boundary(): connex parts: " SF_D_ "\n", nconnex);
+    //printf("orient_boundary(): connex parts: " SF_D_ "\n", nconnex);
 
     assert(efaces.size() == xadj.size()-1);
     std::vector<Int> forient(nefaces, 0);
@@ -100,7 +100,7 @@ Int IMesh::orient_skin(Int normal_direction)
         }
     }
 
-    printf("orient_boundary(): reversed " SF_D_ " faces\n", nrev);
+    //printf("orient_boundary(): reversed " SF_D_ " faces\n", nrev);
 
     return ret;
 }

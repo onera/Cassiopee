@@ -281,20 +281,6 @@ IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, Int color)
     new_M.F = new_F;
     new_M.C = new_C;
 
-    //assert(M.np == (Int)ppset.size() + nop);
-    
-    /*
-    std::vector<Int> IP;
-    for (Int i = M.np; i < np; i++) IP.push_back(i);
-
-    point_write("IPOINTS", new_X.data(), new_Y.data(), new_Z.data(), IP);
-
-    std::vector<Int> OP;
-    for (Int i = nop; i < M.np; i++) OP.push_back(i);
-
-    point_write("OPOINTS", new_X.data(), new_Y.data(), new_Z.data(), OP);
-    */
-
     return new_M;
 }
 
@@ -363,8 +349,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Smesh Mf(M);
     Smesh Sf(S);
     
-    Mf.write_ngon("Mf");
-    Sf.write_ngon("Sf");
+    //Mf.write_ngon("Mf");
+    //Sf.write_ngon("Sf");
 
     Mf.make_point_edges();
     Sf.make_point_edges();
@@ -375,13 +361,21 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Mf.make_pnormals();
     Sf.make_pnormals();
 
+    puts("Initaliazing...");
+
     Dcel D(Mf, Sf);
 
+    puts("Locating points...");
+
     D.locate_spoints(Mf, Sf);
+
+    puts("Computing intersections...");
 
     D.find_intersections_3D(Mf, Sf);
 
     D.resolve_hedges(Mf, Sf);
+
+    puts("Reconstructing meshes...");
 
     D.reconstruct();
 
@@ -399,6 +393,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     
 
     // Export
+    puts("Exporting...");
+
     PyObject *Mout = M_inter.export_karray();
     PyObject *Sout = S_inter.export_karray();
 

@@ -25,6 +25,7 @@
 
 Int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {
+    puts("Adapting intersection surfaces...");
     size_t refM, refS;
     Int iter = 0;
 
@@ -132,7 +133,7 @@ size_t IMesh::refine(std::set<Int> &mpatch, std::set<Int> &spatch,
         }
     }
 
-    printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
+    //printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
 
     Int iter = 0;
     size_t ret = 0;

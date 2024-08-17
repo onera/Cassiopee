@@ -484,7 +484,7 @@ void mat3_vec(Float A[3][3], Float x[3], Float b[3])
 
 void Dcel::init_hedges_and_faces(Smesh &M, Int color)
 {
-    printf("Doing color %d\n", color);
+    //printf("Doing color %d\n", color);
     size_t nh = H.size();
     size_t nhh = nh + 2 * M.E.size();
 
@@ -585,14 +585,12 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
         }
     
         // Project the origin
-        Vertex *orig = Q.lookup(M.X[pid], M.Y[pid], M.Z[pid])->key;
         Float o[3] = {M.X[pid], M.Y[pid], M.Z[pid]};
         Float proj_o[3] = {};
         mat3_vec(R, o, proj_o);
 
         for (size_t i = 0; i < hedges.size(); i++) {
             Hedge *h = hedges[i];
-            assert(h->orig == orig);
 
             h->proj_ox = proj_o[0];
             h->proj_oy = proj_o[1];
@@ -682,7 +680,7 @@ Int Dcel::check_hedges(const std::vector<Hedge *> &H)
         if (h->prev->twin->orig != h->orig) { assert(0); return 0; }
     }
 
-    puts("DCEL HEDGES OK.");
+    puts("CHECK: EDGES OK.");
 
     return 1;
 }
@@ -702,7 +700,7 @@ Int Dcel::check_faces(const std::vector<Hedge *> &H,
         if (f->rep->left != f) { assert(0); return 0; }
     }
 
-    puts("DCEL FACES OK.");
+    puts("CHECK: FACES OK.");
 
     return 1;
 }
@@ -780,9 +778,11 @@ void Dcel::set_cycles_inout()
         }
     }
 
-    printf("Inner cycles: " SF_D_ "\n", inner);
-    printf("Outer cycles: " SF_D_ "\n", outer);
-    printf("Degen cycles: " SF_D_ "\n", degen);
+    //printf("Inner cycles: " SF_D_ "\n", inner);
+    //printf("Outer cycles: " SF_D_ "\n", outer);
+    //printf("Degen cycles: " SF_D_ "\n", degen);
+    
+    printf("Total faces: " SF_D_ "\n", outer);
 }
 
 std::vector<Vertex *> Dcel::get_face_vertices(Face *f)

@@ -417,7 +417,7 @@ void IMesh::hash_skin()
     }
 }
 
-bool IMesh::is_point_inside(Float px, Float py, Float pz)
+bool IMesh::is_point_inside(Float px, Float py, Float pz) const
 {
     // point must be in bounding box
     if (!(xmin <= px && px <= xmax &&
