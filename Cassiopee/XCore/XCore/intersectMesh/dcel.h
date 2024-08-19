@@ -20,6 +20,7 @@
 
 #include <vector>
 #include <cstddef>
+#include <map>
 
 #include "common/common.h"
 #include "queue.h"
@@ -45,12 +46,18 @@ struct Dcel {
     static Int BLACK;
     static Int NO_IDEA;
 
-    Dcel(const Smesh &M0, const Smesh &M1);
+    std::map<Vertex *, std::vector<Hedge *>> Up;
+    std::map<Vertex *, std::vector<Hedge *>> Cp;
+    std::map<Vertex *, std::vector<Hedge *>> Lp;
+
+    Dcel(Smesh &M0, Smesh &M1);
     ~Dcel();
     
     void init_vertices(const Smesh &M0, const Smesh &M1);
 
-    void init_hedges_and_faces(const Smesh &M, Int color);
+    void init_hedges_and_faces(Smesh &M, Int color);
+    
+    //void make_hedges_and_faces(const Smesh &M, Int color);
 
     static Int check_hedges(const std::vector<Hedge *> &H);
 
@@ -89,4 +96,21 @@ struct Dcel {
     void write_inner_faces(const char *fname);
 
     static std::vector<Vertex *> get_face_vertices(Face *f);
+
+    void locate_spoints(const Smesh &M, const Smesh &S);
+
+    void find_intersections_3D(const Smesh &M, const Smesh &S);
+
+    void cut_hedge_at_vertex(Hedge *h, Vertex *v);
+
+    void resolve_hedges(const Smesh &M, const Smesh &S);
+
+    void reconstruct();
+
+    Int get_next_face(const Smesh &M, Float px, Float py, Float pz,
+        const std::vector<Int> &pf, Float dir[3]);
+
+    void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
+
+    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S);
 };

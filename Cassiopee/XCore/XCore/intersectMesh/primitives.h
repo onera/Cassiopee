@@ -35,7 +35,8 @@ Int compare(const Segment &s0, const Segment &s1, Float rx, Float ry);
 
 Int cmp_mySeg(const Segment &s1, const Segment &s2);
 
-Int cmp_points(Float x1, Float y1, Float x2, Float y2);
+Int cmp_points(Float x1, Float y1, Float z1, Float x2, Float y2, Float z2);
+//Int cmp_points(Float x1, Float y1, Float x2, Float y2);
 
 Float DifferenceOfProducts(Float a, Float b, Float c, Float d);
 
@@ -46,3 +47,13 @@ Int Sign(Float x);
 Int orient3D(Float *A, Float *B, Float *C, Float *D);
 
 Float dRand(Float dMin, Float dMax);
+
+Int is_point_on_segment(Float px, Float py, Float pz, Float ax, Float ay,
+    Float az, Float bx, Float by, Float bz);
+
+Int EdgeEdgeIntersect(Float ax, Float ay, Float az, Float bx, Float by,
+    Float bz, Float px, Float py, Float pz, Float qx, Float qy, Float qz,
+    Float &ix, Float &iy, Float &iz);
+
+Int EdgeEdgeIntersect(Float ax, Float ay, Float az, Float bx, Float by,
+    Float bz, Float px, Float py, Float pz, Float qx, Float qy, Float qz);

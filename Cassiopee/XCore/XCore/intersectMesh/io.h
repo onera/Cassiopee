@@ -25,6 +25,18 @@
 #include "vertex.h"
 #include "triangleIntersection.h"
 #include "common/common.h"
+#include "point.h"
+#include "hedge.h"
+
+void face_write(const char *fname, Face *face);
+
+void point_write(const char *fname, Float x, Float y, Float z);
+
+void point_write(const char *fname, Vertex *v);
+
+void hedge_write(const char *fname, Hedge *h);
+
+void point_write(const char *fname, const std::vector<point> &P);
 
 void point_write(const char *fname, const std::vector<Vertex *> &I);
 

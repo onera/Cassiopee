@@ -82,10 +82,12 @@ Smesh::Smesh(const IMesh &M)
     np = g2lp.size();
     X.resize(np);
     Y.resize(np);
+    Z.resize(np);
 
     for (const auto &pids : g2lp) {
         X[pids.second] = M.X[pids.first];
         Y[pids.second] = M.Y[pids.first];
+        Z[pids.second] = M.Z[pids.first];
     }
 
     // Faces should already be oriented ccw
@@ -181,7 +183,7 @@ void Smesh::make_edges()
     }
 
     // Make faces neighbourhood
-    std::vector<std::vector<Int>> F2F(nf);
+    F2F.resize(nf);
     for (size_t i = 0; i < F2E.size(); i++) {
         auto &face = F2E[i];
         auto &neis = F2F[i];
@@ -215,28 +217,28 @@ void Smesh::make_edges()
             Int nei = neis[j];
             
             Int p = face[j];
-            //Int q = face[(j+1)%face.size()];
+            Int q = face[(j+1)%face.size()];
             
             Int e = edgs[j];
             
             if (nei == -1) {
-                //assert(E[e].p == p);
-                //assert(E[e].q == q);
+                assert(E[e].p == p);
+                assert(E[e].q == q);
                 continue;
             }
 
             if (visited[nei]) {
-                //assert(E2F[e][0] == nei);
-                //assert(E2F[e][1] == f);
-                //assert(E[e].p == q);
-                //assert(E[e].q == p);
+                assert(E2F[e][0] == nei);
+                assert(E2F[e][1] == f);
+                assert(E[e].p == q);
+                assert(E[e].q == p);
                 continue;
             }
  
             if (E[e].p != p) {
                 assert(visited[nei] == 0);
-                //assert(E[e].q == p);
-                //assert(E[e].p == q);
+                assert(E[e].q == p);
+                assert(E[e].p == q);
                 std::swap(E[e].p, E[e].q);
                 E2F[e][0] = f;
                 E2F[e][1] = nei;
@@ -246,7 +248,6 @@ void Smesh::make_edges()
     }
 
     // Check
-    /*
     for (Int i = 0; i < nf; i++) {
         auto &face = F[i];
         for (size_t j = 0; j < face.size(); j++) {
@@ -265,7 +266,6 @@ void Smesh::make_edges()
             }
         }
     }
-    */
 }
 
 #define TRI 5
@@ -356,7 +356,7 @@ bool Smesh::faces_are_dups(Int face, Int mface, const Smesh &M)
         Int p = pn[i];
         for (size_t j = 0; j < pnm.size(); j++) {
             Int pm = pnm[j];
-            if (cmp_points(X[p], Y[p], M.X[pm], M.Y[pm]) == 0) {
+            if (cmp_points(X[p], Y[p], Z[p], M.X[pm], M.Y[pm], M.Z[pm]) == 0) {
                 assert(mfound[i] == 0);
                 mfound[i] = 1;
                 break;
@@ -500,12 +500,13 @@ bool Smesh::face_contains_Mface(Int face, Int mface, const Smesh &M) const
     assert(M.face_is_active(mface));
     const auto &cn = M.F[mface];
     for (Int p : cn) {
-        if (face_contains_point(face, M.X[p], M.Y[p]) == -1) return false;
+        if (face_contains_point(face, M.X[p], M.Y[p], M.Z[p]) == -1)
+            return false;
     }
     return true;
 }
 
-Int Smesh::face_contains_point(Int face, Float x, Float y) const
+Int Smesh::face_contains_point(Int face, Float x, Float y, Float z) const
 {
     const auto &cn = F[face];
 
@@ -517,14 +518,16 @@ Int Smesh::face_contains_point(Int face, Float x, Float y) const
 
         a = cn[0], b = cn[1], c = cn[2];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 0;
 
         // Second triangle
         a = cn[0], b = cn[2], c = cn[3];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 1;
     } else {
@@ -533,7 +536,8 @@ Int Smesh::face_contains_point(Int face, Float x, Float y) const
 
         a = cn[0], b = cn[1], c = cn[2];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 0;
     }
@@ -541,7 +545,7 @@ Int Smesh::face_contains_point(Int face, Float x, Float y) const
     return -1;
 }
 
-std::vector<pointFace> Smesh::locate(Float x, Float y) const
+std::vector<pointFace> Smesh::locate(Float x, Float y, Float z) const
 {
     Int a, b, c;
     Int hit = 0;
@@ -552,23 +556,23 @@ std::vector<pointFace> Smesh::locate(Float x, Float y) const
         if (cn.size() == 4) {
             // First triangle
             a = cn[0], b = cn[1], c = cn[2];
-            hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c],
-                Y[c]);
+            hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+                X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
             if (hit) {
                 HITS.push_back(pointFace(face, 0));
             } else {
                 // Second triangle
                 a = cn[0], b = cn[2], c = cn[3];
-                hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c],
-                    Y[c]);
+                hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+                    X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
                 if (hit) {
                     HITS.push_back(pointFace(face, 1));
                 }
             }
         } else {
             a = cn[0], b = cn[1], c = cn[2];
-            hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c],
-                Y[c]);
+            hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+                X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
             if (hit) {
                 HITS.push_back(pointFace(face, 0));
             }
@@ -576,49 +580,6 @@ std::vector<pointFace> Smesh::locate(Float x, Float y) const
     }
 
     return HITS;
-}
-
-void Smesh::write_su2(const char *fname, const std::vector<Int> &faces)
-{
-    std::map<Int, Int> pmap;
-
-    Int np = 0;
-
-    for (size_t i = 0; i < faces.size(); i++) {
-        Int f = faces[i];
-        const auto &cn = F[f];
-        for (auto p : cn) {
-            if (pmap.find(p) == pmap.end()) {
-                pmap[p] = np++;
-            }
-        }
-    }
-
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-    fprintf(fh, "NDIME= 2\n");
-    fprintf(fh, "NELEM= %zu\n", faces.size());
-
-    for (size_t i = 0; i < faces.size(); i++) {
-        Int f = faces[i];
-        const auto &cn = F[f];
-        if (cn.size() == 4) fprintf(fh, "%d ", QUAD);
-        else fprintf(fh, "%d ", TRI);
-        for (auto p : cn) fprintf(fh, SF_D_ " ", pmap[p]);
-        fprintf(fh, "%zu\n", i);
-    }
-
-    std::vector<Int> ipmap(pmap.size());
-    for (auto &pdata : pmap) ipmap[pdata.second] = pdata.first;
-
-    fprintf(fh, "NPOIN= %zu\n", ipmap.size());
-    for (size_t i = 0; i < ipmap.size(); i++) {
-        Int op = ipmap[i];
-        fprintf(fh, "%f %f ", X[op], Y[op]);
-        fprintf(fh, "%zu\n", i);
-    }
-
-    fclose(fh);
 }
 
 void Smesh::init_adaptation_data()
@@ -644,6 +605,30 @@ void Smesh::make_point_faces()
         const auto &cn = F[face];
         for (auto p : cn)
             P2F[p].push_back(face);
+    }
+}
+
+void Smesh::make_point_faces_all()
+{
+    assert(P2F.empty());
+    P2F.clear();
+    P2F.resize(np);
+
+    for (Int face = 0; face < nf; face++) {
+        const auto &cn = F[face];
+        for (auto p : cn)
+            P2F[p].push_back(face);
+    }
+}
+
+void Smesh::make_point_edges()
+{
+    P2E.clear();
+    P2E.resize(np);
+
+    for (Int eid = 0; eid < ne; eid++) {
+        P2E[E[eid].p].push_back(eid);
+        P2E[E[eid].q].push_back(eid);
     }
 }
 
@@ -754,6 +739,39 @@ Smesh Smesh::extract_conformized()
     return ret;
 }
 
+void Smesh::write_faces(const char *fname, const std::vector<Int> &faces)
+{
+    std::map<Int, Int> pmap;
+
+    Int np = 0;
+
+    for (size_t i = 0; i < faces.size(); i++) {
+        Int f = faces[i];
+        const auto &cn = F[f];
+        for (auto p : cn) {
+            if (pmap.find(p) == pmap.end()) {
+                pmap[p] = np++;
+            }
+        }
+    }
+
+    std::vector<Int> ipmap(pmap.size());
+    for (auto &pdata : pmap) ipmap[pdata.second] = pdata.first;
+
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%d\n", np);
+    for (size_t i = 0; i < ipmap.size(); i++) {
+        Int op = ipmap[i];
+        fprintf(fh, "%f %f %f\n", X[op], Y[op], Z[op]);
+    }
+
+    fclose(fh);
+}
+
+
 void Smesh::write_ngon(const char *fname)
 {
     FILE *fh = fopen(fname, "w");
@@ -762,7 +780,7 @@ void Smesh::write_ngon(const char *fname)
     fprintf(fh, "POINTS\n");
     fprintf(fh, SF_D_ "\n", np);
     for (Int i = 0; i < np; i++) {
-        fprintf(fh, "%f %f 0.0\n", X[i], Y[i]);
+        fprintf(fh, "%f %f %f\n", X[i], Y[i], Z[i]);
     }
 
     fprintf(fh, "INDPG\n");
@@ -800,4 +818,59 @@ void Smesh::write_ngon(const char *fname)
     fprintf(fh, "\n");
 
     fclose(fh);
+}
+
+void Smesh::make_fnormals()
+{
+    fnormals.clear();
+    fnormals.resize(3*nf);
+    
+    for (Int fid = 0; fid < nf; fid++) {
+        const auto &pn = F[fid];
+
+        Float o[3] = {0, 0, 0};
+        for (Int p : pn) {
+            o[0] += X[p];
+            o[1] += Y[p];
+            o[2] += Z[p];
+        }
+        for (int i = 0; i < 3; i++) o[i] /= pn.size();
+
+        Int a = pn[0];
+        Int b = pn[1];
+
+        Float oa[3] = {X[a]-o[0], Y[a]-o[1], Z[a]-o[2]};
+        Float ob[3] = {X[b]-o[0], Y[b]-o[1], Z[b]-o[2]};
+
+        Float *N = &fnormals[3*fid];
+        K_MATH::cross(oa, ob, N);
+        Float NORM = K_MATH::norm(N, 3);
+        assert(Sign(NORM) != 0);
+        for (Int i = 0; i < 3; i++) N[i] /= NORM;
+    }
+}
+
+void Smesh::make_pnormals()
+{
+    make_fnormals();
+
+    pnormals.clear();
+    pnormals.resize(3*np);
+    
+    // Point normals: aggregate of shared faces normals
+
+    for (Int pid = 0; pid < np; pid++) {
+        const auto &faces = P2F[pid];
+
+        Float *N = &pnormals[3*pid];
+
+        for (Int fid : faces) {
+            Float *fN = &fnormals[3*fid];
+            for (Int i = 0; i < 3; i++) N[i] += fN[i];
+        }
+
+        Float NORM = K_MATH::norm(N, 3);
+
+        for (Int i = 0; i < 3; i++) N[i] /= NORM;
+    }
 }

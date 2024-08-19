@@ -25,4 +25,6 @@ struct TriangleIntersection {
     Float x, y, z;
     Float u, v;
     Float t;
+    Int face;
+    Int tri;
 };

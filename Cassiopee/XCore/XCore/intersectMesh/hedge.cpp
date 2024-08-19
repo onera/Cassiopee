@@ -66,17 +66,18 @@ void Hedge::sort_ccwise(std::vector<Hedge *> &H, Int low, Int high)
 
 Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
 {
+    assert(h != w);
     assert(h->orig == w->orig);
-    Vertex *c = h->orig;
-    Vertex *a = h->twin->orig;
-    Vertex *b = w->twin->orig;
 
-    Float ax = a->x;
-    Float ay = a->y;
-    Float bx = b->x;
-    Float by = b->y;
-    Float cx = c->x;
-    Float cy = c->y;
+    Float ax = h->proj_tx;
+    Float ay = h->proj_ty;
+    Float bx = w->proj_tx;
+    Float by = w->proj_ty;
+    Float cx = h->proj_ox;
+    Float cy = h->proj_oy;
+
+    assert(Sign(cx-w->proj_ox) == 0);
+    assert(Sign(cy-w->proj_oy) == 0);
 
     long double acx = (long double)ax - (long double)cx;
     long double acy = (long double)ay - (long double)cy;
@@ -114,7 +115,6 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
         return 1;
 
     // Overlapping segments
-    
     assert(h->color != w->color);
 
     // If right half, red before black
@@ -128,4 +128,14 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
     } else {
         return -cmp;
     }
+}
+
+Int hedge_contains_vertex(Hedge *h, Vertex *v)
+{
+    Vertex *a = h->orig;
+    Vertex *b = h->twin->orig;
+    return is_point_on_segment(
+        v->x, v->y, v->z,
+        a->x, a->y, a->z,
+        b->x, b->y, b->z);
 }

@@ -84,13 +84,13 @@ void IMesh::make_edges()
 }
 
 
-std::vector<pointFace> IMesh::locate(Float px, Float py,
+std::vector<pointFace> IMesh::locate(Int p, Float px, Float py, Float pz,
     const std::set<Int> &patch) const
 {
     Int a, b, c;
     Int hit;
     std::vector<pointFace> hits;
-
+    
     for (Int face : patch) {
         assert(face_is_active(face));
 
@@ -100,8 +100,8 @@ std::vector<pointFace> IMesh::locate(Float px, Float py,
 
         a = cn[0], b = cn[1], c = cn[2];
 
-        hit = Triangle::ispointInside(px, py, X[a], Y[a], X[b], Y[b], X[c],
-            Y[c]);
+        hit = Triangle::is_point_inside(px, py, pz, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
 
         if (hit) {
             hits.push_back(pointFace(face, 0));
@@ -113,8 +113,8 @@ std::vector<pointFace> IMesh::locate(Float px, Float py,
         // Second triangle
         a = cn[0], b = cn[2], c = cn[3];
 
-        hit = Triangle::ispointInside(px, py, X[a], Y[a], X[b], Y[b], X[c],
-            Y[c]);
+        hit = Triangle::is_point_inside(px, py, pz, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
 
         if (hit) {
             hits.push_back(pointFace(face, 1));
@@ -147,7 +147,7 @@ bool IMesh::faces_are_dups(Int mface, Int sface, const IMesh &S)
         Int pm = pnm[i];
         for (size_t j = 0; j < pns.size(); j++) {
             Int ps = pns[j];
-            if (cmp_points(X[pm], Y[pm], S.X[ps], S.Y[ps]) == 0) {
+            if (cmp_points(X[pm], Y[pm], Z[pm], S.X[ps], S.Y[ps], S.Z[ps]) == 0) {
                 assert(mfound[i] == 0);
                 mfound[i] = 1;
                 break;
@@ -417,7 +417,7 @@ void IMesh::hash_skin()
     }
 }
 
-bool IMesh::is_point_inside(Float px, Float py, Float pz)
+bool IMesh::is_point_inside(Float px, Float py, Float pz) const
 {
     // point must be in bounding box
     if (!(xmin <= px && px <= xmax &&
@@ -425,8 +425,6 @@ bool IMesh::is_point_inside(Float px, Float py, Float pz)
           zmin <= pz && pz <= zmax))
         return false;
     
-    return true;
-
     // Count the hits
     Int hits = 0;
 
@@ -434,9 +432,9 @@ bool IMesh::is_point_inside(Float px, Float py, Float pz)
     Int a, b, c, hit;
 
     // Choose a random ray direction
-    Float dx = 0;
-    Float dy = 0;
-    Float dz = 1;
+    Float dx = 0.2;
+    Float dy = -0.5;
+    Float dz = 0.4;
 
     for (Int face : skin) {
         const auto &cn = F[face];
@@ -524,12 +522,13 @@ bool IMesh::face_contains_sface(Int face, Int sface, const IMesh &S) const
     assert(S.face_is_active(sface));
     const auto &cn = S.F[sface];
     for (Int p : cn) {
-        if (face_contains_point(face, S.X[p], S.Y[p]) == -1) return false;
+        if (face_contains_point(face, S.X[p], S.Y[p], S.Z[p]) == -1) 
+            return false;
     }
     return true;
 }
 
-Int IMesh::face_contains_point(Int face, Float x, Float y) const
+Int IMesh::face_contains_point(Int face, Float x, Float y, Float z) const
 {
     const auto &cn = F[face];
 
@@ -541,14 +540,16 @@ Int IMesh::face_contains_point(Int face, Float x, Float y) const
 
         a = cn[0], b = cn[1], c = cn[2];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 0;
 
         // Second triangle
         a = cn[0], b = cn[2], c = cn[3];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 1;
     } else {
@@ -557,7 +558,8 @@ Int IMesh::face_contains_point(Int face, Float x, Float y) const
 
         a = cn[0], b = cn[1], c = cn[2];
         
-        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
         
         if (hit) return 0;
     }
@@ -713,6 +715,10 @@ PyObject *IMesh::export_karray()
         const auto &pf = C[i];
         for (Int f : pf) *ptr++ = f+1;
     }
+
+    delete f;
+    delete cn;
+
 
     return ret;
 }

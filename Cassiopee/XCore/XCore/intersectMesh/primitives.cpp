@@ -33,14 +33,31 @@ Int Sign(Float x)
     return 0;
 }
 
+Int cmp_points(Float x1, Float y1, Float z1, Float x2, Float y2, Float z2)
+{
+    Float t = x1 - x2;
+    Int s = Sign(t);
+    if (s) return s;
+    
+    t = y1 - y2;
+    s = Sign(t);
+    if (s) return s;
+
+    t = z1 - z2;
+    return Sign(t);
+}
+
+/*
 Int cmp_points(Float x1, Float y1, Float x2, Float y2)
 {
     Float t = x1 - x2;
     Int s = Sign(t);
     if (s) return s;
+    
     t = y1 - y2;
     return Sign(t);
 }
+*/
 
 Int cmp_segments
 (
@@ -104,7 +121,7 @@ Int cmp_segments
 // exact routines.
 Int compare(const Vertex &a, const Vertex &b)
 {
-    return cmp_points(a.x, a.y, b.x, b.y);
+    return cmp_points(a.x, a.y, a.z, b.x, b.y, b.z);
 }
 
 Int compare(const Segment &s1, const Segment &s2, Float rx, Float ry)
@@ -118,7 +135,8 @@ Int compare(const Segment &s1, const Segment &s2, Float rx, Float ry)
 
 Int cmp_mySeg(const Segment &s1, const Segment &s2)
 {
-    Int cmp = cmp_points(s1.p->x, s1.p->y, s2.p->x, s2.p->y);
+    Int cmp = cmp_points(s1.p->x, s1.p->y, s1.p->z, s2.p->x, s2.p->y,
+        s2.p->z);
     if (cmp) return cmp;
 
     cmp = Sign(s1.color - s2.color);
@@ -157,10 +175,10 @@ void compute_intersection(Queue &Q, Snode *sit0, Snode *sit1,
     x /= w;
     y /= w;
 
-    Event *xit = Q.lookup(x, y);
+    Event *xit = Q.lookup(x, y, 0);
 
     if (xit == NULL) {
-        xit = Q.insert(x, y);
+        xit = Q.insert(x, y, 0);
         xit->key->id = I.size();
         I.push_back(xit->key);
     }
@@ -181,4 +199,113 @@ Float dRand(Float dMin, Float dMax)
 {
     Float d = (Float) rand() / RAND_MAX;
     return dMin + d * (dMax - dMin);
+}
+
+Int is_point_on_segment(Float px, Float py, Float pz, Float ax, Float ay,
+    Float az, Float bx, Float by, Float bz)
+{
+    Float Vab[3] = {bx-ax, by-ay, bz-az};
+    Float Vap[3] = {px-ax, py-ay, pz-az};
+    Float N[3];
+    K_MATH::cross(Vab, Vap, N);
+    if (Sign(K_MATH::norm(N, 3)) != 0) return 0;
+
+    Float Vbp[3] = {px-bx, py-by, pz-bz};
+
+    Float dp = K_MATH::dot(Vap, Vab, 3);
+    if (dp < -TOL) return 0;
+
+    dp = K_MATH::dot(Vbp, Vab, 3);
+    if (dp > TOL) return 0;
+
+    return 1;
+}
+
+Int EdgeEdgeIntersect(Float ax, Float ay, Float az, Float bx, Float by,
+    Float bz, Float px, Float py, Float pz, Float qx, Float qy, Float qz,
+    Float &ix, Float &iy, Float &iz)
+{
+    Float d1[3] = {bx-ax, by-ay, bz-az};
+    Float d2[3] = {qx-px, qy-py, qz-pz};
+    Float r[3] = {px-ax, py-ay, pz-az};
+
+    Float d1d2[3];
+    K_MATH::cross(d1, d2, d1d2);
+    Float denom = K_MATH::dot(d1d2, d1d2, 3);
+
+    if (Sign(denom) == 0) {
+
+        return 0;
+
+        /*
+        Float colli[3];
+        K_MATH::cross(d1, r, colli);
+        Float NORM = K_MATH::norm(colli, 3);
+        if (Sign(NORM) == 0) {
+            assert("collinear!" && 0);
+        } else {
+            return 0;
+        }
+        */
+    }
+
+    Float tmp[3];
+    K_MATH::cross(r, d2, tmp);
+    Float t = K_MATH::dot(tmp, d1d2, 3);
+    t /= denom;
+    //if (t < -TOL) return 0;
+    if (t <= TOL) return 0;
+
+    K_MATH::cross(r, d1, tmp);
+    Float u = K_MATH::dot(tmp, d1d2, 3);
+    u /= denom;
+    if (u < -TOL || u > 1 + TOL) return 0;
+
+    ix = px + u*(qx - px);
+    iy = py + u*(qy - py);
+    iz = pz + u*(qz - pz);
+
+    return 1;
+}
+
+Int EdgeEdgeIntersect(Float ax, Float ay, Float az, Float bx, Float by,
+    Float bz, Float px, Float py, Float pz, Float qx, Float qy, Float qz)
+{
+    Float d1[3] = {bx-ax, by-ay, bz-az};
+    Float d2[3] = {qx-px, qy-py, qz-pz};
+    Float r[3] = {px-ax, py-ay, pz-az};
+
+    Float d1d2[3];
+    K_MATH::cross(d1, d2, d1d2);
+    Float denom = K_MATH::dot(d1d2, d1d2, 3);
+
+    if (Sign(denom) == 0) {
+
+        return 0;
+
+        /*
+        Float colli[3];
+        K_MATH::cross(d1, r, colli);
+        Float NORM = K_MATH::norm(colli, 3);
+        if (Sign(NORM) == 0) {
+            assert("collinear!" && 0);
+        } else {
+            return 0;
+        }
+        */
+    }
+
+    Float tmp[3];
+    K_MATH::cross(r, d2, tmp);
+    Float t = K_MATH::dot(tmp, d1d2, 3);
+    t /= denom;
+    //if (t < -TOL) return 0;
+    if (t <= TOL) return 0;
+
+    K_MATH::cross(r, d1, tmp);
+    Float u = K_MATH::dot(tmp, d1d2, 3);
+    u /= denom;
+    if (u < -TOL || u > 1 + TOL) return 0;
+
+    return 1;
 }

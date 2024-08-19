@@ -26,8 +26,17 @@
 struct Triangle {
     Int a, b, c;
 
-    static Int ispointInside(Float x, Float y, Float ax, Float ay,
-        Float bx, Float by, Float cx, Float cy);
+    static Int is_point_inside(Float px, Float py, Float pz,
+        Float ax, Float ay, Float az,
+        Float bx, Float by, Float bz,
+        Float cx, Float cy, Float cz,
+        Float &u, Float &v, Float &w);
+
+    static Int is_point_inside(Float px, Float py, Float pz,
+        Float ax, Float ay, Float az,
+        Float bx, Float by, Float bz,
+        Float cx, Float cy, Float cz);
+
 
     static Int ray_intersect(Float px, Float py, Float pz, Float dx,
         Float dy, Float dz, Float ax, Float ay, Float az, Float bx,

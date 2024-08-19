@@ -28,47 +28,47 @@ Queue::Queue()
 {}
 
 // Insert an intersection
-Event *Queue::insert(Float x, Float y)
+Event *Queue::insert(Float x, Float y, Float z)
 {
-    return insert_(root, x, y);
+    return insert_(root, x, y, z);
 }
 
-Event *Queue::insert_(Event *&root, Float x, Float y)
+Event *Queue::insert_(Event *&root, Float x, Float y, Float z)
 {
     if (root == NULL) {
-        root = new Event(x, y);
+        root = new Event(x, y, z);
         return root;
     }
 
     Vertex *key = root->key;
 
-    Int cmp = cmp_points(key->x, key->y, x, y);
+    Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
 
     if (cmp == 0) {
         return root;
     } else if (cmp < 0) {
-        return insert_(root->right, x, y);
+        return insert_(root->right, x, y, z);
     } else {
-        return insert_(root->left, x, y);
+        return insert_(root->left, x, y, z);
     }
 }
 
 // Insert an input vertex
-Event *Queue::insert(Float x, Float y, Int oid, Int color)
+Event *Queue::insert(Float x, Float y, Float z, Int oid, Int color)
 {
-    return insert_(root, x, y, oid, color);
+    return insert_(root, x, y, z, oid, color);
 }
 
-Event *Queue::insert_(Event *&root, Float x, Float y, Int oid, Int color)
+Event *Queue::insert_(Event *&root, Float x, Float y, Float z, Int oid, Int color)
 {
     if (root == NULL) {
-        root = new Event(x, y, oid, color);
+        root = new Event(x, y, z, oid, color);
         return root;
     }
 
     Vertex *key = root->key;
 
-    Int cmp = cmp_points(key->x, key->y, x, y);
+    Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
 
     if (cmp == 0) {
         assert(key->oid[color] == -1);
@@ -76,32 +76,32 @@ Event *Queue::insert_(Event *&root, Float x, Float y, Int oid, Int color)
         key->oid[color] = oid;
         return root;
     } else if (cmp < 0) {
-        return insert_(root->right, x, y, oid, color);
+        return insert_(root->right, x, y, z, oid, color);
     } else {
-        return insert_(root->left, x, y, oid, color);
+        return insert_(root->left, x, y, z, oid, color);
     }
 }
 
-Event *Queue::lookup(Float x, Float y)
+Event *Queue::lookup(Float x, Float y, Float z)
 {
-    return lookup_(root, x, y);
+    return lookup_(root, x, y, z);
 }
 
 Event *Queue::lookup(Vertex *key)
 {
-    return lookup_(root, key->x, key->y);
+    return lookup_(root, key->x, key->y, key->z);
 }
 
-Event *Queue::lookup_(Event *root, Float x, Float y)
+Event *Queue::lookup_(Event *root, Float x, Float y, Float z)
 {
     if (root == NULL) return NULL;
 
     Vertex *key = root->key;
-    Int cmp = cmp_points(key->x, key->y, x, y);
+    Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
 
     if (cmp == 0) return root;
-    else if (cmp < 0) return lookup_(root->right, x, y);
-    else return lookup_(root->left, x, y);
+    else if (cmp < 0) return lookup_(root->right, x, y, z);
+    else return lookup_(root->left, x, y, z);
 }
 
 Event *Queue::min()

@@ -25,17 +25,19 @@
 #include "ray.h"
 #include "io.h"
 
+static
+PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patch);
+
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
-    PyObject *MASTER, *SLAVE, *PATCH;
+    PyObject *MASTER, *SLAVES, *PATCH;
   
-    if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVE, &PATCH)) {
+    if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVES, &PATCH)) {
         RAISE("Bad input.");
         return NULL;
     }
 
     Karray marray;
-    Karray sarray;
 
     Int ret;
 
@@ -43,20 +45,37 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     if (ret != 0) return NULL;
 
-    ret = Karray_parse_structured(SLAVE, sarray);
+    Int nslaves = PyList_Size(SLAVES);
+    Int i;
+
+    std::vector<Karray> sarrays(nslaves);
+
+    for (i = 0; i < nslaves; i++) {
+        Karray sarray;
+        PyObject *SLAVE = PyList_GetItem(SLAVES, i);
+        ret = Karray_parse_structured(SLAVE, sarray);
+
+        if (ret != 0) {
+            break;
+        }
+
+        sarrays[i] = sarray;
+    }
 
     if (ret != 0) {
         Karray_free_ngon(marray);
+        for (Int j = 0; j < i; j++)
+            Karray_free_structured(sarrays[j]);
         return NULL;
     }
-
+    
     // Check intersection patch
     Int *patch = NULL;
     Int patch_size = -1;
-    ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, true);
+    ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, false);
     if (ret != 1) {
         Karray_free_ngon(marray);
-        Karray_free_structured(sarray);
+        for (Int i = 0; i < nslaves; i++) Karray_free_structured(sarrays[i]);
         RAISE("Bad master patch.");
         return NULL;
     }
@@ -67,6 +86,25 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     // Init and orient marray mesh
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
 
+    PyObject *out = PyList_New(0);
+
+    for (Int i = 0; i < nslaves; i++) {
+        PyObject *st = handle_slave(M, sarrays[i], patch_size, patch);
+        PyList_Append(out, st);
+        Py_DECREF(st);
+        Karray_free_structured(sarrays[i]);
+    }
+
+    Karray_free_ngon(marray);
+
+    delete [] patch;
+
+    return out;
+}
+
+static
+PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patch)
+{
     Float *Xs = sarray.X;
     Float *Ys = sarray.Y;
     Float *Zs = sarray.Z;
@@ -84,35 +122,37 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     // Max plane index that doesn't intersection with marray bbox (zero-based)
     Int kmax = 0;
 
-    for (Int k = 0; k < nk; k++) {
+    std::vector<Int> inside_point;
+
+    for (Int k = 0; k < nk; k++, kmax++) {
         Int inside = 0;
 
-        for (Int j = 0; j < nj && !inside; j++) {
-            for (Int i = 0; i < ni; i++) {
-                Int p = i + ni*j + nij*k;
+        Int p = nij*k;
 
-                if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
-                    inside = 1;
-                    kmax = k;
-                    break;
-                }
+        for (Int l = 0; l < nij; l++, p++) {
+
+            if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
+                inside_point.push_back(p);
+                inside = 1;
+                break;
             }
+            
         }
 
         if (inside) break;
     }
 
-    assert(kmax > 1);
+    //point_write("inside", Xs, Ys, Zs, inside_point);
+
+    printf("Intersection plane index k: %d\n", kmax);
 
     // points to be projected nij*(kmax-1) .. nij*kmax
     std::vector<Int> proj_points;
-    Int kshift = (kmax-1)*nij;
+    Int ind = (kmax-1)*nij;
 
-    for (Int j = 0; j < nj; j++) {
-        for (Int i = 0; i < ni; i++) {
-            Int ind = i + j*ni + kshift;
-            proj_points.push_back(ind);
-        }
+    for (Int l = 0; l < nij; l++) {
+        proj_points.push_back(ind);
+        ind++;
     }
 
     //point_write("proj_points", Xs, Ys, Zs, proj_points);
@@ -146,6 +186,9 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
             Int face = patch[fid];
             const auto &pn = M.F[face];
 
+            // TODO: handle any polygon
+            assert(pn.size() == 4);
+
             A = pn[0]; B = pn[1]; C = pn[2];
 
             // First triangle ABC
@@ -157,6 +200,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
                                  TI);
 
             if (hit) {
+                TI.face = face;
+                TI.tri = 0;
                 point_hit_table[p] = TI;
                 break;
             }
@@ -174,6 +219,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
                                  TI);
 
             if (hit) {
+                TI.face = face;
+                TI.tri = 1;
                 point_hit_table[p] = TI;
                 break;
             }
@@ -183,9 +230,24 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         assert(hit == 1);
     }
 
-    edge_write("projection", Xs, Ys, Zs, point_hit_table);
+    /*
+    FILE *fh = fopen("hit_faces", "w");
+    assert(fh);
+    for (const auto hit : point_hit_table) {
+        Int pt = hit.first;
+        const auto &TI = hit.second;
+        fprintf(fh, "%d %d\n", pt + nij, TI.face);
+    }
+    fclose(fh);
+    */
+
+    //edge_write("projection", Xs, Ys, Zs, point_hit_table);
 
     /*************************************************************************/
+    
+    // planes: 0 .... kmax-1
+    // plane kmax was removed
+    // numbers of planes: kmax + 1
 
     // Make out cartesian mesh
     PyObject *tpl;
@@ -214,15 +276,17 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
 
     // Copy the projected points
+    ind = nij*kmax;
     for (Int i = 0; i < nij; i++) {
         Int p = proj_points[i];
         auto EH = point_hit_table[p];
         Float x = EH.x;
         Float y = EH.y;
         Float z = EH.z;
-        xt[p+nij] = x;
-        yt[p+nij] = y;
-        zt[p+nij] = z;
+        xt[ind] = x;
+        yt[ind] = y;
+        zt[ind] = z;
+        ind++;
     }
 
     // Tag the projected points
@@ -240,8 +304,6 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     RELEASESHAREDS(tpl, f);
     Py_DECREF(tpl);
     Py_DECREF(tag);
-    Karray_free_ngon(marray);
-    Karray_free_structured(sarray);
-
+    
     return out;
 }

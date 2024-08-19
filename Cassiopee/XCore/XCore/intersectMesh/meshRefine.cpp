@@ -21,19 +21,16 @@
 #include "mesh.h"
 #include "common/common.h"
 
+#include "io.h"
+
 Int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {
+    puts("Adapting intersection surfaces...");
     size_t refM, refS;
     Int iter = 0;
 
     do {
         iter++;
-        /*
-        if (iter > 1) {
-            RAISE("Cannot refine surface meshes more than once, for now.\n");
-            return 1;
-        }
-        */
         refM = M.refine(M.patch, S.patch, S);
         refS = S.refine(S.patch, M.patch, M);
     } while (refM > 0 || refS > 0);
@@ -56,8 +53,11 @@ size_t IMesh::refine(std::set<Int> &mpatch, std::set<Int> &spatch,
     // Locate spatch points within mpatch
     std::map<Int, std::vector<pointFace>> spoints_to_mfaces;
 
+
+    std::vector<Int> points;
+
     for (Int spt : spoints) {
-        auto pf = locate(S.X[spt], S.Y[spt], mpatch);
+        auto pf = locate(spt, S.X[spt], S.Y[spt], S.Z[spt], mpatch);
         spoints_to_mfaces[spt] = pf;
     }
 
@@ -73,6 +73,8 @@ size_t IMesh::refine(std::set<Int> &mpatch, std::set<Int> &spatch,
             mfpoints[mface].push_back(spt);
         }
     }
+
+    //exit(0);
 
     // Keep the mfaces which contain 3 points or more
     std::map<Int, std::vector<Int>> filtered_mfaces_map;
@@ -131,7 +133,7 @@ size_t IMesh::refine(std::set<Int> &mpatch, std::set<Int> &spatch,
         }
     }
 
-    printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
+    //printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
 
     Int iter = 0;
     size_t ret = 0;

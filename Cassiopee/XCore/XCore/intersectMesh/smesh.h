@@ -38,14 +38,16 @@ struct o_edge {
 struct Smesh {
     Int np, ne, nf;
 
-    std::vector<Float> X, Y;
+    std::vector<Float> X, Y, Z;
     std::vector<std::vector<Int>> P2F;
+    std::vector<std::vector<Int>> P2E;
     
     std::vector<o_edge> E;
     std::vector<std::array<Int, 2>> E2F;
 
     std::vector<std::vector<Int>> F;
     std::vector<std::vector<Int>> F2E;
+    std::vector<std::vector<Int>> F2F;
 
     Int M_np;
     Int M_ne;
@@ -59,6 +61,12 @@ struct Smesh {
 
     std::map<Int, Int> g2le;
     std::map<Int, Int> l2ge;
+
+    std::vector<Float> fnormals;
+    std::vector<Float> pnormals;
+
+    void make_fnormals();
+    void make_pnormals();
 
     // Adaptation
     void get_leaves(Int face, std::vector<Int> &leaves) const;
@@ -85,6 +93,10 @@ struct Smesh {
     void make_edges();
 
     void make_point_faces();
+    
+    void make_point_faces_all();
+    
+    void make_point_edges();
 
     inline bool edge_is_active(Int edge) const
     { return eactive.find(edge) != eactive.end(); }
@@ -94,9 +106,9 @@ struct Smesh {
 
     size_t refine(Smesh &M);
 
-    std::vector<pointFace> locate(Float x, Float y) const;
+    std::vector<pointFace> locate(Float x, Float y, Float z) const;
 
-    void write_su2(const char *fname, const std::vector<Int> &faces);
+    void write_faces(const char *fname, const std::vector<Int> &faces);
 
     void write_ngon(const char *fname);
 
@@ -106,7 +118,7 @@ struct Smesh {
 
     bool face_contains_Mface(Int face, Int mface, const Smesh &M) const;
 
-    Int face_contains_point(Int face, Float x, Float y) const;
+    Int face_contains_point(Int face, Float x, Float y, Float z) const;
 
     std::vector<Int> smooth_ref_data(std::map<Int, std::vector<Int>> &sensor);
 

@@ -27,9 +27,11 @@
 #include "hedge.h"
 #include "io.h"
 #include "cycle.h"
+#include "triangle.h"
+#include "primitives.h"
 
 static
-IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
+IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, Int color)
 {
     // Isolate patch faces
     std::set<Int> pfset(M.patch);
@@ -42,14 +44,13 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
         for (Int p : pn) ppset.insert(p);
     }
 
-    // Faces and point not belonging to pfset are renumbered first
+    // Faces and points not belonging to pfset are renumbered first
     Int np = 0, nf = 0;
 
     std::map<Int, Int> new_fids;
     for (Int i = 0; i < M.nf; i++) {
-        if (pfset.find(i) != pfset.end()) continue;
-
-        new_fids[i] = nf++;
+        if (pfset.find(i) == pfset.end())
+            new_fids[i] = nf++;
     }
 
     std::map<Int, Int> new_pids;
@@ -59,8 +60,6 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
         if (ppset.find(i) == ppset.end())
             new_pids[i] = np++;
     }
-
-    //Int nop = np;
 
     for (Int p : ppset) new_ppids[p] = np++;
 
@@ -75,6 +74,9 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 
     std::map<Int, Int> new_ipids;
 
+    std::set<Int> missing;
+    for (Int i = 0; i < Mf.nf; i++) missing.insert(i);
+
     for (size_t i = 0; i < D.F.size(); i++) {
         Face *f = D.F[i];
 
@@ -85,6 +87,10 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
         Int ofid = f->oid[color];
 
         if (ofid == -1) continue;
+
+        missing.erase(ofid);
+
+        ofid = Mf.l2gf.at(ofid);
 
         // ofid must have been a patch face
         assert(pfset.find(ofid) != pfset.end());
@@ -179,7 +185,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 
         new_X[npid] = v->x;
         new_Y[npid] = v->y;
-        new_Z[npid] = 0;
+        new_Z[npid] = v->z;
     }
 
     // Add the kept faces
@@ -216,7 +222,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 
         for (Int ofid : ofids) {
             Face *f = D.F[ofid];
-            assert(f->oid[color] == fdata.first);
+            //assert(f->oid[color] == fdata.first);
 
             auto vertices = Dcel::get_face_vertices(f);
             Int nfid = new_ifids.at(ofid);
@@ -275,24 +281,10 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
     new_M.F = new_F;
     new_M.C = new_C;
 
-    //assert(M.np == (Int)ppset.size() + nop);
-    
-    /*
-    std::vector<Int> IP;
-    for (Int i = M.np; i < np; i++) IP.push_back(i);
-
-    point_write("IPOINTS", new_X.data(), new_Y.data(), new_Z.data(), IP);
-
-    std::vector<Int> OP;
-    for (Int i = nop; i < M.np; i++) OP.push_back(i);
-
-    point_write("OPOINTS", new_X.data(), new_Y.data(), new_Z.data(), OP);
-    */
-
     return new_M;
 }
 
-PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
+PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 {
     PyObject *MASTER, *SLAVE, *MPATCH, *SPATCH;
   
@@ -356,16 +348,53 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     // Extract surface meshes
     Smesh Mf(M);
     Smesh Sf(S);
+    
+    //Mf.write_ngon("Mf");
+    //Sf.write_ngon("Sf");
+
+    Mf.make_point_edges();
+    Sf.make_point_edges();
+
+    Mf.make_point_faces_all();
+    Sf.make_point_faces_all();
+
+    Mf.make_pnormals();
+    Sf.make_pnormals();
+
+    puts("Initaliazing...");
 
     Dcel D(Mf, Sf);
- 
-    D.find_intersections();
 
-    IMesh M_inter = reconstruct_mesh(M, D, Dcel::RED);
+    puts("Locating points...");
+
+    D.locate_spoints(Mf, Sf);
+
+    puts("Computing intersections...");
+
+    D.find_intersections_3D(Mf, Sf);
+
+    D.resolve_hedges(Mf, Sf);
+
+    puts("Reconstructing meshes...");
+
+    D.reconstruct();
+
+    for (Vertex *v : D.V) {
+        Int oid = v->oid[0];
+        if (oid != -1) v->oid[0] = Mf.l2gp[oid];
+
+        oid = v->oid[1];
+        if (oid != -1) v->oid[1] = Sf.l2gp[oid];
+    }
+
+    IMesh S_inter = reconstruct_mesh(S, Sf, D, Dcel::BLACK);
+
+    IMesh M_inter = reconstruct_mesh(M, Mf, D, Dcel::RED);
     
-    IMesh S_inter = reconstruct_mesh(S, D, Dcel::BLACK);
 
     // Export
+    puts("Exporting...");
+
     PyObject *Mout = M_inter.export_karray();
     PyObject *Sout = S_inter.export_karray();
 

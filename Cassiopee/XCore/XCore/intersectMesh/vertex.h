@@ -23,18 +23,30 @@
 #include "xcore.h"
 #include "common/common.h"
 
+struct PointLoc {
+    Int fid = -1;
+    Int v_idx = -1;
+    Int e_idx = -1;
+};
+
 struct Hedge;
 
 struct Vertex {
-    Float x, y;
+    Float x, y, z;
     Hedge *rep;
     Int id;
     Hedge *left;
     Int oid[2];
 
-    Vertex(Float X, Float Y, Int Oid, Int color);
+    PointLoc loc;
 
-    Vertex(Float X, Float Y);
+    Hedge *xhedge = NULL;
 
-    inline void print() { printf("P" SF_D_ ": %f %f\n", id, x, y); }
+    Vertex(Float X, Float Y, Float Z, Int Oid, Int color);
+
+    Vertex(Float X, Float Y, Float Z);
+
+    inline void print() { printf("P" SF_D_ ": %f %f %f\n", id, x, y, z); }
 };
+
+Int cmp_vtx(Vertex *a, Vertex *b);
