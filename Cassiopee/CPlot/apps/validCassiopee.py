@@ -549,7 +549,7 @@ def runSingleTest(no, module, test):
 # retourne le temps CPU comme une chaine
 # moyenne si plusieurs repetitions d'un meme cas unitaire
 #==============================================================================
-def extractCPUTime(output1, output2, nreps=1):
+def extractCPUTimeWindows(output1, output2, nreps=1):
     CPUtime = 'Unknown'
     try:
         split1 = output1.split(':')
@@ -581,41 +581,36 @@ def extractCPUTime(output1, output2, nreps=1):
 # Extrait le temps CPU d'une sortie time -p (unix)
 # Moyenne si plusieurs repetitions d'un meme cas unitaire
 #=============================================================================
-def extractCPUTime2(output, nreps=1):
+def extractCPUTimeUnix(output, nreps=1):
     CPUtime = 'Unknown'
-    i1 = output.find('real')
-    if i1 == -1: return CPUtime
-    output = output[i1+4:]
-    output = output.replace(',', '.')
-    output = output.lstrip()
-    i2 = output.find(' ')
-    if i2 != -1: output = output[:i2]
-    i3 = output.find('\n')
-    if i3 != -1: output = output[:i3]
-    i1 = output.find('h')
-    hf = 0; mf = 0; sf = 0
-    if i1 != -1:
-        hf = output[:i1]
-        try: hf = float(hf)
-        except: hf = 0.
-        output = output[i1+1:]
-    i1 = output.find('m')
-    if i1 != -1:
-        mf = output[:i1]
-        try: mf = float(mf)
-        except: mf = 0.
-        output = output[i1+1:]
-    sf = output.replace('s', '')
-    try: sf = float(sf)
-    except: sf = 0.
-    tf = (hf*3600.+mf*60.+sf)/float(nreps)
-    hf = int(tf/3600.)
-    tf = tf - 3600*hf
-    mf = int(tf/60.)
-    tf = tf - 60*mf
-    sf = int(tf*100)/100.
-    if hf > 0: CPUtime = '%dh%dm%gs'%(hf,mf,sf)
-    else: CPUtime = '%dm%gs'%(mf,sf)
+    try:
+        i1 = output.find('real')
+        if i1 == -1: # external time command
+            i1 = output.find('elapsed')
+            output = output[:i1+7].strip().replace(',', '.')
+            output = re.split('\n| ', output)
+            output = [s for s in output if s.endswith('elapsed')][0]
+            output = re.sub('[a-z]', "", output)
+        else: # shell built-in time command (shell keyword)
+            output = output[i1+4:].strip()
+            output = output.replace(',', '.').replace('s', '')
+            output = re.sub('[h,m]', ':', output)
+            output = re.split('\n|\t| ', output)[0]
+        output = output.split(':')
+        output = output[::-1]
+        dt = [1., 60., 3600.]
+        tf = 0.
+        for i in range(len(output)):
+            tf += dt[i]*float(output[i])
+        tf /= float(nreps)
+        hf = tf//3600
+        tf = tf%3600
+        output = [int(hf), int(tf//60), float(tf%60)]    
+        if hf > 0.: CPUtime = '{:d}h{:d}m{:.2f}'.format(*output)
+        elif output[1] > 0.: CPUtime = '{:d}m{:.2f}'.format(*output[1:])
+        else: CPUtime = '0m{:.2f}'.format(output[-1])
+        CPUtime = CPUtime.rstrip('0').rstrip('.') + 's'
+    except: pass
     return CPUtime
 
 #==============================================================================
@@ -696,9 +691,9 @@ def runSingleUnitaryTest(no, module, test):
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            CPUtime = extractCPUTime(output1, output2, nreps=nreps)
+            CPUtime = extractCPUTimeWindows(output1, output2, nreps=nreps)
         else:
-            CPUtime = extractCPUTime2(output, nreps=nreps)
+            CPUtime = extractCPUTimeUnix(output, nreps=nreps)
 
         # Recupere le coverage
         i1 = output.find('coverage=')
@@ -817,9 +812,9 @@ def runSingleCFDTest(no, module, test):
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            CPUtime = extractCPUTime(output1, output2)
+            CPUtime = extractCPUTimeWindows(output1, output2)
         else:
-            CPUtime = extractCPUTime2(output)
+            CPUtime = extractCPUTimeUnix(output)
         # Recupere le coverage
         coverage = '100%'
 
