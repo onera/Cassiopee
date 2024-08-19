@@ -26,7 +26,7 @@
 #define TOL 1e-12
 
 static inline
-int Sign(Float x)
+int Sign(E_Float x)
 {
     if (x < TOL) return -1;
     if (x > TOL) return 1;
@@ -34,7 +34,7 @@ int Sign(Float x)
 }
 
 static inline
-int same_point(Float xi, Float yi, Float zi, Float xj, Float yj, Float zj)
+int same_point(E_Float xi, E_Float yi, E_Float zi, E_Float xj, E_Float yj, E_Float zj)
 {
     //return (xi == xj) && (yi == yj) && (zi == zj);
     if (fabs(xi - xj) > TOL) return 0;
@@ -44,48 +44,48 @@ int same_point(Float xi, Float yi, Float zi, Float xj, Float yj, Float zj)
 }
 
 static
-Int *compute_cell_weights(Mesh *M)
+E_Int *compute_cell_weights(Mesh *M)
 {
-    Int *cwgts = IntArray(M->nc);
+    E_Int *cwgts = IntArray(M->nc);
 
-    Int gnc;
+    E_Int gnc;
     MPI_Allreduce(&M->nc, &gnc, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    std::vector<Float> weights(M->nc, 0);
+    std::vector<E_Float> weights(M->nc, 0);
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int cval = M->cref[i];
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int cval = M->cref[i];
 
         weights[i] = 1 << (3*cval);
     }
 
-    Float min_weight = std::numeric_limits<Float>::max();
+    E_Float min_weight = std::numeric_limits<E_Float>::max();
 
-    for (Int i = 0; i < M->nc; i++) {
+    for (E_Int i = 0; i < M->nc; i++) {
         if (min_weight > weights[i]) min_weight = weights[i];
     }
 
-    Float gmin_weight;
+    E_Float gmin_weight;
     MPI_Allreduce(&min_weight, &gmin_weight, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
-    Float sum = 0.0;
-    for (Int weight : weights) sum += weight;
+    E_Float sum = 0.0;
+    for (E_Int weight : weights) sum += weight;
 
-    Float gsum;
+    E_Float gsum;
     MPI_Allreduce(&sum, &gsum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-    Float velotabsum = gsum / min_weight;
+    E_Float velotabsum = gsum / min_weight;
 
-    Float upper_range = std::numeric_limits<SCOTCH_Num>::max() - 1;
+    E_Float upper_range = std::numeric_limits<SCOTCH_Num>::max() - 1;
 
-    Float range_scale = 1;
+    E_Float range_scale = 1;
 
     if (velotabsum > upper_range) {
         range_scale = 0.9 * upper_range / velotabsum;
         puts("Sum of weights overflows SCOTCH_Num");
     }
 
-    for (Int i = 0; i < M->nc; i++) {
+    for (E_Int i = 0; i < M->nc; i++) {
         cwgts[i] = ((weights[i]/min_weight - 1)*range_scale) + 1;
     }
 
@@ -93,11 +93,11 @@ Int *compute_cell_weights(Mesh *M)
 }
 
 static
-Int *map_cell_graph(Mesh *M, Int *cwgts)
+E_Int *map_cell_graph(Mesh *M, E_Int *cwgts)
 {
     assert(sizeof(SCOTCH_Num) <= sizeof(SCOTCH_Idx));
     assert(sizeof(SCOTCH_Idx) >= sizeof(void *));
-    assert(sizeof(SCOTCH_Num) == sizeof(Int));
+    assert(sizeof(SCOTCH_Num) == sizeof(E_Int));
     assert(SCOTCH_numSizeof() == sizeof(SCOTCH_Num));
 
     int ret;
@@ -148,7 +148,7 @@ Int *map_cell_graph(Mesh *M, Int *cwgts)
         return NULL;
     }
 
-    Int *cmap = IntArray(M->nc);
+    E_Int *cmap = IntArray(M->nc);
 
     if (M->pid == 0) puts("Partitionning graph...");
 
@@ -167,7 +167,7 @@ Int *map_cell_graph(Mesh *M, Int *cwgts)
 #define TOL 1e-12
 
 static inline
-Int cmp_sign(Float x)
+E_Int cmp_sign(E_Float x)
 {
     if (x > TOL) return 1;
     if (x < -TOL) return -1;
@@ -175,12 +175,12 @@ Int cmp_sign(Float x)
 }
 
 struct xyz {
-    Float x, y, z;
+    E_Float x, y, z;
 
     bool operator<(const xyz &p) const {
-        Int sx = cmp_sign(x - p.x);
-        Int sy = cmp_sign(y - p.y);
-        Int sz = cmp_sign(z - p.z);
+        E_Int sx = cmp_sign(x - p.x);
+        E_Int sy = cmp_sign(y - p.y);
+        E_Int sz = cmp_sign(z - p.z);
 
         return (sx < 0) ||
                (sx == 0 && sy < 0) ||
@@ -189,11 +189,11 @@ struct xyz {
 };
 
 static
-Int Mesh_redistribute(Mesh *M, Int *cmap)
+E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 {
     // Allocate contiguous count arrays
 
-    Int count_size = M->npc;
+    E_Int count_size = M->npc;
 
     int *counts = (int *)XCALLOC(19 * count_size, sizeof(int));
 
@@ -219,7 +219,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     // Allocate contiguous dists array
 
-    Int dist_size = M->npc + 1;
+    E_Int dist_size = M->npc + 1;
 
     int *dists = (int *)XCALLOC(18 * dist_size, sizeof(int));
 
@@ -246,16 +246,16 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("Distributing cells...");
 
-    for (Int i = 0; i < M->nc; i++) cscount[cmap[i]]++;
+    for (E_Int i = 0; i < M->nc; i++) cscount[cmap[i]]++;
 
     MPI_Alltoall(cscount, 1, MPI_INT, crcount, 1, MPI_INT, MPI_COMM_WORLD);
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         csdist[i+1] = csdist[i] + cscount[i];
         crdist[i+1] = crdist[i] + crcount[i];
     }
 
-    Int nc = crdist[M->npc];
+    E_Int nc = crdist[M->npc];
 
     // Early return if bad cell map
     // TODO(Imad): could be made better...
@@ -265,7 +265,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
              "This case is currently not handled.\n\n", M->pid);
     }
 
-    Int min_nc = 0;
+    E_Int min_nc = 0;
     MPI_Allreduce(&nc, &min_nc, 1, XMPI_INT, MPI_MIN, MPI_COMM_WORLD);
 
     if (min_nc == 0) {
@@ -276,16 +276,16 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     // Send cell ids and strides
 
-    Int *scids = IntArray(csdist[M->npc]);
-    Int *rcids = IntArray(crdist[M->npc]);
+    E_Int *scids = IntArray(csdist[M->npc]);
+    E_Int *rcids = IntArray(crdist[M->npc]);
 
-    Int *scstride = IntArray(csdist[M->npc]);
-    Int *rcstride = IntArray(crdist[M->npc]);
+    E_Int *scstride = IntArray(csdist[M->npc]);
+    E_Int *rcstride = IntArray(crdist[M->npc]);
  
-    for (Int i = 0; i < M->npc; i++) idx[i] = csdist[i];
+    for (E_Int i = 0; i < M->npc; i++) idx[i] = csdist[i];
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int dest = cmap[i];
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int dest = cmap[i];
         scids[idx[dest]] = M->l2gc[i];
         scstride[idx[dest]] = M->cstride[i];
         idx[dest]++;
@@ -299,28 +299,28 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
                   rcstride, crcount, crdist, XMPI_INT,
                   MPI_COMM_WORLD);
     
-    std::map<Int, Int> g2lc;
+    std::map<E_Int, E_Int> g2lc;
 
-    for (Int i = 0; i < nc; i++) g2lc[rcids[i]] = i;
+    for (E_Int i = 0; i < nc; i++) g2lc[rcids[i]] = i;
 
     // Send cell ranges
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         scount[i] = 6 * cscount[i];
         rcount[i] = 6 * crcount[i];
         sdist[i+1] = sdist[i] + scount[i];
         rdist[i+1] = rdist[i] + rcount[i];
     }
 
-    Int *scrange = IntArray(sdist[M->npc]);
-    Int *rcrange = IntArray(rdist[M->npc]);
+    E_Int *scrange = IntArray(sdist[M->npc]);
+    E_Int *rcrange = IntArray(rdist[M->npc]);
 
-    for (Int i = 0; i < M->npc; i++) idx[i] = sdist[i];
+    for (E_Int i = 0; i < M->npc; i++) idx[i] = sdist[i];
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int where = cmap[i];
-        Int *crange = Mesh_get_crange(M, i);
-        for (Int j = 0; j < 6; j++) {
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int where = cmap[i];
+        E_Int *crange = Mesh_get_crange(M, i);
+        for (E_Int j = 0; j < 6; j++) {
             scrange[idx[where]++] = crange[j];
         }
     }
@@ -331,26 +331,26 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     // Send cell faces
 
-    Int gnf;
+    E_Int gnf;
     MPI_Allreduce(&M->nf, &gnf, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         scount[i] = 24 * cscount[i];
         rcount[i] = 24 * crcount[i];
         sdist[i+1] = sdist[i] + scount[i];
         rdist[i+1] = rdist[i] + rcount[i];
     }
 
-    Int *scells = IntArray(sdist[M->npc]);
-    Int *rcells = IntArray(rdist[M->npc]);
+    E_Int *scells = IntArray(sdist[M->npc]);
+    E_Int *rcells = IntArray(rdist[M->npc]);
 
-    for (Int i = 0; i < M->npc; i++) idx[i] = sdist[i];
+    for (E_Int i = 0; i < M->npc; i++) idx[i] = sdist[i];
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int where = cmap[i];
-        Int *cell = Mesh_get_cell(M, i);
-        for (Int j = 0; j < 24; j++) {
-            Int lfid = cell[j];
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int where = cmap[i];
+        E_Int *cell = Mesh_get_cell(M, i);
+        for (E_Int j = 0; j < 24; j++) {
+            E_Int lfid = cell[j];
 
             scells[idx[where]] = (lfid == -1) ? -1 : M->l2gf[lfid];
 
@@ -366,16 +366,16 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("Distributing faces...");
 
-    Int nf = 0;
+    E_Int nf = 0;
 
-    std::map<Int, Int> g2lf;
+    std::map<E_Int, E_Int> g2lf;
     g2lf[-1] = -1; // Trick to eliminate an if statement inside inner loop
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pc = &rcells[rdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pc = &rcells[rdist[i]];
 
-        for (Int j = 0; j < rcount[i]; j++) {
-            Int gfid = pc[j];
+        for (E_Int j = 0; j < rcount[i]; j++) {
+            E_Int gfid = pc[j];
             //if (gfid == -1) continue;
 
             if (g2lf.find(gfid) == g2lf.end()) {
@@ -387,25 +387,25 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     MPI_Alltoall(rfcount, 1, MPI_INT, sfcount, 1, MPI_INT, MPI_COMM_WORLD);
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         sfdist[i+1] = sfdist[i] + sfcount[i];
         rfdist[i+1] = rfdist[i] + rfcount[i];
     }
 
-    Int *sfids = IntArray(sfdist[M->npc]);
-    Int *rfids = IntArray(rfdist[M->npc]);
+    E_Int *sfids = IntArray(sfdist[M->npc]);
+    E_Int *rfids = IntArray(rfdist[M->npc]);
 
     nf = 0;
     g2lf.clear();
     g2lf[-1] = -1; // Same trick
 
-    Int *ptr = rfids;
+    E_Int *ptr = rfids;
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pc = &rcells[rdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pc = &rcells[rdist[i]];
 
-        for (Int j = 0; j < rcount[i]; j++) {
-            Int gfid = pc[j];
+        for (E_Int j = 0; j < rcount[i]; j++) {
+            E_Int gfid = pc[j];
             //if (gfid == -1) continue;
 
             if (g2lf.find(gfid) == g2lf.end()) {
@@ -422,33 +422,33 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
                   MPI_COMM_WORLD);
 
     // Send face strides and ranges 
-    Int *sfstride = IntArray(sfdist[M->npc]);
-    Int *rfstride = IntArray(rfdist[M->npc]);
+    E_Int *sfstride = IntArray(sfdist[M->npc]);
+    E_Int *rfstride = IntArray(rfdist[M->npc]);
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         scount[i] = 4*sfcount[i];
         rcount[i] = 4*rfcount[i];
         sdist[i+1] = sdist[i] + scount[i];
         rdist[i+1] = rdist[i] + rcount[i];
     }
 
-    Int *sfrange = IntArray(sdist[M->npc]);
-    Int *rfrange = IntArray(rdist[M->npc]);
+    E_Int *sfrange = IntArray(sdist[M->npc]);
+    E_Int *rfrange = IntArray(rdist[M->npc]);
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &sfids[sfdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &sfids[sfdist[i]];
 
-        Int *pr = &sfrange[sdist[i]];
-        Int *ps = &sfstride[sfdist[i]];
+        E_Int *pr = &sfrange[sdist[i]];
+        E_Int *ps = &sfstride[sfdist[i]];
 
-        for (Int j = 0; j < sfcount[i]; j++) {
-            Int gfid = pf[j];
-            Int lfid = M->g2lf.at(gfid);
+        for (E_Int j = 0; j < sfcount[i]; j++) {
+            E_Int gfid = pf[j];
+            E_Int lfid = M->g2lf.at(gfid);
 
-            Int *frange = Mesh_get_frange(M, lfid);
-            Int fstride = M->fstride[lfid];
+            E_Int *frange = Mesh_get_frange(M, lfid);
+            E_Int fstride = M->fstride[lfid];
 
-            for (Int k = 0; k < 4; k++) *pr++ = frange[k];
+            for (E_Int k = 0; k < 4; k++) *pr++ = frange[k];
             *ps++ = fstride;
         }
     }
@@ -463,28 +463,28 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     
     // Send faces
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         scount[i] = 8*sfcount[i];
         rcount[i] = 8*rfcount[i];
         sdist[i+1] = sdist[i] + scount[i];
         rdist[i+1] = rdist[i] + rcount[i];
     }
 
-    Int *sfaces = IntArray(sdist[M->npc]);
-    Int *rfaces = IntArray(rdist[M->npc]);
+    E_Int *sfaces = IntArray(sdist[M->npc]);
+    E_Int *rfaces = IntArray(rdist[M->npc]);
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &sfids[sfdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &sfids[sfdist[i]];
 
-        Int *ptr = &sfaces[sdist[i]];
+        E_Int *ptr = &sfaces[sdist[i]];
 
-        for (Int j = 0; j < sfcount[i]; j++) {
-            Int gfid = pf[j];
-            Int lfid = M->g2lf.at(gfid);
+        for (E_Int j = 0; j < sfcount[i]; j++) {
+            E_Int gfid = pf[j];
+            E_Int lfid = M->g2lf.at(gfid);
 
-            Int *face = Mesh_get_face(M, lfid);
+            E_Int *face = Mesh_get_face(M, lfid);
 
-            for (Int k = 0; k < 8; k++) *ptr++ = face[k];
+            for (E_Int k = 0; k < 8; k++) *ptr++ = face[k];
         }
     }
   
@@ -500,14 +500,14 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("    Counting points...");
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pn = &rfaces[rdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pn = &rfaces[rdist[i]];
 
-        std::set<Int> points;
+        std::set<E_Int> points;
         points.insert(-1); // Same trick
 
-        for (Int j = 0; j < rcount[i]; j++) {
-            Int lpid = pn[j];
+        for (E_Int j = 0; j < rcount[i]; j++) {
+            E_Int lpid = pn[j];
 
             //if (lpid == -1) continue;
 
@@ -520,30 +520,30 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     MPI_Alltoall(rpcount, 1, MPI_INT, spcount, 1, MPI_INT, MPI_COMM_WORLD);
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         spdist[i+1] = spdist[i] + spcount[i];
         rpdist[i+1] = rpdist[i] + rpcount[i];
     }
 
-    Int *spoints = IntArray(spdist[M->npc]);
-    Int *rpoints = IntArray(rpdist[M->npc]);
+    E_Int *spoints = IntArray(spdist[M->npc]);
+    E_Int *rpoints = IntArray(rpdist[M->npc]);
 
     ptr = rpoints;
 
-    std::vector<std::map<Int, Int>> pmap(M->npc);
+    std::vector<std::map<E_Int, E_Int>> pmap(M->npc);
 
-    Int np = 0;
+    E_Int np = 0;
 
     if (M->pid == 0) puts("    Exchanging point ids...");
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pn = &rfaces[rdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pn = &rfaces[rdist[i]];
 
         auto &map = pmap[i];
         map[-1] = -1;
 
-        for (Int j = 0; j < rcount[i]; j++) {
-            Int lpid = pn[j];
+        for (E_Int j = 0; j < rcount[i]; j++) {
+            E_Int lpid = pn[j];
 
             //if (lpid == -1) continue;
 
@@ -568,23 +568,23 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("    Exchanging point coordinates...");
 
-    Float *sx = FloatArray(spdist[M->npc]);
-    Float *sy = FloatArray(spdist[M->npc]);
-    Float *sz = FloatArray(spdist[M->npc]);
+    E_Float *sx = FloatArray(spdist[M->npc]);
+    E_Float *sy = FloatArray(spdist[M->npc]);
+    E_Float *sz = FloatArray(spdist[M->npc]);
 
-    Float *rx = FloatArray(rpdist[M->npc]);
-    Float *ry = FloatArray(rpdist[M->npc]);
-    Float *rz = FloatArray(rpdist[M->npc]);
+    E_Float *rx = FloatArray(rpdist[M->npc]);
+    E_Float *ry = FloatArray(rpdist[M->npc]);
+    E_Float *rz = FloatArray(rpdist[M->npc]);
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pn = &spoints[spdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pn = &spoints[spdist[i]];
         
-        Float *psx = &sx[spdist[i]];
-        Float *psy = &sy[spdist[i]];
-        Float *psz = &sz[spdist[i]];
+        E_Float *psx = &sx[spdist[i]];
+        E_Float *psy = &sy[spdist[i]];
+        E_Float *psz = &sz[spdist[i]];
 
-        for (Int j = 0; j < spcount[i]; j++) {
-            Int lpid = pn[j];
+        for (E_Int j = 0; j < spcount[i]; j++) {
+            E_Int lpid = pn[j];
             assert(lpid != -1);
             
             *psx++ = M->X[lpid];
@@ -609,13 +609,13 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("    Updating face points...");
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pn = &rfaces[rdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pn = &rfaces[rdist[i]];
 
         const auto &map = pmap[i];
 
-        for (Int j = 0; j < rcount[i]; j++) {
-            Int pt = pn[j];
+        for (E_Int j = 0; j < rcount[i]; j++) {
+            E_Int pt = pn[j];
             if (pt == -1) continue;
             pn[j] = map.at(pn[j]);
         }
@@ -626,10 +626,10 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     // np is the number of received points, including possible duplicates
 
     if (M->pid == 0) puts("    Isolating duplicate points...");
-    std::map<Int, Int> dup_to_unique;
-    std::map<xyz, Int> points;
+    std::map<E_Int, E_Int> dup_to_unique;
+    std::map<xyz, E_Int> points;
 
-    for (Int i = 0; i < np; i++) {
+    for (E_Int i = 0; i < np; i++) {
         xyz point = {rx[i], ry[i], rz[i]};
         auto it = points.find(point);
         if (it == points.end()) {
@@ -639,12 +639,12 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    std::map<Int, Int> new_pids;
-    Int unique_np = 0;
+    std::map<E_Int, E_Int> new_pids;
+    E_Int unique_np = 0;
 
     if (M->pid == 0) puts("    Renumbering points...");
 
-    for (Int i = 0; i < np; i++) {
+    for (E_Int i = 0; i < np; i++) {
         auto it = dup_to_unique.find(i);
         if (it == dup_to_unique.end()) {
             new_pids[i] = unique_np++;
@@ -653,14 +653,14 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("    Building point coordinates...");
 
-    Float *X = FloatArray(unique_np);
-    Float *Y = FloatArray(unique_np);
-    Float *Z = FloatArray(unique_np);
+    E_Float *X = FloatArray(unique_np);
+    E_Float *Y = FloatArray(unique_np);
+    E_Float *Z = FloatArray(unique_np);
 
-    for (Int i = 0; i < np; i++) {
+    for (E_Int i = 0; i < np; i++) {
         auto it = dup_to_unique.find(i);
         if (it == dup_to_unique.end()) {
-            Int new_pid = new_pids[i];
+            E_Int new_pid = new_pids[i];
             X[new_pid] = rx[i];
             Y[new_pid] = ry[i];
             Z[new_pid] = rz[i];
@@ -671,8 +671,8 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     new_pids[-1] = -1; // Same trick
 
-    for (Int i = 0; i < 8*nf; i++) {
-        Int pid = rfaces[i];
+    for (E_Int i = 0; i < 8*nf; i++) {
+        E_Int pid = rfaces[i];
         auto it = dup_to_unique.find(pid);
         if (it == dup_to_unique.end()) {
             // unique point
@@ -685,24 +685,24 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     // Init temp owner and neigh
 
-    Int *owner = IntArray(nf);
-    Int *neigh = IntArray(nf);
-    for (Int i = 0; i < nf; i++) {
+    E_Int *owner = IntArray(nf);
+    E_Int *neigh = IntArray(nf);
+    for (E_Int i = 0; i < nf; i++) {
         owner[i] = -1;
         neigh[i] = -1;
     }
 
-    for (Int i = 0; i < nc; i++) {
-        Int *cell = &rcells[24*i];
-        Int *crange = &rcrange[6*i];
-        Int cstride = rcstride[i];
+    for (E_Int i = 0; i < nc; i++) {
+        E_Int *cell = &rcells[24*i];
+        E_Int *crange = &rcrange[6*i];
+        E_Int cstride = rcstride[i];
 
-        for (Int j = 0; j < cstride; j++) {
-            Int *pf = cell + 4*j;
+        for (E_Int j = 0; j < cstride; j++) {
+            E_Int *pf = cell + 4*j;
 
-            for (Int k = 0; k < crange[j]; k++) {
-                Int gfid = pf[k];
-                Int lfid = g2lf.at(gfid);
+            for (E_Int k = 0; k < crange[j]; k++) {
+                E_Int gfid = pf[k];
+                E_Int lfid = g2lf.at(gfid);
                 assert(lfid >= -1 && lfid < nf);
                 if (owner[lfid] == -1) owner[lfid] = i;
                 else neigh[lfid] = i;
@@ -716,12 +716,12 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     memset(rcount, 0, M->npc * sizeof(int));
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &rfids[rfdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &rfids[rfdist[i]];
 
-        for (Int j = 0; j < rfcount[i]; j++) {
-            Int gfid = pf[j];
-            Int lfid = g2lf.at(gfid);
+        for (E_Int j = 0; j < rfcount[i]; j++) {
+            E_Int gfid = pf[j];
+            E_Int lfid = g2lf.at(gfid);
 
             if (neigh[lfid] != -1) continue;
 
@@ -731,23 +731,23 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     MPI_Alltoall(rcount, 1, MPI_INT, scount, 1, MPI_INT, MPI_COMM_WORLD);
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         rdist[i+1] = rdist[i] + rcount[i];
         sdist[i+1] = sdist[i] + scount[i];
     }
 
     // Request comm info
 
-    Int *rbinfo = IntArray(rdist[M->npc]);
-    Int *sbinfo = IntArray(sdist[M->npc]);
+    E_Int *rbinfo = IntArray(rdist[M->npc]);
+    E_Int *sbinfo = IntArray(sdist[M->npc]);
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &rfids[rfdist[i]];
-        Int *pr = &rbinfo[rdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &rfids[rfdist[i]];
+        E_Int *pr = &rbinfo[rdist[i]];
 
-        for (Int j = 0; j < rfcount[i]; j++) {
-            Int gfid = pf[j];
-            Int lfid = g2lf.at(gfid);
+        for (E_Int j = 0; j < rfcount[i]; j++) {
+            E_Int gfid = pf[j];
+            E_Int lfid = g2lf.at(gfid);
 
             if (neigh[lfid] != -1) continue;
 
@@ -763,16 +763,16 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     memset(spcount, 0, M->npc * sizeof(int));
     memset(rpcount, 0, M->npc * sizeof(int));
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &sbinfo[sdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &sbinfo[sdist[i]];
 
-        std::set<Int> bctag;
+        std::set<E_Int> bctag;
 
-        for (Int j = 0; j < scount[i]; j++) {
-            Int gfid = pf[j];
+        for (E_Int j = 0; j < scount[i]; j++) {
+            E_Int gfid = pf[j];
             assert(M->g2lf.find(gfid) != M->g2lf.end());
 
-            Int lfid = M->g2lf[gfid];
+            E_Int lfid = M->g2lf[gfid];
 
             if (Mesh_face_is_iface(M, lfid)) {
                 // Send cmap[lnei] + gfid + gnei
@@ -780,8 +780,8 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             }
 
             else if (Mesh_face_is_pface(M, lfid)) {
-                Int patch_id = M->face_to_ppatch[lfid];
-                Int proc = M->pps[patch_id].nei;
+                E_Int patch_id = M->face_to_ppatch[lfid];
+                E_Int proc = M->pps[patch_id].nei;
                 assert(proc >= 0 && proc < M->npc);
 
                 // We will be sending gfid and the requesting proc         
@@ -799,7 +799,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             }
         }
 
-        for (Int tag : bctag) {
+        for (E_Int tag : bctag) {
             stagcount[i] += 1;
             char *bcname = M->bps[tag].name;
             snamecount[i] += strlen(bcname) + 1;
@@ -816,7 +816,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     MPI_Alltoall(snamecount, 1, MPI_INT, rnamecount, 1, MPI_INT, MPI_COMM_WORLD);
     MPI_Alltoall(stypecount, 1, MPI_INT, rtypecount, 1, MPI_INT, MPI_COMM_WORLD);
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         sidist[i+1] = sidist[i] + sicount[i];
         spdist[i+1] = spdist[i] + spcount[i];
         sbdist[i+1] = sbdist[i] + sbcount[i];
@@ -834,41 +834,41 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         rtypedist[i+1] = rtypedist[i] + rtypecount[i];
     }
 
-    Int *sidata = IntArray(sidist[M->npc]);
-    Int *spdata = IntArray(spdist[M->npc]);
-    Int *sbdata = IntArray(sbdist[M->npc]);
-    Int *ridata = IntArray(ridist[M->npc]);
-    Int *rpdata = IntArray(rpdist[M->npc]);
-    Int *rbdata = IntArray(rbdist[M->npc]);
+    E_Int *sidata = IntArray(sidist[M->npc]);
+    E_Int *spdata = IntArray(spdist[M->npc]);
+    E_Int *sbdata = IntArray(sbdist[M->npc]);
+    E_Int *ridata = IntArray(ridist[M->npc]);
+    E_Int *rpdata = IntArray(rpdist[M->npc]);
+    E_Int *rbdata = IntArray(rbdist[M->npc]);
 
-    Int *stag = IntArray(stagdist[M->npc]);
-    Int *rtag = IntArray(rtagdist[M->npc]);
+    E_Int *stag = IntArray(stagdist[M->npc]);
+    E_Int *rtag = IntArray(rtagdist[M->npc]);
     char *sname = (char *)XMALLOC(snamedist[M->npc] * sizeof(char));
     char *rname = (char *)XMALLOC(rnamedist[M->npc] * sizeof(char));
     char *stype = (char *)XMALLOC(stypedist[M->npc] * sizeof(char));
     char *rtype = (char *)XMALLOC(rtypedist[M->npc] * sizeof(char));
 
-    for (Int i = 0; i < M->npc; i++) idx[i] = rpdist[i];
+    for (E_Int i = 0; i < M->npc; i++) idx[i] = rpdist[i];
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &sbinfo[sdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &sbinfo[sdist[i]];
         
-        Int *iptr = &sidata[sidist[i]];
-        Int *bptr = &sbdata[sbdist[i]];
+        E_Int *iptr = &sidata[sidist[i]];
+        E_Int *bptr = &sbdata[sbdist[i]];
 
-        std::set<Int> bctag;
+        std::set<E_Int> bctag;
         
-        for (Int j = 0; j < scount[i]; j++) {
-            Int gfid = pf[j];
+        for (E_Int j = 0; j < scount[i]; j++) {
+            E_Int gfid = pf[j];
             assert(M->g2lf.find(gfid) != M->g2lf.end());
 
-            Int lfid = M->g2lf[gfid];
+            E_Int lfid = M->g2lf[gfid];
 
             if (Mesh_face_is_iface(M, lfid)) {
-                Int own = M->owner[lfid];
-                Int nei = M->neigh[lfid];
+                E_Int own = M->owner[lfid];
+                E_Int nei = M->neigh[lfid];
 
-                Int send_id = cmap[own] == i ? nei : own;
+                E_Int send_id = cmap[own] == i ? nei : own;
                 
                 assert(cmap[send_id] != i);
 
@@ -878,8 +878,8 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             }
             
             else if (Mesh_face_is_pface(M, lfid)) {
-                Int patch_id = M->face_to_ppatch[lfid];
-                Int proc = M->pps[patch_id].nei;
+                E_Int patch_id = M->face_to_ppatch[lfid];
+                E_Int proc = M->pps[patch_id].nei;
                 assert(proc >= 0 && proc < M->npc);    
 
                 rpdata[idx[proc]++] = gfid;
@@ -887,8 +887,8 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             }
             
             else {
-                Int lid = M->face_to_bpatch[lfid];
-                Int gid = M->bps[lid].gid;
+                E_Int lid = M->face_to_bpatch[lfid];
+                E_Int gid = M->bps[lid].gid;
                 
                 *bptr++ = gid;
                 *bptr++ = gfid;
@@ -898,11 +898,11 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             }
         }
 
-        Int *tptr = &stag[stagdist[i]];
+        E_Int *tptr = &stag[stagdist[i]];
         char *nptr = &sname[snamedist[i]];
         char *Tptr = &stype[stypedist[i]];
 
-        for (Int tag : bctag) {
+        for (E_Int tag : bctag) {
             *tptr++ = M->bps[tag].gid;
 
             char *bcname = M->bps[tag].name;
@@ -915,7 +915,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    for (Int i = 0; i < M->npc; i++) assert(idx[i] == rpdist[i+1]);
+    for (E_Int i = 0; i < M->npc; i++) assert(idx[i] == rpdist[i+1]);
 
     MPI_Alltoallv(sidata, sicount, sidist, XMPI_INT,
                   ridata, ricount, ridist, XMPI_INT,
@@ -945,21 +945,21 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("Creating boundary patches...");
 
-    Int nbp = 0;
+    E_Int nbp = 0;
 
-    std::map<Int, Int> gbc_to_lbc;
-    std::map<Int, Int> lbc_to_gbc;
-    std::map<Int, Int> lbc_to_size;
+    std::map<E_Int, E_Int> gbc_to_lbc;
+    std::map<E_Int, E_Int> lbc_to_gbc;
+    std::map<E_Int, E_Int> lbc_to_size;
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &rbdata[rbdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &rbdata[rbdist[i]];
 
-        for (Int j = 0; j < rbcount[i]; ) {
-            Int gid = pf[j++];
+        for (E_Int j = 0; j < rbcount[i]; ) {
+            E_Int gid = pf[j++];
 
             // skip gfid
             j++;
-            //Int gfid = pf[j++];
+            //E_Int gfid = pf[j++];
             //assert(g2lf.find(gfid) != g2lf.end());
 
             auto it = gbc_to_lbc.find(gid);
@@ -977,7 +977,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     BPatch *bps = (BPatch *)XCALLOC(nbp, sizeof(BPatch));
 
-    for (Int i = 0; i < nbp; i++) {
+    for (E_Int i = 0; i < nbp; i++) {
         BPatch *P = &bps[i];
         P->gid = lbc_to_gbc[i];
         P->nf = lbc_to_size[i];
@@ -987,18 +987,18 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         P->type = NULL;
     }
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *tptr = &rtag[rtagdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *tptr = &rtag[rtagdist[i]];
         char *nptr = &rname[rnamedist[i]];
         char *Tptr = &rtype[rtypedist[i]];
 
-        for (Int j = 0; j < rtagcount[i]; j++) {
-            Int tag = tptr[j];
+        for (E_Int j = 0; j < rtagcount[i]; j++) {
+            E_Int tag = tptr[j];
 
             // bcname
             char bcname[1024];
             char c;
-            Int k = 0;
+            E_Int k = 0;
             while ((c = *nptr++)) {
                 bcname[k++] = c;
             }
@@ -1012,7 +1012,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             }
             bctype[k] = '\0';
 
-            Int ltag = gbc_to_lbc.at(tag);
+            E_Int ltag = gbc_to_lbc.at(tag);
             BPatch *P = &bps[ltag];
             if (P->name) continue;
 
@@ -1028,14 +1028,14 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &rbdata[rbdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &rbdata[rbdist[i]];
 
-        for (Int j = 0; j < rbcount[i]; ) {
-            Int gbc = pf[j++];
-            Int gfid = pf[j++];
+        for (E_Int j = 0; j < rbcount[i]; ) {
+            E_Int gbc = pf[j++];
+            E_Int gfid = pf[j++];
 
-            Int lbc = gbc_to_lbc[gbc];
+            E_Int lbc = gbc_to_lbc[gbc];
 
             BPatch *P = &bps[lbc];
 
@@ -1048,14 +1048,14 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     // Warning(Imad): reusing scount, rcount, sdist and rdist
     memset(scount, 0, M->npc * sizeof(int));
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &spdata[spdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &spdata[spdist[i]];
 
-        for (Int j = 0; j < spcount[i]; ) {
-            //Int gfid = pf[j++];
+        for (E_Int j = 0; j < spcount[i]; ) {
+            //E_Int gfid = pf[j++];
             j++; // skip gfid
             //if (M->g2lf.find(gfid) == M->g2lf.end()) abort();
-            Int proc = pf[j++];
+            E_Int proc = pf[j++];
 
             // We will be sending cmap[gown], gfid and gown
             scount[proc] += 3;
@@ -1064,27 +1064,27 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     MPI_Alltoall(scount, 1, MPI_INT, rcount, 1, MPI_INT, MPI_COMM_WORLD);
 
-    for (Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) {
         sdist[i+1] = sdist[i] + scount[i];
         rdist[i+1] = rdist[i] + rcount[i];
     }
 
-    Int *spinfo = IntArray(sdist[M->npc]);
-    Int *rpinfo = IntArray(rdist[M->npc]);
+    E_Int *spinfo = IntArray(sdist[M->npc]);
+    E_Int *rpinfo = IntArray(rdist[M->npc]);
 
-    for (Int i = 0; i < M->npc; i++) idx[i] = sdist[i];
+    for (E_Int i = 0; i < M->npc; i++) idx[i] = sdist[i];
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &spdata[spdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &spdata[spdist[i]];
 
-        for (Int j = 0; j < spcount[i]; ) {
-            Int gfid = pf[j++];
-            Int proc = pf[j++];
+        for (E_Int j = 0; j < spcount[i]; ) {
+            E_Int gfid = pf[j++];
+            E_Int proc = pf[j++];
 
-            Int lfid = M->g2lf[gfid];
+            E_Int lfid = M->g2lf[gfid];
             assert(Mesh_face_is_pface(M, lfid));
-            Int lown = M->owner[lfid];
-            Int gown = M->l2gc[lown];
+            E_Int lown = M->owner[lfid];
+            E_Int gown = M->l2gc[lown];
 
             spinfo[idx[proc]++] = cmap[lown];
             spinfo[idx[proc]++] = gfid;
@@ -1092,7 +1092,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    for (Int i = 0; i < M->npc; i++) assert(idx[i] == sdist[i+1]);
+    for (E_Int i = 0; i < M->npc; i++) assert(idx[i] == sdist[i+1]);
 
     MPI_Alltoallv(spinfo, scount, sdist, XMPI_INT,
                   rpinfo, rcount, rdist, XMPI_INT,
@@ -1100,24 +1100,24 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     
     // Parse comm patches
 
-    std::map<Int, Int> gproc_to_lproc;
-    std::map<Int, Int> lproc_to_gproc;
-    std::map<Int, Int> lproc_to_size;
+    std::map<E_Int, E_Int> gproc_to_lproc;
+    std::map<E_Int, E_Int> lproc_to_gproc;
+    std::map<E_Int, E_Int> lproc_to_size;
 
-    Int npp = 0;
+    E_Int npp = 0;
 
     // Former internal faces contributions
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &ridata[ridist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &ridata[ridist[i]];
 
-        for (Int j = 0; j < ricount[i]; ) {
-            Int proc = pf[j++];
+        for (E_Int j = 0; j < ricount[i]; ) {
+            E_Int proc = pf[j++];
             
-            //Int gfid = pf[j++];
+            //E_Int gfid = pf[j++];
             j++; // skip gfid
 
-            //Int gnei = pf[j++];
+            //E_Int gnei = pf[j++];
             j++; // skip gnei
 
             auto it = gproc_to_lproc.find(proc);
@@ -1139,11 +1139,11 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     
     // Former ppatch faces contributions
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &rpinfo[rdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &rpinfo[rdist[i]];
 
-        for (Int j = 0; j < rcount[i]; ) {
-            Int proc = pf[j++];
+        for (E_Int j = 0; j < rcount[i]; ) {
+            E_Int proc = pf[j++];
             assert(proc != M->pid);
 
             auto it = gproc_to_lproc.find(proc);
@@ -1163,17 +1163,17 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             // skip gnei;
             j++;
 
-            //Int gfid = pf[j++];
+            //E_Int gfid = pf[j++];
             //assert(g2lf.find(gfid) != g2lf.end());
 
-            //Int gnei = pf[j++];
+            //E_Int gnei = pf[j++];
             //assert(g2lc.find(gnei) == g2lc.end());
         }
     }
 
     PPatch *pps = (PPatch *)XCALLOC(npp, sizeof(PPatch));
 
-    for (Int i = 0; i < npp; i++) {
+    for (E_Int i = 0; i < npp; i++) {
         PPatch *P = &pps[i];
         P->nei = lproc_to_gproc[i];
         P->nf = lproc_to_size[i];
@@ -1182,13 +1182,13 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         P->nf = 0; // For the next loop.
     }
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &ridata[ridist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &ridata[ridist[i]];
 
-        for (Int j = 0; j < ricount[i]; ) {
-            Int proc = pf[j++];
-            Int gfid = pf[j++];
-            Int gnei = pf[j++];
+        for (E_Int j = 0; j < ricount[i]; ) {
+            E_Int proc = pf[j++];
+            E_Int gfid = pf[j++];
+            E_Int gnei = pf[j++];
 
             PPatch *P = &pps[gproc_to_lproc[proc]];
 
@@ -1200,13 +1200,13 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &rpinfo[rdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &rpinfo[rdist[i]];
 
-        for (Int j = 0; j < rcount[i]; ) {
-            Int proc = pf[j++];
-            Int gfid = pf[j++];
-            Int gnei = pf[j++];
+        for (E_Int j = 0; j < rcount[i]; ) {
+            E_Int proc = pf[j++];
+            E_Int gfid = pf[j++];
+            E_Int gnei = pf[j++];
 
             PPatch *P = &pps[gproc_to_lproc[proc]];
 
@@ -1220,18 +1220,18 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     // Sort pfaces/pneis
     
-    for (Int i = 0; i < npp; i++) {
+    for (E_Int i = 0; i < npp; i++) {
         PPatch *P = &pps[i];
 
-        std::vector<Int> indices(P->nf);
+        std::vector<E_Int> indices(P->nf);
         std::iota(indices.begin(), indices.end(), 0);
         std::sort(indices.begin(), indices.end(),
-            [&] (Int i, Int j) { return P->pf[i] < P->pf[j]; });
+            [&] (E_Int i, E_Int j) { return P->pf[i] < P->pf[j]; });
         
-        Int *pf = IntArray(P->nf);
-        Int *pn = IntArray(P->nf);
+        E_Int *pf = IntArray(P->nf);
+        E_Int *pn = IntArray(P->nf);
 
-        for (Int j = 0; j < P->nf; j++) {
+        for (E_Int j = 0; j < P->nf; j++) {
             // Replace with local indices
             pf[j] = g2lf.at(P->pf[indices[j]]);
             pn[j] = P->pn[indices[j]];
@@ -1248,30 +1248,30 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("Distributing cell adaptation data...");
 
-    Int *scref = IntArray(csdist[M->npc]);
-    Int *sclvl = IntArray(csdist[M->npc]);
-    Int *sctyp = IntArray(csdist[M->npc]);
+    E_Int *scref = IntArray(csdist[M->npc]);
+    E_Int *sclvl = IntArray(csdist[M->npc]);
+    E_Int *sctyp = IntArray(csdist[M->npc]);
     
-    Int *rcref = IntArray(nc);
-    Int *rclvl = IntArray(nc);
-    Int *rctyp = IntArray(nc);
+    E_Int *rcref = IntArray(nc);
+    E_Int *rclvl = IntArray(nc);
+    E_Int *rctyp = IntArray(nc);
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pc = &scids[csdist[i]];
-        Int *pr = &scref[csdist[i]];
-        Int *pl = &sclvl[csdist[i]];
-        Int *pt = &sctyp[csdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pc = &scids[csdist[i]];
+        E_Int *pr = &scref[csdist[i]];
+        E_Int *pl = &sclvl[csdist[i]];
+        E_Int *pt = &sctyp[csdist[i]];
         
-        for (Int j = 0; j < cscount[i]; j++) {
-            Int gcid = pc[j];
+        for (E_Int j = 0; j < cscount[i]; j++) {
+            E_Int gcid = pc[j];
             assert(M->g2lc.find(gcid) != M->g2lc.end());
             
-            Int lcid = M->g2lc[gcid];
+            E_Int lcid = M->g2lc[gcid];
             assert(lcid >= 0 && lcid < M->nc);
             
-            Int cval = M->cref[lcid];
-            Int clvl = M->clevel[lcid];
-            Int ctyp = M->ctype[lcid];
+            E_Int cval = M->cref[lcid];
+            E_Int clvl = M->clevel[lcid];
+            E_Int ctyp = M->ctype[lcid];
             
             *pr++ = cval;
             *pl++ = clvl;
@@ -1295,28 +1295,28 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("Distributing face adaptation data...");
     
-    Int *sflvl = IntArray(sfdist[M->npc]);
-    Int *sftyp = IntArray(sfdist[M->npc]);
-    Int *sfref = IntArray(sfdist[M->npc]);
+    E_Int *sflvl = IntArray(sfdist[M->npc]);
+    E_Int *sftyp = IntArray(sfdist[M->npc]);
+    E_Int *sfref = IntArray(sfdist[M->npc]);
 
-    Int *rflvl = IntArray(nf);
-    Int *rftyp = IntArray(nf);
-    Int *rfref = IntArray(nf);
+    E_Int *rflvl = IntArray(nf);
+    E_Int *rftyp = IntArray(nf);
+    E_Int *rfref = IntArray(nf);
 
-    for (Int i = 0; i < M->npc; i++) {
-        Int *pf = &sfids[sfdist[i]];
-        Int *pl = &sflvl[sfdist[i]];
-        Int *pt = &sftyp[sfdist[i]];
-        Int *pr = &sfref[sfdist[i]];
+    for (E_Int i = 0; i < M->npc; i++) {
+        E_Int *pf = &sfids[sfdist[i]];
+        E_Int *pl = &sflvl[sfdist[i]];
+        E_Int *pt = &sftyp[sfdist[i]];
+        E_Int *pr = &sfref[sfdist[i]];
         
-        for (Int j = 0; j < sfcount[i]; j++) {
-            Int gfid = pf[j];
-            Int lfid = M->g2lf.at(gfid);
+        for (E_Int j = 0; j < sfcount[i]; j++) {
+            E_Int gfid = pf[j];
+            E_Int lfid = M->g2lf.at(gfid);
             assert(lfid >= 0 && lfid < M->nf);
             
-            Int flvl = M->flevel[lfid];
-            Int ftyp = M->ftype[lfid];
-            Int fref = M->fref[lfid];
+            E_Int flvl = M->flevel[lfid];
+            E_Int ftyp = M->ftype[lfid];
+            E_Int fref = M->fref[lfid];
 
             *pl++ = flvl;
             *pt++ = ftyp;
@@ -1370,11 +1370,11 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     assert(M->face_to_bpatch.empty());
 
-    for (Int i = 0; i < M->nbp; i++) {
+    for (E_Int i = 0; i < M->nbp; i++) {
         BPatch *P = &M->bps[i];
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int lfid = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int lfid = P->pf[j];
             assert(lfid >= 0 && lfid < M->nf);
             M->face_to_bpatch[lfid] = i;
         }
@@ -1385,11 +1385,11 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     
     assert(M->face_to_ppatch.empty());
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int lfid = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int lfid = P->pf[j];
             assert(lfid >= 0 && lfid < M->nf);
             M->face_to_ppatch[lfid] = i;
         }
@@ -1403,15 +1403,15 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     // Set nface to local indices
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int *cell = Mesh_get_cell(M, i);
-        Int *crange = Mesh_get_crange(M, i);
-        Int cstride = M->cstride[i];
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int *cell = Mesh_get_cell(M, i);
+        E_Int *crange = Mesh_get_crange(M, i);
+        E_Int cstride = M->cstride[i];
 
-        for (Int j = 0; j < cstride; j++) {
-            Int *pf = cell + 4*j;
+        for (E_Int j = 0; j < cstride; j++) {
+            E_Int *pf = cell + 4*j;
 
-            for (Int k = 0; k < crange[j]; k++) {
+            for (E_Int k = 0; k < crange[j]; k++) {
                 pf[k] = M->g2lf[pf[k]];
                 assert(pf[k] < M->nf);
             }
@@ -1486,24 +1486,24 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     return 0;
 }
 
-Int Mesh_load_balance(Mesh *M)
+E_Int Mesh_load_balance(Mesh *M)
 {
-    Int *cwgts = compute_cell_weights(M);
+    E_Int *cwgts = compute_cell_weights(M);
 
-    Int *cmap = map_cell_graph(M, cwgts);
+    E_Int *cmap = map_cell_graph(M, cwgts);
 
     XFREE(cwgts);
 
     if (cmap == NULL) return 1;
 
-    Int ret = Mesh_redistribute(M, cmap);
+    E_Int ret = Mesh_redistribute(M, cmap);
 
-    Int gret = 0;
+    E_Int gret = 0;
     MPI_Allreduce(&ret, &gret, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     XFREE(cmap);
 
-    Int gnf = 0;
+    E_Int gnf = 0;
     MPI_Allreduce(&M->nf, &gnf, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD); 
 
     return gret;

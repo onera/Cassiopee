@@ -26,44 +26,44 @@ struct Karray {
     PyObject *pyobject;
 
     K_FLD::FldArrayF *f;
-    Int ni, nj, nk;
+    E_Int ni, nj, nk;
 
     K_FLD::FldArrayI *cn;
 
     E_Float *x, *y, *z;
-    Int npts;
+    E_Int npts;
 
-    inline Int npoints() const { return npts; }
-    inline Int nfaces() const { return cn->getNFaces(); }
-    inline Int ncells() const { return cn->getNElts(); }
+    inline E_Int npoints() const { return npts; }
+    inline E_Int nfaces() const { return cn->getNFaces(); }
+    inline E_Int ncells() const { return cn->getNElts(); }
     
-    inline Int *indpg() const { return cn->getIndPG(); }
-    inline Int *indph() const { return cn->getIndPH(); }
+    inline E_Int *indpg() const { return cn->getIndPG(); }
+    inline E_Int *indph() const { return cn->getIndPH(); }
 
-    inline Int *ngon() const { return cn->getNGon(); }
-    inline Int *nface() const { return cn->getNFace(); }
+    inline E_Int *ngon() const { return cn->getNGon(); }
+    inline E_Int *nface() const { return cn->getNFace(); }
 
-    inline Float *X() const { return x; }
-    inline Float *Y() const { return y; }
-    inline Float *Z() const { return z; }
+    inline E_Float *X() const { return x; }
+    inline E_Float *Y() const { return y; }
+    inline E_Float *Z() const { return z; }
 
-    inline Int *get_face(Int face, Int &np) const
+    inline E_Int *get_face(E_Int face, E_Int &np) const
     { return cn->getFace(face, np, ngon(), indpg()); }
 
-    inline Int *get_cell(Int cell, Int &nf) const
+    inline E_Int *get_cell(E_Int cell, E_Int &nf) const
     { return cn->getElt(cell, nf, nface(), indph()); }
 
-    inline Int orient_boundary()
+    inline E_Int orient_boundary()
     { return K_CONNECT::orient_boundary_ngon(X(), Y(), Z(), *cn); }
 
-    inline Int build_parent_elements(Int *owner, Int *neigh)
+    inline E_Int build_parent_elements(E_Int *owner, E_Int *neigh)
     { return K_CONNECT::build_parent_elements_ngon(*cn, owner, neigh); }
 };
 
 void Karray_free_ngon(Karray &karray);
 
-Int Karray_parse_ngon(PyObject *pyobject, Karray &karray);
+E_Int Karray_parse_ngon(PyObject *pyobject, Karray &karray);
 
 void Karray_free_structured(Karray &karray);
 
-Int Karray_parse_structured(PyObject *pyobject, Karray &karray);
+E_Int Karray_parse_structured(PyObject *pyobject, Karray &karray);

@@ -22,9 +22,9 @@
 #include "common/common.h"
 
 struct TriangleIntersection {
-    Float x, y, z;
-    Float u, v;
-    Float t;
-    Int face;
-    Int tri;
+    E_Float x, y, z;
+    E_Float u, v;
+    E_Float t;
+    E_Int face;
+    E_Int tri;
 };

@@ -19,14 +19,14 @@
 #include "event.h"
 #include "vertex.h"
 
-Event::Event(Float x, Float y, Float z)
+Event::Event(E_Float x, E_Float y, E_Float z)
 {
     key = new Vertex(x, y, z);
     inf = NULL;
     left = right = NULL;
 }
 
-Event::Event(Float x, Float y, Float z, Int oid, Int color)
+Event::Event(E_Float x, E_Float y, E_Float z, E_Int oid, E_Int color)
 {
     key = new Vertex(x, y, z, oid, color);
     inf = NULL;

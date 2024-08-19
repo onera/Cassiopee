@@ -23,7 +23,7 @@
 #include "Edge.h"
 
 static inline
-void refine_cell_iso(Int cell, Mesh *M)
+void refine_cell_iso(E_Int cell, Mesh *M)
 {
     switch (M->ctype[cell]) {
         case HEXA:
@@ -35,35 +35,35 @@ void refine_cell_iso(Int cell, Mesh *M)
     }
 }
 
-void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
-    std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges)
+void Mesh_refine_iso(Mesh *M, std::vector<E_Int> &ref_cells,
+    std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges)
 {
-    std::set<Int> levelset;
+    std::set<E_Int> levelset;
 
-    for (Int cell : ref_cells) {
+    for (E_Int cell : ref_cells) {
         levelset.insert(M->clevel[cell]);
     }
 
-    for (Int face : ref_faces) {
+    for (E_Int face : ref_faces) {
         levelset.insert(M->flevel[face]);
     }
 
-    std::vector<Int> levels;
-    for (Int level : levelset) levels.push_back(level);
+    std::vector<E_Int> levels;
+    for (E_Int level : levelset) levels.push_back(level);
     std::sort(levels.begin(), levels.end());
 
     std::reverse(ref_cells.begin(), ref_cells.end());
     std::reverse(ref_faces.begin(), ref_faces.end());
 
-    for (Int level : levels) {
+    for (E_Int level : levels) {
         while (!ref_faces.empty() && M->flevel[ref_faces.back()] == level) {
-            Int face = ref_faces.back();
+            E_Int face = ref_faces.back();
             ref_faces.pop_back();
             refine_face_iso(face, M);
         }
 
         while (!ref_cells.empty() && M->clevel[ref_cells.back()] == level) {
-            Int cell = ref_cells.back();
+            E_Int cell = ref_cells.back();
             ref_cells.pop_back();
             refine_cell_iso(cell, M);
         }
@@ -71,13 +71,13 @@ void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
 }
 
 /*
-void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
-    std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges)
+void Mesh_refine_iso(Mesh *M, std::vector<E_Int> &ref_cells,
+    std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges)
 {
     // Adapt the cells that do not need face adaptation
 
     if (ref_faces.empty()) {
-        for (Int cell : ref_cells) refine_cell_iso(cell, M);
+        for (E_Int cell : ref_cells) refine_cell_iso(cell, M);
         
         return;
     }
@@ -85,7 +85,7 @@ void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
     // Adapt the faces that are not linked to local cells
 
     if (ref_cells.empty()) {
-        for (Int face : ref_faces) refine_face_iso(face, M);
+        for (E_Int face : ref_faces) refine_face_iso(face, M);
 
         return;
     }
@@ -93,11 +93,11 @@ void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
     // Refine first cells whose level is less than the smallest ref_face level
     // Note(Imad): the faces are pre-sorted by increasing level
 
-    Int min_flvl = M->flevel[ref_faces[0]];
+    E_Int min_flvl = M->flevel[ref_faces[0]];
 
     // Refine the "lagging" cells
 
-    Int cell_start = 0;
+    E_Int cell_start = 0;
 
     while (M->clevel[ref_cells[cell_start]] < min_flvl) {
         refine_cell_iso(ref_cells[cell_start], M);
@@ -106,9 +106,9 @@ void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
 
     // Now refine lagging faces
     
-    Int min_clvl = M->clevel[ref_cells[cell_start]];
+    E_Int min_clvl = M->clevel[ref_cells[cell_start]];
 
-    Int face_start = 0;
+    E_Int face_start = 0;
 
     while (M->flevel[ref_faces[face_start]] < min_clvl) {
         refine_face_iso(ref_faces[face_start], M);
@@ -118,12 +118,12 @@ void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
 
     // At this point the remaining ref faces/cells should be at the same level
 
-    Int cells_left = (Int)ref_cells.size() - cell_start;
-    Int faces_left = (Int)ref_faces.size() - face_start;
+    E_Int cells_left = (E_Int)ref_cells.size() - cell_start;
+    E_Int faces_left = (E_Int)ref_faces.size() - face_start;
 
     // Refine faces and cells, by increasing level
 
-    Int current_lvl = M->clevel[ref_cells[cell_start]];
+    E_Int current_lvl = M->clevel[ref_cells[cell_start]];
 
     while (cells_left || faces_left) {
 
@@ -133,7 +133,7 @@ void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
             
             if (M->flevel[ref_faces[face_start]] > current_lvl) break;
             
-            Int face = ref_faces[face_start];
+            E_Int face = ref_faces[face_start];
 
             refine_face_iso(face, M);
 
@@ -147,7 +147,7 @@ void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
             
             if (M->clevel[ref_cells[cell_start]] > current_lvl) break;
 
-            Int cell = ref_cells[cell_start];
+            E_Int cell = ref_cells[cell_start];
 
             refine_cell_iso(cell, M);
 

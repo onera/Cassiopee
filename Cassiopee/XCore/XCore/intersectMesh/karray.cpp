@@ -24,9 +24,9 @@ void Karray_free_ngon(Karray &karray)
     RELEASESHAREDU(karray.pyobject, karray.f, karray.cn);
 }
 
-Int Karray_parse_ngon(PyObject *pyobject, Karray &karray)
+E_Int Karray_parse_ngon(PyObject *pyobject, Karray &karray)
 {
-    Int ret;
+    E_Int ret;
 
     char *varString;
     char *eltType;
@@ -45,9 +45,9 @@ Int Karray_parse_ngon(PyObject *pyobject, Karray &karray)
         return 1;
     }
     
-    Int posx = K_ARRAY::isCoordinateXPresent(varString);
-    Int posy = K_ARRAY::isCoordinateYPresent(varString);
-    Int posz = K_ARRAY::isCoordinateZPresent(varString);
+    E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+    E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+    E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
 
     if (posx == -1 || posy == -1 || posz == -1) {
         Karray_free_ngon(karray);
@@ -72,9 +72,9 @@ void Karray_free_structured(Karray &karray)
     RELEASESHAREDS(karray.pyobject, karray.f);
 }
 
-Int Karray_parse_structured(PyObject *pyobject, Karray &karray)
+E_Int Karray_parse_structured(PyObject *pyobject, Karray &karray)
 {
-    Int ret;
+    E_Int ret;
 
     char *varString;
     char *eltType;
@@ -93,9 +93,9 @@ Int Karray_parse_structured(PyObject *pyobject, Karray &karray)
         return 1;
     }
 
-    Int posx = K_ARRAY::isCoordinateXPresent(varString);
-    Int posy = K_ARRAY::isCoordinateYPresent(varString);
-    Int posz = K_ARRAY::isCoordinateZPresent(varString);
+    E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+    E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+    E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
 
     if (posx == -1 || posy == -1 || posz == -1) {
         RAISE("Coordinates not found");

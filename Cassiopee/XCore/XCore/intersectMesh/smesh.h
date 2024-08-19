@@ -30,55 +30,55 @@
 struct IMesh;
 
 struct o_edge {
-    Int p, q;
+    E_Int p, q;
 
-    o_edge(Int P, Int Q);
+    o_edge(E_Int P, E_Int Q);
 };
 
 struct Smesh {
-    Int np, ne, nf;
+    E_Int np, ne, nf;
 
-    std::vector<Float> X, Y, Z;
-    std::vector<std::vector<Int>> P2F;
-    std::vector<std::vector<Int>> P2E;
+    std::vector<E_Float> X, Y, Z;
+    std::vector<std::vector<E_Int>> P2F;
+    std::vector<std::vector<E_Int>> P2E;
     
     std::vector<o_edge> E;
-    std::vector<std::array<Int, 2>> E2F;
+    std::vector<std::array<E_Int, 2>> E2F;
 
-    std::vector<std::vector<Int>> F;
-    std::vector<std::vector<Int>> F2E;
-    std::vector<std::vector<Int>> F2F;
+    std::vector<std::vector<E_Int>> F;
+    std::vector<std::vector<E_Int>> F2E;
+    std::vector<std::vector<E_Int>> F2F;
 
-    Int M_np;
-    Int M_ne;
-    Int M_nf;
+    E_Int M_np;
+    E_Int M_ne;
+    E_Int M_nf;
 
-    std::map<Int, Int> g2lp;
-    std::map<Int, Int> l2gp;
+    std::map<E_Int, E_Int> g2lp;
+    std::map<E_Int, E_Int> l2gp;
 
-    std::map<Int, Int> g2lf;
-    std::map<Int, Int> l2gf;
+    std::map<E_Int, E_Int> g2lf;
+    std::map<E_Int, E_Int> l2gf;
 
-    std::map<Int, Int> g2le;
-    std::map<Int, Int> l2ge;
+    std::map<E_Int, E_Int> g2le;
+    std::map<E_Int, E_Int> l2ge;
 
-    std::vector<Float> fnormals;
-    std::vector<Float> pnormals;
+    std::vector<E_Float> fnormals;
+    std::vector<E_Float> pnormals;
 
     void make_fnormals();
     void make_pnormals();
 
     // Adaptation
-    void get_leaves(Int face, std::vector<Int> &leaves) const;
+    void get_leaves(E_Int face, std::vector<E_Int> &leaves) const;
 
 
-    std::map<Int, std::vector<Int>> fchildren;
-    std::set<Int> factive;
-    std::vector<Int> flevel;
+    std::map<E_Int, std::vector<E_Int>> fchildren;
+    std::set<E_Int> factive;
+    std::vector<E_Int> flevel;
 
-    std::map<Int, std::vector<Int>> echildren;
-    std::set<Int> eactive;
-    std::vector<Int> elevel;
+    std::map<E_Int, std::vector<E_Int>> echildren;
+    std::set<E_Int> eactive;
+    std::vector<E_Int> elevel;
 
     Smesh() {};
 
@@ -86,9 +86,9 @@ struct Smesh {
 
     Smesh(const IMesh &M);
     
-    Smesh(const IMesh &M, const std::vector<Int> &faces);
+    Smesh(const IMesh &M, const std::vector<E_Int> &faces);
 
-    bool ccw_oriented(Int face);
+    bool ccw_oriented(E_Int face);
 
     void make_edges();
 
@@ -98,37 +98,37 @@ struct Smesh {
     
     void make_point_edges();
 
-    inline bool edge_is_active(Int edge) const
+    inline bool edge_is_active(E_Int edge) const
     { return eactive.find(edge) != eactive.end(); }
 
-    inline bool face_is_active(Int face) const
+    inline bool face_is_active(E_Int face) const
     { return factive.find(face) != factive.end(); }
 
     size_t refine(Smesh &M);
 
-    std::vector<pointFace> locate(Float x, Float y, Float z) const;
+    std::vector<pointFace> locate(E_Float x, E_Float y, E_Float z) const;
 
-    void write_faces(const char *fname, const std::vector<Int> &faces);
+    void write_faces(const char *fname, const std::vector<E_Int> &faces);
 
     void write_ngon(const char *fname);
 
-    inline bool face_is_tri(Int fid) const { return F[fid].size() == 3; }
+    inline bool face_is_tri(E_Int fid) const { return F[fid].size() == 3; }
 
-    inline bool face_is_quad(Int fid) const { return F[fid].size() == 4; }
+    inline bool face_is_quad(E_Int fid) const { return F[fid].size() == 4; }
 
-    bool face_contains_Mface(Int face, Int mface, const Smesh &M) const;
+    bool face_contains_Mface(E_Int face, E_Int mface, const Smesh &M) const;
 
-    Int face_contains_point(Int face, Float x, Float y, Float z) const;
+    E_Int face_contains_point(E_Int face, E_Float x, E_Float y, E_Float z) const;
 
-    std::vector<Int> smooth_ref_data(std::map<Int, std::vector<Int>> &sensor);
+    std::vector<E_Int> smooth_ref_data(std::map<E_Int, std::vector<E_Int>> &sensor);
 
-    std::vector<Int> prepare_for_refinement(const std::vector<Int> &ref_data);
+    std::vector<E_Int> prepare_for_refinement(const std::vector<E_Int> &ref_data);
 
-    void refine_faces(const std::vector<Int> &ref_faces);
+    void refine_faces(const std::vector<E_Int> &ref_faces);
 
-    std::vector<Int> get_active_neighbours(Int face);
+    std::vector<E_Int> get_active_neighbours(E_Int face);
 
-    inline Int get_neighbour(Int face, Int edge) const
+    inline E_Int get_neighbour(E_Int face, E_Int edge) const
     {
         assert(E2F[edge][0] == face || E2F[edge][1] == face);
         return (E2F[edge][0] == face) ? E2F[edge][1] : E2F[edge][0];
@@ -140,13 +140,13 @@ struct Smesh {
 
     void resize_face_data(size_t nref_faces);
 
-    void refine_tri(Int tri);
+    void refine_tri(E_Int tri);
 
-    void refine_quad(Int quad);
+    void refine_quad(E_Int quad);
 
-    void refine_edge(Int edge);
+    void refine_edge(E_Int edge);
     
-    inline Int get_edge_center(Int edge)
+    inline E_Int get_edge_center(E_Int edge)
     {
         assert(echildren.find(edge) != echildren.end());
         return E[echildren[edge][0]].q;
@@ -156,5 +156,5 @@ struct Smesh {
 
     Smesh extract_conformized();
 
-    bool faces_are_dups(Int face, Int mface, const Smesh &M);
+    bool faces_are_dups(E_Int face, E_Int mface, const Smesh &M);
 };

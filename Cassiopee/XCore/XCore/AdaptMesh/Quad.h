@@ -21,14 +21,14 @@
 #include "common/common.h"
 #include "Mesh.h"
 
-Int Q9_refine(Int quad, Mesh *M);
+E_Int Q9_refine(E_Int quad, Mesh *M);
 
-Int Q6_refine(Int quad, Mesh *M);
+E_Int Q6_refine(E_Int quad, Mesh *M);
 
-void Q4_reorder(Int *pn, Int reorient, Int i0, Int local[4]);
+void Q4_reorder(E_Int *pn, E_Int reorient, E_Int i0, E_Int local[4]);
 
 inline
-void refine_face_iso(Int face, Mesh *M)
+void refine_face_iso(E_Int face, Mesh *M)
 {
     switch (M->ftype[face]) {
         case QUAD:

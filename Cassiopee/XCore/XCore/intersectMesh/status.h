@@ -24,7 +24,7 @@
 
 struct Status {
     Snode *root;
-    Float rx, ry;
+    E_Float rx, ry;
 
     Status();
 

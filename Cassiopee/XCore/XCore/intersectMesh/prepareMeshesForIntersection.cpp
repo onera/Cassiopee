@@ -41,7 +41,7 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     Karray marray;
     Karray sarray;
 
-    Int ret;
+    E_Int ret;
 
     ret = Karray_parse_ngon(MASTER, marray);
 
@@ -59,8 +59,8 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
     // Check intersection patch
-    Int *mpatch = NULL;
-    Int mpatch_size = -1;
+    E_Int *mpatch = NULL;
+    E_Int mpatch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(PATCH, mpatch, mpatch_size, true);
     if (ret != 1) {
         Karray_free_ngon(marray);
@@ -71,11 +71,11 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
 
     printf("Master patch: " SF_D_ " faces\n", mpatch_size);
 
-    for (Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]-1);
+    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]-1);
 
     // Check slave point tags
-    Float *tag = NULL;
-    Int tag_size = -1;
+    E_Float *tag = NULL;
+    E_Int tag_size = -1;
     ret = K_NUMPY::getFromNumpyArray(TAG, tag, tag_size, true);
     if (ret != 1) {
         Karray_free_ngon(marray);
@@ -86,15 +86,15 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
  
     // Extract Mf and Sf, the planar surfaces to intersect
     // TODO(Imad): quasi-planar surfaces
-    for (Int i = 0; i < S.nf; i++) {
+    for (E_Int i = 0; i < S.nf; i++) {
         const auto &pn = S.F[i];
         size_t stride = pn.size();
         assert(stride == 3 || stride == 4);
 
-        Int keep = 1;
+        E_Int keep = 1;
 
         for (size_t j = 0; j < stride; j++) {
-            Int point = pn[j];
+            E_Int point = pn[j];
             if (tag[point] == 0) {
                 keep = 0;
                 break;
@@ -133,15 +133,15 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     
     dims[0] = (npy_intp)M.patch.size();
     PyArrayObject *MP = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-    Int *mptr = (Int *)PyArray_DATA(MP);
-    Int *ptr = mptr;
-    for (Int face : M.patch) *ptr++ = face;
+    E_Int *mptr = (E_Int *)PyArray_DATA(MP);
+    E_Int *ptr = mptr;
+    for (E_Int face : M.patch) *ptr++ = face;
 
     dims[0] = (npy_intp)S.patch.size();
     PyArrayObject *SP = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-    Int *sptr = (Int *)PyArray_DATA(SP);
+    E_Int *sptr = (E_Int *)PyArray_DATA(SP);
     ptr = sptr;
-    for (Int face : S.patch) *ptr++ = face;
+    for (E_Int face : S.patch) *ptr++ = face;
 
     PyList_Append(Out, (PyObject *)MP);
     PyList_Append(Out, (PyObject *)SP);

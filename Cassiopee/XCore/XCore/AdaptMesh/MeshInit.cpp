@@ -86,14 +86,14 @@ Mesh::Mesh()
 
 Mesh *Mesh_from_Karray(Karray *karray)
 {    
-    Int np = karray->npoints();
-    Float *X = karray->X();
-    Float *Y = karray->Y();
-    Float *Z = karray->Z();
+    E_Int np = karray->npoints();
+    E_Float *X = karray->X();
+    E_Float *Y = karray->Y();
+    E_Float *Z = karray->Z();
 
-    Int nf = karray->nfaces();
+    E_Int nf = karray->nfaces();
     
-    Int nc = karray->ncells();
+    E_Int nc = karray->ncells();
 
     Mesh *M = new Mesh;
 
@@ -102,28 +102,28 @@ Mesh *Mesh_from_Karray(Karray *karray)
     M->Y = FloatArray(np);
     M->Z = FloatArray(np);
 
-    memcpy(M->X, X, np * sizeof(Float));
-    memcpy(M->Y, Y, np * sizeof(Float));
-    memcpy(M->Z, Z, np * sizeof(Float));
+    memcpy(M->X, X, np * sizeof(E_Float));
+    memcpy(M->Y, Y, np * sizeof(E_Float));
+    memcpy(M->Z, Z, np * sizeof(E_Float));
 
     M->nf = nf;
 
     M->faces = IntArray(8 * M->nf);
-    memset(M->faces, -1, 8 * M->nf * sizeof(Int));
+    memset(M->faces, -1, 8 * M->nf * sizeof(E_Int));
     M->fstride = IntArray(M->nf);
     M->frange = IntArray(4 * M->nf);
 
-    for (Int i = 0; i < M->nf; i++) {
-        Int np = -1;
-        Int *pn = karray->get_face(i, np);
+    for (E_Int i = 0; i < M->nf; i++) {
+        E_Int np = -1;
+        E_Int *pn = karray->get_face(i, np);
         assert(np != -1);
 
         M->fstride[i] = np;
         
-        Int *face = Mesh_get_face(M, i);
-        Int *frange = Mesh_get_frange(M, i);
+        E_Int *face = Mesh_get_face(M, i);
+        E_Int *frange = Mesh_get_frange(M, i);
 
-        for (Int j = 0; j < np; j++) {
+        for (E_Int j = 0; j < np; j++) {
             face[2*j] = pn[j] - 1;
             frange[j] = 1;
         }
@@ -132,21 +132,21 @@ Mesh *Mesh_from_Karray(Karray *karray)
     M->nc = nc;
 
     M->cells = IntArray(24 * M->nc);
-    memset(M->cells, -1, 24 * M->nc * sizeof(Int));
+    memset(M->cells, -1, 24 * M->nc * sizeof(E_Int));
     M->cstride = IntArray(M->nc);
     M->crange = IntArray(6 * M->nc);
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int nf = -1;
-        Int *pf = karray->get_cell(i, nf);
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int nf = -1;
+        E_Int *pf = karray->get_cell(i, nf);
         assert(nf != -1);
 
         M->cstride[i] = nf;
         
-        Int *cell = &M->cells[24*i];
-        Int *crange = &M->crange[6*i];
+        E_Int *cell = &M->cells[24*i];
+        E_Int *crange = &M->crange[6*i];
 
-        for (Int j = 0; j < nf; j++) {
+        for (E_Int j = 0; j < nf; j++) {
             cell[4*j] = pf[j] - 1;
             crange[j] = 1;
         }

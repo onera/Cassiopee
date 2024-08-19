@@ -28,14 +28,14 @@ struct Vertex;
 
 struct Cycle {
     Hedge *rep;
-    Int inout;
+    E_Int inout;
     Vertex *left;
     Cycle *prev;
     Cycle *next;
 
-    static Int INNER;
-    static Int OUTER;
-    static Int DEGEN;
+    static E_Int INNER;
+    static E_Int OUTER;
+    static E_Int DEGEN;
 
     Cycle(Hedge *Rep);
     void print() const;

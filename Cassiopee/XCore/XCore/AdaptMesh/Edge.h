@@ -23,9 +23,9 @@
 struct Mesh;
 
 struct DEdge {
-    Int p, q;
+    E_Int p, q;
 
-    DEdge(Int P, Int Q)
+    DEdge(E_Int P, E_Int Q)
     : p(P), q(Q)
     {}
 
@@ -35,4 +35,4 @@ struct DEdge {
     }
 };
 
-Int refine_edge(Int eid, Mesh *M);
+E_Int refine_edge(E_Int eid, Mesh *M);

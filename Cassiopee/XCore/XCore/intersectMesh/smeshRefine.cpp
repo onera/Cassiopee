@@ -27,24 +27,24 @@ size_t Smesh::refine(Smesh &M)
     std::vector<std::vector<pointFace>> pfs;
     pfs.reserve(M.np);
 
-    for (Int i = 0; i < M.np; i++) {
+    for (E_Int i = 0; i < M.np; i++) {
         auto pf = locate(M.X[i], M.Y[i], M.Z[i]);
         pfs.push_back(pf);
     }
 
     // Face to mpoints located within it
-    std::map<Int, std::vector<Int>> fpoints;
+    std::map<E_Int, std::vector<E_Int>> fpoints;
 
     for (size_t i = 0; i < pfs.size(); i++) {
         for (const auto &faces : pfs[i]) {
-            Int F = faces.F;
+            E_Int F = faces.F;
             fpoints[F].push_back(i);
         }
     }
 
     // Keep the faces which contain 3 points or more
-    std::map<Int, std::vector<Int>> filtered_faces_map;
-    std::vector<Int> filtered_faces;
+    std::map<E_Int, std::vector<E_Int>> filtered_faces_map;
+    std::vector<E_Int> filtered_faces;
 
     for (auto &fpts : fpoints) {
         if (fpts.second.size() >= 3) {
@@ -56,24 +56,24 @@ size_t Smesh::refine(Smesh &M)
     // Make point-to-face connectivity for M
     M.make_point_faces();
 
-    std::map<Int, std::vector<Int>> ref_faces_to_Mfaces;
+    std::map<E_Int, std::vector<E_Int>> ref_faces_to_Mfaces;
 
     for (const auto &fdata : filtered_faces_map) {
-        Int face = fdata.first;
+        E_Int face = fdata.first;
         const auto &points = fdata.second;
 
         // For every mface, how many points are contained within face?
-        std::map<Int, size_t> mcontained;
+        std::map<E_Int, size_t> mcontained;
 
-        for (Int p : points) {
-            for (Int mface : M.P2F[p]) {
+        for (E_Int p : points) {
+            for (E_Int mface : M.P2F[p]) {
                 assert(M.face_is_active(mface));
                 mcontained[mface]++;
             }
         }
 
         for (const auto &mfdat : mcontained) {
-            Int mface = mfdat.first;
+            E_Int mface = mfdat.first;
             size_t npts = mfdat.second;
 
             assert(npts <= M.F[mface].size());
@@ -96,7 +96,7 @@ size_t Smesh::refine(Smesh &M)
         filtered_faces.push_back(fdata.first);
     }
 
-    Int iter = 0;
+    E_Int iter = 0;
     size_t ret = 0;
 
     while (!ref_faces_to_Mfaces.empty()) {
@@ -110,16 +110,16 @@ size_t Smesh::refine(Smesh &M)
 
         refine_faces(ref_faces);
 
-        std::map<Int, std::vector<Int>> new_ref_faces_to_Mfaces;
+        std::map<E_Int, std::vector<E_Int>> new_ref_faces_to_Mfaces;
 
         for (const auto &fdata : ref_faces_to_Mfaces) {
-            Int parent = fdata.first;
+            E_Int parent = fdata.first;
             const auto &Mfaces = fdata.second;
 
             const auto &children = fchildren[parent];
 
             for (auto child : children) {
-                for (Int mface : Mfaces) {
+                for (E_Int mface : Mfaces) {
                     if (face_contains_Mface(child, mface, M)) {
                         assert(!faces_are_dups(child, mface, M));
                         new_ref_faces_to_Mfaces[child].push_back(mface);
@@ -134,16 +134,16 @@ size_t Smesh::refine(Smesh &M)
     return ret;
 }
 
-void Smesh::refine_edge(Int edge)
+void Smesh::refine_edge(E_Int edge)
 {
-    Int p = E[edge].p;
-    Int q = E[edge].q;
+    E_Int p = E[edge].p;
+    E_Int q = E[edge].q;
 
     // Rounding errors!
     X[np] = 0.5 * (X[p] + X[q]);
     Y[np] = 0.5 * (Y[p] + Y[q]);
 
-    Int ne1 = ne + 1;
+    E_Int ne1 = ne + 1;
 
     E[ne].p = p;
     E[ne].q = np;
@@ -170,20 +170,20 @@ void Smesh::refine_edge(Int edge)
     ne += 2;
 }
 
-void Smesh::refine_quad(Int quad)
+void Smesh::refine_quad(E_Int quad)
 {
     // Refine the edges
     const auto &pe = F2E[quad];
     assert(pe.size() == 4);
-    for (Int edge : pe) {
+    for (E_Int edge : pe) {
         if (echildren.find(edge) == echildren.end()) {
             refine_edge(edge);
         }
     }
 
     // Edge centers
-    Int ec[4];
-    for (Int i = 0; i < 4; i++) {
+    E_Int ec[4];
+    for (E_Int i = 0; i < 4; i++) {
         ec[i] = get_edge_center(pe[i]);
     }
 
@@ -191,8 +191,8 @@ void Smesh::refine_quad(Int quad)
     const auto &pn = F[quad];
 
     X[np] = Y[np] = 0.0;
-    for (Int i = 0; i < 4; i++) {
-        Int p = pn[i];
+    for (E_Int i = 0; i < 4; i++) {
+        E_Int p = pn[i];
         X[np] += X[p];
         Y[np] += Y[p];
     }
@@ -200,7 +200,7 @@ void Smesh::refine_quad(Int quad)
     Y[np] *= 0.25;
 
     // New face points
-    Int nf0 = nf, nf1 = nf+1, nf2 = nf+2, nf3 = nf+3;
+    E_Int nf0 = nf, nf1 = nf+1, nf2 = nf+2, nf3 = nf+3;
 
     F[nf0] = { pn[0], ec[0], np,    ec[3] };
     F[nf1] = { ec[0], pn[1], ec[1], np    };
@@ -208,7 +208,7 @@ void Smesh::refine_quad(Int quad)
     F[nf3] = { ec[3], np   , ec[2], pn[3] };
 
     // Internal edge points
-    Int ne0 = ne, ne1 = ne+1, ne2 = ne+2, ne3 = ne+3;
+    E_Int ne0 = ne, ne1 = ne+1, ne2 = ne+2, ne3 = ne+3;
     
     E[ne0].p = ec[0]; E[ne0].q = np;
     E[ne1].p = ec[1]; E[ne1].q = np;
@@ -221,7 +221,7 @@ void Smesh::refine_quad(Int quad)
     const auto &pe2 = echildren[pe[2]];
     const auto &pe3 = echildren[pe[3]];
 
-    Int eid[8];
+    E_Int eid[8];
     eid[0] = pe0[0]; eid[1] = pe0[1];
     eid[2] = pe1[0]; eid[3] = pe1[1];
     eid[4] = pe2[0]; eid[5] = pe2[1];
@@ -238,17 +238,17 @@ void Smesh::refine_quad(Int quad)
     F2E[nf3] = { ne3   , ne2   , eid[5], eid[6] };
 
     // External E2F
-    for (Int i = 0; i < 4; i++) {
-        Int fchild = nf + i;
+    for (E_Int i = 0; i < 4; i++) {
+        E_Int fchild = nf + i;
         const auto &pe = F2E[fchild];
-        for (Int j = 0; j < 4; j++) {
-            Int edge = pe[j];
+        for (E_Int j = 0; j < 4; j++) {
+            E_Int edge = pe[j];
             if      (E2F[edge][0] == quad) E2F[edge][0] = fchild;
             else if (E2F[edge][1] == quad) E2F[edge][1] = fchild;
         }
     }
 
-    // Internal E2F
+    // E_Internal E2F
     E2F[ne0][0] = nf0; E2F[ne0][1] = nf1;
     E2F[ne1][0] = nf1; E2F[ne1][1] = nf2;
     E2F[ne2][0] = nf2; E2F[ne2][1] = nf3;
@@ -289,18 +289,18 @@ void Smesh::refine_quad(Int quad)
     nf += 4;
 }
 
-void Smesh::refine_tri(Int tri)
+void Smesh::refine_tri(E_Int tri)
 {
     printf(SF_D_ "\n", tri);
     assert(0);
 }
 
-void Smesh::get_leaves(Int face, std::vector<Int> &leaves) const
+void Smesh::get_leaves(E_Int face, std::vector<E_Int> &leaves) const
 {
     if (face_is_active(face)) {
         leaves.push_back(face);
         return;
     }
 
-    for (Int child : fchildren.at(face)) get_leaves(child, leaves);
+    for (E_Int child : fchildren.at(face)) get_leaves(child, leaves);
 }
