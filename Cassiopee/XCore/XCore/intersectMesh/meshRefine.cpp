@@ -32,7 +32,9 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
     do {
         iter++;
         refM = M.refine(M.patch, S.patch, S);
+        printf("Refined mf: %zu\n", refM);
         refS = S.refine(S.patch, M.patch, M);
+        printf("Refined sf: %zu\n", refS);
     } while (refM > 0 || refS > 0);
 
     return 0;

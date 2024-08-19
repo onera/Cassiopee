@@ -113,6 +113,7 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
     E_Int nj = sarray.nj;
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
+    
 
     /**************************************************************************/
 
@@ -142,7 +143,9 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
         if (inside) break;
     }
 
-    //point_write("inside", Xs, Ys, Zs, inside_point);
+    //char fname2[128] = {};
+    //sprintf(fname2, "inside%d", idx);
+    //point_write(fname2, Xs, Ys, Zs, inside_point);
 
     printf("Intersection plane index k: %d\n", kmax);
 
@@ -155,7 +158,9 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
         ind++;
     }
 
-    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+    //char fname[128] = {};
+    //sprintf(fname, "proj_points%d", idx);
+    //point_write(fname, Xs, Ys, Zs, proj_points);
 
     /**************************************************************************/
 
@@ -181,6 +186,7 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
 
         E_Int A, B, C;
         E_Int hit = -1;
+        E_Float t_last = E_FLOAT_MAX;
 
         for (E_Int fid = 0; fid < patch_size; fid++) {
             E_Int face = patch[fid];
@@ -199,11 +205,12 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
                                  X[C], Y[C], Z[C],
                                  TI);
 
-            if (hit) {
+            if (hit && TI.t < t_last) {
+                t_last = TI.t;
                 TI.face = face;
                 TI.tri = 0;
                 point_hit_table[p] = TI;
-                break;
+                continue;
             }
             
             if (pn.size() == 3)
@@ -218,16 +225,20 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
                                  X[C], Y[C], Z[C],
                                  TI);
 
-            if (hit) {
+            if (hit && TI.t < t_last) {
+                t_last = TI.t;
                 TI.face = face;
                 TI.tri = 1;
                 point_hit_table[p] = TI;
-                break;
             }
         }
 
         // point must hit!
-        assert(hit == 1);
+        assert(point_hit_table.find(p) != point_hit_table.end());
+        if (point_hit_table.find(p) == point_hit_table.end()) {
+            puts("AIE!");
+            abort();
+        }
     }
 
     /*
@@ -241,7 +252,9 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
     fclose(fh);
     */
 
-    //edge_write("projection", Xs, Ys, Zs, point_hit_table);
+    //char fname3[128] = {};
+    //sprintf(fname3, "projection%d", idx);
+    //edge_write(fname3, Xs, Ys, Zs, point_hit_table);
 
     /*************************************************************************/
     
