@@ -481,3 +481,26 @@ def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
     z2 = C.convertArrays2ZoneNode('bumpAtlas', [ret[2]])
     if len(ret) > 3: z3 = C.convertArrays2ZoneNode('speedAtlas', [ret[3]])
     return z0, z1, z2
+
+def getUVFromIJ(t):
+    tp = Internal.copyRef(t)
+    _getUVFromIJ(tp)
+    return tp
+
+def _getUVFromIJ(a):
+    zones = Internal.getZones(a)
+    for z in zones:
+        C._initVars(z, '_u_=0.')
+        C._initVars(z, '_v_=0.')
+        pu = Internal.getNodeFromName2(z, '_u_')
+        pv = Internal.getNodeFromName2(z, '_v_')
+        pu = pu[1].ravel('k')
+        pv = pv[1].ravel('k')
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Structured':
+            ni = dim[1]; nj = dim[2]
+            for j in range(nj):
+                for i in range(ni):
+                    pu[i+j*ni] = j*1./(nj-1)
+                    pv[i+j*ni] = i*1./(ni-1)
+    return None

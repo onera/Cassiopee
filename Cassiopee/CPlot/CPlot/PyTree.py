@@ -1046,7 +1046,8 @@ def loadImageFiles(t, offscreen=0):
         CPlot.setState(billBoards=out, offscreen=offscreen)
     return None
 
-# subfunction of display 360. Display the 6 views.
+#==============================================================================
+# subfunction of display 360. Display 6 views rotating over posCam.
 def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     import KCore.Vector as Vector
     
@@ -1060,9 +1061,6 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     # Compute all view vectors
     v1 = Vector.sub(posEye, posCam) # view vector
     vz = Vector.normalize(dirCam)
-    # orthogonalisation de v1
-    s = Vector.dot(v1, vz)
-    v1 = Vector.sub(v1, Vector.mul(s, vz))
     v2 = Vector.cross(vz, v1) # second view vector
     n = Vector.norm(v1)
     v3 = Vector.mul(n, vz) # third view vector
@@ -1074,7 +1072,6 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     posCam0 = posCam
     posEye0 = Vector.sub(posCam, v2)
     dirCam0 = dirCam
-    print('right', posCam, posCam0, posEye0, dirCam0)
     lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1088,7 +1085,6 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     posCam0 = posCam 
     posEye0 = Vector.add(posCam, v2)
     dirCam0 = dirCam
-    print('left', posCam, posCam0, posEye0, dirCam0)
     lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1100,7 +1096,6 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
 
     # front
     posCam0 = posCam
-    print('front', posCam, posCam0, posEye0, dirCam0)
     posEye0 = posEye
     dirCam0 = dirCam
     lkwargs['posCam'] = posCam0
@@ -1116,7 +1111,6 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     posCam0 = posCam
     posEye0 = Vector.sub(posCam, v1)
     dirCam0 = dirCam
-    print('back', posCam, posCam0, posEye0, dirCam0)
     lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1152,7 +1146,164 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
 
     return None
 
-# subfunction of display 360. Display the n views.
+# subfunction of display 360. Display the 6 views with rotating posCam (wrong stereo)
+# requires that nothing is in the corners
+def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift, kwargs):
+    import KCore.Vector as Vector
+    lkwargs = kwargs.copy()
+
+    # resolution for the square view images
+    locRez = exportRez.split('x')[1]
+    locRez = int(locRez)//2
+    locRez = max(locRez, 100) # minimum 100 pixels
+    locRez = min(locRez, 8192) # maximum 8192 pixels, generally the max texture size
+    locRez = "%dx%d"%(locRez, locRez)
+
+    # Compute all front view vectors
+    v1 = Vector.sub(posEye, posCam) # view vector
+    vz = Vector.normalize(dirCam) # third view vector
+    v2 = Vector.cross(vz, v1) # second view vector
+    v2 = Vector.normalize(v2)
+
+    import Geom.PyTree as D
+    import Transform.PyTree as T
+
+    # front image
+    theta = 0.
+    point = D.point(v1)
+    point = T.rotate(point, (0,0,0), vz, theta)
+    v1p = C.getValue(point, 'GridCoordinates', 0)
+    point = D.point(v2)
+    point = T.rotate(point, (0,0,0), vz, theta)
+    v2p = C.getValue(point, 'GridCoordinates', 0)
+    dv = Vector.mul(stereoShift, v2p)
+
+    posCam0 = Vector.add(posCam, dv)
+    posEye0 = Vector.add(v1p, posCam)
+    dirCam0 = dirCam
+    
+    lkwargs['posCam'] = posCam0
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = locRez
+    lkwargs['export'] = 'run/cube_front.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)
+
+    # top image
+    point = D.point(v1p)
+    point = T.rotate(point, (0,0,0), v2p, -90)
+    v1z = C.getValue(point, 'GridCoordinates', 0)
+    point = D.point(dirCam)
+    point = T.rotate(point, (0,0,0), v2p, -90)
+    v2z = C.getValue(point, 'GridCoordinates', 0)
+        
+    posEye0 = Vector.add(v1z, posCam)
+    dirCam0 = v2z
+    
+    lkwargs['posCam'] = posCam0
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = locRez
+    lkwargs['export'] = 'run/cube_top.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)
+
+    # bottom image
+    point = D.point(v1p)
+    point = T.rotate(point, (0,0,0), v2p, 90)
+    v1z = C.getValue(point, 'GridCoordinates', 0)
+    point = D.point(dirCam)
+    point = T.rotate(point, (0,0,0), v2p, 90)
+    v2z = C.getValue(point, 'GridCoordinates', 0)
+        
+    posEye0 = Vector.add(v1z, posCam)
+    dirCam0 = v2z
+
+    lkwargs['posCam'] = posCam0
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = locRez
+    lkwargs['export'] = 'run/cube_bottom.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)
+
+    # right image
+    theta = -90.
+    point = D.point(v1)
+    point = T.rotate(point, (0,0,0), vz, theta)
+    v1p = C.getValue(point, 'GridCoordinates', 0)
+    point = D.point(v2)
+    point = T.rotate(point, (0,0,0), vz, theta)
+    v2p = C.getValue(point, 'GridCoordinates', 0)
+    dv = Vector.mul(stereoShift, v2p)
+
+    posCam0 = Vector.add(posCam, dv)
+    posEye0 = Vector.add(v1p, posCam)
+    dirCam0 = dirCam
+    
+    lkwargs['posCam'] = posCam0
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = locRez
+    lkwargs['export'] = 'run/cube_right.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)
+
+    # left image
+    theta = +90.
+    point = D.point(v1)
+    point = T.rotate(point, (0,0,0), vz, theta)
+    v1p = C.getValue(point, 'GridCoordinates', 0)
+    point = D.point(v2)
+    point = T.rotate(point, (0,0,0), vz, theta)
+    v2p = C.getValue(point, 'GridCoordinates', 0)
+    dv = Vector.mul(stereoShift, v2p)
+
+    posCam0 = Vector.add(posCam, dv)
+    posEye0 = Vector.add(v1p, posCam)
+    dirCam0 = dirCam
+    
+    lkwargs['posCam'] = posCam0
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = locRez
+    lkwargs['export'] = 'run/cube_left.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)
+
+    # back image
+    theta = +180.
+    point = D.point(v1)
+    point = T.rotate(point, (0,0,0), vz, theta)
+    v1p = C.getValue(point, 'GridCoordinates', 0)
+    point = D.point(v2)
+    point = T.rotate(point, (0,0,0), vz, theta)
+    v2p = C.getValue(point, 'GridCoordinates', 0)
+    dv = Vector.mul(stereoShift, v2p)
+
+    posCam0 = Vector.add(posCam, dv)
+    posEye0 = Vector.add(v1p, posCam)
+    dirCam0 = dirCam
+    
+    lkwargs['posCam'] = posCam0
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = locRez
+    lkwargs['export'] = 'run/cube_back.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)
+
+    print("done", flush=True)
+    return None
+
+# subfunction of display 360. Display the n views with rotating posCam
 def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift, kwargs):
 
     import Converter.Mpi as Cmpi
@@ -1184,7 +1335,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     for i in range(nangles):
         
         # simple parallel hack  
-        if i%Cmpi.size != Cmpi.rank: continue
+        #if i%Cmpi.size != Cmpi.rank: continue
         
         theta = i*360./nangles-180.
 
@@ -1264,6 +1415,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
 def display360(t, type360=0, **kwargs):
     """Display for 360 images."""
     import KCore.Vector as Vector
+    import Converter.Mpi as Cmpi
     posCam = kwargs.get("posCam", (0,0,0))
     posEye = kwargs.get("posEye", (1,0,0))
     dirCam = kwargs.get("dirCam", (0,0,1))
@@ -1276,8 +1428,13 @@ def display360(t, type360=0, **kwargs):
     stereoDist = kwargs.get("stereoDist", 0.07) # stereoDist is in real world distance
     if stereo == 1: kwargs['stereo'] = 0
 
-    import Converter.Mpi as Cmpi
-        
+    # orthogonalisation de v1 et dirCam si ils ne sont pas orthos
+    v1 = Vector.sub(posEye, posCam) # view vector
+    vz = Vector.normalize(dirCam)
+    s = Vector.dot(v1, vz)
+    v1 = Vector.sub(v1, Vector.mul(s, vz))
+    posEye = Vector.add(posCam, v1)
+
     # display
     if stereo == 0:
         # display 6 views 
@@ -1287,7 +1444,7 @@ def display360(t, type360=0, **kwargs):
             panorama(export, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
 
-    else: # stereo (ODS)
+    elif stereo == 1: # stereo (ODS)
 
         export1 = export.rsplit('.', 1)
         if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
@@ -1307,6 +1464,33 @@ def display360(t, type360=0, **kwargs):
         display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
         if Cmpi.rank == 0:
             panoramaODS(export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+        # stitch
+        if Cmpi.rank == 0:
+            panoramaStereo(export, export1, export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+    else: # stereo = 2
+        export1 = export.rsplit('.', 1)
+        if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
+        else: export1 = export+'_1'
+        export2 = export.rsplit('.', 1)
+        if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
+        else: export2 = export+'_2'
+
+        # right eye
+        #stereoDist = 0. # forced to 0 for debug
+        display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
+        if Cmpi.rank == 0:
+            panorama(export1, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+        
+        # left eye
+        #stereoDist = 0. # forced to 0 for debug
+        display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
+        if Cmpi.rank == 0:
+            panorama(export2, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
 
         # stitch
