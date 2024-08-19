@@ -18,10 +18,10 @@
 */
 #include "Mesh.h"
 
-Int refine_edge(Int eid, Mesh *M)
+E_Int refine_edge(E_Int eid, Mesh *M)
 {
-    Int p = M->edges[eid].p;
-    Int q = M->edges[eid].q;
+    E_Int p = M->edges[eid].p;
+    E_Int q = M->edges[eid].q;
     M->X[M->np] = 0.5 * (M->X[p] + M->X[q]);
     M->Y[M->np] = 0.5 * (M->Y[p] + M->Y[q]);
     M->Z[M->np] = 0.5 * (M->Z[p] + M->Z[q]);
@@ -30,19 +30,19 @@ Int refine_edge(Int eid, Mesh *M)
 
     UEdge e(p, q);
 
-    for (Int i = M->xedf[eid]; i < M->xedf[eid+1]; i++) {
-        Int fid = M->E2F[i];
+    for (E_Int i = M->xedf[eid]; i < M->xedf[eid+1]; i++) {
+        E_Int fid = M->E2F[i];
 
-        Int *fpts = Mesh_get_face(M, fid);
-        Int *frange = Mesh_get_frange(M, fid);
+        E_Int *fpts = Mesh_get_face(M, fid);
+        E_Int *frange = Mesh_get_frange(M, fid);
 
-        Int size = 2 * M->fstride[fid];
+        E_Int size = 2 * M->fstride[fid];
 
-        Int found = 0;
+        E_Int found = 0;
 
-        for (Int j = 0; j < size; j += 2) {
-            Int P = fpts[j];
-            Int Q = fpts[(j+2)%size];
+        for (E_Int j = 0; j < size; j += 2) {
+            E_Int P = fpts[j];
+            E_Int Q = fpts[(j+2)%size];
             UEdge E(P, Q);
             if (E == e) {
                 //assert(fpts[j+1] == -1);

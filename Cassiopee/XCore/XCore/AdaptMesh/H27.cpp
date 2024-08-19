@@ -1,34 +1,34 @@
 #include "Hexa.h"
 #include "Quad.h"
 
-void H27_refine(Int hexa, Mesh *M)
+void H27_refine(E_Int hexa, Mesh *M)
 {
     H27_reorder(hexa, M);
 
-    Int *cell = Mesh_get_cell(M, hexa);
+    E_Int *cell = Mesh_get_cell(M, hexa);
 
-    Int FACES[24];
+    E_Int FACES[24];
 
-    memcpy(FACES, cell, 24 * sizeof(Int));
+    memcpy(FACES, cell, 24 * sizeof(E_Int));
 
-    Int *BOT = FACES;
-    Int *TOP = FACES + 4;
-    Int *LFT = FACES + 8;
-    Int *RGT = FACES + 12;
-    Int *FRO = FACES + 16;
-    Int *BCK = FACES + 20;
+    E_Int *BOT = FACES;
+    E_Int *TOP = FACES + 4;
+    E_Int *LFT = FACES + 8;
+    E_Int *RGT = FACES + 12;
+    E_Int *FRO = FACES + 16;
+    E_Int *BCK = FACES + 20;
 
-    Int NODES[27];
-    for (Int i = 0; i < 27; i++) NODES[i] = -1;
+    E_Int NODES[27];
+    for (E_Int i = 0; i < 27; i++) NODES[i] = -1;
 
     // Local variables
-    Int fid, *pn, i0, reorient, local[9];
+    E_Int fid, *pn, i0, reorient, local[9];
 
     // BOT
 
     fid = BOT[0];
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
     if (reorient) std::swap(local[1], local[3]);
     NODES[0]  = local[0];
@@ -38,7 +38,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = BOT[1];
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[8], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
@@ -50,7 +50,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = BOT[2];
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[12], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
@@ -62,7 +62,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = BOT[3];
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[11], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
@@ -76,7 +76,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = LFT[0]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[0], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
@@ -88,7 +88,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = LFT[1]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[11], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
@@ -100,7 +100,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = LFT[2]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[16], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
@@ -112,7 +112,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = LFT[3]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[15], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
@@ -126,7 +126,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = RGT[0]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[1], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
@@ -138,7 +138,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = RGT[1]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[9], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
@@ -150,7 +150,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = RGT[2]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[20], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
@@ -162,7 +162,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = RGT[3]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[19], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
@@ -176,7 +176,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = FRO[0]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[1], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
@@ -188,7 +188,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = FRO[1]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[8], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
@@ -200,7 +200,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = FRO[2]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[22], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
@@ -212,7 +212,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = FRO[3]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[19], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
@@ -226,7 +226,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = BCK[0]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[2], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
@@ -238,7 +238,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = BCK[1]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[10], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
@@ -250,7 +250,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = BCK[2]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[24], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
@@ -262,7 +262,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = BCK[3]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[17], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
@@ -276,7 +276,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = TOP[0]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[4], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
@@ -288,7 +288,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = TOP[1]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[21], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
@@ -300,7 +300,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = TOP[2]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[25], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
@@ -312,7 +312,7 @@ void H27_refine(Int hexa, Mesh *M)
 
     fid = TOP[3]; 
     pn = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+    for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
     i0 = Get_pos(NODES[14], local, 4);
     Right_shift(local, i0, 4);
     reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
@@ -327,7 +327,7 @@ void H27_refine(Int hexa, Mesh *M)
     // TODO(Imad): for now, mean of hexa points xyz
     NODES[26] = M->np;
     M->X[M->np] = M->Y[M->np] = M->Z[M->np] = 0;
-    for (Int i = 0; i < 8; i++) {
+    for (E_Int i = 0; i < 8; i++) {
         M->X[M->np] += M->X[NODES[i]];
         M->Y[M->np] += M->Y[NODES[i]];
         M->Z[M->np] += M->Z[NODES[i]];
@@ -338,7 +338,7 @@ void H27_refine(Int hexa, Mesh *M)
     M->np++;
 
     // Set internal faces in ngon
-    Int *face = NULL;
+    E_Int *face = NULL;
 
     // nfaces (hexa TOP)
     face = Mesh_get_face(M, M->nf);
@@ -403,21 +403,21 @@ void H27_refine(Int hexa, Mesh *M)
     face[4] = NODES[23]; face[6] = NODES[25];
 
     // Update internal face strides, ranges and states
-    for (Int i = 0; i < 12; i++) {
-        Int fid = M->nf + i;
-        Int *frange = Mesh_get_frange(M, fid);
-        for (Int j = 0; j < 4; j++) frange[j] = 1;
+    for (E_Int i = 0; i < 12; i++) {
+        E_Int fid = M->nf + i;
+        E_Int *frange = Mesh_get_frange(M, fid);
+        for (E_Int j = 0; j < 4; j++) frange[j] = 1;
         M->fstride[fid] = 4;
         M->fref[fid] = FACE_NEW;
     }
 
     // Assemble children
 
-    Int *child = NULL;
+    E_Int *child = NULL;
 
     // First child replaces hexa
     child = Mesh_get_cell(M, hexa);
-    memset(child, -1, 24 * sizeof(Int));
+    memset(child, -1, 24 * sizeof(E_Int));
     child[0]  = BOT[0]; child[4]  = M->nf;
     child[8]  = LFT[0]; child[12] = M->nf+1;
     child[16] = FRO[1]; child[20] = M->nf+2;
@@ -472,7 +472,7 @@ void H27_refine(Int hexa, Mesh *M)
     // Update adaptation info
     M->clevel[hexa]++;
 
-    for (Int i = 0; i < 7; i++) {
+    for (E_Int i = 0; i < 7; i++) {
         M->clevel[M->nc+i] = M->clevel[hexa];
         M->ctype[M->nc+i] = M->ctype[hexa];
     }
@@ -521,57 +521,57 @@ void H27_refine(Int hexa, Mesh *M)
     M->neigh[M->nf+11] = M->nc+5;
 
     // Update level/type of internal faces
-    for (Int i = 0; i < 12; i++) {
+    for (E_Int i = 0; i < 12; i++) {
         M->flevel[M->nf+i] = M->clevel[hexa];
         M->ftype[M->nf+i] = QUAD;
     }
 
     assert(check_canon_hexa(hexa, M) == 0);
-    for (Int i = 0; i < 7; i++) assert(check_canon_hexa(M->nc+i, M) == 0);
+    for (E_Int i = 0; i < 7; i++) assert(check_canon_hexa(M->nc+i, M) == 0);
 
     // Increment face/hexa count
     M->nf += 12;
     M->nc += 7;
 }
 
-void H27_reorder(Int hexa, Mesh *M)
+void H27_reorder(E_Int hexa, Mesh *M)
 {
-    Int NODES[26];
-    memset(NODES, -1, 26*sizeof(Int));
+    E_Int NODES[26];
+    memset(NODES, -1, 26*sizeof(E_Int));
 
-    Int local[8], i0;
+    E_Int local[8], i0;
 
-    Int *cell = Mesh_get_cell(M, hexa);
-    Int *crange = Mesh_get_crange(M, hexa);
+    E_Int *cell = Mesh_get_cell(M, hexa);
+    E_Int *crange = Mesh_get_crange(M, hexa);
 
-    Int FACES[24];
-    for (Int i = 0; i < 24; i++) FACES[i] = cell[i];
+    E_Int FACES[24];
+    for (E_Int i = 0; i < 24; i++) FACES[i] = cell[i];
 
-    Int *BOT = FACES;
+    E_Int *BOT = FACES;
 
     if (crange[0] == 4) {
-        Int first = 0;
+        E_Int first = 0;
 
-        Int fid = BOT[first];
+        E_Int fid = BOT[first];
 
-        Int *pn = Mesh_get_face(M, fid);
+        E_Int *pn = Mesh_get_face(M, fid);
 
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
-        Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        E_Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
         if (reorient) std::swap(local[1], local[3]);
 
         // Find second, third and fourth sides of BOT
 
-        Int second, third, fourth;
+        E_Int second, third, fourth;
         second = third = fourth = first;
 
-        for (Int i = 1; i < 4; i++) {
-            Int side = cell[i];
-            Int *pn = Mesh_get_face(M, side);
-            Int common[4] = {0, 0, 0, 0};
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
-                for (Int k = 0; k < 4; k++) {
+        for (E_Int i = 1; i < 4; i++) {
+            E_Int side = cell[i];
+            E_Int *pn = Mesh_get_face(M, side);
+            E_Int common[4] = {0, 0, 0, 0};
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
+                for (E_Int k = 0; k < 4; k++) {
                     if (local[k] == point) {
                         common[k] = 1;
                         break;
@@ -597,7 +597,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup second face
         fid = BOT[second];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[8], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
@@ -610,7 +610,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup third face
         fid = BOT[third];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[12], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
@@ -623,7 +623,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup fourth face
         fid = BOT[fourth];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[11], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[0]);
@@ -633,15 +633,15 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(local[2] == NODES[10]);
         NODES[3] = local[3];
         
-        Int tmp[4] = {BOT[first], BOT[second], BOT[third], BOT[fourth]};
-        for (Int i = 0; i < 4; i++) BOT[i] = tmp[i];
+        E_Int tmp[4] = {BOT[first], BOT[second], BOT[third], BOT[fourth]};
+        for (E_Int i = 0; i < 4; i++) BOT[i] = tmp[i];
     } else {
         assert(BOT[1] == -1);
         assert(BOT[2] == -1);
         assert(BOT[3] == -1);
-        Int *pn = Mesh_get_face(M, BOT[0]);
-        for (Int i = 0; i < 8; i++) local[i] = pn[i];
-        Int reorient = Mesh_get_reorient(M, BOT[0], hexa, normalIn_H[0]);
+        E_Int *pn = Mesh_get_face(M, BOT[0]);
+        for (E_Int i = 0; i < 8; i++) local[i] = pn[i];
+        E_Int reorient = Mesh_get_reorient(M, BOT[0], hexa, normalIn_H[0]);
         if (reorient) std::reverse(local+1, local+8);
         NODES[0]  = local[0];
         NODES[1]  = local[2];
@@ -653,35 +653,35 @@ void H27_reorder(Int hexa, Mesh *M)
         NODES[11] = local[7];
     }
 
-    for (Int i = 0; i < 4; i++) cell[i] = BOT[i];
+    for (E_Int i = 0; i < 4; i++) cell[i] = BOT[i];
 
     BOT = cell;
-    Int *TOP = cell + 4;
-    Int *LFT = cell + 8;
-    Int *RGT = cell + 12;
-    Int *FRO = cell + 16;
-    Int *BCK = cell + 20;
+    E_Int *TOP = cell + 4;
+    E_Int *LFT = cell + 8;
+    E_Int *RGT = cell + 12;
+    E_Int *FRO = cell + 16;
+    E_Int *BCK = cell + 20;
     
     // Find TOP, LFT, RGT, FRO, BCK
 
-    Int tmp_crange[6] = {crange[0], -1, -1, -1, -1, -1};
+    E_Int tmp_crange[6] = {crange[0], -1, -1, -1, -1, -1};
 
-    for (Int i = 1; i < 6; i++) {
-        Int *SIDE = FACES + 4*i;
+    for (E_Int i = 1; i < 6; i++) {
+        E_Int *SIDE = FACES + 4*i;
 
-        std::set<Int> points;
+        std::set<E_Int> points;
 
-        for (Int j = 0; j < crange[i]; j++) {
-            Int fid = SIDE[j];
+        for (E_Int j = 0; j < crange[i]; j++) {
+            E_Int fid = SIDE[j];
             assert(fid != -1);
-            Int *pn = Mesh_get_face(M, fid);
-            for (Int k = 0; k < 8; k += 2) points.insert(pn[k]);
+            E_Int *pn = Mesh_get_face(M, fid);
+            for (E_Int k = 0; k < 8; k += 2) points.insert(pn[k]);
         }
 
-        Int common[4] = {0, 0, 0, 0};
+        E_Int common[4] = {0, 0, 0, 0};
 
-        for (Int point : points) {
-            for (Int j = 0; j < 4; j++) {
+        for (E_Int point : points) {
+            for (E_Int j = 0; j < 4; j++) {
                 if (NODES[j] == point) {
                     common[j] = 1;
                     break;
@@ -691,29 +691,29 @@ void H27_reorder(Int hexa, Mesh *M)
 
         if      (common[0] && common[3]) {
             tmp_crange[2] = crange[i];
-            for (Int j = 0; j < 4; j++) LFT[j] = SIDE[j];
+            for (E_Int j = 0; j < 4; j++) LFT[j] = SIDE[j];
         }
         else if (common[1] && common[2]) {
             tmp_crange[3] = crange[i];
-            for (Int j = 0; j < 4; j++) RGT[j] = SIDE[j];
+            for (E_Int j = 0; j < 4; j++) RGT[j] = SIDE[j];
         }
         else if (common[0] && common[1]) {
             tmp_crange[4] = crange[i];
-            for (Int j = 0; j < 4; j++) FRO[j] = SIDE[j];
+            for (E_Int j = 0; j < 4; j++) FRO[j] = SIDE[j];
         }
         else if (common[2] && common[3]) {
             tmp_crange[5] = crange[i];
-            for (Int j = 0; j < 4; j++) BCK[j] = SIDE[j];
+            for (E_Int j = 0; j < 4; j++) BCK[j] = SIDE[j];
         }
         else                             {
             tmp_crange[1] = crange[i];
-            for (Int j = 0; j < 4; j++) TOP[j] = SIDE[j];
+            for (E_Int j = 0; j < 4; j++) TOP[j] = SIDE[j];
         }
     }
 
-    for (Int i = 0; i < 6; i++) assert(tmp_crange[i] != -1);
+    for (E_Int i = 0; i < 6; i++) assert(tmp_crange[i] != -1);
 
-    for (Int i = 0; i < 6; i++) crange[i] = tmp_crange[i];
+    for (E_Int i = 0; i < 6; i++) crange[i] = tmp_crange[i];
 
 
     // Reorder LFT sides
@@ -721,13 +721,13 @@ void H27_reorder(Int hexa, Mesh *M)
     if (crange[2] == 4) {
         // First face must share NODES[0]
 
-        Int first = -1;
+        E_Int first = -1;
 
-        for (Int i = 0; i < 4 && first == -1; i++) {
-            Int fid = LFT[i];
-            Int *pn = Mesh_get_face(M, fid);
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
+        for (E_Int i = 0; i < 4 && first == -1; i++) {
+            E_Int fid = LFT[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
                 if (point == NODES[0]) {
                     first = i;
                     break;
@@ -738,12 +738,12 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(first != -1);
 
         // Setup first face
-        Int fid = LFT[first];
-        Int *pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
-        Int i0 = Get_pos(NODES[0], local, 4);
+        E_Int fid = LFT[first];
+        E_Int *pn = Mesh_get_face(M, fid);
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        E_Int i0 = Get_pos(NODES[0], local, 4);
         Right_shift(local, i0, 4);
-        Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
+        E_Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
         if (reorient) std::swap(local[1], local[3]);
         assert(local[0] == NODES[0]);
         assert(local[1] == NODES[11]);
@@ -751,19 +751,19 @@ void H27_reorder(Int hexa, Mesh *M)
         NODES[15] = local[3];
 
         // Get second, third and fourth sides
-        Int second, third, fourth;
+        E_Int second, third, fourth;
         second = third = fourth = -1;
 
-        for (Int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) {
             if (i == first) continue;
 
-            Int fid = LFT[i];
-            Int *pn = Mesh_get_face(M, fid);
-            Int common[4] = {0, 0, 0, 0};
+            E_Int fid = LFT[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            E_Int common[4] = {0, 0, 0, 0};
 
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
-                for (Int k = 0; k < 4; k++) {
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
+                for (E_Int k = 0; k < 4; k++) {
                     if (local[k] == point) {
                         common[k] = 1;
                         break;
@@ -783,7 +783,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup second face
         fid = LFT[second];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[11], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
@@ -796,7 +796,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup third face
         fid = LFT[third];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[16], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
@@ -809,7 +809,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup fourth face
         fid = LFT[fourth];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[15], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[2]);
@@ -819,18 +819,18 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(local[2] == NODES[14]);
         NODES[4] = local[3];
 
-        Int tmp[4] = {LFT[first], LFT[second], LFT[third], LFT[fourth]};
-        for (Int i = 0; i < 4; i++) LFT[i] = tmp[i];
+        E_Int tmp[4] = {LFT[first], LFT[second], LFT[third], LFT[fourth]};
+        for (E_Int i = 0; i < 4; i++) LFT[i] = tmp[i];
 
     } else {
         assert(LFT[1] == -1);
         assert(LFT[2] == -1);
         assert(LFT[3] == -1);
-        Int *pn = Mesh_get_face(M, LFT[0]);
-        for (Int i = 0; i < 8; i++) local[i] = pn[i];
+        E_Int *pn = Mesh_get_face(M, LFT[0]);
+        for (E_Int i = 0; i < 8; i++) local[i] = pn[i];
         i0 = Get_pos(NODES[0], local, 8);
         Right_shift(local, i0, 8);
-        Int reorient = Mesh_get_reorient(M, LFT[0], hexa, normalIn_H[2]);
+        E_Int reorient = Mesh_get_reorient(M, LFT[0], hexa, normalIn_H[2]);
         if (reorient) std::reverse(local+1, local+8);
         assert(local[0] == NODES[0]);
         assert(local[1] == NODES[11]);
@@ -847,13 +847,13 @@ void H27_reorder(Int hexa, Mesh *M)
     if (crange[3] == 4) {
         // First face must share NODES[1]
 
-        Int first = -1;
+        E_Int first = -1;
 
-        for (Int i = 0; i < 4 && first == -1; i++) {
-            Int fid = RGT[i];
-            Int *pn = Mesh_get_face(M, fid);
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
+        for (E_Int i = 0; i < 4 && first == -1; i++) {
+            E_Int fid = RGT[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
                 if (point == NODES[1]) {
                     first = i;
                     break;
@@ -864,12 +864,12 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(first != -1);
 
         // Setup first face
-        Int fid = RGT[first];
-        Int *pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
-        Int i0 = Get_pos(NODES[1], local, 4);
+        E_Int fid = RGT[first];
+        E_Int *pn = Mesh_get_face(M, fid);
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        E_Int i0 = Get_pos(NODES[1], local, 4);
         Right_shift(local, i0, 4);
-        Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
+        E_Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
         if (reorient) std::swap(local[1], local[3]);
         assert(local[0] == NODES[1]);
         assert(local[1] == NODES[9]);
@@ -877,19 +877,19 @@ void H27_reorder(Int hexa, Mesh *M)
         NODES[19] = local[3];
 
         // Get second, third and fourth sides
-        Int second, third, fourth;
+        E_Int second, third, fourth;
         second = third = fourth = -1;
 
-        for (Int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) {
             if (i == first) continue;
 
-            Int fid = RGT[i];
-            Int *pn = Mesh_get_face(M, fid);
-            Int common[4] = {0, 0, 0, 0};
+            E_Int fid = RGT[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            E_Int common[4] = {0, 0, 0, 0};
 
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
-                for (Int k = 0; k < 4; k++) {
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
+                for (E_Int k = 0; k < 4; k++) {
                     if (local[k] == point) {
                         common[k] = 1;
                         break;
@@ -909,7 +909,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup second face
         fid = RGT[second];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[9], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
@@ -922,7 +922,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup third face
         fid = RGT[third];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[20], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
@@ -935,7 +935,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup fourth face
         fid = RGT[fourth];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[19], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[3]);
@@ -945,18 +945,18 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(local[2] == NODES[18]);
         NODES[5] = local[3];
 
-        Int tmp[4] = {RGT[first], RGT[second], RGT[third], RGT[fourth]};
-        for (Int i = 0; i < 4; i++) RGT[i] = tmp[i];
+        E_Int tmp[4] = {RGT[first], RGT[second], RGT[third], RGT[fourth]};
+        for (E_Int i = 0; i < 4; i++) RGT[i] = tmp[i];
 
     } else {
         assert(RGT[1] == -1);
         assert(RGT[2] == -1);
         assert(RGT[3] == -1);
-        Int *pn = Mesh_get_face(M, RGT[0]);
-        for (Int i = 0; i < 8; i++) local[i] = pn[i];
+        E_Int *pn = Mesh_get_face(M, RGT[0]);
+        for (E_Int i = 0; i < 8; i++) local[i] = pn[i];
         i0 = Get_pos(NODES[1], local, 8);
         Right_shift(local, i0, 8);
-        Int reorient = Mesh_get_reorient(M, RGT[0], hexa, normalIn_H[3]);
+        E_Int reorient = Mesh_get_reorient(M, RGT[0], hexa, normalIn_H[3]);
         if (reorient) std::reverse(local+1, local+8);
         assert(local[0] == NODES[1]);
         assert(local[1] == NODES[9]);
@@ -973,13 +973,13 @@ void H27_reorder(Int hexa, Mesh *M)
     if (crange[4] == 4) {
         // First face must share NODES[1]
 
-        Int first = -1;
+        E_Int first = -1;
 
-        for (Int i = 0; i < 4 && first == -1; i++) {
-            Int fid = FRO[i];
-            Int *pn = Mesh_get_face(M, fid);
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
+        for (E_Int i = 0; i < 4 && first == -1; i++) {
+            E_Int fid = FRO[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
                 if (point == NODES[1]) {
                     first = i;
                     break;
@@ -990,12 +990,12 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(first != -1);
 
         // Setup first face
-        Int fid = FRO[first];
-        Int *pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
-        Int i0 = Get_pos(NODES[1], local, 4);
+        E_Int fid = FRO[first];
+        E_Int *pn = Mesh_get_face(M, fid);
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        E_Int i0 = Get_pos(NODES[1], local, 4);
         Right_shift(local, i0, 4);
-        Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
+        E_Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
         if (reorient) std::swap(local[1], local[3]);
         assert(local[0] == NODES[1]);
         assert(local[1] == NODES[8]);
@@ -1003,19 +1003,19 @@ void H27_reorder(Int hexa, Mesh *M)
         NODES[22] = local[2];
 
         // Get second, third and fourth sides
-        Int second, third, fourth;
+        E_Int second, third, fourth;
         second = third = fourth = -1;
 
-        for (Int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) {
             if (i == first) continue;
 
-            Int fid = FRO[i];
-            Int *pn = Mesh_get_face(M, fid);
-            Int common[4] = {0, 0, 0, 0};
+            E_Int fid = FRO[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            E_Int common[4] = {0, 0, 0, 0};
 
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
-                for (Int k = 0; k < 4; k++) {
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
+                for (E_Int k = 0; k < 4; k++) {
                     if (local[k] == point) {
                         common[k] = 1;
                         break;
@@ -1035,7 +1035,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup second face
         fid = FRO[second];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[8], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
@@ -1048,7 +1048,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup third face
         fid = FRO[third];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[22], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
@@ -1061,7 +1061,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup fourth face
         fid = FRO[fourth];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[19], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[4]);
@@ -1071,18 +1071,18 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(local[2] == NODES[21]);
         assert(local[3] == NODES[5]);
 
-        Int tmp[4] = {FRO[first], FRO[second], FRO[third], FRO[fourth]};
-        for (Int i = 0; i < 4; i++) FRO[i] = tmp[i];
+        E_Int tmp[4] = {FRO[first], FRO[second], FRO[third], FRO[fourth]};
+        for (E_Int i = 0; i < 4; i++) FRO[i] = tmp[i];
 
     } else {
         assert(FRO[1] == -1);
         assert(FRO[2] == -1);
         assert(FRO[3] == -1);
-        Int *pn = Mesh_get_face(M, FRO[0]);
-        for (Int i = 0; i < 8; i++) local[i] = pn[i];
+        E_Int *pn = Mesh_get_face(M, FRO[0]);
+        for (E_Int i = 0; i < 8; i++) local[i] = pn[i];
         i0 = Get_pos(NODES[1], local, 8);
         Right_shift(local, i0, 8);
-        Int reorient = Mesh_get_reorient(M, FRO[0], hexa, normalIn_H[4]);
+        E_Int reorient = Mesh_get_reorient(M, FRO[0], hexa, normalIn_H[4]);
         if (reorient) std::reverse(local+1, local+8);
         assert(local[0] == NODES[1]);
         assert(local[1] == NODES[8]);
@@ -1099,13 +1099,13 @@ void H27_reorder(Int hexa, Mesh *M)
     if (crange[5] == 4) {
         // First face must share NODES[2]
 
-        Int first = -1;
+        E_Int first = -1;
 
-        for (Int i = 0; i < 4 && first == -1; i++) {
-            Int fid = BCK[i];
-            Int *pn = Mesh_get_face(M, fid);
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
+        for (E_Int i = 0; i < 4 && first == -1; i++) {
+            E_Int fid = BCK[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
                 if (point == NODES[2]) {
                     first = i;
                     break;
@@ -1116,12 +1116,12 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(first != -1);
 
         // Setup first face
-        Int fid = BCK[first];
-        Int *pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
-        Int i0 = Get_pos(NODES[2], local, 4);
+        E_Int fid = BCK[first];
+        E_Int *pn = Mesh_get_face(M, fid);
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        E_Int i0 = Get_pos(NODES[2], local, 4);
         Right_shift(local, i0, 4);
-        Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
+        E_Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
         if (reorient) std::swap(local[1], local[3]);
         assert(local[0] == NODES[2]);
         assert(local[1] == NODES[10]);
@@ -1129,20 +1129,20 @@ void H27_reorder(Int hexa, Mesh *M)
         NODES[24] = local[2];
 
         // Get second, third and fourth sides
-        Int second, third, fourth;
+        E_Int second, third, fourth;
         second = third = fourth = -1;
 
-        for (Int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) {
             if (i == first) continue;
             
-            Int fid = BCK[i];
-            Int *pn = Mesh_get_face(M, fid);
+            E_Int fid = BCK[i];
+            E_Int *pn = Mesh_get_face(M, fid);
 
-            Int common[4] = {0, 0, 0, 0};
+            E_Int common[4] = {0, 0, 0, 0};
 
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
-                for (Int k = 0; k < 4; k++) {
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
+                for (E_Int k = 0; k < 4; k++) {
                     if (local[k] == point) {
                         common[k] = 1;
                         break;
@@ -1162,7 +1162,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup second face
         fid = BCK[second];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[10], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
@@ -1175,7 +1175,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup third face
         fid = BCK[third];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[24], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
@@ -1188,7 +1188,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup fourth face
         fid = BCK[fourth];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[17], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[5]);
@@ -1198,18 +1198,18 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(local[2] == NODES[23]);
         assert(local[3] == NODES[6]);
 
-        Int tmp[4] = {BCK[first], BCK[second], BCK[third], BCK[fourth]};
-        for (Int i = 0; i < 4; i++) BCK[i] = tmp[i];
+        E_Int tmp[4] = {BCK[first], BCK[second], BCK[third], BCK[fourth]};
+        for (E_Int i = 0; i < 4; i++) BCK[i] = tmp[i];
 
     } else {
         assert(BCK[1] == -1);
         assert(BCK[2] == -1);
         assert(BCK[3] == -1);
-        Int *pn = Mesh_get_face(M, BCK[0]);
-        for (Int i = 0; i < 8; i++) local[i] = pn[i];
+        E_Int *pn = Mesh_get_face(M, BCK[0]);
+        for (E_Int i = 0; i < 8; i++) local[i] = pn[i];
         i0 = Get_pos(NODES[2], local, 8);
         Right_shift(local, i0, 8);
-        Int reorient = Mesh_get_reorient(M, BCK[0], hexa, normalIn_H[5]);
+        E_Int reorient = Mesh_get_reorient(M, BCK[0], hexa, normalIn_H[5]);
         if (reorient) std::reverse(local+1, local+8);
         assert(local[0] == NODES[2]);
         assert(local[1] == NODES[10]);
@@ -1226,13 +1226,13 @@ void H27_reorder(Int hexa, Mesh *M)
     if (crange[1] == 4) {
         // First face must share NODES[4]
 
-        Int first = -1;
+        E_Int first = -1;
 
-        for (Int i = 0; i < 4 && first == -1; i++) {
-            Int fid = TOP[i];
-            Int *pn = Mesh_get_face(M, fid);
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
+        for (E_Int i = 0; i < 4 && first == -1; i++) {
+            E_Int fid = TOP[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
                 if (point == NODES[4]) {
                     first = i;
                     break;
@@ -1243,12 +1243,12 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(first != -1);
 
         // Setup first face
-        Int fid = TOP[first];
-        Int *pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
-        Int i0 = Get_pos(NODES[4], local, 4);
+        E_Int fid = TOP[first];
+        E_Int *pn = Mesh_get_face(M, fid);
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        E_Int i0 = Get_pos(NODES[4], local, 4);
         Right_shift(local, i0, 4);
-        Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
+        E_Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
         if (reorient) std::swap(local[1], local[3]);
         assert(local[0] == NODES[4]);
         assert(local[1] == NODES[21]);
@@ -1256,20 +1256,20 @@ void H27_reorder(Int hexa, Mesh *M)
         NODES[25] = local[2];
 
         // Get second, third and fourth sides
-        Int second, third, fourth;
+        E_Int second, third, fourth;
         second = third = fourth = -1;
 
-        for (Int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) {
             if (i == first) continue;
             
-            Int fid = TOP[i];
-            Int *pn = Mesh_get_face(M, fid);
+            E_Int fid = TOP[i];
+            E_Int *pn = Mesh_get_face(M, fid);
 
-            Int common[4] = {0, 0, 0, 0};
+            E_Int common[4] = {0, 0, 0, 0};
 
-            for (Int j = 0; j < 4; j++) {
-                Int point = pn[2*j];
-                for (Int k = 0; k < 4; k++) {
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = pn[2*j];
+                for (E_Int k = 0; k < 4; k++) {
                     if (local[k] == point) {
                         common[k] = 1;
                         break;
@@ -1289,7 +1289,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup second face
         fid = TOP[second];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[21], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
@@ -1302,7 +1302,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup third face
         fid = TOP[third];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[25], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
@@ -1315,7 +1315,7 @@ void H27_reorder(Int hexa, Mesh *M)
         // Setup fourth face
         fid = TOP[fourth];
         pn = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];
         i0 = Get_pos(NODES[14], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn_H[1]);
@@ -1325,18 +1325,18 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(local[2] == NODES[23]);
         assert(local[3] == NODES[7]);
 
-        Int tmp[4] = {TOP[first], TOP[second], TOP[third], TOP[fourth]};
-        for (Int i = 0; i < 4; i++) TOP[i] = tmp[i];
+        E_Int tmp[4] = {TOP[first], TOP[second], TOP[third], TOP[fourth]};
+        for (E_Int i = 0; i < 4; i++) TOP[i] = tmp[i];
 
     } else {
         assert(TOP[1] == -1);
         assert(TOP[2] == -1);
         assert(TOP[3] == -1);
-        Int *pn = Mesh_get_face(M, TOP[0]);
-        for (Int i = 0; i < 8; i++) local[i] = pn[i];
+        E_Int *pn = Mesh_get_face(M, TOP[0]);
+        for (E_Int i = 0; i < 8; i++) local[i] = pn[i];
         i0 = Get_pos(NODES[4], local, 8);
         Right_shift(local, i0, 8);
-        Int reorient = Mesh_get_reorient(M, TOP[0], hexa, normalIn_H[1]);
+        E_Int reorient = Mesh_get_reorient(M, TOP[0], hexa, normalIn_H[1]);
         if (reorient) std::reverse(local+1, local+8);
         assert(local[0] == NODES[4]);
         assert(local[1] == NODES[21]);
@@ -1350,50 +1350,50 @@ void H27_reorder(Int hexa, Mesh *M)
 }
 
 static
-void reconstruct_quad(Mesh *M, Int hexa, Int *fids, Int crange, Int normalIn,
-    Int NODE, Int pn[4])
+void reconstruct_quad(Mesh *M, E_Int hexa, E_Int *fids, E_Int crange, E_Int normalIn,
+    E_Int NODE, E_Int pn[4])
 {
-    Int fid = fids[0];
+    E_Int fid = fids[0];
 
-    Int local[4];
-    Int NODES[9] = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
-    Int i0 = 0;
+    E_Int local[4];
+    E_Int NODES[9] = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
+    E_Int i0 = 0;
 
     // Setup first face
     fid = fids[0];
-    Int *face = Mesh_get_face(M, fid);
-    for (Int i = 0; i < 4; i++) local[i] = face[2*i];
+    E_Int *face = Mesh_get_face(M, fid);
+    for (E_Int i = 0; i < 4; i++) local[i] = face[2*i];
     if (NODE != -1) {
         i0 = Get_pos(NODE, local, 4);
         Right_shift(local, i0, 4);
     }
-    Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn);
+    E_Int reorient = Mesh_get_reorient(M, fid, hexa, normalIn);
     if (reorient) std::swap(local[1], local[3]);
 
     if (crange == 1) {
-        for (Int i = 0; i < 4; i++) pn[i] = local[i];
+        for (E_Int i = 0; i < 4; i++) pn[i] = local[i];
     } else if (crange == 4) {
         NODES[0] = local[0];
         NODES[4] = local[1];
         NODES[8] = local[2];
         NODES[7] = local[3];
 
-        Int map[4];
-        for (Int i = 0; i < 4; i++) map[i] = local[i];
+        E_Int map[4];
+        for (E_Int i = 0; i < 4; i++) map[i] = local[i];
 
         // Find face order
 
-        Int second, third, fourth;
+        E_Int second, third, fourth;
         second = third = fourth = 0;
 
-        for (Int i = 1; i < 4; i++) {
-            Int fid = fids[i];
-            Int *pn = Mesh_get_face(M, fid);
-            for (Int j = 0; j < 4; j++) local[j] = pn[2*j];
-            Int common[4] = {0, 0, 0, 0};
-            for (Int j = 0; j < 4; j++) {
-                Int point = local[j];
-                for (Int k = 0; k < 4; k++) {
+        for (E_Int i = 1; i < 4; i++) {
+            E_Int fid = fids[i];
+            E_Int *pn = Mesh_get_face(M, fid);
+            for (E_Int j = 0; j < 4; j++) local[j] = pn[2*j];
+            E_Int common[4] = {0, 0, 0, 0};
+            for (E_Int j = 0; j < 4; j++) {
+                E_Int point = local[j];
+                for (E_Int k = 0; k < 4; k++) {
                     if (map[k] == point) {
                         common[k] = 1;
                         break;
@@ -1414,7 +1414,7 @@ void reconstruct_quad(Mesh *M, Int hexa, Int *fids, Int crange, Int normalIn,
         // Second face
         fid = fids[second];
         face = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = face[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = face[2*i];
         i0 = Get_pos(NODES[4], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn);
@@ -1427,7 +1427,7 @@ void reconstruct_quad(Mesh *M, Int hexa, Int *fids, Int crange, Int normalIn,
         // Third face
         fid = fids[third];
         face = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = face[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = face[2*i];
         i0 = Get_pos(NODES[8], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn);
@@ -1440,7 +1440,7 @@ void reconstruct_quad(Mesh *M, Int hexa, Int *fids, Int crange, Int normalIn,
         // Fourth face
         fid = fids[fourth];
         face = Mesh_get_face(M, fid);
-        for (Int i = 0; i < 4; i++) local[i] = face[2*i];
+        for (E_Int i = 0; i < 4; i++) local[i] = face[2*i];
         i0 = Get_pos(NODES[7], local, 4);
         Right_shift(local, i0, 4);
         reorient = Mesh_get_reorient(M, fid, hexa, normalIn);
@@ -1450,34 +1450,34 @@ void reconstruct_quad(Mesh *M, Int hexa, Int *fids, Int crange, Int normalIn,
         assert(local[2] == NODES[6]);
         NODES[3] = local[3];
 
-        for (Int i = 0; i < 4; i++) pn[i] = NODES[i];
+        for (E_Int i = 0; i < 4; i++) pn[i] = NODES[i];
     } else {
         assert(0);
     }
 }
 
 
-Int check_canon_hexa(Int hexa, Mesh *M)
+E_Int check_canon_hexa(E_Int hexa, Mesh *M)
 {
-    Int NODES[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
+    E_Int NODES[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
-    Int *cell = Mesh_get_cell(M, hexa);
-    Int *crange = Mesh_get_crange(M, hexa);
+    E_Int *cell = Mesh_get_cell(M, hexa);
+    E_Int *crange = Mesh_get_crange(M, hexa);
 
-    Int local[4];
+    E_Int local[4];
 
-    Int *BOT = cell;
-    Int *TOP = cell+4;
-    Int *LFT = cell+8;
-    Int *RGT = cell+12;
-    Int *FRO = cell+16;
-    Int *BCK = cell+20;
+    E_Int *BOT = cell;
+    E_Int *TOP = cell+4;
+    E_Int *LFT = cell+8;
+    E_Int *RGT = cell+12;
+    E_Int *FRO = cell+16;
+    E_Int *BCK = cell+20;
 
     NODES[0] = Mesh_get_face(M, BOT[0])[0];
 
     // BOT
     reconstruct_quad(M, hexa, BOT, crange[0], normalIn_H[0], NODES[0], local);
-    for (Int i = 0; i < 4; i++) NODES[i] = local[i];
+    for (E_Int i = 0; i < 4; i++) NODES[i] = local[i];
 
     // LFT
     reconstruct_quad(M, hexa, LFT, crange[2], normalIn_H[2], NODES[0], local);

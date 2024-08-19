@@ -27,7 +27,7 @@ void face_write(const char *fname, Face *f)
     FILE *fh = fopen(fname, "w");
     assert(fh);
 
-    Int np = 1;
+    E_Int np = 1;
     Hedge *h = f->rep;
     Hedge *w = h->next;
     while (w != h) {
@@ -65,7 +65,7 @@ void hedge_write(const char *fname, Hedge *h)
     fclose(fh);
 }
 
-void point_write(const char *fname, Float x, Float y, Float z)
+void point_write(const char *fname, E_Float x, E_Float y, E_Float z)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
@@ -95,14 +95,14 @@ void point_write(const char *fname, const std::vector<Vertex *> &I)
     fclose(fh);
 }
 
-void point_write(const char *fname, Float *Xs, Float *Ys, Float *Zs,
-    const std::vector<Int> &P)
+void point_write(const char *fname, E_Float *Xs, E_Float *Ys, E_Float *Zs,
+    const std::vector<E_Int> &P)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", P.size());
-    for (Int p : P) fprintf(fh, "%f %f %f\n", Xs[p], Ys[p], Zs[p]);
+    for (E_Int p : P) fprintf(fh, "%f %f %f\n", Xs[p], Ys[p], Zs[p]);
     fclose(fh);
 }
 
@@ -116,15 +116,15 @@ void point_write(const char *fname, const std::vector<point> &P)
     fclose(fh);
 }
 
-void edge_write(const char *fname, Float *X, Float *Y, Float *Z,
-    const std::unordered_map<Int, TriangleIntersection> &point_hits)
+void edge_write(const char *fname, E_Float *X, E_Float *Y, E_Float *Z,
+    const std::unordered_map<E_Int, TriangleIntersection> &point_hits)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", 2 * point_hits.size());
     for (const auto &pdata : point_hits) {
-        Int pt = pdata.first;
+        E_Int pt = pdata.first;
         const auto &TI = pdata.second;
         fprintf(fh, "%f %f %f\n", X[pt], Y[pt], Z[pt]);
         fprintf(fh, "%f %f %f\n", TI.x, TI.y, TI.z);

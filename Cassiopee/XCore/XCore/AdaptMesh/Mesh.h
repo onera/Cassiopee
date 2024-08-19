@@ -40,27 +40,27 @@
 struct Karray;
 
 struct BPatch {
-    Int gid;
-    Int nf;
-    Int *pf;
+    E_Int gid;
+    E_Int nf;
+    E_Int *pf;
     char *name;
     char *type;
 };
 
 struct PPatch {
-    Int nei;
-    Int nf;
-    Int *pf;
-    Int *pn;
+    E_Int nei;
+    E_Int nf;
+    E_Int *pf;
+    E_Int *pn;
 
-    Int *sbuf_i;
-    Int *rbuf_i;
+    E_Int *sbuf_i;
+    E_Int *rbuf_i;
 };
 
 struct UEdge {
-    Int p, q;
+    E_Int p, q;
 
-    UEdge(Int P, Int Q)
+    UEdge(E_Int P, E_Int Q)
     {
         p = std::min(P, Q);
         q = std::max(P, Q);
@@ -85,70 +85,70 @@ struct UEdge {
 struct Mesh {
     /* Base data */
 
-    Int np;
-    Float *X, *Y, *Z;
+    E_Int np;
+    E_Float *X, *Y, *Z;
 
-    Int nf;
-    Int *faces;
-    Int *frange;
-    Int *fstride;
+    E_Int nf;
+    E_Int *faces;
+    E_Int *frange;
+    E_Int *fstride;
 
-    Int ne;
+    E_Int ne;
     UEdge *edges; // edge points
-    Int *fedg; // face edges
+    E_Int *fedg; // face edges
 
-    Int *xedf; // edge faces offset
-    Int *E2F; // edge faces
+    E_Int *xedf; // edge faces offset
+    E_Int *E2F; // edge faces
 
-    Int nc;
-    Int *cells; // nface equivalent
-    Int *crange; // 1, 2 or 4 by cell face
-    Int *cstride; // HEXA:6, TETRA:4, PENTA:5, PYRA:5
+    E_Int nc;
+    E_Int *cells; // nface equivalent
+    E_Int *crange; // 1, 2 or 4 by cell face
+    E_Int *cstride; // HEXA:6, TETRA:4, PENTA:5, PYRA:5
 
-    Int *owner;
-    Int *neigh;
+    E_Int *owner;
+    E_Int *neigh;
 
-    Int nconnex;
+    E_Int nconnex;
 
     /* Boundary */
 
-    Int nbp;
+    E_Int nbp;
     BPatch *bps;
     
-    std::map<Int, Int> face_to_bpatch;
+    std::map<E_Int, E_Int> face_to_bpatch;
 
     /* Adaptation */
 
-    Float *mode_2D;
+    E_Float *mode_2D;
 
-    std::map<UEdge, Int> ecenter;
+    std::map<UEdge, E_Int> ecenter;
 
-    Int *cref;
-    Int *fref;
+    E_Int *cref;
+    E_Int *fref;
 
-    Int *clevel;
-    Int *flevel;
-    Int *elevel;
+    E_Int *clevel;
+    E_Int *flevel;
+    E_Int *elevel;
 
-    Int *ctype;
-    Int *ftype;
+    E_Int *ctype;
+    E_Int *ftype;
 
-    std::map<Int, std::vector<Int>> fchildren;
-    std::map<Int, std::vector<Int>> cchildren;
+    std::map<E_Int, std::vector<E_Int>> fchildren;
+    std::map<E_Int, std::vector<E_Int>> cchildren;
 
-    Int *fparent;
+    E_Int *fparent;
 
-    Int nc_old;
-    Int nf_old;
+    E_Int nc_old;
+    E_Int nf_old;
 
-    Int gnf_old;
+    E_Int gnf_old;
 
     /* Comm */
 
-    Int npp;
+    E_Int npp;
     PPatch *pps;
 
-    std::map<Int, Int> face_to_ppatch;
+    std::map<E_Int, E_Int> face_to_ppatch;
 
     /* Parallel */
 
@@ -157,31 +157,31 @@ struct Mesh {
     int nrq;
     MPI_Request *reqs;
 
-    Int *l2gc;
-    Int *l2gf;
+    E_Int *l2gc;
+    E_Int *l2gf;
 
-    std::map<Int, Int> g2lc;
-    std::map<Int, Int> g2lf;
+    std::map<E_Int, E_Int> g2lc;
+    std::map<E_Int, E_Int> g2lf;
 
-    Int *xneis;
-    Int *cneis;
+    E_Int *xneis;
+    E_Int *cneis;
 
     Mesh();
 };
 
 /* Topo */
 
-Int Mesh_set_cells_for_2D(Mesh *M);
+E_Int Mesh_set_cells_for_2D(Mesh *M);
 
-void Mesh_get_cneis(Mesh *M, Int cid, Int &nn, Int neis[24]);
+void Mesh_get_cneis(Mesh *M, E_Int cid, E_Int &nn, E_Int neis[24]);
 
-Int Mesh_set_face_types(Mesh *M);
+E_Int Mesh_set_face_types(Mesh *M);
 
-Int Mesh_set_cell_types(Mesh *M);
+E_Int Mesh_set_cell_types(Mesh *M);
 
-Int Mesh_set_orientation(Mesh *M);
+E_Int Mesh_set_orientation(Mesh *M);
 
-Int Mesh_is_face_aligned_with_vec3(Mesh *M, Int fid, Float *v3);
+E_Int Mesh_is_face_aligned_with_vec3(Mesh *M, E_Int fid, E_Float *v3);
 
 /* Connectivity */
 
@@ -196,25 +196,25 @@ void Mesh_update_ppatches(Mesh *M);
 void Mesh_update_global_face_ids(Mesh *M);
 
 inline
-Int *Mesh_get_cell(Mesh *M, Int cid)
+E_Int *Mesh_get_cell(Mesh *M, E_Int cid)
 {
     return &M->cells[24*cid];
 }
 
 inline
-Int *Mesh_get_crange(Mesh *M, Int cid)
+E_Int *Mesh_get_crange(Mesh *M, E_Int cid)
 {
     return &M->crange[6*cid];
 }
 
 inline
-Int Mesh_get_sizeNFace(Mesh *M)
+E_Int Mesh_get_sizeNFace(Mesh *M)
 {
-    Int sizeNFace = 0;
+    E_Int sizeNFace = 0;
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int *crange = Mesh_get_crange(M, i);
-        for (Int j = 0; j < M->cstride[i]; j++) {
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int *crange = Mesh_get_crange(M, i);
+        for (E_Int j = 0; j < M->cstride[i]; j++) {
             sizeNFace += crange[j];
         }
     }
@@ -222,31 +222,31 @@ Int Mesh_get_sizeNFace(Mesh *M)
 }
 
 inline
-Int *Mesh_get_face(Mesh *M, Int fid)
+E_Int *Mesh_get_face(Mesh *M, E_Int fid)
 {
     return &M->faces[8*fid];
 }
 
 inline
-Int *Mesh_get_frange(Mesh *M, Int fid)
+E_Int *Mesh_get_frange(Mesh *M, E_Int fid)
 {
     return &M->frange[4*fid];
 }
 
 inline
-Int *Mesh_get_fedges(Mesh *M, Int fid)
+E_Int *Mesh_get_fedges(Mesh *M, E_Int fid)
 {
     return &M->fedg[8*fid];
 }
 
 inline
-Int Mesh_get_sizeNGon(Mesh *M)
+E_Int Mesh_get_sizeNGon(Mesh *M)
 {
-    Int sizeNGon = 0;
+    E_Int sizeNGon = 0;
 
-    for (Int i = 0; i < M->nf; i++) {
-        Int *frange = Mesh_get_frange(M, i);
-        for (Int j = 0; j < M->fstride[i]; j++) {
+    for (E_Int i = 0; i < M->nf; i++) {
+        E_Int *frange = Mesh_get_frange(M, i);
+        for (E_Int j = 0; j < M->fstride[i]; j++) {
             sizeNGon += frange[j];
         }
     }
@@ -255,53 +255,53 @@ Int Mesh_get_sizeNGon(Mesh *M)
 
 
 inline
-void Mesh_get_fpoints(Mesh *M, Int fid, Int &np, Int pts[8])
+void Mesh_get_fpoints(Mesh *M, E_Int fid, E_Int &np, E_Int pts[8])
 {
     np = 0;
-    Int *face = Mesh_get_face(M, fid);
-    Int *frange = Mesh_get_frange(M, fid);
+    E_Int *face = Mesh_get_face(M, fid);
+    E_Int *frange = Mesh_get_frange(M, fid);
     
-    for (Int i = 0; i < M->fstride[fid]; i++) {
-        Int *pn = face + 2*i;
+    for (E_Int i = 0; i < M->fstride[fid]; i++) {
+        E_Int *pn = face + 2*i;
 
-        for (Int j = 0; j < frange[i]; j++) {
+        for (E_Int j = 0; j < frange[i]; j++) {
             pts[np++] = pn[j];
         }
     }
 }
 
 inline
-void Mesh_reverse_face_points(Mesh *M, Int fid)
+void Mesh_reverse_face_points(Mesh *M, E_Int fid)
 {
-    Int *face = Mesh_get_face(M, fid);
-    Int *frange = Mesh_get_frange(M, fid);
-    Int fstride = M->fstride[fid];
+    E_Int *face = Mesh_get_face(M, fid);
+    E_Int *frange = Mesh_get_frange(M, fid);
+    E_Int fstride = M->fstride[fid];
     assert(fstride == 4);
     std::reverse(face+1, face+2*fstride);
     std::reverse(frange, frange+fstride);
 }
 
-inline Int Mesh_face_is_iface(Mesh *M, Int lfid)
+inline E_Int Mesh_face_is_iface(Mesh *M, E_Int lfid)
 {
     return M->owner[lfid] != -1 && M->neigh[lfid] != -1;
 }
 
-inline Int Mesh_face_is_pface(Mesh *M, Int lfid)
+inline E_Int Mesh_face_is_pface(Mesh *M, E_Int lfid)
 {
     return M->face_to_ppatch.find(lfid) != M->face_to_ppatch.end();
 }
 
-inline Int Mesh_face_is_bface(Mesh *M, Int lfid)
+inline E_Int Mesh_face_is_bface(Mesh *M, E_Int lfid)
 {
     return M->face_to_bpatch.find(lfid) != M->face_to_bpatch.end();
 }
 
 void Mesh_make_cell_cells(Mesh *M);
 
-inline Int Mesh_get_reorient(Mesh *M, Int face, Int cell, Int normalIn)
+inline E_Int Mesh_get_reorient(Mesh *M, E_Int face, E_Int cell, E_Int normalIn)
 {
     assert(M->owner[face] == cell || M->neigh[face] == cell);
-    Int ret = (M->neigh[face] == cell && normalIn == 0) ||
+    E_Int ret = (M->neigh[face] == cell && normalIn == 0) ||
               (M->owner[face] == cell && normalIn == 1);
     return ret;
 }
@@ -326,7 +326,7 @@ void Mesh_free(Mesh *M);
 
 Mesh *Mesh_from_Karray(Karray *karray);
 
-PyObject *Mesh_export_karray(Mesh *M, Int conformize);
+PyObject *Mesh_export_karray(Mesh *M, E_Int conformize);
 
 
 /* Parallel */
@@ -338,57 +338,57 @@ void Mesh_comm_waitall(Mesh *M)
     M->nrq = 0;
 }
 
-Int Mesh_load_balance(Mesh *M);
+E_Int Mesh_load_balance(Mesh *M);
 
 /* Adaptation */
 
-Int Mesh_smooth_cref(Mesh *M);
+E_Int Mesh_smooth_cref(Mesh *M);
 
-void Mesh_get_ref_entities(Mesh *M, std::vector<Int> &ref_cells,
-    std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges);
+void Mesh_get_ref_entities(Mesh *M, std::vector<E_Int> &ref_cells,
+    std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges);
 
-void Mesh_resize_for_refinement(Mesh *M, const std::vector<Int> &ref_cells,
-    const std::vector<Int> &ref_faces, const std::set<UEdge> &ref_edges);
+void Mesh_resize_for_refinement(Mesh *M, const std::vector<E_Int> &ref_cells,
+    const std::vector<E_Int> &ref_faces, const std::set<UEdge> &ref_edges);
 
 void Mesh_sort_ref_entities_by_level(Mesh *M,
-    std::vector<Int> &ref_cells, std::vector<Int> &ref_faces,
+    std::vector<E_Int> &ref_cells, std::vector<E_Int> &ref_faces,
     std::set<UEdge> &ref_edges);
 
-void Mesh_refine(Mesh *M, std::vector<Int> &ref_cells,
-    std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges);
+void Mesh_refine(Mesh *M, std::vector<E_Int> &ref_cells,
+    std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges);
 
-Int Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf);
+E_Int Mesh_conformize_cell_face(Mesh *M, E_Int cid, E_Int fid, E_Int fpos, E_Int nf);
 
 void Mesh_conformize_face_edge(Mesh *M);
 
-void Mesh_refine_iso(Mesh *M, std::vector<Int> &ref_cells,
-    std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges);
+void Mesh_refine_iso(Mesh *M, std::vector<E_Int> &ref_cells,
+    std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges);
 
-void Mesh_refine_dir(Mesh *M, std::vector<Int> &ref_cells,
-    std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges);
+void Mesh_refine_dir(Mesh *M, std::vector<E_Int> &ref_cells,
+    std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges);
 
 inline
-void Mesh_update_face_range_and_stride(Mesh *M, Int quad, Int fpos, Int nchild)
+void Mesh_update_face_range_and_stride(Mesh *M, E_Int quad, E_Int fpos, E_Int nchild)
 {
-    Int *frange = Mesh_get_frange(M, quad);
-    for (Int i = 0; i < M->fstride[quad]; i++) {
+    E_Int *frange = Mesh_get_frange(M, quad);
+    for (E_Int i = 0; i < M->fstride[quad]; i++) {
         frange[i] = 1;
     }
 
-    for (Int i = 0; i < nchild; i++) {
-        Int child = fpos + i;
+    for (E_Int i = 0; i < nchild; i++) {
+        E_Int child = fpos + i;
 
         M->fstride[child] = M->fstride[quad];
 
         frange = Mesh_get_frange(M, child);
-        for (Int j = 0; j < M->fstride[child]; j++) {
+        for (E_Int j = 0; j < M->fstride[child]; j++) {
             frange[j] = 1;
         }
     }
 }
 
 inline
-void Mesh_refine_or_get_edge_center(Mesh *M, Int p, Int q, Int &node)
+void Mesh_refine_or_get_edge_center(Mesh *M, E_Int p, E_Int q, E_Int &node)
 {
     UEdge E(p, q);
     auto it = M->ecenter.find(E);

@@ -20,12 +20,12 @@
 
 #include "common/common.h"
 
-extern const Int normalIn_Pe[5];
+extern const E_Int normalIn_Pe[5];
 
 struct Mesh;
 
-void refine_penta(Int penta, Mesh *M);
+void refine_penta(E_Int penta, Mesh *M);
 
-void reorder_penta(Int penta, Mesh *M);
+void reorder_penta(E_Int penta, Mesh *M);
 
-Int check_canon_penta(Int penta, Mesh *M);
+E_Int check_canon_penta(E_Int penta, Mesh *M);

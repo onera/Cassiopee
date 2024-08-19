@@ -26,7 +26,7 @@
 #define DIR 1
 
 static inline
-void refine_cell_dir(Int cell, Mesh *M)
+void refine_cell_dir(E_Int cell, Mesh *M)
 {
     switch (M->ctype[cell]) {
         case HEXA:
@@ -39,7 +39,7 @@ void refine_cell_dir(Int cell, Mesh *M)
 }
 
 static inline
-void refine_face_dir(Int face, Int pattern, Mesh *M)
+void refine_face_dir(E_Int face, E_Int pattern, Mesh *M)
 {
     switch (M->ftype[face]) {
         case QUAD: {
@@ -54,17 +54,17 @@ void refine_face_dir(Int face, Int pattern, Mesh *M)
 }
 
 static inline
-Int get_face_pattern(Int fid, Mesh *M)
+E_Int get_face_pattern(E_Int fid, Mesh *M)
 {
-    Int own = M->owner[fid];
-    Int fpos = -1;
-    Int *cell = Mesh_get_cell(M, own);
-    Int *crange = Mesh_get_crange(M, own);
+    E_Int own = M->owner[fid];
+    E_Int fpos = -1;
+    E_Int *cell = Mesh_get_cell(M, own);
+    E_Int *crange = Mesh_get_crange(M, own);
 
-    for (Int j = 0; j < M->cstride[own] && fpos == -1; j++) {
-        Int *pf = cell + 4*j;
-        for (Int k = 0; k < crange[j]; k++) {
-            Int face = pf[k];
+    for (E_Int j = 0; j < M->cstride[own] && fpos == -1; j++) {
+        E_Int *pf = cell + 4*j;
+        for (E_Int k = 0; k < crange[j]; k++) {
+            E_Int face = pf[k];
             if (face == fid) {
                 fpos = j;
                 assert(k == 0);
@@ -79,36 +79,36 @@ Int get_face_pattern(Int fid, Mesh *M)
     return DIR;
 }
 
-void Mesh_refine_dir(Mesh *M, std::vector<Int> &ref_cells,
-    std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges)
+void Mesh_refine_dir(Mesh *M, std::vector<E_Int> &ref_cells,
+    std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges)
 {
-    std::set<Int> levelset;
+    std::set<E_Int> levelset;
 
-    for (Int cell : ref_cells) {
+    for (E_Int cell : ref_cells) {
         levelset.insert(M->clevel[cell]);
     }
 
-    for (Int face : ref_faces) {
+    for (E_Int face : ref_faces) {
         levelset.insert(M->flevel[face]);
     }
 
-    std::vector<Int> levels;
-    for (Int level : levelset) levels.push_back(level);
+    std::vector<E_Int> levels;
+    for (E_Int level : levelset) levels.push_back(level);
     std::sort(levels.begin(), levels.end());
 
     std::reverse(ref_cells.begin(), ref_cells.end());
     std::reverse(ref_faces.begin(), ref_faces.end());
 
-    for (Int level : levels) {
+    for (E_Int level : levels) {
         while (!ref_faces.empty() && M->flevel[ref_faces.back()] == level) {
-            Int face = ref_faces.back();
-            Int pattern = get_face_pattern(face, M);
+            E_Int face = ref_faces.back();
+            E_Int pattern = get_face_pattern(face, M);
             ref_faces.pop_back();
             refine_face_dir(face, pattern, M);
         }
 
         while (!ref_cells.empty() && M->clevel[ref_cells.back()] == level) {
-            Int cell = ref_cells.back();
+            E_Int cell = ref_cells.back();
             ref_cells.pop_back();
             refine_cell_dir(cell, M);
         }

@@ -24,29 +24,29 @@
 #include "common/common.h"
 
 struct PointLoc {
-    Int fid = -1;
-    Int v_idx = -1;
-    Int e_idx = -1;
+    E_Int fid = -1;
+    E_Int v_idx = -1;
+    E_Int e_idx = -1;
 };
 
 struct Hedge;
 
 struct Vertex {
-    Float x, y, z;
+    E_Float x, y, z;
     Hedge *rep;
-    Int id;
+    E_Int id;
     Hedge *left;
-    Int oid[2];
+    E_Int oid[2];
 
     PointLoc loc;
 
     Hedge *xhedge = NULL;
 
-    Vertex(Float X, Float Y, Float Z, Int Oid, Int color);
+    Vertex(E_Float X, E_Float Y, E_Float Z, E_Int Oid, E_Int color);
 
-    Vertex(Float X, Float Y, Float Z);
+    Vertex(E_Float X, E_Float Y, E_Float Z);
 
     inline void print() { printf("P" SF_D_ ": %f %f %f\n", id, x, y, z); }
 };
 
-Int cmp_vtx(Vertex *a, Vertex *b);
+E_Int cmp_vtx(Vertex *a, Vertex *b);

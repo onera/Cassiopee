@@ -34,9 +34,9 @@
 #include "cycle.h"
 #include "triangle.h"
 
-Int Dcel::RED = 0;
-Int Dcel::BLACK = 1;
-Int Dcel::NO_IDEA = 2;
+E_Int Dcel::RED = 0;
+E_Int Dcel::BLACK = 1;
+E_Int Dcel::NO_IDEA = 2;
 
 void Dcel::resolve(Vertex *p, const std::vector<Segment *> &L,
     const std::vector<Segment *> &C, const std::vector<Segment *> &U,
@@ -116,7 +116,7 @@ void Dcel::find_intersections()
 {
     Status T;
 
-    Float BIG = 1;
+    E_Float BIG = 1;
 
     for (Vertex *p : V) {
         while (fabs(p->x) >= BIG || fabs(p->y) >= BIG) {
@@ -209,11 +209,11 @@ void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
     FILE *fh = fopen(fname, "w");
     assert(fh);
 
-    Int np = 0;
-    Int ne = 0;
-    Int nf = (Int)faces.size();
+    E_Int np = 0;
+    E_Int ne = 0;
+    E_Int nf = (E_Int)faces.size();
 
-    std::map<Vertex *, Int> vmap;
+    std::map<Vertex *, E_Int> vmap;
     std::vector<Vertex *> new_pids;
 
     for (Face *f : faces) {
@@ -244,9 +244,9 @@ void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
     
     fprintf(fh, "INDPG\n");
     fprintf(fh, SF_D_ "\n", ne+1);
-    Int sizeNGon = 0;
+    E_Int sizeNGon = 0;
     fprintf(fh, SF_D_ " ", sizeNGon);
-    for (Int i = 0; i < ne; i++) {
+    for (E_Int i = 0; i < ne; i++) {
         sizeNGon += 2;
         fprintf(fh, SF_D_ " ", sizeNGon);
     }
@@ -272,7 +272,7 @@ void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
 
     fprintf(fh, "INDPH\n");
     fprintf(fh, SF_D_ "\n", nf+1);
-    Int sizeNFace = 0;
+    E_Int sizeNFace = 0;
     fprintf(fh, SF_D_ " ", sizeNFace);
     for (Face *f : faces) {
         Hedge *h = f->rep;
@@ -289,26 +289,26 @@ void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
 
     fprintf(fh, "NFACE\n");
     fprintf(fh, SF_D_ "\n", sizeNFace);
-    for (Int i = 0; i < sizeNFace; i++)
+    for (E_Int i = 0; i < sizeNFace; i++)
         fprintf(fh, SF_D_ " ", i);
 
     fclose(fh);
 }
 
 std::vector<Face *> Dcel::extract_faces_of_indices(
-    const std::vector<Int> &indices)
+    const std::vector<E_Int> &indices)
 {
     std::vector<Face *> ret;
     ret.reserve(indices.size());
 
-    for (Int index : indices) ret.push_back(F[index]);
+    for (E_Int index : indices) ret.push_back(F[index]);
 
     return ret;
 }
 
-std::vector<Int> Dcel::extract_indices_of_type(Int type)
+std::vector<E_Int> Dcel::extract_indices_of_type(E_Int type)
 {
-    std::vector<Int> ret;
+    std::vector<E_Int> ret;
 
     for (size_t i = 0; i < C.size(); i++) {
         if (C[i]->inout == type)
@@ -362,7 +362,7 @@ void Dcel::set_face_labels(std::vector<Face *> &F)
 
         Hedge *R = NULL;
         Hedge *B = NULL;
-        Int RB = 0;
+        E_Int RB = 0;
 
         if (h->color == Dcel::RED) {
             R = h;
@@ -393,7 +393,7 @@ void Dcel::set_face_labels(std::vector<Face *> &F)
     }
 }
 
-Hedge *Dcel::get_hedge_of_color(Face *f, Int color)
+Hedge *Dcel::get_hedge_of_color(Face *f, E_Int color)
 {
     Hedge *h = f->rep;
     if (h->color == color) return h;
@@ -431,12 +431,12 @@ void Dcel::init_vertices(const Smesh &M0, const Smesh &M1)
 {
     assert(Q.empty());
 
-    for (Int i = 0; i < M0.np; i++) {
+    for (E_Int i = 0; i < M0.np; i++) {
         //Q.insert(M0.X[i], M0.Y[i], M0.Z[i], M0.l2gp.at(i), Dcel::RED);
         Q.insert(M0.X[i], M0.Y[i], M0.Z[i], i, Dcel::RED);
     }
 
-    for (Int i = 0; i < M1.np; i++) {
+    for (E_Int i = 0; i < M1.np; i++) {
         //Q.insert(M1.X[i], M1.Y[i], M1.Z[i], M1.l2gp.at(i), Dcel::BLACK);
         Q.insert(M1.X[i], M1.Y[i], M1.Z[i], i, Dcel::BLACK);
     }
@@ -459,30 +459,30 @@ Dcel::Dcel(Smesh &M0, Smesh &M1)
     assert(check_faces(H, F));
 }
 
-void mat3_mult(Float A[3][3], Float B[3][3], Float C[3][3])
+void mat3_mult(E_Float A[3][3], E_Float B[3][3], E_Float C[3][3])
 {
-    for (Int i = 0; i < 3; i++) {
-        for (Int j = 0; j < 3; j++) {
+    for (E_Int i = 0; i < 3; i++) {
+        for (E_Int j = 0; j < 3; j++) {
             C[i][j] = 0;
 
-            for (Int k = 0; k < 3; k++) {
+            for (E_Int k = 0; k < 3; k++) {
                 C[i][j] += A[i][k] * B[k][j];
             }
         }
     }
 }
 
-void mat3_vec(Float A[3][3], Float x[3], Float b[3])
+void mat3_vec(E_Float A[3][3], E_Float x[3], E_Float b[3])
 {
-    for (Int i = 0; i < 3; i++) {
+    for (E_Int i = 0; i < 3; i++) {
         b[i] = 0;
-        for (Int j = 0; j < 3; j++) {
+        for (E_Int j = 0; j < 3; j++) {
             b[i] += A[i][j] * x[j];
         }
     }
 }
 
-void Dcel::init_hedges_and_faces(Smesh &M, Int color)
+void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
 {
     //printf("Doing color %d\n", color);
     size_t nh = H.size();
@@ -492,11 +492,11 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
 
     std::vector<std::vector<Hedge *>> list(M.np);
 
-    for (Int i = 0; i < M.ne; i++) {
+    for (E_Int i = 0; i < M.ne; i++) {
         const auto &e = M.E[i];
 
-        Int p = e.p;
-        Int q = e.q;
+        E_Int p = e.p;
+        E_Int q = e.q;
 
         Event *xit = Q.lookup(M.X[p], M.Y[p], M.Z[p]);
         assert(xit);
@@ -530,12 +530,12 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
 
     const auto &pnormals = M.pnormals;
 
-    Float ez[3] = {0, 0, 1};
-    Float I[3][3] = {}; I[0][0] = I[1][1] = I[2][2] = 1;
+    E_Float ez[3] = {0, 0, 1};
+    E_Float I[3][3] = {}; I[0][0] = I[1][1] = I[2][2] = 1;
 
-    for (Int pid = 0; pid < M.np; pid++) {
+    for (E_Int pid = 0; pid < M.np; pid++) {
         auto &hedges = list[pid];
-        const Float *N = &pnormals[3*pid];
+        const E_Float *N = &pnormals[3*pid];
 
         // Project the hedges tails onto the plane (i, N)
 
@@ -545,7 +545,7 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
 
             Vertex *tail = t->orig;
 
-            Float dp = tail->x*N[0] + tail->y*N[1] + tail->z*N[2];
+            E_Float dp = tail->x*N[0] + tail->y*N[1] + tail->z*N[2];
 
             h->proj_tx = tail->x - dp * N[0]; 
             h->proj_ty = tail->y - dp * N[1]; 
@@ -553,40 +553,40 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
         }
 
         // Rotation axis
-        Float r[3];
+        E_Float r[3];
         K_MATH::cross(N, ez, r);
-        Float normr = K_MATH::norm(r, 3);
+        E_Float normr = K_MATH::norm(r, 3);
         if (Sign(normr == 0)) normr = 1;
         for (int i = 0; i < 3; i++) r[i] /= normr;
 
         // Rotation angle
-        Float costheta = K_MATH::dot(N, ez, 3) / (K_MATH::norm(N, 3) * K_MATH::norm(ez, 3));
+        E_Float costheta = K_MATH::dot(N, ez, 3) / (K_MATH::norm(N, 3) * K_MATH::norm(ez, 3));
         assert(costheta > -1-TOL && costheta < 1+TOL);
 
-        Float sintheta = sqrt(1 - costheta*costheta); 
+        E_Float sintheta = sqrt(1 - costheta*costheta); 
 
         // Create the rotation matrix
-        Float K[3][3];
+        E_Float K[3][3];
         K[0][0] = 0;     K[0][1] = -r[2]; K[0][2] = r[1];
         K[1][0] = r[2];  K[1][1] = 0;     K[1][2] = -r[0];
         K[2][0] = -r[1]; K[2][1] = r[0];  K[2][2] = 0;
 
-        Float K2[3][3];
+        E_Float K2[3][3];
         mat3_mult(K, K, K2);
 
         // Find the rotation matrix
-        Float R[3][3] = {};
+        E_Float R[3][3] = {};
         
-        for (Int i = 0; i < 3; i++) {
-            for (Int j = 0; j < 3; j++) {
+        for (E_Int i = 0; i < 3; i++) {
+            for (E_Int j = 0; j < 3; j++) {
                 R[i][j] = I[i][j] + sintheta * K[i][j] + (1-costheta)*K2[i][j];
                 //printf("%.3f ", R[i][j]);
             }
         }
     
         // Project the origin
-        Float o[3] = {M.X[pid], M.Y[pid], M.Z[pid]};
-        Float proj_o[3] = {};
+        E_Float o[3] = {M.X[pid], M.Y[pid], M.Z[pid]};
+        E_Float proj_o[3] = {};
         mat3_vec(R, o, proj_o);
 
         for (size_t i = 0; i < hedges.size(); i++) {
@@ -596,8 +596,8 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
             h->proj_oy = proj_o[1];
             h->proj_oz = proj_o[2];
 
-            Float t[3] = {h->proj_tx, h->proj_ty, h->proj_tz};
-            Float proj_t[3];
+            E_Float t[3] = {h->proj_tx, h->proj_ty, h->proj_tz};
+            E_Float proj_t[3];
             mat3_vec(R, t, proj_t);
 
             h->proj_tx = proj_t[0];
@@ -621,10 +621,10 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
         xit->key->rep = hedges[0];
     }
 
-    for (Int i = 0; i < M.nf; i++) {
+    for (E_Int i = 0; i < M.nf; i++) {
         const auto &edges = M.F2E[i];
-        Int first_edge = edges[0];
-        Int where = nh + 2 * first_edge;
+        E_Int first_edge = edges[0];
+        E_Int where = nh + 2 * first_edge;
         Hedge *h = H[where];
         Hedge *t = H[where + 1];
         assert(h->twin == t);
@@ -635,8 +635,8 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
         //f->oid[color] = M.l2gf.at(i);
 
 
-        assert(M.E2F[first_edge][0] == (Int)i || M.E2F[first_edge][1] == Int(i));
-        Hedge *REP = (M.E2F[first_edge][0] == (Int)i) ? h : t;
+        assert(M.E2F[first_edge][0] == (E_Int)i || M.E2F[first_edge][1] == E_Int(i));
+        Hedge *REP = (M.E2F[first_edge][0] == (E_Int)i) ? h : t;
 
         assert(REP->left == NULL);
 
@@ -669,7 +669,7 @@ void Dcel::init_hedges_and_faces(Smesh &M, Int color)
     }
 }
 
-Int Dcel::check_hedges(const std::vector<Hedge *> &H)
+E_Int Dcel::check_hedges(const std::vector<Hedge *> &H)
 {
     for (size_t i = 0; i < H.size(); i++) {
         Hedge *h = H[i];
@@ -686,7 +686,7 @@ Int Dcel::check_hedges(const std::vector<Hedge *> &H)
 }
 
 
-Int Dcel::check_faces(const std::vector<Hedge *> &H,
+E_Int Dcel::check_faces(const std::vector<Hedge *> &H,
     const std::vector<Face *> &F)
 {
     for (size_t i = 0; i < H.size(); i++) {
@@ -717,9 +717,9 @@ Dcel::~Dcel()
 
 void Dcel::set_cycles_inout()
 {
-    Int inner = 0;
-    Int outer = 0;
-    Int degen = 0;
+    E_Int inner = 0;
+    E_Int outer = 0;
+    E_Int degen = 0;
 
     for (Cycle *c : C) {
         // Get the leftmost vertex in the cycle
@@ -732,7 +732,7 @@ void Dcel::set_cycles_inout()
         Hedge *w = h->next;
         while (w != h) {
             Vertex *p = w->orig;
-            Int cmp = cmp_vtx(p, v);
+            E_Int cmp = cmp_vtx(p, v);
             if (cmp < 0) {
                 v = p;
                 e2 = w;
@@ -753,18 +753,18 @@ void Dcel::set_cycles_inout()
         // If the angle from e1 to e2 is less than 180°, c is an outer cycle.
         // Else, c is an inner cycle.
         
-        Float px = v->x - a->x;
-        Float py = v->y - a->y;
-        Float pz = v->z - a->z;
-        Float nx = b->x - v->x;
-        Float ny = b->y - v->y;
-        Float nz = b->z - v->z;
+        E_Float px = v->x - a->x;
+        E_Float py = v->y - a->y;
+        E_Float pz = v->z - a->z;
+        E_Float nx = b->x - v->x;
+        E_Float ny = b->y - v->y;
+        E_Float nz = b->z - v->z;
 
-        Float cp[3] = {py*nz - pz*ny, pz*nx - px*nz, px*ny - py*nx};
+        E_Float cp[3] = {py*nz - pz*ny, pz*nx - px*nz, px*ny - py*nx};
 
         // TODO(Imad): compute r more rigorously...
-        Float r[3] = {0, 0, 1};
-        Float cmp = Sign(K_MATH::dot(r, cp, 3)); 
+        E_Float r[3] = {0, 0, 1};
+        E_Float cmp = Sign(K_MATH::dot(r, cp, 3)); 
 
         if (cmp < 0) {
             c->inout = Cycle::INNER;
@@ -800,7 +800,7 @@ std::vector<Vertex *> Dcel::get_face_vertices(Face *f)
 
 void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
 {
-    for (Int sp = 0; sp < S.np; sp++) {
+    for (E_Int sp = 0; sp < S.np; sp++) {
 
         Event *xit = Q.lookup(S.X[sp], S.Y[sp], S.Z[sp]);
         assert(xit);
@@ -808,26 +808,26 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
         Vertex *V = xit->key;
         auto &ploc = V->loc;
 
-        Int found = 0;
+        E_Int found = 0;
 
-        for (Int mf = 0; mf < M.nf && !found; mf++) {
+        for (E_Int mf = 0; mf < M.nf && !found; mf++) {
 
             const auto &pn = M.F[mf];
 
-            Float o[3] = {0, 0, 0};
+            E_Float o[3] = {0, 0, 0};
 
-            for (Int p : pn) {
+            for (E_Int p : pn) {
                 o[0] += M.X[p];
                 o[1] += M.Y[p];
                 o[2] += M.Z[p];
             }
-            for (Int i = 0; i < 3; i++) o[i] /= pn.size(); 
+            for (E_Int i = 0; i < 3; i++) o[i] /= pn.size(); 
     
             for (size_t i = 0; i < pn.size(); i++) {
-                Int p = pn[i];
-                Int q = pn[(i+1)%pn.size()];
+                E_Int p = pn[i];
+                E_Int q = pn[(i+1)%pn.size()];
 
-                Float u, v, w;
+                E_Float u, v, w;
 
                 if (Triangle::is_point_inside(
                     S.X[sp], S.Y[sp], S.Z[sp],
@@ -901,11 +901,11 @@ void Dcel::handle_intersecting_endpoint(Vertex *v, const Smesh &M)
 
     if (vloc.e_idx == -1) return;
 
-    Int fid = vloc.fid;
+    E_Int fid = vloc.fid;
 
     const auto &pe = M.F2E[fid]; 
 
-    Int me = pe[vloc.e_idx];
+    E_Int me = pe[vloc.e_idx];
 
     Hedge *start = H[2*me];
 
@@ -915,7 +915,7 @@ void Dcel::handle_intersecting_endpoint(Vertex *v, const Smesh &M)
 
     Hedge *h = start;
 
-    Int done = 0;
+    E_Int done = 0;
 
     while (1) {
 
@@ -933,35 +933,35 @@ void Dcel::handle_intersecting_endpoint(Vertex *v, const Smesh &M)
     assert(done == 1);
 }
 
-Int Dcel::get_next_face(const Smesh &M, Float px, Float py, Float pz,
-    const std::vector<Int> &pf, Float dir[3])
+E_Int Dcel::get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
+    const std::vector<E_Int> &pf, E_Float dir[3])
 {
-    Int next_face = -1;
+    E_Int next_face = -1;
 
     for (size_t i = 0; i < pf.size(); i++) {
 
-        Int fid = pf[i];
+        E_Int fid = pf[i];
 
         Face *face = F[fid];
 
-        const Float *fN = &M.fnormals[3*fid];
+        const E_Float *fN = &M.fnormals[3*fid];
 
-        Float proj[3] = { };
-        Float dp = K_MATH::dot(fN, dir, 3);
-        for (Int j = 0; j < 3; j++) proj[j] = dir[j] - dp * fN[j];
+        E_Float proj[3] = { };
+        E_Float dp = K_MATH::dot(fN, dir, 3);
+        for (E_Int j = 0; j < 3; j++) proj[j] = dir[j] - dp * fN[j];
 
         Hedge *h = face->rep;
 
-        Int hit = 0;
+        E_Int hit = 0;
 
         while (1) {
 
             Vertex *a = h->orig;
             Vertex *b = h->twin->orig;
 
-            Float dx = px + proj[0];
-            Float dy = py + proj[1];
-            Float dz = pz + proj[2];
+            E_Float dx = px + proj[0];
+            E_Float dy = py + proj[1];
+            E_Float dz = pz + proj[2];
 
             hit = EdgeEdgeIntersect(
                 px, py, pz,
@@ -991,28 +991,28 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S)
     Vertex *p = sh->orig;
     Vertex *q = sh->twin->orig;
 
-    Float dir[3] = {q->x-p->x, q->y-p->y, q->z-p->z};
+    E_Float dir[3] = {q->x-p->x, q->y-p->y, q->z-p->z};
 
     const auto &ploc = p->loc; 
 
-    std::vector<Int> test_faces;
+    std::vector<E_Int> test_faces;
 
-    Int mfid = ploc.fid;
+    E_Int mfid = ploc.fid;
 
     // Get the potential starting faces
 
     if (ploc.e_idx != -1) {
         assert(ploc.v_idx == -1);
         const auto &pe = M.F2E[mfid];
-        Int eid = pe[ploc.e_idx];
+        E_Int eid = pe[ploc.e_idx];
         const auto &pf = M.E2F[eid];
-        for (Int fid : pf) test_faces.push_back(fid);
+        for (E_Int fid : pf) test_faces.push_back(fid);
     } else if (ploc.v_idx != -1) {
         assert(ploc.e_idx == -1);
         const auto &pn = M.F[mfid];
-        Int pid = pn[ploc.v_idx];
+        E_Int pid = pn[ploc.v_idx];
         const auto &pf = M.P2F[pid];
-        for (Int fid : pf) test_faces.push_back(fid);
+        for (E_Int fid : pf) test_faces.push_back(fid);
     } else {
         test_faces.push_back(mfid);
     }
@@ -1023,17 +1023,17 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S)
     handle_intersecting_endpoint(q, M);
 
     // Determine the starting face
-    Int start_face = get_next_face(M, p->x, p->y, p->z, test_faces, dir);
+    E_Int start_face = get_next_face(M, p->x, p->y, p->z, test_faces, dir);
 
     // Trace
     
-    Int found = 0;
-    Int walk = 0;
-    Int max_walk = 10;
+    E_Int found = 0;
+    E_Int walk = 0;
+    E_Int max_walk = 10;
 
     Face *current_face = F[start_face];
 
-    Float px = p->x, py = p->y, pz = p->z;
+    E_Float px = p->x, py = p->y, pz = p->z;
 
     Hedge *start_hedge = current_face->rep;
 
@@ -1041,30 +1041,30 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S)
 
     while (!found && walk < max_walk) {
 
-        Int qfid = q->loc.fid;
+        E_Int qfid = q->loc.fid;
         
         if (F[qfid] == current_face) {
             found = 1;
             break;
         }
 
-        Int current_fid = current_face->oid[0];
+        E_Int current_fid = current_face->oid[0];
 
-        const Float *fN = &M.fnormals[3*current_fid];
+        const E_Float *fN = &M.fnormals[3*current_fid];
 
-        Float proj[3] = { };
-        Float dp = K_MATH::dot(fN, dir, 3);
-        for (Int i = 0; i < 3; i++) proj[i] = dir[i] - dp * fN[i];
+        E_Float proj[3] = { };
+        E_Float dp = K_MATH::dot(fN, dir, 3);
+        for (E_Int i = 0; i < 3; i++) proj[i] = dir[i] - dp * fN[i];
 
-        Float dx = px + proj[0];
-        Float dy = py + proj[1];
-        Float dz = pz + proj[2];
+        E_Float dx = px + proj[0];
+        E_Float dy = py + proj[1];
+        E_Float dz = pz + proj[2];
 
         Hedge *h = current_face->rep;
-        Int reached = 0;
-        Int hit = 0;
+        E_Int reached = 0;
+        E_Int hit = 0;
 
-        Float ix, iy, iz;
+        E_Float ix, iy, iz;
         ix = iy = iz = -10000;
     
         while (!reached && !found) {
@@ -1083,8 +1083,8 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S)
 
                 Vertex *x = NULL;
 
-                Int hit_a = cmp_points(ix, iy, iz, a->x, a->y, a->z) == 0;
-                Int hit_b = cmp_points(ix, iy, iz, b->x, b->y, b->z) == 0;
+                E_Int hit_a = cmp_points(ix, iy, iz, a->x, a->y, a->z) == 0;
+                E_Int hit_b = cmp_points(ix, iy, iz, b->x, b->y, b->z) == 0;
 
                 // Hit a vertex: original m vertex, or intersection
 
@@ -1102,15 +1102,15 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S)
                     // M point, get the next face
                     else if (x->oid[0] != -1) {
 
-                        Int mpid = x->oid[0];
+                        E_Int mpid = x->oid[0];
                         const auto &pf = M.P2F[mpid];
-                        Int next_fid = get_next_face(M, x->x, x->y, x->z, pf, dir);
+                        E_Int next_fid = get_next_face(M, x->x, x->y, x->z, pf, dir);
                         assert(next_fid != current_fid);
                         current_face = F[next_fid];
 
                     } else {
                         
-                        // Intersection, move
+                        // E_Intersection, move
 
                         current_face = h->twin->left;
     
@@ -1164,7 +1164,7 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
 {
     std::vector<Hedge *> s_hedges;
 
-    for (Int i = 2*M.ne; i < 2*(M.ne + S.ne); i += 2) {
+    for (E_Int i = 2*M.ne; i < 2*(M.ne + S.ne); i += 2) {
         Hedge *h = H[i];
         assert(h->twin == H[i+1]);
         assert(h->color == Dcel::BLACK);
@@ -1229,7 +1229,7 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
             leaving.push_back(h);
         }
 
-        Int do_sort = 0;
+        E_Int do_sort = 0;
 
         for (size_t i = 1; i < leaving.size(); i++) {
             if (leaving[i]->color != leaving[0]->color) {
@@ -1246,10 +1246,10 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
         // M point
         if (v->oid[0] != -1) {
 
-            Int mpid = v->oid[0];
+            E_Int mpid = v->oid[0];
 
-            const Float *pN = &M.pnormals[3*mpid];
-            for (Int i = 0; i < 3; i++) N[i] = pN[i];
+            const E_Float *pN = &M.pnormals[3*mpid];
+            for (E_Int i = 0; i < 3; i++) N[i] = pN[i];
 
         }
         
@@ -1258,47 +1258,47 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
 
             const auto &loc = v->loc;
             
-            Int mfid = loc.fid;
+            E_Int mfid = loc.fid;
 
             if (loc.e_idx != -1) {
 
                 const auto &pe = M.F2E[mfid];
-                Int eid = pe[loc.e_idx];
+                E_Int eid = pe[loc.e_idx];
                 const auto &pf = M.E2F[eid];
                 assert(mfid == pf[0] || mfid == pf[1]);
 
-                Int mf1 = pf[0];
-                Int mf2 = pf[1];
+                E_Int mf1 = pf[0];
+                E_Int mf2 = pf[1];
 
-                const Float *fN1 = &M.fnormals[3*mf1];
-                const Float *fN2 = &M.fnormals[3*mf2];
+                const E_Float *fN1 = &M.fnormals[3*mf1];
+                const E_Float *fN2 = &M.fnormals[3*mf2];
 
-                for (Int i = 0; i < 3; i++) {
+                for (E_Int i = 0; i < 3; i++) {
                     N[i] += fN1[i];
                     N[i] += fN2[i];
                 }
 
-                Float NORM = K_MATH::norm(N, 3);
-                for (Int i = 0; i < 3; i++) N[i] /= NORM;
+                E_Float NORM = K_MATH::norm(N, 3);
+                for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
 
             } else if (loc.v_idx != -1) {
                 
                 const auto &pn = M.F[mfid];
-                Int mpid = pn[loc.v_idx];
-                const Float *pN = &M.pnormals[3*mpid];
-                for (Int i = 0; i < 3; i++) N[i] = pN[i];
+                E_Int mpid = pn[loc.v_idx];
+                const E_Float *pN = &M.pnormals[3*mpid];
+                for (E_Int i = 0; i < 3; i++) N[i] = pN[i];
 
             } else {
 
-                const Float *fN = &M.fnormals[3*mfid];
+                const E_Float *fN = &M.fnormals[3*mfid];
 
-                for (Int i = 0; i < 3; i++) N[i] = fN[i];
+                for (E_Int i = 0; i < 3; i++) N[i] = fN[i];
 
             }
 
         }
 
-        // Intersection
+        // E_Intersection
         else {
 
             Hedge *h = v->xhedge;
@@ -1307,22 +1307,22 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
             Face *f1 = h->left;
             Face *f2 = h->twin->left;
 
-            Int mf1 = f1->oid[0];
-            Int mf2 = f2->oid[0];
+            E_Int mf1 = f1->oid[0];
+            E_Int mf2 = f2->oid[0];
     
-            const Float *fN1 = &M.fnormals[3*mf1];
-            const Float *fN2 = &M.fnormals[3*mf2];
+            const E_Float *fN1 = &M.fnormals[3*mf1];
+            const E_Float *fN2 = &M.fnormals[3*mf2];
 
-            for (Int i = 0; i < 3; i++) {
+            for (E_Int i = 0; i < 3; i++) {
                 N[i] += fN1[i];
                 N[i] += fN2[i];
             }
 
-            Float NORM = K_MATH::norm(N, 3);
-            for (Int i = 0; i < 3; i++) N[i] /= NORM;
+            E_Float NORM = K_MATH::norm(N, 3);
+            for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
         }
 
-        Float NORM = K_MATH::norm(N, 3);
+        E_Float NORM = K_MATH::norm(N, 3);
         assert(Sign(NORM -1) == 0);
         
         for (Hedge *h : leaving) {
@@ -1334,39 +1334,39 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
 
             Vertex *tail = w->orig;
 
-            Float dp = tail->x*N[0] + tail->y*N[1] + tail->z*N[2];
+            E_Float dp = tail->x*N[0] + tail->y*N[1] + tail->z*N[2];
 
             h->proj_tx = tail->x - dp * N[0]; 
             h->proj_ty = tail->y - dp * N[1]; 
             h->proj_tz = tail->z - dp * N[2]; 
 
             // Rotation axis
-            Float r[3];
+            E_Float r[3];
             K_MATH::cross(N, ez, r);
-            Float normr = K_MATH::norm(r, 3);
+            E_Float normr = K_MATH::norm(r, 3);
             if (Sign(normr == 0)) normr = 1;
             for (int i = 0; i < 3; i++) r[i] /= normr;
 
             // Rotation angle
-            Float costheta = K_MATH::dot(N, ez, 3) / (K_MATH::norm(N, 3) * K_MATH::norm(ez, 3));
+            E_Float costheta = K_MATH::dot(N, ez, 3) / (K_MATH::norm(N, 3) * K_MATH::norm(ez, 3));
             assert(costheta > -1-TOL && costheta < 1+TOL);
 
-            Float sintheta = sqrt(1 - costheta*costheta); 
+            E_Float sintheta = sqrt(1 - costheta*costheta); 
 
             // Create the rotation matrix
-            Float K[3][3];
+            E_Float K[3][3];
             K[0][0] = 0;     K[0][1] = -r[2]; K[0][2] = r[1];
             K[1][0] = r[2];  K[1][1] = 0;     K[1][2] = -r[0];
             K[2][0] = -r[1]; K[2][1] = r[0];  K[2][2] = 0;
 
-            Float K2[3][3];
+            E_Float K2[3][3];
             mat3_mult(K, K, K2);
 
             // Find the rotation matrix
-            Float R[3][3] = {};
+            E_Float R[3][3] = {};
         
-            for (Int i = 0; i < 3; i++) {
-                for (Int j = 0; j < 3; j++) {
+            for (E_Int i = 0; i < 3; i++) {
+                for (E_Int j = 0; j < 3; j++) {
                     R[i][j] = I[i][j] + sintheta * K[i][j] + (1-costheta)*K2[i][j];
                 }
             }
@@ -1374,16 +1374,16 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
             // Project the origin
             Vertex *orig = h->orig;
             assert(orig == v);
-            Float o[3] = {orig->x, orig->y, orig->z};
-            Float proj_o[3] = {};
+            E_Float o[3] = {orig->x, orig->y, orig->z};
+            E_Float proj_o[3] = {};
             mat3_vec(R, o, proj_o);
 
             h->proj_ox = proj_o[0];
             h->proj_oy = proj_o[1];
             h->proj_oz = proj_o[2];
 
-            Float t[3] = {h->proj_tx, h->proj_ty, h->proj_tz};
-            Float proj_t[3];
+            E_Float t[3] = {h->proj_tx, h->proj_ty, h->proj_tz};
+            E_Float proj_t[3];
             mat3_vec(R, t, proj_t);
 
             h->proj_tx = proj_t[0];

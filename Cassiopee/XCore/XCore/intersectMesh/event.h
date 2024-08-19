@@ -32,8 +32,8 @@ struct Event {
     Event *left;
     Event *right;
 
-    Event(Float x, Float y, Float z, Int oid, Int color);
-    Event(Float x, Float y, Float z);
+    Event(E_Float x, E_Float y, E_Float z, E_Int oid, E_Int color);
+    Event(E_Float x, E_Float y, E_Float z);
 
     void inorder(std::vector<Vertex *> &V) const;
 };

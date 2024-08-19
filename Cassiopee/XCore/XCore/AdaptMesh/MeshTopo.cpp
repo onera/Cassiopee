@@ -26,44 +26,44 @@
 #include "Tri.h"
 
 inline
-Int Mesh_is_face_aligned_with_vec3(Mesh *M, Int fid, Float *vec3)
+E_Int Mesh_is_face_aligned_with_vec3(Mesh *M, E_Int fid, E_Float *vec3)
 {
-    Int nn, pn[8];
+    E_Int nn, pn[8];
     Mesh_get_fpoints(M, fid, nn, pn);
 
     // Compute normal to the triangle formed by the first 3 points
-    Float e0[3] = { M->X[pn[1]] - M->X[pn[0]],
+    E_Float e0[3] = { M->X[pn[1]] - M->X[pn[0]],
                     M->Y[pn[1]] - M->Y[pn[0]],
                     M->Z[pn[1]] - M->Z[pn[0]] };
 
-    Float e1[3] = { M->X[pn[2]] - M->X[pn[0]],
+    E_Float e1[3] = { M->X[pn[2]] - M->X[pn[0]],
                     M->Y[pn[2]] - M->Y[pn[0]],
                     M->Z[pn[2]] - M->Z[pn[0]] };
     
-    Float n[3];
+    E_Float n[3];
     K_MATH::cross(e0, e1, n);
 
-    Float dp = fabs(K_MATH::dot(n, vec3, 3)) / K_MATH::norm(n, 3);
+    E_Float dp = fabs(K_MATH::dot(n, vec3, 3)) / K_MATH::norm(n, 3);
 
     return fabs(dp - 1.0) <= 1e-8;
 }
 
 static inline
-Int set_PENTA_for_2D(Int cid, Mesh *M)
+E_Int set_PENTA_for_2D(E_Int cid, Mesh *M)
 {
     assert(0);
     return 1;
 }
 
 static inline
-Int set_HEXA_for_2D(Int cid, Mesh *M)
+E_Int set_HEXA_for_2D(E_Int cid, Mesh *M)
 {
-    Int *cell = Mesh_get_cell(M, cid);
-    Int *crange = Mesh_get_crange(M, cid);
+    E_Int *cell = Mesh_get_cell(M, cid);
+    E_Int *crange = Mesh_get_crange(M, cid);
     
-    Int start = 0;
+    E_Int start = 0;
     for (; start < M->cstride[cid]; start++) {
-        Int fid = cell[4*start];
+        E_Int fid = cell[4*start];
         if (Mesh_is_face_aligned_with_vec3(M, fid, M->mode_2D)) break;
     }
 
@@ -79,12 +79,12 @@ Int set_HEXA_for_2D(Int cid, Mesh *M)
     return 0;
 }
 
-Int Mesh_set_cells_for_2D(Mesh *M)
+E_Int Mesh_set_cells_for_2D(Mesh *M)
 {
-    Int ret = 0;
+    E_Int ret = 0;
 
-    for (Int cid = 0; cid < M->nc; cid++) {
-        Int ctype = M->ctype[cid];
+    for (E_Int cid = 0; cid < M->nc; cid++) {
+        E_Int ctype = M->ctype[cid];
         
         switch (ctype) {
             case HEXA:
@@ -105,16 +105,16 @@ Int Mesh_set_cells_for_2D(Mesh *M)
     return ret;
 }
 
-Int Mesh_set_face_types(Mesh *M)
+E_Int Mesh_set_face_types(Mesh *M)
 {
     assert(M->ftype == NULL);
 
     M->ftype = IntArray(M->nf);
 
-    for (Int i = 0; i < M->nf; i++) {
-        Int *frange = Mesh_get_frange(M, i);
-        Int np = 0;
-        for (Int j = 0; j < M->fstride[i]; j++) np += frange[j];
+    for (E_Int i = 0; i < M->nf; i++) {
+        E_Int *frange = Mesh_get_frange(M, i);
+        E_Int np = 0;
+        for (E_Int j = 0; j < M->fstride[i]; j++) np += frange[j];
 
         switch (np) {
             case 4:
@@ -133,14 +133,14 @@ Int Mesh_set_face_types(Mesh *M)
     return 0;
 }
 
-Int Mesh_set_cell_types(Mesh *M)
+E_Int Mesh_set_cell_types(Mesh *M)
 {
     assert(M->ctype == NULL);
 
     M->ctype = IntArray(M->nc);
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int nf = M->cstride[i];
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int nf = M->cstride[i];
         assert(nf == 6);
 
         switch (nf) {
@@ -153,12 +153,12 @@ Int Mesh_set_cell_types(Mesh *M)
             case 5: {
                 // PENTA: 2 TRI + 3 QUAD
                 // PYRA: 4 TRI + 1 QUAD
-                Int ntri = 0, nquad = 0;
+                E_Int ntri = 0, nquad = 0;
 
-                Int *cell = Mesh_get_cell(M, i);
+                E_Int *cell = Mesh_get_cell(M, i);
 
-                for (Int j = 0; j < nf; j++) {
-                    Int face = cell[4*j];
+                for (E_Int j = 0; j < nf; j++) {
+                    E_Int face = cell[4*j];
                     M->ftype[face] == TRI ? ntri++ : nquad++;
                 }
                 if (ntri == 2 && nquad == 3) {

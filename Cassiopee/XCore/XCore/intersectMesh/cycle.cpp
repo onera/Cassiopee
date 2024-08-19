@@ -26,9 +26,9 @@
 #include "hedge.h"
 #include "primitives.h"
 
-Int Cycle::INNER = 0;
-Int Cycle::OUTER = 1;
-Int Cycle::DEGEN = 2;
+E_Int Cycle::INNER = 0;
+E_Int Cycle::OUTER = 1;
+E_Int Cycle::DEGEN = 2;
 
 Cycle::Cycle(Hedge *Rep)
 : rep(Rep), inout(Dcel::NO_IDEA), left(NULL), prev(NULL), next(NULL)

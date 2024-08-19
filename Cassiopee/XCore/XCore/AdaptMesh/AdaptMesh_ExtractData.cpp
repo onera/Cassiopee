@@ -43,9 +43,9 @@ PyObject *K_XCORE::AdaptMesh_ExtractOwners(PyObject *self, PyObject *args)
     dims[0] = (npy_intp)M->nf;
     PyArrayObject *OWN = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
 
-    Int *po = (Int *)PyArray_DATA(OWN);
+    E_Int *po = (E_Int *)PyArray_DATA(OWN);
 
-    for (Int i = 0; i < M->nf; i++) {
+    for (E_Int i = 0; i < M->nf; i++) {
         po[i] = M->owner[i];
     }
 
@@ -76,9 +76,9 @@ PyObject *K_XCORE::AdaptMesh_ExtractNeighbours(PyObject *self, PyObject *args)
     dims[0] = (npy_intp)M->nf;
     PyArrayObject *NEI = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
 
-    Int *pn = (Int *)PyArray_DATA(NEI);
+    E_Int *pn = (E_Int *)PyArray_DATA(NEI);
 
-    for (Int i = 0; i < M->nf; i++) {
+    for (E_Int i = 0; i < M->nf; i++) {
         pn[i] = M->neigh[i];
     }
 
@@ -109,9 +109,9 @@ PyObject *K_XCORE::AdaptMesh_ExtractCellLevels(PyObject *self, PyObject *args)
     dims[0] = (npy_intp)M->nc;
     PyArrayObject *LVL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
 
-    Int *pl = (Int *)PyArray_DATA(LVL);
+    E_Int *pl = (E_Int *)PyArray_DATA(LVL);
 
-    for (Int i = 0; i < M->nc; i++) {
+    for (E_Int i = 0; i < M->nc; i++) {
         pl[i] = M->clevel[i];
     }
 
@@ -139,12 +139,12 @@ PyObject *K_XCORE::AdaptMesh_ExtractCellRanges(PyObject *self, PyObject *args)
 
     PyObject *STR = K_NUMPY::buildNumpyArray(M->nc, 6, 1, 1);
 
-    Int *ptr = K_NUMPY::getNumpyPtrI(STR);
+    E_Int *ptr = K_NUMPY::getNumpyPtrI(STR);
 
-    for (Int cid = 0; cid < M->nc; cid++) {
-        Int *crange = Mesh_get_crange(M, cid);
+    for (E_Int cid = 0; cid < M->nc; cid++) {
+        E_Int *crange = Mesh_get_crange(M, cid);
 
-        for (Int j = 0; j < M->cstride[cid]; j++) {
+        for (E_Int j = 0; j < M->cstride[cid]; j++) {
             ptr[cid + j*M->nc] = crange[j];
         }
     }
@@ -176,10 +176,10 @@ PyObject *K_XCORE::AdaptMesh_ExtractHaloCellLevels(PyObject *self, PyObject *arg
 
     npy_intp dims[2];
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        P->sbuf_i = (Int *)XRESIZE(P->sbuf_i, P->nf * sizeof(Int));
+        P->sbuf_i = (E_Int *)XRESIZE(P->sbuf_i, P->nf * sizeof(E_Int));
 
         dims[1] = 1;
         dims[0] = (npy_intp)P->nf;
@@ -192,16 +192,16 @@ PyObject *K_XCORE::AdaptMesh_ExtractHaloCellLevels(PyObject *self, PyObject *arg
 
     // Exchange
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
         PyObject *LVL = PyList_GetItem(out, i);
 
-        Int *pl = (Int *)PyArray_DATA((PyArrayObject *)LVL);
+        E_Int *pl = (E_Int *)PyArray_DATA((PyArrayObject *)LVL);
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int fid = P->pf[j];
-            Int own = M->owner[fid];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int fid = P->pf[j];
+            E_Int own = M->owner[fid];
             P->sbuf_i[j] = M->clevel[own];
         }
 

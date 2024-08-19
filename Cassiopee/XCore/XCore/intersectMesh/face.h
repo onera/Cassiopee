@@ -25,7 +25,7 @@ struct Hedge;
 
 struct Face {
     Hedge *rep;
-    Int oid[2];
+    E_Int oid[2];
 
     Face();
 };

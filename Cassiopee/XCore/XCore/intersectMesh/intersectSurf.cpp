@@ -29,51 +29,51 @@
 #include "cycle.h"
 
 static
-IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
+IMesh reconstruct_mesh(IMesh &M, const Dcel &D, E_Int color)
 {
     // Isolate patch faces
-    std::set<Int> pfset(M.patch);
+    std::set<E_Int> pfset(M.patch);
 
     // Isolte patch points
-    std::set<Int> ppset;
+    std::set<E_Int> ppset;
 
-    for (Int face : pfset) {
+    for (E_Int face : pfset) {
         const auto &pn = M.F[face];
-        for (Int p : pn) ppset.insert(p);
+        for (E_Int p : pn) ppset.insert(p);
     }
 
     // Faces and point not belonging to pfset are renumbered first
-    Int np = 0, nf = 0;
+    E_Int np = 0, nf = 0;
 
-    std::map<Int, Int> new_fids;
-    for (Int i = 0; i < M.nf; i++) {
+    std::map<E_Int, E_Int> new_fids;
+    for (E_Int i = 0; i < M.nf; i++) {
         if (pfset.find(i) != pfset.end()) continue;
 
         new_fids[i] = nf++;
     }
 
-    std::map<Int, Int> new_pids;
-    std::map<Int, Int> new_ppids;
+    std::map<E_Int, E_Int> new_pids;
+    std::map<E_Int, E_Int> new_ppids;
 
-    for (Int i = 0; i < M.np; i++) {
+    for (E_Int i = 0; i < M.np; i++) {
         if (ppset.find(i) == ppset.end())
             new_pids[i] = np++;
     }
 
-    //Int nop = np;
+    //E_Int nop = np;
 
-    for (Int p : ppset) new_ppids[p] = np++;
+    for (E_Int p : ppset) new_ppids[p] = np++;
 
     assert(np == M.np);
 
     // Renumber ppoints and pfaces
 
     // Maps ofaces to locally indexed spawned faces
-    std::map<Int, std::vector<Int>> ofid_to_ofids;
+    std::map<E_Int, std::vector<E_Int>> ofid_to_ofids;
 
-    std::map<Int, Int> new_ifids;
+    std::map<E_Int, E_Int> new_ifids;
 
-    std::map<Int, Int> new_ipids;
+    std::map<E_Int, E_Int> new_ipids;
 
     for (size_t i = 0; i < D.F.size(); i++) {
         Face *f = D.F[i];
@@ -82,7 +82,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 
         // Keep the faces whose oid of color is not -1
 
-        Int ofid = f->oid[color];
+        E_Int ofid = f->oid[color];
 
         if (ofid == -1) continue;
 
@@ -101,7 +101,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
         for (Vertex *v : vertices) {
             
             // Vertex could be a ppoint
-            Int oid = v->oid[color];
+            E_Int oid = v->oid[color];
 
             if (oid != -1) {
                 assert(new_ppids.find(oid) != new_ppids.end());
@@ -112,7 +112,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
             } else {
 
                 // This is a completely new point to M
-                Int vid = v->id;
+                E_Int vid = v->id;
                 assert(vid != -1);
 
                 if (new_ipids.find(vid) == new_ipids.end()) {
@@ -126,13 +126,13 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
     assert(ofid_to_ofids.size() == pfset.size());
 
     // Write untouched points
-    std::vector<Float> new_X(np, -1), new_Y(np, -1), new_Z(np, -1);
+    std::vector<E_Float> new_X(np, -1), new_Y(np, -1), new_Z(np, -1);
     for (const auto &pt : new_pids) {
-        Int opid = pt.first;
-        Int npid = pt.second;
+        E_Int opid = pt.first;
+        E_Int npid = pt.second;
 
 
-        assert(npid < M.np - (Int)ppset.size());
+        assert(npid < M.np - (E_Int)ppset.size());
 
         assert(new_X[npid] == -1);
         assert(new_Y[npid] == -1);
@@ -146,10 +146,10 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
     // Add the ppids and ipids coordinates
 
     for (const auto &ppids : new_ppids) {
-        Int opid = ppids.first;
-        Int npid = ppids.second;
+        E_Int opid = ppids.first;
+        E_Int npid = ppids.second;
 
-        assert(npid >= M.np - (Int)ppset.size() && npid < M.np);
+        assert(npid >= M.np - (E_Int)ppset.size() && npid < M.np);
 
         assert(new_X[npid] == -1);
         assert(new_Y[npid] == -1);
@@ -168,8 +168,8 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
     }
 
     for (const auto &ipids : new_ipids) {
-        Int opid = ipids.first;
-        Int npid = ipids.second;
+        E_Int opid = ipids.first;
+        E_Int npid = ipids.second;
         
         assert(new_X[npid] == -1);
         assert(new_Y[npid] == -1);
@@ -184,11 +184,11 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 
     // Add the kept faces
 
-    std::vector<std::vector<Int>> new_F(nf);
+    std::vector<std::vector<E_Int>> new_F(nf);
 
     for (const auto &fids : new_fids) {
-        Int ofid = fids.first;
-        Int nfid = fids.second;
+        E_Int ofid = fids.first;
+        E_Int nfid = fids.second;
 
 
         assert(nfid < nf);
@@ -197,7 +197,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 
         auto &new_face = new_F[nfid];
 
-        for (Int opid : pn) {
+        for (E_Int opid : pn) {
             assert(opid < M.np);
             auto it = ppset.find(opid);
 
@@ -214,18 +214,18 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
     for (const auto &fdata : ofid_to_ofids) {
         const auto &ofids = fdata.second;
 
-        for (Int ofid : ofids) {
+        for (E_Int ofid : ofids) {
             Face *f = D.F[ofid];
             assert(f->oid[color] == fdata.first);
 
             auto vertices = Dcel::get_face_vertices(f);
-            Int nfid = new_ifids.at(ofid);
+            E_Int nfid = new_ifids.at(ofid);
 
             auto &new_face = new_F[nfid];
             assert(new_face.size() == 0);
 
             for (Vertex *v : vertices) {
-                Int oid = v->oid[color];
+                E_Int oid = v->oid[color];
                
                 if (oid != -1) {
                     assert(ppset.find(oid) != ppset.end());
@@ -241,15 +241,15 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
 
     // Add the cell connectivity
 
-    std::vector<std::vector<Int>> new_C(M.nc);
+    std::vector<std::vector<E_Int>> new_C(M.nc);
 
-    for (Int i = 0; i < M.nc; i++) {
+    for (E_Int i = 0; i < M.nc; i++) {
         const auto &pf = M.C[i];
 
         auto &new_cell = new_C[i];
 
         for (size_t j = 0; j < pf.size(); j++) {
-            Int face = pf[j];
+            E_Int face = pf[j];
 
             auto it = ofid_to_ofids.find(face);
 
@@ -259,7 +259,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
             } else {
                 assert(pfset.find(face) != pfset.end());
                 const auto &ifids = it->second;
-                for (Int ifid : ifids) new_cell.push_back(new_ifids.at(ifid));
+                for (E_Int ifid : ifids) new_cell.push_back(new_ifids.at(ifid));
             }
         }
     }
@@ -275,16 +275,16 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, Int color)
     new_M.F = new_F;
     new_M.C = new_C;
 
-    //assert(M.np == (Int)ppset.size() + nop);
+    //assert(M.np == (E_Int)ppset.size() + nop);
     
     /*
-    std::vector<Int> IP;
-    for (Int i = M.np; i < np; i++) IP.push_back(i);
+    std::vector<E_Int> IP;
+    for (E_Int i = M.np; i < np; i++) IP.push_back(i);
 
     point_write("IPOINTS", new_X.data(), new_Y.data(), new_Z.data(), IP);
 
-    std::vector<Int> OP;
-    for (Int i = nop; i < M.np; i++) OP.push_back(i);
+    std::vector<E_Int> OP;
+    for (E_Int i = nop; i < M.np; i++) OP.push_back(i);
 
     point_write("OPOINTS", new_X.data(), new_Y.data(), new_Z.data(), OP);
     */
@@ -304,7 +304,7 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     Karray marray;
     Karray sarray;
 
-    Int ret;
+    E_Int ret;
 
     ret = Karray_parse_ngon(MASTER, marray);
 
@@ -322,8 +322,8 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
     // Check master intersection patch (zero-based)
-    Int *mpatch = NULL;
-    Int mpatch_size = -1;
+    E_Int *mpatch = NULL;
+    E_Int mpatch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(MPATCH, mpatch, mpatch_size, true);
     if (ret != 1) {
         Karray_free_ngon(marray);
@@ -335,8 +335,8 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     printf("Master patch: " SF_D_ " faces\n", mpatch_size);
 
     // Check slave intersection patch (zero-based)
-    Int *spatch = NULL;
-    Int spatch_size = -1;
+    E_Int *spatch = NULL;
+    E_Int spatch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(SPATCH, spatch, spatch_size, true);
     if (ret != 1) {
         Karray_free_ngon(marray);
@@ -347,8 +347,8 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
 
     printf("Slave patch: " SF_D_ " faces\n", spatch_size);
 
-    for (Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]);
-    for (Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]);
+    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]);
+    for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]);
 
     M.orient_skin(OUT);
     S.orient_skin(IN);

@@ -21,14 +21,14 @@
 #include "Edge.h"
 
 static inline
-Int register_edge(Mesh *M, Int p, Int q, std::map<UEdge, Int> &emap, Int *pe,
-    Int pos)
+E_Int register_edge(Mesh *M, E_Int p, E_Int q, std::map<UEdge, E_Int> &emap, E_Int *pe,
+    E_Int pos)
 {
     UEdge E(p, q);
 
     auto it = emap.find(E);
 
-    Int ret;
+    E_Int ret;
 
     if (it == emap.end()) {
         M->edges[M->ne].p = E.p;
@@ -45,7 +45,7 @@ Int register_edge(Mesh *M, Int p, Int q, std::map<UEdge, Int> &emap, Int *pe,
 }
 
 static inline
-void count_edge(Mesh *M, Int p, Int q, std::map<UEdge, Int> &emap, Int &ne)
+void count_edge(Mesh *M, E_Int p, E_Int q, std::map<UEdge, E_Int> &emap, E_Int &ne)
 {
     UEdge E(p, q);
 
@@ -60,20 +60,20 @@ void Mesh_make_edge_connectivity(Mesh *M)
 
     // Count edges
 
-    std::map<UEdge, Int> emap;
+    std::map<UEdge, E_Int> emap;
 
-    Int ne = 0;
+    E_Int ne = 0;
 
-    for (Int fid = 0; fid < M->nf; fid++) {
-        Int *face = Mesh_get_face(M, fid);
-        Int *frange = Mesh_get_frange(M, fid);
-        Int fstride = M->fstride[fid];
-        Int size = 2*fstride; 
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        E_Int *face = Mesh_get_face(M, fid);
+        E_Int *frange = Mesh_get_frange(M, fid);
+        E_Int fstride = M->fstride[fid];
+        E_Int size = 2*fstride; 
 
-        for (Int i = 0; i < size; i += 2) {
-            Int p = face[i];
-            Int q = face[i+1];
-            Int r = face[(i+2)%size];
+        for (E_Int i = 0; i < size; i += 2) {
+            E_Int p = face[i];
+            E_Int q = face[i+1];
+            E_Int r = face[(i+2)%size];
 
             if (frange[i/2] == 1) {
                 count_edge(M, p, r, emap, ne);
@@ -91,32 +91,32 @@ void Mesh_make_edge_connectivity(Mesh *M)
 
     assert(M->fedg == NULL);
     M->fedg = IntArray(8 * M->nf);
-    memset(M->fedg, -1, 8 * M->nf * sizeof(Int));
+    memset(M->fedg, -1, 8 * M->nf * sizeof(E_Int));
 
     emap.clear();
 
     M->xedf = IntArray(M->ne+1);
 
     M->elevel = IntArray(M->ne);
-    memset(M->elevel, -1, M->ne * sizeof(Int));
+    memset(M->elevel, -1, M->ne * sizeof(E_Int));
  
 
     M->ne = 0;
 
-    for (Int fid = 0; fid < M->nf; fid++) {
-        Int *face = Mesh_get_face(M, fid);
-        Int *frange = Mesh_get_frange(M, fid);
-        Int fstride = M->fstride[fid];
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        E_Int *face = Mesh_get_face(M, fid);
+        E_Int *frange = Mesh_get_frange(M, fid);
+        E_Int fstride = M->fstride[fid];
 
-        Int size = fstride*2;
+        E_Int size = fstride*2;
 
-        Int *pe = Mesh_get_fedges(M, fid);
+        E_Int *pe = Mesh_get_fedges(M, fid);
 
-        for (Int i = 0; i < size; i += 2) {
-            Int p = face[i];
-            Int q = face[i+1];
-            Int r = face[(i+2)%size];
-            Int eid;
+        for (E_Int i = 0; i < size; i += 2) {
+            E_Int p = face[i];
+            E_Int q = face[i+1];
+            E_Int r = face[(i+2)%size];
+            E_Int eid;
 
             assert(p != -1);
 
@@ -146,22 +146,22 @@ void Mesh_make_edge_connectivity(Mesh *M)
 
     assert(ne == M->ne);
 
-    for (Int i = 0; i < M->ne; i++) M->xedf[i+1] += M->xedf[i];
+    for (E_Int i = 0; i < M->ne; i++) M->xedf[i+1] += M->xedf[i];
 
     assert(M->E2F == NULL);
     M->E2F = IntArray(M->xedf[M->ne]);
     memset(M->E2F, -1, M->xedf[M->ne]);
-    std::vector<Int> count(M->ne, 0);
+    std::vector<E_Int> count(M->ne, 0);
 
-    for (Int fid = 0; fid < M->nf; fid++) {
-        Int *fedg = Mesh_get_fedges(M, fid);
-        Int *frange = Mesh_get_frange(M, fid);
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        E_Int *fedg = Mesh_get_fedges(M, fid);
+        E_Int *frange = Mesh_get_frange(M, fid);
 
-        for (Int i = 0; i < M->fstride[fid]; i++) {
-            Int *pe = fedg + 2*i;
+        for (E_Int i = 0; i < M->fstride[fid]; i++) {
+            E_Int *pe = fedg + 2*i;
 
-            for (Int j = 0; j < frange[i]; j++) {
-                Int eid = pe[j];
+            for (E_Int j = 0; j < frange[i]; j++) {
+                E_Int eid = pe[j];
                 M->E2F[M->xedf[eid] + count[eid]++] = fid;
             }
         }
@@ -172,25 +172,25 @@ void Mesh_update_global_cell_ids(Mesh *M)
 {
     if (M->npc == 1) return;
 
-    Int new_cells = M->nc - M->nc_old;
+    E_Int new_cells = M->nc - M->nc_old;
 
-    Int first_new_cell = new_cells;
+    E_Int first_new_cell = new_cells;
     MPI_Scan(&new_cells, &first_new_cell, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    Int gnc_old = 0;
+    E_Int gnc_old = 0;
     MPI_Allreduce(&M->nc_old, &gnc_old, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    Int gnc = 0;
+    E_Int gnc = 0;
     MPI_Allreduce(&M->nc, &gnc, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
     
     if (new_cells > 0) {
-        M->l2gc = (Int *)XRESIZE(M->l2gc, M->nc * sizeof(Int));
+        M->l2gc = (E_Int *)XRESIZE(M->l2gc, M->nc * sizeof(E_Int));
 
-        Int gstart = gnc_old + first_new_cell - new_cells;
+        E_Int gstart = gnc_old + first_new_cell - new_cells;
 
-        for (Int i = 0; i < new_cells; i++) {
-            Int lcid = M->nc_old + i;
-            Int gcid = gstart + i;
+        for (E_Int i = 0; i < new_cells; i++) {
+            E_Int lcid = M->nc_old + i;
+            E_Int gcid = gstart + i;
             assert(gcid < gnc);
             assert(M->g2lc.find(gcid) == M->g2lc.end());
             M->l2gc[lcid] = gcid;
@@ -203,17 +203,17 @@ void Mesh_update_ppatches(Mesh *M)
 {
     M->face_to_ppatch.clear();
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
         
         // Count
 
-        Int new_nf = 0;
+        E_Int new_nf = 0;
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int face = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int face = P->pf[j];
 
-            Int fstate = M->fref[face];
+            E_Int fstate = M->fref[face];
 
             assert(fstate != FACE_NEW);
 
@@ -223,22 +223,22 @@ void Mesh_update_ppatches(Mesh *M)
 
         // Allocate
 
-        Int *pf = IntArray(new_nf);
-        Int *pn = IntArray(new_nf);
-        P->sbuf_i = (Int *)XRESIZE(P->sbuf_i, new_nf * sizeof(Int));
+        E_Int *pf = IntArray(new_nf);
+        E_Int *pn = IntArray(new_nf);
+        P->sbuf_i = (E_Int *)XRESIZE(P->sbuf_i, new_nf * sizeof(E_Int));
 
         // Fill
 
-        Int *ptr = pf;
+        E_Int *ptr = pf;
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int face = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int face = P->pf[j];
 
             if (M->fref[face] == 0) {
                 *ptr++ = face;
             } else {
                 const auto &children = M->fchildren.at(face);
-                for (Int child : children) *ptr++ = child;
+                for (E_Int child : children) *ptr++ = child;
             }
         }
 
@@ -253,22 +253,22 @@ void Mesh_update_ppatches(Mesh *M)
         P->pf = pf;
         P->pn = pn;
 
-        for (Int j = 0; j < P->nf; j++) M->face_to_ppatch[P->pf[j]] = i;
+        for (E_Int j = 0; j < P->nf; j++) M->face_to_ppatch[P->pf[j]] = i;
     }
 
     // Switch children order for the bigger proc for iso mode only
     if (!M->mode_2D) {
-        for (Int i = 0; i < M->npp; i++) {
+        for (E_Int i = 0; i < M->npp; i++) {
             PPatch *P = &M->pps[i];
 
             if (M->pid < P->nei) continue;
 
-            Int j = 0;
+            E_Int j = 0;
 
             for (; j < P->nf; ) {
-                Int face = P->pf[j++];
+                E_Int face = P->pf[j++];
 
-                Int fstate = M->fref[face];
+                E_Int fstate = M->fref[face];
 
                 assert(fstate != FACE_NEW);
 
@@ -286,15 +286,15 @@ void Mesh_update_ppatches(Mesh *M)
 
     // Exchange remote cell neighbours
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        Int *ptr = P->sbuf_i;
+        E_Int *ptr = P->sbuf_i;
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int face = P->pf[j];
-            Int own = M->owner[face];
-            Int gcid = M->l2gc[own];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int face = P->pf[j];
+            E_Int own = M->owner[face];
+            E_Int gcid = M->l2gc[own];
             *ptr++ = gcid;
         }
 
@@ -311,17 +311,17 @@ void Mesh_update_bpatches(Mesh *M)
 {
     M->face_to_bpatch.clear();
 
-    for (Int i = 0; i < M->nbp; i++) {
+    for (E_Int i = 0; i < M->nbp; i++) {
         BPatch *P = &M->bps[i];
         
         // Count
 
-        Int new_nf = 0;
+        E_Int new_nf = 0;
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int face = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int face = P->pf[j];
 
-            Int fstate = M->fref[face];
+            E_Int fstate = M->fref[face];
 
             assert(fstate != FACE_NEW);
 
@@ -331,21 +331,21 @@ void Mesh_update_bpatches(Mesh *M)
 
         // Allocate
 
-        Int *pf = IntArray(new_nf);
+        E_Int *pf = IntArray(new_nf);
 
         // Fill
 
-        Int *ptr = pf;
+        E_Int *ptr = pf;
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int face = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int face = P->pf[j];
 
             if (M->fref[face] == FACE_UNTOUCHED) {
                 *ptr++ = face;
             } else {
                 assert(M->fref[face] == FACE_REFINED);
                 const auto &children = M->fchildren.at(face);
-                for (Int child : children) *ptr++ = child;
+                for (E_Int child : children) *ptr++ = child;
             }
         }
 
@@ -358,7 +358,7 @@ void Mesh_update_bpatches(Mesh *M)
         P->nf = new_nf;
         P->pf = pf;
 
-        for (Int j = 0; j < P->nf; j++) M->face_to_bpatch[P->pf[j]] = i;
+        for (E_Int j = 0; j < P->nf; j++) M->face_to_bpatch[P->pf[j]] = i;
     }
 }
 
@@ -366,50 +366,50 @@ void Mesh_update_global_face_ids(Mesh *M)
 {
     if (M->npc == 1) return;
 
-    M->l2gf = (Int *)XRESIZE(M->l2gf, M->nf * sizeof(Int)); 
-    for (Int i = M->nf_old; i < M->nf; i++) M->l2gf[i] = -1; 
+    M->l2gf = (E_Int *)XRESIZE(M->l2gf, M->nf * sizeof(E_Int)); 
+    for (E_Int i = M->nf_old; i < M->nf; i++) M->l2gf[i] = -1; 
 
-    Int nfree = M->nf;
+    E_Int nfree = M->nf;
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
         nfree -= P->nf;
     }
 
-    Int ndup = M->nf - nfree;
+    E_Int ndup = M->nf - nfree;
 
-    Int gnfree = nfree;
+    E_Int gnfree = nfree;
     MPI_Allreduce(&nfree, &gnfree, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    Int gndup = ndup;
+    E_Int gndup = ndup;
     MPI_Allreduce(&ndup, &gndup, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     gndup /= 2;
 
-    Int gstart = M->gnf_old;
+    E_Int gstart = M->gnf_old;
 
     // On veut commencer à partir du nombre de faces global effectif (sans doublons)
     // Nombre de faces total = Nombre de faces internal/boundary total + pfaces/2
     
     // Count the number of new faces that do not belong to a patch
-    Int nibf = 0;
-    for (Int i = M->nf_old; i < M->nf; i++) {
+    E_Int nibf = 0;
+    for (E_Int i = M->nf_old; i < M->nf; i++) {
         assert(M->fref[i] == FACE_NEW);
         if (M->face_to_ppatch.find(i) == M->face_to_ppatch.end()) {
             nibf++;
         }
     }
 
-    Int first_ibf;
+    E_Int first_ibf;
     MPI_Scan(&nibf, &first_ibf, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     gstart = gstart + first_ibf - nibf;
 
-    for (Int i = M->nf_old; i < M->nf; i++) {
-        Int lfid = i;
+    for (E_Int i = M->nf_old; i < M->nf; i++) {
+        E_Int lfid = i;
         // Skip patch face
         if (M->face_to_ppatch.find(lfid) != M->face_to_ppatch.end()) continue;
-        Int gfid = gstart++;
+        E_Int gfid = gstart++;
         assert(M->g2lf.find(gfid) == M->g2lf.end());
         assert(M->l2gf[lfid] == -1);
         M->l2gf[lfid] = gfid;
@@ -418,14 +418,14 @@ void Mesh_update_global_face_ids(Mesh *M)
 
     // Toutes mes anciennes/nouvelles faces proc
     
-    Int tnp_new = 0, tnp_old = 0;
+    E_Int tnp_new = 0, tnp_old = 0;
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int lfid = P->pf[j];
-            Int fstate = M->fref[lfid];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int lfid = P->pf[j];
+            E_Int fstate = M->fref[lfid];
             if (fstate == FACE_NEW) tnp_new++;
             else tnp_old++;
         }
@@ -433,38 +433,38 @@ void Mesh_update_global_face_ids(Mesh *M)
 
     // Count the pfaces that I control
 
-    Int my_npf = 0;
+    E_Int my_npf = 0;
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
         if (M->pid > P->nei) continue;
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int lfid = P->pf[j];
-            Int fstate = M->fref[lfid];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int lfid = P->pf[j];
+            E_Int fstate = M->fref[lfid];
             if (fstate == FACE_NEW) my_npf++;
         }
     }
 
-    Int Npf;
+    E_Int Npf;
     MPI_Scan(&my_npf, &Npf, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    Int max_gstart;
+    E_Int max_gstart;
     MPI_Allreduce(&gstart, &max_gstart, 1, XMPI_INT, MPI_MAX, MPI_COMM_WORLD);
     
     gstart = max_gstart + Npf - my_npf;
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
         if (M->pid > P->nei) continue;
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int lfid = P->pf[j];
-            Int fstate = M->fref[lfid];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int lfid = P->pf[j];
+            E_Int fstate = M->fref[lfid];
             if (fstate == FACE_NEW) {
-                Int gfid = gstart++;
+                E_Int gfid = gstart++;
                 assert(M->g2lf.find(gfid) == M->g2lf.end());
                 assert(M->l2gf[lfid] == -1);
                 M->l2gf[lfid] = gfid;
@@ -475,19 +475,19 @@ void Mesh_update_global_face_ids(Mesh *M)
 
     // Allocate
     
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        P->sbuf_i = (Int *)XRESIZE(P->sbuf_i, P->nf * sizeof(Int));
-        P->rbuf_i = (Int *)XRESIZE(P->rbuf_i, P->nf * sizeof(Int));
+        P->sbuf_i = (E_Int *)XRESIZE(P->sbuf_i, P->nf * sizeof(E_Int));
+        P->rbuf_i = (E_Int *)XRESIZE(P->rbuf_i, P->nf * sizeof(E_Int));
     }
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
         if (M->pid < P->nei) {
 
-            for (Int j = 0; j < P->nf; j++) {
+            for (E_Int j = 0; j < P->nf; j++) {
                 P->sbuf_i[j] = M->l2gf[P->pf[j]];
             }
 
@@ -502,17 +502,17 @@ void Mesh_update_global_face_ids(Mesh *M)
     Mesh_comm_waitall(M);
 
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
         if (M->pid < P->nei) continue;
 
-        for (Int j = 0; j < P->nf; j++) {
+        for (E_Int j = 0; j < P->nf; j++) {
 
-            Int rfid = P->rbuf_i[j];
+            E_Int rfid = P->rbuf_i[j];
 
-            Int lfid = P->pf[j];
-            Int fstate = M->fref[lfid];
+            E_Int lfid = P->pf[j];
+            E_Int fstate = M->fref[lfid];
 
             if (fstate != FACE_NEW) {
                 continue;
@@ -539,14 +539,14 @@ void Mesh_make_cell_cells(Mesh *M)
 
     M->xneis = IntArray(M->nc + 1);
 
-    // Internal faces
-    Int nif = 0;
+    // E_Internal faces
+    E_Int nif = 0;
 
-    for (Int i = 0; i < M->nf; i++) {
-        Int nei = M->neigh[i];
+    for (E_Int i = 0; i < M->nf; i++) {
+        E_Int nei = M->neigh[i];
         if (nei == -1) continue;
 
-        Int own = M->owner[i];
+        E_Int own = M->owner[i];
         M->xneis[own+1]++;
         M->xneis[nei+1]++;
 
@@ -555,34 +555,34 @@ void Mesh_make_cell_cells(Mesh *M)
 
     // PPatch faces
 
-    Int npf = 0;
+    E_Int npf = 0;
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
         npf += P->nf;
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int face = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int face = P->pf[j];
             assert(face >= 0 && face < M->nf);
             M->xneis[M->owner[face]+1]++;
         }
     }
 
-    for (Int i = 0; i < M->nc; i++) M->xneis[i+1] += M->xneis[i];
+    for (E_Int i = 0; i < M->nc; i++) M->xneis[i+1] += M->xneis[i];
 
     M->cneis = IntArray(2 * nif + npf);
 
-    Int *count = IntArray(M->nc);
+    E_Int *count = IntArray(M->nc);
 
     // Local cell neighbours first
 
-    for (Int i = 0; i < M->nf; i++) {
-        Int nei = M->neigh[i];
+    for (E_Int i = 0; i < M->nf; i++) {
+        E_Int nei = M->neigh[i];
         
         if (nei == -1) continue;
 
-        Int own = M->owner[i];
+        E_Int own = M->owner[i];
 
         M->cneis[M->xneis[own] + count[own]++] = M->l2gc[nei];
         M->cneis[M->xneis[nei] + count[nei]++] = M->l2gc[own];
@@ -590,12 +590,12 @@ void Mesh_make_cell_cells(Mesh *M)
 
     // Remote cell neighbours
     
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int face =  P->pf[j];
-            Int own = M->owner[face];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int face =  P->pf[j];
+            E_Int own = M->owner[face];
             M->cneis[M->xneis[own] + count[own]++] = P->pn[j];
         }
     }

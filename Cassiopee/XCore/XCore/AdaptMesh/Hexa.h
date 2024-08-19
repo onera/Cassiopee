@@ -21,28 +21,28 @@
 #include "common/common.h"
 #include "Mesh.h"
 
-const Int normalIn_H[6] = {1, 0, 1, 0, 1, 0};
+const E_Int normalIn_H[6] = {1, 0, 1, 0, 1, 0};
 
-void H27_refine(Int hexa, Mesh *M);
+void H27_refine(E_Int hexa, Mesh *M);
 
-void H27_reorder(Int hexa, Mesh *M);
+void H27_reorder(E_Int hexa, Mesh *M);
 
-void H18_refine(Int hexa, Mesh *M);
+void H18_refine(E_Int hexa, Mesh *M);
 
-void H18_reorder(Int hexa, Mesh *M);
+void H18_reorder(E_Int hexa, Mesh *M);
 
-Int check_canon_hexa(Int hexa, Mesh *M);
+E_Int check_canon_hexa(E_Int hexa, Mesh *M);
 
 inline
-void update_shell_pe(Int hexa, Mesh *M)
+void update_shell_pe(E_Int hexa, Mesh *M)
 {
     const auto &children = M->cchildren.at(hexa);
 
-    for (Int cid : children) {
-        Int *child = Mesh_get_cell(M, cid);
+    for (E_Int cid : children) {
+        E_Int *child = Mesh_get_cell(M, cid);
 
-        for (Int j = 0; j < 6; j++) {
-            Int face = child[4*j];
+        for (E_Int j = 0; j < 6; j++) {
+            E_Int face = child[4*j];
             
             if      (M->owner[face] == hexa) M->owner[face] = cid;
             else if (M->neigh[face] == hexa) M->neigh[face] = cid;
@@ -51,20 +51,20 @@ void update_shell_pe(Int hexa, Mesh *M)
 }
 
 inline
-void update_range_and_stride(Mesh *M, Int hexa, Int cpos, Int nchildren)
+void update_range_and_stride(Mesh *M, E_Int hexa, E_Int cpos, E_Int nchildren)
 {
-    Int *crange = Mesh_get_crange(M, hexa);
-    for (Int i = 0; i < M->cstride[hexa]; i++) {
+    E_Int *crange = Mesh_get_crange(M, hexa);
+    for (E_Int i = 0; i < M->cstride[hexa]; i++) {
         crange[i] = 1;
     }
 
-    for (Int i = 0; i < nchildren; i++) {
-        Int child = cpos + i;
+    for (E_Int i = 0; i < nchildren; i++) {
+        E_Int child = cpos + i;
 
         M->cstride[child] = M->cstride[hexa];
 
         crange = Mesh_get_crange(M, child);
-        for (Int j = 0; j < M->cstride[child]; j++) {
+        for (E_Int j = 0; j < M->cstride[child]; j++) {
             crange[j] = 1;
         }
     }

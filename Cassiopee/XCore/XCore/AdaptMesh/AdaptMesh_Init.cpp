@@ -33,18 +33,18 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
 
     Karray karray;
 
-    Int ret;
+    E_Int ret;
 
     ret = Karray_parse_ngon(ARRAY, karray);
 
     if (ret != 0) return NULL;
 
     // Parse cell/face/point global ids
-    Int *cgids, *fgids;
+    E_Int *cgids, *fgids;
 
-    Int size, nfld;
-    Int nc = karray.ncells();
-    Int nf = karray.nfaces();
+    E_Int size, nfld;
+    E_Int nc = karray.ncells();
+    E_Int nf = karray.nfaces();
 
     if (CGIDS != Py_None) {
         ret = K_NUMPY::getFromNumpyArray(CGIDS, cgids, size, nfld, true);
@@ -55,7 +55,7 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         }
     } else {
         cgids = IntArray(nc);
-        for (Int i = 0; i < nc; i++) cgids[i] = i;
+        for (E_Int i = 0; i < nc; i++) cgids[i] = i;
     }
 
     if (FGIDS != Py_None) {
@@ -67,7 +67,7 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         }
     } else {
         fgids = IntArray(nf);
-        for (Int i = 0; i < nf; i++) fgids[i] = i+1;
+        for (E_Int i = 0; i < nf; i++) fgids[i] = i+1;
     }
 
     // Init Mesh
@@ -75,15 +75,15 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     Mesh *M = Mesh_from_Karray(&karray);
  
     // Init global-to-local ids maps
-    for (Int i = 0; i < M->nf; i++) M->g2lf[fgids[i]-1] = i;
-    for (Int i = 0; i < M->nc; i++) M->g2lc[cgids[i]] = i;
+    for (E_Int i = 0; i < M->nf; i++) M->g2lf[fgids[i]-1] = i;
+    for (E_Int i = 0; i < M->nc; i++) M->g2lc[cgids[i]] = i;
 
     // Init local-to-global ids maps
     M->l2gf = IntArray(M->nf);
     M->l2gc = IntArray(M->nc);
 
-    for (Int i = 0; i < M->nf; i++) M->l2gf[i] = fgids[i]-1;
-    for (Int i = 0; i < M->nc; i++) M->l2gc[i] = cgids[i];
+    for (E_Int i = 0; i < M->nf; i++) M->l2gf[i] = fgids[i]-1;
+    for (E_Int i = 0; i < M->nc; i++) M->l2gc[i] = cgids[i];
 
     // Parse boundary patches
     // TODO(Imad): error instead of assert
@@ -91,19 +91,19 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->nbp = PyList_Size(BCS);
     M->bps = (BPatch *)XCALLOC(M->nbp, sizeof(BPatch));
 
-    for (Int i = 0; i < M->nbp; i++) {
+    for (E_Int i = 0; i < M->nbp; i++) {
         PyObject *PATCH = PyList_GetItem(BCS, i);
 
         // TODO(Imad): error instead of assert
         assert(PyList_Size(PATCH) == 4);
 
         // TODO(Imad): error check
-        Int *ptr = NULL;
+        E_Int *ptr = NULL;
         K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 0), ptr,
             M->bps[i].nf, true);
         
         M->bps[i].pf = IntArray(M->bps[i].nf);
-        for (Int j = 0; j < M->bps[i].nf; j++) M->bps[i].pf[j] = ptr[j];
+        for (E_Int j = 0; j < M->bps[i].nf; j++) M->bps[i].pf[j] = ptr[j];
         
         M->bps[i].gid = PyLong_AsLong(PyList_GetItem(PATCH, 1));
 
@@ -125,18 +125,18 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         BPatch *P = &M->bps[i];
 
         // Make faces zero-based
-        for (Int j = 0; j < P->nf; j++) {
+        for (E_Int j = 0; j < P->nf; j++) {
             assert(P->pf[j] > 0 && P->pf[j] <= M->nf);
             P->pf[j]--;
         }
     }
 
     // Face to bpatch map
-    for (Int i = 0; i < M->nbp; i++) {
+    for (E_Int i = 0; i < M->nbp; i++) {
         BPatch *P = &M->bps[i];
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int lfid = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int lfid = P->pf[j];
             M->face_to_bpatch[lfid] = i;
         }
     }
@@ -147,7 +147,7 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->npp = PyList_Size(COMM);
     M->pps = (PPatch *)XCALLOC(M->npp, sizeof(PPatch));
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PyObject *PATCH = PyList_GetItem(COMM, i);
 
         // TODO(Imad): error instead of assert
@@ -157,12 +157,12 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         M->pps[i].nei = PyLong_AsLong(PyList_GetItem(PATCH, 0));
 
         // TODO(Imad): error check
-        Int *ptr = NULL;
+        E_Int *ptr = NULL;
         K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 1),
             ptr, M->pps[i].nf, true);
         
         M->pps[i].pf = IntArray(M->pps[i].nf);
-        memcpy(M->pps[i].pf, ptr, M->pps[i].nf * sizeof(Int));
+        memcpy(M->pps[i].pf, ptr, M->pps[i].nf * sizeof(E_Int));
         
         // TODO(Imad): error check
         ptr = NULL;
@@ -170,10 +170,10 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
             ptr, M->pps[i].nf, true);
 
         M->pps[i].pn = IntArray(M->pps[i].nf);
-        memcpy(M->pps[i].pn, ptr, M->pps[i].nf * sizeof(Int));
+        memcpy(M->pps[i].pn, ptr, M->pps[i].nf * sizeof(E_Int));
 
         // Zero-based
-        for (Int j = 0; j < M->pps[i].nf; j++) {
+        for (E_Int j = 0; j < M->pps[i].nf; j++) {
             M->pps[i].pf[j]--;
         }
 
@@ -183,11 +183,11 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     }
 
     // Face to ppatch map
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int lfid = P->pf[j];
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int lfid = P->pf[j];
             M->face_to_ppatch[lfid] = i;
         }
     }
@@ -235,7 +235,7 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
 
 
     M->fparent = IntArray(M->nf);
-    for (Int i = 0; i < M->nf; i++) M->fparent[i] = i;
+    for (E_Int i = 0; i < M->nf; i++) M->fparent[i] = i;
 
     M->cref = IntArray(M->nc);
     M->fref = IntArray(M->nf);

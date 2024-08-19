@@ -28,12 +28,12 @@ Queue::Queue()
 {}
 
 // Insert an intersection
-Event *Queue::insert(Float x, Float y, Float z)
+Event *Queue::insert(E_Float x, E_Float y, E_Float z)
 {
     return insert_(root, x, y, z);
 }
 
-Event *Queue::insert_(Event *&root, Float x, Float y, Float z)
+Event *Queue::insert_(Event *&root, E_Float x, E_Float y, E_Float z)
 {
     if (root == NULL) {
         root = new Event(x, y, z);
@@ -42,7 +42,7 @@ Event *Queue::insert_(Event *&root, Float x, Float y, Float z)
 
     Vertex *key = root->key;
 
-    Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
+    E_Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
 
     if (cmp == 0) {
         return root;
@@ -54,12 +54,12 @@ Event *Queue::insert_(Event *&root, Float x, Float y, Float z)
 }
 
 // Insert an input vertex
-Event *Queue::insert(Float x, Float y, Float z, Int oid, Int color)
+Event *Queue::insert(E_Float x, E_Float y, E_Float z, E_Int oid, E_Int color)
 {
     return insert_(root, x, y, z, oid, color);
 }
 
-Event *Queue::insert_(Event *&root, Float x, Float y, Float z, Int oid, Int color)
+Event *Queue::insert_(Event *&root, E_Float x, E_Float y, E_Float z, E_Int oid, E_Int color)
 {
     if (root == NULL) {
         root = new Event(x, y, z, oid, color);
@@ -68,7 +68,7 @@ Event *Queue::insert_(Event *&root, Float x, Float y, Float z, Int oid, Int colo
 
     Vertex *key = root->key;
 
-    Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
+    E_Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
 
     if (cmp == 0) {
         assert(key->oid[color] == -1);
@@ -82,7 +82,7 @@ Event *Queue::insert_(Event *&root, Float x, Float y, Float z, Int oid, Int colo
     }
 }
 
-Event *Queue::lookup(Float x, Float y, Float z)
+Event *Queue::lookup(E_Float x, E_Float y, E_Float z)
 {
     return lookup_(root, x, y, z);
 }
@@ -92,12 +92,12 @@ Event *Queue::lookup(Vertex *key)
     return lookup_(root, key->x, key->y, key->z);
 }
 
-Event *Queue::lookup_(Event *root, Float x, Float y, Float z)
+Event *Queue::lookup_(Event *root, E_Float x, E_Float y, E_Float z)
 {
     if (root == NULL) return NULL;
 
     Vertex *key = root->key;
-    Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
+    E_Int cmp = cmp_points(key->x, key->y, key->z, x, y, z);
 
     if (cmp == 0) return root;
     else if (cmp < 0) return lookup_(root->right, x, y, z);
@@ -129,7 +129,7 @@ Event *Queue::erase_(Event *root, Vertex *p)
 {
     if (root == NULL) return NULL;
 
-    Int cmp = compare(*root->key, *p);
+    E_Int cmp = compare(*root->key, *p);
 
     if (cmp < 0) {
         root->right = erase_(root->right, p);

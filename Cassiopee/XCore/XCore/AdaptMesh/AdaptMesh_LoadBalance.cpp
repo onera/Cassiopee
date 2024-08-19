@@ -40,7 +40,7 @@ PyObject *K_XCORE::AdaptMesh_LoadBalance(PyObject *self, PyObject *args)
     Mesh_make_cell_cells(M);
 
     // Load balance
-    Int ret = Mesh_load_balance(M);
+    E_Int ret = Mesh_load_balance(M);
 
     if (ret != 0) {
         RAISE("Failed to load-balance the mesh.");

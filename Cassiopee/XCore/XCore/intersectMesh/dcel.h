@@ -42,9 +42,9 @@ struct Dcel {
 
     Face *f_unbounded[2];
 
-    static Int RED;
-    static Int BLACK;
-    static Int NO_IDEA;
+    static E_Int RED;
+    static E_Int BLACK;
+    static E_Int NO_IDEA;
 
     std::map<Vertex *, std::vector<Hedge *>> Up;
     std::map<Vertex *, std::vector<Hedge *>> Cp;
@@ -55,13 +55,13 @@ struct Dcel {
     
     void init_vertices(const Smesh &M0, const Smesh &M1);
 
-    void init_hedges_and_faces(Smesh &M, Int color);
+    void init_hedges_and_faces(Smesh &M, E_Int color);
     
-    //void make_hedges_and_faces(const Smesh &M, Int color);
+    //void make_hedges_and_faces(const Smesh &M, E_Int color);
 
-    static Int check_hedges(const std::vector<Hedge *> &H);
+    static E_Int check_hedges(const std::vector<Hedge *> &H);
 
-    static Int check_faces(const std::vector<Hedge *> &H,
+    static E_Int check_faces(const std::vector<Hedge *> &H,
         const std::vector<Face *> &F);
 
     void find_intersections();
@@ -74,7 +74,7 @@ struct Dcel {
 
     void set_face_labels(std::vector<Face *> &F);
 
-    Hedge *get_hedge_of_color(Face *f, Int color);
+    Hedge *get_hedge_of_color(Face *f, E_Int color);
 
     std::vector<Face *> make_cycle_faces(const std::vector<Cycle *> &C);
 
@@ -82,10 +82,10 @@ struct Dcel {
 
     void set_cycles_inout();
 
-    std::vector<Int> extract_indices_of_type(Int inout);
+    std::vector<E_Int> extract_indices_of_type(E_Int inout);
     
     std::vector<Face *> extract_faces_of_indices(
-        const std::vector<Int> &indices);
+        const std::vector<E_Int> &indices);
 
     void write_ngon(const char *fname, const std::vector<Face *> &faces) const;
 
@@ -107,8 +107,8 @@ struct Dcel {
 
     void reconstruct();
 
-    Int get_next_face(const Smesh &M, Float px, Float py, Float pz,
-        const std::vector<Int> &pf, Float dir[3]);
+    E_Int get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
+        const std::vector<E_Int> &pf, E_Float dir[3]);
 
     void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
 

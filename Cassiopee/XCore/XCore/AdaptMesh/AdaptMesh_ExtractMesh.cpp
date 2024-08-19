@@ -21,7 +21,7 @@
 PyObject *K_XCORE::AdaptMesh_ExtractMesh(PyObject *self, PyObject *args)
 {
     PyObject *MESH;
-    Int conformize;
+    E_Int conformize;
 
     if (!PYPARSETUPLE_(args, O_ I_, &MESH, &conformize)) {
         RAISE("Wrong input.");

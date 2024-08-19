@@ -26,7 +26,7 @@
 #include "io.h"
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patch);
+PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *patch);
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
@@ -39,14 +39,14 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     Karray marray;
 
-    Int ret;
+    E_Int ret;
 
     ret = Karray_parse_ngon(MASTER, marray);
 
     if (ret != 0) return NULL;
 
-    Int nslaves = PyList_Size(SLAVES);
-    Int i;
+    E_Int nslaves = PyList_Size(SLAVES);
+    E_Int i;
 
     std::vector<Karray> sarrays(nslaves);
 
@@ -64,31 +64,31 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     if (ret != 0) {
         Karray_free_ngon(marray);
-        for (Int j = 0; j < i; j++)
+        for (E_Int j = 0; j < i; j++)
             Karray_free_structured(sarrays[j]);
         return NULL;
     }
     
     // Check intersection patch
-    Int *patch = NULL;
-    Int patch_size = -1;
+    E_Int *patch = NULL;
+    E_Int patch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, false);
     if (ret != 1) {
         Karray_free_ngon(marray);
-        for (Int i = 0; i < nslaves; i++) Karray_free_structured(sarrays[i]);
+        for (E_Int i = 0; i < nslaves; i++) Karray_free_structured(sarrays[i]);
         RAISE("Bad master patch.");
         return NULL;
     }
 
     // Zero-based
-    for (Int i = 0; i < patch_size; i++) patch[i] -= 1;
+    for (E_Int i = 0; i < patch_size; i++) patch[i] -= 1;
 
     // Init and orient marray mesh
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
 
     PyObject *out = PyList_New(0);
 
-    for (Int i = 0; i < nslaves; i++) {
+    for (E_Int i = 0; i < nslaves; i++) {
         PyObject *st = handle_slave(M, sarrays[i], patch_size, patch);
         PyList_Append(out, st);
         Py_DECREF(st);
@@ -103,16 +103,16 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 }
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patch)
+PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *patch)
 {
-    Float *Xs = sarray.X;
-    Float *Ys = sarray.Y;
-    Float *Zs = sarray.Z;
+    E_Float *Xs = sarray.X;
+    E_Float *Ys = sarray.Y;
+    E_Float *Zs = sarray.Z;
 
-    Int ni = sarray.ni;
-    Int nj = sarray.nj;
-    Int nk = sarray.nk;
-    Int nij = ni * nj;
+    E_Int ni = sarray.ni;
+    E_Int nj = sarray.nj;
+    E_Int nk = sarray.nk;
+    E_Int nij = ni * nj;
 
     /**************************************************************************/
 
@@ -120,16 +120,16 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patc
     // Get projected points coordinates
 
     // Max plane index that doesn't intersection with marray bbox (zero-based)
-    Int kmax = 0;
+    E_Int kmax = 0;
 
-    std::vector<Int> inside_point;
+    std::vector<E_Int> inside_point;
 
-    for (Int k = 0; k < nk; k++, kmax++) {
-        Int inside = 0;
+    for (E_Int k = 0; k < nk; k++, kmax++) {
+        E_Int inside = 0;
 
-        Int p = nij*k;
+        E_Int p = nij*k;
 
-        for (Int l = 0; l < nij; l++, p++) {
+        for (E_Int l = 0; l < nij; l++, p++) {
 
             if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
                 inside_point.push_back(p);
@@ -147,10 +147,10 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patc
     printf("Intersection plane index k: %d\n", kmax);
 
     // points to be projected nij*(kmax-1) .. nij*kmax
-    std::vector<Int> proj_points;
-    Int ind = (kmax-1)*nij;
+    std::vector<E_Int> proj_points;
+    E_Int ind = (kmax-1)*nij;
 
-    for (Int l = 0; l < nij; l++) {
+    for (E_Int l = 0; l < nij; l++) {
         proj_points.push_back(ind);
         ind++;
     }
@@ -160,18 +160,18 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patc
     /**************************************************************************/
 
     // Project points onto marray surface
-    std::unordered_map<Int, TriangleIntersection> point_hit_table;
+    std::unordered_map<E_Int, TriangleIntersection> point_hit_table;
 
-    for (Int i = 0; i < nij; i++) {
-        Int p = proj_points[i];
-        Int q = p + nij;
+    for (E_Int i = 0; i < nij; i++) {
+        E_Int p = proj_points[i];
+        E_Int q = p + nij;
 
-        Float px = Xs[p];
-        Float py = Ys[p];
-        Float pz = Zs[p];
-        Float dx = Xs[q]-px;
-        Float dy = Ys[q]-py;
-        Float dz = Zs[q]-pz;
+        E_Float px = Xs[p];
+        E_Float py = Ys[p];
+        E_Float pz = Zs[p];
+        E_Float dx = Xs[q]-px;
+        E_Float dy = Ys[q]-py;
+        E_Float dz = Zs[q]-pz;
 
         const auto &X = M.X;
         const auto &Y = M.Y;
@@ -179,11 +179,11 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patc
 
         TriangleIntersection TI;
 
-        Int A, B, C;
-        Int hit = -1;
+        E_Int A, B, C;
+        E_Int hit = -1;
 
-        for (Int fid = 0; fid < patch_size; fid++) {
-            Int face = patch[fid];
+        for (E_Int fid = 0; fid < patch_size; fid++) {
+            E_Int face = patch[fid];
             const auto &pn = M.F[face];
 
             // TODO: handle any polygon
@@ -234,7 +234,7 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patc
     FILE *fh = fopen("hit_faces", "w");
     assert(fh);
     for (const auto hit : point_hit_table) {
-        Int pt = hit.first;
+        E_Int pt = hit.first;
         const auto &TI = hit.second;
         fprintf(fh, "%d %d\n", pt + nij, TI.face);
     }
@@ -259,15 +259,15 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patc
     char *varString, *eltType;
     K_ARRAY::getFromArray3(tpl, varString, f, ni, nj, nk, c, eltType);
 
-    Float* xt = f->begin(1);
-    Float* yt = f->begin(2);
-    Float* zt = f->begin(3);
+    E_Float* xt = f->begin(1);
+    E_Float* yt = f->begin(2);
+    E_Float* zt = f->begin(3);
 
     // Copy all the points up to kmax
-    for (Int k = 0; k < kmax; k++) {
-        for (Int j = 0; j < nj; j++) {
-            for (Int i = 0; i < ni; i++) {
-                Int ind = i + j*ni + k*nij;
+    for (E_Int k = 0; k < kmax; k++) {
+        for (E_Int j = 0; j < nj; j++) {
+            for (E_Int i = 0; i < ni; i++) {
+                E_Int ind = i + j*ni + k*nij;
                 xt[ind] = Xs[ind];
                 yt[ind] = Ys[ind];
                 zt[ind] = Zs[ind];
@@ -277,12 +277,12 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patc
 
     // Copy the projected points
     ind = nij*kmax;
-    for (Int i = 0; i < nij; i++) {
-        Int p = proj_points[i];
+    for (E_Int i = 0; i < nij; i++) {
+        E_Int p = proj_points[i];
         auto EH = point_hit_table[p];
-        Float x = EH.x;
-        Float y = EH.y;
-        Float z = EH.z;
+        E_Float x = EH.x;
+        E_Float y = EH.y;
+        E_Float z = EH.z;
         xt[ind] = x;
         yt[ind] = y;
         zt[ind] = z;
@@ -294,9 +294,9 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, Int patch_size, Int *patc
     dims[1] = 1;
     dims[0] = (npy_intp)ni*nj*nk;
     PyArrayObject *tag = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    Float *ptag = (Float *)PyArray_DATA(tag);
-    for (Int i = 0; i < nij*kmax; i++) ptag[i] = 0.0;
-    for (Int i = nij*kmax; i < nij*nk; i++) ptag[i] = 1.0;
+    E_Float *ptag = (E_Float *)PyArray_DATA(tag);
+    for (E_Int i = 0; i < nij*kmax; i++) ptag[i] = 0.0;
+    for (E_Int i = nij*kmax; i < nij*nk; i++) ptag[i] = 1.0;
 
     PyObject *out = PyList_New(0);
     PyList_Append(out, tpl);
