@@ -126,7 +126,6 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     Karray_free_ngon(marray);
     Karray_free_ngon(sarray);
 
-
     // Extract master and slave patches
     npy_intp dims[2];
     dims[1] = 1;
@@ -135,13 +134,13 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     PyArrayObject *MP = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
     E_Int *mptr = (E_Int *)PyArray_DATA(MP);
     E_Int *ptr = mptr;
-    for (E_Int face : M.patch) *ptr++ = face;
+    for (E_Int face : M.patch) *ptr++ = face+1;
 
     dims[0] = (npy_intp)S.patch.size();
     PyArrayObject *SP = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
     E_Int *sptr = (E_Int *)PyArray_DATA(SP);
     ptr = sptr;
-    for (E_Int face : S.patch) *ptr++ = face;
+    for (E_Int face : S.patch) *ptr++ = face+1;
 
     PyList_Append(Out, (PyObject *)MP);
     PyList_Append(Out, (PyObject *)SP);

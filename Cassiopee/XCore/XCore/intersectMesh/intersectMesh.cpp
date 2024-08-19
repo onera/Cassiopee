@@ -339,8 +339,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     printf("Slave patch: " SF_D_ " faces\n", spatch_size);
 
-    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]);
-    for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]);
+    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]-1);
+    for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]-1);
 
     M.orient_skin(OUT);
     S.orient_skin(IN);
