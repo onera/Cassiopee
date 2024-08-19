@@ -336,6 +336,12 @@ def prepareMeshesForIntersection(master, slave, patch_name):
     zmo = I.createZoneNode("M_adapted", m)
     zso = I.createZoneNode("S_adapted", s)
 
+    zbcm = I.createUniqueChild(zmo, 'ZoneBC', 'ZoneBC_t')
+    zbcs = I.createUniqueChild(zso, 'ZoneBC', 'ZoneBC_t')
+
+    I.newBC(name="intersection_patch", pointList=mpatch, family='UserDefined', parent=zbcm)
+    I.newBC(name="intersection_patch", pointList=spatch, family='UserDefined', parent=zbcs)
+
     tm = C.newPyTree(["M_adapted", zmo])
     ts = C.newPyTree(["S_adapted", zso])
 
@@ -345,14 +351,17 @@ def prepareMeshesForIntersection(master, slave, patch_name):
     tm = XOR.closeCells(tm)
     ts = XOR.closeCells(ts)
 
-    return tm, ts, mpatch, spatch
+    return tm, ts
 
-def intersectMesh(master, slave, mpatch, spatch):
+def intersectMesh(master, slave):
     zm = I.getZones(master)[0]
     zs = I.getZones(slave)[0]
 
     m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
     s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    mpatch = I.getNodeFromName(zm, "intersection_patch")[2][0][1]
+    spatch = I.getNodeFromName(zs, "intersection_patch")[2][0][1]
     
     minter, sinter = xcore.intersectMesh(m, s, mpatch, spatch)
 
