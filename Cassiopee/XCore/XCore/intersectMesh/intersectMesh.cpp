@@ -373,6 +373,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     D.find_intersections_3D(Mf, Sf);
 
+    puts("Resolving hedges...");
+
     D.resolve_hedges(Mf, Sf);
 
     puts("Reconstructing meshes...");
