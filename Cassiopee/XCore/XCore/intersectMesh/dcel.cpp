@@ -112,77 +112,6 @@ void Dcel::resolve(Vertex *p, const std::vector<Segment *> &L,
     }
 }
 
-void Dcel::find_intersections()
-{
-    Status T;
-
-    E_Float BIG = 1;
-
-    for (Vertex *p : V) {
-        while (fabs(p->x) >= BIG || fabs(p->y) >= BIG) {
-            BIG *= 2;
-        }
-    }
-
-    T.rx = T.ry = -BIG;
-    
-    std::vector<Segment *> S;
-
-    for (size_t i = 0; i < H.size(); i += 2) {
-        Hedge *h = H[i];
-        assert(h->twin = H[i+1]);
-
-        Segment *s = new Segment(h, i >> 1);
-        
-        S.push_back(s);
-    }
-
-    Segment::sort(S, 0, S.size()-1, cmp_mySeg);
-    //std::reverse(S.begin(), S.end());
-
-    Vertex *lowerLeft = new Vertex(-BIG, -BIG, 0);
-    Vertex *lowerRight = new Vertex(BIG, -BIG, 0);
-    Vertex *upperLeft = new Vertex(-BIG, BIG, 0);
-    Vertex *upperRight = new Vertex(BIG, BIG, 0);
-
-    Segment *lowerSentinel = new Segment(lowerLeft, lowerRight, S.size());
-    Segment *upperSentinel = new Segment(upperLeft, upperRight, S.size()+1);
-
-    T.insert(lowerSentinel);
-    T.insert(upperSentinel);
-
-    sweep(Q, T, S, V, H);
-
-    check_hedges(H);
-
-    make_cycles();
-
-    set_cycles_inout();
-
-    auto new_F = make_cycle_faces(C);
-    
-    set_face_labels(new_F);
-
-    update_hedge_faces(new_F);
-
-    for (Face *f : F) delete f;
-    F = new_F;
-
-    check_faces(H, F);
-
-    // Clean up
-    T.erase(lowerSentinel);
-    T.erase(upperSentinel);
-
-    delete lowerLeft;
-    delete lowerRight;
-    delete upperLeft;
-    delete upperRight;
-    delete upperSentinel;
-    delete lowerSentinel;
-    for (Segment *s : S) delete s;
-}
-
 void Dcel::write_degen_faces(const char *fname)
 {
     auto degen_indices = extract_indices_of_type(Cycle::DEGEN);
@@ -451,7 +380,7 @@ Dcel::Dcel(Smesh &M0, Smesh &M1)
     }
 
     init_hedges_and_faces(M0, RED);
-
+    
     init_hedges_and_faces(M1, BLACK);
 
     assert(check_hedges(H));
@@ -484,7 +413,7 @@ void mat3_vec(E_Float A[3][3], E_Float x[3], E_Float b[3])
 
 void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
 {
-    //printf("Doing color %d\n", color);
+    printf("Doing color %d\n", color);
     size_t nh = H.size();
     size_t nhh = nh + 2 * M.E.size();
 
@@ -715,7 +644,7 @@ Dcel::~Dcel()
     for (size_t i = 0; i < C.size(); i++) delete C[i];
 }
 
-void Dcel::set_cycles_inout()
+void Dcel::set_cycles_inout(const Smesh &M, const Smesh &S)
 {
     E_Int inner = 0;
     E_Int outer = 0;
@@ -762,9 +691,94 @@ void Dcel::set_cycles_inout()
 
         E_Float cp[3] = {py*nz - pz*ny, pz*nx - px*nz, px*ny - py*nx};
 
+
+        E_Float N[3]= { };
+
+        // M point
+        if (v->oid[0] != -1) {
+
+            E_Int mpid = v->oid[0];
+
+            const E_Float *pN = &M.pnormals[3*mpid];
+            for (E_Int i = 0; i < 3; i++) N[i] = pN[i];
+
+        }
+        
+        // S point
+        else if (v->oid[1] != -1) {
+
+            const auto &loc = v->loc;
+            
+            E_Int mfid = loc.fid;
+
+            if (loc.e_idx != -1) {
+
+                const auto &pe = M.F2E[mfid];
+                E_Int eid = pe[loc.e_idx];
+                const auto &pf = M.E2F[eid];
+                assert(mfid == pf[0] || mfid == pf[1]);
+
+                E_Int mf1 = pf[0];
+                E_Int mf2 = pf[1];
+
+                const E_Float *fN1 = &M.fnormals[3*mf1];
+                const E_Float *fN2 = &M.fnormals[3*mf2];
+
+                for (E_Int i = 0; i < 3; i++) {
+                    N[i] += fN1[i];
+                    N[i] += fN2[i];
+                }
+
+                E_Float NORM = K_MATH::norm(N, 3);
+                for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
+
+            } else if (loc.v_idx != -1) {
+                
+                const auto &pn = M.F[mfid];
+                E_Int mpid = pn[loc.v_idx];
+                const E_Float *pN = &M.pnormals[3*mpid];
+                for (E_Int i = 0; i < 3; i++) N[i] = pN[i];
+
+            } else {
+
+                const E_Float *fN = &M.fnormals[3*mfid];
+
+                for (E_Int i = 0; i < 3; i++) N[i] = fN[i];
+
+            }
+
+        }
+
+        // E_Intersection
+        else {
+
+            Hedge *h = v->xhedge;
+            assert(h);
+
+            Face *f1 = h->left;
+            Face *f2 = h->twin->left;
+
+            E_Int mf1 = f1->oid[0];
+            E_Int mf2 = f2->oid[0];
+    
+            const E_Float *fN1 = &M.fnormals[3*mf1];
+            const E_Float *fN2 = &M.fnormals[3*mf2];
+
+            for (E_Int i = 0; i < 3; i++) {
+                N[i] += fN1[i];
+                N[i] += fN2[i];
+            }
+
+            E_Float NORM = K_MATH::norm(N, 3);
+            for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
+        }
+
+        E_Float NORM = K_MATH::norm(N, 3);
+        assert(Sign(NORM -1) == 0);
+        
+
         // TODO(Imad): compute r more rigorously...
-        E_Float r[3] = {0, 0, 1};
-        E_Float cmp = Sign(K_MATH::dot(r, cp, 3)); 
+        E_Float cmp = Sign(K_MATH::dot(N, cp, 3)); 
 
         if (cmp < 0) {
             c->inout = Cycle::INNER;
@@ -778,9 +792,9 @@ void Dcel::set_cycles_inout()
         }
     }
 
-    //printf("Inner cycles: " SF_D_ "\n", inner);
-    //printf("Outer cycles: " SF_D_ "\n", outer);
-    //printf("Degen cycles: " SF_D_ "\n", degen);
+    printf("Inner cycles: " SF_D_ "\n", inner);
+    printf("Outer cycles: " SF_D_ "\n", outer);
+    printf("Degen cycles: " SF_D_ "\n", degen);
     
     printf("Total faces: " SF_D_ "\n", outer);
 }
@@ -1403,13 +1417,13 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
     }
 }
 
-void Dcel::reconstruct()
+void Dcel::reconstruct(const Smesh &M, const Smesh &S)
 {
     check_hedges(H);
 
     make_cycles();
 
-    set_cycles_inout();
+    set_cycles_inout(M, S);
 
     auto new_F = make_cycle_faces(C);
     
@@ -1421,4 +1435,7 @@ void Dcel::reconstruct()
     F = new_F;
 
     check_faces(H, F);
+
+    write_degen_faces("degen");
+    write_inner_faces("inner");
 }

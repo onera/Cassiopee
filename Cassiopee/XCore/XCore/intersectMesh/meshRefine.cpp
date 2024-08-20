@@ -26,16 +26,20 @@
 E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {
     puts("Adapting intersection surfaces...");
-    size_t refM, refS;
+    size_t refM = 0, refS = 0;
     E_Int iter = 0;
 
     do {
         iter++;
+        
         refM = M.refine(M.patch, S.patch, S);
         printf("Refined mf: %zu\n", refM);
-        refS = S.refine(S.patch, M.patch, M);
-        printf("Refined sf: %zu\n", refS);
-    } while (refM > 0 || refS > 0);
+
+        if (refM > 0) {
+            refS = S.refine(S.patch, M.patch, M);
+            printf("Refined sf: %zu\n", refS);
+        }
+    } while (refS > 0);
 
     return 0;
 }
@@ -272,6 +276,53 @@ void IMesh::resize_face_data(size_t nref_faces)
     flevel.resize(nnew_faces, -1);
 }
 
+void IMesh::refine_tri(E_Int tri)
+{
+    // Refine the edges
+    const auto &pn = F[tri];
+    E_Int ec[3];
+
+    for (size_t i = 0; i < pn.size(); i++) {
+        E_Int p = pn[i];
+        E_Int q = pn[(i+1)%pn.size()];
+        UEdge edge(p, q);
+
+        auto it = ecenter.find(edge);
+
+        if (it == ecenter.end()) {
+            X[np] = 0.5 * (X[p] + X[q]);
+            Y[np] = 0.5 * (Y[p] + Y[q]);
+            Z[np] = 0.5 * (Z[p] + Z[q]);
+            ecenter[edge] = np;
+            ec[i] = np;
+            np++;
+        } else {
+            ec[i] = it->second;
+        }
+    }
+
+    // New face points
+    E_Int nf0 = nf, nf1 = nf+1, nf2 = nf+2, nf3 = nf+3;
+
+    F[nf0] = { pn[0], ec[0], ec[2] };
+    F[nf1] = { ec[0], pn[1], ec[1] };
+    F[nf2] = { ec[2], ec[1], pn[2] };
+    F[nf3] = { ec[0], ec[1], ec[2] };
+
+    // Disable quad and enable its children
+    factive.erase(tri);
+    factive.insert(nf0);
+    factive.insert(nf1);
+    factive.insert(nf2);
+    factive.insert(nf3);
+
+    // Set quad children pointers
+    fchildren[tri] = { nf0, nf1, nf2, nf3 };
+    flevel[nf0] = flevel[nf1] = flevel[nf2] = flevel[nf3] = flevel[tri] + 1;
+
+    nf += 4;
+}
+
 void IMesh::refine_quad(E_Int quad)
 {
     // Refine the edges
@@ -331,10 +382,4 @@ void IMesh::refine_quad(E_Int quad)
 
     np += 1;
     nf += 4;
-}
-
-void IMesh::refine_tri(E_Int tri)
-{
-    printf(SF_D_ "\n", tri);
-    assert(0);
 }

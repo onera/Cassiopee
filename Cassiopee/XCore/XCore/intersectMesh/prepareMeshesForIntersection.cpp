@@ -126,6 +126,20 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     Karray_free_ngon(marray);
     Karray_free_ngon(sarray);
 
+    // All the spoints should belong to an mface
+    std::set<E_Int> spoints;
+    for (E_Int sface : S.patch) {
+        assert(S.face_is_active(sface));
+        const auto &pn = S.F[sface];
+        
+        for (E_Int spt : pn) {
+            if (spoints.find(spt) != spoints.end()) continue;
+            spoints.insert(spt);
+            auto pf = M.locate(spt, S.X[spt], S.Y[spt], S.Z[spt], M.patch);
+            assert(!pf.empty());
+        }
+    }
+
     // Extract master and slave patches
     npy_intp dims[2];
     dims[1] = 1;
