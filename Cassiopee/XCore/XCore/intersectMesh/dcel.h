@@ -64,8 +64,6 @@ struct Dcel {
     static E_Int check_faces(const std::vector<Hedge *> &H,
         const std::vector<Face *> &F);
 
-    void find_intersections();
-
     static void resolve(Vertex *p, const std::vector<Segment *> &L,
         const std::vector<Segment *> &C, const std::vector<Segment *> &U,
         std::vector<Hedge *> &H);
@@ -80,7 +78,7 @@ struct Dcel {
 
     void update_hedge_faces(const std::vector<Face *> &F);
 
-    void set_cycles_inout();
+    void set_cycles_inout(const Smesh &M, const Smesh &S);
 
     std::vector<E_Int> extract_indices_of_type(E_Int inout);
     
@@ -105,12 +103,12 @@ struct Dcel {
 
     void resolve_hedges(const Smesh &M, const Smesh &S);
 
-    void reconstruct();
+    void reconstruct(const Smesh &M, const Smesh &S);
 
     E_Int get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
         const std::vector<E_Int> &pf, E_Float dir[3]);
 
     void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
 
-    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S);
+    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
 };

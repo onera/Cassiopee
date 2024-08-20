@@ -104,9 +104,9 @@ struct Smesh {
     inline bool face_is_active(E_Int face) const
     { return factive.find(face) != factive.end(); }
 
-    size_t refine(Smesh &M);
+    //size_t refine(Smesh &M);
 
-    std::vector<pointFace> locate(E_Float x, E_Float y, E_Float z) const;
+    //std::vector<pointFace> locate(E_Float x, E_Float y, E_Float z) const;
 
     void write_faces(const char *fname, const std::vector<E_Int> &faces);
 

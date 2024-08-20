@@ -339,8 +339,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     printf("Slave patch: " SF_D_ " faces\n", spatch_size);
 
-    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]);
-    for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]);
+    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]-1);
+    for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]-1);
 
     M.orient_skin(OUT);
     S.orient_skin(IN);
@@ -349,8 +349,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Smesh Mf(M);
     Smesh Sf(S);
     
-    //Mf.write_ngon("Mf");
-    //Sf.write_ngon("Sf");
+    Mf.write_ngon("Mf");
+    Sf.write_ngon("Sf");
 
     Mf.make_point_edges();
     Sf.make_point_edges();
@@ -373,11 +373,13 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     D.find_intersections_3D(Mf, Sf);
 
+    puts("Resolving hedges...");
+
     D.resolve_hedges(Mf, Sf);
 
     puts("Reconstructing meshes...");
 
-    D.reconstruct();
+    D.reconstruct(Mf, Sf);
 
     for (Vertex *v : D.V) {
         E_Int oid = v->oid[0];
@@ -386,11 +388,10 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
         oid = v->oid[1];
         if (oid != -1) v->oid[1] = Sf.l2gp[oid];
     }
+    
+    IMesh M_inter = reconstruct_mesh(M, Mf, D, Dcel::RED);
 
     IMesh S_inter = reconstruct_mesh(S, Sf, D, Dcel::BLACK);
-
-    IMesh M_inter = reconstruct_mesh(M, Mf, D, Dcel::RED);
-    
 
     // Export
     puts("Exporting...");

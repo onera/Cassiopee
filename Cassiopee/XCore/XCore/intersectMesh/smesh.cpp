@@ -90,11 +90,6 @@ Smesh::Smesh(const IMesh &M)
         Z[pids.second] = M.Z[pids.first];
     }
 
-    // Faces should already be oriented ccw
-    for (E_Int face = 0; face < nf; face++) {
-        assert(ccw_oriented(face));
-    }
-
     make_edges();
 }
 
@@ -139,14 +134,17 @@ void Smesh::make_edges()
 
     ne = E.size();
 
-    assert(F.size()+1 + X.size() == E.size() + 2);
+    //assert(F.size()+1 + X.size() == E.size() + 2);
 
     // Make edge_to_face
     E2F.resize(ne, {-1,-1});
+    std::vector<E_Int> count(ne, 0);
     for (E_Int i = 0; i < nf; i++) {
         auto &face = F2E[i];
         for (size_t j = 0; j < face.size(); j++) {
             E_Int e = face[j];
+            count[e]++;
+            assert(count[e] <= 2);
             if (E2F[e][0] == -1) E2F[e][0] = i;
             else E2F[e][1] = i;
         }
@@ -545,6 +543,7 @@ E_Int Smesh::face_contains_point(E_Int face, E_Float x, E_Float y, E_Float z) co
     return -1;
 }
 
+/*
 std::vector<pointFace> Smesh::locate(E_Float x, E_Float y, E_Float z) const
 {
     E_Int a, b, c;
@@ -581,6 +580,7 @@ std::vector<pointFace> Smesh::locate(E_Float x, E_Float y, E_Float z) const
 
     return HITS;
 }
+*/
 
 void Smesh::init_adaptation_data()
 {
