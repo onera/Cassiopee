@@ -110,5 +110,5 @@ struct Dcel {
 
     void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
 
-    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S);
+    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
 };

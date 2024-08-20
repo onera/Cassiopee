@@ -92,12 +92,21 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     std::set<E_Int> faces_to_tri;
 
+    clock_t tic = clock();
+
     for (E_Int i = 0; i < nslaves; i++) {
+        printf("Projecting %d / %d\n", i+1, nslaves);
         PyObject *st = handle_slave(M, sarrays[i], patch, faces_to_tri);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);
     }
+
+    clock_t tac = clock();
+
+    E_Float etime = ((E_Float)(tac - tic)) / CLOCKS_PER_SEC;
+
+    printf("Projection took %.2f s\n", etime);
 
     E_Int nf = M.nf;
 
