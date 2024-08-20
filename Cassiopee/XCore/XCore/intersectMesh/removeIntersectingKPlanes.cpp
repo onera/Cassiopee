@@ -26,7 +26,8 @@
 #include "io.h"
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *patch);
+PyObject *handle_slave(const IMesh &M, Karray& sarray, std::vector<E_Int> &patch,
+    std::set<E_Int> &faces_to_tri);
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
@@ -70,9 +71,9 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
     
     // Check intersection patch
-    E_Int *patch = NULL;
+    E_Int *patch_in = NULL;
     E_Int patch_size = -1;
-    ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, false);
+    ret = K_NUMPY::getFromNumpyArray(PATCH, patch_in, patch_size, true);
     if (ret != 1) {
         Karray_free_ngon(marray);
         for (E_Int i = 0; i < nslaves; i++) Karray_free_structured(sarrays[i]);
@@ -81,29 +82,115 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
 
     // Zero-based
-    for (E_Int i = 0; i < patch_size; i++) patch[i] -= 1;
+    std::vector<E_Int> patch(patch_size);
+    for (E_Int i = 0; i < patch_size; i++) patch[i] = patch_in[i]-1;
 
     // Init and orient marray mesh
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
 
-    PyObject *out = PyList_New(0);
+    PyObject *slaves_out = PyList_New(0);
+
+    std::set<E_Int> faces_to_tri;
 
     for (E_Int i = 0; i < nslaves; i++) {
-        PyObject *st = handle_slave(M, sarrays[i], patch_size, patch);
-        PyList_Append(out, st);
+        printf("Projecting %d / %d\n", i+1, nslaves);
+        PyObject *st = handle_slave(M, sarrays[i], patch, faces_to_tri);
+        PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);
     }
 
-    Karray_free_ngon(marray);
+    E_Int nf = M.nf;
 
-    delete [] patch;
+    E_Int face_incr = faces_to_tri.size();
+
+    M.F.resize(nf + face_incr);
+
+    std::vector<E_Int> owner(nf, -1), neigh(nf, -1);
+
+    for (E_Int i = 0; i < M.nc; i++) {
+        const auto &pf = M.C[i];
+        for (E_Int fid : pf) {
+            if (owner[fid] == -1) owner[fid] = i;
+            else neigh[fid] = i;
+        }
+    }
+
+    for (E_Int fid : faces_to_tri) {
+
+        auto &pn = M.F[fid];
+
+        assert(pn.size() == 4);
+
+        std::vector<E_Int> tri0(3), tri1(3);
+
+        tri0[0] = pn[0], tri0[1] = pn[1], tri0[2] = pn[2];
+
+        tri1[0] = pn[0], tri1[1] = pn[2], tri1[2] = pn[3];
+
+        pn = tri0;
+
+        M.F[nf] = tri1;
+
+        E_Int own = owner[fid];
+
+        assert(own != -1);
+
+        auto &pf = M.C[own];
+
+        pf.push_back(nf);
+
+        E_Int nei = neigh[fid];
+
+        if (nei != -1) {
+            auto &pf = M.C[nei];
+
+            pf.push_back(nf);
+        }
+
+        patch.push_back(nf);
+
+        nf++;
+    }
+
+    assert(nf == M.nf + face_incr);
+
+    M.nf = nf;
+
+    for (auto &pf : M.C) {
+        assert(pf.size() == 6 || pf.size() == 7);
+    }
+
+    PyObject *master_out = M.export_karray();
+
+    PyObject *out = PyList_New(0);
+    PyList_Append(out, master_out);
+
+    npy_intp dims[2];
+    dims[1] = 1;
+    
+    dims[0] = (npy_intp)patch.size();
+    PyArrayObject *NEW_PATCH = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+    E_Int *mptr = (E_Int *)PyArray_DATA(NEW_PATCH);
+    E_Int *ptr = mptr;
+    for (E_Int face : patch) *ptr++ = face+1;
+
+    PyList_Append(out, (PyObject *)NEW_PATCH);
+
+    PyList_Append(out, slaves_out);
+
+    Py_DECREF(master_out);
+    Py_DECREF(NEW_PATCH);
+    Py_DECREF(slaves_out);
+
+    Karray_free_ngon(marray);
 
     return out;
 }
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *patch)
+PyObject *handle_slave(const IMesh &M, Karray& sarray, std::vector<E_Int> &patch,
+    std::set<E_Int> &faces_to_tri)
 {
     E_Float *Xs = sarray.X;
     E_Float *Ys = sarray.Y;
@@ -113,6 +200,7 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
     E_Int nj = sarray.nj;
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
+    
 
     /**************************************************************************/
 
@@ -142,7 +230,9 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
         if (inside) break;
     }
 
-    //point_write("inside", Xs, Ys, Zs, inside_point);
+    //char fname2[128] = {};
+    //sprintf(fname2, "inside%d", idx);
+    //point_write(fname2, Xs, Ys, Zs, inside_point);
 
     printf("Intersection plane index k: %d\n", kmax);
 
@@ -155,7 +245,9 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
         ind++;
     }
 
-    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+    //char fname[128] = {};
+    //sprintf(fname, "proj_points%d", idx);
+    //point_write(fname, Xs, Ys, Zs, proj_points);
 
     /**************************************************************************/
 
@@ -181,13 +273,16 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
 
         E_Int A, B, C;
         E_Int hit = -1;
+        E_Float t_last = E_FLOAT_MAX;
+
+        E_Int patch_size = patch.size();
 
         for (E_Int fid = 0; fid < patch_size; fid++) {
             E_Int face = patch[fid];
             const auto &pn = M.F[face];
 
             // TODO: handle any polygon
-            assert(pn.size() == 4);
+            //assert(pn.size() == 4);
 
             A = pn[0]; B = pn[1]; C = pn[2];
 
@@ -199,11 +294,12 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
                                  X[C], Y[C], Z[C],
                                  TI);
 
-            if (hit) {
+            if (hit && TI.t < t_last) {
+                t_last = TI.t;
                 TI.face = face;
                 TI.tri = 0;
                 point_hit_table[p] = TI;
-                break;
+                continue;
             }
             
             if (pn.size() == 3)
@@ -218,16 +314,26 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
                                  X[C], Y[C], Z[C],
                                  TI);
 
-            if (hit) {
+            if (hit && TI.t < t_last) {
+                t_last = TI.t;
                 TI.face = face;
                 TI.tri = 1;
                 point_hit_table[p] = TI;
-                break;
             }
         }
 
         // point must hit!
-        assert(hit == 1);
+        assert(point_hit_table.find(p) != point_hit_table.end());
+        if (point_hit_table.find(p) == point_hit_table.end()) {
+            puts("AIE!");
+            abort();
+        }
+    }
+
+    for (const auto &ploc : point_hit_table) {
+        E_Int fid = ploc.second.face;
+        const auto &pn = M.F[fid];
+        if (pn.size() != 3) faces_to_tri.insert(fid);
     }
 
     /*
@@ -241,7 +347,9 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int patch_size, E_Int *
     fclose(fh);
     */
 
-    //edge_write("projection", Xs, Ys, Zs, point_hit_table);
+    //char fname3[128] = {};
+    //sprintf(fname3, "projection%d", idx);
+    //edge_write(fname3, Xs, Ys, Zs, point_hit_table);
 
     /*************************************************************************/
     

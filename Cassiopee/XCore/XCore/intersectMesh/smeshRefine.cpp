@@ -21,6 +21,7 @@
 #include "smesh.h"
 
 // Refine wrt M's point cloud
+/*
 size_t Smesh::refine(Smesh &M)
 {
     // Locate M points within my faces
@@ -133,6 +134,7 @@ size_t Smesh::refine(Smesh &M)
 
     return ret;
 }
+*/
 
 void Smesh::refine_edge(E_Int edge)
 {
