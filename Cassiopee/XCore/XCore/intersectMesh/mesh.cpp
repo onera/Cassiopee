@@ -87,7 +87,6 @@ void IMesh::make_edges()
 std::vector<pointFace> IMesh::locate(E_Int p, E_Float px, E_Float py, E_Float pz,
     const std::set<E_Int> &patch) const
 {
-    E_Int a, b, c;
     E_Int hit;
     std::vector<pointFace> hits;
     
@@ -96,28 +95,28 @@ std::vector<pointFace> IMesh::locate(E_Int p, E_Float px, E_Float py, E_Float pz
 
         const auto &cn = F[face];
 
-        // First triangle
+        E_Float o[3] = {};
 
-        a = cn[0], b = cn[1], c = cn[2];
 
-        hit = Triangle::is_point_inside(px, py, pz, X[a], Y[a], Z[a],
-            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
-
-        if (hit) {
-            hits.push_back(pointFace(face, 0));
-            continue;
+        for (E_Int p : cn) {
+            o[0] += X[p];
+            o[1] += Y[p];
+            o[2] += Z[p];
         }
-        
-        if (face_is_tri(face)) continue;
+        for (E_Int i = 0; i < 3; i++) o[i] /= cn.size();
 
-        // Second triangle
-        a = cn[0], b = cn[2], c = cn[3];
 
-        hit = Triangle::is_point_inside(px, py, pz, X[a], Y[a], Z[a],
-            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
-
-        if (hit) {
-            hits.push_back(pointFace(face, 1));
+        for (size_t i = 0; i < cn.size(); i++) {
+            E_Int a = cn[i];
+            E_Int b = cn[(i+1)%cn.size()];
+            hit = Triangle::is_point_inside(px, py, pz,
+                o[0], o[1], o[2],
+                X[a], Y[a], Z[a],
+                X[b], Y[b], Z[b]);
+            if (hit) {
+                hits.push_back(pointFace(face));
+                break;
+            }
         }
     }
 
@@ -522,7 +521,7 @@ bool IMesh::face_contains_sface(E_Int face, E_Int sface, const IMesh &S) const
     assert(S.face_is_active(sface));
     const auto &cn = S.F[sface];
     for (E_Int p : cn) {
-        if (face_contains_point(face, S.X[p], S.Y[p], S.Z[p]) == -1) 
+        if (face_contains_point(face, S.X[p], S.Y[p], S.Z[p]) == 0) 
             return false;
     }
     return true;
@@ -532,39 +531,30 @@ E_Int IMesh::face_contains_point(E_Int face, E_Float x, E_Float y, E_Float z) co
 {
     const auto &cn = F[face];
 
-    E_Int hit, a, b, c;
+    E_Float o[3] = {};
 
-    if (face_is_quad(face)) {
+    for (E_Int p : cn) {
+        o[0] += X[p];
+        o[1] += Y[p];
+        o[2] += Z[p];
+    }
+    for (E_Int i = 0; i < 3; i++) o[i] /= cn.size();
 
-        // First triangle 
+    E_Int hit = 0;
 
-        a = cn[0], b = cn[1], c = cn[2];
-        
-        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
-            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
-        
-        if (hit) return 0;
+    for (size_t i = 0; i < cn.size(); i++) {
+        E_Int a = cn[i];
+        E_Int b = cn[(i+1)%cn.size()];
 
-        // Second triangle
-        a = cn[0], b = cn[2], c = cn[3];
-        
-        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
-            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
-        
-        if (hit) return 1;
-    } else {
+        hit = Triangle::is_point_inside(x, y, z,
+            X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b],
+            o[0], o[1], o[2]);
 
-        assert(face_is_tri(face));
-
-        a = cn[0], b = cn[1], c = cn[2];
-        
-        hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
-            X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
-        
-        if (hit) return 0;
+        if (hit) break;
     }
 
-    return -1;
+    return hit;
 }
 
 UEdge::UEdge(E_Int P, E_Int Q)
@@ -652,6 +642,7 @@ IMesh IMesh::extract_conformized()
 
     for (E_Int face : patch) {
         new_M.patch.insert(new_fids[face]);
+        new_M.factive.insert(new_fids[face]);
     }
 
     return new_M;
