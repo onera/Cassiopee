@@ -24,8 +24,8 @@ void cache_prerefinement_data(Mesh *M)
 {
     M->gnf_old = 0;
     
-    Int ndup = 0, nfree = 0;
-    for (Int i = 0; i < M->nf; i++) {
+    E_Int ndup = 0, nfree = 0;
+    for (E_Int i = 0; i < M->nf; i++) {
         if (M->face_to_ppatch.find(i) != M->face_to_ppatch.end()) {
             ndup++;
         } else {
@@ -33,7 +33,7 @@ void cache_prerefinement_data(Mesh *M)
         }
     }
 
-    Int gnfree, gndup;
+    E_Int gnfree, gndup;
     MPI_Allreduce(&nfree, &gnfree, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(&ndup, &gndup, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
     M->gnf_old = gnfree + gndup/2; 
@@ -45,7 +45,7 @@ void cache_prerefinement_data(Mesh *M)
 static
 void print_postrefinement_data(Mesh *M)
 {
-    Int gnc = M->nc;
+    E_Int gnc = M->nc;
     MPI_Allreduce(&M->nc, &gnc, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
     if (M->pid == 0) {
         printf("    Total cells after refinement: " SF_D_ "\n", gnc);
@@ -53,9 +53,9 @@ void print_postrefinement_data(Mesh *M)
 
     if (M->npc == 1) return;
 
-    Float balanced = gnc / (Float) M->npc;
-    Float my_imbalance = fabs((M->nc - balanced) / (Float)balanced * 100.0);
-    Float max_imbalance;
+    E_Float balanced = gnc / (E_Float) M->npc;
+    E_Float my_imbalance = fabs((M->nc - balanced) / (E_Float)balanced * 100.0);
+    E_Float max_imbalance;
     MPI_Allreduce(&my_imbalance, &max_imbalance, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     if (M->pid == 0) printf("    Max cell imbalance: %.2f%%\n", max_imbalance);
 }
@@ -80,7 +80,7 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
 
     // Isolate cells/faces/edges to be refined
     
-    std::vector<Int> ref_cells, ref_faces;
+    std::vector<E_Int> ref_cells, ref_faces;
     std::set<UEdge> ref_edges;
 
     if (M->pid == 0) puts("    Isolating ref entities...");

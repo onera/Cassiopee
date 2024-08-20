@@ -16,16 +16,16 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     if zonebc is not None:
         zbc = I.getNodesFromType(zonebc, 'BC_t')
 
-    bc_count = 0
+        bc_count = 0
 
-    for bc in zbc:
-        plist = I.getNodeFromName(bc, 'PointList')
-        name = bc[0]
-        #tag = I.getNodeFromName(bc, 'Tag')[1][0]
-        try: tag = I.getNodeFromName(bc, 'Tag')[1][0]
-        except: tag = bc_count; bc_count += 1
-        bctype = I.getValue(bc)
-        bcs.append([plist[1], tag, name, bctype])
+        for bc in zbc:
+            plist = I.getNodeFromName(bc, 'PointList')
+            name = bc[0]
+            #tag = I.getNodeFromName(bc, 'Tag')[1][0]
+            try: tag = I.getNodeFromName(bc, 'Tag')[1][0]
+            except: tag = bc_count; bc_count += 1
+            bctype = I.getValue(bc)
+            bcs.append([plist[1], tag, name, bctype])
 
     return xcore.AdaptMesh_Init(array, normal2D, bcs, comm, gcells, gfaces)
 
@@ -278,10 +278,16 @@ def loadAndSplitNGon(fileName):
 
 def removeIntersectingKPlanes(master, slave, patch_name):
     zm = I.getZones(master)[0]
-    zs = I.getZones(slave)[0]
-
+    
     master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
-    slave = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    zs = I.getZones(slave)
+
+    slaves = []
+
+    for z in zs:
+        smesh = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+        slaves.append(smesh)
 
     patch = I.getNodeFromName(zm, patch_name)
     if patch is None:
@@ -290,16 +296,23 @@ def removeIntersectingKPlanes(master, slave, patch_name):
     faces = I.getNodeFromName(patch, "PointList")
     faces = I.getValue(faces)[0]
 
-    mesh, tag = xcore.removeIntersectingKPlanes(master, slave, faces)
+    new_slaves_and_tags = xcore.removeIntersectingKPlanes(master, slaves, faces)
 
-    zo = I.createZoneNode("struct", mesh)
-    cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
-    I.newDataArray("tag", value=tag, parent=cont)
+    zos = []
 
-    t = C.newPyTree(["Base", zo])
+    for i in range(len(new_slaves_and_tags)):
+        new_slave, tag = new_slaves_and_tags[i]
+        zname = zs[i][0]
+        zo = I.createZoneNode(zname, new_slave)
+        cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
+        I.newDataArray("tag", value=tag, parent=cont)
+        zos.append(zo)
+
+    t = C.newPyTree(["Projected_struct", zos])
+    
     return t
 
-def intersectSurf(master, slave, patch_name):
+def prepareMeshesForIntersection(master, slave, patch_name):
     zm = I.getZones(master)[0]
     zs = I.getZones(slave)[0]
 
@@ -318,13 +331,59 @@ def intersectSurf(master, slave, patch_name):
         raise ValueError("Tag field not found in slave mesh.")
     tag = I.getValue(tag)
 
-    minter, sinter = xcore.intersectSurf(m, s, faces, tag)
+    m, s, mpatch, spatch = xcore.prepareMeshesForIntersection(m, s, faces, tag)
+
+    zmo = I.createZoneNode("M_adapted", m)
+    zso = I.createZoneNode("S_adapted", s)
+
+    tm = C.newPyTree(["M_adapted", zmo])
+    ts = C.newPyTree(["S_adapted", zso])
+
+    try: import Intersector.PyTree as XOR
+    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
+
+    tm = XOR.closeCells(tm)
+    ts = XOR.closeCells(ts)
+
+    return tm, ts, mpatch, spatch
+
+def intersectMesh(master, slave, mpatch, spatch):
+    zm = I.getZones(master)[0]
+    zs = I.getZones(slave)[0]
+
+    m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+    
+    minter, sinter = xcore.intersectMesh(m, s, mpatch, spatch)
 
     zmo = I.createZoneNode("M_inter", minter)
     zso = I.createZoneNode("S_inter", sinter)
 
-    tm = C.newPyTree(["Base", zmo])
-    ts = C.newPyTree(["Base", zso])
+    tm = C.newPyTree(["M_inter", zmo])
+    ts = C.newPyTree(["S_inter", zso])
+
+    try: import Intersector.PyTree as XOR
+    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
+
+    tm = XOR.closeCells(tm)
+    ts = XOR.closeCells(ts)
+
+    return tm, ts
+
+def intersectSurf(master, slave, mpatch, spatch):
+    zm = I.getZones(master)[0]
+    zs = I.getZones(slave)[0]
+
+    m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    minter, sinter = xcore.intersectSurf(m, s, mpatch, spatch)
+
+    zmo = I.createZoneNode("M_inter", minter)
+    zso = I.createZoneNode("S_inter", sinter)
+
+    tm = C.newPyTree(["M_inter", zmo])
+    ts = C.newPyTree(["S_inter", zso])
 
     try: import Intersector.PyTree as XOR
     except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")

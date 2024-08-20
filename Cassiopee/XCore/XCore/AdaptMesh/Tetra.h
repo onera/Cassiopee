@@ -20,12 +20,12 @@
 
 #include "common/common.h"
 
-extern const Int normalIn_T[4];
+extern const E_Int normalIn_T[4];
 
 struct Mesh;
 
-void refine_tetra(Int tetra, Mesh *M);
+void refine_tetra(E_Int tetra, Mesh *M);
 
-void reorder_tetra(Int tetra, Mesh *M);
+void reorder_tetra(E_Int tetra, Mesh *M);
 
-Int check_canon_tetra(Int tetra, Mesh *M);
+E_Int check_canon_tetra(E_Int tetra, Mesh *M);

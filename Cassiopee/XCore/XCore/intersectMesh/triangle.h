@@ -24,15 +24,24 @@
 #include "smesh.h"
 
 struct Triangle {
-    Int a, b, c;
+    E_Int a, b, c;
 
-    static Int ispointInside(Float x, Float y, Float ax, Float ay,
-        Float bx, Float by, Float cx, Float cy);
+    static E_Int is_point_inside(E_Float px, E_Float py, E_Float pz,
+        E_Float ax, E_Float ay, E_Float az,
+        E_Float bx, E_Float by, E_Float bz,
+        E_Float cx, E_Float cy, E_Float cz,
+        E_Float &u, E_Float &v, E_Float &w);
 
-    static Int ray_intersect(Float px, Float py, Float pz, Float dx,
-        Float dy, Float dz, Float ax, Float ay, Float az, Float bx,
-        Float by, Float bz, Float cx, Float cy, Float cz, Float &u,
-        Float &v, Float &w, Float &t, Float &x, Float &y, Float &z);
+    static E_Int is_point_inside(E_Float px, E_Float py, E_Float pz,
+        E_Float ax, E_Float ay, E_Float az,
+        E_Float bx, E_Float by, E_Float bz,
+        E_Float cx, E_Float cy, E_Float cz);
+
+
+    static E_Int ray_intersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
+        E_Float dy, E_Float dz, E_Float ax, E_Float ay, E_Float az, E_Float bx,
+        E_Float by, E_Float bz, E_Float cx, E_Float cy, E_Float cz, E_Float &u,
+        E_Float &v, E_Float &w, E_Float &t, E_Float &x, E_Float &y, E_Float &z);
 };
 
 struct TriIMesh {

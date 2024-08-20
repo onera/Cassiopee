@@ -55,7 +55,8 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
     const cgltf_mesh& mesh = *node.mesh;
     //int mesh_id = int(&mesh - data->meshes);
     int coordCreated = false;
-    
+    int texCoordFound = false;
+
     // transformation
     lm[ 0] = 1.; lm[ 1] = 0.; lm[ 2] = 0.; lm[ 3] = 0.;
     lm[ 4] = 0.; lm[ 5] = 1.; lm[ 6] = 0.; lm[ 7] = 0.;
@@ -131,7 +132,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
         if (attr.type == cgltf_attribute_type_position)
         {
-          //printf("bloc " SF_D_ ": trouve coords\n", blockId);
+          printf("bloc " SF_D_ ": trouve coords\n", blockId);
           // numerotation i*3+j (i = pts, j = 0,1,2 composante)
           //for (E_Int i = 0; i < data.size(); i++) 
           //  printf("%f %f %f\n", data[i*3+0], data[i*3+1], data[i*3+2]);
@@ -158,27 +159,26 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
             fx[i] = lm[0]*x + lm[4]*y + lm[8]*z + lm[12];
             fy[i] = lm[1]*x + lm[5]*y + lm[9]*z + lm[13];
             fz[i] = lm[2]*x + lm[6]*y + lm[10]*z + lm[14];
-
           }
         }
 
         if (attr.type == cgltf_attribute_type_texcoord)
         {
           //printf("bloc " SF_D_ " : trouve texcoord\n", blockId);
+          if (texCoordFound == true) continue; // to avoid multiple texcoord, the firts one is selected
           E_Int npts = data1.size()/2;
           FldArrayF* f;
           if (coordCreated) f = unstructField[blockId];
           else { f = new FldArrayF(npts, 8); unstructField.push_back(f); f->setAllValuesAtNull(); coordCreated = true; }
           E_Float* u = f->begin(4);
           E_Float* v = f->begin(5);
-           for (E_Int i = 0; i < npts; i++)
+          for (E_Int i = 0; i < npts; i++)
           {
             //printf("%f %f\n", data[i*2+0], data[i*2+1]);
             u[i] = data1[i*2+0];
             v[i] = 1.-data1[i*2+1];
           }
-          //for (E_Int i = 0; i < data.size(); i++) 
-          //  printf("%f %f\n", data[i*2+0], data[i*2+1]); 
+          texCoordFound = true;
         }
 
         if (attr.type == cgltf_attribute_type_normal)

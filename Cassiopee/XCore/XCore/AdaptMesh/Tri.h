@@ -21,13 +21,13 @@
 #include "common/common.h"
 #include "Mesh.h"
 
-void refine_tri(Int tri, Mesh *M);
+void refine_tri(E_Int tri, Mesh *M);
 
-inline void T6_get_ordered_data(Mesh *M, Int node, Int reorient, Int *children,
-    Int local[6])
+inline void T6_get_ordered_data(Mesh *M, E_Int node, E_Int reorient, E_Int *children,
+    E_Int local[6])
 {
 }
 
-void reorder_tri(Int tri, Mesh *M);
+void reorder_tri(E_Int tri, Mesh *M);
 
-Int check_canon_tri(Int tri, Mesh *M);
+E_Int check_canon_tri(E_Int tri, Mesh *M);

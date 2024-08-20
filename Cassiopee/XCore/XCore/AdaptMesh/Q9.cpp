@@ -18,20 +18,20 @@
 */
 #include "Quad.h"
 
-Int Q9_refine(Int quad, Mesh *M)
+E_Int Q9_refine(E_Int quad, Mesh *M)
 {
-    Int NODES[8];
+    E_Int NODES[8];
 
-    Int *fpts = Mesh_get_face(M, quad);
-    Int *frange = Mesh_get_frange(M, quad);
+    E_Int *fpts = Mesh_get_face(M, quad);
+    E_Int *frange = Mesh_get_frange(M, quad);
 
     // BOT
     NODES[0] = fpts[0];
     if (frange[0] == 2) {
         NODES[4] = fpts[1];
     } else {
-        Int p = fpts[0];
-        Int q = fpts[2];
+        E_Int p = fpts[0];
+        E_Int q = fpts[2];
         Mesh_refine_or_get_edge_center(M, p, q, NODES[4]);
     }
 
@@ -40,8 +40,8 @@ Int Q9_refine(Int quad, Mesh *M)
     if (frange[1] == 2) {
         NODES[5] = fpts[3];
     } else {
-        Int p = fpts[2];
-        Int q = fpts[4];
+        E_Int p = fpts[2];
+        E_Int q = fpts[4];
         Mesh_refine_or_get_edge_center(M, p, q, NODES[5]);
     }
 
@@ -50,8 +50,8 @@ Int Q9_refine(Int quad, Mesh *M)
     if (frange[2] == 2) {
         NODES[6] = fpts[5];
     } else {
-        Int p = fpts[4];
-        Int q = fpts[6];
+        E_Int p = fpts[4];
+        E_Int q = fpts[6];
         Mesh_refine_or_get_edge_center(M, p, q, NODES[6]);
     }
 
@@ -60,27 +60,27 @@ Int Q9_refine(Int quad, Mesh *M)
     if (frange[3] == 2) {
         NODES[7] = fpts[7];
     } else {
-        Int p = fpts[6];
-        Int q = fpts[0];
+        E_Int p = fpts[6];
+        E_Int q = fpts[0];
         Mesh_refine_or_get_edge_center(M, p, q, NODES[7]);
     }
 
     // Make centroid
-    Float fc[3] = {0, 0, 0};
+    E_Float fc[3] = {0, 0, 0};
 
-    for (Int i = 0; i < 4; i++) {
+    for (E_Int i = 0; i < 4; i++) {
         fc[0] += M->X[NODES[i]];
         fc[1] += M->Y[NODES[i]];
         fc[2] += M->Z[NODES[i]];
     }
 
-    for (Int i = 0; i < 3; i++) fc[i] *= 0.25;
+    for (E_Int i = 0; i < 3; i++) fc[i] *= 0.25;
 
     M->X[M->np] = fc[0];
     M->Y[M->np] = fc[1];
     M->Z[M->np] = fc[2];
 
-    Int nc = M->np;
+    E_Int nc = M->np;
     
     // Setup face points
 
@@ -101,7 +101,7 @@ Int Q9_refine(Int quad, Mesh *M)
 
     // First child replaces quad
     fpts = Mesh_get_face(M, quad);
-    memset(fpts, -1, 8*sizeof(Int));
+    memset(fpts, -1, 8*sizeof(E_Int));
     fpts[0] = NODES[0]; fpts[2] = NODES[4];
     fpts[4] = nc;       fpts[6] = NODES[7];
 
@@ -110,13 +110,13 @@ Int Q9_refine(Int quad, Mesh *M)
 
     // Conformize parent cells
 
-    Int own = M->owner[quad];
+    E_Int own = M->owner[quad];
 
     assert(M->clevel[own] == M->flevel[quad]);
 
     if (Mesh_conformize_cell_face(M, own, quad, M->nf, 4) != 0) return 1;
 
-    Int nei = M->neigh[quad];
+    E_Int nei = M->neigh[quad];
 
     if (nei != -1) {
         assert(M->clevel[nei] == M->flevel[quad]);
@@ -124,7 +124,7 @@ Int Q9_refine(Int quad, Mesh *M)
         if (Mesh_conformize_cell_face(M, nei, quad, M->nf, 4) != 0) return 1;
     }
 
-    for (Int i = 0; i < 3; i++) {
+    for (E_Int i = 0; i < 3; i++) {
         M->owner[M->nf+i] = own;
         M->neigh[M->nf+i] = nei;
     }
@@ -134,8 +134,8 @@ Int Q9_refine(Int quad, Mesh *M)
 
     assert(M->fref[quad] == FACE_REFINED);
 
-    for (Int i = 0; i < 3; i++) {
-        Int fid = M->nf + i;
+    for (E_Int i = 0; i < 3; i++) {
+        E_Int fid = M->nf + i;
 
         M->flevel[fid] = M->flevel[quad];
         M->ftype[fid] = M->ftype[quad];
@@ -156,7 +156,7 @@ Int Q9_refine(Int quad, Mesh *M)
     return 0;
 }
 
-void Q4_reorder(Int *pn, Int reorient, Int i0, Int local[4])
+void Q4_reorder(E_Int *pn, E_Int reorient, E_Int i0, E_Int local[4])
 {
     for (E_Int i = 0; i < 4; i++) local[i] = pn[i];
     Right_shift(local, i0, 4);

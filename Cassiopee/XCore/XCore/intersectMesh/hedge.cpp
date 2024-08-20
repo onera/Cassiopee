@@ -30,12 +30,12 @@ Hedge::Hedge(Vertex *v)
 {}
 
 static
-Int _partition(std::vector<Hedge *> &H, Int low, Int high)
+E_Int _partition(std::vector<Hedge *> &H, E_Int low, E_Int high)
 {
     Hedge *pivot = H[high];
-    Int i = low-1;
+    E_Int i = low-1;
 
-    for (Int j = low; j < high; j++) {
+    for (E_Int j = low; j < high; j++) {
         if (Hedge::cmp_cwise(H[j], pivot) <= 0) {
             i++;
             std::swap(H[i], H[j]);
@@ -47,46 +47,47 @@ Int _partition(std::vector<Hedge *> &H, Int low, Int high)
     return i;
 }
 
-void Hedge::sort_cwise(std::vector<Hedge *> &H, Int low, Int high)
+void Hedge::sort_cwise(std::vector<Hedge *> &H, E_Int low, E_Int high)
 {
     if (low >= high)
         return;
 
-    Int p = _partition(H, low, high);
+    E_Int p = _partition(H, low, high);
 
     sort_cwise(H, low, p - 1);
     sort_cwise(H, p + 1, high);
 }
 
-void Hedge::sort_ccwise(std::vector<Hedge *> &H, Int low, Int high)
+void Hedge::sort_ccwise(std::vector<Hedge *> &H, E_Int low, E_Int high)
 {
     sort_cwise(H, low, high);
     std::reverse(H.begin(), H.end());
 }
 
-Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
+E_Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
 {
+    assert(h != w);
     assert(h->orig == w->orig);
-    Vertex *c = h->orig;
-    Vertex *a = h->twin->orig;
-    Vertex *b = w->twin->orig;
 
-    Float ax = a->x;
-    Float ay = a->y;
-    Float bx = b->x;
-    Float by = b->y;
-    Float cx = c->x;
-    Float cy = c->y;
+    E_Float ax = h->proj_tx;
+    E_Float ay = h->proj_ty;
+    E_Float bx = w->proj_tx;
+    E_Float by = w->proj_ty;
+    E_Float cx = h->proj_ox;
+    E_Float cy = h->proj_oy;
+
+    assert(Sign(cx-w->proj_ox) == 0);
+    assert(Sign(cy-w->proj_oy) == 0);
 
     long double acx = (long double)ax - (long double)cx;
     long double acy = (long double)ay - (long double)cy;
     long double bcx = (long double)bx - (long double)cx;
     long double bcy = (long double)by - (long double)cy;
 
-    Int sign_acx = Sign(acx);
-    Int sign_acy = Sign(acy);
-    Int sign_bcx = Sign(bcx);
-    Int sign_bcy = Sign(bcy);
+    E_Int sign_acx = Sign(acx);
+    E_Int sign_acy = Sign(acy);
+    E_Int sign_bcx = Sign(bcx);
+    E_Int sign_bcy = Sign(bcy);
 
     if (sign_acx >= 0 && sign_bcx < 0)
         return -1;
@@ -104,9 +105,9 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
         else return 1;
     }
     
-    Float det = acx * bcy - bcx * acy;
-    //Float det = DifferenceOfProducts(acx, bcy, bcx, acy);
-    Int cmp = Sign(det);
+    E_Float det = acx * bcy - bcx * acy;
+    //E_Float det = DifferenceOfProducts(acx, bcy, bcx, acy);
+    E_Int cmp = Sign(det);
 
     if (cmp < 0)
         return -1;
@@ -114,7 +115,6 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
         return 1;
 
     // Overlapping segments
-    
     assert(h->color != w->color);
 
     // If right half, red before black
@@ -128,4 +128,14 @@ Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
     } else {
         return -cmp;
     }
+}
+
+E_Int hedge_contains_vertex(Hedge *h, Vertex *v)
+{
+    Vertex *a = h->orig;
+    Vertex *b = h->twin->orig;
+    return is_point_on_segment(
+        v->x, v->y, v->z,
+        a->x, a->y, a->z,
+        b->x, b->y, b->z);
 }

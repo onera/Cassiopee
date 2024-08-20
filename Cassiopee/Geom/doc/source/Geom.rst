@@ -101,6 +101,7 @@ List of functions
    Geom.getCurvilinearAbscissa
    Geom.getTangent
    Geom.getUV
+   Geom.getUVFromIJ
 
 Contents
 ########
@@ -1339,13 +1340,33 @@ all the points of the geometry.
 
     *Example of use:*
 
-    * `Get UV map (array) <Examples/Geom/getUV.py>`_:
+    * `Get UV map of TRI surface (array) <Examples/Geom/getUV.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/getUV.py
 
-    * `Get UV map (pyTree) <Examples/Geom/getUVPT.py>`_:
+    * `Get UV map of TRI surface (pyTree) <Examples/Geom/getUVPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/getUVPT.py
+
+---------------------------------------
+
+.. py:function:: Geom.getUVFromIJ(a)
+  
+    Return the UV map of a STRUCT surface. UV is based on IJ of surface.
+
+    :param a: input
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Get UV map from IJ (array) <Examples/Geom/getUVFromIJ.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getUVFromIJ.py
+
+    * `Get UV map from IJ (pyTree) <Examples/Geom/getUVFromIJPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getUVFromIJPT.py
 
 ---------------------------------------
 

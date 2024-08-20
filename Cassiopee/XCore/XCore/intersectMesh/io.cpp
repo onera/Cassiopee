@@ -20,6 +20,70 @@
 #include <cassert>
 
 #include "io.h"
+#include "face.h"
+
+void face_write(const char *fname, Face *f)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    E_Int np = 1;
+    Hedge *h = f->rep;
+    Hedge *w = h->next;
+    while (w != h) {
+        np++;
+        w = w->next;
+    }
+    
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%d\n", np);
+    h = f->rep;
+    Vertex *v = h->orig;
+    fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
+    w = h->next;
+    while (w != h) {
+        v = w->orig;
+        fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
+        w = w->next;
+    }
+    fclose(fh);
+}
+
+void hedge_write(const char *fname, Hedge *h)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "2\n");
+    Vertex *p = h->orig;
+    Vertex *q = h->twin->orig;
+    fprintf(fh, "%f %f %f\n", p->x, p->y, p->z);
+    fprintf(fh, "%f %f %f\n", q->x, q->y, q->z);
+    fprintf(fh, "EDGES\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "0 1\n");
+    fclose(fh);
+}
+
+void point_write(const char *fname, E_Float x, E_Float y, E_Float z)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "%f %f %f\n", x, y, z);
+    fclose(fh);
+}
+
+void point_write(const char *fname, Vertex *v)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
+    fclose(fh);
+}
 
 void point_write(const char *fname, const std::vector<Vertex *> &I)
 {
@@ -27,38 +91,48 @@ void point_write(const char *fname, const std::vector<Vertex *> &I)
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", I.size());
-    for (auto &v : I) fprintf(fh, "%f %f 0\n", v->x, v->y);
+    for (auto &v : I) fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
     fclose(fh);
 }
 
-void point_write(const char *fname, Float *Xs, Float *Ys, Float *Zs,
-    const std::vector<Int> &P)
+void point_write(const char *fname, E_Float *Xs, E_Float *Ys, E_Float *Zs,
+    const std::vector<E_Int> &P)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", P.size());
-    for (Int p : P) fprintf(fh, "%f %f %f\n", Xs[p], Ys[p], Zs[p]);
+    for (E_Int p : P) fprintf(fh, "%f %f %f\n", Xs[p], Ys[p], Zs[p]);
     fclose(fh);
 }
 
-void edge_write(const char *fname, Float *X, Float *Y, Float *Z,
-    const std::unordered_map<Int, TriangleIntersection> &point_hits)
+void point_write(const char *fname, const std::vector<point> &P)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%zu\n", P.size());
+    for (auto p : P) fprintf(fh, "%f %f %f\n", p.x, p.y, p.z);
+    fclose(fh);
+}
+
+void edge_write(const char *fname, E_Float *X, E_Float *Y, E_Float *Z,
+    const std::unordered_map<E_Int, TriangleIntersection> &point_hits)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", 2 * point_hits.size());
     for (const auto &pdata : point_hits) {
-        Int pt = pdata.first;
+        E_Int pt = pdata.first;
         const auto &TI = pdata.second;
         fprintf(fh, "%f %f %f\n", X[pt], Y[pt], Z[pt]);
         fprintf(fh, "%f %f %f\n", TI.x, TI.y, TI.z);
     }
     fprintf(fh, "EDGES\n");
     fprintf(fh, "%zu\n", point_hits.size());
-    for (size_t i = 0; i < point_hits.size(); i += 2) {
-        fprintf(fh, "%zu %zu ", i, i+1);
+    for (size_t i = 0; i < 2*point_hits.size(); i++) {
+        fprintf(fh, "%zu ", i);
     }
     fprintf(fh, "\n");
     fclose(fh);

@@ -22,19 +22,77 @@
 #include "triangle.h"
 #include "primitives.h"
 
-static
-Int orient(Float ax, Float ay, Float bx, Float by, Float cx, Float cy)
+E_Int Triangle::is_point_inside(E_Float px, E_Float py, E_Float pz,
+    E_Float ax, E_Float ay, E_Float az,
+    E_Float bx, E_Float by, E_Float bz,
+    E_Float cx, E_Float cy, E_Float cz,
+    E_Float &u, E_Float &v, E_Float &w)
 {
-    Float det = (bx - ax)*(cy - ay) - (by - ay)*(cx - ax);
-    return Sign(det);
+    // Normal vector to the plane
+    E_Float Y[3] = {bx-ax, by-ay, bz-az};
+    E_Float Z[3] = {cx-ax, cy-ay, cz-az};
+    E_Float N[3];
+    K_MATH::cross(Y, Z, N);
+
+    E_Float X[3] = {px-ax, py-ay, pz-az};
+
+    E_Float dp = K_MATH::dot(N, X, 3);
+    
+    // Is the point on the plane?
+    if (dp < -TOL || dp > TOL) return 0;
+
+    E_Float x1 = K_MATH::dot(X, Y, 3);
+    E_Float y1 = K_MATH::dot(Y, Y, 3);
+    E_Float z1 = K_MATH::dot(Z, Y, 3);
+    E_Float x2 = K_MATH::dot(X, Z, 3);
+    E_Float y2 = K_MATH::dot(Y, Z, 3);
+    E_Float z2 = K_MATH::dot(Z, Z, 3);
+
+    u = (x1*z2 - x2*z1) / (y1*z2 - y2*z1);
+    if (u < -TOL || u > 1 + TOL) return 0;
+
+    v = (-x1*y2 + x2*y1) / (y1*z2 - y2*z1);
+    if (v < -TOL || v > 1 + TOL) return 0;
+
+    w = 1 - u - v;
+    if (w < -TOL || w > 1 + TOL) return 0;
+
+    return 1;
 }
 
-Int Triangle::ispointInside(Float px, Float py, Float ax, Float ay,
-    Float bx, Float by, Float cx, Float cy)
+E_Int Triangle::is_point_inside(E_Float px, E_Float py, E_Float pz,
+    E_Float ax, E_Float ay, E_Float az,
+    E_Float bx, E_Float by, E_Float bz,
+    E_Float cx, E_Float cy, E_Float cz)
 {
-    if (orient(ax, ay, bx, by, px, py) < 0) return 0;
-    if (orient(bx, by, cx, cy, px, py) < 0) return 0;
-    if (orient(cx, cy, ax, ay, px, py) < 0) return 0;
+    // Normal vector to the plane
+    E_Float Y[3] = {bx-ax, by-ay, bz-az};
+    E_Float Z[3] = {cx-ax, cy-ay, cz-az};
+    E_Float N[3];
+    K_MATH::cross(Y, Z, N);
+
+    E_Float X[3] = {px-ax, py-ay, pz-az};
+
+    E_Float dp = K_MATH::dot(N, X, 3);
     
+    // Is the point on the plane?
+    if (dp < -TOL || dp > TOL) return 0;
+
+    E_Float x1 = K_MATH::dot(X, Y, 3);
+    E_Float y1 = K_MATH::dot(Y, Y, 3);
+    E_Float z1 = K_MATH::dot(Z, Y, 3);
+    E_Float x2 = K_MATH::dot(X, Z, 3);
+    E_Float y2 = K_MATH::dot(Y, Z, 3);
+    E_Float z2 = K_MATH::dot(Z, Z, 3);
+
+    E_Float u = (x1*z2 - x2*z1) / (y1*z2 - y2*z1);
+    if (u < -TOL || u > 1 + TOL) return 0;
+
+    E_Float v = (-x1*y2 + x2*y1) / (y1*z2 - y2*z1);
+    if (v < -TOL || v > 1 + TOL) return 0;
+
+    E_Float w = 1 - u - v;
+    if (w < -TOL || w > 1 + TOL) return 0;
+
     return 1;
 }

@@ -19,19 +19,19 @@
 #include "Mesh.h"
 #include "common/mem.h"
 
-Int Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf)
+E_Int Mesh_conformize_cell_face(Mesh *M, E_Int cid, E_Int fid, E_Int fpos, E_Int nf)
 {
-    Int *cell = Mesh_get_cell(M, cid);
-    Int *crange = Mesh_get_crange(M, cid);
+    E_Int *cell = Mesh_get_cell(M, cid);
+    E_Int *crange = Mesh_get_crange(M, cid);
 
-    Int found = 0;
+    E_Int found = 0;
 
-    for (Int i = 0; i < M->cstride[cid]; i++) {
-        Int *pf = cell + 4*i;
+    for (E_Int i = 0; i < M->cstride[cid]; i++) {
+        E_Int *pf = cell + 4*i;
  
         if (pf[0] == fid) {
             crange[i] = nf;
-            for (Int j = 1; j < nf; j++) {
+            for (E_Int j = 1; j < nf; j++) {
                 pf[j] = fpos+j-1;
             }
             found = 1;
@@ -49,21 +49,21 @@ void Mesh_conformize_face_edge(Mesh *M)
 {
     // TODO(Imad): is it ok to visit only old faces?
 
-    for (Int fid = 0; fid < M->nf; fid++) {
-        Int *fpts = Mesh_get_face(M, fid);
-        Int *frange = Mesh_get_frange(M, fid);
-        Int size = 2*M->fstride[fid];
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        E_Int *fpts = Mesh_get_face(M, fid);
+        E_Int *frange = Mesh_get_frange(M, fid);
+        E_Int size = 2*M->fstride[fid];
 
-        for (Int i = 0; i < size; i += 2) {
-            Int p = fpts[i];
-            Int q = fpts[(i+2)%size];
+        for (E_Int i = 0; i < size; i += 2) {
+            E_Int p = fpts[i];
+            E_Int q = fpts[(i+2)%size];
 
             UEdge E(p, q);
             
             auto it = M->ecenter.find(E);
 
             if (it != M->ecenter.end()) {
-                Int pid = it->second;
+                E_Int pid = it->second;
                 fpts[i+1] = pid;
                 frange[i/2] = 2;
             }
@@ -74,24 +74,24 @@ void Mesh_conformize_face_edge(Mesh *M)
 
     // Exchange franges at the interface
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        P->sbuf_i = (Int *)XRESIZE(P->sbuf_i, 4 * P->nf * sizeof(Int));
-        P->rbuf_i = (Int *)XRESIZE(P->rbuf_i, 4 * P->nf * sizeof(Int));
+        P->sbuf_i = (E_Int *)XRESIZE(P->sbuf_i, 4 * P->nf * sizeof(E_Int));
+        P->rbuf_i = (E_Int *)XRESIZE(P->rbuf_i, 4 * P->nf * sizeof(E_Int));
 
-        memset(P->sbuf_i, 0, 4*P->nf * sizeof(Int));
-        memset(P->rbuf_i, 0, 4*P->nf * sizeof(Int));
+        memset(P->sbuf_i, 0, 4*P->nf * sizeof(E_Int));
+        memset(P->rbuf_i, 0, 4*P->nf * sizeof(E_Int));
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int fid = P->pf[j];
-            Int *frange = Mesh_get_frange(M, fid);
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int fid = P->pf[j];
+            E_Int *frange = Mesh_get_frange(M, fid);
 
-            Int *ptr = P->sbuf_i + 4*j;
+            E_Int *ptr = P->sbuf_i + 4*j;
 
-            for (Int k = 0; k < 4; k++) ptr[k] = frange[k];
+            for (E_Int k = 0; k < 4; k++) ptr[k] = frange[k];
 
-            //Int fstate = M->fref[fid];
+            //E_Int fstate = M->fref[fid];
             //assert(fstate != FACE_NEW);
 
             // Face is oriented in the opposite order
@@ -110,45 +110,45 @@ void Mesh_conformize_face_edge(Mesh *M)
 
     // Max estimation of number of new points
 
-    Int pcount = 0;
+    E_Int pcount = 0;
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int *range = P->rbuf_i + 4*j;
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int *range = P->rbuf_i + 4*j;
 
-            for (Int k = 0; k < 4; k++) {
+            for (E_Int k = 0; k < 4; k++) {
                 if (range[k] == 2) pcount++;
             }
         }
     }
 
-    Int plimit = M->np + pcount;
+    E_Int plimit = M->np + pcount;
 
-    M->X = (Float *)XRESIZE(M->X, plimit * sizeof(Float));
-    M->Y = (Float *)XRESIZE(M->Y, plimit * sizeof(Float));
-    M->Z = (Float *)XRESIZE(M->Z, plimit * sizeof(Float));
+    M->X = (E_Float *)XRESIZE(M->X, plimit * sizeof(E_Float));
+    M->Y = (E_Float *)XRESIZE(M->Y, plimit * sizeof(E_Float));
+    M->Z = (E_Float *)XRESIZE(M->Z, plimit * sizeof(E_Float));
 
     // Create new edge-center entries if needed
 
-    std::map<UEdge, Int> new_ecenter;
+    std::map<UEdge, E_Int> new_ecenter;
 
-    for (Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) {
         PPatch *P = &M->pps[i];
 
-        for (Int j = 0; j < P->nf; j++) {
-            Int *range = P->rbuf_i + 4*j;
-            Int fid = P->pf[j];
-            Int *face = Mesh_get_face(M, fid);
-            Int *frange = Mesh_get_frange(M, fid);
+        for (E_Int j = 0; j < P->nf; j++) {
+            E_Int *range = P->rbuf_i + 4*j;
+            E_Int fid = P->pf[j];
+            E_Int *face = Mesh_get_face(M, fid);
+            E_Int *frange = Mesh_get_frange(M, fid);
 
-            Int size = 2*M->fstride[fid];
+            E_Int size = 2*M->fstride[fid];
 
-            for (Int k = 0; k < size; k += 2) {
+            for (E_Int k = 0; k < size; k += 2) {
                 if (range[k/2] == 2 && frange[k/2] == 1) {
-                    Int p = face[k];
-                    Int q = face[(k+2)%size];
+                    E_Int p = face[k];
+                    E_Int q = face[(k+2)%size];
 
                     UEdge E(p, q);
 
@@ -175,23 +175,23 @@ void Mesh_conformize_face_edge(Mesh *M)
 
     if (new_ecenter.empty()) return;
 
-    for (Int fid = 0; fid < M->nf; fid++) {
-        Int *fpts = Mesh_get_face(M, fid);
-        Int *frange = Mesh_get_frange(M, fid);
-        Int size = 2*M->fstride[fid];
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        E_Int *fpts = Mesh_get_face(M, fid);
+        E_Int *frange = Mesh_get_frange(M, fid);
+        E_Int size = 2*M->fstride[fid];
 
-        for (Int i = 0; i < size; i += 2) {
+        for (E_Int i = 0; i < size; i += 2) {
             if (frange[i/2] == 2) continue;
 
-            Int p = fpts[i];
-            Int q = fpts[(i+2)%size];
+            E_Int p = fpts[i];
+            E_Int q = fpts[(i+2)%size];
 
             UEdge E(p, q);
             
             auto it = new_ecenter.find(E);
 
             if (it != new_ecenter.end()) {
-                Int pid = it->second;
+                E_Int pid = it->second;
                 fpts[i+1] = pid;
                 frange[i/2] = 2;
             }

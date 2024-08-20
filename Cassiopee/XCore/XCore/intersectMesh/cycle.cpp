@@ -26,9 +26,9 @@
 #include "hedge.h"
 #include "primitives.h"
 
-Int Cycle::INNER = 0;
-Int Cycle::OUTER = 1;
-Int Cycle::DEGEN = 2;
+E_Int Cycle::INNER = 0;
+E_Int Cycle::OUTER = 1;
+E_Int Cycle::DEGEN = 2;
 
 Cycle::Cycle(Hedge *Rep)
 : rep(Rep), inout(Dcel::NO_IDEA), left(NULL), prev(NULL), next(NULL)
@@ -56,7 +56,7 @@ void Cycle::write_vertices(const char *fname, const std::vector<Cycle *> &C)
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", V.size());
     for (const auto &v : V) {
-        fprintf(fh, "%f %f 0.0\n", v->x, v->y);
+        fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
     }
     
 

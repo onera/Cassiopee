@@ -26,16 +26,16 @@
 
 #define DSMALL 1e-14
 
-Int IMesh::orient_skin(Int normal_direction)
+E_Int IMesh::orient_skin(E_Int normal_direction)
 {
     // flag external cells and faces
-    std::vector<Int> fflags, efaces;
+    std::vector<E_Int> fflags, efaces;
     flag_and_get_external_faces(fflags, efaces);
 
     // extract external faces connectivity
-    std::vector<Int> fadj;
-    std::vector<Int> xadj(1, 0);
-    for (Int i = 0; i < nf; i++) {
+    std::vector<E_Int> fadj;
+    std::vector<E_Int> xadj(1, 0);
+    for (E_Int i = 0; i < nf; i++) {
         if (fflags[i] == EXTERNAL) {
             const auto &pn = F[i];
             xadj.push_back(pn.size());
@@ -43,83 +43,83 @@ Int IMesh::orient_skin(Int normal_direction)
         }
     }
 
-    Int nefaces = (Int)efaces.size();
+    E_Int nefaces = (E_Int)efaces.size();
 
-    for (Int i = 0; i < nefaces; i++) xadj[i+1] += xadj[i];
+    for (E_Int i = 0; i < nefaces; i++) xadj[i+1] += xadj[i];
 
     // build skin neighbourhood
-    std::vector<Int> fneighbours;
+    std::vector<E_Int> fneighbours;
     K_CONNECT::build_face_neighbourhood(fadj, xadj, fneighbours);
 
     // color the faces by connex part
-    std::vector<Int> colors(xadj.size()-1);
-    Int nconnex = K_CONNECT::colorConnexParts(&fneighbours[0], &xadj[0],
+    std::vector<E_Int> colors(xadj.size()-1);
+    E_Int nconnex = K_CONNECT::colorConnexParts(&fneighbours[0], &xadj[0],
         nefaces, &colors[0]);
 
-    printf("orient_boundary(): connex parts: " SF_D_ "\n", nconnex);
+    //printf("orient_boundary(): connex parts: " SF_D_ "\n", nconnex);
 
     assert(efaces.size() == xadj.size()-1);
-    std::vector<Int> forient(nefaces, 0);
-    std::vector<Int> cflags;
-    Int ret = 0;
+    std::vector<E_Int> forient(nefaces, 0);
+    std::vector<E_Int> cflags;
+    E_Int ret = 0;
 
     if (nconnex > 1) {
         // extract nconnex nface-ngon for separate orientation
-        for (Int color = 0; color < nconnex; color++) {
+        for (E_Int color = 0; color < nconnex; color++) {
             std::vector<bool> keep_pgs(nf, false);
-            for (Int i = 0; i < nefaces; i++) {
+            for (E_Int i = 0; i < nefaces; i++) {
                 keep_pgs[efaces[i]] = (colors[i] == color);
             }
             
             // extract nface corresponding to kept faces
-            std::vector<Int> NFACE, cxadj(1, 0), cells;
+            std::vector<E_Int> NFACE, cxadj(1, 0), cells;
             extract_nface_of_kept_pgs(keep_pgs, NFACE, cxadj, cells);
 
-            std::vector<Int> cflags;
+            std::vector<E_Int> cflags;
             flag_marked_external_cells(cells, fflags, cflags);
 
-            ret |= orient_boundary((Int)cells.size(),
+            ret |= orient_boundary((E_Int)cells.size(),
                 &fadj[0], &xadj[0], nefaces, &fneighbours[0], &efaces[0],
                 forient, cflags, fflags, &cells[0], normal_direction);
         }
     } else {
-        std::vector<Int> cflags;
+        std::vector<E_Int> cflags;
         flag_all_external_cells(fflags, cflags);
         ret = orient_boundary(nc, &fadj[0], &xadj[0], nefaces, &fneighbours[0],
             &efaces[0], forient, cflags, fflags, NULL, normal_direction);
     }
 
     // Apply orientation
-    Int nrev = 0;
-    for (Int i = 0; i < nefaces; i++) {
+    E_Int nrev = 0;
+    for (E_Int i = 0; i < nefaces; i++) {
         if (forient[i] == -1) {
-            Int face = efaces[i]; // 0-based
+            E_Int face = efaces[i]; // 0-based
             auto &pn = F[face];
             std::reverse(pn.begin(), pn.end());
             nrev++;
         }
     }
 
-    printf("orient_boundary(): reversed " SF_D_ " faces\n", nrev);
+    //printf("orient_boundary(): reversed " SF_D_ " faces\n", nrev);
 
     return ret;
 }
 
-void IMesh::flag_and_get_external_faces(std::vector<Int> &fflags,
-    std::vector<Int> &efaces)
+void IMesh::flag_and_get_external_faces(std::vector<E_Int> &fflags,
+    std::vector<E_Int> &efaces)
 {
-    std::vector<Int> face_count(nf, 0);
+    std::vector<E_Int> face_count(nf, 0);
 
     // Loop through the elements and increment face_count
-    for (Int i = 0; i < nc; i++) {
+    for (E_Int i = 0; i < nc; i++) {
         const auto &pf = C[i];
-        for (Int face : pf) face_count[face]++;
+        for (E_Int face : pf) face_count[face]++;
     }
 
     // External faces are those with a count equal to 1
     fflags.resize(nf);
 
-    for (Int i = 0; i < nf; i++) {
+    for (E_Int i = 0; i < nf; i++) {
         if (face_count[i] == 1) {
             fflags[i] = EXTERNAL;
             efaces.push_back(i);
@@ -130,14 +130,14 @@ void IMesh::flag_and_get_external_faces(std::vector<Int> &fflags,
 }
 
 void IMesh::extract_nface_of_kept_pgs(const std::vector<bool> &kept_pgs,
-    std::vector<Int> &NFACE, std::vector<Int> &xadj,
-    std::vector<Int> &cells)
+    std::vector<E_Int> &NFACE, std::vector<E_Int> &xadj,
+    std::vector<E_Int> &cells)
 {
     NFACE.clear();
     xadj.resize(1, 0);
     cells.clear();
 
-    for (Int i = 0; i < nc; i++) {
+    for (E_Int i = 0; i < nc; i++) {
         const auto &pf = C[i];
         bool keep = false;
         for (size_t j = 0; j < pf.size() && !keep; j++) keep = kept_pgs[pf[j]];
@@ -151,17 +151,17 @@ void IMesh::extract_nface_of_kept_pgs(const std::vector<bool> &kept_pgs,
     for (size_t i = 0; i < xadj.size(); i++) xadj[i+1] += xadj[i];
 }
 
-void IMesh::flag_marked_external_cells(const std::vector<Int> &cells,
-    const std::vector<Int> &fflags, std::vector<Int> &cflags)
+void IMesh::flag_marked_external_cells(const std::vector<E_Int> &cells,
+    const std::vector<E_Int> &fflags, std::vector<E_Int> &cflags)
 {
     // External cells are those with at least one external face
     cflags.resize(cells.size(), INTERNAL);
 
     for (size_t i = 0; i < cells.size(); i++) {
-        Int cell = cells[i];
+        E_Int cell = cells[i];
         const auto &pf = C[cell];
         for (size_t j = 0; j < pf.size(); j++) {
-            Int face = pf[j];
+            E_Int face = pf[j];
             if (fflags[face] == EXTERNAL) {
                 cflags[i] = EXTERNAL;
                 break;
@@ -170,27 +170,27 @@ void IMesh::flag_marked_external_cells(const std::vector<Int> &cells,
     }
 }
 
-Int IMesh::orient_boundary(Int ncells, Int *efadj, Int *efxadj,
-    Int nefaces, Int *fneis, Int *efaces, std::vector<Int> &forient,
-    const std::vector<Int> &cflags, const std::vector<Int> &fflags,
-    Int *cells, Int normal_direction)
+E_Int IMesh::orient_boundary(E_Int ncells, E_Int *efadj, E_Int *efxadj,
+    E_Int nefaces, E_Int *fneis, E_Int *efaces, std::vector<E_Int> &forient,
+    const std::vector<E_Int> &cflags, const std::vector<E_Int> &fflags,
+    E_Int *cells, E_Int normal_direction)
 {
     // Look for a cell whose volume is unambiguously computed
-    Float cvol = 0.0;
-    Int seed = -1;
-    Int refPG = -1;
-    Int refIdx = -1;
+    E_Float cvol = 0.0;
+    E_Int seed = -1;
+    E_Int refPG = -1;
+    E_Int refIdx = -1;
 
     while (++seed < ncells) {
         if (cflags[seed] != EXTERNAL) continue;
 
-        Int cid = (cells != NULL) ? cells[seed] : seed;
+        E_Int cid = (cells != NULL) ? cells[seed] : seed;
 
         const auto &pf = C[cid];
         refPG = -1;
-        Int local_idx = -1;
+        E_Int local_idx = -1;
         for (size_t j = 0; j < pf.size(); j++) {
-            Int face = pf[j];
+            E_Int face = pf[j];
             if (fflags[face] == EXTERNAL) {
                 refPG = face;
                 local_idx = j;
@@ -206,7 +206,7 @@ Int IMesh::orient_boundary(Int ncells, Int *efadj, Int *efxadj,
 
         // Look for index of refPG in efaces (0-based)
         refIdx = -1;
-        for (Int i = 0; i < nefaces; i++) {
+        for (E_Int i = 0; i < nefaces; i++) {
             if (efaces[i] == refPG) {
                 refIdx = i;
                 break;
@@ -250,76 +250,76 @@ Int IMesh::orient_boundary(Int ncells, Int *efadj, Int *efxadj,
     return 0;
 }
 
-void IMesh::compute_cell_volume(Int cell, Float &vol, Int refIdx)
+void IMesh::compute_cell_volume(E_Int cell, E_Float &vol, E_Int refIdx)
 {
     // Orient the faces coherently
-    std::vector<Int> NGON;
-    std::vector<Int> INDPG(1, 0);
+    std::vector<E_Int> NGON;
+    std::vector<E_Int> INDPG(1, 0);
     const auto &pf = C[cell];
-    Int stride = (Int)pf.size();
+    E_Int stride = (E_Int)pf.size();
 
-    for (Int i = 0; i < stride; i++) {
-        Int face = pf[i];
+    for (E_Int i = 0; i < stride; i++) {
+        E_Int face = pf[i];
         const auto &pn = F[face];
-        Int np = pn.size();
+        E_Int np = pn.size();
         INDPG.push_back(np);
-        for (Int j = 0; j < np; j++) NGON.push_back(pn[j]);
+        for (E_Int j = 0; j < np; j++) NGON.push_back(pn[j]);
     }
 
-    for (Int i = 0; i < stride; i++) INDPG[i+1] += INDPG[i];
+    for (E_Int i = 0; i < stride; i++) INDPG[i+1] += INDPG[i];
 
     // Fix orientation of first face
-    std::vector<Int> orient(stride);
+    std::vector<E_Int> orient(stride);
     orient[refIdx] = 1;
-    std::vector<Int> neis(NGON.size());
+    std::vector<E_Int> neis(NGON.size());
     K_CONNECT::build_face_neighbourhood(NGON, INDPG, neis);
     K_CONNECT::reversi_connex(&NGON[0], &INDPG[0], stride, &neis[0], refIdx,
         orient);
 
     // Apply orientation in local NGON
-    for (Int i = 0; i < stride; i++) {
+    for (E_Int i = 0; i < stride; i++) {
         if (orient[i] == -1) {
-            Int start = INDPG[i];
-            Int np = INDPG[i+1] - start;
-            Int *pn = &NGON[start];
+            E_Int start = INDPG[i];
+            E_Int np = INDPG[i+1] - start;
+            E_Int *pn = &NGON[start];
             std::reverse(pn+1, pn+np);
         }
     }
 
     // Compute faces area and center
-    std::vector<Float> faceAreas(3*stride, 0.0);
-    std::vector<Float> faceCenters(3*stride, 0.0);
+    std::vector<E_Float> faceAreas(3*stride, 0.0);
+    std::vector<E_Float> faceCenters(3*stride, 0.0);
 
-    for (Int i = 0; i < stride; i++) {
-        Int face = pf[i];
-        Float *fa = &faceAreas[3*i];
-        Float *fc = &faceCenters[3*i];
-        Int np = INDPG[i+1]-INDPG[i];
-        Int *pn = &NGON[INDPG[i]];
-        for (Int j = 0; j < np; j++) pn[j] += 1;
+    for (E_Int i = 0; i < stride; i++) {
+        E_Int face = pf[i];
+        E_Float *fa = &faceAreas[3*i];
+        E_Float *fc = &faceCenters[3*i];
+        E_Int np = INDPG[i+1]-INDPG[i];
+        E_Int *pn = &NGON[INDPG[i]];
+        for (E_Int j = 0; j < np; j++) pn[j] += 1;
         K_METRIC::compute_face_center_and_area(face, np, pn, X.data(), Y.data(),
             Z.data(), fc, fa);
     }
   
     // Estimate cell centroid as average of face centers
-    Float cc[3] = {0,0,0};
-    for (Int i = 0; i < stride; i++) {
-        Float *fc = &faceCenters[3*i];
-        for (Int j = 0; j < 3; j++) cc[j] += fc[j];
+    E_Float cc[3] = {0,0,0};
+    for (E_Int i = 0; i < stride; i++) {
+        E_Float *fc = &faceCenters[3*i];
+        for (E_Int j = 0; j < 3; j++) cc[j] += fc[j];
     }
-    for (Int i = 0; i < 3; i++) cc[i] /= stride;
+    for (E_Int i = 0; i < 3; i++) cc[i] /= stride;
 
     // Compute cell volume
     vol = 0.0;
 
-    for (Int i = 0; i < stride; i++) {
-        Float *fa = &faceAreas[3*i];
-        Float *fc = &faceCenters[3*i];
+    for (E_Int i = 0; i < stride; i++) {
+        E_Float *fa = &faceAreas[3*i];
+        E_Float *fc = &faceCenters[3*i];
 
         // Compute 3*face-pyramid volume contribution
-        Float d[3] = {fc[0]-cc[0], fc[1]-cc[1], fc[2]-cc[2]};
-        //Float pyr3Vol = K_MATH::dot(fa, fc, 3);
-        Float pyr3Vol = K_MATH::dot(fa, d, 3);
+        E_Float d[3] = {fc[0]-cc[0], fc[1]-cc[1], fc[2]-cc[2]};
+        //E_Float pyr3Vol = K_MATH::dot(fa, fc, 3);
+        E_Float pyr3Vol = K_MATH::dot(fa, d, 3);
 
         vol += pyr3Vol;
     }
@@ -327,16 +327,16 @@ void IMesh::compute_cell_volume(Int cell, Float &vol, Int refIdx)
     vol *= K_MATH::ONE_THIRD;
 }
 
-void IMesh::flag_all_external_cells(const std::vector<Int> &fflags,
-    std::vector<Int> &cflags)
+void IMesh::flag_all_external_cells(const std::vector<E_Int> &fflags,
+    std::vector<E_Int> &cflags)
 {
     // External cells are those with at least one external face
     cflags.resize(nc, INTERNAL);
-    for (Int i = 0; i < nc; i++) {
+    for (E_Int i = 0; i < nc; i++) {
         const auto &pf = C[i];
-        Int stride = (Int)pf.size();
-        for (Int j = 0; j < stride; j++) {
-            Int face = pf[j];
+        E_Int stride = (E_Int)pf.size();
+        for (E_Int j = 0; j < stride; j++) {
+            E_Int face = pf[j];
             if (fflags[face] == EXTERNAL) {
                 cflags[i] = EXTERNAL;
                 break;

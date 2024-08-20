@@ -37,21 +37,18 @@
         PyErr_SetString(PyExc_ValueError, msg); \
     } while (0);
 
-#define IntArray(n) (Int *)XCALLOC(n, sizeof(Int))
-#define FloatArray(n) (Float *)XCALLOC(n, sizeof(Float))
+#define IntArray(n) (E_Int *)XCALLOC(n, sizeof(E_Int))
+#define FloatArray(n) (E_Float *)XCALLOC(n, sizeof(E_Float))
 
 #define E_FLOAT_MAX FLT_MAX
 #define E_FLOAT_MIN -FLT_MAX
 
 void merr(const char *fmt, ...);
 
-typedef E_Int Int;
-typedef E_Float Float;
-
-void parray(Int *arr, Int n);
+void parray(E_Int *arr, E_Int n);
 
 inline
-Int Get_pos(Int e, Int *pn, Int size)
+E_Int Get_pos(E_Int e, E_Int *pn, E_Int size)
 {
     for (E_Int i = 0; i < size; i++) {
         if (pn[i] == e) return i;

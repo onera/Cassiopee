@@ -65,7 +65,7 @@ void Mesh_reset_base_data(Mesh *M)
 
 void Mesh_reset_boundary_data(Mesh *M)
 {
-    for (Int i = 0; i < M->nbp; i++) BPatch_free(&M->bps[i]);
+    for (E_Int i = 0; i < M->nbp; i++) BPatch_free(&M->bps[i]);
     M->nbp = 0;
     XFREE(M->bps);
 
@@ -94,7 +94,7 @@ void Mesh_reset_adaptation_data(Mesh *M)
 
 void Mesh_reset_comm_data(Mesh *M)
 {
-    for (Int i = 0; i < M->npp; i++) PPatch_free(&M->pps[i]);
+    for (E_Int i = 0; i < M->npp; i++) PPatch_free(&M->pps[i]);
     M->npp = 0;
     XFREE(M->pps);
 

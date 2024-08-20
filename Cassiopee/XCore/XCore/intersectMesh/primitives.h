@@ -24,25 +24,36 @@
 #include "status.h"
 #include "common/common.h"
 
-extern Float TOL;
+extern E_Float TOL;
 
 void compute_intersection(Queue &Q, Snode *sit0, Snode *sit1,
     std::vector<Vertex *> &I);
 
-Int compare(const Vertex &a, const Vertex &b);
+E_Int compare(const Vertex &a, const Vertex &b);
 
-Int compare(const Segment &s0, const Segment &s1, Float rx, Float ry);
+E_Int compare(const Segment &s0, const Segment &s1, E_Float rx, E_Float ry);
 
-Int cmp_mySeg(const Segment &s1, const Segment &s2);
+E_Int cmp_mySeg(const Segment &s1, const Segment &s2);
 
-Int cmp_points(Float x1, Float y1, Float x2, Float y2);
+E_Int cmp_points(E_Float x1, E_Float y1, E_Float z1, E_Float x2, E_Float y2, E_Float z2);
+//E_Int cmp_points(E_Float x1, E_Float y1, E_Float x2, E_Float y2);
 
-Float DifferenceOfProducts(Float a, Float b, Float c, Float d);
+E_Float DifferenceOfProducts(E_Float a, E_Float b, E_Float c, E_Float d);
 
-Float TwoDiff(Float a, Float b);
+E_Float TwoDiff(E_Float a, E_Float b);
 
-Int Sign(Float x);
+E_Int Sign(E_Float x);
 
-Int orient3D(Float *A, Float *B, Float *C, Float *D);
+E_Int orient3D(E_Float *A, E_Float *B, E_Float *C, E_Float *D);
 
-Float dRand(Float dMin, Float dMax);
+E_Float dRand(E_Float dMin, E_Float dMax);
+
+E_Int is_point_on_segment(E_Float px, E_Float py, E_Float pz, E_Float ax, E_Float ay,
+    E_Float az, E_Float bx, E_Float by, E_Float bz);
+
+E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
+    E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz,
+    E_Float &ix, E_Float &iy, E_Float &iz);
+
+E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
+    E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz);

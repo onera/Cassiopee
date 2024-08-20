@@ -25,11 +25,23 @@
 #include "vertex.h"
 #include "triangleIntersection.h"
 #include "common/common.h"
+#include "point.h"
+#include "hedge.h"
+
+void face_write(const char *fname, Face *face);
+
+void point_write(const char *fname, E_Float x, E_Float y, E_Float z);
+
+void point_write(const char *fname, Vertex *v);
+
+void hedge_write(const char *fname, Hedge *h);
+
+void point_write(const char *fname, const std::vector<point> &P);
 
 void point_write(const char *fname, const std::vector<Vertex *> &I);
 
-void point_write(const char *fname, Float *Xs, Float *Ys, Float *Zs,
-    const std::vector<Int> &proj_points);
+void point_write(const char *fname, E_Float *Xs, E_Float *Ys, E_Float *Zs,
+    const std::vector<E_Int> &proj_points);
 
-void edge_write(const char *fname, Float *X, Float *Y, Float *Z,
-    const std::unordered_map<Int, TriangleIntersection> &point_hits);
+void edge_write(const char *fname, E_Float *X, E_Float *Y, E_Float *Z,
+    const std::unordered_map<E_Int, TriangleIntersection> &point_hits);

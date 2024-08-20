@@ -22,57 +22,57 @@
 #include "common/mem.h"
 
 inline
-Int Mesh_get_cnei(Mesh *M, Int cid, Int fid)
+E_Int Mesh_get_cnei(Mesh *M, E_Int cid, E_Int fid)
 {
     assert(cid == M->owner[fid] || cid == M->neigh[fid]);
     return (M->owner[fid] == cid) ? M->neigh[fid] : M->owner[fid];
 }
 
-void Mesh_get_cneis(Mesh *M, Int cid, Int &nn, Int neis[24])
+void Mesh_get_cneis(Mesh *M, E_Int cid, E_Int &nn, E_Int neis[24])
 {
-    Int *cell = Mesh_get_cell(M, cid);
-    Int *crange = Mesh_get_crange(M, cid);
-    Int cstride = M->cstride[cid];
+    E_Int *cell = Mesh_get_cell(M, cid);
+    E_Int *crange = Mesh_get_crange(M, cid);
+    E_Int cstride = M->cstride[cid];
 
-    for (Int i = 0; i < cstride; i++) {
-        Int *pf = cell + 4*i;
+    for (E_Int i = 0; i < cstride; i++) {
+        E_Int *pf = cell + 4*i;
 
-        for (Int j = 0; j < crange[i]; j++) {
-            Int face = pf[j];
-            Int nei = Mesh_get_cnei(M, cid, face);
+        for (E_Int j = 0; j < crange[i]; j++) {
+            E_Int face = pf[j];
+            E_Int nei = Mesh_get_cnei(M, cid, face);
             if (nei != -1) neis[nn++] = nei;
         }
     }
 }
 
 static
-Int Mesh_smooth_cref_local(Mesh *M)
+E_Int Mesh_smooth_cref_local(Mesh *M)
 {
-    std::stack<Int> stk;
-    for (Int i = 0; i < M->nc; i++) {
+    std::stack<E_Int> stk;
+    for (E_Int i = 0; i < M->nc; i++) {
         if (M->cref[i] > 0) stk.push(i);
     }
 
     while (!stk.empty()) {
-        Int cid = stk.top();
+        E_Int cid = stk.top();
         stk.pop();
 
-        Int nn = 0;
-        Int neis[24];
+        E_Int nn = 0;
+        E_Int neis[24];
         Mesh_get_cneis(M, cid, nn, neis);
 
-        Int incr_cell = M->cref[cid] + M->clevel[cid];
+        E_Int incr_cell = M->cref[cid] + M->clevel[cid];
 
-        for (Int i = 0; i < nn; i++) {
-            Int nei = neis[i];
+        for (E_Int i = 0; i < nn; i++) {
+            E_Int nei = neis[i];
 
-            Int incr_nei = M->cref[nei] + M->clevel[nei];
+            E_Int incr_nei = M->cref[nei] + M->clevel[nei];
 
-            Int diff = abs(incr_nei - incr_cell);
+            E_Int diff = abs(incr_nei - incr_cell);
 
             if (diff <= 1) continue;
 
-            Int cell_to_mod = incr_cell > incr_nei ? nei : cid;
+            E_Int cell_to_mod = incr_cell > incr_nei ? nei : cid;
 
             M->cref[cell_to_mod] += 1;
 
@@ -82,22 +82,22 @@ Int Mesh_smooth_cref_local(Mesh *M)
     return 0;
 }
 
-Int Mesh_smooth_cref(Mesh *M)
+E_Int Mesh_smooth_cref(Mesh *M)
 {
-    Int exchange = 0, max_exchanges = 10;
+    E_Int exchange = 0, max_exchanges = 10;
 
     while (++exchange <= max_exchanges) {
         Mesh_smooth_cref_local(M);
 
         MPI_Barrier(MPI_COMM_WORLD);
 
-        Int lstop = 0;
+        E_Int lstop = 0;
 
-        for (Int i = 0; i < M->npp; i++) {
+        for (E_Int i = 0; i < M->npp; i++) {
             PPatch *P = &M->pps[i];
 
-            for (Int j = 0; j < P->nf; j++) {
-                Int own = M->owner[P->pf[j]];
+            for (E_Int j = 0; j < P->nf; j++) {
+                E_Int own = M->owner[P->pf[j]];
                 assert(own >= 0 && own < M->nc);
                 P->sbuf_i[j] = M->cref[own] + M->clevel[own];
             }
@@ -110,13 +110,13 @@ Int Mesh_smooth_cref(Mesh *M)
 
         Mesh_comm_waitall(M);
 
-        for (Int i = 0; i < M->npp; i++) {
+        for (E_Int i = 0; i < M->npp; i++) {
             PPatch *P = &M->pps[i];
 
-            for (Int j = 0; j < P->nf; j++) {
-                Int own = M->owner[P->pf[j]];
-                Int oval = M->cref[own] + M->clevel[own];
-                Int nval = P->rbuf_i[j];
+            for (E_Int j = 0; j < P->nf; j++) {
+                E_Int own = M->owner[P->pf[j]];
+                E_Int oval = M->cref[own] + M->clevel[own];
+                E_Int nval = P->rbuf_i[j];
 
                 if (nval > oval + 1) {
                     M->cref[own] += 1;
@@ -125,7 +125,7 @@ Int Mesh_smooth_cref(Mesh *M)
             }
         }
 
-        Int gstop = 0;
+        E_Int gstop = 0;
         MPI_Allreduce(&lstop, &gstop, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
         if (gstop == 0) break;

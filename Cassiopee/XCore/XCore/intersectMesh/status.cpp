@@ -27,11 +27,11 @@ Status::Status()
 {}
 
 static
-Int Segment_cmp(Segment *s0, Segment *s1, Float rx, Float ry)
+E_Int Segment_cmp(Segment *s0, Segment *s1, E_Float rx, E_Float ry)
 {
     if (s0 == s1) return 0;
 
-    Int cmp = compare(*s0, *s1, rx, ry);
+    E_Int cmp = compare(*s0, *s1, rx, ry);
 
     if (cmp == 0) {
         cmp = cmp_mySeg(*s0, *s1);
@@ -53,7 +53,7 @@ Snode *Status::insert_(Snode *&root, Segment *key, void *inf)
         return root;
     }
 
-    Int cmp = Segment_cmp(root->key, key, rx, ry);
+    E_Int cmp = Segment_cmp(root->key, key, rx, ry);
 
     if (cmp == 0) {
         root->inf = inf;
@@ -75,7 +75,7 @@ Snode *Status::locate_(Snode *root, Segment *seg)
 {
     if (root == NULL) return NULL;
 
-    Int cmp = compare(*root->key, *seg, rx, ry);
+    E_Int cmp = compare(*root->key, *seg, rx, ry);
 
     if (cmp == 0) return root;
     else if (cmp < 0) return locate_(root->right, seg);
@@ -92,7 +92,7 @@ Snode *Status::lookup_(Snode *root, Segment *seg)
 {
     if (root == NULL) return NULL;
 
-    Int cmp = Segment_cmp(root->key, seg, rx, ry);
+    E_Int cmp = Segment_cmp(root->key, seg, rx, ry);
 
     if (cmp == 0) return root;
     else if (cmp < 0) return lookup_(root->right, seg);
@@ -127,7 +127,7 @@ void Status::pred_(Snode *root, Segment *seg, Snode *&pre)
 {
     if (root == NULL) return;
 
-    Int cmp = Segment_cmp(root->key, seg, rx, ry);
+    E_Int cmp = Segment_cmp(root->key, seg, rx, ry);
     
     if (cmp == 0) {
         assert(root->key == seg);
@@ -153,7 +153,7 @@ void Status::succ_(Snode *root, Segment *seg, Snode *&suc)
 {
     if (root == NULL) return;
 
-    Int cmp = Segment_cmp(root->key, seg, rx, ry);
+    E_Int cmp = Segment_cmp(root->key, seg, rx, ry);
     
     if (cmp == 0) {
         assert(root->key == seg);
@@ -184,7 +184,7 @@ Snode *Status::erase_(Snode *root, Segment *seg)
 {
     if (root == NULL) return NULL;
 
-    Int cmp = Segment_cmp(root->key, seg, rx, ry);
+    E_Int cmp = Segment_cmp(root->key, seg, rx, ry);
 
     if (cmp < 0) {
         root->right = erase_(root->right, seg);

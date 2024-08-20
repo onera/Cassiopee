@@ -28,21 +28,21 @@
 #define EXTERNAL 1
 
 static
-void flag_and_get_external_faces(Mesh *M, std::vector<Int> &fflags,
-    std::vector<Int> &efaces)
+void flag_and_get_external_faces(Mesh *M, std::vector<E_Int> &fflags,
+    std::vector<E_Int> &efaces)
 {
     fflags.clear();
     fflags.resize(M->nf, 0);
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int *cell = Mesh_get_cell(M, i);
-        Int *crange = Mesh_get_crange(M, i);
-        Int cstride = M->cstride[i];
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int *cell = Mesh_get_cell(M, i);
+        E_Int *crange = Mesh_get_crange(M, i);
+        E_Int cstride = M->cstride[i];
 
-        for (Int j = 0; j < cstride; j++) {
-            Int *pf = cell + 4*j;
+        for (E_Int j = 0; j < cstride; j++) {
+            E_Int *pf = cell + 4*j;
 
-            for (Int k = 0; k < crange[j]; k++) {
+            for (E_Int k = 0; k < crange[j]; k++) {
                 fflags[pf[k]]++;
             }
         }
@@ -50,7 +50,7 @@ void flag_and_get_external_faces(Mesh *M, std::vector<Int> &fflags,
 
     efaces.clear();
 
-    for (Int i = 0; i < M->nf; i++) {
+    for (E_Int i = 0; i < M->nf; i++) {
         assert(fflags[i] == 1 || fflags[i] == 2);
         if (fflags[i] == 1) {
             fflags[i] = EXTERNAL;
@@ -61,8 +61,8 @@ void flag_and_get_external_faces(Mesh *M, std::vector<Int> &fflags,
     }
 }
 
-void Mesh_get_faces_connectivity(Mesh *M, const std::vector<Int> &faces, 
-    std::vector<Int> &xadj, std::vector<Int> &fadj)
+void Mesh_get_faces_connectivity(Mesh *M, const std::vector<E_Int> &faces, 
+    std::vector<E_Int> &xadj, std::vector<E_Int> &fadj)
 {
     xadj.clear();
     fadj.clear();
@@ -71,19 +71,19 @@ void Mesh_get_faces_connectivity(Mesh *M, const std::vector<Int> &faces,
     xadj[0] = 0;
 
     for (size_t i = 0; i < faces.size(); i++) {
-        Int fid = faces[i];
+        E_Int fid = faces[i];
 
-        Int *face = Mesh_get_face(M, fid);
-        Int *frange = Mesh_get_frange(M, fid);
-        Int fstride = M->fstride[fid];
+        E_Int *face = Mesh_get_face(M, fid);
+        E_Int *frange = Mesh_get_frange(M, fid);
+        E_Int fstride = M->fstride[fid];
 
-        Int np = 0;
+        E_Int np = 0;
     
-        for (Int j = 0; j < fstride; j++) {
-            Int *pn = face + 2*j;
+        for (E_Int j = 0; j < fstride; j++) {
+            E_Int *pn = face + 2*j;
 
-            for (Int k = 0; k < frange[j]; k++) {
-                Int point = pn[k];
+            for (E_Int k = 0; k < frange[j]; k++) {
+                E_Int point = pn[k];
                 fadj.push_back(point);
                 np++;
             }
@@ -95,28 +95,28 @@ void Mesh_get_faces_connectivity(Mesh *M, const std::vector<Int> &faces,
     assert((size_t)xadj[faces.size()] == fadj.size());
 }
 
-typedef std::pair<Int, Int> IntPair;
+typedef std::pair<E_Int, E_Int> E_IntPair;
 
-void build_faces_neighbourhood(const std::vector<Int> &xadj,
-    const std::vector<Int> &fpts, std::vector<Int> &fneis)
+void build_faces_neighbourhood(const std::vector<E_Int> &xadj,
+    const std::vector<E_Int> &fpts, std::vector<E_Int> &fneis)
 {
     fneis.clear();
     fneis.resize(fpts.size());
 
-    std::map<UEdge, std::pair<IntPair, IntPair>> EM;
+    std::map<UEdge, std::pair<E_IntPair, E_IntPair>> EM;
 
     size_t nf = xadj.size() - 1;
 
     for (size_t i = 0; i < nf; i++) {
-        Int start = xadj[i];
-        Int end = xadj[i+1];
-        Int stride = end - start;
+        E_Int start = xadj[i];
+        E_Int end = xadj[i+1];
+        E_Int stride = end - start;
 
-        const Int *pn = &fpts[start];
+        const E_Int *pn = &fpts[start];
 
-        for (Int j = 0; j < stride; j++) {
-            Int p = pn[j];
-            Int q = pn[(j+1)%stride];
+        for (E_Int j = 0; j < stride; j++) {
+            E_Int p = pn[j];
+            E_Int q = pn[(j+1)%stride];
 
             UEdge E(p, q);
 
@@ -136,30 +136,30 @@ void build_faces_neighbourhood(const std::vector<Int> &xadj,
     }
 
     for (const auto &edata : EM) {
-        Int pg0 = edata.second.first.first;
-        Int n0 = edata.second.first.second;
-        Int pg1 = edata.second.second.first;
-        Int n1 = edata.second.second.second;
+        E_Int pg0 = edata.second.first.first;
+        E_Int n0 = edata.second.first.second;
+        E_Int pg1 = edata.second.second.first;
+        E_Int n1 = edata.second.second.second;
 
         if (pg1 == -1 || pg1 == E_IDX_NONE)
             continue;
 
-        Int s0 = xadj[pg0];
-        Int s1 = xadj[pg1];
+        E_Int s0 = xadj[pg0];
+        E_Int s1 = xadj[pg1];
 
         fneis[s0 + n0] = pg1;
         fneis[s1 + n1] = pg0;
     }
 
-    std::map<UEdge, Int> edge_to_count;
+    std::map<UEdge, E_Int> edge_to_count;
     for (size_t i = 0; i < nf; i++) {
-        Int start = xadj[i];
-        Int end = xadj[i+1];
-        Int stride = end-start;
-        const Int *pn = &fpts[start];
-        for (Int j = 0; j < stride; j++) {
-            Int ni = pn[j];
-            Int nj = pn[(j+1)%stride];
+        E_Int start = xadj[i];
+        E_Int end = xadj[i+1];
+        E_Int stride = end-start;
+        const E_Int *pn = &fpts[start];
+        for (E_Int j = 0; j < stride; j++) {
+            E_Int ni = pn[j];
+            E_Int nj = pn[(j+1)%stride];
             UEdge E(ni, nj);
             auto it = edge_to_count.find(E);
             if (it == edge_to_count.end())
@@ -170,14 +170,14 @@ void build_faces_neighbourhood(const std::vector<Int> &xadj,
     }
 
     for (size_t i = 0; i < nf; i++) {
-        Int start = xadj[i];
-        Int end = xadj[i+1];
-        Int stride = end-start;
-        const Int *pn = &fpts[start];
-        Int *pk = &fneis[start];
-        for (Int j = 0; j < stride; j++) {
-            Int ni = pn[j];
-            Int nj = pn[(j+1)%stride];
+        E_Int start = xadj[i];
+        E_Int end = xadj[i+1];
+        E_Int stride = end-start;
+        const E_Int *pn = &fpts[start];
+        E_Int *pk = &fneis[start];
+        for (E_Int j = 0; j < stride; j++) {
+            E_Int ni = pn[j];
+            E_Int nj = pn[(j+1)%stride];
             UEdge E(ni, nj);
             if (edge_to_count[E] != 2)
                 pk[j] = -1;
@@ -187,23 +187,23 @@ void build_faces_neighbourhood(const std::vector<Int> &xadj,
 
 /*
 static
-void flag_all_external_cells(Mesh *M, const std::vector<Int> &fflags,
-    std::vector<Int> &cflags)
+void flag_all_external_cells(Mesh *M, const std::vector<E_Int> &fflags,
+    std::vector<E_Int> &cflags)
 {
     cflags.resize(M->nc, INTERNAL);
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int *cell = Mesh_get_cell(M, i);
-        Int *crange = Mesh_get_crange(M, i);
-        Int cstride = M->cstride[i];
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int *cell = Mesh_get_cell(M, i);
+        E_Int *crange = Mesh_get_crange(M, i);
+        E_Int cstride = M->cstride[i];
 
-        Int found = 0;
+        E_Int found = 0;
 
-        for (Int j = 0; j < cstride && !found; j++) {
-            Int *pf = cell + 4*j;
+        for (E_Int j = 0; j < cstride && !found; j++) {
+            E_Int *pf = cell + 4*j;
 
-            for (Int k = 0; k < crange[j]; k++) {
-                Int face = pf[k];
+            for (E_Int k = 0; k < crange[j]; k++) {
+                E_Int face = pf[k];
                 if (fflags[face] == EXTERNAL) {
                     cflags[i] = EXTERNAL;
                     found = 1;
@@ -216,34 +216,34 @@ void flag_all_external_cells(Mesh *M, const std::vector<Int> &fflags,
 */
 
 static
-void compute_cell_volume_for_orient(Mesh *M, Int seed, Int ref_face,
-    Int ref_idx, Float &cvol)
+void compute_cell_volume_for_orient(Mesh *M, E_Int seed, E_Int ref_face,
+    E_Int ref_idx, E_Float &cvol)
 {
     // Orient the cell faces coherently
-    std::vector<Int> NGON, INDPG(1, 0);
-    Int *cell = Mesh_get_cell(M, seed);
-    Int *crange = Mesh_get_crange(M, seed);
+    std::vector<E_Int> NGON, INDPG(1, 0);
+    E_Int *cell = Mesh_get_cell(M, seed);
+    E_Int *crange = Mesh_get_crange(M, seed);
 
-    Int nf = 0;
+    E_Int nf = 0;
     
 
-    for (Int i = 0; i < M->cstride[seed]; i++) {
-        Int *pf = cell + 4*i;
+    for (E_Int i = 0; i < M->cstride[seed]; i++) {
+        E_Int *pf = cell + 4*i;
 
-        for (Int j = 0; j < crange[i]; j++) {
-            Int fid = pf[j];
+        for (E_Int j = 0; j < crange[i]; j++) {
+            E_Int fid = pf[j];
             if (nf == ref_idx) assert(fid == ref_face);
 
-            Int *face = Mesh_get_face(M, fid);
-            Int *frange = Mesh_get_frange(M, fid);
+            E_Int *face = Mesh_get_face(M, fid);
+            E_Int *frange = Mesh_get_frange(M, fid);
 
-            Int np = 0;
+            E_Int np = 0;
 
-            for (Int k = 0; k < M->fstride[fid]; k++) {
-                Int *pn = face + 2*k;
+            for (E_Int k = 0; k < M->fstride[fid]; k++) {
+                E_Int *pn = face + 2*k;
 
-                for (Int l = 0; l < frange[k]; l++) {
-                    Int point = pn[l]+1;
+                for (E_Int l = 0; l < frange[k]; l++) {
+                    E_Int point = pn[l]+1;
                     NGON.push_back(point);
                     np++;
                 }
@@ -255,37 +255,37 @@ void compute_cell_volume_for_orient(Mesh *M, Int seed, Int ref_face,
         }
     }
 
-    for (Int i = 0; i < nf; i++) INDPG[i+1] += INDPG[i];
+    for (E_Int i = 0; i < nf; i++) INDPG[i+1] += INDPG[i];
 
     // Make the rest of the faces follow the orientation of ref_face
-    std::vector<Int> orient(nf, 1);
+    std::vector<E_Int> orient(nf, 1);
     orient[ref_idx] = 1;
-    std::vector<Int> neis(NGON.size());
+    std::vector<E_Int> neis(NGON.size());
     build_faces_neighbourhood(INDPG, NGON, neis);
     K_CONNECT::reversi_connex(NGON.data(), INDPG.data(), nf, neis.data(),
         ref_idx, orient);
 
     // Apply orientation in local NGON
-    for (Int i = 0; i < nf; i++) {
-        Int start = INDPG[i];
-        Int np = INDPG[i+1] - start;
-        Int *pn = &NGON[start];
+    for (E_Int i = 0; i < nf; i++) {
+        E_Int start = INDPG[i];
+        E_Int np = INDPG[i+1] - start;
+        E_Int *pn = &NGON[start];
         if (orient[i] == -1) {
             std::reverse(pn+1, pn+np);
         }
     }
 
-    std::vector<Float> fareas(3*nf, 0);
-    std::vector<Float> fcenters(3*nf, 0);
+    std::vector<E_Float> fareas(3*nf, 0);
+    std::vector<E_Float> fcenters(3*nf, 0);
 
-    Int j = 0;
-    for (Int i = 0; i < 24; i++) {
-        Int face = cell[i];
+    E_Int j = 0;
+    for (E_Int i = 0; i < 24; i++) {
+        E_Int face = cell[i];
         if (face == -1) continue;
-        Float *fc = &fcenters[3*j];
-        Float *fa = &fareas[3*j];
-        Int np = INDPG[j+1] - INDPG[j];
-        Int *pn = &NGON[INDPG[j]];
+        E_Float *fc = &fcenters[3*j];
+        E_Float *fa = &fareas[3*j];
+        E_Int np = INDPG[j+1] - INDPG[j];
+        E_Int *pn = &NGON[INDPG[j]];
         K_METRIC::compute_face_center_and_area(face, np, pn, M->X, M->Y, M->Z,
             fc, fa);
         j++;
@@ -294,31 +294,31 @@ void compute_cell_volume_for_orient(Mesh *M, Int seed, Int ref_face,
     assert(j == nf);
 
     // Estimate cell centroid as average of face centers
-    Float cc[3] = {0, 0, 0};
+    E_Float cc[3] = {0, 0, 0};
 
     j = 0;
-    for (Int i = 0; i < 24; i++) {
-        Int face = cell[i];
+    for (E_Int i = 0; i < 24; i++) {
+        E_Int face = cell[i];
         if (face == -1) continue;
-        Float *fc = &fcenters[3*j];
+        E_Float *fc = &fcenters[3*j];
 
-        for (Int k = 0; k < 3; k++) cc[k] += fc[k];
+        for (E_Int k = 0; k < 3; k++) cc[k] += fc[k];
         j++;
     }
     assert(j == nf);
 
-    for (Int i = 0; i < 3; i++) cc[i] /= nf;
+    for (E_Int i = 0; i < 3; i++) cc[i] /= nf;
 
     // Compute cell volume
     cvol = 0;
 
-    for (Int i = 0; i < nf; i++) {
-        Float *fa = &fareas[3*i];
-        Float *fc = &fcenters[3*i];
+    for (E_Int i = 0; i < nf; i++) {
+        E_Float *fa = &fareas[3*i];
+        E_Float *fc = &fcenters[3*i];
 
-        Float d[3] = {fc[0]-cc[0], fc[1]-cc[1], fc[2]-cc[2]};
+        E_Float d[3] = {fc[0]-cc[0], fc[1]-cc[1], fc[2]-cc[2]};
 
-        Float contrib = K_MATH::dot(fa, d, 3);
+        E_Float contrib = K_MATH::dot(fa, d, 3);
 
         cvol += contrib;
     }
@@ -327,10 +327,10 @@ void compute_cell_volume_for_orient(Mesh *M, Int seed, Int ref_face,
 }   
 
 static
-Int orient_skin(Mesh *M, Int seed, Int ref_face, Int ref_idx, Int *xadj,
-    Int *fpts, Int nefaces, Int *fneis, Int *efaces, std::vector<Int> &forient)
+E_Int orient_skin(Mesh *M, E_Int seed, E_Int ref_face, E_Int ref_idx, E_Int *xadj,
+    E_Int *fpts, E_Int nefaces, E_Int *fneis, E_Int *efaces, std::vector<E_Int> &forient)
 {
-    Float cvol = 0;
+    E_Float cvol = 0;
     compute_cell_volume_for_orient(M, seed, ref_face, ref_idx, cvol);
 
     if (cvol == 0) {
@@ -339,9 +339,9 @@ Int orient_skin(Mesh *M, Int seed, Int ref_face, Int ref_idx, Int *xadj,
     }
 
     // Find face index in efaces
-    Int face_idx = -1;
+    E_Int face_idx = -1;
 
-    for (Int i = 0; i < nefaces; i++) {
+    for (E_Int i = 0; i < nefaces; i++) {
         if (efaces[i] == ref_face) {
             face_idx = i;
             break;
@@ -362,61 +362,61 @@ Int orient_skin(Mesh *M, Int seed, Int ref_face, Int ref_idx, Int *xadj,
 }
 
 static
-Int Mesh_orient_skin(Mesh *M)
+E_Int Mesh_orient_skin(Mesh *M)
 {
     // Extract external faces
-    std::vector<Int> fflags, efaces;
+    std::vector<E_Int> fflags, efaces;
     flag_and_get_external_faces(M, fflags, efaces);
 
     // Extract external faces connectivity
-    std::vector<Int> xadj, fpts;
+    std::vector<E_Int> xadj, fpts;
     Mesh_get_faces_connectivity(M, efaces, xadj, fpts);
 
     // Build skin neighbourhood
-    std::vector<Int> fneis;
+    std::vector<E_Int> fneis;
     build_faces_neighbourhood(xadj, fpts, fneis);
 
     // Color the faces by connex part
-    std::vector<Int> colors(efaces.size());
+    std::vector<E_Int> colors(efaces.size());
 
-    Int nefaces = efaces.size();
+    E_Int nefaces = efaces.size();
 
-    Int nconnex = K_CONNECT::colorConnexParts(fneis.data(), xadj.data(),
+    E_Int nconnex = K_CONNECT::colorConnexParts(fneis.data(), xadj.data(),
         nefaces, colors.data());
     
     M->nconnex = nconnex;
 
-    std::vector<Int> forient(nefaces, 1);
+    std::vector<E_Int> forient(nefaces, 1);
     
-    Int ret = 0;
+    E_Int ret = 0;
 
     if (nconnex > 1) {
-        for (Int color = 0; color < nconnex; color++) {
+        for (E_Int color = 0; color < nconnex; color++) {
 
-            std::vector<Int> kept_faces(M->nf, 0), EFACES;
+            std::vector<E_Int> kept_faces(M->nf, 0), EFACES;
             
-            for (Int i = 0; i < nefaces; i++) {
+            for (E_Int i = 0; i < nefaces; i++) {
                 if (colors[i] == color) {
                     kept_faces[efaces[i]] = 1;
                 }
             }
 
             // Get the cell seed
-            Int cseed = -1;
-            Int ref_face = -1;
-            Int ref_idx = 0;
+            E_Int cseed = -1;
+            E_Int ref_face = -1;
+            E_Int ref_idx = 0;
 
-            for (Int i = 0; (i < M->nc) && (cseed == -1); i++) {
-                Int *cell = Mesh_get_cell(M, i);
-                Int *crange = Mesh_get_crange(M, i);
+            for (E_Int i = 0; (i < M->nc) && (cseed == -1); i++) {
+                E_Int *cell = Mesh_get_cell(M, i);
+                E_Int *crange = Mesh_get_crange(M, i);
 
                 ref_idx = 0;
 
-                for (Int j = 0; (j < M->cstride[i]) && (cseed == -1); j++) {
-                    Int *pf = cell + 4*j;
+                for (E_Int j = 0; (j < M->cstride[i]) && (cseed == -1); j++) {
+                    E_Int *pf = cell + 4*j;
 
-                    for (Int k = 0; k < crange[j]; k++) {
-                        Int face = pf[k];
+                    for (E_Int k = 0; k < crange[j]; k++) {
+                        E_Int face = pf[k];
                         if (kept_faces[face] == 1) {
                             cseed = i;
                             ref_face = face;
@@ -437,21 +437,21 @@ Int Mesh_orient_skin(Mesh *M)
             nefaces, fneis.data(), efaces.data(), forient);
         }
     } else {
-        Int cseed = -1;
-        Int ref_face = -1;
-        Int ref_idx = 0;
+        E_Int cseed = -1;
+        E_Int ref_face = -1;
+        E_Int ref_idx = 0;
 
-        for (Int i = 0; (i < M->nc) && (cseed == -1); i++) {
-            Int *cell = Mesh_get_cell(M, i);
-            Int *crange = Mesh_get_crange(M, i);
+        for (E_Int i = 0; (i < M->nc) && (cseed == -1); i++) {
+            E_Int *cell = Mesh_get_cell(M, i);
+            E_Int *crange = Mesh_get_crange(M, i);
 
             ref_idx = 0;
 
-            for (Int j = 0; (j < M->cstride[i]) && (cseed == -1); j++) {
-                Int *pf = cell + 4*j;
+            for (E_Int j = 0; (j < M->cstride[i]) && (cseed == -1); j++) {
+                E_Int *pf = cell + 4*j;
 
-                for (Int k = 0; k < crange[j]; k++) {
-                    Int face = pf[k];
+                for (E_Int k = 0; k < crange[j]; k++) {
+                    E_Int face = pf[k];
                     if (fflags[face] == EXTERNAL) {
                         cseed = i;
                         ref_face = face;
@@ -477,9 +477,9 @@ Int Mesh_orient_skin(Mesh *M)
         return 1;
     }
 
-    for (Int i = 0; i < nefaces; i++) {
+    for (E_Int i = 0; i < nefaces; i++) {
         if (forient[i] == -1) {
-            Int fid = efaces[i];
+            E_Int fid = efaces[i];
             Mesh_reverse_face_points(M, fid);
         }
     }
@@ -488,24 +488,24 @@ Int Mesh_orient_skin(Mesh *M)
 }
 
 static
-void build_cells_neighbourhood(Mesh *M, std::vector<Int> &xadj,
-    std::vector<Int> &cneis)
+void build_cells_neighbourhood(Mesh *M, std::vector<E_Int> &xadj,
+    std::vector<E_Int> &cneis)
 {
     cneis.resize(24*M->nc, -1);
 
-    std::vector<Int> neigh(M->nf, -1);
+    std::vector<E_Int> neigh(M->nf, -1);
 
-    for (Int count = 0; count < 2; count++) {
-        for (Int i = 0; i < M->nc; i++) {
-            Int *cell = Mesh_get_cell(M, i);
-            Int *pn = &cneis[24*i];
+    for (E_Int count = 0; count < 2; count++) {
+        for (E_Int i = 0; i < M->nc; i++) {
+            E_Int *cell = Mesh_get_cell(M, i);
+            E_Int *pn = &cneis[24*i];
 
-            for (Int j = 0; j < 24; j++) {
-                Int fid = cell[j];
+            for (E_Int j = 0; j < 24; j++) {
+                E_Int fid = cell[j];
                 if (fid == -1) continue;
 
-                Int &nei = neigh[fid];
-                Int &Kn = pn[j]; 
+                E_Int &nei = neigh[fid];
+                E_Int &Kn = pn[j]; 
 
                 if (nei != -1 && nei != i) Kn = nei;
 
@@ -515,12 +515,12 @@ void build_cells_neighbourhood(Mesh *M, std::vector<Int> &xadj,
     }
 }
 
-Int Mesh_build_pe(Mesh *M)
+E_Int Mesh_build_pe(Mesh *M)
 {
-    std::vector<Int> xadj, cneis;
+    std::vector<E_Int> xadj, cneis;
     build_cells_neighbourhood(M, xadj, cneis);
 
-    std::vector<Int> exPH(M->nc, E_IDX_NONE);
+    std::vector<E_Int> exPH(M->nc, E_IDX_NONE);
 
     //assert(M->owner == NULL);
     //assert(M->neigh == NULL);
@@ -531,17 +531,17 @@ Int Mesh_build_pe(Mesh *M)
     M->owner = IntArray(M->nf);
     M->neigh = IntArray(M->nf);
     
-    memset(M->owner, -1, M->nf * sizeof(Int));
-    memset(M->neigh, -1, M->nf * sizeof(Int));
+    memset(M->owner, -1, M->nf * sizeof(E_Int));
+    memset(M->neigh, -1, M->nf * sizeof(E_Int));
 
-    for (Int i = 0; i < M->nc; i++) {
-        Int *cell = Mesh_get_cell(M, i);
-        Int *neis = &cneis[24*i];
+    for (E_Int i = 0; i < M->nc; i++) {
+        E_Int *cell = Mesh_get_cell(M, i);
+        E_Int *neis = &cneis[24*i];
         
-        for (Int j = 0; j < 24; j++) {
-            Int fid = cell[j];
+        for (E_Int j = 0; j < 24; j++) {
+            E_Int fid = cell[j];
             if (fid == -1) continue;
-            Int nei = neis[j];
+            E_Int nei = neis[j];
             if (nei == -1) {
                 exPH[i] = fid+1;
                 break;
@@ -549,10 +549,10 @@ Int Mesh_build_pe(Mesh *M)
         }
     }
 
-    std::vector<Int> processed(M->nc, 0);
-    Int nconnex = 0;
-    Int seed = 0;
-    std::stack<Int> cpool;
+    std::vector<E_Int> processed(M->nc, 0);
+    E_Int nconnex = 0;
+    E_Int seed = 0;
+    std::stack<E_Int> cpool;
 
     while (1) {
         while ((seed < M->nc) &&
@@ -566,7 +566,7 @@ Int Mesh_build_pe(Mesh *M)
         cpool.push(seed);
 
         while (!cpool.empty()) {
-            Int cid = cpool.top();
+            E_Int cid = cpool.top();
             assert(cid != -1);
             cpool.pop();
 
@@ -574,30 +574,30 @@ Int Mesh_build_pe(Mesh *M)
 
             processed[cid] = 1;
 
-            std::vector<Int> oids, xpgs(1, 0), pgs;
+            std::vector<E_Int> oids, xpgs(1, 0), pgs;
             
-            Int *cell = Mesh_get_cell(M, cid);
-            Int *crange = Mesh_get_crange(M, cid);
-            Int cstride = M->cstride[cid];
-            Int nf = 0;
+            E_Int *cell = Mesh_get_cell(M, cid);
+            E_Int *crange = Mesh_get_crange(M, cid);
+            E_Int cstride = M->cstride[cid];
+            E_Int nf = 0;
 
-            for (Int i = 0; i < cstride; i++) {
-                Int *pf = cell + 4*i;
+            for (E_Int i = 0; i < cstride; i++) {
+                E_Int *pf = cell + 4*i;
 
-                for (Int j = 0; j < crange[i]; j++) {
-                    Int fid = pf[j];
+                for (E_Int j = 0; j < crange[i]; j++) {
+                    E_Int fid = pf[j];
 
-                    Int *face = Mesh_get_face(M, fid);
-                    Int *frange = Mesh_get_frange(M, fid);
-                    Int fstride = M->fstride[fid];
+                    E_Int *face = Mesh_get_face(M, fid);
+                    E_Int *frange = Mesh_get_frange(M, fid);
+                    E_Int fstride = M->fstride[fid];
 
-                    Int np = 0;
+                    E_Int np = 0;
 
-                    for (Int k = 0; k < fstride; k++) {
-                        Int *pn = face + 2*k;
+                    for (E_Int k = 0; k < fstride; k++) {
+                        E_Int *pn = face + 2*k;
 
-                        for (Int l = 0; l < frange[k]; l++) {
-                            Int point = pn[l];
+                        for (E_Int l = 0; l < frange[k]; l++) {
+                            E_Int point = pn[l];
                             pgs.push_back(point);
                             np++;
                         }
@@ -610,16 +610,16 @@ Int Mesh_build_pe(Mesh *M)
                 }
             }
 
-            for (Int i = 0; i < nf; i++) xpgs[i+1] += xpgs[i];
+            for (E_Int i = 0; i < nf; i++) xpgs[i+1] += xpgs[i];
             assert((size_t)xpgs[nf] == pgs.size());
 
-            std::vector<Int> fneis;
+            std::vector<E_Int> fneis;
             build_faces_neighbourhood(xpgs, pgs, fneis);
             
-            Int revers = 0;
+            E_Int revers = 0;
 
             // Reference face is the external face
-            Int ref_face = exPH[cid];
+            E_Int ref_face = exPH[cid];
             assert(ref_face != E_IDX_NONE);
             assert(ref_face != -E_IDX_NONE);
             
@@ -631,7 +631,7 @@ Int Mesh_build_pe(Mesh *M)
             }
 
             // Find reference face index in oids
-            Int ref_idx = -1;
+            E_Int ref_idx = -1;
             for (size_t i = 0; i < oids.size(); i++) {
                 if (ref_face == oids[i]) {
                     ref_idx = i;
@@ -644,24 +644,24 @@ Int Mesh_build_pe(Mesh *M)
                 return 1;
             }
 
-            std::vector<Int> orient(nf, 1);
+            std::vector<E_Int> orient(nf, 1);
             if (revers) orient[ref_idx] = -1;
 
             K_CONNECT::reversi_connex(pgs.data(), xpgs.data(), nf,
                 fneis.data(), ref_idx, orient);
             
             nf = 0;
-            Int *neis = &cneis[24*cid];
+            E_Int *neis = &cneis[24*cid];
 
-            for (Int i = 0; i < 24; i++) {
-                Int fid = cell[i];
+            for (E_Int i = 0; i < 24; i++) {
+                E_Int fid = cell[i];
                 if (fid == -1) continue;
-                Int nei = neis[i];
+                E_Int nei = neis[i];
 
                 M->owner[fid] = cid;
                 M->neigh[fid] = nei;
 
-                Int forient = orient[nf++];
+                E_Int forient = orient[nf++];
 
                 if (nei == -1) {
                     assert(forient == 1);
@@ -685,9 +685,9 @@ Int Mesh_build_pe(Mesh *M)
     return 0;
 }
 
-Int Mesh_set_orientation(Mesh *M)
+E_Int Mesh_set_orientation(Mesh *M)
 {
-    Int ret = Mesh_orient_skin(M);
+    E_Int ret = Mesh_orient_skin(M);
 
     if (ret != 0) return ret;
     
