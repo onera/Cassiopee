@@ -198,7 +198,7 @@ def checkEnvironment():
   #    sys.exit()
 
 #==============================================================================
-# Simulate check_output since it doesn't existe for early version of python
+# Simulate check_output since it doesn't exist for early version of python
 # Retourne le resultat de cmd comme une string
 #==============================================================================
 def check_output(cmd, shell, stderr):
@@ -329,30 +329,27 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
         testr = os.path.splitext(test)
         fileTime = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.time')
         fileStar = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.star')
-    a = os.access(fileTime, os.F_OK)
-    if a:
-        f = open(fileTime, 'r')
-        list = f.read()
-        f.close()
-        list = list.split('\n')
-        if len(list) > 0: refDate = list[0]
+
+    if os.access(fileTime, os.F_OK):
+        with open(fileTime, 'r') as f:
+            fileData = f.read()
+        fileData = fileData.split('\n')
+        if len(fileData) > 0: refDate = fileData[0]
         else: refDate = '...'
-        if len(list) > 1: refCPUtime = list[1]
+        if len(fileData) > 1: refCPUtime = fileData[1]
         else: refCPUtime = '...'
-        if len(list) > 3 and list[2] != '': refCoverage = list[2]
+        if len(fileData) > 3 and fileData[2] != '': refCoverage = fileData[2]
         else: refCoverage = '...%'
     else:
         refDate = '...'
         refCPUtime = '...'
         refCoverage = '...%'
 
-    a = os.access(fileStar, os.F_OK)
-    if a:
-        f = open(fileStar, 'r')
-        list = f.read()
-        f.close()
-        list = list.split('\n')
-        if (len(list) > 0): refTag = list[0]
+    if os.access(fileStar, os.F_OK):
+        with open(fileStar, 'r') as f:
+            fileData = f.read()
+        fileData = fileData.split('\n')
+        if len(fileData) > 0: refTag = fileData[0]
         else: refTag = ' '
     else: refTag = ' '
 
@@ -407,28 +404,31 @@ def setPaths():
         # Validation CFD
         MODULESDIR[loc]['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
     
+    global VALIDDIR
     # Module paths when the local base is used
     cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
     _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='LOCAL')
     
-    # Module paths when the global base is used
-    parentDirname = os.path.join('/stck', 'cassiope', 'git')
-    cassiopeeIncDir = os.path.join(parentDirname, 'Cassiopee', 'Cassiopee')
-    fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
-    if not os.path.isdir(fastIncDir): fastIncDir = None
-    pmodulesIncDir = os.path.join(parentDirname, 'PModules')
-    if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
-    _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='GLOBAL')
-    
-    # Valid paths
-    global VALIDDIR
+    # Local valid paths
     VALIDDIR['LOCAL'] = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee',
                                      'Valid{}'.format(DATA))
     if not os.access(VALIDDIR['LOCAL'], os.W_OK):
         VALIDDIR['LOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
         if not os.path.isdir(VALIDDIR['LOCAL']): os.mkdir(VALIDDIR['LOCAL'])
-    VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
-                                      'Cassiopee', 'Valid{}'.format(DATA))
+    
+    # Module paths when the global base is used
+    parentDirname = os.path.join('/stck', 'cassiope', 'git')
+    if os.access(parentDirname, os.R_OK):
+        cassiopeeIncDir = os.path.join(parentDirname, 'Cassiopee', 'Cassiopee')
+        fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
+        if not os.path.isdir(fastIncDir): fastIncDir = None
+        pmodulesIncDir = os.path.join(parentDirname, 'PModules')
+        if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
+        _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='GLOBAL')
+    
+        # Global valid paths
+        VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
+                                          'Cassiopee', 'Valid{}'.format(DATA))
 
 #==============================================================================
 # Retourne la liste des modules situes dans Cassiopee, Fast et PModules
@@ -493,14 +493,13 @@ def getCFDBaseTests():
 #==============================================================================
 # Ecrit un fichier contenant date, CPUtime, coverage
 #==============================================================================
-def writeTime(file, CPUtime, coverage):
+def writeTime(fileTime, CPUtime, coverage):
     try:
-        execTime = time.strftime('%d/%m/%y %Hh%M',time.localtime())
-        f = open(file, 'w')
-        f.write(execTime+'\n')
-        f.write(CPUtime+'\n')
-        f.write(coverage+'\n')
-        f.close()
+        execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
+        with open(fileTime, 'w') as f:
+            f.write(execTime + '\n')
+            f.write(CPUtime + '\n')
+            f.write(coverage + '\n')
     except: pass
 
 #==============================================================================
@@ -524,20 +523,18 @@ def writeFinal(filename, gitInfo="", logTxt=None, append=False):
 #==============================================================================
 # Read and update star dans un fichier star
 #==============================================================================
-def readStar(file):
+def readStar(fileStar):
     star = ' '
     try:
-        f = open(file, 'r')
-        star = f.readline().rstrip('\n')
-        f.close()
+        with open(fileStar, 'r') as f:
+            star = f.readline().rstrip('\n')
     except: pass
     return star
     
-def writeStar(file, star):
+def writeStar(fileStar, star):
     try:
-        f = open(file, 'w')
-        f.write(star+'\n')
-        f.close()
+        with open(fileStar, 'w') as f:
+            f.write(star+'\n')
     except: pass
 
 #==============================================================================
@@ -552,69 +549,68 @@ def runSingleTest(no, module, test):
 # retourne le temps CPU comme une chaine
 # moyenne si plusieurs repetitions d'un meme cas unitaire
 #==============================================================================
-def extractCPUTime(output1, output2, nreps=1):
+def extractCPUTimeWindows(output1, output2, nreps=1):
     CPUtime = 'Unknown'
-    split1 = output1.split(':')
-    h1 = int(split1[0])
-    m1 = int(split1[1])
-    s1 = split1[2]; s1 = s1.split(',')
-    ms1 = int(s1[1])
-    s1 = int(s1[0])
-    t1 = h1*3600. + m1*60. + s1 + 0.01*ms1
-    split2 = output2.split(':')
-    h2 = int(split2[0])
-    m2 = int(split2[1])
-    s2 = split2[2]; s2 = s2.split(',')
-    ms2 = int(s2[1])
-    s2 = int(s2[0])
-    t2 = h2*3600. + m2*60. + s2 + 0.01*ms2
-    tf = (t2-t1)/float(nreps)
-    hf = int(tf/3600.)
-    tf = tf - 3600*hf
-    mf = int(tf/60.)
-    tf = tf - 60*mf
-    sf = int(tf*100)/100.
-    if hf > 0: CPUtime = '%dh%dm%gs'%(hf,mf,sf)
-    else: CPUtime = '%dm%gs'%(mf,sf)
+    try:
+        split1 = output1.split(':')
+        h1 = int(split1[0])
+        m1 = int(split1[1])
+        s1 = split1[2]; s1 = s1.split(',')
+        ms1 = int(s1[1])
+        s1 = int(s1[0])
+        t1 = h1*3600. + m1*60. + s1 + 0.01*ms1
+        split2 = output2.split(':')
+        h2 = int(split2[0])
+        m2 = int(split2[1])
+        s2 = split2[2]; s2 = s2.split(',')
+        ms2 = int(s2[1])
+        s2 = int(s2[0])
+        t2 = h2*3600. + m2*60. + s2 + 0.01*ms2
+        tf = (t2-t1)/float(nreps)
+        hf = int(tf/3600.)
+        tf = tf - 3600*hf
+        mf = int(tf/60.)
+        tf = tf - 60*mf
+        sf = int(tf*100)/100.
+        if hf > 0: CPUtime = '%dh%dm%gs'%(hf,mf,sf)
+        else: CPUtime = '%dm%gs'%(mf,sf)
+    except: pass
     return CPUtime
 
 #=============================================================================
 # Extrait le temps CPU d'une sortie time -p (unix)
 # Moyenne si plusieurs repetitions d'un meme cas unitaire
 #=============================================================================
-def extractCPUTime2(output, nreps=1):
-    i1 = output.find('real')
-    output = output[i1+4:]
-    output = output.replace(',', '.')
-    output = output.lstrip()
-    i2 = output.find(' ')
-    if i2 != -1: output = output[:i2]
-    i3 = output.find('\n')
-    if i3 != -1: output = output[:i3]
-    i1 = output.find('h')
-    hf = 0; mf = 0; sf = 0
-    if i1 != -1:
-        hf = output[:i1]
-        try: hf = float(hf)
-        except: hf = 0.
-        output = output[i1+1:]
-    i1 = output.find('m')
-    if i1 != -1:
-        mf = output[:i1]
-        try: mf = float(mf)
-        except: mf = 0.
-        output = output[i1+1:]
-    sf = output.replace('s', '')
-    try: sf = float(sf)
-    except: sf = 0.
-    tf = (hf*3600.+mf*60.+sf)/float(nreps)
-    hf = int(tf/3600.)
-    tf = tf - 3600*hf
-    mf = int(tf/60.)
-    tf = tf - 60*mf
-    sf = int(tf*100)/100.
-    if hf > 0: CPUtime = '%dh%dm%gs'%(hf,mf,sf)
-    else: CPUtime = '%dm%gs'%(mf,sf)
+def extractCPUTimeUnix(output, nreps=1):
+    CPUtime = 'Unknown'
+    try:
+        i1 = output.find('real')
+        if i1 == -1: # external time command
+            i1 = output.find('elapsed')
+            output = output[:i1+7].strip().replace(',', '.')
+            output = re.split('\n| ', output)
+            output = [s for s in output if s.endswith('elapsed')][0]
+            output = re.sub('[a-z]', "", output)
+        else: # shell built-in time command (shell keyword)
+            output = output[i1+4:].strip()
+            output = output.replace(',', '.').replace('s', '')
+            output = re.sub('[h,m]', ':', output)
+            output = re.split('\n|\t| ', output)[0]
+        output = output.split(':')
+        output = output[::-1]
+        dt = [1., 60., 3600.]
+        tf = 0.
+        for i in range(len(output)):
+            tf += dt[i]*float(output[i])
+        tf /= float(nreps)
+        hf = tf//3600
+        tf = tf%3600
+        output = [int(hf), int(tf//60), float(tf%60)]    
+        if hf > 0.: CPUtime = '{:d}h{:d}m{:.2f}'.format(*output)
+        elif output[1] > 0.: CPUtime = '{:d}m{:.2f}'.format(*output[1:])
+        else: CPUtime = '0m{:.2f}'.format(output[-1])
+        CPUtime = CPUtime.rstrip('0').rstrip('.') + 's'
+    except: pass
     return CPUtime
 
 #==============================================================================
@@ -695,15 +691,9 @@ def runSingleUnitaryTest(no, module, test):
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            try: CPUtime = extractCPUTime(output1, output2, nreps=nreps)
-            except: CPUtime = 'Unknown'
+            CPUtime = extractCPUTimeWindows(output1, output2, nreps=nreps)
         else:
-            i1 = output.find('\nreal')
-            if i1 == -1: CPUtime = 'Unknown'
-            else:
-                try: CPUtime = extractCPUTime2(output, nreps=nreps)
-                except: CPUtime = 'Unknown'
-                #CPUtime = output[i1+5:i1+15]; CPUtime = CPUtime.strip()
+            CPUtime = extractCPUTimeUnix(output, nreps=nreps)
 
         # Recupere le coverage
         i1 = output.find('coverage=')
@@ -822,14 +812,9 @@ def runSingleCFDTest(no, module, test):
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            CPUtime = extractCPUTime(output1, output2)
+            CPUtime = extractCPUTimeWindows(output1, output2)
         else:
-            i1 = output.find('real')
-            if i1 == -1: CPUtime = 'Unknown'
-            else:
-                try: CPUtime = extractCPUTime2(output)
-                except: CPUtime = 'Unknown'
-                #CPUtime = output[i1+4:i1+14]; CPUtime = CPUtime.strip()
+            CPUtime = extractCPUTimeUnix(output)
         # Recupere le coverage
         coverage = '100%'
 
@@ -1482,7 +1467,8 @@ def export2Text():
 #==============================================================================
 def createEmptySessionLog():
     # Create an empty session log
-    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f: f.write("")
+    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f:
+        f.write("")
     
 def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
@@ -1618,6 +1604,7 @@ def setupLocal(**kwargs):
     
 def setupGlobal(**kwargs):
     global BASE4COMPARE
+    if VALIDDIR['GLOBAL'] is None: return
     # Change to global ref
     print('Info: comparing to global database.')
     BASE4COMPARE = 'GLOBAL'
@@ -1748,18 +1735,21 @@ if __name__ == '__main__':
 
         tools.add_command(label='Tag selection', command=tagSelection)
         tools.add_command(label='Untag selection', command=untagSelection)
-        tools.add_separator()
         
-        db_info = ''
-        try:
+        if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK):
+            db_info = ''
             filename = '/stck/cassiope/git/Cassiopee/Cassiopee/Valid{}/base.time'
-            with open(filename.format(DATA), 'r') as f:
-                db_info = f.read().split('\n')
-                db_info = '[{} - {} - {} threads]'.format(*db_info[0:3])
-        except: pass
-        tools.add_command(label='Switch to global data base ' + db_info,
-                          command=setupGlobal)
-        tools.add_command(label='Switch to local data base', command=setupLocal)
+            try:
+                with open(filename.format(DATA), 'r') as f:
+                    db_info = f.read().split('\n')
+                    db_info = '[{} - {} - {} threads]'.format(*db_info[0:3])
+            except: pass
+            # Only show these buttons if the global database can be interrogated
+            tools.add_separator()
+            tools.add_command(label='Switch to global data base ' + db_info,
+                              command=setupGlobal)
+            tools.add_command(label='Switch to local data base',
+                              command=setupLocal)
 
         Master.config(menu=menu)
         Master.bind_all("<Control-q>", Quit)
@@ -1867,7 +1857,8 @@ if __name__ == '__main__':
         Repeats = NoDisplayIntVar(value=1)
         RepeatsEntry = NoDisplayEntry()
 
-        if vcargs.global_db: setupGlobal(loadSession=vcargs.loadSession)
+        if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and vcargs.global_db:
+            setupGlobal(loadSession=vcargs.loadSession)
         else: setupLocal(loadSession=vcargs.loadSession)
         purgeSessionLogs(vcargs.purge)
         if vcargs.filters:
