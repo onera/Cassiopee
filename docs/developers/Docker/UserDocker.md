@@ -54,7 +54,7 @@ docker run -it --rm -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -e DIS
 ```
 
 and the instance of the container will be removed after it execution thanks to `--rm`.  
-**Note that none of the modifications your may have made in the container will persist.** Please consider using _volumes_ or _bind mounts_ if this is something you may benefit from.
+**Note that none of the modifications you may have made in the container will persist.** Please consider using _volumes_ or _bind mounts_ if this is something you may benefit from.
 
 - After execution, feel free to check the list of running instances (it should be none)
 ```sh
