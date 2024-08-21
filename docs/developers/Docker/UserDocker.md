@@ -23,6 +23,8 @@ sudo usermod -aG docker ${USER}
 groups ${USER}
 ```
 
+<br></br>
+
 ## 2. Pulling from DockerHub
 
 - Please pull the official image of Cassiopee from DockerHub 
@@ -32,13 +34,15 @@ docker pull cassiopee/cassiopee:<tag>
 ```
 
 where _tag_ is a version tag such as `v4.0b` (in the remainder of these notes, `v4.0b` is used).
-Available tags are recalled [on this page](https://github.com/onera/Cassiopee/tags), **from `v4.0b` onwards**.
+Available tags, **from `v4.0b` onwards**, are recalled [on this page](https://github.com/onera/Cassiopee/tags).
 
 - Verify that the image is now present in the list of downloaded images
 
 ```sh
 docker images
 ```
+
+<br></br>
 
 ## 3. Running a container
 
@@ -56,6 +60,8 @@ and the instance of the container will be removed after it execution thanks to `
 ```sh
 docker ps -a
 ```
+
+<br></br>
 
 ## 4. Deleting a Docker image
 
