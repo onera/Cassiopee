@@ -1,6 +1,6 @@
 # Contributing to the Cassiopee Github repository
 
-## TDLR
+## TLDR
 
 To contribute, you need to create a `Pull Request` from your remote fork webpage: https://github.com/github_username/Cassiopee/. Click on the _Contribute_ button and follow the instructions (give a title to your PR, describe the modifications and review your changes)
 
