@@ -52,7 +52,7 @@ git remote add upstream git@github.com:onera/Cassiopee.git
 git remote -v
 ```
 
-The next time you will want to synchronise your fork from the command line, please 
+The next time you will want to synchronise your fork from the command line, please type
 
 ```sh 
 git status # make sure you have no local changes
