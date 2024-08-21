@@ -1,7 +1,7 @@
 # Running Cassiopee in a Docker container
 
 
-1. Installing Docker and its dependencies
+## 1. Installing Docker and its dependencies
 
 - Dependencies:
 ```sh
@@ -23,7 +23,7 @@ sudo usermod -aG docker ${USER}
 groups ${USER}
 ```
 
-2. Pulling from DockerHub
+## 2. Pulling from DockerHub
 
 - Please pull the official image of Cassiopee from DockerHub 
 
@@ -31,33 +31,33 @@ groups ${USER}
 docker pull cassiopee/cassiopee:<tag>
 ```
 
-where <tag> is a version tag such as `v4.0b`. In the remainder of these notes, `v4.0b` is used.
-Available tags are recalled [on this page](https://github.com/onera/Cassiopee/tags), *from `v4.0b` onwards*.
+where _tag_ is a version tag such as `v4.0b` (in the remainder of these notes, `v4.0b` is used).
+Available tags are recalled [on this page](https://github.com/onera/Cassiopee/tags), **from `v4.0b` onwards**.
 
-- Verify that the image is now present in your list of downloaded images
+- Verify that the image is now present in the list of downloaded images
 
 ```sh
 docker images
 ```
 
-3. Running a container
+## 3. Running a container
 
-- The Cassiopee container can be run interactively like so
+- The Cassiopee container can be run interactively for version `v4.0b` like so
 
 ```sh
 xhost +local:docker
-docker run -it --rm -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -e DISPLAY=unix$DISPLAY cassiopee/cassiopee:main
+docker run -it --rm -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -e DISPLAY=unix$DISPLAY cassiopee/cassiopee:v4.0b
 ```
 
 and the instance of the container will be removed after it execution thanks to `--rm`.  
-*Note that none of the modifications your may have made in the container will persist.* Please consider using _volumes_ or _bind mounts_ if this is something you may benefit from.
+**Note that none of the modifications your may have made in the container will persist.** Please consider using _volumes_ or _bind mounts_ if this is something you may benefit from.
 
-- After execution, feel free to check the list of running instances (it should be none).
+- After execution, feel free to check the list of running instances (it should be none)
 ```sh
 docker ps -a
 ```
 
-4. Deleting a Docker image
+## 4. Deleting a Docker image
 
 To delete an outdated docker image, first list all existing images, copy the _hash_ of the image you would like to delete and remove from hash as
 
