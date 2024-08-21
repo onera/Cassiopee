@@ -2,20 +2,24 @@
 
 ## TDLR
 
-To contribute, you need to create a `Pull Request` from your remote fork webpage: https://github.com/<github_username>/Cassiopee/. Click on the _Contribute_ button and follow the instructions (give a title to your PR, describe the modifications and review your changes)
+To contribute, you need to create a `Pull Request` from your remote fork webpage: https://github.com/github_username/Cassiopee/. Click on the _Contribute_ button and follow the instructions (give a title to your PR, describe the modifications and review your changes)
+
+<br> </br>
 
 
 ## Forking the upstream repository
 
 - To create your own fork of Cassiopee, please read this [section](https://github.com/onera/Cassiopee/blob/main/docs/developers/Git/cloning-cassiopee.md#clone-or-fork-cassiopee)  
 
+<br> </br>
 
 ## Synchronising your fork from the upstream repository
 
-- From your remote fork webpage (https://github.com/<github_username>/Cassiopee/), click on the `Sync fork` button
+- From your remote fork webpage (https://github.com/github_username/Cassiopee/), click on the _Sync fork_ button
 
 - From a terminal window, follow the instructions given at the end of this [paragraph](https://github.com/onera/Cassiopee/blob/main/docs/developers/Git/cloning-cassiopee.md#clone-or-fork-cassiopee)
 
+<br> </br>
 
 ## Stashing
 
@@ -39,6 +43,7 @@ git stash drop stash@{stash_id}  # delete stash stash_id - other stashes may be 
 git stash pop stash@{stash_id}  # combine git stash apply and git stash drop in one command
 ```
 
+<br> </br>
 
 ## Synchronising your fork's local and working directories from your remote fork
 
@@ -57,6 +62,7 @@ To synchronise both directories at once:
 git pull origin main
 ```
 
+<br> </br>
 
 ## Committing and pushing to your remote fork
 
@@ -88,17 +94,17 @@ or all changes in the root directory with `meld`
 meld $CASSIOPEE
 ```
 
-2. From the list of files that are modified, add them using
+2. You can then add files and/or folders
 ```sh
 git add <file1> <file2> <folder1> <file3>
 ```
 
-or add all modified files:
+or add all modified files/folders to your future commit:
 ```sh
 git add -u
 ```
 
-You can then commit to your local repo as:
+You are now ready to commit to your local repo - provide a meaningful description of the changes:
 ```sh
 git commit -m "Module name: message"
 ```
@@ -108,8 +114,9 @@ git commit -m "Module name: message"
 git push
 ```
 
+<br> </br>
 
-## Merging to main repository
+## Submitting changes to the upstream repository
 
 Finally, to propose your modifications to the upstream/official repository, you have to 
-create a Pull Request. Go to the webpage of your remote fork: https://github.com/<github_username>/Cassiopee/, click on the _Contribute_ button and follow the instructions (give a title to your PR, describe the modifications and review your changes).
+create a Pull Request. Go to the webpage of your remote fork: https://github.com/github_username/Cassiopee/, click on the _Contribute_ button and follow the instructions (give a title to your PR, describe the modifications and review your changes).
