@@ -19,7 +19,7 @@ void IMesh::hash_skin()
 {
     NX = 100;
     NY = 100;
-    NZ = 100;
+    NZ = 10;
 
     HX = (xmax - xmin) / NX;
     HY = (ymax - ymin) / NY;

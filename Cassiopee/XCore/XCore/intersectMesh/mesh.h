@@ -26,12 +26,25 @@
 #include "point.h"
 #include "xcore.h"
 #include "common/common.h"
+#include "triangleIntersection.h"
 
 #define OUT 0
 #define IN 1
 
 struct Ray;
 struct Smesh;
+
+constexpr E_Float FLOATMIN = -std::numeric_limits<E_Float>::max();
+constexpr E_Float FLOATMAX = std::numeric_limits<E_Float>::max();
+
+struct AABB {
+    E_Float xmin = FLOATMAX;
+    E_Float xmax = FLOATMIN;
+    E_Float ymin = FLOATMAX;
+    E_Float ymax = FLOATMIN;
+    E_Float zmin = FLOATMAX;
+    E_Float zmax = FLOATMIN;
+};
 
 struct UEdge {
     E_Int p, q;
@@ -60,15 +73,20 @@ struct IMesh {
 
     E_Float xmin, ymin, zmin;
     E_Float xmax, ymax, zmax;
-    E_Float dmin, dmax;
-    E_Float DX, DY, DZ;
-    E_Int NBIN;
+    E_Int NX, NY, NZ;
+    E_Float HX, HY, HZ;
 
-    std::map<E_Int, std::set<E_Int>> bin_faces;
+    std::map<E_Int, std::vector<E_Int>> bin_faces;
+
+    AABB AABB_face(const std::vector<E_Int> &pn) const;
+
+    E_Int RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
+        E_Float dy, E_Float dz, E_Int fid, TriangleIntersection &TI) const;
+    
+    E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
+        E_Float dy, E_Float dz, TriangleIntersection &TI) const;
 
     IMesh();
-
-    IMesh(const char *fname);
 
     IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
 
@@ -88,7 +106,9 @@ struct IMesh {
 
     void write_ngon(const char *fname);
 
-    void write_faces(const char *fname, const std::vector<E_Int> &faces);
+    void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
+
+    void write_face(const char *fname, E_Int fid) const;
 
     bool is_point_inside(E_Float px, E_Float py, E_Float pz) const;
 

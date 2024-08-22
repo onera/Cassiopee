@@ -45,3 +45,6 @@ void point_write(const char *fname, E_Float *Xs, E_Float *Ys, E_Float *Zs,
 
 void edge_write(const char *fname, E_Float *X, E_Float *Y, E_Float *Z,
     const std::unordered_map<E_Int, TriangleIntersection> &point_hits);
+
+void edge_write(const char *fname, E_Float px, E_Float py, E_Float pz,
+    E_Float qx, E_Float qy, E_Float qz);

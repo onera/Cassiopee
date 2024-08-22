@@ -37,8 +37,7 @@ E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
 
     E_Float det = e1x * pvecx + e1y * pvecy + e1z * pvecz;
 
-    if (det > -TOL && det < TOL)
-        return 0;
+    if (det > -TOL && det < TOL) return 0;
 
     E_Float inv_det = 1.0 / det;
 
@@ -48,8 +47,7 @@ E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
 
     TI.u = inv_det * (tvecx * pvecx + tvecy * pvecy + tvecz * pvecz);
 
-    if (TI.u < 0 || TI.u > 1)
-        return 0;
+    if (TI.u < -TOL || TI.u > 1+TOL) return 0;
 
     E_Float qvecx = tvecy * e1z - tvecz * e1y;
     E_Float qvecy = tvecz * e1x - tvecx * e1z;
@@ -57,15 +55,19 @@ E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
 
     TI.v = inv_det * (dx * qvecx + dy * qvecy + dz * qvecz);
 
-    if (TI.v < 0 || TI.u + TI.v > 1)
-        return 0;
-    
+    if (TI.v < -TOL || TI.v > 1+TOL) return 0;
+
+    TI.w = 1 - TI.u - TI.v;
+
+    if (TI.w < -TOL || TI.w  > 1+TOL) return 0;
+
     TI.t = inv_det * (e2x * qvecx + e2y * qvecy + e2z * qvecz);
 
     if (TI.t > TOL) {
         TI.x = px + TI.t * dx;
         TI.y = py + TI.t * dy;
         TI.z = pz + TI.t * dz;
+
         return 1;
     }
     

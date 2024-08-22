@@ -137,3 +137,18 @@ void edge_write(const char *fname, E_Float *X, E_Float *Y, E_Float *Z,
     fprintf(fh, "\n");
     fclose(fh);
 }
+
+void edge_write(const char *fname, E_Float px, E_Float py, E_Float pz,
+    E_Float qx, E_Float qy, E_Float qz)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "2\n");
+    fprintf(fh, "%f %f %f\n", px, py, pz);
+    fprintf(fh, "%f %f %f\n", qx, qy, qz);
+    fprintf(fh, "EDGES\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "0 1\n");
+    fclose(fh);
+}

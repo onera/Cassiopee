@@ -104,8 +104,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     clock_t tac = clock();
 
-    E_Float etime = ((E_Float)(tac - tic)) / CLOCKS_PER_SEC;
-
+    E_Float etime = ((E_Float)(tac-tic)) / CLOCKS_PER_SEC;
     printf("Projection took %.2f s\n", etime);
 
     E_Int nf = M.nf;
@@ -165,10 +164,6 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     M.nf = nf;
 
-    for (auto &pf : M.C) {
-        assert(pf.size() == 6 || pf.size() == 7);
-    }
-
     PyObject *master_out = M.export_karray();
 
     PyObject *out = PyList_New(0);
@@ -220,6 +215,8 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, std::vector<E_Int> &patch
 
     std::vector<E_Int> inside_point;
 
+
+
     for (E_Int k = 0; k < nk; k++, kmax++) {
         E_Int inside = 0;
 
@@ -238,24 +235,30 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, std::vector<E_Int> &patch
         if (inside) break;
     }
 
+    //puts("OK projection.");
+
     //char fname2[128] = {};
     //sprintf(fname2, "inside%d", idx);
     //point_write(fname2, Xs, Ys, Zs, inside_point);
 
-    printf("Intersection plane index k: %d\n", kmax);
+    printf("Intersection plane index k: %d / %d\n", kmax, nk);
 
     // points to be projected nij*(kmax-1) .. nij*kmax
     std::vector<E_Int> proj_points;
     E_Int ind = (kmax-1)*nij;
 
+    //std::vector<E_Int> upper_points;
+
     for (E_Int l = 0; l < nij; l++) {
         proj_points.push_back(ind);
+        //upper_points.push_back(ind+nij);
         ind++;
     }
 
     //char fname[128] = {};
     //sprintf(fname, "proj_points%d", idx);
-    //point_write(fname, Xs, Ys, Zs, proj_points);
+    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+    //point_write("upper_points", Xs, Ys, Zs, upper_points);
 
     /**************************************************************************/
 
@@ -269,73 +272,24 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, std::vector<E_Int> &patch
         E_Float px = Xs[p];
         E_Float py = Ys[p];
         E_Float pz = Zs[p];
-        E_Float dx = Xs[q]-px;
-        E_Float dy = Ys[q]-py;
-        E_Float dz = Zs[q]-pz;
 
-        const auto &X = M.X;
-        const auto &Y = M.Y;
-        const auto &Z = M.Z;
+        E_Float dx = Xs[q] - Xs[p];
+        E_Float dy = Ys[q] - Ys[p];
+        E_Float dz = Zs[q] - Zs[p];
+
+        E_Float NORM = sqrt(dx*dx + dy*dy + dz*dz);
+
+        dx /= NORM, dy /= NORM, dz /= NORM;
 
         TriangleIntersection TI;
 
-        E_Int A, B, C;
-        E_Int hit = -1;
-        E_Float t_last = E_FLOAT_MAX;
+        E_Int hit = M.project_point(px, py, pz, dx, dy, dz, TI);
 
-        E_Int patch_size = patch.size();
+        assert(hit);
 
-        for (E_Int fid = 0; fid < patch_size; fid++) {
-            E_Int face = patch[fid];
-            const auto &pn = M.F[face];
+        //printf("hit!\n");
 
-            // TODO: handle any polygon
-            //assert(pn.size() == 4);
-
-            A = pn[0]; B = pn[1]; C = pn[2];
-
-            // First triangle ABC
-
-            hit = MollerTrumbore(px, py, pz, dx, dy, dz,
-                                 X[A], Y[A], Z[A],
-                                 X[B], Y[B], Z[B],
-                                 X[C], Y[C], Z[C],
-                                 TI);
-
-            if (hit && TI.t < t_last) {
-                t_last = TI.t;
-                TI.face = face;
-                TI.tri = 0;
-                point_hit_table[p] = TI;
-                continue;
-            }
-            
-            if (pn.size() == 3)
-                continue;
-
-            // Second triangle CDA
-            A = pn[0]; B = pn[2]; C = pn[3];
-
-            hit = MollerTrumbore(px, py, pz, dx, dy, dz,
-                                 X[A], Y[A], Z[A],
-                                 X[B], Y[B], Z[B],
-                                 X[C], Y[C], Z[C],
-                                 TI);
-
-            if (hit && TI.t < t_last) {
-                t_last = TI.t;
-                TI.face = face;
-                TI.tri = 1;
-                point_hit_table[p] = TI;
-            }
-        }
-
-        // point must hit!
-        assert(point_hit_table.find(p) != point_hit_table.end());
-        if (point_hit_table.find(p) == point_hit_table.end()) {
-            puts("AIE!");
-            abort();
-        }
+        point_hit_table[p] = TI;
     }
 
     for (const auto &ploc : point_hit_table) {

@@ -1219,10 +1219,12 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
         return cmp_vtx(h->orig, w->orig) <= 0;
     });
 
+    puts("Tracing edges...");
+
     for (size_t hid = 0; hid < s_hedges.size(); hid++) {
         Hedge *sh = s_hedges[hid];
 
-        printf("Tracing hedge %d / %zu\n", hid+1, s_hedges.size());
+        //printf("Tracing hedge %d / %zu\n", hid+1, s_hedges.size());
 
         trace_hedge(sh, M, S, hid);
     }
@@ -1256,9 +1258,11 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
         }
     }
 
+    puts("Resolving vertices...");
+
     for (size_t i = 0; i < V.size(); i++) {
 
-        printf("Resolving vertex %d / %zu\n", i+1, V.size());
+        //printf("Resolving vertex %d / %zu\n", i+1, V.size());
 
         Vertex *v = V[i];
         

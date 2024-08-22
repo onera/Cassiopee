@@ -20,6 +20,8 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/common/mem.cpp',
             'XCore/common/common.cpp',
 
+            'XCore/intersectMesh/DDA.cpp',
+
             'XCore/intersectMesh/intersectMesh.cpp',
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
             'XCore/intersectMesh/prepareMeshesForIntersection.cpp',
