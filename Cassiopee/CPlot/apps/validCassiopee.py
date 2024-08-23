@@ -286,7 +286,7 @@ def check_output(cmd, shell, stderr):
         # max accepted time is between 2 to 3 minutes for one repetition of a test
         nreps = Repeats.get()
         nthreads = float(KCore.kcore.getOmpMaxThreads())
-        timeout = nreps*(120. + 60.*Dist.DEBUG)*(1. + 4.8/nthreads)
+        timeout = nreps*(100. + 60.*Dist.DEBUG)*(1. + 4.8/nthreads)
         stdout, stderr = PROCESS.communicate(None, timeout=timeout)
         
         if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
@@ -1708,6 +1708,9 @@ def toggleLSAN():
     global USE_ASAN
     USE_ASAN[1] = not USE_ASAN[1]
     updateASANLabel(3)
+    updateASANOptions()
+    
+def updateASANOptions():
     # Update ASAN_OPTIONS accordingly
     asan_opt = os.getenv("ASAN_OPTIONS")
     posArg = asan_opt.find('detect_leaks=')
@@ -1929,6 +1932,7 @@ if __name__ == '__main__':
             if Dist.DEBUG:
                 if vcargs.memory_sanitizer: USE_ASAN[0] = True
                 if vcargs.leak_sanitizer: USE_ASAN[1] = True
+                updateASANOptions()
             selectAll()
             runTests()
             Quit()

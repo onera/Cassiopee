@@ -61,18 +61,24 @@ void K_CONNECT::connectFE2EF(FldArrayI& cFE, E_Int nelts, FldArrayI& cEF)
   #pragma omp parallel
   {
     #pragma omp for
-    for (E_Int i = 0; i < nelts; i++) cEFp[posp[i]] = nbface[i];
+    for (E_Int i = 0; i < nelts; i++) cEFp[posp[i]] = nbfacep[i];
     #pragma omp for
-    for (E_Int i = 0; i < nelts; i++) nbface[i] = 0;
+    for (E_Int i = 0; i < nelts; i++) nbfacep[i] = 0;
   }
   
   E_Int ind1, ind2;
   for (E_Int i = 0; i < nfaces; i++)
   {
     a = cn1[i]-1; b = cn2[i]-1;
-    ind1 = posp[a] + nbfacep[a] + 1;
-    ind2 = posp[b] + nbfacep[b] + 1;
-    if (a+1 != 0) { cEFp[ind1] = i+1; nbfacep[a]++; }
-    if (b+1 != 0) { cEFp[ind2] = i+1; nbfacep[b]++; }
+    if (a+1 != 0)
+    {
+      ind1 = posp[a] + nbfacep[a] + 1;
+      cEFp[ind1] = i+1; nbfacep[a]++;
+    }
+    if (b+1 != 0)
+    {
+      ind2 = posp[b] + nbfacep[b] + 1;
+      cEFp[ind2] = i+1; nbfacep[b]++;
+    }
   }
 }
