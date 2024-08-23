@@ -20,7 +20,7 @@
 
 #include "vec3.h"
 
-typedef Vec3 point;
+typedef Vec3 Point;
 
 struct pointFace {
     E_Int F;

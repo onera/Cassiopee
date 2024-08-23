@@ -106,13 +106,13 @@ void point_write(const char *fname, E_Float *Xs, E_Float *Ys, E_Float *Zs,
     fclose(fh);
 }
 
-void point_write(const char *fname, const std::vector<point> &P)
+void point_write(const char *fname, const std::vector<Point> &P)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", P.size());
-    for (auto p : P) fprintf(fh, "%f %f %f\n", p.x, p.y, p.z);
+    for (auto p : P) fprintf(fh, "%f %f %f\n", p[0], p[1], p[2]);
     fclose(fh);
 }
 

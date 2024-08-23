@@ -36,7 +36,7 @@ void point_write(const char *fname, Vertex *v);
 
 void hedge_write(const char *fname, Hedge *h);
 
-void point_write(const char *fname, const std::vector<point> &P);
+void point_write(const char *fname, const std::vector<Point> &P);
 
 void point_write(const char *fname, const std::vector<Vertex *> &I);
 
