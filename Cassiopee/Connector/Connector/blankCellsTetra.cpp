@@ -220,7 +220,7 @@ PyObject* K_CONNECTOR::deleteTetraMask(PyObject* self, PyObject* args)
   delete ptFldF;
   ptFldI = (K_FLD::FldArrayI*)packet[6];
   delete ptFldI;
-  delete [] type;
+  delete type;
   delete [] packet;
   Py_INCREF(Py_None);
   return Py_None;
@@ -258,7 +258,7 @@ PyObject* K_CONNECTOR::deleteTriMask(PyObject* self, PyObject* args)
   K_FLD::FldArrayI * ptcmask = (K_FLD::FldArrayI*)packet[3];
   delete ptcmask;
   
-  delete [] type; delete [] packet;
+  delete type; delete [] packet;
   Py_INCREF(Py_None);
   return Py_None;
 }
