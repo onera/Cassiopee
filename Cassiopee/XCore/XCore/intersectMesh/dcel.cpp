@@ -749,7 +749,7 @@ void Dcel::set_cycles_inout(const Smesh &M, const Smesh &S)
 
         }
 
-        // E_Intersection
+        // Intersection
         else {
 
             Hedge *h = v->xhedge;
@@ -824,9 +824,20 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
 
         E_Int found = 0;
 
-        for (E_Int mf = 0; mf < M.nf && !found; mf++) {
+        E_Int voxel_x = floor((S.X[sp] - M.xmin) / M.HX);
+        E_Int voxel_y = floor((S.Y[sp] - M.ymin) / M.HY);
+        E_Int voxel_z = floor((S.Z[sp] - M.zmin) / M.HZ);
+        E_Int sp_bin = voxel_x + M.NX * voxel_y + M.NXY * voxel_z;
 
-            const auto &pn = M.F[mf];
+        auto it = M.fmap.find(sp_bin);
+
+        assert(it != M.fmap.end());
+
+        const auto &pf = it->second;
+
+        for (size_t mf = 0; mf < pf.size() && !found; mf++) {
+
+            const auto &pn = M.F[pf[mf]];
 
             E_Float o[3] = {0, 0, 0};
 
@@ -852,7 +863,7 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
 
                     found = 1;
 
-                    ploc.fid = mf;
+                    ploc.fid = pf[mf];
 
                     if (Sign(v) == 0) ploc.e_idx = i;
                     else if (Sign(1-u) == 0) ploc.v_idx = (i+1)%pn.size();

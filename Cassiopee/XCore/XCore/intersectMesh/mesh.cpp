@@ -84,7 +84,7 @@ void IMesh::make_edges()
     }
 }
 
-
+/*
 std::vector<pointFace> IMesh::locate(E_Int p, E_Float px, E_Float py, E_Float pz,
     const std::set<E_Int> &patch) const
 {
@@ -123,6 +123,7 @@ std::vector<pointFace> IMesh::locate(E_Int p, E_Float px, E_Float py, E_Float pz
 
     return hits;
 }
+*/
 
 void IMesh::init_adaptation_data()
 {

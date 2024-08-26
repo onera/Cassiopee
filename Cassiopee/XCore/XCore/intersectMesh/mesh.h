@@ -27,24 +27,13 @@
 #include "xcore.h"
 #include "common/common.h"
 #include "triangleIntersection.h"
+#include "AABB.h"
 
 #define OUT 0
 #define IN 1
 
 struct Ray;
 struct Smesh;
-
-constexpr E_Float FLOATMIN = -std::numeric_limits<E_Float>::max();
-constexpr E_Float FLOATMAX = std::numeric_limits<E_Float>::max();
-
-struct AABB {
-    E_Float xmin = FLOATMAX;
-    E_Float xmax = FLOATMIN;
-    E_Float ymin = FLOATMAX;
-    E_Float ymax = FLOATMIN;
-    E_Float zmin = FLOATMAX;
-    E_Float zmax = FLOATMIN;
-};
 
 struct UEdge {
     E_Int p, q;
@@ -69,14 +58,16 @@ struct IMesh {
 
     std::vector<E_Int> skin;
 
-    std::set<E_Int> patch;
-
     E_Float xmin, ymin, zmin;
     E_Float xmax, ymax, zmax;
-    E_Int NX, NY, NZ;
+    E_Int NX, NY, NZ, NXY;
     E_Float HX, HY, HZ;
 
     std::map<E_Int, std::vector<E_Int>> bin_faces;
+
+    std::map<E_Int, std::vector<E_Int>> fmap;
+
+    std::set<E_Int> patch;
 
     AABB AABB_face(const std::vector<E_Int> &pn) const;
 
@@ -85,10 +76,14 @@ struct IMesh {
     
     E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
         E_Float dy, E_Float dz, TriangleIntersection &TI) const;
+    
+    void hash_patch();
 
     IMesh();
 
     IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
+
+    void make_patch(E_Int *faces, E_Int nfaces);
 
     void make_skin();
 
@@ -129,10 +124,10 @@ struct IMesh {
 
     std::map<UEdge, E_Int> ecenter;
 
-    size_t refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch, IMesh &S);
+    size_t refine(const IMesh &S);
 
-    std::vector<pointFace> locate(E_Int p, E_Float x, E_Float y, E_Float z,
-        const std::set<E_Int> &patch) const;
+    //std::vector<pointFace> locate(E_Int p, E_Float x, E_Float y, E_Float z,
+    //    const std::set<E_Int> &patch) const;
     
     inline bool face_is_active(E_Int face) const
     { return factive.find(face) != factive.end(); }

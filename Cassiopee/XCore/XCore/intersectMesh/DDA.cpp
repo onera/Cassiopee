@@ -25,7 +25,7 @@ void IMesh::hash_skin()
     HY = (ymax - ymin) / NY;
     HZ = (zmax - zmin) / NZ;
 
-    E_Int NXY = NX * NY;
+    NXY = NX * NY;
 
     assert(bin_faces.empty());
 
@@ -46,6 +46,35 @@ void IMesh::hash_skin()
                 for (E_Int i = imin; i < imax+1; i++) {
                     E_Int voxel = i + NX*j + NXY*k;
                     bin_faces[voxel].push_back(fid);
+                }
+            }
+        }
+    }
+}
+
+void IMesh::hash_patch()
+{
+    fmap.clear();
+
+    for (E_Int fid : patch) {
+        assert(face_is_active(fid));
+    
+        const auto &pn = F[fid];
+
+        AABB bbox = AABB_face(pn);
+
+        E_Int imin = floor((bbox.xmin - xmin) / HX);
+        E_Int imax = floor((bbox.xmax - xmin) / HX);
+        E_Int jmin = floor((bbox.ymin - ymin) / HY);
+        E_Int jmax = floor((bbox.ymax - ymin) / HY);
+        E_Int kmin = floor((bbox.zmin - zmin) / HZ);
+        E_Int kmax = floor((bbox.zmax - zmin) / HZ);
+
+        for (E_Int k = kmin; k < kmax+1; k++) {
+            for (E_Int j = jmin; j < jmax+1; j++) {
+                for (E_Int i = imin; i < imax+1; i++) {
+                    E_Int voxel = i + NX*j + NXY*k;
+                    fmap[voxel].push_back(fid);
                 }
             }
         }

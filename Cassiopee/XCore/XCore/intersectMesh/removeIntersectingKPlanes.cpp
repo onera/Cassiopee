@@ -26,14 +26,14 @@
 #include "io.h"
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray, std::vector<E_Int> &patch,
+PyObject *handle_slave(const IMesh &M, Karray& sarray,
     std::set<E_Int> &faces_to_tri);
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
-    PyObject *MASTER, *SLAVES, *PATCH;
+    PyObject *MASTER, *SLAVES;
   
-    if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVES, &PATCH)) {
+    if (!PYPARSETUPLE_(args, OO_, &MASTER, &SLAVES)) {
         RAISE("Bad input.");
         return NULL;
     }
@@ -69,43 +69,25 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
             Karray_free_structured(sarrays[j]);
         return NULL;
     }
-    
-    // Check intersection patch
-    E_Int *patch_in = NULL;
-    E_Int patch_size = -1;
-    ret = K_NUMPY::getFromNumpyArray(PATCH, patch_in, patch_size, true);
-    if (ret != 1) {
-        Karray_free_ngon(marray);
-        for (E_Int i = 0; i < nslaves; i++) Karray_free_structured(sarrays[i]);
-        RAISE("Bad master patch.");
-        return NULL;
-    }
 
-    // Zero-based
-    std::vector<E_Int> patch(patch_size);
-    for (E_Int i = 0; i < patch_size; i++) patch[i] = patch_in[i]-1;
 
     // Init and orient marray mesh
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
+
 
     PyObject *slaves_out = PyList_New(0);
 
     std::set<E_Int> faces_to_tri;
 
-    clock_t tic = clock();
-
     for (E_Int i = 0; i < nslaves; i++) {
         printf("Projecting %d / %d\n", i+1, nslaves);
-        PyObject *st = handle_slave(M, sarrays[i], patch, faces_to_tri);
+        PyObject *st = handle_slave(M, sarrays[i], faces_to_tri);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);
     }
 
-    clock_t tac = clock();
-
-    E_Float etime = ((E_Float)(tac-tic)) / CLOCKS_PER_SEC;
-    printf("Projection took %.2f s\n", etime);
+    puts("Triangulating master projection faces...");
 
     E_Int nf = M.nf;
 
@@ -155,8 +137,6 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
             pf.push_back(nf);
         }
 
-        patch.push_back(nf);
-
         nf++;
     }
 
@@ -164,26 +144,15 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     M.nf = nf;
 
+    puts("Exporting projection meshes...");
+
     PyObject *master_out = M.export_karray();
 
     PyObject *out = PyList_New(0);
     PyList_Append(out, master_out);
-
-    npy_intp dims[2];
-    dims[1] = 1;
-    
-    dims[0] = (npy_intp)patch.size();
-    PyArrayObject *NEW_PATCH = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-    E_Int *mptr = (E_Int *)PyArray_DATA(NEW_PATCH);
-    E_Int *ptr = mptr;
-    for (E_Int face : patch) *ptr++ = face+1;
-
-    PyList_Append(out, (PyObject *)NEW_PATCH);
-
     PyList_Append(out, slaves_out);
 
     Py_DECREF(master_out);
-    Py_DECREF(NEW_PATCH);
     Py_DECREF(slaves_out);
 
     Karray_free_ngon(marray);
@@ -192,7 +161,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 }
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray, std::vector<E_Int> &patch,
+PyObject *handle_slave(const IMesh &M, Karray& sarray,
     std::set<E_Int> &faces_to_tri)
 {
     E_Float *Xs = sarray.X;

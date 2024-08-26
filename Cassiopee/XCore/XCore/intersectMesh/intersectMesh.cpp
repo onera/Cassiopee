@@ -286,9 +286,9 @@ IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, E_Int color)
 
 PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 {
-    PyObject *MASTER, *SLAVE, *MPATCH, *SPATCH;
+    PyObject *MASTER, *SLAVE, *SPATCH;
   
-    if (!PYPARSETUPLE_(args, OOOO_, &MASTER, &SLAVE, &MPATCH, &SPATCH)) {
+    if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVE, &SPATCH)) {
         RAISE("Bad input.");
         return NULL;
     }
@@ -313,18 +313,10 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
-    // Check master intersection patch (zero-based)
-    E_Int *mpatch = NULL;
-    E_Int mpatch_size = -1;
-    ret = K_NUMPY::getFromNumpyArray(MPATCH, mpatch, mpatch_size, true);
-    if (ret != 1) {
-        Karray_free_ngon(marray);
-        Karray_free_ngon(sarray);
-        RAISE("Bad master patch.");
-        return NULL;
-    }
+    M.make_skin();
+    for (E_Int fid : M.skin) M.patch.insert(fid);
 
-    printf("Master patch: " SF_D_ " faces\n", mpatch_size);
+    printf("Master patch: %zu faces\n", M.patch.size());
 
     // Check slave intersection patch (zero-based)
     E_Int *spatch = NULL;
@@ -339,7 +331,6 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     printf("Slave patch: " SF_D_ " faces\n", spatch_size);
 
-    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]-1);
     for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]-1);
 
     M.orient_skin(OUT);
@@ -352,14 +343,21 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Mf.write_ngon("Mf");
     Sf.write_ngon("Sf");
 
+    puts("Making point edges...");
     Mf.make_point_edges();
     Sf.make_point_edges();
 
+    puts("Making point faces...");
     Mf.make_point_faces_all();
     Sf.make_point_faces_all();
 
+    puts("Making point/face normals...");
     Mf.make_pnormals();
     Sf.make_pnormals();
+
+    puts("Hashing master faces...");
+    Mf.make_bbox();
+    Mf.hash_faces();
 
     puts("Initaliazing...");
 

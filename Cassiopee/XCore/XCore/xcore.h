@@ -25,7 +25,10 @@
 #define XMPI_INT MPI_INT
 #endif
 
-# include "kcore.h"
+#include "kcore.h"
+
+constexpr E_Float FLOATMIN = -std::numeric_limits<E_Float>::max();
+constexpr E_Float FLOATMAX = std::numeric_limits<E_Float>::max();
 
 namespace K_XCORE
 {
