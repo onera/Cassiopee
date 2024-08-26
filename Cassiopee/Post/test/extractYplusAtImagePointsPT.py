@@ -1,4 +1,4 @@
-# - extractSkinReconstruction (pyTree) -
+# - computePressureGradients (pyTree) -
 import Converter.Internal as Internal
 import Converter.PyTree as C
 import Generator.PyTree as G
@@ -19,6 +19,6 @@ C._addState(tb, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, Equati
 
 a, ac = X_IBM.prepareIBMDataPara(tb, t_out=None, tc_out=None, vmin=21, frontType=1, check=False)
 
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=2, ibctypes=[3]) #3: Musker
+ac = P_IBM.extractYplusAtImagePoints(ac)
 
-C.convertPyTree2File(ts, 'out.cgns')
+C.convertPyTree2File(ac, 'out.cgns')
