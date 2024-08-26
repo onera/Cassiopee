@@ -651,9 +651,12 @@ def runSingleUnitaryTest(no, module, test):
               cmdInitGlobalDicts, nreps, bktest, test[:-3])
         
         sanitizerFlag = '-s' if any(USE_ASAN) else ''
-        nprocs = 2 if m1 is None else 1
-        nthreads = nthreads//2 if m1 is None else nthreads
-        cmd = 'cd %s; %s time kpython %s -n %d -t %d %s'%(path, cmdReps, sanitizerFlag, nprocs, nthreads, test)
+        if m1 is None:
+            cmd = 'cd %s; %s time kpython %s -n 2 -t %d %s'%(
+                path, cmdReps, sanitizerFlag, nthreads//2, test)
+        else:
+            cmd = 'cd %s; %s time kpython %s -t %d %s'%(
+                path, cmdReps, sanitizerFlag, nthreads, test)
 
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -1638,6 +1641,8 @@ def getDBInfo():
     
 def updateDBLabel():    
     if not INTERACTIVE: return
+    dbInfo = getDBInfo()
+    if not dbInfo: return
     if BASE4COMPARE == 'GLOBAL':
         label = 'Switch to local data base'
     else:
@@ -1698,21 +1703,19 @@ def purgeSessionLogs(n):
 # Switches to control the state of USE_ASAN (Address/Leak Sanitizers)
 #==============================================================================
 def toggleASAN():
-    if not Dist.DEBUG: return
     global USE_ASAN
     USE_ASAN[0] = not USE_ASAN[0]
-    updateASANLabel(2)
+    updateASANLabel(3)
     
 def toggleLSAN():
-    if not Dist.DEBUG: return
     global USE_ASAN
     USE_ASAN[1] = not USE_ASAN[1]
-    updateASANLabel(3)
+    updateASANLabel(4)
     updateASANOptions()
     
 def updateASANOptions():
     # Update ASAN_OPTIONS accordingly
-    asan_opt = os.getenv("ASAN_OPTIONS")
+    asan_opt = os.getenv("ASAN_OPTIONS", "")
     posArg = asan_opt.find('detect_leaks=')
     if posArg == -1:
         os.environ["ASAN_OPTIONS"] = "{}:detect_leaks={:d}".format(
@@ -1720,11 +1723,11 @@ def updateASANOptions():
     else:
         os.environ["ASAN_OPTIONS"] = "{}detect_leaks={:d}{}".format(
             asan_opt[:posArg], USE_ASAN[1], asan_opt[posArg+14:])
-    print("Info: ASAN_OPTIONS = " + os.getenv("ASAN_OPTIONS"))
+    print("Info: ASAN_OPTIONS = " + os.getenv("ASAN_OPTIONS", ""))
 
 def updateASANLabel(entry_index):    
     if not INTERACTIVE: return
-    if VALIDDIR['GLOBAL'] is not None: entry_index += 3
+    if getDBInfo(): entry_index += 2
     label = toolsTab.entrycget(entry_index, "label")
     if label[0].startswith('E'): label = 'Dis' + label[2:]
     else: label = 'En' + label[3:]
@@ -1804,12 +1807,13 @@ if __name__ == '__main__':
         toolsTab.add_command(label='Tag selection', command=tagSelection)
         toolsTab.add_command(label='Untag selection', command=untagSelection)
         
-        if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK):
+        dbInfo = getDBInfo()
+        if dbInfo:
             # Show this button if the global database can be interrogated
             toolsTab.add_separator()
-            toolsTab.add_command(label='Switch to global data base ' + getDBInfo(),
+            toolsTab.add_command(label='Switch to global data base ' + dbInfo,
                                  command=toggleDB)
-        if Dist.DEBUG:
+        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
             toolsTab.add_separator()
             toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
                                  command=toggleASAN)
@@ -1930,7 +1934,7 @@ if __name__ == '__main__':
             Filter.set(vcargs.filters)
             filterTestList()
         if vcargs.run:
-            if Dist.DEBUG:
+            if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
                 if vcargs.memory_sanitizer: USE_ASAN[0] = True
                 if vcargs.leak_sanitizer: USE_ASAN[1] = True
                 updateASANOptions()
