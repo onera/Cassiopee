@@ -1809,11 +1809,12 @@ if __name__ == '__main__':
             toolsTab.add_separator()
             toolsTab.add_command(label='Switch to global data base ' + getDBInfo(),
                                  command=toggleDB)
-        toolsTab.add_separator()
-        toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
-                             command=toggleASAN)
-        toolsTab.add_command(label='Enable Leak Sanitizer (LSan)',
-                             command=toggleLSAN)
+        if Dist.DEBUG:
+            toolsTab.add_separator()
+            toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
+                                 command=toggleASAN)
+            toolsTab.add_command(label='Enable Leak Sanitizer (LSan)',
+                                 command=toggleLSAN)
 
         Master.config(menu=menu)
         Master.bind_all("<Control-q>", Quit)
