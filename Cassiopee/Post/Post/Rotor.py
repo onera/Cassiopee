@@ -293,6 +293,130 @@ def frictionLines(teff):
     s1 = P.streamLine2(b, points, vector=['centers:frictionX','centers:frictionY','centers:frictionZ'])
     return s1
 
+
+#========================================================================
+# extract the radius field on a surface, using the rotation axis and center
+# IN: teff
+# OUT: teff with radius field
+#========================================================================
+def extractRadius(teff, axis_pnt, axis_vct, loc='node'):
+    """Extract the radius field, using the rotation axis and center."""
+    def function(x,y,z): 
+        ux,uy,uz = axis_vct
+        cx,cy,cz = axis_pnt
+        ax = (y-cy)*uz - (z-cz)*uy
+        ay = (x-cx)*uz - (z-cz)*ux
+        az = (x-cx)*uy - (y-cy)*ux
+        return math.sqrt(ax**2 + ay**2 + az**2)/math.sqrt(ux**2 + uy**2 + uz**2)
+    
+    if loc == 'center':
+        teff = C.initVars(teff, 'centers:Radius', function, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
+    else:
+        teff = C.initVars(teff, 'Radius', function, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
+    return teff
+
+#========================================================================
+# extract the theta field on a surface, using the rotation axis and center
+# IN: teff
+# OUT: teff with theta field
+#========================================================================
+def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
+    """Extract the theta field, using the rotation axis and center."""
+    # local functions for 3x3 matrices
+    def determinant(m):
+        det = 0
+
+        det += m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1])
+        det -= m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0])
+        det += m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0])
+        
+        return det
+
+    def comatrix(m):
+        cm = [[0,0,0], [0,0,0], [0,0,0]]
+
+        for i in range(3):
+            i1 = 0 if i != 0 else 1
+            i2 = 2 if i != 2 else 1
+            for j in range(3):
+                j1 = 0 if j != 0 else 1
+                j2 = 2 if j != 2 else 1
+                cm[i][j] = (-1)**(i+j)*(m[i1][j1]*m[i2][j2] - m[i1][j2]*m[i2][j1])
+        return cm
+
+    def transpose(m):
+        tm = [[0,0,0], [0,0,0], [0,0,0]]
+        for i in range(3):
+            for j in range(3):
+                tm[i][j] = m[j][i]
+        return tm
+
+    def inverse(m):
+        det = determinant(m)
+        tm = transpose(comatrix(m))
+        for i in range(3):
+            for j in range(3):
+                tm[i][j] /= det
+        return tm
+    ###################################
+
+    # create a base from axis_vct
+    a1,b1,c1 = axis_vct
+    vec1 = (a1,b1,c1)
+
+    # get ortho vec
+    if abs(a1) > abs(b1):
+        a2,b2,c2 = c1,0,-a1
+    else:
+        a2,b2,c2 = 0,c1,-b1
+    vec2 = (a2,b2,c2)
+
+    # complete the base with cross product vec1 x vec2
+    a3 = b1*c2 - b2*c1
+    b3 = a1*c2 - a2*c1
+    c3 = a1*b2 - a2*b1
+    vec3 = (a3,b3,c3)
+
+    # normalize the three vectors
+    base = []
+    for vec in [vec1, vec2, vec3]:
+        a,b,c = vec
+        norm = math.sqrt(a*a + b*b + c*c)
+        base.append((a/norm, b/norm, c/norm))
+    
+    # matrice de passage de R dans base
+    P = [[base[0][0], base[1][0], base[2][0]],
+         [base[0][1], base[1][1], base[2][1]],
+         [base[0][2], base[1][2], base[2][2]]]
+    
+    # inverse de P
+    invP = inverse(P)
+
+    # C (canonical base) -> Cprime (new base) using
+    # C = P.Cprime <=> Cprime = invP.C
+    # C = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
+    
+    Cprime = [axis_pnt[0]*invP[0][0] + axis_pnt[1]*invP[0][1] + axis_pnt[2]*invP[0][2],
+              axis_pnt[0]*invP[1][0] + axis_pnt[1]*invP[1][1] + axis_pnt[2]*invP[1][2],
+              axis_pnt[0]*invP[2][0] + axis_pnt[1]*invP[2][1] + axis_pnt[2]*invP[2][2]]
+
+    def function(x,y,z): 
+        # X' = invP*X
+        # first direction is the rotation axis
+        dist2 = x*invP[1][0] + y*invP[1][1] + z*invP[1][2] - Cprime[1]
+        dist3 = x*invP[2][0] + y*invP[2][1] + z*invP[2][2] - Cprime[2]
+
+        theta = numpy.arctan2(-dist2,dist3)
+        if theta < 0: theta += 2*numpy.pi
+        
+        return theta
+    
+    if loc == 'center':
+        teff = C.initVars(teff, 'centers:Theta', function, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
+    else:
+        teff = C.initVars(teff, 'Theta', function, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
+    return teff
+
 #========================================================================
 # extrait les slices en parallele et calcule les variables de post traitement 
 # IN: teff
@@ -406,6 +530,7 @@ def extractSlices(teff, bladeName, psi, radii,
             tag[1] = tag[1].ravel('k')
             tag[1][:] = (xc[1][:] < rad+delta) & (xc[1][:] > rad-delta)
             sel = P.selectCells2(z, 'tag')
+            # sel = P.selectCells2(z, 'tag', strict=1)
             Internal._rmNodesFromName(sel, 'GridCoordinates#Init')
             Internal._rmNodesFromName(sel, '.Solver#ownData')
             Internal._rmNodesFromName(sel, 'tag')
