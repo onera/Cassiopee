@@ -778,12 +778,11 @@ def _setInterpData(t, tc):
       
       # Update connectivity tree using newly inserted indices in current face
       # (receiver) and their corresponding indices in opposite face (donor)
-      # Info stored in donor face, so receiver/donor roles are switched
       ptList = ptList[-len(ptListDonor):]
       print("      * ptList: {}".format(ptList))
       print("      * ptListDonor: {}".format(ptListDonor))
-      _updateConnectivityTree(tc, name=faceOppName, nameDonor=faceName,
-                              ptList=ptListDonor, ptListDonor=ptList)
+      _updateConnectivityTree(tc, name=faceName, nameDonor=faceOppName,
+                              ptList=ptList-1, ptListDonor=ptListDonor-1)
   return None
 
 # Retourne l'edge a partir de edgeNo (numero global CAD)
