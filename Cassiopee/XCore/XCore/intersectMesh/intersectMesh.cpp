@@ -405,5 +405,7 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Karray_free_ngon(marray);
     Karray_free_ngon(sarray);
 
+    Py_DECREF(SPATCH);
+
     return Out;
 }

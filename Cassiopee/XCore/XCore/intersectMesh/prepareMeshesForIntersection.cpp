@@ -136,6 +136,7 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     PyList_Append(Out, (PyObject *)SP);
 
     Py_DECREF(SP);
+    Py_DECREF(TAG);
 
 
     return Out;

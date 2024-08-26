@@ -25,7 +25,6 @@
 #include "status.h"
 #include "segment.h"
 #include "primitives.h"
-#include "sweep.h"
 #include "io.h"
 #include "hedge.h"
 #include "smesh.h"
@@ -37,80 +36,6 @@
 E_Int Dcel::RED = 0;
 E_Int Dcel::BLACK = 1;
 E_Int Dcel::NO_IDEA = 2;
-
-void Dcel::resolve(Vertex *p, const std::vector<Segment *> &L,
-    const std::vector<Segment *> &C, const std::vector<Segment *> &U,
-    std::vector<Hedge *> &H)
-{
-    // The half-edges starting at p
-    std::vector<Hedge *> leaving;
-
-    for (Segment *s : U) {
-        Hedge *h = s->rep;
-        assert(h->orig == p);
-        leaving.push_back(h);
-    }
-
-    for (Segment *s : L) {
-        Hedge *h = s->rep;
-        Hedge *t = h->twin;
-        assert(t->orig == p);
-        leaving.push_back(t);
-    }
-
-    for (Segment *s : C) {
-        // Create two new half-edges records with p as their origin
-        Hedge *e1 = new Hedge(p);
-        Hedge *e2 = new Hedge(p);
-
-        e1->color = s->color;
-        e2->color = s->color;
-
-        // Half-edge connected to segment s
-        Hedge *e = s->rep;
-        Hedge *t = e->twin;
-
-        // Copy the face data
-        e1->left = e->left;
-        e2->left = t->left;
-
-        // Pair-up the new half-edges
-        e->twin = e2;
-        e1->twin = t;
-        t->twin = e1;
-        e2->twin = e;
-
-        // Set prev and next pointers at the endpoints
-        e1->next = e->next;
-        e2->next = t->next;
-        e->next->prev = e1;
-        t->next->prev = e2;
-
-        leaving.push_back(e1);
-        leaving.push_back(e2);
-
-        H.push_back(e1);
-        H.push_back(e2);
-
-        // Segment s is represented by the new half-edge extending to the right
-        // of the sweep line
-        s->rep = e1;
-    }
-
-    // Correct the situation around p
-    // Order leaving half-edges in clockwise order around p
-
-    Hedge::sort_cwise(leaving, 0, leaving.size() - 1);
-
-    // Link-up consecutive half-edges from different sets
-    for (size_t i = 0; i < leaving.size(); i++) {
-        Hedge *h = leaving[i];
-        Hedge *w = leaving[(i+1)%leaving.size()];
-
-        h->twin->next = w;
-        w->prev = h->twin;
-    }
-}
 
 void Dcel::write_degen_faces(const char *fname)
 {
@@ -638,10 +563,13 @@ Dcel::~Dcel()
 {
     delete f_unbounded[0];
     delete f_unbounded[1];
+
     for (size_t i = 0; i < V.size(); i++) delete V[i];
     for (size_t i = 0; i < H.size(); i++) delete H[i];
     for (size_t i = 0; i < F.size(); i++) delete F[i];
     for (size_t i = 0; i < C.size(); i++) delete C[i];
+
+    Q.drop();
 }
 
 void Dcel::set_cycles_inout(const Smesh &M, const Smesh &S)

@@ -39,3 +39,14 @@ void Event::inorder(std::vector<Vertex *> &V) const
     V.push_back(key);
     if (right) right->inorder(V);
 }
+
+void Event_drop(Event *event)
+{
+    if (event == NULL) return;
+
+    Event_drop(event->left);
+    Event_drop(event->right);
+
+    assert(event->inf == NULL);
+    delete event;
+}

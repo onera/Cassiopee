@@ -26,6 +26,7 @@
 #endif
 
 #include "kcore.h"
+#include <limits>
 
 constexpr E_Float FLOATMIN = -std::numeric_limits<E_Float>::max();
 constexpr E_Float FLOATMAX = std::numeric_limits<E_Float>::max();

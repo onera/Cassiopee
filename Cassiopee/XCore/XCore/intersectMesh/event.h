@@ -37,3 +37,5 @@ struct Event {
 
     void inorder(std::vector<Vertex *> &V) const;
 };
+
+void Event_drop(Event *event);

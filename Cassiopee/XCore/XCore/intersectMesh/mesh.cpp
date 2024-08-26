@@ -311,8 +311,6 @@ E_Int IMesh::RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
 E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
     E_Float dy, E_Float dz, TriangleIntersection &TI) const
 {
-    E_Int hit = 0;
-
     // Calculate entry point
 
     E_Float tentry = 0;
@@ -413,17 +411,19 @@ E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
         deltaTz = -HZ/dz;
     }
 
-    E_Float t = 0;
+    //E_Float t = 0;
 
     E_Int NXY = NX * NY;
     E_Int NXYZ = NXY * NZ;
 
     E_Int current_cell = voxel_x + NX * voxel_y + NXY * voxel_z;
 
+    /*
     E_Float qx = ox + 10000*dx;
     E_Float qy = oy + 10000*dy;
     E_Float qz = oz + 10000*dz;
     edge_write("tested_edge", ox, oy, oz, qx, qy, qz);
+    */
 
     std::set<E_Int> tested_faces;
 
@@ -456,14 +456,14 @@ E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
 
         if (tx < ty && tx && tz) {
 
-            t = tx;
+            //t = tx;
             tx += deltaTx;
             voxel_x += (dx > 0) ? 1 : -1;
 
         } else if (ty < tz) {
             assert(ty < tx);
 
-            t = ty;
+            //t = ty;
             ty += deltaTy;
             voxel_y += (dy > 0) ? 1 : -1;
 
@@ -471,7 +471,7 @@ E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
         } else {
             assert(tz < tx && tz < ty);
 
-            t = tz;
+            //t = tz;
             tz += deltaTz;
             voxel_z += (dz > 0) ? 1 : -1;
 
@@ -547,7 +547,7 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
         deltaTz = -HZ/dz;
     }
 
-    E_Float t = 0;
+    //E_Float t = 0;
 
     E_Int NXY = NX * NY;
     E_Int NXYZ = NXY * NZ;
@@ -626,14 +626,14 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
 
         if (tx < ty && tx && tz) {
 
-            t = tx;
+            //t = tx;
             tx += deltaTx;
             voxel_x += (dx > 0) ? 1 : -1;
 
         } else if (ty < tz) {
             assert(ty < tx);
 
-            t = ty;
+            //t = ty;
             ty += deltaTy;
             voxel_y += (dy > 0) ? 1 : -1;
 
@@ -641,7 +641,7 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
         } else {
             assert(tz < tx && tz < ty);
 
-            t = tz;
+            //t = tz;
             tz += deltaTz;
             voxel_z += (dz > 0) ? 1 : -1;
 
