@@ -39,7 +39,7 @@ tc = C.newPyTree(['CART']); tc[2][1][2].append(z)
 
 #C.convertPyTree2File(tc, 'tc.cgns')
 
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2)
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, prepareMLS=False)
 test.testT(ts, 1)
 
 graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, prepareMLS=True)
@@ -77,7 +77,7 @@ zsr[2].append(['Density', DENS, [], 'DataArray_t'])
 z[2].append(zsr)
 tc = C.newPyTree(['CART']); tc[2][1][2].append(z)
 
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=3)
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=3, prepareMLS=False)
 test.testT(ts, 3)
 
 graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=3, prepareMLS=True)
