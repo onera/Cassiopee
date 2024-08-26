@@ -1698,13 +1698,11 @@ def purgeSessionLogs(n):
 # Switches to control the state of USE_ASAN (Address/Leak Sanitizers)
 #==============================================================================
 def toggleASAN():
-    if not Dist.DEBUG: return
     global USE_ASAN
     USE_ASAN[0] = not USE_ASAN[0]
     updateASANLabel(2)
     
 def toggleLSAN():
-    if not Dist.DEBUG: return
     global USE_ASAN
     USE_ASAN[1] = not USE_ASAN[1]
     updateASANLabel(3)
@@ -1712,7 +1710,7 @@ def toggleLSAN():
     
 def updateASANOptions():
     # Update ASAN_OPTIONS accordingly
-    asan_opt = os.getenv("ASAN_OPTIONS")
+    asan_opt = os.getenv("ASAN_OPTIONS", "")
     posArg = asan_opt.find('detect_leaks=')
     if posArg == -1:
         os.environ["ASAN_OPTIONS"] = "{}:detect_leaks={:d}".format(
@@ -1720,7 +1718,7 @@ def updateASANOptions():
     else:
         os.environ["ASAN_OPTIONS"] = "{}detect_leaks={:d}{}".format(
             asan_opt[:posArg], USE_ASAN[1], asan_opt[posArg+14:])
-    print("Info: ASAN_OPTIONS = " + os.getenv("ASAN_OPTIONS"))
+    print("Info: ASAN_OPTIONS = " + os.getenv("ASAN_OPTIONS", ""))
 
 def updateASANLabel(entry_index):    
     if not INTERACTIVE: return
@@ -1809,7 +1807,7 @@ if __name__ == '__main__':
             toolsTab.add_separator()
             toolsTab.add_command(label='Switch to global data base ' + getDBInfo(),
                                  command=toggleDB)
-        if Dist.DEBUG:
+        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
             toolsTab.add_separator()
             toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
                                  command=toggleASAN)
@@ -1930,7 +1928,7 @@ if __name__ == '__main__':
             Filter.set(vcargs.filters)
             filterTestList()
         if vcargs.run:
-            if Dist.DEBUG:
+            if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
                 if vcargs.memory_sanitizer: USE_ASAN[0] = True
                 if vcargs.leak_sanitizer: USE_ASAN[1] = True
                 updateASANOptions()
