@@ -34,9 +34,6 @@ expTest2 = re.compile(".py")
 expTest3 = re.compile(r"\~")
 expTest4 = re.compile("_m[0-9]+") # distributed tests
 
-# Position after the last character in Tkinter
-TK_END = 'end'
-
 # Liste des tous les tests obtenue en listant les repertoires
 # Un element de la liste est une string comme affichee dans la listbox
 TESTS = []
@@ -61,6 +58,8 @@ THREAD = None
 PROCESS = None
 # True if the GUI is used (interactive) or False (command line execution)
 INTERACTIVE = len(sys.argv) == 1
+# Use Address Sanitizer (ASan) and Leak Sanitizer (LSan) in DEBUG mode only
+USE_ASAN = [False, False]
 
 # Est egal a 1 si on doit s'arreter
 STOP = 0
@@ -284,9 +283,11 @@ def check_output(cmd, shell, stderr):
                                    stderr=subprocess.PIPE, cwd=wdir,
                                    shell=shell, preexec_fn=ossid)
         
-        # max accepted time is 2 minutes for one repetition of a test
+        # max accepted time is between 2 to 3 minutes for one repetition of a test
         nreps = Repeats.get()
-        stdout, stderr = PROCESS.communicate(None, timeout=60.*2.*nreps)
+        nthreads = float(KCore.kcore.getOmpMaxThreads())
+        timeout = nreps*(100. + 60.*Dist.DEBUG)*(1. + 4.8/nthreads)
+        stdout, stderr = PROCESS.communicate(None, timeout=timeout)
         
         if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
@@ -622,9 +623,8 @@ def runSingleUnitaryTest(no, module, test):
     modulesDir = MODULESDIR[BASE4COMPARE][module]
     path = os.path.join(modulesDir, module, 'test')
 
-    m1 = expTest1.search(test) # seq ou distribue
+    m1 = expTest1.search(test) # seq (True) ou distribue (False)
 
-    pythonExec = os.getenv('PYTHONEXE', 'python')
     nthreads = KCore.kcore.getOmpMaxThreads()
     nreps = Repeats.get()
     bktest = "bk_{0}".format(test) # backup
@@ -632,6 +632,7 @@ def runSingleUnitaryTest(no, module, test):
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
         path = path.replace('/', '\\')
+        pythonExec = os.getenv('PYTHONEXE', 'python')
         if m1 is not None: cmd = 'cd %s && %s %s'%(path, pythonExec, test)
         else: cmd = 'cd %s && set OMP_NUM_THREADS=%d && mpiexec -np 2 %s %s'%(path, nthreads//2, pythonExec, test)
         cmd2 = 'echo %time%'
@@ -648,9 +649,11 @@ def runSingleUnitaryTest(no, module, test):
               sed -i '1i\{1}\\nfor _ in range({5}):' {0}; sed -i '$a\  {2}\\n  {3}\\n  {4}' {0};""".format(
               test, cmdCmpiImport, cmdCmpiTrace, cmdConverterImport,
               cmdInitGlobalDicts, nreps, bktest, test[:-3])
-                    
-        if m1 is not None: cmd = 'cd %s; %s time %s %s'%(path, cmdReps, pythonExec, test)
-        else: cmd = 'cd %s; %s time kpython -n 2 -t %d %s'%(path, cmdReps, nthreads//2, test)
+        
+        sanitizerFlag = '-s' if any(USE_ASAN) else ''
+        nprocs = 2 if m1 is None else 1
+        nthreads = nthreads//2 if m1 is None else nthreads
+        cmd = 'cd %s; %s time kpython %s -n %d -t %d %s'%(path, cmdReps, sanitizerFlag, nprocs, nthreads, test)
 
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -773,7 +776,6 @@ def runSingleCFDTest(no, module, test):
         try: import mpi4py
         except: m1 = None
 
-    pythonExec = os.getenv('PYTHONEXE', 'python')
     nthreads = KCore.kcore.getOmpMaxThreads()
 
     if mySystem == 'mingw' or mySystem == 'windows':
@@ -786,9 +788,6 @@ def runSingleCFDTest(no, module, test):
         # Unix - le shell doit avoir l'environnement cassiopee
         if m1 is None: cmd = 'cd %s; ./valid check'%(path)
         else: cmd = 'cd %s; ./valid check 0 0 0 2 %d'%(path, nthreads//2)
-        #if m1 is None: cmd = 'cd %s; time %s compute.py check 0 0 0; %s post.py check'%(path, pythonExec, pythonExec)
-        #else: cmd = 'cd %s; kpython -n 2 -t %d compute.py check 0 0 0; %s post.py check'%(path, nthreads//2, pythonExec)
-        
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
@@ -972,7 +971,7 @@ def rmFile(path, fileName):
 def buildTestList(loadSession=False, modules=[]):
     global TESTS
     TESTS = []
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     if not modules:
         modules = getModules()
     # Read last sessionLog conditionally
@@ -1044,7 +1043,7 @@ def buildTestList(loadSession=False, modules=[]):
             else:
                 s = buildString(m, t)
             TESTS.append(s)
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     if loadSession and arr.size: writeSessionLog()
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
@@ -1143,11 +1142,11 @@ def filterTestList(event=None):
                       insertedTests.discard(s)
                 except re.error: pass
         
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     if filters:
-        for s in sorted(insertedTests): Listbox.insert(TK_END, s)
+        for s in sorted(insertedTests): Listbox.insert('end', s)
     else:
-        for s in TESTS: Listbox.insert(TK_END, s)
+        for s in TESTS: Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     return True
@@ -1182,7 +1181,7 @@ def viewTest(event=None):
 # Met a jour les infos de progression
 #==============================================================================
 def selectAll(event=None):
-    Listbox.selection_set(0, TK_END)
+    Listbox.selection_set(0, 'end')
     (total, remaining) = getTestsTime()
     displayProgress(0, total, remaining, 0.)
 
@@ -1190,10 +1189,10 @@ def selectAll(event=None):
 # Affiche les test FAILED ou FAILEDMEM dans la listbox
 #==============================================================================
 def showFilter(filter='FAILED'):
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is not None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1204,10 +1203,10 @@ def showFilter(filter='FAILED'):
 #==============================================================================
 def showRunCases():
     filter = r'\.\.\.'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1218,10 +1217,10 @@ def showRunCases():
 #==============================================================================
 def showUnrunCases():
     filter = r'\.\.\.'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is not None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1232,10 +1231,10 @@ def showUnrunCases():
 #==============================================================================
 def showCovered():
     filter = '100%'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is not None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1246,10 +1245,10 @@ def showCovered():
 #==============================================================================
 def showUncovered():
     filter = ' 0%'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is not None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1262,11 +1261,11 @@ def showPartialCovered():
     filter1 = '100%'
     filter2 = ' 0%'
     filter3 = r'\.%'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if (re.search(filter1, s) is None and re.search(filter2, s) is None
             and re.search(filter3, s) is None):
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1299,27 +1298,27 @@ def time2String(time):
 # Affiche les tests plus rapide que ref CPUtime dans la listbox
 #==============================================================================
 def showFaster():
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 < t2-0.15*t2: Listbox.insert(TK_END, s)
+            if t1 < t2-0.15*t2: Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
     return True
 def showFasterP():
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 < t2-0.5*t2: Listbox.insert(TK_END, s)
+            if t1 < t2-0.5*t2: Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1329,27 +1328,27 @@ def showFasterP():
 # Affiche les tests plus lent que la reference de 15%
 #==============================================================================
 def showSlower():
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if (t1 > t2+0.15*t2): Listbox.insert(TK_END, s)
+            if (t1 > t2+0.15*t2): Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
     return True
 def showSlowerP():
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 > t2+0.5*t2: Listbox.insert(TK_END, s)
+            if t1 > t2+0.5*t2: Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1457,10 +1456,8 @@ def export2Text():
     ret = tkFileDialog.asksaveasfilename()
     if ret == '' or ret is None or ret == (): # user cancel
         return
-
-    file = open(ret, 'w')
-    for t in TESTS: file.write(t); file.write('\n')
-    file.close()
+    with open(ret, 'w') as f:
+        for t in TESTS: f.write(t); f.write('\n')
 
 #==============================================================================
 # writeSessionLog: write log and baseTime
@@ -1588,6 +1585,10 @@ def untagSelection(event=None):
 #==============================================================================
 # Setups to either use the local or global databases
 #==============================================================================
+def toggleDB(**kwargs):
+    if BASE4COMPARE == 'LOCAL': return setupGlobal(**kwargs)
+    return setupLocal(**kwargs)
+
 def setupLocal(**kwargs):
     global BASE4COMPARE
     # Change to local ref
@@ -1601,6 +1602,7 @@ def setupLocal(**kwargs):
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
     createEmptySessionLog()
     buildTestList(**kwargs)
+    updateDBLabel()
     
 def setupGlobal(**kwargs):
     global BASE4COMPARE
@@ -1621,8 +1623,30 @@ def setupGlobal(**kwargs):
     except: pass
     createEmptySessionLog()
     buildTestList(**kwargs)
+    updateDBLabel()
+   
+def getDBInfo():    
+    dbInfo = ''
+    if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK):
+        filename = '/stck/cassiope/git/Cassiopee/Cassiopee/Valid{}/base.time'
+        try:
+            with open(filename.format(DATA), 'r') as f:
+                dbInfo = f.read().split('\n')
+                dbInfo = '[{} - {} - {} threads]'.format(*dbInfo[0:3])
+        except: pass
+    return dbInfo
     
+def updateDBLabel():    
+    if not INTERACTIVE: return
+    if BASE4COMPARE == 'GLOBAL':
+        label = 'Switch to local data base'
+    else:
+        label = 'Switch to global data base ' + getDBInfo()
+    toolsTab.entryconfig(3, label=label)
+
+#==============================================================================
 # Parse command-line arguments
+#==============================================================================
 def parseArgs():
     import argparse
     def _checkInt(n):
@@ -1645,11 +1669,19 @@ def parseArgs():
     parser.add_argument("-l", "--load-session", dest='loadSession',
                         action="store_true",
                         help="Load last session. Default: False")
+    parser.add_argument("--leak-sanitizer", action="store_true",
+                        dest="leak_sanitizer",
+                        help="Leak Sanitizer to detect memory leaks."
+                             "Available in DEBUG mode only")
+    parser.add_argument("--memory-sanitizer", action="store_true",
+                        dest="memory_sanitizer",
+                        help="Address Sanitizer to detect memory access errors."
+                             "Available in DEBUG mode only")
     parser.add_argument("-p", "--purge", default=50, type=_checkInt,
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
                         help="Run selected tests")
-    parser.add_argument("-u", "--update", action="store_true",
+    parser.add_argument("--update", action="store_true",
                         help="Update local database")
 
     # Parse arguments
@@ -1661,7 +1693,43 @@ def purgeSessionLogs(n):
     if len(lognames) > n:
         for log in lognames[:-n]: os.remove(log)
     return None
+
+#==============================================================================
+# Switches to control the state of USE_ASAN (Address/Leak Sanitizers)
+#==============================================================================
+def toggleASAN():
+    if not Dist.DEBUG: return
+    global USE_ASAN
+    USE_ASAN[0] = not USE_ASAN[0]
+    updateASANLabel(2)
     
+def toggleLSAN():
+    if not Dist.DEBUG: return
+    global USE_ASAN
+    USE_ASAN[1] = not USE_ASAN[1]
+    updateASANLabel(3)
+    updateASANOptions()
+    
+def updateASANOptions():
+    # Update ASAN_OPTIONS accordingly
+    asan_opt = os.getenv("ASAN_OPTIONS")
+    posArg = asan_opt.find('detect_leaks=')
+    if posArg == -1:
+        os.environ["ASAN_OPTIONS"] = "{}:detect_leaks={:d}".format(
+            asan_opt, USE_ASAN[1])
+    else:
+        os.environ["ASAN_OPTIONS"] = "{}detect_leaks={:d}{}".format(
+            asan_opt[:posArg], USE_ASAN[1], asan_opt[posArg+14:])
+    print("Info: ASAN_OPTIONS = " + os.getenv("ASAN_OPTIONS"))
+
+def updateASANLabel(entry_index):    
+    if not INTERACTIVE: return
+    if VALIDDIR['GLOBAL'] is not None: entry_index += 3
+    label = toolsTab.entrycget(entry_index, "label")
+    if label[0].startswith('E'): label = 'Dis' + label[2:]
+    else: label = 'En' + label[3:]
+    toolsTab.entryconfig(entry_index, label=label)
+
 #==============================================================================
 # Main
 #==============================================================================
@@ -1682,10 +1750,10 @@ if __name__ == '__main__':
         try: import tkFont as Font
         except: import tkinter.font as Font
         from functools import partial
-        TK_END = TK.END
         # Main window
         Master = TK.Tk()
-        Master.title('*Cassiopee* valid @ '+machine)
+        Master.title('*Cassiopee* valid : {} @ {}'.format(
+            os.getenv("ELSAPROD"), machine))
         Master.columnconfigure(0, weight=1)
         Master.rowconfigure(0, weight=1)
         #GENERALFONT = ('Courier', 9)
@@ -1699,57 +1767,53 @@ if __name__ == '__main__':
 
         # Main menu
         menu = TK.Menu(Master)
-        file = TK.Menu(menu, tearoff=0)
-        menu.add_cascade(label='File', menu=file)
-        tools = TK.Menu(menu, tearoff=0)
-        menu.add_cascade(label='Tools', menu=tools)
-        view = TK.Menu(menu, tearoff=0)
-        menu.add_cascade(label='View', menu=view)
+        fileTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='File', menu=fileTab)
+        toolsTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='Tools', menu=toolsTab)
+        viewTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='View', menu=viewTab)
 
         loadSessionWithArgs = partial(buildTestList, True)
-        file.add_command(label='Load last session', command=loadSessionWithArgs)
-        file.add_command(label='Purge session', command=buildTestList)
-        file.add_command(label='Export to text file', command=export2Text)
-        #file.add_command(label='Notify Ready for commit', command=notifyValidOK)
-        file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
-        view.add_command(label='Show FAILED', command=showFilter)
+        fileTab.add_command(label='Load last session', command=loadSessionWithArgs)
+        fileTab.add_command(label='Purge session', command=buildTestList)
+        fileTab.add_command(label='Export to text file', command=export2Text)
+        #fileTab.add_command(label='Notify Ready for commit', command=notifyValidOK)
+        fileTab.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
+        viewTab.add_command(label='Show FAILED', command=showFilter)
         showFilterWithArgs = partial(showFilter, "FAILEDMEM")
-        view.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
-        view.add_command(label='Show ALL tests', command=showAll)
-        view.add_separator()
-        view.add_command(label='Show run cases', command=showRunCases)
-        view.add_command(label='Show unrun cases', command=showUnrunCases)
-        view.add_separator()
-        view.add_command(label='Show covered (100%)', command=showCovered)
-        view.add_command(label='Show partially covered (x%)',
-                         command=showPartialCovered)
-        view.add_command(label='Show uncovered (0%)', command=showUncovered)
-        view.add_separator()
-        view.add_command(label='Show faster (-15%)', command=showFaster)
-        view.add_command(label='Show slower (+15%)', command=showSlower)
-        view.add_command(label='Show faster (-50%)', command=showFasterP)
-        view.add_command(label='Show slower (+50%)', command=showSlowerP)
-        view.add_separator()
-        view.add_command(label='Select all visible tests', command=selectAll,
-                         accelerator='Ctrl+A')
+        viewTab.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
+        viewTab.add_command(label='Show ALL tests', command=showAll)
+        viewTab.add_separator()
+        viewTab.add_command(label='Show run cases', command=showRunCases)
+        viewTab.add_command(label='Show unrun cases', command=showUnrunCases)
+        viewTab.add_separator()
+        viewTab.add_command(label='Show covered (100%)', command=showCovered)
+        viewTab.add_command(label='Show partially covered (x%)',
+                            command=showPartialCovered)
+        viewTab.add_command(label='Show uncovered (0%)', command=showUncovered)
+        viewTab.add_separator()
+        viewTab.add_command(label='Show faster (-15%)', command=showFaster)
+        viewTab.add_command(label='Show slower (+15%)', command=showSlower)
+        viewTab.add_command(label='Show faster (-50%)', command=showFasterP)
+        viewTab.add_command(label='Show slower (+50%)', command=showSlowerP)
+        viewTab.add_separator()
+        viewTab.add_command(label='Select all visible tests', command=selectAll,
+                            accelerator='Ctrl+A')
 
-        tools.add_command(label='Tag selection', command=tagSelection)
-        tools.add_command(label='Untag selection', command=untagSelection)
+        toolsTab.add_command(label='Tag selection', command=tagSelection)
+        toolsTab.add_command(label='Untag selection', command=untagSelection)
         
         if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK):
-            db_info = ''
-            filename = '/stck/cassiope/git/Cassiopee/Cassiopee/Valid{}/base.time'
-            try:
-                with open(filename.format(DATA), 'r') as f:
-                    db_info = f.read().split('\n')
-                    db_info = '[{} - {} - {} threads]'.format(*db_info[0:3])
-            except: pass
-            # Only show these buttons if the global database can be interrogated
-            tools.add_separator()
-            tools.add_command(label='Switch to global data base ' + db_info,
-                              command=setupGlobal)
-            tools.add_command(label='Switch to local data base',
-                              command=setupLocal)
+            # Show this button if the global database can be interrogated
+            toolsTab.add_separator()
+            toolsTab.add_command(label='Switch to global data base ' + getDBInfo(),
+                                 command=toggleDB)
+        toolsTab.add_separator()
+        toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
+                             command=toggleASAN)
+        toolsTab.add_command(label='Enable Leak Sanitizer (LSan)',
+                             command=toggleLSAN)
 
         Master.config(menu=menu)
         Master.bind_all("<Control-q>", Quit)
@@ -1865,6 +1929,10 @@ if __name__ == '__main__':
             Filter.set(vcargs.filters)
             filterTestList()
         if vcargs.run:
+            if Dist.DEBUG:
+                if vcargs.memory_sanitizer: USE_ASAN[0] = True
+                if vcargs.leak_sanitizer: USE_ASAN[1] = True
+                updateASANOptions()
             selectAll()
             runTests()
             Quit()

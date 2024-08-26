@@ -453,7 +453,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     
     delete foutC ; 
     delete an; delete acn;
-    if (res == 1) delete eltType;
+    if (res == 1) delete[] eltType;
   }
   else if (isNode == 0) // NODE
   {
@@ -1283,7 +1283,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     }
     tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
     delete an; delete acn;
-    if (res == 1) delete eltType;
+    if (res == 1) delete[] eltType;
   }
   else if (isNode == 0) // NODE
   {

@@ -326,7 +326,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     }
     tpl = K_ARRAY::buildArray(*fout, varString, *acn, elt, eltType);
     delete acn; delete fout;
-    if (res == 1) delete eltType;
+    if (res == 1) delete[] eltType;
   }
   else // elements NGON
   {
@@ -862,7 +862,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     tpl  = K_ARRAY::buildArray(*fout,  varString,  *acn, elt, eltType);
     tplc = K_ARRAY::buildArray(*foutC, varStringC, *acn, elt, eltType);
     delete acn; delete fout;
-    if (res == 1) delete eltType;
+    if (res == 1) delete[] eltType;
   }
   else // elements NGON
   {

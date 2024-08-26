@@ -290,8 +290,8 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
       strcpy(varStringOut, var0);
     }
   }
-  for (E_Int v = 0; v < varsSize; v++) delete vars[v];
+  for (E_Int v = 0; v < varsSize; v++) delete[] vars[v];
   PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, npts, 1, 1);
-  delete an; delete [] tmpStr; delete [] varStringOut;
+  delete an; delete[] tmpStr; delete[] varStringOut;
   return tpl;
 }
