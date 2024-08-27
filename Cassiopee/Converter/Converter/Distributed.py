@@ -444,7 +444,8 @@ def getProcLocal__(z, procDict=None):
     if procDict is not None: return procDict[z[0]]
     else:
         proc = Internal.getNodeFromName2(z, 'proc')
-        proc = Internal.getValue(proc)
+        if proc is not None: proc = Internal.getValue(proc)
+        else: proc = -1
         return proc
         
 #==============================================================================
@@ -455,7 +456,8 @@ def getProcGlobal__(zoneName, t, procDict=None):
     else:
         z = Internal.getNodeFromName2(t, zoneName)
         proc = Internal.getNodeFromName2(z, 'proc')
-        proc = Internal.getValue(proc)
+        if proc is not None: proc = Internal.getValue(proc)
+        else: proc = -1
         return proc
 
 #==============================================================================
@@ -704,7 +706,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
             subRegions = []
             for s in subRegions2:
                 sname = s[0][0:2]
-                if sname=='IB': subRegions.append(s)
+                if sname == 'IB': subRegions.append(s)
             for s in subRegions:
                 donor = Internal.getValue(s)
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
@@ -735,7 +737,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 subRegions = []
                 for s in subRegions2:
                     sname = s[0][0:2]
-                    if sname=='IB': subRegions.append(s)
+                    if sname == 'IB': subRegions.append(s)
                     
                 for s in subRegions:
                     donor = Internal.getValue(s)

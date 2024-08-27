@@ -13,7 +13,7 @@ __ZoneNameServer__ = {}
 __BCNameServer__ = {}
 __BaseNameServer__ = {}
 
-# Force R4 perdiodic nodes
+# Force R4 periodic nodes
 FORCER4PERIODIC = True
 
 #==============================================================================
