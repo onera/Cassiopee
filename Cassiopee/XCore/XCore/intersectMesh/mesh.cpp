@@ -557,17 +557,6 @@ E_Int IMesh::face_contains_point(E_Int face, E_Float x, E_Float y, E_Float z) co
     return hit;
 }
 
-UEdge::UEdge(E_Int P, E_Int Q)
-{
-    p = std::min(P, Q);
-    q = std::max(P, Q);
-}
-
-bool UEdge::operator<(const UEdge &E) const
-{
-    return (p < E.p) || (p == E.p && q < E.q);
-}
-
 IMesh IMesh::extract_conformized()
 {
     // Keep all the points

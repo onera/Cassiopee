@@ -854,6 +854,8 @@ def getCArgs():
         if DEBUG: 
             options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
             options += ['-fsanitize=address']
+            if mySystem[0] == 'mingw': options.remove('-fsanitize=address') # no asan on mingw
+             
         else: options += ['-DNDEBUG', '-O3', '-Wall', '-Werror=return-type']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -2057,8 +2059,10 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
 
         if DEBUG:
             l = checkLibFile__('libasan.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libasan.a', additionalLibPaths)
             if l is not None: libs += ["asan"]
-
+            
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)
             if l is None:
