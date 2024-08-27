@@ -92,6 +92,24 @@
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/dist2wallIBMPT.py">Compute the wall distance for IBM (pyTree)</a>:</p></li>
 </ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dist2wallIBM (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">DIBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">XIBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">);</span> <span class="n">tb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span>
+<span class="n">DIBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">));</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_dist2wallIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <hr class="docutils" />
@@ -125,6 +143,29 @@
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/blankingIBMPT.py">Blanking for IBM (pyTree)</a>:</p></li>
 </ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - blankingIBM (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">DIBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">XIBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">);</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span>
+<span class="n">DIBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;SPH&#39;</span><span class="p">,</span><span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">s</span><span class="p">)])</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;CART&#39;</span><span class="p">,</span><span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">)])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_dist2wallIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_blankingIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <hr class="docutils" />
@@ -149,6 +190,31 @@
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/buildFrontIBMPT.py">Build the IBM front (pyTree)</a>:</p></li>
 </ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - buildFrontIBM (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">DIBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">XIBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">);</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span>
+<span class="n">DIBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;SPH&#39;</span><span class="p">,</span><span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">s</span><span class="p">)])</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;CART&#39;</span><span class="p">,</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">)])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_dist2wallIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_blankingIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">tc</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">front</span><span class="p">,</span> <span class="n">front2</span> <span class="o">=</span> <span class="n">XIBM</span><span class="o">.</span><span class="n">buildFrontIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <hr class="docutils" />
@@ -181,6 +247,34 @@
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/setInterpDataIBMPT.py">Compute IBM coefficients (pyTree)</a>:</p></li>
 </ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setInterpDataIBM (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">DIBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">XIBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">);</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span>
+<span class="n">DIBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;SPH&#39;</span><span class="p">,</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">s</span><span class="p">)])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;GoverningEquations&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;CART&#39;</span><span class="p">,</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">)])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_dist2wallIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_blankingIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">tc</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">front</span><span class="p">,</span> <span class="n">front2</span> <span class="o">=</span> <span class="n">XIBM</span><span class="o">.</span><span class="n">buildFrontIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_setInterpDataIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">front</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <hr class="docutils" />
@@ -320,3 +414,24 @@ function resizeFunction() {
 }
 
 </script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Connector.html">Connector 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Connector.IBM: immersed boundary method grid connectivity module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>
