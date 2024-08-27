@@ -26,8 +26,11 @@
 #include "io.h"
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray,
+PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int min_Kmax,
     std::set<E_Int> &faces_to_tri);
+
+static
+E_Int get_kmax(const IMesh &M, const Karray &sarray);
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
@@ -79,9 +82,16 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     std::set<E_Int> faces_to_tri;
 
+    E_Int min_Kmax = std::numeric_limits<E_Int>::max();
+
+    for (E_Int i = 0; i < nslaves; i++) {
+        E_Int KMAX = get_kmax(M, sarrays[i]);
+        if (KMAX < min_Kmax) min_Kmax = KMAX;
+    }
+
     for (E_Int i = 0; i < nslaves; i++) {
         printf("Projecting %d / %d\n", i+1, nslaves);
-        PyObject *st = handle_slave(M, sarrays[i], faces_to_tri);
+        PyObject *st = handle_slave(M, sarrays[i], min_Kmax, faces_to_tri);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);
@@ -161,17 +171,16 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 }
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray,
-    std::set<E_Int> &faces_to_tri)
+E_Int get_kmax(const IMesh &M, const Karray &sarray)
 {
-    E_Float *Xs = sarray.X;
-    E_Float *Ys = sarray.Y;
-    E_Float *Zs = sarray.Z;
+    const E_Float *Xs = sarray.X;
+    const E_Float *Ys = sarray.Y;
+    const E_Float *Zs = sarray.Z;
 
-    E_Int ni = sarray.ni;
-    E_Int nj = sarray.nj;
-    E_Int nk = sarray.nk;
-    E_Int nij = ni * nj;
+    const E_Int ni = sarray.ni;
+    const E_Int nj = sarray.nj;
+    const E_Int nk = sarray.nk;
+    const E_Int nij = ni * nj;
     
 
     /**************************************************************************/
@@ -183,8 +192,6 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray,
     E_Int kmax = 0;
 
     std::vector<E_Int> inside_point;
-
-
 
     for (E_Int k = 0; k < nk; k++, kmax++) {
         E_Int inside = 0;
@@ -204,13 +211,26 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray,
         if (inside) break;
     }
 
-    //puts("OK projection.");
-
-    //char fname2[128] = {};
-    //sprintf(fname2, "inside%d", idx);
-    //point_write(fname2, Xs, Ys, Zs, inside_point);
-
     printf("Intersection plane index k: %d / %d\n", kmax, nk);
+
+    return kmax;
+}
+
+static
+PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int kmax,
+    std::set<E_Int> &faces_to_tri)
+{
+    E_Float *Xs = sarray.X;
+    E_Float *Ys = sarray.Y;
+    E_Float *Zs = sarray.Z;
+
+    E_Int ni = sarray.ni;
+    E_Int nj = sarray.nj;
+    E_Int nk = sarray.nk;
+    E_Int nij = ni * nj;
+    
+
+    /**************************************************************************/
 
     // points to be projected nij*(kmax-1) .. nij*kmax
     std::vector<E_Int> proj_points;

@@ -281,29 +281,42 @@ def removeIntersectingKPlanes(master, slave):
     
     master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
 
-    zs = I.getZones(slave)
+    slave_bases = I.getBases(slave)
 
-    slaves = []
+    new_master = master
 
-    for z in zs:
-        smesh = C.getFields(I.__GridCoordinates__, z, api=3)[0]
-        slaves.append(smesh)
+    i = -1
 
-    new_master, new_slaves_and_tags = xcore.removeIntersectingKPlanes(master, slaves)
+    ts = I.newCGNSTree()
 
-    zos = []
+    for slave_base in slave_bases:
+        
+        i = i + 1
 
-    for i in range(len(new_slaves_and_tags)):
-        new_slave, tag = new_slaves_and_tags[i]
-        zname = zs[i][0]
-        zo = I.createZoneNode(zname, new_slave)
-        cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
-        I.newDataArray("tag", value=tag, parent=cont)
-        zos.append(zo)
-    
+        zs = I.getZones(slave_base)
+
+        slaves = []
+
+        for z in zs:
+            smesh = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+            slaves.append(smesh)
+
+        new_master, new_slaves_and_tags = xcore.removeIntersectingKPlanes(new_master, slaves)
+
+        #zos = []
+
+        new_base = I.newCGNSBase('slave'+str(i), 3, 3, parent=ts)
+
+        for i in range(len(new_slaves_and_tags)):
+            new_slave, tag = new_slaves_and_tags[i]
+            zname = zs[i][0]
+            zo = I.createZoneNode(zname, new_slave)
+            cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
+            I.newDataArray("tag", value=tag, parent=cont)
+            I.addChild(new_base, zo)
+
+
     zmo = I.createZoneNode("master", new_master)
- 
-    ts = C.newPyTree(["Projected_struct", zos])
     tm = C.newPyTree(["Triangle_master", zmo])
 
     return tm, ts
