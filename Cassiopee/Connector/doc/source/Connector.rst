@@ -941,7 +941,7 @@ Immersed boundary (IBM) pre-processing
 
 ------------------------------------------------------------------------------------------------
 
-.. py:function:: Connector.ToolboxIBM.prepareIBMData(t, tb, DEPTH=2, loc='centers', frontType=1)
+.. py:function:: Connector.ToolboxIBM.prepareIBMData_legacy(t, tb, DEPTH=2, loc='centers', frontType=1)
 
     Compute and store all the information required for IBM computations. 
     For Euler computations, corrected points are inside body, for viscous computations,

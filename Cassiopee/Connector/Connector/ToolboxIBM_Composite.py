@@ -44,7 +44,7 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
         base = tb[2][nob]
         if base[3] == 'CGNSBase_t':
             basename = base[0]
-            res = generateIBMMesh(base, vmin, snears, dfarloc, DEPTH=DEPTH, NP=NP, tbox=None, snearsf=None, 
+            res = generateIBMMesh_legacy(base, vmin, snears, dfarloc, DEPTH=DEPTH, NP=NP, tbox=None, snearsf=None, 
                                   check=check, merged=merged, symmetry=symmetry, sizeMax=sizeMax, externalBCType='BCDummy', to=None, 
                                   composite=1, mergeByParents=False)
 
@@ -78,7 +78,7 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
             blankingBoxL = P.exteriorFaces(blankingBoxL)
             tblank[2][nob][2]=[blankingBoxL]
     
-    tcart = generateIBMMesh(tov, vmin, snearsExt, dfar, DEPTH=DEPTH, NP=NP, tbox=tbox, 
+    tcart = generateIBMMesh_legacy(tov, vmin, snearsExt, dfar, DEPTH=DEPTH, NP=NP, tbox=tbox, 
                             snearsf=snearsf, check=check, merged=1, sizeMax=sizeMax, 
                             symmetry=symmetry, externalBCType='BCFarfield', to=None, mergeByParents=True)
     tcart[2][1][0] = 'OffBody'
@@ -109,7 +109,7 @@ def prepareCompositeIBMData(t,tb, DEPTH=2, loc='centers', frontType=1):
             tloc = C.newPyTree([basename]); tloc[2][1]=t[2][nob]
             tbloc = C.newPyTree([basename]); tbloc[2][1]=tb[2][nob]
             # prepro IBM + interpolation entre blocs internes
-            tloc,tcloc=prepareIBMData(tloc,tbloc,DEPTH=DEPTH, loc=loc, frontType=frontType, interp='composite')
+            tloc,tcloc=prepareIBMData_legacy(tloc,tbloc,DEPTH=DEPTH, loc=loc, frontType=frontType, interp='composite')
             C._cpVars(tloc,'centers:cellN',tcloc,'cellN')
             tc[2][nob][2]+=Internal.getZones(tcloc)
             Internal._rmNodesFromType(t[2][nob],"Zone_t")            

@@ -12,7 +12,7 @@ D_IBM._setDfar(tb, 10.)
 D_IBM._setIBCType(tb, 'Musker')
 C._addState(tb, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, EquationDimension=2, GoverningEquations='NSTurbulent')
 
-a, ac = X_IBM.prepareIBMDataPara(tb, t_out=None, tc_out=None, vmin=21, frontType=1, check=False)
+a, ac = X_IBM.prepareIBMData(tb, t_out=None, tc_out=None, vmin=21, frontType=1, check=False)
 
 ac = P_IBM.extractPressureGradients(a, ac, secondOrder=True)
 
