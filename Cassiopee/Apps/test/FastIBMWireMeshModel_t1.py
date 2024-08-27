@@ -42,7 +42,7 @@ dfars      = 5
 snears    = 1
 vmin      = 11
 
-t,tc = X_IBM.prepareIBMDataPara(tb               , None       , None     , tbox=tboffset,      
+t,tc = X_IBM.prepareIBMData(tb               , None       , None     , tbox=tboffset,      
                                 snears=snears    , dfars=dfars  , vmin=vmin, 
                                 check=False      , frontType=1)
 

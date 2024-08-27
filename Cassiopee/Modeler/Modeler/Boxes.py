@@ -192,6 +192,23 @@ def ellipseSpikes2D(Pmin, Pmax, r=0.1, fill=True):
 # skysphere
 def skySphere(Xc=(0,0,0), R=1.):
     a = D.sphere(Xc, R, N=30)
-    # build _u_ _v_
+    a = T.rotate(a, Xc, (0,1,0), -90.)
+    a = T.reorder(a, (-1,2,3))
     a = D.getUVFromIJ(a)
     return a
+
+# half skysphere
+def halfSkySphere(Xc=(0,0,0), R=1.):
+    a = D.sphere(Xc, R, N=31)
+    a = T.rotate(a, Xc, (0,1,0), -90.)
+    a = T.reorder(a, (-1,2,3))
+    a = D.getUVFromIJ(a)
+    a = T.subzone(a, (16,1,1), (-1,-1,-1))
+    b = D.circle(Xc, R)
+    b = G.T3mesher2D(b, grading=1.)
+    b = T.translate(b, (0,0,Xc[2]))
+    b = C.initVars(b, '_u_ = {x}/%11.16g + 0.5'%(2*R))
+    b = C.initVars(b, '_v_ = {y}/%11.16g + 0.5'%(2*R))
+    #b = C.initVars(b, '_u_ = 0.5')
+    #b = C.initVars(b, '_v_ = 0.5')
+    return [a,b]

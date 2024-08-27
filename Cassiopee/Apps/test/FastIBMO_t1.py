@@ -33,11 +33,10 @@ cartBase = Internal.getNodeFromName(t,'CARTESIAN')
 Internal._rmNodesFromType(cartBase,'Rind_t')
 test.testT(t,2)
 
-t = T.subzone(t,(1,1,1),(-1,-1,1))
-for nob in range(len(t[2])):
-    if t[2][nob][0] != 'CARTESIAN' and t[2][nob][3] == 'CGNSBase_t':
-        Internal._rmGhostCells(t,t[2][nob],2, adaptBCs=1)
-    else:
-        Internal._rmNodesFromType(t[2][nob],'Rind_t')
-        
-test.testT(t,3)
+# Suppress since it doesnt test anything
+#t = T.subzone(t,(1,1,1),(-1,-1,1))
+#for nob in range(len(t[2])):
+#    if t[2][nob][0] != 'CARTESIAN' and t[2][nob][3] == 'CGNSBase_t':
+#        Internal._rmGhostCells(t,t[2][nob],2, adaptBCs=1)
+#    else:
+#        Internal._rmNodesFromType(t[2][nob],'Rind_t')

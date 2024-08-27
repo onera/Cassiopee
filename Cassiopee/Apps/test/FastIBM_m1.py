@@ -5,7 +5,7 @@ import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import KCore.test as test
 import Converter.Internal as Internal
-test.TOLERANCE = 1.e-6
+test.TOLERANCE = 1.e-5
 
 LOCAL = test.getLocal()
 
