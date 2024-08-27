@@ -483,7 +483,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     // Suppression des pointeurs (sauf celui de l'envoi)
     for (E_Int i=0; i < sizeDatas; i++)
     {
-        delete bigBuf[i];
+        delete [] bigBuf[i];
     }
     delete [] bigBuf;
 
@@ -537,15 +537,15 @@ PyObject* K_CONVERTER::waitAll(PyObject* self, PyObject* args)
         MPI_Request* request = (MPI_Request*)packet[0];
         MPI_Wait(request, MPI_STATUS_IGNORE);
         // Suppression du ptr de la requete
-        delete request;
+        delete [] request;
 #endif
 
         char* bufToSend = (char*)packet[1]; 
 
         // Suppression du buffer d'envoi
-        delete bufToSend;
+        delete [] bufToSend;
         // suppresion du paquet
-        delete packet;
+        delete [] packet;
     }
 
     Py_INCREF(Py_None);
@@ -651,7 +651,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             (*typeData)      = *buf      ; buf+=1;
             E_Int* intBuf    = (E_Int*) buf;
             size             = intBuf[0] ; buf+=4;
-            char zoneName[size+1];
+            char* zoneName   = new char[size+1];
             for (E_Int k=0; k<size; k++) { zoneName[k]   = buf[k]; }
             zoneName[size]='\0'; buf += size;
 
@@ -659,7 +659,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             (*typeData)       = *buf      ; buf+=1;
             intBuf            = (E_Int*) buf;
             size              = intBuf[0] ; buf+=4;
-            char zoneDName[size+1];
+            char* zoneDName   = new char[size+1];
             for (E_Int k=0; k<size; k++) { zoneDName[k]   = buf[k]; }
             zoneDName[size]='\0'; buf += size;
 
@@ -733,6 +733,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
+            delete [] zoneName; delete [] zoneDName;
             delete [] indices; delete [] xCoords; delete [] yCoords; delete [] zCoords;
         }
         else if (dataType == 2)
@@ -744,7 +745,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour zoneName (!=char)\n", rank); fflush(stdout);};
             E_Int* intBuf    = (E_Int*) buf;
             size             = intBuf[0] ; buf+=4;
-            char zoneName[size+1];
+            char* zoneName   = new char[size+1];
             for (E_Int k=0; k<size; k++) { zoneName[k]   = buf[k]; }
             zoneName[size]='\0'; buf+=size;
 
@@ -762,7 +763,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
             intBuf               = (E_Int*) buf;
             size                 = intBuf[0] ; buf+=4;
-            char fieldNames[size+1];
+            char* fieldNames     = new char[size+1];
             for (E_Int k=0; k<size; k++) { fieldNames[k]   = buf[k]; }
             fieldNames[size]='\0'; buf+=size;
 
@@ -810,6 +811,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
+            delete [] zoneName; delete [] fieldNames;
             delete [] indices; delete [] fields;
 
         }
@@ -827,7 +829,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
             intBuf               = (E_Int*) buf;
             size                 = intBuf[0] ; buf+=4;
-            char fieldNames[size+1];
+            char* fieldNames     = new char[size+1];
             for (E_Int k=0; k<size; k++) { fieldNames[k] = buf[k]; }
             fieldNames[size] = '\0'; buf += size;
 
@@ -885,7 +887,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
-            delete [] indices; delete [] fields;
+            delete [] indices; delete [] fields; delete [] fieldNames;
         }
 
         delete [] initBuf;
