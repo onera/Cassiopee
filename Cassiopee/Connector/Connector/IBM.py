@@ -83,7 +83,8 @@ def getIBCDName(proposedName):
 def _addOneOverLocally(FileName,oneOver):
     count   = 0
     t_local = C.convertFile2PyTree(FileName)
-    for b in Internal.getBases(t_local):
+    nodes   = Internal.getNodesFromNameAndType(t_local, '*OneOver*', 'CGNSBase_t')
+    for b in nodes:
         Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(b, '.Solver#define')
         Internal._createUniqueChild(n, 'dirx', 'DataArray_t', value=oneOver[count][0])
@@ -184,8 +185,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
                        snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, mode=0,
                        IBCType=1, verbose=True, expand=3,
                        check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
-                       yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
-                       tbOneOver=None):
+                       yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
     
     import Generator.IBM as G_IBM
     import time as python_time
@@ -201,6 +201,12 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         Reynolds = Internal.getValue(Reynolds)
         if Reynolds < 1.e5: frontType = 1
     else: Reynolds = 1.e6
+
+    tbOneOver = None
+    if tbox is not None:
+        tbOneOver = Internal.getNodesFromNameAndType(tbox, '*OneOver*', 'CGNSBase_t') + Internal.getNodesFromNameAndType(tbox, '*KeepF1*', 'CGNSBase_t')
+        tbox      = Internal.rmNodesByName(Internal.rmNodesByName(tbox, '*OneOver*'), '*KeepF1*')
+        if len(Internal.getBases(tbox))==0: tbox=None
 
     if frontType == 42: expand= 4
     
@@ -239,14 +245,13 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     #===================
     # STEP 1 : GENERATE MESH
     #===================
-    listF1save = []
     if t_in is None:
         if verbose: pt0 = python_time.time(); printTimeAndMemory__('generate Cartesian mesh', time=-1)
         test.printMem("Info: prepareIBMDataPara: generate Cartesian mesh [start]")
         t = G_IBM.generateIBMMeshPara(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
                                       snearsf=snearsf, check=check, to=to, ext=depth+1,
                                       expand=expand, dfarDir=dfarDir, mode=mode,
-                                      tbOneOver=tbOneOver, listF1save=listF1save)
+                                      tbOneOver=tbOneOver)
         Internal._rmNodesFromName(tb,"SYM")
 
         if balancing and Cmpi.size > 1: _redispatch__(t=t)
@@ -275,7 +280,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                  Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
                  heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42, listF1save=listF1save,
+                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
                  filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament,
                  isWireModel=isWireModel)
     Cmpi.barrier()
@@ -547,7 +552,7 @@ def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.
 #=========================================================================
 def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., 
                    correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
-                   listF1save=[], filamentBases=[], isFilamentOnly=False, tbFilament=None):
+                   filamentBases=[], isFilamentOnly=False, tbFilament=None):
     
     snear_min = 10e10
     for z in Internal.getZones(tb):
@@ -595,7 +600,9 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
         X._setHoleInterpolatedPoints(t,depth=depth,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
 
         for z in Internal.getZones(t):
-            if z[0] in listF1save: continue
+            if Internal.getNodeFromName(z, 'SaveF1'):
+                #Internal._rmNode(z, Internal.getNodeFromName(z, '.Solver#defineTMP'))
+                continue
             
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
             if yplus > 0.:
@@ -758,20 +765,20 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
     return None
 
 def blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
-                correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., listF1save=[],
+                correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
                 filamentBases=[], isFilamentOnly=False, tbFilament=None, isWireModel=False):
     """Blank the computational tree by IBC bodies for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                  Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
                  heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42, listF1save=listF1save,
+                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
                  filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament, isWireModel=isWireModel)
     return tp
 
 def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
                  correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
-                 listF1save=[], filamentBases=[], isFilamentOnly=False, tbFilament=None, isWireModel=False):
+                 filamentBases=[], isFilamentOnly=False, tbFilament=None, isWireModel=False):
     """Blank the computational tree by IBC bodies for IBM pre-processing."""
     if dimPb == 2:
         T._addkplane(tb)
@@ -787,7 +794,7 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
     _blankingIBM__(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                    Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                    heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                   wallAdaptF42=wallAdaptF42, blankingF42=blankingF42, listF1save=listF1save,
+                   wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
                    filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament)
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
