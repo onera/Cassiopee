@@ -1,4 +1,4 @@
-# - prepareIBMData (pyTree) -
+# - prepareIBMData_legacy (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Connector.ToolboxIBM as IBM
@@ -15,6 +15,6 @@ tb = C.addState(tb, 'EquationDimension',3)
 tb = C.addState(tb, 'GoverningEquations', 'NSTurbulent')
 t = DTW.distance2Walls(t,bodies=tb,loc='centers',type='ortho')
 t = P.computeGrad(t,'centers:TurbulentDistance')
-t,tc=IBM.prepareIBMData(t,tb, DEPTH=2)
+t,tc=IBM.prepareIBMData_legacy(t,tb, DEPTH=2)
 res = IBM.extractIBMInfo(tc)
 C.convertPyTree2File(res,"res.cgns")

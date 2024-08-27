@@ -159,7 +159,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
     #--------------------------------------------------------
     # Generates the full Cartesian mesh
-    t = G_IBM.generateIBMMesh(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
+    t = G_IBM.generateIBMMesh_legacy(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
                              tbox=tbox, snearsf=snearsf, check=check, sizeMax=1000000,
                              expand=expand, dfarDir=dfarDir)
     test.printMem(">>> Build octree full [end]")
@@ -195,7 +195,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     #----------------------------------------
     # Create IBM info
     #----------------------------------------
-    t,tc = X_IBM.prepareIBMData(t, tb, frontType=frontType, interpDataType=0, yplus=yplus, wallAdapt=wallAdapt)
+    t,tc = X_IBM.prepareIBMData_legacy(t, tb, frontType=frontType, interpDataType=0, yplus=yplus, wallAdapt=wallAdapt)
     test.printMem(">>> ibm data [end]")
 
     # arbre donneur

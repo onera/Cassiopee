@@ -39,6 +39,6 @@ DTW._distance2Walls(t, tb, type='ortho', loc='centers')
 # Gradient de distance localise en centres => normales
 t = P.computeGrad(t, 'centers:TurbulentDistance')
 I._initConst(t, MInf=0.2, loc='centers')
-t,tc=IBM.prepareIBMData(t, tb, DEPTH=2, frontType=1)
+t,tc=IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=1)
 z = IBM.extractIBMWallFields(tc, tb=tb, famZones=[famNames[0]])
 test.testT(z,1)

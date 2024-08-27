@@ -1,4 +1,4 @@
-# - prepareIBMData (pyTree) -
+# - prepareIBMData_legacy (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Connector.ToolboxIBM as IBM
@@ -13,7 +13,7 @@ t = C.newPyTree(['Base', a])
 tb = C.newPyTree(['Base', body])
 C._addState(tb, 'EquationDimension', 3)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
-t,tc=IBM.prepareIBMData(t, tb, DEPTH=2, frontType=0)
+t,tc=IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
 test.testT(tc,1)
 # CAS 2D
 N = 21
@@ -24,5 +24,5 @@ tb = C.newPyTree(['Base', body])
 C._addState(tb, 'EquationDimension', 2)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 DEPTH = 2; dimPb = 2; model = 'NSTurbulent'
-t,tc=IBM.prepareIBMData(t, tb, DEPTH=2, frontType=0)
+t,tc=IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
 test.testT(tc,2)

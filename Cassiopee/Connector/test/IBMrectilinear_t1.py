@@ -57,7 +57,7 @@ X_IBM._addOneOverLocally(FileNameOneOver, listOneOver)
 tbOneOver = C.convertFile2PyTree(FileNameOneOver)
 
 ##IBM PREP
-t,tc=X_IBM.prepareIBMDataPara(tb         , None     , None     , tbOneOver=tbOneOver,
+t,tc=X_IBM.prepareIBMData(tb         , None     , None     , tbOneOver=tbOneOver,
                               snears=0.01, dfars=dfar, vmin=vmin)
 os.remove(FileNameOneOver)
 

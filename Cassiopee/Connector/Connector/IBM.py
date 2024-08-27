@@ -98,9 +98,9 @@ def _addOneOverLocally(FileName,oneOver):
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def printTimeAndMemory__(message, time=-1):
     Cmpi.barrier()
-    test.printMem("Info: prepareIBMDataPara: %s [%s]"%(message, 'end' if time > 0 else 'start'))
+    test.printMem("Info: prepareIBMData: %s [%s]"%(message, 'end' if time > 0 else 'start'))
     Cmpi.barrier()
-    if time > 0 and Cmpi.rank == 0: print("Info: prepareIBMDataPara: %s running time = %4.4fs"%(message, time))
+    if time > 0 and Cmpi.rank == 0: print("Info: prepareIBMData: %s running time = %4.4fs"%(message, time))
     Cmpi.barrier()
 
     return None
@@ -180,8 +180,8 @@ def _computeMeshInfo(t):
 
     return None
 
-def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
-                       snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, mode=0,
+def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
+                       snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, octreeMode=0,
                        IBCType=1, verbose=True, expand=3,
                        check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
                        yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
@@ -205,21 +205,21 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     if frontType == 42: expand= 4
     
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    if dimPb is None: raise ValueError('prepareIBMDataPara: EquationDimension is missing in input geometry tree.')
+    if dimPb is None: raise ValueError('prepareIBMData: EquationDimension is missing in input geometry tree.')
     dimPb = Internal.getValue(dimPb)
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.)
     
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
-    if model is None: raise ValueError('prepareIBMDataPara: GoverningEquations is missing in input geometry tree.')
+    if model is None: raise ValueError('prepareIBMData: GoverningEquations is missing in input geometry tree.')
     model = Internal.getValue(model)
 
     ibctypes = Internal.getNodesFromName(tb, 'ibctype')
-    if ibctypes is None: raise ValueError('prepareIBMDataPara: ibc type is missing in input geometry tree.')
+    if ibctypes is None: raise ValueError('prepareIBMData: ibc type is missing in input geometry tree.')
     ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
 
     if model == 'Euler':
         if any(ibc in ['Musker', 'MuskerMob', 'Mafzal', 'Log', 'TBLE', 'TBLE_FULL'] for ibc in ibctypes):
-            raise ValueError("prepareIBMDataPara: governing equations (Euler) not consistent with ibc types %s"%(ibctypes))
+            raise ValueError("prepareIBMData: governing equations (Euler) not consistent with ibc types %s"%(ibctypes))
 
     #===================
     # STEP 0 : GET FILAMENT BODIES
@@ -242,10 +242,10 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     listF1save = []
     if t_in is None:
         if verbose: pt0 = python_time.time(); printTimeAndMemory__('generate Cartesian mesh', time=-1)
-        test.printMem("Info: prepareIBMDataPara: generate Cartesian mesh [start]")
-        t = G_IBM.generateIBMMeshPara(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
+        test.printMem("Info: prepareIBMData: generate Cartesian mesh [start]")
+        t = G_IBM.generateIBMMesh(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
                                       snearsf=snearsf, check=check, to=to, ext=depth+1,
-                                      expand=expand, dfarDir=dfarDir, mode=mode,
+                                      expand=expand, dfarDir=dfarDir, octreeMode=octreeMode,
                                       tbOneOver=tbOneOver, listF1save=listF1save)
         Internal._rmNodesFromName(tb,"SYM")
 
@@ -374,6 +374,9 @@ def _redispatch__(t=None, tc=None, tc2=None, twoFronts=False):
         D2mpi._redispatch(t, verbose=1)
 
     return None
+
+# alias prepareIBMData new version
+prepareIBMDataPara = prepareIBMData
 
 #=========================================================================
 # Compute the wall distance for IBM pre-processing.
@@ -2756,7 +2759,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
 
     return tc
 
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., Lref=1., wallAdapt=None, blankingF42=False, isLBM=False,LBMQ=False,isPrintDebug=False):
+def prepareIBMData_legacy(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., Lref=1., wallAdapt=None, blankingF42=False, isLBM=False,LBMQ=False,isPrintDebug=False):
     tb =  Internal.copyRef(tbody)
 
     # tb: fournit model et dimension
