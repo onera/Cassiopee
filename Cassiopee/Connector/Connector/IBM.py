@@ -250,7 +250,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         test.printMem("Info: prepareIBMData: generate Cartesian mesh [start]")
         t = G_IBM.generateIBMMesh(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
                                       snearsf=snearsf, check=check, to=to, ext=depth+1,
-                                      expand=expand, dfarDir=dfarDir, mode=mode,
+                                      expand=expand, dfarDir=dfarDir, octreeMode=octreeMode,
                                       tbOneOver=tbOneOver)
         Internal._rmNodesFromName(tb,"SYM")
 

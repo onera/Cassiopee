@@ -677,7 +677,7 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
 # main function
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0, 
                         tbox=None, snearsf=None, check=False, to=None,
-                        ext=2, expand=3, mode=0,
+                        ext=2, expand=3, octreeMode=0,
                         tbOneOver=None):
     import KCore.test as test
         # refinementSurfFile: surface meshes describing refinement zones
