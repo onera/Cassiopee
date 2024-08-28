@@ -30,6 +30,7 @@ List of functions
 **-- Prescribed motions**
 
 .. autosummary::
+   :nosignatures:
 
    RigidMotion.PyTree.setPrescribedMotion1
    RigidMotion.PyTree.setPrescribedMotion2
@@ -38,6 +39,7 @@ List of functions
 **-- General functions**
 
 .. autosummary::
+   :nosignatures:
 
    RigidMotion.PyTree.evalPosition
    RigidMotion.PyTree.evalGridSpeed
@@ -312,6 +314,8 @@ General functions
 
     .. literalinclude:: ../build/Examples/RigidMotion/copyGridInit2GridPT.py
 
+
+---------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 2

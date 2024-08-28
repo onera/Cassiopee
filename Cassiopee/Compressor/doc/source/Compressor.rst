@@ -31,12 +31,14 @@ List of functions
 **-- Index field compression**
 
 .. autosummary::
+   :nosignatures:
 
    Compressor.deltaIndex
 
 **-- Object serializer/compression**
 
 .. autosummary::
+   :nosignatures:
 
    Compressor.pack
    Compressor.unpack
@@ -44,6 +46,7 @@ List of functions
 **-- CGNS Zones/tree compression**
 
 .. autosummary::
+   :nosignatures:
 
    Compressor.PyTree.compressCartesian
    Compressor.PyTree.uncompressCartesian
@@ -80,7 +83,8 @@ Index field compression
     .. literalinclude:: ../build/Examples/Compressor/deltaIndex.py
 
 
----------------------------------------
+---------------------------------------------------------------------------
+
 
 Object serialize/compression
 -----------------------------
@@ -99,7 +103,8 @@ Object serialize/compression
     .. literalinclude:: ../build/Examples/Compressor/pack.py
     
 
----------------------------------------
+---------------------------------------------------------------------------
+
 
 .. py:function:: Compressor.unpack(a)
 
@@ -115,7 +120,7 @@ Object serialize/compression
     .. literalinclude:: ../build/Examples/Compressor/unpack.py
 
 
----------------------------------------
+---------------------------------------------------------------------------
 
 
 .. py:function:: Compressor.PyTree.compressCartesian(a)
@@ -134,7 +139,7 @@ Object serialize/compression
 
     .. literalinclude:: ../build/Examples/Compressor/compressCartesianPT.py
 
----------------------------------------
+---------------------------------------------------------------------------
 
 .. py:function:: Compressor.PyTree.uncompressCartesian(a)
 
@@ -150,7 +155,7 @@ Object serialize/compression
     .. literalinclude:: ../build/Examples/Compressor/uncompressCartesianPT.py
 
 
----------------------------------------
+---------------------------------------------------------------------------
 
 
 .. py:function:: Compressor.PyTree.compressCellN(a, varNames=['cellN'])
@@ -170,7 +175,7 @@ Object serialize/compression
     .. literalinclude:: ../build/Examples/Compressor/compressCellNPT.py
 
 
----------------------------------------
+---------------------------------------------------------------------------
 
 
 .. py:function:: Compressor.PyTree.compressCoords(a, tol=1.e-8, ctype=0)
@@ -195,7 +200,8 @@ Object serialize/compression
     .. literalinclude:: ../build/Examples/Compressor/compressCoordsPT.py
 
 
----------------------------------------
+---------------------------------------------------------------------------
+
 
 .. py:function:: Compressor.PyTree.compressFields(a, tol=1.e-8, ctype=0, varNames=None)
 
@@ -220,7 +226,7 @@ Object serialize/compression
 
     .. literalinclude:: ../build/Examples/Compressor/compressFieldsPT.py
 
----------------------------------------
+---------------------------------------------------------------------------
 
 
 .. py:function:: Compressor.PyTree.compressElements(a)
@@ -238,8 +244,8 @@ Object serialize/compression
     .. literalinclude:: ../build/Examples/Compressor/compressElementsPT.py
 
 
+---------------------------------------------------------------------------
 
----------------------------------------
 
 .. py:function:: Compressor.PyTree.compressAll(a)
 
@@ -255,7 +261,7 @@ Object serialize/compression
 
     .. literalinclude:: ../build/Examples/Compressor/compressAllPT.py
 
----------------------------------------
+---------------------------------------------------------------------------
 
 .. py:function:: Compressor.PyTree.uncompressAll(a)
 
@@ -271,7 +277,7 @@ Object serialize/compression
 
     .. literalinclude:: ../build/Examples/Compressor/uncompressAllPT.py
 
----------------------------------------
+---------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 2   

@@ -55,6 +55,7 @@ List of functions
 **-- Setting Snear & Dfar**
 
 .. autosummary::
+   :nosignatures:
 
     Geom.IBM.setSnear
     Geom.IBM.setDfar
@@ -64,6 +65,7 @@ List of functions
 **-- Setting IBC Type**
 
 .. autosummary::
+   :nosignatures:
 
     Geom.IBM.setIBCType
     Geom.IBM.changeIBCType

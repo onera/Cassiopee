@@ -23,6 +23,7 @@ List of functions
 **-- Low level layer**
 
 .. autosummary::
+   :nosignatures:
 
    Converter.Filter.convertFile2SkeletonTree
    Converter.Filter.readNodesFromPaths
@@ -36,6 +37,7 @@ List of functions
 **-- High level layer**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Filter.Handle
     Converter.Filter.Handle.loadSkeleton

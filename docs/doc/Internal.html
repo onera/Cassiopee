@@ -85,68 +85,51 @@ list of pyTree nodes that are the children of this node.</p>
 <p><strong>&#8211; Node tests</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.isTopTree" title="Converter.Internal.isTopTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isTopTree</span></code></a>(node)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.isTopTree" title="Converter.Internal.isTopTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isTopTree</span></code></a></p></td>
 <td><p>Return True if node corresponds to a top tree node (CGSNTree_t).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.isStdNode" title="Converter.Internal.isStdNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isStdNode</span></code></a>(node)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.isStdNode" title="Converter.Internal.isStdNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isStdNode</span></code></a></p></td>
 <td><p>Return 0 if node is a list of standard pyTree nodes, -1 if node is a standard pyTree node, -2 otherwise.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.typeOfNode" title="Converter.Internal.typeOfNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.typeOfNode</span></code></a>(node)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.typeOfNode" title="Converter.Internal.typeOfNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.typeOfNode</span></code></a></p></td>
 <td><p>Return the type of node as an integer.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.isType" title="Converter.Internal.isType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isType</span></code></a>(node,&#160;ntype)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.isType" title="Converter.Internal.isType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isType</span></code></a></p></td>
 <td><p>Return True if node is of given type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.isName" title="Converter.Internal.isName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isName</span></code></a>(node,&#160;name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.isName" title="Converter.Internal.isName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isName</span></code></a></p></td>
 <td><p>Return True if node has given name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.isValue" title="Converter.Internal.isValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isValue</span></code></a>(node,&#160;value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.isValue" title="Converter.Internal.isValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isValue</span></code></a></p></td>
 <td><p>Return True if node has given value.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.isChild" title="Converter.Internal.isChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isChild</span></code></a>(start,&#160;node)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.isChild" title="Converter.Internal.isChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.isChild</span></code></a></p></td>
 <td><p>Return True if node is a child of node start.</p></td>
-</tr>
-</tbody>
-</table>
-<p><strong>&#8211; Adapt NGON meshes</strong></p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.adaptNGon32NGon4" title="Converter.Internal.adaptNGon32NGon4"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptNGon32NGon4</span></code></a>(t[,&#160;shiftPE])</p></td>
-<td><p>Adapts an NGON mesh from the CGNSv3 standard to the CGNSv4 standard</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.adaptNGon42NGon3" title="Converter.Internal.adaptNGon42NGon3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptNGon42NGon3</span></code></a>(t[,&#160;...])</p></td>
-<td><p>Adapts an NGON mesh from the CGNSv4 standard to the CGNSv3 standard.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.adaptNFace2PE" title="Converter.Internal.adaptNFace2PE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptNFace2PE</span></code></a>(t[,&#160;...])</p></td>
-<td><p>Creates ParentElement arrays from NFaceElement nodes in each zone.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.adaptPE2NFace" title="Converter.Internal.adaptPE2NFace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptPE2NFace</span></code></a>(t[,&#160;remove])</p></td>
-<td><p>Creates NFaceElements nodes from ParentElements arrays in each zone.</p></td>
 </tr>
 </tbody>
 </table>
 <p><strong>&#8211; Set/create generic nodes</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.setName" title="Converter.Internal.setName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.setName</span></code></a>(node,&#160;name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.setName" title="Converter.Internal.setName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.setName</span></code></a></p></td>
 <td><p>Set name in node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.setType" title="Converter.Internal.setType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.setType</span></code></a>(node,&#160;ntype)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.setType" title="Converter.Internal.setType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.setType</span></code></a></p></td>
 <td><p>Set type in node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.setValue" title="Converter.Internal.setValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.setValue</span></code></a>(node[,&#160;value])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.setValue" title="Converter.Internal.setValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.setValue</span></code></a></p></td>
 <td><p>Set given value in node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.createNode" title="Converter.Internal.createNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.createNode</span></code></a>(name,&#160;ntype[,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.createNode" title="Converter.Internal.createNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.createNode</span></code></a></p></td>
 <td><p>Create a pyTree node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.addChild" title="Converter.Internal.addChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.addChild</span></code></a>(node,&#160;child[,&#160;pos])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.addChild" title="Converter.Internal.addChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.addChild</span></code></a></p></td>
 <td><p>Add a child node to node's children.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.createChild" title="Converter.Internal.createChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.createChild</span></code></a>(node,&#160;name,&#160;ntype)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.createChild" title="Converter.Internal.createChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.createChild</span></code></a></p></td>
 <td><p>Create a node and attach it to node's children.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.createUniqueChild" title="Converter.Internal.createUniqueChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.createUniqueChild</span></code></a>(node,&#160;...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.createUniqueChild" title="Converter.Internal.createUniqueChild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.createUniqueChild</span></code></a></p></td>
 <td><p>Create a unique child in node's children.</p></td>
 </tr>
 </tbody>
@@ -154,106 +137,106 @@ list of pyTree nodes that are the children of this node.</p>
 <p><strong>&#8211; Access nodes</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getName" title="Converter.Internal.getName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getName</span></code></a>(node)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getName" title="Converter.Internal.getName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getName</span></code></a></p></td>
 <td><p>Return node name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getType" title="Converter.Internal.getType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getType</span></code></a>(node)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getType" title="Converter.Internal.getType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getType</span></code></a></p></td>
 <td><p>Return node type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getChildren" title="Converter.Internal.getChildren"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getChildren</span></code></a>(node)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getChildren" title="Converter.Internal.getChildren"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getChildren</span></code></a></p></td>
 <td><p>Return children list of a node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getValue" title="Converter.Internal.getValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getValue</span></code></a>(node)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getValue" title="Converter.Internal.getValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getValue</span></code></a></p></td>
 <td><p>Return the value of a node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getVal" title="Converter.Internal.getVal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getVal</span></code></a>(node)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getVal" title="Converter.Internal.getVal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getVal</span></code></a></p></td>
 <td><p>Return the value of a node always as a numpy.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getPath" title="Converter.Internal.getPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPath</span></code></a>(t,&#160;node[,&#160;pyCGNSLike])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getPath" title="Converter.Internal.getPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPath</span></code></a></p></td>
 <td><p>Return the path of node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getNodesFromName" title="Converter.Internal.getNodesFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodesFromName</span></code></a>(t,&#160;name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getNodesFromName" title="Converter.Internal.getNodesFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodesFromName</span></code></a></p></td>
 <td><p>Return a list of nodes matching given name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodeFromName" title="Converter.Internal.getNodeFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodeFromName</span></code></a>(t,&#160;name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodeFromName" title="Converter.Internal.getNodeFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodeFromName</span></code></a></p></td>
 <td><p>Return the first matching node with given name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getByName" title="Converter.Internal.getByName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getByName</span></code></a>(t,&#160;name[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getByName" title="Converter.Internal.getByName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getByName</span></code></a></p></td>
 <td><p>Return a standard node containing the list of matching name nodes as children.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getChildFromName" title="Converter.Internal.getChildFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getChildFromName</span></code></a>(node,&#160;name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getChildFromName" title="Converter.Internal.getChildFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getChildFromName</span></code></a></p></td>
 <td><p>Return the first child of given name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getNodesFromType" title="Converter.Internal.getNodesFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodesFromType</span></code></a>(t,&#160;ntype)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getNodesFromType" title="Converter.Internal.getNodesFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodesFromType</span></code></a></p></td>
 <td><p>Return a list of nodes matching given type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodeFromType" title="Converter.Internal.getNodeFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodeFromType</span></code></a>(t,&#160;ntype)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodeFromType" title="Converter.Internal.getNodeFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodeFromType</span></code></a></p></td>
 <td><p>Return the first matching node with given type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getByType" title="Converter.Internal.getByType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getByType</span></code></a>(t,&#160;ntype[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getByType" title="Converter.Internal.getByType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getByType</span></code></a></p></td>
 <td><p>Return a standard node containing the list of matching type nodes as children.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getChildFromType" title="Converter.Internal.getChildFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getChildFromType</span></code></a>(node,&#160;ntype)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getChildFromType" title="Converter.Internal.getChildFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getChildFromType</span></code></a></p></td>
 <td><p>Return the first child of given type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getChildrenFromType" title="Converter.Internal.getChildrenFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getChildrenFromType</span></code></a>(node,&#160;...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getChildrenFromType" title="Converter.Internal.getChildrenFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getChildrenFromType</span></code></a></p></td>
 <td><p>Return the children nodes of given type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodesFromNameAndType" title="Converter.Internal.getNodesFromNameAndType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodesFromNameAndType</span></code></a>(t,&#160;...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodesFromNameAndType" title="Converter.Internal.getNodesFromNameAndType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodesFromNameAndType</span></code></a></p></td>
 <td><p>Return a list of nodes matching given name and type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getNodeFromNameAndType" title="Converter.Internal.getNodeFromNameAndType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodeFromNameAndType</span></code></a>(t,&#160;...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getNodeFromNameAndType" title="Converter.Internal.getNodeFromNameAndType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodeFromNameAndType</span></code></a></p></td>
 <td><p>Return the first matching node with given name and type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodesFromValue" title="Converter.Internal.getNodesFromValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodesFromValue</span></code></a>(t,&#160;value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodesFromValue" title="Converter.Internal.getNodesFromValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodesFromValue</span></code></a></p></td>
 <td><p>Return a list of nodes matching given value.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getParentOfNode" title="Converter.Internal.getParentOfNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getParentOfNode</span></code></a>(t,&#160;node)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getParentOfNode" title="Converter.Internal.getParentOfNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getParentOfNode</span></code></a></p></td>
 <td><p>Return the parent of given node in t.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getParentFromType" title="Converter.Internal.getParentFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getParentFromType</span></code></a>(start,&#160;...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getParentFromType" title="Converter.Internal.getParentFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getParentFromType</span></code></a></p></td>
 <td><p>Return the first parent node matching type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getParentsFromType" title="Converter.Internal.getParentsFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getParentsFromType</span></code></a>(start,&#160;...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getParentsFromType" title="Converter.Internal.getParentsFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getParentsFromType</span></code></a></p></td>
 <td><p>Return all parent nodes matching type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodePosition" title="Converter.Internal.getNodePosition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodePosition</span></code></a>(node,&#160;parent)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getNodePosition" title="Converter.Internal.getNodePosition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodePosition</span></code></a></p></td>
 <td><p>Return the position of node in parent children list.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getNodeFromPath" title="Converter.Internal.getNodeFromPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodeFromPath</span></code></a>(t,&#160;path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getNodeFromPath" title="Converter.Internal.getNodeFromPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getNodeFromPath</span></code></a></p></td>
 <td><p>Return a node from a path.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getPathsFromName" title="Converter.Internal.getPathsFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathsFromName</span></code></a>(node,&#160;name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getPathsFromName" title="Converter.Internal.getPathsFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathsFromName</span></code></a></p></td>
 <td><p>Return a list of paths corresponding to a given name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getPathsFromType" title="Converter.Internal.getPathsFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathsFromType</span></code></a>(node,&#160;ntype)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getPathsFromType" title="Converter.Internal.getPathsFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathsFromType</span></code></a></p></td>
 <td><p>Return a list of paths corresponding to a given type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getPathsFromValue" title="Converter.Internal.getPathsFromValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathsFromValue</span></code></a>(node,&#160;value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getPathsFromValue" title="Converter.Internal.getPathsFromValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathsFromValue</span></code></a></p></td>
 <td><p>Return a list of paths corresponding to a given value.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getPathLeaf" title="Converter.Internal.getPathLeaf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathLeaf</span></code></a>(path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getPathLeaf" title="Converter.Internal.getPathLeaf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathLeaf</span></code></a></p></td>
 <td><p>Return end of path.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getPathAncestor" title="Converter.Internal.getPathAncestor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathAncestor</span></code></a>(path[,&#160;level])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getPathAncestor" title="Converter.Internal.getPathAncestor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getPathAncestor</span></code></a></p></td>
 <td><p>Return the path ancestor of path.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getZonePaths" title="Converter.Internal.getZonePaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZonePaths</span></code></a>(t[,&#160;pyCGNSLike])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getZonePaths" title="Converter.Internal.getZonePaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZonePaths</span></code></a></p></td>
 <td><p>Return the list of paths of zones.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getZones" title="Converter.Internal.getZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZones</span></code></a>(t)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getZones" title="Converter.Internal.getZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZones</span></code></a></p></td>
 <td><p>Return a list of all Zone_t nodes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getZonesPerIteration" title="Converter.Internal.getZonesPerIteration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZonesPerIteration</span></code></a>(t[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getZonesPerIteration" title="Converter.Internal.getZonesPerIteration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZonesPerIteration</span></code></a></p></td>
 <td><p>Return zones for given iteration of time.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getBases" title="Converter.Internal.getBases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getBases</span></code></a>(t)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getBases" title="Converter.Internal.getBases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getBases</span></code></a></p></td>
 <td><p>Return a list of all CGNSBase_t nodes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getZoneDim" title="Converter.Internal.getZoneDim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZoneDim</span></code></a>(zone)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getZoneDim" title="Converter.Internal.getZoneDim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZoneDim</span></code></a></p></td>
 <td><p>Return dimension information from a Zone_t node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getZoneType" title="Converter.Internal.getZoneType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZoneType</span></code></a>(zone)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getZoneType" title="Converter.Internal.getZoneType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZoneType</span></code></a></p></td>
 <td><p>Return 1 for structured zones, 2 for unstructured zones.</p></td>
 </tr>
 </tbody>
@@ -261,16 +244,16 @@ list of pyTree nodes that are the children of this node.</p>
 <p><strong>&#8211; Check nodes</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.printTree" title="Converter.Internal.printTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.printTree</span></code></a>(node[,&#160;file,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.printTree" title="Converter.Internal.printTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.printTree</span></code></a></p></td>
 <td><p>Pretty print a pyTree node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getSizeOf" title="Converter.Internal.getSizeOf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getSizeOf</span></code></a>(a)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getSizeOf" title="Converter.Internal.getSizeOf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getSizeOf</span></code></a></p></td>
 <td><p>Return the size of a in octets.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.checkPyTree" title="Converter.Internal.checkPyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.checkPyTree</span></code></a>(t[,&#160;level])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.checkPyTree" title="Converter.Internal.checkPyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.checkPyTree</span></code></a></p></td>
 <td><p>Check pyTree conformity.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.correctPyTree" title="Converter.Internal.correctPyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.correctPyTree</span></code></a>(t[,&#160;level])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.correctPyTree" title="Converter.Internal.correctPyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.correctPyTree</span></code></a></p></td>
 <td><p>Correct a pyTree.</p></td>
 </tr>
 </tbody>
@@ -278,16 +261,16 @@ list of pyTree nodes that are the children of this node.</p>
 <p><strong>&#8211; Copy nodes</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.copyRef" title="Converter.Internal.copyRef"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyRef</span></code></a>(node)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.copyRef" title="Converter.Internal.copyRef"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyRef</span></code></a></p></td>
 <td><p>Copy a tree sharing node values.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.copyTree" title="Converter.Internal.copyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyTree</span></code></a>(node[,&#160;order])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.copyTree" title="Converter.Internal.copyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyTree</span></code></a></p></td>
 <td><p>Fully copy a tree.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.copyValue" title="Converter.Internal.copyValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyValue</span></code></a>(node[,&#160;byName,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.copyValue" title="Converter.Internal.copyValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyValue</span></code></a></p></td>
 <td><p>Copy the value of nodes specified by byName or byType string.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.copyNode" title="Converter.Internal.copyNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyNode</span></code></a>(node)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.copyNode" title="Converter.Internal.copyNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyNode</span></code></a></p></td>
 <td><p>Copy only this node (no recursion).</p></td>
 </tr>
 </tbody>
@@ -295,28 +278,28 @@ list of pyTree nodes that are the children of this node.</p>
 <p><strong>&#8211; Add/remove/move nodes</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.append" title="Converter.Internal.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.append</span></code></a>(t,&#160;node,&#160;path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.append" title="Converter.Internal.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.append</span></code></a></p></td>
 <td><p>Append a node to t specifying its path in t.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.rmNode" title="Converter.Internal.rmNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNode</span></code></a>(t,&#160;node)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.rmNode" title="Converter.Internal.rmNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNode</span></code></a></p></td>
 <td><p>Remove given node from t.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.rmNodeByPath" title="Converter.Internal.rmNodeByPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodeByPath</span></code></a>(t,&#160;path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.rmNodeByPath" title="Converter.Internal.rmNodeByPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodeByPath</span></code></a></p></td>
 <td><p>Remove node by specifying its path.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.rmNodesByName" title="Converter.Internal.rmNodesByName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodesByName</span></code></a>(t,&#160;name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.rmNodesByName" title="Converter.Internal.rmNodesByName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodesByName</span></code></a></p></td>
 <td><p>Remove nodes of given name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.rmNodesByType" title="Converter.Internal.rmNodesByType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodesByType</span></code></a>(t,&#160;ntype)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.rmNodesByType" title="Converter.Internal.rmNodesByType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodesByType</span></code></a></p></td>
 <td><p>Remove nodes of given type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.rmNodesByNameAndType" title="Converter.Internal.rmNodesByNameAndType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodesByNameAndType</span></code></a>(t,&#160;...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.rmNodesByNameAndType" title="Converter.Internal.rmNodesByNameAndType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodesByNameAndType</span></code></a></p></td>
 <td><p>Remove nodes of that match given name and given type at the same time.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.rmNodesByValue" title="Converter.Internal.rmNodesByValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodesByValue</span></code></a>(t,&#160;value)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.rmNodesByValue" title="Converter.Internal.rmNodesByValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.rmNodesByValue</span></code></a></p></td>
 <td><p>Remove nodes that patch given value.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.moveNodeFromPaths" title="Converter.Internal.moveNodeFromPaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.moveNodeFromPaths</span></code></a>(t,&#160;...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.moveNodeFromPaths" title="Converter.Internal.moveNodeFromPaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.moveNodeFromPaths</span></code></a></p></td>
 <td><p>Move a node from path1 to path2.</p></td>
 </tr>
 </tbody>
@@ -324,19 +307,19 @@ list of pyTree nodes that are the children of this node.</p>
 <p><strong>&#8211; Modify nodes</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.merge" title="Converter.Internal.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.merge</span></code></a>(A[,&#160;pathList])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.merge" title="Converter.Internal.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.merge</span></code></a></p></td>
 <td><p>Merge a list of pyTrees in one.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.renameNode" title="Converter.Internal.renameNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.renameNode</span></code></a>(t,&#160;name,&#160;newName)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.renameNode" title="Converter.Internal.renameNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.renameNode</span></code></a></p></td>
 <td><p>Rename nodes (propagating changes).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.sortByName" title="Converter.Internal.sortByName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.sortByName</span></code></a>(t[,&#160;recursive])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.sortByName" title="Converter.Internal.sortByName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.sortByName</span></code></a></p></td>
 <td><p>Sort nodes by their names (alphabetical order).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.appendBaseName2ZoneName" title="Converter.Internal.appendBaseName2ZoneName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.appendBaseName2ZoneName</span></code></a>(t)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.appendBaseName2ZoneName" title="Converter.Internal.appendBaseName2ZoneName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.appendBaseName2ZoneName</span></code></a></p></td>
 <td><p>Append base name to all zone names.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.groupBCByBCType" title="Converter.Internal.groupBCByBCType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.groupBCByBCType</span></code></a>(t[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.groupBCByBCType" title="Converter.Internal.groupBCByBCType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.groupBCByBCType</span></code></a></p></td>
 <td><p>Tag all BCs of given type with family named FamilyName.</p></td>
 </tr>
 </tbody>
@@ -344,188 +327,205 @@ list of pyTree nodes that are the children of this node.</p>
 <p><strong>&#8211; Create specific CGNS nodes</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newCGNSTree" title="Converter.Internal.newCGNSTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newCGNSTree</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newCGNSTree" title="Converter.Internal.newCGNSTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newCGNSTree</span></code></a></p></td>
 <td><p>Create a new pyTree.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newCGNSBase" title="Converter.Internal.newCGNSBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newCGNSBase</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newCGNSBase" title="Converter.Internal.newCGNSBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newCGNSBase</span></code></a></p></td>
 <td><p>Create a new Base node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZone" title="Converter.Internal.newZone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZone</span></code></a>([name,&#160;zsize,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZone" title="Converter.Internal.newZone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZone</span></code></a></p></td>
 <td><p>Create a new Zone node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGridCoordinates" title="Converter.Internal.newGridCoordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridCoordinates</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGridCoordinates" title="Converter.Internal.newGridCoordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridCoordinates</span></code></a></p></td>
 <td><p>Create a GridCoordinates node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newDataArray" title="Converter.Internal.newDataArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDataArray</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newDataArray" title="Converter.Internal.newDataArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDataArray</span></code></a></p></td>
 <td><p>Create a new DataArray node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newDataClass" title="Converter.Internal.newDataClass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDataClass</span></code></a>([value,&#160;parent])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newDataClass" title="Converter.Internal.newDataClass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDataClass</span></code></a></p></td>
 <td><p>Create a new DataClass node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newDimensionalUnits" title="Converter.Internal.newDimensionalUnits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDimensionalUnits</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newDimensionalUnits" title="Converter.Internal.newDimensionalUnits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDimensionalUnits</span></code></a></p></td>
 <td><p>Create a new DimensionalUnits node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newDimensionalExponents" title="Converter.Internal.newDimensionalExponents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDimensionalExponents</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newDimensionalExponents" title="Converter.Internal.newDimensionalExponents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDimensionalExponents</span></code></a></p></td>
 <td><p>Create a new DimensionalExponents node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newDataConversion" title="Converter.Internal.newDataConversion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDataConversion</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newDataConversion" title="Converter.Internal.newDataConversion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDataConversion</span></code></a></p></td>
 <td><p>Create a new DataConversion node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newDescriptor" title="Converter.Internal.newDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDescriptor</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newDescriptor" title="Converter.Internal.newDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDescriptor</span></code></a></p></td>
 <td><p>Create a new Descriptor node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGridLocation" title="Converter.Internal.newGridLocation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridLocation</span></code></a>([value,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGridLocation" title="Converter.Internal.newGridLocation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridLocation</span></code></a></p></td>
 <td><p>Create a new GridLocation node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newIndexArray" title="Converter.Internal.newIndexArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newIndexArray</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newIndexArray" title="Converter.Internal.newIndexArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newIndexArray</span></code></a></p></td>
 <td><p>Create a new IndexArray node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newPointList" title="Converter.Internal.newPointList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newPointList</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newPointList" title="Converter.Internal.newPointList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newPointList</span></code></a></p></td>
 <td><p>Create a new PointList node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newPointRange" title="Converter.Internal.newPointRange"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newPointRange</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newPointRange" title="Converter.Internal.newPointRange"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newPointRange</span></code></a></p></td>
 <td><p>Create a new PointRange node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newRind" title="Converter.Internal.newRind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newRind</span></code></a>([value,&#160;parent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newRind" title="Converter.Internal.newRind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newRind</span></code></a></p></td>
 <td><p>Create a new Rind node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newSimulationType" title="Converter.Internal.newSimulationType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newSimulationType</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newSimulationType" title="Converter.Internal.newSimulationType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newSimulationType</span></code></a></p></td>
 <td><p>Create a new SimulationType node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newOrdinal" title="Converter.Internal.newOrdinal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newOrdinal</span></code></a>([value,&#160;parent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newOrdinal" title="Converter.Internal.newOrdinal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newOrdinal</span></code></a></p></td>
 <td><p>Create a new Ordinal node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newDiscreteData" title="Converter.Internal.newDiscreteData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDiscreteData</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newDiscreteData" title="Converter.Internal.newDiscreteData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newDiscreteData</span></code></a></p></td>
 <td><p>Create a new DiscreteData node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newIntegralData" title="Converter.Internal.newIntegralData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newIntegralData</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newIntegralData" title="Converter.Internal.newIntegralData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newIntegralData</span></code></a></p></td>
 <td><p>Create a new IntegralData node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newElements" title="Converter.Internal.newElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newElements</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newElements" title="Converter.Internal.newElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newElements</span></code></a></p></td>
 <td><p>Create a new Elements node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newParentElements" title="Converter.Internal.newParentElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newParentElements</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newParentElements" title="Converter.Internal.newParentElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newParentElements</span></code></a></p></td>
 <td><p>Create a new ParentElements node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newParentElementsPosition" title="Converter.Internal.newParentElementsPosition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newParentElementsPosition</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newParentElementsPosition" title="Converter.Internal.newParentElementsPosition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newParentElementsPosition</span></code></a></p></td>
 <td><p>Create a new ParentElementsPosition node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZoneBC" title="Converter.Internal.newZoneBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZoneBC</span></code></a>([parent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZoneBC" title="Converter.Internal.newZoneBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZoneBC</span></code></a></p></td>
 <td><p>Create a new ZoneBC node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newBC" title="Converter.Internal.newBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBC</span></code></a>([name,&#160;pointRange,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newBC" title="Converter.Internal.newBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBC</span></code></a></p></td>
 <td><p>Create a new BC node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newBCDataSet" title="Converter.Internal.newBCDataSet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBCDataSet</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newBCDataSet" title="Converter.Internal.newBCDataSet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBCDataSet</span></code></a></p></td>
 <td><p>Create BCDataSet node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newBCData" title="Converter.Internal.newBCData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBCData</span></code></a>([name,&#160;parent])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newBCData" title="Converter.Internal.newBCData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBCData</span></code></a></p></td>
 <td><p>Create a new BCData node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newBCProperty" title="Converter.Internal.newBCProperty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBCProperty</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newBCProperty" title="Converter.Internal.newBCProperty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBCProperty</span></code></a></p></td>
 <td><p>Create BCProperty node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newAxiSymmetry" title="Converter.Internal.newAxiSymmetry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newAxiSymmetry</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newAxiSymmetry" title="Converter.Internal.newAxiSymmetry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newAxiSymmetry</span></code></a></p></td>
 <td><p>Create AxiSymetry node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newRotatingCoordinates" title="Converter.Internal.newRotatingCoordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newRotatingCoordinates</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newRotatingCoordinates" title="Converter.Internal.newRotatingCoordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newRotatingCoordinates</span></code></a></p></td>
 <td><p>Create a new RotatingCoordinates node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newFlowSolution" title="Converter.Internal.newFlowSolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newFlowSolution</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newFlowSolution" title="Converter.Internal.newFlowSolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newFlowSolution</span></code></a></p></td>
 <td><p>Create a new FlowSolution node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZoneGridConnectivity" title="Converter.Internal.newZoneGridConnectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZoneGridConnectivity</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZoneGridConnectivity" title="Converter.Internal.newZoneGridConnectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZoneGridConnectivity</span></code></a></p></td>
 <td><p>Create a new ZoneGridConnectivity node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGridConnectivity1to1" title="Converter.Internal.newGridConnectivity1to1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridConnectivity1to1</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGridConnectivity1to1" title="Converter.Internal.newGridConnectivity1to1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridConnectivity1to1</span></code></a></p></td>
 <td><p>Create a new GridConnectivity1to1 node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGridConnectivity" title="Converter.Internal.newGridConnectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridConnectivity</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGridConnectivity" title="Converter.Internal.newGridConnectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridConnectivity</span></code></a></p></td>
 <td><p>Create a new GridConnectivity node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGridConnectivityType" title="Converter.Internal.newGridConnectivityType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridConnectivityType</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGridConnectivityType" title="Converter.Internal.newGridConnectivityType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridConnectivityType</span></code></a></p></td>
 <td><p>Create a new GridConnectivityType node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGridConnectivityProperty" title="Converter.Internal.newGridConnectivityProperty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridConnectivityProperty</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGridConnectivityProperty" title="Converter.Internal.newGridConnectivityProperty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGridConnectivityProperty</span></code></a></p></td>
 <td><p>Create a new GridConnectivityType node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newPeriodic" title="Converter.Internal.newPeriodic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newPeriodic</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newPeriodic" title="Converter.Internal.newPeriodic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newPeriodic</span></code></a></p></td>
 <td><p>Create a new Periodic node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZoneSubRegion" title="Converter.Internal.newZoneSubRegion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZoneSubRegion</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZoneSubRegion" title="Converter.Internal.newZoneSubRegion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZoneSubRegion</span></code></a></p></td>
 <td><p>Create a new ZoneSubRegion node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newOversetHoles" title="Converter.Internal.newOversetHoles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newOversetHoles</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newOversetHoles" title="Converter.Internal.newOversetHoles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newOversetHoles</span></code></a></p></td>
 <td><p>Create a new OversetHoles node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newFlowEquationSet" title="Converter.Internal.newFlowEquationSet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newFlowEquationSet</span></code></a>([parent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newFlowEquationSet" title="Converter.Internal.newFlowEquationSet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newFlowEquationSet</span></code></a></p></td>
 <td><p>Create a new FlowEquationSet node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGoverningEquations" title="Converter.Internal.newGoverningEquations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGoverningEquations</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGoverningEquations" title="Converter.Internal.newGoverningEquations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGoverningEquations</span></code></a></p></td>
 <td><p>Create a new GoverningEquation node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGasModel" title="Converter.Internal.newGasModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGasModel</span></code></a>([value,&#160;parent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGasModel" title="Converter.Internal.newGasModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGasModel</span></code></a></p></td>
 <td><p>Create a new GasModel node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newThermalConductivityModel" title="Converter.Internal.newThermalConductivityModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newThermalConductivityModel</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newThermalConductivityModel" title="Converter.Internal.newThermalConductivityModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newThermalConductivityModel</span></code></a></p></td>
 <td><p>Create a new ThermalConductivity node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newViscosityModel" title="Converter.Internal.newViscosityModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newViscosityModel</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newViscosityModel" title="Converter.Internal.newViscosityModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newViscosityModel</span></code></a></p></td>
 <td><p>Create a new ViscosityModel node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newTurbulenceClosure" title="Converter.Internal.newTurbulenceClosure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newTurbulenceClosure</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newTurbulenceClosure" title="Converter.Internal.newTurbulenceClosure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newTurbulenceClosure</span></code></a></p></td>
 <td><p>Create a new TurbulenceClosure node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newTurbulenceModel" title="Converter.Internal.newTurbulenceModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newTurbulenceModel</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newTurbulenceModel" title="Converter.Internal.newTurbulenceModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newTurbulenceModel</span></code></a></p></td>
 <td><p>Create a new TurbulenceModel node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newThermalRelaxationModel" title="Converter.Internal.newThermalRelaxationModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newThermalRelaxationModel</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newThermalRelaxationModel" title="Converter.Internal.newThermalRelaxationModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newThermalRelaxationModel</span></code></a></p></td>
 <td><p>Create a new ThermalRelaxationModel node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newChemicalKineticsModel" title="Converter.Internal.newChemicalKineticsModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newChemicalKineticsModel</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newChemicalKineticsModel" title="Converter.Internal.newChemicalKineticsModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newChemicalKineticsModel</span></code></a></p></td>
 <td><p>Create a new ChemicalKineticsModel node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newEMElectricFieldModel" title="Converter.Internal.newEMElectricFieldModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newEMElectricFieldModel</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newEMElectricFieldModel" title="Converter.Internal.newEMElectricFieldModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newEMElectricFieldModel</span></code></a></p></td>
 <td><p>Create a new EMElectricFieldModel node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newEMConductivityModel" title="Converter.Internal.newEMConductivityModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newEMConductivityModel</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newEMConductivityModel" title="Converter.Internal.newEMConductivityModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newEMConductivityModel</span></code></a></p></td>
 <td><p>Create a new EMConductivityModel node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newBaseIterativeData" title="Converter.Internal.newBaseIterativeData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBaseIterativeData</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newBaseIterativeData" title="Converter.Internal.newBaseIterativeData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newBaseIterativeData</span></code></a></p></td>
 <td><p>Create a new BaseIterativeData node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZoneIterativeData" title="Converter.Internal.newZoneIterativeData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZoneIterativeData</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newZoneIterativeData" title="Converter.Internal.newZoneIterativeData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newZoneIterativeData</span></code></a></p></td>
 <td><p>Create a new ZoneIterativeData node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newRigidGridMotion" title="Converter.Internal.newRigidGridMotion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newRigidGridMotion</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newRigidGridMotion" title="Converter.Internal.newRigidGridMotion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newRigidGridMotion</span></code></a></p></td>
 <td><p>Create a new RigidMotion node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newRigidGridMotionType" title="Converter.Internal.newRigidGridMotionType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newRigidGridMotionType</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newRigidGridMotionType" title="Converter.Internal.newRigidGridMotionType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newRigidGridMotionType</span></code></a></p></td>
 <td><p>Create a new RigidGridMotionType node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newReferenceState" title="Converter.Internal.newReferenceState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newReferenceState</span></code></a>([name,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newReferenceState" title="Converter.Internal.newReferenceState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newReferenceState</span></code></a></p></td>
 <td><p>Create a new Reference State node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newConvergenceHistory" title="Converter.Internal.newConvergenceHistory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newConvergenceHistory</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newConvergenceHistory" title="Converter.Internal.newConvergenceHistory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newConvergenceHistory</span></code></a></p></td>
 <td><p>Create a new ConvergenceHistory node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newFamily" title="Converter.Internal.newFamily"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newFamily</span></code></a>([name,&#160;parent])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newFamily" title="Converter.Internal.newFamily"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newFamily</span></code></a></p></td>
 <td><p>Create a new Family node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newFamilyBC" title="Converter.Internal.newFamilyBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newFamilyBC</span></code></a>([value,&#160;parent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newFamilyBC" title="Converter.Internal.newFamilyBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newFamilyBC</span></code></a></p></td>
 <td><p>Create a new FamilyBC node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGeometryReference" title="Converter.Internal.newGeometryReference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGeometryReference</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newGeometryReference" title="Converter.Internal.newGeometryReference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGeometryReference</span></code></a></p></td>
 <td><p>Create a new GeometryReference node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newArbitraryGridMotion" title="Converter.Internal.newArbitraryGridMotion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newArbitraryGridMotion</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newArbitraryGridMotion" title="Converter.Internal.newArbitraryGridMotion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newArbitraryGridMotion</span></code></a></p></td>
 <td><p>Create anew ArbitrayGridMotion node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newUserDefinedData" title="Converter.Internal.newUserDefinedData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newUserDefinedData</span></code></a>([...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.newUserDefinedData" title="Converter.Internal.newUserDefinedData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newUserDefinedData</span></code></a></p></td>
 <td><p>Create a new UserDefinedData node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGravity" title="Converter.Internal.newGravity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGravity</span></code></a>([value,&#160;parent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.newGravity" title="Converter.Internal.newGravity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.newGravity</span></code></a></p></td>
 <td><p>Create a new Gravity node.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Adapt NGON meshes</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.adaptNGon32NGon4" title="Converter.Internal.adaptNGon32NGon4"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptNGon32NGon4</span></code></a></p></td>
+<td><p>Adapts an NGON mesh from the CGNSv3 standard to the CGNSv4 standard</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.adaptNGon42NGon3" title="Converter.Internal.adaptNGon42NGon3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptNGon42NGon3</span></code></a></p></td>
+<td><p>Adapts an NGON mesh from the CGNSv4 standard to the CGNSv3 standard.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.adaptNFace2PE" title="Converter.Internal.adaptNFace2PE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptNFace2PE</span></code></a></p></td>
+<td><p>Creates ParentElement arrays from NFaceElement nodes in each zone.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.adaptPE2NFace" title="Converter.Internal.adaptPE2NFace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptPE2NFace</span></code></a></p></td>
+<td><p>Creates NFaceElements nodes from ParentElements arrays in each zone.</p></td>
 </tr>
 </tbody>
 </table>
@@ -791,155 +791,10 @@ Exists also as isChild1 and isChild2, limited to 1 or 2 recursivity level.</p>
 <span class="c1">#&gt;&gt; False</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>new in version 2.7.</p>
-</div>
 </dd></dl>
 
 </section>
-<section id="adapt-ngon-meshes">
-<h3>Adapt NGON meshes</h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="Converter.Internal.adaptNGon32NGon4">
-<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptNGon32NGon4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard. Exists also as in-place (_adaptNGon32NGon4).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; NGON mesh</p></li>
-<li><p><strong>shiftPE</strong> (<em>boolean</em>) &#8211; if True and Parent Element reference element starting at 0, shift of the total face number.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Same as input</p>
-</dd>
-</dl>
-<p><em>Example of use:</em></p>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/adaptNGon32NGon4PT.py">Adapt a NGON mesh CGNSv3 -&gt; CGNSv4 (pyTree)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptNGon32NGon4 (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
-
-<span class="c1"># NGon (CGNSv3)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-
-<span class="c1"># NGon (CGNSv4)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptNGon32NGon4</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
 <hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Converter.Internal.adaptNGon42NGon3">
-<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptNGon42NGon3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absFace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard. Exists also as in-place (_adaptNGon42NGon3).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; NGON mesh</p></li>
-<li><p><strong>shiftPE</strong> (<em>boolean</em>) &#8211; if True and Parent Element reference element number shifted of the total face number, shift back to get the elements start at 0.</p></li>
-<li><p><strong>absFace</strong> (<em>boolean</em>) &#8211; if True, faces in NFACE are made positive.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Same as input</p>
-</dd>
-</dl>
-<p><em>Example of use:</em></p>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/adaptNGon42NGon3PT.py">Adapt a NGON mesh CGNSv4 -&gt; CGNSv3 (pyTree)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptNGon42NGon3 (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
-
-<span class="c1"># NGon (CGNSv4)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">api</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-
-<span class="c1"># NGon (CGNSv3)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptNGon42NGon3</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Converter.Internal.adaptNFace2PE">
-<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptNFace2PE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Adapts a NGON mesh to create ParentElements arrays from NFaceElements nodes in each zone. Exists also as in-place (_adaptNFace2PE).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; NGON mesh</p></li>
-<li><p><strong>remove</strong> &#8211; if True, removes all NFaceElements nodes</p></li>
-<li><p><strong>shiftPE</strong> (<em>boolean</em>) &#8211; if True, Parent Element reference element shift from the total number of faces.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Same as input</p>
-</dd>
-</dl>
-<p><em>Example of use:</em></p>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/adaptNFace2PEPT.py">Creates ParentElements arrays (pyTree)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptNFace2PE (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-
-<span class="c1"># NGon</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptNFace2PE</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Converter.Internal.adaptPE2NFace">
-<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptPE2NFace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Adapts a NGON mesh to create NFaceElements nodes from ParentElements arrays in each zone. Exists also as in-place (_adaptPE2NFace).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; NGON mesh</p></li>
-<li><p><strong>remove</strong> &#8211; if True, removes all ParentElements arrays</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Same as input</p>
-</dd>
-</dl>
-<p><em>Example of use:</em></p>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/adaptPE2NFacePT.py">Creates NFaceElements nodes (pyTree)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptPE2NFace (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-
-<span class="c1"># NGon</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptNFace2PE</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="n">a</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptPE2NFace</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</section>
 <section id="set-create-generic-nodes">
 <h3>Set/create generic nodes</h3>
 <dl class="py function">
@@ -1224,6 +1079,7 @@ and newly created or modified child node is returned.</p>
 </dd></dl>
 
 </section>
+<hr class="docutils" />
 <section id="acess-nodes">
 <h3>Acess nodes</h3>
 <dl class="py function">
@@ -2197,10 +2053,6 @@ paths are built from node. Wildcards are accepted for name.</p>
 <span class="c1">#&gt;&gt; [&#39;CGNSTree/Base/cart/GridCoordinates/CoordinateX&#39;, &#39;/CGNSTree/Base/cart/GridCoordinates/CoordinateY&#39;, &#39;/CGNSTree/Base/cart/GridCoordinates/CoordinateZ&#39;]</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>new in version 2.5.</p>
-</div>
 </dd></dl>
 
 <hr class="docutils" />
@@ -2282,10 +2134,6 @@ paths are built from node. If value is a string, wildcards are accepted.</p>
 <span class="n">paths</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getPathsFromValue</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;Structured&#39;</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
 <span class="c1">#&gt;&gt; [&#39;CGNSTree/Base/cart/ZoneType&#39;]</span>
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New in version 2.5</p>
 </div>
 </dd></dl>
 
@@ -2600,6 +2448,7 @@ Return 1 if zone is structured, 2 if unstructured, 0 if failed.</p>
 </dd></dl>
 
 </section>
+<hr class="docutils" />
 <section id="check-nodes">
 <h3>Check nodes</h3>
 <dl class="py function">
@@ -2802,6 +2651,7 @@ If level=-20, all previous checks are performed.</p>
 </dd></dl>
 
 </section>
+<hr class="docutils" />
 <section id="copy-nodes">
 <h3>Copy nodes</h3>
 <dl class="py function">
@@ -2951,6 +2801,7 @@ Wildcards are accepted.</p>
 </dd></dl>
 
 </section>
+<hr class="docutils" />
 <section id="add-remove-node">
 <h3>Add/remove node</h3>
 <dl class="py function">
@@ -3270,10 +3121,6 @@ and _rmNodesByType2.</p>
 <dd class="field-odd"><p>same as t</p>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>new in version 3.2.</p>
-</div>
 <p><em>Example of use:</em></p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/moveNodeFromPathsPT.py">Move node from path1 to path2 (pyTree)</a>:</p></li>
@@ -3301,6 +3148,7 @@ and _rmNodesByType2.</p>
 </dd></dl>
 
 </section>
+<hr class="docutils" />
 <section id="modify-nodes">
 <h3>Modify nodes</h3>
 <dl class="py function">
@@ -3542,6 +3390,7 @@ The family node is created and the BC is tagged with BC family.</p>
 </dd></dl>
 
 </section>
+<hr class="docutils" />
 <section id="create-specific-cgns-nodes">
 <h3>Create specific CGNS nodes</h3>
 <dl class="py function">
@@ -6015,6 +5864,150 @@ If parent is not None, attach it to parent node.</p>
 </div>
 </dd></dl>
 
+</section>
+<hr class="docutils" />
+<section id="adapt-ngon-meshes">
+<h3>Adapt NGON meshes</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.adaptNGon32NGon4">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptNGon32NGon4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard. Exists also as in-place (_adaptNGon32NGon4).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; NGON mesh</p></li>
+<li><p><strong>shiftPE</strong> (<em>boolean</em>) &#8211; if True and Parent Element reference element starting at 0, shift of the total face number.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptNGon32NGon4PT.py">Adapt a NGON mesh CGNSv3 -&gt; CGNSv4 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptNGon32NGon4 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="c1"># NGon (CGNSv3)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># NGon (CGNSv4)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptNGon32NGon4</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.adaptNGon42NGon3">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptNGon42NGon3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absFace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard. Exists also as in-place (_adaptNGon42NGon3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; NGON mesh</p></li>
+<li><p><strong>shiftPE</strong> (<em>boolean</em>) &#8211; if True and Parent Element reference element number shifted of the total face number, shift back to get the elements start at 0.</p></li>
+<li><p><strong>absFace</strong> (<em>boolean</em>) &#8211; if True, faces in NFACE are made positive.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptNGon42NGon3PT.py">Adapt a NGON mesh CGNSv4 -&gt; CGNSv3 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptNGon42NGon3 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="c1"># NGon (CGNSv4)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">api</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># NGon (CGNSv3)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptNGon42NGon3</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.adaptNFace2PE">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptNFace2PE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Adapts a NGON mesh to create ParentElements arrays from NFaceElements nodes in each zone. Exists also as in-place (_adaptNFace2PE).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; NGON mesh</p></li>
+<li><p><strong>remove</strong> &#8211; if True, removes all NFaceElements nodes</p></li>
+<li><p><strong>shiftPE</strong> (<em>boolean</em>) &#8211; if True, Parent Element reference element shift from the total number of faces.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptNFace2PEPT.py">Creates ParentElements arrays (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptNFace2PE (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># NGon</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptNFace2PE</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.adaptPE2NFace">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptPE2NFace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Adapts a NGON mesh to create NFaceElements nodes from ParentElements arrays in each zone. Exists also as in-place (_adaptPE2NFace).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; NGON mesh</p></li>
+<li><p><strong>remove</strong> &#8211; if True, removes all ParentElements arrays</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptPE2NFacePT.py">Creates NFaceElements nodes (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptPE2NFace (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># NGon</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptNFace2PE</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptPE2NFace</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
 <div class="toctree-wrapper compound">
 </div>
 </section>

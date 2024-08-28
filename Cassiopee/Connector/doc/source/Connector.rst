@@ -36,6 +36,7 @@ List of functions
 **-- Multiblock connectivity**
 
 .. autosummary::
+   :nosignatures:
 
    Connector.connectMatch
    Connector.PyTree.connectMatchPeriodic   
@@ -45,6 +46,7 @@ List of functions
 **-- Overset grid connectivity**
 
 .. autosummary::
+   :nosignatures:
 
    Connector.blankCells
    Connector.blankCellsTetra
@@ -64,6 +66,7 @@ List of functions
 **-- Overset grid connectivity for elsA solver**
 
 .. autosummary::
+   :nosignatures:
 
    Connector.PyTree.setInterpolations
    Connector.PyTree.chimeraInfo

@@ -55,6 +55,7 @@ List of functions
 **-- Input/output**
 
 .. autosummary::
+   :nosignatures:
 
    Converter.Mpi.convertFile2SkeletonTree
    Converter.Mpi.convertFile2PyTree
@@ -65,6 +66,7 @@ List of functions
 **-- Conversion**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Mpi.convert2PartialTree
     Converter.Mpi.convert2SkeletonTree
@@ -73,6 +75,7 @@ List of functions
 **-- Communication Graphs**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Mpi.getProc
     Converter.Mpi.setProc
@@ -82,6 +85,7 @@ List of functions
 **-- Exchanges**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Mpi.setCommunicator
     Converter.Mpi.addXZones
@@ -91,6 +95,7 @@ List of functions
 **-- Actions**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Mpi.trace
     Converter.Mpi.center2Node
@@ -400,6 +405,7 @@ Graphs
 
     .. literalinclude:: ../build/Examples/Converter/computeGraphPT.py
 
+---------------------------------------------------------------------------
 
 Exchanges
 ------------
@@ -413,6 +419,7 @@ Exchanges
     :type com: MPI communicator
 
 
+---------------------------------------------------------------------------
 
 .. py:function:: Converter.Mpi.addXZones(t, graph)
 
@@ -469,6 +476,10 @@ Exchanges
 
     .. literalinclude:: ../build/Examples/Converter/allgatherTreePT.py
 
+
+---------------------------------------------------------------------------
+
+
 Actions
 -------------
 
@@ -514,6 +525,10 @@ Actions
     * `Perform center2Node for a distributed tree (pyTree) <Examples/Converter/center2NodeMpiPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/center2NodeMpiPT.py
+
+
+---------------------------------------------------------------------------
+
 
 .. toctree::
    :maxdepth: 2   

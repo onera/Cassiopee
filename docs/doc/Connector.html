@@ -62,16 +62,16 @@ pre- and post-processor for CFD simulations.</p>
 <p><strong>&#8211; Multiblock connectivity</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.connectMatch" title="Connector.connectMatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.connectMatch</span></code></a>(a1,&#160;a2[,&#160;sameZone,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.connectMatch" title="Connector.connectMatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.connectMatch</span></code></a></p></td>
 <td><p>Find matching boundaries.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.connectMatchPeriodic" title="Connector.PyTree.connectMatchPeriodic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.connectMatchPeriodic</span></code></a>(t[,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.connectMatchPeriodic" title="Connector.PyTree.connectMatchPeriodic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.connectMatchPeriodic</span></code></a></p></td>
 <td><p>Find periodic matching boundaries.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.connectNearMatch" title="Connector.PyTree.connectNearMatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.connectNearMatch</span></code></a>(t[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.connectNearMatch" title="Connector.PyTree.connectNearMatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.connectNearMatch</span></code></a></p></td>
 <td><p>Find boundaries that matches with a given ratio.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.setDegeneratedBC" title="Connector.PyTree.setDegeneratedBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setDegeneratedBC</span></code></a>(t[,&#160;dim,&#160;tol])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.setDegeneratedBC" title="Connector.PyTree.setDegeneratedBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setDegeneratedBC</span></code></a></p></td>
 <td><p>Find degenerated boundaries (lines).</p></td>
 </tr>
 </tbody>
@@ -79,40 +79,40 @@ pre- and post-processor for CFD simulations.</p>
 <p><strong>&#8211; Overset grid connectivity</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.blankCells" title="Connector.blankCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.blankCells</span></code></a>(coords,&#160;cellnfields,&#160;body)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.blankCells" title="Connector.blankCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.blankCells</span></code></a></p></td>
 <td><p>Blank cells in coords by a X-Ray mask defined by the body, within a distance delta.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.blankCellsTetra" title="Connector.blankCellsTetra"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.blankCellsTetra</span></code></a>(coords,&#160;...[,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.blankCellsTetra" title="Connector.blankCellsTetra"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.blankCellsTetra</span></code></a></p></td>
 <td><p>Blank cells in coords (by setting the cellN to cellnval) falling inside a Tetra Mesh mask defined by meshT4.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.blankCellsTri" title="Connector.blankCellsTri"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.blankCellsTri</span></code></a>(coords,&#160;cellnfields,&#160;...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.blankCellsTri" title="Connector.blankCellsTri"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.blankCellsTri</span></code></a></p></td>
 <td><p>Blank cells in coords (by setting the cellN to cellnval) falling inside a Triangular surface mesh mask defined by meshT3.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.blankIntersectingCells" title="Connector.blankIntersectingCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.blankIntersectingCells</span></code></a>(a,&#160;cellN[,&#160;tol])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.blankIntersectingCells" title="Connector.blankIntersectingCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.blankIntersectingCells</span></code></a></p></td>
 <td><p>Blank intersecting cells in a zone.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.setHoleInterpolatedPoints" title="Connector.setHoleInterpolatedPoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.setHoleInterpolatedPoints</span></code></a>(celln[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.setHoleInterpolatedPoints" title="Connector.setHoleInterpolatedPoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.setHoleInterpolatedPoints</span></code></a></p></td>
 <td><p>Set interpolated points cellN=2 around cellN=0 points.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.optimizeOverlap" title="Connector.optimizeOverlap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.optimizeOverlap</span></code></a>(nodes1,&#160;centers1,&#160;...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.optimizeOverlap" title="Connector.optimizeOverlap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.optimizeOverlap</span></code></a></p></td>
 <td><p>Optimize the overlap of grids defined by nodes1 and nodes2 centers1 and centers2 define the coordinates of cell centers, modified by the double wall algorithm + cellN variable.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.maximizeBlankedCells" title="Connector.maximizeBlankedCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.maximizeBlankedCells</span></code></a>(a[,&#160;depth,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.maximizeBlankedCells" title="Connector.maximizeBlankedCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.maximizeBlankedCells</span></code></a></p></td>
 <td><p>Maximize the blanked region.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.cellN2OversetHoles" title="Connector.PyTree.cellN2OversetHoles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.cellN2OversetHoles</span></code></a>(t[,&#160;append])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.cellN2OversetHoles" title="Connector.PyTree.cellN2OversetHoles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.cellN2OversetHoles</span></code></a></p></td>
 <td><p>Create OversetHole nodes from cellN field.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpData" title="Connector.PyTree.setInterpData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpData</span></code></a>(tR,&#160;tD[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpData" title="Connector.PyTree.setInterpData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpData</span></code></a></p></td>
 <td><p>Compute and store overset interpolation data.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpData2" title="Connector.PyTree.setInterpData2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpData2</span></code></a>(tR,&#160;tD[,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpData2" title="Connector.PyTree.setInterpData2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpData2</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.getOversetInfo" title="Connector.PyTree.getOversetInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.getOversetInfo</span></code></a>(aR,&#160;topTreeD)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.getOversetInfo" title="Connector.PyTree.getOversetInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.getOversetInfo</span></code></a></p></td>
 <td><p>Return information on overset connectivities.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.extractChimeraInfo" title="Connector.PyTree.extractChimeraInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.extractChimeraInfo</span></code></a>(a[,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.extractChimeraInfo" title="Connector.PyTree.extractChimeraInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.extractChimeraInfo</span></code></a></p></td>
 <td><p>Extract interpolated/extrapolated/orphan points as zones.</p></td>
 </tr>
 </tbody>
@@ -120,10 +120,10 @@ pre- and post-processor for CFD simulations.</p>
 <p><strong>&#8211; Overset grid connectivity for elsA solver</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpolations" title="Connector.PyTree.setInterpolations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpolations</span></code></a>(t[,&#160;loc,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpolations" title="Connector.PyTree.setInterpolations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpolations</span></code></a></p></td>
 <td><p>Compute interpolation data for chimera and for elsA solver.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.chimeraInfo" title="Connector.PyTree.chimeraInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.chimeraInfo</span></code></a>(a[,&#160;type])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.chimeraInfo" title="Connector.PyTree.chimeraInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.chimeraInfo</span></code></a></p></td>
 <td><p>Extract Overset information when computed with setInterpolations.</p></td>
 </tr>
 </tbody>
@@ -1649,8 +1649,8 @@ donor zones given by aD.</p>
 
 <hr class="docutils" />
 <dl class="py function">
-<dt class="sig sig-object py" id="Connector.ToolboxIBM.prepareIBMData">
-<span class="sig-prename descclassname"><span class="pre">Connector.ToolboxIBM.</span></span><span class="sig-name descname"><span class="pre">prepareIBMData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DEPTH</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'centers'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frontType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
+<dt class="sig sig-object py" id="Connector.ToolboxIBM.prepareIBMData_legacy">
+<span class="sig-prename descclassname"><span class="pre">Connector.ToolboxIBM.</span></span><span class="sig-name descname"><span class="pre">prepareIBMData_legacy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DEPTH</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'centers'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frontType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Compute and store all the information required for IBM computations.
 For Euler computations, corrected points are inside body, for viscous computations,
 corrected points are outside body.</p>
@@ -1682,7 +1682,7 @@ the fluid region</p></li>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/prepareIBMDataPT.py">compute the IBM preprocessing (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - prepareIBMData (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - prepareIBMData_legacy (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.ToolboxIBM</span> <span class="k">as</span> <span class="nn">IBM</span>
@@ -1698,7 +1698,7 @@ the fluid region</p></li>
 <span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;GoverningEquations&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
 <span class="n">DTW</span><span class="o">.</span><span class="n">_distance2Walls</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">bodies</span><span class="o">=</span><span class="n">tb</span><span class="p">,</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ortho&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">computeGrad</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;centers:TurbulentDistance&#39;</span><span class="p">)</span>
-<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">IBM</span><span class="o">.</span><span class="n">prepareIBMData_legacy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;t.cgns&#39;</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;tc.cgns&#39;</span><span class="p">)</span>
 </pre></div>
@@ -1720,7 +1720,7 @@ as updated points for the IBM approach and the corresponding wall and interpolat
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/extractIBMInfoPT.py">extract all the IBM points (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - prepareIBMData (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - prepareIBMData_legacy (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.ToolboxIBM</span> <span class="k">as</span> <span class="nn">IBM</span>
@@ -1737,7 +1737,7 @@ as updated points for the IBM approach and the corresponding wall and interpolat
 <span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;GoverningEquations&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">DTW</span><span class="o">.</span><span class="n">distance2Walls</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">bodies</span><span class="o">=</span><span class="n">tb</span><span class="p">,</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ortho&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">computeGrad</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;centers:TurbulentDistance&#39;</span><span class="p">)</span>
-<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">IBM</span><span class="o">.</span><span class="n">prepareIBMData_legacy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">IBM</span><span class="o">.</span><span class="n">extractIBMInfo</span><span class="p">(</span><span class="n">tc</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="s2">&quot;res.cgns&quot;</span><span class="p">)</span>
 </pre></div>
