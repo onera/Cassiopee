@@ -178,7 +178,6 @@ def setupMachProbe(t,buffer_size,isRestart,DIRECTORY_PROBES):
     dct_points_for_probes = getPointsFromTree(C.convertFile2PyTree(os.path.join(DIRECTORY_PROBES, "probes.cgns")))
     
     for name, point in dct_points_for_probes.items():
-        print(name,flush=True)
         probe = Probe.Probe(os.path.join(DIRECTORY_PROBES, "probe_{:s}.cgns".format(name)), t, X=point, fields=['centers:Mach'], bufferSize=buffer_size, append=isRestart) 
         dct_probe_point[name] = probe
         
