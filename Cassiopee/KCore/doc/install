@@ -122,4 +122,4 @@ cp build/searchindex.js $DEST
 cp build/genindex.html $DEST
 cp build/py-modindex.html $DEST
 cp build/search.html $DEST
-cp -r build/_sources $DEST
+#cp -r build/_sources $DEST
