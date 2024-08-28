@@ -1,4 +1,5 @@
-# ...
+## test case - Wire Mesh Model 
+import Connector.IBM as X_IBM
 import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
@@ -8,18 +9,53 @@ import Fast.PyTree as Fast
 import FastC.PyTree as FastC
 import FastS.Mpi as FastS
 import Post.PyTree as P
+import Geom.PyTree as D
+import Geom.IBM as D_IBM
+import Geom.Offset as D_Offset
 import numpy
+import os
 
 LOCAL = test.getLocal()
 
 tFile   = LOCAL+'/t_WMM.cgns'
 tcFile  = LOCAL+'/tc_WMM.cgns'
 
-##READING SERIAL & DISTRIBUTING
-App._distribute(tFile, tcFile, NP=Cmpi.size)
+##Geometry - Vertical Line
+tb = Internal.newCGNSTree()
+Internal.newCGNSBase('IBCFil_Base1', 3, 3, parent=tb);
+C._addState(tb, 'EquationDimension', 2)
+C._addState(tb, 'GoverningEquations', 'NSTurbulent')
+C._addState(tb, 'TurbulenceModel', 'OneEquation_SpalartAllmaras')
 
-t       = Fast.loadTree(tFile , split='single', directory=LOCAL, mpirun=True)
+base = Internal.getNodeByName(tb, 'IBCFil_Base1')
+Internal.addChild(base, D.line((-0.09128554453599108,-0.19576248199991644,0), (0.09128554453599105,0.19576248199991644,0),N=800))
+
+uinf         = 69.22970250694424*numpy.cos(4* numpy.pi/180)
+Lcharac      = 0.03362355
+C._addState(tb, adim='dim4', UInf=uinf, TInf=298.15, PInf=101325., LInf=Lcharac,Mus=1.78938e-5)
+D_IBM._setSnear(tb, 0.0025)
+D_IBM._setDfar(tb, 0.75)
+D_IBM._setIBCType(tb, 'wiremodel')
+
+tboffset = D_Offset.offsetSurface(tb, offset=0.025*3, pointsPerUnitLength=400, dim=2)
+D_IBM._setSnear(tboffset, 0.0025)
+tboffset = C.newPyTree(['Base', tboffset])
+    
+##PREP
+dfars     = 5
+snears    = 1
+vmin      = 11
+
+X_IBM.prepareIBMData(tb               , tFile        , tcFile   , tbox=tboffset,      
+                     snears=snears    , dfars=dfars  , vmin=vmin, 
+                     check=True       , frontType=1  , skipRedispatchNonRegression=True)
+App._distribute(tFile, tcFile, NP=Cmpi.size)
+t       = Fast.loadTree(tFile , split='single',  mpirun=True)
 tc,graph= Fast.loadFile(tcFile, split='single',  mpirun=True, graph=True)
+
+if Cmpi.rank == 0:
+    test.testT(t , 1)
+    test.testT(tc, 2)
 
 ##COMPUTE
 NIT                        = 25   # number of iterations 
@@ -78,7 +114,9 @@ if Cmpi.rank == 0:
     Internal._rmNodesByName(tc, '.Solver#Param')
     Internal._rmNodesByName(tc, '.Solver#ownData')
     Internal._rmNodesByName(tc, '.Solver#dtloc')
-    test.testT(t , 1)
-    test.testT(tc, 2)
     
+    test.testT(t , 3)
+    test.testT(tc, 4)
 
+    os.remove(tFile)
+    os.remove(tcFile)
