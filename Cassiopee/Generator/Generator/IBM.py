@@ -760,7 +760,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     if parento is not None:
         for po in parento: del po
     t = C.newPyTree(['CARTESIAN', res])
-    
+
     zones = Internal.getZones(t)
     for z in zones: z[0] = z[0]+'X%d'%Cmpi.rank
     Cmpi._setProc(t, Cmpi.rank)
@@ -794,7 +794,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         if dimPb==2:
             T._addkplane(tbb)
             T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
-        
+
         ## RECTILINEAR REGION
         ## Select regions that need to be coarsened
         tbbB            = G.BB(tbOneOver)
@@ -802,7 +802,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         ## Avoid a zone to be coarsened twice
         for i in interDict_scale:
             (b,btmp) = Internal.getParentOfNode(tbOneOver,Internal.getNodeByName(tbOneOver,i))
-            checkOneOver = Internal.getNodeByName(b,".Solver#define") 
+            checkOneOver = Internal.getNodeByName(b,".Solver#define")
             if checkOneOver:
                 b        = Internal.getNodeByName(b,".Solver#define")
                 oneoverX = int(Internal.getNodeByName(b, 'dirx')[1])
