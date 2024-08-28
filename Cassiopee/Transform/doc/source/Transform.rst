@@ -354,6 +354,8 @@ Basic operations
     .. literalinclude:: ../build/Examples/Transform/patchPT.py
 
 
+---------------------------------------------------------------------------
+
 Mesh positioning
 ------------------------
 

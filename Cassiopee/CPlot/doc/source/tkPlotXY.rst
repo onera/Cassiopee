@@ -74,6 +74,8 @@ tkPlotXY can be used with a single function.
 
     .. literalinclude:: ../build/Examples/CPlot/tkPlotXYSingleLine.py
 
+---------------------------------------------------------------------------
+
 
 Usage with classes
 ###################
@@ -91,6 +93,9 @@ two simple examples, an interactive one and a batch one.
     * `Batch tkPlotXY classes usage (pyTree) <Examples/CPlot/tkPlotXYBatch.py>`_:
 
     .. literalinclude:: ../build/Examples/CPlot/tkPlotXYBatch.py
+
+
+---------------------------------------------------------------------------
 
 
 .. toctree::
