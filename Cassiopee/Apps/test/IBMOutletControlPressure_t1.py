@@ -13,7 +13,6 @@ import KCore.test as test
 import Connector.IBM as X_IBM
 import os
 
-
 LOCAL           = test.getLocal()
 FastC.MX_SYNCHRO= 1761
 
@@ -132,7 +131,7 @@ isRestartProbe = False
 values4gain,controlProbeName,itExtrctPrb=COP.getInfo(tb, familyName='outlet')
 COP._setUpOutletPressure(values4gain, itValues4gain)    
 dctProbeLocationsCheck,dctProbes=COP.setupMachProbe(t, buffer_size, isRestartProbe, DIRECTORY_PROBES)
-                    
+
 for it in range(NIT):
     FastS._compute(t, metrics, it, tc, graph=graph, layer='Python')
     if it%modulo_verif == 0:        

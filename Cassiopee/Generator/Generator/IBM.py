@@ -569,7 +569,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
                         ZONEStbOneOverTmp[i][noo] = mergeByParent__(ZONEStbOneOverTmp[i][noo], parento[noo], sizeMax)
                         print('Nb of merged zones - OneOverRegion # %d : %d.' %(1,len(ZONEStbOneOverTmp[i][noo])))
                     ZONEStbOneOver[noo].append(ZONEStbOneOverTmp[i][noo])
-                ZONEStbOneOver[noo]=sum(ZONEStbOneOver[noo],[])                
+                ZONEStbOneOver[noo]=sum(ZONEStbOneOver[noo],[])
         if dimPb == 3:
             ZONES0 = T.mergeCart(ZONES[0]+ZONES[4],sizeMax=sizeMax)# XM
             ZONES1 = T.mergeCart(ZONES[2]+ZONES[6],sizeMax=sizeMax)# XP
@@ -676,14 +676,20 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
 
 # main function
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0, 
-                        tbox=None, snearsf=None, check=False, to=None,
-                        ext=2, expand=3, octreeMode=0,
-                        tbOneOver=None, listF1save=[]):
+                    tbox=None, snearsf=None, check=False, to=None,
+                    ext=2, expand=3, octreeMode=0, tbOneOverF1=None):
     import KCore.test as test
         # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
         else: tbox = tbox
+
+    ##Split tbOneOverF1 into tbOneOver (rectilinear region)  & tbF1 (WM F1 approach region)
+    tbOneOver= None
+    tbF1     = None
+    if tbOneOverF1:
+        tbOneOver= Internal.getNodesFromNameAndType(tbOneOverF1, '*OneOver*', 'CGNSBase_t')
+        tbF1     = Internal.getNodesFromNameAndType(tbOneOverF1, '*KeepF1*' , 'CGNSBase_t')
                 
     # Octree identical on all procs
     if to is not None:
@@ -749,11 +755,12 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     del o
 
     # fill vmin + merge in parallel
-    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOver)
+    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOverF1)
     del p
     if parento is not None:
         for po in parento: del po
     t = C.newPyTree(['CARTESIAN', res])
+
     zones = Internal.getZones(t)
     for z in zones: z[0] = z[0]+'X%d'%Cmpi.rank
     Cmpi._setProc(t, Cmpi.rank)
@@ -761,12 +768,15 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     C._addState(t, 'EquationDimension', dimPb)
 
     # Keep F1 regions - for F1 & F42 synergy
-    if tbOneOver:
-        tbF1            = Internal.getNodesFromNameAndType(tbOneOver, '*KeepF1*', 'CGNSBase_t')
+    if tbF1:
         tbbBTmp         = G.BB(tbF1)
         interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
         for kk in interDict_scale:
-            for kkk in interDict_scale[kk]: listF1save.append(kkk)
+            for kkk in interDict_scale[kk]:
+                z=Internal.getNodeFromName(t, kkk)
+                Internal._createUniqueChild(z, '.Solver#defineTMP', 'UserDefinedData_t')
+                Internal._createUniqueChild(Internal.getNodeFromName1(z, '.Solver#defineTMP'), 'SaveF1', 'DataArray_t', value=1)
+                node=Internal.getNodeFromName(t, kkk)
 
     # Add xzones for ext
     tbb = Cmpi.createBBoxTree(t)
@@ -780,18 +790,19 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     listDone = []
     if tbOneOver:
         tbb = G.BB(t)
+
         if dimPb==2:
             T._addkplane(tbb)
             T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
 
         ## RECTILINEAR REGION
         ## Select regions that need to be coarsened
-        tbbB            = G.BB(tbOneOver)                
+        tbbB            = G.BB(tbOneOver)
         interDict_scale = X.getIntersectingDomains(tbbB, tbb)
         ## Avoid a zone to be coarsened twice
         for i in interDict_scale:
             (b,btmp) = Internal.getParentOfNode(tbOneOver,Internal.getNodeByName(tbOneOver,i))
-            checkOneOver = Internal.getNodeByName(b,".Solver#define") ##Needed for F1 & F42 approach
+            checkOneOver = Internal.getNodeByName(b,".Solver#define")
             if checkOneOver:
                 b        = Internal.getNodeByName(b,".Solver#define")
                 oneoverX = int(Internal.getNodeByName(b, 'dirx')[1])
