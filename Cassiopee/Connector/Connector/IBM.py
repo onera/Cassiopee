@@ -202,10 +202,14 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         if Reynolds < 1.e5: frontType = 1
     else: Reynolds = 1.e6
 
-    tbOneOver = None
-    if tbox is not None:
-        tbOneOver = Internal.getNodesFromNameAndType(tbox, '*OneOver*', 'CGNSBase_t') + Internal.getNodesFromNameAndType(tbox, '*KeepF1*', 'CGNSBase_t')
-        tbox      = Internal.rmNodesByName(Internal.rmNodesByName(tbox, '*OneOver*'), '*KeepF1*')
+    ## tbox = tbox(area refinement)[legacy tbox] + tb(area for one over)[tbOneOver] + tb(zones to keep as F1)[tbF1]
+    ## here we divide tbox into tbOneOverF1 (tbOneOver + tbF1) & tbox; tbox will henceforth only consist of the area that will be refined.
+    ## Note: tb(zones to keep as F1)[tbF1] is still in development, is experimental, & subject to major/minor changes with time. Please use with a lot of caution & see A.Jost @ DAAA/DEFI [28/08/2024] as
+    ##       there is no non-regression test case yet available.
+    tbOneOverF1 = None
+    if tbox:
+        tbOneOverF1 = Internal.getNodesFromNameAndType(tbox, '*OneOver*', 'CGNSBase_t') + Internal.getNodesFromNameAndType(tbox, '*KeepF1*', 'CGNSBase_t')
+        tbox        = Internal.rmNodesByName(Internal.rmNodesByName(tbox, '*OneOver*'), '*KeepF1*')
         if len(Internal.getBases(tbox))==0: tbox=None
 
     if frontType == 42: expand= 4
@@ -251,7 +255,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         t = G_IBM.generateIBMMesh(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
                                       snearsf=snearsf, check=check, to=to, ext=depth+1,
                                       expand=expand, dfarDir=dfarDir, octreeMode=octreeMode,
-                                      tbOneOver=tbOneOver)
+                                      tbOneOverF1=tbOneOverF1)
         Internal._rmNodesFromName(tb,"SYM")
 
         if balancing and Cmpi.size > 1: _redispatch__(t=t)
@@ -604,7 +608,7 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
 
         for z in Internal.getZones(t):
             if Internal.getNodeFromName(z, 'SaveF1'):
-                #Internal._rmNode(z, Internal.getNodeFromName(z, '.Solver#defineTMP'))
+                Internal._rmNode(z, Internal.getNodeFromName(z, '.Solver#defineTMP'))
                 continue
             
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
