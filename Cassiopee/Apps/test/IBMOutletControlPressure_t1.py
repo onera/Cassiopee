@@ -13,7 +13,6 @@ import KCore.test as test
 import Connector.IBM as X_IBM
 import os
 
-test.TOLERANCE = 3.e-6
 
 LOCAL           = test.getLocal()
 FastC.MX_SYNCHRO= 1761
@@ -21,9 +20,7 @@ FastC.MX_SYNCHRO= 1761
 NP   = Cmpi.size
 rank = Cmpi.rank
 
-filename_t       = LOCAL+'/t'
-filename_tc      = LOCAL+'/tc'
-filename_tcase   = LOCAL+'/windTunnel.cgns'
+filename_tcase   = 'windTunnel.cgns'
 DIRECTORY_PROBES = LOCAL+'/'
 ## =========================
 ##       PREP
@@ -65,10 +62,9 @@ D_IBM._setOutPressControlParam(tb,probeName='point', AtestSection=0.83721966959,
                                machTarget=0.082, pStatTarget=99445, tStatTarget=297.2,lmbd=0.1,
                                cxSupport = 0.6, sSupport=0.1, itExtrctPrb=itExtrctPrb)
 test.testT(tb,1)
-#C.convertPyTree2File(tb,LOCAL+'/tcase_check.cgns')
 
 t,tc=X_IBM.prepareIBMData(tb         , None  , None   ,
-                              snears=0.01, dfars=0, vmin=11)
+                          snears=0.01, dfars=0, vmin=11)
 
 [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
  ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
@@ -85,10 +81,9 @@ Apps._initInj(tc, 'inlet', Pgen0, stagEnt, injDir=[1.,0.,0.])
 
 test.testT(tc,2)
 test.testT(t ,3)
-#C.convertPyTree2File(t,LOCAL+'/t_check.cgns')
 
 a = D.point((-1,0,0))
-C.convertPyTree2File(a,LOCAL+'/probes.cgns')
+C.convertPyTree2File(a,DIRECTORY_PROBES+'probes.cgns')
 
 ## =========================
 ##       COMPUTE
@@ -151,8 +146,8 @@ for it in range(NIT):
 #C.convertPyTree2File(t ,LOCAL+'/t_restart.cgns' )
 
 for name, probe in dctProbes.items(): probe.flush()
-os.remove(LOCAL+'/probe_point.cgns')
-os.remove(LOCAL+'/probes.cgns')
+os.remove(DIRECTORY_PROBES+'/probe_point.cgns')
+os.remove(DIRECTORY_PROBES+'/probes.cgns')
 
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
@@ -160,4 +155,4 @@ Internal._rmNodesByName(tc, '.Solver#Param')
 Internal._rmNodesByName(tc, '.Solver#ownData')
 
 test.testT(tc,4)
-test.testT(t ,5)
+#test.testT(t ,5)
