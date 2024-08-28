@@ -148,7 +148,7 @@ def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
         for listOfDonorPoints in interpDonor:
             cpt += len(listOfDonorPoints)
             offset.append(cpt)
-        offset = numpy.array(offset, dtype=numpy.int32)
+        offset = numpy.array(offset, dtype=Internal.E_NpyInt)
         interpDonor = numpy.concatenate(interpDonor)
         interpCoef = numpy.concatenate(interpCoef)
 
