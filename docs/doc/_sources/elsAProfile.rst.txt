@@ -27,6 +27,7 @@ List of functions
 **-- Conversion to elsA CGNS**
 
 .. autosummary::
+   :nosignatures:
 
    Converter.elsAProfile.adaptPeriodicMatch
    Converter.elsAProfile.adaptNearMatch
@@ -38,6 +39,7 @@ List of functions
 **-- Addition of elsA specific nodes**
 
 .. autosummary:: 
+   :nosignatures:
 
     Converter.elsAProfile.addPeriodicDataInSolverParam
     Converter.elsAProfile.addOutput
@@ -54,6 +56,7 @@ List of functions
 **-- Miscellaneous**
 
 .. autosummary::
+   :nosignatures:
     
     Converter.elsAProfile.getCGNSkeys
     Converter.elsAProfile.buildMaskFiles

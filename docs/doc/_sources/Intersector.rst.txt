@@ -35,6 +35,7 @@ List of functions
 **-- Main Functions**
 
 .. autosummary::
+   :nosignatures:
 
    Intersector.conformUnstr 
    Intersector.booleanUnion
@@ -50,6 +51,7 @@ List of functions
 **-- Collision predicates**
 
 .. autosummary::
+   :nosignatures:
 
    Intersector.getOverlappingFaces
    Intersector.getCollidingCells
@@ -58,6 +60,7 @@ List of functions
 **-- Transformation Functions**
 
 .. autosummary::
+   :nosignatures:
 
    Intersector.triangulateBC
    Intersector.triangulateExteriorFaces
@@ -75,28 +78,31 @@ List of functions
 **-- Adaptation Specific Functions**
 
 .. autosummary::
+   :nosignatures:
 
-  Intersector.adaptBox
-  Intersector.createHMesh
-  Intersector.deleteHMesh
-  Intersector.conformizeHMesh
-  Intersector.createSensor
-  Intersector.assignData2Sensor
-  Intersector.deleteSensor
+   Intersector.adaptBox
+   Intersector.createHMesh
+   Intersector.deleteHMesh
+   Intersector.conformizeHMesh
+   Intersector.createSensor
+   Intersector.assignData2Sensor
+   Intersector.deleteSensor
 
 **-- Metric Functions**
 
 .. autosummary::
+   :nosignatures:
 
-  Intersector.edgeLengthExtrema
-  Intersector.volumes
-  Intersector.centroids
-  Intersector.computeGrowthRatio
+   Intersector.edgeLengthExtrema
+   Intersector.volumes
+   Intersector.centroids
+   Intersector.computeGrowthRatio
 .. Intersector.statsSize
 
 **-- Extraction Functions**
 
 .. autosummary::
+   :nosignatures:
 
    Intersector.extractPathologicalCells
    Intersector.extractOuterLayers
@@ -109,17 +115,15 @@ List of functions
 **-- Check Functions**
 
 .. autosummary::
+   :nosignatures:
 
    Intersector.diffMesh
    Intersector.checkCellsClosure
    Intersector.checkCellsFlux
    Intersector.checkCellsVolume
    Intersector.checkForDegenCells
-  
 .. Intersector.statsUncomputableFaces
- 
-.. Intersector.extrudeUserDefinedBC
-   
+.. Intersector.extrudeUserDefinedBC   
 .. Intersector.removeBaffles
 .. Intersector.convert2Polyhedron
 .. Intersector.oneZonePerCell
@@ -127,6 +131,7 @@ List of functions
 **-- Conversion Functions**
 
 .. autosummary::
+   :nosignatures:
    
    Intersector.convertNGON2DToNGON3D
 
@@ -1015,12 +1020,12 @@ Extraction Functions
 
     Returns the cells in t1 having specified faces or cell ids.
 
-    :param           a:  Input mesh
-    :type            a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param           ids:  face or cell ids
-    :type            ids:  numpy of ints
-    :param           are_face_ids:  Tells whether the ids are referring to faces or cells.
-    :type            are_face_ids:  boolean
+    :param     a:  Input mesh
+    :type      a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param     ids:  face or cell ids
+    :type      ids:  numpy of ints
+    :param     are_face_ids:  Tells whether the ids are referring to faces or cells.
+    :type      are_face_ids:  boolean
 
     *Example of use:*
 

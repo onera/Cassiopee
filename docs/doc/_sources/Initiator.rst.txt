@@ -30,6 +30,7 @@ List of functions
 **-- CFD field initialisations**
 
 .. autosummary::
+   :nosignatures:
 
    initConst
    initLamb
@@ -42,6 +43,7 @@ List of functions
 **-- Adimensioning**
 
 .. autosummary::
+   :nosignatures:
 
    Adim.adim1
    Adim.adim2
@@ -53,6 +55,7 @@ List of functions
 **-- Mesh size**
 
 .. autosummary::
+   :nosignatures:
 
    MeshSize.meshSize
 
@@ -274,6 +277,9 @@ If the five conservative variables are not present, then the default output vari
     .. literalinclude:: ../build/Examples/Initiator/overlayPT.py
 
 
+
+---------------------------------------------------------------------------
+
 Adimensioning
 --------------
 
@@ -307,8 +313,6 @@ Adimensioning
 
     .. literalinclude:: ../build/Examples/Initiator/adim1.py
 
-    .. note:: New in version 2.5
-
 ---------------------------------------
 
 .. py:function:: Initiator.Adim.adim2(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2, TurbLevelInf=1.e-4)
@@ -336,8 +340,6 @@ Adimensioning
     * `Get adimensioned state 2 <Examples/Initiator/adim2.py>`_:
 
     .. literalinclude:: ../build/Examples/Initiator/adim2.py
-
-    .. note:: New in version 2.5
 
 ---------------------------------------
 
@@ -372,8 +374,6 @@ Adimensioning
 
     .. literalinclude:: ../build/Examples/Initiator/adim3.py
 
-    .. note:: New in version 2.5
-
 ---------------------------------------
 
 .. py:function:: Initiator.Adim.dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1., alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4, Mtip=None)
@@ -403,8 +403,6 @@ Adimensioning
     * `Get dimensioned state <Examples/Initiator/dim1.py>`_:
 
     .. literalinclude:: ../build/Examples/Initiator/dim1.py
-
-    .. note:: New in version 2.5
 
 ---------------------------------------
 
@@ -437,8 +435,6 @@ Adimensioning
 
     .. literalinclude:: ../build/Examples/Initiator/dim2.py
 
-    .. note:: New in version 2.5
-
 ---------------------------------------
 
 .. py:function:: Initiator.Adim.dim3(UInf=2.7777, PInf=101325., RoInf=1.225, LInf=1., alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4, Mtip=None)
@@ -470,8 +466,9 @@ Adimensioning
 
     .. literalinclude:: ../build/Examples/Initiator/dim3.py
 
-    .. note:: New in version 2.5 
 
+
+---------------------------------------------------------------------------
 
 Mesh size
 -----------
@@ -495,6 +492,8 @@ Mesh size
     :type yplus: float
     :param algo: type of algorithm in 'Turbulent', 'TurbulentCorr', 'LaminarCorr'
     :type algo: string
+    :return: height of first cell
+    :rtype: float
 
     *Example of use:*
 
@@ -502,8 +501,9 @@ Mesh size
 
     .. literalinclude:: ../build/Examples/Initiator/meshSizePT.py
 
-    .. note:: New in version 3.4
 
+
+---------------------------------------------------------------------------
 
 
 .. toctree::

@@ -30,6 +30,7 @@ List of functions
 **-- CFD field initialisations**
 
 .. autosummary::
+   :nosignatures:
 
    initConst
    initLamb
@@ -42,6 +43,7 @@ List of functions
 **-- Adimensioning**
 
 .. autosummary::
+   :nosignatures:
 
    Adim.adim1
    Adim.adim2
@@ -53,6 +55,7 @@ List of functions
 **-- Mesh size**
 
 .. autosummary::
+   :nosignatures:
 
    MeshSize.meshSize
 
@@ -274,6 +277,9 @@ If the five conservative variables are not present, then the default output vari
     .. literalinclude:: ../build/Examples/Initiator/overlayPT.py
 
 
+
+---------------------------------------------------------------------------
+
 Adimensioning
 --------------
 
@@ -461,6 +467,9 @@ Adimensioning
     .. literalinclude:: ../build/Examples/Initiator/dim3.py
 
 
+
+---------------------------------------------------------------------------
+
 Mesh size
 -----------
 
@@ -492,6 +501,9 @@ Mesh size
 
     .. literalinclude:: ../build/Examples/Initiator/meshSizePT.py
 
+
+
+---------------------------------------------------------------------------
 
 
 .. toctree::

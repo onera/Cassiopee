@@ -31,6 +31,7 @@ List of functions
 **-- Basic grid generation**
 
 .. autosummary::
+   :nosignatures:
 
    Generator.cart
    Generator.cartr1
@@ -47,6 +48,7 @@ List of functions
 **-- General purpose grid generators**
 
 .. autosummary::
+   :nosignatures:
 
    Generator.delaunay
    Generator.constrainedDelaunay
@@ -70,6 +72,7 @@ List of functions
 **-- Cartesian grid generators**
 
 .. autosummary::
+   :nosignatures:
 
    Generator.gencartmb
    Generator.octree
@@ -82,6 +85,7 @@ List of functions
 **-- Operations on meshes**
 
 .. autosummary::
+   :nosignatures:
 
    Generator.close
    Generator.zip
@@ -101,6 +105,7 @@ List of functions
 **-- Operations on surface meshes**
 
 .. autosummary::
+   :nosignatures:
 
    Generator.fittingPlaster
    Generator.gapfixer
@@ -110,6 +115,7 @@ List of functions
 **-- Information on generated meshes**
 
 .. autosummary::
+   :nosignatures:
 
    Generator.barycenter
    Generator.bbox
@@ -135,6 +141,7 @@ List of functions
 **-- Operations on distributions**
 
 .. autosummary::
+   :nosignatures:
 
    Generator.enforceX
    Generator.enforceMoinsX
@@ -455,6 +462,7 @@ Basic grid generation
 
     .. literalinclude:: ../build/Examples/Generator/cylinder3PT.py
 
+---------------------------------------------------------------------------
 
 General purpose grid generator
 ---------------------------------------
@@ -959,6 +967,9 @@ General purpose grid generator
 
     .. literalinclude:: ../build/Examples/Generator/collarMeshPT.py
 
+
+---------------------------------------------------------------------------
+
 Cartesian grid generators
 ---------------------------------------
 
@@ -1189,10 +1200,11 @@ Cartesian grid generators
     .. literalinclude:: ../build/Examples/Generator/cartRx3PT.py
 
 
+---------------------------------------------------------------------------
 
 
 Operations on meshes
----------------------------------------
+-----------------------
 
 .. py:function:: Generator.close(a, tol=1.e-12, suppressDegeneratedNGons=False)
 
@@ -1241,7 +1253,7 @@ Operations on meshes
 
     .. literalinclude:: ../build/Examples/Generator/zip.py
 
-    * `Mesh closing (pyTree) <Examples/Generator/zipPT.py>`_:
+    * `Border closing (pyTree) <Examples/Generator/zipPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/zipPT.py
 
@@ -1548,6 +1560,9 @@ Operations on meshes
 
     .. literalinclude:: ../build/Examples/Generator/snapSharpEdgesPT.py
 
+
+---------------------------------------------------------------------------
+
 Operation on surface meshes
 ---------------------------------------
 
@@ -1663,6 +1678,8 @@ Operation on surface meshes
 
     .. literalinclude:: ../build/Examples/Generator/mmgsPT.py
 
+
+---------------------------------------------------------------------------
 
 Information on generated meshes
 ---------------------------------
@@ -2182,6 +2199,10 @@ Information on generated meshes
 
     .. literalinclude:: ../build/Examples/Generator/checkMeshPT.py
 
+
+
+---------------------------------------------------------------------------
+
 Operations on distributions
 ---------------------------------------
 
@@ -2311,8 +2332,6 @@ Operations on distributions
     :type  a:  array or pyTree
     :param x0:  I-location of the refinement point
     :type  x0:  float
-    :return: index of enforced point
-    :rtype: integer
     :return: modified reference copy of a
     :rtype: array or pyTree
 
@@ -2374,6 +2393,8 @@ Operations on distributions
 
     .. literalinclude:: ../build/Examples/Generator/addPointInDistributionPT.py
 
+
+---------------------------------------------------------------------------
 
 
 .. toctree::

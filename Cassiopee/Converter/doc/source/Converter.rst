@@ -129,6 +129,7 @@ List of functions
 **-- Array creation and manipulations**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.array
     Converter.getValue
@@ -140,6 +141,7 @@ List of functions
 **-- PyTree creation and manipulations**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.PyTree.newPyTree
     Converter.PyTree.addBase2PyTree
@@ -180,6 +182,7 @@ List of functions
 **-- Array / PyTree common manipulations**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.getVarNames
     Converter.isNamePresent
@@ -207,6 +210,7 @@ List of functions
 **-- Array / PyTree analysis**
 
 .. autosummary::
+   :nosignatures:
    
     Converter.diffArrays
     Converter.getMinValue
@@ -223,6 +227,7 @@ List of functions
 **-- Array / PyTree input/output**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.convertFile2Arrays
     Converter.convertArrays2File
@@ -232,6 +237,7 @@ List of functions
 **-- Preconditioning**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.createHook
     Converter.createGlobalHook
@@ -240,6 +246,7 @@ List of functions
 **-- Geometrical/topological identification**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.identifyNodes
     Converter.identifyFaces
@@ -255,6 +262,7 @@ List of functions
 **-- Client/server to exchange arrays/pyTrees**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.createSockets
     Converter.listen
@@ -263,6 +271,7 @@ List of functions
 **-- Converter arrays/3D arrays conversion**
 
 .. autosummary::
+   :nosignatures:
     
     Converter.Array3D.convertArrays2Arrays3D
     Converter.Array3D.convertArrays3D2Arrays
@@ -401,6 +410,8 @@ Array creation and manipulations
     * `Array copy (array) <Examples/Converter/copya.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/copya.py
+
+---------------------------------------------------------------------------
 
 
 pyTree creation and manipulation
@@ -1269,6 +1280,8 @@ pyTree creation and manipulation
 
     .. literalinclude:: ../build/Examples/Converter/cpVars.py
 
+---------------------------------------------------------------------------
+
 
 Array / PyTree common manipulations
 ------------------------------------
@@ -1863,6 +1876,8 @@ Array / PyTree common manipulations
 
     .. literalinclude:: ../build/Examples/Converter/makeParentElementsPT.py
 
+---------------------------------------------------------------------------
+
 
 Array / PyTree analysis
 ------------------------------------
@@ -2186,6 +2201,8 @@ Array / PyTree analysis
 
     .. literalinclude:: ../build/Examples/Converter/isFinitePT.py
 
+---------------------------------------------------------------------------
+
 
 .. Array / PyTree conversion
 .. --------------------------------
@@ -2463,6 +2480,7 @@ Array / PyTree input/output
 
     .. literalinclude:: ../build/Examples/Converter/links2PT.py
 
+---------------------------------------------------------------------------
 
 
 Preconditionning (hook)
@@ -2573,6 +2591,8 @@ and Post.
     * `Free hook (pyTree) <Examples/Converter/freeHookPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/freeHookPT.py
+
+---------------------------------------------------------------------------
 
 
 Geometrical identification
@@ -2817,6 +2837,7 @@ Geometrical identification
 
     .. literalinclude:: ../build/Examples/Converter/recoverGlobalIndexPT.py
 
+---------------------------------------------------------------------------
 
 Client/server to exchange arrays/pyTrees
 -------------------------------------------
@@ -2879,6 +2900,10 @@ Client/server to exchange arrays/pyTrees
 
     .. literalinclude:: ../build/Examples/Converter/sendPT.py
 
+
+---------------------------------------------------------------------------
+
+
 Converter arrays / 3D arrays conversion
 -------------------------------------------
 
@@ -2920,6 +2945,7 @@ corresponding to variable x, and so on...
     .. literalinclude:: ../build/Examples/Converter/convertArray3D2Array.py
 
 
+---------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 2

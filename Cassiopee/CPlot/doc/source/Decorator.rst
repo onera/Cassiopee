@@ -27,6 +27,7 @@ List of functions
 **-- Actions**
 
 .. autosummary::
+   :nosignatures:
 
     CPlot.Decorator.createSubPlot
     CPlot.Decorator.createColorBar
@@ -171,7 +172,7 @@ Actions
     Display figure.
 
 
---------------------------
+---------------------------------------------------------------------------
 
 
 .. toctree::

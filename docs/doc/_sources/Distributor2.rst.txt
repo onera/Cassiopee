@@ -35,6 +35,7 @@ List of functions
 **-- Automatic load balance**
 
 .. autosummary::
+   :nosignatures:
 
    Distributor2.distribute
    Distributor2.PyTree.distribute
@@ -42,6 +43,7 @@ List of functions
 **-- Various operations**
 
 .. autosummary::
+   :nosignatures:
 
    Distributor2.PyTree.addProcNode
    Distributor2.PyTree.getProc
@@ -117,7 +119,8 @@ Contents
 
     
 
-===================================================================
+---------------------------------------------------------------------------
+
 
 .. py:function:: Distributor2.PyTree.distribute(A, NProc, prescribed=None, perfo=None, weight=None, useCom='match', algorithm='graph', mode='nodes', nghost=0)
 
@@ -164,7 +167,9 @@ Contents
 
     .. literalinclude:: ../build/Examples/Distributor2/distributePT.py
 
-    
+
+---------------------------------------------------------------------------
+
 Various operations
 ---------------------
 
@@ -304,8 +309,7 @@ Various operations
 
     .. literalinclude:: ../build/Examples/Distributor2/printProcStatsPT.py    
     
-    .. note:: new in version 2.7.
-
+---------------------------------------------------------------------------
 
 
 .. toctree::

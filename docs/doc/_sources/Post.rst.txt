@@ -34,6 +34,7 @@ List of functions
 **-- Modifying/creating Variables**
 
 .. autosummary::
+   :nosignatures:
 
     Post.renameVars
     Post.PyTree.importVariables
@@ -54,6 +55,7 @@ List of functions
 **-- Solution selection**
 
 .. autosummary::
+   :nosignatures:
 
     Post.selectCells
     Post.selectCells2
@@ -73,6 +75,7 @@ List of functions
 **-- Solution extraction**
 
 .. autosummary::
+   :nosignatures:
 
     Post.extractPoint
     Post.extractPlane
@@ -89,6 +92,7 @@ List of functions
 **-- Streams/Isos**
 
 .. autosummary::
+   :nosignatures:
 
     Post.streamLine
     Post.streamRibbon
@@ -100,6 +104,7 @@ List of functions
 **-- Solution integration**
 
 .. autosummary::
+   :nosignatures:
 
     Post.integ
     Post.integNorm
@@ -711,7 +716,7 @@ Solution selection
 
     .. literalinclude:: ../build/Examples/Post/frontFaces.py
 
-   * `Select a front in a tag (pyTree) <Examples/Post/frontFacesPT.py>`_:
+    * `Select a front in a tag (pyTree) <Examples/Post/frontFacesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/frontFacesPT.py
 
@@ -1329,9 +1334,9 @@ Solution integration
     must be input separately, for pyTree, they must be defined in
     each zone.
 
-.. py:function:: Post.integ(A, var='F')
-
 ---------------------------------------
+
+.. py:function:: Post.integ(A, var='F')
 
     Compute the integral :math:`\int F.dS` of a scalar field (whose name is in var string) over
     the geometry defined by arrays containing the coordinates + field ( + an optional "ratio" field ).
@@ -1507,4 +1512,18 @@ Solution integration
     * `Moment integration with normal (pyTree) <Examples/Post/integMomentNormPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/integMomentNormPT.py
+
+---------------------------------------------------------------------------
+
+.. toctree::
+   :maxdepth: 2   
+
+
+Index
+########
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
 

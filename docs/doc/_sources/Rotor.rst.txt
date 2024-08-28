@@ -20,7 +20,10 @@ List of functions
 **-- Force extractions**
 
 .. autosummary::
+   :nosignatures:
 
+    Post.Rotor.extractRadius
+    Post.Rotor.extractTheta
     Post.Rotor.extractSlices
     Post.Rotor.computeZb
     Post.Rotor.computeThrustAndTorque
@@ -28,6 +31,7 @@ List of functions
 **-- Accumulator export**
 
 .. autosummary::
+   :nosignatures:
 
     Post.Rotor.exportAccumulatorPerPsi
     Post.Rotor.exportAccumulatorPerRadius
@@ -39,6 +43,53 @@ Contents
 
 Force extractions
 ------------------
+
+.. py:function:: Post.Rotor.extractRadius(teff, axis_pnt, axis_vct, loc='node')
+
+    Extract the radius field on a surface, using the rotation axis and center.
+
+    :param teff: surface stress tree
+    :type  teff: [zone, list of zones, base, tree]
+    :param axis_pnt: center of rotation
+    :type axis_pnt: list of 3 floats
+    :param axis_vct: axis of rotation
+    :type axis_vct: list of 3 floats
+    :param loc: location of the new field 'Radius'
+    :type loc: string, 'node' or 'center'
+    :return: teff 
+    :rtype: same as input with new flow field
+
+    *Example of use:*
+
+    * `Extract slices (pyTree) <Examples/Post/extractRadiusPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/extractRadiusPT.py
+
+---------------------------------------
+
+.. py:function:: Post.Rotor.extractTheta(teff, axis_pnt, axis_vct, loc='node')
+
+    Extract the theta field on a surface, using the rotation axis and center.
+    Theta values are comprised between 0 and 2*pi.
+
+    :param teff: surface stress tree
+    :type  teff: [zone, list of zones, base, tree]
+    :param axis_pnt: center of rotation
+    :type axis_pnt: list of 3 floats
+    :param axis_vct: axis of rotation
+    :type axis_vct: list of 3 floats 
+    :param loc: location of the new field 'Theta'
+    :type loc: string, 'node' or 'center'
+    :return: teff 
+    :rtype: same as input with new flow field
+
+    *Example of use:*
+
+    * `Extract slices (pyTree) <Examples/Post/extractThetaPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/extractThetaPT.py
+
+---------------------------------------
 
 
 .. py:function:: Post.Rotor.extractSlices(teff, bladeName, psi, radii, RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU, adimCnM2=0, adimCmM2=0, adimKp=0, relativeShaft=0., localFrame=True, delta=0.05, rotationCenter=[0.,0.,0.], coordDir='CoordinateZ', coordSlice='CoordinateX', sliceNature='straight', accumulatorSlices=None, accumulatorCnM2=None, accumulatorCmM2=None)
@@ -164,6 +215,9 @@ Force extractions
 
     .. literalinclude:: ../build/Examples/Post/computeThrustAndTorquePT.py
 
+
+---------------------------------------------------------------------------
+
 Accumulator export
 -------------------
 
@@ -229,3 +283,6 @@ Accumulator export
     * `Export accumulator to a map (pyTree) <Examples/Post/exportAccumulatorMapPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/exportAccumulatorMapPT.py
+
+---------------------------------------------------------------------------
+

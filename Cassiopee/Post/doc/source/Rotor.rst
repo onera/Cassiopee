@@ -215,6 +215,9 @@ Force extractions
 
     .. literalinclude:: ../build/Examples/Post/computeThrustAndTorquePT.py
 
+
+---------------------------------------------------------------------------
+
 Accumulator export
 -------------------
 
@@ -280,3 +283,6 @@ Accumulator export
     * `Export accumulator to a map (pyTree) <Examples/Post/exportAccumulatorMapPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/exportAccumulatorMapPT.py
+
+---------------------------------------------------------------------------
+
