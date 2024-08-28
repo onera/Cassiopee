@@ -182,10 +182,11 @@ def _computeMeshInfo(t):
     return None
 
 def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
-                       snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, octreeMode=0,
-                       IBCType=1, verbose=True, expand=3,
-                       check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
-                       yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
+                   snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, octreeMode=0,
+                   IBCType=1, verbose=True, expand=3,
+                   check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
+                   yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
+                   skipRedispatchNonRegression=False):
     
     import Generator.IBM as G_IBM
     import time as python_time
@@ -288,9 +289,9 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
                  filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament,
                  isWireModel=isWireModel)
     Cmpi.barrier()
-    _redispatch__(t=t)
+    if not skipRedispatchNonRegression: _redispatch__(t=t)
     if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0)
-
+    
     #===================
     # STEP 4 : INTERP DATA CHIM
     #===================
