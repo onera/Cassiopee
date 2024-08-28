@@ -13,6 +13,8 @@ import KCore.test as test
 import Connector.IBM as X_IBM
 import os
 
+
+
 LOCAL           = test.getLocal()
 FastC.MX_SYNCHRO= 1761
 
@@ -63,7 +65,7 @@ D_IBM._setOutPressControlParam(tb,probeName='point', AtestSection=0.83721966959,
 test.testT(tb,1)
 
 t,tc=X_IBM.prepareIBMData(tb         , None  , None   ,
-                              snears=0.01, dfars=0, vmin=11)
+                          snears=0.01, dfars=0, vmin=11)
 
 [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
  ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
@@ -145,8 +147,8 @@ for it in range(NIT):
 #C.convertPyTree2File(t ,LOCAL+'/t_restart.cgns' )
 
 for name, probe in dctProbes.items(): probe.flush()
-os.remove('probe_point.cgns')
-os.remove('probes.cgns')
+os.remove(DIRECTORY_PROBES+'/probe_point.cgns')
+os.remove(DIRECTORY_PROBES+'/probes.cgns')
 
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
