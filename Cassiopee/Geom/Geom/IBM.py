@@ -542,21 +542,46 @@ def determineClosedSolidFilament__(tb):
     filamentBases = []
     isFilamentOnly= False
     
-    len_tb = len(Internal.getBases(tb))
     for b in Internal.getBases(tb):
         if "IBCFil" in b[0]:filamentBases.append(b[0])
 
-    if len(filamentBases) == len_tb:isFilamentOnly=True
+    if len(filamentBases) == len(Internal.getBases(tb)):isFilamentOnly=True
     isOrthoProjectFirst = isFilamentOnly
 
-    ## if tb has both a closed solid and filaments
+    ## assume isFilamentOnly=True
     tbFilament = Internal.copyTree(tb)
+    
+    ## if tb has 1) no filaments or 2) filaments & closed bodies
     if not isFilamentOnly:
-        tbFilament = []
-        for b in filamentBases:
-            node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
-            tbFilament.append(node_local)
-            Internal._rmNode(tb,node_local)     
-            isOrthoProjectFirst = True
-        tbFilament = C.newPyTree(tbFilament);
-    return [filamentBases, isFilamentOnly, isOrthoProjectFirst, tb, tbFilament]
+        if len(filamentBases)==0:
+            tbFilament=None
+        else:
+            ##tb        : only closed bodies
+            ##tbFilament: filament bodies
+            tbFilament = []
+            for b in filamentBases:
+                node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
+                tbFilament.append(node_local)
+                Internal._rmNode(tb,node_local)     
+                isOrthoProjectFirst = True
+            tbFilament = C.newPyTree(tbFilament);
+                                    
+    return tb, tbFilament
+
+
+def localWMMFlags__(tb,tbFilament):
+    isFilamentOnly=False
+    isWireModel   =False
+    
+    if tbFilament:
+        if len(Internal.getBases(tbFilament))==len(Internal.getBases(tb)):
+            isFilamentOnly=True
+        for z in Internal.getZones(tbFilament):
+            soldef  = Internal.getNodeFromName(z,'.Solver#define')
+            if soldef is not None:
+                ibctype = Internal.getNodeFromName(soldef,'ibctype')
+                if ibctype is not None:
+                    if Internal.getValue(ibctype) == "wiremodel":
+                        isWireModel=True
+                        break
+    return isFilamentOnly,isWireModel
