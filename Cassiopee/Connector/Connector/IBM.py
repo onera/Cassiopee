@@ -277,7 +277,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
                  filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament,
                  isWireModel=isWireModel)
     Cmpi.barrier()
-    # _redispatch__(t=t)
+    _redispatch__(t=t)
     if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0)
     
     #===================
