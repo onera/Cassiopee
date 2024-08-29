@@ -72,7 +72,7 @@ def AdaptMesh_ExtractMesh(AM, conformize=1):
                     bc = I.newBC(name=bcname, pointList=ptlist, btype=bctype, parent=cont)
                 
                 I.newUserDefinedData(name='Tag', value=tag, parent=bc)
- 
+
     t = C.newPyTree([name, zone])
     return t
 
@@ -276,36 +276,46 @@ def loadAndSplitNGon(fileName):
 
 ######################################################
 
-def removeIntersectingKPlanes(master, slave):
-    zm = I.getZones(master)[0]
-    
-    master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+def IntersectMesh_Init(t):
+    zones = I.getZones(t)
+    z = zones[0]
+    array = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+    return xcore.IntersectMesh_Init(array)
+
+def IntersectMesh_ExtractMesh(IM):
+    marray = xcore.IntersectMesh_ExtractMesh(IM)
+    zone = I.createZoneNode("Mesh", marray)
+    t = C.newPyTree(["Mesh", zone])
+    try: import Intersector.PyTree as XOR
+    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
+    t = XOR.closeCells(t)
+    return t
+
+def removeIntersectingKPlanes(IM, slave):
 
     slave_bases = I.getBases(slave)
 
-    new_master = master
-
-    i = -1
+    iter = -1
 
     ts = I.newCGNSTree()
 
     for slave_base in slave_bases:
         
-        i = i + 1
+        iter = iter + 1
 
         zs = I.getZones(slave_base)
 
         slaves = []
 
+        print("doing base" + str(iter))
+
         for z in zs:
             smesh = C.getFields(I.__GridCoordinates__, z, api=3)[0]
             slaves.append(smesh)
 
-        new_master, new_slaves_and_tags = xcore.removeIntersectingKPlanes(new_master, slaves)
+        new_slaves_and_tags = xcore.removeIntersectingKPlanes(IM, slaves)
 
-        #zos = []
-
-        new_base = I.newCGNSBase('slave'+str(i), 3, 3, parent=ts)
+        new_base = I.newCGNSBase('slave'+str(iter), 3, 3, parent=ts)
 
         for i in range(len(new_slaves_and_tags)):
             new_slave, tag = new_slaves_and_tags[i]
@@ -315,13 +325,12 @@ def removeIntersectingKPlanes(master, slave):
             I.newDataArray("tag", value=tag, parent=cont)
             I.addChild(new_base, zo)
 
+    xcore.IntersectMesh_TriangulateFaceSet(IM)
 
-    zmo = I.createZoneNode("master", new_master)
-    tm = C.newPyTree(["Triangle_master", zmo])
-
-    return tm, ts
+    return ts
 
 def prepareMeshesForIntersection(master, slave):
+
     zm = I.getZones(master)[0]
     zs = I.getZones(slave)[0]
 
@@ -349,8 +358,8 @@ def prepareMeshesForIntersection(master, slave):
     except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
 
     print("Closing meshes...", flush=True)
-    tm = XOR.closeCells(tm)
     ts = XOR.closeCells(ts)
+    tm = XOR.closeCells(tm)
 
     return tm, ts
 

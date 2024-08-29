@@ -33,6 +33,70 @@
 #include "ray.h"
 #include "io.h"
 
+void IMesh::triangulate_face_set()
+{
+    E_Int NF = nf;
+
+    size_t face_incr = faces_to_tri.size();
+
+    F.resize(NF + face_incr);
+
+    std::vector<E_Int> owner(NF, -1), neigh(NF, -1);
+
+    for (E_Int i = 0; i < nc; i++) {
+        const auto &pf = C[i];
+        for (E_Int fid : pf) {
+            if (owner[fid] == -1) owner[fid] = i;
+            else neigh[fid] = i;
+        }
+    }
+
+    assert(skin.size() > 0);
+
+    for (E_Int fid : faces_to_tri) {
+
+        auto &pn = F[fid];
+
+        assert(pn.size() == 4);
+
+        std::vector<E_Int> tri0(3), tri1(3);
+
+        tri0[0] = pn[0], tri0[1] = pn[1], tri0[2] = pn[2];
+
+        tri1[0] = pn[2], tri1[1] = pn[3], tri1[2] = pn[0];
+
+        pn = tri0;
+
+        F[NF] = tri1;
+
+        E_Int own = owner[fid];
+
+        assert(own != -1);
+
+        auto &pf = C[own];
+
+        pf.push_back(NF);
+
+        E_Int nei = neigh[fid];
+
+        assert(nei == -1);
+
+        skin.push_back(NF);
+
+        NF++;
+    }
+
+    assert(NF == nf + face_incr);
+
+    nf = NF;
+
+    faces_to_tri.clear();
+
+    for (E_Int cid = 0; cid < nc; cid++) {
+        assert(C[cid].size() == 6 || C[cid].size() == 7);
+    }
+}
+
 struct DEdge {
     E_Int p, q;
 
@@ -84,47 +148,6 @@ void IMesh::make_edges()
     }
 }
 
-/*
-std::vector<pointFace> IMesh::locate(E_Int p, E_Float px, E_Float py, E_Float pz,
-    const std::set<E_Int> &patch) const
-{
-    E_Int hit;
-    std::vector<pointFace> hits;
-    
-    for (E_Int face : patch) {
-        assert(face_is_active(face));
-
-        const auto &cn = F[face];
-
-        E_Float o[3] = {};
-
-
-        for (E_Int p : cn) {
-            o[0] += X[p];
-            o[1] += Y[p];
-            o[2] += Z[p];
-        }
-        for (E_Int i = 0; i < 3; i++) o[i] /= cn.size();
-
-
-        for (size_t i = 0; i < cn.size(); i++) {
-            E_Int a = cn[i];
-            E_Int b = cn[(i+1)%cn.size()];
-            hit = Triangle::is_point_inside(px, py, pz,
-                o[0], o[1], o[2],
-                X[a], Y[a], Z[a],
-                X[b], Y[b], Z[b]);
-            if (hit) {
-                hits.push_back(pointFace(face));
-                break;
-            }
-        }
-    }
-
-    return hits;
-}
-*/
-
 void IMesh::init_adaptation_data()
 {
     flevel.resize(nf, 0);
@@ -166,6 +189,12 @@ IMesh::IMesh()
 
 IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
 {
+    NX = 100;
+    NY = 100;
+    NZ = 100;
+    NXY = NX * NY;
+    NXYZ = NXY * NZ;
+
     np = npts;
     ne = 0;
     nf = cn.getNFaces();
@@ -241,6 +270,14 @@ void IMesh::make_bbox()
         if (Y[i] > ymax) ymax = Y[i];
         if (Z[i] > zmax) zmax = Z[i];
     }
+
+    xmax = xmax * 1.01;
+    ymax = ymax * 1.01;
+    zmax = zmax * 1.01;
+
+    HX = (xmax - xmin) / NX;
+    HY = (ymax - ymin) / NY;
+    HZ = (zmax - zmin) / NZ;
 }
 
 void IMesh::make_skin()
@@ -269,7 +306,7 @@ E_Int IMesh::RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
     // TODO(Imad): hexa mesh for now
     assert(pn.size() == 4);
 
-    E_Int a = pn[0], b = pn[1], c = pn[2], d = pn[3];
+    E_Int a = pn[0], b = pn[1], c = pn[2];
 
     E_Int hit;
 
@@ -290,6 +327,8 @@ E_Int IMesh::RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
         return 1;
     }
 
+    E_Int d = pn[3];
+
     TI.tri = 1;
 
     hit = MollerTrumbore(px, py, pz, dx, dy, dz, X[c], Y[c], Z[c], X[d], Y[d],
@@ -309,11 +348,12 @@ E_Int IMesh::RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
 }
 
 E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
-    E_Float dy, E_Float dz, TriangleIntersection &TI) const
+    E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II) const
 {
     // Calculate entry point
 
     E_Float tentry = 0;
+    E_Float texit = 0;
 
     E_Float px = ox;
     E_Float py = oy;
@@ -340,16 +380,7 @@ E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
         if (dz < 0) std::swap(tminz, tmaxz);
 
         tentry = std::max(tminx, std::max(tminy, tminz));
-        E_Float texit = std::min(tmaxx, std::min(tmaxy, tmaxz));
-
-        //printf("tentry: %f - texit : %f \n", tentry, texit);
-        //printf("xmin: %f\n", xmin);
-        //printf("ymin: %f\n", ymin);
-        //printf("zmin: %f\n", zmin);
-
-        //printf("xmin: %f\n", xmax);
-        //printf("ymin: %f\n", ymax);
-        //printf("zmin: %f\n", zmax);
+        texit = std::min(tmaxx, std::min(tmaxy, tmaxz));
 
         // Check for intersection
 
@@ -364,123 +395,92 @@ E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
 
     ox = px, oy = py, oz = pz;
 
-    E_Float Ogrid[3] = {ox - xmin, oy - ymin, oz - zmin};
-    E_Float Ocell[3] = {Ogrid[0] / HX, Ogrid[1] / HY, Ogrid[2] / HZ};
-
-    E_Int voxel_x = floor(Ocell[0]);
-    E_Int voxel_y = floor(Ocell[1]);
-    E_Int voxel_z = floor(Ocell[2]);
+    E_Int voxel_x = floor((ox - xmin) / HX);
+    E_Int voxel_y = floor((oy - ymin) / HY);
+    E_Int voxel_z = floor((oz - zmin) / HZ);
 
     assert(voxel_x >= 0 && voxel_x < NX);
     assert(voxel_y >= 0 && voxel_y < NY);
     assert(voxel_z >= 0 && voxel_z < NZ);
 
-    E_Float tx, ty, tz;
-    tx = ty = tz = FLOATMAX;
+    E_Int step_x = (dx > 0) ? 1 : -1;
+    E_Int step_y = (dy > 0) ? 1 : -1;
+    E_Int step_z = (dz > 0) ? 1 : -1;
 
-    E_Float deltaTx, deltaTy, deltaTz;
-    deltaTx = deltaTy = deltaTz = FLOATMAX;
+    E_Float tmaxX;
+    if (dx > 0) tmaxX = ((voxel_x+1)*HX + xmin - ox) / dx;
+    else tmaxX = (voxel_x*HX + xmin - ox) / dx;
+    assert(tmaxX >= 0);
 
-    if (dx > 0) {
-        tx = (floor(Ocell[0]) + 1) * HX - Ogrid[0];
-        tx /= dx;
-        deltaTx = HX/dx;
-    } else if (dx < 0) {
-        tx = floor(Ocell[0]) * HX - Ogrid[0];
-        tx /= dx;
-        deltaTy = -HX/dx;
-    }
+    E_Float tmaxY;
+    if (dy > 0) tmaxY = ((voxel_y+1)*HY + ymin - oy) / dy;
+    else tmaxY = (voxel_y*HY + ymin - oy) / dy;
+    assert(tmaxY >= 0);
 
-    if (dy > 0) {
-        ty = (floor(Ocell[1]) + 1) * HY - Ogrid[1];
-        ty /= dy;
-        deltaTy = HY/dy;
-    } else if (dy < 0) {
-        ty = floor(Ocell[1]) * HY - Ogrid[1];
-        ty /= dy;
-        deltaTy = -HY/dy;
-    }
+    E_Float tmaxZ;
+    if (dz > 0) tmaxZ = ((voxel_z+1)*HZ + zmin - oz) / dz;
+    else tmaxZ = (voxel_z*HZ + zmin - oz) / dz;
+    assert(tmaxZ >= 0);
 
-    if (dz > 0) {
-        tz = (floor(Ocell[2]) + 1) * HZ - Ogrid[2];
-        tz /= dz;
-        deltaTz = HZ/dz;
-    } else if (dz < 0) {
-        tz = floor(Ocell[2]) * HZ - Ogrid[2];
-        tz /= dz;
-        deltaTz = -HZ/dz;
-    }
+    E_Float tDeltaX = (dx > 0) ? HX/dx : -HX/dx;
+    E_Float tDeltaY = (dy > 0) ? HY/dy : -HY/dy;
+    E_Float tDeltaZ = (dz > 0) ? HZ/dz : -HZ/dz;
 
-    //E_Float t = 0;
+    E_Int current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
 
-    E_Int NXY = NX * NY;
-    E_Int NXYZ = NXY * NZ;
-
-    E_Int current_cell = voxel_x + NX * voxel_y + NXY * voxel_z;
-
-    /*
-    E_Float qx = ox + 10000*dx;
-    E_Float qy = oy + 10000*dy;
-    E_Float qz = oz + 10000*dz;
-    edge_write("tested_edge", ox, oy, oz, qx, qy, qz);
-    */
+    std::set<E_Int> faces_set;
 
     std::set<E_Int> tested_faces;
 
-    std::set<UEdge> hit_edges;
-    std::set<E_Int> hit_vertices;
+    TriangleIntersection hitTI;
 
-    // Each face must be tested once
-    // Each hit edge must be counted only once
-    // Each hit vertex must be counted only once
+    E_Int hit = 0;
 
     while (current_cell < NXYZ && current_cell >= 0) {
 
         // Check for intersections in the current cell
 
-        auto it = bin_faces.find(current_cell);
+        const auto &pf = bin_faces[current_cell];
 
-        if (it != bin_faces.end()) {
+        for (auto fid : pf) faces_set.insert(fid);
 
-            const auto &pf = it->second;
-
-            for (E_Int fid : pf) {
-                if (tested_faces.find(fid) != tested_faces.end()) continue;
-                tested_faces.insert(fid);
-                E_Int hit = RayFaceIntersect(ox, oy, oz, dx, dy, dz, fid, TI);
-                if (hit) {
-                    return 1;
-                }
+        for (E_Int fid : pf) {
+            if (tested_faces.find(fid) != tested_faces.end()) continue;
+            tested_faces.insert(fid);
+            hit += RayFaceIntersect(ox, oy, oz, dx, dy, dz, fid, hitTI);
+            if (hit == 1) {
+                TI = hitTI;
+                return 1;
             }
         }
 
-        if (tx < ty && tx && tz) {
-
-            //t = tx;
-            tx += deltaTx;
-            voxel_x += (dx > 0) ? 1 : -1;
-
-        } else if (ty < tz) {
-            assert(ty < tx);
-
-            //t = ty;
-            ty += deltaTy;
-            voxel_y += (dy > 0) ? 1 : -1;
-
-
+        if (tmaxX <= tmaxY && tmaxX <= tmaxZ) {
+            tmaxX = tmaxX + tDeltaX;
+            voxel_x += step_x;
+        } else if (tmaxY <= tmaxX && tmaxY <= tmaxZ) {
+            tmaxY = tmaxY + tDeltaY;
+            voxel_y += step_y;
+        } else if (tmaxZ <= tmaxX && tmaxZ <= tmaxY) {
+            tmaxZ = tmaxZ + tDeltaZ;
+            voxel_z += step_z;
         } else {
-            assert(tz < tx && tz < ty);
-
-            //t = tz;
-            tz += deltaTz;
-            voxel_z += (dz > 0) ? 1 : -1;
-
+            assert(0);
         }
 
-        current_cell = voxel_x + NX * voxel_y + NXY * voxel_z;
+        current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
     }
 
-    return 0;
+    /*
+    if (II == 8) {
+    puts("WRITING FACES FOR THIS POINT");
+    printf("Tested %zu faces\n", faces_set.size());
+    std::vector<E_Int> faces_out;
+    for (E_Int fid : faces_set) faces_out.push_back(fid);
+    write_faces("faces", faces_out);
+    }
+    */
+
+    return hit > 0;
 }
 
 bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
@@ -501,7 +501,9 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
     dx /= NORM, dy /= NORM, dz /= NORM;
 
     E_Float Ogrid[3] = {ox - xmin, oy - ymin, oz - zmin};
-    E_Float Ocell[3] = {Ogrid[0] / HX, Ogrid[1] / HY, Ogrid[2] / HZ};
+    E_Float Ocell[3] = {Ogrid[0] / HX,
+                        Ogrid[1] / HY,
+                        Ogrid[2] / HZ};
 
     E_Int voxel_x = floor(Ocell[0]);
     E_Int voxel_y = floor(Ocell[1]);
@@ -549,10 +551,9 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
 
     //E_Float t = 0;
 
-    E_Int NXY = NX * NY;
-    E_Int NXYZ = NXY * NZ;
-
-    E_Int current_cell = voxel_x + NX * voxel_y + NXY * voxel_z;
+    E_Int current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
+    assert(current_cell >= 0);
+    assert(current_cell < NXYZ);
 
     E_Int hits = 0;
 
@@ -571,11 +572,9 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
 
         // Check for intersections in the current cell
 
-        auto it = bin_faces.find(current_cell);
+        //if (it != bin_faces.end()) {
 
-        if (it != bin_faces.end()) {
-
-            const auto &pf = it->second;
+            const auto &pf = bin_faces[current_cell];
 
             for (E_Int fid : pf) {
                 if (tested_faces.find(fid) != tested_faces.end()) continue;
@@ -622,7 +621,7 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
                     }
                 }
             }
-        }
+        //}
 
         if (tx < ty && tx && tz) {
 
@@ -647,7 +646,7 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
 
         }
 
-        current_cell = voxel_x + NX * voxel_y + NXY * voxel_z;
+        current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
     }
 
     // Point is inside if the number of intersections is odd

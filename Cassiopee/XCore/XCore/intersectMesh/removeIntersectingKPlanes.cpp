@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <unordered_map>
-
 #include "xcore.h"
 #include "common/common.h"
 #include "karray.h"
@@ -26,11 +24,10 @@
 #include "io.h"
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int min_Kmax,
-    std::set<E_Int> &faces_to_tri);
+PyObject *handle_slave(IMesh *M, Karray& sarray, E_Int min_Kmax);
 
 static
-E_Int get_kmax(const IMesh &M, const Karray &sarray);
+E_Int get_kmax(const IMesh *M, const Karray &sarray);
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
@@ -41,16 +38,17 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    Karray marray;
+    puts("Parsing MASTER and SLAVE");
 
-    E_Int ret;
+    if (!PyCapsule_IsValid(MASTER, "IntersectMesh")) {
+        RAISE("Bad mesh hook.");
+        return NULL;
+    }
 
-    ret = Karray_parse_ngon(MASTER, marray);
-
-    if (ret != 0) return NULL;
+    IMesh *M = (IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
 
     E_Int nslaves = PyList_Size(SLAVES);
-    E_Int i;
+    E_Int i, ret;
 
     std::vector<Karray> sarrays(nslaves);
 
@@ -67,111 +65,37 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
 
     if (ret != 0) {
-        Karray_free_ngon(marray);
         for (E_Int j = 0; j < i; j++)
             Karray_free_structured(sarrays[j]);
         return NULL;
     }
 
-
-    // Init and orient marray mesh
-    IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
-
-
     PyObject *slaves_out = PyList_New(0);
 
-    std::set<E_Int> faces_to_tri;
-
     E_Int min_Kmax = std::numeric_limits<E_Int>::max();
+
+    puts("Getting min_Kmax...");
 
     for (E_Int i = 0; i < nslaves; i++) {
         E_Int KMAX = get_kmax(M, sarrays[i]);
         if (KMAX < min_Kmax) min_Kmax = KMAX;
     }
 
+    //min_Kmax = 10;
+
     for (E_Int i = 0; i < nslaves; i++) {
         printf("Projecting %d / %d\n", i+1, nslaves);
-        PyObject *st = handle_slave(M, sarrays[i], min_Kmax, faces_to_tri);
+        PyObject *st = handle_slave(M, sarrays[i], min_Kmax);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);
     }
 
-    puts("Triangulating master projection faces...");
-
-    E_Int nf = M.nf;
-
-    E_Int face_incr = faces_to_tri.size();
-
-    M.F.resize(nf + face_incr);
-
-    std::vector<E_Int> owner(nf, -1), neigh(nf, -1);
-
-    for (E_Int i = 0; i < M.nc; i++) {
-        const auto &pf = M.C[i];
-        for (E_Int fid : pf) {
-            if (owner[fid] == -1) owner[fid] = i;
-            else neigh[fid] = i;
-        }
-    }
-
-    for (E_Int fid : faces_to_tri) {
-
-        auto &pn = M.F[fid];
-
-        assert(pn.size() == 4);
-
-        std::vector<E_Int> tri0(3), tri1(3);
-
-        tri0[0] = pn[0], tri0[1] = pn[1], tri0[2] = pn[2];
-
-        tri1[0] = pn[0], tri1[1] = pn[2], tri1[2] = pn[3];
-
-        pn = tri0;
-
-        M.F[nf] = tri1;
-
-        E_Int own = owner[fid];
-
-        assert(own != -1);
-
-        auto &pf = M.C[own];
-
-        pf.push_back(nf);
-
-        E_Int nei = neigh[fid];
-
-        if (nei != -1) {
-            auto &pf = M.C[nei];
-
-            pf.push_back(nf);
-        }
-
-        nf++;
-    }
-
-    assert(nf == M.nf + face_incr);
-
-    M.nf = nf;
-
-    puts("Exporting projection meshes...");
-
-    PyObject *master_out = M.export_karray();
-
-    PyObject *out = PyList_New(0);
-    PyList_Append(out, master_out);
-    PyList_Append(out, slaves_out);
-
-    Py_DECREF(master_out);
-    Py_DECREF(slaves_out);
-
-    Karray_free_ngon(marray);
-
-    return out;
+    return slaves_out;
 }
 
 static
-E_Int get_kmax(const IMesh &M, const Karray &sarray)
+E_Int get_kmax(const IMesh *M, const Karray &sarray)
 {
     const E_Float *Xs = sarray.X;
     const E_Float *Ys = sarray.Y;
@@ -200,7 +124,7 @@ E_Int get_kmax(const IMesh &M, const Karray &sarray)
 
         for (E_Int l = 0; l < nij; l++, p++) {
 
-            if (M.is_point_inside(Xs[p], Ys[p], Zs[p])) {
+            if (M->is_point_inside(Xs[p], Ys[p], Zs[p])) {
                 inside_point.push_back(p);
                 inside = 1;
                 break;
@@ -217,9 +141,9 @@ E_Int get_kmax(const IMesh &M, const Karray &sarray)
 }
 
 static
-PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int kmax,
-    std::set<E_Int> &faces_to_tri)
+PyObject *handle_slave(IMesh *M, Karray& sarray, E_Int kmax)
 {
+    printf("Projecting at kmax index: %d\n", kmax);
     E_Float *Xs = sarray.X;
     E_Float *Ys = sarray.Y;
     E_Float *Zs = sarray.Z;
@@ -236,18 +160,18 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int kmax,
     std::vector<E_Int> proj_points;
     E_Int ind = (kmax-1)*nij;
 
-    //std::vector<E_Int> upper_points;
+    std::vector<E_Int> upper_points;
 
     for (E_Int l = 0; l < nij; l++) {
         proj_points.push_back(ind);
-        //upper_points.push_back(ind+nij);
+        upper_points.push_back(ind+nij);
         ind++;
     }
 
-    //char fname[128] = {};
+    char fname[128] = {};
     //sprintf(fname, "proj_points%d", idx);
-    //point_write("proj_points", Xs, Ys, Zs, proj_points);
-    //point_write("upper_points", Xs, Ys, Zs, upper_points);
+    point_write("proj_points", Xs, Ys, Zs, proj_points);
+    point_write("upper_points", Xs, Ys, Zs, upper_points);
 
     /**************************************************************************/
 
@@ -262,6 +186,8 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int kmax,
         E_Float py = Ys[p];
         E_Float pz = Zs[p];
 
+        //point_write("bad_point", px, py, pz);
+
         E_Float dx = Xs[q] - Xs[p];
         E_Float dy = Ys[q] - Ys[p];
         E_Float dz = Zs[q] - Zs[p];
@@ -272,20 +198,33 @@ PyObject *handle_slave(const IMesh &M, Karray& sarray, E_Int kmax,
 
         TriangleIntersection TI;
 
-        E_Int hit = M.project_point(px, py, pz, dx, dy, dz, TI);
+        E_Int hit = M->project_point(px, py, pz, dx, dy, dz, TI, i);
+
+        /*
+        if (i == 8) {
+            puts("WRITING BAD EDGE AND POINT");
+            point_write("bad_point", px, py, pz);
+            E_Float qx = px + 100 * dx;
+            E_Float qy = py + 100 * dy;
+            E_Float qz = pz + 100 * dz;
+            edge_write("bad_edge", px, py, pz, qx, qy, qz);
+        }
+        */
+
+        //printf("point %d: t = %f\n", i, TI.t);
 
         assert(hit);
-
-        //printf("hit!\n");
 
         point_hit_table[p] = TI;
     }
 
     for (const auto &ploc : point_hit_table) {
         E_Int fid = ploc.second.face;
-        const auto &pn = M.F[fid];
-        if (pn.size() != 3) faces_to_tri.insert(fid);
+        const auto &pn = M->F[fid];
+        assert(pn.size() == 4);
+        M->faces_to_tri.insert(fid);
     }
+
 
     /*
     FILE *fh = fopen("hit_faces", "w");

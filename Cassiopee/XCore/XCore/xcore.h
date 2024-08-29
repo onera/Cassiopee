@@ -62,6 +62,10 @@ namespace K_XCORE
     PyObject *intersectMesh(PyObject *self, PyObject *args);
     PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
     PyObject *prepareMeshesForIntersection(PyObject *self, PyObject *args);
+
+    PyObject *IntersectMesh_Init(PyObject *self, PyObject *args);
+    PyObject *IntersectMesh_ExtractMesh(PyObject *self, PyObject *args);
+    PyObject *IntersectMesh_TriangulateFaceSet(PyObject *self, PyObject *args);
 }
 
 #endif

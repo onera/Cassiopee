@@ -60,14 +60,20 @@ struct IMesh {
 
     E_Float xmin, ymin, zmin;
     E_Float xmax, ymax, zmax;
-    E_Int NX, NY, NZ, NXY;
+    E_Int NX, NY, NZ;
+    E_Int NXY, NXYZ;
     E_Float HX, HY, HZ;
 
-    std::map<E_Int, std::vector<E_Int>> bin_faces;
+    std::vector<std::vector<E_Int>> bin_faces;
 
     std::map<E_Int, std::vector<E_Int>> fmap;
 
     std::set<E_Int> patch;
+
+    inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
+    {
+        return I + J * NX + (NX * NY) * K;
+    }
 
     AABB AABB_face(const std::vector<E_Int> &pn) const;
 
@@ -75,7 +81,9 @@ struct IMesh {
         E_Float dy, E_Float dz, E_Int fid, TriangleIntersection &TI) const;
     
     E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
-        E_Float dy, E_Float dz, TriangleIntersection &TI) const;
+        E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II) const;
+    
+    void triangulate_face_set();
     
     void hash_patch();
 
@@ -123,6 +131,8 @@ struct IMesh {
     std::vector<E_Int> flevel;
 
     std::map<UEdge, E_Int> ecenter;
+
+    std::set<E_Int> faces_to_tri;
 
     size_t refine(const IMesh &S);
 
