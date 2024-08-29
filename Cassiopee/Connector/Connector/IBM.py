@@ -203,16 +203,6 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         if Reynolds < 1.e5: frontType = 1
     else: Reynolds = 1.e6
 
-    ## tbox = tbox(area refinement)[legacy tbox] + tb(area for one over)[tbOneOver] + tb(zones to keep as F1)[tbF1]
-    ## here we divide tbox into tbOneOverF1 (tbOneOver + tbF1) & tbox; tbox will henceforth only consist of the area that will be refined.
-    ## Note: tb(zones to keep as F1)[tbF1] is still in development, is experimental, & subject to major/minor changes with time. Please use with a lot of caution & see A.Jost @ DAAA/DEFI [28/08/2024] as
-    ##       there is no non-regression test case yet available.
-    tbOneOverF1 = None
-    if tbox:
-        tbOneOverF1 = Internal.getNodesFromNameAndType(tbox, '*OneOver*', 'CGNSBase_t') + Internal.getNodesFromNameAndType(tbox, '*KeepF1*', 'CGNSBase_t')
-        tbox        = Internal.rmNodesByName(Internal.rmNodesByName(tbox, '*OneOver*'), '*KeepF1*')
-        if len(Internal.getBases(tbox))==0: tbox=None
-
     if frontType == 42: expand= 4
     
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
@@ -255,8 +245,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         test.printMem("Info: prepareIBMData: generate Cartesian mesh [start]")
         t = G_IBM.generateIBMMesh(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
                                       snearsf=snearsf, check=check, to=to, ext=depth+1,
-                                      expand=expand, dfarDir=dfarDir, octreeMode=octreeMode,
-                                      tbOneOverF1=tbOneOverF1)
+                                      expand=expand, dfarDir=dfarDir, octreeMode=octreeMode)
         Internal._rmNodesFromName(tb,"SYM")
 
         if balancing and Cmpi.size > 1: _redispatch__(t=t)
