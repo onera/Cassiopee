@@ -677,19 +677,26 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
 # main function
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0, 
                     tbox=None, snearsf=None, check=False, to=None,
-                    ext=2, expand=3, octreeMode=0, tbOneOverF1=None):
+                    ext=2, expand=3, octreeMode=0):
     import KCore.test as test
         # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
         else: tbox = tbox
 
-    ##Split tbOneOverF1 into tbOneOver (rectilinear region)  & tbF1 (WM F1 approach region)
-    tbOneOver= None
-    tbF1     = None
-    if tbOneOverF1:
-        tbOneOver= Internal.getNodesFromNameAndType(tbOneOverF1, '*OneOver*', 'CGNSBase_t')
-        tbF1     = Internal.getNodesFromNameAndType(tbOneOverF1, '*KeepF1*' , 'CGNSBase_t')
+    ## tbox = tbox(area refinement)[legacy tbox] + tb(area for one over)[tbOneOver] + tb(zones to keep as F1)[tbF1]
+    ## here we divide tbox into tbOneOver (rectilinear region)  & tbF1 (WM F1 approach region) & tbox; tbox will henceforth only consist of the area that will be refined.
+    ## Note: tb(zones to keep as F1)[tbF1] is still in development, is experimental, & subject to major/minor changes with time. Please use with a lot of caution & see A.Jost @ DAAA/DEFI [28/08/2024] as
+    ##       there is no non-regression test case yet available.
+    tbOneOverF1 = None
+    tbOneOver   = None
+    tbF1        = None
+    if tbox:
+        tbOneOver   = Internal.getNodesFromNameAndType(tbox, '*OneOver*', 'CGNSBase_t')
+        tbF1        = Internal.getNodesFromNameAndType(tbox, '*KeepF1*' , 'CGNSBase_t')
+        tbOneOverF1 = tbOneOver+tbF1
+        tbox        = Internal.rmNodesByName(Internal.rmNodesByName(tbox, '*OneOver*'), '*KeepF1*')
+        if len(Internal.getBases(tbox))==0: tbox=None
                 
     # Octree identical on all procs
     if to is not None:
