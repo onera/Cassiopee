@@ -1,10 +1,7 @@
 # - prepareIBMData Serial (pyTree) -
 import Converter.PyTree as C
-import Converter.Mpi as Cmpi
 import Connector.IBM as X_IBM
 import KCore.test as test
-
-LOCAL = test.getLocal()
 
 tb = C.convertFile2PyTree('../../Apps/test/naca1DNS.cgns')
 
