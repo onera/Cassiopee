@@ -1,3 +1,6 @@
+
+## DO NOT RUN THIS TEST CASE - IT IS IN PROGRESS AND WILL BE COMPLETED SHORTLY
+
 # extrude 2D mesh to 3D with Cartesian approach
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
