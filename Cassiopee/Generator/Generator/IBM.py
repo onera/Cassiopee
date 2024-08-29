@@ -1125,13 +1125,16 @@ def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10,
         Usage: extrudeCartesianZDir(t, tb, check, extrusion, dz, NPas, span, Ntranche, dictNz, ific, isCartesianExtrude, isAutoPeriodic, nghost)"""
 
     ## isAutoPeriodic=True is prefered over isAutoPeriodic=False when extruding a Cartesian mesh.
-    ## nghost should be 2. It is currently 0 (default value) to pass the non-regression tests. This function was initially developed
+    ## nghost should be 2. It is currently 0 (default value) to pass the non-regression tests. This function was initially developed for
     ## an application and its default value of 0 is kept for reproduciability reasons for that original test case. nghost is only used when isAutoPeriodic=False.
     ## isAutoPeridioc=True assumes 2 ghost cells.
 
     if  extrusion == "cart": perio = span/float(Ntranche)
     else:                    perio = span/180.*math.pi/float(Ntranche)
-    
+
+    ## Found in original function. Commented here as it is related to interpolations
+    ## and not geometric extrusion. This functionality is now in Connector/IBM.py - it is has been
+    ## deemed to be a more appropriate location.
     #for z in Internal.getZones(t): 
     #    cellN = Internal.getNodeFromName(z, "cellN")[1]
     #    sh    = numpy.shape(cellN)
@@ -1289,7 +1292,7 @@ def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10,
             for node in Internal.getNodesFromName(t,'EquationDimension'): Internal.setValue(node,3)
             for z in Internal.getZones(t):
                 C._addBC2Zone(z, z[0]+'periodKmin', 'BCautoperiod', 'kmin')
-                C._addBC2Zone(z, z[0]+'periodKmin', 'BCautoperiod', 'kmax')
+                C._addBC2Zone(z, z[0]+'periodKmax', 'BCautoperiod', 'kmax')
             BCs = Internal.getNodesFromType(t, "BC_t")
             for bc in BCs:
                 if Internal.getValue(bc)=='BCautoperiod':
@@ -1303,6 +1306,6 @@ def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10,
     if extrusion == 'cyl':
         T._cart2Cyl(t, (0,0,0),(1,0,0))
         T._cart2Cyl(tb, (0,0,0),(1,0,0))                    
-                        
+    X_IBM._redispatch__(t=t)                    
     return t, tb
 
