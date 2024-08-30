@@ -837,9 +837,9 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   {
     e1 = cFE1[i]; // element voisin 1
     e2 = cFE2[i]; // element voisin 2
-    E_Int* face = cn.getFace(i, nbnodes, ngon, indPG);
     if ((e1 == 0 && e2 != 0) || (e2 == 0 && e1 != 0))
     {
+      E_Int* face = cn.getFace(i, nbnodes, ngon, indPG);
       sizeEF2 += nbnodes+shift; nfacesExt++;
       exteriorFaces.push_back(i+1);
       
