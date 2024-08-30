@@ -342,7 +342,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
 def _redispatch__(t=None, tc=None, tc2=None):
     import Distributor2.Mpi as D2mpi
 
-    if tc is not None:
+    if tc:
         algo = 'graph'
         tskel = Cmpi.convert2SkeletonTree(tc)
         Internal._rmNodesByType(tskel, 'ZoneSubRegion_t')
