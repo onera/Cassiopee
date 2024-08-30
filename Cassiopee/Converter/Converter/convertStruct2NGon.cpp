@@ -386,10 +386,14 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
   E_Bool rmOverlappingPts=true; E_Bool rmOrphanPts=false;
   E_Bool rmDuplicatedFaces=true; E_Bool rmDuplicatedElts=false;
   E_Bool rmDegeneratedFaces=true; E_Bool rmDegeneratedElts=false;
-  tpl = K_CONNECT::V_cleanConnectivity(varString, *f2, *cn2, "NGON", tol,
-                                       rmOverlappingPts, rmOrphanPts,
-                                       rmDuplicatedFaces, rmDuplicatedElts,
-                                       rmDegeneratedFaces, rmDegeneratedElts);
-  delete f2; delete cn2;
-  return tpl;
+  PyObject* tplClean = K_CONNECT::V_cleanConnectivity(
+      varString, *f2, *cn2, "NGON", tol,
+      rmOverlappingPts, rmOrphanPts,
+      rmDuplicatedFaces, rmDuplicatedElts,
+      rmDegeneratedFaces, rmDegeneratedElts
+  );
+  
+  RELEASESHAREDU(tpl, f2, cn2);
+  if (tplClean == NULL) return tpl;
+  else { Py_DECREF(tpl); return tplClean; }
 }
