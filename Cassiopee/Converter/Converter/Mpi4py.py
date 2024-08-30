@@ -592,7 +592,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
                 for j in i[k]:
                     if not j in graph[k]: graph[k][j] = []
                     graph[k][j] += i[k][j]
-                    graph[k][j] = list(set(graph[k][j]))
+                    graph[k][j] = sorted(list(set(graph[k][j])))
 
     return graph
 

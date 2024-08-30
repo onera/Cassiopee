@@ -12,7 +12,7 @@ dfars     = 5
 snears    = 1
 t, tc = X_IBM.prepareIBMData(tb             , None         , None     ,
                              snears=snears  , dfars=dfars  , vmin=vmin, 
-                             check=False    , frontType=1  , skipRedispatchNonRegression=True)
+                             check=False    , frontType=1)
 if Cmpi.rank==0:
     test.testT(t , 1)
     test.testT(tc, 2)
