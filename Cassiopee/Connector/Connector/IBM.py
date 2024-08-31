@@ -184,7 +184,7 @@ def _computeMeshInfo(t):
 def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
                    snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, octreeMode=0,
                    IBCType=1, verbose=True, expand=3,
-                   check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
+                   check=False, twoFronts=False, cartesian=False,
                    yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
     
     import Generator.IBM as G_IBM
@@ -243,7 +243,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
                                   expand=expand, dfarDir=dfarDir, octreeMode=octreeMode)
         Internal._rmNodesFromName(tb,"SYM")
 
-        if balancing and Cmpi.size > 1: _redispatch__(t=t)
+        _redispatch__(t=t)
         if verbose: printTimeAndMemory__('generate Cartesian mesh', time=python_time.time()-pt0)
         
     else: 
@@ -316,13 +316,13 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, tbCurvi=tbCurvi, dimPb=dimPb, twoFronts=twoFronts,
                                tbFilament=tbFilament)
 
-    if distribute and Cmpi.size > 1: _redispatch__(t=t, tc=tc, tc2=tc2, twoFronts=twoFronts)
+    _redispatch__(t=t, tc=tc, tc2=tc2)
     
     if isinstance(tc_out, str):
         tcp = Compressor.compressCartesian(tc)
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
         
-        if twoFronts:
+        if tc2:
             tcp2 = Compressor.compressCartesian(tc2)
             tc2_out = tc_out.replace('tc', 'tc2') if 'tc' in tc_out else 'tc2.cgns'
             Cmpi.convertPyTree2File(tcp2, tc2_out, ignoreProcNodes=True)
@@ -333,16 +333,16 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
 
     _computeMeshInfo(t)
 
-    if Cmpi.size > 1: Cmpi.barrier()
+    Cmpi.barrier()
     if verbose: printTimeAndMemory__('initialize and clean', time=python_time.time()-pt0)
 
     if tc2 is not None: return t, tc, tc2
     else: return t, tc
 
-def _redispatch__(t=None, tc=None, tc2=None, twoFronts=False):
+def _redispatch__(t=None, tc=None, tc2=None):
     import Distributor2.Mpi as D2mpi
 
-    if tc is not None: 
+    if tc:
         algo = 'graph'
         tskel = Cmpi.convert2SkeletonTree(tc)
         Internal._rmNodesByType(tskel, 'ZoneSubRegion_t')
@@ -355,7 +355,7 @@ def _redispatch__(t=None, tc=None, tc2=None, twoFronts=False):
         if t is not None: 
             D2._copyDistribution(t, tcs)
             D2mpi._redispatch(t)
-        if twoFronts: 
+        if tc2: 
             D2._copyDistribution(tc2, tcs)
             D2mpi._redispatch(tc2)
         del tcs       
@@ -1381,9 +1381,9 @@ def _recomputeDistForViscousWall__(t, tb, tbCurvi=None, dimPb=3, tbFilament=None
     
     return None
 
-def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[], isWireModel=False):
+def _tcInitialize__(tc, tc2=None, ibctypes=[], isWireModel=False):
     
-    if twoFronts:
+    if tc2:
         Internal._rmNodesByName(tc2, 'IBCD*')
         Internal._rmNodesByName(tc, '2_IBCD*')
         
@@ -1395,7 +1395,7 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[], isWireModel=Fals
                 proposedName = Internal.getName(ibcd)[0:6]+'_X%d'%(Cmpi.rank)
                 ibcd[0] = getIBCDName(proposedName)
         
-        if twoFronts:
+        if tc2:
             for zc in Internal.getZones(tc2):
                 for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):            
                     proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(Cmpi.rank)
@@ -1464,7 +1464,7 @@ def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False,
     ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
 
     if model != 'Euler':
-      _recomputeDistForViscousWall__(t, tb, tbCurvi=tbCurvi, dimPb=dimPb, tbFilament=tbFilament)
+        _recomputeDistForViscousWall__(t, tb, tbCurvi=tbCurvi, dimPb=dimPb, tbFilament=tbFilament)
 
     tc2 = Internal.copyTree(tc) if twoFronts or isWireModel else None
 
@@ -1478,7 +1478,7 @@ def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False,
         tc  = Internal.merge([tc,tc2])
         tc2 = None
         
-    _tcInitialize__(tc, tc2=tc2, twoFronts=twoFronts, ibctypes=ibctypes, isWireModel=isWireModel)
+    _tcInitialize__(tc, tc2=tc2, ibctypes=ibctypes, isWireModel=isWireModel)
     _tInitialize__(t, tinit=tinit, model=model, isWireModel=isWireModel)
 
     return t, tc, tc2
