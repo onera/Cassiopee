@@ -24,6 +24,12 @@ installPathLocal = 'build/'+prod
 
 # La librarie statique existe?
 a = os.access(installPathLocal+"/libkcore.a", os.F_OK)
+print("installPathLocal:\n", os.listdir(installPathLocal))
+print("libPath: ", libPath)
+print("installPath: ", K.installPath+'/KCore')
+print("HOME:\n", os.listdir("/home/runner/work/Cassiopee/Cassiopee/"))
+print("Dist:\n", os.listdir("/home/runner/work/Cassiopee/Cassiopee/Dist/"))
+print("ubuntu:\n", os.listdir("/home/runner/work/Cassiopee/Cassiopee/Dist/bin/azure"))
 if a:
     shutil.copyfile(installPathLocal+"/libkcore.a", libPath+"/libkcore.a")
 else: # Essai en dynamique
