@@ -23,7 +23,7 @@ if echo "$KC" | grep -q 'ld'; then export MAC="ld"; fi
 if echo "$KC" | grep -q 'f0'; then export MAC="juno"; fi
 if echo "$KC" | grep -q 'n0'; then export MAC="juno"; fi
 if echo "$KC" | grep -q 'v0'; then export MAC="juno"; fi
-if echo "$KC" | grep -q 'fv-az'; then export MAC="ubuntu"; fi
+if echo "$KC" | grep -q 'fv-az'; then export MAC="azure"; fi
 if echo "$KC" | grep -q 'clausius'; then export MAC="ld"; fi
 if echo "$KC" | grep -q 'ubuntu'; then export MAC="ubuntu"; fi
 if echo "$KC" | grep -q 'visio'; then export MAC="visio"; fi
@@ -151,6 +151,15 @@ elif [ "$MAC" = "macosx" ]; then
 elif [ "$MAC" = "ubuntu" ]; then
 #-------------------------------- ubuntu --------------------------------------
     export ELSAPROD=ubuntu
+    export ELSAPROD=$ELSAPROD$EXT
+    export OMP_NUM_THREADS=4
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    
+elif [ "$MAC" = "azure" ]; then
+#------------------------ azure: ubuntu - github actions ----------------------
+    export ELSAPROD=azure
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=4
     export PYTHONEXE=python3
