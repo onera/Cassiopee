@@ -1,10 +1,10 @@
 #pragma once
 
 struct AABB {
-    E_Float xmin = FLOATMAX;
-    E_Float xmax = FLOATMIN;
-    E_Float ymin = FLOATMAX;
-    E_Float ymax = FLOATMIN;
-    E_Float zmin = FLOATMAX;
-    E_Float zmax = FLOATMIN;
+    E_Float xmin = EFLOATMAX;
+    E_Float xmax = EFLOATMIN;
+    E_Float ymin = EFLOATMAX;
+    E_Float ymax = EFLOATMIN;
+    E_Float zmin = EFLOATMAX;
+    E_Float zmax = EFLOATMIN;
 };

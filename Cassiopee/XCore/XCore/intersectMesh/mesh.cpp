@@ -403,28 +403,62 @@ E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
     assert(voxel_y >= 0 && voxel_y < NY);
     assert(voxel_z >= 0 && voxel_z < NZ);
 
-    E_Int step_x = (dx > 0) ? 1 : -1;
-    E_Int step_y = (dy > 0) ? 1 : -1;
-    E_Int step_z = (dz > 0) ? 1 : -1;
+    // Steps
 
-    E_Float tmaxX;
-    if (dx > 0) tmaxX = ((voxel_x+1)*HX + xmin - ox) / dx;
-    else tmaxX = (voxel_x*HX + xmin - ox) / dx;
+    E_Int step_x, step_y, step_z;
+    E_Float tDeltaX, tDeltaY, tDeltaZ;
+    E_Float tmaxX, tmaxY, tmaxZ;
+
+    if (dx > 0) {
+        step_x = 1;
+        tDeltaX = HX/dx;
+        tmaxX = ((voxel_x+1)*HX + xmin - ox) / dx;
+    } else if (dx < 0) {
+        step_x = -1;
+        tDeltaX = -HX/dx;
+        tmaxX = (voxel_x*HX + xmin - ox) / dx;
+    } else {
+        step_x = 0;
+        tDeltaX = EFLOATMAX;
+        tmaxX = EFLOATMAX;
+    }
+
+    if (dy > 0) {
+        step_y = 1;
+        tDeltaY = HY/dy;
+        tmaxY = ((voxel_y+1)*HY + ymin - oy) / dy;
+    } else if (dy < 0) {
+        step_y = -1;
+        tDeltaY = -HY/dy;
+        tmaxY = (voxel_y*HY + ymin - oy) / dy;
+    } else {
+        step_y = 0;
+        tDeltaY = EFLOATMAX;
+        tmaxY = EFLOATMAX;
+    }
+    
+    if (dz > 0) {
+        step_z = 1;
+        tDeltaZ = HZ/dz;
+        tmaxZ = ((voxel_z+1)*HZ + zmin - oz) / dz;
+    } else if (dz < 0) {
+        step_z = -1;
+        tDeltaZ = -HZ/dz;
+        tmaxZ = (voxel_z*HZ + zmin - oz) / dz;
+    } else {
+        step_z = 0;
+        tDeltaZ = EFLOATMAX;
+        tmaxZ = EFLOATMAX;
+    }
+
+    assert(tDeltaX >= 0);
+    assert(tDeltaY >= 0);
+    assert(tDeltaZ >= 0);
     assert(tmaxX >= 0);
-
-    E_Float tmaxY;
-    if (dy > 0) tmaxY = ((voxel_y+1)*HY + ymin - oy) / dy;
-    else tmaxY = (voxel_y*HY + ymin - oy) / dy;
     assert(tmaxY >= 0);
-
-    E_Float tmaxZ;
-    if (dz > 0) tmaxZ = ((voxel_z+1)*HZ + zmin - oz) / dz;
-    else tmaxZ = (voxel_z*HZ + zmin - oz) / dz;
     assert(tmaxZ >= 0);
 
-    E_Float tDeltaX = (dx > 0) ? HX/dx : -HX/dx;
-    E_Float tDeltaY = (dy > 0) ? HY/dy : -HY/dy;
-    E_Float tDeltaZ = (dz > 0) ? HZ/dz : -HZ/dz;
+    //edge_write("bad_edge", ox, oy, oz, ox+100*dx, oy+100*dy, oz+100*dz);
 
     E_Int current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
 
@@ -514,10 +548,10 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
     assert(voxel_z >= 0 && voxel_z < NZ);
 
     E_Float tx, ty, tz;
-    tx = ty = tz = FLOATMAX;
+    tx = ty = tz = EFLOATMAX;
 
     E_Float deltaTx, deltaTy, deltaTz;
-    deltaTx = deltaTy = deltaTz = FLOATMAX;
+    deltaTx = deltaTy = deltaTz = EFLOATMAX;
 
     if (dx > 0) {
         tx = (floor(Ocell[0]) + 1) * HX - Ogrid[0];

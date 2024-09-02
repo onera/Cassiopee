@@ -28,8 +28,11 @@
 #include "kcore.h"
 #include <limits>
 
-constexpr E_Float FLOATMIN = -std::numeric_limits<E_Float>::max();
-constexpr E_Float FLOATMAX = std::numeric_limits<E_Float>::max();
+constexpr E_Float EFLOATMIN = -std::numeric_limits<E_Float>::max();
+constexpr E_Float EFLOATMAX = std::numeric_limits<E_Float>::max();
+
+constexpr E_Int EINTMIN = std::numeric_limits<E_Int>::min();
+constexpr E_Int EINTMAX = std::numeric_limits<E_Int>::max();
 
 namespace K_XCORE
 {
