@@ -29,14 +29,14 @@ import math
 
 varsn       = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 varsnDouble = ['gradxTurbulentDistanceDouble','gradyTurbulentDistanceDouble','gradzTurbulentDistanceDouble']
-TOLDIST  = 1.e-14
-SHIFTF   = 1.e-10
-EPSCART  = 1.e-6
-TOLCELLN = 0.01
+TOLDIST     = 1.e-14
+SHIFTF      = 1.e-10
+EPSCART     = 1.e-6
+TOLCELLN    = 0.01
 
 LBM_IBC_NUM = 113 #from param_solver.h
 
-TypesOfIBC = XOD.TypesOfIBC
+TypesOfIBC  = XOD.TypesOfIBC
 
 # computes the friction velocity
 def _computeFrictionVelocity(a):
@@ -97,11 +97,11 @@ def _addOneOverLocally(FileName,oneOver):
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## MACRO FUNCTIONS
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-def printTimeAndMemory__(message, time=-1):
+def printTimeAndMemory__(message, time=-1, functionName='prepareIBMData'):
     Cmpi.barrier()
-    test.printMem("Info: prepareIBMData: %s [%s]"%(message, 'end' if time > 0 else 'start'))
+    test.printMem("Info: %s: %s [%s]"%(functionName,message, 'end' if time > 0 else 'start'))
     Cmpi.barrier()
-    if time > 0 and Cmpi.rank == 0: print("Info: prepareIBMData: %s running time = %4.4fs"%(message, time))
+    if time > 0 and Cmpi.rank == 0: print("Info: %s: %s running time = %4.4fs"%(functionName,message, time))
     Cmpi.barrier()
 
     return None
@@ -192,6 +192,12 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
 
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = Internal.copyTree(t_case)
+
+    ##[AJ] keep for now...will delete in the near future
+    ##if isinstance(tc_out, str):
+    ##    if '/' in tc_out: fileoutpre = tc_out.split('/')
+    ##    else: fileoutpre = ['.','template.cgns']
+    ##else: fileoutpre = ['.','template.cgns']
 
     refstate = Internal.getNodeFromName(tb, 'ReferenceState')
     flowEqn  = Internal.getNodeFromName(tb, 'FlowEquationSet')          
@@ -338,6 +344,215 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
 
     if tc2 is not None: return t, tc, tc2
     else: return t, tc
+
+#def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
+#                          depth=2, frontType=1, octreeMode=0, IBCType=1, 
+#                          verbose=True, check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
+#                          yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
+#                          tbox=None, extrusion='cart'):
+#    STILL IN DEV - DO NOT USE
+#    import Generator.IBM as G_IBM
+#    import time as python_time
+#
+#    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+#    else: tb = Internal.copyTree(t_case)
+#
+#    tbF1 = None
+#    if tbox:
+#        tbF1 = Internal.getNodesFromNameAndType(tbox, '*KeepF1*', 'CGNSBase_t')
+#        tbox = None
+#
+#    ##if isinstance(tc_out, str):  fileoutpre = tc_out.split('/')
+#    ##else:                        fileoutpre = ['.','template.cgns']
+#
+#    refstate = Internal.getNodeFromName(tb, 'ReferenceState')
+#    flowEqn  = Internal.getNodeFromName(tb, 'FlowEquationSet')          
+#
+#    Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
+#    if Reynolds is not None:
+#        Reynolds = Internal.getValue(Reynolds)
+#        if Reynolds < 1.e5: frontType = 1
+#    else: Reynolds = 1.e6
+#
+#    expand = 3 if frontType != 42 else 4
+#
+#    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
+#    if dimPb is None: raise ValueError('prepareIBMDataPara: EquationDimension is missing in input geometry tree.')
+#    dimPb = Internal.getValue(dimPb)
+#    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.)
+#    
+#    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+#    if model is None: raise ValueError('prepareIBMDataPara: GoverningEquations is missing in input geometry tree.')
+#    model = Internal.getValue(model)
+#
+#    ibctypes = Internal.getNodesFromName(tb, 'ibctype')
+#    if ibctypes is None: raise ValueError('prepareIBMDataPara: ibc type is missing in input geometry tree.')
+#    ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
+#
+#    if model == 'Euler':
+#        if any(ibc in ['Musker', 'MuskerMob', 'Mafzal', 'Log', 'TBLE', 'TBLE_FULL'] for ibc in ibctypes):
+#            raise ValueError("prepareIBMDataPara: governing equations (Euler) not consistent with ibc types %s"%(ibctypes))
+#
+#    #===================
+#    # STEP 0 : GET FILAMENT BODIES Modified
+#    #===================    
+#    [filamentBases, isFilamentOnly, isOrthoProjectFirst, tb, tbFilament]=D_IBM.determineClosedSolidFilament__(tb)  
+#    isWireModel=False
+#    for z in Internal.getZones(t_case):
+#        soldef  = Internal.getNodeFromName(z,'.Solver#define')
+#        if soldef is not None:
+#            ibctype = Internal.getNodeFromName(soldef,'ibctype')
+#            if ibctype is not None:
+#                if Internal.getValue(ibctype) == "wiremodel":
+#                    isWireModel=True
+#                    break
+#    if isFilamentOnly: tbLocal=tbFilament
+#    else: tbLocal=Internal.merge([tb,tbFilament])
+#
+#    # Modification needed for Extrude
+#    # Keep F1 regions - for F1 & F42 synergy
+#    if tbF1:
+#        tbbBTmp         = G.BB(tbF1)
+#        interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
+#        for kk in interDict_scale:
+#            for kkk in interDict_scale[kk]:
+#                z=Internal.getNodeFromName(t, kkk)
+#                Internal._createUniqueChild(z, '.Solver#defineTMP', 'UserDefinedData_t')
+#                Internal._createUniqueChild(Internal.getNodeFromName1(z, '.Solver#defineTMP'), 'SaveF1', 'DataArray_t', value=1)
+#                node=Internal.getNodeFromName(t, kkk)
+#                
+#    ## New to extrude Prep            
+#    if extrusion=='cyl': cartesian = False
+#
+#    C._initVars(t, 'centers:cellN', 1.)
+#    X._applyBCOverlaps(t, depth=depth, loc='centers', val=2, cellNName='cellN')
+#    C._initVars(t,'{centers:cellNChim}={centers:cellN}')
+#    C._initVars(t, 'centers:cellN', 1.)
+#    
+#    #===================
+#    # STEP 1 : BLANKING IBM Modified
+#    #===================
+#    if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1, functionName='setInterpDataIBMExtrude')
+#    _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
+#                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
+#                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
+#                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
+#                 filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament,
+#                 isWireModel=isWireModel)
+#    
+#    ##Modify needed for extrude & to replicate previous behavior
+#    ##Ghost kmin et kmax donneuse potentiel
+#    listvars_local =['cellNChim','cellNIBC']
+#    for z in Internal.getZones(t):
+#        sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
+#        for var in listvars_local:
+#            cellN          = Internal.getNodeFromName(sol,var)[1]
+#            sh             = numpy.shape(cellN)
+#            for k in [0,1, sh[2]-2, sh[2]-1]:
+#                for j in range(sh[1]):
+#                    for i in range(sh[0]):
+#                        if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
+#    C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})') # vaut -3, 0, 1, 2 initialement
+#    
+#    Cmpi.barrier()
+#    _redispatch__(t=t)
+#    if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+#
+#    ##Same as prepareIBMDataPara
+#    #===================
+#    # STEP 2 : INTERP DATA CHIM
+#    #===================
+#    ## cellN mush be correct here
+#    ## _setInterpData uses cellN
+#    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=-1, functionName='setInterpDataIBMExtrude')
+#    tc = C.node2Center(t)
+#
+#    if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
+#        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
+#    Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
+#    if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+#
+#    #===================
+#    # STEP 3 : BUILD FRONT
+#    #===================
+#    if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1, functionName='setInterpDataIBMExtrude')
+#    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, dimPb=dimPb, frontType=frontType, 
+#                                         cartesian=cartesian, twoFronts=twoFronts, check=check,
+#                                         isWireModel=isWireModel)
+#    if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+#
+#    #===================
+#    # STEP 4 : INTERP DATA IBM
+#    #===================
+#    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1, functionName='setInterpDataIBMExtrude')
+#    _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
+#                      Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
+#                      cartesian=cartesian, twoFronts=twoFronts, check=check,
+#                      isWireModel=isWireModel, tbFilament=tbFilament, isOrthoProjectFirst=isOrthoProjectFirst, isFilamentOnly=isFilamentOnly,
+#                      frontWMM=frontWMM)
+#    if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+#
+#
+#    #===================
+#    # STEP 5 : INIT IBM Modified
+#    #===================
+#    tc2 = Internal.copyTree(tc) if twoFronts or isWireModel else None
+#
+#    if isWireModel:
+#        Internal._rmNodesByName(tc2, 'IBCD*')
+#        Internal._rmNodesByName(tc, '2_IBCD*')
+#        D_IBM._transformTc2(tc2)
+#        tc2 = Internal.rmNodesByName(tc2, 'ID*')
+#        NewIBCD= 141
+#        _changeNameIBCD__(tc2,NewIBCD)
+#        tc  = Internal.merge([tc,tc2])
+#        tc2 = None
+#
+#    ## New to extrude Prep            
+#    if extrusion == 'cyl':
+#        T._cyl2Cart(t, (0,0,0),(1,0,0))
+#        T._cyl2Cart(tc,(0,0,0),(1,0,0))
+#
+#        # modif info mesh in zonesubregion_t
+#        for z in Internal.getZones(tc):
+#            for zsr in Internal.getNodesFromType(z, "ZoneSubRegion_t"):
+#                zsrname = Internal.getName(zsr)
+#                zsrname = zsrname.split('_')
+#                if zsrname[0]=='IBCD':
+#                    for var in ['C','W','I']:            
+#                        r     = Internal.getNodeFromName(zsr,'CoordinateY_P'+var)[1]
+#                        theta = Internal.getNodeFromName(zsr,'CoordinateZ_P'+var)[1]
+#                        for l in range(numpy.size(r)):
+#                            yy  = r[l]*numpy.cos( theta[l] )
+#                            zz  = r[l]*numpy.sin( theta[l] )
+#                            r[l]= yy; theta[l] = zz
+#
+#    if distribute and Cmpi.size > 1: _redispatch__(t=t, tc=tc, tc2=tc2, twoFronts=twoFronts)
+#
+#    ## New to extrude Prep            
+#    vars = ['centers:TurbulentDistanceAllBC','centers:TurbulentDistanceWallBC', 'centers:cellNIBC_hole']
+#    C._rmVars(t, vars)
+#    
+#    if isinstance(tc_out, str):
+#        tcp = Compressor.compressCartesian(tc)
+#        Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
+#        
+#        if twoFronts:
+#            tcp2 = Compressor.compressCartesian(tc2)
+#            tc2_out = tc_out.replace('tc', 'tc2') if 'tc' in tc_out else 'tc2.cgns'
+#            Cmpi.convertPyTree2File(tcp2, tc2_out, ignoreProcNodes=True)
+#        
+#    if isinstance(t_out, str):
+#        tp = Compressor.compressCartesian(t)
+#        Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
+#
+#    _computeMeshInfo(t)
+#
+#    if Cmpi.size > 1: Cmpi.barrier()
+#    if verbose: printTimeAndMemory__('initialize and clean', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+#
+#    if tc2 is not None: return t, tc, tc2
+#    else: return t, tc
 
 def _redispatch__(t=None, tc=None, tc2=None):
     import Distributor2.Mpi as D2mpi
@@ -537,7 +752,6 @@ def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.
 # IN: wallAdaptF42 (cloud of IB target points with yplus information): 
 # use a previous computation to adapt the positioning of IB target points around the geometry according to a target yplus (F42)
 # IN: heightMaxF42 (float): maximum modeling height for the location of IB target points around the geometry (F42)
-# IN: listF1save: list of zones that will have an F1 front
 # IN: filamentBases: list of bases that are IBC filaments
 # IN: isFilamentOnly: boolean on whether there is only a IBC filament
 # IN: tbFilament: PyTree of the IBC filaments
@@ -831,7 +1045,6 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
                                             Internal.__FlowSolutionCenters__)
 
     C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})') # vaut -3, 0, 1, 2 initialement
-
     return None
 
 #=========================================================================
