@@ -63,7 +63,8 @@ if __name__ == '__main__':
   if vnvState == 'FAILED':
     messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
       'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
-      'vincent.casseau@onera.fr'
+      'vincent.casseau@onera.fr\nor list remaining issues with:\n'\
+      'compareSessionLogs --prod=your_prod_name'
   
   if script_args.email:
     notify(recipients=recipients,

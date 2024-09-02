@@ -32,6 +32,7 @@ List of functions
 **-- Geometry creation**
 
 .. autosummary::
+   :nosignatures:
 
    Geom.point
    Geom.cloud
@@ -58,6 +59,7 @@ List of functions
 **-- Typing text using meshes**
 
 .. autosummary::
+   :nosignatures:
 
    Geom.text1D
    Geom.text2D
@@ -66,6 +68,7 @@ List of functions
 **-- Geometry modification**
 
 .. autosummary::
+   :nosignatures:
 
    Geom.uniformize
    Geom.refine
@@ -82,6 +85,7 @@ List of functions
 **-- 1D distributions**
 
 .. autosummary::
+   :nosignatures:
 
     Geom.distrib1
     Geom.distrib2
@@ -90,6 +94,7 @@ List of functions
 **-- Information about geometries**
 
 .. autosummary::
+   :nosignatures:
 
    Geom.getLength
    Geom.getDistantIndex
@@ -683,6 +688,7 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
 
     .. literalinclude:: ../build/Examples/Geom/cylinderPT.py
 
+---------------------------------------------------------------------------
 
 
 Typing text using meshes
@@ -768,6 +774,8 @@ Typing text using meshes
     * `Text defined by a set of 3D meshes (pyTree) <Examples/Geom/text3DPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/text3DPT.py
+
+---------------------------------------------------------------------------
 
 Geometry modification
 ------------------------
@@ -1025,6 +1033,8 @@ Geometry modification
     .. literalinclude:: ../build/Examples/Geom/offsetSurfacePT.py
 
 
+---------------------------------------------------------------------------
+
 1D distributions
 ------------------
 
@@ -1107,6 +1117,8 @@ Geometry modification
 
     .. literalinclude:: ../build/Examples/Geom/getDistributionPT.py
 
+
+---------------------------------------------------------------------------
 
 Information about geometries
 --------------------------------

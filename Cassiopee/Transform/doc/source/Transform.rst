@@ -34,6 +34,7 @@ List of functions
 **-- Basic operations**
 
 .. autosummary::
+   :nosignatures:
 
     Transform.oneovern
     Transform.reorder
@@ -48,6 +49,7 @@ List of functions
 **-- Mesh positioning**
 
 .. autosummary::
+   :nosignatures:
    
    Transform.rotate
    Transform.translate
@@ -55,6 +57,7 @@ List of functions
 **-- Mesh transformation**
 
 .. autosummary::
+   :nosignatures:
     
     Transform.cart2Cyl
     Transform.homothety
@@ -70,6 +73,7 @@ List of functions
 **-- Mesh splitting and merging**
 
 .. autosummary::
+   :nosignatures:
 
     Transform.subzone
     Transform.join
@@ -91,6 +95,7 @@ List of functions
 **-- Mesh deformation**
 
 .. autosummary::
+   :nosignatures:
 
     Transform.deform
     Transform.deformNormals
@@ -100,6 +105,7 @@ List of functions
 **-- Mesh projections**
 
 .. autosummary::
+   :nosignatures:
     
     Transform.projectAllDirs
     Transform.projectDir
@@ -347,6 +353,8 @@ Basic operations
 
     .. literalinclude:: ../build/Examples/Transform/patchPT.py
 
+
+---------------------------------------------------------------------------
 
 Mesh positioning
 ------------------------

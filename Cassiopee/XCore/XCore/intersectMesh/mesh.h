@@ -38,9 +38,16 @@ struct Smesh;
 struct UEdge {
     E_Int p, q;
 
-    UEdge(E_Int P, E_Int Q);
+    UEdge(E_Int P, E_Int Q)
+    {
+        p = std::min(P, Q);
+        q = std::max(P, Q);
+    }
 
-    bool operator<(const UEdge &E) const;
+    bool operator<(const UEdge &E) const
+    {
+        return (p < E.p) || (p == E.p && q < E.q);
+    }
 };
 
 struct IMesh {

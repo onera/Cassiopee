@@ -34,9 +34,6 @@ expTest2 = re.compile(".py")
 expTest3 = re.compile(r"\~")
 expTest4 = re.compile("_m[0-9]+") # distributed tests
 
-# Position after the last character in Tkinter
-TK_END = 'end'
-
 # Liste des tous les tests obtenue en listant les repertoires
 # Un element de la liste est une string comme affichee dans la listbox
 TESTS = []
@@ -61,6 +58,8 @@ THREAD = None
 PROCESS = None
 # True if the GUI is used (interactive) or False (command line execution)
 INTERACTIVE = len(sys.argv) == 1
+# Use Address Sanitizer (ASan) and Leak Sanitizer (LSan) in DEBUG mode only
+USE_ASAN = [False, False]
 
 # Est egal a 1 si on doit s'arreter
 STOP = 0
@@ -198,7 +197,7 @@ def checkEnvironment():
   #    sys.exit()
 
 #==============================================================================
-# Simulate check_output since it doesn't existe for early version of python
+# Simulate check_output since it doesn't exist for early version of python
 # Retourne le resultat de cmd comme une string
 #==============================================================================
 def check_output(cmd, shell, stderr):
@@ -284,9 +283,11 @@ def check_output(cmd, shell, stderr):
                                    stderr=subprocess.PIPE, cwd=wdir,
                                    shell=shell, preexec_fn=ossid)
         
-        # max accepted time is 2 minutes for one repetition of a test
+        # max accepted time is between 2 to 6 minutes for one repetition of a test
         nreps = Repeats.get()
-        stdout, stderr = PROCESS.communicate(None, timeout=60.*2.*nreps)
+        nthreads = float(KCore.kcore.getOmpMaxThreads())
+        timeout = nreps*(100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
+        stdout, stderr = PROCESS.communicate(None, timeout=timeout)
         
         if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
@@ -329,30 +330,27 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
         testr = os.path.splitext(test)
         fileTime = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.time')
         fileStar = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.star')
-    a = os.access(fileTime, os.F_OK)
-    if a:
-        f = open(fileTime, 'r')
-        list = f.read()
-        f.close()
-        list = list.split('\n')
-        if len(list) > 0: refDate = list[0]
+
+    if os.access(fileTime, os.F_OK):
+        with open(fileTime, 'r') as f:
+            fileData = f.read()
+        fileData = fileData.split('\n')
+        if len(fileData) > 0: refDate = fileData[0]
         else: refDate = '...'
-        if len(list) > 1: refCPUtime = list[1]
+        if len(fileData) > 1: refCPUtime = fileData[1]
         else: refCPUtime = '...'
-        if len(list) > 3 and list[2] != '': refCoverage = list[2]
+        if len(fileData) > 3 and fileData[2] != '': refCoverage = fileData[2]
         else: refCoverage = '...%'
     else:
         refDate = '...'
         refCPUtime = '...'
         refCoverage = '...%'
 
-    a = os.access(fileStar, os.F_OK)
-    if a:
-        f = open(fileStar, 'r')
-        list = f.read()
-        f.close()
-        list = list.split('\n')
-        if (len(list) > 0): refTag = list[0]
+    if os.access(fileStar, os.F_OK):
+        with open(fileStar, 'r') as f:
+            fileData = f.read()
+        fileData = fileData.split('\n')
+        if len(fileData) > 0: refTag = fileData[0]
         else: refTag = ' '
     else: refTag = ' '
 
@@ -407,28 +405,31 @@ def setPaths():
         # Validation CFD
         MODULESDIR[loc]['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
     
+    global VALIDDIR
     # Module paths when the local base is used
     cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
     _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='LOCAL')
     
-    # Module paths when the global base is used
-    parentDirname = os.path.join('/stck', 'cassiope', 'git')
-    cassiopeeIncDir = os.path.join(parentDirname, 'Cassiopee', 'Cassiopee')
-    fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
-    if not os.path.isdir(fastIncDir): fastIncDir = None
-    pmodulesIncDir = os.path.join(parentDirname, 'PModules')
-    if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
-    _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='GLOBAL')
-    
-    # Valid paths
-    global VALIDDIR
+    # Local valid paths
     VALIDDIR['LOCAL'] = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee',
                                      'Valid{}'.format(DATA))
     if not os.access(VALIDDIR['LOCAL'], os.W_OK):
         VALIDDIR['LOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
         if not os.path.isdir(VALIDDIR['LOCAL']): os.mkdir(VALIDDIR['LOCAL'])
-    VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
-                                      'Cassiopee', 'Valid{}'.format(DATA))
+    
+    # Module paths when the global base is used
+    parentDirname = os.path.join('/stck', 'cassiope', 'git')
+    if os.access(parentDirname, os.R_OK):
+        cassiopeeIncDir = os.path.join(parentDirname, 'Cassiopee', 'Cassiopee')
+        fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
+        if not os.path.isdir(fastIncDir): fastIncDir = None
+        pmodulesIncDir = os.path.join(parentDirname, 'PModules')
+        if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
+        _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='GLOBAL')
+    
+        # Global valid paths
+        VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
+                                          'Cassiopee', 'Valid{}'.format(DATA))
 
 #==============================================================================
 # Retourne la liste des modules situes dans Cassiopee, Fast et PModules
@@ -493,14 +494,13 @@ def getCFDBaseTests():
 #==============================================================================
 # Ecrit un fichier contenant date, CPUtime, coverage
 #==============================================================================
-def writeTime(file, CPUtime, coverage):
+def writeTime(fileTime, CPUtime, coverage):
     try:
-        execTime = time.strftime('%d/%m/%y %Hh%M',time.localtime())
-        f = open(file, 'w')
-        f.write(execTime+'\n')
-        f.write(CPUtime+'\n')
-        f.write(coverage+'\n')
-        f.close()
+        execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
+        with open(fileTime, 'w') as f:
+            f.write(execTime + '\n')
+            f.write(CPUtime + '\n')
+            f.write(coverage + '\n')
     except: pass
 
 #==============================================================================
@@ -524,20 +524,18 @@ def writeFinal(filename, gitInfo="", logTxt=None, append=False):
 #==============================================================================
 # Read and update star dans un fichier star
 #==============================================================================
-def readStar(file):
+def readStar(fileStar):
     star = ' '
     try:
-        f = open(file, 'r')
-        star = f.readline().rstrip('\n')
-        f.close()
+        with open(fileStar, 'r') as f:
+            star = f.readline().rstrip('\n')
     except: pass
     return star
     
-def writeStar(file, star):
+def writeStar(fileStar, star):
     try:
-        f = open(file, 'w')
-        f.write(star+'\n')
-        f.close()
+        with open(fileStar, 'w') as f:
+            f.write(star+'\n')
     except: pass
 
 #==============================================================================
@@ -552,69 +550,68 @@ def runSingleTest(no, module, test):
 # retourne le temps CPU comme une chaine
 # moyenne si plusieurs repetitions d'un meme cas unitaire
 #==============================================================================
-def extractCPUTime(output1, output2, nreps=1):
+def extractCPUTimeWindows(output1, output2, nreps=1):
     CPUtime = 'Unknown'
-    split1 = output1.split(':')
-    h1 = int(split1[0])
-    m1 = int(split1[1])
-    s1 = split1[2]; s1 = s1.split(',')
-    ms1 = int(s1[1])
-    s1 = int(s1[0])
-    t1 = h1*3600. + m1*60. + s1 + 0.01*ms1
-    split2 = output2.split(':')
-    h2 = int(split2[0])
-    m2 = int(split2[1])
-    s2 = split2[2]; s2 = s2.split(',')
-    ms2 = int(s2[1])
-    s2 = int(s2[0])
-    t2 = h2*3600. + m2*60. + s2 + 0.01*ms2
-    tf = (t2-t1)/float(nreps)
-    hf = int(tf/3600.)
-    tf = tf - 3600*hf
-    mf = int(tf/60.)
-    tf = tf - 60*mf
-    sf = int(tf*100)/100.
-    if hf > 0: CPUtime = '%dh%dm%gs'%(hf,mf,sf)
-    else: CPUtime = '%dm%gs'%(mf,sf)
+    try:
+        split1 = output1.split(':')
+        h1 = int(split1[0])
+        m1 = int(split1[1])
+        s1 = split1[2]; s1 = s1.split(',')
+        ms1 = int(s1[1])
+        s1 = int(s1[0])
+        t1 = h1*3600. + m1*60. + s1 + 0.01*ms1
+        split2 = output2.split(':')
+        h2 = int(split2[0])
+        m2 = int(split2[1])
+        s2 = split2[2]; s2 = s2.split(',')
+        ms2 = int(s2[1])
+        s2 = int(s2[0])
+        t2 = h2*3600. + m2*60. + s2 + 0.01*ms2
+        tf = (t2-t1)/float(nreps)
+        hf = int(tf/3600.)
+        tf = tf - 3600*hf
+        mf = int(tf/60.)
+        tf = tf - 60*mf
+        sf = int(tf*100)/100.
+        if hf > 0: CPUtime = '%dh%dm%gs'%(hf,mf,sf)
+        else: CPUtime = '%dm%gs'%(mf,sf)
+    except: pass
     return CPUtime
 
 #=============================================================================
 # Extrait le temps CPU d'une sortie time -p (unix)
 # Moyenne si plusieurs repetitions d'un meme cas unitaire
 #=============================================================================
-def extractCPUTime2(output, nreps=1):
-    i1 = output.find('real')
-    output = output[i1+4:]
-    output = output.replace(',', '.')
-    output = output.lstrip()
-    i2 = output.find(' ')
-    if i2 != -1: output = output[:i2]
-    i3 = output.find('\n')
-    if i3 != -1: output = output[:i3]
-    i1 = output.find('h')
-    hf = 0; mf = 0; sf = 0
-    if i1 != -1:
-        hf = output[:i1]
-        try: hf = float(hf)
-        except: hf = 0.
-        output = output[i1+1:]
-    i1 = output.find('m')
-    if i1 != -1:
-        mf = output[:i1]
-        try: mf = float(mf)
-        except: mf = 0.
-        output = output[i1+1:]
-    sf = output.replace('s', '')
-    try: sf = float(sf)
-    except: sf = 0.
-    tf = (hf*3600.+mf*60.+sf)/float(nreps)
-    hf = int(tf/3600.)
-    tf = tf - 3600*hf
-    mf = int(tf/60.)
-    tf = tf - 60*mf
-    sf = int(tf*100)/100.
-    if hf > 0: CPUtime = '%dh%dm%gs'%(hf,mf,sf)
-    else: CPUtime = '%dm%gs'%(mf,sf)
+def extractCPUTimeUnix(output, nreps=1):
+    CPUtime = 'Unknown'
+    try:
+        i1 = output.find('real')
+        if i1 == -1: # external time command
+            i1 = output.find('elapsed')
+            output = output[:i1+7].strip().replace(',', '.')
+            output = re.split('\n| ', output)
+            output = [s for s in output if s.endswith('elapsed')][0]
+            output = re.sub('[a-z]', "", output)
+        else: # shell built-in time command (shell keyword)
+            output = output[i1+4:].strip()
+            output = output.replace(',', '.').replace('s', '')
+            output = re.sub('[h,m]', ':', output)
+            output = re.split('\n|\t| ', output)[0]
+        output = output.split(':')
+        output = output[::-1]
+        dt = [1., 60., 3600.]
+        tf = 0.
+        for i in range(len(output)):
+            tf += dt[i]*float(output[i])
+        tf /= float(nreps)
+        hf = tf//3600
+        tf = tf%3600
+        output = [int(hf), int(tf//60), float(tf%60)]    
+        if hf > 0.: CPUtime = '{:d}h{:d}m{:.2f}'.format(*output)
+        elif output[1] > 0.: CPUtime = '{:d}m{:.2f}'.format(*output[1:])
+        else: CPUtime = '0m{:.2f}'.format(output[-1])
+        CPUtime = CPUtime.rstrip('0').rstrip('.') + 's'
+    except: pass
     return CPUtime
 
 #==============================================================================
@@ -626,9 +623,8 @@ def runSingleUnitaryTest(no, module, test):
     modulesDir = MODULESDIR[BASE4COMPARE][module]
     path = os.path.join(modulesDir, module, 'test')
 
-    m1 = expTest1.search(test) # seq ou distribue
+    m1 = expTest1.search(test) # seq (True) ou distribue (False)
 
-    pythonExec = os.getenv('PYTHONEXE', 'python')
     nthreads = KCore.kcore.getOmpMaxThreads()
     nreps = Repeats.get()
     bktest = "bk_{0}".format(test) # backup
@@ -636,6 +632,7 @@ def runSingleUnitaryTest(no, module, test):
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
         path = path.replace('/', '\\')
+        pythonExec = os.getenv('PYTHONEXE', 'python')
         if m1 is not None: cmd = 'cd %s && %s %s'%(path, pythonExec, test)
         else: cmd = 'cd %s && set OMP_NUM_THREADS=%d && mpiexec -np 2 %s %s'%(path, nthreads//2, pythonExec, test)
         cmd2 = 'echo %time%'
@@ -652,9 +649,14 @@ def runSingleUnitaryTest(no, module, test):
               sed -i '1i\{1}\\nfor _ in range({5}):' {0}; sed -i '$a\  {2}\\n  {3}\\n  {4}' {0};""".format(
               test, cmdCmpiImport, cmdCmpiTrace, cmdConverterImport,
               cmdInitGlobalDicts, nreps, bktest, test[:-3])
-                    
-        if m1 is not None: cmd = 'cd %s; %s time %s %s'%(path, cmdReps, pythonExec, test)
-        else: cmd = 'cd %s; %s time kpython -n 2 -t %d %s'%(path, cmdReps, nthreads//2, test)
+        
+        sanitizerFlag = '-s' if any(USE_ASAN) else ''
+        if m1 is None:
+            cmd = 'cd %s; %s time kpython %s -n 2 -t %d %s'%(
+                path, cmdReps, sanitizerFlag, nthreads//2, test)
+        else:
+            cmd = 'cd %s; %s time kpython %s -t %d %s'%(
+                path, cmdReps, sanitizerFlag, nthreads, test)
 
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -695,15 +697,9 @@ def runSingleUnitaryTest(no, module, test):
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            try: CPUtime = extractCPUTime(output1, output2, nreps=nreps)
-            except: CPUtime = 'Unknown'
+            CPUtime = extractCPUTimeWindows(output1, output2, nreps=nreps)
         else:
-            i1 = output.find('\nreal')
-            if i1 == -1: CPUtime = 'Unknown'
-            else:
-                try: CPUtime = extractCPUTime2(output, nreps=nreps)
-                except: CPUtime = 'Unknown'
-                #CPUtime = output[i1+5:i1+15]; CPUtime = CPUtime.strip()
+            CPUtime = extractCPUTimeUnix(output, nreps=nreps)
 
         # Recupere le coverage
         i1 = output.find('coverage=')
@@ -783,7 +779,6 @@ def runSingleCFDTest(no, module, test):
         try: import mpi4py
         except: m1 = None
 
-    pythonExec = os.getenv('PYTHONEXE', 'python')
     nthreads = KCore.kcore.getOmpMaxThreads()
 
     if mySystem == 'mingw' or mySystem == 'windows':
@@ -796,9 +791,6 @@ def runSingleCFDTest(no, module, test):
         # Unix - le shell doit avoir l'environnement cassiopee
         if m1 is None: cmd = 'cd %s; ./valid check'%(path)
         else: cmd = 'cd %s; ./valid check 0 0 0 2 %d'%(path, nthreads//2)
-        #if m1 is None: cmd = 'cd %s; time %s compute.py check 0 0 0; %s post.py check'%(path, pythonExec, pythonExec)
-        #else: cmd = 'cd %s; kpython -n 2 -t %d compute.py check 0 0 0; %s post.py check'%(path, nthreads//2, pythonExec)
-        
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
@@ -822,14 +814,9 @@ def runSingleCFDTest(no, module, test):
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            CPUtime = extractCPUTime(output1, output2)
+            CPUtime = extractCPUTimeWindows(output1, output2)
         else:
-            i1 = output.find('real')
-            if i1 == -1: CPUtime = 'Unknown'
-            else:
-                try: CPUtime = extractCPUTime2(output)
-                except: CPUtime = 'Unknown'
-                #CPUtime = output[i1+4:i1+14]; CPUtime = CPUtime.strip()
+            CPUtime = extractCPUTimeUnix(output)
         # Recupere le coverage
         coverage = '100%'
 
@@ -987,7 +974,7 @@ def rmFile(path, fileName):
 def buildTestList(loadSession=False, modules=[]):
     global TESTS
     TESTS = []
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     if not modules:
         modules = getModules()
     # Read last sessionLog conditionally
@@ -1059,7 +1046,7 @@ def buildTestList(loadSession=False, modules=[]):
             else:
                 s = buildString(m, t)
             TESTS.append(s)
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     if loadSession and arr.size: writeSessionLog()
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
@@ -1158,11 +1145,11 @@ def filterTestList(event=None):
                       insertedTests.discard(s)
                 except re.error: pass
         
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     if filters:
-        for s in sorted(insertedTests): Listbox.insert(TK_END, s)
+        for s in sorted(insertedTests): Listbox.insert('end', s)
     else:
-        for s in TESTS: Listbox.insert(TK_END, s)
+        for s in TESTS: Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     return True
@@ -1197,7 +1184,7 @@ def viewTest(event=None):
 # Met a jour les infos de progression
 #==============================================================================
 def selectAll(event=None):
-    Listbox.selection_set(0, TK_END)
+    Listbox.selection_set(0, 'end')
     (total, remaining) = getTestsTime()
     displayProgress(0, total, remaining, 0.)
 
@@ -1205,10 +1192,10 @@ def selectAll(event=None):
 # Affiche les test FAILED ou FAILEDMEM dans la listbox
 #==============================================================================
 def showFilter(filter='FAILED'):
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is not None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1219,10 +1206,10 @@ def showFilter(filter='FAILED'):
 #==============================================================================
 def showRunCases():
     filter = r'\.\.\.'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1233,10 +1220,10 @@ def showRunCases():
 #==============================================================================
 def showUnrunCases():
     filter = r'\.\.\.'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is not None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1247,10 +1234,10 @@ def showUnrunCases():
 #==============================================================================
 def showCovered():
     filter = '100%'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is not None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1261,10 +1248,10 @@ def showCovered():
 #==============================================================================
 def showUncovered():
     filter = ' 0%'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if re.search(filter, s) is not None:
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1277,11 +1264,11 @@ def showPartialCovered():
     filter1 = '100%'
     filter2 = ' 0%'
     filter3 = r'\.%'
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         if (re.search(filter1, s) is None and re.search(filter2, s) is None
             and re.search(filter3, s) is None):
-            Listbox.insert(TK_END, s)
+            Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1314,27 +1301,27 @@ def time2String(time):
 # Affiche les tests plus rapide que ref CPUtime dans la listbox
 #==============================================================================
 def showFaster():
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 < t2-0.15*t2: Listbox.insert(TK_END, s)
+            if t1 < t2-0.15*t2: Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
     return True
 def showFasterP():
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 < t2-0.5*t2: Listbox.insert(TK_END, s)
+            if t1 < t2-0.5*t2: Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1344,27 +1331,27 @@ def showFasterP():
 # Affiche les tests plus lent que la reference de 15%
 #==============================================================================
 def showSlower():
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if (t1 > t2+0.15*t2): Listbox.insert(TK_END, s)
+            if (t1 > t2+0.15*t2): Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
     return True
 def showSlowerP():
-    Listbox.delete(0, TK_END)
+    Listbox.delete(0, 'end')
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 > t2+0.5*t2: Listbox.insert(TK_END, s)
+            if t1 > t2+0.5*t2: Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
@@ -1472,17 +1459,16 @@ def export2Text():
     ret = tkFileDialog.asksaveasfilename()
     if ret == '' or ret is None or ret == (): # user cancel
         return
-
-    file = open(ret, 'w')
-    for t in TESTS: file.write(t); file.write('\n')
-    file.close()
+    with open(ret, 'w') as f:
+        for t in TESTS: f.write(t); f.write('\n')
 
 #==============================================================================
 # writeSessionLog: write log and baseTime
 #==============================================================================
 def createEmptySessionLog():
     # Create an empty session log
-    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f: f.write("")
+    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f:
+        f.write("")
     
 def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
@@ -1602,6 +1588,10 @@ def untagSelection(event=None):
 #==============================================================================
 # Setups to either use the local or global databases
 #==============================================================================
+def toggleDB(**kwargs):
+    if BASE4COMPARE == 'LOCAL': return setupGlobal(**kwargs)
+    return setupLocal(**kwargs)
+
 def setupLocal(**kwargs):
     global BASE4COMPARE
     # Change to local ref
@@ -1615,9 +1605,11 @@ def setupLocal(**kwargs):
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
     createEmptySessionLog()
     buildTestList(**kwargs)
+    updateDBLabel()
     
 def setupGlobal(**kwargs):
     global BASE4COMPARE
+    if VALIDDIR['GLOBAL'] is None: return
     # Change to global ref
     print('Info: comparing to global database.')
     BASE4COMPARE = 'GLOBAL'
@@ -1634,8 +1626,32 @@ def setupGlobal(**kwargs):
     except: pass
     createEmptySessionLog()
     buildTestList(**kwargs)
+    updateDBLabel()
+   
+def getDBInfo():    
+    dbInfo = ''
+    if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK):
+        filename = '/stck/cassiope/git/Cassiopee/Cassiopee/Valid{}/base.time'
+        try:
+            with open(filename.format(DATA), 'r') as f:
+                dbInfo = f.read().split('\n')
+                dbInfo = '[{} - {} - {} threads]'.format(*dbInfo[0:3])
+        except: pass
+    return dbInfo
     
+def updateDBLabel():    
+    if not INTERACTIVE: return
+    dbInfo = getDBInfo()
+    if not dbInfo: return
+    if BASE4COMPARE == 'GLOBAL':
+        label = 'Switch to local data base'
+    else:
+        label = 'Switch to global data base ' + getDBInfo()
+    toolsTab.entryconfig(3, label=label)
+
+#==============================================================================
 # Parse command-line arguments
+#==============================================================================
 def parseArgs():
     import argparse
     def _checkInt(n):
@@ -1658,11 +1674,19 @@ def parseArgs():
     parser.add_argument("-l", "--load-session", dest='loadSession',
                         action="store_true",
                         help="Load last session. Default: False")
+    parser.add_argument("--leak-sanitizer", action="store_true",
+                        dest="leak_sanitizer",
+                        help="Leak Sanitizer to detect memory leaks."
+                             "Available in DEBUG mode only")
+    parser.add_argument("--memory-sanitizer", action="store_true",
+                        dest="memory_sanitizer",
+                        help="Address Sanitizer to detect memory access errors."
+                             "Available in DEBUG mode only")
     parser.add_argument("-p", "--purge", default=50, type=_checkInt,
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
                         help="Run selected tests")
-    parser.add_argument("-u", "--update", action="store_true",
+    parser.add_argument("--update", action="store_true",
                         help="Update local database")
 
     # Parse arguments
@@ -1674,7 +1698,41 @@ def purgeSessionLogs(n):
     if len(lognames) > n:
         for log in lognames[:-n]: os.remove(log)
     return None
+
+#==============================================================================
+# Switches to control the state of USE_ASAN (Address/Leak Sanitizers)
+#==============================================================================
+def toggleASAN():
+    global USE_ASAN
+    USE_ASAN[0] = not USE_ASAN[0]
+    updateASANLabel(3)
     
+def toggleLSAN():
+    global USE_ASAN
+    USE_ASAN[1] = not USE_ASAN[1]
+    updateASANLabel(4)
+    updateASANOptions()
+    
+def updateASANOptions():
+    # Update ASAN_OPTIONS according to USE_ASAN
+    asan_opt = os.getenv("ASAN_OPTIONS", "")
+    posArg = asan_opt.find('detect_leaks=')
+    if posArg == -1:
+        os.environ["ASAN_OPTIONS"] = "{}:detect_leaks={:d}".format(
+            asan_opt, USE_ASAN[1])
+    else:
+        os.environ["ASAN_OPTIONS"] = "{}detect_leaks={:d}{}".format(
+            asan_opt[:posArg], USE_ASAN[1], asan_opt[posArg+14:])
+    print("Info: ASAN_OPTIONS = " + os.getenv("ASAN_OPTIONS", ""))
+
+def updateASANLabel(entry_index):    
+    if not INTERACTIVE: return
+    if getDBInfo(): entry_index += 2
+    label = toolsTab.entrycget(entry_index, "label")
+    if label[0].startswith('E'): label = 'Dis' + label[2:]
+    else: label = 'En' + label[3:]
+    toolsTab.entryconfig(entry_index, label=label)
+
 #==============================================================================
 # Main
 #==============================================================================
@@ -1695,10 +1753,10 @@ if __name__ == '__main__':
         try: import tkFont as Font
         except: import tkinter.font as Font
         from functools import partial
-        TK_END = TK.END
         # Main window
         Master = TK.Tk()
-        Master.title('*Cassiopee* valid @ '+machine)
+        Master.title('*Cassiopee* valid : {} @ {}'.format(
+            os.getenv("ELSAPROD"), machine))
         Master.columnconfigure(0, weight=1)
         Master.rowconfigure(0, weight=1)
         #GENERALFONT = ('Courier', 9)
@@ -1712,54 +1770,56 @@ if __name__ == '__main__':
 
         # Main menu
         menu = TK.Menu(Master)
-        file = TK.Menu(menu, tearoff=0)
-        menu.add_cascade(label='File', menu=file)
-        tools = TK.Menu(menu, tearoff=0)
-        menu.add_cascade(label='Tools', menu=tools)
-        view = TK.Menu(menu, tearoff=0)
-        menu.add_cascade(label='View', menu=view)
+        fileTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='File', menu=fileTab)
+        toolsTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='Tools', menu=toolsTab)
+        viewTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='View', menu=viewTab)
 
         loadSessionWithArgs = partial(buildTestList, True)
-        file.add_command(label='Load last session', command=loadSessionWithArgs)
-        file.add_command(label='Purge session', command=buildTestList)
-        file.add_command(label='Export to text file', command=export2Text)
-        #file.add_command(label='Notify Ready for commit', command=notifyValidOK)
-        file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
-        view.add_command(label='Show FAILED', command=showFilter)
+        fileTab.add_command(label='Load last session', command=loadSessionWithArgs)
+        fileTab.add_command(label='Purge session', command=buildTestList)
+        fileTab.add_command(label='Export to text file', command=export2Text)
+        #fileTab.add_command(label='Notify Ready for commit', command=notifyValidOK)
+        fileTab.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
+        viewTab.add_command(label='Show FAILED', command=showFilter)
         showFilterWithArgs = partial(showFilter, "FAILEDMEM")
-        view.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
-        view.add_command(label='Show ALL tests', command=showAll)
-        view.add_separator()
-        view.add_command(label='Show run cases', command=showRunCases)
-        view.add_command(label='Show unrun cases', command=showUnrunCases)
-        view.add_separator()
-        view.add_command(label='Show covered (100%)', command=showCovered)
-        view.add_command(label='Show partially covered (x%)',
-                         command=showPartialCovered)
-        view.add_command(label='Show uncovered (0%)', command=showUncovered)
-        view.add_separator()
-        view.add_command(label='Show faster (-15%)', command=showFaster)
-        view.add_command(label='Show slower (+15%)', command=showSlower)
-        view.add_command(label='Show faster (-50%)', command=showFasterP)
-        view.add_command(label='Show slower (+50%)', command=showSlowerP)
-        view.add_separator()
-        view.add_command(label='Select all visible tests', command=selectAll,
-                         accelerator='Ctrl+A')
+        viewTab.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
+        viewTab.add_command(label='Show ALL tests', command=showAll)
+        viewTab.add_separator()
+        viewTab.add_command(label='Show run cases', command=showRunCases)
+        viewTab.add_command(label='Show unrun cases', command=showUnrunCases)
+        viewTab.add_separator()
+        viewTab.add_command(label='Show covered (100%)', command=showCovered)
+        viewTab.add_command(label='Show partially covered (x%)',
+                            command=showPartialCovered)
+        viewTab.add_command(label='Show uncovered (0%)', command=showUncovered)
+        viewTab.add_separator()
+        viewTab.add_command(label='Show faster (-15%)', command=showFaster)
+        viewTab.add_command(label='Show slower (+15%)', command=showSlower)
+        viewTab.add_command(label='Show faster (-50%)', command=showFasterP)
+        viewTab.add_command(label='Show slower (+50%)', command=showSlowerP)
+        viewTab.add_separator()
+        viewTab.add_command(label='Select all visible tests', command=selectAll,
+                            accelerator='Ctrl+A')
 
-        tools.add_command(label='Tag selection', command=tagSelection)
-        tools.add_command(label='Untag selection', command=untagSelection)
-        tools.add_separator()
+        toolsTab.add_command(label='Tag selection', command=tagSelection)
+        toolsTab.add_command(label='Untag selection', command=untagSelection)
         
-        db_info = ''
-        try:
-            filename = '/stck/cassiope/git/Cassiopee/Cassiopee/Valid{}/base.time'
-            with open(filename.format(DATA), 'r') as f:
-                db_info = f.read().split('\n')
-                db_info = '[{} - {} - {} threads]'.format(*db_info[0:3])
-        except: pass
-        tools.add_command(label='Switch to global data base ' + db_info,
-                          command=setupGlobal)
-        tools.add_command(label='Switch to local data base', command=setupLocal)
+        dbInfo = getDBInfo()
+        if dbInfo:
+            # Show this button if the global database can be interrogated
+            toolsTab.add_separator()
+            toolsTab.add_command(label='Switch to global data base ' + dbInfo,
+                                 command=toggleDB)
+        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+            toolsTab.add_separator()
+            toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
+                                 command=toggleASAN)
+            toolsTab.add_command(label='Enable Leak Sanitizer (LSan)',
+                                 command=toggleLSAN)
+            updateASANOptions()
 
         Master.config(menu=menu)
         Master.bind_all("<Control-q>", Quit)
@@ -1867,13 +1927,18 @@ if __name__ == '__main__':
         Repeats = NoDisplayIntVar(value=1)
         RepeatsEntry = NoDisplayEntry()
 
-        if vcargs.global_db: setupGlobal(loadSession=vcargs.loadSession)
+        if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and vcargs.global_db:
+            setupGlobal(loadSession=vcargs.loadSession)
         else: setupLocal(loadSession=vcargs.loadSession)
         purgeSessionLogs(vcargs.purge)
         if vcargs.filters:
             Filter.set(vcargs.filters)
             filterTestList()
         if vcargs.run:
+            if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+                if vcargs.memory_sanitizer: USE_ASAN[0] = True
+                if vcargs.leak_sanitizer: USE_ASAN[1] = True
+                updateASANOptions()
             selectAll()
             runTests()
             Quit()

@@ -19,6 +19,7 @@ List of functions
 **-- Volume fields**
 
 .. autosummary::
+   :nosignatures:
 
     Post.ExtraVariables2.extractTree
     Post.ExtraVariables2.computeVorticity2
@@ -36,6 +37,7 @@ List of functions
 **-- Surface fields**
 
 .. autosummary::
+   :nosignatures:
 
     Post.ExtraVariables2.extractShearStress
     Post.ExtraVariables2.extractTaun
@@ -301,6 +303,7 @@ Volume fields
     .. literalinclude:: ../build/Examples/Post/extractMutSurMuPT.py
 
 
+-------------------------------------------------------------------------
 
 
 Surface fields
@@ -423,4 +426,5 @@ Surface fields
 
     .. literalinclude:: ../build/Examples/Post/extractFrictionMagnitudePT.py
 
+-------------------------------------------------------------------------
 

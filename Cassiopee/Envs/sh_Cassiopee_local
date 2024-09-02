@@ -17,29 +17,30 @@ ulimit -s unlimited
 # stelvio: x86 processors, intel compilers -> stv
 
 # Detect machine (shortest first)
-KC=`uname -n`
-MAC0=$(echo $KC | grep 'n'); if [ "$MAC0" != "" ]; then export MAC="sator_cas"; fi
-MAC0=$(echo $KC | grep 'ld'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
-MAC0=$(echo $KC | grep 'clausius'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
-MAC0=$(echo $KC | grep 'ubuntu'); if [ "$MAC0" != "" ]; then export MAC="ubuntu"; fi
-MAC0=$(echo $KC | grep 'visio'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
-MAC0=$(echo $KC | grep 'austri'); if [ "$MAC0" != "" ]; then export MAC="austri"; fi
-MAC0=$(echo $KC | grep 'celeste'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
-MAC0=$(echo $KC | grep 'visung'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
-MAC0=$(echo $KC | grep 'giulia'); if [ "$MAC0" != "" ]; then export MAC="giulia"; fi
-MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_cas"; fi
-MAC0=$(echo $KC | grep 'jean-zay'); if [ "$MAC0" != "" ]; then export MAC="jean-zay"; fi
-MAC0=$(echo $KC | grep 'spiro'); if [ "$MAC0" != "" ]; then export MAC="spiro_el8"; fi
-MAC0=$(echo $KC | grep 'f0'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
-MAC0=$(echo $KC | grep 'n0'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
-MAC0=$(echo $KC | grep 'v0'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
-MAC0=$(echo $KC | grep 'cobalt'); if [ "$MAC0" != "" ]; then export MAC="cobalt"; fi
-MAC0=$(echo $KC | grep 'irene'); if [ "$MAC0" != "" ]; then export MAC="irene"; fi
-MAC0=$(echo $KC | grep 'jean-zay'); if [ "$MAC0" != "" ]; then export MAC="jean-zay"; fi
-MAC0=$(echo $KC | grep 'node6.cluster'); if [ "$MAC0" != "" ]; then export MAC="macosx"; fi
-MAC0=$(echo $KC | grep 'topaze'); if [ "$MAC0" != "" ]; then export MAC="topaze"; fi
-MAC0=$(echo $KC | grep 'Aryen'); if [ "$MAC0" != "" ]; then export MAC="aryen"; fi
-MAC0=$(echo $KC | grep 'WDAAA161Z'); if [ "$MAC0" != "" ]; then export MAC="WDAAA161Z"; fi
+KC=$(uname -n)
+if echo "$KC" | grep -q 'n'; then export MAC="sator_cas"; fi
+if echo "$KC" | grep -q 'ld'; then export MAC="ld"; fi
+if echo "$KC" | grep -q 'f0'; then export MAC="juno"; fi
+if echo "$KC" | grep -q 'n0'; then export MAC="juno"; fi
+if echo "$KC" | grep -q 'v0'; then export MAC="juno"; fi
+if echo "$KC" | grep -q 'fv-az'; then export MAC="ubuntu"; fi
+if echo "$KC" | grep -q 'clausius'; then export MAC="ld"; fi
+if echo "$KC" | grep -q 'ubuntu'; then export MAC="ubuntu"; fi
+if echo "$KC" | grep -q 'visio'; then export MAC="visio"; fi
+if echo "$KC" | grep -q 'austri'; then export MAC="austri"; fi
+if echo "$KC" | grep -q 'celeste'; then export MAC="visio"; fi
+if echo "$KC" | grep -q 'visung'; then export MAC="juno"; fi
+if echo "$KC" | grep -q 'giulia'; then export MAC="giulia"; fi
+if echo "$KC" | grep -q 'sator'; then export MAC="sator_cas"; fi
+if echo "$KC" | grep -q 'jean-zay'; then export MAC="jean-zay"; fi
+if echo "$KC" | grep -q 'spiro'; then export MAC="spiro_el8"; fi
+if echo "$KC" | grep -q 'cobalt'; then export MAC="cobalt"; fi
+if echo "$KC" | grep -q 'irene'; then export MAC="irene"; fi
+if echo "$KC" | grep -q 'jean-zay'; then export MAC="jean-zay"; fi
+if echo "$KC" | grep -q 'node6.cluster'; then export MAC="macosx"; fi
+if echo "$KC" | grep -q 'topaze'; then export MAC="topaze"; fi
+if echo "$KC" | grep -q 'Aryen'; then export MAC="aryen"; fi
+if echo "$KC" | grep -q 'WDAAA161Z'; then export MAC="WDAAA161Z"; fi
 
 # Detect MAC environement from MACHINE
 INTTYPE=""

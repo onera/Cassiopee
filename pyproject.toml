@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "scons>=3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "node-and-date"
+
+[project]
+name = "Cassiopee"
+authors = [
+  { name="ONERA", email="christophe.benoit@onera.fr" },
+]
+license = {text="GPLv3"}
+description = "Computational Fluid Dynamics pre- and post-processing python modules"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+  "numpy",
+  "mpi4py",
+  "scons"
+]
+classifiers = [
+  "Programming Language :: Python",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: Unix",
+  "Operating System :: Microsoft :: Windows",
+  "Topic :: Scientific/Engineering :: Physics"
+]
+
+[project.urls]
+Homepage = "https://github.com/onera/Cassiopee"
+Issues = "https://github.com/onera/Cassiopee/issues"

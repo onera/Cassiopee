@@ -20,6 +20,7 @@ List of functions
 **-- Grid Generation**
 
 .. autosummary::
+   :nosignatures:
 
    Generator.IBM.generateCartMesh__
    Generator.IBM.adaptIBMMesh

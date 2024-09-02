@@ -30,8 +30,14 @@ from . import IBM_OLDIES
 # -> does not modify t
 # -> does not use compact information (FastS style)
 #=============================================================================
-def _updateGradPInfo(t, tc, ibctypes=[], secondOrder=False):
-    """Computes pressure gradient information at image points and store them in the tc"""
+def extractPressureGradients(t, tc, secondOrder=False, ibctypes=[]):
+    """Extracts the pressure gradients at the image points."""
+    tp = Internal.copyRef(tc)
+    _extractPressureGradients(t, tp, secondOrder, ibctypes)
+    return tp
+
+def _extractPressureGradients(t, tc, secondOrder=False, ibctypes=[]):
+    """Extracts the pressure gradients at the image points."""
     import Post.ExtraVariables2 as PE
 
     t = PE.extractPressure(t)
@@ -91,7 +97,7 @@ def _updateGradPInfo(t, tc, ibctypes=[], secondOrder=False):
 def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False, isClipInterpMLS=False, isRevertToOld=False, isPreProjectOrtho=False):
     """Extracts the flow field stored at IBM points onto the surface."""
 
-    if extractYplusAtImage and not famZones: _extractYplusIP(tc)
+    if extractYplusAtImage and not famZones: _extractYplusAtImagePoints(tc)
 
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
@@ -455,14 +461,14 @@ def _extractLocalPressureGradients(ts):
 #=============================================================================
 # compute yplus_i
 #=============================================================================
-def extractYplusIP(tc):
-    """Computes yplus values at image points and store them in the tc."""
+def extractYplusAtImagePoints(tc):
+    """Extracts the yplus values at the image points."""
     tp = Internal.copyRef(tc)
-    _extractYplusIP(tp)
+    _extractYplusAtImagePoints(tp)
     return tp
 
-def _extractYplusIP(tc):
-    """Computes yplus values at image points and store them in the tc."""
+def _extractYplusAtImagePoints(tc):
+    """Extracts the yplus values at the image points."""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -623,13 +629,14 @@ def _extractPressureHO2__(tc, extractDensity=False):
 
     return None
 
-def extractPressureHO(tc, order=1, extractDensity=False):
-    """Extrapolates the wall pressure (1st or 2nd order) at the immersed boundaries and stores the solution in the tc."""
+def extractPressureHighOrder(tc, order=1, extractDensity=False):
+    """Extrapolates the wall pressure (1st or 2nd order) at the immersed boundaries."""
     tp = Internal.copyRef(tc)
-    _extractPressureHO(tp, order=order, extractDensity=extractDensity)
+    _extractPressureHighOrder(tp, order=order, extractDensity=extractDensity)
     return tp
 
-def _extractPressureHO(tc, order=1, extractDensity=False):
+def _extractPressureHighOrder(tc, order=1, extractDensity=False):
+    """Extrapolates the wall pressure (1st or 2nd order) at the immersed boundaries."""
     if order == 2: _extractPressureHO2__(tc, extractDensity=extractDensity)
     else: _extractPressureHO1__(tc, extractDensity=extractDensity)
 
@@ -777,7 +784,7 @@ def _computeExtraVariables(ts, PInf, QInf,
 def createCloudIBM__(tc, ibctypes=[]):
     tp = Internal.copyRef(tc)
 
-    _extractYplusIP(tp)
+    _extractYplusAtImagePoints(tp)
 
     cpt_name = 0
     tl = C.newPyTree(['CLOUD_IBCW'])
@@ -931,7 +938,8 @@ def setIBCTransfersPost__(graphIBCDPost, tl):
 
     return tl
 
-def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=False):
+def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
+    """Prepares the flow solution extraction at immersed boundaries."""
     import Distributor2.PyTree as D2
 
     alphah=2.2 # to extend the bboxes
@@ -1030,7 +1038,14 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=False):
 
     return graphIBCDPost, ts
 
+def computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[]):
+    """Computes the surface flow solution at the wall."""
+    tp = Internal.copyRef(ts)
+    _computeSkinVariables(tp, tc, graphIBCDPost, dimPb, ibctypes)
+    return tp
+
 def _computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[]):
+    """Computes the surface flow solution at the wall."""
     tl = createCloudIBM__(tc, ibctypes)
     tl = setIBCTransfersPost__(graphIBCDPost, tl)
     tl = T.join(tl)
@@ -1073,7 +1088,7 @@ def extractPressureFromFront2__(tw, tw2, extractDensity=False):
     return tw
 
 def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, center=(0.,0.,0.), verbose=0):
-    """Computes the aerodynamic loads on the immersed boundaries"""
+    """Computes the aerodynamic loads at the wall."""
 
     import Post.ExtraVariables2 as PE
     import Connector.IBM as X_IBM
@@ -1207,7 +1222,7 @@ def fromBodyFrameToWindFrame__(vector, dimPb=3, alpha=0., beta=0.):
     return cx, cy, cz
 
 def computeAerodynamicCoefficients(ts, aeroLoads, dimPb=3, Sref=None, Lref=None, Qref=None, alpha=0., beta=0., verbose=0):
-    """Computes the normalized aerodynamic coefficients from the integration of aerodynamic forces and moments on the immersed boundaries"""
+    """Normalizes aerodynamic coefficients and places integration information in the wind frame."""
 
     tw = Internal.copyRef(ts)
 
@@ -1401,7 +1416,7 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
     return [res, res2, [clp, cdp], [clf, cdf]]
 
 def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref=None, order=1, gradP=False, famZones=[], extractIBMInfo=False):
-    """Computes the viscous and pressure forces on the immersed boundaries"""
+    """Computes the viscous and pressure forces on the immersed boundaries."""
 
     if tc_in is not None:
         if isinstance(tc_in, str):

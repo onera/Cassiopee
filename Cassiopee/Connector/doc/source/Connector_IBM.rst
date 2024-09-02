@@ -16,6 +16,7 @@ List of functions
 **-- IBM Connectivity**
 
 .. autosummary::
+   :nosignatures:
 
    <!--Connector.IBM._computeFrictionVelocity-->
    <!--Connector.IBM._blankClosestTargetCells-->

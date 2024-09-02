@@ -57,7 +57,7 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f;
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "close: can't find coordinates in array.");
     return NULL;
@@ -68,14 +68,14 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
   {
     closeStructuredMesh(f->begin(posx), f->begin(posy), f->begin(posz), im, jm, km, eps);
     PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km); 
-    delete f;
+    RELEASESHAREDS(array, f);
     return tpl;
   }
   else if (res == 2)
   { 
     if (strchr(eltType, '*') != NULL)
     {
-      delete f; delete cn;
+      RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "close: array must be defined at vertices.");
       return NULL;
@@ -85,10 +85,10 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
         varString, *f, *cn, eltType, eps,
         rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces, rmDuplicatedElts,
         rmDegeneratedFaces, rmDegeneratedElts);
-    if (tpl == NULL) tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType); // tpl = array;
 
-    delete f; delete cn;
-    return tpl;
+    RELEASESHAREDU(array, f, cn);
+    if (tpl == NULL) return array;
+    else return tpl;
   }
   else
   {

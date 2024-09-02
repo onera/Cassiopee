@@ -4385,17 +4385,17 @@ def _adaptNFace2Index(t):
 
 # -- Adapte un NGon(CGNSv4) en NGon(CGNSv3)
 def adaptNGon42NGon3(t, shiftPE=True, absFace=True):
-    """Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard."""
+    """Adapts an NGON mesh from the CGNSv4 standard to the CGNSv3 standard."""
     tp = copyRef(t)
     _adaptNGon42NGon3(tp, shiftPE, absFace)
     return tp
 
 def _adaptNGon42NGon3(t, shiftPE=True, absFace=True):
-    """Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard."""
+    """Adapts an NGON mesh from the CGNSv4 standard to the CGNSv3 standard."""
     zones = getZones(t)
     for z in zones:
-        cn = getElementNodes(z)
-        for c in cn:
+        eltcn = getElementNodes(z)
+        for c in eltcn:
             # NGON ou NFACE modifie l'offset
             if c[1][0] == 22 or c[1][0] == 23:
                 off = getNodeFromName1(c, 'ElementStartOffset')
@@ -4422,19 +4422,20 @@ def _adaptNGon42NGon3(t, shiftPE=True, absFace=True):
 
 # -- Adapte un NGon(CGNSv3) en NGon(CGNSv4)
 def adaptNGon32NGon4(t, shiftPE=True):
-    """Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard"""
+    """Adapts an NGON mesh from the CGNSv3 standard to the CGNSv4 standard"""
     tp = copyRef(t)
     _adaptNGon32NGon4(tp, shiftPE)
     return tp
 
 def _adaptNGon32NGon4(t, shiftPE=True):
-    """Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard"""
+    """Adapts an NGON mesh from the CGNSv3 standard to the CGNSv4 standard"""
     zones = getZones(t)
     for z in zones:
-        cn = getElementNodes(z)
-        for c in cn:
+        eltcn = getElementNodes(z)
+        for c in eltcn:
             # NGON ou NFACE offsets
-            if c[1][0] == 22 or c[1][0] == 23:
+            cn = getNodeFromName1(c, 'ElementStartOffset') # check that not already an NGonv4
+            if cn is None and (c[1][0] == 22 or c[1][0] == 23):
                 cn = getNodeFromName1(c, 'ElementConnectivity')
                 if cn is not None:
                     (n,off) = converter.adaptNGon32NGon4(cn[1])
@@ -4450,8 +4451,8 @@ def _adaptNGon32NGon4(t, shiftPE=True):
                     erange = getNodeFromName1(c, 'ElementRange')
                     shift = numpy.min(cFE[numpy.nonzero(cFE)])
                     if shift == erange[1][1]+1:
-                        cFE = cFE+(shift-1)*(cFE>0)
-                        parentElt[1] = cFE
+                       cFE = cFE+(shift-1)*(cFE>0)
+                       parentElt[1] = cFE
 
     return None
 

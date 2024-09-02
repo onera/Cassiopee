@@ -62,28 +62,28 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <p><strong>&#8211; Main Functions</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.conformUnstr" title="Intersector.conformUnstr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.conformUnstr</span></code></a>(a1[,&#160;a2,&#160;tol,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.conformUnstr" title="Intersector.conformUnstr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.conformUnstr</span></code></a></p></td>
 <td><p>Conformizes a1 (optionally with a2).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.booleanUnion" title="Intersector.booleanUnion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.booleanUnion</span></code></a>(a1,&#160;a2[,&#160;tol,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.booleanUnion" title="Intersector.booleanUnion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.booleanUnion</span></code></a></p></td>
 <td><p>Computes the union between two closed-surface or two volume meshes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.booleanIntersection" title="Intersector.booleanIntersection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.booleanIntersection</span></code></a>(a1,&#160;a2[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.booleanIntersection" title="Intersector.booleanIntersection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.booleanIntersection</span></code></a></p></td>
 <td><p>Computes the intersection between two closed-surface or two volume meshes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.booleanMinus" title="Intersector.booleanMinus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.booleanMinus</span></code></a>(a1,&#160;a2[,&#160;tol,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.booleanMinus" title="Intersector.booleanMinus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.booleanMinus</span></code></a></p></td>
 <td><p>Computes the difference between two closed-surface or two volume meshes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.diffSurf" title="Intersector.diffSurf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.diffSurf</span></code></a>(a1,&#160;a2[,&#160;tol,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.diffSurf" title="Intersector.diffSurf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.diffSurf</span></code></a></p></td>
 <td><p>Computes the difference between a volume mesh and a surface mesh.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.intersection" title="Intersector.intersection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.intersection</span></code></a>(a1,&#160;a2[,&#160;tol,&#160;itermax])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.intersection" title="Intersector.intersection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.intersection</span></code></a></p></td>
 <td><p>Computes the intersection trace (a polyline) between two input closed surfaces.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.PyTree.XcellN" title="Intersector.PyTree.XcellN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.PyTree.XcellN</span></code></a>(t,&#160;priorities[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.PyTree.XcellN" title="Intersector.PyTree.XcellN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.PyTree.XcellN</span></code></a></p></td>
 <td><p>Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for both surface and volume mesh of any kind.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.adaptCells" title="Intersector.adaptCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.adaptCells</span></code></a>(a[,&#160;sensdata,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.adaptCells" title="Intersector.adaptCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.adaptCells</span></code></a></p></td>
 <td><p>Adapts an unstructured mesh a with repsect to a sensor.</p></td>
 </tr>
 </tbody>
@@ -91,13 +91,13 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <p><strong>&#8211; Collision predicates</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.getOverlappingFaces" title="Intersector.getOverlappingFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.getOverlappingFaces</span></code></a>(a1,&#160;a2[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.getOverlappingFaces" title="Intersector.getOverlappingFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.getOverlappingFaces</span></code></a></p></td>
 <td><p>Returns the list of polygons in a1 and a2 that are overlapping.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.getCollidingCells" title="Intersector.getCollidingCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.getCollidingCells</span></code></a>(a1,&#160;a2[,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.getCollidingCells" title="Intersector.getCollidingCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.getCollidingCells</span></code></a></p></td>
 <td><p>Returns the list of cells in a1 and a2 that are colliding.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.selfX" title="Intersector.selfX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.selfX</span></code></a>(a)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.selfX" title="Intersector.selfX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.selfX</span></code></a></p></td>
 <td><p>Checks  self-intersections in a mesh.</p></td>
 </tr>
 </tbody>
@@ -105,40 +105,40 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <p><strong>&#8211; Transformation Functions</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.triangulateBC" title="Intersector.triangulateBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.triangulateBC</span></code></a>(a,&#160;pgs[,&#160;improve_qual])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.triangulateBC" title="Intersector.triangulateBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.triangulateBC</span></code></a></p></td>
 <td><p>Triangulates specified polygons of a volume mesh.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.triangulateExteriorFaces" title="Intersector.triangulateExteriorFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.triangulateExteriorFaces</span></code></a>(a[,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.triangulateExteriorFaces" title="Intersector.triangulateExteriorFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.triangulateExteriorFaces</span></code></a></p></td>
 <td><p>Triangulates exterior polygons of a volume mesh.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.reorient" title="Intersector.reorient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.reorient</span></code></a>(a[,&#160;dir])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.reorient" title="Intersector.reorient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.reorient</span></code></a></p></td>
 <td><p>Reorients outward the external polygons of a mesh.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.convexifyFaces" title="Intersector.convexifyFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.convexifyFaces</span></code></a>(a[,&#160;convexity_TOL])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.convexifyFaces" title="Intersector.convexifyFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.convexifyFaces</span></code></a></p></td>
 <td><p>Convexifies any non-convex polygon in a mesh.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.syncMacthPeriodicFaces" title="Intersector.syncMacthPeriodicFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.syncMacthPeriodicFaces</span></code></a>(a[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.syncMacthPeriodicFaces" title="Intersector.syncMacthPeriodicFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.syncMacthPeriodicFaces</span></code></a></p></td>
 <td><p>Force periodicity for faces that are supposed to be periodic.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.prepareCellsSplit" title="Intersector.prepareCellsSplit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.prepareCellsSplit</span></code></a>(a[,&#160;PH_set,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.prepareCellsSplit" title="Intersector.prepareCellsSplit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.prepareCellsSplit</span></code></a></p></td>
 <td><p>Splits some prescribed polygons following a prescribed splitting policy.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.splitNonStarCells" title="Intersector.splitNonStarCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.splitNonStarCells</span></code></a>(a[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.splitNonStarCells" title="Intersector.splitNonStarCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.splitNonStarCells</span></code></a></p></td>
 <td><p>Splits some non-centroid-star_shaped cells.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.agglomerateSmallCells" title="Intersector.agglomerateSmallCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.agglomerateSmallCells</span></code></a>(a[,&#160;vmin,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.agglomerateSmallCells" title="Intersector.agglomerateSmallCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.agglomerateSmallCells</span></code></a></p></td>
 <td><p>Agglomerates prescribed cells.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.agglomerateNonStarCells" title="Intersector.agglomerateNonStarCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.agglomerateNonStarCells</span></code></a>(a[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.agglomerateNonStarCells" title="Intersector.agglomerateNonStarCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.agglomerateNonStarCells</span></code></a></p></td>
 <td><p>Agglomerates non-centroid-star-shaped cells.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.agglomerateCellsWithSpecifiedFaces" title="Intersector.agglomerateCellsWithSpecifiedFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.agglomerateCellsWithSpecifiedFaces</span></code></a>(a,&#160;pgs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.agglomerateCellsWithSpecifiedFaces" title="Intersector.agglomerateCellsWithSpecifiedFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.agglomerateCellsWithSpecifiedFaces</span></code></a></p></td>
 <td><p>Agglomerates cells to make disappear specified polygons.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.simplifyCells" title="Intersector.simplifyCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.simplifyCells</span></code></a>(a,&#160;treat_externals)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.simplifyCells" title="Intersector.simplifyCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.simplifyCells</span></code></a></p></td>
 <td><p>Simplifies over-defined polyhedral cells (agglomerate some elligible polygons).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.closeCells" title="Intersector.closeCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.closeCells</span></code></a>(a)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.closeCells" title="Intersector.closeCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.closeCells</span></code></a></p></td>
 <td><p>Closes any polyhedral cell in a mesh (processes hanging nodes on edges).</p></td>
 </tr>
 </tbody>
@@ -146,25 +146,25 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <p><strong>&#8211; Adaptation Specific Functions</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.adaptBox" title="Intersector.adaptBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.adaptBox</span></code></a>(a[,&#160;box_ratio,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.adaptBox" title="Intersector.adaptBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.adaptBox</span></code></a></p></td>
 <td><p>Adapts a bounding box to a cloud of interior points</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.createHMesh" title="Intersector.createHMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.createHMesh</span></code></a>(a[,&#160;subdiv_type])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.createHMesh" title="Intersector.createHMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.createHMesh</span></code></a></p></td>
 <td><p>Returns a hierarchical zone hook.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.deleteHMesh" title="Intersector.deleteHMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.deleteHMesh</span></code></a>(hmesh)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.deleteHMesh" title="Intersector.deleteHMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.deleteHMesh</span></code></a></p></td>
 <td><p>Releases a hierachical zone hook.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.conformizeHMesh" title="Intersector.conformizeHMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.conformizeHMesh</span></code></a>(hmesh)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.conformizeHMesh" title="Intersector.conformizeHMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.conformizeHMesh</span></code></a></p></td>
 <td><p>Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.createSensor" title="Intersector.createSensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.createSensor</span></code></a>(hmesh[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.createSensor" title="Intersector.createSensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.createSensor</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.assignData2Sensor" title="Intersector.assignData2Sensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.assignData2Sensor</span></code></a>(hmesh,&#160;sensdata)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.assignData2Sensor" title="Intersector.assignData2Sensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.assignData2Sensor</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.deleteSensor" title="Intersector.deleteSensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.deleteSensor</span></code></a>(hmesh)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.deleteSensor" title="Intersector.deleteSensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.deleteSensor</span></code></a></p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -172,16 +172,16 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <p><strong>&#8211; Metric Functions</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.edgeLengthExtrema" title="Intersector.edgeLengthExtrema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.edgeLengthExtrema</span></code></a>(a)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.edgeLengthExtrema" title="Intersector.edgeLengthExtrema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.edgeLengthExtrema</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.volumes" title="Intersector.volumes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.volumes</span></code></a>(a[,&#160;algo,&#160;all_pgs_convex])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.volumes" title="Intersector.volumes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.volumes</span></code></a></p></td>
 <td><p>Computes cells volumes in a.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.centroids" title="Intersector.centroids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.centroids</span></code></a>(a)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.centroids" title="Intersector.centroids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.centroids</span></code></a></p></td>
 <td><p>Computes cells centroids in a.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.computeGrowthRatio" title="Intersector.computeGrowthRatio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.computeGrowthRatio</span></code></a>(a[,&#160;vmin])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.computeGrowthRatio" title="Intersector.computeGrowthRatio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.computeGrowthRatio</span></code></a></p></td>
 <td><p>Returns a field of growth ratio.</p></td>
 </tr>
 </tbody>
@@ -189,13 +189,13 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <p><strong>&#8211; Extraction Functions</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.extractPathologicalCells" title="Intersector.extractPathologicalCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.extractPathologicalCells</span></code></a>(a[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.extractPathologicalCells" title="Intersector.extractPathologicalCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.extractPathologicalCells</span></code></a></p></td>
 <td><p>Extracts all cells that will probably cause trouble to a CFD solver.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.extractOuterLayers" title="Intersector.extractOuterLayers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.extractOuterLayers</span></code></a>(a,&#160;N[,&#160;...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.extractOuterLayers" title="Intersector.extractOuterLayers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.extractOuterLayers</span></code></a></p></td>
 <td><p>Extracts prescribed outer cell layers.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.getCells" title="Intersector.getCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.getCells</span></code></a>(t1,&#160;ids[,&#160;are_face_ids])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.getCells" title="Intersector.getCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.getCells</span></code></a></p></td>
 <td><p>Returns the cells in t1 having specified faces or cell ids.</p></td>
 </tr>
 </tbody>
@@ -203,19 +203,19 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <p><strong>&#8211; Check Functions</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.diffMesh" title="Intersector.diffMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.diffMesh</span></code></a>(a1,&#160;a2)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.diffMesh" title="Intersector.diffMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.diffMesh</span></code></a></p></td>
 <td><p>Returns the difference between 2 meshes as 2 zones.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.checkCellsClosure" title="Intersector.checkCellsClosure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.checkCellsClosure</span></code></a>(a)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.checkCellsClosure" title="Intersector.checkCellsClosure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.checkCellsClosure</span></code></a></p></td>
 <td><p>Returns the first cell id that is open.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.checkCellsFlux" title="Intersector.checkCellsFlux"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.checkCellsFlux</span></code></a>(a,&#160;PE)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.checkCellsFlux" title="Intersector.checkCellsFlux"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.checkCellsFlux</span></code></a></p></td>
 <td><p>Returns the cell id for which the Gauss flux is the greatest.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.checkCellsVolume" title="Intersector.checkCellsVolume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.checkCellsVolume</span></code></a>(a,&#160;PE)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Intersector.checkCellsVolume" title="Intersector.checkCellsVolume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.checkCellsVolume</span></code></a></p></td>
 <td><p>Computes the minimum volume using the input orientation (ParentElement).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.checkForDegenCells" title="Intersector.checkForDegenCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.checkForDegenCells</span></code></a>(a)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.checkForDegenCells" title="Intersector.checkForDegenCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.checkForDegenCells</span></code></a></p></td>
 <td><p>Checks if there are any cell with less than 4 faces.</p></td>
 </tr>
 </tbody>
@@ -223,7 +223,7 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <p><strong>&#8211; Conversion Functions</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.convertNGON2DToNGON3D" title="Intersector.convertNGON2DToNGON3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.convertNGON2DToNGON3D</span></code></a>(a)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Intersector.convertNGON2DToNGON3D" title="Intersector.convertNGON2DToNGON3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Intersector.convertNGON2DToNGON3D</span></code></a></p></td>
 <td><p>Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.</p></td>
 </tr>
 </tbody>

@@ -13,7 +13,7 @@ __ZoneNameServer__ = {}
 __BCNameServer__ = {}
 __BaseNameServer__ = {}
 
-# Force R4 perdiodic nodes
+# Force R4 periodic nodes
 FORCER4PERIODIC = True
 
 #==============================================================================
@@ -1217,7 +1217,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':
     tp, ntype = Internal.node2PyTree(t)
     Internal._adaptZoneNamesForSlash(tp)
-    Internal._correctBaseZonesDim(t, splitBases=False)
+    Internal._correctBaseZonesDim(tp, splitBases=False)
     _forceCGNSProfile__(tp)
     Converter.converter.convertPyTree2File(tp[2], fileName, format, links)
   elif format == 'bin_pickle':

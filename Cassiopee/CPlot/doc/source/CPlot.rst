@@ -31,6 +31,7 @@ List of functions
 **-- Actions**
 
 .. autosummary::
+   :nosignatures:
 
    CPlot.display
    CPlot.render
@@ -43,6 +44,7 @@ List of functions
 **-- Set / Get functions**
 
 .. autosummary::
+   :nosignatures:
 
    CPlot.getState
    CPlot.getSelectedZone
@@ -66,6 +68,7 @@ List of functions
 **-- Camera setting and motion**
 
 .. autosummary::
+   :nosignatures:
 
     CPlot.lookFor
     CPlot.moveCamera
@@ -74,6 +77,7 @@ List of functions
 **-- Set rendering informations in pyTree**
 
 .. autosummary::
+   :nosignatures:
 
     CPlot.PyTree.addRender2Zone
     CPlot.PyTree.addRender2PyTree
@@ -114,6 +118,8 @@ Keys in CPlot window
     + **k** or **K** or **Ctrl+k** or **Ctrl+K**: change displayed k plane.
     + **q**: quit.
     
+---------------------------------------------------------------------------
+
 Actions
 --------------------------
 
@@ -393,6 +399,8 @@ Actions
 
     .. literalinclude:: ../build/Examples/CPlot/displayOffScreen2.py
 
+
+---------------------------------------------------------------------------
 
 Set / Get functions
 --------------------------
@@ -837,6 +845,7 @@ Camera setting and motion
 
     .. literalinclude:: ../build/Examples/CPlot/travel.py
 
+---------------------------------------------------------------------------
 
 Set rendering informations in pyTree
 --------------------------------------
@@ -935,6 +944,8 @@ Set rendering informations in pyTree
     .. literalinclude:: ../build/Examples/CPlot/loadViewPT.py
 
 
+---------------------------------------------------------------------------
+
 Shader settings
 ---------------------------
 .. _shaderSettings:
@@ -957,6 +968,10 @@ Shader settings
     - Gooch : [1] width; [2] shininess
     - Sphere: [1] size of sphere; [2] type of billboard
     - TexMat: [1] specularFactor; [2] texture number
+
+
+
+---------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 2

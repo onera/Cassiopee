@@ -437,12 +437,12 @@ def createFonts():
                     prev_pos = 0
                     for font in plt.rcParams[font_type]:
                         # Currently, font.sans-serif is poorely accessible by the font_manager, needs sometimes to add an extra \ before the -
-                        if font == 'sans-serif': font = 'sans\-serif'
+                        if font == 'sans-serif': font = r'sans\-serif'
                         font_manager.findfont(font_manager.FontProperties(family=font))
                         s = buf.read()
                         new_pos = buf.tell()
                         if new_pos == prev_pos:
-                            if font == 'sans\-serif': font = 'sans-serif'
+                            if font == r'sans\-serif': font = 'sans-serif'
                             l_font.append(font)
                         prev_pos = new_pos
             return l_font
@@ -476,11 +476,11 @@ def createFonts():
                 temp_err.seek(0)
                 temp_err.truncate(0)
                 if font == 'sans-serif':
-                    font = 'sans\-serif'
+                    font = r'sans\-serif'
                 font_manager.findfont(font_manager.FontProperties(family=font))
                 value = temp_err.getvalue()
                 if value=='':
-                    if font == 'sans\-serif':
+                    if font == r'sans\-serif':
                         font = 'sans-serif'
                     l_font.append(font)
             if l_font: font_dic[font_type] = l_font
@@ -7871,7 +7871,7 @@ class editGraphWindow(TK.Toplevel):
         B = TTK.Button(lblframe,text=str(text),command=lambda n=('figsize',self.sizeItem): self.bt_click_pattern(n))
         B.val = str(text)
         B.var = 'figsize'
-        B.pattern = '^\(\s*[0123456789]*\s*,\s*[0123456789]*\s*\)$'
+        B.pattern = r'^\(\s*[0123456789]*\s*,\s*[0123456789]*\s*\)$'
         B.grid(row=0,column=0,sticky="nsew")
         self.sizeItem['figsize']=B
         # -> DPI
@@ -9108,7 +9108,7 @@ class inputPosition_dialogWindow(TK.Toplevel):
     # ---------------------------------------------------------------- checkFloatvalue
     def checkFloatvalue(self,widget):
         value = widget.var.get()
-        re_pattern = re.compile('^[0-1]\.*[0-9]*$')
+        re_pattern = re.compile(r'^[0-1]\.*[0-9]*$')
         if re.match(re_pattern,value):
             return value
         else:
@@ -12874,7 +12874,7 @@ class DesktopFrameTK(TK.Frame):
 #                    val = ''
 #                    break
         elif widget.name == 'size':
-            pattern = '^\([0123456789]*,[0123456789]*\)$'
+            pattern = r'^\([0123456789]*,[0123456789]*\)$'
             default = '^default$'
             if not re.match(pattern,val) and not re.match(default,val):
                 val = ''

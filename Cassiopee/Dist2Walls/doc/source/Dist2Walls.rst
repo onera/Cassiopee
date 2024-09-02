@@ -32,6 +32,7 @@ List of functions
 **-- Wall distance computation**
 
 .. autosummary::
+   :nosignatures:
 
     Dist2Walls.distance2Walls
 

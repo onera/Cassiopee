@@ -30,6 +30,7 @@ List of functions
 **-- CAD/surface mesh conversion**
 
 .. autosummary::
+   :nosignatures:
 
     OCC.convertCAD2Arrays
     OCC.PyTree.convertCAD2PyTree

@@ -228,7 +228,7 @@ E_Int K_INTERP::getInterpolationData(
             val = 1.;
             for (E_Int nov = 1; nov <= 4; nov++)
             {
-              ind = cEV(noet, nov); 
+              ind = cEV(noet, nov)-1;
               cellN0 = cellN[ind];
               d = cf[nov-1] > 1.e-12;
               val *= cellN0-d+1;
@@ -240,7 +240,7 @@ E_Int K_INTERP::getInterpolationData(
             val = 0.;
             for (E_Int nov = 1; nov <= 4; nov++)
             {
-              ind = cEV(noet, nov); 
+              ind = cEV(noet, nov)-1; 
               cellN0 = cellN[ind];
               val += K_FUNC::E_abs(cf[nov-1])*K_FUNC::E_abs(1.-cellN0);
             }

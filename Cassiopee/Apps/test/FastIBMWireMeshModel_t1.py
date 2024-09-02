@@ -42,16 +42,12 @@ dfars      = 5
 snears    = 1
 vmin      = 11
 
-t,tc = X_IBM.prepareIBMDataPara(tb               , None       , None     , tbox=tboffset,      
-                                snears=snears    , dfars=dfars  , vmin=vmin, 
-                                check=False      , frontType=1)
-
+t,tc = X_IBM.prepareIBMData(tb               , None       , None     , tbox=tboffset,      
+                            snears=snears    , dfars=dfars  , vmin=vmin, 
+                            check=False      , frontType=1)
 test.testT(t , 1)
 test.testT(tc, 2)
 
-##NEEDED FOR THE MPI version
-C.convertPyTree2File(t , LOCAL+'/t_WMM.cgns')
-C.convertPyTree2File(tc, LOCAL+'/tc_WMM.cgns')
 
 ##COMPUTE
 NIT           = 25  # number of iterations 
@@ -108,5 +104,4 @@ test.testT(t , 3)
 test.testT(tc, 4)
 
 ##TO VISUALIZE
-#C.convertPyTree2File(t ,LOCAL+'/t_restart_WMM_check.cgns')
-#C.convertPyTree2File(tc,LOCAL+'/tc_restart_WMM_check.cgns')
+#C.convertPyTree2File(t,LOCAL+'/t_restart_WMM_check.cgns')

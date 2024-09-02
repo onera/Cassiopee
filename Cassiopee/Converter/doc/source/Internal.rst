@@ -61,6 +61,7 @@ List of functions
 **-- Node tests**
 
 .. autosummary::
+   :nosignatures:
 
    Converter.Internal.isTopTree
    Converter.Internal.isStdNode
@@ -70,18 +71,10 @@ List of functions
    Converter.Internal.isValue
    Converter.Internal.isChild
 
-**-- Adapt NGON meshes**
-
-.. autosummary::
-
-    Converter.Internal.adaptNGon32NGon4
-    Converter.Internal.adaptNGon42NGon3
-    Converter.Internal.adaptNFace2PE
-    Converter.Internal.adaptPE2NFace
-
 **-- Set/create generic nodes**
 
 .. autosummary::
+   :nosignatures:
 
    Converter.Internal.setName
    Converter.Internal.setType
@@ -94,6 +87,7 @@ List of functions
 **-- Access nodes**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Internal.getName
     Converter.Internal.getType
@@ -136,6 +130,7 @@ List of functions
 **-- Check nodes**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Internal.printTree
     Converter.Internal.getSizeOf
@@ -145,6 +140,7 @@ List of functions
 **-- Copy nodes**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Internal.copyRef
     Converter.Internal.copyTree
@@ -154,6 +150,7 @@ List of functions
 **-- Add/remove/move nodes**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Internal.append
     Converter.Internal.rmNode
@@ -167,6 +164,7 @@ List of functions
 **-- Modify nodes**
 
 .. autosummary::
+   :nosignatures:
     
     Converter.Internal.merge
     Converter.Internal.renameNode
@@ -177,6 +175,7 @@ List of functions
 **-- Create specific CGNS nodes**
 
 .. autosummary::
+   :nosignatures:
 
     Converter.Internal.newCGNSTree
     Converter.Internal.newCGNSBase
@@ -240,12 +239,22 @@ List of functions
     Converter.Internal.newUserDefinedData
     Converter.Internal.newGravity
 
+**-- Adapt NGON meshes**
+
+.. autosummary::
+   :nosignatures:
+
+    Converter.Internal.adaptNGon32NGon4
+    Converter.Internal.adaptNGon42NGon3
+    Converter.Internal.adaptNFace2PE
+    Converter.Internal.adaptPE2NFace
 
 Contents
 #########
 
 Node tests
 -----------
+
 
 .. py:function:: Converter.Internal.isTopTree(node)
 
@@ -370,85 +379,10 @@ Node tests
 
     .. literalinclude:: ../build/Examples/Converter/isChildPT.py
 
-    .. note:: new in version 2.7.
-    
-Adapt NGON meshes
---------------------------
-
-.. py:function:: Converter.Internal.adaptNGon32NGon4(t, shiftPE=True)
-
-    Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard. Exists also as in-place (_adaptNGon32NGon4). 
-
-    :param t:  NGON mesh
-    :type  t:  pyTree node or list of pyTree nodes
-    :param shiftPE: if True and Parent Element reference element starting at 0, shift of the total face number.  
-    :type shiftPE: boolean
-    :return: Same as input
-
-    *Example of use:*
-
-    * `Adapt a NGON mesh CGNSv3 -> CGNSv4 (pyTree) <Examples/Converter/adaptNGon32NGon4PT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/adaptNGon32NGon4PT.py
-    
----------------------------------------------------------------------------
-
-.. py:function:: Converter.Internal.adaptNGon42NGon3(t, shiftPE=True, absFace=True)
-
-    Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard. Exists also as in-place (_adaptNGon42NGon3). 
-
-    :param t:  NGON mesh
-    :type  t:  pyTree node or list of pyTree nodes
-    :param shiftPE: if True and Parent Element reference element number shifted of the total face number, shift back to get the elements start at 0.  
-    :type shiftPE: boolean
-    :param absFace: if True, faces in NFACE are made positive.
-    :type absFace: boolean 
-    :return: Same as input
-
-    *Example of use:*
-
-    * `Adapt a NGON mesh CGNSv4 -> CGNSv3 (pyTree) <Examples/Converter/adaptNGon42NGon3PT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/adaptNGon42NGon3PT.py
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Internal.adaptNFace2PE(t, remove=True, shiftPE=False)
 
-    Adapts a NGON mesh to create ParentElements arrays from NFaceElements nodes in each zone. Exists also as in-place (_adaptNFace2PE). 
-
-    :param t:  NGON mesh
-    :type  t:  pyTree node or list of pyTree nodes
-    :param remove: if True, removes all NFaceElements nodes
-    :type check: boolean
-    :param shiftPE: if True, Parent Element reference element shift from the total number of faces.
-    :type shiftPE: boolean
-    :return: Same as input
-
-    *Example of use:*
-
-    * `Creates ParentElements arrays (pyTree) <Examples/Converter/adaptNFace2PEPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/adaptNFace2PEPT.py
-
----------------------------------------------------------------------------
-
-.. py:function:: Converter.Internal.adaptPE2NFace(t, remove=True)
-
-    Adapts a NGON mesh to create NFaceElements nodes from ParentElements arrays in each zone. Exists also as in-place (_adaptPE2NFace). 
-
-    :param t:  NGON mesh
-    :type  t:  pyTree node or list of pyTree nodes
-    :param remove: if True, removes all ParentElements arrays
-    :type check: boolean
-    :return: Same as input
-
-    *Example of use:*
-
-    * `Creates NFaceElements nodes (pyTree) <Examples/Converter/adaptPE2NFacePT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/adaptPE2NFacePT.py
-    
 Set/create generic nodes
 --------------------------
 
@@ -619,6 +553,8 @@ Set/create generic nodes
 
     .. literalinclude:: ../build/Examples/Converter/createUniqueChildPT.py
  
+
+---------------------------------------------------------------------------
 
 Acess nodes
 ------------
@@ -1144,7 +1080,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getPathsFromNamesPT.py
 
-    .. note:: new in version 2.5.
 
 -----------------------------------------------------------------------------------------------
 
@@ -1190,7 +1125,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getPathsFromValuePT.py
 
-    .. note:: New in version 2.5
 
 ------------------------------------------------------------------------------------
 
@@ -1354,6 +1288,8 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getZoneTypePT.py
 
+---------------------------------------------------------------------------
+
 
 Check nodes
 ------------
@@ -1455,6 +1391,8 @@ Check nodes
 
     .. literalinclude:: ../build/Examples/Converter/correctPyTreePT.py
 
+---------------------------------------------------------------------------
+
 Copy nodes
 -----------
 
@@ -1529,6 +1467,8 @@ Copy nodes
 
     .. literalinclude:: ../build/Examples/Converter/copyNodePT.py
 
+
+---------------------------------------------------------------------------
 
 
 Add/remove node
@@ -1702,7 +1642,6 @@ Add/remove node
     :return: reference copy of t with node moved
     :rtype: same as t
 
-    .. note:: new in version 3.2.
 
     *Example of use:*
 
@@ -1710,6 +1649,7 @@ Add/remove node
 
     .. literalinclude:: ../build/Examples/Converter/moveNodeFromPathsPT.py
 
+---------------------------------------------------------------------------
 
 Modify nodes
 -------------
@@ -1828,6 +1768,7 @@ Modify nodes
 
     .. note:: New in version 2.4
 
+---------------------------------------------------------------------------
 
 Create specific CGNS nodes
 ----------------------------
@@ -3178,6 +3119,86 @@ Create specific CGNS nodes
 
     .. literalinclude:: ../build/Examples/Converter/newGravityPT.py
 
+---------------------------------------------------------------------------
+
+Adapt NGON meshes
+--------------------
+
+.. py:function:: Converter.Internal.adaptNGon32NGon4(t, shiftPE=True)
+
+    Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard. Exists also as in-place (_adaptNGon32NGon4). 
+
+    :param t:  NGON mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param shiftPE: if True and Parent Element reference element starting at 0, shift of the total face number.  
+    :type shiftPE: boolean
+    :return: Same as input
+
+    *Example of use:*
+
+    * `Adapt a NGON mesh CGNSv3 -> CGNSv4 (pyTree) <Examples/Converter/adaptNGon32NGon4PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptNGon32NGon4PT.py
+    
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.adaptNGon42NGon3(t, shiftPE=True, absFace=True)
+
+    Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard. Exists also as in-place (_adaptNGon42NGon3). 
+
+    :param t:  NGON mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param shiftPE: if True and Parent Element reference element number shifted of the total face number, shift back to get the elements start at 0.  
+    :type shiftPE: boolean
+    :param absFace: if True, faces in NFACE are made positive.
+    :type absFace: boolean 
+    :return: Same as input
+
+    *Example of use:*
+
+    * `Adapt a NGON mesh CGNSv4 -> CGNSv3 (pyTree) <Examples/Converter/adaptNGon42NGon3PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptNGon42NGon3PT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.adaptNFace2PE(t, remove=True, shiftPE=False)
+
+    Adapts a NGON mesh to create ParentElements arrays from NFaceElements nodes in each zone. Exists also as in-place (_adaptNFace2PE). 
+
+    :param t:  NGON mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param remove: if True, removes all NFaceElements nodes
+    :type check: boolean
+    :param shiftPE: if True, Parent Element reference element shift from the total number of faces.
+    :type shiftPE: boolean
+    :return: Same as input
+
+    *Example of use:*
+
+    * `Creates ParentElements arrays (pyTree) <Examples/Converter/adaptNFace2PEPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptNFace2PEPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.adaptPE2NFace(t, remove=True)
+
+    Adapts a NGON mesh to create NFaceElements nodes from ParentElements arrays in each zone. Exists also as in-place (_adaptPE2NFace). 
+
+    :param t:  NGON mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param remove: if True, removes all ParentElements arrays
+    :type check: boolean
+    :return: Same as input
+
+    *Example of use:*
+
+    * `Creates NFaceElements nodes (pyTree) <Examples/Converter/adaptPE2NFacePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptPE2NFacePT.py
+
+---------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 2   

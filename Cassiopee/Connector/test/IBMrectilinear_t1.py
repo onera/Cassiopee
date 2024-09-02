@@ -33,9 +33,9 @@ dfar         = 2*diam/2
 ##CREATING TB GEOMETRY
 densityOfPts = 200
 a = D.circle((0.,0.,0.), diam*0.5, N=densityOfPts)
-  
+
 C._initVars(a, '{CoordinateZ}=0')
-tb           = C.newPyTree(["CYLINDER"]); tb[2][1][2] = Internal.getZones(a)
+tb           = C.newPyTree(["CYLINDER"]); tb[2][1][2] = Internal.getZones(a) 
 snear        = 1.0e-2
 ModelTmp     = Model
 D_IBM._setSnear(tb, snear)
@@ -46,8 +46,9 @@ C._addState(tb, adim='dim1', UInf=UInf, TInf=TInf, PInf=PInf, LInf=diam,Equation
 ##CREATING TB RECTILINEAR REGION
 Lx    = dfar*3
 hlocal= Lx/10
-tbOneOver = G.cart((-dfar*1.5,-dfar*1.5,0.), (hlocal,hlocal,0.1), (10,10,1))
-tbOneOver = P.exteriorFaces(tbOneOver)
+tbOneOver  = G.cart((-dfar*1.5,-dfar*1.5,0.), (hlocal,hlocal,0.1), (10,10,1))
+tbOneOver2 = P.exteriorFaces(tbOneOver)
+tbOneOver  = C.newPyTree(["Base_OneOver"]); tbOneOver[2][1][2] = Internal.getZones(tbOneOver2) 
 C.convertPyTree2File(tbOneOver, LOCAL+'/tbOneOver.cgns')
 
 ##ADD DIRECTION OF ONE OVER IN TB RECTILINEAR REGION
@@ -57,8 +58,8 @@ X_IBM._addOneOverLocally(FileNameOneOver, listOneOver)
 tbOneOver = C.convertFile2PyTree(FileNameOneOver)
 
 ##IBM PREP
-t,tc=X_IBM.prepareIBMDataPara(tb         , None     , None     , tbOneOver=tbOneOver,
-                              snears=0.01, dfars=dfar, vmin=vmin)
+t,tc=X_IBM.prepareIBMData(tb         , None      , None     , tbox=tbOneOver,
+                          snears=0.01, dfars=dfar, vmin=vmin)
 os.remove(FileNameOneOver)
 
 ##NON-REGRESSION CHECK

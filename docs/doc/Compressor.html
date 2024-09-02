@@ -59,7 +59,7 @@
 <p><strong>&#8211; Index field compression</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.deltaIndex" title="Compressor.deltaIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.deltaIndex</span></code></a>(index,&#160;ref)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.deltaIndex" title="Compressor.deltaIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.deltaIndex</span></code></a></p></td>
 <td><p>Return the delta between index and ref.</p></td>
 </tr>
 </tbody>
@@ -67,10 +67,10 @@
 <p><strong>&#8211; Object serializer/compression</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.pack" title="Compressor.pack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.pack</span></code></a>(a[,&#160;method])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.pack" title="Compressor.pack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.pack</span></code></a></p></td>
 <td><p>Serialize or compress a.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.unpack" title="Compressor.unpack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.unpack</span></code></a>(a[,&#160;method])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.unpack" title="Compressor.unpack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.unpack</span></code></a></p></td>
 <td><p>Deserialize or decompress a.</p></td>
 </tr>
 </tbody>
@@ -78,28 +78,28 @@
 <p><strong>&#8211; CGNS Zones/tree compression</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCartesian" title="Compressor.PyTree.compressCartesian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCartesian</span></code></a>(t[,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCartesian" title="Compressor.PyTree.compressCartesian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCartesian</span></code></a></p></td>
 <td><p>For Cartesian grids, replace Grid Coordinates with a compressed node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.uncompressCartesian" title="Compressor.PyTree.uncompressCartesian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.uncompressCartesian</span></code></a>(t)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.uncompressCartesian" title="Compressor.PyTree.uncompressCartesian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.uncompressCartesian</span></code></a></p></td>
 <td><p>For Cartesian grids, recreate Grid Coordinates from compressed zones.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCellN" title="Compressor.PyTree.compressCellN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCellN</span></code></a>(t[,&#160;varNames])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCellN" title="Compressor.PyTree.compressCellN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCellN</span></code></a></p></td>
 <td><p>Compress cellN (0,1,2) lossless on 2 bits.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCoords" title="Compressor.PyTree.compressCoords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCoords</span></code></a>(t[,&#160;tol,&#160;ctype])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCoords" title="Compressor.PyTree.compressCoords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCoords</span></code></a></p></td>
 <td><p>Compress coordinates lossless or with a relative tolerance.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressFields" title="Compressor.PyTree.compressFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressFields</span></code></a>(t[,&#160;tol,&#160;...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressFields" title="Compressor.PyTree.compressFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressFields</span></code></a></p></td>
 <td><p>Compress fields lossless or with a relative tolerance.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.compressElements" title="Compressor.PyTree.compressElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressElements</span></code></a>(t)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.compressElements" title="Compressor.PyTree.compressElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressElements</span></code></a></p></td>
 <td><p>Compress lossless Element connectivity.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressAll" title="Compressor.PyTree.compressAll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressAll</span></code></a>(t)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressAll" title="Compressor.PyTree.compressAll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressAll</span></code></a></p></td>
 <td><p>Compress coords, fields and connectivity (lossless).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.uncompressAll" title="Compressor.PyTree.uncompressAll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.uncompressAll</span></code></a>(t)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.uncompressAll" title="Compressor.PyTree.uncompressAll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.uncompressAll</span></code></a></p></td>
 <td><p>Uncompress all compressed data.</p></td>
 </tr>
 </tbody>
@@ -610,3 +610,24 @@ function resizeFunction() {
 }
 
 </script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Compressor 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Compressor: Field compression module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

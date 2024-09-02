@@ -103,9 +103,12 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
     // Pointeur de pointeurs
     char** bigBuf = new char* [sizeDatas];
-
+    
     // Tableaux du nombre d'octets 
     std::vector<E_Int> tabOctets(sizeDatas);
+    
+    // Nombre d octets du type E_Int
+    constexpr E_Int intSize = sizeof(E_Int);
     
     // Var des noms de zones
     char zoneName[256];
@@ -156,7 +159,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             //  - coordonnées X des points a interpo : type, taille, X
             //  - coordonnées Y des points a interpo : type, taille, Y
             //  - coordonnées Z des points a interpo : type, taille, Z
-            E_Int nOctets = 6*1 + 6*4 + size_zoneName + size_zoneDName + nIndices*4 + nXCoords*8*3;
+            E_Int nOctets = 6*1 + 6*intSize + size_zoneName + size_zoneDName + nIndices*intSize + nXCoords*8*3;
             tabOctets[nData] = nOctets;
             // 6 char pour types + 6 entiers pour 6 tailles + n char nom x2 + nIndices entiers + nCoords floats *3 (3 coords) 
 
@@ -168,37 +171,37 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
             // Placement nom de la zone
             (*buf) = 'c'                    ; buf+=1;
-            (*(E_Int*)buf) = size_zoneName  ; buf+=4;
+            (*(E_Int*)buf) = size_zoneName  ; buf+=intSize;
             for (E_Int i = 0; i < size_zoneName; i++) buf[i] = zoneName[i];
             buf += size_zoneName;
 
             // Placement nom de la zoneD
             (*buf) = 'c'                    ; buf+=1;
-            (*(E_Int*)buf) = size_zoneDName ; buf+=4;
+            (*(E_Int*)buf) = size_zoneDName ; buf+=intSize;
             for (E_Int i = 0; i < size_zoneDName; i++) buf[i] = zoneDName[i];
             buf += size_zoneDName;
 
             // Placement des indices
             (*buf) = 'i'                    ; buf+=1;
-            (*(E_Int*)buf) = nIndices       ; buf+=4;
+            (*(E_Int*)buf) = nIndices       ; buf+=intSize;
             E_Int* buf_indices = (E_Int*) buf;
-            buf += 4*nIndices;
+            buf += intSize*nIndices;
 
             // Placement des X
             (*buf) = 'f'                    ; buf+=1;
-            (*(E_Int*)buf) = nXCoords       ; buf+=4;
+            (*(E_Int*)buf) = nXCoords       ; buf+=intSize;
             E_Float* buf_X = (E_Float*) buf;
             buf += 8*nXCoords;
             
             // Placement des Y
             (*buf) = 'f'                    ; buf+=1;
-            (*(E_Int*)buf) = nYCoords       ; buf+=4;
+            (*(E_Int*)buf) = nYCoords       ; buf+=intSize;
             E_Float* buf_Y = (E_Float*) buf;
             buf += 8*nYCoords;
 
             // Placement des Z
             (*buf) = 'f'                    ; buf+=1;
-            (*(E_Int*)buf) = nZCoords       ; buf+=4;
+            (*(E_Int*)buf) = nZCoords       ; buf+=intSize;
             E_Float* buf_Z = (E_Float*) buf;
             buf += 8*nZCoords;
 
@@ -266,7 +269,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 //  - nom de la zone 
                 //  - indices des pts a interpo : type, taille, indices
                 //  - valeurs des fields : type, taille, 6 fields
-                E_Int nOctets = 4*1 + 5*4 + size_zoneName + size_fieldNames + nIndices*4 + nPts*nFlds*8;
+                E_Int nOctets = intSize*1 + 5*intSize + size_zoneName + size_fieldNames + nIndices*intSize + nPts*nFlds*8;
                 tabOctets[nData] = nOctets;
                 // 4 char pour types + 4 entiers pour 4 tailles + n char nom + nIndices entiers + nCoords floats *3 (3 coords) 
 
@@ -278,26 +281,26 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
                 // Placement nom de la zone
                 (*buf) = 'c'                    ; buf += 1;
-                (*(E_Int*)buf) = size_zoneName  ; buf += 4;
+                (*(E_Int*)buf) = size_zoneName  ; buf += intSize;
                 for (E_Int i = 0; i < size_zoneName; i++) buf[i] = zoneName[i];
                 buf += size_zoneName;
 
                 // Placement des indices
                 (*buf) = 'i'                    ; buf += 1;
-                (*(E_Int*)buf) = nIndices       ; buf += 4;
+                (*(E_Int*)buf) = nIndices       ; buf += intSize;
                 E_Int* buf_indices = (E_Int*) buf;
-                buf += 4*nIndices;
+                buf += intSize*nIndices;
                 
                 // Placement nom des fields
                 (*buf) = 'c'                     ; buf += 1;
-                (*(E_Int*)buf) = size_fieldNames ; buf += 4;
+                (*(E_Int*)buf) = size_fieldNames ; buf += intSize;
                 for (E_Int i = 0; i < size_fieldNames; i++) buf[i] = fieldNames[i];
                 buf += size_fieldNames;
 
                 // Placement des fields
                 (*buf) = 'f'                    ; buf += 1;
-                (*(E_Int*)buf) = nPts           ; buf += 4;
-                (*(E_Int*)buf) = nFlds          ; buf += 4;
+                (*(E_Int*)buf) = nPts           ; buf += intSize;
+                (*(E_Int*)buf) = nFlds          ; buf += intSize;
                 E_Float* buf_flds = (E_Float*) buf;
                 buf += 8*nPts*nFlds;
                 
@@ -342,7 +345,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 //  - entier
                 //  - indices des pts a interpo : type, taille, indices
                 //  - valeurs des fields : type, taille, 6 fields
-                E_Int nOctets = 4*1 + 5*4 + size_fieldNames + nIndices*4 + nPts*nFlds*8;
+                E_Int nOctets = intSize*1 + 5*intSize + size_fieldNames + nIndices*intSize + nPts*nFlds*8;
                 tabOctets[nData] = nOctets;
                 // 4 char pour types + 4 entiers pour 4 tailles + n char nom + nIndices entiers + nCoords floats *3 (3 coords) 
 
@@ -354,26 +357,26 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
                 // Placement de l'entier
                 (*buf) = 'i'          ; buf+=1;
-                (*(E_Int*)buf) = var  ; buf+=4;
+                (*(E_Int*)buf) = var  ; buf+=intSize;
 
                 // Placement nom des fields
                 (*buf) = 'c'                     ; buf+=1;
-                (*(E_Int*)buf) = size_fieldNames ; buf+=4;
+                (*(E_Int*)buf) = size_fieldNames ; buf+=intSize;
                 for (E_Int i = 0; i < size_fieldNames; i++) buf[i] = fieldNames[i];
                 buf += size_fieldNames;
 
                 // Placement des fields
                 (*buf) = 'f'                    ; buf+=1;
-                (*(E_Int*)buf) = nPts           ; buf+=4;
-                (*(E_Int*)buf) = nFlds          ; buf+=4;
+                (*(E_Int*)buf) = nPts           ; buf+=intSize;
+                (*(E_Int*)buf) = nFlds          ; buf+=intSize;
                 E_Float* buf_flds = (E_Float*) buf;
                 buf += 8*nPts*nFlds;
 
                 // Placement des indices
                 (*buf) = 'i'                    ; buf+=1;
-                (*(E_Int*)buf) = nIndices       ; buf+=4;
+                (*(E_Int*)buf) = nIndices       ; buf+=intSize;
                 E_Int* buf_indices = (E_Int*) buf;
-                buf += 4*nIndices;
+                buf += intSize*nIndices;
 
                 // Placement parallele
                 #pragma omp parallel
@@ -409,18 +412,18 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
         nOctetsTot += tabOctets[i];
     }
     // sizeData entiers en plus pour connaitre la taille des mini buffers
-    nOctetsTot += 4*sizeDatas;
+    nOctetsTot += intSize*sizeDatas;
     // un entier en plus pour le nombre de data
-    nOctetsTot += 4;
+    nOctetsTot += intSize;
     // un entier en plus pour le dataType
-    nOctetsTot += 4;
+    nOctetsTot += intSize;
 
     // def du tableau a envoyer
     char* bufToSend = new char[nOctetsTot];
     char* initBufToSend = bufToSend;
 
-    (*(E_Int*)bufToSend) = sizeDatas; bufToSend += 4; // nombre de donnees
-    (*(E_Int*)bufToSend) = dataType; bufToSend += 4; // type de la donnees (1 ou 2)
+    (*(E_Int*)bufToSend) = sizeDatas; bufToSend += intSize; // nombre de donnees
+    (*(E_Int*)bufToSend) = dataType; bufToSend += intSize; // type de la donnees (1 ou 2)
 
     // Version by Clement
     #pragma omp parallel
@@ -430,7 +433,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             #pragma omp single
             { 
                 // Placement du nb d'octets avant le buf
-                (*(E_Int*)bufToSend) = tabOctets[i]; bufToSend += 4;
+                (*(E_Int*)bufToSend) = tabOctets[i]; bufToSend += intSize;
             }
 
             char* buf = bigBuf[i];
@@ -454,7 +457,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     E_Int nthreads = __NUMTHREADS__;
     std::vector<E_Int> ptrOctets(sizeDatas);
     ptrOctets[0] = 8;
-    for (E_Int i = 1; i < sizeDatas; i++) ptrOctets[i] = ptrOctets[i-1]+4+tabOctets[i];
+    for (E_Int i = 1; i < sizeDatas; i++) ptrOctets[i] = ptrOctets[i-1]+intSize+tabOctets[i];
 
     #pragma omp parallel
     {
@@ -468,7 +471,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             (*(E_Int*)bf) = tabOctets[i];
             for (E_Int j=0; j < tabOctets[i]; j++)
             {
-                bf[j+4] = buf[j];
+                bf[j+intSize] = buf[j];
             }
         }
     }
@@ -483,7 +486,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     // Suppression des pointeurs (sauf celui de l'envoi)
     for (E_Int i=0; i < sizeDatas; i++)
     {
-        delete bigBuf[i];
+        delete [] bigBuf[i];
     }
     delete [] bigBuf;
 
@@ -537,15 +540,15 @@ PyObject* K_CONVERTER::waitAll(PyObject* self, PyObject* args)
         MPI_Request* request = (MPI_Request*)packet[0];
         MPI_Wait(request, MPI_STATUS_IGNORE);
         // Suppression du ptr de la requete
-        delete request;
+        delete [] request;
 #endif
 
         char* bufToSend = (char*)packet[1]; 
 
         // Suppression du buffer d'envoi
-        delete bufToSend;
+        delete [] bufToSend;
         // suppresion du paquet
-        delete packet;
+        delete [] packet;
     }
 
     Py_INCREF(Py_None);
@@ -588,6 +591,9 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     // Definition des pointeurs
     char* recvBuf = new char[nOctetsTot];
     char* initRecvBuf = recvBuf;
+    
+    // Nombre d octets du type E_Int
+    constexpr E_Int intSize = sizeof(E_Int);
 
     // reception du buffer
 #ifdef _MPI
@@ -609,9 +615,9 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     // recuperation du nombre de data
     E_Int* intRecvBuf = (E_Int*) initRecvBuf;
     
-    E_Int sizeData = intRecvBuf[0]; recvBuf += 4;
+    E_Int sizeData = intRecvBuf[0]; recvBuf += intSize;
     // recuperation du type de donnees
-    E_Int dataType = intRecvBuf[1]; recvBuf += 4;
+    E_Int dataType = intRecvBuf[1]; recvBuf += intSize;
 
     // def de la liste des datas
     PyObject* datas = PyList_New(sizeData);
@@ -628,7 +634,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     {
         intRecvBuf = (E_Int*) recvBuf;
 
-        nOctets = intRecvBuf[0]; recvBuf+=4;
+        nOctets = intRecvBuf[0]; recvBuf+=intSize;
 
         // def buffer pour une data
         char* buf = new char[nOctets];
@@ -650,32 +656,32 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // Nom de la zone
             (*typeData)      = *buf      ; buf+=1;
             E_Int* intBuf    = (E_Int*) buf;
-            size             = intBuf[0] ; buf+=4;
-            char zoneName[size+1];
+            size             = intBuf[0] ; buf+=intSize;
+            char* zoneName   = new char[size+1];
             for (E_Int k=0; k<size; k++) { zoneName[k]   = buf[k]; }
             zoneName[size]='\0'; buf += size;
 
             // Nom de la zone donneuse
             (*typeData)       = *buf      ; buf+=1;
             intBuf            = (E_Int*) buf;
-            size              = intBuf[0] ; buf+=4;
-            char zoneDName[size+1];
+            size              = intBuf[0] ; buf+=intSize;
+            char* zoneDName   = new char[size+1];
             for (E_Int k=0; k<size; k++) { zoneDName[k]   = buf[k]; }
             zoneDName[size]='\0'; buf += size;
 
             // Tableau des indices
             (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[" SF_D_ "][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
             intBuf              = (E_Int*) buf;
-            size                = intBuf[0]; buf+=4;
+            size                = intBuf[0]; buf+=intSize;
             E_Int* indices      = new E_Int[size];
             E_Int* indicesBuf   = (E_Int*) buf;
             E_Int npts = size;
-            buf += size*4;
+            buf += size*intSize;
 
             // Tableau des X
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
-            size                = intBuf[0]; buf+=4;
+            size                = intBuf[0]; buf+=intSize;
             E_Float* xCoords    = new E_Float[size];
             E_Float* xBuf       = (E_Float*) buf;
             buf+=size*8;
@@ -683,7 +689,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // Tableau des Y
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour Y (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
-            size                = intBuf[0]; buf+=4;
+            size                = intBuf[0]; buf+=intSize;
             E_Float* yCoords    = new E_Float[size];
             E_Float* yBuf       = (E_Float*) buf;
             buf += size*8;
@@ -691,7 +697,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // Tableau des Z
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour Z (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
-            size                = intBuf[0]; buf+=4;
+            size                = intBuf[0]; buf+=intSize;
             E_Float* zCoords    = new E_Float[size];
             E_Float* zBuf       = (E_Float*) buf;
             buf += size*8;
@@ -733,6 +739,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
+            delete [] zoneName; delete [] zoneDName;
             delete [] indices; delete [] xCoords; delete [] yCoords; delete [] zCoords;
         }
         else if (dataType == 2)
@@ -743,34 +750,34 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // Nom de la zone
             (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour zoneName (!=char)\n", rank); fflush(stdout);};
             E_Int* intBuf    = (E_Int*) buf;
-            size             = intBuf[0] ; buf+=4;
-            char zoneName[size+1];
+            size             = intBuf[0] ; buf+=intSize;
+            char* zoneName   = new char[size+1];
             for (E_Int k=0; k<size; k++) { zoneName[k]   = buf[k]; }
             zoneName[size]='\0'; buf+=size;
 
             // Tableau des indices
             (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[" SF_D_ "][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
             intBuf              = (E_Int*) buf;
-            size                = intBuf[0]; buf+=4;
+            size                = intBuf[0]; buf+=intSize;
             E_Int* indices      = new E_Int[size];
             E_Int* indicesBuf   = (E_Int*) buf;
             E_Int npts = size;
             PyObject* PyNpts = PyLong_FromLong(size);
-            buf += size*4;
+            buf += size*intSize;
 
             // Nom des fields
             (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
             intBuf               = (E_Int*) buf;
-            size                 = intBuf[0] ; buf+=4;
-            char fieldNames[size+1];
+            size                 = intBuf[0] ; buf+=intSize;
+            char* fieldNames     = new char[size+1];
             for (E_Int k=0; k<size; k++) { fieldNames[k]   = buf[k]; }
             fieldNames[size]='\0'; buf+=size;
 
             // Tableau des fields
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
-            size                = intBuf[0]; buf+=4;
-            E_Int nFlds         = intBuf[1]; buf+=4;
+            size                = intBuf[0]; buf+=intSize;
+            E_Int nFlds         = intBuf[1]; buf+=intSize;
             E_Float* fields     = new E_Float[size*nFlds];
             E_Float* floatBuf   = (E_Float*) buf;
             buf += size*nFlds*8;
@@ -810,6 +817,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
+            delete [] zoneName; delete [] fieldNames;
             delete [] indices; delete [] fields;
 
         }
@@ -821,21 +829,21 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // Entier
             (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='i'){printf("[" SF_D_ "][RECV] Probleme de type pour l'entier (!=int)\n", rank); fflush(stdout);};
             E_Int* intBuf    = (E_Int*) buf;
-            E_Int var        = intBuf[0] ; buf+=4;
+            E_Int var        = intBuf[0] ; buf+=intSize;
 
             // Nom des fields
             (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
             intBuf               = (E_Int*) buf;
-            size                 = intBuf[0] ; buf+=4;
-            char fieldNames[size+1];
+            size                 = intBuf[0] ; buf+=intSize;
+            char* fieldNames     = new char[size+1];
             for (E_Int k=0; k<size; k++) { fieldNames[k] = buf[k]; }
             fieldNames[size] = '\0'; buf += size;
 
             // Tableau des fields
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
-            size                = intBuf[0]; buf+=4;
-            E_Int nFlds         = intBuf[1]; buf+=4;
+            size                = intBuf[0]; buf+=intSize;
+            E_Int nFlds         = intBuf[1]; buf+=intSize;
             E_Float* fields     = new E_Float[size*nFlds];
             E_Float* floatBuf   = (E_Float*) buf;
             buf += size*nFlds*8;
@@ -843,11 +851,11 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // Tableau des indices
             (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[" SF_D_ "][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
             intBuf              = (E_Int*) buf;
-            E_Int npts          = intBuf[0]; buf+=4;
+            E_Int npts          = intBuf[0]; buf+=intSize;
             E_Int* indices      = new E_Int[npts];
             E_Int* indicesBuf   = (E_Int*) buf;
             PyObject* PyNpts = PyLong_FromLong(npts);
-            buf += size*4;
+            buf += size*intSize;
             
             // Remplissage parallele
             #pragma omp parallel
@@ -885,7 +893,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // liste dans datas
             PyList_SET_ITEM(datas, nData, dataToFill);
 
-            delete [] indices; delete [] fields;
+            delete [] indices; delete [] fields; delete [] fieldNames;
         }
 
         delete [] initBuf;

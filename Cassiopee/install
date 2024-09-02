@@ -1,7 +1,6 @@
 #! /bin/sh
 # install     : compile et installe tous les modules
 # install doc : installe uniquement les docs
-# install opensource : compile et installe la version open-source
 # install all : installe les modules + docs
 if ([ $# -eq 0 ])
 then
@@ -37,10 +36,6 @@ if [ "$PYTHONEXE" = "" ]; then
     export PYTHONEXE=python
 fi
 
-if [ "$1" = "opensource" ]; then
-    $PYTHONEXE $CASSIOPEE/Apps/util/STUBS/stubs.py stubit
-fi
-
 for mod in $FULLMODULES
 do
   if test -e $mod
@@ -52,7 +47,7 @@ do
       fi
       if [ "$1" = "doc" -o "$1" = "all" ]; then
           cd doc
-          ./install 1 2
+          ./install
           [ $? != 0 ] && exit 1;
           cd ..
       fi
@@ -62,14 +57,10 @@ do
   fi
 done
 
-if [ "$1" = "opensource" ]; then
-    $PYTHONEXE $CASSIOPEE/Apps/util/STUBS/stubs.py unstubit
-fi
-
 # Fini avec la doc KCore pour genindex...
 if [ "$1" = "doc" -o "$1" = "all" ]; then
     cd KCore/doc
-    ./install 1 2
+    ./install
     [ $? != 0 ] && exit 1;
     cd ../..
 fi

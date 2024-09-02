@@ -63,3 +63,10 @@ def skySphere(Xc=(0,0,0), R=1.):
     """Create a sky sphere."""
     a = Models.skySphere(Xc, R)
     return C.convertArrays2ZoneNode('skySphere', [a])
+
+def halfSkySphere(Xc=(0,0,0), R=1.):
+    """Create a half sky sphere."""
+    a = Models.halfSkySphere(Xc, R)
+    out = []
+    for z in a: out.append(C.convertArrays2ZoneNode('skySphere', [z]))
+    return out

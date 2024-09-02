@@ -7,6 +7,8 @@ import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Generator.PyTree as G
+import Geom.PyTree as D
+import Transform.PyTree as T
 import Converter.Internal as Internal
 
 # local widgets list
@@ -59,6 +61,7 @@ def createBox(half=0, zpos=0):
         # plan xmax
         b1 = G.cart( (box[3]+bx*hx, box[1]-ay*hy, box[2]-az*hz),
                      (hx,hy,hz), (1,nj,nk) )
+    D._getUVFromIJ(b1)
     b1 = CPlot.addRender2Zone(b1, material='Solid',
                               color='White', meshOverlay=1)
 
@@ -70,6 +73,7 @@ def createBox(half=0, zpos=0):
         # plan ymax
         b2 = G.cart( (box[0]-ax*hx, box[4]+by*hy, box[2]-az*hz),
                      (hx,hy,hz), (ni,1,nk) )
+    D._getUVFromIJ(b2)
     b2 = CPlot.addRender2Zone(b2, material='Solid',
                               color='White', meshOverlay=1)
     if LZ < 0:
@@ -79,6 +83,7 @@ def createBox(half=0, zpos=0):
     else:
          b3 = G.cart( (box[0]-ax*hx, box[1]-ay*hy, box[5]+bz*hz),
                       (hx,hy,hz), (ni,nj,1) )
+    D._getUVFromIJ(b3)
     b3 = CPlot.addRender2Zone(b3, material='Solid',
                               color='White', meshOverlay=1)
 
@@ -92,6 +97,8 @@ def createBox(half=0, zpos=0):
         # plan xmax
         b4 = G.cart( (box[3]+bx*hx, box[1]-ay*hy, box[2]-az*hz),
                      (hx,hy,hz), (1,nj,nk) )
+    
+    D._getUVFromIJ(b4)
     b4 = CPlot.addRender2Zone(b4, material='Solid',
                               color='White', meshOverlay=1)
 
@@ -103,6 +110,7 @@ def createBox(half=0, zpos=0):
         # plan ymax
         b5 = G.cart( (box[0]-ax*hx, box[4]+by*hy, box[2]-az*hz),
                      (hx,hy,hz), (ni,1,nk) )
+    D._getUVFromIJ(b5)
     b5 = CPlot.addRender2Zone(b5, material='Solid',
                               color='White', meshOverlay=1)
     if LZ >= 0:
@@ -112,6 +120,7 @@ def createBox(half=0, zpos=0):
     else:
         b6 = G.cart( (box[0]-ax*hx, box[1]-ay*hy, box[5]+bz*hz),
                      (hx,hy,hz), (ni,nj,1) )
+    D._getUVFromIJ(b6)
     b6 = CPlot.addRender2Zone(b6, material='Solid',
                               color='White', meshOverlay=1)
     return [b1,b2,b3,b4,b5,b6]
@@ -183,6 +192,7 @@ def createZPlane():
   
     hx = hx * 0.5; hy = hy * 0.5
     b = G.cart((box[0]-ax*hx, box[1]-ay*hy, box[2]), (hx,hy,1), (ax+bx+3,ay+by+3,1))
+    D._getUVFromIJ(b)
     b = CPlot.addRender2Zone(b, material='Solid',
                              color='White', meshOverlay=1)
     return [b]
@@ -226,20 +236,78 @@ def createGround():
     
     return [b, c]
 
+def createSkySphere():
+    import Modeler.PyTree as Models
+    alpha = CTK.varsFromWidget(VARS[1].get(), type=2)
+    if len(alpha) == 1:
+        ax = alpha[0]
+    else:
+        CTK.TXT.insert('START', 'Borders factor incorrect.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    
+    try: box = G.bbox(CTK.t)
+    except: box = [0,0,0,1,1,1]
+    hx = box[3]-box[0]
+    hy = box[4]-box[1]
+    hz = box[5]-box[2]
+    if hx < 1.e-10: hx = 0.1
+    if hy < 1.e-10: hy = 0.1
+    if hz < 1.e-10: hz = 0.001
+    h = max(hx, hy)
+    
+    xc = 0.5*(box[0]+box[3])
+    yc = 0.5*(box[1]+box[4])
+    zc = 0.5*(box[2]+box[5])
+    
+    a = Models.skySphere((xc,yc,zc), 0.5*ax*h)
+    return [a]
+
+def createHalfSkySphere():
+    import Modeler.PyTree as Models
+    alpha = CTK.varsFromWidget(VARS[1].get(), type=2)
+    if len(alpha) == 1:
+        ax = alpha[0]
+    else:
+        CTK.TXT.insert('START', 'Borders factor incorrect.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    
+    try: box = G.bbox(CTK.t)
+    except: box = [0,0,0,1,1,1]
+    hx = box[3]-box[0]
+    hy = box[4]-box[1]
+    hz = box[5]-box[2]
+    if hx < 1.e-10: hx = 0.1
+    if hy < 1.e-10: hy = 0.1
+    if hz < 1.e-10: hz = 0.001
+    h = max(hx, hy)
+    
+    xc = 0.5*(box[0]+box[3])
+    yc = 0.5*(box[1]+box[4])
+    zc = box[2]
+    
+    a = Models.halfSkySphere((xc,yc,zc), 0.5*ax*h)
+    return a
+
 #==============================================================================
 def deleteBackgroundBase():
     nodes = Internal.getNodesFromName1(CTK.t, 'BACKGROUND')
-    if nodes == []: return
+    if nodes == []: return []
     base = nodes[0]
-    # delete from plotter
     zones = Internal.getNodesFromType(base, 'Zone_t')
+    # get .RenderInfo if existing
+    RIS = []
+    for z in zones:
+        RI = Internal.getNodeFromName1(z, '.RenderInfo')
+        if RI is not None: RIS.append(RI)
+    # delete from plotter
     dels = []
     for z in zones: dels.append(base[0]+Internal.SEP1+z[0])
     CPlot.delete(dels)
     # delete from tree
     ret = Internal.getParentOfNode(CTK.t, base)
     del ret[0][2][ret[1]]
-    
+    return RIS
+
 #==============================================================================
 def setBackground(event=None):
     if CTK.t == []: return
@@ -249,9 +317,9 @@ def setBackground(event=None):
     btype = VARS[0].get()
     CTK.saveTree()
     if btype == 'None':
-        deleteBackgroundBase()
+        RIS = deleteBackgroundBase()
     else:
-        deleteBackgroundBase()
+        RIS = deleteBackgroundBase()
         CTK.t = C.addBase2PyTree(CTK.t, 'BACKGROUND', 2)
         
         if btype == 'Half-Box': B = createBox(1)
@@ -261,7 +329,13 @@ def setBackground(event=None):
         elif btype == 'Z-Ellipse': B = createZEllipse()
         elif btype == 'Z-Plane': B = createZPlane()
         elif btype == 'Z-Square-Ground': B = createGround()
+        elif btype == 'Sky-Sphere': B = createSkySphere()
+        elif btype == 'Z-Half-Sphere': B = createHalfSkySphere()
 
+        # replace .RenderInfo if exists
+        if len(RIS) == len(B):
+            for c, z in enumerate(B): Internal._createUniqueChild(z, '.RenderInfo', 'UserDefinedData_t', children=RIS[c][2])
+            
         base = Internal.getNodesFromName1(CTK.t, 'BACKGROUND')[0]
         nob = C.getNobOfBase(base, CTK.t)
         for b in B: CTK.add(CTK.t, nob, -1, b)
@@ -309,7 +383,7 @@ def createApp(win):
     # - Type de background -
     B = TTK.OptionMenu(Frame, VARS[0], 'None', 'Half-Box', 'Box',
                        'Z-Half-Box', 'Z-Box', 'Z-Ellipse', 'Z-Plane',
-                       'Z-Square-Ground',
+                       'Z-Square-Ground', 'Sky-Sphere', 'Z-Half-Sphere',
                        command=setBackground)
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of background.')
