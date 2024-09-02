@@ -620,6 +620,8 @@ def _initVarByEq__(a, eq):
     eq = eq.replace('tan(', 'numpy.tan(')
     eq = eq.replace('atan(', 'numpy.atan(')
     eq = eq.replace('exp(', 'numpy.exp(')
+    eq = eq.replace('degrees(', 'numpy.degrees(')
+    eq = eq.replace('arctan2(', 'numpy.arctan2(')
     #eq = eq.replace('and(', 'numpy.logical_and(')
     eq = eq.replace('logical_and(', 'numpy.logical_and(')
 
