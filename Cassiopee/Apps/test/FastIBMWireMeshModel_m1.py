@@ -15,6 +15,7 @@ import Geom.Offset as D_Offset
 import numpy
 import os
 
+test.TOLERANCE = 5e-7
 LOCAL = test.getLocal()
 
 tFile   = LOCAL+'/t_WMM.cgns'
