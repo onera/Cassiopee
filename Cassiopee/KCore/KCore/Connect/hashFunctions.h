@@ -17,6 +17,9 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cstddef>
+#include <utility>
+
 /* Hash functions */
 // Template parameter is a topology struct (see topologyMapping.h), unless
 // otherwise stated

@@ -808,7 +808,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
 
   // cFE: connectivite face/elements.
   // Si une face n'a pas d'element gauche ou droit, retourne 0 pour 
-  // cet element. 
+  // cet element.
   FldArrayI cFE; K_CONNECT::connectNG2FE(cn, cFE);
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
@@ -831,6 +831,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   vector<E_Int> edge(2);
   std::pair<E_Int, E_Bool> initEdge(-1, false);
   //TopologyOpt E; std::map<TopologyOpt, std::pair<E_Int, E_Bool> > edgeMap;
+  //Topology E; std::unordered_map<Topology, std::pair<E_Int, E_Bool>, JenkinsHash<Topology> > edgeMap;
   TopologyOpt E; std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
 
   for (E_Int i = 0; i < nfaces; i++)
@@ -874,7 +875,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   nptsExt = vertexMap.size();
   nedgesExt = edgeMap.size();
   sizeFN2 = (2+shift)*nedgesExt;
-  
+    
   PyObject* indir = NULL;
   E_Int* indirp = NULL;
   if (boolIndir)
@@ -883,6 +884,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
     indirp = K_NUMPY::getNumpyPtrI(indir);
   }
   cFE.malloc(0);
+  
   // Calcul des nouvelles connectivites Elmt/Faces et Face/Noeuds
   E_Int ngonType = 1; // CGNSv3 compact array1
   if (api == 2) ngonType = 2; // CGNSv3, array2
@@ -896,28 +898,34 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   E_Int* ngon2 = cn2->getNGon();
   E_Int* nface2 = cn2->getNFace();
   E_Int *indPG2 = NULL, *indPH2 = NULL;
+  
   if (api == 2 || api == 3)
   {
     indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
   }
 
   E_Int c1 = 0, c2 = 0; // positions in ngon2 and nface2
-  for (E_Int i = 0; i < nfacesExt; i++)
+  for (E_Int i = 0; i < nfacesExt; i++) 
   {
     fidx = exteriorFaces[i];
     E_Int* face = cn.getFace(fidx-1, nbnodes, ngon, indPG);
     if (boolIndir) indirp[i] = fidx;
-
+    
     nface2[c2] = nbnodes;
     if (api == 2 || api == 3) indPH2[i] = nbnodes;
+    
     for (E_Int p = 0; p < nbnodes; p++)
     {
-      edge[0] = face[p]-1;
+      edge[0] = face[p]-1; 
       edge[1] = face[(p+1)%nbnodes]-1;
+    
       //E.set(edge); // version with Topology
       E.set(edge.data(), 2); // version with TopologyOpt
+
       // Find the edge in the edge map
       auto resE = edgeMap.find(E);
+      //if (resE == edgeMap.end()) { printf("not found\n"); fflush(stdout); }
+      
       if (not resE->second.second)
       {
         resE->second.second = true;
@@ -930,7 +938,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
     }
     c2 += nbnodes+shift;
   }
-
+  
   #pragma omp parallel
   {
     E_Int indf;
@@ -952,7 +960,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
       }
     }
   }
-
+  
   if (boolIndir)
   {
     PyList_Append(indices, indir); Py_DECREF(indir);
@@ -1009,6 +1017,9 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   vector<E_Int> exteriorEdges;
   TopologyOpt E;
   std::unordered_map<TopologyOpt, E_Int, JenkinsHash<TopologyOpt> > edgeMap;
+  //Topology E;
+  //std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > edgeMap;
+
 
   for (E_Int i = 0; i < nfaces; i++)
   {
@@ -1036,6 +1047,8 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
       }
 
       E.set(edge.data(), 2);
+      //E.set(edge);
+      
       auto resE = edgeMap.insert(std::make_pair(E, 0));
       if (++resE.first->second == 1)
       {
