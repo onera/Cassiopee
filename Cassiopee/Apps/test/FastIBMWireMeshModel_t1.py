@@ -17,7 +17,7 @@ LOCAL = test.getLocal()
 
 ##Geometry - Vertical Line
 tb = Internal.newCGNSTree()
-Internal.newCGNSBase('IBCFil_Base1', 3, 3, parent=tb);
+Internal.newCGNSBase('IBCFil_Base1', 3, 3, parent=tb)
 C._addState(tb, 'EquationDimension', 2)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 C._addState(tb, 'TurbulenceModel', 'OneEquation_SpalartAllmaras')
@@ -38,16 +38,15 @@ D_IBM._setSnear(tboffset, 0.0025)
 tboffset = C.newPyTree(['Base', tboffset])
 
 ##PREP
-dfars      = 5
-snears    = 1
-vmin      = 11
+dfars = 5
+snears = 1
+vmin = 11
 
 t,tc = X_IBM.prepareIBMData(tb               , None       , None     , tbox=tboffset,      
                             snears=snears    , dfars=dfars  , vmin=vmin, 
                             check=False      , frontType=1)
 test.testT(t , 1)
 test.testT(tc, 2)
-
 
 ##COMPUTE
 NIT           = 25  # number of iterations 

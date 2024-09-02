@@ -112,7 +112,7 @@ recognised. Naming convention is described in the following table.
 +--------------------------------------------------------------------+----------------------------------+-------------------+
 | Molecular viscosity                                                | ViscosityMolecular               |                   |
 +--------------------------------------------------------------------+----------------------------------+-------------------+
-| Cell nature field (0:blanked, 1:discretised, 2:interpolated)       |                                  | cellN, cellnf     |
+| Cell nature field (0:blanked, 1:discretised, 2:interpolated)       |                                  | cellN, celln      |
 +--------------------------------------------------------------------+----------------------------------+-------------------+
 | Cell nature field (0:blanked, 1:discretised, -Id interp block)     |                                  | cellNF, cellnf    |
 +--------------------------------------------------------------------+----------------------------------+-------------------+

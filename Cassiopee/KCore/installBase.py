@@ -1007,7 +1007,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1022,7 +1022,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 True, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1037,7 +1037,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 True, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1052,7 +1052,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1067,7 +1067,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1082,7 +1082,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1098,7 +1098,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1113,7 +1113,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1128,7 +1128,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 True, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1143,7 +1143,7 @@ True, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs
-[],  # additionalLibPaths
+[], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -1174,8 +1174,7 @@ True, # useOMP
 False, # static
 ['/usr/include/hdf5/serial/'], # additionalIncludePaths
 [], # additionalLibs
-['/usr/lib/gcc/x86_64-linux-gnu/7',
- '/usr/lib/x86_64-linux-gnu/'],  # additionalLibPaths
+['/usr/lib/gcc/x86_64-linux-gnu/7', '/usr/lib/x86_64-linux-gnu/'],  # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
