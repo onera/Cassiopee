@@ -13,34 +13,38 @@ import KCore.test as test
 import sys
 
 LOCAL           = test.getLocal()
-bodySurfaceFile = LOCAL  + '/naca0012.cgns'
+bodySurfaceFile = '../../Apps/test/naca1DNS.cgns'
 
-Lcharac     = 0.03362355
-Lz          = 0.2*Lcharac
-dfar        = 10.*Lcharac
-vmin        = 16;
-snears      = 1;
+# Prepare
+vmin      = 42
+dfars     = 5
+snears    = 1
+t, tc = X_IBM.prepareIBMData(bodySurfaceFile, None         , None     ,
+                             snears=snears  , dfars=dfars  , vmin=vmin, 
+                             check=False    , frontType=1)
 
-###Generate 2D Mesh
-t2D,tc2D=X_IBM.prepareIBMDataPara(bodySurfaceFile     , None                  , None           ,
-                                  snears=snears       , dfar=dfar             , vmin=vmin      )
-test.testT(t2D ,1)
-test.testT(tc2D,2)
-#C.convertPyTree2File(t2D,LOCAL+'/t2D_checking.cgns')
+test.testT(t ,1)
+test.testT(tc,2)
+#C.convertPyTree2File(t,LOCAL+'/t2D_checking.cgns')
+
 
 ####Extrusion for 3D Mesh
 bodySurface = C.convertFile2PyTree(bodySurfaceFile)
 
+t2           = Internal.copyTree(t)
+bodySurface2 = Internal.copyTree(bodySurface)
+
 extrusion   = 'cart'
-span        = Lz
+span        = 1
 NPas        = 10+1 #number of nodes
-t3D, tb3D   = G_IBM.extrudeCartesianZDir(t2D, bodySurface, extrusion=extrusion, NPas=NPas, span=span, dz=span/(NPas-1), isAutoPeriodic=True)
+t3D, tb3D   = G_IBM.extrudeCartesianZDir(t, bodySurface, extrusion=extrusion, NPas=NPas, span=span, dz=span/(NPas-1), isAutoPeriodic=True)
 
 for t in [t3D,tb3D]:
     zmax   = C.getMaxValue(t, 'CoordinateZ');
     zmin   = C.getMinValue(t, 'CoordinateZ');
     zavg   = (zmax+zmin)/2
     T._translate(t, (0,0,0-zavg))
+C._rmVars(t3D, ['centers:cellN'])
 test.testT(t3D  ,3)
 test.testT(tb3D ,4)
 
