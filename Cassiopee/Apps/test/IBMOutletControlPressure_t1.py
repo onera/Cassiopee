@@ -62,8 +62,8 @@ D_IBM._setOutPressControlParam(tb,probeName='point', AtestSection=0.83721966959,
                                cxSupport = 0.6, sSupport=0.1, itExtrctPrb=itExtrctPrb)
 test.testT(tb,1)
 
-t,tc=X_IBM.prepareIBMData(tb         , None  , None   ,
-                          snears=0.01, dfars=0, vmin=11)
+t,tc=X_IBM.prepareIBMData(tb         , None   , None   ,
+                          snears=0.01, dfars=0, vmin=11, cartesian=False)
 
 [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
  ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,

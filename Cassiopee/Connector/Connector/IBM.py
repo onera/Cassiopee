@@ -184,7 +184,7 @@ def _computeMeshInfo(t):
 def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
                    snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, octreeMode=0,
                    IBCType=1, verbose=True, expand=3,
-                   check=False, twoFronts=False, cartesian=False,
+                   check=False, twoFronts=False, cartesian=True,
                    yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
     
     import Generator.IBM as G_IBM
@@ -193,6 +193,15 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = Internal.copyTree(t_case)
 
+    ##THIS IS TEMPORARY -> a more comprehensive test is in the works and will make this
+    ## print redundant.
+    if cartesian and t_in:
+        RED  = "\033[1;31;40m"
+        END  = "\033[0m"
+        print(RED + "===========================================" + END)
+        print("Note: Assuming " + RED + "CARTESIAN " + END + "grid")
+        print(RED + "===========================================" + END)
+    
     ##[AJ] keep for now...will delete in the near future
     ##if isinstance(tc_out, str):
     ##    if '/' in tc_out: fileoutpre = tc_out.split('/')
@@ -325,16 +334,19 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     _redispatch__(t=t, tc=tc, tc2=tc2)
     
     if isinstance(tc_out, str):
-        tcp = Compressor.compressCartesian(tc)
+        if cartesian: tcp = Compressor.compressCartesian(tc)
+        else: tcp = tc
         Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
         
         if tc2:
-            tcp2 = Compressor.compressCartesian(tc2)
+            if cartesian: tcp2 = Compressor.compressCartesian(tc2)
+            else: tcp2 = tc2
             tc2_out = tc_out.replace('tc', 'tc2') if 'tc' in tc_out else 'tc2.cgns'
             Cmpi.convertPyTree2File(tcp2, tc2_out, ignoreProcNodes=True)
         
     if isinstance(t_out, str):
-        tp = Compressor.compressCartesian(t)
+        if cartesian: tp = Compressor.compressCartesian(t)
+        else: tp = t
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
 
     _computeMeshInfo(t)
@@ -347,7 +359,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
 
 #def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
 #                          depth=2, frontType=1, octreeMode=0, IBCType=1, 
-#                          verbose=True, check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
+#                          verbose=True, check=False, balancing=False, distribute=False, twoFronts=False, cartesian=True,
 #                          yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
 #                          tbox=None, extrusion='cart'):
 #    STILL IN DEV - DO NOT USE
@@ -1061,7 +1073,7 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
 # OUT: front: front of image points
 # OUT: front2: (optional): front of second image points
 #=========================================================================
-def _pushBackImageFront2__(t, tc, tbbc, cartesian=False):    
+def _pushBackImageFront2__(t, tc, tbbc, cartesian=True):    
     # bboxDict needed for optimised AddXZones (i.e. "layers" not None)
     # Return a dict with the zones of t as keys and their specific bboxes as key values
     bboxDict  = Cmpi.createBboxDict(t)
@@ -1161,7 +1173,7 @@ def _pushBackImageFront2__(t, tc, tbbc, cartesian=False):
 
     return None
 
-def buildFrontIBM(t, tc, tb=None, dimPb=3, frontType=1, cartesian=False, twoFronts=False, check=False,
+def buildFrontIBM(t, tc, tb=None, dimPb=3, frontType=1, cartesian=True, twoFronts=False, check=False,
                   tbFilament=None):
     """Build the IBM front for IBM pre-processing."""
 
@@ -1241,7 +1253,7 @@ def buildFrontIBM(t, tc, tb=None, dimPb=3, frontType=1, cartesian=False, twoFron
 # OUT: (optional) 2_IBCD* zones inside tc
 #=========================================================================
 def setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, 
-                     yplus=100, Lref=1., cartesian=False, twoFronts=False, check=False,
+                     yplus=100, Lref=1., cartesian=True, twoFronts=False, check=False,
                      tbFilament=None, frontWMM=None):
     """Compute the transfer coefficients and data for IBM pre-processing."""
     tp = Internal.copyRef(t)
@@ -1252,7 +1264,7 @@ def setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTyp
     return tp
 
 def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, 
-                      yplus=100, Lref=1., cartesian=False, twoFronts=False, check=False,
+                      yplus=100, Lref=1., cartesian=True, twoFronts=False, check=False,
                       tbFilament=None, frontWMM=None): 
     """Compute the transfer coefficients and data for IBM pre-processing."""
 
