@@ -728,6 +728,21 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'azure': [ 'Linux ubuntu 24.04 - Github Actions',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+['/usr/include', '/usr/include/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi/include'], # additionalIncludePaths
+['gfortran', 'gomp'], # additionalLibs
+['/usr/lib/x86_64-linux-gnu/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu'], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'linux': [ 'Linux (generic)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler

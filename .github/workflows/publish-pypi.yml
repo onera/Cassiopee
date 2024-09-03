@@ -52,7 +52,7 @@ jobs:
       - name: Build Cassiopee package
         run: |
           export CASSIOPEE=$GITHUB_WORKSPACE
-          export MACHINE=ubuntu
+          export MACHINE=azure
           . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
           cd $CASSIOPEE/Cassiopee
           echo -e "FREEMODULES='KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot'\nexport FREEMODULES\nFULLMODULES='KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot'\nexport FULLMODULES\nOTHERS=''" > $CASSIOPEE/Cassiopee/MODULES
@@ -65,7 +65,9 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: find -name "*.whl" -exec twine upload {} +
+        run: |
+          find $CASSIOPEE -name "*.whl"
+#          find $CASSIOPEE -name "*.whl" -exec twine upload {} +
           
 #  publish:
 #      runs-on: ubuntu-latest
