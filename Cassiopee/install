@@ -1,51 +1,83 @@
 #! /bin/sh
-# install     : compile et installe tous les modules
-# install doc : installe uniquement les docs
-# install all : installe les modules + docs
-if ([ $# -eq 0 ])
-then
-    if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in your environment."
-        echo "This variable specifies the installation path of *Cassiopee*."
-        exit 1
-    fi
-    if [ "$ELSAPROD" = "" ]; then
-        echo "You must specify a ELSAPROD in your environment."
-        echo "This variable identifies the processor type."
-        exit 1
-    fi
-    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+# Print help message
+usage() {
+  echo -e "Usage: $0                                             : Install all modules"
+  echo -e "       $0 --all                                       : Install modules and docs"
+  echo -e "       $0 --doc                                       : Install docs only"
+  echo -e "       $0 --cassiopee=</path/to/cassiopee/root/dir>   : Set env. var. CASSIOPEE and install all modules"
+  echo -e "       $0 --elsaprod=<production_name>                : Set env. var. ELSAPROD and install all modules"
+  echo -e "       $0 --help                                      : Print help message"
+  exit 1
+}
 
-elif ([ $# -eq 1 ])
-then
-    if [ "$ELSAPROD" = "" ]; then
-        echo "You must specify a ELSAPROD in your environment."
-        echo "This variable identifies the processor type."
-        exit 1
-    fi
-    INSTALLPATH="$1"
-else
-    echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
-    echo 'install <dir>: install in directory <dir>.'
-    exit 1
+# Parse command-line arguments
+INSTALL_DOCS=0
+INSTALL_MODS=1
+NO_CLEAN=0
+while [ "$1" != "" ]; do
+  case "$1" in
+    --all | -a)
+      INSTALL_DOCS=1
+      INSTALL_MODS=1
+      ;;
+    --cassiopee=*)
+      export CASSIOPEE="${1#*=}"
+      ;;
+    --doc | -d)
+      INSTALL_DOCS=1
+      INSTALL_MODS=0
+      ;;
+    --elsaprod=*)
+      export ELSAPROD="${1#*=}"
+      ;;
+    --help | -h)
+      usage
+      ;;
+    --no-clean)
+      NO_CLEAN=1
+      ;;
+    *)
+      echo "Invalid argument: $1"
+      usage
+      ;;
+  esac
+  shift
+done
+
+# Sanitise input arguments
+if [ "$CASSIOPEE" = "" ]; then
+    echo "You must specify a CASSIOPEE variable in your environment."
+    echo "This variable specifies the installation path of *Cassiopee*."
+    usage
+fi
+if [ "$ELSAPROD" = "" ]; then
+    echo "You must specify a ELSAPROD in your environment."
+    echo "This variable identifies the processor type."
+    usage
+fi
+if [ -z "${CLEAN_WHEELS_CASSIOPEE+x}" ]; then
+    CLEAN_WHEELS_CASSIOPEE=1
 fi
 
+# Set install path and load module names
+INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
 . ./MODULES
 
 if [ "$PYTHONEXE" = "" ]; then
     export PYTHONEXE=python
 fi
 
+# Install modules and/or docs
 for mod in $FULLMODULES
 do
   if test -e $mod
   then
       cd $mod
-      if [ "$1" = "" -o "$1" = "all" ]; then
+      if [ "$INSTALL_MODS" -eq 1 ]; then
           ./install
           [ $? != 0 ] && exit 1;
       fi
-      if [ "$1" = "doc" -o "$1" = "all" ]; then
+      if [ "$INSTALL_DOCS" -eq 1 ]; then
           cd doc
           ./install
           [ $? != 0 ] && exit 1;
@@ -53,18 +85,23 @@ do
       fi
       cd ..
   else
-      echo 'Directory ',$mod, 'not found.'
+      echo 'Directory ', $mod, 'not found.'
   fi
 done
 
 # Fini avec la doc KCore pour genindex...
-if [ "$1" = "doc" -o "$1" = "all" ]; then
+if [ "$INSTALL_DOCS" -eq 1 ]; then
     cd KCore/doc
     ./install
     [ $? != 0 ] && exit 1;
     cd ../..
 fi
 
-# Installation des fichiers d'environnement
+# Copy environment scripts
 cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
 cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
+
+# Clean temporary folders containing wheels
+if [ "$CLEAN_WHEELS_CASSIOPEE" -eq 1 ]; then
+    rm -rf "$INSTALLPATH"/pip-*
+fi

@@ -26,6 +26,9 @@ else
     echo 'install <dir>: install in directory <dir>.'
     exit 1
 fi
+if [ -z "${CLEAN_WHEELS_CASSIOPEE+x}" ]; then
+    CLEAN_WHEELS_CASSIOPEE=1
+fi
 
 # if specific python exe name
 if [ "$PYTHONEXE" != "" ]; then
@@ -61,13 +64,18 @@ if [ $PRODMODE -le 1 ]; then
     if [ $PRODMODE -eq 0 ]; then
         python setup.py install --prefix="$INSTALLPATH"
         [ $? != 0 ] && exit 1;
-    elif [ $PRODMODE -eq 2 ]; then
-        python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+    elif [ $PRODMODE -eq 1 ]; then
+        TMPDIR=$INSTALLPATH python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
         [ $? != 0 ] && exit 1;    
     fi
 else
     python setupLegacy.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
+fi
+
+# Clean temporary folder containing wheels
+if [ "$CLEAN_WHEELS_CASSIOPEE" -eq 1 ]; then
+    rm -rf "$INSTALLPATH"/pip-*
 fi
 
 # Test l'installation
