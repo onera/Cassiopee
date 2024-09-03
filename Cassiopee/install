@@ -14,7 +14,7 @@ usage() {
 INSTALL_DOCS=0
 INSTALL_MODS=1
 NO_CLEAN=0
-while [[ "$1" != "" ]]; do
+while [ "$1" != "" ]; do
   case "$1" in
     --all | -a)
       INSTALL_DOCS=1
