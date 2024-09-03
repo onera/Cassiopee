@@ -76,9 +76,9 @@ void K_DISTRIBUTOR2::gradient(
   FldArrayI dis(nb);
   FldArrayI dis1(nb);
 
-  // Init, on repartis les blocs par taille decroissante
+  // Init, on repartit les blocs par taille decroissante
   // Puis sur les procs les moins charges (bin-packing)
-  FldArrayF nbPtsPerProcs(nbNodePerProc);
+  FldArrayF nbPtsPerProcs(NProc);
   nbPtsPerProcs.setAllValuesAtNull();
   E_Float* nbPtsPerProcsp = nbPtsPerProcs.begin();
   
@@ -106,10 +106,10 @@ void K_DISTRIBUTOR2::gradient(
       }
       else
       {
-        E_Int kless = 0; E_Float minProc = 1.e6;
+        E_Int kless = 0; E_Float minProc = K_CONST::E_MAX_FLOAT;
         for (E_Int k = 0; k < NProc; k++)
         { 
-          if (nbPtsPerProcsp[k] < minProc) 
+          if (nbPtsPerProcsp[k] < minProc)
           { kless = k; minProc = nbPtsPerProcsp[k]; }
         }
         dis1[j] = kless;

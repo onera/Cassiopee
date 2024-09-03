@@ -1,6 +1,6 @@
 """Conversion module for Cassiopee package.
 """
-from numpy import *
+#from numpy import *
 __version__ = '4.0'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Benoit Rodriguez, Simon Verley, Bruno Maugars, Thomas Renaud"
 #
@@ -607,6 +607,23 @@ def _initVarByEq__(a, eq):
 
     eq = eq.replace('centers:', '')
     eq = eq.replace('nodes:', '')
+
+    pi = numpy.pi
+    eq = eq.replace('minimum(', 'numpy.minimum(')
+    eq = eq.replace('maximum(', 'numpy.maximum(')
+    eq = eq.replace('cos(', 'numpy.cos(')
+    eq = eq.replace('cosh(', 'numpy.cosh(')
+    eq = eq.replace('sin(', 'numpy.sin(')
+    eq = eq.replace('sinh(', 'numpy.sinh(')
+    eq = eq.replace('sqrt(', 'numpy.sqrt(')
+    eq = eq.replace('log(', 'numpy.log(')
+    eq = eq.replace('tan(', 'numpy.tan(')
+    eq = eq.replace('atan(', 'numpy.atan(')
+    eq = eq.replace('exp(', 'numpy.exp(')
+    eq = eq.replace('degrees(', 'numpy.degrees(')
+    eq = eq.replace('arctan2(', 'numpy.arctan2(')
+    #eq = eq.replace('and(', 'numpy.logical_and(')
+    eq = eq.replace('logical_and(', 'numpy.logical_and(')
 
     # Split suivant ; si plusieurs formules sont definies
     eq = eq.split(';')

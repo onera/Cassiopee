@@ -188,7 +188,22 @@ def checkNumpy():
 #=============================================================================
 def getInstallPath(prefix):
     mySystem = getSystem()[0]; bits = getSystem()[1]
-    # Based on spec
+
+    # from python3, better to use sysconfig than distutils.sysconfig
+    # to find the "prefix" installation path from python
+    #import sysconfig
+    #schemes = sysconfig.get_scheme_names()
+    #defaultScheme = sysconfig.get_default_scheme()
+    #preferedScheme = sysconfig.get_preferred_scheme('prefix') # user or home?
+    #paths = sysconfig.get_paths("posix_prefix")
+    #paths = paths['platlib']
+    #pythonLib = paths.split('/')
+    #pythonVersion = pythonLib[-2]
+    #Site = pythonLib[-1]
+    #Lib = pythonLib[-3]    
+    #installPath = '%s/%s/%s/%s'%(prefix, Lib, pythonVersion, Site)
+    
+    # Based on distutils (to be su)
     if os.environ['ELSAPROD'][0:6] == 'msys64' or os.environ['ELSAPROD'] == 'win64':
         pythonLib = distutils.sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
@@ -211,7 +226,7 @@ def getInstallPath(prefix):
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]
         installPath = prefix + '/lib/python'+pythonVersion+'/site-packages'        
-    else: # unix
+    else: # standard unix
         pythonLib = distutils.sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         # Based on python lib
@@ -220,7 +235,6 @@ def getInstallPath(prefix):
         pversion = sys.version_info
         pythonVersion = "python{}.{}".format(pversion[0], pversion[1])
         Site = pythonLib[-1]
-        # Lib
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
     return installPath

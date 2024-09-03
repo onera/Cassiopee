@@ -60,10 +60,7 @@ if [ $PRODMODE -le 1 ]; then
     if [ $PRODMODE -eq 0 ]; then # setup
         python setup.py install --prefix="$INSTALLPATH"
         [ $? != 0 ] && exit 1;
-    elif [ $PRODMODE -eq 1 ]; then # pip+no wheel
-        python -m pip install --no-cache-dir --no-binary=Compressor --ignore-installed --upgrade --prefix="$INSTALLPATH" .
-        [ $? != 0 ] && exit 1;
-    elif [ $PRODMODE -eq 2 ]; then # pip+wheel
+    elif [ $PRODMODE -eq 1 ]; then # pip+wheel
         python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
         [ $? != 0 ] && exit 1;
     fi

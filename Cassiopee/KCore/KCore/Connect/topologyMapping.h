@@ -106,15 +106,15 @@ struct Topology
 };
 
 // Same as Topology but optimised (no dynamic allocation)
-const std::size_t nmaxitems = 8;
+const std::size_t nmaxitems = 8; // nbre d'index par item
 struct TopologyOpt
 {
   E_Bool isDegen_; // whether the Topology is degenerated
   std::size_t n_; // number of items contained in the Topology
   std::size_t size_; // number of unique items contained in the Topology
-  E_Int p_[nmaxitems];
+  E_Int p_[nmaxitems]; // indices
 
-  TopologyOpt() {}
+  TopologyOpt() { for (size_t i = 0; i < nmaxitems; i++) p_[i] = -1; }
   TopologyOpt(const E_Int* p, const std::size_t n, E_Bool search4Degen=false)
   {
     set(p, n, search4Degen);

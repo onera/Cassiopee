@@ -338,11 +338,17 @@ def _unlinkCAD2Tree(t):
       if l is not None: l[1] = 0
   return None
 
-# a mettre en convertCAD2PyTree?
+# Get the first tree for structured CAD meshing
 def getTree(hook, N=11, hmax=-1, hausd=-1.):
   """Get a first TRI meshed tree linked to CAD."""
   
-  t = C.newPyTree(['EDGES', 'SURFACES'])
+  t = C.newPyTree(['EDGES', 'FACES'])
+
+  # Add CAD top container containing the CAD file name
+  fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
+  CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
+  Internal._createChild(CAD, 'file', 'DataArray_t', value=fileName)
+  Internal._createChild(CAD, 'format', 'DataArray_t', value=fileFmt)
 
   # Edges
   if hmax > 0.: edges = OCC.occ.meshGlobalEdges1(hook, hmax)
@@ -364,10 +370,10 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
     b[2].append(z)
 
   # Faces
-  b = Internal.getNodeFromName1(t, 'SURFACES')
+  b = Internal.getNodeFromName1(t, 'FACES')
   faceNo = []
-  m = OCC.meshTRI__(hook, N=N, hmax=hmax, hausd=hausd, faceNo=faceNo)
-  #m = OCC.meshSTRUCT__(hook, N=N, faceNo=faceNo)
+  #m = OCC.meshTRI__(hook, N=N, hmax=hmax, hausd=hausd, faceNo=faceNo)
+  m = OCC.meshSTRUCT__(hook, N=N, faceNo=faceNo)
 
   for c, f in enumerate(m):
     noface = faceNo[c]
@@ -382,15 +388,39 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
     Internal._createChild(r, "type", "DataArray_t", value="face")
     Internal._createChild(r, "no", "DataArray_t", value=noface)
     Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
+    Internal._createChild(r, "hsize", "DataArray_t", value=[0.])
     #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
+
+  # build face list of edges
+  edgeOfFaces = {}
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for e in Internal.getZones(b):
+    edgeno = getNo(e)
+    edgeOfFaces[edgeno] = []
+    
+  b = Internal.getNodeFromName1(t, 'FACES')
+  for f in Internal.getZones(b):
+    faceno = getNo(f)
+    cad = Internal.getNodeFromName1(f, 'CAD')
+    edgeList = Internal.getNodeFromName1(cad, 'edgeList')
+    edgeList = edgeList[1]
+    for i in edgeList: edgeOfFaces[i].append(faceno)
+
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for e in Internal.getZones(b):
+    edgeno = getNo(e)
+    cad = Internal.getNodeFromName1(e, 'CAD')
+    faces = edgeOfFaces[edgeno]
+    n = numpy.array(faces, dtype=Internal.E_NpyInt)
+    Internal._createChild(cad, 'faceList', 'DataArray_t', value=n)
 
   return t
 
 # remesh tree from edges with new ue from EDGES
 def remeshTreeFromEdges(hook, tp):
 
-  t = C.newPyTree(['EDGES', 'SURFACES'])
+  t = C.newPyTree(['EDGES', 'FACES'])
 
   # Edges
   b = Internal.getNodeFromName1(tp, 'EDGES')
@@ -413,7 +443,7 @@ def remeshTreeFromEdges(hook, tp):
     b[2].append(z)
 
   # Faces
-  b = Internal.getNodeFromName1(t, 'SURFACES')
+  b = Internal.getNodeFromName1(t, 'FACES')
   faceNo = []
   m = OCC.meshTRIU__(hook, arrays, faceNo=faceNo)
   for c, f in enumerate(m):

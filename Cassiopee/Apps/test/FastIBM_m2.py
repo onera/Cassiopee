@@ -45,7 +45,7 @@ for node in Internal.getNodesByName(tb,'FlowEquationSet'):
     
 C._addState(tb, adim='adim1', MInf=0.1, alphaZ=0., alphaY=0., ReInf=40000., MutSMuInf=0.1, TurbLevelInf=1.e-4)
     
-if Cmpi.rank==0: C.convertPyTree2File(tb, FILEB)
+if Cmpi.rank == 0: C.convertPyTree2File(tb, FILEB)
 Cmpi.barrier()
 
 # Prepare
@@ -66,9 +66,9 @@ if Cmpi.rank == 0:
     Internal._rmNodesByName(t, '.Solver#Param')
     Internal._rmNodesByName(t, '.Solver#ownData')
     Internal._rmNodesByName(t, '.Solver#dtloc')
-    test.testT(t,2)
+    test.testT(t, 2)
 
 graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=3)
 P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3)
 Cmpi.barrier()
-if Cmpi.rank==0: test.testT(ts,3)
+if Cmpi.rank == 0: test.testT(ts, 3)

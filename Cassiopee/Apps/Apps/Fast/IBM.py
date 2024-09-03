@@ -614,7 +614,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             for node in Internal.getNodesFromName(t,'EquationDimension'): Internal.setValue(node,3)
             for z in Internal.getZones(t):
                 C._addBC2Zone(z, z[0]+'periodKmin', 'BCautoperiod', 'kmin')
-                C._addBC2Zone(z, z[0]+'periodKmin', 'BCautoperiod', 'kmax')
+                C._addBC2Zone(z, z[0]+'periodKmax', 'BCautoperiod', 'kmax')
             BCs = Internal.getNodesFromType(t, "BC_t")
             for bc in BCs:
                 if Internal.getValue(bc)=='BCautoperiod':
