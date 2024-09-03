@@ -446,7 +446,6 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
   E_Int nfld = fc->getNfld();
   
   PyObject* tpl;
-  E_Float val;
   if (resc == 1) 
   {
     E_Int size = imc*jmc*kmc;
@@ -471,13 +470,19 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
         E_Float* ptrFc = fc->begin(n);
         E_Float* ptrF = field.begin(n);
         for (E_Int noz = 0; noz < km-1; noz++)
-          #pragma omp parallel for
-          for (E_Int ind = 0; ind < imcjmc; ind++)
+        {
+          #pragma omp parallel
           {
-            val = ptrFc[ind];
-            ptrF[ind] = val;      
-            ptrF[ind+noz*imcjmc] = val;
+            E_Float val;
+            #pragma omp for
+            for (E_Int ind = 0; ind < imcjmc; ind++)
+            {
+              val = ptrFc[ind];
+              ptrF[ind] = val;      
+              ptrF[ind+noz*imcjmc] = val;
+            }
           }
+        }
       }
     }
   }
