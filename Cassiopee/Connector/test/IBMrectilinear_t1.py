@@ -59,7 +59,7 @@ tbOneOver = C.convertFile2PyTree(FileNameOneOver)
 
 ##IBM PREP
 t,tc=X_IBM.prepareIBMData(tb         , None      , None     , tbox=tbOneOver,
-                          snears=0.01, dfars=dfar, vmin=vmin)
+                          snears=0.01, dfars=dfar, vmin=vmin, cartesian=False)
 os.remove(FileNameOneOver)
 
 ##NON-REGRESSION CHECK
