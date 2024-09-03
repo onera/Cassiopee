@@ -106,6 +106,7 @@ struct Dcel {
 
     void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
 
-    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
-        std::vector<Point> &xpoints);
+    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
+
+    void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3]) const;
 };

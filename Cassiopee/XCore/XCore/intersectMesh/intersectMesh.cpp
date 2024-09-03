@@ -341,8 +341,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Smesh Mf(M);
     Smesh Sf(S);
     
-    Mf.write_ngon("Mf");
-    Sf.write_ngon("Sf");
+    //Mf.write_ngon("Mf");
+    //Sf.write_ngon("Sf");
 
     puts("Making point edges...");
     Mf.make_point_edges();
@@ -355,30 +355,6 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     puts("Making point/face normals...");
     Mf.make_pnormals();
     Sf.make_pnormals();
-
-    std::vector<IO_Edge> edges;
-
-    for (E_Int fid = 0; fid < Mf.nf; fid++) {
-        E_Float *fN = &Mf.fnormals[3*fid];
-
-        const auto &pn = Mf.F[fid];
-
-        E_Float cc[3] = {};
-
-        for (size_t i = 0; i < pn.size(); i++) {
-            cc[0] += Mf.X[pn[i]];
-            cc[1] += Mf.Y[pn[i]];
-            cc[2] += Mf.Z[pn[i]];
-        }
-        for (E_Int i = 0; i < 3; i++) cc[i] /= pn.size();
-
-        edges.push_back(IO_Edge(cc[0], cc[1], cc[2],
-                                cc[0] + 0.05*fN[0],
-                                cc[1] + 0.05*fN[1],
-                                cc[2] + 0.05*fN[2]));
-    }
-
-    edges_write("normals", edges);
 
     puts("Hashing master faces...");
     Mf.make_bbox();
