@@ -57,3 +57,7 @@ E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float 
 
 E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
     E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz);
+
+E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
+    E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz,
+    E_Float &t);

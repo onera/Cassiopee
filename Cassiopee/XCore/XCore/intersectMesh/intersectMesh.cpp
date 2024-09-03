@@ -314,6 +314,7 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
     M.make_skin();
+    assert(M.patch.empty());
     for (E_Int fid : M.skin) M.patch.insert(fid);
 
     printf("Master patch: %zu faces\n", M.patch.size());
@@ -355,6 +356,30 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Mf.make_pnormals();
     Sf.make_pnormals();
 
+    std::vector<IO_Edge> edges;
+
+    for (E_Int fid = 0; fid < Mf.nf; fid++) {
+        E_Float *fN = &Mf.fnormals[3*fid];
+
+        const auto &pn = Mf.F[fid];
+
+        E_Float cc[3] = {};
+
+        for (size_t i = 0; i < pn.size(); i++) {
+            cc[0] += Mf.X[pn[i]];
+            cc[1] += Mf.Y[pn[i]];
+            cc[2] += Mf.Z[pn[i]];
+        }
+        for (E_Int i = 0; i < 3; i++) cc[i] /= pn.size();
+
+        edges.push_back(IO_Edge(cc[0], cc[1], cc[2],
+                                cc[0] + 0.05*fN[0],
+                                cc[1] + 0.05*fN[1],
+                                cc[2] + 0.05*fN[2]));
+    }
+
+    edges_write("normals", edges);
+
     puts("Hashing master faces...");
     Mf.make_bbox();
     Mf.hash_faces();
@@ -392,10 +417,13 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     IMesh S_inter = reconstruct_mesh(S, Sf, D, Dcel::BLACK);
 
     // Export
-    puts("Exporting...");
+    printf("Exporting...");
 
     PyObject *Mout = M_inter.export_karray();
+
     PyObject *Sout = S_inter.export_karray();
+
+    printf("Done.\n");
 
     PyObject *Out = PyList_New(0);
     PyList_Append(Out, Mout);

@@ -823,7 +823,7 @@ void Smesh::write_ngon(const char *fname)
 void Smesh::make_fnormals()
 {
     fnormals.clear();
-    fnormals.resize(3*nf);
+    fnormals.resize(3*nf, 0);
     
     for (E_Int fid = 0; fid < nf; fid++) {
         const auto &pn = F[fid];
@@ -855,7 +855,7 @@ void Smesh::make_pnormals()
     make_fnormals();
 
     pnormals.clear();
-    pnormals.resize(3*np);
+    pnormals.resize(3*np, 0);
     
     // Point normals: aggregate of shared faces normals
 

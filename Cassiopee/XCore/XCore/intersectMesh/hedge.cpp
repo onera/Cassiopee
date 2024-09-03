@@ -23,6 +23,7 @@
 #include "vertex.h"
 #include "primitives.h"
 #include "dcel.h"
+#include "io.h"
 
 Hedge::Hedge(Vertex *v)
 : orig(v), twin(NULL), prev(NULL), next(NULL), left(NULL), color(Dcel::NO_IDEA),
@@ -115,6 +116,12 @@ E_Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
         return 1;
 
     // Overlapping segments
+
+    if (h->color == w->color) {
+        hedge_write("h", h);
+        hedge_write("w", w);
+    }
+
     assert(h->color != w->color);
 
     // If right half, red before black

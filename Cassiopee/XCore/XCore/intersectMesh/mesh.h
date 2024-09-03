@@ -77,6 +77,8 @@ struct IMesh {
 
     std::set<E_Int> patch;
 
+    std::vector<Point> entries;
+
     inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
     {
         return I + J * NX + (NX * NY) * K;
@@ -88,7 +90,7 @@ struct IMesh {
         E_Float dy, E_Float dz, E_Int fid, TriangleIntersection &TI) const;
     
     E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
-        E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II) const;
+        E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
     
     void triangulate_face_set();
     

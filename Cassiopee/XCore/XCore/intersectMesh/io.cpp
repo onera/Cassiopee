@@ -49,7 +49,7 @@ void face_write(const char *fname, Face *f)
     fclose(fh);
 }
 
-void hedge_write(const char *fname, Hedge *h)
+void hedge_write(const char *fname, const Hedge *h)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
@@ -150,5 +150,24 @@ void edge_write(const char *fname, E_Float px, E_Float py, E_Float pz,
     fprintf(fh, "EDGES\n");
     fprintf(fh, "1\n");
     fprintf(fh, "0 1\n");
+    fclose(fh);
+}
+
+void edges_write(const char *fname, const std::vector<IO_Edge> &edges)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%zu\n", edges.size() * 2);
+    for (auto e : edges) {
+        fprintf(fh, "%f %f %f\n", e.px, e.py, e.pz);
+        fprintf(fh, "%f %f %f\n", e.qx, e.qy, e.qz);
+    }
+    fprintf(fh, "EDGES\n");
+    fprintf(fh, "%zu\n", edges.size());
+    for (size_t i = 0; i < 2*edges.size(); i++) {
+        fprintf(fh, "%zu ", i);
+    }
+    fprintf(fh, "\n");
     fclose(fh);
 }

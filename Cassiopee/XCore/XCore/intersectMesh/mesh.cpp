@@ -259,8 +259,8 @@ void IMesh::make_point_faces()
 
 void IMesh::make_bbox()
 {
-    xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
-    xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
+    xmin = ymin = zmin = EFLOATMAX;
+    xmax = ymax = zmax = EFLOATMIN;
 
     for (E_Int i = 0; i < np; i++) {
         if (X[i] < xmin) xmin = X[i];
@@ -271,9 +271,9 @@ void IMesh::make_bbox()
         if (Z[i] > zmax) zmax = Z[i];
     }
 
-    xmax = xmax * 1.01;
-    ymax = ymax * 1.01;
-    zmax = zmax * 1.01;
+    xmax = xmax + (xmax - xmin) * 0.01;
+    ymax = ymax + (ymax - ymin) * 0.01;
+    zmax = zmax + (zmax - zmin) * 0.01;
 
     HX = (xmax - xmin) / NX;
     HY = (ymax - ymin) / NY;
@@ -348,7 +348,7 @@ E_Int IMesh::RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
 }
 
 E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
-    E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II) const
+    E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II)
 {
     // Calculate entry point
 
@@ -389,6 +389,15 @@ E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
         px = ox + tentry * dx;
         py = oy + tentry * dy;
         pz = oz + tentry * dz;
+
+        // Make sure the entry lies within bbox
+
+        if (Sign(px - xmin) == 0) px = xmin;
+        if (Sign(py - ymin) == 0) py = ymin;
+        if (Sign(pz - zmin) == 0) pz = zmin;
+        if (Sign(px - xmax) == 0) px = xmax;
+        if (Sign(py - ymax) == 0) py = ymax;
+        if (Sign(pz - zmax) == 0) pz = zmax;
     }
 
     //point_write("entry", px, py, pz);
@@ -615,7 +624,7 @@ bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
                 tested_faces.insert(fid);
                 E_Int hit = RayFaceIntersect(ox, oy, oz, dx, dy, dz, fid, TI);
                 
-                if (hit) {
+                if (hit && TI.t > 0) {
 
                     const auto &pn = F[fid];
 

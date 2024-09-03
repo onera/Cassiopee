@@ -24,6 +24,7 @@
 
 #include "common/common.h"
 #include "queue.h"
+#include "point.h"
 
 struct Vertex;
 struct Hedge;
@@ -105,5 +106,6 @@ struct Dcel {
 
     void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
 
-    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
+    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
+        std::vector<Point> &xpoints);
 };

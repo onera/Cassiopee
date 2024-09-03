@@ -63,7 +63,7 @@ E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
 
     TI.t = inv_det * (e2x * qvecx + e2y * qvecy + e2z * qvecz);
 
-    if (TI.t > TOL) {
+    if (TI.t >= 0) {
         TI.x = px + TI.t * dx;
         TI.y = py + TI.t * dy;
         TI.z = pz + TI.t * dz;

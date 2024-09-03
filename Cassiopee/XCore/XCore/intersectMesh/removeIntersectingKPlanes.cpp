@@ -168,10 +168,10 @@ PyObject *handle_slave(IMesh *M, Karray& sarray, E_Int kmax)
         ind++;
     }
 
-    char fname[128] = {};
+    //char fname[128] = {};
     //sprintf(fname, "proj_points%d", idx);
-    point_write("proj_points", Xs, Ys, Zs, proj_points);
-    point_write("upper_points", Xs, Ys, Zs, upper_points);
+    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+    //point_write("upper_points", Xs, Ys, Zs, upper_points);
 
     /**************************************************************************/
 
