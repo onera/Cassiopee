@@ -449,9 +449,9 @@ void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
             K_MATH::cross(ref_vec, PQ_proj, C);
 
             if (K_MATH::dot(N, C, 3) > 0)
-                angle = 2*M_PI - angle;
+                angle = 2*K_MATH::PI - angle;
             
-            angles.push_back(angle * 180 / M_PI);
+            angles.push_back(angle * 180 / K_MATH::PI);
         }
 
         std::vector<E_Int> indices(hedges.size());
@@ -1436,9 +1436,9 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
             K_MATH::cross(ref_vec, PQ_proj, C);
 
             if (K_MATH::dot(N, C, 3) > 0)
-                angle = 2*M_PI - angle;
+                angle = 2*K_MATH::PI - angle;
             
-            angles.push_back(angle * 180 / M_PI);
+            angles.push_back(angle * 180 / K_MATH::PI);
         }
 
         std::vector<E_Int> indices(leaving.size());

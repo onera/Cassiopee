@@ -32,8 +32,14 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/convertCAD2Arrays0.cpp',
         'OCC/convertCAD2Arrays1.cpp',
         'OCC/convertCAD2Arrays2.cpp',
+
         'OCC/Atomic/readCAD.cpp',
         'OCC/Atomic/writeCAD.cpp',
+        'OCC/Atomic/createEmptyCAD.cpp',
+
+        'OCC/Atomic/bottle.cpp',
+        'OCC/Atomic/addSphere.cpp',
+
         'OCC/Atomic/meshEdge.cpp',
         'OCC/Atomic/meshEdge2.cpp',
         'OCC/Atomic/identifyLoopsInEdges.cpp',
@@ -50,6 +56,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/splitter.cpp',
         'OCC/Atomic/fix.cpp',
         'OCC/Atomic/trim.cpp',
+        
         'OCC/Atomic/getOppData.cpp']
 
 import KCore.Dist as Dist

@@ -29,6 +29,11 @@ namespace K_OCC
   
   PyObject* readCAD(PyObject* self, PyObject* args);
   PyObject* writeCAD(PyObject* self, PyObject* args);
+  PyObject* createEmptyCAD(PyObject* self, PyObject* args);
+  
+  PyObject* bottle(PyObject* self, PyObject* args);
+  PyObject* addSphere(PyObject* self, PyObject* args);
+  
   PyObject* getNbFaces(PyObject* self, PyObject* args);
   PyObject* getNbEdges(PyObject* self, PyObject* args);
   PyObject* getFileAndFormat(PyObject* self, PyObject* args);

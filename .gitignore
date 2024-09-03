@@ -55,5 +55,6 @@ Data*
 *.foam/
 out_foam/
 chm000*
+out.step
 
 tools/MigrationSVN
