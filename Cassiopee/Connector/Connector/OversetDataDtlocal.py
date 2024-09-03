@@ -321,18 +321,18 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                     ninterploc = resInterp[0][noz].size
                     if ninterploc>0: # domaine d'interpolation
                         if storage == 'direct':
-                            if resInterp[4][noz].size == 0: extrapPts = numpy.array([],numpy.int32)
+                            if resInterp[4][noz].size == 0: extrapPts = numpy.array([], Internal.E_NpyInt)
                             else: extrapPts = resInterp[4][noz]
-                            if resInterp[6] == []: EXdir = numpy.array([],numpy.int32)
+                            if resInterp[6] == []: EXdir = numpy.array([], Internal.E_NpyInt)
                             else: EXdir = resInterp[6][noz]
                             OversetData._createInterpRegion__(z, zonesDnr[noz][0], resInterp[0][noz], resInterp[1][noz], resInterp[3][noz], \
                                                               resInterp[2][noz], numpy.array([],numpy.float64), \
                                                               extrapPts, resInterp[5], tag='Receiver', loc=locR, EXDir=EXdir)
 
                         else: # inverse
-                            if resInterp[4][noz].size == 0: extrapPts = numpy.array([],numpy.int32)
+                            if resInterp[4][noz].size == 0: extrapPts = numpy.array([], Internal.E_NpyInt)
                             else: extrapPts = resInterp[4][noz]
-                            if resInterp[6] == []: EXdir = numpy.array([],numpy.int32)
+                            if resInterp[6] == []: EXdir = numpy.array([], Internal.E_NpyInt)
                             else: EXdir = resInterp[6][noz]
                             OversetData._createInterpRegion__(zonesDnr[noz], z[0], resInterp[1][noz], resInterp[0][noz], resInterp[3][noz], \
                                                               resInterp[2][noz], numpy.array([],numpy.float64), \
@@ -341,8 +341,8 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
  
                             
                             dim__ = Internal.getZoneDim(zonesDnr[noz])
-                            prange = numpy.zeros(6,dtype=numpy.int32) 
-                            dirR=numpy.zeros(1,dtype=numpy.int32)
+                            prange = numpy.zeros(6,dtype=Internal.E_NpyInt) 
+                            dirR=numpy.zeros(1,dtype=Internal.E_NpyInt)
                             leveldnr = niveaux_temps[zonesDnr[noz][0]]
 
                             #print('donneur= ', zonesDnr[noz][0],noz)
@@ -362,10 +362,9 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             transfo=getTransfo(zonesDnr[noz],z)
 
 
-                            prangedonor = numpy.zeros(6,dtype=numpy.int32)
-                            profondeur=numpy.zeros(1,dtype=numpy.int32)
-                            dirD=numpy.zeros(1,dtype=numpy.int32)
-                            
+                            prangedonor = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                            profondeur=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                            dirD=numpy.zeros(1,dtype=Internal.E_NpyInt)
                             connector.indiceToCoord2(resInterp[1][noz],prangedonor,transfo,profondeur,dirD,resInterp[2][noz],dirR[0],resInterp[2][noz].size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
 
                             #print('dirR= ',dirR)
@@ -396,7 +395,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             info[2].append(['LevelZRcv', levelrcv , [], 'IndexArray_t'])
                             info[2].append(['LevelZDnr', leveldnr , [], 'IndexArray_t'])
 
-                            NMratio = numpy.zeros(3,dtype=numpy.int32)
+                            NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                             NMratio[0] = int(round(float(dim_[abs(transfo[0])])/float(dim__[1]+1)))
                             NMratio[1] = int(round(float(dim_[abs(transfo[1])])/float(dim__[2]+1)))
                             NMratio[2] = int(round(float(dim_[abs(transfo[2])])/float(dim__[3]+1)))
@@ -433,7 +432,7 @@ def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
 #==============================================================================
 def getTransfo(zdonor,zrcv):
     import KCore.Vector as Vector
-    transfo = numpy.zeros(3,dtype=numpy.int32)
+    transfo = numpy.zeros(3,dtype=Internal.E_NpyInt)
 
     a = C.getFields(Internal.__GridCoordinates__, zdonor)[0]
     ni = a[2]; nj=a[3]; nk=a[4]
@@ -623,10 +622,10 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
     try: import Converter.GhostCells as GhostCells
     except: raise ImportError("setInterpDataForGhostCells__ requires Converter.GhostCells module.")
     # empty numpy arrays for zonesubregion nodes
-    indicesExtrap = numpy.array([],numpy.int32)
-    indicesOrphan = numpy.array([],numpy.int32)
+    indicesExtrap = numpy.array([],Internal.E_NpyInt)
+    indicesOrphan = numpy.array([],Internal.E_NpyInt)
     vols =  numpy.array([],numpy.float64)
-    EXdir = numpy.array([],numpy.int32)
+    EXdir = numpy.array([],Internal.E_NpyInt)
 
     bases  = Internal.getNodesFromType1(tR     , 'CGNSBase_t')       # noeud
     dimmm  = Internal.getNodeFromName2(bases[0], 'EquationDimension') 
@@ -861,12 +860,12 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     prange = numpy.reshape(prange,6)
                     prangedonor= numpy.reshape(prangedonor,6)
 
-                    profondeur=numpy.zeros(1,dtype=numpy.int32)
+                    profondeur=numpy.zeros(1,dtype=Internal.E_NpyInt)
                     profondeur[0]=1
                     #transfo = Internal.getNodeFromName1(join, 'Transform')
                     #print 'transfo= ', transfo[1]
                     #print 'pt_pivot_ap= ',pt_pivot
-                    NMratio = numpy.zeros(3,dtype=numpy.int32)
+                    NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                     NMratio[0]=1
                     NMratio[1]=1
                     NMratio[2]=1
