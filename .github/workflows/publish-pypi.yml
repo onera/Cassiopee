@@ -42,7 +42,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install wheel setuptools scons numpy mpi4py
+          pip install wheel twine setuptools scons numpy mpi4py
           
       - name: Verify Python and Installed Packages
         run: |
@@ -56,9 +56,6 @@ jobs:
           . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
           cd $CASSIOPEE/Cassiopee
           echo -e "FREEMODULES='KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot'\nexport FREEMODULES\nFULLMODULES='KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot'\nexport FULLMODULES\nOTHERS=''" > $CASSIOPEE/Cassiopee/MODULES
-          echo "PATH: $PATH"
-          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
-          echo "PYTHONPATH: $PYTHONPATH"
           ./install
 
       - name: Publish to PyPI
@@ -66,8 +63,10 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          find $CASSIOPEE -name "*.whl"
-#          find $CASSIOPEE -name "*.whl" -exec twine upload {} +
+          export CASSIOPEE=$GITHUB_WORKSPACE
+          export MACHINE=azure
+          . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
+          find $CASSIOPEE/Dist/bin/$ELSAPROD/pip-ephem-wheel-cache-* -type f -name "*.whl" -exec twine upload {} +
           
 #  publish:
 #      runs-on: ubuntu-latest
