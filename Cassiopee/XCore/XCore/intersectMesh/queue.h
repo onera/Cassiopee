@@ -60,4 +60,6 @@ struct Queue {
     Event *lookup_(Event *root, E_Float x, E_Float y, E_Float z);
 
     Event *erase_(Event *root, Vertex *p);
+
+    void drop();
 };

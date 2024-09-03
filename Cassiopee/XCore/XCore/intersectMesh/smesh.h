@@ -26,6 +26,7 @@
 
 #include "point.h"
 #include "xcore.h"
+#include "AABB.h"
 
 struct IMesh;
 
@@ -65,8 +66,19 @@ struct Smesh {
     std::vector<E_Float> fnormals;
     std::vector<E_Float> pnormals;
 
+    E_Int NX, NY, NZ, NXY;
+    E_Float xmin, xmax, ymin, ymax, zmin, zmax;
+    E_Float HX, HY, HZ;
+
+    std::map<E_Int, std::vector<E_Int>> fmap;
+
     void make_fnormals();
     void make_pnormals();
+
+    void make_bbox();
+    void hash_faces();
+
+    AABB AABB_face(const std::vector<E_Int> &pn) const;
 
     // Adaptation
     void get_leaves(E_Int face, std::vector<E_Int> &leaves) const;

@@ -28,15 +28,24 @@
 #include "point.h"
 #include "hedge.h"
 
+struct IO_Edge {
+    E_Float px, py, pz;
+    E_Float qx, qy, qz;
+
+    IO_Edge(E_Float PX, E_Float PY, E_Float PZ, E_Float QX, E_Float QY, E_Float QZ)
+    : px(PX), py(PY), pz(PZ), qx(QX), qy(QY), qz(QZ)
+    {}
+};
+
 void face_write(const char *fname, Face *face);
 
 void point_write(const char *fname, E_Float x, E_Float y, E_Float z);
 
 void point_write(const char *fname, Vertex *v);
 
-void hedge_write(const char *fname, Hedge *h);
+void hedge_write(const char *fname, const Hedge *h);
 
-void point_write(const char *fname, const std::vector<point> &P);
+void point_write(const char *fname, const std::vector<Point> &P);
 
 void point_write(const char *fname, const std::vector<Vertex *> &I);
 
@@ -45,3 +54,8 @@ void point_write(const char *fname, E_Float *Xs, E_Float *Ys, E_Float *Zs,
 
 void edge_write(const char *fname, E_Float *X, E_Float *Y, E_Float *Z,
     const std::unordered_map<E_Int, TriangleIntersection> &point_hits);
+
+void edge_write(const char *fname, E_Float px, E_Float py, E_Float pz,
+    E_Float qx, E_Float qy, E_Float qz);
+
+void edges_write(const char *fname, const std::vector<IO_Edge> &edges);

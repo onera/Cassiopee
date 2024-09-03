@@ -21,22 +21,24 @@
 #include "mesh.h"
 #include "common/common.h"
 
+#include "triangle.h"
 #include "io.h"
 
 E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {
-    puts("Adapting intersection surfaces...");
     size_t refM = 0, refS = 0;
     E_Int iter = 0;
 
     do {
         iter++;
         
-        refM = M.refine(M.patch, S.patch, S);
+        S.make_point_faces();
+        refM = M.refine(S);
         printf("Refined mf: %zu\n", refM);
 
         if (refM > 0) {
-            refS = S.refine(S.patch, M.patch, M);
+            M.make_point_faces();
+            refS = S.refine(M);
             printf("Refined sf: %zu\n", refS);
         }
     } while (refS > 0);
@@ -44,11 +46,15 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
     return 0;
 }
 
-size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
-    IMesh &S)
+size_t IMesh::refine(const IMesh &S)
 {
+    // Hash mpatch
+    hash_patch();
+
     // Isolate spatch points
+    const auto &spatch = S.patch;
     std::set<E_Int> spoints;
+
     for (E_Int sface : spatch) {
         assert(S.face_is_active(sface));
         const auto &spn = S.F[sface];
@@ -57,30 +63,57 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
     }
 
     // Locate spatch points within mpatch
-    std::map<E_Int, std::vector<pointFace>> spoints_to_mfaces;
+    std::map<E_Int, std::vector<E_Int>> spoints_to_mfaces;
 
-
-    std::vector<E_Int> points;
 
     for (E_Int spt : spoints) {
-        auto pf = locate(spt, S.X[spt], S.Y[spt], S.Z[spt], mpatch);
-        spoints_to_mfaces[spt] = pf;
+        E_Int voxel_x = floor((S.X[spt] - xmin) / HX);
+        E_Int voxel_y = floor((S.Y[spt] - ymin) / HY);
+        E_Int voxel_z = floor((S.Z[spt] - zmin) / HZ);
+        E_Int spt_bin = voxel_x + NX * voxel_y + NXY * voxel_z;
+
+        auto it = fmap.find(spt_bin);
+
+        if (it == fmap.end()) continue;
+
+        const auto &pf = it->second;
+
+        for (E_Int fid : pf) {
+
+            const auto &pn = F[fid];
+
+            assert(pn.size() == 3 || pn.size() == 4);
+
+            E_Int a = pn[0], b = pn[1], c = pn[2];
+
+            if (Triangle::is_point_inside(S.X[spt], S.Y[spt], S.Z[spt],
+                X[a], Y[a], Z[a], X[b], Y[b], Z[b], X[c], Y[c], Z[c])) {
+                
+                spoints_to_mfaces[spt].push_back(fid);
+            } else if (pn.size() == 4) {
+
+                E_Int d = pn[3];
+
+                if (Triangle::is_point_inside(S.X[spt], S.Y[spt], S.Z[spt],
+                    X[c], Y[c], Z[c], X[d], Y[d], Z[d], X[a], Y[a], Z[a])) {
+                
+                    spoints_to_mfaces[spt].push_back(fid);
+                }
+            }
+        }
     }
 
     // Mface to spoints located within it
     std::map<E_Int, std::vector<E_Int>> mfpoints;
 
-    for (const auto &spt_to_mfs : spoints_to_mfaces) {
-        E_Int spt = spt_to_mfs.first;
-        const auto &mptfaces = spt_to_mfs.second;
+    for (const auto &data : spoints_to_mfaces) {
+        E_Int spt = data.first;
+        const auto &mfaces = data.second;
 
-        for (const auto &mptface : mptfaces) {
-            E_Int mface = mptface.F;
-            mfpoints[mface].push_back(spt);
+        for (const E_Int mf : mfaces) {
+            mfpoints[mf].push_back(spt);
         }
     }
-
-    //exit(0);
 
     // Keep the mfaces which contain 3 points or more
     std::map<E_Int, std::vector<E_Int>> filtered_mfaces_map;
@@ -90,9 +123,6 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
             filtered_mfaces_map.insert({mfpts.first, mfpts.second});
         }
     }
-
-    // Make point-to-face connectivity for S
-    S.make_point_faces();
 
     // Sensor
     std::map<E_Int, std::vector<E_Int>> ref_mfaces_to_sfaces;

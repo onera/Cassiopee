@@ -174,3 +174,8 @@ void Queue::inorder(std::vector<Vertex *> &V) const
     if (root == NULL) return;
     root->inorder(V);
 }
+
+void Queue::drop()
+{
+    Event_drop(root);
+}

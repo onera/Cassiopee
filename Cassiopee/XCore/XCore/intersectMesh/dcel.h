@@ -24,6 +24,7 @@
 
 #include "common/common.h"
 #include "queue.h"
+#include "point.h"
 
 struct Vertex;
 struct Hedge;
@@ -51,22 +52,17 @@ struct Dcel {
     std::map<Vertex *, std::vector<Hedge *>> Lp;
 
     Dcel(Smesh &M0, Smesh &M1);
+
     ~Dcel();
     
     void init_vertices(const Smesh &M0, const Smesh &M1);
 
     void init_hedges_and_faces(Smesh &M, E_Int color);
-    
-    //void make_hedges_and_faces(const Smesh &M, E_Int color);
 
     static E_Int check_hedges(const std::vector<Hedge *> &H);
 
     static E_Int check_faces(const std::vector<Hedge *> &H,
         const std::vector<Face *> &F);
-
-    static void resolve(Vertex *p, const std::vector<Segment *> &L,
-        const std::vector<Segment *> &C, const std::vector<Segment *> &U,
-        std::vector<Hedge *> &H);
     
     void make_cycles();
 
@@ -110,5 +106,6 @@ struct Dcel {
 
     void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
 
-    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
+    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
+        std::vector<Point> &xpoints);
 };

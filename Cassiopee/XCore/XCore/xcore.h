@@ -25,7 +25,14 @@
 #define XMPI_INT MPI_INT
 #endif
 
-# include "kcore.h"
+#include "kcore.h"
+#include <limits>
+
+constexpr E_Float EFLOATMIN = -std::numeric_limits<E_Float>::max();
+constexpr E_Float EFLOATMAX = std::numeric_limits<E_Float>::max();
+
+constexpr E_Int EINTMIN = std::numeric_limits<E_Int>::min();
+constexpr E_Int EINTMAX = std::numeric_limits<E_Int>::max();
 
 namespace K_XCORE
 {
@@ -58,6 +65,10 @@ namespace K_XCORE
     PyObject *intersectMesh(PyObject *self, PyObject *args);
     PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
     PyObject *prepareMeshesForIntersection(PyObject *self, PyObject *args);
+
+    PyObject *IntersectMesh_Init(PyObject *self, PyObject *args);
+    PyObject *IntersectMesh_ExtractMesh(PyObject *self, PyObject *args);
+    PyObject *IntersectMesh_TriangulateFaceSet(PyObject *self, PyObject *args);
 }
 
 #endif

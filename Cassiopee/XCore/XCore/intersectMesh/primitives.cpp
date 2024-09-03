@@ -223,6 +223,52 @@ E_Int is_point_on_segment(E_Float px, E_Float py, E_Float pz, E_Float ax, E_Floa
 
 E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
     E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz,
+    E_Float &t)
+{
+    E_Float d1[3] = {bx-ax, by-ay, bz-az};
+    E_Float d2[3] = {qx-px, qy-py, qz-pz};
+    E_Float r[3] = {px-ax, py-ay, pz-az};
+
+    E_Float d1d2[3];
+    K_MATH::cross(d1, d2, d1d2);
+    E_Float denom = K_MATH::dot(d1d2, d1d2, 3);
+
+    if (Sign(denom) == 0) {
+
+        return 0;
+
+        /*
+        E_Float colli[3];
+        K_MATH::cross(d1, r, colli);
+        E_Float NORM = K_MATH::norm(colli, 3);
+        if (Sign(NORM) == 0) {
+            assert("collinear!" && 0);
+        } else {
+            return 0;
+        }
+        */
+    }
+
+    E_Float tmp[3];
+    K_MATH::cross(r, d2, tmp);
+    t = K_MATH::dot(tmp, d1d2, 3);
+    t /= denom;
+    if (t <= TOL) return 0;
+
+    K_MATH::cross(r, d1, tmp);
+    E_Float u = K_MATH::dot(tmp, d1d2, 3);
+    u /= denom;
+    if (u < -TOL || u > 1 + TOL) return 0;
+
+    //ix = px + u*(qx - px);
+    //iy = py + u*(qy - py);
+    //iz = pz + u*(qz - pz);
+
+    return 1;
+}
+
+E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
+    E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz,
     E_Float &ix, E_Float &iy, E_Float &iz)
 {
     E_Float d1[3] = {bx-ax, by-ay, bz-az};

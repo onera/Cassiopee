@@ -31,6 +31,71 @@
 #include "triangle.h"
 #include "primitives.h"
 #include "ray.h"
+#include "io.h"
+
+void IMesh::triangulate_face_set()
+{
+    E_Int NF = nf;
+
+    size_t face_incr = faces_to_tri.size();
+
+    F.resize(NF + face_incr);
+
+    std::vector<E_Int> owner(NF, -1), neigh(NF, -1);
+
+    for (E_Int i = 0; i < nc; i++) {
+        const auto &pf = C[i];
+        for (E_Int fid : pf) {
+            if (owner[fid] == -1) owner[fid] = i;
+            else neigh[fid] = i;
+        }
+    }
+
+    assert(skin.size() > 0);
+
+    for (E_Int fid : faces_to_tri) {
+
+        auto &pn = F[fid];
+
+        assert(pn.size() == 4);
+
+        std::vector<E_Int> tri0(3), tri1(3);
+
+        tri0[0] = pn[0], tri0[1] = pn[1], tri0[2] = pn[2];
+
+        tri1[0] = pn[2], tri1[1] = pn[3], tri1[2] = pn[0];
+
+        pn = tri0;
+
+        F[NF] = tri1;
+
+        E_Int own = owner[fid];
+
+        assert(own != -1);
+
+        auto &pf = C[own];
+
+        pf.push_back(NF);
+
+        E_Int nei = neigh[fid];
+
+        assert(nei == -1);
+
+        skin.push_back(NF);
+
+        NF++;
+    }
+
+    assert(NF == nf + face_incr);
+
+    nf = NF;
+
+    faces_to_tri.clear();
+
+    for (E_Int cid = 0; cid < nc; cid++) {
+        assert(C[cid].size() == 6 || C[cid].size() == 7);
+    }
+}
 
 struct DEdge {
     E_Int p, q;
@@ -83,46 +148,6 @@ void IMesh::make_edges()
     }
 }
 
-
-std::vector<pointFace> IMesh::locate(E_Int p, E_Float px, E_Float py, E_Float pz,
-    const std::set<E_Int> &patch) const
-{
-    E_Int hit;
-    std::vector<pointFace> hits;
-    
-    for (E_Int face : patch) {
-        assert(face_is_active(face));
-
-        const auto &cn = F[face];
-
-        E_Float o[3] = {};
-
-
-        for (E_Int p : cn) {
-            o[0] += X[p];
-            o[1] += Y[p];
-            o[2] += Z[p];
-        }
-        for (E_Int i = 0; i < 3; i++) o[i] /= cn.size();
-
-
-        for (size_t i = 0; i < cn.size(); i++) {
-            E_Int a = cn[i];
-            E_Int b = cn[(i+1)%cn.size()];
-            hit = Triangle::is_point_inside(px, py, pz,
-                o[0], o[1], o[2],
-                X[a], Y[a], Z[a],
-                X[b], Y[b], Z[b]);
-            if (hit) {
-                hits.push_back(pointFace(face));
-                break;
-            }
-        }
-    }
-
-    return hits;
-}
-
 void IMesh::init_adaptation_data()
 {
     flevel.resize(nf, 0);
@@ -164,6 +189,12 @@ IMesh::IMesh()
 
 IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
 {
+    NX = 100;
+    NY = 100;
+    NZ = 100;
+    NXY = NX * NY;
+    NXYZ = NXY * NZ;
+
     np = npts;
     ne = 0;
     nf = cn.getNFaces();
@@ -210,8 +241,6 @@ IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npt
 
     make_point_faces();
 
-    //make_edges();
-
     init_adaptation_data();
 
     srand(time(NULL));
@@ -228,108 +257,10 @@ void IMesh::make_point_faces()
     }
 }
 
-IMesh::IMesh(const char *fname)
-{
-    FILE *fh = fopen(fname, "r");
-    assert(fh);
-
-    np = ne = nf = nc = 0;
-
-    char buf[256];
-
-    // POINTS
-    fgets(buf, 256, fh);
-    fgets(buf, 256, fh);
-    char *next = strtok(buf, "\n");
-
-    char *bad_ptr = NULL;
-    np = strtod(next, &bad_ptr);
-    assert(*bad_ptr == '\0');
-    printf("points: " SF_D_ "\n", np);
-
-    X.resize(np);
-    Y.resize(np);
-    Z.resize(np);
-
-    int ret;
-
-    for (E_Int i = 0; i < np; i++) {
-        ret = fscanf(fh, "%lf %lf %lf\n", &X[i], &Y[i], &Z[i]);
-        if (ret != 3) abort();
-        //assert(ret == 3);
-    }
-
-    // FACES
-    fgets(buf, 256, fh);
-    fgets(buf, 256, fh);
-    next = strtok(buf, "\n");
-
-    bad_ptr = NULL;
-    nf = strtod(next, &bad_ptr);
-    assert(*bad_ptr == '\0');
-    printf("Faces: " SF_D_ "\n", nf);
-
-    F.resize(nf);
-
-    for (E_Int i = 0; i < nf; i++) {
-        E_Int stride;
-        ret = fscanf(fh, SF_D_ " ", &stride);
-        if (ret != 1) abort();
-        auto &cn = F[i];
-        cn.resize(stride);
-        for (E_Int j = 0; j < stride-1; j++) {
-            ret = fscanf(fh, SF_D_ " ", &cn[j]);
-            if (ret != 1) abort();
-        }
-        ret = fscanf(fh, SF_D_ "\n", &cn[stride-1]);
-        if (ret != 1) abort();
-    }
-
-    // CELLS
-    fgets(buf, 256, fh);
-    fgets(buf, 256, fh);
-    next = strtok(buf, "\n");
-
-    bad_ptr = NULL;
-    nc = strtod(next, &bad_ptr);
-    assert(*bad_ptr == '\0');
-    printf("Cells: " SF_D_ "\n", nc);
-
-    C.resize(nc);
-
-    for (E_Int i = 0; i < nc; i++) {
-        E_Int stride;
-        ret = fscanf(fh, SF_D_ " ", &stride);
-        if (ret != 1) abort();
-        auto &cn = C[i];
-        cn.resize(stride);
-        for (E_Int j = 0; j < stride-1; j++) {
-            ret = fscanf(fh, SF_D_ " ", &cn[j]);
-            if (ret != 1) abort();
-        }
-        ret = fscanf(fh, SF_D_ "\n", &cn[stride-1]);
-        if (ret != 1) abort();
-    }
-
-    fclose(fh);
-
-    make_skin();
-
-    make_bbox();
-
-    hash_skin();
-
-    make_point_faces();
-
-    init_adaptation_data();
-
-    srand(time(NULL));
-}
-
 void IMesh::make_bbox()
 {
-    xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
-    xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
+    xmin = ymin = zmin = EFLOATMAX;
+    xmax = ymax = zmax = EFLOATMIN;
 
     for (E_Int i = 0; i < np; i++) {
         if (X[i] < xmin) xmin = X[i];
@@ -340,8 +271,13 @@ void IMesh::make_bbox()
         if (Z[i] > zmax) zmax = Z[i];
     }
 
-    dmin = std::min(xmin, std::min(ymin, zmin));
-    dmax = std::max(xmax, std::max(ymax, zmax));
+    xmax = xmax + (xmax - xmin) * 0.01;
+    ymax = ymax + (ymax - ymin) * 0.01;
+    zmax = zmax + (zmax - zmin) * 0.01;
+
+    HX = (xmax - xmin) / NX;
+    HY = (ymax - ymin) / NY;
+    HZ = (zmax - zmin) / NZ;
 }
 
 void IMesh::make_skin()
@@ -362,106 +298,469 @@ void IMesh::make_skin()
     }
 }
 
-void IMesh::hash_skin()
+E_Int IMesh::RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
+    E_Float dy, E_Float dz, E_Int fid, TriangleIntersection &TI) const
 {
-    // Throw out the z-coordinate and hash the AABB of the skin faces to a
-    // 2D array.
-    //std::vector<E_Int, std::vector<E_Int>> box_to_faces;
+    const auto &pn = F[fid];
 
-    NBIN = 100;
-    DX = (xmax - xmin);
-    DY = (ymax - ymin);
-    DZ = (zmax - zmin);
+    // TODO(Imad): hexa mesh for now
+    assert(pn.size() == 4);
 
-    std::vector<E_Int> pbins(np, -1);
+    E_Int a = pn[0], b = pn[1], c = pn[2];
 
-    // Hash the points
-    // TODO: hash only the skin points
-    for (E_Int i = 0; i < np; i++) {
-        E_Float px = X[i];
-        E_Float py = Y[i];
-        E_Int I = floor(px / DX * NBIN);
-        E_Int J = floor(py / DY * NBIN);
-        E_Int bin = I + NBIN * J;
-        pbins[i] = bin;
+    E_Int hit;
+
+    TI.face = fid;
+
+    TI.tri = 0;
+
+    hit = MollerTrumbore(px, py, pz, dx, dy, dz, X[a], Y[a], Z[a], X[b], Y[b],
+        Z[b], X[c], Y[c], Z[c], TI);
+    
+    if (hit) {
+        if      (Sign(TI.u) == 0 && Sign(TI.v) == 0) TI.vid = 0;
+        else if (Sign(TI.v) == 0 && Sign(TI.w) == 0) TI.vid = 1;
+        else if (Sign(TI.w) == 0 && Sign(TI.u) == 0) TI.vid = 2;
+        else if (Sign(TI.v) == 0) TI.eid = 0;
+        else if (Sign(TI.w) == 0) TI.eid = 1;
+
+        return 1;
     }
 
-    // Hash the faces
-    // A face belongs to as many buckets as its points
-    bin_faces.clear();
+    E_Int d = pn[3];
 
-    for (E_Int face : skin) {
-        const auto &cn = F[face];
-        E_Float xmin, xmax, ymin, ymax;
-        xmin = ymin = std::numeric_limits<E_Float>::max();
-        xmax = ymax = std::numeric_limits<E_Float>::min();
-        for (E_Int p : cn) {
-            xmin = std::min(X[p], xmin);
-            xmax = std::max(X[p], xmax);
-            ymin = std::min(Y[p], ymin);
-            ymax = std::max(Y[p], ymax);
-        }
+    TI.tri = 1;
 
-        E_Int Imin = floor(xmin / DX * NBIN);
-        E_Int Imax = floor(xmax / DX * NBIN);
-        E_Int Jmin = floor(ymin / DY * NBIN);
-        E_Int Jmax = floor(ymax / DY * NBIN);
+    hit = MollerTrumbore(px, py, pz, dx, dy, dz, X[c], Y[c], Z[c], X[d], Y[d],
+        Z[d], X[a], Y[a], Z[a], TI);
 
-        for (E_Int J = Jmin; J < Jmax; J++) {
-            for (E_Int I = Imin; I < Imax; I++) {
-                E_Int bin = I + NBIN * J;
-                bin_faces[bin].insert(face);
-            }
-        }
+    if (hit) {
+        if      (Sign(TI.u) == 0 && Sign(TI.v) == 0) TI.vid = 2;
+        else if (Sign(TI.v) == 0 && Sign(TI.w) == 0) TI.vid = 3;
+        else if (Sign(TI.w) == 0 && Sign(TI.u) == 0) TI.vid = 0;
+        else if (Sign(TI.v) == 0) TI.eid = 2;
+        else if (Sign(TI.w) == 0) TI.eid = 3;
+
+        return 1;
     }
+
+    return 0;
 }
 
-bool IMesh::is_point_inside(E_Float px, E_Float py, E_Float pz) const
+E_Int IMesh::project_point(E_Float ox, E_Float oy, E_Float oz, E_Float dx,
+    E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II)
+{
+    // Calculate entry point
+
+    E_Float tentry = 0;
+    E_Float texit = 0;
+
+    E_Float px = ox;
+    E_Float py = oy;
+    E_Float pz = oz;
+
+    if (ox < xmin || ox > xmax ||
+        oy < ymin || oy > ymax ||
+        oz < zmin || oz > zmax) {
+
+        // Ray origin outside mesh bounding box, compute the intersection
+
+        E_Float tminx, tmaxx, tminy, tmaxy, tminz, tmaxz;
+
+        tminx = (xmin - ox) / dx;
+        tmaxx = (xmax - ox) / dx;
+        if (dx < 0) std::swap(tminx, tmaxx);
+
+        tminy = (ymin - oy) / dy;
+        tmaxy = (ymax - oy) / dy;
+        if (dy < 0) std::swap(tminy, tmaxy);
+
+        tminz = (zmin - oz) / dz;
+        tmaxz = (zmax - oz) / dz;
+        if (dz < 0) std::swap(tminz, tmaxz);
+
+        tentry = std::max(tminx, std::max(tminy, tminz));
+        texit = std::min(tmaxx, std::min(tmaxy, tmaxz));
+
+        // Check for intersection
+
+        if (tentry > texit || texit < 0) return 0;
+
+        px = ox + tentry * dx;
+        py = oy + tentry * dy;
+        pz = oz + tentry * dz;
+
+        // Make sure the entry lies within bbox
+
+        if (Sign(px - xmin) == 0) px = xmin;
+        if (Sign(py - ymin) == 0) py = ymin;
+        if (Sign(pz - zmin) == 0) pz = zmin;
+        if (Sign(px - xmax) == 0) px = xmax;
+        if (Sign(py - ymax) == 0) py = ymax;
+        if (Sign(pz - zmax) == 0) pz = zmax;
+    }
+
+    //point_write("entry", px, py, pz);
+
+    ox = px, oy = py, oz = pz;
+
+    E_Int voxel_x = floor((ox - xmin) / HX);
+    E_Int voxel_y = floor((oy - ymin) / HY);
+    E_Int voxel_z = floor((oz - zmin) / HZ);
+
+    assert(voxel_x >= 0 && voxel_x < NX);
+    assert(voxel_y >= 0 && voxel_y < NY);
+    assert(voxel_z >= 0 && voxel_z < NZ);
+
+    // Steps
+
+    E_Int step_x, step_y, step_z;
+    E_Float tDeltaX, tDeltaY, tDeltaZ;
+    E_Float tmaxX, tmaxY, tmaxZ;
+
+    if (dx > 0) {
+        step_x = 1;
+        tDeltaX = HX/dx;
+        tmaxX = ((voxel_x+1)*HX + xmin - ox) / dx;
+    } else if (dx < 0) {
+        step_x = -1;
+        tDeltaX = -HX/dx;
+        tmaxX = (voxel_x*HX + xmin - ox) / dx;
+    } else {
+        step_x = 0;
+        tDeltaX = EFLOATMAX;
+        tmaxX = EFLOATMAX;
+    }
+
+    if (dy > 0) {
+        step_y = 1;
+        tDeltaY = HY/dy;
+        tmaxY = ((voxel_y+1)*HY + ymin - oy) / dy;
+    } else if (dy < 0) {
+        step_y = -1;
+        tDeltaY = -HY/dy;
+        tmaxY = (voxel_y*HY + ymin - oy) / dy;
+    } else {
+        step_y = 0;
+        tDeltaY = EFLOATMAX;
+        tmaxY = EFLOATMAX;
+    }
+    
+    if (dz > 0) {
+        step_z = 1;
+        tDeltaZ = HZ/dz;
+        tmaxZ = ((voxel_z+1)*HZ + zmin - oz) / dz;
+    } else if (dz < 0) {
+        step_z = -1;
+        tDeltaZ = -HZ/dz;
+        tmaxZ = (voxel_z*HZ + zmin - oz) / dz;
+    } else {
+        step_z = 0;
+        tDeltaZ = EFLOATMAX;
+        tmaxZ = EFLOATMAX;
+    }
+
+    assert(tDeltaX >= 0);
+    assert(tDeltaY >= 0);
+    assert(tDeltaZ >= 0);
+    assert(tmaxX >= 0);
+    assert(tmaxY >= 0);
+    assert(tmaxZ >= 0);
+
+    //edge_write("bad_edge", ox, oy, oz, ox+100*dx, oy+100*dy, oz+100*dz);
+
+    E_Int current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
+
+    std::set<E_Int> faces_set;
+
+    std::set<E_Int> tested_faces;
+
+    TriangleIntersection hitTI;
+
+    E_Int hit = 0;
+
+    while (current_cell < NXYZ && current_cell >= 0) {
+
+        // Check for intersections in the current cell
+
+        const auto &pf = bin_faces[current_cell];
+
+        for (auto fid : pf) faces_set.insert(fid);
+
+        for (E_Int fid : pf) {
+            if (tested_faces.find(fid) != tested_faces.end()) continue;
+            tested_faces.insert(fid);
+            hit += RayFaceIntersect(ox, oy, oz, dx, dy, dz, fid, hitTI);
+            if (hit == 1) {
+                TI = hitTI;
+                return 1;
+            }
+        }
+
+        if (tmaxX <= tmaxY && tmaxX <= tmaxZ) {
+            tmaxX = tmaxX + tDeltaX;
+            voxel_x += step_x;
+        } else if (tmaxY <= tmaxX && tmaxY <= tmaxZ) {
+            tmaxY = tmaxY + tDeltaY;
+            voxel_y += step_y;
+        } else if (tmaxZ <= tmaxX && tmaxZ <= tmaxY) {
+            tmaxZ = tmaxZ + tDeltaZ;
+            voxel_z += step_z;
+        } else {
+            assert(0);
+        }
+
+        current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
+    }
+
+    /*
+    if (II == 8) {
+    puts("WRITING FACES FOR THIS POINT");
+    printf("Tested %zu faces\n", faces_set.size());
+    std::vector<E_Int> faces_out;
+    for (E_Int fid : faces_set) faces_out.push_back(fid);
+    write_faces("faces", faces_out);
+    }
+    */
+
+    return hit > 0;
+}
+
+bool IMesh::is_point_inside(E_Float ox, E_Float oy, E_Float oz) const
 {
     // point must be in bounding box
-    if (!(xmin <= px && px <= xmax &&
-          ymin <= py && py <= ymax &&
-          zmin <= pz && pz <= zmax))
+    if (xmin > ox || ox > xmax ||
+        ymin > oy || oy > ymax ||
+        zmin > oz || oz > zmax) {
         return false;
-    
-    // Count the hits
+    }
+
+    // Choose a random ray direction
+    E_Float dx = 0.0;
+    E_Float dy = 0.0;
+    E_Float dz = 1.0;
+
+    E_Int NORM = sqrt(dx*dx + dy*dy + dz*dz);
+    dx /= NORM, dy /= NORM, dz /= NORM;
+
+    E_Float Ogrid[3] = {ox - xmin, oy - ymin, oz - zmin};
+    E_Float Ocell[3] = {Ogrid[0] / HX,
+                        Ogrid[1] / HY,
+                        Ogrid[2] / HZ};
+
+    E_Int voxel_x = floor(Ocell[0]);
+    E_Int voxel_y = floor(Ocell[1]);
+    E_Int voxel_z = floor(Ocell[2]);
+
+    assert(voxel_x >= 0 && voxel_x < NX);
+    assert(voxel_y >= 0 && voxel_y < NY);
+    assert(voxel_z >= 0 && voxel_z < NZ);
+
+    E_Float tx, ty, tz;
+    tx = ty = tz = EFLOATMAX;
+
+    E_Float deltaTx, deltaTy, deltaTz;
+    deltaTx = deltaTy = deltaTz = EFLOATMAX;
+
+    if (dx > 0) {
+        tx = (floor(Ocell[0]) + 1) * HX - Ogrid[0];
+        tx /= dx;
+        deltaTx = HX/dx;
+    } else if (dx < 0) {
+        tx = floor(Ocell[0]) * HX - Ogrid[0];
+        tx /= dx;
+        deltaTy = -HX/dx;
+    }
+
+    if (dy > 0) {
+        ty = (floor(Ocell[1]) + 1) * HY - Ogrid[1];
+        ty /= dy;
+        deltaTy = HY/dy;
+    } else if (dy < 0) {
+        ty = floor(Ocell[1]) * HY - Ogrid[1];
+        ty /= dy;
+        deltaTy = -HY/dy;
+    }
+
+    if (dz > 0) {
+        tz = (floor(Ocell[2]) + 1) * HZ - Ogrid[2];
+        tz /= dz;
+        deltaTz = HZ/dz;
+    } else if (dz < 0) {
+        tz = floor(Ocell[2]) * HZ - Ogrid[2];
+        tz /= dz;
+        deltaTz = -HZ/dz;
+    }
+
+    //E_Float t = 0;
+
+    E_Int current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
+    assert(current_cell >= 0);
+    assert(current_cell < NXYZ);
+
     E_Int hits = 0;
 
     TriangleIntersection TI;
-    E_Int a, b, c, hit;
 
-    // Choose a random ray direction
-    E_Float dx = 0.2;
-    E_Float dy = -0.5;
-    E_Float dz = 0.4;
+    std::set<E_Int> tested_faces;
 
-    for (E_Int face : skin) {
-        const auto &cn = F[face];
+    std::set<UEdge> hit_edges;
+    std::set<E_Int> hit_vertices;
 
-        // First triangle
-        a = cn[0]; b = cn[1]; c = cn[2];
+    // Each face must be tested once
+    // Each hit edge must be counted only once
+    // Each hit vertex must be counted only once
 
-        hit = MollerTrumbore(px, py, pz, dx, dy, dz, X[a], Y[a], Z[a],
-            X[b], Y[b], Z[b], X[c], Y[c], Z[c], TI);
-        
-        if (hit) {
-            hits++;
-            continue;
+    while (current_cell < NXYZ && current_cell >= 0) {
+
+        // Check for intersections in the current cell
+
+        //if (it != bin_faces.end()) {
+
+            const auto &pf = bin_faces[current_cell];
+
+            for (E_Int fid : pf) {
+                if (tested_faces.find(fid) != tested_faces.end()) continue;
+                tested_faces.insert(fid);
+                E_Int hit = RayFaceIntersect(ox, oy, oz, dx, dy, dz, fid, TI);
+                
+                if (hit && TI.t > 0) {
+
+                    const auto &pn = F[fid];
+
+                    // Hit an edge, count it only once
+                    if (TI.eid != -1) {
+                        assert(TI.vid == -1);
+
+                        E_Int idx = TI.eid;
+                        E_Int p = pn[idx];
+                        E_Int q = pn[(idx+1)%pn.size()];
+
+                        UEdge E(p, q);
+
+                        if (hit_edges.find(E) == hit_edges.end()) {
+                            hit_edges.insert(E);
+                            hits++;
+                        }
+                    }
+                    
+                    // Hit a vertex, count it only once
+                    else if (TI.vid != -1) {
+                        E_Int idx = TI.vid;
+                        E_Int v = pn[idx];
+
+                        if (hit_vertices.find(v) == hit_vertices.end()) {
+                            hit_vertices.insert(v);
+                            hits++;
+                        }
+                    }
+
+                    // Hit the interior of a newly visited face, count it
+                    else {
+                        assert(TI.vid == -1);
+                        assert(TI.eid == -1);
+
+                        hits++;
+                    }
+                }
+            }
+        //}
+
+        if (tx < ty && tx && tz) {
+
+            //t = tx;
+            tx += deltaTx;
+            voxel_x += (dx > 0) ? 1 : -1;
+
+        } else if (ty < tz) {
+            assert(ty < tx);
+
+            //t = ty;
+            ty += deltaTy;
+            voxel_y += (dy > 0) ? 1 : -1;
+
+
+        } else {
+            assert(tz < tx && tz < ty);
+
+            //t = tz;
+            tz += deltaTz;
+            voxel_z += (dz > 0) ? 1 : -1;
+
         }
 
-        if (face_is_tri(face))
-            continue;
-        
-        // Second triangle
-
-        a = cn[0]; b = cn[2]; c = cn[3];
-
-        hits += MollerTrumbore(px, py, pz, dx, dy, dz, X[a], Y[a], Z[a],
-            X[b], Y[b], Z[b], X[c], Y[c], Z[c], TI);
+        current_cell = get_voxel(voxel_x, voxel_y, voxel_z);
     }
 
-    // point is inside if number of intersections is odd
+    // Point is inside if the number of intersections is odd
+
+    /*
+    if (hits > 2) {
+
+        E_Float qx = ox + 10000*dx;
+        E_Float qy = oy + 10000*dy;
+        E_Float qz = oz + 10000*dz;
+        edge_write("tested_edge", ox, oy, oz, qx, qy, qz);
+
+        std::vector<E_Int> faces;
+        for (auto fid : tested_faces) faces.push_back(fid);
+        write_faces("tested_faces", faces);
+        printf("oups hits: %d\n", hits);
+
+        assert(0);
+    }
+    */
+
     return hits % 2 == 1;
+}
+
+void IMesh::write_face(const char *fname, E_Int fid) const
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    const auto &pn = F[fid];
+
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%zu\n", pn.size());
+
+    for (E_Int p : pn) {
+        fprintf(fh, "%f %f %f\n", X[p], Y[p], Z[p]);
+    }
+
+    fclose(fh);
+}
+
+void IMesh::write_faces(const char *fname, const std::vector<E_Int> &faces) const
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    std::map<E_Int, E_Int> new_pids;
+    std::map<E_Int, E_Int> old_pids;
+
+    E_Int npts = 0;
+
+    for (E_Int face : faces) {
+        const auto &pn = F[face];
+
+        for (E_Int p : pn) {
+            if (new_pids.find(p) == new_pids.end()) {
+                new_pids[p] = npts;
+                old_pids[npts] = p;
+                npts++;
+            }
+        }
+    }
+    
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%d\n", npts);
+    for (E_Int i = 0; i < npts; i++) {
+        E_Int opid = old_pids[i];
+        fprintf(fh, "%f %f %f\n", X[opid], Y[opid], Z[opid]);
+    }
+
+    fclose(fh);
 }
 
 void IMesh::write_ngon(const char *fname)

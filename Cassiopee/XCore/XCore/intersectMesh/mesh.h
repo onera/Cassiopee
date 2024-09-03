@@ -26,6 +26,8 @@
 #include "point.h"
 #include "xcore.h"
 #include "common/common.h"
+#include "triangleIntersection.h"
+#include "AABB.h"
 
 #define OUT 0
 #define IN 1
@@ -63,21 +65,42 @@ struct IMesh {
 
     std::vector<E_Int> skin;
 
-    std::set<E_Int> patch;
-
     E_Float xmin, ymin, zmin;
     E_Float xmax, ymax, zmax;
-    E_Float dmin, dmax;
-    E_Float DX, DY, DZ;
-    E_Int NBIN;
+    E_Int NX, NY, NZ;
+    E_Int NXY, NXYZ;
+    E_Float HX, HY, HZ;
 
-    std::map<E_Int, std::set<E_Int>> bin_faces;
+    std::vector<std::vector<E_Int>> bin_faces;
+
+    std::map<E_Int, std::vector<E_Int>> fmap;
+
+    std::set<E_Int> patch;
+
+    std::vector<Point> entries;
+
+    inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
+    {
+        return I + J * NX + (NX * NY) * K;
+    }
+
+    AABB AABB_face(const std::vector<E_Int> &pn) const;
+
+    E_Int RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
+        E_Float dy, E_Float dz, E_Int fid, TriangleIntersection &TI) const;
+    
+    E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
+        E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
+    
+    void triangulate_face_set();
+    
+    void hash_patch();
 
     IMesh();
 
-    IMesh(const char *fname);
-
     IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
+
+    void make_patch(E_Int *faces, E_Int nfaces);
 
     void make_skin();
 
@@ -95,7 +118,9 @@ struct IMesh {
 
     void write_ngon(const char *fname);
 
-    void write_faces(const char *fname, const std::vector<E_Int> &faces);
+    void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
+
+    void write_face(const char *fname, E_Int fid) const;
 
     bool is_point_inside(E_Float px, E_Float py, E_Float pz) const;
 
@@ -116,10 +141,12 @@ struct IMesh {
 
     std::map<UEdge, E_Int> ecenter;
 
-    size_t refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch, IMesh &S);
+    std::set<E_Int> faces_to_tri;
 
-    std::vector<pointFace> locate(E_Int p, E_Float x, E_Float y, E_Float z,
-        const std::set<E_Int> &patch) const;
+    size_t refine(const IMesh &S);
+
+    //std::vector<pointFace> locate(E_Int p, E_Float x, E_Float y, E_Float z,
+    //    const std::set<E_Int> &patch) const;
     
     inline bool face_is_active(E_Int face) const
     { return factive.find(face) != factive.end(); }

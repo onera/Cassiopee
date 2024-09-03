@@ -43,12 +43,3 @@ struct Triangle {
         E_Float by, E_Float bz, E_Float cx, E_Float cy, E_Float cz, E_Float &u,
         E_Float &v, E_Float &w, E_Float &t, E_Float &x, E_Float &y, E_Float &z);
 };
-
-struct TriIMesh {
-    std::vector<point> P;
-    std::vector<Triangle> T;
-
-    TriIMesh(const Smesh &M);
-
-    pointFace locate(point p);
-};

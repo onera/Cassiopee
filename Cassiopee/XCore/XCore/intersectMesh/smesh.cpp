@@ -823,7 +823,7 @@ void Smesh::write_ngon(const char *fname)
 void Smesh::make_fnormals()
 {
     fnormals.clear();
-    fnormals.resize(3*nf);
+    fnormals.resize(3*nf, 0);
     
     for (E_Int fid = 0; fid < nf; fid++) {
         const auto &pn = F[fid];
@@ -855,7 +855,7 @@ void Smesh::make_pnormals()
     make_fnormals();
 
     pnormals.clear();
-    pnormals.resize(3*np);
+    pnormals.resize(3*np, 0);
     
     // Point normals: aggregate of shared faces normals
 
@@ -872,5 +872,71 @@ void Smesh::make_pnormals()
         E_Float NORM = K_MATH::norm(N, 3);
 
         for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
+    }
+}
+
+AABB Smesh::AABB_face(const std::vector<E_Int> &pn) const
+{
+    AABB ret;
+    for (E_Int p : pn) {
+        if (X[p] > ret.xmax) ret.xmax = X[p];
+        if (X[p] < ret.xmin) ret.xmin = X[p];
+        if (Y[p] > ret.ymax) ret.ymax = Y[p];
+        if (Y[p] < ret.ymin) ret.ymin = Y[p];
+        if (Z[p] > ret.zmax) ret.zmax = Z[p];
+        if (Z[p] < ret.zmin) ret.zmin = Z[p];
+    }
+    return ret;
+}
+
+void Smesh::make_bbox()
+{
+    xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
+    xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
+
+    for (E_Int i = 0; i < np; i++) {
+        if (X[i] < xmin) xmin = X[i];
+        if (Y[i] < ymin) ymin = Y[i];
+        if (Z[i] < zmin) zmin = Z[i];
+        if (X[i] > xmax) xmax = X[i];
+        if (Y[i] > ymax) ymax = Y[i];
+        if (Z[i] > zmax) zmax = Z[i];
+    }
+}
+
+void Smesh::hash_faces()
+{
+    NX = 100;
+    NY = 100;
+    NZ = 10;
+
+    HX = (xmax - xmin) / NX;
+    HY = (ymax - ymin) / NY;
+    HZ = (zmax - zmin) / NZ;
+
+    NXY = NX * NY;
+
+    fmap.clear();
+
+    for (E_Int fid = 0; fid < nf; fid++) {
+        const auto &pn = F[fid];
+
+        AABB bbox = AABB_face(pn);
+
+        E_Int imin = floor((bbox.xmin - xmin) / HX);
+        E_Int imax = floor((bbox.xmax - xmin) / HX);
+        E_Int jmin = floor((bbox.ymin - ymin) / HY);
+        E_Int jmax = floor((bbox.ymax - ymin) / HY);
+        E_Int kmin = floor((bbox.zmin - zmin) / HZ);
+        E_Int kmax = floor((bbox.zmax - zmin) / HZ);
+
+        for (E_Int k = kmin; k < kmax+1; k++) {
+            for (E_Int j = jmin; j < jmax+1; j++) {
+                for (E_Int i = imin; i < imax+1; i++) {
+                    E_Int voxel = i + NX*j + NXY*k;
+                    fmap[voxel].push_back(fid);
+                }
+            }
+        }
     }
 }

@@ -16,14 +16,36 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+#include "mesh.h"
+#include "karray.h"
 
-#include <vector>
+PyObject *K_XCORE::IntersectMesh_Init(PyObject *self, PyObject *args)
+{
+    PyObject *ARRAY;
 
-#include "queue.h"
-#include "status.h"
-#include "dcel.h"
-#include "segment.h"
+    if (!PYPARSETUPLE_(args, O_, &ARRAY)) {
+        RAISE("Bad input.");
+        return NULL;
+    }
 
-void sweep(Queue &Q, Status &T, std::vector<Segment *> &S,
-    std::vector<Vertex *> &I, std::vector<Hedge *> &H);
+    Karray karray;
+
+    E_Int ret;
+
+    ret = Karray_parse_ngon(ARRAY, karray);
+
+    if (ret != 0) return NULL;
+
+    // Init mesh
+
+    IMesh *M = new IMesh(*karray.cn, karray.X, karray.Y, karray.Z, karray.npts);
+
+    // Clean-up
+
+    Karray_free_ngon(karray);
+
+    // TODO(Imad): Python2
+    PyObject *hook = PyCapsule_New((void *)M, "IntersectMesh", NULL);
+
+    return hook;
+}

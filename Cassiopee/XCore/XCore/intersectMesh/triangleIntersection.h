@@ -23,8 +23,10 @@
 
 struct TriangleIntersection {
     E_Float x, y, z;
-    E_Float u, v;
-    E_Float t;
+    E_Float u, v, w;
+    E_Float t = -1;
     E_Int face = -1;
     E_Int tri = -1;
+    E_Int eid = -1;
+    E_Int vid = -1;
 };

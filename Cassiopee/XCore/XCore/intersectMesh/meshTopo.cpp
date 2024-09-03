@@ -45,6 +45,8 @@ E_Int IMesh::orient_skin(E_Int normal_direction)
 
     E_Int nefaces = (E_Int)efaces.size();
 
+    assert(efaces.size() == skin.size());
+
     for (E_Int i = 0; i < nefaces; i++) xadj[i+1] += xadj[i];
 
     // build skin neighbourhood
@@ -232,7 +234,7 @@ E_Int IMesh::orient_boundary(E_Int ncells, E_Int *efadj, E_Int *efxadj,
         // set reference orientation of refPG and exit
         forient[refIdx] = (cvol > 0.0) ? 1 : -1;
 
-        if (normal_direction == OUT) forient[refIdx] = -forient[refIdx];
+        if (normal_direction == IN) forient[refIdx] = -forient[refIdx];
 
         break;
     }

@@ -19,29 +19,49 @@
 #include "vec3.h"
 
 Vec3::Vec3()
-: x(), y(), z()
 {}
 
 Vec3::Vec3(E_Float X, E_Float Y, E_Float Z)
-: x(X), y(Y), z(Z)
-{}
+{
+    ptr[0] = X;
+    ptr[1] = Y;
+    ptr[2] = Z;
+}
 
 Vec3 Vec3::operator-(const Vec3 &p) const
 {
-    return { x - p.x, y - p.y, z - p.z };
+    Vec3 ret;
+    for (E_Int i = 0; i < 3; i++) ret[i] = ptr[i] - p[i];
+    return ret;
 }
 
 Vec3 Vec3::operator+(const Vec3 &p) const
 {
-    return { x + p.x, y + p.y, z + p.z };
+    Vec3 ret;
+    for (E_Int i = 0; i < 3; i++) ret[i] = ptr[i] + p[i];
+    return ret;
 }
 
 Vec3 Vec3::operator*(E_Float a) const
 {
-    return { a * x, a * y, a * z };
+    Vec3 ret;
+    for (E_Int i = 0; i < 3; i++) ret[i] = a * ptr[i];
+    return ret;
 }
 
 Vec3 operator*(E_Float a, const Vec3 & v)
 {
-    return { a * v.x, a * v.y, a * v.z };
+    Vec3 ret;
+    for (E_Int i = 0; i < 3; i++) ret[i] = a * v[i];
+    return ret;
+}
+
+E_Float &Vec3::operator[](E_Int idx)
+{
+    return ptr[idx];
+}
+
+E_Float Vec3::operator[](E_Int idx) const
+{
+    return ptr[idx];
 }

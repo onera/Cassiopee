@@ -19,6 +19,19 @@
 #pragma once
 
 #include "triangleIntersection.h"
+#include "point.h"
+
+struct Ray {
+    Point org;
+    Vec3 dir;
+    E_Int kx, ky, kz;
+    E_Float Sx, Sy, Sz;
+
+    Ray(Point O, Vec3 D);
+
+    E_Int intersect_triangle(const Point &a, const Point &b, const Point &c,
+        TriangleIntersection &TI);
+};
 
 E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
     E_Float dz, E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by, E_Float bz,

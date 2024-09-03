@@ -49,7 +49,7 @@ void face_write(const char *fname, Face *f)
     fclose(fh);
 }
 
-void hedge_write(const char *fname, Hedge *h)
+void hedge_write(const char *fname, const Hedge *h)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
@@ -106,13 +106,13 @@ void point_write(const char *fname, E_Float *Xs, E_Float *Ys, E_Float *Zs,
     fclose(fh);
 }
 
-void point_write(const char *fname, const std::vector<point> &P)
+void point_write(const char *fname, const std::vector<Point> &P)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", P.size());
-    for (auto p : P) fprintf(fh, "%f %f %f\n", p.x, p.y, p.z);
+    for (auto p : P) fprintf(fh, "%f %f %f\n", p[0], p[1], p[2]);
     fclose(fh);
 }
 
@@ -132,6 +132,40 @@ void edge_write(const char *fname, E_Float *X, E_Float *Y, E_Float *Z,
     fprintf(fh, "EDGES\n");
     fprintf(fh, "%zu\n", point_hits.size());
     for (size_t i = 0; i < 2*point_hits.size(); i++) {
+        fprintf(fh, "%zu ", i);
+    }
+    fprintf(fh, "\n");
+    fclose(fh);
+}
+
+void edge_write(const char *fname, E_Float px, E_Float py, E_Float pz,
+    E_Float qx, E_Float qy, E_Float qz)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "2\n");
+    fprintf(fh, "%f %f %f\n", px, py, pz);
+    fprintf(fh, "%f %f %f\n", qx, qy, qz);
+    fprintf(fh, "EDGES\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "0 1\n");
+    fclose(fh);
+}
+
+void edges_write(const char *fname, const std::vector<IO_Edge> &edges)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%zu\n", edges.size() * 2);
+    for (auto e : edges) {
+        fprintf(fh, "%f %f %f\n", e.px, e.py, e.pz);
+        fprintf(fh, "%f %f %f\n", e.qx, e.qy, e.qz);
+    }
+    fprintf(fh, "EDGES\n");
+    fprintf(fh, "%zu\n", edges.size());
+    for (size_t i = 0; i < 2*edges.size(); i++) {
         fprintf(fh, "%zu ", i);
     }
     fprintf(fh, "\n");
