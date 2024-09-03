@@ -380,7 +380,7 @@ void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
         H.push_back(t);
     }
     
-    // Sort hedges
+    // Pair-up hedges
 
     const auto &pnormals = M.pnormals;
 
@@ -392,98 +392,7 @@ void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
         const E_Float *N = &pnormals[3*pid];
         assert(Sign(K_MATH::norm(N, 3)-1) == 0);
 
-        // Choose a vector that is not parallel to N
-        E_Float ref_vec[3] = {0, N[2], -N[1]};
-        if (Sign(K_MATH::norm(ref_vec, 3)) == 0) {
-            ref_vec[0] = -N[2];
-            ref_vec[1] = 0;
-            ref_vec[2] =  N[0];
-
-            assert(Sign(K_MATH::norm(ref_vec, 3)) != 0);
-        }
-
-        E_Float dp = K_MATH::dot(ref_vec, N, 3);
-
-        for (E_Int i = 0; i < 3; i++) ref_vec[i] = ref_vec[i] - dp * N[i];
-
-        E_Float NORM = K_MATH::norm(ref_vec, 3);
-
-        for (E_Int i = 0; i < 3; i++) ref_vec[i] /= NORM;
-
-        assert(Sign(K_MATH::norm(ref_vec, 3) - 1) == 0);
-
-        std::vector<E_Float> angles;
-
-        for (size_t i = 0; i < hedges.size(); i++) {
-            Hedge *h = hedges[i];
-            Hedge *t = h->twin;
-
-            Vertex *P = h->orig;
-            Vertex *Q = t->orig;
-
-            assert(P != Q);
-
-            // Project the hedge onto the plane (pid, N)
-
-            E_Float PQ[3] = {Q->x-P->x, Q->y-P->y, Q->z-P->z};
-
-            E_Float dp = K_MATH::dot(PQ, N, 3);
-
-            E_Float PQ_proj[3];
-            for (E_Int j = 0; j < 3; j++) {
-                PQ_proj[j] = PQ[j] - dp * N[j]; 
-            }
-
-            E_Float costheta = K_MATH::dot(ref_vec, PQ_proj, 3) / K_MATH::norm(PQ_proj, 3);
-
-            costheta = std::min(costheta, 1.0);
-            costheta = std::max(costheta, -1.0);
-
-            assert(costheta >= -1 && costheta <= 1);
-
-            E_Float angle = acos(costheta);
-
-            // Determine the direction of the angle
-
-            E_Float C[3] = {};
-            K_MATH::cross(ref_vec, PQ_proj, C);
-
-            if (K_MATH::dot(N, C, 3) > 0)
-                angle = 2*K_MATH::PI - angle;
-            
-            angles.push_back(angle * 180 / K_MATH::PI);
-        }
-
-        std::vector<E_Int> indices(hedges.size());
-        for (size_t i = 0; i < hedges.size(); i++)
-            indices[i] = i;
-
-        std::sort(indices.begin(), indices.end(), [&](E_Int i, E_Int j)
-        {
-            if (angles[i] < angles[j]) return true;
-
-            else if (angles[i] > angles[j]) return false;
-
-            else {
-
-                Hedge *h = hedges[i];
-                Hedge *w = hedges[j];
-
-                assert(h->color != w->color);
-
-                Vertex *P = h->orig;
-                Vertex *Q = h->twin->orig;
-
-                if (cmp_vtx(P, Q) < 0) return true;
-                
-                return false;
-            }
-        });
-
-        std::vector<Hedge *> tmp(hedges);
-
-        for (size_t i = 0; i < hedges.size(); i++)
-            hedges[i] = tmp[indices[i]];
+        sort_leaving_hedges(hedges, N);
 
         for (size_t i = 0; i < hedges.size(); i++) {
             Hedge *h = hedges[i];
@@ -739,7 +648,7 @@ void Dcel::set_cycles_inout(const Smesh &M, const Smesh &S)
         E_Float NORM = K_MATH::norm(N, 3);
         assert(Sign(NORM -1) == 0);
 
-        E_Float cmp = Sign(K_MATH::dot(N, cp, 3)); 
+        E_Float cmp = K_MATH::dot(N, cp, 3);
 
         if (cmp < 0) {
             c->inout = Cycle::INNER;
@@ -989,8 +898,7 @@ E_Int Dcel::get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
     return next_face;
 }
 
-void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
-    std::vector<Point> &xpoints)
+void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 {
     Vertex *p = sh->orig;
     Vertex *q = sh->twin->orig;
@@ -1168,8 +1076,6 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
 
                 }
 
-                xpoints.push_back(Point(x->x, x->y, x->z));
-
                 if (found) break;
                 
                 assert(x);
@@ -1226,31 +1132,117 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
 
     puts("Tracing edges...");
 
-    std::vector<Point> xpoints;
-
     for (size_t hid = 0; hid < s_hedges.size(); hid++) {
         Hedge *sh = s_hedges[hid];
 
         //printf("Tracing hedge %d / %zu\n", hid+1, s_hedges.size());
 
-        trace_hedge(sh, M, S, hid, xpoints);
+        trace_hedge(sh, M, S, hid);
+    }
+}
+
+void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3]) const
+{
+    // Choose a vector that is not parallel to N
+
+    E_Float ref_vec[3] = {0, N[2], -N[1]};
+    
+    if (Sign(K_MATH::norm(ref_vec, 3)) == 0) {
+        ref_vec[0] = -N[2];
+        ref_vec[1] = 0;
+        ref_vec[2] =  N[0];
+        assert(Sign(K_MATH::norm(ref_vec, 3)) != 0);
     }
 
-    point_write("xpoints", xpoints);
+    E_Float dp = K_MATH::dot(ref_vec, N, 3);
+
+    for (E_Int i = 0; i < 3; i++) ref_vec[i] = ref_vec[i] - dp * N[i];
+
+    E_Float NORM = K_MATH::norm(ref_vec, 3);
+
+    for (E_Int i = 0; i < 3; i++) ref_vec[i] /= NORM;
+
+    assert(Sign(K_MATH::norm(ref_vec, 3) - 1) == 0);
+
+    std::vector<E_Float> angles;
+
+    for (size_t i = 0; i < leaving.size(); i++) {
+        Hedge *h = leaving[i];
+        Hedge *t = h->twin;
+
+        Vertex *P = h->orig;
+        Vertex *Q = t->orig;
+        assert(P != Q);
+
+        // Project the hedge onto the plane (pid, N)
+        E_Float PQ[3] = {Q->x-P->x, Q->y-P->y, Q->z-P->z};
+
+        E_Float dp = K_MATH::dot(PQ, N, 3);
+
+        E_Float PQ_proj[3];
+
+        for (E_Int j = 0; j < 3; j++) {
+            PQ_proj[j] = PQ[j] - dp * N[j];
+        }
+
+        E_Float costheta = K_MATH::dot(ref_vec, PQ_proj, 3) / K_MATH::norm(PQ_proj, 3);
+        
+        costheta = std::min(costheta, 1.0);
+        
+        costheta = std::max(costheta, -1.0);
+        
+        assert(costheta >= -1 && costheta <= 1);
+        
+        E_Float angle = acos(costheta);
+        
+        // Determine the direction of the angle
+        E_Float C[3] = {};
+        
+        K_MATH::cross(ref_vec, PQ_proj, C);
+        
+        if (K_MATH::dot(N, C, 3) > 0)
+            angle = 2*K_MATH::PI - angle;
+        
+        //angle = angle * 180 / K_MATH::PI;
+        
+        angles.push_back(angle);
+    }
+
+    std::vector<E_Int> indices(leaving.size());
+    for (size_t i = 0; i < leaving.size(); i++)
+        indices[i] = i;
+
+    std::sort(indices.begin(), indices.end(), [&](E_Int i, E_Int j)
+    {
+        if (angles[i] < angles[j]) return true;
+        
+        else if (angles[i] > angles[j]) return false;
+        
+        else {
+            Hedge *h = leaving[i];
+            Hedge *w = leaving[j];
+            assert(h->color != w->color);
+            Vertex *P = h->orig;
+            Vertex *Q = h->twin->orig;
+            if (cmp_vtx(P, Q) < 0) return true;
+            
+            return false;
+        }
+    });
+    
+    std::vector<Hedge *> tmp(leaving);
+    
+    for (size_t i = 0; i < leaving.size(); i++)
+        leaving[i] = tmp[indices[i]];
 }
 
 void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
 {
-    E_Float ez[3] = {0, 0, 1};
-    E_Float I[3][3] = {};
-    I[0][0] = I[1][1] = I[2][2] = 1;
-
     assert(Up.empty());
     assert(Lp.empty());
 
     Up.clear();
     Lp.clear();
-    //Cp.clear();
 
     for (Hedge *h : H) {
         
@@ -1378,99 +1370,7 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
         E_Float NORM = K_MATH::norm(N, 3);
         assert(Sign(NORM -1) == 0);
 
-        // Choose a vector that is not parallel to N
-
-        E_Float ref_vec[3] = {0, N[2], -N[1]};
-        if (Sign(K_MATH::norm(ref_vec, 3)) == 0) {
-            ref_vec[0] = -N[2];
-            ref_vec[1] = 0;
-            ref_vec[2] =  N[0];
-
-            assert(Sign(K_MATH::norm(ref_vec, 3)) != 0);
-        }
-
-        E_Float dp = K_MATH::dot(ref_vec, N, 3);
-
-        for (E_Int i = 0; i < 3; i++) ref_vec[i] = ref_vec[i] - dp * N[i];
-
-        NORM = K_MATH::norm(ref_vec, 3);
-
-        for (E_Int i = 0; i < 3; i++) ref_vec[i] /= NORM;
-
-        assert(Sign(K_MATH::norm(ref_vec, 3) - 1) == 0);
-
-        std::vector<E_Float> angles;
-
-        for (size_t i = 0; i < leaving.size(); i++) {
-            Hedge *h = leaving[i];
-            Hedge *t = h->twin;
-
-            Vertex *P = h->orig;
-            Vertex *Q = t->orig;
-
-            assert(P != Q);
-
-            // Project the hedge onto the plane (pid, N)
-
-            E_Float PQ[3] = {Q->x-P->x, Q->y-P->y, Q->z-P->z};
-
-            E_Float dp = K_MATH::dot(PQ, N, 3);
-
-            E_Float PQ_proj[3];
-            for (E_Int j = 0; j < 3; j++) {
-                PQ_proj[j] = PQ[j] - dp * N[j];
-            }
-
-            E_Float costheta = K_MATH::dot(ref_vec, PQ_proj, 3) / K_MATH::norm(PQ_proj, 3);
-
-            costheta = std::min(costheta, 1.0);
-            costheta = std::max(costheta, -1.0);
-
-            assert(costheta >= -1 && costheta <= 1);
-
-            E_Float angle = acos(costheta);
-
-            // Determine the direction of the angle
-
-            E_Float C[3] = {};
-            K_MATH::cross(ref_vec, PQ_proj, C);
-
-            if (K_MATH::dot(N, C, 3) > 0)
-                angle = 2*K_MATH::PI - angle;
-            
-            angles.push_back(angle * 180 / K_MATH::PI);
-        }
-
-        std::vector<E_Int> indices(leaving.size());
-        for (size_t i = 0; i < leaving.size(); i++)
-            indices[i] = i;
-
-        std::sort(indices.begin(), indices.end(), [&](E_Int i, E_Int j)
-        {
-            if (angles[i] < angles[j]) return true;
-
-            else if (angles[i] > angles[j]) return false;
-
-            else {
-
-                Hedge *h = leaving[i];
-                Hedge *w = leaving[j];
-
-                assert(h->color != w->color);
-
-                Vertex *P = h->orig;
-                Vertex *Q = h->twin->orig;
-
-                if (cmp_vtx(P, Q) < 0) return true;
-                
-                return false;
-            }
-        });
-
-        std::vector<Hedge *> tmp(leaving);
-
-        for (size_t i = 0; i < leaving.size(); i++)
-            leaving[i] = tmp[indices[i]];
+        sort_leaving_hedges(leaving, N);
 
         for (size_t i = 0; i < leaving.size(); i++) {
             Hedge *h = leaving[i];
@@ -1500,6 +1400,6 @@ void Dcel::reconstruct(const Smesh &M, const Smesh &S)
 
     check_faces(H, F);
 
-    write_degen_faces("degen");
-    write_inner_faces("inner");
+    //write_degen_faces("degen");
+    //write_inner_faces("inner");
 }
