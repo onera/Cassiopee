@@ -70,6 +70,8 @@ else
 endif
 set EXT=$INTTYPE$DBGMODE
 
+set CLEAN_WHEELS_CASSIOPEE=1
+
 # ----------------------------- Prods ------------------------------------------
 
 if ($MAC == "ld_pgi") then
