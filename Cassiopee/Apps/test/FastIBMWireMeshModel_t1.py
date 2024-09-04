@@ -42,9 +42,9 @@ dfars = 5
 snears = 1
 vmin = 11
 
-t,tc = X_IBM.prepareIBMData(tb               , None       , None     , tbox=tboffset,      
+t,tc = X_IBM.prepareIBMData(tb               , None         , None     , tbox=tboffset,      
                             snears=snears    , dfars=dfars  , vmin=vmin, 
-                            check=False      , frontType=1)
+                            check=False      , frontType=1  , cartesian=False)
 test.testT(t , 1)
 test.testT(tc, 2)
 
