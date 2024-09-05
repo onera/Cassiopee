@@ -70,7 +70,7 @@ t_ibm[2][1][0]='CARTESIAN_NEARBODY'
 
 t_out =None
 tc_out=None
-t_ibm, tc_ibm = X_IBM.prepareIBMData(tb, t_out, tc_out, t_ibm, frontType=frontType)
+t_ibm, tc_ibm = X_IBM.prepareIBMData(tb, t_out, tc_out, t_ibm, frontType=frontType, cartesian=False)
 
 C._rmBCOfType(t_ibm,'BCFarfield')
 C._fillEmptyBCWith(t_ibm,'dummy','BCExtrapolate', dim=dimPb)
