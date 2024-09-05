@@ -22,6 +22,7 @@
 #include <array>
 #include <map>
 #include <set>
+#include <list>
 
 #include "point.h"
 #include "xcore.h"
@@ -111,6 +112,8 @@ struct IMesh {
     void make_point_faces();
 
     void make_edges();
+
+    void extract_edge_points(E_Int a, E_Int b, std::list<E_Int> &pts);
 
     inline bool face_is_quad(E_Int face) const { return F[face].size() == 4; }
     

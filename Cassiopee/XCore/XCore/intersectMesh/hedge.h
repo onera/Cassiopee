@@ -36,6 +36,8 @@ struct Hedge {
     E_Int color;
     Cycle *cycle;
 
+    E_Int eid;
+
     // Projection of orig
     E_Float proj_ox = -10000;
     E_Float proj_oy = -10000;

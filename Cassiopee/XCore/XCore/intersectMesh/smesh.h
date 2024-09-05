@@ -120,7 +120,7 @@ struct Smesh {
 
     //std::vector<pointFace> locate(E_Float x, E_Float y, E_Float z) const;
 
-    void write_faces(const char *fname, const std::vector<E_Int> &faces);
+    void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
 
     void write_ngon(const char *fname);
 

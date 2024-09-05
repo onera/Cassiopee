@@ -314,6 +314,11 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
     M.make_skin();
+    S.make_skin();
+
+    M.orient_skin(OUT);
+    S.orient_skin(IN);
+
     assert(M.patch.empty());
     for (E_Int fid : M.skin) M.patch.insert(fid);
 
@@ -334,15 +339,12 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]-1);
 
-    M.orient_skin(OUT);
-    S.orient_skin(IN);
-
     // Extract surface meshes
     Smesh Mf(M);
     Smesh Sf(S);
     
-    //Mf.write_ngon("Mf");
-    //Sf.write_ngon("Sf");
+    Mf.write_ngon("Mf");
+    Sf.write_ngon("Sf");
 
     puts("Making point edges...");
     Mf.make_point_edges();

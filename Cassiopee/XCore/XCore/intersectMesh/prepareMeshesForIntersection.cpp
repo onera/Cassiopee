@@ -56,7 +56,7 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
 
     puts("Preparing meshes for intersection...");
 
-    // Init and orient master/slave meshes
+    // Init master/slave meshes
     IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
@@ -83,11 +83,6 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     //for (E_Int i = 0; i < S.nf; i++) {
         const auto &pn = S.F[fid];
         size_t stride = pn.size();
-        if (stride > 4) {
-            std::vector<Point> points;
-            for (auto p : pn) points.push_back(Point(S.X[p], S.Y[p], S.Z[p]));
-            point_write("face", points);
-        }
         assert(stride == 3 || stride == 4);
 
         E_Int keep = 1;
