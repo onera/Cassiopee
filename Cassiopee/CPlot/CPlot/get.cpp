@@ -19,8 +19,16 @@
 
 #include "cplot.h"
 #include "Data.h"
-int findFace(double xp, double yp, double zp, E_Int elt, 
-             UnstructZone* zone, double& dist);
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       StructZone* zone, E_Int& ind, double& dist);
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       UnstructZone* zone, E_Int& ind, double& dist);
+E_Int findElement(double xp, double yp, double zp,
+                  UnstructZone* zone, double& dist, E_Int& ncon);
+E_Int findElement(double xp, double yp, double zp,
+                  StructZone* zone, double& dist);
+E_Int findFace(double xp, double yp, double zp, E_Int elt, 
+               UnstructZone* zone, double& dist);
 
 //======================================================
 // Get mode from PyObject, return an int (0: mesh, 1: solid, 
@@ -390,15 +398,31 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
   if (nz == 0) return l;
   else
   {
-    // Re-check (if zone has been replaced)
     double posX, posY, posZ;
     E_Int zone, ind, indE, ncon; double dist;
     posX = d->ptrState->activePointX;
     posY = d->ptrState->activePointY;
     posZ = d->ptrState->activePointZ;
-    d->findBlockContaining(posX, posY, posZ, 
-                           zone, ind, indE, dist, ncon);
+
+    // recompute zone and index
+    //d->findBlockContaining(posX, posY, posZ, 
+    //                       zone, ind, indE, dist, ncon);
+
+    // only recompute index
+    double dn, de;
+    zone = d->ptrState->selectedZone-1;
     Zone* z = d->_zones[zone];
+    if (zone < d->_numberOfStructZones)
+    {
+      findNearestPoint(posX, posY, posZ, (StructZone*)z, ind, dn);
+      indE = findElement(posX, posY, posZ, (StructZone*)z, de);
+    }
+    else
+    {
+      findNearestPoint(posX, posY, posZ, (UnstructZone*)z, ind, dn);
+      indE = findElement(posX, posY, posZ, (UnstructZone*)z, de, ncon);
+    }
+    
     if (zone < d->_numberOfStructZones)
     {
       StructZone* zz = (StructZone*)z;

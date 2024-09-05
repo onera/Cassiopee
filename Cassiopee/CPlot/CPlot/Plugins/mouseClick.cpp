@@ -267,55 +267,71 @@ E_Int Data::findBlockContaining(double x, double y, double z,
   double xmi, ymi, zmi, xma, yma, zma;
   double d, dn, de;
   E_Int nzmin = -1;
-  double dmin = 1.e6; // distMin node/element
-  double dminNode = 1.e6; // distMin node
-  double dminElt = 1.e6; // distMin element
+  double dmin = K_CONST::E_MAX_FLOAT; // distMin node/element
+  double dminNode = K_CONST::E_MAX_FLOAT; // distMin node
+  double dminElt = K_CONST::E_MAX_FLOAT; // distMin element
   ind = 0; indE = 0;
   double eps = 0.05;
   d = MAX(xmax-xmin, ymax-ymin);
   d = MAX(d, zmax-zmin);
   eps = d*eps;
-  //printf("eps: %f\n", eps);
   ncon = 0;
 
   for (nz = 0; nz < _numberOfZones; nz++)
   {
-    Zone* zone = _zones[nz];
-    if (zone->active == 1 || 
-        (zone->active == 0 && ptrState->ghostifyDeactivatedZones == 1))
+    Zone* zonep = _zones[nz];
+    if (zonep->active == 1 || 
+        (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1))
     {
-      xma = zone->xmax + eps;
-      xmi = zone->xmin - eps;
-      yma = zone->ymax + eps;
-      ymi = zone->ymin - eps;
-      zma = zone->zmax + eps;
-      zmi = zone->zmin - eps;
-      //printf("try: zone %f %f %f %f %f %f\n", xmi, xma, ymi, yma, zmi, zma);
+      xma = zonep->xmax + eps;
+      xmi = zonep->xmin - eps;
+      yma = zonep->ymax + eps;
+      ymi = zonep->ymin - eps;
+      zma = zonep->zmax + eps;
+      zmi = zonep->zmin - eps;
       if (x >= xmi && x <= xma && 
           y >= ymi && y <= yma && 
           z >= zmi && z <= zma)
       {        
         if (nz < _numberOfStructZones)
         {
-          findNearestPoint(x, y, z, (StructZone*)zone, indl, dn);
-          inde = findElement(x, y, z, (StructZone*)zone, de);
+          findNearestPoint(x, y, z, (StructZone*)zonep, indl, dn);
+          inde = findElement(x, y, z, (StructZone*)zonep, de);
         }
         else 
         {
-          findNearestPoint(x, y, z, (UnstructZone*)zone, indl, dn);
-          inde = findElement(x, y, z, (UnstructZone*)zone, de, ncon);
+          findNearestPoint(x, y, z, (UnstructZone*)zonep, indl, dn);
+          inde = findElement(x, y, z, (UnstructZone*)zonep, de, ncon);
         }
         d = MIN(dn, de);
-        if (zone->active == 0) d = d + eps*0.01; // malus
+        if (zonep->active == 0) d = d + eps*0.01; // malus
 
-        if (d < dmin-1.e-10)
+        if (d < dmin-1.e-10) // node ou centre plus proche
         {
           dmin = d; nzmin = nz; ind = indl; indE = inde;
           dminElt = de; dminNode = dn;
         }
-        else if (d <= dmin) // meme point mini: compare dn ou de
+        else if (d <= dmin+1.e-10) // meme point mini: compare dn ou de
         {
-          if (de < dminElt && _zones[nzmin]->dim != 1)
+          if (zonep->dim == 1 && _zones[nzmin]->dim == 1)
+          {
+            if (de < dminElt)
+            {
+              dmin = d; nzmin = nz; ind = indl; indE = inde; 
+              dminElt = de; dminNode = dn;
+            }
+            else if (dn < dminNode)
+            {
+              dmin = d; nzmin = nz; ind = indl; indE = inde; 
+              dminElt = de; dminNode = dn;
+            }
+          }
+          else if (zonep->dim == 1 && _zones[nzmin]->dim != 1)
+          {
+            dmin = d; nzmin = nz; ind = indl; indE = inde; 
+            dminElt = de; dminNode = dn;
+          }
+          else if (de < dminElt && _zones[nzmin]->dim != 1)
           {
             dmin = d; nzmin = nz; ind = indl; indE = inde; 
             dminElt = de; dminNode = dn;
