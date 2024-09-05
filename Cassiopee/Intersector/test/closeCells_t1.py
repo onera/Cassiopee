@@ -1,4 +1,4 @@
-# - triangulateExteriorFaces (array) -
+# - closeCells (array) -
 import Intersector as XOR
 import Converter as C
 import KCore.test as test
@@ -9,4 +9,3 @@ m = C.convertArray2NGon(m[0])
 m = XOR.closeCells(m)
 
 test.testA([m],1)
-

@@ -117,11 +117,11 @@ def setEnforce(event=None):
     nob = CTK.Nb[nz]+1
     noz = CTK.Nz[nz]
     z = CTK.t[2][nob][2][noz]
-    setEnforceZ(z)
+    h = CTK.varsFromWidget(VARS[1].get(), 1)
+    setEnforceZ(z, h, VARS[8].get())
 
 # Perform a setH on z with clicked point
-def setEnforceZ(z):
-    h = CTK.varsFromWidget(VARS[1].get(), 1)
+def setEnforceZ(z, h, mode):
     if len(h) != 1:
         CTK.TXT.insert('START', 'Invalid spacing.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -131,7 +131,7 @@ def setEnforceZ(z):
     ind = CPlot.getActivePointIndex()
     if ind == []: return True
     ind = ind[0]
-    if VARS[8].get() == 'HFactor':
+    if mode == 'HFactor':
         P0 = C.getValue(z, 'GridCoordinates', ind)
         if ind == npts-1: P1 = C.getValue(z, 'GridCoordinates', ind-1)
         else: P1 = C.getValue(z, 'GridCoordinates', ind+1)
@@ -166,7 +166,7 @@ def setEnforceMode(event=None):
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]
                 z = CTK.t[2][nob][2][noz]
-                setEnforceZ(z)
+                setEnforceZ(z, CTK.varsFromWidget(VARS[1].get(), 1), VARS[8].get())
 
         CTK.__BUSY__ = False
         TTK.raiseButton(W)
@@ -1061,6 +1061,7 @@ def copyDistrib():
     CTK.setCursor(0, WIDGETS['frame'])
 
 
+#==============================================================================
 # get selection from CTK.t
 def getSelection(nzs):
     zones = []
@@ -1070,7 +1071,9 @@ def getSelection(nzs):
         zones.append(CTK.t[2][nob][2][noz])
     return zones
 
+#==============================================================================
 # remesh CAD when an edge is modified
+#==============================================================================
 def remeshCAD(edges):
     try: import OCC.PyTree as OCC
     except: return
@@ -1088,7 +1091,125 @@ def remeshCAD(edges):
     [h,hmax,hausd] = CTK.CADHOOK
     OCC._remeshTreeFromEdges(h, CTK.t, valids)
     CTK.display(CTK.t)
+
+#==============================================================================
+# enforce h in edge locally
+#==============================================================================
+def enforceLocal(event=None):
+    v = CTK.varsFromWidget(VARS[12].get(), 1)
+    if len(v) != 1:
+        CTK.TXT.insert('START', 'Invalid h or hfactor.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
+    v = v[0]
+    width = WIDGETS['widthScale'].get() / 100.
+    width = max(width, 0.1)
+    mode = VARS[11].get()
+
+    # get edge
+    nzs = CPlot.getSelectedZones()
+    nz = nzs[0]
+    nob = CTK.Nb[nz]+1
+    noz = CTK.Nz[nz]
+    z = CTK.t[2][nob][2][noz]
+    dim = Internal.getZoneDim(z)
+    if dim[4] != 1: 
+        CTK.TXT.insert('START', 'Zone must be an edge.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
+    npts = C.getNPts(z)
+
+    CTK.saveTree()
+    CPlot.setState(cursor=1)
     
+    # split zone of width
+    ind = CPlot.getActivePointIndex()
+    if ind == []: return
+    ind = ind[0]
+    
+    P0 = C.getValue(z, 'GridCoordinates', ind)
+    if ind == npts-1: P1 = C.getValue(z, 'GridCoordinates', ind-1)
+    else: P1 = C.getValue(z, 'GridCoordinates', ind+1)
+    hloc = Vector.norm(Vector.sub(P1,P0))
+    if mode == 'HFactor':
+        h = v*hloc; factor = v
+    else: h = v; factor = h / hloc
+
+    delta = int(width*npts)+1
+    imin = ind+1-delta
+    imax = ind+1+delta
+    
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+
+    if imin > 1: z0 = T.subzone(z, (1,1,1), (imin,-1,-1))
+    else: z0 = None
+    if ind > 2: zp1 = T.subzone(z, (max(imin,1),1,1), (ind+1,-1,-1))
+    else: zp1 = None
+    if ind < npts-1: zp2 = T.subzone(z, (ind+1,1,1), (min(imax, npts),-1,-1))
+    else: zp2 = None
+    if imax < npts: z1 = T.subzone(z, (imax,1,1), (npts,-1,-1))
+    else: z1 = None
+
+    if zp1 is not None:
+        P0 = C.getValue(zp1, 'GridCoordinates', 0)
+        P1 = C.getValue(zp1, 'GridCoordinates', 1)
+        h1 = Vector.norm(Vector.sub(P1,P0))
+        L = D.getLength(zp1)
+        if h+h1 > L: h1 = h
+
+    if zp2 is not None:
+        P0 = C.getValue(zp2, 'GridCoordinates', -1)
+        P1 = C.getValue(zp2, 'GridCoordinates', -2)
+        h2 = Vector.norm(Vector.sub(P1,P0))
+        L = D.getLength(zp2)
+        if h+h2 > L: h2 = h
+
+    if zp1 is None: h1 = h2
+    if zp2 is None: h2 = h1
+    
+    #if z0 is None: h1 = (h1+h)*0.5
+    #if z1 is None: h2 = (h2+h)*0.5
+
+    # D._setH(zp, ind-imin+1, h)
+    # # guess a cool number of points
+    # if factor == 1.:
+    #     N = npts
+    # elif factor < 1.:
+    #     N = npts + (1./factor)/100.*npts
+    #     N = int(N)+1
+    # else: 
+    #     N = npts - (1./factor)/100.*npts
+    #     N = int(N)+1
+    # print("nbre de points=", N)
+    # D._enforceh(zp, N=N)
+
+    if zp1 is not None:
+        d2 = D.distrib2(zp1, h1, h, algo=1)
+        zp1 = G.map(zp1, d2)
+    if zp2 is not None:
+        d2 = D.distrib2(zp2, h, h2, algo=1)
+        zp2 = G.map(zp2, d2)
+
+    zo = None
+    if zp1 is not None: zo = zp1
+    if zp2 is not None:
+        if zo is not None: zo = T.join(zo, zp2)
+        else: zo = zp2
+    if z0 is not None: zo = T.join(z0, zo)
+    if z1 is not None: zo = T.join(zo, z1)
+    zo[0] = z[0] # keep orig name and CAD
+    zo[2].append(CAD)
+
+    CTK.replace(CTK.t, nob, noz, zo)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+    CTK.TXT.insert('START', 'Local spacing enforced.\n')
+
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CPlot.setState(cursor=0)
 
 #==============================================================================
 # Create app widgets
@@ -1145,6 +1266,10 @@ def createApp(win):
     V = TK.StringVar(win); V.set('NFactor'); VARS.append(V)
     # -10- Nbre de pts pour h enforce
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
+    # -11- Type of local enforce
+    V = TK.StringVar(win); V.set('HFactor'); VARS.append(V)
+    # -12- Factor for local enforce
+    V = TK.StringVar(win); V.set('1.'); VARS.append(V)    
 
     # - Uniformize -
     B = TTK.Button(Frame, text="Uniformize", command=uniformize)
@@ -1217,6 +1342,21 @@ def createApp(win):
     B.grid(row=5, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Enforced number of points.')
     B.bind('<Return>', enforceH)
+
+    # - Enforce local -
+    B = TTK.Button(Frame, text="Enforce", command=enforceLocal)
+    B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforce local spacing.')
+    B = TTK.OptionMenu(Frame, VARS[11], 'HFactor', 'H')
+    B.grid(row=6, column=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[12], background='White', width=7)
+    B.grid(row=6, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforced variable.')
+    B.bind('<Return>', enforceLocal)
+    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, 
+                  showvalue=0, borderwidth=1, value=50)
+    WIDGETS['widthScale'] = B
+    B.grid(row=6, column=3, sticky=TK.EW)
     
 #==============================================================================
 # Called to display widgets

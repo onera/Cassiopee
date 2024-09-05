@@ -33,5 +33,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: hystrath/cassiopee:${{ github.ref_name }}
+          tags: cassiopee486/cassiopee:${{ github.ref_name }}
 
