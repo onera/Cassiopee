@@ -1309,3 +1309,50 @@ def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10,
     X_IBM._redispatch__(t=t)                    
     return t, tb
 
+
+def checkCartesian(t, nghost=0):
+    dimPb = Internal.getNodeFromName(t, 'EquationDimension')
+    if dimPb is None: raise ValueError('prepareIBMData: EquationDimension is missing in input tree.')
+    dimPb = Internal.getValue(dimPb)
+
+    nghostZ=0
+    if dimPb==3: nghostZ=nghost
+
+    isCartesian=1
+    for z in Internal.getZones(t):
+        ##X Direction
+        coord = Internal.getNodeFromName(z,'CoordinateX')[1]
+        i     = 0
+        dx    = coord[i+1+nghost, 0+nghost, 0+nghostZ] - coord[i  +nghost, 0+nghost, 0+nghostZ]
+        for i in range(1,4):
+            dx2  = coord[i+1+nghost, 0+nghost, 0+nghostZ] - coord[i  +nghost, 0+nghost, 0+nghostZ]
+            diff = abs(dx2-dx)
+            if diff>1e-12: isCartesian=0
+        if isCartesian<1:break
+
+        ##Y Direction
+        coord = Internal.getNodeFromName(z,'CoordinateY')[1]
+        i     = 0
+        dx    = coord[0+nghost,i+1+nghost,0+nghostZ] - coord[0+nghost,i  +nghost,0+nghostZ]
+        for i in range(1,4):
+            dx2  = coord[0+nghost,i+1+nghost,0+nghostZ] - coord[0+nghost,i  +nghost,0+nghostZ]
+            diff = abs(dx2-dx)
+            if diff>1e-12: isCartesian=0
+        if isCartesian<1:break
+
+
+        ##Z Direction
+        if dimPb==3:
+            coord = Internal.getNodeFromName(z,'CoordinateZ')[1]
+            i     = 0
+            dx    = coord[0+nghost,0+nghost,i+1+nghost] - coord[0+nghost,0+nghost,i  +nghost]
+            for i in range(1,4):
+                dx2  = coord[0+nghost,0+nghost,i+1+nghost] - coord[0+nghost,0+nghost,i  +nghost]
+                diff = abs(dx2-dx)
+                if diff>1e-12: isCartesian=0
+        if isCartesian<1:break
+
+    isCartesian=Cmpi.allreduce(isCartesian,op=Cmpi.MIN)
+    if isCartesian==1:cartesian=True
+    else:             cartesian=False
+    return cartesian

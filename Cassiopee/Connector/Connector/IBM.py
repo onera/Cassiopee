@@ -193,14 +193,26 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = Internal.copyTree(t_case)
 
-    ##THIS IS TEMPORARY -> a more comprehensive test is in the works and will make this
-    ## print redundant.
-    if cartesian and t_in:
-        RED  = "\033[1;31;40m"
-        END  = "\033[0m"
-        print(RED + "===========================================" + END)
-        print("Note: Assuming " + RED + "CARTESIAN " + END + "grid")
-        print(RED + "===========================================" + END)
+    ## Note: cartesian = True is left as an input argument to avoid regressing  during the non-regression test.
+    ##       In the near future the ref. values for the non-regression tests will be updated with cartesian=True.
+    ##       At this point, cartesian=True input argument can be deleted.
+    ## Note: when cartesian = True is deleted as an input argument the line below must be uncommented and the cartesian in the if statement but be deleted.
+    #cartesian = True
+    if t_in and cartesian:
+        cartesian = G_IBM.checkCartesian(t_in, nghost=2)
+        if cartesian:
+            RED  = "\033[1;31;40m"
+            END  = "\033[0m"
+            print("===========================================")
+            print("Note: t_in is a " + RED + "CARTESIAN " + END + "grid")
+            print("===========================================")
+        else:
+            RED  = "\033[1;31;40m"
+            END  = "\033[0m"
+            print("===========================================")
+            print("Note: t_in is " + RED + "NOT" + END + " a " + RED + "CARTESIAN " + END + "grid")
+            print("===========================================")
+
     ##[AJ] keep for now...will delete in the near future
     ##if isinstance(tc_out, str):
     ##    if '/' in tc_out: fileoutpre = tc_out.split('/')
