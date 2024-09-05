@@ -29,4 +29,5 @@ struct TriangleIntersection {
     E_Int tri = -1;
     E_Int eid = -1;
     E_Int vid = -1;
+    E_Int pid = -1;
 };

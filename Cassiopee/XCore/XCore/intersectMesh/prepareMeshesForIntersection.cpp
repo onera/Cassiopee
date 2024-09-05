@@ -78,9 +78,16 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
  
     // Extract Mf and Sf, the planar surfaces to intersect
     // TODO(Imad): quasi-planar surfaces
-    for (E_Int i = 0; i < S.nf; i++) {
-        const auto &pn = S.F[i];
+    S.make_skin();
+    for (E_Int fid : S.skin) {
+    //for (E_Int i = 0; i < S.nf; i++) {
+        const auto &pn = S.F[fid];
         size_t stride = pn.size();
+        if (stride > 4) {
+            std::vector<Point> points;
+            for (auto p : pn) points.push_back(Point(S.X[p], S.Y[p], S.Z[p]));
+            point_write("face", points);
+        }
         assert(stride == 3 || stride == 4);
 
         E_Int keep = 1;
@@ -93,7 +100,7 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
             }
         }
 
-        if (keep) S.patch.insert(i);
+        if (keep) S.patch.insert(fid);
     }
 
     puts("Adapting intersection zones...");
