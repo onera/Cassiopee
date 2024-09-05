@@ -96,5 +96,13 @@ cp test/notifyValid "$INSTALLPATH"
 cp test/compareSessionLogs.py "$INSTALLPATH"
 cp test/compareSessionLogs "$INSTALLPATH"
 
+# LSAN: Ajoute un fichier pour supprimer certaines fuites memoire du log
+cat > "$INSTALLPATH"/asan.supp <<EOF
+leak:numpy/core/*
+leak:Netgen/stlgeom/stlgeom.cpp
+leak:Objects/obmalloc.c
+leak:Objects/unicodeobject.c
+EOF
+
 # Check installation
 python test/t1.py
