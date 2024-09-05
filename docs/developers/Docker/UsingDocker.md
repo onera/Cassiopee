@@ -30,7 +30,7 @@ groups ${USER}
 - Please pull the official image of Cassiopee from DockerHub 
 
 ```sh
-docker pull cassiopee/cassiopee:<tag>
+docker pull cassiopee486/cassiopee:<tag>
 ```
 
 where _tag_ is a version tag such as `v4.0b` (in the remainder of these notes, `v4.0b` is used).
@@ -50,7 +50,7 @@ docker images
 
 ```sh
 xhost +local:docker
-docker run -it --rm -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -e DISPLAY=unix$DISPLAY cassiopee/cassiopee:v4.0b
+docker run -it --rm -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -e DISPLAY=unix$DISPLAY cassiopee486/cassiopee:v4.0b
 ```
 
 and the instance of the container will be removed after it execution thanks to `--rm`.  
