@@ -69,6 +69,8 @@ namespace K_XCORE
     PyObject *IntersectMesh_Init(PyObject *self, PyObject *args);
     PyObject *IntersectMesh_ExtractMesh(PyObject *self, PyObject *args);
     PyObject *IntersectMesh_TriangulateFaceSet(PyObject *self, PyObject *args);
+
+    PyObject *extractCell(PyObject *self, PyObject *args);
 }
 
 #endif

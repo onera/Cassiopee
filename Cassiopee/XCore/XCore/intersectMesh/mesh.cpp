@@ -856,6 +856,37 @@ E_Int IMesh::face_contains_point(E_Int face, E_Float x, E_Float y, E_Float z) co
     return hit;
 }
 
+void IMesh::extract_edge_points(E_Int a, E_Int b, std::list<E_Int> &points)
+{
+    E_Int ref = 0;
+
+    points.clear();
+    points.push_back(a);
+    points.push_back(b);
+
+    do {
+        ref = 0;
+
+        auto pos = points.begin();
+
+        assert(*std::prev(points.end()) == b);
+
+        for (auto it = points.begin(); it != std::prev(points.end()); it++) {
+            E_Int a = *it;
+            E_Int b = *std::next(it);
+
+            UEdge e(a, b);
+
+            auto search = ecenter.find(e);
+
+            if (search != ecenter.end()) {
+                points.insert(std::next(it), search->second);
+                ref = 1;
+            }
+        }
+    } while (ref);
+}
+
 IMesh IMesh::extract_conformized()
 {
     // Keep all the points
@@ -880,6 +911,16 @@ IMesh IMesh::extract_conformized()
             E_Int p = pn[j];
             E_Int q = pn[(j+1)%pn.size()];
 
+            std::list<E_Int> epoints;
+
+            extract_edge_points(p, q, epoints);
+
+            epoints.pop_back();
+
+            for (auto it = epoints.begin(); it != epoints.end(); it++)
+                new_face.push_back(*it);
+
+            /*
             UEdge e(p, q);
 
             auto it = ecenter.find(e);
@@ -890,6 +931,7 @@ IMesh IMesh::extract_conformized()
             } else {
                 new_face.push_back(p);
             }
+            */
         }
 
         new_nf++;

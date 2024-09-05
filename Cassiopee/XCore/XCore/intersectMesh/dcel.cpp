@@ -358,6 +358,7 @@ void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
         Vertex *P = xit->key;
 
         Hedge *h = new Hedge(P);
+        h->eid = i;
 
         list[p].push_back(h);
 
@@ -367,6 +368,7 @@ void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
         Vertex *V = xit->key;
         
         Hedge *t = new Hedge(V);
+        t->eid = i;
 
         list[q].push_back(t);
 
@@ -392,7 +394,7 @@ void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
         const E_Float *N = &pnormals[3*pid];
         assert(Sign(K_MATH::norm(N, 3)-1) == 0);
 
-        sort_leaving_hedges(hedges, N);
+        sort_leaving_hedges(hedges, N, M);
 
         for (size_t i = 0; i < hedges.size(); i++) {
             Hedge *h = hedges[i];
@@ -419,22 +421,9 @@ void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
 
         Face *f = new Face;
         f->oid[color] = i;
-        //f->oid[color] = M.l2gf.at(i);
-
 
         assert(M.E2F[first_edge][0] == (E_Int)i || M.E2F[first_edge][1] == E_Int(i));
         Hedge *REP = (M.E2F[first_edge][0] == (E_Int)i) ? h : t;
-
-        /*
-        if (REP->left != NULL) {
-            Vertex *v = REP->orig;
-            point_write("point", v->x, v->y, v->z);
-            hedge_write("hedge", REP);
-            hedge_write("twin", REP->twin);
-            hedge_write("next", REP->next);
-            hedge_write("prev", REP->prev);
-        }
-        */
 
         assert(REP->left == NULL);
 
@@ -1141,7 +1130,9 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
     }
 }
 
-void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3]) const
+void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving,
+    const E_Float N[3],
+    const Smesh &M) const
 {
     // Choose a vector that is not parallel to N
 
@@ -1221,7 +1212,9 @@ void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3]
         else {
             Hedge *h = leaving[i];
             Hedge *w = leaving[j];
+            
             assert(h->color != w->color);
+
             Vertex *P = h->orig;
             Vertex *Q = h->twin->orig;
             if (cmp_vtx(P, Q) < 0) return true;
@@ -1370,7 +1363,7 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
         E_Float NORM = K_MATH::norm(N, 3);
         assert(Sign(NORM -1) == 0);
 
-        sort_leaving_hedges(leaving, N);
+        sort_leaving_hedges(leaving, N, M);
 
         for (size_t i = 0; i < leaving.size(); i++) {
             Hedge *h = leaving[i];
