@@ -354,12 +354,14 @@ def prepareMeshesForIntersection(master, slave):
     tm = C.newPyTree(["M_adapted", zmo])
     ts = C.newPyTree(["S_adapted", zso])
 
+    '''
     try: import Intersector.PyTree as XOR
     except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
 
     print("Closing meshes...", flush=True)
     ts = XOR.closeCells(ts)
     tm = XOR.closeCells(tm)
+    '''
 
     return tm, ts
 
@@ -387,3 +389,13 @@ def intersectMesh(master, slave):
     ts = XOR.closeCells(ts)
 
     return tm, ts
+
+def extractCell(a, cid):
+    z = I.getZones(a)[0]
+
+    m = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+
+    zmo = I.createZoneNode("cell"+str(cid), xcore.extractCell(m, cid))
+
+    return zmo
+
