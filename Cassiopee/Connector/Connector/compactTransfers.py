@@ -560,7 +560,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
        if sname == 'IB': 
            zsrname = zsrname.split('_')
            if len(zsrname) < 3:
-                #print('Warning: miseAPlatDonorTree: non consistent with the version of IBM preprocessing.')
+               #print('Warning: miseAPlatDonorTree: non consistent with the version of IBM preprocessing.')
                 if model=='Euler':
                     print('Assuming IBC type is wallslip.')
                     param_int[iadr+rac[pos]*3]  = 0
