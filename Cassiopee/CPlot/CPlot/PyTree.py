@@ -510,6 +510,32 @@ def updateCPlotNumbering(t):
     return (Nb, Nz)
 
 #==============================================================================
+# Retourne le numero global nz de la basename/zonename dans CPlot
+#==============================================================================
+def updateCPlotGlobalNumbering(t):
+    dnz = {}
+    # count total struct zones
+    nstr = 0
+    for b in t[2]:
+        if b[3] == 'CGNSBase_t':
+            for z in b[2]:
+                if z[3] == 'Zone_t':
+                    type = Internal.getZoneType(z)
+                    if type == 1: nstr += 1
+
+    nzs = 0 # global cplot numbering
+    nzu = nstr
+    for b in t[2]:
+        if b[3] == 'CGNSBase_t':
+            dnz[b[0]] = {}
+            for z in b[2]:
+                if z[3] == 'Zone_t':
+                    type = Internal.getZoneType(z)
+                    if type == 1: dnz[b[0]][z[0]] = nzs; nzs += 1
+                    else: dnz[b[0]][z[0]] = nzu; nzu += 1
+    return dnz
+
+#==============================================================================
 # Retourne la numerotation CPlot de la zone baseName/zoneName de t
 # IN: t: un noeud pyTree (et pas autre chose)
 # IN: baseName: le nom de la base
