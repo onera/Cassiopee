@@ -22,8 +22,8 @@ TypesOfIBC["slip_cr"]=100 # slip + curvature radius
 TypesOfIBC["slip"]=0
 TypesOfIBC["noslip"]=1
 TypesOfIBC["Log"]=2
-TypesOfIBC["Musker"]=3
-TypesOfIBC["WallLaw"]=3
+TypesOfIBC["Musker"]=3 #also 31
+TypesOfIBC["SA"]=32
 TypesOfIBC["outpress"]=4
 TypesOfIBC["inj"]=5
 TypesOfIBC["TBLE"]=6
@@ -35,7 +35,8 @@ TypesOfIBC["TBLE_FULL"]=11 #TBLE+gradP+conv+SA
 TypesOfIBC["isothermal"]=12 #isothermal: set T_wall
 TypesOfIBC["heatflux"]=13 #heatflux: set q_wall
 TypesOfIBC["overlap"]=14 #TBLE+gradP+conv+SA
-TypesOfIBC["WallLawLinearized"]=33 
+TypesOfIBC["MuskerLinear"]=331
+TypesOfIBC["SALinear"]=332
 TypesOfIBC["wiremodel"]=140 #wire mesh model
 
 # Variables IBM pour le post traitement

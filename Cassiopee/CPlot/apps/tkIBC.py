@@ -316,7 +316,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="IBC type")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition.')
-    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'WallLaw', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap','wiremodel','WallLawLinearized','None')
+    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'SA', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap','wiremodel','MuskerLinear','SALinear','None')
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
     # - Mask settings (in or out) -
