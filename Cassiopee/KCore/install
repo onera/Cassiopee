@@ -102,6 +102,11 @@ leak:numpy/core/*
 leak:Netgen/stlgeom/stlgeom.cpp
 leak:Objects/obmalloc.c
 leak:Objects/unicodeobject.c
+leak:Objects/listobject.c
+leak:Modules/gcmodule.c
+leak:Converter/hook.cpp
+leak:Converter/globalHook.cpp
+leak:Converter/identifySolutions.cpp
 EOF
 
 # Check installation

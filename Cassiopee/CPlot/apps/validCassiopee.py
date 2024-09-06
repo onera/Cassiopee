@@ -23,11 +23,8 @@ except: isMpi = False
 # Regexprs
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
-regFailedLSAN = re.compile('ERROR: LeakSanitizer: detected memory leaks')
-regError = re.compile('Error')
-regErreur = re.compile('Erreur') # because of french system
-regAbort = re.compile('Aborted')
-regSegmentation = re.compile('Segmentation')
+regError = re.compile("|".join(['Error', 'Erreur', 'Aborted', 'Abandon', 'Segmentation', 'ERROR: AddressSanitizer']), re.UNICODE)
+regLeakError = re.compile('ERROR: LeakSanitizer')
 separator = ':'
 separatorl = separator+' '
 expTest1 = re.compile("_t[0-9]+") # normal tests
@@ -637,11 +634,12 @@ def runSingleUnitaryTest(no, module, test):
     else:
         # Unix - le shell doit avoir l'environnement cassiopee
         #sformat = r'"real\t%E\nuser\t%U\nsys\t%S"'
-        sanitizerFlag = '-s' if any(USE_ASAN) else ''
         if m1 is None:
+            sanitizerFlag = '' # TODO LSAN always return a seg fault in parallel
             cmd = 'cd %s; time kpython %s -n 2 -t %d %s'%(
                 path, sanitizerFlag, nthreads//2, test)
         else:
+            sanitizerFlag = '-s' if any(USE_ASAN) else ''
             cmd = 'cd %s; time kpython %s -t %d %s'%(
                 path, sanitizerFlag, nthreads, test)
 
@@ -660,13 +658,10 @@ def runSingleUnitaryTest(no, module, test):
         
         # Recupere success/failed
         success = 1
-        if regFailedLSAN.search(output) is not None: success = -1 # always check first
+        if regLeakError.search(output) is not None: success = 2 # always check first
         if regDiff.search(output) is not None: success = 0
         if regFailed.search(output) is not None: success = 0
         if regError.search(output) is not None: success = 0
-        if regErreur.search(output) is not None: success = 0
-        if regAbort.search(output) is not None: success = 0
-        if regSegmentation.search(output) is not None: success = 0
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -714,7 +709,7 @@ def runSingleUnitaryTest(no, module, test):
 
     # update status
     if success == 1: status = 'OK'
-    elif success == -1: status = 'FAILEDMEM'
+    elif success == 2: status = 'FAILEDMEM'
     else: status = 'FAILED'
     s = buildString(module, test, CPUtime, coverage, status, tag)
     regTest = re.compile(' '+test+' ')
@@ -771,13 +766,11 @@ def runSingleCFDTest(no, module, test):
         print(output)
 
         # Recupere success/failed
-        success = True
-        if regDiff.search(output) is not None: success = False
-        if regFailed.search(output) is not None: success = False
-        if regError.search(output) is not None: success = False
-        if regErreur.search(output) is not None: success = False
-        if regAbort.search(output) is not None: success = False
-        if regSegmentation.search(output) is not None: success = False
+        success = 1
+        if regLeakError.search(output) is not None: success = 2 # always check first
+        if regDiff.search(output) is not None: success = 0
+        if regFailed.search(output) is not None: success = 0
+        if regError.search(output) is not None: success = 0
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -802,7 +795,7 @@ def runSingleCFDTest(no, module, test):
 
     except Exception as e:
         print(e)
-        success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+        success = 0; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     # update le fichier .time (si non present)
     fileTime = '%s/%s/%s.time'%(path, DATA, test)
@@ -817,7 +810,8 @@ def runSingleCFDTest(no, module, test):
         tag = readStar(fileStar)
 
     # update status
-    if success: status = 'OK'
+    if success == 1: status = 'OK'
+    elif success == 2: status = 'FAILEDMEM'
     else: status = 'FAILED'
     s = buildString(module, test, CPUtime, coverage, status, tag)
     regTest = re.compile(' '+test+' ')
