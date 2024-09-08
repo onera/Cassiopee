@@ -63,7 +63,7 @@ public:
   {
     const E_Float* Pi;
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
+    { minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX; }
 
     if (N0 < 0 || N0 >= pos.cols()) N0 = pos.cols(); //if max id is not (or badly) specified
 
@@ -89,9 +89,10 @@ public:
   inline const E_Float& getMaxB(E_Int axis) const {return maxB[axis];}
 
   // Warning : strict comparison
-  bool operator==(const BoundingBox& rhs){
-
-    for (E_Int i = 0; i < DIM; ++i){
+  bool operator==(const BoundingBox& rhs)
+  {
+    for (E_Int i = 0; i < DIM; ++i)
+    {
       if (minB[i] != rhs.minB[i]) return false;
       if (maxB[i] != rhs.maxB[i]) return false;
     }
@@ -271,8 +272,9 @@ public:
   (const K_FLD::ArrayAccessor<CoordinateArray_t>& pos, const Vector<E_Int> & indices, E_Int idx_start=0)
   {
     E_Float Pi[DIM];
+    for (E_Int i = 0; i < DIM; ++i) Pi[i] = -1.;
     for (E_Int i = 0; i < DIM; ++i)
-    {minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX;}
+    { minB[i] = NUGA::FLOAT_MAX; maxB[i] = -NUGA::FLOAT_MAX; }
 
     for (size_t i = 0; i < indices.size(); ++i)
     {

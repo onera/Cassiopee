@@ -23,6 +23,7 @@
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
 #include "BRepPrimAPI_MakeSphere.hxx"
+#include "BRep_Builder.hxx"
 
 //=====================================================================
 // Add a sphere to hook
@@ -39,29 +40,45 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
   packet = (void**) PyCapsule_GetPointer(hook, NULL);
 #endif
 
-  /* previous shape */
-  //TopoDS_Shape* psh = (TopoDS_Shape*)packet[0];
-  //TopAbs_ShapeEnum ptype = curShape.ShapeType();
-  // == TopAbs_COMPOUND 
-  //for(TopoDS_Iterator anExp(curShape); anExp.More(); anExp.Next()){
-  //const TopoDS_Shape &curShape1 = anExp.Value();
+  /* previous shape or compound */
+  /*
+  TopoDS_Shape* psh = (TopoDS_Shape*)packet[0];
+  
+  if (psh != NULL)
+  {
+    TopAbs_ShapeEnum ptype = psh->ShapeType();
+    if (ptype == TopAbs_COMPOUND)
+    {
+      printf("previous is a compoud\n");
+      // == TopAbs_COMPOUND 
+      //for(TopoDS_Iterator anExp(psh); anExp.More(); anExp.Next()){
+      //const TopoDS_Shape &curShape1 = anExp.Value();}
+    }
+    else
+    { printf("previous is a shape\n"); }
+  }*/
 
   /* new sphere */
   gp_Pnt center(xc, yc, zc);
   BRepPrimAPI_MakeSphere makerSphere(center, R);
-  TopoDS_Shape sh = makerSphere.Shape();
+  TopoDS_Shape sphere = makerSphere.Shape();
 
-  // Building the Resulting Compound
-  /*
-  TopoDS_Compound aRes;
-  BRep_Builder aBuilder;
-  aBuilder.MakeCompound(aRes);
-  aBuilder.Add(aRes, myBody);
-  aBuilder.Add(aRes, myThreading);
-  */
+  /* another sphere */
+  //gp_Pnt center2(xc+2, yc, zc);
+  //BRepPrimAPI_MakeSphere makerSphere2(center2, R);
+  //TopoDS_Shape sphere2 = makerSphere2.Shape();
 
+  // Building a Compound
+  //TopoDS_Compound sh;
+  //BRep_Builder aBuilder;
+  //aBuilder.MakeCompound(sh);
+  //aBuilder.Add(sh, sphere);
+  //aBuilder.Add(sh, sphere2);
+  
   /* export */
-  TopoDS_Shape* newshp = new TopoDS_Shape(sh);
+  TopoDS_Shape* newshp = new TopoDS_Shape(sphere);
+  //TopoDS_Shape* newshp = new TopoDS_Compound(sh);
+  
   packet[0] = newshp;
   
   // Extract surfaces

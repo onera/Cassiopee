@@ -155,9 +155,8 @@ void geom3(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& u
   if (delta >= 0) delta = sqrt(delta);
 
   E_Float r = ((u1-u0-h0)+delta)/(2*(u1-u0));
-  E_Float r1 = ((u1-u0-h0)-delta)/(2*(u1-u0));
-  
-  printf("r=%f\n", r);
+  //E_Float r1 = ((u1-u0-h0)-delta)/(2*(u1-u0));
+  //printf("r=%f\n", r);
   E_Float a = log(r);
   if (a > 1.e-12) // r!=1
   {

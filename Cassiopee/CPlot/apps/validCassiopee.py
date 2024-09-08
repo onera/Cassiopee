@@ -1822,7 +1822,7 @@ if __name__ == '__main__':
         Threads = TK.StringVar(Master)
         TextThreads = TK.Entry(Frame, textvariable=Threads, background='White',
                                width=3)
-        TextThreads.grid(row=1, column=9, sticky=TK.EW)
+        TextThreads.grid(row=1, column=9, columnspan=2, sticky=TK.EW)
         TextThreads.bind('<Return>', setThreads)
         TextThreads.bind('<KP_Enter>', setThreads)
         getThreads()
