@@ -293,6 +293,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
     FldArrayF* vols=NULL; 
     K_NUMPY::getFromNumpyArray(volc, vols, true);
     volp = vols->begin();
+    RELEASESHAREDN(volc, vols);
   }
   
   E_Float voli;
@@ -318,7 +319,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDB(res, arrayc, fc, cnc);
   RELEASESHAREDS(tpl, gp);
-
+  
   if (cellNc != Py_None) Py_DECREF(cellNc);
 
   delete [] varStringOut;

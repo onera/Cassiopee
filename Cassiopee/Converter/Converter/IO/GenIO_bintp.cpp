@@ -307,7 +307,7 @@ E_Int K_IO::GenIO::tecread(
       default:
         error = 1;
     }
-    if (error != 0) break;
+    if (error != 0) { delete [] zoneName; break; }
     
     // Concatenation of structured and unstructed zones names lists
     zoneNames = structZoneNames;

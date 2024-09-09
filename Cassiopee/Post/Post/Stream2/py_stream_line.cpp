@@ -302,6 +302,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     }
     */
    
+    delete [] varStringOut;
     for (unsigned int nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
     for (unsigned int nos = 0; nos < obju.size(); nos++)

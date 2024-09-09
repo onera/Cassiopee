@@ -117,6 +117,6 @@ PyObject* K_POST::enforceIndicatorForFinestLevel(PyObject* self,
   else 
     tpl = K_ARRAY::buildArray(*fi, varStringi, *cni, -1, eltTypei, 
                               false);
-  RELEASESHAREDB(resi, indicator, fi, cni);
+  RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn);
   return tpl;
 }

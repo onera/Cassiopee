@@ -246,6 +246,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_ValueError,
                     "streamRibbon : no interpData built.");
+    delete [] varStringOut;
     for (unsigned int nos = 0; nos < objs0.size(); nos++)
       RELEASESHAREDS(objs0[nos], structF[nos]);
     for (unsigned int nos = 0; nos < obju0.size(); nos++)
@@ -289,6 +290,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
                                                 structVector, vnames);
     if ( found != 1 ) 
     {
+      delete [] varStringOut;
       for (unsigned int nos = 0; nos < objs0.size(); nos++)
         RELEASESHAREDS(objs0[nos], structF[nos]);
       for (unsigned int nos = 0; nos < obju0.size(); nos++)
@@ -319,6 +321,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
                                                unstrVector, vnames); 
     if ( found != 1 ) 
     {
+      delete [] varStringOut;
       for (unsigned int nos = 0; nos < objs0.size(); nos++)
         RELEASESHAREDS(objs0[nos], structF[nos]);
       for (unsigned int nos = 0; nos < obju0.size(); nos++)
@@ -365,6 +368,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   E_Int npts = npts1 + npts2;
   if (npts < 3)
   { 
+    delete [] varStringOut;
     for (unsigned int nos = 0; nos < objs0.size(); nos++)
       RELEASESHAREDS(objs0[nos], structF[nos]);
     for (unsigned int nos = 0; nos < obju0.size(); nos++)

@@ -573,11 +573,18 @@ void K_TRANSFORM::breakNGonElements(
 
   // Append non-void connectivities & fields
   if (netbar) {cEV.push_back(cEVbarp); fields.push_back(fbarp); eltType.push_back(1);}
+  else { delete cEVbarp; delete fbarp; }
   if (nettri) {cEV.push_back(cEVtrip); fields.push_back(ftrip); eltType.push_back(2);}
+  else { delete cEVtrip; delete ftrip; }
   if (netquad) {cEV.push_back(cEVquadp); fields.push_back(fquadp); eltType.push_back(3);}
+  else { delete cEVquadp; delete fquadp; }
   if (nettetra) {cEV.push_back(cEVtetrap); fields.push_back(ftetrap); eltType.push_back(4);}
+  else { delete cEVtetrap; delete ftetrap; }
   if (netpyra) {cEV.push_back(cEVpyrap); fields.push_back(fpyrap); eltType.push_back(5);}
+  else { delete cEVpyrap; delete fpyrap; }
   if (netpenta) {cEV.push_back(cEVpentap); fields.push_back(fpentap); eltType.push_back(6);}
+  else { delete cEVpentap; delete fpentap; }
   if (nethexa) {cEV.push_back(cEVhexap); fields.push_back(fhexap); eltType.push_back(7);}
+  else { delete cEVhexap; delete fhexap; }
   if (netngon) {cEV.push_back(cn2); fields.push_back(f2); eltType.push_back(8);}
 }

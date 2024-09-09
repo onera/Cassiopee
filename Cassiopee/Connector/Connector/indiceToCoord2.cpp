@@ -521,6 +521,7 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
  RELEASESHAREDN( transfo  , transfo_ );
  RELEASESHAREDN( profondeur  , profondeur_ );
  RELEASESHAREDN( dirD  , dirD_ );
+ RELEASESHAREDN( typ, typ_ );
 
  Py_INCREF(Py_None);
 

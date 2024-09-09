@@ -243,7 +243,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   
   if (interpDatasSize == 0)
   {
-    RELEASESHAREDU(arrayBAR,f, cnBAR);
+    RELEASESHAREDU(arrayBAR, f, cnBAR);
     PyErr_SetString(PyExc_ValueError,
                     "streamSurf: no interpData built.");
     for (unsigned int nos = 0; nos < objs0.size(); nos++)
@@ -324,7 +324,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
                                                unstrVector, vnames); 
     if (found != 1)
     {
-      RELEASESHAREDU(arrayBAR,f, cnBAR);
+      RELEASESHAREDU(arrayBAR, f, cnBAR);
       for (unsigned int nos = 0; nos < objs0.size(); nos++)
         RELEASESHAREDS(objs0[nos], structF[nos]);
       for (unsigned int nos = 0; nos < obju0.size(); nos++)
@@ -396,7 +396,10 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
 
   // Build array
   PyObject* tpl = K_ARRAY::buildArray(*field, varStringOut, *cn , -1 , "TRI");
-  delete [] varStringOut;
+  delete [] varStringOut; delete field; delete cn;
+  
+  for (size_t i = 0; i < front.size(); i++) { delete front[i]; }
+  front.clear();
 
   RELEASESHAREDU(arrayBAR,f, cnBAR);
   for (unsigned int nos = 0; nos < objs0.size(); nos++)

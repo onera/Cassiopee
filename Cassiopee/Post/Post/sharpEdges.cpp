@@ -205,7 +205,6 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
     else tpl = K_ARRAY::buildArray(*fe, varString0, *cne, -1, "BAR");
     delete fe; delete cne;
     return tpl;
-
   }
   else if (type == 4) //QUAD
   {
@@ -592,6 +591,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
                                        *f, *cne);
       tpl = K_ARRAY::buildArray(*f, varString0, *cne, -1, "NGON");
       delete fe; delete cne;
+      RELEASESHAREDU(array, f, cn);
     }
     return tpl;
   } // fin test NGON

@@ -110,6 +110,8 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
     free(owner);
     free(neigh);
   }
+  
+  RELEASESHAREDU(ARR, f, cn);
 
   return out;
 }

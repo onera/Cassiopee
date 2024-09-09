@@ -220,10 +220,10 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
   computeConnectivity(structBlocks, triConnect, idgT, idgG, 
                       *unsConnectENG, FirstPt);
     
-  for (E_Int v = 0; v < nzones; v++)
-    delete structBlocks[v];
-  
-  structBlocks.clear();
+  for (size_t v = 0; v < structBlocks.size(); v++) delete structBlocks[v];
+  for (size_t v = 0; v < field.size(); v++) delete field[v];
+  for (size_t v = 0; v < triConnect.size(); v++) delete triConnect[v];
+  structBlocks.clear(); field.clear(); triConnect.clear();
   
   // Deleting unused nodes
   deletingUnusedNodes(*unsConnectENG, *fieldG);

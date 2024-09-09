@@ -463,7 +463,7 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
 #else
   hook = PyCapsule_New(packet, NULL, NULL);
 #endif
-
+  
   RELEASESHAREDB(res, array, f, cnl);
   return hook;
 }
@@ -1018,8 +1018,8 @@ PyObject* K_CONVERTER::freeHook(PyObject* self, PyObject* args)
     {
       // KDT (0;2;3)
       FldArrayF* pt = (FldArrayF*)packet[1];
-      //K_SEARCH::KdTree<FldArrayF>* coordAcc = 
-      //  (K_SEARCH::KdTree<FldArrayF>*) packet[2];
+      //ArrayAccessor<FldArrayF>* coordAcc = 
+      //  (ArrayAccessor<FldArrayF>*) packet[2];
       K_SEARCH::KdTree<FldArrayF>* globalKdt = 
         (K_SEARCH::KdTree<FldArrayF>*) packet[3];
       
