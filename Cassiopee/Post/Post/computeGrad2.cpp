@@ -257,6 +257,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     FldArrayF* vols=NULL; 
     K_NUMPY::getFromNumpyArray(volc, vols, true);
     volp = vols->begin();
+    RELEASESHAREDN(volc, vols);
   }
 
  

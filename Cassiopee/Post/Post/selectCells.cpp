@@ -781,6 +781,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 
       PyList_Append(l,pyPE);
       
+      delete cFEp_new;
       RELEASESHAREDN(PE, cFE);
     }
 
@@ -792,7 +793,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     tpl  = K_ARRAY::buildArray(*fout,   varString, *cout, 8);
     tplc = K_ARRAY::buildArray(*foutC, varStringC, *cout, 8);
     
-    delete fout; delete cout;
+    delete fout; delete foutC; delete cout;
   }
 
   RELEASESHAREDB(res, arrayNodes, f, cnp);
@@ -1559,31 +1560,31 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
 
       for (E_Int pgi = 0; pgi < nbFaces; pgi++)
       {
-	if (new_pg_ids[pgi]>=0)
-	{
-	  old_ph_1 = cFEl_old[pgi]-1;
-	  old_ph_2 = cFEr_old[pgi]-1;
+	      if (new_pg_ids[pgi]>=0)
+	      {
+	        old_ph_1 = cFEl_old[pgi]-1;
+	        old_ph_2 = cFEr_old[pgi]-1;
 
-	  if (old_ph_1 >= 0) // l'elmt gauche existe 
-	  {
-	    cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
- 
-	    if (old_ph_2 >= 0) // l'elmt droit existe 
-	      cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1; 
-	    else
-	      cFEr[new_pg_ids[pgi]] = 0;
-	  }
-	  else // l'elmt gauche a disparu - switch droite/gauche
-	  {
-	    cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
-	    cFEr[new_pg_ids[pgi]] = 0;
-	    // reverse
-	    E_Int s = ng.PGs.stride(pgi);
-	    E_Int* p = ng.PGs.get_facets_ptr(pgi);
-	    std::reverse(p, p + s);
-	  }
-	  
-	}
+	        if (old_ph_1 >= 0) // l'elmt gauche existe 
+	        {
+	          cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
+       
+	          if (old_ph_2 >= 0) // l'elmt droit existe 
+	            cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1; 
+	          else
+	            cFEr[new_pg_ids[pgi]] = 0;
+	        }
+	        else // l'elmt gauche a disparu - switch droite/gauche
+	        {
+	          cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+	          cFEr[new_pg_ids[pgi]] = 0;
+	          // reverse
+	          E_Int s = ng.PGs.stride(pgi);
+	          E_Int* p = ng.PGs.get_facets_ptr(pgi);
+	          std::reverse(p, p + s);
+	        }
+	        
+	      }
       } // boucle pgi     
       
       // export ngon
@@ -1594,6 +1595,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
 
       PyList_Append(l,pyPE);
       
+      delete cFEp_new;
       RELEASESHAREDN(PE, cFE);
     }
 

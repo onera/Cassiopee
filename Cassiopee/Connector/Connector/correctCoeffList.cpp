@@ -84,13 +84,13 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
   //K_NUMPY::getFromNumpyArray(drodmArray, drodm, true); E_Float* iptdrodm = drodm->begin();
 
   FldArrayI* ind_list;
-  K_NUMPY::getFromNumpyArray(indiceslist,ind_list, true); E_Int* ipt_ind_list = ind_list->begin();
+  K_NUMPY::getFromNumpyArray(indiceslist, ind_list, true); E_Int* ipt_ind_list = ind_list->begin();
 
   FldArrayF* coefflist_;
-  K_NUMPY::getFromNumpyArray(coefflist,coefflist_, true);  E_Float* ipt_coefflist = coefflist_->begin();
+  K_NUMPY::getFromNumpyArray(coefflist, coefflist_, true);  E_Float* ipt_coefflist = coefflist_->begin();
 
   FldArrayI* typ_;
-  K_NUMPY::getFromNumpyArray(typ,typ_, true);  E_Int* ipt_typ = typ_->begin();
+  K_NUMPY::getFromNumpyArray(typ, typ_, true);  E_Int* ipt_typ = typ_->begin();
 
   //cout << "nb_ind= " << nb_ind << endl;
 
@@ -358,12 +358,9 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
 
    }
 
-
-
-
-
  RELEASESHAREDN( indiceslist  , ind_list );
  RELEASESHAREDN( coefflist  , coefflist_ );
+ RELEASESHAREDN( typ, typ_ );
 
  Py_INCREF(Py_None);
  return Py_None;

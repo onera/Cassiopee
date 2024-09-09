@@ -51,6 +51,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
   {
     if ( res == 2 )
     { 
+      delete [] eltType; delete [] varString;
       RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
       PyErr_SetString(PyExc_TypeError,
                       "updateNatureForIBM: not valid for unstructured grids.");
@@ -113,7 +114,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
       // }
     }
   }
-  delete [] eltType;
+  delete [] eltType; delete [] varString;
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   Py_INCREF(Py_None); 
   return Py_None;

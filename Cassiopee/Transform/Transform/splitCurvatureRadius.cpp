@@ -55,7 +55,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   }
   if ( res == 2 )
   {
-    delete f;
+    delete f; delete cn;
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureRadius: array must be an i-array.");
     return NULL;

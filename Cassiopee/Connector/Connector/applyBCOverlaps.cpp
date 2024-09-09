@@ -190,6 +190,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "applyBCOverlaps: unstructured array must be a NGON or NGON*.");
+    RELEASESHAREDN(faceList, indicesF);
     RELEASESHAREDU(array, f, cn); return NULL;
   }
 
@@ -324,7 +325,8 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
       }
     }     
   }// End cellN at elements
-   
+  
+  RELEASESHAREDN(faceList, indicesF);
   RELEASESHAREDU(array, f, cn);
   return tpl;
 }

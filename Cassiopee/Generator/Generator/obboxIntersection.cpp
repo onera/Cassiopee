@@ -320,6 +320,7 @@ PyObject* K_GENERATOR::_obboxIntersectionZ(PyObject* self, PyObject* args)
   E_Int posz1 = K_ARRAY::isCoordinateZPresent(varString1);
   if (posx1 == -1 || posy1 == -1 || posz1 == -1)
   {
+    delete [] varString1; delete [] eltType1;
     RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
     PyErr_SetString(PyExc_TypeError,
                     "obboxIntersection: cannot find coordinates in zone1.");
@@ -340,6 +341,8 @@ PyObject* K_GENERATOR::_obboxIntersectionZ(PyObject* self, PyObject* args)
   E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
+    delete [] varString1; delete [] eltType1;
+    delete [] varString2; delete [] eltType2;
     RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
     RELEASESHAREDZ(hook2, (char*)NULL, (char*)NULL);
     PyErr_SetString(PyExc_TypeError,
@@ -546,7 +549,9 @@ PyObject* K_GENERATOR::_obboxIntersectionZ(PyObject* self, PyObject* args)
    isIntersect = 1;
   //cout << "OBBs are overlapping" << endl;
   }
-
+  
+  delete [] varString1; delete [] eltType1;
+  delete [] varString2; delete [] eltType2;
   RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
   RELEASESHAREDZ(hook2, (char*)NULL, (char*)NULL);
 
@@ -820,6 +825,7 @@ PyObject* K_GENERATOR::_crossIntersectionZ(PyObject* self, PyObject* args)
   E_Int posz1 = K_ARRAY::isCoordinateZPresent(varString1);
   if (posx1 == -1 || posy1 == -1 || posz1 == -1)
   {
+    delete [] varString1; delete [] eltType1;
     RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
     PyErr_SetString(PyExc_TypeError,
                     "obboxIntersection: cannot find coordinates in zone1.");
@@ -840,6 +846,8 @@ PyObject* K_GENERATOR::_crossIntersectionZ(PyObject* self, PyObject* args)
   E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
+    delete [] varString1; delete [] eltType1;
+    delete [] varString2; delete [] eltType2;
     RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
     RELEASESHAREDZ(hook2, (char*)NULL, (char*)NULL);
     PyErr_SetString(PyExc_TypeError,
@@ -1022,6 +1030,8 @@ PyObject* K_GENERATOR::_crossIntersectionZ(PyObject* self, PyObject* args)
   //cout << "OBBs are overlapping" << endl;
   }
 
+  delete [] varString1; delete [] eltType1;
+  delete [] varString2; delete [] eltType2;
   RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
   RELEASESHAREDZ(hook2, (char*)NULL, (char*)NULL);
 

@@ -1134,6 +1134,7 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
     }
   }
 
+  RELEASESHAREDU(tpl, f2, cn2);
   if (boolIndir) 
   {
     PyList_Append(indices, indir);  Py_DECREF(indir);

@@ -370,6 +370,7 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   free(lsqGG);
   free(count_neis);
   free(b);
+  RELEASESHAREDU(arr, f, cn);
 
   return out;
 }

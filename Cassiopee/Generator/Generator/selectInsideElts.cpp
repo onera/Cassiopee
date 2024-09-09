@@ -106,9 +106,14 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "selectInsideElts: invalid list of arrays.");
-    for (unsigned int i = 0; i < structF.size(); i++) delete structF[i];
-    for (unsigned int i = 0; i < unstrF.size(); i++) delete unstrF[i];
-    for (unsigned int i = 0; i < cnt.size(); i++) delete cnt[i];
+    for (size_t i = 0; i < structF.size(); i++) delete structF[i];
+    for (size_t i = 0; i < unstrF.size(); i++) delete unstrF[i];
+    for (size_t i = 0; i < cnt.size(); i++) delete cnt[i];
+    for (size_t i = 0; i < structVarString.size(); i++) delete[] structVarString[i];
+    for (size_t i = 0; i < unstrVarString.size(); i++) delete[] unstrVarString[i];
+    for (size_t i = 0; i < eltTypet.size(); i++) delete[] eltTypet[i];
+    for (size_t i = 0; i < objst.size(); i++) Py_DECREF(objst[i]);
+    for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
     delete f; delete cn;
     return NULL;
   }
@@ -116,21 +121,31 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "selectInsideElts: arrays must be unstructured.");
-    for (unsigned int i = 0; i < structF.size(); i++) delete structF[i];
-    for (unsigned int i = 0; i < unstrF.size(); i++) delete unstrF[i];
-    for (unsigned int i = 0; i < cnt.size(); i++) delete cnt[i];
+    for (size_t i = 0; i < structF.size(); i++) delete structF[i];
+    for (size_t i = 0; i < unstrF.size(); i++) delete unstrF[i];
+    for (size_t i = 0; i < cnt.size(); i++) delete cnt[i];
+    for (size_t i = 0; i < structVarString.size(); i++) delete[] structVarString[i];
+    for (size_t i = 0; i < unstrVarString.size(); i++) delete[] unstrVarString[i];
+    for (size_t i = 0; i < eltTypet.size(); i++) delete[] eltTypet[i];
+    for (size_t i = 0; i < objst.size(); i++) Py_DECREF(objst[i]);
+    for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
     delete f; delete cn;
     return NULL;
   }
-  for (unsigned int i = 0; i < eltTypet.size(); i++)
+  for (size_t i = 0; i < eltTypet.size(); i++)
   {
     if (strcmp(eltTypet[i], "BAR") != 0)
     {
       PyErr_SetString(PyExc_TypeError,
                       "selectInsideElts: arrays must be BAR-arrays.");
-      for (unsigned int i = 0; i < structF.size(); i++) delete structF[i];
-      for (unsigned int i = 0; i < unstrF.size(); i++) delete unstrF[i];
-      for (unsigned int i = 0; i < cnt.size(); i++) delete cnt[i];
+      for (size_t i = 0; i < structF.size(); i++) delete structF[i];
+      for (size_t i = 0; i < unstrF.size(); i++) delete unstrF[i];
+      for (size_t i = 0; i < cnt.size(); i++) delete cnt[i];
+      for (size_t i = 0; i < structVarString.size(); i++) delete[] structVarString[i];
+      for (size_t i = 0; i < unstrVarString.size(); i++) delete[] unstrVarString[i];
+      for (size_t i = 0; i < eltTypet.size(); i++) delete[] eltTypet[i];
+      for (size_t i = 0; i < objst.size(); i++) Py_DECREF(objst[i]);
+      for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
       delete f; delete cn;
       return NULL;
     }
@@ -208,6 +223,6 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
   // sortie
   PyObject* tpl;
   tpl = K_ARRAY::buildArray(*f, varString, connectp, -1, eltType);
-  delete f; delete &connectp;
+  delete f; delete cn; delete connect;
   return tpl;
 }

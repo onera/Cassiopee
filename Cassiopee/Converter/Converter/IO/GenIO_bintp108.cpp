@@ -1150,7 +1150,7 @@ E_Int K_IO::GenIO::readData108(
       }
       ptr += n+1;
     }
-    delete [] count; delete [] offset;
+    delete [] count; delete [] offset; delete [] faceNodes;
 
     // cFE
     FldArrayI cFE(numFaces, 2);
