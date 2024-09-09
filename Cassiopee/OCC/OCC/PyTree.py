@@ -13,7 +13,6 @@ except ImportError:
 
 __version__ = OCC.__version__
 import numpy
-import base64
 
 #==============================================================================
 # -- convertCAD2PyTree --
@@ -392,28 +391,7 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
     #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
-  # build face list of edges
-  edgeOfFaces = {}
-  b = Internal.getNodeFromName1(t, 'EDGES')
-  for e in Internal.getZones(b):
-    edgeno = getNo(e)
-    edgeOfFaces[edgeno] = []
-    
-  b = Internal.getNodeFromName1(t, 'FACES')
-  for f in Internal.getZones(b):
-    faceno = getNo(f)
-    cad = Internal.getNodeFromName1(f, 'CAD')
-    edgeList = Internal.getNodeFromName1(cad, 'edgeList')
-    edgeList = edgeList[1]
-    for i in edgeList: edgeOfFaces[i].append(faceno)
-
-  b = Internal.getNodeFromName1(t, 'EDGES')
-  for e in Internal.getZones(b):
-    edgeno = getNo(e)
-    cad = Internal.getNodeFromName1(e, 'CAD')
-    faces = edgeOfFaces[edgeno]
-    n = numpy.array(faces, dtype=Internal.E_NpyInt)
-    Internal._createChild(cad, 'faceList', 'DataArray_t', value=n)
+  _updateEdgesFaceList__(t)
 
   return t
 
@@ -523,7 +501,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
   Internal._createChild(CAD, 'format', 'DataArray_t', value=fileFmt)
 
   # - Edges -
-  edges = OCC.meshAllEdges(hook, hmax, hausd)
+  edges = OCC.meshAllEdges(hook, hmax, hausd, -1)
 
   b = Internal.getNodeFromName1(t, 'EDGES')
   for c, e in enumerate(edges):
@@ -555,7 +533,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
   else:
     hList = [(hmax*0.8,hmax*1.2,hausd)]*len(faceList)
 
-  faces = OCC.meshAllFaces(hook, edges, True, faceList, hList)
+  faces = OCC.meshAllFacesTri(hook, edges, True, faceList, hList)
   
   for c, f in enumerate(faces):
     if f is None: continue # Failed face
@@ -575,28 +553,8 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
     #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
-  # build face list of edges
-  edgeOfFaces = {}
-  b = Internal.getNodeFromName1(t, 'EDGES')
-  for e in Internal.getZones(b):
-    edgeno = getNo(e)
-    edgeOfFaces[edgeno] = []
-    
-  b = Internal.getNodeFromName1(t, 'FACES')
-  for f in Internal.getZones(b):
-    faceno = getNo(f)
-    cad = Internal.getNodeFromName1(f, 'CAD')
-    edgeList = Internal.getNodeFromName1(cad, 'edgeList')
-    edgeList = edgeList[1]
-    for i in edgeList: edgeOfFaces[i].append(faceno)
-
-  b = Internal.getNodeFromName1(t, 'EDGES')
-  for e in Internal.getZones(b):
-    edgeno = getNo(e)
-    cad = Internal.getNodeFromName1(e, 'CAD')
-    faces = edgeOfFaces[edgeno]
-    n = numpy.array(faces, dtype=Internal.E_NpyInt)
-    Internal._createChild(cad, 'faceList', 'DataArray_t', value=n)
+  _updateEdgesFaceList__(t)
+  
   return t
 
 # the first version of parallel CAD split and TRI meshing
@@ -683,7 +641,7 @@ def _remeshTreeFromEdges(hook, t, edges):
   for edge in edges:
     edgeno = getNo(edge)
     aedge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
-    e = occ.meshOneEdge(hook, edgeno, -1, -1, aedge)
+    e = occ.meshOneEdge(hook, edgeno, -1, -1, -1, aedge)
     dedges[edgeno-1] = e
     cad = Internal.getNodeFromName1(edge, "CAD")
     z = Internal.createZoneNode('edge%03d'%(edgeno), e, [],
@@ -694,7 +652,7 @@ def _remeshTreeFromEdges(hook, t, edges):
     b[2][edgeno-1] = z
 
   # eval the impacted faces
-  faces = OCC.meshAllFaces(hook, dedges, metric=True, faceList=faceList, hList=hList)
+  faces = OCC.meshAllFacesTri(hook, dedges, metric=True, faceList=faceList, hList=hList)
   
   # replace faces in t
   pos, posi = getPosFaces(t)
@@ -712,7 +670,7 @@ def _remeshTreeFromEdges(hook, t, edges):
     b[2][cd] = z
   return None
 
-# modify hsize for faces
+# modify hsize for faces from hlist
 # IN: faceList: liste d'entiers start 1
 # IN: hList: liste de (hmin,hmax,hausd)
 def _modifyHSizeForFaces(t, faceList, hList):
@@ -735,8 +693,8 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
   for e in Internal.getZones(b):
     dedges.append(C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], e, api=2)[0])
   
-    # eval the impacted faces
-  faces = OCC.meshAllFaces(hook, dedges, metric=True, faceList=faceList, hList=hList)
+  # eval the impacted faces
+  faces = OCC.meshAllFacesTri(hook, dedges, metric=True, faceList=faceList, hList=hList)
   
   # replace faces in t
   pos, posi = getPosFaces(t)
@@ -755,6 +713,153 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
 
   return None
 
+def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1):
+  
+  edges = OCC.meshAllEdges(hook, hmax, hausd, N)
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  if b is None: b = Internal.newCGNSBase('EDGES', parent=t)
+
+  for c, e in enumerate(edges):
+    z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    # Conserve hook, name, type et no de l'edge dans la CAD
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
+    Internal._createChild(r, "type", "DataArray_t", value="edge")
+    Internal._createChild(r, "no", "Data_Array_t", value=(c+1))
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
+    b[2].append(z)
+  return None
+
+# build or update edges:FaceList
+def _updateEdgesFaceList__(t):
+
+  # build edgeOfFaces
+  edgeOfFaces = {}
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for e in Internal.getZones(b):
+    edgeno = getNo(e)
+    edgeOfFaces[edgeno] = []
+    
+  # update edgeOfFaces
+  b = Internal.getNodeFromName1(t, 'FACES')
+  for f in Internal.getZones(b):
+    faceno = getNo(f)
+    cad = Internal.getNodeFromName1(f, 'CAD')
+    edgeList = Internal.getNodeFromName1(cad, 'edgeList')
+    edgeList = edgeList[1]
+    for i in edgeList: edgeOfFaces[i].append(faceno)
+
+  # update EGDES:faceList
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for e in Internal.getZones(b):
+    edgeno = getNo(e)
+    cad = Internal.getNodeFromName1(e, 'CAD')
+    faces = edgeOfFaces[edgeno]
+    n = numpy.array(faces, dtype=Internal.E_NpyInt)
+    Internal._createUniqueChild(cad, 'faceList', 'DataArray_t', value=n)
+  return None
+
+# mesh all faces or a subset from edges U
+def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmax=-1, hausd=-1):
+
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  dedges = []
+  for z in Internal.getZones(b):
+    pf = Internal.getNodeFromName2(z, 'u')
+    if pf is None: print("u field missing in edges.")
+    e = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, api=2)[0]
+    dedges.append(e)
+
+  nbFaces = occ.getNbFaces(hook)
+  if faceList is None:
+    N = nbFaces // Cmpi.size
+    nstart = Cmpi.rank*N
+    nend = nstart+N
+    if Cmpi.rank == Cmpi.size-1: nend = nbFaces
+    faceList = range(nstart+1, nend+1)
+
+  if hList is None or hList == []:
+    if hausd < 0: hList = [(hmax,hmax,hausd)]*len(faceList)
+    else: hList = [(hmax*0.8,hmax*1.2,hausd)]*len(faceList)
+
+  faces = OCC.meshAllFacesTri(hook, dedges, metric, faceList, hList)
+
+  b = Internal.getNodeFromName1(t, 'FACES')
+  if b is None: b = Internal.newCGNSBase('FACES', parent=t)
+  for c, f in enumerate(faces):
+    if f is None: continue # Failed face
+    noface = faceList[c]
+    z = Internal.createZoneNode('face%03d'%(noface), f, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
+    # conserve hook, name, type
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="face%03d"%(noface))
+    Internal._createChild(r, "type", "DataArray_t", value="face")
+    Internal._createChild(r, "no", "DataArray_t", value=noface)
+    Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
+    Internal._createChild(r, "hsize", "DataArray_t", value=hList[c])
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
+    b[2].append(z)
+
+  _updateEdgesFaceList__(t)
+
+  return None
+
+# mesh all faces or a subset from edges U
+def _meshAllFacesStruct(hook, t, faceList=None):
+
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  dedges = []
+  for z in Internal.getZones(b):
+    pf = Internal.getNodeFromName2(z, 'u')
+    if pf is None: print("U field missing in edges.")
+    e = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, api=2)[0]
+    dedges.append(e)
+
+  nbFaces = occ.getNbFaces(hook)
+  if faceList is None:
+    N = nbFaces // Cmpi.size
+    nstart = Cmpi.rank*N
+    nend = nstart+N
+    if Cmpi.rank == Cmpi.size-1: nend = nbFaces
+    faceList = range(nstart+1, nend+1)
+
+  faces, noloct, nofacet = OCC.meshAllFacesStruct(hook, dedges, faceList)
+
+  b = Internal.getNodeFromName1(t, 'FACES')
+  if b is None: b = Internal.newCGNSBase('FACES', parent=t)
+  for c, f in enumerate(faces):
+    if f is None: continue # Failed face
+    noface = nofacet[c]
+    noloc = noloct[c]
+    if noloc == 1: zname = 'face%03d'%(noface)
+    else: zname = 'face%03d_%03d'%(noface, noloc)
+    z = Internal.createZoneNode(zname, f, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
+    # conserve hook, name, type
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="face%03d"%(noface))
+    Internal._createChild(r, "type", "DataArray_t", value="face")
+    Internal._createChild(r, "no", "DataArray_t", value=noface)
+    Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
+    Internal._createChild(r, "hsize", "DataArray_t", value=-1)
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
+    b[2].append(z)
+
+  _updateEdgesFaceList__(t)
+
+  return None
+
+#===========================================================================================
 # Build interpData with ghostcells from a CAD PyTree t and its
 # corresponding connectivity tree tc (in place)
 def _setInterpData(t, tc):

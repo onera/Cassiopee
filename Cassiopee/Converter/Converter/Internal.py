@@ -315,8 +315,8 @@ def setName(node, name):
         if name.dtype.char == 'S': node[0] = name.tobytes().decode()
         elif name.dtype.char == 'c': node[0] = name.tobytes().decode()
         else:
-            raise TypeError("setName: name of node must be a string(%s)"%(name.__repr__()[:min(len(name.__repr__()),60)]))
-    else: raise TypeError("setName: name of node must be a string(%s)"%(name.__repr__()[:min(len(name.__repr__()),60)]))
+            raise TypeError("setName: name of node must be a string (%s)."%(name.__repr__()[:min(len(name.__repr__()),60)]))
+    else: raise TypeError("setName: name of node must be a string (%s)."%(name.__repr__()[:min(len(name.__repr__()),60)]))
     return None
 
 def _setName(node, name):
