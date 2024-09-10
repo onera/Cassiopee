@@ -438,6 +438,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   if (error != xatlas::AddMeshError::Success)
   {
     xatlas::Destroy(atlas);
+    delete [] coords;
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getUV: can not create atlas.");
@@ -486,6 +487,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   }
 
   // cleanup
+  delete [] coords;
   delete [] connect;
   delete [] fvc;
 
@@ -545,7 +547,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   }
 
   PyObject* tpl = PyList_New(0);
-  PyList_Append(tpl, o); Py_DECREF(o);
+  PyList_Append(tpl, o); RELEASESHAREDU(o, fo, cno);
 
   if (atlas->width <= 0 || atlas->height <= 0) return tpl; 
 
@@ -757,7 +759,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       pg[ind] = imageData[3*ind+1];
       pb[ind] = imageData[3*ind+2];
     }
-    PyList_Append(tpl, o); Py_DECREF(o);
+    PyList_Append(tpl, o); RELEASESHAREDS(o, fo);
   }
   
   // Export images as a cartesian zone
@@ -784,7 +786,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       pg[ind] = imageData[3*ind+1];
       pb[ind] = imageData[3*ind+2];
     }
-    PyList_Append(tpl, o); Py_DECREF(o);
+    PyList_Append(tpl, o); RELEASESHAREDS(o, fo);
   }
 
   // End
