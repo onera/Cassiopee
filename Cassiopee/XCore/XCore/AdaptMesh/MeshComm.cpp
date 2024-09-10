@@ -150,7 +150,7 @@ E_Int *map_cell_graph(Mesh *M, E_Int *cwgts)
 
     E_Int *cmap = IntArray(M->nc);
 
-    if (M->pid == 0) puts("Partitionning graph...");
+    if (M->pid == 0) puts("Partitioning graph...");
 
     ret = SCOTCH_dgraphPart(&graph, M->npc, &strat, cmap);
     if (ret != 0) {
@@ -191,6 +191,16 @@ struct xyz {
 static
 E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 {
+    if (M->pid == 0) puts("Verifying mesh integrity...");
+
+    Mesh_set_orientation(M);
+
+    if (M->pid == 0) {
+        puts("Mesh integrity OK");
+        fflush(stdout);
+    }
+
+
     // Allocate contiguous count arrays
 
     E_Int count_size = M->npc;
