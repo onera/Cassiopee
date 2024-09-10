@@ -84,7 +84,7 @@ namespace K_MESH
       _pgs = rhs._pgs;
       _faces = rhs._faces;
       _nb_faces = rhs._nb_faces;
-      if (_triangles != nullptr) delete _triangles;
+      if (_triangles != nullptr) delete[] _triangles;
       _triangles = rhs._triangles;
 
       return *this;
@@ -1676,7 +1676,7 @@ namespace K_MESH
     E_Int triangulate
     (const TriangulatorType& dt, const crd_t& crdi) const
     {
-      if (_triangles != nullptr) delete _triangles;
+      if (_triangles != nullptr) delete[] _triangles;
 
       _pgs->updateFacets();
 
@@ -1730,7 +1730,7 @@ namespace K_MESH
     template <typename crd_t>
     E_Int cvx_triangulate(const crd_t& crd) const
     {
-      if (_triangles != nullptr) delete _triangles;
+      if (_triangles != nullptr) delete[] _triangles;
 
       _pgs->updateFacets();
 

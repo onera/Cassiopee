@@ -238,7 +238,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
          posx2 == -1 || posy2 == -1 || posz2 == -1)
     {
       PyErr_SetString(PyExc_TypeError,"lineGenerate: coordinates not found.");
-      delete f1; delete f2; delete cn2; return NULL;
+      delete f2; delete f1; delete cn1; return NULL;
     }
     posx1++; posy1++; posz1++;
     posx2++; posy2++; posz2++;
@@ -331,7 +331,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
       }
     }
 
-    delete f1; delete f2;
+    delete f2; delete f1; delete cn1;
     PyObject* tpl = K_ARRAY::buildArray(*coord, varString1, 
                                         *connect, -1, eltType);
     delete coord; delete connect;
