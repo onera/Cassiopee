@@ -18,31 +18,36 @@
 */
 #include "mem.h"
 
-void *xmalloc(size_t nbytes, const char *file, E_Int line)
+void *xmalloc(E_Int nbytes, const char *file, E_Int line)
 {
-  assert(nbytes >= 0);
-  void *ptr = malloc(nbytes);
-  if (ptr == NULL && nbytes > 0) {
-    fprintf(stderr, "\n    Failed to allocate %.2f MB in file %s, line " SF_D_ "\n\n",
-      nbytes/1000000., file, line);
-    assert(0);
-    //abort();
-  }
-  return ptr;
+    if (nbytes < 0) {
+        fprintf(stderr, "trying to allocate a negative amount (%.2f) of bytes in file %s:%d\n",
+            nbytes/1000000.f, file, line);
+        abort();
+    }
+    void *ptr = malloc(nbytes);
+    if (ptr == NULL && nbytes > 0) {
+        fprintf(stderr, "\n    Failed to allocate %.2f MB in file %s, line " SF_D_ "\n\n",
+            nbytes/1000000., file, line);
+        abort();
+    }
+    return ptr;
 }
 
-void *xcalloc(size_t count, size_t size, const char *file, E_Int line)
+void *xcalloc(E_Int count, E_Int size, const char *file, E_Int line)
 {
-  assert(count >= 0);
-  assert(size >= 0);
-  void *ptr = calloc(count, size);
-  if (ptr == NULL && size > 0) {
-    fprintf(stderr, "\n    Failed to allocate %.2f MB in file %s, line " SF_D_ "\n\n",
-      count*size/1000000., file, line);
-    assert(0);
-    //abort();
-  }
-  return ptr;
+    if (count < 0) {
+        fprintf(stderr, "xcalloc: count (%d) is negative in file %s:%d\n", count, file, line);
+        abort();
+    }
+
+    void *ptr = calloc(count, size);
+    if (ptr == NULL && size > 0) {
+        fprintf(stderr, "\n    Failed to allocate %.2f MB in file %s, line " SF_D_ "\n\n",
+            count*size/1000000., file, line);
+        abort();
+    }
+    return ptr;
 }
 
 void xfree(void *ptr, const char *file, E_Int line)
@@ -53,16 +58,20 @@ void xfree(void *ptr, const char *file, E_Int line)
   }
 }
 
-void *xresize(void *ptr, size_t nbytes, const char *file, E_Int line)
+void *xresize(void *ptr, E_Int nbytes, const char *file, E_Int line)
 {
-  //assert(ptr);
-  assert(nbytes >= 0);
-  ptr = realloc(ptr, nbytes);
-  if (ptr == NULL && nbytes > 0) {
-    fprintf(stderr, "\n    Failed to allocate %.2f MB in file %s, line " SF_D_ "\n\n",
-      nbytes/1000000., file, line);
-    assert(0);
-    //abort();
-  }
-  return ptr;
+
+    if (nbytes < 0) {
+        fprintf(stderr, "trying to resize to a negative amount (%.2f) of bytes in file %s:%d\n",
+            nbytes/1000000.f, file, line);
+        abort();
+    }
+
+    ptr = realloc(ptr, nbytes);
+    if (ptr == NULL && nbytes > 0) {
+        fprintf(stderr, "\n    Failed to allocate %.2f MB in file %s, line " SF_D_ "\n\n",
+            nbytes/1000000., file, line);
+        abort();
+    }
+    return ptr;
 }
