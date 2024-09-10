@@ -109,9 +109,9 @@ void DataDL::renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
     double* y = zonep->y;
     double* z = zonep->z;
     E_Int eltType0 = zonep->eltType[0];
-
-    if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) 
-    { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+    bool is1D = false;
+    if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
+    if (is1D) { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
 #include "selection.h"
 
     // glCallList(zonep->_DLmesh);
@@ -129,7 +129,7 @@ void DataDL::renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
     glCallList(zImpl->_DLmesh);
 
     // For BARS, NODE, 1D NGONS: display node
-    if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) 
+    if (is1D) 
     {
         glBegin(GL_QUADS);
         if (zonep->blank == 0) 

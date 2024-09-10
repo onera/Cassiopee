@@ -434,6 +434,7 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
     else: # geometrique
         if abs(h2-h1) < 1.e-6: # constant step
             N = int(T.kround(L / h1))
+            N = max(N, 2)
             h = L/N
             a = G.cart((0,0,0), (h,1,1), (N,1,1))
         else:
@@ -441,7 +442,8 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
             if verbose > 0: print("Info: distrib2: geometric progression: %g"%q)
             N = numpy.log(h2/h1) / numpy.log(q)
             N = int(T.kround(N))+2
-            if N <= 2: print('Error: distrib2: not enough point to remesh.')
+            #if N <= 2: print('Error: distrib2: not enough point to remesh.')
+            N = max(N, 2)
             a = G.cartr1((0,0,0), (h1,1,1), (q,1,1), (N,1,1))
         if normalized: a = D.getDistribution(a)
         return a

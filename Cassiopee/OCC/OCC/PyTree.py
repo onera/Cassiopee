@@ -8,7 +8,7 @@ try:
     import Generator.PyTree as G
     import Converter.Internal as Internal
     import Converter.Mpi as Cmpi
-except ImportError: 
+except ImportError:
   raise ImportError("OCC.PyTree: requires Converter module.")
 
 __version__ = OCC.__version__
@@ -344,10 +344,7 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
   t = C.newPyTree(['EDGES', 'FACES'])
 
   # Add CAD top container containing the CAD file name
-  fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
-  CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
-  Internal._createChild(CAD, 'file', 'DataArray_t', value=fileName)
-  Internal._createChild(CAD, 'format', 'DataArray_t', value=fileFmt)
+  _addCADcontainer(hook, t)
 
   # Edges
   if hmax > 0.: edges = OCC.occ.meshGlobalEdges1(hook, hmax)
@@ -495,10 +492,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
   t = C.newPyTree(['EDGES', 'FACES'])
 
   # Add CAD top container containing the CAD file name
-  fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
-  CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
-  Internal._createChild(CAD, 'file', 'DataArray_t', value=fileName)
-  Internal._createChild(CAD, 'format', 'DataArray_t', value=fileFmt)
+  _addCADcontainer(hook, t)
 
   # - Edges -
   edges = OCC.meshAllEdges(hook, hmax, hausd, -1)
@@ -601,11 +595,13 @@ def _remeshTreeFromEdges(hook, t, edges):
   for edge in edges:
     cad = Internal.getNodeFromName1(edge, 'CAD')
     #hook = Internal.getNodeFromName1(cad, 'hook')[1]
-    facel = Internal.getNodeFromName1(cad, 'faceList')[1]
-    facel = list(facel)
-    faceList.update(facel)
+    facel = Internal.getNodeFromName1(cad, 'faceList')
+    if facel is not None:
+      facel = facel[1]
+      facel = list(facel)
+      faceList.update(facel)
   faceList = list(faceList)
-
+  
   # build hList from CAD/hsize
   hList = []
   b = Internal.getNodeFromName1(t, 'FACES')
@@ -655,8 +651,8 @@ def _remeshTreeFromEdges(hook, t, edges):
   faces = OCC.meshAllFacesTri(hook, dedges, metric=True, faceList=faceList, hList=hList)
   
   # replace faces in t
-  pos, posi = getPosFaces(t)
   b = Internal.getNodeFromName1(t, 'FACES')
+  if b is not None: pos, posi = getPosFaces(t)
   for c, f in enumerate(faceList):
     cd = pos[f]
     zp = b[2][cd]
@@ -713,6 +709,16 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
 
   return None
 
+# add CAD container to tree (file and format)
+def _addCADcontainer(hook, t):
+  # Add CAD top container containing the CAD file name
+  fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
+  CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
+  Internal._createChild(CAD, 'file', 'DataArray_t', value=fileName)
+  Internal._createChild(CAD, 'format', 'DataArray_t', value=fileFmt)
+  return None
+
+# mesh all edges
 def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1):
   
   edges = OCC.meshAllEdges(hook, hmax, hausd, N)
