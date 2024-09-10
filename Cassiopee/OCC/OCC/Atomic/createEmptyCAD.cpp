@@ -19,10 +19,10 @@
 
 #include "occ.h"
 #include "TopoDS_Shape.hxx"
+#include "TopoDS_Compound.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
-
 
 // ============================================================================
 /* Convert CAD to OpenCascade hook */
@@ -33,6 +33,8 @@ PyObject* K_OCC::createEmptyCAD(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "ss", &fileName, &fileFmt)) return NULL;
 
   TopoDS_Shape* shp = new TopoDS_Shape(); // empty shape
+  //TopoDS_Shape* shp = new TopoDS_Compound(); // empty shape
+  //TopoDS_Shape* shp = NULL;
 
   // Extract surfaces
   TopTools_IndexedMapOfShape* surfs = new TopTools_IndexedMapOfShape();

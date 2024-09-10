@@ -529,9 +529,11 @@ class Node:
                 zones = Internal.getNodesFromType1(pid, 'Zone_t')
                 bases = CTK.t[2][1:]
                 active = []
+                dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
                 for z in zones:
                     zoneName = pid[0]+Internal.SEP1+z[0]
-                    i = CPlot.getCPlotNumber(CTK.t, pid[0], z[0])
+                    #i = CPlot.getCPlotNumber(CTK.t, pid[0], z[0])
+                    i = dnz[pid[0]][z[0]]
                     active.append((i, zoneName))
                 CPlot.setZoneNames(active)
                 (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -602,13 +604,16 @@ class Node:
             nodes = Internal.getNodesFromType1(pid, 'Zone_t')
             activated = []
             s = -1
+            dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
             if nodes != []:
-                noz = CPlot.getCPlotNumber(CTK.t, baseName, nodes[0][0])
+                #noz = CPlot.getCPlotNumber(CTK.t, baseName, nodes[0][0])
+                noz = dnz[baseName][nodes[0][0]]
                 s = CPlot.getActiveStatus(noz)
                 if s == 0: s = 1
                 else: s = 0
             for z in nodes:
-                noz = CPlot.getCPlotNumber(CTK.t, baseName, z[0])
+                #noz = CPlot.getCPlotNumber(CTK.t, baseName, z[0])
+                noz = dnz[baseName][z[0]]
                 activated.append( (noz, s) )
             if s == 0:
                 CTK.TXT.insert('START', 'Base '+baseName+' deactivated.\n')
@@ -626,9 +631,11 @@ class Node:
 
             activated = []
             active = -2
+            dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
             for z in zones:
                 base, c = Internal.getParentOfNode(CTK.t, z)
-                noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
+                #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
+                noz = dnz[base[0]][z[0]]
                 if active == -2:
                     active = CPlot.getActiveStatus(noz)
                 if active == 1: activated.append( (noz, 0) )
@@ -696,15 +703,18 @@ class Node:
             baseName = pid[0]
             nodes = Internal.getNodesFromType1(pid, 'Zone_t')
             s = 1
+            dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
             if nodes != []:
-                noz = CPlot.getCPlotNumber(CTK.t, baseName, nodes[0][0])
+                #noz = CPlot.getCPlotNumber(CTK.t, baseName, nodes[0][0])
+                noz = dnz[baseName][nodes[0][0]]
                 s = CPlot.getSelectedStatus(noz)
                 if s == 0: s = 1
                 else: s = 0
             if clear: CPlot.unselectAllZones(); s = 1 # force select
             selected = []
             for z in nodes:
-                noz = CPlot.getCPlotNumber(CTK.t, baseName, z[0])
+                #noz = CPlot.getCPlotNumber(CTK.t, baseName, z[0])
+                noz = dnz[baseName][z[0]]
                 selected.append((noz, s))
             CPlot.setSelectedZones(selected)
             if s == 1:
@@ -881,17 +891,20 @@ class Node:
 
                 selected = []
                 s = 1
+                dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
                 if zones != []:
                     z = zones[0]
                     base, c = Internal.getParentOfNode(CTK.t, z)
-                    noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
+                    #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
+                    noz = dnz[base[0]][z[0]]
                     s = CPlot.getSelectedStatus(noz)
                     if s == 0: s = 1
                     else: s = 0
                 if clear: s = 1 # force select
                 for z in zones:
                     base, c = Internal.getParentOfNode(CTK.t, z)
-                    noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
+                    #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
+                    noz = dnz[base[0], z[0]]
                     selected.append((noz, s))
                 if clear: CPlot.unselectAllZones()
                 CPlot.setSelectedZones(selected)

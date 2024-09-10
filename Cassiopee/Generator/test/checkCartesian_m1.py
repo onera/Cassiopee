@@ -7,7 +7,9 @@ import Generator.PyTree as G
 import Generator.IBM as G_IBM
 import Distributor2.PyTree as D2
 import Converter.Mpi as Cmpi
-import random
+import os
+
+LOCAL = test.getLocal()
 
 if Cmpi.rank==0:
     a = G.cart((0.,0.,0.), (0.1,0.1,1), (40,40,40))
@@ -16,8 +18,8 @@ if Cmpi.rank==0:
     
     t       = T.splitNParts(t, 10)
     t,stats = D2.distribute(t, 2)
-    C.convertPyTree2File(t,'t_TMP.cgns')
-t=Cmpi.convertFile2PyTree('t_TMP.cgns',proc=Cmpi.rank)
+    C.convertPyTree2File(t,LOCAL+'/t_TMP.cgns')
+t=Cmpi.convertFile2PyTree(LOCAL+'/t_TMP.cgns',proc=Cmpi.rank)
 
 ##Test 1 - Cartesian
 cartesian=G_IBM.checkCartesian(t)
@@ -77,3 +79,7 @@ if Cmpi.rank==0:
     test.testT(t,4)
     print('Is Cartesian::',cartesian,isCartesian)
 #C.convertPyTree2File(t,'t_test4.cgns')
+
+del t
+del tsave
+if Cmpi.rank==0: os.remove(LOCAL+'/t_TMP.cgns')

@@ -300,7 +300,8 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
         list_of_streamlines = list_of_streamlines2;
     }
     */
-
+    
+    delete [] varStringOut;
     for (unsigned int nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
     for (unsigned int nos = 0; nos < obju.size(); nos++)

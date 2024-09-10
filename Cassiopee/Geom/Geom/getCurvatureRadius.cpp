@@ -87,13 +87,13 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < npts; i++)
   {
     c = curv[i];
-    if ( K_FUNC::fEqualZero(c) == true && c >= 0)
+    if ( K_FUNC::fEqualZero(c) && c >= 0)
       rad[i] = K_CONST::E_MAX_FLOAT;
-    else if ( K_FUNC::fEqualZero(c) == true && c <= 0)
+    else if ( K_FUNC::fEqualZero(c) && c <= 0)
       rad[i] = -K_CONST::E_MAX_FLOAT;
     else rad[i] = 1./c;
   }
   PyObject* tpl = K_ARRAY::buildArray(rad, "radius", npts, 1, 1);
-  delete &rad;
+  delete f; delete radp;
   return tpl;
 }     

@@ -501,7 +501,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float R_gas        = Pinf/(Roinf*Tinf);
 
 
-  
+  E_Int bctypeLocal; 
   int   motionType      = (int) param_real[MotionType];
   //[AJ] Keep for now
   //E_Float transpeed[3]    = {param_real[TransSpeed],param_real[TransSpeed+1],param_real[TransSpeed+2]};
@@ -572,6 +572,15 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* alphasbeta_linePtr = NULL;
   E_Float* index_linePtr = NULL;
 
+  // bctype = 3 for all Musker, SA, MuskerLin, & SALin to avoid adding
+  // more bctype conditions in if statements.
+  // bctypeLocal will be kept for a flag switch for SA (32), MuskerLin (331), & SALin (332).
+  // These are in development and will be added in the near future.
+  bctypeLocal = bctype;
+  if ( bctypeLocal == 32 || bctypeLocal == 331 || bctypeLocal == 332){
+    bctype=3;
+  }
+  
   if (motionType==3){
     E_Int shift_var=0;
     // log, Musker, TBLE, MuskerMob, Pohlhausen, Thwaites - also have utau & yplus - need the shift

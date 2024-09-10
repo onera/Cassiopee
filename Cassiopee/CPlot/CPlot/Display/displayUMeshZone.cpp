@@ -91,9 +91,11 @@ void Data::displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
   E_Float nz = 1./_numberOfUnstructZones;
 #include "meshStyles.h"
 
-  E_Int eltType0 = zonep->eltType[0]; 
-  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) 
-  { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+  E_Int eltType0 = zonep->eltType[0];
+  bool is1D = false;
+  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
+  
+  if (is1D) { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
       
 #include "selection.h"
     
@@ -120,7 +122,7 @@ void Data::displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 #include "displayUMeshZone.h"
 
   // For BARS or NODES or 1D NGONS: display node
-  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0))
+  if (is1D)
   {
     glBegin(GL_QUADS);
     if (zonep->blank == 0)

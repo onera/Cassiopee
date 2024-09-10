@@ -547,6 +547,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   }
 
   delete [] varString;
+  delete [] varStringc;
 
   return l;
 }

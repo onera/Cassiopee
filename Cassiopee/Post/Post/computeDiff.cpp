@@ -318,7 +318,9 @@ PyObject* K_POST::computeDiff(PyObject* self, PyObject* args)
       }      
     }
     RELEASESHAREDB(res, array, f, cn);
-    return K_ARRAY::buildArray(*diff, var, ni,nj,nk);
+    PyObject* tpl = K_ARRAY::buildArray(*diff, var, ni, nj, nk);
+    delete diff;
+    return tpl;
   } // fin structure
   else // non structure
   {

@@ -97,8 +97,10 @@ void Data::displaySMeshZone(StructZone* zonep, E_Int zone)
   if (ptrState->dim == 2) nk = 1;
   E_Int nij = ni*nj;
   
-  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) 
-  { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+  bool is1D = false;
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) is1D = true;
+
+  if (is1D) { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
 
 #include "selection.h"
  
@@ -112,7 +114,7 @@ void Data::displaySMeshZone(StructZone* zonep, E_Int zone)
 #include "displaySMeshZone.h"
 
   // Zones 1D: on ajoute les noeuds
-  if (nj*nk == 1 || ni*nk == 1 || ni*nj == 1)
+  if (is1D)
   {
     glBegin(GL_QUADS);
     if (zonep->blank == 0)

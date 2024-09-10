@@ -77,6 +77,7 @@ PyObject *K_GENERATOR::getFaceCentersAndAreas(PyObject *self, PyObject *args)
   PyList_Append(out, (PyObject *)fareas);
   Py_DECREF(fcenters);
   Py_DECREF(fareas);
+  RELEASESHAREDU(arr, f, cn);
 
   return out;
 }

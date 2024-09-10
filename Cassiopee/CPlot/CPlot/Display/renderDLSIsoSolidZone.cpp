@@ -43,13 +43,16 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
   // Blending
   blend = 1.;
 #include "selection2.h"
+  bool is1D = false;
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) is1D = true;
+  
 
 #ifdef __SHADERS__
   int curr = _shaders.currentShader();
   if (curr != 0) _shaders[curr]->setUniform("blend", (float)blend);
   glColor4f(0.,0.,0., blend); // pour imposer blend
 
-  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
+  if (is1D)
   {
     if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)0); // impose isoLight off on 1D meshes
   }
@@ -58,7 +61,7 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
   glCallList(zoneImpl->_DLiso);
       
 #ifdef __SHADERS__
-  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
+  if (is1D)
   {
     if (ptrState->isoLight == 1 && ptrState->dim == 3)
     {
@@ -96,6 +99,8 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
   // Blending
   blend = 1.;
 #include "selection2.h"
+  bool is1D = false;
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) is1D = true;
 
 #ifdef __SHADERS__
   int curr = _shaders.currentShader();
@@ -108,7 +113,7 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
   glCallList(zoneImpl->_DLiso);
       
   // Pour les lignes
-  if (nij == 1 || ni*nk == 1 || nj*nk == 1)
+  if (is1D)
   {
     glBegin(GL_LINES);
     E_Int nie, nje, nke;

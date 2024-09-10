@@ -39,6 +39,21 @@
 // ultimate (best) functions
 
 // ============================================================================
+// Return uniform distribution of NbPoints on edge
+// ============================================================================
+E_Int __getUniform(const TopoDS_Edge& E, E_Int nbPoints, E_Float*& ue)
+{
+  BRepAdaptor_Curve C0(E);
+  GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
+  Standard_Real u0 = geomAdap.FirstParameter();
+  Standard_Real u1 = geomAdap.LastParameter();
+  GCPnts_UniformAbscissa param(geomAdap, int(nbPoints), u0, u1);
+  ue = new E_Float [nbPoints];
+  for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
+  return 0;
+}
+
+// ============================================================================
 // Return the nbPoints and ue for meshing E regular with hmax
 // ============================================================================
 E_Int __getParamHmax(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints, E_Float*& ue)
@@ -49,7 +64,7 @@ E_Int __getParamHmax(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints, E_Floa
   Standard_Real u1 = geomAdap.LastParameter();
   if (BRep_Tool::Degenerated(E))
   { 
-    nbPoints=2;
+    nbPoints = 2;
     ue = new E_Float [nbPoints];
     for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
     return 1; 
@@ -155,9 +170,8 @@ void geom3(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& u
   if (delta >= 0) delta = sqrt(delta);
 
   E_Float r = ((u1-u0-h0)+delta)/(2*(u1-u0));
-  E_Float r1 = ((u1-u0-h0)-delta)/(2*(u1-u0));
-  
-  printf("r=%f\n", r);
+  //E_Float r1 = ((u1-u0-h0)-delta)/(2*(u1-u0));
+  //printf("r=%f\n", r);
   E_Float a = log(r);
   if (a > 1.e-12) // r!=1
   {
@@ -488,17 +502,19 @@ E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
 
 // ============================================================================
 /* Mesh one edge of CAD, return STRUCT
-   hmax
-   hausd
-   hmax + hausd
-   external param ue
+      hmax
+   or hausd
+   or hmax + hausd
+   or N
+   or external param ue
+   not used if hmax=-1, hausd=-1, N=-1, ue=None
  */
 // ============================================================================
 PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Int i;
-  E_Float hmax; E_Float hausd; PyObject* externalEdge;
-  if (!PYPARSETUPLE_(args, O_ I_ RR_ O_, &hook, &i, &hmax, &hausd, &externalEdge)) return NULL;
+  E_Float hmax; E_Float hausd; E_Int N; PyObject* externalEdge;
+  if (!PYPARSETUPLE_(args, O_ I_ RR_ I_ O_, &hook, &i, &hmax, &hausd, &N, &externalEdge)) return NULL;
     
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -514,7 +530,18 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   E_Int nbPoints = 0; // nbre of points of discretized edge
   E_Float* ue; // edge param
 
-  if (hmax > 0 && hausd < 0 && externalEdge == Py_None) // pure hmax
+  if (N > 0 && externalEdge == Py_None)
+  {
+    nbPoints = N;
+    __getUniform(E, nbPoints, ue);
+    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    __meshEdge(E, nbPoints, ue, *f, false);
+    delete [] ue;
+    RELEASESHAREDS(o, f);
+    return o;
+  }
+  else if (hmax > 0 && hausd < 0 && externalEdge == Py_None) // pure hmax
   {
     __getParamHmax(E, hmax, nbPoints, ue);
     PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);

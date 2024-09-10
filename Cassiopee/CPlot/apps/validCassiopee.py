@@ -23,11 +23,8 @@ except: isMpi = False
 # Regexprs
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
-regFailedLSAN = re.compile('ERROR: LeakSanitizer: detected memory leaks')
-regError = re.compile('Error')
-regErreur = re.compile('Erreur') # because of french system
-regAbort = re.compile('Aborted')
-regSegmentation = re.compile('Segmentation')
+regError = re.compile("|".join(['Error', 'Erreur', 'Aborted', 'Abandon', 'Segmentation', 'ERROR: AddressSanitizer']), re.UNICODE)
+regLeakError = re.compile('ERROR: LeakSanitizer')
 separator = ':'
 separatorl = separator+' '
 expTest1 = re.compile("_t[0-9]+") # normal tests
@@ -637,11 +634,12 @@ def runSingleUnitaryTest(no, module, test):
     else:
         # Unix - le shell doit avoir l'environnement cassiopee
         #sformat = r'"real\t%E\nuser\t%U\nsys\t%S"'
-        sanitizerFlag = '-s' if any(USE_ASAN) else ''
         if m1 is None:
+            sanitizerFlag = '' # TODO LSAN always return a seg fault in parallel
             cmd = 'cd %s; time kpython %s -n 2 -t %d %s'%(
                 path, sanitizerFlag, nthreads//2, test)
         else:
+            sanitizerFlag = '-s' if any(USE_ASAN) else ''
             cmd = 'cd %s; time kpython %s -t %d %s'%(
                 path, sanitizerFlag, nthreads, test)
 
@@ -659,14 +657,11 @@ def runSingleUnitaryTest(no, module, test):
         print(output)
         
         # Recupere success/failed
-        success = 1
-        if regFailedLSAN.search(output) is not None: success = -1 # always check first
-        if regDiff.search(output) is not None: success = 0
-        if regFailed.search(output) is not None: success = 0
-        if regError.search(output) is not None: success = 0
-        if regErreur.search(output) is not None: success = 0
-        if regAbort.search(output) is not None: success = 0
-        if regSegmentation.search(output) is not None: success = 0
+        success = 0
+        if regLeakError.search(output) is not None: success = 2 # always check first
+        if regDiff.search(output) is not None: success = 1
+        if regFailed.search(output) is not None: success = 1
+        if regError.search(output) is not None: success = 1
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -694,11 +689,11 @@ def runSingleUnitaryTest(no, module, test):
             os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
             os.kill(PROCESS.pid, signal.SIGKILL)
         print('\nError: process TIMED OUT (killed).')
-        success = 0; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+        success = 3; CPUtime = 'Unknown'; coverage='0%'
 
     except Exception as e:
         print(e)
-        success = 0; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+        success = 1; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     # update le fichier .time (si non present)
     fileTime = '%s/%s/%s/%s/%s.time'%(MODULESDIR['LOCAL'][module], module, 'test', DATA, testr[0])
@@ -713,8 +708,9 @@ def runSingleUnitaryTest(no, module, test):
         tag = readStar(fileStar)
 
     # update status
-    if success == 1: status = 'OK'
-    elif success == -1: status = 'FAILEDMEM'
+    if success == 0: status = 'OK'
+    elif success == 2: status = 'MEMLEAK'
+    elif success == 3: status = 'TIMEOUT'
     else: status = 'FAILED'
     s = buildString(module, test, CPUtime, coverage, status, tag)
     regTest = re.compile(' '+test+' ')
@@ -771,13 +767,11 @@ def runSingleCFDTest(no, module, test):
         print(output)
 
         # Recupere success/failed
-        success = True
-        if regDiff.search(output) is not None: success = False
-        if regFailed.search(output) is not None: success = False
-        if regError.search(output) is not None: success = False
-        if regErreur.search(output) is not None: success = False
-        if regAbort.search(output) is not None: success = False
-        if regSegmentation.search(output) is not None: success = False
+        success = 0
+        if regLeakError.search(output) is not None: success = 2 # always check first
+        if regDiff.search(output) is not None: success = 1
+        if regFailed.search(output) is not None: success = 1
+        if regError.search(output) is not None: success = 1
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
@@ -798,11 +792,11 @@ def runSingleCFDTest(no, module, test):
             os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
             os.kill(PROCESS.pid, signal.SIGKILL)
         print('\nError: process TIMED OUT (killed).')
-        success = 0; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+        success = 3; CPUtime = 'Unknown'; coverage='0%'
 
     except Exception as e:
         print(e)
-        success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+        success = 1; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     # update le fichier .time (si non present)
     fileTime = '%s/%s/%s.time'%(path, DATA, test)
@@ -817,7 +811,9 @@ def runSingleCFDTest(no, module, test):
         tag = readStar(fileStar)
 
     # update status
-    if success: status = 'OK'
+    if success == 0: status = 'OK'
+    elif success == 2: status = 'MEMLEAK'
+    elif success == 3: status = 'TIMEOUT'
     else: status = 'FAILED'
     s = buildString(module, test, CPUtime, coverage, status, tag)
     regTest = re.compile(' '+test+' ')
@@ -998,7 +994,7 @@ def buildTestList(loadSession=False, modules=[]):
                 if testArr.size:
                     # Args are CPU time, Coverage, Status, and Tag if present
                     if ncolumns == 8:
-                        if testArr[0][6].strip() in ['OK', 'FAILED', 'FAILEDMEM', '...']:
+                        if testArr[0][6].strip() in ['OK', 'FAILED', 'MEMLEAK', 'TIMEOUT', '...']:
                             args = testArr[0][[2,5,6,7]]
                         else: args = testArr[0][[2,5,7,6]]
                     else: args = testArr[0][[2,5,6]]
@@ -1042,15 +1038,15 @@ def filterTestList(event=None):
                 if filtr[0] == '!':
                     if tmpFiltr == 'SEQ': outFilters.add('&m.$')
                     elif tmpFiltr == 'DIST': outFilters.add('&t.$')
-                    elif tmpFiltr == 'RUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
-                    elif tmpFiltr == 'UNRUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
+                    elif tmpFiltr == 'RUN': outFilters.update(['&/!FAILED', '&/!MEMLEAK', '&/!TIMEOUT', '&/!OK'])
+                    elif tmpFiltr == 'UNRUN': outFilters.update(['/FAILED', '/MEMLEAK', '/TIMEOUT', '/OK'])
                     elif tmpFiltr == 'TAG': outFilters.add(r'@^(?![\*,r,g,b])')
                     elif tmpFiltr == 'UNTAG': outFilters.add(r'@[\*,r,g,b]')
                 else:
                     if tmpFiltr == 'SEQ': outFilters.add('&t.$')
                     elif tmpFiltr == 'DIST': outFilters.add('&m.$')
-                    elif tmpFiltr == 'RUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
-                    elif tmpFiltr == 'UNRUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
+                    elif tmpFiltr == 'RUN': outFilters.update(['/FAILED', '/MEMLEAK', '/TIMEOUT', '/OK'])
+                    elif tmpFiltr == 'UNRUN': outFilters.update(['&/!FAILED', '&/!MEMLEAK', '&/!TIMEOUT', '&/!OK'])
                     elif tmpFiltr == 'TAG': outFilters.add(r'@[\*,r,g,b]')
                     elif tmpFiltr == 'UNTAG': outFilters.add(r'@^(?![\*,r,g,b])')
             else: outFilters.add(filtr)
@@ -1151,7 +1147,7 @@ def selectAll(event=None):
     displayProgress(0, total, remaining, 0.)
 
 #==============================================================================
-# Affiche les test FAILED ou FAILEDMEM dans la listbox
+# Affiche les test FAILED ou MEMLEAK dans la listbox
 #==============================================================================
 def showFilter(filter='FAILED'):
     Listbox.delete(0, 'end')
@@ -1730,8 +1726,10 @@ if __name__ == '__main__':
         #fileTab.add_command(label='Notify Ready for commit', command=notifyValidOK)
         fileTab.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
         viewTab.add_command(label='Show FAILED', command=showFilter)
-        showFilterWithArgs = partial(showFilter, "FAILEDMEM")
-        viewTab.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
+        viewTab.add_command(label='Show MEMLEAK',
+                            command=partial(showFilter, "MEMLEAK"))
+        viewTab.add_command(label='Show TIMEOUT',
+                            command=partial(showFilter, "TIMEOUT"))
         viewTab.add_command(label='Show ALL tests', command=showAll)
         viewTab.add_separator()
         viewTab.add_command(label='Show run cases', command=showRunCases)
@@ -1805,7 +1803,7 @@ if __name__ == '__main__':
         filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
           '1) White-spaced: ^cylinder ^sphere\n'\
           '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
-          '3) Status filter using /: /FAILED /FAILEDMEM   or simply   /F\n'\
+          '3) Status filter using /: /FAILED /MEMLEAK   or simply   /F\n'\
           '4) Coverage filter using %: %100\n'\
           '5) Tag symbol filter using @: @r   to catch red-coloured cases\n'\
           '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
@@ -1828,7 +1826,7 @@ if __name__ == '__main__':
         Threads = TK.StringVar(Master)
         TextThreads = TK.Entry(Frame, textvariable=Threads, background='White',
                                width=3)
-        TextThreads.grid(row=1, column=9, sticky=TK.EW)
+        TextThreads.grid(row=1, column=9, columnspan=2, sticky=TK.EW)
         TextThreads.bind('<Return>', setThreads)
         TextThreads.bind('<KP_Enter>', setThreads)
         getThreads()

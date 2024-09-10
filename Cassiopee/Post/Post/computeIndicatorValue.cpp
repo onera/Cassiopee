@@ -298,10 +298,16 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
   vector<char*> vars;
   K_ARRAY::extractVars(structVarString2[0], vars); 
   PyObject* tpl = K_ARRAY::buildArray(*field, vars[0], *cn, -1, eltType, true);
+  
+  for (E_Int v = 0; v < nzones; v++) delete boxes[v];
   delete field;  RELEASESHAREDB(res, octree, f, cn); 
+  for (size_t i = 0; i < vars.size(); i++) delete[] vars[i];
+  vars.clear();
+  
   for (E_Int nos = 0; nos < nzones; nos++)
     RELEASESHAREDS(objst[nos], structF[nos]);  
   for (E_Int nos = 0; nos < nzones2; nos++)
-    RELEASESHAREDS(objst2[nos], structF2[nos]);  
+    RELEASESHAREDS(objst2[nos], structF2[nos]);
+    
   return tpl;
 }

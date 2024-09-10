@@ -92,6 +92,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
   if (err)
   {
     std::cout << "adaptCells_mpi : input is not a dictionary" << std::endl;
+    delete f; delete cn;
     return nullptr;
   }
 
@@ -102,7 +103,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
   DELAUNAY::Triangulator dt;
   bool has_been_reversed;
   err = ngon_type::reorient_skins(dt, crd, ngi, has_been_reversed); //orientate normal outwards
-  if (err) return nullptr;
+  if (err) { delete f; delete cn; return nullptr; }
 
   for (auto& transfo_map : transfo_to_list) //loop over each transformation (match, transla, rota, etc)
   {
@@ -157,7 +158,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
   ngi.export_to_array(ng_arr);
   
   PyObject* m = K_ARRAY::buildArray(crd, varString, ng_arr, 8, "NGON", false);
-
+  delete f; delete cn;
   return m;
 }
 

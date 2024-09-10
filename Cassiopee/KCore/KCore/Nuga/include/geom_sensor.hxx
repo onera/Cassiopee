@@ -141,7 +141,7 @@ bool geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
   //points_to_cell gives the number of points per cell
   Vector_t<E_Int> nb_pts_per_cell(_cur_nphs,0);
   
-  for (int i = 0; i < nb_pts; ++i)
+  for (E_Int i = 0; i < nb_pts; ++i)
   {
     E_Int PHi = _points_to_cell[i];
     if (PHi != IDX_NONE)
@@ -152,7 +152,7 @@ bool geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
 
   if (maxnbpercell > _max_pts_per_cell)
   {
-    for (int i = 0; i < _cur_nphs; ++i)
+    for (E_Int i = 0; i < _cur_nphs; ++i)
     {
       const E_Int* faces = parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
       E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(i);
@@ -166,7 +166,7 @@ bool geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
 
   if (do_agglo)
   {
-    for (int i = 0; i < _cur_nphs; ++i)
+    for (E_Int i = 0; i < _cur_nphs; ++i)
     {
       if (adap_incr.cell_adap_incr[i] == -1) continue; //already processed by brothorhood
 
@@ -177,7 +177,7 @@ bool geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
         E_Int nb_children = parent_t::_hmesh._PHtree.nb_children(father);
         E_Int sum = 0;
                 
-        for (int k = 0; k < nb_children; ++k)
+        for (E_Int k = 0; k < nb_children; ++k)
         {
           sum += nb_pts_per_cell[p[k]];
           if (!parent_t::_hmesh._PHtree.is_enabled(p[k])) sum = _max_pts_per_cell + 1;
@@ -185,7 +185,7 @@ bool geom_sensor<mesh_t, sensor_input_t>::fill_adap_incr(output_t& adap_incr, bo
         }
         if (sum <= _max_pts_per_cell) // number of source points in the father <= criteria chosen : might be agglomerated : -1 for every child
         {
-          for (int k = 0; k < nb_children; ++k) {
+          for (E_Int k = 0; k < nb_children; ++k) {
             adap_incr.cell_adap_incr[p[k]] = -1;
             filled = true;
           }
@@ -215,11 +215,11 @@ void geom_sensor<mesh_t, sensor_input_t>::locate_points()
   E_Float minB[3];
   E_Float maxB[3];
   //
-  for (int i = 0; i < nb_src_pts; i++)
+  for (E_Int i = 0; i < nb_src_pts; i++)
   {
     const E_Float* p =parent_t::_data.get(i);
     
-    for (int j = 0; j < 3;j++)
+    for (E_Int j = 0; j < 3;j++)
     {
       minB[j] = p[j]-EPSILON; // small box over the source point
       maxB[j] = p[j]+EPSILON;
@@ -255,7 +255,7 @@ E_Int geom_sensor<mesh_t, sensor_input_t>::get_higher_lvl_cell(const E_Float* p,
   E_Int nb_children = parent_t::_hmesh._PHtree.nb_children(PHi);
   bool found = false;
     
-  for (int j = 0; j < nb_children; ++j)
+  for (E_Int j = 0; j < nb_children; ++j)
   {
     if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(q[j], parent_t::_hmesh._ng.PGs, parent_t::_hmesh._ng.PHs.get_facets_ptr(q[j]), parent_t::_hmesh._ng.PHs.stride(q[j]), parent_t::_hmesh._crd, parent_t::_hmesh._F2E, p, 1.e-14)) // true when the point is located in a child
     {
@@ -284,7 +284,7 @@ E_Int geom_sensor<mesh_t, sensor_input_t>::get_highest_lvl_cell(const E_Float* p
   const E_Int* q = parent_t::_hmesh._PHtree.children(PHi); // the children of PHi
 
   bool found = false;
-  for (int j = 0; j < nb_children; ++j)
+  for (E_Int j = 0; j < nb_children; ++j)
   {
     if (K_MESH::Polyhedron<UNKNOWN>::pt_is_inside(q[j], parent_t::_hmesh._ng.PGs, parent_t::_hmesh._ng.PHs.get_facets_ptr(q[j]), parent_t::_hmesh._ng.PHs.stride(q[j]), parent_t::_hmesh._crd, parent_t::_hmesh._F2E, p, 1.e-14)) // true when the point is located in a child
     {
@@ -313,18 +313,20 @@ E_Int geom_sensor<mesh_t, sensor_input_t>::detect_child(const E_Float* p, E_Int 
   parent_t::_hmesh.get_cell_center(children[0], center);
   E_Float min = NUGA::sqrDistance(p, center,3);
 
-  for (int i = 1; i < nb_children; ++i)
+  E_Float tmp[3];
+  tmp[0] = K_CONST::E_MAX_FLOAT; 
+  tmp[1] = K_CONST::E_MAX_FLOAT; 
+  tmp[2] = K_CONST::E_MAX_FLOAT; 
+  for (E_Int i = 1; i < nb_children; ++i)
   {
-    E_Float tmp[3];
     parent_t::_hmesh.get_cell_center(children[i], tmp);
-    E_Float d = NUGA::sqrDistance(p,tmp,3);
+    E_Float d = NUGA::sqrDistance(p, tmp, 3);
 
     if (d < min)
     {
       min = d;
       closest_child = i;
-      for (int i = 0; i < 3; ++i)
-        center[i] = tmp[i];
+      for (E_Int i = 0; i < 3; ++i) center[i] = tmp[i];
     }
   }
     
@@ -342,7 +344,7 @@ bool geom_sensor<mesh_t, sensor_input_t>::update()
   
   E_Int nb_pts = _points_to_cell.size();
 
-  for (int i = 0; i < nb_pts; ++i)
+  for (E_Int i = 0; i < nb_pts; ++i)
   {
     E_Int PHi = _points_to_cell[i];
 

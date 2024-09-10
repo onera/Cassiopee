@@ -1232,7 +1232,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     RELEASESHAREDU(tpln, f2, cn2); PyList_Append(l, tpln); Py_DECREF(tpln);
     RELEASESHAREDS(tplc, fc2); PyList_Append(l, tplc); Py_DECREF(tplc);
   }
-  RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc);
+  RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
   return l;
 }
 // ============================================================================
@@ -1785,7 +1785,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     FldArrayI* cnc2 = new FldArrayI(); *cnc2 = *cn2;
     PyObject* tplc = K_ARRAY::buildArray3(*fc2, varStringc, *cnc2, "NGON", api);
-    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2;
+    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2; delete cnc2;
     RELEASESHAREDU(tpl, f2, cn2);
     return l;
   }
@@ -2017,7 +2017,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     FldArrayI* cnc2 = new FldArrayI(); *cnc2 = *cn2;
     PyObject* tplc = K_ARRAY::buildArray3(*fc2, varStringc, *cnc2, eltTypeFaces, api);
-    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2;
+    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2; delete cnc2;
     RELEASESHAREDU(tpl, f2, cn2);
     return l;
   }

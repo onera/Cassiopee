@@ -51,18 +51,13 @@
       break;
 
     case 4:
-      // Wires multicolor grb
-      getrgb(this, zone*1./_numberOfZones, &g, &r, &b);
-      //color1[0] = r; color1[1] = b;  color1[2] = g;
-      complementColor(g,r,b, color1[0],color1[1],color1[2]);
-      if (color1[2] > 0.8 && color1[0] < 0.2 && color1[1] < 0.2)
-      { r = color1[0]; g = color1[1]; b = color1[2]; 
-        color1[0] = b; color1[1] = r; color1[2] = g;}
-      color2[0] = 0.7;  color2[1] = 0.88;  color2[2] = 1.;
+      // Wires noirs fins      
+      color1[0] = 0.; color1[1] = 0.; color1[2] = 0.;
+      color2[0] = 0.7; color2[1] = 0.88; color2[2] = 1.;
       // Ecrasement si render tag
       if (zonep->colorR != -1.)
       { complementColor(zonep->colorR,zonep->colorG,zonep->colorB, color1[0],color1[1],color1[2]); }  
-      glLineWidth(1.5*resf);
+      glLineWidth(0.4*resf);
       break;
 
     default:

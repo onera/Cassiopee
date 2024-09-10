@@ -129,7 +129,7 @@ PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
   vector<IntArray>   cs;
   vector<FloatArray> fs;
   TSSplitter::split(*f, *cn, connectP, fs, cs);
-  delete f;
+  delete f; delete cn;
 
   // Formation des array de sortie
   PyObject* tpl;

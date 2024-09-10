@@ -252,6 +252,7 @@ void solveEikonalOnIsotropGrid( unsigned ni, unsigned nj, unsigned nk, E_Float l
         }              // ( while (itL != end() );
         L.splice( L.end( ), append );
     }  // Fin while (!L.empty())
+    delete[] Lmask;
 }
 // ========================================================================
 static void solveBlock( unsigned iBlk, unsigned jBlk, unsigned kBlk, unsigned nbiBlk, unsigned nbjBlk, unsigned nbkBlk,

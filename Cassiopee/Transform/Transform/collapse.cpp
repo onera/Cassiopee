@@ -118,9 +118,10 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
     }
   }
 
-  delete cn;
-  K_CONNECT::cleanConnectivity(posx, posy, posz, eps, eltType2, *f, *cn2); 
-  return K_ARRAY::buildArray(*f, varString, *cn2, -1, eltType2);
+  K_CONNECT::cleanConnectivity(posx, posy, posz, eps, eltType2, *f, *cn2);
+  PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn2, -1, eltType2);
+  delete f; delete cn; delete cn2;
+  return tpl;
 }
 
 //=============================================================================

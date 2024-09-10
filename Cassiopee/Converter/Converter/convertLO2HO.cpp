@@ -753,6 +753,8 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
       (*co)(i,9) = n9+nvertex+1;
       (*co)(i,10) = n10+nvertex+1;
     }
+    
+    RELEASESHAREDU(o, fo, co);
   }
   // HEXA -> HEXA_20
   else if (K_STRING::cmp(eltType, 4, "HEXA") == 0 && mode == 0)

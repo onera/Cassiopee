@@ -196,8 +196,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   vector<char*> vars1; vector<char*> vars2;
   K_ARRAY::extractVars(varString[0], vars1);
   vector<E_Int> posVars(nvars);
-  for (E_Int i = 0; i < nvars; i++)
-    posVars[i]=i;
+  for (E_Int i = 0; i < nvars; i++) posVars[i] = i;
   posCommonVars[0] = posVars;
   
   for (E_Int no = 1; no < nzones; no++)
@@ -217,7 +216,11 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     }
     posCommonVars[no] = posVars2;
   }
-    
+  
+  for (size_t i = 0; i < vars1.size(); i++) { delete[] vars1[i]; }
+  for (size_t i = 0; i < vars2.size(); i++) { delete[] vars2[i]; }
+  vars1.clear(); vars2.clear();
+  
   E_Int nzonesS = 0; E_Int nzonesU = 0;
   vector<E_Int> posxa; vector<E_Int> posya; vector<E_Int> posza; 
   vector<E_Int> posca;
