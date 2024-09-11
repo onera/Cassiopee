@@ -213,25 +213,25 @@ namespace DELAUNAY
     if (_tool)
     {
       delete _tool;
-      _tool = 0;
+      _tool = nullptr;
     }
 
     if (_posAcc)
     {
       delete _posAcc;
-      _posAcc = 0;
+      _posAcc = nullptr;
     }
 
     if (_tree)
     {
       delete _tree;
-      _tree = 0;
+      _tree = nullptr;
     }
 
     if (_kernel)
     {
       delete _kernel;
-      _kernel = 0;
+      _kernel = nullptr;
     }
   }
 

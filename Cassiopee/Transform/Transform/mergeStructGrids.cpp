@@ -516,6 +516,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
 
   /* 11- si liste des mergeables non vide : restart*/
   compt++;
+  if (both == 0) { delete mergedFieldc; mergedFieldc = NULL; }
   if (listOfMergeableEdges.size() != 0) goto restart;
   end:;
 

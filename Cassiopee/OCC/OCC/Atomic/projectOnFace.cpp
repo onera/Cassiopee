@@ -201,6 +201,7 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   delete [] pox; delete [] poy; delete [] poz;
   delete [] ptx; delete [] pty; delete [] ptz;
   delete [] dist;
+  RELEASESHAREDB(ret, array, fi, c);
   Py_DECREF(Py_None);
   return Py_None;
 }

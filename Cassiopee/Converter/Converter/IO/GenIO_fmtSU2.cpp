@@ -1581,21 +1581,20 @@ E_Int K_IO::GenIO::su2write(
           v(n,ind1) = field(n,ind2);
         }
     }
+  }
 
-    // Connectivities
-    const vector<E_Int>& eltTypeZn = eltType[zoneId];
-    for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
-    {
-      E_Int elt = eltTypeZn[ic];
-      FldArrayI& cn = *connect[zoneId]->getConnect(ic);
-      FldArrayI* cpp = new FldArrayI(cn);
-      FldArrayI& cp = *cpp;
-      #pragma omp for
-      for (E_Int n = 0; n < cn.getSize(); n++)
-        for (E_Int j = 1; j <= nvpe[elt]; j++)
-          cp(n,j) = cn(n,j);
-      connectBE[elt] = cpp;
-    }
+  // Connectivities
+  const vector<E_Int>& eltTypeZn = eltType[zoneId];
+  for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
+  {
+    E_Int elt = eltTypeZn[ic];
+    FldArrayI& cn = *connect[zoneId]->getConnect(ic);
+    FldArrayI* cpp = new FldArrayI(cn);
+    FldArrayI& cp = *cpp;
+    for (E_Int n = 0; n < cn.getSize(); n++)
+      for (E_Int j = 1; j <= nvpe[elt]; j++)
+        cp(n,j) = cn(n,j);
+    connectBE[elt] = cpp;
   }
 
   // Get dimensionality and number of elements
@@ -1661,7 +1660,7 @@ E_Int K_IO::GenIO::su2write(
 
   delete vertices;
   for (size_t i = 0; i < connectBE.size(); i++)
-    delete connectBE[i];
+    if (connectBE[i] != NULL) delete connectBE[i];
   connectBE.clear();
 
   // BC (if any) // TODO rethink how BCs are build
