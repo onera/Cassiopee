@@ -59,6 +59,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   res = K_NUMPY::getFromNumpyArray(FLDonor, FLDonorI, true);
   if (res == 0)
   {    
+    RELEASESHAREDN(FL, FLI);
     PyErr_SetString(PyExc_TypeError, 
                     "setInterpDataForGhostCells: 2nd arg is not a valid numpy array.");
     return NULL;
@@ -69,6 +70,8 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   res = K_NUMPY::getFromNumpyArray(rindElt, Intext, true);
   if (res == 0)
   {    
+    RELEASESHAREDN(FL, FLI);
+    RELEASESHAREDN(FLDonor, FLDonorI);
     PyErr_SetString(PyExc_TypeError, 
                     "setInterpDataForGhostCells: 3nd arg is not a valid numpy array.");
     return NULL;
@@ -79,6 +82,9 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   res = K_NUMPY::getFromNumpyArray(rindEltDonor, IntextD, true);
   if (res == 0)
   {    
+    RELEASESHAREDN(FL, FLI);
+    RELEASESHAREDN(FLDonor, FLDonorI);
+    RELEASESHAREDN(rindElt, Intext);
     PyErr_SetString(PyExc_TypeError, 
                     "setInterpDataForGhostCells: 4nd arg is not a valid numpy array.");
     return NULL;
@@ -88,11 +94,16 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
 
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType; E_Int ni,nj,nk;
-  res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, c, eltType);
-  if (res == 0 || res == 1 || strcmp(eltType, "NGON") != 0)
+  E_Int res1 = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, c, eltType);
+  if (res1 == 0 || res1 == 1 || strcmp(eltType, "NGON") != 0)
   {    
+    RELEASESHAREDN(FL, FLI);
+    RELEASESHAREDN(FLDonor, FLDonorI);
+    RELEASESHAREDN(rindElt, Intext);
+    RELEASESHAREDN(rindEltDonor, IntextD);
+    RELEASESHAREDB(res1, array, f, c);
     PyErr_SetString(PyExc_TypeError, 
-                    "setInterpDataForGhostCells: 5th arg must be a NGON array.");
+                    "setInterpDataForGhostCells: 5th arg must be an NGON array.");
     return NULL;
   }
   E_Int* nface = c->getNFace();
@@ -100,11 +111,17 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
 
   K_FLD::FldArrayF* fd; K_FLD::FldArrayI* cd;
   char* varStringd; char* eltTyped; E_Int nid,njd,nkd;
-  res = K_ARRAY::getFromArray2(arrayDonor, varStringd, fd, nid, njd, nkd, cd, eltTyped);
-  if (res == 0 || res == 1 || strcmp(eltTyped, "NGON") != 0)
+  E_Int res2 = K_ARRAY::getFromArray2(arrayDonor, varStringd, fd, nid, njd, nkd, cd, eltTyped);
+  if (res2 == 0 || res2 == 1 || strcmp(eltTyped, "NGON") != 0)
   {    
+    RELEASESHAREDN(FL, FLI);
+    RELEASESHAREDN(FLDonor, FLDonorI);
+    RELEASESHAREDN(rindElt, Intext);
+    RELEASESHAREDN(rindEltDonor, IntextD);
+    RELEASESHAREDB(res1, array, f, c);
+    RELEASESHAREDB(res2, arrayDonor, fd, cd);
     PyErr_SetString(PyExc_TypeError, 
-                    "setInterpDataForGhostCells: 6th arg must be a NGON array.");
+                    "setInterpDataForGhostCells: 6th arg must be an NGON array.");
     return NULL;
   }
   E_Int* nfaceDonor = cd->getNFace();
@@ -114,6 +131,12 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   res = K_NUMPY::getFromNumpyArray(PE, PEI, true);
   if (res == 0) 
   {    
+    RELEASESHAREDN(FL, FLI);
+    RELEASESHAREDN(FLDonor, FLDonorI);
+    RELEASESHAREDN(rindElt, Intext);
+    RELEASESHAREDN(rindEltDonor, IntextD);
+    RELEASESHAREDB(res1, array, f, c);
+    RELEASESHAREDB(res2, arrayDonor, fd, cd);
     PyErr_SetString(PyExc_TypeError, 
                     "setInterpDataForGhostCells: 7th arg is not a valid numpy array.");
     return NULL;
@@ -124,6 +147,13 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   res = K_NUMPY::getFromNumpyArray(PEDonor, PEDonorI, true);
   if (res == 0) 
   {    
+    RELEASESHAREDN(FL, FLI);
+    RELEASESHAREDN(FLDonor, FLDonorI);
+    RELEASESHAREDN(rindElt, Intext);
+    RELEASESHAREDN(rindEltDonor, IntextD);
+    RELEASESHAREDN(PE, PEI);
+    RELEASESHAREDB(res1, array, f, c);
+    RELEASESHAREDB(res2, arrayDonor, fd, cd);
     PyErr_SetString(PyExc_TypeError, 
                     "setInterpDataForGhostCells: 8th arg is not a valid numpy array.");
     return NULL;
@@ -207,10 +237,15 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   }
     //printf("FIN RAC \n");
 
+  // Libere la memoire
   RELEASESHAREDN(FL, FLI);
   RELEASESHAREDN(FLDonor, FLDonorI);
+  RELEASESHAREDN(rindElt, Intext);
+  RELEASESHAREDN(rindEltDonor, IntextD);
   RELEASESHAREDN(PE, PEI);
   RELEASESHAREDN(PEDonor, PEDonorI);
+  RELEASESHAREDB(res1, array, f, c);
+  RELEASESHAREDB(res2, arrayDonor, fd, cd);
 
   // Remet la map a plat
   E_Int size = map.size();

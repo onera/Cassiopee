@@ -591,7 +591,6 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
   // Parcours des zones d interpolation
   for (E_Int noz = 0; noz < nzones; noz++)
   {
-
     // Id du bloc donneur
     E_Int BlockDonorId = noz;
 
@@ -664,13 +663,14 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
         fprintf(ptr_file, SF_D_ " ", cellNgc[np]);
       }
       fclose(ptr_file);
+      delete [] file; delete [] strId;
     }
 
     // 1- Fichier d'interpolations
     // Ouverture du fichier
     FILE* ptr_file = NULL;
     char* file = new char[K_ARRAY::VARSTRINGLENGTH];
-    strcpy(file,PrefixFile);
+    strcpy(file, PrefixFile);
     char* strId = new char[K_ARRAY::VARSTRINGLENGTH];
     #if defined E_DOUBLEINT
       #if defined _WIN32
@@ -681,7 +681,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     #else
     sprintf(strId,"%04d",BlockDonorId);
     #endif
-    strcat(file,strId);
+    strcat(file, strId);
     if (isEX) strcat(file,"_Int");
     ptr_file = fopen(file, "w");
     printf("Open file %s\n",file);fflush(stdout);
@@ -781,6 +781,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       }
     }
     fclose(ptr_file);
+    delete [] file; delete [] strId;
   }
 
   /*-------------------------------*/

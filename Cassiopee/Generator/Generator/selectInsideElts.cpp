@@ -223,6 +223,11 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
   // sortie
   PyObject* tpl;
   tpl = K_ARRAY::buildArray(*f, varString, connectp, -1, eltType);
+  
+  for (size_t i = 0; i < cnt.size(); i++) delete cnt[i];
+  //for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
+  for (E_Int i = 0; i < ncurves; i++) delete curves[i];
   delete f; delete cn; delete connect;
+  
   return tpl;
 }

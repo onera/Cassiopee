@@ -973,11 +973,8 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   
   // Deleting fields
   for (size_t i = 0; i < fieldc.size(); i++) RELEASESHAREDS(tplc[i], fieldc[i]);
-  
   for (size_t i = 0; i < fieldu.size(); i++)
-  {
     RELEASESHAREDU(tplu[i], fieldu[i], connectu[i]);
-  }
   
   Py_INCREF(Py_None);
   return Py_None;

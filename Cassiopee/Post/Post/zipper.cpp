@@ -91,7 +91,7 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "zipper: invalid list of arrays.");
-    for (unsigned int nos = 0; nos < objst.size(); nos++)
+    for (size_t nos = 0; nos < objst.size(); nos++)
       RELEASESHAREDS(objst[nos], structF[nos]);
     return NULL;
   }
@@ -127,7 +127,7 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "zipper: celln must be the last variable in all the arrays.");
-    for (unsigned int nos = 0; nos < objst.size(); nos++)
+    for (size_t nos = 0; nos < objst.size(); nos++)
       RELEASESHAREDS(objst[nos], structF[nos]);
     return NULL;
   }
@@ -167,7 +167,7 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
       printf("Warning: zipper: one array is empty. Skipped.\n");
     
   }
-  for (unsigned int nos = 0; nos < objst.size(); nos++)
+  for (size_t nos = 0; nos < objst.size(); nos++)
     RELEASESHAREDS(objst[nos], structF[nos]);
   if (c == 0)
   {
@@ -192,21 +192,14 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
   // isZipped : retourne True si la paire de segments a ete triangulee
   FldArrayB isZipped(segPairs.size());
   
-  zipInbetweenPairs(segPairs,
-                    field,
-                    triConnect, isZipped);
+  zipInbetweenPairs(segPairs, field, triConnect, isZipped);
 
   // Close remaining pockets
   closePockets(strings, segPairs, field, triConnect);
 
-  E_Int stringsSize = strings.size();
-  for (E_Int v = 0; v < stringsSize; v++)
-    delete strings[v];
-  strings.clear();
-  E_Int segPairsSize = segPairs.size();
-  for (E_Int v = 0; v < segPairsSize; v++)
-    delete segPairs[v];
-  segPairs.clear();
+  for (size_t v = 0; v < strings.size(); v++) delete strings[v];
+  for (size_t v = 0; v < segPairs.size(); v++) delete segPairs[v];
+  strings.clear(); segPairs.clear();
   
   // Merge all zones in one
   vector<FldArrayI*> idgT;

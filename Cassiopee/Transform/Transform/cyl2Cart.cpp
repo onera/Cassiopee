@@ -110,7 +110,8 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
     if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ SSS_,
-                       &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
+                       &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, &GridCoordinates,
+                       &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;
 
     vector<PyArrayObject*> hook;
@@ -128,7 +129,8 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+      if (res == 2) delete [] eltType;
+      RELEASESHAREDZ(hook, varString, (char*)NULL);
       PyErr_SetString(PyExc_TypeError,
                       "cyl2Cart: cannot find coordinates in zone.");
       return NULL;
@@ -154,7 +156,8 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     }
     else
     {
-      RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+      if (res == 2) delete [] eltType;
+      RELEASESHAREDZ(hook, varString, (char*)NULL);
       PyErr_SetString(PyExc_TypeError,
                       "cyl2Cart: axis must be x,y or z.");
       return NULL;
@@ -175,8 +178,8 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
       }//(y,z) dans le cas (X;R;Theta), (x,y) dans le cas (R,Theta,Z), (z,x) dans le cas (Theta,Y,R)
     }
 
-    delete [] eltType;
-    RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+    if (res == 2) delete [] eltType;
+    RELEASESHAREDZ(hook, varString, (char*)NULL);
     Py_INCREF(Py_None);
     return Py_None;
 }

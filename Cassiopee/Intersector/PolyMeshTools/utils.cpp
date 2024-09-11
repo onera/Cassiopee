@@ -1055,6 +1055,7 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   if (ngi.PGs.size() != cFE->getSize())
   {
     std::cout << "le ParentElment ne correpsond pas au nb de pgs" << std::endl;
+    RELEASESHAREDN(PE, cFE);
     delete f; delete cn;
     return nullptr;
   }
@@ -1137,6 +1138,7 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
   PyList_Append(l, tpl);
 #endif
   
+  RELEASESHAREDN(PE, cFE);
   return l;
 }
 
