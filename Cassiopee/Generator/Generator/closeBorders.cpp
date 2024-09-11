@@ -170,8 +170,7 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
-  size = unstrF.size();
-  for (E_Int v = 0; v < size; v++)
+  for (size_t v = 0; v < unstrF.size(); v++)
   {
     FldArrayF& f0 = *unstrF[v];
     tpl = K_ARRAY::buildArray(f0, unstrVarString[v], *cnt[v], -1, eltType[v],
@@ -188,9 +187,9 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
 /* closeAllUnstructuredMeshes */
 //=============================================================================
 void K_GENERATOR::closeAllUnstructuredMeshes(
-  vector<FldArrayF*>& unstructF,  vector<FldArrayI*>& connectsEV,
+  vector<FldArrayF*>& unstructF, vector<FldArrayI*>& connectsEV,
   vector<E_Int>& posxt, vector<E_Int>& posyt, vector<E_Int>& poszt,
-  vector<FldArrayF*>& exteriorFacesF,  vector<FldArrayI*>& connectsEF,
+  vector<FldArrayF*>& exteriorFacesF, vector<FldArrayI*>& connectsEF,
   std::vector<E_Int>& posxe, std::vector<E_Int>& posye, std::vector<E_Int>& posze,
   E_Float eps)
 {
@@ -372,6 +371,8 @@ void K_GENERATOR::closeAllUnstructuredMeshes(
       }
     }
   }
+  
+  for (E_Int nov = 0; nov < nzones; nov++) delete indicesOrig[nov];
 }
 
 //=============================================================================

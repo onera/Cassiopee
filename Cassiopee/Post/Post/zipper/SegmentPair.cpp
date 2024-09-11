@@ -110,6 +110,7 @@ E_Boolean SegmentPair::computeZipper(const E_Int nfieldTot,
   /* Compute the connectivity for triangles */
   /*----------------------------------------*/
   compConnectivity(nfieldTot, triangles, field, connect);
+  for (size_t i = 0; i < triangles.size(); i++) delete triangles[i];
   return true;  
 }
 
@@ -194,14 +195,14 @@ void SegmentPair::compDelaunay(const E_Int nfieldTot,
       //select the smaller diagonal
       if ( diagAC < diagBD ) // AC connection selected
       {
-        triangles.push_back(t1);
+        triangles.push_back(t1); delete t2;
         //eliminates D for new triangulation research
         jprev = jnext;
         jnext = jprev + 1;
       }
       else// BD connection selected
       {
-        triangles.push_back(t2);
+        triangles.push_back(t2); delete t1;
         // eliminate A for new triangulation research 
         iprev = inext;
         inext = inext + 1;

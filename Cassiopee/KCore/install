@@ -104,6 +104,7 @@ leak:libopen-pal.so.*
 leak:libopen-rte.so.*
 leak:libc.so.*
 leak:libstdc++.so.*
+leak:libTKernel.so.*
 leak:Netgen/stlgeom/stlgeom.cpp
 leak:Objects/obmalloc.c
 leak:Objects/unicodeobject.c
@@ -112,6 +113,7 @@ leak:Modules/gcmodule.c
 leak:Converter/hook.cpp
 leak:Converter/globalHook.cpp
 leak:Converter/identifySolutions.cpp
+leak:OCC/Atomic/readCAD.cpp
 EOF
 
 # Check installation

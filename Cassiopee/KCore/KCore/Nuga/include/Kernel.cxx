@@ -32,7 +32,7 @@ namespace DELAUNAY
 /// Constructor
 template <typename T>
 Kernel<T>::Kernel(MeshData& data, const NUGA::MeshTool& tool)
-    : _data(&data), _tool(&tool), _Ball_pred(*data.pos, _data->connectM), _constrained_pred(0), _Nmatch(IDX_NONE)
+    : _data(&data), _tool(&tool), _Ball_pred(*data.pos, _data->connectM), _constrained_pred(nullptr), _Nmatch(IDX_NONE)
 {
   data.mask.resize(_data->connectM.cols(), true);
 
@@ -50,9 +50,10 @@ void Kernel<T>::set(MeshData& data, const NUGA::MeshTool& tool)
 
   _data = &data;
   _tool = &tool;
+  if (_constrained_pred) delete _constrained_pred;
   _constrained_pred = nullptr;
   _Nmatch = IDX_NONE;
-  // , _Ball_pred(*data.pos, _data->connectM), _constrained_pred(0)
+  // , _Ball_pred(*data.pos, _data->connectM), _constrained_pred(nullptr)
 
   _data->mask.resize(_data->connectM.cols(), true);
 
@@ -77,8 +78,7 @@ void Kernel<T>::clear()
 template <typename T>
 Kernel<T>::~Kernel(void)
 {
-  if (_constrained_pred)
-    delete _constrained_pred;
+  if (_constrained_pred) delete _constrained_pred;
 }
 
 ///
@@ -126,6 +126,7 @@ template <typename T>
 void
 Kernel<T>::setConstraint(const NUGA::non_oriented_edge_set_type& hard_edges)
 {
+  if (_constrained_pred) delete _constrained_pred;
   _constrained_pred = new constrained_predicate(hard_edges);
 }
 

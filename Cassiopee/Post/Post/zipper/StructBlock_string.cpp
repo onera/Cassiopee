@@ -51,7 +51,7 @@ void StructBlock::stringing(list<FldArrayI*>& strings)
   // Find strings in inIndices
   E_Boolean goOn = true;
 
-  while (goOn == true)
+  while (goOn)
   {
     FldArrayI* string = new FldArrayI(n);
     E_Int size = chainPoints(inIndices, links, *string, dejaVu);
@@ -68,8 +68,7 @@ void StructBlock::stringing(list<FldArrayI*>& strings)
   }
 
   // Change index into mesh index
-  for (itr = strings1.begin();
-       itr != strings1.end(); itr++)
+  for (itr = strings1.begin(); itr != strings1.end(); itr++)
   {
     for (E_Int i = 0; i < (*itr)->getSize(); i++)
     {
@@ -79,12 +78,11 @@ void StructBlock::stringing(list<FldArrayI*>& strings)
   }
 
   /* Test if string obtained is a loop */
-  for (itr = strings1.begin();
-       itr != strings1.end(); itr++)
+  for (itr = strings1.begin(); itr != strings1.end(); itr++)
   {
     E_Int size = (*itr)->getSize();
     E_Boolean isALoop = isStringALoop(**itr);
-    if ( isALoop == true )
+    if ( isALoop )
     {
       E_Int t1 = E_Int(size/4);
       E_Int t3 = E_Int(3*size/4);
@@ -133,6 +131,7 @@ void StructBlock::stringing(list<FldArrayI*>& strings)
         strings.push_back(s1);
         strings.push_back(s2);
       }
+      delete *itr;
     }
     else // False
       strings.push_back(*itr);
@@ -220,7 +219,7 @@ E_Int StructBlock::chainPoints(FldArrayI& inIndices, FldArrayI& links,
   E_Int l1, l2;
   E_Boolean goOn = true;
   
-  while (goOn == true)
+  while (goOn)
   {
     l1 = links(start, 1);
     l2 = links(start, 2);

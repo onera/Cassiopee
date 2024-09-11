@@ -47,8 +47,9 @@ PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
 #endif
 
   // array a projeter
-  FldArrayF* fi; E_Int ni, nj, nk;
-  char* varString; FldArrayI* c; char* eltType;
+  FldArrayI* c; FldArrayF* fi;
+  E_Int ni, nj, nk;
+  char* varString; char* eltType;
   E_Int ret = K_ARRAY::getFromArray2(array, varString, fi, ni, nj, nk, c, eltType);
   if (ret != 1 && ret != 2)
   {
@@ -140,6 +141,7 @@ PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
   delete [] pox; delete [] poy; delete [] poz;
   delete [] ptx; delete [] pty; delete [] ptz;
   delete [] dist;
+  RELEASESHAREDB(ret, array, fi, c);
   Py_DECREF(Py_None);
   return Py_None;
 }

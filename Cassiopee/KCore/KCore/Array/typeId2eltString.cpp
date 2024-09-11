@@ -40,6 +40,7 @@ E_Int K_ARRAY::typeId2eltString(const std::vector<E_Int>& typeId, E_Int loc,
     if (i < size-1) strcat(eltString, ",");
   }
   
+  delete[] eltStringi;
   return ret;
 }
 
