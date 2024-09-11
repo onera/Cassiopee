@@ -44,7 +44,7 @@ PyObject* K_TRANSFORM::splitConnexity(PyObject* self, PyObject* args)
   E_Int res = 
     K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
 
-  if (res != 2)
+  if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "splitConnexity: unknown type of array.");

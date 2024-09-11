@@ -97,7 +97,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
                             *dist, ni1, nj1, nk1);
     PyObject* tpl = K_ARRAY::buildArray(*dist, "dist", 
                                         ni1, nj1, nk1);
-    delete dist;
+    delete dist; delete f;
     return tpl;
   }
   else
@@ -121,6 +121,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
     PyObject* tpl = K_ARRAY::buildArray(*dist, "dist",
                                         *connect, -1, eltType, true);
     delete dist; delete connect;
+    delete f; delete cn;
     return tpl;
   }
 }

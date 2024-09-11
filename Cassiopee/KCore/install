@@ -99,6 +99,11 @@ cp test/compareSessionLogs "$INSTALLPATH"
 # LSAN: Ajoute un fichier pour supprimer certaines fuites memoire du log
 cat > "$INSTALLPATH"/asan.supp <<EOF
 leak:numpy/core/*
+leak:libOSMesa.so.*
+leak:libopen-pal.so.*
+leak:libopen-rte.so.*
+leak:libc.so.*
+leak:libstdc++.so.*
 leak:Netgen/stlgeom/stlgeom.cpp
 leak:Objects/obmalloc.c
 leak:Objects/unicodeobject.c

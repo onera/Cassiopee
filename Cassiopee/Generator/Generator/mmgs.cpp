@@ -411,6 +411,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   //_MMGS_RETURN_AND_FREE(mesh, met, ier);
 
   RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDU(o, fo, co);
 
   return o;
 }

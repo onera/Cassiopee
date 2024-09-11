@@ -123,19 +123,12 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "closeBorders: invalid list of arrays for exterior faces.");
-      size = structF.size();
-      for (E_Int v = 0; v < size; v++) delete structF[v];
-      size = unstrF.size();
-      for (E_Int v = 0; v < size; v++) delete unstrF[v];
-      size = cnt.size();
-      for (E_Int v = 0; v < size; v++) delete cnt[v];
-
-      size = structEF.size();
-      for (E_Int v = 0; v < size; v++) delete structEF[v];    
-      size = unstrEF.size();
-      for (E_Int v = 0; v < size; v++) delete unstrEF[v];
-      size = cne.size();
-      for (E_Int v = 0; v < size; v++) delete cne[v];
+      for (size_t v = 0; v < structF.size(); v++) delete structF[v];
+      for (size_t v = 0; v < unstrF.size(); v++) delete unstrF[v];
+      for (size_t v = 0; v < cnt.size(); v++) delete cnt[v];
+      for (size_t v = 0; v < structEF.size(); v++) delete structEF[v];    
+      for (size_t v = 0; v < unstrEF.size(); v++) delete unstrEF[v];
+      for (size_t v = 0; v < cne.size(); v++) delete cne[v];
 
       return NULL;
     }
@@ -156,16 +149,13 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
         posze.push_back(posz+1);
       }
       closeAllUnstructuredMeshes(unstrF, cnt, posxu, posyu, poszu, 
-                                unstrEF, cne, posxe, posye, posze, 
-                                eps);
+                                 unstrEF, cne, posxe, posye, posze, 
+                                 eps);
 
       //cleaning
-      size = structEF.size();
-      for (E_Int v = 0; v < size; v++) delete structEF[v];    
-      size = unstrEF.size();
-      for (E_Int v = 0; v < size; v++) delete unstrEF[v];
-      size = cne.size();
-      for (E_Int v = 0; v < size; v++) delete cne[v]; 
+      for (size_t v = 0; v < structEF.size(); v++) delete structEF[v];    
+      for (size_t v = 0; v < unstrEF.size(); v++) delete unstrEF[v];
+      for (size_t v = 0; v < cne.size(); v++) delete cne[v]; 
     }
   }// unstructured
 
@@ -176,7 +166,7 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
   {
     FldArrayF& f0 = *structF[v];
     tpl = K_ARRAY::buildArray(f0, structVarString[v], nit[v], njt[v], nkt[v]);
-    delete &f0;
+    delete structF[v];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
@@ -186,10 +176,10 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     FldArrayF& f0 = *unstrF[v];
     tpl = K_ARRAY::buildArray(f0, unstrVarString[v], *cnt[v], -1, eltType[v],
                               false);
-    delete &f0; delete cnt[v];
+    delete unstrF[v]; delete cnt[v];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
-  } 
+  }
   
   return l;
 }

@@ -126,7 +126,8 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+      if (res == 2) delete [] eltType;
+      RELEASESHAREDZ(hook, varString, (char*)NULL);
       PyErr_SetString(PyExc_TypeError,
                       "cart2Cyl: cannot find coordinates in zone.");
       return NULL;
@@ -156,13 +157,14 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
                                 X0, Y0, Z0, ex, ey, ez, rt, thetat,  im, jm, km, depth, thetaShift);
     if (ret == 1)
     {
-      RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+      if (res == 2) delete [] eltType;
+      RELEASESHAREDZ(hook, varString, (char*)NULL);
       PyErr_SetString(PyExc_TypeError,
                       "cart2Cyl: axis must be canonical.");
       return NULL;      
     }    
-    delete [] eltType;
-    RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+    if (res == 2) delete [] eltType;
+    RELEASESHAREDZ(hook, varString, (char*)NULL);
     Py_INCREF(Py_None); 
     return Py_None;
 }

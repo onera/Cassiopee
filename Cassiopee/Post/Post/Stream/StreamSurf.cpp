@@ -168,9 +168,9 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "streamSurf: invalid list of arrays.");
     RELEASESHAREDU(arrayBAR,f, cnBAR);
-    for (unsigned int nos = 0; nos < objs0.size(); nos++)
+    for (size_t nos = 0; nos < objs0.size(); nos++)
       RELEASESHAREDS(objs0[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju0.size(); nos++)
+    for (size_t nos = 0; nos < obju0.size(); nos++)
       RELEASESHAREDU(obju0[nos], unstrF[nos], cnt[nos]);
     return NULL;
   }
@@ -246,13 +246,13 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
     RELEASESHAREDU(arrayBAR, f, cnBAR);
     PyErr_SetString(PyExc_ValueError,
                     "streamSurf: no interpData built.");
-    for (unsigned int nos = 0; nos < objs0.size(); nos++)
+    for (size_t nos = 0; nos < objs0.size(); nos++)
       RELEASESHAREDS(objs0[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju0.size(); nos++)
+    for (size_t nos = 0; nos < obju0.size(); nos++)
       RELEASESHAREDU(obju0[nos], unstrF[nos], cnt[nos]);
-    for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+    for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
       delete structInterpDatas1[nos];
-    for (unsigned int nos = 0; nos < unstrInterpDatas2.size(); nos++)
+    for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
       delete unstrInterpDatas2[nos];
     return NULL;
   } 
@@ -294,13 +294,13 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
     if (found != 1)
     {
       RELEASESHAREDU(arrayBAR,f, cnBAR);
-      for (unsigned int nos = 0; nos < objs0.size(); nos++)
+      for (size_t nos = 0; nos < objs0.size(); nos++)
         RELEASESHAREDS(objs0[nos], structF[nos]);
-      for (unsigned int nos = 0; nos < obju0.size(); nos++)
+      for (size_t nos = 0; nos < obju0.size(); nos++)
         RELEASESHAREDU(obju0[nos], unstrF[nos], cnt[nos]);
-      for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+      for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
         delete structInterpDatas1[nos];
-      for (unsigned int nos = 0; nos < unstrInterpDatas2.size(); nos++)
+      for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
         delete unstrInterpDatas2[nos];
       
       if (found == -1) 
@@ -325,13 +325,13 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
     if (found != 1)
     {
       RELEASESHAREDU(arrayBAR, f, cnBAR);
-      for (unsigned int nos = 0; nos < objs0.size(); nos++)
+      for (size_t nos = 0; nos < objs0.size(); nos++)
         RELEASESHAREDS(objs0[nos], structF[nos]);
-      for (unsigned int nos = 0; nos < obju0.size(); nos++)
+      for (size_t nos = 0; nos < obju0.size(); nos++)
         RELEASESHAREDU(obju0[nos], unstrF[nos], cnt[nos]);
-      for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+      for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
         delete structInterpDatas1[nos];
-      for (unsigned int nos = 0; nos < unstrInterpDatas2.size(); nos++)
+      for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
         delete unstrInterpDatas2[nos];
       if (found == -1) 
         PyErr_SetString(PyExc_ValueError,
@@ -356,14 +356,14 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   createFront(xBAR, yBAR, zBAR, *cnBAR, front, sizeBAR);
 
   // Affectation des traceurs tleft et tright
-  for (unsigned int v = 0; v < front.size(); v++)
+  for (size_t v = 0; v < front.size(); v++)
   {
     if (front[v]->left == NULL) tleft = front[v];
     if (front[v]->right == NULL) tright = front[v];
   }
   if (tleft == NULL || tright == NULL) 
   { 
-    unsigned int last = front.size()-1;
+    size_t last = front.size()-1;
     tleft = front[0]; tright = front[last]; 
     front[0]->left = NULL; front[last]->right = NULL; 
   }
@@ -402,12 +402,15 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   front.clear();
 
   RELEASESHAREDU(arrayBAR,f, cnBAR);
-  for (unsigned int nos = 0; nos < objs0.size(); nos++)
+  for (size_t nos = 0; nos < objs0.size(); nos++)
     RELEASESHAREDS(objs0[nos], structF[nos]);
-  for (unsigned int nos = 0; nos < obju0.size(); nos++)
+  for (size_t nos = 0; nos < obju0.size(); nos++)
     RELEASESHAREDU(obju0[nos], unstrF[nos], cnt[nos]);
-  for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+  for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
     delete structInterpDatas1[nos];
+  for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
+    delete unstrInterpDatas2[nos];
+      
   return tpl;
 }
 //=============================================================================

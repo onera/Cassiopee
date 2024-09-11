@@ -186,7 +186,8 @@ PyObject* K_GENERATOR::stitchedHat(PyObject* self, PyObject* args)
   E_Int im2 = im; E_Int jm2 = jm; E_Int km2 = 2;
   if (jm == 1) {jm2 = 2; km2 = 1;}
   PyObject* tpl = K_ARRAY::buildArray(*sol, "x,y,z", im2, jm2, km2);
-  delete sol;
+  delete f; delete sol;
+  delete [] hanging;
   return tpl;
 }
 

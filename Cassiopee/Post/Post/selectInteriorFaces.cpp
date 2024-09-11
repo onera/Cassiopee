@@ -67,6 +67,8 @@ PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
   }
   else
   {
+    delete f;
+    if (res == 2) delete cnp;
     PyErr_SetString(PyExc_TypeError,
                     "selectInteriorFaces: only for TRI and QUAD.");
     return NULL;
@@ -175,6 +177,7 @@ PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
   // Build array
   PyObject* tpl;
   tpl = K_ARRAY::buildArray(*fnodes, varString, *connect, -1, "BAR");
-  delete fnodes; delete connect;
+  delete f; delete fnodes; delete connect;
+  if (res == 2) delete cnp;
   return tpl;
 }

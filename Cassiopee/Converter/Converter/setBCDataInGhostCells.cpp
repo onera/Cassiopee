@@ -47,9 +47,9 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   char* varString; char* eltType;
   vector<E_Float*> fields; vector<E_Int> locs;
   vector<E_Int*> cn;
-  K_PYTREE::getFromZone(zone, 0, locI, varString, fields, locs, im0, jm0, km0, 
-                        cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
-                        FlowSolutionNodes, FlowSolutionCenters);
+  E_Int res = K_PYTREE::getFromZone(zone, 0, locI, varString, fields, locs, im0, jm0, km0, 
+                                    cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
+                                    FlowSolutionNodes, FlowSolutionCenters);
   E_Int dim = 3;
   if (km == 1) dim = 2; 
   if (jm == 1) dim = 1;
@@ -65,14 +65,15 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   {
     PyErr_SetString(PyExc_TypeError, 
                     "setBCDataInGhostCellsStruct: nb of bc ranges and bc datas are not equal.");
-    RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+    if (res == 2) delete [] eltType;
+    RELEASESHAREDZ(hook, varString, (char*)NULL);
     return NULL;
   }
 
   vector<FldArrayF*> listOfBCFieldsR;
   vector<PyObject*> listOfNumBCArrays;
   FldArrayI rangeBCs(nbc,6);
-  for (int v = 0; v < nbc; v++)
+  for (E_Int v = 0; v < nbc; v++)
   {
     PyObject* tpl = PyList_GetItem(dataBC, v);
     FldArrayF* bcFieldR;
@@ -84,8 +85,9 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
     {
       PyErr_SetString(PyExc_TypeError, 
                       "setBCDataInGhostCellsStruct: each bcrange must be a list.");
-      RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
-      for (std::size_t no = 0; no < listOfBCFieldsR.size(); no++)
+      if (res == 2) delete [] eltType;
+      RELEASESHAREDZ(hook, varString, (char*)NULL);
+      for (size_t no = 0; no < listOfBCFieldsR.size(); no++)
         RELEASESHAREDN(listOfNumBCArrays[no], listOfBCFieldsR[no]);
       return NULL;
     }
@@ -94,8 +96,9 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
     {
       PyErr_SetString(PyExc_TypeError, 
                       "setBCDataInGhostCellsStruct: window must be [imin,imax,jmin,jmax,kmin,kmax].");
-      RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
-      for (std::size_t no = 0; no < listOfBCFieldsR.size(); no++)
+      if (res == 2) delete [] eltType;
+      RELEASESHAREDZ(hook, varString, (char*)NULL);
+      for (size_t no = 0; no < listOfBCFieldsR.size(); no++)
         RELEASESHAREDN(listOfNumBCArrays[no], listOfBCFieldsR[no]);
       return NULL;
     }
@@ -120,8 +123,9 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   {
     PyErr_SetString(PyExc_TypeError, 
                     "setBCDataInGhostCellsStruct: variable not found in zone.");
-    RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
-    for (std::size_t no = 0; no < listOfBCFieldsR.size(); no++)
+    if (res == 2) delete [] eltType;
+    RELEASESHAREDZ(hook, varString, (char*)NULL);
+    for (size_t no = 0; no < listOfBCFieldsR.size(); no++)
       RELEASESHAREDN(listOfNumBCArrays[no], listOfBCFieldsR[no]);
     return NULL; 
   }
@@ -301,9 +305,10 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
         }
       }
   }
-  for (std::size_t no = 0; no < listOfBCFieldsR.size(); no++)
+  for (size_t no = 0; no < listOfBCFieldsR.size(); no++)
     RELEASESHAREDN(listOfNumBCArrays[no], listOfBCFieldsR[no]);
-  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+  if (res == 2) delete [] eltType;
+  RELEASESHAREDZ(hook, varString, (char*)NULL);
   Py_INCREF(Py_None);
   return Py_None;  
 }

@@ -82,7 +82,8 @@ PyObject* K_CONNECTOR::_computeFrictionVelocityIBM(PyObject* self, PyObject* arg
     {
       PyErr_SetString(PyExc_TypeError,
                       "computeFrictionVelocityIBM: Some required quantities cannot be extracted from zone.");
-      RELEASESHAREDZ(hook, varString, eltType);
+      if (res == 2) delete [] eltType;
+      RELEASESHAREDZ(hook, varString, (char*)NULL);
       return NULL;
     }
 
@@ -107,26 +108,29 @@ PyObject* K_CONNECTOR::_computeFrictionVelocityIBM(PyObject* self, PyObject* arg
     FldArrayF aa_vec(npts), uext_vec(npts), nutcible_vec(npts);
     FldArrayF ut_vec(npts), vt_vec(npts), wt_vec(npts), mu_vec(npts), alpha_vec(npts), utauv_vec(npts);
 
-      for (E_Int noind = 0; noind < npts; noind++)
-       {
-        roext = densPtr[noind];   // Densite du point interpole.
-        pext  = pressPtr[noind];  // Pression du point interpole.
-        muext  = viscPtr[noind];  // Viscosite du point interpole.
-        // vitesse du pt ext
-        u = uPtr[noind];
-        v = vPtr[noind];
-        w = wPtr[noind];
-#       include "IBC/commonMuskerLaw_init_constantVars.h"
-        // out= utau  et err
-     }
-     // Newton pour utau
-#    include "IBC/commonMuskerLaw_Newton.h"
-     // Compute the correct yplus
-     for (E_Int noind = 0; noind < npts; noind++)
-      {
-        yplus_vec[noind] = aa_vec[noind]*utau_vec[noind];
-      }
-    RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+    for (E_Int noind = 0; noind < npts; noind++)
+    {
+      roext = densPtr[noind];   // Densite du point interpole.
+      pext  = pressPtr[noind];  // Pression du point interpole.
+      muext  = viscPtr[noind];  // Viscosite du point interpole.
+      // vitesse du pt ext
+      u = uPtr[noind];
+      v = vPtr[noind];
+      w = wPtr[noind];
+      # include "IBC/commonMuskerLaw_init_constantVars.h"
+      // out= utau  et err
+    }
+    
+    // Newton pour utau
+    # include "IBC/commonMuskerLaw_Newton.h"
+    // Compute the correct yplus
+    for (E_Int noind = 0; noind < npts; noind++)
+    {
+      yplus_vec[noind] = aa_vec[noind]*utau_vec[noind];
+    }
+    
+    if (res == 2) delete [] eltType;
+    RELEASESHAREDZ(hook, varString, (char*)NULL);
     Py_INCREF(Py_None);
     return Py_None;
 }
