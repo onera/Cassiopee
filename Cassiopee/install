@@ -51,9 +51,6 @@ if [ "$ELSAPROD" = "" ]; then
     echo "This variable identifies the processor type."
     usage
 fi
-if [ -z "${CLEAN_WHEELS_CASSIOPEE+x}" ]; then
-    CLEAN_WHEELS_CASSIOPEE=1
-fi
 
 # Set install path and load module names
 INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
@@ -96,8 +93,3 @@ fi
 # Copy environment scripts
 cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
 cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
-
-# Clean temporary folders containing wheels
-if [ "$CLEAN_WHEELS_CASSIOPEE" -eq 1 ]; then
-    rm -rf "$INSTALLPATH"/pip-*
-fi
