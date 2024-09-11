@@ -204,7 +204,7 @@ def enforceH(event=None):
     CPlot.render()
     CTK.TXT.insert('START', 'Spacings enforced.\n')
         
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CPlot.setState(cursor=0)
@@ -786,7 +786,7 @@ def uniformize(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
@@ -889,7 +889,7 @@ def refine(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
 
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
@@ -943,7 +943,7 @@ def smooth(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
@@ -1066,7 +1066,7 @@ def copyDistrib():
     CTK.TKTREE.updateApp()
     CPlot.render()
     
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
@@ -1217,7 +1217,7 @@ def enforceLocal(event=None):
     CPlot.render()
     CTK.TXT.insert('START', 'Local spacing enforced.\n')
 
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CPlot.setState(cursor=0)

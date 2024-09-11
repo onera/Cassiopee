@@ -1282,7 +1282,7 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                 indcells=[]
                 if loc == 'faces': vari = 'indcell1'
                 else: vari = 'indcell'
-                posindcell = KCore.isNamePresent(interpPts,vari)
+                posindcell = KCore.isNamePresent(interpPts, vari)
                 if posindcell != -1: indcells = interpPts[1][posindcell,:]
 
                 # on recupere les bons indices de pts interpoles (indcell ds interpPts), de EXdir
@@ -1292,12 +1292,13 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                     for noi in range(nborphan):
                         noind = resInterp[5][noi]
                         resInterp[5][noi] = indcells[noind]
-                    if verbose == 3: # cellN=-1
-                        ListOrphan = resInterp[5]
-                        #print("verbose interp", ListOrphan.size, z[0], locR)
-                        cellNOrphan = Converter.array('cellN', ListOrphan.size,1,1)
-                        cellNOrphan = Converter.initVars(cellNOrphan, 'cellN', -1.)
-                        C._setPartialFields(z, [cellNOrphan], [ListOrphan], loc=locR)
+                    if verbose == 3: # force cellN#Orphan=-1
+                        listOrphan = resInterp[5]
+                        if Internal.getNodeFromName2(z, 'cellN#Orphan') is None:
+                            C._initVars(z, "{%s:cellN#Orphan} = {%s:cellN}")
+                        cellNOrphan = Converter.array('cellN#Orphan', listOrphan.size, 1, 1)
+                        cellNOrphan = Converter.initVars(cellNOrphan, 'cellN#Orphan', -1.)
+                        C._setPartialFields(z, [cellNOrphan], [listOrphan], loc=locR)
 
                 # Interpoles/Extrapoles
                 for noz in range(nzonesDnr):
@@ -1314,12 +1315,12 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                             for noi in range(nextraploc):
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
-                            if verbose == 3: # cellN=-2
-                               ListOrphan = resInterp[4][noz]
-                               cellNOrphan = Converter.array('cellN', ListOrphan.size,1,1)
-                               cellNOrphan = Converter.initVars(cellNOrphan, 'cellN', -2.)
-                               C._setPartialFields(z, [cellNOrphan], [ListOrphan], loc=locR)
-
+                            if verbose == 3: # force cellN#Orphan=-2
+                                if Internal.getNodeFromName2(z, 'cellN#Orphan') is None:
+                                    C._initVars(z, "{%s:cellN#Orphan} = {%s:cellN}")
+                                cellNOrphan = Converter.array('cellN#Orphan', listOrphan.size, 1, 1)
+                                cellNOrphan = Converter.initVars(cellNOrphan, 'cellN#Orphan', -2.)
+                                C._setPartialFields(z, [cellNOrphan], [listOrphan], loc=locR)
 
                 #----------------------------------
                 # Etape 3: Stockage dans l'arbre
@@ -1535,11 +1536,11 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
                             rindd = pd[0]
                             break
 
-                    ret = connector.setInterpDataForGCNGon(FL, FLd, p, pd, a1, a2, PE, PEd )
+                    ret = connector.setInterpDataForGCNGon(FL, FLd, p, pd, a1, a2, PE, PEd)
                     # Stockage
-                    _createInterpRegion__(zdonorp, zp[0], ret[1], ret[0], ret[3], ret[2], vols, indicesExtrap,\
-                                          indicesOrphan, tag = 'Donor',loc='centers', EXDir=EXdir,
-                                          itype='abutting', prefix=prefix,\
+                    _createInterpRegion__(zdonorp, zp[0], ret[1], ret[0], ret[3], ret[2], vols, indicesExtrap,
+                                          indicesOrphan, tag = 'Donor', loc='centers', EXDir=EXdir,
+                                          itype='abutting', prefix=prefix,
                                           RotationAngle=RotationAngle, RotationCenter=RotationCenter)
 
     return None
@@ -1550,10 +1551,10 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
     try: import Converter.GhostCells as GhostCells
     except: raise ImportError("setInterpDataForGhostCellsStruct__ requires Converter.GhostCells module.")
     # empty numpy arrays for zonesubregion nodes
-    indicesExtrap = numpy.array([],numpy.int32)
-    indicesOrphan = numpy.array([],numpy.int32)
-    vols =  numpy.array([],numpy.float64)
-    EXdir = numpy.array([],numpy.int32)
+    indicesExtrap = numpy.array([], numpy.int32)
+    indicesOrphan = numpy.array([], numpy.int32)
+    vols =  numpy.array([], numpy.float64)
+    EXdir = numpy.array([], numpy.int32)
 
     if loc == 'nodes': locR = 0; locS = 'Vertex'
     else: locR = 1; locS = 'CellCenter'
