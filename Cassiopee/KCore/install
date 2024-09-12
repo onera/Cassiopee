@@ -105,6 +105,7 @@ leak:Objects/obmalloc.c
 leak:Objects/unicodeobject.c
 leak:Objects/listobject.c
 leak:Modules/gcmodule.c
+leak:Python/thread_pthread.h
 leak:Converter/hook.cpp
 leak:Converter/globalHook.cpp
 leak:Converter/identifySolutions.cpp
