@@ -263,7 +263,10 @@ def uniformize1D(density, h, npts, factor):
         z = CTK.t[2][nob][2][noz]
         zones.append(z)
     try:
-        D._uniformize(zones, npts, h, factor, density)
+        if npts > 0:
+            for z in zones: D._uniformize(z, npts, h, factor, density)
+        else:
+            D._uniformize(zones, npts, h, factor, density)
         for c, nz in enumerate(nzs):
             nob = CTK.Nb[nz]+1
             noz = CTK.Nz[nz]
@@ -373,8 +376,7 @@ def apply2D(density, h, npts, factor, ntype=0):
         out.append(b)
     # Garde les autres
     out += u
-    #tp = C.newPyTree(['Base'])
-    #tp[2][1][2] += out
+    #tp = C.newPyTree(['Base', out])
     #C.convertPyTree2File(tp, 'edges.cgns')
 
     # Rebuild
@@ -734,7 +736,6 @@ def uniformize(event=None):
     density = -1; npts = 2; factor = -1; h = -1
     if rtype == 'Density':
         density = CTK.varsFromWidget(VARS[0].get(), 1)
-        print('density', density)
         if len(density) != 1:
             CTK.TXT.insert('START', 'Invalid points density.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')

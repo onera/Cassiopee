@@ -40,10 +40,6 @@ void Data::displaySSolidZone(StructZone* zonep, E_Int zone)
   E_Float nz = 1./_numberOfStructZones;
   #include "solidStyles.h"
 
-  // Ecrasement si renderTag
-  if (zonep->colorR > -0.5)
-  {color1[0] = zonep->colorR; color1[1] = zonep->colorG; color1[2] = zonep->colorB;}
-
   #include "selection.h"
 
   bool is1D = ((zonep->ni*zonep->nj == 1) | (zonep->ni*zonep->nk == 1) | (zonep->nj*zonep->nk == 1));
