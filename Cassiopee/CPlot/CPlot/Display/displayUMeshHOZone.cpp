@@ -95,9 +95,8 @@ void Data::displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet)
   double pt1[3]; double pt2[3]; double pt3[3]; double pt4[3];
   
   E_Float nz = 1./_numberOfUnstructZones;
-#include "meshStyles.h"
-
-#include "selection.h"
+  #include "meshStyles.h"
+  #include "selection.h"
 
   E_Int eltType0 = zonep->eltType[0]; 
   bool is1D = false;
@@ -116,20 +115,18 @@ void Data::displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet)
 
   // For BARS or NODES or 1D NGONS: display nodes
   if (is1D)
-  {
+  {    
     glBegin(GL_QUADS);
     if (zonep->blank == 0)
     {
-      for (i = 0; i < zonep->np; i++)
-      { PLOTNODE; }
+      for (i = 0; i < zonep->np; i++) { PLOTNODE; }
     }
     else
     {
       for (i = 0; i < zonep->np; i++)
       {
         ret = _pref.blanking->f(this, i, zonep->blank, zone);
-        if (ret != 0)
-        { PLOTNODE; }
+        if (ret != 0) { PLOTNODE; }
       }
     }
     glEnd();

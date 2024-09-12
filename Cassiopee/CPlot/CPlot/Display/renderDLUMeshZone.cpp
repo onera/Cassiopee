@@ -63,89 +63,88 @@
 //=============================================================================
 void DataDL::renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 {
-    ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
-    if (zImpl->_DLmesh == 0)
+  ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
+  if (zImpl->_DLmesh == 0)
+  {
+    displayUMeshZone(zonep, zone, zonet);
+    return;
+  }
+  E_Int i, ret;
+
+  // Style colors
+  float color1[3]; float color2[3];
+
+  // Colormap
+  float r, g, b;
+  void (*getrgb)(Data * data, double, float*, float*, float*);
+  getrgb = _plugins.zoneColorMap->f;
+
+  // For node rendering (1D zones)
+  double dref = 0.004;
+  double xi, yi, zi;
+  double viewMatrix[16];
+  glGetDoublev(GL_MODELVIEW_MATRIX, viewMatrix);
+  double right[3];
+  right[0] = viewMatrix[0];
+  right[1] = viewMatrix[4];
+  right[2] = viewMatrix[8];
+  double up[3];
+  up[0] = viewMatrix[1];
+  up[1] = viewMatrix[5];
+  up[2] = viewMatrix[9];
+  double xcam = _view.xcam;
+  double ycam = _view.ycam;
+  double zcam = _view.zcam;
+  double dx, dy, dz, dist, d;
+  double pru0, pru1, pru2, mru0, mru1, mru2;
+  double pt1[3];
+  double pt2[3];
+  double pt3[3];
+  double pt4[3];
+
+  E_Float nz = 1. / _numberOfUnstructZones;
+  #include "meshStyles.h"
+
+  double* x = zonep->x;
+  double* y = zonep->y;
+  double* z = zonep->z;
+  E_Int eltType0 = zonep->eltType[0];
+  bool is1D = false;
+  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
+  if (is1D) { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+  #include "selection.h"
+
+  if (zonep->_is_high_order == true)
+  {
+    int ishader = 3;
+    this->_shaders.set_tesselation(ishader);
+    this->_shaders.activate((short unsigned int)this->_shaders.shader_id(shader::None));
+    int t_outer = this->ptrState->outer_tesselation;
+    this->_shaders[this->_shaders.currentShader()]->setUniform("uOuter", (float)t_outer);
+    this->_shaders[this->_shaders.currentShader()]->setUniform( "patch_size", 3 );
+
+    glPatchParameteri( GL_PATCH_VERTICES, GLint(3) );
+  }
+  glCallList(zImpl->_DLmesh);
+
+  // For BARS, NODE, 1D NGONS: display node
+  if (is1D) 
+  {    
+    glBegin(GL_QUADS);
+    if (zonep->blank == 0) 
     {
-        displayUMeshZone(zonep, zone, zonet);
-        return;
-    }
-    E_Int i, ret;
-
-    // Style colors
-    float color1[3]; float color2[3];
-
-    // Colormap
-    float r, g, b;
-    void (*getrgb)(Data * data, double, float*, float*, float*);
-    getrgb = _plugins.zoneColorMap->f;
-
-    // For node rendering (1D zones)
-    double dref = 0.004;
-    double xi, yi, zi;
-    double viewMatrix[16];
-    glGetDoublev(GL_MODELVIEW_MATRIX, viewMatrix);
-    double right[3];
-    right[0] = viewMatrix[0];
-    right[1] = viewMatrix[4];
-    right[2] = viewMatrix[8];
-    double up[3];
-    up[0]       = viewMatrix[1];
-    up[1]       = viewMatrix[5];
-    up[2]       = viewMatrix[9];
-    double xcam = _view.xcam;
-    double ycam = _view.ycam;
-    double zcam = _view.zcam;
-    double dx, dy, dz, dist, d;
-    double pru0, pru1, pru2, mru0, mru1, mru2;
-    double pt1[3];
-    double pt2[3];
-    double pt3[3];
-    double pt4[3];
-
-    E_Float nz = 1. / _numberOfUnstructZones;
-#include "meshStyles.h"
-
-    double* x = zonep->x;
-    double* y = zonep->y;
-    double* z = zonep->z;
-    E_Int eltType0 = zonep->eltType[0];
-    bool is1D = false;
-    if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
-    if (is1D) { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
-#include "selection.h"
-
-    // glCallList(zonep->_DLmesh);
-    if (zonep->_is_high_order == true)
+      for (i = 0; i < zonep->np; i++) { PLOTNODE; }
+    } 
+    else
     {
-        int ishader = 3;
-        this->_shaders.set_tesselation(ishader);
-        this->_shaders.activate((short unsigned int)this->_shaders.shader_id(shader::None));
-        int t_outer = this->ptrState->outer_tesselation;
-        this->_shaders[this->_shaders.currentShader()]->setUniform("uOuter", (float)t_outer);
-        this->_shaders[this->_shaders.currentShader()]->setUniform( "patch_size", 3 );
-
-        glPatchParameteri( GL_PATCH_VERTICES, GLint(3) );
+      for (i = 0; i < zonep->np; i++) 
+      {
+        ret = _pref.blanking->f(this, i, zonep->blank, zonet);
+        if (ret != 0) { PLOTNODE; }
+      }
     }
-    glCallList(zImpl->_DLmesh);
-
-    // For BARS, NODE, 1D NGONS: display node
-    if (is1D) 
-    {
-        glBegin(GL_QUADS);
-        if (zonep->blank == 0) 
-        {
-            for (i = 0; i < zonep->np; i++) { PLOTNODE; }
-        } 
-        else
-        {
-            for (i = 0; i < zonep->np; i++) 
-            {
-                ret = _pref.blanking->f(this, i, zonep->blank, zonet);
-                if (ret != 0) { PLOTNODE; }
-            }
-        }
-        glEnd();
-    }
-    this->_shaders.activate((short unsigned int)0);
-    glLineWidth(1.);
+    glEnd();
+  }
+  this->_shaders.activate((short unsigned int)0);
+  glLineWidth(1.);
 }

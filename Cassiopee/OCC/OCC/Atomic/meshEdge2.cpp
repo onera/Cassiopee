@@ -39,7 +39,7 @@
 // ultimate (best) functions
 
 // ============================================================================
-// Return uniform distribution of NbPoints on edge
+// Return uniform (h constant) distribution of NbPoints on edge
 // ============================================================================
 E_Int __getUniform(const TopoDS_Edge& E, E_Int nbPoints, E_Float*& ue)
 {
@@ -47,6 +47,13 @@ E_Int __getUniform(const TopoDS_Edge& E, E_Int nbPoints, E_Float*& ue)
   GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
   Standard_Real u0 = geomAdap.FirstParameter();
   Standard_Real u1 = geomAdap.LastParameter();
+  if (BRep_Tool::Degenerated(E))
+  { 
+    nbPoints = 2;
+    ue = new E_Float [nbPoints];
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
+    return 1; 
+  }
   GCPnts_UniformAbscissa param(geomAdap, int(nbPoints), u0, u1);
   ue = new E_Float [nbPoints];
   for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
@@ -74,7 +81,15 @@ E_Int __getParamHmax(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints, E_Floa
   nbPoints = std::max(nbPoints, E_Int(3));
   GCPnts_UniformAbscissa param(geomAdap, int(nbPoints), u0, u1);
   ue = new E_Float [nbPoints];
-  for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
+  try // that fails some times
+  {
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
+  }
+  catch (const Standard_Failure& theErr)
+  {
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = i*(u1-u0)/(nbPoints-1)+u0;
+    printf("Warning: regular param used on edge.\n");
+  }
   printf("L=%f hmax=%f nbPoints=" SF_D_ "\n", L, hmax, nbPoints); fflush(stdout);
   return 0;
 }
@@ -90,7 +105,7 @@ E_Int __getParamHausd(const TopoDS_Edge& E, E_Float hausd, E_Int& nbPoints, E_Fl
   Standard_Real u1 = geomAdap.LastParameter();
   if (BRep_Tool::Degenerated(E)) 
   { 
-    nbPoints=2; 
+    nbPoints = 2; 
     ue = new E_Float [nbPoints];
     for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
     return 1; 
@@ -107,7 +122,7 @@ E_Int __getParamHausd(const TopoDS_Edge& E, E_Float hausd, E_Int& nbPoints, E_Fl
 void geom1(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& ue)
 {
   E_Float r = (u1-u0-h0)/(u1-u0-h1);
-  printf("r=%f\n", r);
+  //printf("r=%f\n", r);
   E_Float a = log(r);
   if (a > 1.e-12) // r!=1
   {

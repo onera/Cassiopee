@@ -38,15 +38,13 @@ void Data::displaySSolidZone(StructZone* zonep, E_Int zone)
   getrgb = _plugins.zoneColorMap->f;
 
   E_Float nz = 1./_numberOfStructZones;
-#include "solidStyles.h"
+  #include "solidStyles.h"
 
   // Ecrasement si renderTag
   if (zonep->colorR > -0.5)
-  {color1[0] = zonep->colorR; 
-    color1[1] = zonep->colorG; 
-    color1[2] = zonep->colorB;}
+  {color1[0] = zonep->colorR; color1[1] = zonep->colorG; color1[2] = zonep->colorB;}
 
-#include "selection.h"
+  #include "selection.h"
 
   bool is1D = ((zonep->ni*zonep->nj == 1) | (zonep->ni*zonep->nk == 1) | (zonep->nj*zonep->nk == 1));
   if (is1D == true && ptrState->mode == RENDER) glLineWidth(1.+5*zonep->shaderParam1);
