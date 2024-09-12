@@ -21,3 +21,9 @@ test.testT(a2, 2)
 a3 = C.convertArray2Tetra(a)
 a3 = G.close(a3, 1.e-3)
 test.testT(a3, 3)
+
+# test close non structure tetra avec retour de la table d indir. des vertices
+indices = []
+a3 = C.convertArray2Tetra(a)
+a3 = G.close(a3, 1.e-3, indices=indices)
+test.testO(indices, 4)
