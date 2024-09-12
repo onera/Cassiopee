@@ -52,7 +52,8 @@ static PyMethodDef Pyxcore [] =
     {"IntersectMesh_Init", K_XCORE::IntersectMesh_Init, METH_VARARGS},
     {"IntersectMesh_TriangulateFaceSet", K_XCORE::IntersectMesh_TriangulateFaceSet, METH_VARARGS},
     {"IntersectMesh_ExtractMesh", K_XCORE::IntersectMesh_ExtractMesh, METH_VARARGS},
-    
+    {"IntersectMesh_Exit", K_XCORE::IntersectMesh_Exit, METH_VARARGS},
+
     {"extractCell", K_XCORE::extractCell, METH_VARARGS},
 
     {NULL, NULL}

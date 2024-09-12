@@ -25,6 +25,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/IntersectMesh_Init.cpp',
             'XCore/intersectMesh/IntersectMesh_TriangulateFaceSet.cpp',
             'XCore/intersectMesh/IntersectMesh_ExtractMesh.cpp',
+            'XCore/intersectMesh/IntersectMesh_Exit.cpp',
             'XCore/intersectMesh/DDA.cpp',
 
             'XCore/intersectMesh/intersectMesh.cpp',
@@ -53,6 +54,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/point.cpp',
             'XCore/intersectMesh/ray.cpp',
             'XCore/intersectMesh/karray.cpp',
+            'XCore/intersectMesh/meshExport.cpp',
 
 
             'XCore/AdaptMesh/AdaptMesh_Init.cpp',

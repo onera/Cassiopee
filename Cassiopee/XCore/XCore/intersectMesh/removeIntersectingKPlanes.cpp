@@ -377,14 +377,16 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    puts("Parsing MASTER and SLAVE");
-
     if (!PyCapsule_IsValid(MASTER, "IntersectMesh")) {
         RAISE("Bad mesh hook.");
         return NULL;
     }
 
     IMesh *M = (IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
+
+    M->make_skin();
+    M->make_bbox();
+    M->hash_skin();
 
     E_Int nslaves = PyList_Size(SLAVES);
     E_Int i, ret;
