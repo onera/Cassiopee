@@ -42,3 +42,7 @@
       color2[0] = 0.;  color2[1] = 0.;  color2[2] = 1;
       break;
   }
+  // Ecrasement si renderTag
+  if (zonep->colorR > -0.5)
+  {color1[0] = zonep->colorR; color1[1] = zonep->colorG; color1[2] = zonep->colorB;}
+

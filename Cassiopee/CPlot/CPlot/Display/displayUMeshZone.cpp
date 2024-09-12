@@ -89,39 +89,21 @@ void Data::displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
   double pt1[3]; double pt2[3]; double pt3[3]; double pt4[3];
   
   E_Float nz = 1./_numberOfUnstructZones;
-#include "meshStyles.h"
+  #include "meshStyles.h"
 
-  E_Int eltType0 = zonep->eltType[0]; 
-  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) 
-  { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+  E_Int eltType0 = zonep->eltType[0];
+  bool is1D = false;
+  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
+  
+  if (is1D) { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
       
-#include "selection.h"
+  #include "selection.h"
     
-    /*if ( zonep->_is_high_order == true )
-    {
-      int ishader = 0;
-      if ( eltType0 == UnstructZone::TRI )
-        ishader = 1;  // OK, element de type Tri_6
-      if ( eltType0 == UnstructZone::QUAD )
-        ishader = 2;  // OK, element de type Quad_8
-      if ( not this->_shaders.has_tesselation() ) {
-        this->_shaders.set_tesselation( ishader );
-      }
-
-      this->_shaders.activate( (short unsigned int)this->_shaders.shader_id(0) );
-      std::cerr << "Shader id ::: " << this->_shaders.currentShader() << std::flush << std::endl;
-      int t_inner = this->ptrState->inner_tesselation;
-      int t_outer = this->ptrState->outer_tesselation;
-      this->_shaders[ this->_shaders.currentShader() ]->setUniform( "uInner", (float)t_inner );
-      this->_shaders[ this->_shaders.currentShader() ]->setUniform( "uOuter", (float)t_outer );
-      glPatchParameteri( GL_PATCH_VERTICES, zonep->eltSize );
-    }*/
-
-#include "displayUMeshZone.h"
+  #include "displayUMeshZone.h"
 
   // For BARS or NODES or 1D NGONS: display node
-  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0))
-  {
+  if (is1D)
+  {    
     glBegin(GL_QUADS);
     if (zonep->blank == 0)
     {

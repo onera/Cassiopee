@@ -204,7 +204,7 @@ def enforceH(event=None):
     CPlot.render()
     CTK.TXT.insert('START', 'Spacings enforced.\n')
         
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CPlot.setState(cursor=0)
@@ -253,7 +253,7 @@ def refine1D(density, npts, factor):
 #==============================================================================
 # Uniformize pour les zones edges
 #==============================================================================
-def uniformize1D(density, npts, factor):
+def uniformize1D(density, h, npts, factor):
     fail = False
     nzs = CPlot.getSelectedZones()
     zones = []
@@ -263,7 +263,10 @@ def uniformize1D(density, npts, factor):
         z = CTK.t[2][nob][2][noz]
         zones.append(z)
     try:
-        D._uniformize(zones, npts, -1, factor, density)
+        if npts > 0:
+            for z in zones: D._uniformize(z, npts, h, factor, density)
+        else:
+            D._uniformize(zones, npts, h, factor, density)
         for c, nz in enumerate(nzs):
             nob = CTK.Nb[nz]+1
             noz = CTK.Nz[nz]
@@ -282,7 +285,7 @@ def uniformize1D(density, npts, factor):
 # ntype=4: smooth
 # Retourne True (failed), False (success)
 #==============================================================================
-def apply2D(density, npts, factor, ntype=0):
+def apply2D(density, h, npts, factor, ntype=0):
     nzs = CPlot.getSelectedZones()
     nz = nzs[0]
     nob = CTK.Nb[nz]+1
@@ -299,6 +302,7 @@ def apply2D(density, npts, factor, ntype=0):
     if ntype == 0: # uniformize
         if density > 0: npts = D.getLength(i)*density
         if factor > 0: npts = np*factor
+        if h > 0: npts = D.getLength(i)/h+1
         npts = int(max(npts, 2))
         distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
         b = G.map(i, distrib)
@@ -372,8 +376,7 @@ def apply2D(density, npts, factor, ntype=0):
         out.append(b)
     # Garde les autres
     out += u
-    #tp = C.newPyTree(['Base'])
-    #tp[2][1][2] += out
+    #tp = C.newPyTree(['Base', out])
     #C.convertPyTree2File(tp, 'edges.cgns')
 
     # Rebuild
@@ -404,7 +407,7 @@ def apply2D(density, npts, factor, ntype=0):
 # ntype=4: smooth
 # Retourne True (failed), False (success)
 #==============================================================================
-def apply3D(density, npts, factor, ntype):
+def apply3D(density, h, npts, factor, ntype):
     nzs = CPlot.getSelectedZones()
     nz = nzs[0]
     nob = CTK.Nb[nz]+1
@@ -421,6 +424,7 @@ def apply3D(density, npts, factor, ntype):
     if ntype == 0: # uniformize
         if density > 0: npts = D.getLength(i)*density
         if factor > 0: npts = np*factor
+        if h > 0: npts = D.getLength(i)/h+1
         npts = int(max(npts, 2))
         distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
         b = G.map(i, distrib)
@@ -729,8 +733,8 @@ def uniformize(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     rtype = VARS[2].get()
-    density = -1; npts = 2; factor = -1
-    if type == 'Density':
+    density = -1; npts = 2; factor = -1; h = -1
+    if rtype == 'Density':
         density = CTK.varsFromWidget(VARS[0].get(), 1)
         if len(density) != 1:
             CTK.TXT.insert('START', 'Invalid points density.\n')
@@ -748,6 +752,14 @@ def uniformize(event=None):
             CTK.TXT.insert('START', 'Invalid number factor.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
         factor = factor[0]
+    elif rtype == 'H':
+        h = CTK.varsFromWidget(VARS[0].get(), 1)
+        print('h', h)
+        if len(h) != 1:
+            CTK.TXT.insert('START', 'Invalid h step.\n')
+            CTK.TXT.insert('START', 'Error: ', 'Error')
+        h = h[0]
+
     CTK.saveTree()
     CTK.setCursor(2, WIDGETS['frame'])
 
@@ -759,11 +771,11 @@ def uniformize(event=None):
     dim = Internal.getZoneDim(zone)
     if dim[0] == 'Structured':
         if dim[2] != 1 and dim[3] != 1: 
-            fail = apply3D(density, npts, factor, ntype=0)
+            fail = apply3D(density, h, npts, factor, ntype=0)
         elif dim[2] != 1 and dim[3] == 1: 
-            fail = apply2D(density, npts, factor, ntype=0)
-        else: fail = uniformize1D(density, npts, factor)
-    else: fail = uniformize1D(density, npts, factor) # all zones
+            fail = apply2D(density, h, npts, factor, ntype=0)
+        else: fail = uniformize1D(density, h, npts, factor)
+    else: fail = uniformize1D(density, h, npts, factor) # all zones
 
     if not fail:
         CTK.TXT.insert('START', 'Uniformize successfull.\n')
@@ -775,7 +787,7 @@ def uniformize(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
@@ -808,9 +820,9 @@ def enforce(event=None):
     dim = Internal.getZoneDim(zone)
     if dim[0] == 'Structured':
         if dim[2] != 1 and dim[3] != 1: 
-            fail = apply3D(1., 1, h, ntype=2)
+            fail = apply3D(1., -1, 1, h, ntype=2)
         elif dim[2] != 1 and dim[3] == 1: 
-            fail = apply2D(1., 1, h, ntype=2)
+            fail = apply2D(1., -1, 1, h, ntype=2)
         else: fail = stretch1D(h)
     else: fail = stretch1D(h)
 
@@ -862,9 +874,9 @@ def refine(event=None):
     dim = Internal.getZoneDim(zone)
     if dim[0] == 'Structured':
         if dim[2] != 1 and dim[3] != 1: 
-            fail = apply3D(1., npts, factor, ntype=1)
+            fail = apply3D(1., -1, npts, factor, ntype=1)
         elif dim[2] != 1 and dim[3] == 1: 
-            fail = apply2D(1., npts, factor, ntype=1)
+            fail = apply2D(1., -1, npts, factor, ntype=1)
         else: fail = refine1D(1., npts, factor) # all zones
     else: fail = refine1D(1., npts, factor) # all zones
 
@@ -878,7 +890,7 @@ def refine(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
 
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
@@ -916,9 +928,9 @@ def smooth(event=None):
     dim = Internal.getZoneDim(zone)
     if dim[0] == 'Structured':
         if dim[2] != 1 and dim[3] != 1: 
-            fail = apply3D(1., niter, eps, ntype=4)
+            fail = apply3D(1., -1, niter, eps, ntype=4)
         elif dim[2] != 1 and dim[3] == 1: 
-            fail = apply2D(1., niter, eps, ntype=4)
+            fail = apply2D(1., -1, niter, eps, ntype=4)
         else: fail = smooth1D(niter, eps)
     else: fail = smooth1D(niter, eps) # all zones
 
@@ -932,7 +944,7 @@ def smooth(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
@@ -1039,9 +1051,9 @@ def copyDistrib():
     # Traitement
     if dim[0] == 'Structured':
         if dim[2] != 1 and dim[3] != 1: 
-            fail = apply3D(1., 1, source, ntype=3)
+            fail = apply3D(1., -1, 1, source, ntype=3)
         elif dim[2] != 1 and dim[3] == 1: 
-            fail = apply2D(1., 1, source, ntype=3)
+            fail = apply2D(1., -1, 1, source, ntype=3)
         else: fail = copyDistrib1D(source)
     else: fail = copyDistrib1D(source) # all zones
 
@@ -1055,7 +1067,7 @@ def copyDistrib():
     CTK.TKTREE.updateApp()
     CPlot.render()
     
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
@@ -1206,7 +1218,7 @@ def enforceLocal(event=None):
     CPlot.render()
     CTK.TXT.insert('START', 'Local spacing enforced.\n')
 
-    # add CAD remesh if possible
+    # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CPlot.setState(cursor=0)
@@ -1275,7 +1287,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Uniformize", command=uniformize)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Uniformize an edge with regular spacing.')
-    B = TTK.OptionMenu(Frame, VARS[2], 'NFactor', 'Density', 'Npts')
+    B = TTK.OptionMenu(Frame, VARS[2], 'NFactor', 'Density', 'Npts', 'H')
     B.grid(row=0, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=7)
     B.grid(row=0, column=2, columnspan=2, sticky=TK.EW)

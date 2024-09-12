@@ -95,12 +95,13 @@ void Data::displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet)
   double pt1[3]; double pt2[3]; double pt3[3]; double pt4[3];
   
   E_Float nz = 1./_numberOfUnstructZones;
-#include "meshStyles.h"
-
-#include "selection.h"
+  #include "meshStyles.h"
+  #include "selection.h"
 
   E_Int eltType0 = zonep->eltType[0]; 
-  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) glLineWidth(3.);
+  bool is1D = false;
+  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
+  if (is1D) glLineWidth(3.);
   int ishader = 3;
   this->_shaders.set_tesselation(ishader);
   this->_shaders.activate((short unsigned int)this->_shaders.shader_id(shader::None));
@@ -113,21 +114,19 @@ void Data::displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet)
   this->_shaders.set_tesselation(0);
 
   // For BARS or NODES or 1D NGONS: display nodes
-  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0))
-  {
+  if (is1D)
+  {    
     glBegin(GL_QUADS);
     if (zonep->blank == 0)
     {
-      for (i = 0; i < zonep->np; i++)
-      { PLOTNODE; }
+      for (i = 0; i < zonep->np; i++) { PLOTNODE; }
     }
     else
     {
       for (i = 0; i < zonep->np; i++)
       {
         ret = _pref.blanking->f(this, i, zonep->blank, zone);
-        if (ret != 0)
-        { PLOTNODE; }
+        if (ret != 0) { PLOTNODE; }
       }
     }
     glEnd();

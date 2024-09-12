@@ -34,9 +34,9 @@
 #define XRESIZE(ptr, nbytes) \
   xresize((ptr), (nbytes), __FILE__, __LINE__)
 
-void *xmalloc(size_t , const char *, E_Int);
-void *xcalloc(size_t, size_t, const char *, E_Int);
+void *xmalloc(E_Int, const char *, E_Int);
+void *xcalloc(E_Int, E_Int, const char *, E_Int);
 void xfree(void *, const char *, E_Int);
-void *xresize(void *, size_t, const char *, E_Int);
+void *xresize(void *, E_Int, const char *, E_Int);
 
 #endif

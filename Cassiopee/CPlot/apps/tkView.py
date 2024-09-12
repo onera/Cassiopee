@@ -944,7 +944,7 @@ def setStyle(event=None):
     elif v == 'Multicolor wireframes': style = 1
     elif v == 'Multicolor wires+solid': style = 2
     elif v == 'Black wires+solid': style = 3
-    elif v == 'Multicolor wires+solid2': style = 4
+    elif v == 'Black wires+solid2': style = 4
     CPlot.setState(meshStyle=style)
     style = 0; v = VARS[17].get()
     if v == 'Monocolor/1-side': style = 0
@@ -1098,7 +1098,7 @@ def createApp(win):
     B = TTK.Label(Mesh, text="Style:")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Mesh style.')
-    B = TTK.OptionMenu(Mesh, VARS[16], 'Red wires+solid', 'Black wires+solid', 'Multicolor wireframes', 'Multicolor wires+solid', 'Multicolor wires+solid2', command=setStyle)
+    B = TTK.OptionMenu(Mesh, VARS[16], 'Red wires+solid', 'Black wires+solid', 'Multicolor wireframes', 'Multicolor wires+solid', 'Black wires+solid2', command=setStyle)
     B.grid(row=0, column=1, sticky=TK.EW)
 
     # - Solid frame -

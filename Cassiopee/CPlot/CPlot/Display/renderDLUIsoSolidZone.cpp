@@ -38,13 +38,15 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield
 #include "selection2.h"
 
   E_Int eltType0 = zonep->eltType[0];
+  bool is1D = false;
+  if ((eltType0 == 1) || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
   
 #ifdef __SHADERS__
   int curr = _shaders.currentShader();
   if (curr != 0) _shaders[curr]->setUniform("blend", (float)blend);
   glColor4f(0.,0.,0., blend); // pour imposer blend
 
-  if ((eltType0 == 1) || (eltType0 == 10 && zonep->nelts1D > 0))
+  if (is1D)
   {
     if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)0); // impose isoLight off on 1D meshes
   }
@@ -53,7 +55,7 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield
   glCallList(zoneImpl->_DLiso);
 
 #ifdef __SHADERS__
-  if ((eltType0 == 1) || (eltType0 == 10 && zonep->nelts1D > 0))
+  if (is1D)
   {
     if (ptrState->isoLight == 1 && ptrState->dim == 3)
     {
