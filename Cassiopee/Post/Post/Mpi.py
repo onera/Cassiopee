@@ -15,10 +15,9 @@ def computeGradLSQ(t, fldNames):
     fcenters, fareas = G.getFaceCentersAndAreas(t)
     centers = G.getCellCenters(t, fcenters, fareas)
     zones = Internal.getZones(t)
-    for i in range(len(zones)):
+    for i, zone in enumerate(zones):
         cc = centers[i]
         if cc is None: continue
-        zone = zones[i]
         fsolc = Internal.getNodeFromName(zone, Internal.__FlowSolutionCenters__)
         Internal.createNode('CCx', 'DataArray_t', cc[0], None, fsolc)
         Internal.createNode('CCy', 'DataArray_t', cc[1], None, fsolc)
@@ -33,9 +32,9 @@ def computeGradLSQ(t, fldNames):
 
     # get comm list
     zgc = Internal.getNodeFromType(zone, 'ZoneGridConnectivity_t')
-    if zgc == None: raise ValueError('ZoneGridConnectivity not found')
+    if zgc is None: raise ValueError('ZoneGridConnectivity not found.')
     comms = Internal.getNodesFromType(zgc, 'GridConnectivity1to1_t')
-    if comms == None: raise ValueError('GridConnectivity1to1 not found')
+    if comms is None: raise ValueError('GridConnectivity1to1 not found.')
     ptlists = []
     for comm in comms:
         ptlist = Internal.getNodeFromName(comm, 'PointList')[1]
@@ -44,7 +43,6 @@ def computeGradLSQ(t, fldNames):
     # compute lsq gradients
     parRun = 1
     t = P.computeGradLSQ(t, fldNames, parRun, fcenters, ptlists, rfields)
-
     # TODO(Imad): delete cell centers from tree
 
     return t

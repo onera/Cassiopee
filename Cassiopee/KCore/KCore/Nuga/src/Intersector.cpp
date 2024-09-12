@@ -107,6 +107,7 @@ Intersector::getXPairs
     // Destroy the box tree.
     delete trees[s];
   }
+  delete [] pool;
 }
 
 ///

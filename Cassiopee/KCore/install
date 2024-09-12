@@ -29,16 +29,13 @@ else
     echo 'install <dir>: install in directory <dir>.'
     exit 1
 fi
-if [ -z "${CLEAN_WHEELS_CASSIOPEE+x}" ]; then
-    CLEAN_WHEELS_CASSIOPEE=1
-fi
 
 # if specific python exe name
 if [ "$PYTHONEXE" != "" ]; then
     alias python=$PYTHONEXE
 fi
 
-# set production mode (0: scons+setup, 1: scons+pip, 2: setup legacy)
+# set production mode (0: scons+setup, 1: scons+pip, 2: scons+pip+wheel)
 if [ "$PRODMODE" = "" ]; then
     PRODMODE=0
 fi
@@ -69,18 +66,16 @@ if [ $PRODMODE -le 1 ]; then
     if [ $PRODMODE -eq 0 ]; then # setup
         python setup.py install --prefix="$INSTALLPATH"
         [ $? != 0 ] && exit 1;
-    elif [ $PRODMODE -eq 1 ]; then # pip+wheel
+    elif [ $PRODMODE -eq 1 ]; then # pip
+        python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 2 ]; then # pip+wheel
         TMPDIR=$INSTALLPATH python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
         [ $? != 0 ] && exit 1;
     fi
 else
     python setupLegacy.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
-fi
-
-# Clean temporary folder containing wheels
-if [ "$CLEAN_WHEELS_CASSIOPEE" -eq 1 ]; then
-    rm -rf "$INSTALLPATH"/pip-*
 fi
 
 # Install libkcore
@@ -99,14 +94,22 @@ cp test/compareSessionLogs "$INSTALLPATH"
 # LSAN: Ajoute un fichier pour supprimer certaines fuites memoire du log
 cat > "$INSTALLPATH"/asan.supp <<EOF
 leak:numpy/core/*
+leak:libOSMesa.so.*
+leak:libopen-pal.so.*
+leak:libopen-rte.so.*
+leak:libc.so.*
+leak:libstdc++.so.*
+leak:libTKernel.so.*
 leak:Netgen/stlgeom/stlgeom.cpp
 leak:Objects/obmalloc.c
 leak:Objects/unicodeobject.c
 leak:Objects/listobject.c
 leak:Modules/gcmodule.c
+leak:Python/thread_pthread.h
 leak:Converter/hook.cpp
 leak:Converter/globalHook.cpp
 leak:Converter/identifySolutions.cpp
+leak:OCC/Atomic/readCAD.cpp
 EOF
 
 # Check installation

@@ -567,8 +567,8 @@ E_Int K_CONNECTOR::blankIntersectingCellsPenta(
       }
     }
   }
-  for (E_Int v = 0; v < nfacettes; v++)
-    delete listFacettes[v];
+  for (E_Int v = 0; v < nfacettes; v++) { delete listFacettes[v]; delete boxes[v]; }
+  delete bbtree;
   return 1;
 }
 
@@ -813,8 +813,8 @@ E_Int K_CONNECTOR::blankIntersectingCellsHexa(
       }
     }
   }
-  for (E_Int v = 0; v < nfacettes; v++)
-    delete listFacettes[v];
+  for (E_Int v = 0; v < nfacettes; v++) { delete listFacettes[v]; delete boxes[v]; }
+  delete bbtree;
   return 1;
 }
 //=============================================================================
@@ -1029,7 +1029,8 @@ E_Int K_CONNECTOR::blankIntersectingCellsStruct(
       }
     }
   }
-  for (E_Int v = 0; v < nfacettes; v++) delete listFacettes[v];
+  for (E_Int v = 0; v < nfacettes; v++) { delete listFacettes[v]; delete boxes[v]; }
+  delete bbtree;
   return 1;
 }
 //=====================================================================================

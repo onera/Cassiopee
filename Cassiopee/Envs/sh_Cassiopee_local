@@ -76,7 +76,6 @@ case $MACHINETMP in
 esac
 unset MACHINETMP
 EXT=$INTTYPE$DBGMODE
-export CLEAN_WHEELS_CASSIOPEE=1
 
 # ----------------------------- Prods ------------------------------------------
 if [ "$MAC" = "ld_eos8" ]; then
@@ -165,9 +164,8 @@ elif [ "$MAC" = "azure" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=4
     export PYTHONEXE=python3
-    export PRODMODE=1
+    export PRODMODE=2
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export CLEAN_WHEELS_CASSIOPEE=0
 
 elif [ "$MAC" = "visio" ]; then
 #----------------------------- visio -----------------------------------------

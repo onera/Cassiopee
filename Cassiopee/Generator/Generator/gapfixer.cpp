@@ -51,13 +51,13 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
   {
     if (ni != 1 && nj != 1 && nk != 1)
     {
-      delete fB0; 
+      delete fB0; delete cn1; // always delete cn1 because DynArray
       PyErr_SetString(PyExc_TypeError,
                       "gapfixer: array must define a plane.");
       return NULL;
     }
   }
-  if (res1 == 2) 
+  else if (res1 == 2) 
   {
     if (strcmp(eltType, "TRI") != 0 && 
         strcmp(eltType, "QUAD") != 0 &&
@@ -78,8 +78,7 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
   
   if ((posx == -1) || (posy == -1) || (posz == -1))
   {
-    delete fB0;
-    if (res1 == 2) delete cn1;
+    delete fB0; delete cn1; // always delete cn1 because DynArray
     PyErr_SetString(PyExc_TypeError,
                     "gapfixer: can't find coordinates in array.");
     return NULL;
@@ -91,6 +90,8 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
 
   if (res2 != 1) 
   {
+    delete fB0; delete cn1;
+    if (res2 == 2) { delete fC; delete cn2; }
     PyErr_SetString(PyExc_TypeError,
                     "gapfixer: invalid array. Must be structured.");
     return NULL;
@@ -101,8 +102,7 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
   
   if (not_a_surface)
   {
-    delete fC;
-    if (res2 == 2) delete cn2;
+    delete fB0; delete cn1; delete fC; delete cn2;
     PyErr_SetString(PyExc_TypeError,
                     "gapfixer: array must define a surface.");
     return NULL;
@@ -117,8 +117,7 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
   
   if ((posx == -1) || (posy == -1) || (posz == -1))
   {
-    delete fC; 
-    if (res2 == 2) delete cn2;
+    delete fB0; delete cn1; delete fC; delete cn2;
     PyErr_SetString(PyExc_TypeError,
                     "gapfixer: can't find coordinates in array.");
     return NULL;
@@ -139,12 +138,14 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
     
       if ((posx == -1) || (posy == -1) || (posz == -1))
       {
-        delete fHP; 
+        delete fB0; delete cn1; delete fC; delete cn2;
+        delete fHP; delete cndum;
         PyErr_SetString(PyExc_TypeError,
                         "gapfixer: can't find coordinates in the hard points array.");
         return NULL;
       }
     }
+    delete cndum;  // always delete because DynArray
   }
   
   K_FLD::FloatArray &posB0 = *fB0;
@@ -156,17 +157,18 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
 
   if (err)
   {
+    delete fB0; delete cn1; delete fC; delete cn2;
+    delete fHP;
     PyErr_SetString(PyExc_TypeError,
-                        "gapfixer: failed to proceed.");
+                    "gapfixer: failed to proceed.");
     return NULL;
   }
 
   PyObject* tpl = K_ARRAY::buildArray(posG, varString, connectG, -1, "TRI",
                                       false);
-  delete fB0;
-  delete fC;
-  if (res1 == 2) delete cn1; 
-  if (res2 == 2) delete cn2;
+  delete fB0; delete fC; delete fHP;
+  //if (res1 == 2) delete cn1;  // only for FldArray
+  delete cn1; delete cn2;  // always delete because DynArray (see getFromArrayDyn)
   return tpl;
 }
 

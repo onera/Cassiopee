@@ -282,10 +282,9 @@ StructBlock::compInterpolationInformation(vector<StructBlock*>& vectOfBlks)
             test = searchForMatchingBnd(x, y, z, blk2);
           else test = false;
          
-          if ( cellNF != 0 && test == false)
+          if (cellNF != 0 && !test)
           { 
-            if (testIntersectionOfCells(this, blk2, ind, indi,
-                                        _overlapTol) == true)
+            if (testIntersectionOfCells(this, blk2, ind, indi, _overlapTol))
             {              
               _interpolableNode[cnt] = ind;
               _interpolationNode[cnt] = indi;

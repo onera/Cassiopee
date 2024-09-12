@@ -67,11 +67,11 @@ E_Boolean testIntersectionOfCells(StructBlock* blk1, StructBlock* blk2,
   
   while( itrT1 != triangles1.end())
   {
-    if (compMatrix(*itrT1, mat10, mat01) == true)// matrice de passage
+    if (compMatrix(*itrT1, mat10, mat01))// matrice de passage
     {
       while (itrT2 != triangles2.end())
       {
-        if (compMatrix(*itrT2, mat20, mat02) == true)// matrice de passage
+        if (compMatrix(*itrT2, mat20, mat02))// matrice de passage
         {
           // change les coordonnees de T2 dans le repere (X1,Y1,Z1)
           compCoordInNewFrame(*itrT1, *itrT2, mat01, ptA1, ptB1, ptC1);
@@ -87,9 +87,15 @@ E_Boolean testIntersectionOfCells(StructBlock* blk1, StructBlock* blk2,
           switch (pl)
           {
             case 1://plan Z=0
-              if(testIntersectionInPlane(eps01, ptA1, ptB1, ptC1,
-                                         eps02, ptA2, ptB2, ptC2)==true)
+              if(testIntersectionInPlane(eps01, ptA1, ptB1, ptC1, eps02, ptA2, ptB2, ptC2))
+              {
+                for (auto itrT1 = triangles1.begin(); itrT1 != triangles1.end(); itrT1++)
+                  delete *itrT1;
+                for (auto itrT2 = triangles2.begin(); itrT2 != triangles2.end(); itrT2++)
+                  delete *itrT2;
+                triangles1.clear(); triangles2.clear();
                 return true;
+              }
               break;
             case 0://plan secant a Z=0
               // droite D : intersection des 2 plans contenant T1 et T2
@@ -97,13 +103,19 @@ E_Boolean testIntersectionOfCells(StructBlock* blk1, StructBlock* blk2,
               test1 = testIntersectionInSpace(ptA1, ptB1, ptC1, eps01, intersect1);
               test2 = testIntersectionInSpace(ptA2, ptB2, ptC2, eps02, intersect2);
 
-              if (test1 == true && test2 == true)
+              if (test1 && test2)
               {
                 //intersection ?
                 if (testIntersectionOfSegments(mat10, *itrT1, mat20, *itrT2, 
-                                               eps10, eps20,
-                                               intersect1, intersect2) == true)
+                                               eps10, eps20, intersect1, intersect2))
+                {
+                  for (auto itrT1 = triangles1.begin(); itrT1 != triangles1.end(); itrT1++)
+                    delete *itrT1;
+                  for (auto itrT2 = triangles2.begin(); itrT2 != triangles2.end(); itrT2++)
+                    delete *itrT2;
+                  triangles1.clear(); triangles2.clear();
                   return true;
+                }
               }
               break;
             default:;// plan parallele a Z=0
@@ -114,6 +126,12 @@ E_Boolean testIntersectionOfCells(StructBlock* blk1, StructBlock* blk2,
     }
     itrT1++;
   }
+  
+  for (auto itrT1 = triangles1.begin(); itrT1 != triangles1.end(); itrT1++)
+    delete *itrT1;
+  for (auto itrT2 = triangles2.begin(); itrT2 != triangles2.end(); itrT2++)
+    delete *itrT2;
+  triangles1.clear(); triangles2.clear();
   return false;
 }
 

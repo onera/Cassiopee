@@ -37,12 +37,6 @@ void DataDL::renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
   E_Float nz = 1./_numberOfUnstructZones;
 #include "solidStyles.h"
   
-  // Ecrasement si renderTag
-  if (zonep->colorR > -0.5)
-  {color1[0] = zonep->colorR; 
-    color1[1] = zonep->colorG;
-    color1[2] = zonep->colorB;}
-
 #include "selection.h"
 
   E_Int eltType0 = zonep->eltType[0];  

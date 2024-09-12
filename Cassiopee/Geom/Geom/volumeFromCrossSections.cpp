@@ -56,7 +56,7 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   E_Int posxc1, posyc1, poszc1;
   E_Int posxc2, posyc2, poszc2;
 
-  if ( resc1 == 2 && resc2 == 2)
+  if (resc1 == 2 && resc2 == 2)
   {
     if ( strcmp(eltTypec1, "BAR") != 0 || strcmp(eltTypec2, "BAR") != 0)
     {
@@ -121,9 +121,10 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   // Check args
   if (res1 != 2 || strcmp(eltType1, "TRI") != 0)
   {
-    if (res1 == 1) delete f1; 
-    if (res2 >= 1) delete f2;
-    if (res2 == 2) delete cn2;
+    if (res1 == 1) delete f1;
+    else if (res1 == 2) { delete f1; delete cn1; }
+    if (res2 == 1) delete f2;
+    else if (res2 == 2) { delete f2; delete cn2; }
     delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
           
     PyErr_SetString(PyExc_ValueError,
@@ -133,7 +134,8 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   if (res2 != 2 || strcmp(eltType2, "TRI") != 0)
   {
     delete f1; delete cn1;
-    if (res2 >= 1) delete f2;
+    if (res2 == 1) delete f2;
+    else if (res2 == 2) { delete f2; delete cn2; }
     delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
 
     PyErr_SetString(PyExc_ValueError,
@@ -146,8 +148,7 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   E_Int posz1 = K_ARRAY::isCoordinateZPresent( varString1);
   if (posx1 == -1 || posy1 == -1 || posz1 == -1)
   {
-    delete f1;
-    if (res1 == 2) delete cn1;
+    delete f1; delete cn1; delete f2; delete cn2;
     delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
 
     PyErr_SetString(PyExc_TypeError,
@@ -161,8 +162,7 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   E_Int posz2 = K_ARRAY::isCoordinateZPresent( varString2 );
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
-    delete f2;
-    if (res2 == 2) delete cn2;
+    delete f1; delete cn1; delete f2; delete cn2;
     delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
 
     PyErr_SetString(PyExc_TypeError,
@@ -232,7 +232,9 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   checkTetrahedra(type, cn, coord);
 
   PyObject* tpl = K_ARRAY::buildArray(coord, "x,y,z", cn, 4, "TETRA");
-  delete &coord;
+  delete an; delete cni;
+  delete f1; delete cn1; delete f2; delete cn2;
+  delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
   return tpl;
 }
 

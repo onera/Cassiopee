@@ -478,7 +478,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   }
   
   if (res == 2) delete [] eltType;
-  RELEASESHAREDZ(hookz, (char*)NULL, (char*)NULL);
+  RELEASESHAREDZ(hookz, varString, (char*)NULL);
   Py_INCREF(Py_None); 
   return Py_None;
 }

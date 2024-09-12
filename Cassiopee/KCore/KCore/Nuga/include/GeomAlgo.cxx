@@ -343,6 +343,8 @@ inline void GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin
         if (orient[k] == -1)
           std::swap((*cnts[i])(1,k), (*cnts[i])(2,k));
    }
+   
+   delete[] pool;
 }
 
 ///

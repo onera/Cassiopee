@@ -61,16 +61,16 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
   E_Int posx, posy, posz;
   FloatArray* f; IntArray* cn;
   char* varString; char* eltType;
-  vector<bool> is_quad(nzone, false);
+  vector<E_Bool> is_quad(nzone, false);
 
   // Extraction des infos pour chaque bloc
-  for (int i = 0; i < nzone; i++)
+  for (E_Int i = 0; i < nzone; i++)
   {
     E_Int nil, njl, nkl;
     PyObject* tpl = PyList_GetItem(listBlks, i);
 
     E_Int res = 
-      K_ARRAY::getFromArray(tpl, varString, f, nil, njl, nkl,cn,eltType);
+      K_ARRAY::getFromArray(tpl, varString, f, nil, njl, nkl, cn, eltType);
       
     if (res != 2)
     {
@@ -95,6 +95,7 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
     
     if (posx == -1 || posy == -1 || posz == -1)
     {
+      delete f; delete cn;
       PyErr_SetString(PyExc_TypeError,
                       "reorderAllUnstr: coordinates not found.");
       return NULL;
@@ -117,8 +118,7 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
         tcnt.pushBack(T, T+3);
       }
     }
-    else
-      tri_cnts[i]=cn;
+    else tri_cnts[i]=cn;
       
     //std::cout << "zone type is quad : " << is_quad[i] << std::endl;
            

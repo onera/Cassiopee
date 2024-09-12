@@ -76,7 +76,7 @@ PyObject* K_KCORE::empty(PyObject* self, PyObject* args)
   IMPORTNUMPY;
   npy_intp dims[3];
   E_Int nd; E_Int size;
-  if (PyTuple_Check(shape) == true) 
+  if (PyTuple_Check(shape)) 
   {
     nd = PyTuple_Size(shape);
     size = 1;
@@ -95,18 +95,10 @@ PyObject* K_KCORE::empty(PyObject* self, PyObject* args)
     dims[0] = size;
   }
 
-  // test
-  /*
-  dims[0] = size;
-  double* mymem = (double*)malloc(size*sizeof(double));
-  PyObject* arr = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, mymem);
-  Py_INCREF(arr);
-  FLAG(arr);
-  return arr;
-  */
-
   // buffer surdimensionne pour l'alignement
   char* buf = (char*)malloc((8*size+align)*sizeof(char));
+  if (!buf) return PyErr_NoMemory();
+  
   double* mymem = (double*)buf;
   E_LONG addr = (E_LONG)mymem; // adresse en bytes
   //printf("%ld < %d\n", addr%align, align);
@@ -126,8 +118,6 @@ PyObject* K_KCORE::empty(PyObject* self, PyObject* args)
 
     // Le deuxieme non-possesseur aligne
     E_LONG addr2 = addr + addr%align;
-    //char* addr2 = buf;
-    //char* addr2 = buf + addr%align;
     double* data = (double*)addr2;
     arr = PyArray_SimpleNewFromData(nd, dims, NPY_DOUBLE, data);
     Py_INCREF(arr);

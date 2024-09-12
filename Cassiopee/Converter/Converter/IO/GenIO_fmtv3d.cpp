@@ -343,6 +343,7 @@ E_Int K_IO::GenIO::fv3dwrite(
   delete [] width;
   delete [] precision;
   delete [] specifier;
+  for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
 
   fclose(ptrFile);
   return 0;
