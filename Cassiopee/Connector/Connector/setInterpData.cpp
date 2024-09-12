@@ -826,7 +826,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     //oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
     for (E_Int no = 0; no < nHooks; no++)
     {
-      PyObject* hook = PyList_GetItem(allHooks,no);
+      PyObject* hook = PyList_GetItem(allHooks, no);
       if (hook == Py_None) //CARTESIAN
       {
         E_Float* xt = fields[no]->begin(posxs[no]);
@@ -1121,9 +1121,21 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 
 
   // Nettoyages
+  if (allHooks == Py_None)
+  {
+    for (size_t no = 0; no < interpDatas.size(); no++) delete interpDatas[no];
+  }
+  else
+  {
+    for (E_Int no = 0; no < nzones; no++)
+    {
+      PyObject* hook = PyList_GetItem(allHooks, no);
+      if (hook == Py_None) delete interpDatas[no];
+    }
+  }
+  
   for (E_Int no = 0; no < nzones; no++)
   {
-    if (allHooks == Py_None) delete interpDatas[no];
     RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  
   }
   RELEASESHAREDB(resr, receiverArray, fr, cnr); 

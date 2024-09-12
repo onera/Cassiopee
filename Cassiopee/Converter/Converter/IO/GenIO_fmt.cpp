@@ -911,9 +911,10 @@ E_Int K_IO::GenIO::readTwoCoordinates(char* buf, FILE* ptrFile, E_Float* pt)
     readWord(ptrFile, buf);
     K_ARRAY::extractVars(buf, numbers);
     value = strtod(numbers[0], NULL);
-    delete [] numbers[0];
     pt[1] = value;
+    for (size_t i = 0; i < numbers.size(); i++) delete [] numbers[i];
   }
+  
   E_Int lastChar = buf[strlen(buf)-1];
   if (lastChar == '\"') return 0;
   else return 1;
