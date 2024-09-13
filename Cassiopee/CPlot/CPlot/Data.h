@@ -364,6 +364,7 @@ public:
   void changeSecondaryVariableMinus();
   void changeBlankingFunction();
   void changeAppearance();
+  void changeAmbSelection();
   void mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y);
   void mouseMotion(E_Int x, E_Int y);
   void mousePassiveMotion(E_Int x, E_Int y);

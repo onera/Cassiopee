@@ -243,6 +243,13 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
     break;
   }
 
+  // -- Change selected zone in case of ambiguous selection --
+  case 'n':
+  {
+    changeAmbSelection();
+    break;
+  }
+
   // -- Change the dimension mode (3D - 2D - 1D) --
   case 'm':
   {
@@ -1012,7 +1019,7 @@ void Data::moveLeft(double alpha, double dx, double dy, double dz, double d,
   }
   else if (ptrState->dim == 2)
   {
-    switch ( ptrState->var2D )
+    switch (ptrState->var2D)
     {
       case 0:
         _view.xcam = _view.xcam - d;
@@ -1030,7 +1037,7 @@ void Data::moveLeft(double alpha, double dx, double dy, double dz, double d,
   }
   else
   {
-    switch ( ptrState->var1D )
+    switch (ptrState->var1D)
     {
       case 0:
         _view.xcam = _view.xcam - d;
@@ -1065,7 +1072,7 @@ void Data::strafeLeft(double alpha, double dx, double dy, double dz, double d,
   }
   else if (ptrState->dim == 2)
   {
-    switch ( ptrState->var2D )
+    switch (ptrState->var2D)
     {
       case 0:
         _view.xcam = _view.xcam - d;
@@ -1083,7 +1090,7 @@ void Data::strafeLeft(double alpha, double dx, double dy, double dz, double d,
   }
   else
   {
-    switch ( ptrState->var1D )
+    switch (ptrState->var1D)
     {
       case 0:
         _view.xcam = _view.xcam - d;
@@ -1371,4 +1378,26 @@ void Data::changeAppearance()
     ptrState->meshStyle = ptrState->meshStyle+1;
     if (ptrState->meshStyle > 4) ptrState->meshStyle = 0;
   }
+}
+
+//=============================================================================
+// Change ambiguous selection 
+//=============================================================================
+void Data::changeAmbSelection()
+{
+  std::vector<E_Int>& v = ptrState->ambSelections;
+  E_Int vsize = v.size();
+  if (vsize <= 1) return;
+  ptrState->ambSelSet += 1;
+  if (ptrState->ambSelSet >= vsize) ptrState->ambSelSet = 0; 
+  E_Int zone = v[ptrState->ambSelSet];
+  
+  for (E_Int i = 0; i < _numberOfZones; i++)
+  _zones[i]->previouslySelected = _zones[i]->selected;
+
+  ptrState->selectedZone = zone+1;
+
+  Zone* z = _zones[zone];
+  for (E_Int i = 0; i < _numberOfZones; i++) _zones[i]->selected = 0;
+  z->selected = 1;
 }

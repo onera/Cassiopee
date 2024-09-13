@@ -277,6 +277,10 @@ E_Int Data::findBlockContaining(double x, double y, double z,
   eps = d*eps;
   ncon = 0;
 
+  // to keep track of potential zone hen clicking on overlapping zones
+  ptrState->ambSelections.clear();
+  ptrState->ambSelSet = -1;
+
   for (nz = 0; nz < _numberOfZones; nz++)
   {
     Zone* zonep = _zones[nz];
@@ -310,36 +314,44 @@ E_Int Data::findBlockContaining(double x, double y, double z,
         {
           dmin = d; nzmin = nz; ind = indl; indE = inde;
           dminElt = de; dminNode = dn;
+          ptrState->ambSelections.clear();
         }
         else if (d <= dmin+1.e-10) // meme point mini: compare dn ou de
         {
+          if (ptrState->ambSelections.size() == 0) ptrState->ambSelections.push_back(nzmin);
+          ptrState->ambSelections.push_back(nz);
           if (zonep->dim == 1 && _zones[nzmin]->dim == 1)
           {
             if (de < dminElt)
             {
               dmin = d; nzmin = nz; ind = indl; indE = inde; 
               dminElt = de; dminNode = dn;
+              ptrState->ambSelSet = ptrState->ambSelections.size()-1;
             }
             else if (dn < dminNode)
             {
               dmin = d; nzmin = nz; ind = indl; indE = inde; 
               dminElt = de; dminNode = dn;
+              ptrState->ambSelSet = ptrState->ambSelections.size()-1;
             }
           }
           else if (zonep->dim == 1 && _zones[nzmin]->dim != 1)
           {
             dmin = d; nzmin = nz; ind = indl; indE = inde; 
             dminElt = de; dminNode = dn;
+            ptrState->ambSelSet = ptrState->ambSelections.size()-1;
           }
           else if (de < dminElt && _zones[nzmin]->dim != 1)
           {
             dmin = d; nzmin = nz; ind = indl; indE = inde; 
             dminElt = de; dminNode = dn;
+            ptrState->ambSelSet = ptrState->ambSelections.size()-1;
           }
           else if (dn < dminNode && _zones[nzmin]->dim != 1)
           {
             dmin = d; nzmin = nz; ind = indl; indE = inde; 
             dminElt = de; dminNode = dn;
+            ptrState->ambSelSet = ptrState->ambSelections.size()-1;
           }
         }
       }
