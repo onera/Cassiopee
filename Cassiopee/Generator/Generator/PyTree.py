@@ -844,22 +844,27 @@ def _closeLegacy(t, tol=1.e-12, suppressDegeneratedNGons=False):
     
 def close(a, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
           rmDuplicatedFaces=True, rmDuplicatedElts=True,
-          rmDegeneratedFaces=True, rmDegeneratedElts=True):
+          rmDegeneratedFaces=True, rmDegeneratedElts=True,
+          indices=None):
     """Merge vertices distant of tol and remove multiply defined vertices/faces/elements.
     Usage: close(array, tol, rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces,
-                 rmDuplicatedElts, rmDegeneratedFaces, rmDegeneratedElts)"""
+                 rmDuplicatedElts, rmDegeneratedFaces, rmDegeneratedElts,
+                 indices)"""
     t = Internal.copyRef(a)
     _close(t, tol, rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces,
-           rmDuplicatedElts, rmDegeneratedFaces, rmDegeneratedElts)
+           rmDuplicatedElts, rmDegeneratedFaces, rmDegeneratedElts,
+           indices=indices)
     return t
 
 def _close(t, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
            rmDuplicatedFaces=True, rmDuplicatedElts=True,
-           rmDegeneratedFaces=True, rmDegeneratedElts=True):
+           rmDegeneratedFaces=True, rmDegeneratedElts=True,
+           indices=None):
     fields = C.getAllFields(t, 'nodes')
     fields = Generator.close(fields, tol, rmOverlappingPts, rmOrphanPts,
                              rmDuplicatedFaces, rmDuplicatedElts,
-                             rmDegeneratedFaces, rmDegeneratedElts)
+                             rmDegeneratedFaces, rmDegeneratedElts,
+                             indices=indices)
     C.setFields(fields, t, 'nodes')
     return None
 

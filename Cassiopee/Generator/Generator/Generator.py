@@ -829,27 +829,36 @@ def closeLegacy(array, tol=1.e-12, suppressDegeneratedNGons=False):
         
 def close(array, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
           rmDuplicatedFaces=True, rmDuplicatedElts=True,
-          rmDegeneratedFaces=True, rmDegeneratedElts=True):
+          rmDegeneratedFaces=True, rmDegeneratedElts=True,
+          indices=None):
     """Close an unstructured mesh defined by an array gathering points closer than tol.
     Usage: close(array, tol)"""
+    exportIndirPts = False
+    if isinstance(indices, list) and not indices: exportIndirPts = True
     if isinstance(array[0], list):
         out = []
         for a in array:
+            indirl = None
             if len(a) == 5: # merge intra-borders (C-type meshes)
                 outl = generator.closeBorders([a], [], tol)[0]
             else:
                 outl = generator.closeMesh(a, tol, rmOverlappingPts,
                                            rmOrphanPts, rmDuplicatedFaces,
-                                           rmDuplicatedElts,
-                                           rmDegeneratedFaces,
-                                           rmDegeneratedElts)
+                                           rmDuplicatedElts, rmDegeneratedFaces,
+                                           rmDegeneratedElts, exportIndirPts)
+                if exportIndirPts: outl, indirl = outl
             out.append(outl)
+            if exportIndirPts: indices.append(indirl)
         return out
     else:
-        return generator.closeMesh(array, tol, rmOverlappingPts,
-                                   rmOrphanPts, rmDuplicatedFaces,
-                                   rmDuplicatedElts, rmDegeneratedFaces,
-                                   rmDegeneratedElts)
+        out = generator.closeMesh(array, tol, rmOverlappingPts,
+                                  rmOrphanPts, rmDuplicatedFaces,
+                                  rmDuplicatedElts, rmDegeneratedFaces,
+                                  rmDegeneratedElts, exportIndirPts)
+        if exportIndirPts:
+            out, indirl = out
+            indices.append(indirl)
+        return out
 
 def zip(array, tol=1e-12):
     """Zip a set of meshes defined by gathering exterior points closer than tol.

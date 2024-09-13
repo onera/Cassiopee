@@ -23,6 +23,7 @@
 #include <unordered_set>
 #include "Array/Array.h"
 #include <string.h>
+#include "kcore.h"
 #include "String/kstring.h"
 #include "Connect/connect.h"
 
@@ -40,7 +41,7 @@ PyObject* K_CONNECT::V_cleanConnectivity(
   E_Float tol, E_Bool rmOverlappingPts,
   E_Bool rmOrphanPts, E_Bool rmDuplicatedFaces,
   E_Bool rmDuplicatedElts, E_Bool rmDegeneratedFaces,
-  E_Bool rmDegeneratedElts
+  E_Bool rmDegeneratedElts, E_Bool exportIndirPts
 )
 {
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -49,27 +50,28 @@ PyObject* K_CONNECT::V_cleanConnectivity(
   if (posx == -1 || posy == -1 || posz == -1)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "cleanConnectivity: coord must be present in array.");
+                    "cleanConnectivity: coords must be present in array.");
     return NULL;
   }
   posx++; posy++; posz++;
   
-  PyObject* tpl = NULL;
+  PyObject* o = NULL;
   if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0)
   {
-    tpl = V_cleanConnectivityNGon(posx, posy, posz, varString, f, cn,
-                                  tol, rmOverlappingPts, rmOrphanPts,
-                                  rmDuplicatedFaces, rmDuplicatedElts,
-                                  rmDegeneratedFaces, rmDegeneratedElts);
+    o = V_cleanConnectivityNGon(posx, posy, posz, varString, f, cn,
+                                tol, rmOverlappingPts, rmOrphanPts,
+                                rmDuplicatedFaces, rmDuplicatedElts,
+                                rmDegeneratedFaces, rmDegeneratedElts,
+                                exportIndirPts);
   }
   else
   {
-    tpl = V_cleanConnectivityME(posx, posy, posz, varString, f, cn,
-                                eltType, tol, rmOverlappingPts,
-                                rmOrphanPts, rmDuplicatedElts,
-                                rmDegeneratedElts);
+    o = V_cleanConnectivityME(posx, posy, posz, varString, f, cn,
+                              eltType, tol, rmOverlappingPts, rmOrphanPts,
+                              rmDuplicatedElts, rmDegeneratedElts,
+                              exportIndirPts);
   }
-  return tpl;
+  return o;
 }
 
 // Nettoyage de la connectivite NGON
@@ -78,7 +80,8 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   FldArrayF& f, FldArrayI& cn,
   E_Float tol, E_Bool rmOverlappingPts, E_Bool rmOrphanPts,
   E_Bool rmDuplicatedFaces, E_Bool rmDuplicatedElts,
-  E_Bool rmDegeneratedFaces, E_Bool rmDegeneratedElts
+  E_Bool rmDegeneratedFaces, E_Bool rmDegeneratedElts,
+  E_Bool exportIndirPts
 )
 {
   E_Bool rmDirtyFaces = (rmDuplicatedFaces || rmDegeneratedFaces);
@@ -178,6 +181,8 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
       }
     }
   }
+  
+  if (!exportIndirPts) indir.clear();
 
   // --- 2. Identify dirty elements topologically ---
   E_Int nuniqueElts = nelts;
@@ -364,6 +369,15 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     }
 
     RELEASESHAREDU(tpl, f2, cn2);
+  }
+  
+  if (exportIndirPts)
+  {
+    PyObject* vmap = K_NUMPY::buildNumpyArray(npts, 1, 1);
+    E_Int* vmapp = K_NUMPY::getNumpyPtrI(vmap);
+    #pragma omp parallel for
+    for (E_Int i = 0; i < npts; i++) vmapp[i] = indir[i];
+    return Py_BuildValue("(OO)", tpl, vmap);
   }
   return tpl;
 }
@@ -662,7 +676,8 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   E_Int posx, E_Int posy, E_Int posz, const char* varString,
   FldArrayF& f, FldArrayI& cn, const char* eltType,
   E_Float tol, E_Bool rmOverlappingPts, E_Bool rmOrphanPts,
-  E_Bool rmDuplicatedElts, E_Bool rmDegeneratedElts
+  E_Bool rmDuplicatedElts, E_Bool rmDegeneratedElts,
+  E_Bool exportIndirPts
 )
 {
   E_Bool rmDirtyElts = (rmDuplicatedElts || rmDegeneratedElts);
@@ -777,6 +792,8 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
         }
       }
     }
+    
+    if (!exportIndirPts) indir.clear();
 
     // 1.d Resize fields
     //f.reAllocMat(nuniquePts,nfld);
@@ -863,6 +880,15 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
       }
     }
     RELEASESHAREDU(tpl, f2, cn2);
+  }
+  
+  if (exportIndirPts)
+  {
+    PyObject* vmap = K_NUMPY::buildNumpyArray(npts, 1, 1);
+    E_Int* vmapp = K_NUMPY::getNumpyPtrI(vmap);
+    #pragma omp parallel for
+    for (E_Int i = 0; i < npts; i++) vmapp[i] = indir[i];
+    return Py_BuildValue("(OO)", tpl, vmap);
   }
   return tpl;
 }
