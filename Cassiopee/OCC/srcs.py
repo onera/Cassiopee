@@ -53,9 +53,11 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/analyse.cpp',
         'OCC/Atomic/getFaceArea.cpp',
         'OCC/Atomic/areEdgeIdentical.cpp',
+
         'OCC/Atomic/splitter.cpp',
         'OCC/Atomic/fix.cpp',
         'OCC/Atomic/trim.cpp',
+        'OCC/Atomic/sewing.cpp',
         
         'OCC/Atomic/getOppData.cpp']
 
