@@ -389,6 +389,7 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
     b[2].append(z)
 
   _updateEdgesFaceList__(t)
+  _setLonelyEdgesColor(t)
 
   return t
 
@@ -548,7 +549,8 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
     b[2].append(z)
 
   _updateEdgesFaceList__(t)
-  
+  _setLonelyEdgesColor(t)
+
   return t
 
 # the first version of parallel CAD split and TRI meshing
@@ -814,6 +816,7 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmax=-1, hau
     b[2].append(z)
 
   _updateEdgesFaceList__(t)
+  _setLonelyEdgesColor(t)
 
   return None
 
@@ -862,7 +865,27 @@ def _meshAllFacesStruct(hook, t, faceList=None):
     b[2].append(z)
 
   _updateEdgesFaceList__(t)
+  _setLonelyEdgesColor(t)
 
+  return None
+
+# set color red to lonelyEdges
+def _setLonelyEdgesColor(t):
+  import CPlot.PyTree as CPlot
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  if b is None: return None
+  zones = Internal.getZones(b)
+  for ze in zones:
+    CAD = Internal.getNodeFromName1(ze, 'CAD')
+    faceList = Internal.getNodeFromName1(CAD, 'faceList')
+    if faceList is not None:
+      size = faceList[1].size
+      if size == 2: # ok: blue
+        CPlot._addRender2Zone(ze, color='Green')
+      elif size == 1: # lonely: red
+        CPlot._addRender2Zone(ze, color='Red')
+      else: # strange!!
+        CPlot._addRender2Zone(ze, color='Red')
   return None
 
 #===========================================================================================
@@ -1075,11 +1098,3 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
   Internal.createNode('InterpolantsType', 'DataArray_t', value=data, parent=zsr)
   return None
 
-# External stitcher
-# Look to edges and replace identical edges (may join)
-# IN: t: CAD+Mesh tree
-def stitch(t):
-  edges = Internal.getNodeFromName1(t, 'EDGES')
-  faces = Internal.getNodeFromName1(t, 'FACES')
-  # identify identical edges
-  return None

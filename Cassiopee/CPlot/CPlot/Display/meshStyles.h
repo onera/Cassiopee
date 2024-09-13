@@ -66,3 +66,13 @@
       glLineWidth(1.*resf);
       break;
   }
+
+  // 1D specific
+  if (is1D) 
+  { 
+    if (zonep->colorR != -1.)
+    { color1[0] = zonep->colorR; color1[1] = zonep->colorG; color1[2] = zonep->colorB; }
+    color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; 
+    glLineWidth(3.);
+  }
+  

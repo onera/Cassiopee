@@ -103,15 +103,14 @@ void DataDL::renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
   double pt4[3];
 
   E_Float nz = 1. / _numberOfUnstructZones;
-  #include "meshStyles.h"
-
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
   E_Int eltType0 = zonep->eltType[0];
   bool is1D = false;
   if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
-  if (is1D) { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+  
+  #include "meshStyles.h"
   #include "selection.h"
 
   if (zonep->_is_high_order == true)
@@ -129,7 +128,7 @@ void DataDL::renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 
   // For BARS, NODE, 1D NGONS: display node
   if (is1D) 
-  {    
+  {  
     glBegin(GL_QUADS);
     if (zonep->blank == 0) 
     {

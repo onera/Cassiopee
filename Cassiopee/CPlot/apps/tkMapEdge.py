@@ -1306,16 +1306,15 @@ def createApp(win):
     B.bind('<Return>', refine)
 
     # - Copy distribution -
-    B = TTK.Button(Frame, command=setSourceEdge,
-                   image=iconics.PHOTO[8], padx=0, pady=0)
-    B.grid(row=2, column=3, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Set source edge defining distribution to copy.')
+    B = TTK.Button(Frame, command=setSourceEdge, text='Copy')
+    B.grid(row=2, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Get source edge defining distribution for copy.')
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
-    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=2, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Source edge for distribution copy.')
-    B = TTK.Button(Frame, text="Copy", command=copyDistrib)
-    B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Copy distribution from source edge.')
+    B = TTK.Button(Frame, text="Paste", command=copyDistrib)
+    B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Paste distribution from source edge.')
 
     # - Smooth edge -
     B = TTK.Button(Frame, text="Smooth", command=smooth)
@@ -1330,30 +1329,30 @@ def createApp(win):
     B.bind('<Return>', smooth)
     
     # - Enforce -
-    B = TTK.Button(Frame, text="Set", command=setEnforce)
-    B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Set step on curve.')
-    B = TTK.OptionMenu(Frame, VARS[8], 'HFactor', 'H')
-    B.grid(row=4, column=1, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
-    B.grid(row=4, column=2, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Enforced spacing.')
-    B.bind('<Return>', setEnforce)
-    B = TTK.Button(Frame, command=setEnforceMode,
-                   image=iconics.PHOTO[8], padx=0, pady=0)
-    B.grid(row=4, column=3, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Set size mode.')
-    WIDGETS['enforceMode'] = B
+    #B = TTK.Button(Frame, text="Set", command=setEnforce)
+    #B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Set step on curve.')
+    #B = TTK.OptionMenu(Frame, VARS[8], 'HFactor', 'H')
+    #B.grid(row=4, column=1, sticky=TK.EW)
+    #B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
+    #B.grid(row=4, column=2, columnspan=1, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Enforced spacing.')
+    #B.bind('<Return>', setEnforce)
+    #B = TTK.Button(Frame, command=setEnforceMode,
+    #               image=iconics.PHOTO[8], padx=0, pady=0)
+    #B.grid(row=4, column=3, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Set size mode.')
+    #WIDGETS['enforceMode'] = B
 
-    B = TTK.Button(Frame, text="Enforce", command=enforceH)
-    B.grid(row=5, column=0, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Enforce all given spacing.')
-    B = TTK.OptionMenu(Frame, VARS[9], 'NFactor', 'Npts')
-    B.grid(row=5, column=1, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[10], background='White', width=7)
-    B.grid(row=5, column=2, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Enforced number of points.')
-    B.bind('<Return>', enforceH)
+    #B = TTK.Button(Frame, text="Enforce", command=enforceH)
+    #B.grid(row=5, column=0, columnspan=1, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Enforce all given spacing.')
+    #B = TTK.OptionMenu(Frame, VARS[9], 'NFactor', 'Npts')
+    #B.grid(row=5, column=1, sticky=TK.EW)
+    #B = TTK.Entry(Frame, textvariable=VARS[10], background='White', width=7)
+    #B.grid(row=5, column=2, columnspan=2, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Enforced number of points.')
+    #B.bind('<Return>', enforceH)
 
     # - Enforce local -
     B = TTK.Button(Frame, text="Enforce", command=enforceLocal)
