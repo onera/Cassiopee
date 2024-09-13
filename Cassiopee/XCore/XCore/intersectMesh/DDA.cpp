@@ -3,7 +3,7 @@
 
 void IMesh::hash_skin()
 {
-    assert(bin_faces.empty());
+    bin_faces.clear();
 
     bin_faces.resize(NXYZ);
 

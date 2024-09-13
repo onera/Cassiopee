@@ -29,15 +29,24 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
     size_t refM = 0, refS = 0;
     E_Int iter = 0;
 
+    S.init_adaptation_data();
+    M.init_adaptation_data();
+
     do {
         iter++;
-        
+
         S.make_point_faces();
+        M.make_bbox();
+        M.hash_skin();
+    
         refM = M.refine(S);
         printf("Refined mf: %zu\n", refM);
 
         if (refM > 0) {
             M.make_point_faces();
+            S.make_bbox();
+            S.hash_skin();
+
             refS = S.refine(M);
             printf("Refined sf: %zu\n", refS);
         }

@@ -602,3 +602,20 @@ void Mesh_make_cell_cells(Mesh *M)
     
     XFREE(count);
 }
+
+E_Int Mesh_get_global_face_count(Mesh *M)
+{
+    E_Int lcount = M->nf;
+
+    for (E_Int i = 0; i < M->npp; i++) {
+        PPatch *P = &M->pps[i];
+        if (M->pid < P->nei) continue;
+
+        lcount -= P->nf;
+    }
+
+    E_Int gcount;
+    MPI_Allreduce(&lcount, &gcount, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    return gcount;
+}

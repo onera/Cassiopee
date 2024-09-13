@@ -80,6 +80,8 @@ struct IMesh {
 
     std::vector<Point> entries;
 
+    std::vector<int> ctag;
+
     inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
     {
         return I + J * NX + (NX * NY) * K;
@@ -176,7 +178,11 @@ struct IMesh {
 
     void get_fleaves(E_Int face, std::vector<E_Int> &fleaves);
 
-    PyObject *export_karray();
+    PyObject *export_karray(E_Int remove_periodic = 0);
+
+    PyObject *export_karray_orig();
+
+    PyObject *export_karray_periodic();
 
     /* TOPO */
 

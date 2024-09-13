@@ -280,6 +280,7 @@ IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, E_Int color)
     new_M.Z = new_Z;
     new_M.F = new_F;
     new_M.C = new_C;
+    new_M.ctag = M.ctag;
 
     return new_M;
 }
@@ -293,24 +294,24 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    Karray marray;
+    if (!PyCapsule_IsValid(MASTER, "IntersectMesh")) {
+        RAISE("Bad mesh hook.");
+        return NULL;
+    }
+
+    IMesh &M = *(IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
+
     Karray sarray;
 
     E_Int ret;
 
-    ret = Karray_parse_ngon(MASTER, marray);
-
-    if (ret != 0) return NULL;
-
     ret = Karray_parse_ngon(SLAVE, sarray);
 
     if (ret != 0) {
-        Karray_free_ngon(marray);
         return NULL;
     }
 
     // Init and orient master/slave meshes
-    IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
     M.make_skin();
@@ -319,7 +320,7 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     M.orient_skin(OUT);
     S.orient_skin(IN);
 
-    assert(M.patch.empty());
+    M.patch.clear();
     for (E_Int fid : M.skin) M.patch.insert(fid);
 
     printf("Master patch: %zu faces\n", M.patch.size());
@@ -329,7 +330,6 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     E_Int spatch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(SPATCH, spatch, spatch_size, true);
     if (ret != 1) {
-        Karray_free_ngon(marray);
         Karray_free_ngon(sarray);
         RAISE("Bad slave patch.");
         return NULL;
@@ -343,8 +343,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Smesh Mf(M);
     Smesh Sf(S);
     
-    Mf.write_ngon("Mf");
-    Sf.write_ngon("Sf");
+    //Mf.write_ngon("Mf");
+    //Sf.write_ngon("Sf");
 
     puts("Making point edges...");
     Mf.make_point_edges();
@@ -390,28 +390,20 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
         if (oid != -1) v->oid[1] = Sf.l2gp[oid];
     }
     
-    IMesh M_inter = reconstruct_mesh(M, Mf, D, Dcel::RED);
+    M = reconstruct_mesh(M, Mf, D, Dcel::RED);
 
     IMesh S_inter = reconstruct_mesh(S, Sf, D, Dcel::BLACK);
 
     // Export
-    printf("Exporting...");
-
-    PyObject *Mout = M_inter.export_karray();
+    printf("Exporting... ");
 
     PyObject *Sout = S_inter.export_karray();
 
     printf("Done.\n");
 
-    PyObject *Out = PyList_New(0);
-    PyList_Append(Out, Mout);
-    PyList_Append(Out, Sout);
-    Py_DECREF(Mout);
-    Py_DECREF(Sout);
-    Karray_free_ngon(marray);
     Karray_free_ngon(sarray);
 
     Py_DECREF(SPATCH);
 
-    return Out;
+    return Sout;
 }

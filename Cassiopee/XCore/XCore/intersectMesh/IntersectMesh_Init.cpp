@@ -21,9 +21,9 @@
 
 PyObject *K_XCORE::IntersectMesh_Init(PyObject *self, PyObject *args)
 {
-    PyObject *ARRAY;
+    PyObject *ARRAY, *TAGS;
 
-    if (!PYPARSETUPLE_(args, O_, &ARRAY)) {
+    if (!PYPARSETUPLE_(args, OO_, &ARRAY, &TAGS)) {
         RAISE("Bad input.");
         return NULL;
     }
@@ -39,6 +39,25 @@ PyObject *K_XCORE::IntersectMesh_Init(PyObject *self, PyObject *args)
     // Init mesh
 
     IMesh *M = new IMesh(*karray.cn, karray.X, karray.Y, karray.Z, karray.npts);
+
+    if (TAGS != Py_None) {
+        E_Int size, nfld;
+
+        E_Float *tags = NULL;
+
+        ret = K_NUMPY::getFromNumpyArray(TAGS, tags, size, nfld, true);
+
+        if (ret != 1 || size != M->nc || nfld != 1) {
+            RAISE("Bad cell tags.")
+            delete M;
+            Karray_free_ngon(karray);
+            return NULL;
+        }
+        
+        M->ctag.resize(M->nc);
+
+        for (E_Int i = 0; i < M->nc; i++) M->ctag[i] = (int)tags[i];
+    }
 
     // Clean-up
 

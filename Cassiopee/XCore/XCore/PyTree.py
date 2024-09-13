@@ -276,14 +276,21 @@ def loadAndSplitNGon(fileName):
 
 ######################################################
 
+def IntersectMesh_Exit(IM):
+    return xcore.IntersectMesh_Exit(IM)
+
 def IntersectMesh_Init(t):
     zones = I.getZones(t)
     z = zones[0]
     array = C.getFields(I.__GridCoordinates__, z, api=3)[0]
-    return xcore.IntersectMesh_Init(array)
 
-def IntersectMesh_ExtractMesh(IM):
-    marray = xcore.IntersectMesh_ExtractMesh(IM)
+    tags = I.getNodeFromName(z, 'keep')
+    if tags is not None: tags = tags[1]
+
+    return xcore.IntersectMesh_Init(array, tags)
+
+def IntersectMesh_ExtractMesh(IM, removePeriodic=0):
+    marray = xcore.IntersectMesh_ExtractMesh(IM, removePeriodic)
     zone = I.createZoneNode("Mesh", marray)
     t = C.newPyTree(["Mesh", zone])
     try: import Intersector.PyTree as XOR
@@ -325,16 +332,14 @@ def removeIntersectingKPlanes(IM, slave):
             I.newDataArray("tag", value=tag, parent=cont)
             I.addChild(new_base, zo)
 
-    xcore.IntersectMesh_TriangulateFaceSet(IM)
-
     return ts
 
-def prepareMeshesForIntersection(master, slave):
+def IntersectMesh_Triangulate(IM):
+    return xcore.IntersectMesh_TriangulateFaceSet(IM)
 
-    zm = I.getZones(master)[0]
+def prepareMeshesForIntersection(IM, slave):
     zs = I.getZones(slave)[0]
 
-    m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
     s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
   
     tag = I.getNodeFromName2(zs, "tag")
@@ -342,53 +347,47 @@ def prepareMeshesForIntersection(master, slave):
         raise ValueError("Tag field not found in slave mesh.")
     tag = I.getValue(tag)
 
-    m, s, spatch = xcore.prepareMeshesForIntersection(m, s, tag)
+    keep = I.getNodeFromName(zs, 'keep')
 
-    zmo = I.createZoneNode("M_adapted", m)
+    s, spatch = xcore.prepareMeshesForIntersection(IM, s, tag)
+
     zso = I.createZoneNode("S_adapted", s)
 
     zbcs = I.createUniqueChild(zso, 'ZoneBC', 'ZoneBC_t')
 
     I.newBC(name="intersection_patch", pointList=spatch, family='UserDefined', parent=zbcs)
 
-    tm = C.newPyTree(["M_adapted", zmo])
     ts = C.newPyTree(["S_adapted", zso])
 
-    '''
-    try: import Intersector.PyTree as XOR
-    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
+    if keep is not None:
+        C._cpVars(slave, 'centers:keep', ts, 'centers:keep')
 
-    print("Closing meshes...", flush=True)
-    ts = XOR.closeCells(ts)
-    tm = XOR.closeCells(tm)
-    '''
+    return ts
 
-    return tm, ts
-
-def intersectMesh(master, slave):
-    zm = I.getZones(master)[0]
+def intersectMesh(IM, slave):
     zs = I.getZones(slave)[0]
 
-    m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    keep = I.getNodeFromName(zs, 'keep')
+
     s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
 
     spatch = I.getNodeFromName(zs, "intersection_patch")[2][0][1]
     
-    minter, sinter = xcore.intersectMesh(m, s, spatch)
+    sinter = xcore.intersectMesh(IM, s, spatch)
 
-    zmo = I.createZoneNode("M_inter", minter)
     zso = I.createZoneNode("S_inter", sinter)
 
-    tm = C.newPyTree(["M_inter", zmo])
     ts = C.newPyTree(["S_inter", zso])
 
     try: import Intersector.PyTree as XOR
     except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
 
-    tm = XOR.closeCells(tm)
     ts = XOR.closeCells(ts)
 
-    return tm, ts
+    if keep is not None:
+        C._cpVars(slave, 'centers:keep', ts, 'centers:keep')
+
+    return ts
 
 def extractCell(a, cid):
     z = I.getZones(a)[0]

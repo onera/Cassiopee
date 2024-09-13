@@ -37,7 +37,7 @@ void IMesh::triangulate_face_set()
 {
     E_Int NF = nf;
 
-    size_t face_incr = faces_to_tri.size();
+    E_Int face_incr = (E_Int)faces_to_tri.size();
 
     F.resize(NF + face_incr);
 
@@ -233,17 +233,15 @@ IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npt
         C.push_back(faces);
     }
 
-    make_skin();
+    //make_skin();
 
-    make_bbox();
+    //make_bbox();
 
-    hash_skin();
+    //hash_skin();
 
-    make_point_faces();
+    //make_point_faces();
 
-    init_adaptation_data();
-
-    srand(time(NULL));
+    //init_adaptation_data();
 }
 
 void IMesh::make_point_faces()
@@ -867,8 +865,6 @@ void IMesh::extract_edge_points(E_Int a, E_Int b, std::list<E_Int> &points)
     do {
         ref = 0;
 
-        auto pos = points.begin();
-
         assert(*std::prev(points.end()) == b);
 
         for (auto it = points.begin(); it != std::prev(points.end()); it++) {
@@ -887,97 +883,6 @@ void IMesh::extract_edge_points(E_Int a, E_Int b, std::list<E_Int> &points)
     } while (ref);
 }
 
-IMesh IMesh::extract_conformized()
-{
-    // Keep all the points
-    std::vector<E_Float> new_X(X), new_Y(Y), new_Z(Z);
-
-    // Conformize the faces
-
-    std::vector<std::vector<E_Int>> new_F(factive.size());
-
-    E_Int new_nf = 0;
-    
-    std::map<E_Int, E_Int> new_fids;
-
-    for (E_Int face : factive) {
-        new_fids[face] = new_nf;
-
-        const auto &pn = F[face];
-
-        auto &new_face = new_F[new_nf];
-
-        for (size_t j = 0; j < pn.size(); j++) {
-            E_Int p = pn[j];
-            E_Int q = pn[(j+1)%pn.size()];
-
-            std::list<E_Int> epoints;
-
-            extract_edge_points(p, q, epoints);
-
-            epoints.pop_back();
-
-            for (auto it = epoints.begin(); it != epoints.end(); it++)
-                new_face.push_back(*it);
-
-            /*
-            UEdge e(p, q);
-
-            auto it = ecenter.find(e);
-
-            if (it != ecenter.end()) {
-                new_face.push_back(p);
-                new_face.push_back(it->second);
-            } else {
-                new_face.push_back(p);
-            }
-            */
-        }
-
-        new_nf++;
-    }
-
-    // Update cell connectivity
-
-    std::vector<std::vector<E_Int>> new_C(C.size());
-
-    for (E_Int i = 0; i < nc; i++) {
-        const auto &pf = C[i];
-
-        auto &new_cell = new_C[i];
-
-        for (E_Int face : pf) {
-
-            if (face_is_active(face)) {
-                new_cell.push_back(new_fids[face]);
-            } else {
-                std::vector<E_Int> fleaves;
-                get_fleaves(face, fleaves);
-
-                for (E_Int fleaf : fleaves)
-                    new_cell.push_back(new_fids[fleaf]);
-            }
-        }
-    }
-
-    IMesh new_M;
-    new_M.np = np;
-    new_M.X = X;
-    new_M.Y = Y;
-    new_M.Z = Z;
-    new_M.nf = new_nf;
-    new_M.F = new_F;
-    new_M.nc = nc;
-    new_M.C = new_C;
-
-    for (E_Int face : patch) {
-        new_M.patch.insert(new_fids[face]);
-        new_M.factive.insert(new_fids[face]);
-    }
-
-    return new_M;
-}
-
 void IMesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
 {
     if (face_is_active(face)) {
@@ -986,60 +891,4 @@ void IMesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
     }
 
     for (E_Int child : fchildren.at(face)) get_fleaves(child, fleaves);
-}
-
-PyObject *IMesh::export_karray()
-{
-    E_Int sizeNGon = 0, sizeNFace = 0;
-
-    for (const auto &pn : F) sizeNGon += (E_Int)pn.size();
-    for (const auto &pf : C) sizeNFace += (E_Int)pf.size();
-
-    const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
-
-    PyObject *ret = K_ARRAY::buildArray3(3, varString, np, nc, nf, "NGON",
-        sizeNGon, sizeNFace, 3, false, 3);
-    
-    K_FLD::FldArrayF *f;
-    K_FLD::FldArrayI *cn;
-    K_ARRAY::getFromArray3(ret, f, cn);
-
-    E_Float *px = f->begin(1);
-    for (E_Int i = 0; i < np; i++) px[i] = X[i];
-    E_Float *py = f->begin(2);
-    for (E_Int i = 0; i < np; i++) py[i] = Y[i];
-    E_Float *pz = f->begin(3);
-    for (E_Int i = 0; i < np; i++) pz[i] = Z[i];
-
-    E_Int *indPG = cn->getIndPG();
-    E_Int *ngon = cn->getNGon();
-    E_Int *indPH = cn->getIndPH();
-    E_Int *nface = cn->getNFace();
-
-    indPG[0] = indPH[0] = 0;
-    for (E_Int i = 0; i < nf; i++) indPG[i+1] = indPG[i] + (E_Int)F[i].size();
-    for (E_Int i = 0; i < nc; i++) indPH[i+1] = indPH[i] + (E_Int)C[i].size();
-
-    assert(indPG[nf] == sizeNGon);
-    assert(indPH[nc] == sizeNFace);
-
-    E_Int *ptr = ngon;
-
-    for (E_Int i = 0; i < nf; i++) {
-        const auto &pn = F[i];
-        for (E_Int p : pn) *ptr++ = p+1;
-    }
-
-    ptr = nface;
-
-    for (E_Int i = 0; i < nc; i++) {
-        const auto &pf = C[i];
-        for (E_Int f : pf) *ptr++ = f+1;
-    }
-
-    delete f;
-    delete cn;
-
-
-    return ret;
 }

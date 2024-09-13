@@ -47,8 +47,12 @@ void print_postrefinement_data(Mesh *M)
 {
     E_Int gnc = M->nc;
     MPI_Allreduce(&M->nc, &gnc, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    E_Int gnf = Mesh_get_global_face_count(M);
+
     if (M->pid == 0) {
         printf("    Total cells after refinement: " SF_D_ "\n", gnc);
+        printf("    Total faces after refinement: " SF_D_ "\n", gnf);
     }
 
     if (M->npc == 1) return;

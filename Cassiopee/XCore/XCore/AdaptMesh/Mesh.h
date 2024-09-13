@@ -195,6 +195,8 @@ void Mesh_update_ppatches(Mesh *M);
 
 void Mesh_update_global_face_ids(Mesh *M);
 
+E_Int Mesh_get_global_face_count(Mesh *M);
+
 inline
 E_Int *Mesh_get_cell(Mesh *M, E_Int cid)
 {
