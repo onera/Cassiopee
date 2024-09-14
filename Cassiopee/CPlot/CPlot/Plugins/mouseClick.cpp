@@ -263,7 +263,7 @@ E_Int Data::findBlockContaining(double x, double y, double z,
                                 E_Int& zone, E_Int& ind, E_Int& indE,
                                 double& dist, E_Int& ncon)
 {
-  E_Int nz, indl, inde;
+  E_Int nz, indl, inde, nconl;
   double xmi, ymi, zmi, xma, yma, zma;
   double d, dn, de;
   E_Int nzmin = -1;
@@ -305,53 +305,55 @@ E_Int Data::findBlockContaining(double x, double y, double z,
         else 
         {
           findNearestPoint(x, y, z, (UnstructZone*)zonep, indl, dn);
-          inde = findElement(x, y, z, (UnstructZone*)zonep, de, ncon);
+          inde = findElement(x, y, z, (UnstructZone*)zonep, de, nconl);
         }
         d = MIN(dn, de);
         if (zonep->active == 0) d = d + eps*0.01; // malus
 
         if (d < dmin-1.e-10) // node ou centre plus proche
         {
-          dmin = d; nzmin = nz; ind = indl; indE = inde;
+          dmin = d; nzmin = nz; ind = indl; indE = inde; ncon = nconl;
           dminElt = de; dminNode = dn;
           ptrState->ambSelections.clear();
         }
         else if (d <= dmin+1.e-10) // meme point mini: compare dn ou de
         {
-          if (ptrState->ambSelections.size() == 0) ptrState->ambSelections.push_back(nzmin);
-          ptrState->ambSelections.push_back(nz);
+          if (ptrState->ambSelections.size() == 0) 
+          { ptrState->ambSelections.insert(ptrState->ambSelections.end(), {nzmin,ind,indE,ncon}); }
+          ptrState->ambSelections.insert(ptrState->ambSelections.end(), {nz,indl,inde,nconl});
+          E_Int npos = ptrState->ambSelections.size()/4-1;
           if (zonep->dim == 1 && _zones[nzmin]->dim == 1)
           {
             if (de < dminElt)
             {
-              dmin = d; nzmin = nz; ind = indl; indE = inde; 
+              dmin = d; nzmin = nz; ind = indl; indE = inde; ncon = nconl;
               dminElt = de; dminNode = dn;
-              ptrState->ambSelSet = ptrState->ambSelections.size()-1;
+              ptrState->ambSelSet = npos;
             }
             else if (dn < dminNode)
             {
-              dmin = d; nzmin = nz; ind = indl; indE = inde; 
+              dmin = d; nzmin = nz; ind = indl; indE = inde; ncon = nconl;
               dminElt = de; dminNode = dn;
-              ptrState->ambSelSet = ptrState->ambSelections.size()-1;
+              ptrState->ambSelSet = npos;
             }
           }
           else if (zonep->dim == 1 && _zones[nzmin]->dim != 1)
           {
-            dmin = d; nzmin = nz; ind = indl; indE = inde; 
+            dmin = d; nzmin = nz; ind = indl; indE = inde; ncon = nconl;
             dminElt = de; dminNode = dn;
-            ptrState->ambSelSet = ptrState->ambSelections.size()-1;
+            ptrState->ambSelSet = npos;
           }
           else if (de < dminElt && _zones[nzmin]->dim != 1)
           {
-            dmin = d; nzmin = nz; ind = indl; indE = inde; 
+            dmin = d; nzmin = nz; ind = indl; indE = inde; ncon = nconl;
             dminElt = de; dminNode = dn;
-            ptrState->ambSelSet = ptrState->ambSelections.size()-1;
+            ptrState->ambSelSet = npos;
           }
           else if (dn < dminNode && _zones[nzmin]->dim != 1)
           {
-            dmin = d; nzmin = nz; ind = indl; indE = inde; 
+            dmin = d; nzmin = nz; ind = indl; indE = inde; ncon = nconl;
             dminElt = de; dminNode = dn;
-            ptrState->ambSelSet = ptrState->ambSelections.size()-1;
+            ptrState->ambSelSet = npos;
           }
         }
       }

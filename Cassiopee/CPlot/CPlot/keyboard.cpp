@@ -244,7 +244,7 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
   }
 
   // -- Change selected zone in case of ambiguous selection --
-  case 'n':
+  case 'w':
   {
     changeAmbSelection();
     break;
@@ -1386,18 +1386,74 @@ void Data::changeAppearance()
 void Data::changeAmbSelection()
 {
   std::vector<E_Int>& v = ptrState->ambSelections;
-  E_Int vsize = v.size();
+  E_Int zone, ind, inde, ncon;
+  Zone* z = NULL;
+  E_Int vsize = v.size()/4;
   if (vsize <= 1) return;
-  ptrState->ambSelSet += 1;
-  if (ptrState->ambSelSet >= vsize) ptrState->ambSelSet = 0; 
-  E_Int zone = v[ptrState->ambSelSet];
+
+  bool active = false;
+  E_Int roll = 0;
+  while (roll < vsize)
+  {
+    ptrState->ambSelSet += 1;
+    if (ptrState->ambSelSet >= vsize) ptrState->ambSelSet = 0;
+    zone = v[ptrState->ambSelSet*4];
+    z = _zones[zone];
+    if (z->active == 1) break;
+    roll++;
+  }
+  if (z->active == 0) return; // no available active zone
+
+  ind = v[ptrState->ambSelSet*4+1];
+  inde = v[ptrState->ambSelSet*4+2];
+  ncon = v[ptrState->ambSelSet*4+3];
   
   for (E_Int i = 0; i < _numberOfZones; i++)
   _zones[i]->previouslySelected = _zones[i]->selected;
 
   ptrState->selectedZone = zone+1;
 
-  Zone* z = _zones[zone];
   for (E_Int i = 0; i < _numberOfZones; i++) _zones[i]->selected = 0;
   z->selected = 1;
+
+  if (zone < _numberOfStructZones)
+  {
+    StructZone* zz = (StructZone*)z;
+    E_Int ni = zz->ni; 
+    E_Int nj = zz->nj;
+    E_Int k = ind / (ni*nj);
+    E_Int j = (ind - k*ni*nj)/ni;
+    E_Int i = ind - k*ni*nj - j*ni;
+    ptrState->activePointI = i+1;
+    ptrState->activePointJ = j+1;
+    ptrState->activePointK = k+1;
+  }
+  else
+  {
+    ptrState->activePointI = ind; // indice du noeud le plus proche
+    ptrState->activePointJ = inde; // indice de l'element contenant P
+    ptrState->activePointL = ncon; // connectivite contenant l'element
+    UnstructZone* zz = (UnstructZone*)z;
+    if (zz->eltType[0] != 10) // autre que NGON
+    {
+      E_Int* c = zz->connect[ncon];
+      E_Int size = zz->eltSize[ncon];
+      E_Int ne = zz->nec[ncon];
+      E_Int v = 0;
+      E_Int prev = 0;
+      for (E_Int nc = 0; nc < ncon; nc++) prev += zz->nec[nc];
+      for (E_Int nv = 0; nv < size; nv++)
+      {
+        if (c[inde-prev+nv*ne] == ind+1) break;
+      }
+      ptrState->activePointK = -v-1;
+    }
+    //else ptrState->activePointK = findFace(posX, posY, posZ, indE, zz, dist);
+  }
+  for (E_Int n = 0; n < z->nfield; n++)
+  {
+    double* f = z->f[n];
+    ptrState->activePointF[n] = f[ind];
+  }
+
 }

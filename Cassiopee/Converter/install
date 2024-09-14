@@ -21,7 +21,7 @@ then
     INSTALLPATH="$1"
 else
     echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
-    echo ' -or- '
+    echo ' -or-'
     echo 'install <dir>: install in directory <dir>.'
     exit 1
 fi
@@ -52,7 +52,7 @@ if [ $PRODMODE -le 1 ]; then
         fi
     else
         python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
-    fi    
+    fi
     [ $? != 0 ] && exit 1;
     #touch Converter/converter.cpp
     rm -f build/lib.*/Converter/converter.*

@@ -1153,14 +1153,20 @@ def enforceLocal(event=None):
     
     CAD = Internal.getNodeFromName1(z, 'CAD')
 
+    #print("imin=",imin,"imax",imax,"ind",ind,"npts",npts)
     if imin > 1: z0 = T.subzone(z, (1,1,1), (imin,-1,-1))
     else: z0 = None
-    if ind > 2: zp1 = T.subzone(z, (max(imin,1),1,1), (ind+1,-1,-1))
+    if ind > 1: zp1 = T.subzone(z, (max(imin,1),1,1), (ind+1,-1,-1))
     else: zp1 = None
     if ind < npts-1: zp2 = T.subzone(z, (ind+1,1,1), (min(imax, npts),-1,-1))
     else: zp2 = None
     if imax < npts: z1 = T.subzone(z, (imax,1,1), (npts,-1,-1))
     else: z1 = None
+
+    if zp1 is None and zp2 is None:
+        if z0 is not None: zp1 = z0; z0 = None
+        elif z1 is not None: zp2 = z1; z1 = None
+        else: print("Error: can not remesh edge.")
 
     if zp1 is not None:
         P0 = C.getValue(zp1, 'GridCoordinates', 0)
