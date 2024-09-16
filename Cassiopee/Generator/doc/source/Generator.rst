@@ -1233,9 +1233,6 @@ Operations on meshes
     :type indices: [array, list of arrays]
     :return: modified reference copy of t
     :rtype: array or pyTree
-    
-    
-    
 
     *Example of use:*
 
