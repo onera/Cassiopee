@@ -1082,10 +1082,10 @@ def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
     Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
     NP             = Cmpi.size
     rank           = Cmpi.rank
-    NPTS           = numpy.zeros(NP)
-    NCELLS         = numpy.zeros(NP)
-    NPTS_noghost   = numpy.zeros(NP)
-    NCELLS_noghost = numpy.zeros(NP)    
+    NPTS           = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS         = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NPTS_noghost   = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS_noghost = numpy.zeros(NP, dtype=Internal.E_NpyInt)    
     if isinstance(t, str):
         h = Filter.Handle(t)
         t = h.loadFromProc(loadVariables=False)

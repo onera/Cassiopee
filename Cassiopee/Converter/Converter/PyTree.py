@@ -6442,12 +6442,12 @@ def _patchArrayForCenter2NodeNK1__(fields, a):
       if dim[0] == 'Structured' and nk == 2 and s == ni*nj:
         if isinstance(fp, list): # array2/3
           for n, fl in enumerate(fp):
-            b = numpy.empty( (ni*nj*2) )
+            b = numpy.empty( (ni*nj*2), dtype=numpy.float64 )
             b[0:ni*nj] = fl[0:ni*nj]
             b[ni*nj:2*ni*nj] = fl[0:ni*nj]
             fp[n] = b
         else:
-          b = numpy.empty( (nfld, ni*nj*2) )
+          b = numpy.empty( (nfld, ni*nj*2), dtype=numpy.float64 )
           b[:,0:ni*nj] = fp[:,0:ni*nj]
           b[:,ni*nj:2*ni*nj] = fp[:,0:ni*nj]
           f[1] = b; f[4] = 2

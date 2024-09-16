@@ -243,7 +243,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
 
     # Blanking with delta surface
     print('Blanking octree width delta...')
-    BM = numpy.array([[1]])
+    BM = numpy.array([[1]], dtype=Internal.E_NpyInt)
     t = X.blankCells(t, [s2], BM, blankingType='center_in', delta=1.e-12, XRaydim1=xrayDim1, XRaydim2=xrayDim2)
 
     if check: C.convertPyTree2File(t, directory_tmp_files+'blanked.cgns')

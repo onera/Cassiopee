@@ -135,8 +135,8 @@ def _computeMeshInfo(t):
     
     NP     = Cmpi.size
     rank   = Cmpi.rank
-    NPTS   = numpy.zeros(NP)
-    NCELLS = numpy.zeros(NP)
+    NPTS   = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS = numpy.zeros(NP, dtype=Internal.E_NpyInt)
     for z in Internal.getZones(t):
         cellN = Internal.getNodeFromName(z, 'cellN')[1]
         c0 = numpy.count_nonzero(cellN == 0); nc0 += c0
@@ -1922,8 +1922,8 @@ def getIBMFrontType0__(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.
             dmin = C.getMaxValue(front, 'TurbulentDistance')
 
             if Cmpi.KCOMM is not None:
-                dmin = numpy.array([dmin])
-                dmin_max = numpy.zeros(1)
+                dmin = numpy.array([dmin], dtype=numpy.float64)
+                dmin_max = numpy.zeros(1, dtype=numpy.float64)
                 Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
@@ -1936,8 +1936,8 @@ def getIBMFrontType0__(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB=0.
             dmin = C.getMaxValue(front, 'TurbulentDistance')
 
             if Cmpi.KCOMM is not None:
-                dmin = numpy.array([dmin])
-                dmin_max = numpy.zeros(1)
+                dmin = numpy.array([dmin], dtype=numpy.float64)
+                dmin_max = numpy.zeros(1, dtype=numpy.float64)
                 Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
@@ -2538,8 +2538,8 @@ def getIBMFrontType0Old__(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB
                 dmin = C.getMaxValue(front, 'TurbulentDistance')
 
                 if Cmpi.KCOMM is not None:
-                    dmin = numpy.array([dmin])
-                    dmin_max = numpy.zeros(1)
+                    dmin = numpy.array([dmin], dtype=numpy.float64)
+                    dmin_max = numpy.zeros(1, dtype=numpy.float64)
                     Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                     dmin = dmin_max[0]
             else:
@@ -2561,8 +2561,8 @@ def getIBMFrontType0Old__(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB
             dmin = C.getMaxValue(front, 'TurbulentDistance')
 
             if Cmpi.KCOMM is not None:
-                dmin = numpy.array([dmin])
-                dmin_max = numpy.zeros(1)
+                dmin = numpy.array([dmin], dtype=numpy.float64)
+                dmin_max = numpy.zeros(1, dtype=numpy.float64)
                 Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
@@ -2586,8 +2586,8 @@ def getIBMFrontType0Old__(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB
             dmin = C.getMaxValue(front, 'TurbulentDistance')
 
             if Cmpi.KCOMM is not None:
-                dmin = numpy.array([dmin])
-                dmin_max = numpy.zeros(1)
+                dmin = numpy.array([dmin], dtype=numpy.float64)
+                dmin_max = numpy.zeros(1, dtype=numpy.float64)
                 Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
@@ -2602,8 +2602,8 @@ def getIBMFrontType0Old__(tc, frontvar, dim, isFront2=False, frontType=0, SHIFTB
             dmin = C.getMaxValue(front, 'TurbulentDistance')
 
             if Cmpi.KCOMM is not None:
-                dmin = numpy.array([dmin])
-                dmin_max = numpy.zeros(1)
+                dmin = numpy.array([dmin], dtype=numpy.float64)
+                dmin_max = numpy.zeros(1, dtype=numpy.float64)
                 Cmpi.KCOMM.Allreduce(dmin, dmin_max, Cmpi.MAX)
                 dmin = dmin_max[0]
 
@@ -2696,8 +2696,8 @@ def _computeKcurvParameter(tc, tb):
         y_extrados = numpy.delete(y_extrados, pos)
 
     nPts = len(x_extrados)
-    y1_extrados = numpy.zeros(nPts)
-    y2_extrados = numpy.zeros(nPts)
+    y1_extrados = numpy.zeros(nPts, dtype=numpy.float64)
+    y2_extrados = numpy.zeros(nPts, dtype=numpy.float64)
 
     # derivee premiere y1
     # schema decentre pour CL

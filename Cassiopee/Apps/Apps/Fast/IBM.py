@@ -398,10 +398,10 @@ def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
     Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
     NP             = Cmpi.size
     rank           = Cmpi.rank
-    NPTS           = numpy.zeros(NP)
-    NCELLS         = numpy.zeros(NP)
-    NPTS_noghost   = numpy.zeros(NP)
-    NCELLS_noghost = numpy.zeros(NP)    
+    NPTS           = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS         = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NPTS_noghost   = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS_noghost = numpy.zeros(NP, dtype=Internal.E_NpyInt)    
     if isinstance(t, str):
         h = Filter.Handle(t)
         t = h.loadFromProc(loadVariables=False)
@@ -582,15 +582,15 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
                     Internal.createUniqueChild(Conn, name, 'GridConnectivity1to1_t')
                     tmp1     = Internal.getNodeFromName(Conn, name)
                     Internal.setValue(tmp1, z[0])
-                    datap = numpy.empty( (3,2) , numpy.int32)
+                    datap = numpy.empty( (3,2) , dtype=Internal.E_NpyInt)
                     datap[0,0]=1+ng;datap[1,0]=1+ng;datap[2,0]=ktg
                     datap[0,1]=zdim[0,0]-ng;datap[1,1]=zdim[1,0]-ng;datap[2,1]= ktg
                     Internal.createUniqueChild(tmp1 ,'PointRange', 'IndexRange_t',datap)
-                    datap = numpy.empty( (3,2) , numpy.int32)
+                    datap = numpy.empty( (3,2) , dtype=Internal.E_NpyInt)
                     datap[0,0]=1+ng;datap[1,0]=1+ng;datap[2,0]=ktgD
                     datap[0,1]=zdim[0,0]-ng;datap[1,1]=zdim[1,0]-ng;datap[2,1]= ktgD
                     Internal.createUniqueChild(tmp1 ,'PointRangeDonor', 'IndexRange_t',datap)
-                    datap = numpy.empty( 3 , numpy.int32)
+                    datap = numpy.empty( 3 , dtype=Internal.E_NpyInt)
                     datap[0]=1;datap[1]=2;datap[2]=3
                     Internal.createUniqueChild(tmp1 ,'Transform', '"int[IndexDimension]"',datap)
                     Internal.createUniqueChild(tmp1 ,'GridConnectivityProperty', 'GridConnectivityProperty_t')
@@ -827,8 +827,8 @@ def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
 # Check number of points and cells per zone & in total
 #====================================================================================
 def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
-    NPTS   = numpy.zeros(NP)
-    NCELLS = numpy.zeros(NP)
+    NPTS   = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS = numpy.zeros(NP, dtype=Internal.E_NpyInt)
     ##Done by zone for flexibility
     for z in Internal.getZones(ts):
         proc_num        = Cmpi.getProc(z)        
@@ -845,7 +845,7 @@ def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
     ncells_percent=[]
     if Cmpi.rank == 0:
         for i in range(NP):
-            ncells_percent.append(NCELLS[i]/NcellsTot*100)
+            ncells_percent.append(NCELLS[i]/NcellsTot*100.)
             if isAtCenter: print('Rank {} has {} cells & {} % of cells'.format(i,int(NCELLS[i]),round(ncells_percent[i],2)))
             else:          print('Rank {} has {} points & {} cells & {} % of cells'.format(i,int(NPTS[i]),int(NCELLS[i]),round(ncells_percent[i],2)))
             
