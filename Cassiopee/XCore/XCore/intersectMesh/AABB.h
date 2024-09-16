@@ -1,10 +1,18 @@
 #pragma once
 
+#include "xcore.h"
+
+struct IMesh;
+
 struct AABB {
-    E_Float xmin = EFLOATMAX;
-    E_Float xmax = EFLOATMIN;
-    E_Float ymin = EFLOATMAX;
-    E_Float ymax = EFLOATMIN;
-    E_Float zmin = EFLOATMAX;
-    E_Float zmax = EFLOATMIN;
+    E_Float xmin;
+    E_Float ymin;
+    E_Float zmin;
+    E_Float xmax;
+    E_Float ymax;
+    E_Float zmax;
+
+    AABB();
+
+    AABB(const IMesh &M, E_Int *ids, E_Int count);
 };
