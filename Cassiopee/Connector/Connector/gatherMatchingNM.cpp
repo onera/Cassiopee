@@ -414,7 +414,7 @@ PyObject* K_CONNECTOR::gatherMatchingNM(PyObject* self, PyObject* args)
     if ( nmatch==4)
     {incjopp = indTab2[noOpp[2]]-indTab2[noOpp[0]];}
     // Build subwindows
-    compIncrement(inds1, imcw1, oppositeWins, oppositePts, incci, inccj, incciopp, inccjopp);
+    compIncrement(inds1, imcw1, oppositeWins, oppositePts, dimPb, incci, inccj, incciopp, inccjopp);
 
     jsw1 = inds1/imcw1; isw1 = inds1-jsw1*imcw1; iew1 = imcw1; jew1 = jsw1; 
     deltaw2=0; iwmax1 = imcw1;
