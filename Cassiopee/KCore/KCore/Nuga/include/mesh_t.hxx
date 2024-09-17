@@ -707,7 +707,7 @@ struct mesh_t
   mesh_t(const mesh_t<eGEODIM(GEODIM+1), USTRIDE>& parent_mesh): 
     crd(crd), localiz(nullptr), neighbors(nullptr), oriented(parent_mesh.oriented)
   {
-    parent_mesh.get_boundary<FIXSTRIDE>(*this);
+    parent_mesh.template get_boundary<FIXSTRIDE>(*this);
   }
 
   mesh_t(const construct_elt_t& e):localiz(nullptr), neighbors(nullptr), oriented(0), metric_type(eMetricType::ISO_MIN)
