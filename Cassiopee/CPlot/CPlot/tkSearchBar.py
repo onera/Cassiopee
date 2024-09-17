@@ -20,6 +20,9 @@ applet = {
     # tkFamily
     'tkFamily':'tkFamily', 'Create/tag zone family':'tkFamily', 
     'Create BCFamily':'tkFamily',
+    # tkCADFix
+    'tkCADFix':'tkCADFix', 'Read/load CAD file':'tkCADFix', 
+    'Write/save CAD file':'tkCADFix', 'Repair CAD':'tkCADFix',
     # tkState
     'tkState':'tkState', 'Set problem dimension':'tkState', 
     'Set reference state':'tkState',
@@ -67,6 +70,9 @@ applet = {
     'Create Classical surface meshes':'tkBasicSurfs', 'Create mesh from Geometry data base':'tkBasicSurfs',
     # tkText
     'tkText':'tkText', 'Create mesh of text':'tkText',
+    # tkCADMesh
+    'tkCADMesh':'tkCADMesh', 'Generate CAD surface mesh':'tkCADMesh',
+    'Mesh CAD edges':'tkCADMesh',
     # tkFixer
     'tkFixer2':'tkFixer2', 'Fill hole in surface':'tkFixer2',
     'ConformUnstr':'tkFixer2', 'Conformize a TRI surface':'tkFixer2',

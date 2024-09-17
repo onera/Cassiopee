@@ -8,7 +8,8 @@ import os, os.path, sys
 
 # Liste des apps par sous menu et perso
 TREEAPPS = ['tkNodeEdit', 'tkTreeOps', 'tkCheckPyTree', '---',
-            'tkFamily']
+            'tkFamily', '---',
+            'tkCADFix']
 STATEAPPS = ['tkState', '---',
              'tkPrefs', 'tkPerfo', 'tkContainers', 'tkCamera', '---',
              #'tkLogFile', '---',
@@ -17,6 +18,7 @@ STATEAPPS = ['tkState', '---',
 EDGEAPPS = ['tkCanvas', 'tkPoint', 'tkDraw','---',
             'tkExtractEdges', 'tkMapEdge']
 SURFAPPS = ['tkBasicSurfs', 'tkText', '---',
+            #'tkCADMesh', 
             'tkFixer2', 'tkBoolean', '---',
             'tkMapUV', 'tkSculpt', '---',
             'tkMMGs', 'tkCartWrap', 'tkOffset', 'tkSurfaceWalk', '---',

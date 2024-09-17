@@ -319,7 +319,7 @@ E_Int Data::findBlockContaining(double x, double y, double z,
         else if (d <= dmin+1.e-10) // meme point mini: compare dn ou de
         {
           if (ptrState->ambSelections.size() == 0) 
-          { ptrState->ambSelections.insert(ptrState->ambSelections.end(), {nzmin,ind,indE,ncon}); }
+          { ptrState->ambSelections.insert(ptrState->ambSelections.end(), {nzmin,ind,indE,ncon}); ptrState->ambSelSet = 0; }
           ptrState->ambSelections.insert(ptrState->ambSelections.end(), {nz,indl,inde,nconl});
           E_Int npos = ptrState->ambSelections.size()/4-1;
           if (zonep->dim == 1 && _zones[nzmin]->dim == 1)

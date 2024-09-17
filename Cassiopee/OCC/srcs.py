@@ -36,6 +36,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/readCAD.cpp',
         'OCC/Atomic/writeCAD.cpp',
         'OCC/Atomic/createEmptyCAD.cpp',
+        'OCC/Atomic/freeHook.cpp',
 
         'OCC/Atomic/bottle.cpp',
         'OCC/Atomic/addSphere.cpp',

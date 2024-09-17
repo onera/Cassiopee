@@ -1100,8 +1100,7 @@ def remeshCAD(edges):
         if CAD is None: continue
         D._getCurvilinearAbscissa(e)
         valids.append(e)
-    [h,hmax,hausd] = CTK.CADHOOK
-    OCC._remeshTreeFromEdges(h, CTK.t, valids)
+    OCC._remeshTreeFromEdges(CTK.CADHOOK, CTK.t, valids)
     CTK.display(CTK.t)
 
 #==============================================================================

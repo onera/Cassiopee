@@ -244,7 +244,8 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
   }
 
   // -- Change selected zone in case of ambiguous selection --
-  case 'w':
+  case '>':
+  case '<':
   {
     changeAmbSelection();
     break;
@@ -1387,11 +1388,12 @@ void Data::changeAmbSelection()
 {
   std::vector<E_Int>& v = ptrState->ambSelections;
   E_Int zone, ind, inde, ncon;
-  Zone* z = NULL;
   E_Int vsize = v.size()/4;
   if (vsize <= 1) return;
+  Zone* z = NULL;
 
-  bool active = false;
+  // find next active zone in ambiguous selections
+  //printf("already: %d\n", ptrState->ambSelSet);
   E_Int roll = 0;
   while (roll < vsize)
   {
@@ -1403,7 +1405,8 @@ void Data::changeAmbSelection()
     roll++;
   }
   if (z->active == 0) return; // no available active zone
-
+  //printf("new: %d\n", ptrState->ambSelSet);
+  
   ind = v[ptrState->ambSelSet*4+1];
   inde = v[ptrState->ambSelSet*4+2];
   ncon = v[ptrState->ambSelSet*4+3];
