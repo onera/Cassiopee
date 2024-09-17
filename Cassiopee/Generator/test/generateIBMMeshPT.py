@@ -1,4 +1,4 @@
-# - buildOctree (pyTree) -
+# - generateIBMMesh (pyTree) -
 import Converter.PyTree as C
 import Geom.PyTree as D
 import Generator.IBM as G_IBM
