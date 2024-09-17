@@ -1539,8 +1539,12 @@ def setupLocal(**kwargs):
     print('Info: comparing to local database.')
     BASE4COMPARE = 'LOCAL'
     os.environ['VALIDLOCAL'] = '.'
-    casFolder = os.path.join(os.getenv('CASSIOPEE'), "Cassiopee", "Valid{}".format(DATA))
-    if not os.access(casFolder, os.W_OK):
+    casFolder = os.path.join(os.getenv('CASSIOPEE'), "Cassiopee")
+    casValidFolder = os.path.join(casFolder, "Valid{}".format(DATA))
+    # Create ValidData folder if not present and permissions are OK
+    if os.access(casFolder, os.W_OK):
+        os.makedirs(casValidFolder, exist_ok=True)
+    else:
         os.environ['VALIDLOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
     
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
