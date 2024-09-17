@@ -1206,10 +1206,10 @@ Cartesian grid generators
 Operations on meshes
 -----------------------
 
-.. py:function:: Generator.close(a, tol=1.e-12, suppressDegeneratedNGons=False)
+.. py:function:: Generator.close(a, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True, rmDuplicatedFaces=True, rmDuplicatedElts=True, rmDegeneratedFaces=True, rmDegeneratedElts=True, indices=None)
 
     Close a mesh defined by array a. Points of that mesh which are distant of tol maximum to one another are merged. For unstructured zones, connectivity is
-    cleaned (removal of unreferenced vertices, multiply defined elements and faces)
+    cleaned (removal of unreferenced and duplicated vertices, multiply-defined or totally degenerated faces and elements). If indices=[], the vertex indirection table following mesh cleaning is returned.
     
     Exists also as in place version (_close) that modifies a and returns None. 
 
@@ -1217,8 +1217,20 @@ Operations on meshes
     :type  a:  array or pyTree
     :param tol:  merging points tolerance
     :type  tol:  float
-    :param suppressDegeneratedNGons: enables the removal of degenerated ngons
-    :type suppressDegeneratedNGons: boolean
+    :param rmOverlappingPts: whether to remove overlapping points within a radius of tol
+    :type rmOverlappingPts: boolean
+    :param rmOrphanPts: whether to remove orphan (unreferenced) points
+    :type rmOrphanPts: boolean
+    :param rmDuplicatedFaces: whether to remove duplicated faces
+    :type rmDuplicatedFaces: boolean
+    :param rmDuplicatedElts: whether to remove duplicated elements
+    :type rmDuplicatedElts: boolean
+    :param rmDegeneratedFaces: whether to remove degenerated faces
+    :type rmDegeneratedFaces: boolean
+    :param rmDegeneratedElts: whether to remove degenerated elements
+    :type rmDegeneratedElts: boolean
+    :param indices: vertex indirection table following mesh cleaning
+    :type indices: [array, list of arrays]
     :return: modified reference copy of t
     :rtype: array or pyTree
 

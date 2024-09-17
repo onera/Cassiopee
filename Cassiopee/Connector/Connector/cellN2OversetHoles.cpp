@@ -41,11 +41,11 @@ PyObject* K_CONNECTOR::cellN2OversetHolesStruct(PyObject* self, PyObject* args)
 
   // Get CellN array
   PyArrayObject* cellNatureField = (PyArrayObject*)CellN;
-  double* cellN = (double*)PyArray_DATA(cellNatureField);
+  E_Float* cellN = (E_Float*)PyArray_DATA(cellNatureField);
 
   // Get PointList array
   PyArrayObject* pointListArray = (PyArrayObject*)PointList;
-  int* pointList = (int*)PyArray_DATA(pointListArray);
+  E_Int* pointList = (E_Int*)PyArray_DATA(pointListArray);
 
   // Local values
   E_Int nb = 0;
@@ -124,11 +124,11 @@ PyObject* K_CONNECTOR::cellN2OversetHolesUnStruct(PyObject* self,
 
   // Get CellN array
   PyArrayObject* cellNatureField = (PyArrayObject*)CellN;
-  double* cellN = (double*)PyArray_DATA(cellNatureField);
+  E_Float* cellN = (E_Float*)PyArray_DATA(cellNatureField);
 
   // Get PointList array
   PyArrayObject* pointListArray = (PyArrayObject*)PointList;
-  int* pointList = (int*)PyArray_DATA(pointListArray);
+  E_Int* pointList = (E_Int*)PyArray_DATA(pointListArray);
 
   // Local values
   E_Int nb = 0;
