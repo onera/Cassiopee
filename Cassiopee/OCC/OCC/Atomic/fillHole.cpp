@@ -16,35 +16,26 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// CAD split for parallel
+// Fill hole from edges
 #include "occ.h"
 
 #include "TopoDS.hxx"
 #include "BRep_Tool.hxx"
-#include "ShapeAnalysis.hxx"
-#include "BRepAdaptor_Curve.hxx"
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
-#include "ShapeUpgrade_FaceDivide.hxx"
-#include "ShapeUpgrade_ShapeDivideArea.hxx"
-#include "ShapeUpgrade_ShapeDivideClosed.hxx"
-#include "ShapeUpgrade_ClosedFaceDivide.hxx"
-#include "ShapeUpgrade_SplitSurfaceArea.hxx"
-#include "TColGeom_SequenceOfSurface.hxx"
-#include "ShapeExtend_CompositeSurface.hxx"
 #include "ShapeBuild_ReShape.hxx"
 #include "BRep_Builder.hxx"
-#include "ShapeUpgrade_ShapeDivideClosedEdges.hxx"
-#include "BRepBuilderAPI_Sewing.hxx"
+#include "BRepBuilderAPI_MakeWire.hxx"
+#include "BRepBuilderAPI_MakeFace.hxx"
 
 //=====================================================================
-// Sew faces removing extra edges
+// Remove some faces and rebuild compound
 //=====================================================================
-PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
+PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
 {
-  PyObject* hook; E_Float tol;
-  if (!PYPARSETUPLE_(args, O_ R_, &hook, &tol)) return NULL;
+  PyObject* hook; PyObject* listEdges;
+  if (!PYPARSETUPLE_(args, OO_, &hook, &listEdges)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -53,38 +44,56 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
   packet = (void**) PyCapsule_GetPointer(hook, NULL);
 #endif
 
-  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
-  //TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-
-  // try on top shape
+  // get top shape
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
-  
-  // top shape
-  printf("Info: sewing top shape.\n");
-  const Standard_Real tolerance = tol;
-  BRepBuilderAPI_Sewing sewer(tolerance);
-  sewer.Add(*shp);
-  sewer.Perform();
+  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+
+  // get edges and make a wire
+  BRepBuilderAPI_MakeWire wireMaker;
+  for (E_Int no = 0; no < PyList_Size(listEdges); no++)
+  {
+    PyObject* noEdgeO = PyList_GetItem(listEdges, no);
+    E_Int noEdge = PyInt_AsLong(noEdgeO);
+    const TopoDS_Edge& E = TopoDS::Edge(edges(noEdge));
+    wireMaker.Add(E);
+  }
+  TopoDS_Wire myWire = wireMaker.Wire();
+
+  // Build face on wire
+  BRepBuilderAPI_MakeFace faceMaker(myWire);
+  //faceMaker.Add(myWire);
+  TopoDS_Face F = faceMaker.Face();
+
+  // Add face to shape
+  //ShapeBuild_ReShape reshaper;
+  //reshaper.Add(F); // no add
+  //TopoDS_Shape shc = reshaper.Apply(*shp);
+
+  TopoDS_Compound shc;
+  BRep_Builder aBuilder;
+  aBuilder.MakeCompound(shc);
+  aBuilder.Add(shc, *shp);
+  aBuilder.Add(shc, F);
 
   // export
-  TopoDS_Shape* newshp = new TopoDS_Shape(sewer.SewedShape());
+  delete shp;
+  TopoDS_Shape* newshp = new TopoDS_Shape(shc);
 
+  // Export
   packet[0] = newshp;
-  // Extract surfaces
   TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
   delete ptr;
   TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
   packet[1] = sf;
-
-  // Extract edges
   TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
   delete ptr2;
   TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
   packet[2] = se;
-  printf("INFO: after sewing: Nb edges=%d\n", se->Extent());
-  printf("INFO: after sewing: Nb faces=%d\n", sf->Extent());
+  printf("INFO: after removeFaces: Nb edges=%d\n", se->Extent());
+  printf("INFO: after removeFaces: Nb faces=%d\n", sf->Extent());
 
   Py_INCREF(Py_None);
   return Py_None;
