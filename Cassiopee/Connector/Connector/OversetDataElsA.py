@@ -367,10 +367,10 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                         isperiodic = periodicZones[nozd]
                         if isperiodic == 2:
                             print('Periodic interpolation from +theta: %d.'%interpType.shape[0])
-                            interpType = 102*numpy.ones((interpType.shape[0]),numpy.int32)
+                            interpType = 102*numpy.ones((interpType.shape[0]), Internal.E_NpyInt)
                         elif isperiodic == 3:
                             print('Periodic interpolation from -theta: %d.'%interpType.shape[0])
-                            interpType = 103*numpy.ones((interpType.shape[0]),numpy.int32)
+                            interpType = 103*numpy.ones((interpType.shape[0]), Internal.E_NpyInt)
                         resInterp[5][nozd] = interpType
                         zdonor = Internal.getNodesFromName(a,zdonorname)[0]
                         # ----------------------------------------
@@ -411,8 +411,8 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
                                 else: listEXdir[donorId]=[EXdir]
 
                 else: # no interpolation domain found
-                    if depth == 2: indicesOrphan = numpy.array(interpCells[1][3],dtype='int32')
-                    elif depth == 1: indicesOrphan = numpy.array(EXPts[1][3],dtype='int32')
+                    if depth == 2: indicesOrphan = numpy.array(interpCells[1][3], dtype=Internal.E_NpyInt)
+                    elif depth == 1: indicesOrphan = numpy.array(EXPts[1][3], dtype=Internal.E_NpyInt)
                     # on cree une zone subregion avec les pts orphelins
                     nameSubRegion='Orphan_'+z[0]
                     z[2].append([nameSubRegion, None, [],'ZoneSubRegion_t'])
@@ -451,7 +451,7 @@ def _interpInverseStorage(zname, zdonor, nozd, resInterp, depth):
         indRcv = resInterp[0][nozd]; interpCoef=resInterp[3][nozd];
         interpVol=resInterp[4][nozd]; interpType=resInterp[5][nozd]
         indicesExtrap = resInterp[6][nozd];
-        if depth == 2: EXdir=numpy.array([],numpy.int32)
+        if depth == 2: EXdir=numpy.array([], Internal.E_NpyInt)
         elif depth == 1: EXdir = resInterp[8][nozd]
         cellIndExtrap = indicesExtrap; cellIndOrphan = indicesOrphan
         coef=interpCoef; vol=interpVol; interptype=interpType              
@@ -477,7 +477,7 @@ def _interpDirectStorage(z, zdonorname, nozd, resInterp, depth):
         indRcv = resInterp[0][nozd]; interpCoef=resInterp[3][nozd]
         interpVol=resInterp[4][nozd]; interpType=resInterp[5][nozd]
         indicesExtrap = resInterp[6][nozd];
-        if depth == 2: EXdir=numpy.array([],numpy.int32)
+        if depth == 2: EXdir=numpy.array([], Internal.E_NpyInt)
         elif depth == 1: EXdir = resInterp[8][nozd]
         cellIndExtrap = indicesExtrap; cellIndOrphan = indicesOrphan
         coef = interpCoef; vol = interpVol; interptype = interpType
@@ -722,7 +722,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
                                         v2 = v.split(':',1)[1]
                                         if variables.index(v) == len(variables)-1: vars2=vars2+v2
                                         else: vars2=vars2+v2+','
-                                    cellRcvPara = numpy.arange(cellRcv.shape[0],dtype=numpy.int32)
+                                    cellRcvPara = numpy.arange(cellRcv.shape[0], dtype=Internal.E_NpyInt)
                                     rcvField = numpy.empty((donorArray[1].shape[0],cellRcv.shape[0]), order='F')
                                     rcvArray = [vars2,rcvField,cellRcv.shape[0],1,1] # tableau monodimensionnel
                                 else: # zone receveuse sur le processeur locale
@@ -762,7 +762,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
                                 cellDonorEX = cellDonorListEX[1]
                                 if cellDonorEX.size != 0:
                                     cellRcvEX = Internal.getNodeFromName1(s,'FaceListDonor')[1]
-                                    cellRcvEXdummy=numpy.arange(cellRcvEX.shape[0], dtype=numpy.int32)
+                                    cellRcvEXdummy=numpy.arange(cellRcvEX.shape[0], dtype=Internal.E_NpyInt)
                                     EXdir = Internal.getNodeFromName1(s,'FaceDirection')[1]
                                     interpDonorEX = idEX[1]
                                     cellVolEX   = Internal.getNodeFromName1(s,'FaceInterpolantsVol')[1]

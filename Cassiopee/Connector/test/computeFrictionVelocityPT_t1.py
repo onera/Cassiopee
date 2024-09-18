@@ -7,7 +7,7 @@ import KCore.test as test
 
 nb_node = 3
 
-zsize = numpy.empty((1,3), numpy.int32, order='F')
+zsize = numpy.empty((1,3), Internal.E_NpyInt, order='F')
 zsize[0,0] = nb_node; zsize[0,1] = 0; zsize[0,2] = 0
 z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
 coord_node = Internal.newGridCoordinates(parent = z)
