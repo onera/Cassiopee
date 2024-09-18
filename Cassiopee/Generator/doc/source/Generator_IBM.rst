@@ -31,7 +31,7 @@ Contents
 #########
 .. py:function:: Generator.IBM.generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., tbox=None, to=None, octreeMode=0, check=False)
 
-    Generates the full Cartesian mesh (octree/quadtree-based) for IBMs. The algorithm is divided into three main steps, which are the sequential octree generation from the surface definitions, through optional local adaptations from the refinement zones defined in tbox, to the resulting Cartesian mesh. The methodology is introduced and detailed in Peron and Benoit [2013, https://doi.org/10.1016/j.jcp.2012.07.029], and recalled in Constant [2023, http://dx.doi.org/10.13140/RG.2.2.35378.21449]. The resulting mesh is a collection of overset isotropic grids with minimal overlap.
+    Generates the full Cartesian mesh (octree/quadtree-based) for IBMs. The algorithm is divided into three main steps. It starts with the sequential octree generation from the surface definitions, through optional local adaptations from the refinement zones defined in tbox, to the resulting Cartesian mesh. The methodology is introduced and detailed in Peron and Benoit [2013, https://doi.org/10.1016/j.jcp.2012.07.029], and recalled in Constant [2023, http://dx.doi.org/10.13140/RG.2.2.35378.21449]. The resulting mesh is a collection of overset isotropic grids with minimal overlap.
 
     This function encapsulates the Generator.buildOctree function. For more details about the octree creation step, see the documentation of this function. If the octree has already been built, the user can also pass the octree as an input parameter (to). 
 
@@ -73,7 +73,7 @@ Contents
 
     This function takes into account three main parameters which are vmin, snears and dfars. 
     
-    * vmin is a global parameter that controls the minimum number of cells per direction for each octree level. For example, a small vmin value will result in a small a low number of points against a large number of elementary Cartesian blocks, as well as more frequent resolution changes from the wall boundaries. Empirically, one should use vmin values between 7 and 21.
+    * vmin is a global parameter that controls the minimum number of cells per direction for each octree level. For example, a small vmin value will result in a small number of points against a large number of elementary Cartesian blocks, as well as more frequent resolution changes from the wall boundaries. Empirically, one should use vmin values between 7 and 21.
 
     * snears defines the minimum near-wall spacing. This argument can be passed globally as a float, or locally as a list of floats whose size must be equal to the number of zones in the tb file. Note that these values will eventually be overwritten by any snears values found in each subzone of the geometry pytree (see Geom.IBM.setSnear).
 

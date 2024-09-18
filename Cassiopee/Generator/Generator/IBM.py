@@ -679,7 +679,7 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0, 
                     tbox=None, snearsf=None, check=False, to=None,
                     ext=2, expand=3, octreeMode=0):
-    """Generates the full Cartesian mesh for IBMs"""
+    """Generates the full Cartesian mesh for IBMs."""
     import KCore.test as test
         # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
@@ -938,7 +938,7 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
 def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., dfarDir=0, 
                 tbox=None, snearsf=None, to=None, balancing=2, expand=2, octreeMode=0):
     
-    """Builds an octree from the surface definitions"""
+    """Builds an octree from the surface definitions."""
 
     surfaces=[]; dfarListL=[]; snearso=[]
 
