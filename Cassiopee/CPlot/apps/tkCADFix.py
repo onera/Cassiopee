@@ -55,7 +55,18 @@ def sewCAD(event=None):
     tol = CTK.varsFromWidget(VARS[2].get(), 1)[0]
     hook = CTK.CADHOOK
     [hmax, hausd] = OCC.getCADcontainer(CTK.t)
-    OCC._sewing(hook, tol)
+    faces = []
+    nzs = CPlot.getSelectedZones()
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        CAD = Internal.getNodeFromName1(z, 'CAD')
+        if CAD is not None:
+            no = Internal.getNodeFromName1(CAD, 'no')
+            no = Internal.getValue(no)
+            faces.append(no)
+    OCC._sewing(hook, faces, tol)
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
     edges[2] = []
@@ -82,7 +93,6 @@ def filletCAD(event=None):
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        print(z[0])
         CAD = Internal.getNodeFromName1(z, 'CAD')
         if CAD is not None:
             no = Internal.getNodeFromName1(CAD, 'no')
@@ -91,7 +101,7 @@ def filletCAD(event=None):
     if edges == []: 
         CTK.TXT.insert('START', 'No valid edges in selection.\n')
         return
-    OCC.occ.addFillet(hook, edges, radius)
+    OCC._addFillet(hook, edges, radius)
 
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
@@ -102,6 +112,8 @@ def filletCAD(event=None):
     OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     CTK.TXT.insert('START', 'Fillet added.\n')
 
@@ -126,7 +138,7 @@ def removeFaces(event=None):
     if faces == []: 
         CTK.TXT.insert('START', 'No valid faces in selection.\n')
         return
-    OCC.occ.removeFaces(hook, faces)
+    OCC._removeFaces(hook, faces)
 
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
@@ -137,6 +149,8 @@ def removeFaces(event=None):
     OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     CTK.TXT.insert('START', 'Faces removed from CAD.\n')
 
@@ -161,7 +175,7 @@ def fillHole(event=None):
     if edges == []: 
         CTK.TXT.insert('START', 'No valid edges in selection.\n')
         return
-    OCC.occ.fillHole(hook, edges)
+    OCC._fillHole(hook, edges)
 
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
@@ -172,6 +186,8 @@ def fillHole(event=None):
     OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     CTK.TXT.insert('START', 'Fill hole in CAD.\n')
 

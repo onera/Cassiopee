@@ -43,8 +43,8 @@
 //=====================================================================
 PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
 {
-  PyObject* hook; E_Float tol;
-  if (!PYPARSETUPLE_(args, O_ R_, &hook, &tol)) return NULL;
+  PyObject* hook; PyObject* listFaces; E_Float tol; 
+  if (!PYPARSETUPLE_(args, OO_ R_, &hook, &listFaces, &tol)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -54,21 +54,56 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
 #endif
 
   //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
-  //TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
   // try on top shape
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
-  
-  // top shape
-  printf("Info: sewing top shape.\n");
   const Standard_Real tolerance = tol;
   BRepBuilderAPI_Sewing sewer(tolerance);
-  sewer.Add(*shp);
-  sewer.Perform();
+  
+  TopoDS_Shape shc;
+  E_Int nfaces = PyList_Size(listFaces); 
+  nfaces = 0; // force car le code par subfaces semble ne pas marcher
+  if (nfaces == 0)
+  {
+    // top shape
+    printf("Info: sewing top shape.\n");
+    sewer.Add(*shp);
+    sewer.Perform();
+    shc = sewer.SewedShape();
+  }
+  else
+  {
+    // ce code ne fonctionne pas, on utilise tout le temps la topshape
+    for (E_Int no = 0; no < PyList_Size(listFaces); no++)
+    {
+      PyObject* noFaceO = PyList_GetItem(listFaces, no);
+      E_Int noFace = PyInt_AsLong(noFaceO);
+      const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+      sewer.Add(F);
+    } 
+    sewer.Perform();
+    TopoDS_Shape shs = sewer.SewedShape();
+
+    ShapeBuild_ReShape reshaper;
+    TopTools_IndexedMapOfShape faces;
+    TopExp::MapShapes(shs, TopAbs_FACE, faces);
+
+    for (E_Int i = 0; i < faces.Extent(); i++) 
+    {
+      PyObject* noFaceO = PyList_GetItem(listFaces, i);
+      E_Int noFace = PyInt_AsLong(noFaceO);
+      const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+      const TopoDS_Face& F2 = TopoDS::Face(faces(i+1));
+      printf("replace face %d with %d\n", noFace, i+1);
+      reshaper.Replace(F, F2);
+    }
+    shc = reshaper.Apply(*shp);
+  }
 
   // export
-  TopoDS_Shape* newshp = new TopoDS_Shape(sewer.SewedShape());
-
+  delete shp;
+  TopoDS_Shape* newshp = new TopoDS_Shape(shc);
   packet[0] = newshp;
   // Extract surfaces
   TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];

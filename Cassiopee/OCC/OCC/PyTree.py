@@ -1129,6 +1129,18 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
 #=============================================================================
 # CAD fixing
 #=============================================================================
-def _sewing(hook, tol=1.e-6):
-  OCC.occ.sewing(hook, tol)
+def _sewing(hook, faces, tol=1.e-6):
+  OCC.occ.sewing(hook, faces, tol)
   return None
+
+def _addFillet(hook, edges, radius):
+  OCC.occ.addFillet(hook, edges, radius)
+  return None
+
+def _removeFaces(hook, faces):
+  OCC.occ.removeFaces(hook, faces)
+  return None
+
+def _fillHole(hook, edges):
+  OCC.occ.fillHole(hook, edges)
+  return None  
