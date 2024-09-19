@@ -25,6 +25,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <cstdio>
+#include <vector>
 #include "Def/DefTypes.h"
 
 #if defined( _WIN32 ) || defined( _WIN64 )
@@ -116,6 +117,9 @@ struct CPlotState
 
     // Last selected zone
     E_Int selectedZone;
+    std::vector<E_Int> ambSelections; // keep track of eventual overlapping zones when selecting
+    E_Int ambSelSet; // keep track of chosen selected zone in ambSelections;
+
     // List of deactivated zones
     chain_int* deactivatedZones;
     // Clicked point
@@ -209,9 +213,9 @@ struct CPlotState
     
     // lock=1 pendant le display, les donnees ne doivent alors
     // pas etre modifiees!
-    volatile int    lock;
+    volatile int lock;
     pthread_mutex_t lock_mutex;
-    pthread_cond_t  unlocked_display;
+    pthread_cond_t unlocked_display;
     void lockDisplay() {
         //printf("locking display\n");
         pthread_mutex_lock(&lock_mutex);

@@ -423,7 +423,8 @@ namespace K_CONNECT
     K_FLD::FldArrayI& cn, const char* eltType,
     E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
     E_Bool rmDuplicatedFaces=true, E_Bool rmDuplicatedElts=true,
-    E_Bool rmDegeneratedFaces=true, E_Bool rmDegeneratedElts=true);
+    E_Bool rmDegeneratedFaces=true, E_Bool rmDegeneratedElts=true,
+    E_Bool exportIndirPts=false);
 
   // Clean connectivity - NGON
   PyObject* V_cleanConnectivityNGon(
@@ -431,7 +432,8 @@ namespace K_CONNECT
     K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
     E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
     E_Bool rmDuplicatedFaces=true, E_Bool rmDuplicatedElts=true,
-    E_Bool rmDegeneratedFaces=true, E_Bool rmDegeneratedElts=true);
+    E_Bool rmDegeneratedFaces=true, E_Bool rmDegeneratedElts=true,
+    E_Bool exportIndirPts=false);
 
   E_Int V_identifyDirtyPoints(
     E_Int posx, E_Int posy, E_Int posz, 
@@ -459,7 +461,8 @@ namespace K_CONNECT
     E_Int posx, E_Int posy, E_Int posz, const char* varString,
     K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn, const char* eltType,
     E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
-    E_Bool rmDuplicatedElts=true, E_Bool rmDegeneratedElts=true);  
+    E_Bool rmDuplicatedElts=true, E_Bool rmDegeneratedElts=true,
+    E_Bool exportIndirPts=false);  
 
   E_Int V_identifyDirtyElementsME(
     E_Int dim, K_FLD::FldArrayI& cn, std::vector<E_Int>& indir,

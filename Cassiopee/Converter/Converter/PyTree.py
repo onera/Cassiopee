@@ -1022,8 +1022,8 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         fmt = Internal.getValue(fmt)
         import OCC.PyTree as OCC
         import CPlot.Tk as CTK
-        h = OCC.readCAD(file, fmt)
-        CTK.CADHOOK = [h,0.,0.]
+        hook = OCC.readCAD(file, fmt)
+        CTK.CADHOOK = hook
       return t
     except:
       if format == 'bin_cgns' or format == 'bin_adf':
@@ -1057,13 +1057,13 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
   if occAlgo == 4 and (format == 'fmt_iges' or format == 'fmt_step'): # new cassiopee cad system
     import OCC.PyTree as OCC
     import CPlot.Tk as CTK
-    h = OCC.readCAD(fileName, format)
+    hook = OCC.readCAD(fileName, format)
     if hmax == 0.:
         # auto setting
-        (hmax,hmin,hausd) = OCC.occ.analyseEdges(h)
+        (hmax,hmin,hausd) = OCC.occ.analyseEdges(hook)
         print('hmax=', hmax, 'hausd=', hausd)
-    CTK.CADHOOK = [h,hmax,hausd]
-    t = OCC.getFirstTree(h, hmax, hausd)
+    CTK.CADHOOK = hook
+    t = OCC.getFirstTree(hook, hmax, hausd)
     _upgradeTree(t)
     return t
 
@@ -6442,12 +6442,12 @@ def _patchArrayForCenter2NodeNK1__(fields, a):
       if dim[0] == 'Structured' and nk == 2 and s == ni*nj:
         if isinstance(fp, list): # array2/3
           for n, fl in enumerate(fp):
-            b = numpy.empty( (ni*nj*2) )
+            b = numpy.empty( (ni*nj*2), dtype=numpy.float64 )
             b[0:ni*nj] = fl[0:ni*nj]
             b[ni*nj:2*ni*nj] = fl[0:ni*nj]
             fp[n] = b
         else:
-          b = numpy.empty( (nfld, ni*nj*2) )
+          b = numpy.empty( (nfld, ni*nj*2), dtype=numpy.float64 )
           b[:,0:ni*nj] = fp[:,0:ni*nj]
           b[:,ni*nj:2*ni*nj] = fp[:,0:ni*nj]
           f[1] = b; f[4] = 2

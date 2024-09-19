@@ -38,16 +38,12 @@ void Data::displaySSolidZone(StructZone* zonep, E_Int zone)
   getrgb = _plugins.zoneColorMap->f;
 
   E_Float nz = 1./_numberOfStructZones;
+  bool is1D = ((zonep->ni*zonep->nj == 1) | (zonep->ni*zonep->nk == 1) | (zonep->nj*zonep->nk == 1));
+    
   #include "solidStyles.h"
-
   #include "selection.h"
 
-  bool is1D = ((zonep->ni*zonep->nj == 1) | (zonep->ni*zonep->nk == 1) | (zonep->nj*zonep->nk == 1));
-  if (is1D == true && ptrState->mode == RENDER) glLineWidth(1.+5*zonep->shaderParam1);
-  else if (is1D == true) glLineWidth(3.);
-  else glLineWidth(1.);
-
-  if (is1D == true && ptrState->mode == MESH) return; // already drawn in mesh
+  if (is1D && ptrState->mode == MESH) return; // already drawn in mesh
 
   // scale
   E_Float s = MAX(zonep->xmax-zonep->xmin, zonep->ymax-zonep->ymin);

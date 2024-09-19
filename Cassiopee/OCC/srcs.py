@@ -36,6 +36,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/readCAD.cpp',
         'OCC/Atomic/writeCAD.cpp',
         'OCC/Atomic/createEmptyCAD.cpp',
+        'OCC/Atomic/freeHook.cpp',
 
         'OCC/Atomic/bottle.cpp',
         'OCC/Atomic/addSphere.cpp',
@@ -53,10 +54,15 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/analyse.cpp',
         'OCC/Atomic/getFaceArea.cpp',
         'OCC/Atomic/areEdgeIdentical.cpp',
+
         'OCC/Atomic/splitter.cpp',
         'OCC/Atomic/fix.cpp',
         'OCC/Atomic/trim.cpp',
-        
+        'OCC/Atomic/sewing.cpp',
+        'OCC/Atomic/removeFaces.cpp',
+        'OCC/Atomic/fillHole.cpp',
+        'OCC/Atomic/addFillet.cpp',
+
         'OCC/Atomic/getOppData.cpp']
 
 import KCore.Dist as Dist

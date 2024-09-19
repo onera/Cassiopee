@@ -88,8 +88,7 @@ void globMinMax(Zone** zones, E_Int nz,
                 double& ymin, double& ymax,
                 double& zmin, double& zmax,
                 double& epsup, double& epsstrafe, double& dmoy);
-void globFMinMax(Zone** zones, E_Int nz,
-                 double* minf, double* maxf);
+void globFMinMax(Zone** zones, E_Int nz, double* minf, double* maxf);
 int getStringsFromPyObj(PyObject* obj, std::vector<char*>& strings);
 int getStringFromPyObj(PyObject* obj, char*& string);
 void insertAfterNz(Zone** zonesp, E_Int& lzonesn, Zone**& zonesn, E_Int nz, Zone* z);

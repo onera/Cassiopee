@@ -95,13 +95,13 @@ void Data::displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet)
   double pt1[3]; double pt2[3]; double pt3[3]; double pt4[3];
   
   E_Float nz = 1./_numberOfUnstructZones;
-  #include "meshStyles.h"
-  #include "selection.h"
-
   E_Int eltType0 = zonep->eltType[0]; 
   bool is1D = false;
   if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) is1D = true;
-  if (is1D) glLineWidth(3.);
+
+  #include "meshStyles.h"
+  #include "selection.h"
+
   int ishader = 3;
   this->_shaders.set_tesselation(ishader);
   this->_shaders.activate((short unsigned int)this->_shaders.shader_id(shader::None));
@@ -115,7 +115,11 @@ void Data::displayUMeshZone_ho(UnstructZone* zonep, E_Int zone, E_Int zonet)
 
   // For BARS or NODES or 1D NGONS: display nodes
   if (is1D)
-  {    
+  { 
+    if (zonep->colorR > -0.5)
+    {color1[0] = zonep->colorR; color1[1] = zonep->colorG; color1[2] = zonep->colorB;}
+    #include "selection.h"
+
     glBegin(GL_QUADS);
     if (zonep->blank == 0)
     {

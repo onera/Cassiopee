@@ -313,9 +313,19 @@ class CAD:
 #========================
 #=== nouvelle vision ====
 #========================
-def readCAD(fileName, format='fmt_iges'):
+def readCAD(fileName, format='fmt_step'):
   """Read CAD and return a CAD hook."""
   return OCC.occ.readCAD(fileName, format)
+
+def writeCAD(hook, fileName, format='fmt_step'):
+  """Write CAD file from CAD hook."""
+  OCC.occ.writeCAD(hook, fileName, format)
+  return None
+
+def freeHook(hook):
+  """Free hook."""
+  OCC.occ.freeHook(hook)
+  return None
 
 def _linkCAD2Tree(hook, t):
   """Put hook in CAD/hook for each zone."""
@@ -344,7 +354,8 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
   t = C.newPyTree(['EDGES', 'FACES'])
 
   # Add CAD top container containing the CAD file name
-  _addCADcontainer(hook, t)
+  fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
+  _setCADcontainer(t, fileName, fileFmt, hmax, hausd)
 
   # Edges
   if hmax > 0.: edges = OCC.occ.meshGlobalEdges1(hook, hmax)
@@ -357,12 +368,11 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
                                 Internal.__GridCoordinates__,
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
-    # Conserve hook, name, type et no de l'edge dans la CAD
+    # Conserve name, type et no de l'edge dans la CAD
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
     Internal._createChild(r, "type", "DataArray_t", value="edge")
     Internal._createChild(r, "no", "DataArray_t", value=(c+1))
-    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   # Faces
@@ -378,17 +388,17 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
-    # conserve hook, name, type
+    # conserve name, type
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="face%03d"%noface)
     Internal._createChild(r, "type", "DataArray_t", value="face")
     Internal._createChild(r, "no", "DataArray_t", value=noface)
     Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
     Internal._createChild(r, "hsize", "DataArray_t", value=[0.])
-    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   _updateEdgesFaceList__(t)
+  _setLonelyEdgesColor(t)
 
   return t
 
@@ -409,12 +419,11 @@ def remeshTreeFromEdges(hook, tp):
                                 Internal.__GridCoordinates__,
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
-    # Conserve hook, name, type et no de l'edge dans la CAD
+    # Conserve name, type et no de l'edge dans la CAD
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
     Internal._createChild(r, "type", "DataArray_t", value="edge")
     Internal._createChild(r, "no", "DataArray_t", value=(c+1))
-    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   # Faces
@@ -428,14 +437,16 @@ def remeshTreeFromEdges(hook, tp):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
-    # conserve hook, name, type
+    # conserve name, type
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="face%03d"%noface)
     Internal._createChild(r, "type", "DataArray_t", value="face")
     Internal._createChild(r, "no", "DataArray_t", value=noface)
     Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
-    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
+
+  _updateEdgesFaceList__(t)
+  _setLonelyEdgesColor(t)
 
   return t
 
@@ -492,7 +503,8 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
   t = C.newPyTree(['EDGES', 'FACES'])
 
   # Add CAD top container containing the CAD file name
-  _addCADcontainer(hook, t)
+  fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
+  _setCADcontainer(t, fileName, fileFmt, hmax, hausd)
 
   # - Edges -
   edges = OCC.meshAllEdges(hook, hmax, hausd, -1)
@@ -548,7 +560,8 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
     b[2].append(z)
 
   _updateEdgesFaceList__(t)
-  
+  _setLonelyEdgesColor(t)
+
   return t
 
 # the first version of parallel CAD split and TRI meshing
@@ -639,12 +652,14 @@ def _remeshTreeFromEdges(hook, t, edges):
     aedge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
     e = occ.meshOneEdge(hook, edgeno, -1, -1, -1, aedge)
     dedges[edgeno-1] = e
-    cad = Internal.getNodeFromName1(edge, "CAD")
+    cad = Internal.getNodeFromName1(edge, 'CAD')
+    render = Internal.getNodeFromName1(edge, '.RenderInfo')
     z = Internal.createZoneNode('edge%03d'%(edgeno), e, [],
                                 Internal.__GridCoordinates__,
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     z[2].append(cad)
+    if render is not None: z[2].append(render)
     b[2][edgeno-1] = z
 
   # eval the impacted faces
@@ -664,6 +679,7 @@ def _remeshTreeFromEdges(hook, t, edges):
                                 Internal.__FlowSolutionCenters__)
     z[2].append(cad)
     b[2][cd] = z
+
   return None
 
 # modify hsize for faces from hlist
@@ -709,13 +725,15 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
 
   return None
 
-# add CAD container to tree (file and format)
-def _addCADcontainer(hook, t):
-  # Add CAD top container containing the CAD file name
-  fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
-  CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
-  Internal._createChild(CAD, 'file', 'DataArray_t', value=fileName)
-  Internal._createChild(CAD, 'format', 'DataArray_t', value=fileFmt)
+# add CAD container to tree (file and format from hook)
+def _setCADcontainer(t, fileName, fileFmt, hmax, hausd):
+  CAD = Internal.getNodeFromName1(t, 'CAD')
+  if CAD is None:
+    CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
+  if fileName is not None: Internal._createUniqueChild(CAD, 'file', 'DataArray_t', value=fileName)
+  if fileFmt is not None: Internal._createUniqueChild(CAD, 'format', 'DataArray_t', value=fileFmt)
+  if hmax is not None: Internal._createUniqueChild(CAD, 'hsize', 'DataArray_t', value=hmax)
+  if hausd is not None: Internal._createUniqueChild(CAD, 'hausd', 'DataArray_t', value=hausd)
   return None
 
 # mesh all edges
@@ -737,7 +755,19 @@ def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1):
     Internal._createChild(r, "no", "Data_Array_t", value=(c+1))
     #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
+
+  _setCADcontainer(t, None, None, hmax, hausd)
   return None
+
+def getCADcontainer(t):
+  hmax = None; hausd = None
+  CAD = Internal.getNodeFromName1(t, 'CAD')
+  if CAD is None: return [hmax, hausd]
+  hmax = Internal.getNodeFromName1(CAD, 'hsize')
+  if hmax is not None: hmax = Internal.getValue(hmax)
+  hausd = Internal.getNodeFromName1(CAD, 'hausd')
+  if hausd is not None: hausd = Internal.getValue(hausd)
+  return [hmax, hausd]
 
 # build or update edges:FaceList
 def _updateEdgesFaceList__(t):
@@ -814,6 +844,7 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmax=-1, hau
     b[2].append(z)
 
   _updateEdgesFaceList__(t)
+  _setLonelyEdgesColor(t)
 
   return None
 
@@ -862,7 +893,27 @@ def _meshAllFacesStruct(hook, t, faceList=None):
     b[2].append(z)
 
   _updateEdgesFaceList__(t)
+  _setLonelyEdgesColor(t)
 
+  return None
+
+# set color red to lonelyEdges
+def _setLonelyEdgesColor(t):
+  import CPlot.PyTree as CPlot
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  if b is None: return None
+  zones = Internal.getZones(b)
+  for ze in zones:
+    CAD = Internal.getNodeFromName1(ze, 'CAD')
+    faceList = Internal.getNodeFromName1(CAD, 'faceList')
+    if faceList is not None:
+      size = faceList[1].size
+      if size == 2: # ok: blue
+        CPlot._addRender2Zone(ze, color='Green')
+      elif size == 1: # lonely: red
+        CPlot._addRender2Zone(ze, color='Red')
+      else: # strange!!
+        CPlot._addRender2Zone(ze, color='Red')
   return None
 
 #===========================================================================================
@@ -1075,11 +1126,21 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
   Internal.createNode('InterpolantsType', 'DataArray_t', value=data, parent=zsr)
   return None
 
-# External stitcher
-# Look to edges and replace identical edges (may join)
-# IN: t: CAD+Mesh tree
-def stitch(t):
-  edges = Internal.getNodeFromName1(t, 'EDGES')
-  faces = Internal.getNodeFromName1(t, 'FACES')
-  # identify identical edges
+#=============================================================================
+# CAD fixing
+#=============================================================================
+def _sewing(hook, faces, tol=1.e-6):
+  OCC.occ.sewing(hook, faces, tol)
   return None
+
+def _addFillet(hook, edges, radius):
+  OCC.occ.addFillet(hook, edges, radius)
+  return None
+
+def _removeFaces(hook, faces):
+  OCC.occ.removeFaces(hook, faces)
+  return None
+
+def _fillHole(hook, edges):
+  OCC.occ.fillHole(hook, edges)
+  return None  

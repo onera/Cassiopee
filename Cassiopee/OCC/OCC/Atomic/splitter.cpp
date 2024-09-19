@@ -29,7 +29,6 @@
 #include "GCPnts_AbscissaPoint.hxx" 
 #include "GCPnts_UniformDeflection.hxx"
 #include "GCPnts_UniformAbscissa.hxx"
-#include "TopTools_IndexedMapOfShape.hxx"
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"

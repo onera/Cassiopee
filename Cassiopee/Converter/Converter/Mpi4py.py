@@ -600,7 +600,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
 # Calcule l'intersection de deux bbox
 #=============================================================================
 def GetIntersectionBbox(bbox1, bbox2):
-   Ibbox = numpy.zeros(6)
+   Ibbox = numpy.zeros(6, dtype=numpy.float64)
    Ibbox[0:3] = [max(bbox1[i],bbox2[i]) for i in range(3)]
    Ibbox[3:6] = [min(bbox1[i],bbox2[i]) for i in range(3,6)]
    return Ibbox

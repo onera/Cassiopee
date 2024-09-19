@@ -15,6 +15,7 @@ import Connector.PyTree as X
 import Converter.Mpi as Cmpi
 import Converter.Filter as Filter
 import numpy
+import math
 
 EPSCART = 1.e-6
 
@@ -678,6 +679,7 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0, 
                     tbox=None, snearsf=None, check=False, to=None,
                     ext=2, expand=3, octreeMode=0):
+    """Generates the full Cartesian mesh for IBMs."""
     import KCore.test as test
         # refinementSurfFile: surface meshes describing refinement zones
     if tbox is not None:
@@ -935,6 +937,9 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
 
 def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., dfarDir=0, 
                 tbox=None, snearsf=None, to=None, balancing=2, expand=2, octreeMode=0):
+    
+    """Builds an octree from the surface definitions."""
+
     surfaces=[]; dfarListL=[]; snearso=[]
 
     # list of dfars
@@ -1082,10 +1087,10 @@ def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
     Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
     NP             = Cmpi.size
     rank           = Cmpi.rank
-    NPTS           = numpy.zeros(NP)
-    NCELLS         = numpy.zeros(NP)
-    NPTS_noghost   = numpy.zeros(NP)
-    NCELLS_noghost = numpy.zeros(NP)    
+    NPTS           = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS         = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NPTS_noghost   = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS_noghost = numpy.zeros(NP, dtype=Internal.E_NpyInt)    
     if isinstance(t, str):
         h = Filter.Handle(t)
         t = h.loadFromProc(loadVariables=False)
@@ -1117,7 +1122,6 @@ def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
         print('Projected mesh size with ghost: {} million points & {} million cells'.format(numpy.sum(NPTS)/1.e6,numpy.sum(NCELLS)/1.e6))
         print('Projected mesh size without ghost: {} million points & {} million cells'.format(numpy.sum(NPTS_noghost)/1.e6,numpy.sum(NCELLS_noghost)/1.e6))
     return None
-
 
 def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10, span=1 , Ntranche=1,
                         dictNz=None, ific=2, isCartesianExtrude=False, isAutoPeriodic=False, nghost=0):
@@ -1308,7 +1312,6 @@ def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10,
         T._cart2Cyl(tb, (0,0,0),(1,0,0))                    
     X_IBM._redispatch__(t=t)                    
     return t, tb
-
 
 def checkCartesian(t, nghost=0):
     dimPb = Internal.getNodeFromName(t, 'EquationDimension')

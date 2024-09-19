@@ -30,7 +30,8 @@ namespace K_OCC
   PyObject* readCAD(PyObject* self, PyObject* args);
   PyObject* writeCAD(PyObject* self, PyObject* args);
   PyObject* createEmptyCAD(PyObject* self, PyObject* args);
-  
+  PyObject* freeHook(PyObject* self, PyObject* args);
+
   PyObject* bottle(PyObject* self, PyObject* args);
   PyObject* addSphere(PyObject* self, PyObject* args);
   
@@ -68,6 +69,10 @@ namespace K_OCC
   PyObject* splitFaces(PyObject* self, PyObject* args);
   PyObject* fixShape(PyObject* self, PyObject* args);
   PyObject* trimFaces(PyObject* self, PyObject* args);
+  PyObject* sewing(PyObject* self, PyObject* args);
+  PyObject* removeFaces(PyObject* self, PyObject* args);
+  PyObject* fillHole(PyObject* self, PyObject* args);
+  PyObject* addFillet(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
 

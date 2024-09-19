@@ -1333,7 +1333,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
         hook = C.createHook(b_bounds, function='faceCenters')
       wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
       wallf = wallf[wallf >= 1]
-      if wallf != []:
+      if wallf.size > 0:
         wallf -= 1 # make it 0 based
       else: wallf = None
 
@@ -1356,7 +1356,8 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
         ngons.append(c)
         basenum.append(base_id)
         zwallf = getBCPtListOfType(z, WALLBCS, wallfamilies)
-        if zwallf != []: zwallf -= 1 # make it 0 based
+        zwallf = numpy.asarray(zwallf, dtype=Internal.E_NpyInt)
+        if zwallf.size > 0: zwallf -= 1 # make it 0 based
         zwall_ids.append(zwallf)
 
   if TIMER:

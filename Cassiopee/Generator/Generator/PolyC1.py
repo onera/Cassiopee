@@ -48,11 +48,15 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     nghb = N.zeros((ne,2), dtype=E_NpyInt); nghb[:] = -1 # no de la courbe voisine
     nghbind = N.zeros((ne,2), dtype=E_NpyInt) # index corresp. sur la courbe voisine
     # coord des pts de contact
-    xpts = N.zeros((ne,2)); ypts = N.zeros((ne,2)) ; zpts = N.zeros((ne,2))
+    xpts = N.zeros((ne,2), dtype=N.float64)
+    ypts = N.zeros((ne,2), dtype=N.float64)
+    zpts = N.zeros((ne,2), dtype=N.float64)
     # courbure au pts de contact
-    cpts = N.zeros((ne,2))
+    cpts = N.zeros((ne,2), dtype=N.float64)
     # normale aux points de contact
-    surfxpts = N.zeros((ne,2)); surfypts = N.zeros((ne,2)); surfzpts = N.zeros((ne,2))
+    surfxpts = N.zeros((ne,2), dtype=N.float64)
+    surfypts = N.zeros((ne,2), dtype=N.float64)
+    surfzpts = N.zeros((ne,2), dtype=N.float64)
 
     # Calcul des coord. des Pts de contact entre courbes C1
     for c in range(ne):

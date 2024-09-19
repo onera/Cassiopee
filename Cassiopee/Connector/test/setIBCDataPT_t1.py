@@ -1,5 +1,6 @@
 # - setIBCData (pyTree) -
 import Converter.PyTree as C
+import Converter.Internal as Internal
 import Generator.PyTree as G
 import Connector.PyTree as X
 import Post.PyTree as P
@@ -16,7 +17,7 @@ tb = C.newPyTree(['Base', s])
 
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]], N.int32)
+BM = N.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t, bodies, BM, blankingType='center_in')
 t = X.setHoleInterpolatedPoints(t, depth=-1)
 # Dist2Walls
@@ -33,7 +34,7 @@ test.testT(t2,2)
 t = C.newPyTree(['Base', a])
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]],N.int32)
+BM = N.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t,bodies,BM,blankingType='node_in')
 t = X.setHoleInterpolatedPoints(t,depth=-1)
 # Dist2Walls
@@ -51,7 +52,7 @@ t = C.newPyTree(['Base', a])
 
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]],N.int32)
+BM = N.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t,bodies,BM,blankingType='center_in')
 t = X.setHoleInterpolatedPoints(t,depth=-1)
 t = X.setHoleInterpolatedPoints(t,depth= 2)

@@ -423,7 +423,8 @@ PyObject* K_CONNECTOR::gatherMatching(PyObject* self, PyObject* args)
       inciopp = 1; incjopp = imw2;
     }
     // Build subwindows
-    compIncrement(inds1, imcw1, oppositeWins, oppositePts, incci, inccj, incciopp, inccjopp);
+    compIncrement(inds1, imcw1, oppositeWins, oppositePts, dimPb,
+                  incci, inccj, incciopp, inccjopp);
     
     jsw1 = inds1/imcw1; isw1 = inds1-jsw1*imcw1; iew1 = imcw1; jew1 = jsw1; 
     deltaw2 = 0; iwmax1 = imcw1;
@@ -847,13 +848,14 @@ E_Int K_CONNECTOR::signature(E_Int r1, E_Int r2, E_Int r3, E_Int var)
 //=============================================================================
 /* IN: indA1: index of first matching point of win now1
    IN: imw1: size of win now1
-   IN: oppositeWins, oppositePts: infos for opposite matching pts: win number and index 
+   IN: oppositeWins, oppositePts: infos for opposite matching pts: win number and index
+   IN: dimPb: problem dimension 
    OUT: inci, incj: valid increments for matching points in now1
    OUT: inciopp, incjopp: valid increments for matching opposite points in now2
    If no valid increment in one direction, set to 0 */
 //==============================================================================
 void K_CONNECTOR::compIncrement(
-  E_Int indA1, E_Int imw1, E_Float* oppositeWins, E_Float* oppositePts,
+  E_Int indA1, E_Int imw1, E_Float* oppositeWins, E_Float* oppositePts, E_Int dimPb,
   E_Int& inci, E_Int& incj, E_Int& inciopp, E_Int& incjopp)
 {
   E_Int indB1 = indA1+1; 
@@ -865,7 +867,8 @@ void K_CONNECTOR::compIncrement(
     inci = 1;
     inciopp = E_Int(oppositePts[indB1])-E_Int(oppositePts[indA1]);    
   }
-  if (oppositeWins[indD1] == oppositeWins[indA1])
+  
+  if (dimPb == 3 && oppositeWins[indD1] == oppositeWins[indA1])
   {
     incj = imw1;
     incjopp = E_Int(oppositePts[indD1])-E_Int(oppositePts[indA1]);    

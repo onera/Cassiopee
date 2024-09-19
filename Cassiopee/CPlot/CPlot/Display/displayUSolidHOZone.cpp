@@ -38,15 +38,11 @@ void Data::displayUSolidHOZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
   getrgb = _plugins.zoneColorMap->f;
 
   E_Float nz = 1. / _numberOfUnstructZones;
-  #include "solidStyles.h"
-
-  #include "selection.h"
-
   E_Int eltType0 = zonep->eltType[0];
   bool is1D = ( (eltType0 == 1) | (eltType0 == 10 && zonep->nelts1D > 0) );
-  if (is1D == true && ptrState->mode == RENDER) glLineWidth(1. + 5 * zonep->shaderParam1);
-  else if (is1D == true) glLineWidth(3.);
-  else glLineWidth(1.);
+
+  #include "solidStyles.h"
+  #include "selection.h"
 
   // scale
   E_Float s = MAX(zonep->xmax - zonep->xmin, zonep->ymax - zonep->ymin);

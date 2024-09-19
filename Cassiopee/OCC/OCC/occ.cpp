@@ -31,6 +31,7 @@ static PyMethodDef Pyocc [] =
   {"readCAD", K_OCC::readCAD, METH_VARARGS},
   {"writeCAD", K_OCC::writeCAD, METH_VARARGS},
   {"createEmptyCAD", K_OCC::createEmptyCAD, METH_VARARGS},
+  {"freeHook", K_OCC::freeHook, METH_VARARGS},
   
   {"bottle", K_OCC::bottle, METH_VARARGS},
   {"addSphere", K_OCC::addSphere, METH_VARARGS},
@@ -69,6 +70,10 @@ static PyMethodDef Pyocc [] =
   {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
   {"fixShape", K_OCC::fixShape, METH_VARARGS},
   {"trimFaces", K_OCC::trimFaces, METH_VARARGS},
+  {"sewing", K_OCC::sewing, METH_VARARGS},
+  {"removeFaces", K_OCC::removeFaces, METH_VARARGS},
+  {"fillHole", K_OCC::fillHole, METH_VARARGS},
+  {"addFillet", K_OCC::addFillet, METH_VARARGS},
 
   {"getOppData", K_OCC::getOppData, METH_VARARGS},
 
