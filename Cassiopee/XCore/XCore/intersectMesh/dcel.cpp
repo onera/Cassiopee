@@ -1040,7 +1040,7 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 
                     } else {
                         
-                        // E_Intersection, move
+                        // Intersection, move
 
                         current_face = h->twin->left;
     
