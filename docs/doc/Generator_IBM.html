@@ -49,10 +49,10 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Generator.IBM.Generator.IBM.buildOctree" title="Generator.IBM.Generator.IBM.buildOctree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.IBM.buildOctree</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Builds an octree from the surface definitions.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Generator.IBM.Generator.IBM.generateIBMMesh" title="Generator.IBM.Generator.IBM.generateIBMMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.IBM.generateIBMMesh</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Generates the full Cartesian mesh for IBMs.</p></td>
 </tr>
 </tbody>
 </table>
@@ -62,7 +62,7 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="Generator.IBM.Generator.IBM.generateIBMMesh">
 <span class="sig-prename descclassname"><span class="pre">Generator.IBM.</span></span><span class="sig-name descname"><span class="pre">generateIBMMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snears</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">octreeMode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Generates the full Cartesian mesh (octree/quadtree-based) for IBMs. The algorithm is divided into three main steps, which are the sequential octree generation from the surface definitions, through optional local adaptations from the refinement zones defined in tbox, to the resulting Cartesian mesh. The methodology is introduced and detailed in Peron and Benoit [2013, <a class="reference external" href="https://doi.org/10.1016/j.jcp.2012.07.029">https://doi.org/10.1016/j.jcp.2012.07.029</a>], and recalled in Constant [2023, <a class="reference external" href="http://dx.doi.org/10.13140/RG.2.2.35378.21449">http://dx.doi.org/10.13140/RG.2.2.35378.21449</a>]. The resulting mesh is a collection of overset isotropic grids with minimal overlap.</p>
+<dd><p>Generates the full Cartesian mesh (octree/quadtree-based) for IBMs. The algorithm is divided into three main steps. It starts with the sequential octree generation from the surface definitions, through optional local adaptations from the refinement zones defined in tbox, to the resulting Cartesian mesh. The methodology is introduced and detailed in Peron and Benoit [2013, <a class="reference external" href="https://doi.org/10.1016/j.jcp.2012.07.029">https://doi.org/10.1016/j.jcp.2012.07.029</a>], and recalled in Constant [2023, <a class="reference external" href="http://dx.doi.org/10.13140/RG.2.2.35378.21449">http://dx.doi.org/10.13140/RG.2.2.35378.21449</a>]. The resulting mesh is a collection of overset isotropic grids with minimal overlap.</p>
 <p>This function encapsulates the Generator.buildOctree function. For more details about the octree creation step, see the documentation of this function. If the octree has already been built, the user can also pass the octree as an input parameter (to).</p>
 <p>This function fully operates in a distributed parallel environment and automatically splits the resulting Cartesian mesh into NP subzones, where NP is the number of MPI processes.</p>
 <dl class="field-list simple">
@@ -87,7 +87,7 @@
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/generateIBMMeshPT.py">Generates the full Cartesian mesh for IBMs (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - buildOctree (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - generateIBMMesh (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Generator.IBM</span> <span class="k">as</span> <span class="nn">G_IBM</span>
@@ -113,7 +113,7 @@
 <p>Since this function, which is based on the Generator.PyTree.octree() function, is primarily used to automatically generate Cartesian grids around immersed boundaries, a final expansion of the lowest level leaf nodes is performed so that the minimum spacing imposed near the wall is sufficiently propagated in the wall normal direction. Local refinement zones stored in the tbox argument can be used to further refine the octree.</p>
 <p>This function takes into account three main parameters which are vmin, snears and dfars.</p>
 <ul class="simple">
-<li><p>vmin is a global parameter that controls the minimum number of cells per direction for each octree level. For example, a small vmin value will result in a small a low number of points against a large number of elementary Cartesian blocks, as well as more frequent resolution changes from the wall boundaries. Empirically, one should use vmin values between 7 and 21.</p></li>
+<li><p>vmin is a global parameter that controls the minimum number of cells per direction for each octree level. For example, a small vmin value will result in a small number of points against a large number of elementary Cartesian blocks, as well as more frequent resolution changes from the wall boundaries. Empirically, one should use vmin values between 7 and 21.</p></li>
 <li><p>snears defines the minimum near-wall spacing. This argument can be passed globally as a float, or locally as a list of floats whose size must be equal to the number of zones in the tb file. Note that these values will eventually be overwritten by any snears values found in each subzone of the geometry pytree (see Geom.IBM.setSnear).</p></li>
 <li><p>The dfars argument specifies the global domain extent from the geometry bounding boxes. Like snears, this argument can be a float or a list of floats, and local values found in tb will eventually overwrite the values passed as argument (see Geom.IBM.setDfar).</p></li>
 </ul>
