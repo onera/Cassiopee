@@ -29,7 +29,7 @@ if echo "$KC" | grep -q 'ubuntu'; then export MAC="ubuntu"; fi
 if echo "$KC" | grep -q 'visio'; then export MAC="visio"; fi
 if echo "$KC" | grep -q 'austri'; then export MAC="austri"; fi
 if echo "$KC" | grep -q 'celeste'; then export MAC="visio"; fi
-if echo "$KC" | grep -q 'visung'; then export MAC="juno"; fi
+if echo "$KC" | grep -q 'visung'; then export MAC="visung"; fi
 if echo "$KC" | grep -q 'giulia'; then export MAC="giulia"; fi
 if echo "$KC" | grep -q 'sator'; then export MAC="sator_cas"; fi
 if echo "$KC" | grep -q 'jean-zay'; then export MAC="jean-zay"; fi
@@ -198,38 +198,38 @@ elif [ "$MAC" = "spiro_gcc" ]; then
     export OMP_PLACES=cores
     unset $(env | grep SLURM | cut -d'=' -f 1)
 
-elif [ "$MAC" = "visung" ]; then
-#----------------------------- visung -----------------------------------------
-    export ELSAPROD=visung_r8
+elif [ "$MAC" = "visung_gcc" ]; then
+#----------------------------- visung_gcc -------------------------------------
+    export ELSAPROD=visung_gcc
     export ELSAPROD=$ELSAPROD$EXT
-    # Nbre de threads
-    export OMP_NUM_THREADS=72
     . /etc/profile.d/modules-onera.sh
     module purge
-    module load subversion
-    module load occt/7.6.1-gnu831
-    module load python/3.8.14-gnu831
-    #module load intel/21.2.0
-    module load gcc/10.2.0
-    module load hdf5/1.10.5-gnu831-ompi405
     module load lapack/3.9.1-gnu831
-    export PRODMODE=1
-    export PYTHONEXE=python3
-
-elif [ "$MAC" = "visung_el8" ]; then
-#----------------------------- visung -----------------------------------------
-    export ELSAPROD=visung_el8
-    export ELSAPROD=$ELSAPROD$EXT
-    #. /etc/profile.d/modules-dri.sh
-    module purge
-    module load subversion
-    module load python/3.7.4-intel2120
-    module load intel/21.2.0
-    module load hdf5/1.10.5-intel2120-impi
     module load occt/7.6.1-gnu831
+    module load socle-cfd/7.0-gnu850-ompi502
+    module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
     export PYTHONEXE=python3
     export OMP_NUM_THREADS=72
     #export PRODMODE=1
+
+elif [ "$MAC" = "visung" ]; then
+#----------------------------- visung -----------------------------------------
+    export ELSAPROD=visung
+    export ELSAPROD=$ELSAPROD$EXT
+    #. /etc/profile.d/modules-dri.sh
+    module purge
+    module load hdf5/1.10.5-intel2120-impi
+    module load occt/7.6.1-gnu831
+    module load emacs/27.2-gnu831
+    module load subversion/1.14.1-gnu831
+    module load socle-cfd/6.0-intel2220-impi
+    export PYTHONEXE=python3
+    export OMP_NUM_THREADS=72
+    #export PRODMODE=1
+    unset I_MPI_FABRICS_LIST
+    unset I_MPI_FABRICS
+    unset I_MPI_TCP_NETMASK
     unset I_MPI_PMI_LIBRARY
 
 elif [ "$MAC" = "austri" ]; then

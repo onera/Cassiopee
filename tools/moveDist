@@ -1,92 +1,161 @@
 #! /bin/sh
-# moveDist <dir>
-# moveDist <module> <dir>
-# recopie le module dans un nouveau directory d'installation
-# ex: moveDist Transform /home/benoit/Cassiopee/Dist/bin/x86_r8
+# Copy a CASSIOPEE distribution into a destination path with a new prod. name
+
+# Print help message
+usage() {
+  echo "moveDist --destination=<destination_path>                             # Copy all modules of a CASSIOPEE distribution into a destination path with the same prod. name"
+  echo "moveDist --destination=<destination_path> --new-prod-name=<new_prod>  # Copy all modules of a CASSIOPEE distribution into a destination path with a new prod. name"
+  echo "moveDist --destination=<destination_path> --module=<module>           # Copy a single module of a CASSIOPEE distribution into a destination path with the same prod. name"
+  exit 1
+}
+
+# Parse command-line arguments
+DEST_PROD_PATH=""
+NEW_ELSAPROD=""
+while [[ "$1" != "" ]]; do
+  case "$1" in
+    --destination=*)
+      DEST_PROD_PATH="${1#*=}"
+      ;;
+    -d)
+      shift
+      DEST_PROD_PATH="${1#*=}"
+      ;;
+    --module=*)
+      MODULE="${1#*=}"
+      ;;
+    -m)
+      shift
+      MODULE="${1#*=}"
+      ;;
+    --new-prod-name=*)
+      NEW_ELSAPROD="${1#*=}"
+      ;;
+    --help | -h)
+      usage
+      ;;
+    *)
+      echo "Invalid argument: $1"
+      usage
+      ;;
+  esac
+  shift
+done
+
+# Sanitise arguments
+if [ -z $MODULE ]; then
+  MODULE="all"
+fi
+
+if [ -z $NEW_ELSAPROD ]; then
+  NEW_ELSAPROD=$ELSAPROD
+fi
+
+if [ -z $DEST_PROD_PATH ]; then
+  echo ">>> Please set a destination path using --destination=<destination_path>"
+  usage
+  exit 1
+fi
 
 if [ "$CASSIOPEE" = "" ]; then
-    echo "You must specify a CASSIOPEE variable in your environment."
-    echo "This variable specifies the installation path of *Cassiopee*."
-    exit
+  echo "You must set a CASSIOPEE variable in your environment."
+  echo "This variable specifies the installation path of *Cassiopee*."
+  exit 1
 fi
 if [ "$ELSAPROD" = "" ]; then
-    echo "You must specify a ELSAPROD in your environment."
-    echo "This variable identifies the processor type."
-    exit
+  echo "You must set a ELSAPROD in your environment."
+  echo "This variable identifies the processor type."
+  exit 1
 fi
+
+# Setting vars
+CWD=$(pwd)
+CASSIOPEE=${CASSIOPEE%/}
+mkdir -p $DEST_PROD_PATH
+DEST_CAS_PATH=$(dirname $(dirname $(dirname $DEST_PROD_PATH)))
 
 if [ "$PYTHONEXE" = "python3" ]; then
-    pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
-    alias python=python3
+  pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+  alias python=python3
 else
-    pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+  pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 fi
+pylib="lib"
+case $ELSAPROD in
+  ubuntu*)
+    pylib="local/"$pylib
+    pysite="dist-packages"
+    ;;
+  *)
+    pysite="site-packages"
+    ;;
+esac
+pylvs="$pylib/$pyversion/$pysite"
 
-if ([ $# -eq 0 ]); then
-    echo "moveDist <dir>"
-    echo "moveDist /tmp/Cassiopee/Dist/bin/x86_r8"
-    echo "Recopie le Dist dans <dir>"
-    echo "moveDist <module> <dir>"
-    echo "ex: moveDist Transform /tmp/Cassiopee/Dist/bin/x86_r8"
-    echo "Recopie le Dist du module dans <dir>/lib/$pyversion/site-packages"
-fi
+new_pylib="lib"
+case $NEW_ELSAPROD in
+  ubuntu*)
+    new_pylib="local/"$new_pylib
+    pysite="dist-packages"
+    ;;
+  *)
+    pysite="site-packages"
+    ;;
+esac
+new_pylvs="$new_pylib/$pyversion/$pysite"
 
-# push module a la position dir
-if [ $# -eq 2 ]; then
-    module=$1
-    path=$2
-    mkdir -p $path
-    
-    here=`pwd`
-    cd "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/$pyversion/site-packages"
-    tar cvf $module.tar $module
-    mv $module.tar $path
-    cd $path
-    mkdir -p lib/$pyversion/site-packages
-    if [ -L lib64 ]; then
-         rm lib64
-         ln -s lib lib64
-    else
-        ln -s lib lib64
-    fi
-    mv $module.tar lib/$pyversion/site-packages
-    cd lib/$pyversion/site-packages
-    tar xvf $module.tar
-    rm $module.tar
-    cd $here
-fi
 
-# push all modules a la position dir
-if [ $# -eq 1 ]; then
-    path=$1
-    mkdir -p $path
-    here=`pwd`
-    cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
-    tar cvf all.tar .
-    mv all.tar $path
-    cd $path
-    tar xvf all.tar
-    rm all.tar
-    if [ -L lib64 ]; then
-        rm lib64
-        ln -s lib lib64
-    else
-        ln -s lib lib64
-    fi
-    # Change installPath
-    cd lib/$pyversion/site-packages
-    cd KCore
-    cp "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/$pyversion/site-packages/KCore/installPath.py" .
-    
-    cp installPath.py installPath_old.py
-    dirname=$(dirname $(dirname $(dirname $path)))
-    s1=$(sed 's/[\/&]/\\&/g' <<< $CASSIOPEE)
-    s2=$(sed 's/[\/&]/\\&/g' <<< $dirname)
-    # Remplace $CASSIOPEE par $dirname 
+if [ $MODULE = "all" ]; then
+  # Copy all modules to their destination
+  cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
+  tar cvf all.tar .
+  mv all.tar $DEST_PROD_PATH
+  cd $DEST_PROD_PATH
+  tar xvf all.tar
+  rm all.tar
+  if [ -L lib64 ]; then
+    rm lib64
+    ln -s lib lib64
+  else
+    ln -s lib lib64
+  fi
+
+  # Edit installPath (replace $CASSIOPEE by $DEST_CAS_PATH and edit prod. name)
+  cd "$pylvs/KCore"
+  cp "$CASSIOPEE/Dist/bin/$ELSAPROD/$pylvs/KCore/installPath.py" .
+  s1=$(sed 's/[\/&]/\\&/g' <<< "$CASSIOPEE")
+  s2=$(sed 's/[\/&]/\\&/g' <<< "$DEST_CAS_PATH")
+  sed -i "s/$s1/$s2/g" installPath.py
+  if [ "$ELSAPROD" != "$NEW_ELSAPROD" ]; then
+    s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$pylvs")
+    s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$new_pylvs")
     sed -i "s/$s1/$s2/g" installPath.py
-    more installPath.py
-    cd $here
-    # Copie les fichiers d'environnement
-    cp "$CASSIOPEE"/Dist/env_* $path/../..
-    cp "$CASSIOPEE"/Dist/sh_* $path/../..
+    s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$pylib")
+    s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$new_pylib")
+    sed -i "s/$s1/$s2/g" installPath.py
+  fi
+  more installPath.py
+
+  # Copy environment files
+  cp "$CASSIOPEE"/Dist/env_* "$DEST_PROD_PATH"/../..
+  cp "$CASSIOPEE"/Dist/sh_* "$DEST_PROD_PATH"/../..
+  cd $CWD
+else
+  # Copy a single module to its destination
+  cd "$CASSIOPEE/Dist/bin/$ELSAPROD/$pylvs"
+  tar cvf $MODULE.tar $MODULE
+  mv $MODULE.tar $DEST_PROD_PATH
+  cd $DEST_PROD_PATH
+  mkdir -p $pylvs
+  if [ -L lib64 ]; then
+    rm lib64
+    ln -s lib lib64
+  else
+    ln -s lib lib64
+  fi
+  mv $MODULE.tar $pylvs
+  cd $pylvs
+  tar xvf $MODULE.tar
+  rm $MODULE.tar
+  cd $CWD
 fi
