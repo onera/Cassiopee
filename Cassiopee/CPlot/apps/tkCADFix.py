@@ -60,22 +60,32 @@ def sewCAD(event=None):
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
+        b = CTK.t[2][nob]
+        if b[0] != 'FACES': continue
         z = CTK.t[2][nob][2][noz]
         CAD = Internal.getNodeFromName1(z, 'CAD')
         if CAD is not None:
             no = Internal.getNodeFromName1(CAD, 'no')
             no = Internal.getValue(no)
             faces.append(no)
+    
+    CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['sewingButton'])
+    
     OCC._sewing(hook, faces, tol)
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    CTK.setCursor(2, WIDGETS['frame'])
     OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
+    
     CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['sewingButton'])
+    
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     CTK.TXT.insert('START', 'CAD sewed with %g.\n'%tol)
 
@@ -92,6 +102,8 @@ def filletCAD(event=None):
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
+        b = CTK.t[2][nob]
+        if b[0] != 'EDGES': continue
         z = CTK.t[2][nob][2][noz]
         CAD = Internal.getNodeFromName1(z, 'CAD')
         if CAD is not None:
@@ -101,6 +113,10 @@ def filletCAD(event=None):
     if edges == []: 
         CTK.TXT.insert('START', 'No valid edges in selection.\n')
         return
+    
+    CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['filletButton'])
+    
     OCC._addFillet(hook, edges, radius)
 
     # remesh CAD and redisplay
@@ -108,10 +124,11 @@ def filletCAD(event=None):
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    CTK.setCursor(2, WIDGETS['frame'])
     OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['filletButton'])
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -129,6 +146,8 @@ def removeFaces(event=None):
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
+        b = CTK.t[2][nob]
+        if b[0] != 'FACES': continue
         z = CTK.t[2][nob][2][noz]
         CAD = Internal.getNodeFromName1(z, 'CAD')
         if CAD is not None:
@@ -138,6 +157,10 @@ def removeFaces(event=None):
     if faces == []: 
         CTK.TXT.insert('START', 'No valid faces in selection.\n')
         return
+    
+    CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['removeFacesButton'])
+    
     OCC._removeFaces(hook, faces)
 
     # remesh CAD and redisplay
@@ -145,10 +168,11 @@ def removeFaces(event=None):
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    CTK.setCursor(2, WIDGETS['frame'])
     OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['removeFacesButton'])
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -166,6 +190,8 @@ def fillHole(event=None):
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
+        b = CTK.t[2][nob]
+        if b[0] != 'EDGES': continue
         z = CTK.t[2][nob][2][noz]
         CAD = Internal.getNodeFromName1(z, 'CAD')
         if CAD is not None:
@@ -175,6 +201,10 @@ def fillHole(event=None):
     if edges == []: 
         CTK.TXT.insert('START', 'No valid edges in selection.\n')
         return
+    
+    CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['fillHoleButton'])
+
     OCC._fillHole(hook, edges)
 
     # remesh CAD and redisplay
@@ -182,10 +212,11 @@ def fillHole(event=None):
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    CTK.setCursor(2, WIDGETS['frame'])
     OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['fillHoleButton'])
+    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -221,11 +252,9 @@ def createApp(win):
     else: fileName = ''; fileFmt = 'fmt_step'
 
     # -0- CAD file name -
-    V = TK.StringVar(win); V.set('file.step'); VARS.append(V)
-    V.set(fileName)
+    V = TK.StringVar(win); V.set(fileName); VARS.append(V)
     # -1- CAD file format -
-    V = TK.StringVar(win); V.set('fmt_step'); VARS.append(V)
-    V.set(fileFmt)
+    V = TK.StringVar(win); V.set(fileFmt); VARS.append(V)
     # -2- Sewing tolerance -
     V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
     # -3- Fillet radius -
@@ -251,6 +280,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Sew", command=sewCAD)
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Sew CAD to fix multiple edges.')
+    WIDGETS['sewingButton'] = B
 
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=10)
     B.grid(row=2, column=1, sticky=TK.EW)
@@ -261,6 +291,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Fillet", command=filletCAD)
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Make a fillet from edges selection.')
+    WIDGETS['filletButton'] = B
 
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
     B.grid(row=3, column=1, sticky=TK.EW)
@@ -271,11 +302,13 @@ def createApp(win):
     B = TTK.Button(Frame, text="Remove faces", command=removeFaces)
     B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Remove selected faces from CAD.')
+    WIDGETS['removeFacesButton'] = B
 
     # Fill hole
     B = TTK.Button(Frame, text="Fill hole", command=fillHole)
     B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fill hole from CAD edges.')
+    WIDGETS['fillHoleButton'] = B
 
 
 #==============================================================================

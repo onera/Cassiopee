@@ -28,14 +28,18 @@ def quality(meshes):
         elif max2 < 1.e-12 and min2 > 0: score += 1000.
     return score
 
+#==============================================================================
 # distance au carre entre deux points
+#==============================================================================
 def distance2(P0,P1):
     dx = P0[0]-P1[0]
     dy = P0[1]-P1[1]
     dz = P0[2]-P1[2]
     return dx*dx+dy*dy+dz*dz
 
+#==============================================================================
 # Order a set of structured edges in a loop
+#==============================================================================
 def orderEdges(edges, tol=1.e-10):
     """Order edges in a loop."""
     import Transform as T
@@ -57,10 +61,53 @@ def orderEdges(edges, tol=1.e-10):
     return out
 
 #==============================================================================
+# Compute junction angles for already ordered edges
+#==============================================================================
+def computeJunctionAngles(edges):
+    """Compute junction angle in radians."""
+    import KCore.Vector as Vector
+    angles = []
+    for c, p in enumerate(edges):
+        P0 = (p[1][0,0],p[1][1,0],p[1][2,0])
+        P1 = (p[1][0,1],p[1][1,1],p[1][2,1])
+        if c == 0: pn = edges[-1]
+        else: pn = edges[c-1]
+        P2 = (pn[1][0,-2],pn[1][1,-2],pn[1][2,-2])
+        v1 = Vector.sub(P1, P0)
+        v2 = Vector.sub(P2, P0)
+        v1 = Vector.normalize(v1)
+        v2 = Vector.normalize(v2)
+        s = Vector.dot(v1, v2)
+        v = Vector.norm(Vector.cross(v1, v2))
+        angle = float(numpy.arctan2(v, s))
+        angles.append(angle)
+    return angles
+
+#==============================================================================
+# Try to merge edges to get less edges, thresold in radians
+#==============================================================================
+def mergeEdges(edges, thresold=0.):
+    """Merge edges with a junction angle less than thresold."""
+    import Transform
+    angles = computeJunctionAngles(edges)
+    print('angles=', angles)
+    medges = []
+    for c, e in enumerate(edges):
+        tangle = abs(angles[c] - numpy.pi)
+        if tangle < thresold and len(medges) > 0:
+            e2 = Transform.join(medges[-1], e); medges[-1] = e2            
+        else: medges.append(e)
+    tangle0 = abs(angles[0] - numpy.pi)
+    if tangle0 < thresold and len(medges) > 0:
+        e2 = Transform.join(medges[-1], medges[0]); medges[-1] = e2
+    return medges
+
+#==============================================================================
 # IN: a1,a2,a3: les 3 cotes du triangle (N3-N2+N1 impair)
 # OUT: 3 maillages
 #==============================================================================
 def TFITri(a1, a2, a3, tol=1.e-6):
+    """Generate a transfinite interpolation mesh from 3 input curves."""
     import Geom as D
     import Transform as T
     N1 = a1[2]; N2 = a2[2]; N3 = a3[2]
@@ -224,7 +271,7 @@ def TFIO__(a, weight, offset=0):
 # des points interieurs
 #==============================================================================
 def TFIO(a, weight=None):
-    """O-TFI from one edge.""" 
+    """Generate a transfinite interpolation mesh for 1 input curve."""
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = a[2]
     if Nt//2 - Nt*0.5 == 0: raise ValueError("TFIO: number of points must be odd.")
@@ -343,7 +390,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
 # TFI half O (N1 et N2 impairs)
 #==============================================================================
 def TFIHalfO(a1, a2):
-    """HalfO TFI from two edges."""
+    """Generate a transfinite interpolation mesh for 2 input curves."""
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt1 = a1[2]; Nt2 = a2[2]
     if Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0:
@@ -368,7 +415,7 @@ def TFIHalfO(a1, a2):
 # Celle qui a le plus de points est prise pour round.
 #==============================================================================
 def TFIMono(a1, a2):
-    """Mono TFI from two edges."""
+    """Generate a transfinite interpolation mesh for 2 input curves."""
     import Transform as T
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
@@ -391,10 +438,12 @@ def TFIMono(a1, a2):
     m1 = G.TFI([a1,b1,b3,b2])
     return [m1]
 
+#==============================================================================
 # Cree un ensemble de maillages TFI en etoilant les edges et en 
 # faisant des TFIs par triangle
+#==============================================================================
 def TFIStar(edges):
-    """Make TFIs from edges."""
+    """Generate a transfinite interpolation mesh for a list of input curves."""
     import Geom as D
     XG = G.barycenter(edges)
     out = []
@@ -403,16 +452,16 @@ def TFIStar(edges):
         ep = e[1]
         P0 = (ep[0,0], ep[1,0], ep[2,0])
         P1 = (ep[0,-1], ep[1,-1], ep[2,-1])
-        l1 = D.line(P0,XG,N=N)
-        l2 = D.line(XG,P1,N=N)
-        ret = TFITri(e,l1,l2)
+        l1 = D.line(P0, XG, N=N)
+        l2 = D.line(XG, P1, N=N)
+        ret = TFITri(e, l1, l2)
         out += ret
     return out
 
 # Cree un ensemble de maillages TFI en etoilant les milieux des edges
 # Les edges doivent tous avoir le meme nombre de points impair
 def TFIStar2(edges):
-    """Make TFIs from edges."""
+    """Generate a transfinite interpolation mesh for a list of input curves."""
     import Geom as D
     import Transform as T
     orderEdges(edges, tol=1.e-6)

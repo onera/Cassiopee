@@ -141,8 +141,8 @@ void Mem_arena::print_stats()
 {
     printf("\n");
     printf("    /**** Mem_arena stats ****/\n");
-    printf("      size:     %lu B\n", size);
-    printf("      capacity: %lu B\n", capacity);
+    printf("      size:     %zu B\n", size);
+    printf("      capacity: %zu B\n", capacity);
     printf("      usage:    %.2f %%\n", size * 100.0f / capacity);
     printf("      number of allocations:   %zu\n", nalloc);
     printf("      number of reallocations: %zu\n", nresize);

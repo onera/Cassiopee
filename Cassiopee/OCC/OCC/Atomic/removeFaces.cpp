@@ -44,17 +44,22 @@ PyObject* K_OCC::removeFaces(PyObject* self, PyObject* args)
 
   // get top shape
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
-  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  E_Int nbFaces = surfaces.Extent();
 
   ShapeBuild_ReShape reshaper;
   for (E_Int no = 0; no < PyList_Size(listFaces); no++)
   {
     PyObject* noFaceO = PyList_GetItem(listFaces, no);
     E_Int noFace = PyInt_AsLong(noFaceO);
-    const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
-    printf("removing %d\n", noFace);
-    reshaper.Remove(F);
+    if (noFace >= 1 && noFace <= nbFaces)
+    {
+      const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+      printf("Info: removing face %d\n", noFace);
+      reshaper.Remove(F);
+    }
+    else printf("Warning: removeFaces: invalid face number.\n");
   }
   TopoDS_Shape shc = reshaper.Apply(*shp);
 

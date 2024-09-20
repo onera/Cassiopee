@@ -7,6 +7,8 @@ from . import generator
 import numpy
 import Converter as C
 
+from .TFIs import TFITri, TFIO, TFIHalfO, TFIMono, TFIStar, TFIStar2, mergeEdges
+
 __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
     'cartPyra', 'cartNGon', 'cylinder', 'cylinder2', 'cylinder3', 'delaunay',
     'checkDelaunay', 'constrainedDelaunay', 'check', 'bbox', 'BB',
@@ -17,9 +19,10 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
     'addPointInDistribution', 'map', 'map1d', 'map1dpl', 'map2d',
     'mapCurvature', 'refine', 'defineSizeMapForMMGs', 'mmgs', 'densify',
     'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4', 'close', 'closeLegacy', 'zip',
-    'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts', 'grow',
-    'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar',
-    'TFIStar2', 'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
+    'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts', 'grow', 'stack', 
+    'TFI', 
+    'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar', 'TFIStar2', 'mergeEdges',
+    'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
     'getCellCenters', 'getFaceCentersAndAreas', 'getNormalMap',
     'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
     'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
@@ -947,42 +950,6 @@ def TFI(arrays):
     """Generate a transfinite interpolation mesh from boundaries.
     Usage: TFI(arrays)"""
     return generator.TFI(arrays)
-
-def TFITri(a1, a2, a3):
-    """Generate a transfinite interpolation mesh from 3 input curves.
-    Usage: TFITri(a1,a2,a3)"""
-    from . import TFIs
-    return TFIs.TFITri(a1, a2, a3)
-
-def TFIO(a, weight=None):
-    """Generate a transfinite interpolation mesh for 1 input curve.
-    Usage: TFIO(a, weight)"""
-    from . import TFIs
-    return TFIs.TFIO(a, weight)
-
-def TFIHalfO(a1, a2):
-    """Generate a transfinite interpolation mesh for 2 input curves.
-    Usage: TFIHalfO(a1,a2)"""
-    from . import TFIs
-    return TFIs.TFIHalfO(a1, a2)
-
-def TFIMono(a1, a2):
-    """Generate a transfinite interpolation mesh for 2 input curves.
-    Usage: TFIMono(a1, a2)"""
-    from . import TFIs
-    return TFIs.TFIMono(a1, a2)
-
-def TFIStar(a):
-    """Generate a transfinite interpolation mesh for a list of input curves.
-    Usage: TFIStar(a)"""
-    from . import TFIs
-    return TFIs.TFIStar(a)
-
-def TFIStar2(a):
-    """Generate a transfinite interpolation mesh for a list of input curves.
-    Usage: TFIStar2(a)"""
-    from . import TFIs
-    return TFIs.TFIStar2(a)
 
 def TTM(array, niter=100):
     """Smooth a mesh with Thompson-Mastin elliptic generator.

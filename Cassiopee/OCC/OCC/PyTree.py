@@ -519,7 +519,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
     Internal._createChild(r, "type", "DataArray_t", value="edge")
-    Internal._createChild(r, "no", "Data_Array_t", value=(c+1))
+    Internal._createChild(r, "no", "DataArray_t", value=(c+1))
     #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
@@ -752,8 +752,7 @@ def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1):
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
     Internal._createChild(r, "type", "DataArray_t", value="edge")
-    Internal._createChild(r, "no", "Data_Array_t", value=(c+1))
-    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
+    Internal._createChild(r, "no", "DataArray_t", value=(c+1))
     b[2].append(z)
 
   _setCADcontainer(t, None, None, hmax, hausd)
@@ -1142,5 +1141,6 @@ def _removeFaces(hook, faces):
   return None
 
 def _fillHole(hook, edges):
+  # sort edges in a wire
   OCC.occ.fillHole(hook, edges)
   return None  

@@ -28,6 +28,7 @@
 #include "BRep_Builder.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
+#include "StdFail_NotDone.hxx"
 
 //=====================================================================
 // Remove some faces and rebuild compound
@@ -47,7 +48,8 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   // get top shape
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
   TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  //TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  E_Int nEdges = edges.Extent();
 
   // get edges and make a wire
   BRepBuilderAPI_MakeWire wireMaker;
@@ -55,15 +57,40 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   {
     PyObject* noEdgeO = PyList_GetItem(listEdges, no);
     E_Int noEdge = PyInt_AsLong(noEdgeO);
-    const TopoDS_Edge& E = TopoDS::Edge(edges(noEdge));
-    wireMaker.Add(E);
+    if (noEdge >= 1 && noEdge <= nEdges)
+    {
+      const TopoDS_Edge& E = TopoDS::Edge(edges(noEdge));
+      wireMaker.Add(E);
+    }
+    else printf("Warning: fillHole: invalid edge number.\n");
   }
-  TopoDS_Wire myWire = wireMaker.Wire();
+
+  // Build wire
+  TopoDS_Wire myWire;
+  bool fail = false;
+  try {
+    myWire = wireMaker.Wire();
+  } catch (StdFail_NotDone& e) { fail = true; }
+  if (fail) 
+  {
+    printf("Error: fillHole: input is not a wire.\n");
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
 
   // Build face on wire
-  BRepBuilderAPI_MakeFace faceMaker(myWire);
-  //faceMaker.Add(myWire);
-  TopoDS_Face F = faceMaker.Face();
+  TopoDS_Face F;
+  try {
+    BRepBuilderAPI_MakeFace faceMaker(myWire);
+    //faceMaker.Add(myWire);
+    F = faceMaker.Face();
+  } catch (StdFail_NotDone& e) { fail = true; }
+  if (fail) 
+  {
+    printf("Error: fillHole: fail to generate face.\n");
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
 
   // Add face to shape
   //ShapeBuild_ReShape reshaper;

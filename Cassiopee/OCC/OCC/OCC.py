@@ -111,17 +111,38 @@ def _unscaleUV(edges, T, vu='x', vv='y'):
 def allTFI(edges):
     nedges = len(edges)
     if nedges == 4:
-        return [Generator.TFI(edges)]
+        try: return [Generator.TFI(edges)]
+        except: pass
     elif nedges == 1:
-        return Generator.TFIO(edges[0])
+        try: return Generator.TFIO(edges[0])
+        except: pass
     elif nedges == 2:
-        return Generator.TFIHalfO(edges[0], edges[1])
+        try: return Generator.TFIHalfO(edges[0], edges[1])
+        except: pass
     elif nedges == 3:
-        return Generator.TFITri(edges[0],edges[1],edges[2])
-    else:
-        # TFIStar
-        #return Generator.TFIStar2(edges)
-        return Generator.TFIStar(edges)
+        try: return Generator.TFITri(edges[0],edges[1],edges[2])
+        except: pass
+    
+    # Try to merge
+    medges = Generator.mergeEdges(edges, 0.1)
+    nedges = len(medges)
+    print("trying merge => %d edges."%nedges)
+    if nedges == 4:
+        try: return [Generator.TFI(medges)]
+        except: pass
+    elif nedges == 1:
+        try: return Generator.TFIO(medges[0])
+        except: pass
+    elif nedges == 2:
+        try: return Generator.TFIHalfO(medges[0], medges[1])
+        except: pass
+    elif nedges == 3:
+        try: return Generator.TFITri(medges[0],medges[1],medges[2])
+        except: pass
+        
+    # Fallback use TFIStar
+    #return Generator.TFIStar2(edges)
+    return Generator.TFIStar(edges)
         
 # Mailleur structure de CAD
 # IN: N: the number of points for each patch boundary
