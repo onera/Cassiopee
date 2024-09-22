@@ -34,23 +34,6 @@ void H18_reorder(E_Int hexa, Mesh *M);
 E_Int check_canon_hexa(E_Int hexa, Mesh *M);
 
 inline
-void update_shell_pe(E_Int hexa, Mesh *M)
-{
-    const auto &children = M->cchildren.at(hexa);
-
-    for (E_Int cid : children) {
-        E_Int *child = Mesh_get_cell(M, cid);
-
-        for (E_Int j = 0; j < 6; j++) {
-            E_Int face = child[4*j];
-            
-            if      (M->owner[face] == hexa) M->owner[face] = cid;
-            else if (M->neigh[face] == hexa) M->neigh[face] = cid;
-        }
-    }
-}
-
-inline
 void update_range_and_stride(Mesh *M, E_Int hexa, E_Int cpos, E_Int nchildren)
 {
     E_Int *crange = Mesh_get_crange(M, hexa);

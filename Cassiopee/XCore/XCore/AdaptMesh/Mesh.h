@@ -166,6 +166,8 @@ struct Mesh {
     E_Int *xneis;
     E_Int *cneis;
 
+    E_Int *ftag;
+
     Mesh();
 };
 
@@ -352,6 +354,10 @@ void Mesh_get_ref_entities(Mesh *M, std::vector<E_Int> &ref_cells,
 void Mesh_resize_for_refinement(Mesh *M, const std::vector<E_Int> &ref_cells,
     const std::vector<E_Int> &ref_faces, const std::set<UEdge> &ref_edges);
 
+void Mesh_resize_face_data(Mesh *M, E_Int new_nf);
+
+void Mesh_resize_cell_data(Mesh *M, E_Int new_nc);
+
 void Mesh_sort_ref_entities_by_level(Mesh *M,
     std::vector<E_Int> &ref_cells, std::vector<E_Int> &ref_faces,
     std::set<UEdge> &ref_edges);
@@ -368,6 +374,23 @@ void Mesh_refine_iso(Mesh *M, std::vector<E_Int> &ref_cells,
 
 void Mesh_refine_dir(Mesh *M, std::vector<E_Int> &ref_cells,
     std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges);
+
+inline
+void update_shell_pe(E_Int parent, Mesh *M)
+{
+    const auto &children = M->cchildren.at(parent);
+
+    for (E_Int cid : children) {
+        E_Int *child = Mesh_get_cell(M, cid);
+
+        for (E_Int j = 0; j < M->cstride[cid]; j++) {
+            E_Int face = child[4*j];
+            
+            if      (M->owner[face] == parent) M->owner[face] = cid;
+            else if (M->neigh[face] == parent) M->neigh[face] = cid;
+        }
+    }
+}
 
 inline
 void Mesh_update_face_range_and_stride(Mesh *M, E_Int quad, E_Int fpos, E_Int nchild)
@@ -405,3 +428,9 @@ void Mesh_refine_or_get_edge_center(Mesh *M, E_Int p, E_Int q, E_Int &node)
         node = it->second;
     }
 }
+
+void Mesh_triangulate_face(Mesh *M, E_Int fid);
+void Mesh_triangulate_faces(Mesh *M, E_Int *faces, E_Int nf);
+
+void Mesh_face_to_prism(Mesh *M, E_Int fid);
+void Mesh_generate_prisms(Mesh *M, E_Int *faces, E_Int nf);

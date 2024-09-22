@@ -147,6 +147,8 @@ E_Int Q6_refine(E_Int quad, Mesh *M)
 
     M->fparent[M->nf] = quad;
 
+    M->ftag[M->nf] = M->ftag[quad];
+
     // Increment face/edge/point count
     M->nf += 1;
 

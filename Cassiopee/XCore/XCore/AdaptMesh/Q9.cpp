@@ -145,9 +145,13 @@ E_Int Q9_refine(E_Int quad, Mesh *M)
 
     M->fchildren[quad] = {quad, M->nf, M->nf+1, M->nf+2};
 
-    M->fparent[M->nf] = quad;
+    M->fparent[M->nf]   = quad;
     M->fparent[M->nf+1] = quad;
     M->fparent[M->nf+2] = quad;
+
+    M->ftag[M->nf]   = M->ftag[quad];
+    M->ftag[M->nf+1] = M->ftag[quad];
+    M->ftag[M->nf+2] = M->ftag[quad];
 
     // Increment face/edge/point count
     M->nf += 3;

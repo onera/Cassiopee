@@ -91,6 +91,15 @@ def AdaptMesh_ExtractCellRanges(AM):
 def AdaptMesh_ExtractHaloCellLevels(AM):
     return xcore.AdaptMesh_ExtractHaloCellLevels(AM)
 
+def AdaptMesh_TagFaces(AM, faces):
+    return xcore.AdaptMesh_TagFaces(AM, faces)
+
+def AdaptMesh_TriangulateFaces(AM, faces):
+    return xcore.AdaptMesh_TriangulateFaces(AM, faces)
+
+def AdaptMesh_GeneratePrisms(AM, faces):
+    return xcore.AdaptMesh_GeneratePrisms(AM, faces)
+
 
 ################################################################################
 
@@ -389,6 +398,9 @@ def intersectMesh(IM, slave):
 
     return ts
 
+def IntersectMesh_ExtractFaceSet(AM):
+    return xcore.IntersectMesh_ExtractFaceSet(AM)
+
 def extractCell(a, cid):
     z = I.getZones(a)[0]
 
@@ -398,3 +410,9 @@ def extractCell(a, cid):
 
     return zmo
 
+def extractFacesFromPointTag(t, tag_name):
+    z = I.getZones(t)[0]
+    tag = I.getNodeFromName(z, tag_name)
+    if tag is None: raise ValueError(tag_name + 'not found')
+    arr = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+    return xcore.extractFacesFromPointTag(arr, tag[1])

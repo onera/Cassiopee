@@ -29,7 +29,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/IntersectMesh_TriangulateFaceSet.cpp',
             'XCore/intersectMesh/IntersectMesh_ExtractMesh.cpp',
             'XCore/intersectMesh/IntersectMesh_Exit.cpp',
-            'XCore/intersectMesh/DDA.cpp',
+            'XCore/intersectMesh/IntersectMesh_ExtractFaceSet.cpp',
 
             'XCore/intersectMesh/intersectMesh.cpp',
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
@@ -58,6 +58,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/ray.cpp',
             'XCore/intersectMesh/karray.cpp',
             'XCore/intersectMesh/meshExport.cpp',
+            'XCore/intersectMesh/DDA.cpp',
 
 
             'XCore/AdaptMesh/AdaptMesh_Init.cpp',
@@ -65,36 +66,36 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/AdaptMesh/AdaptMesh_AssignRefData.cpp',
             'XCore/AdaptMesh/AdaptMesh_Adapt.cpp',
             'XCore/AdaptMesh/AdaptMesh_Exit.cpp',
-
             'XCore/AdaptMesh/AdaptMesh_ExtractData.cpp',
-            
+            'XCore/AdaptMesh/AdaptMesh_TagFaces.cpp',
+            'XCore/AdaptMesh/AdaptMesh_TriangulateFaces.cpp',
+            'XCore/AdaptMesh/AdaptMesh_GeneratePrisms.cpp',
+
             'XCore/AdaptMesh/MeshInit.cpp',
             'XCore/AdaptMesh/MeshOrient.cpp', 
             'XCore/AdaptMesh/MeshClean.cpp',
             'XCore/AdaptMesh/MeshTopo.cpp',
             'XCore/AdaptMesh/MeshIO.cpp',
             'XCore/AdaptMesh/MeshSmooth.cpp',
-
             'XCore/AdaptMesh/MeshConnectivity.cpp', 
             'XCore/AdaptMesh/MeshConformize.cpp', 
             'XCore/AdaptMesh/MeshRefine.cpp',
             'XCore/AdaptMesh/MeshIso.cpp',
             'XCore/AdaptMesh/MeshDir.cpp',
+            'XCore/AdaptMesh/MeshTriangulate.cpp',
 
             'XCore/AdaptMesh/H27.cpp',
             'XCore/AdaptMesh/H18.cpp',
             'XCore/AdaptMesh/Tetra.cpp',
             'XCore/AdaptMesh/Penta.cpp',
             'XCore/AdaptMesh/Pyra.cpp',
-            
             'XCore/AdaptMesh/Q9.cpp',
             'XCore/AdaptMesh/Q6.cpp',
-            
             'XCore/AdaptMesh/Tri.cpp',
-
             'XCore/AdaptMesh/Edge.cpp',
-            
-            'XCore/AdaptMesh/Karray.cpp'
+            'XCore/AdaptMesh/Karray.cpp',
+
+            'XCore/extractFacesFromPointTag.cpp',
             ]
 if mpi: # source that requires mpi
     cpp_srcs += [

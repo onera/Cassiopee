@@ -82,6 +82,8 @@ Mesh::Mesh()
     l2gc = l2gf = NULL;
 
     xneis = cneis = NULL;
+
+    ftag = NULL;
 }
 
 Mesh *Mesh_from_Karray(Karray *karray)
