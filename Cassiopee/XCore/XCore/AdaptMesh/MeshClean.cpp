@@ -113,6 +113,13 @@ void Mesh_reset_parallel_data(Mesh *M)
     XFREE(M->cneis);
 }
 
+void Mesh_reset_tags(Mesh *M)
+{
+    XFREE(M->ctag);
+    XFREE(M->ftag);
+    XFREE(M->ptag);
+}
+
 void Mesh_free(Mesh *M)
 {
     Mesh_reset_base_data(M);

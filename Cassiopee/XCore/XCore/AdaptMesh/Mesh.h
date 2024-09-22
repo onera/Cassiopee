@@ -165,8 +165,10 @@ struct Mesh {
 
     E_Int *xneis;
     E_Int *cneis;
-
+    
+    E_Int *ctag;
     E_Int *ftag;
+    E_Int *ptag;
 
     Mesh();
 };
@@ -322,6 +324,8 @@ void Mesh_reset_comm_data(Mesh *M);
 void Mesh_reset_adaptation_data(Mesh *M);
 
 void Mesh_reset_parallel_data(Mesh *M);
+
+void Mesh_reset_tags(Mesh *M);
 
 void Mesh_free(Mesh *M);
 

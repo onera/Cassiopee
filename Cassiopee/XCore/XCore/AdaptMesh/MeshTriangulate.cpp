@@ -143,6 +143,8 @@ void Mesh_face_to_prism(Mesh *M, E_Int fid)
     M->neigh[M->nf] = M->neigh[fid];
     M->owner[M->nf+1] = M->owner[top];
     M->neigh[M->nf+1] = M->neigh[top];
+    M->ftype[fid] = M->ftype[M->nf] = TRI;
+    M->ftype[top] = M->ftype[M->nf+1] = TRI;
 
     
     // Conformize parent cells
@@ -249,9 +251,7 @@ void Mesh_generate_prisms(Mesh *M, E_Int *faces, E_Int nf)
 }
 
 void Mesh_triangulate_face(Mesh *M, E_Int fid)
-{
-    M->ftag[M->nf] = M->ftag[fid];
-    
+{ 
     // Get quad data
     E_Int *quad = Mesh_get_face(M, fid);
     E_Int *qrange = Mesh_get_frange(M, fid);
@@ -294,6 +294,8 @@ void Mesh_triangulate_face(Mesh *M, E_Int fid)
     M->fref[fid] = FACE_REFINED;
     M->fref[M->nf] = FACE_NEW;
     M->fchildren[fid] = {fid, M->nf};
+    
+    M->ftag[M->nf] = M->ftag[fid];
 
     M->nf++;
 }

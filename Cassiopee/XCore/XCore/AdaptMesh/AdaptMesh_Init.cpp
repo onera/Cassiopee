@@ -240,7 +240,9 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->cref = IntArray(M->nc);
     M->fref = IntArray(M->nf);
 
+    M->ctag = IntArray(M->nc);
     M->ftag = IntArray(M->nf);
+    M->ptag = IntArray(M->np);
 
     // Clean-up
 

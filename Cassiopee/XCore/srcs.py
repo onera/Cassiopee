@@ -70,6 +70,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/AdaptMesh/AdaptMesh_TagFaces.cpp',
             'XCore/AdaptMesh/AdaptMesh_TriangulateFaces.cpp',
             'XCore/AdaptMesh/AdaptMesh_GeneratePrisms.cpp',
+            'XCore/AdaptMesh/AdaptMesh_AdaptGeom.cpp',
 
             'XCore/AdaptMesh/MeshInit.cpp',
             'XCore/AdaptMesh/MeshOrient.cpp', 

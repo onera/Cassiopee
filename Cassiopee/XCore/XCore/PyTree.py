@@ -100,6 +100,12 @@ def AdaptMesh_TriangulateFaces(AM, faces):
 def AdaptMesh_GeneratePrisms(AM, faces):
     return xcore.AdaptMesh_GeneratePrisms(AM, faces)
 
+def AdaptMesh_AdaptGeom(AM, AS):
+    return xcore.AdaptMesh_AdaptGeom(AM, AS)
+
+def AdaptMesh_ExtractTaggedFaces(AM):
+    return xcore.AdaptMesh_ExtractTaggedFaces(AM)
+
 
 ################################################################################
 
