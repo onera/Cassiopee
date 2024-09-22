@@ -35,8 +35,8 @@ void Mesh_extract_faces_from_ftag(Mesh *M, ArrayI *fids)
 
 void Mesh_extract_points_from_ftag(Mesh *M, ArrayI *pids)
 {
-    // WARNING(Imad): ptag is reset here
-    memset(M->ptag, 0, M->np * sizeof(E_Int));
+    E_Int *ptag = (E_Int *)XMALLOC(M->np * sizeof(E_Int));
+    memset(ptag, 0, M->np * sizeof(E_Int));
     pids->count = 0;
 
     for (E_Int fid = 0; fid < M->nf; fid++) {
@@ -47,8 +47,8 @@ void Mesh_extract_points_from_ftag(Mesh *M, ArrayI *pids)
             E_Int *pn = face + 2*i;
             for (E_Int j = 0; j < frange[i]; j++) {
                 E_Int pid = pn[j];
-                pids->count += (M->ptag[pid] == 0);
-                M->ptag[pid] = 1;
+                pids->count += (ptag[pid] == 0);
+                ptag[pid] = 1;
             }
         }
     }
@@ -57,9 +57,11 @@ void Mesh_extract_points_from_ftag(Mesh *M, ArrayI *pids)
     E_Int *ptr = pids->ptr;
 
     for (E_Int pid = 0; pid < M->np; pid++) {
-        if (M->ptag[pid] == 1)
+        if (ptag[pid] == 1)
             *ptr++ = pid;
     }
+
+    XFREE(ptag);
 }
 
 struct Box2D {
@@ -154,11 +156,20 @@ struct TriBary {
     E_Float inv_denom;
 };
 
+#define MAX_FACES_PER_POINT 8
+
+struct PointFaces {
+    E_Int count;
+    E_Int ptr[MAX_FACES_PER_POINT];
+};
+
 void Mesh_locate_spoints_in_mtris
 (
     Mesh *S, ArrayI *spoints,
     Mesh *M, ArrayI *mtris,
-    Box2D box2D, GridFaces grid_faces[GRIDX][GRIDY], E_Int *sploc)
+    Box2D box2D, GridFaces grid_faces[GRIDX][GRIDY],
+    PointFaces *sploc
+)
 {
     // Compute the mtris dot products once
     TriBary *tri_barys = (TriBary *)XMALLOC(mtris->count * sizeof(TriBary));
@@ -183,14 +194,18 @@ void Mesh_locate_spoints_in_mtris
         tri_barys[i].VV = vx*vx + vy*vy;
         tri_barys[i].UV = ux*vx + uy*vy;
 
-        tri_barys[i].inv_denom = 1.0 / (tri_barys[i].UU * tri_barys[i].VV -
-                                        tri_barys[i].UV * tri_barys[i].UV);
+        tri_barys[i].inv_denom = (tri_barys[i].UU * tri_barys[i].VV -
+                                  tri_barys[i].UV * tri_barys[i].UV);
+
+        assert(tri_barys[i].inv_denom != 0.0);
+
+        tri_barys[i].inv_denom = 1.0 / tri_barys[i].inv_denom;
     }
 
     E_Float HX = (box2D.xmax - box2D.xmin) / GRIDX;
     E_Float HY = (box2D.ymax - box2D.ymin) / GRIDY;
 
-    memset(sploc, -1, mtris->count * sizeof(E_Int));
+    memset(sploc, 0, spoints->count * sizeof(PointFaces));
 
     for (E_Int i = 0; i < spoints->count; i++) {
         E_Int spid = spoints->ptr[i];
@@ -208,6 +223,8 @@ void Mesh_locate_spoints_in_mtris
             fprintf(stderr, "No faces found in point grid!\n");
             abort();
         };
+
+        PointFaces *pfaces = &sploc[i];
 
         for (E_Int j = 0; j < grid->count; j++) {
             E_Int tidx = grid->ptr[j];
@@ -228,20 +245,56 @@ void Mesh_locate_spoints_in_mtris
             E_Float v = (tb->UU*d21 - tb->UV*d20) * tb->inv_denom;
 
             if (u >= 0.0 && v >= 0.0 && (u + v) <= 1.0) {
-                sploc[i] = tid;
-                break;
+                if (pfaces->count >= MAX_FACES_PER_POINT) {
+                    fprintf(stderr, "MAX_FACES_PER_POINT reached!\n");
+                    abort();
+                }
+                pfaces->ptr[pfaces->count++] = tid;
             }
         }
 
-        if (sploc[i] == -1) {
+        if (pfaces->count == 0) {
             fprintf(stderr, "Failed to locate point %d!\n", spid);
             abort();
         }
     }
-
-
-
 }
+
+#define MAX_POINTS_PER_TRI 1
+
+void extract_faces_by_threshold
+(
+    const PointFaces *sploc, E_Int spcount,
+    const ArrayI *mtris,
+    ArrayI *faces,
+    E_Int threshold
+)
+{
+    E_Int *ftag = (E_Int *)XMALLOC(mtris->count * sizeof(E_Int));
+    memset(ftag, 0, mtris->count * sizeof(E_Int));
+
+    for (E_Int i = 0; i < spcount; i++) {
+        const PointFaces *pfaces = &sploc[i];
+        for (E_Int j = 0; j < pfaces->count; j++)
+            ftag[pfaces->ptr[j]]++;
+    }
+
+    faces->count = 0;
+
+    for (E_Int i = 0; i < mtris->count; i++) {
+        if (ftag[i] > threshold)
+            faces->count++;
+    }
+
+    faces->ptr = (E_Int *)XMALLOC(faces->count * sizeof(E_Int));
+    E_Int *ptr = faces->ptr;
+
+    for (E_Int i = 0; i < mtris->count; i++) {
+        if (ftag[i] > threshold)
+            *ptr++ = mtris->ptr[i];
+    }
+}
+
 
 PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 {
@@ -291,7 +344,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         Mesh_2D_grid_faces(M, &mtris, box2D, grid_faces);
 
         // Locate spoints in mfaces
-        E_Int *sploc = (E_Int *)XMALLOC(spoints.count * sizeof(E_Int));
+        PointFaces *sploc = (PointFaces *)XMALLOC(spoints.count * sizeof(PointFaces));
         Mesh_locate_spoints_in_mtris
         (
             S, &spoints,
@@ -299,6 +352,45 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             box2D, grid_faces,
             sploc
         );
+
+        // Isolate triangles that contain more than MAX_POINTS_PER_TRI spoints
+        ArrayI rtris;
+        extract_faces_by_threshold
+        (
+            sploc, spoints.count,
+            &mtris, &rtris,
+            MAX_POINTS_PER_TRI
+        );
+
+        /*
+        // We need the connectivity graph of the skin faces
+        Mesh_make_skin_graph(M);
+
+        // Smooth out face refinement across the neighbouring skin faces
+        // We start from rfaces, which are all triangles
+        // Smoothing will yield:
+        //     - neighbour triangles which need to be refined (set A)
+        //     - neighbour quads which need to be turned into triangles (set B)
+        // The face owners of set A are prisms, they need to be refined
+        // The face owners of set B are still hexas -> update them into prisms
+
+        ArrayI tfaces, qfaces;
+        Mesh_smooth_skin_refinement(M, &rfaces, &tfaces, &qfaces);
+
+        // Turn qfaces owners into two prisms each
+        Mesh_generate_prisms(M, qfaces.ptr, qfaces.count);
+
+        // Isolate refinement prisms
+        ArrayI rprisms;
+        Mesh_isolate_ref_prisms(M, &rfaces, &qfaces, &tfaces);
+
+        // Smooth out cell refinement across the neighbouring cells
+        Mesh_smooth_cell_refinement(M, &rprisms);
+        */
+
+
+
+
 
 
 
