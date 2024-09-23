@@ -141,43 +141,6 @@ void FaceSort_compute_data(const Mesh *M, FaceSort *mfaces, E_Int mcount)
     }
 }
 
-/*
-#define MAX_POINTS_PER_TRI 1
-
-void extract_faces_by_threshold
-(
-    const PointFaces *sploc, E_Int spcount,
-    const ArrayI *mtris,
-    ArrayI *faces,
-    E_Int threshold
-)
-{
-    E_Int *ftag = (E_Int *)XMALLOC(mtris->count * sizeof(E_Int));
-    memset(ftag, 0, mtris->count * sizeof(E_Int));
-
-    for (E_Int i = 0; i < spcount; i++) {
-        const PointFaces *pfaces = &sploc[i];
-        for (E_Int j = 0; j < pfaces->count; j++)
-            ftag[pfaces->ptr[j]]++;
-    }
-
-    faces->count = 0;
-
-    for (E_Int i = 0; i < mtris->count; i++) {
-        if (ftag[i] > threshold)
-            faces->count++;
-    }
-
-    faces->ptr = (E_Int *)XMALLOC(faces->count * sizeof(E_Int));
-    E_Int *ptr = faces->ptr;
-
-    for (E_Int i = 0; i < mtris->count; i++) {
-        if (ftag[i] > threshold)
-            *ptr++ = mtris->ptr[i];
-    }
-}
-*/
-
 struct Box3 {
     E_Float xmin, ymin, zmin;
     E_Float xmax, ymax, zmax;
@@ -231,23 +194,21 @@ Box3 Box3_make
         }
     }
 
-    //printf("Before: {%f %f %f} {%f %f %f}\n",)
-
     // Safety
     E_Float dx = (xmax - xmin) * 0.01;
     E_Float dy = (ymax - ymin) * 0.01;
     E_Float dz = (zmax - zmin) * 0.01;
-    E_Float Xmin = xmin - dx;
-    E_Float Ymin = ymin - dy;
-    E_Float Zmin = zmin - dz;
-    E_Float Xmax = xmax + dx;
-    E_Float Ymax = ymax + dy;
-    E_Float Zmax = zmax + dz;
+    xmin -= dx;
+    ymin -= dy;
+    zmin -= dz;
+    xmax += dx;
+    ymax += dy;
+    zmax += dz;
 
-    return {Xmin, Ymin, Zmin, Xmax, Ymax, Zmax};
+    return {xmin, ymin, zmin, xmax, ymax, zmax};
 }
 
-static int idx = 0;
+//static int idx = 0;
 
 BVH_node *BVH_create_node(const Box3 *box, E_Int start, E_Int end,
     BVH_node *left, BVH_node *right)
@@ -417,6 +378,211 @@ void locate_spoints_in_mtris
     }
 }
 
+#define MAX_POINTS_PER_FACE 1
+
+void extract_faces_by_threshold
+(
+    const PointFaces *sploc, E_Int spcount,
+    const FaceSort *mtris, E_Int mcount,
+    const E_Int threshold,
+    ArrayI *faces
+)
+{
+    E_Int *ftag = (E_Int *)XMALLOC(mcount * sizeof(E_Int));
+    memset(ftag, 0, mcount * sizeof(E_Int));
+
+    for (E_Int i = 0; i < spcount; i++) {
+        const PointFaces *pfaces = &sploc[i];
+        for (E_Int j = 0; j < pfaces->count; j++)
+            ftag[pfaces->ptr[j]]++;
+    }
+
+    faces->count = 0;
+
+    for (E_Int i = 0; i < mcount; i++) {
+        if (ftag[i] > threshold)
+            faces->count++;
+    }
+
+    faces->ptr = (E_Int *)XMALLOC(faces->count * sizeof(E_Int));
+    E_Int *ptr = faces->ptr;
+
+    for (E_Int i = 0; i < mcount; i++) {
+        if (ftag[i] > threshold)
+            *ptr++ = mtris[i].fid;
+    }
+}
+
+struct SkinGraph {
+    E_Int nf;
+    E_Int *skin;
+    E_Int *xadj;
+    E_Int *fpts;
+    E_Int *fnei;
+};
+
+void Mesh_extract_skin(const Mesh *M, E_Int *count, E_Int **skin)
+{
+    *count = 0;
+    
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        *count += (M->neigh[fid] == -1);
+    }
+
+    *skin = (E_Int *)XMALLOC(*count * sizeof(E_Int));
+    E_Int *ptr = *skin;
+
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        if (M->neigh[fid] == -1)
+            *ptr++ = fid;
+    }
+}
+
+void Mesh_make_skin_connectivity(const Mesh *M, SkinGraph *skin_graph)
+{
+    // Count
+    skin_graph->xadj = (E_Int *)XMALLOC((skin_graph->nf+1) * sizeof(E_Int));
+    E_Int *xadj = skin_graph->xadj;
+    xadj[0] = 0;
+
+    for (E_Int i = 0; i < skin_graph->nf; i++) {
+        E_Int fid = skin_graph->skin[i];
+        const E_Int *frange = Mesh_get_frange(M, fid);
+        xadj[i+1] = 0;
+        for (E_Int j = 0; j < M->fstride[fid]; j++)
+            xadj[i+1] += frange[j];
+        xadj[i+1] += xadj[i];
+    }
+
+    skin_graph->fpts = (E_Int *)XMALLOC(xadj[skin_graph->nf] * sizeof(E_Int)); 
+
+    // Populate
+    E_Int *ptr = skin_graph->fpts;
+
+    for (E_Int i = 0; i < skin_graph->nf; i++) {
+        E_Int fid = skin_graph->skin[i];
+        const E_Int *face = Mesh_get_face(M, fid);
+        const E_Int *frange = Mesh_get_frange(M, fid);
+        for (E_Int j = 0; j < M->fstride[fid]; j++) {
+            const E_Int *pn = face + 2*j;
+            for (E_Int k = 0; k < frange[j]; k++)
+                *ptr++ = pn[k];
+        }
+    }
+}
+
+struct EdgeNode {
+    E_Int p, q;
+    E_Int i, j;
+    E_Int posi, posj;
+    EdgeNode *next;
+};
+
+EdgeNode *make_edge_node(E_Int p, E_Int q, E_Int i, E_Int posi)
+{
+    EdgeNode *node = (EdgeNode *)XMALLOC(sizeof(EdgeNode));
+    node->p = p < q ? p : q;
+    node->q = p < q ? q : p;
+    node->i = i;
+    node->posi = posi;
+    node->j = -1;
+    node->posj = -1;
+    node->next = NULL;
+    return node;
+}
+
+EdgeNode *find_edge_node(EdgeNode **ht, E_Int hsize, E_Int p, E_Int q)
+{
+    E_Int p_ = p < q ? p : q;
+    E_Int q_ = p < q ? q : p;
+    E_Int bucket = p_ % hsize;
+    EdgeNode *current = ht[bucket];
+
+    while (current) {
+        E_Int P = current->p, Q = current->q;
+        if (P == p_ && Q == q_) {
+            return current;
+        }
+        current = current->next;
+    }
+
+    return NULL;
+}
+
+void insert_edge_node(EdgeNode *node, const E_Int hsize, EdgeNode **ht)
+{
+    assert(node->p < node->q);
+    E_Int bucket = node->p % hsize;
+    EdgeNode *current = ht[bucket];
+
+    if (current) {
+        EdgeNode *tmp = current;
+        ht[bucket] = node;
+        node->next = tmp;
+    } else {
+        ht[bucket] = node;
+    }
+}
+
+void Mesh_make_skin_neighbours(const Mesh *M, SkinGraph *skin_graph)
+{
+    E_Int nf = skin_graph->nf;
+    const E_Int *xadj = skin_graph->xadj;
+    const E_Int *fpts = skin_graph->fpts;
+
+    skin_graph->fnei = (E_Int *)XMALLOC(xadj[nf] * sizeof(E_Int));
+    E_Int *fnei = skin_graph->fnei;
+    memset(fnei, -1, xadj[nf] * sizeof(E_Int));
+
+    EdgeNode **ht = (EdgeNode **)XMALLOC(nf * sizeof(EdgeNode *));
+    memset(ht, 0, nf * sizeof(EdgeNode *));
+
+    for (E_Int i = 0; i < nf; i++) {
+        E_Int start = xadj[i];
+        E_Int np = xadj[i+1] - start;
+        const E_Int *pn = &fpts[start];
+        for (E_Int j = 0; j < np; j++) {
+            E_Int p = pn[j];
+            E_Int q = pn[(j+1)%np];
+            EdgeNode *node = find_edge_node(ht, nf, p, q);
+            if (node) {
+                assert(node->i    != -1);
+                assert(node->posi != -1);
+                assert(node->j    == -1);
+                assert(node->posj == -1);
+                node->j = i; 
+                node->posj = j;
+            } else {
+                node = make_edge_node(p, q, i, j);
+                insert_edge_node(node, nf, ht);
+            }
+        } 
+    }
+
+    for (E_Int i = 0; i < nf; i++) {
+        EdgeNode *node = ht[i];
+        while (node) {
+            E_Int pi = xadj[node->i] + node->posi;
+            assert(fnei[pi] == -1);
+            fnei[pi] = node->j;
+            
+            E_Int pj = xadj[node->j] + node->posj;
+            assert(fnei[pj] == -1);
+            fnei[pj] = node->i;
+
+            node = node->next;
+        }
+    }
+}
+
+void Mesh_make_skin_graph(Mesh *M, SkinGraph *skin_graph)
+{
+    Mesh_extract_skin(M, &skin_graph->nf, &skin_graph->skin);
+    Mesh_make_skin_connectivity(M, skin_graph);
+    Mesh_make_skin_neighbours(M, skin_graph);
+}
+
+
 
 PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 {
@@ -443,7 +609,8 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
     // Refine M volumetric wrt to S tagged faces point cloud
     // Refine S surfacic wrt to M tagged faces point cloud
 
-    E_Int ref_M = 0, ref_S = 0;
+    //E_Int ref_M = 0;
+    E_Int ref_S = 0;
     E_Int iter = 0;
 
     do {
@@ -453,10 +620,12 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         ArrayI spoints;
         Mesh_extract_points_from_ftag(S, &spoints);
         
+        /*
         // Spoints must belong to one of the tagged Mfaces
         FaceSort *mfaces = NULL;
         E_Int mcount = 0;
         Mesh_extract_faces_from_ftag(M, &mfaces, &mcount);
+        printf("Mfaces: %d\n", mcount);
         assert(mfaces);
 
         // Compute their centroids
@@ -466,8 +635,6 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         const Box3 huge = {-FLT_MAX, -FLT_MAX, -FLT_MAX,
                             FLT_MAX,  FLT_MAX,  FLT_MAX};
         BVH_node *bvh = BVH_make(M, mfaces, 0, mcount, &huge);
-        assert(bvh->start == 0);
-        assert(bvh->end == mcount);
 
         // Locate spoints in mfaces
         PointFaces *sploc =
@@ -480,18 +647,23 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             sploc
         );
 
-        /*
         // Isolate faces that contain more than MAX_POINTS_PER_FACE spoints
         ArrayI rfaces;
         extract_faces_by_threshold
         (
             sploc, spoints.count,
-            &mtris, &rtris,
-            MAX_POINTS_PER_TRI
+            mfaces, mcount,
+            MAX_POINTS_PER_FACE,
+            &rfaces
         );
+
+        printf("Refinement faces: %d\n", rfaces.count);
         */
-
-
+        
+        // We need the skin connectivity graph
+        SkinGraph skin_graph;
+        Mesh_make_skin_graph(M, &skin_graph);
+        printf("Skin: %d faces\n", skin_graph.nf);
 
 
 
