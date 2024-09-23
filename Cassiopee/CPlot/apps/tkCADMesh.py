@@ -38,14 +38,20 @@ def meshCADFaces(event=None):
     import OCC.PyTree as OCC
     hmax = CTK.varsFromWidget(VARS[0].get(), 1)[0]
     hausd = CTK.varsFromWidget(VARS[1].get(), 1)[0]
+    
     CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['meshFaceButton'])
+    
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
     if mtype == 'TRI':
         OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmax=hmax, hausd=hausd)
     elif mtype == 'STRUCT':
         OCC._meshAllFacesStruct(CTK.CADHOOK, CTK.t)
+    
     CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['meshFaceButton'])
+    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -108,6 +114,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Mesh all CAD faces", command=meshCADFaces)
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Mesh the CAD faces from edges.')
+    WIDGETS['meshFaceButton'] = Frame
     
     B = TTK.OptionMenu(Frame, VARS[2], 'TRI', 'STRUCT')
     B.grid(row=2, column=1, sticky=TK.EW)

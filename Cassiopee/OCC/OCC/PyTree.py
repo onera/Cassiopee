@@ -1128,6 +1128,44 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
 #=============================================================================
 # CAD fixing
 #=============================================================================
+
+# edges: list of arrays
+# edgeList: list of edge number in CAD
+# return ordered edgeList with possible negative number (meaning to be reversed)
+def orderEdgeList(edges, tol=1.e-10):
+  """Order edges in a loop."""
+  import Transform.PyTree as T
+  import KCore.Vector as Vector
+  out = [] # ordered list of edges
+  pool = edges[:] # list copy
+  cur = pool[0]; pool.pop(0)
+  out.append(cur)
+  P1p = C.getValue(cur, 'GridCoordinates', -1)
+  while len(pool) > 0:
+    found = False
+    for c, p in enumerate(pool):
+      P0 = C.getValue(p, 'GridCoordinates', 0)
+      P1 = C.getValue(p, 'GridCoordinates', -1)
+      if Vector.squareDist(P1p,P0) < tol*tol:
+        cur = p; out.append(cur); P1p = P1; pool.pop(c); found=True; break
+      if Vector.squareDist(P1p,P1) < tol*tol:
+        cur = T.reorder(p,(-1,2,3))
+        CAD = Internal.getNodeFromName1(p, 'CAD')
+        no = Internal.getNodeFromName2(CAD, 'no')
+        nov = Internal.getValue(no)
+        Internal.setValue(no, -nov)
+        cur.append(CAD)
+        out.append(cur); P1p = P0; pool.pop(c); found=True; break
+    if not found: break
+  outno = []
+  for e in out:
+    CAD = Internal.getNodeFromName1(e, 'CAD')
+    no = Internal.getNodeFromName1(CAD, 'no')
+    no = Internal.getValue(no)
+    outno.append(no)
+  return outno
+
+# faces: face list no
 def _sewing(hook, faces, tol=1.e-6):
   OCC.occ.sewing(hook, faces, tol)
   return None
@@ -1140,7 +1178,7 @@ def _removeFaces(hook, faces):
   OCC.occ.removeFaces(hook, faces)
   return None
 
+# edges: edge list no must be ordered
 def _fillHole(hook, edges):
-  # sort edges in a wire
   OCC.occ.fillHole(hook, edges)
   return None  

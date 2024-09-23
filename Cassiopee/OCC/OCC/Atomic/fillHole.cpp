@@ -57,12 +57,18 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   {
     PyObject* noEdgeO = PyList_GetItem(listEdges, no);
     E_Int noEdge = PyInt_AsLong(noEdgeO);
-    if (noEdge >= 1 && noEdge <= nEdges)
+    if (noEdge < 0 && noEdge >= -nEdges)
+    {
+      const TopoDS_Edge& E = TopoDS::Edge(edges(-noEdge));
+      E.Reversed();  
+      wireMaker.Add(E);
+    }
+    else if (noEdge > 0 && noEdge <= nEdges)
     {
       const TopoDS_Edge& E = TopoDS::Edge(edges(noEdge));
       wireMaker.Add(E);
     }
-    else printf("Warning: fillHole: invalid edge number.\n");
+    else printf("Warning: fillHole: invalid edge.\n");
   }
 
   // Build wire
@@ -73,24 +79,30 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   } catch (StdFail_NotDone& e) { fail = true; }
   if (fail) 
   {
-    printf("Error: fillHole: input is not a wire.\n");
-    Py_INCREF(Py_None);
-    return Py_None;
+    PyErr_SetString(PyExc_TypeError, "fillHole: input is not a wire.");  
+    return NULL;
   }
-
+  
   // Build face on wire
   TopoDS_Face F;
   try {
     BRepBuilderAPI_MakeFace faceMaker(myWire);
     //faceMaker.Add(myWire);
     F = faceMaker.Face();
+
+    if (not faceMaker.IsDone())
+    {
+      PyErr_SetString(PyExc_TypeError, "fillHole: fail to generate face.");  
+      return NULL;
+    }
+
   } catch (StdFail_NotDone& e) { fail = true; }
   if (fail) 
   {
-    printf("Error: fillHole: fail to generate face.\n");
-    Py_INCREF(Py_None);
-    return Py_None;
+    PyErr_SetString(PyExc_TypeError, "fillHole: fail to generate face.");  
+    return NULL;
   }
+  
 
   // Add face to shape
   //ShapeBuild_ReShape reshaper;
@@ -101,8 +113,8 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   BRep_Builder aBuilder;
   aBuilder.MakeCompound(shc);
   aBuilder.Add(shc, *shp);
-  aBuilder.Add(shc, F);
-
+  aBuilder.Add(shc, F); // How can I check face orientation?
+  
   // export
   delete shp;
   TopoDS_Shape* newshp = new TopoDS_Shape(shc);
@@ -119,8 +131,8 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
   packet[2] = se;
-  printf("INFO: after removeFaces: Nb edges=%d\n", se->Extent());
-  printf("INFO: after removeFaces: Nb faces=%d\n", sf->Extent());
+  printf("INFO: after fillHole: Nb edges=%d\n", se->Extent());
+  printf("INFO: after fillHole: Nb faces=%d\n", sf->Extent());
 
   Py_INCREF(Py_None);
   return Py_None;
