@@ -1084,6 +1084,9 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
 def createRefinementBodies(tb, dimPb=3, hmod=0.01):
     """Creates refinement bodies from the immersed boundaries to extend the finest resolution in the fluid domain."""
     import Geom.IBM as D_IBM
+    import Geom.Offset as O
+
+    pointsPerUnitLength = 10 if dimPb == 3 else 100
 
     refinementBodies = []
 
@@ -1102,29 +1105,7 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01):
             else:
                 z2 = D_IBM.closeSurface(z)
 
-            tbb = G.BB(z2)
-
-            xmin = C.getMinValue(tbb,'CoordinateX'); xmax = C.getMaxValue(tbb,'CoordinateX')
-            ymin = C.getMinValue(tbb,'CoordinateY'); ymax = C.getMaxValue(tbb,'CoordinateY')
-            zmin = C.getMinValue(tbb,'CoordinateZ'); zmax = C.getMaxValue(tbb,'CoordinateZ')
-            
-            dx = xmax-xmin
-            dy = ymax-ymin
-            dz = zmax-zmin
-
-            nx = int((dx+4*hmod)/h)
-            ny = int((dy+4*hmod)/h)
-            nz = int((dz+4*hmod)/h)
-
-            if dimPb == 2:
-                t = G.cart((xmin-2*hmod,ymin-2*hmod,0), (h, h, 0), (nx, ny, 1))
-            else:
-                t = G.cart((xmin-2*hmod,ymin-2*hmod,zmin-2*hmod), (h, h, h), (nx, ny, nz))
-
-            X_IBM._dist2wallIBM(t, z2, dimPb=dimPb)
-
-            a = C.node2Center(t)
-            a = P.isoSurfMC(a, "TurbulentDistance", hmod)
+            a = O.offsetSurface(z2, offset=hmod, pointsPerUnitLength=pointsPerUnitLength, algo=0, dim=dimPb)
             
             a = T.splitConnexity(a)
             a = max([za for za in Internal.getZones(a)], key=lambda za: len(Internal.getNodeFromName(za, 'CoordinateX')[1]))
@@ -1145,11 +1126,6 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01):
         refinementBodies = C.newPyTree(refinementBodies)
     else:
         refinementBodies = C.newPyTree(['Base',refinementBodies])
-
-    Internal._rmNodesFromName(refinementBodies, Internal.__FlowSolutionCenters__)
-    Internal._rmNodesFromName(refinementBodies, Internal.__FlowSolutionNodes__)
-
-    if dimPb == 3:
         refinementBodies = T.reorder(refinementBodies, (-1,))
         refinementBodies = C.convertArray2Tetra(refinementBodies)
 
