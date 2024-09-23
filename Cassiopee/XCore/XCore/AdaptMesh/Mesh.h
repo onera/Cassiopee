@@ -228,19 +228,19 @@ E_Int Mesh_get_sizeNFace(Mesh *M)
 }
 
 inline
-E_Int *Mesh_get_face(Mesh *M, E_Int fid)
+E_Int *Mesh_get_face(const Mesh *M, E_Int fid)
 {
     return &M->faces[8*fid];
 }
 
 inline
-E_Int *Mesh_get_frange(Mesh *M, E_Int fid)
+E_Int *Mesh_get_frange(const Mesh *M, E_Int fid)
 {
     return &M->frange[4*fid];
 }
 
 inline
-E_Int *Mesh_get_fedges(Mesh *M, E_Int fid)
+E_Int *Mesh_get_fedges(const Mesh *M, E_Int fid)
 {
     return &M->fedg[8*fid];
 }
@@ -261,7 +261,7 @@ E_Int Mesh_get_sizeNGon(Mesh *M)
 
 
 inline
-void Mesh_get_fpoints(Mesh *M, E_Int fid, E_Int &np, E_Int pts[8])
+void Mesh_get_fpoints(const Mesh *M, E_Int fid, E_Int &np, E_Int pts[8])
 {
     np = 0;
     E_Int *face = Mesh_get_face(M, fid);
