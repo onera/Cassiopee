@@ -194,18 +194,23 @@ def fillHole(event=None):
         if b[0] != 'EDGES': continue
         z = CTK.t[2][nob][2][noz]
         CAD = Internal.getNodeFromName1(z, 'CAD')
-        if CAD is not None:
-            no = Internal.getNodeFromName1(CAD, 'no')
-            no = Internal.getValue(no)
-            edges.append(no)
-    if edges == []: 
+        if CAD is not None: edges.append(z)
+    if edges == []:
         CTK.TXT.insert('START', 'No valid edges in selection.\n')
         return
     
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['fillHoleButton'])
 
-    OCC._fillHole(hook, edges)
+    edges = OCC.orderEdgeList(edges)
+    print('edgeList', edges, flush=True)
+    try:
+        OCC._fillHole(hook, edges)
+    except: 
+        CTK.setCursor(0, WIDGETS['frame'])
+        CTK.setCursor(0, WIDGETS['fillHoleButton'])
+        CTK.TXT.insert('START', 'Fill hole fails.\n')
+        return
 
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')

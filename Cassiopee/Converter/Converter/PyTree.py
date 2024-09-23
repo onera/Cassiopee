@@ -1582,13 +1582,12 @@ def setFields(arrays, t, loc, writeDim=True):
   nodes = Internal.getZones(t)
 
   # Verification de la coherence
-  if not isinstance(arrays[0],list):
+  if not isinstance(arrays[0], list):
     raise TypeError("setFields: arrays should be a list of array.")
   if len(nodes) != len(arrays):
     raise ValueError("setFields: more zones in tree than in arrays.")
 
-  for c in range(len(arrays)):
-    a = arrays[c]
+  for c, a in enumerate(arrays):
     z = nodes[c] # zone
     info = z[2]
     if writeDim and loc == 'nodes' and a != []:

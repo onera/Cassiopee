@@ -3,6 +3,7 @@ from . import Generator as G
 try: import Converter as C
 except ImportError:
     raise ImportError("TFIs: requires Converter module.")
+import KCore.Vector as Vector
 
 try: range = xrange
 except: pass
@@ -29,15 +30,6 @@ def quality(meshes):
     return score
 
 #==============================================================================
-# distance au carre entre deux points
-#==============================================================================
-def distance2(P0,P1):
-    dx = P0[0]-P1[0]
-    dy = P0[1]-P1[1]
-    dz = P0[2]-P1[2]
-    return dx*dx+dy*dy+dz*dz
-
-#==============================================================================
 # Order a set of structured edges in a loop
 #==============================================================================
 def orderEdges(edges, tol=1.e-10):
@@ -53,10 +45,10 @@ def orderEdges(edges, tol=1.e-10):
         for c, p in enumerate(pool):
             P0 = (p[1][0,0],p[1][1,0],p[1][2,0])
             P1 = (p[1][0,-1],p[1][1,-1],p[1][2,-1])
-            if distance2(P1p,P0) < tol*tol: 
+            if Vector.squareDist(P1p,P0) < tol*tol:
                 cur = p; out.append(cur); P1p = P1; pool.pop(c); found=True; break
-            if distance2(P1p,P1) < tol*tol: 
-                cur = T.reorder(p,(-1,1,1)); out.append(cur); P1p = P0; pool.pop(c); found=True; break
+            if Vector.squareDist(P1p,P1) < tol*tol:
+                cur = T.reorder(p,(-1,2,3)); out.append(cur); P1p = P0; pool.pop(c); found=True; break
         if not found: break
     return out
 
@@ -468,8 +460,7 @@ def TFIStar2(edges):
     
     XG = G.barycenter(edges) # a optimiser
     out = []
-    for c in range(len(edges)):
-        e = edges[c]
+    for c, e in enumerate(edges):
         N1 = e[2]//2+1
         e1 = T.subzone(e, (N1,1,1), (-1,1,1))
         if c == len(edges)-1: en = edges[0]
