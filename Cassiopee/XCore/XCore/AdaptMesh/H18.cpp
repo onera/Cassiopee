@@ -653,7 +653,7 @@ void H18_reorder(E_Int hexa, Mesh *M)
         Right_shift(local, i0, 8);
         E_Int reorient = Mesh_get_reorient(M, RGT[0], hexa, normalIn_H[3]);
         if (reorient) std::reverse(local+1, local+8);
-        assert(local[0] == NODES[0]);
+        assert(local[0] == NODES[1]);
         assert(local[1] == NODES[9]);
         assert(local[2] == NODES[2]);
         NODES[6]  = local[4];
