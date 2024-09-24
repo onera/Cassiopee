@@ -76,7 +76,7 @@ namespace K_MESH
 
     void set(ngon_unit* pgs, E_Int* faces, E_Int nb_faces) { _pgs = pgs; _faces = faces; _nb_faces = nb_faces; if (_triangles != nullptr) { delete[] _triangles; _triangles = nullptr; }/*fixme : just set it as PGS is pure T3*/ }
 
-    ~Polyhedron() { if (_triangles != nullptr) delete[] _triangles; }
+    ~Polyhedron() { if (_triangles != nullptr) { delete[] _triangles; _triangles = nullptr; } }
 
     Polyhedron(const Polyhedron& rhs) :_triangles(nullptr) { *this = rhs; }
 
@@ -1676,7 +1676,7 @@ namespace K_MESH
     E_Int triangulate
     (const TriangulatorType& dt, const crd_t& crdi) const
     {
-      if (_triangles != nullptr) delete[] _triangles;
+      if (_triangles != nullptr) { delete[] _triangles; _triangles = nullptr; }
 
       _pgs->updateFacets();
 
@@ -1730,7 +1730,7 @@ namespace K_MESH
     template <typename crd_t>
     E_Int cvx_triangulate(const crd_t& crd) const
     {
-      if (_triangles != nullptr) delete[] _triangles;
+      if (_triangles != nullptr) { delete[] _triangles; _triangles = nullptr; }
 
       _pgs->updateFacets();
 

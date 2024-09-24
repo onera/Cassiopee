@@ -104,7 +104,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
     resl = K_ARRAY::getFromArray3(tpl, varString, f,
                                   nil, njl, nkl, cn, eltT);
 
-    if (skipNoCoord == true)
+    if (skipNoCoord)
     {
       posx = K_ARRAY::isCoordinateXPresent(varString);
       posy = K_ARRAY::isCoordinateYPresent(varString);
@@ -121,7 +121,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
 
     if (resl == 1 && skipStructured == false)
     {
-      if (skipDiffVars == true)
+      if (skipDiffVars)
       {
         if (varStringCommon[0] == '\0') strcpy(varStringCommon, varString);
         else  
@@ -144,7 +144,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
     }
     else if (resl == 2 && skipUnstructured == false)
     {
-      if (skipDiffVars == true)
+      if (skipDiffVars)
       {
         if (varStringCommon[0] == '\0') strcpy(varStringCommon, varString);
         else
@@ -225,7 +225,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   E_Int resl;
 
   // o doit etre une liste
-  if (PyList_Check(o) == false)
+  if (!PyList_Check(o))
   {
     PyErr_SetString(PyExc_TypeError, 
                     "getFromArrays: arrays argument must be a list.");
@@ -253,7 +253,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
     resl = K_ARRAY::getFromArray3(tpl, varStringl, f, 
                                   nil, njl, nkl, cn, eltT);
 
-    if (skipNoCoord == true)
+    if (skipNoCoord)
     {
       posx = K_ARRAY::isCoordinateXPresent(varStringl);
       posy = K_ARRAY::isCoordinateYPresent(varStringl);
@@ -262,15 +262,15 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
       { 
         printf("Warning: getFromArrays: one array has no coordinates. Skipped...\n");
         res.push_back(-1);
-        if (shared == false) { delete f; if (resl == 2) delete cn; }
+        if (!shared) { delete f; if (resl == 2) delete cn; }
         else { RELEASESHAREDB(resl, tpl, f, cn); }
         goto next;
       }
     }
 
-    if (resl == 1 && skipStructured == false)
+    if (resl == 1 && !skipStructured)
     {
-      if (skipDiffVars == true)
+      if (skipDiffVars)
       {
         if (varStringCommon[0] == '\0') strcpy(varStringCommon, varStringl);
         else  
@@ -279,7 +279,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
           {
             printf("Warning: getFromArrays: one array has different variables. Skipped...\n");
             res.push_back(-1);
-            if (shared == false) { delete f; if (resl == 2) delete cn; }
+            if (!shared) { delete f; if (resl == 2) delete cn; }
             else { RELEASESHAREDB(resl, tpl, f, cn); }
             goto next;
           }
@@ -294,9 +294,9 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
       p = new E_Int; *p = nkl; a4.push_back(p); 
       obj.push_back(tpl);
     }
-    else if (resl == 2 && skipUnstructured == false)
+    else if (resl == 2 && !skipUnstructured)
     {
-      if (skipDiffVars == true)
+      if (skipDiffVars)
       {
         if (varStringCommon[0] == '\0')
           strcpy(varStringCommon, varStringl);
@@ -306,7 +306,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
           {
             printf("Warning: getFromArrays: one array has different variables. Skipped...\n");
             res.push_back(-1);
-            if (shared == false) { delete f; if (resl == 2) delete cn; }
+            if (!shared) { delete f; if (resl == 2) delete cn; }
             else { RELEASESHAREDB(resl, tpl, f, cn); }
             goto next;
           }
@@ -324,7 +324,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
     {
       printf("Warning: getFromArrays: one array is invalid. Skipped...\n");
       res.push_back(0);
-      if (shared == false) { delete f; if (resl == 2) delete cn; }
+      if (!shared) { delete f; if (resl == 2) delete cn; }
       else { RELEASESHAREDB(resl, tpl, f, cn); }
       goto next;
     }
