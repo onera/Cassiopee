@@ -19,7 +19,8 @@
 #pragma once
 
 #include "common/common.h"
-#include "Mesh.h"
+
+struct Mesh;
 
 const E_Int normalIn_H[6] = {1, 0, 1, 0, 1, 0};
 
@@ -33,22 +34,4 @@ void H18_reorder(E_Int hexa, Mesh *M);
 
 E_Int check_canon_hexa(E_Int hexa, Mesh *M);
 
-inline
-void update_range_and_stride(Mesh *M, E_Int hexa, E_Int cpos, E_Int nchildren)
-{
-    E_Int *crange = Mesh_get_crange(M, hexa);
-    for (E_Int i = 0; i < M->cstride[hexa]; i++) {
-        crange[i] = 1;
-    }
-
-    for (E_Int i = 0; i < nchildren; i++) {
-        E_Int child = cpos + i;
-
-        M->cstride[child] = M->cstride[hexa];
-
-        crange = Mesh_get_crange(M, child);
-        for (E_Int j = 0; j < M->cstride[child]; j++) {
-            crange[j] = 1;
-        }
-    }
-}
+void update_range_and_stride(Mesh *M, E_Int hexa, E_Int cpos, E_Int nchildren);

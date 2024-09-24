@@ -21,18 +21,13 @@
 #include "Mesh.h"
 #include "common/mem.h"
 
-inline
-E_Int Mesh_get_cnei(Mesh *M, E_Int cid, E_Int fid)
-{
-    assert(cid == M->owner[fid] || cid == M->neigh[fid]);
-    return (M->owner[fid] == cid) ? M->neigh[fid] : M->owner[fid];
-}
-
 void Mesh_get_cneis(Mesh *M, E_Int cid, E_Int &nn, E_Int neis[24])
 {
     E_Int *cell = Mesh_get_cell(M, cid);
     E_Int *crange = Mesh_get_crange(M, cid);
     E_Int cstride = M->cstride[cid];
+
+    nn = 0;
 
     for (E_Int i = 0; i < cstride; i++) {
         E_Int *pf = cell + 4*i;
@@ -40,7 +35,8 @@ void Mesh_get_cneis(Mesh *M, E_Int cid, E_Int &nn, E_Int neis[24])
         for (E_Int j = 0; j < crange[i]; j++) {
             E_Int face = pf[j];
             E_Int nei = Mesh_get_cnei(M, cid, face);
-            if (nei != -1) neis[nn++] = nei;
+            if (nei != -1 && nei != neis[nn])
+                neis[nn++] = nei;
         }
     }
 }
@@ -57,8 +53,7 @@ E_Int Mesh_smooth_cref_local(Mesh *M)
         E_Int cid = stk.top();
         stk.pop();
 
-        E_Int nn = 0;
-        E_Int neis[24];
+        E_Int nn, neis[24];
         Mesh_get_cneis(M, cid, nn, neis);
 
         //E_Int incr_cell = M->cref[cid] + M->clevel[cid];
@@ -75,8 +70,8 @@ E_Int Mesh_smooth_cref_local(Mesh *M)
 
             E_Int cell_to_mod = incr_cell > incr_nei ? nei : cid;
 
-            M->cref[cell_to_mod] += diff-1;
-            //M->cref[cell_to_mod] += 1;
+            //M->cref[cell_to_mod] += diff-1;
+            M->cref[cell_to_mod] += 1;
 
             stk.push(cell_to_mod);
         }

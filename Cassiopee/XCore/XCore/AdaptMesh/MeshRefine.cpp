@@ -119,7 +119,7 @@ void Mesh_resize_for_refinement(Mesh *M, const std::vector<E_Int> &ref_cells,
 
     E_Int cell_incr = ref_cells.size() * 7;
     
-    // 3 new faces per refined faces + 13 new faces per refined cell
+    // 3 new faces per refined face + 12 new faces per refined cell
     
     E_Int face_incr = ref_faces.size() * 3 + ref_cells.size() * 12;
     

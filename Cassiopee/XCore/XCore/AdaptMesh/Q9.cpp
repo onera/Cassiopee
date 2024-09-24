@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Quad.h"
+#include "Mesh.h"
 
 E_Int Q9_refine(E_Int quad, Mesh *M)
 {
@@ -165,4 +166,16 @@ void Q4_reorder(E_Int *pn, E_Int reorient, E_Int i0, E_Int local[4])
     for (E_Int i = 0; i < 4; i++) local[i] = pn[i];
     Right_shift(local, i0, 4);
     if (reorient) std::swap(local[1], local[3]);
+}
+
+void refine_face_iso(E_Int face, Mesh *M)
+{
+    switch (M->ftype[face]) {
+        case QUAD:
+            Q9_refine(face, M);
+            break;
+        default:
+            assert(0);
+            break;
+    }
 }

@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Quad.h"
+#include "Mesh.h"
 
 E_Int Q6_refine(E_Int quad, Mesh *M)
 {
