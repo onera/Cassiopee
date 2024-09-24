@@ -527,6 +527,79 @@ def _transformTc2(tc2):
                 
     return None
 
+#==============================================================================
+# 
+#==============================================================================
+def closeContour(contour, N=2):
+    """Closes a 1D contour with a line or a set of lines."""
+    import Transform.PyTree as T
+
+    contour2 = C.convertArray2Tetra(contour)
+    contour2 = T.splitConnexity(contour2)
+
+    points = []
+    for z in contour2:
+        connectivity = Internal.getNodeFromName(z, 'ElementConnectivity')[1]
+        values, counts = numpy.unique(connectivity, return_counts=True)
+        ends = values[numpy.argwhere(counts==1).flatten()]
+        if len(ends) == 2: 
+            i_first = ends[0] - 1
+            i_last  = ends[1] - 1
+            x = Internal.getNodeFromName(z, "CoordinateX")[1]
+            y = Internal.getNodeFromName(z, "CoordinateY")[1]
+            z = Internal.getNodeFromName(z, "CoordinateZ")[1]
+            points.append((x[i_first], y[i_first], z[i_first]))
+            points.append((x[i_last], y[i_last], z[i_last]))
+
+    if len(points) == 0: return contour
+
+    while points != []:
+        P1 = points[0]
+        minDist = 1.e6
+        minP = (0,0,0)
+        for P2 in points[1:]:
+            x1,y1,z1 = P1
+            x2,y2,z2 = P2
+            locDist = numpy.sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
+            if locDist < minDist: minP = P2
+        line = D.line(P1,minP,N=N)
+        line = C.convertArray2Tetra(line)
+        contour2 = T.join(contour2, line)
+        points.remove(P1)
+        points.remove(minP)
+
+    contour2 = C.convertBAR2Struct(contour2)
+    return contour2
+
+#==============================================================================
+# 
+#==============================================================================
+def closeSurface(surface):
+    """Closes a 2D surface with a patch or a set of patches."""
+
+    import Post.PyTree as P
+    import Transform.PyTree as T
+    import Generator.PyTree as G
+
+    cont = P.exteriorFaces(surface)
+    cont = T.splitConnexity(cont)
+
+    if len(cont) == 0: return surface
+
+    print("Info: closeSurface: closing surface {} with {} patch(es)".format(surface[0], len(cont)))
+
+    listOfZones = [surface]
+
+    for c in cont:
+        c = T.reorder(c, (1,2,3))
+        p = G.fittingPlaster(c)
+        p = G.gapfixer(c, p)
+        listOfZones.append(p)
+
+    surface2 = C.newPyTree(['Base', listOfZones])
+
+    return surface2
+
 #================================================================================
 # Selection/determination of tb for closed solid & filament
 #================================================================================

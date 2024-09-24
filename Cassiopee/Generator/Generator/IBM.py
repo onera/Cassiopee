@@ -921,10 +921,9 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
             C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%g)'%volmin2)
             nob += 1
             
-            
         end = 1
         C._initVars(to,'{centers:indicator}={centers:indicator}*({centers:cellNBody}>0.)*({centers:vol}>%g)'%volmin0)
-        
+
         if  C.getMaxValue(to, 'centers:indicator') == 1.:
             end = 0
             # Maintien du niveau de raffinement le plus fin
@@ -932,7 +931,7 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
             o = G.adaptOctree(o, 'centers:indicator', balancing=2)
             to[2][1][2] = [o]
             G._getVolumeMap(to)
-            volminloc = C.getMinValue(to, 'centers:vol')
+
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., dfarDir=0, 
@@ -1082,6 +1081,56 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
 #==============================================================================
 # 
 #==============================================================================
+def createRefinementBodies(tb, dimPb=3, hmod=0.01):
+    """Creates refinement bodies from the immersed boundaries to extend the finest resolution in the fluid domain."""
+    import Geom.IBM as D_IBM
+    import Geom.Offset as O
+
+    pointsPerUnitLength = 10 if dimPb == 3 else 100
+
+    refinementBodies = []
+
+    tb = Internal.rmNodesFromName(tb, "SYM")
+    tb = Internal.rmNodesFromName(tb, "*_sym")
+
+    snears    = Internal.getNodesFromName(tb, 'snear')
+    h         = min(snears, key=lambda x: x[1])[1][0]
+
+    for z in Internal.getZones(tb):
+        snear = Internal.getNodeFromName(z, 'snear')[1]
+        zname = z[0]
+        if snear <= 1.5*h:
+            if dimPb == 2:
+                z2 = D_IBM.closeContour(z)
+            else:
+                z2 = D_IBM.closeSurface(z)
+
+            a = O.offsetSurface(z2, offset=hmod, pointsPerUnitLength=pointsPerUnitLength, algo=0, dim=dimPb)
+            
+            a = T.splitConnexity(a)
+            a = max([za for za in Internal.getZones(a)], key=lambda za: len(Internal.getNodeFromName(za, 'CoordinateX')[1]))
+            
+            if dimPb == 2:
+                a = T.reorder(a, (1,2,3))
+                a = D.uniformize(a)
+
+            D_IBM._setSnear(a, snear)
+            if dimPb == 2:
+                # 2D blanking uses xray method : each body must be in a separate zone so
+                # that the blanking remains correct in overlapping regions
+                refinementBodies = refinementBodies + [zname,Internal.getZones(a)]
+            else:
+                refinementBodies = refinementBodies + Internal.getZones(a)
+
+    if dimPb == 2:
+        refinementBodies = C.newPyTree(refinementBodies)
+    else:
+        refinementBodies = C.newPyTree(['Base',refinementBodies])
+        refinementBodies = T.reorder(refinementBodies, (-1,))
+        refinementBodies = C.convertArray2Tetra(refinementBodies)
+
+    return refinementBodies
+
 def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
     """Predicts the final size of the mesh when extruding 2D to 3D in the z-direction.
     Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
