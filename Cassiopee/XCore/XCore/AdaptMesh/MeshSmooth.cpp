@@ -61,11 +61,12 @@ E_Int Mesh_smooth_cref_local(Mesh *M)
         E_Int neis[24];
         Mesh_get_cneis(M, cid, nn, neis);
 
-        E_Int incr_cell = M->cref[cid] + M->clevel[cid];
+        //E_Int incr_cell = M->cref[cid] + M->clevel[cid];
 
         for (E_Int i = 0; i < nn; i++) {
             E_Int nei = neis[i];
 
+            E_Int incr_cell = M->cref[cid] + M->clevel[cid];
             E_Int incr_nei = M->cref[nei] + M->clevel[nei];
 
             E_Int diff = abs(incr_nei - incr_cell);
@@ -74,7 +75,8 @@ E_Int Mesh_smooth_cref_local(Mesh *M)
 
             E_Int cell_to_mod = incr_cell > incr_nei ? nei : cid;
 
-            M->cref[cell_to_mod] += 1;
+            M->cref[cell_to_mod] += diff-1;
+            //M->cref[cell_to_mod] += 1;
 
             stk.push(cell_to_mod);
         }
