@@ -350,7 +350,7 @@ void extract_faces_by_threshold
 
     for (E_Int i = 0; i < mcount; i++) {
         if (ftag[i] > threshold)
-            *ptr++ = skin[i];
+            *ptr++ = i;//skin[i];
     }
 }
 
@@ -528,27 +528,24 @@ struct Vec3f {
 };
 
 void Mesh_make_face_centers(const Mesh *M, const E_Int nf, const E_Int *skin,
-    Vec3f **fc)
+    Vec3f *fc)
 {
-    *fc = (Vec3f *)XMALLOC(nf * sizeof(Vec3f));
-    Vec3f *ptr = *fc;
-
     for (E_Int i = 0; i < nf; i++) {
         E_Int fid = skin[i];
         const E_Int *face = Mesh_get_face(M, fid);
         const E_Int *frange = Mesh_get_frange(M, fid);
-        ptr[i].x = ptr[i].y = ptr[i].z = 0.0;
+        fc[i].x = fc[i].y = fc[i].z = 0.0;
         E_Int np = 0;
         for (E_Int j = 0; j < M->fstride[fid]; j++) {
             const E_Int *pn = face + 2*j;
             for (E_Int k = 0; k < frange[j]; k++) {
-                ptr[i].x += M->X[pn[k]];
-                ptr[i].y += M->Y[pn[k]];
-                ptr[i].z += M->Z[pn[k]];
+                fc[i].x += M->X[pn[k]];
+                fc[i].y += M->Y[pn[k]];
+                fc[i].z += M->Z[pn[k]];
                 np++;
             }
         }
-        ptr[i].x /= np; ptr[i].y /= np; ptr[i].z /= np;
+        fc[i].x /= np; fc[i].y /= np; fc[i].z /= np;
     }
 }
 
@@ -807,6 +804,291 @@ void locate_spoints_in_mskin
     }
 }
 
+void smooth_skin_ref_data(const SkinGraph *skin_graph, E_Int *fdat)
+{
+    E_Int nf = skin_graph->nf;
+    E_Int stack_size = 3*nf;
+    E_Int *fstack = (E_Int *)XMALLOC(stack_size * sizeof(E_Int));
+    memset(fstack, -1, stack_size * sizeof(E_Int));
+
+    E_Int l = 0;
+
+    for (E_Int i = 0; i < nf; i++) {
+        if (fdat[i] > 0)
+            fstack[l++] = i;
+    }
+
+    const E_Int *xadj = skin_graph->xadj;
+    const E_Int *fnei = skin_graph->fnei;
+
+    while (--l >= 0) {
+        E_Int fid = fstack[l];
+
+        E_Int start = xadj[fid];
+        E_Int nneis = xadj[fid+1] - start;
+        const E_Int *neis = &fnei[start];
+        for (E_Int i = 0; i < nneis; i++) {
+            E_Int nei = neis[i];
+            E_Int incr_nei = fdat[nei];
+            E_Int incr_fid = fdat[fid];
+            E_Int diff = abs(incr_nei - incr_fid);
+            if (diff <= 1) continue;
+            E_Int idx_to_modify = incr_fid > incr_nei ? nei : fid;
+            fdat[idx_to_modify] += diff-1;
+            l++;
+            assert(l < stack_size);
+            fstack[l] = idx_to_modify;
+        }
+    }
+
+    XFREE(fstack);
+}
+
+void init_skin_refinement_cells(const SkinGraph *skin_graph,
+    const E_Int *fdat, Mesh *M, E_Int *rcount)
+{
+    E_Int nf = skin_graph->nf;
+    E_Int count = 0;
+
+    for (E_Int i = 0; i < nf; i++) {
+        if (fdat[i] > 0) {
+            E_Int fid = skin_graph->skin[i];
+            E_Int own = M->owner[fid];
+            // If cref[own] != 0, H18 is impossible, refinement has to be H27.
+            assert(M->cref[own] == 0);
+            M->cref[own] = 1;
+            count++;
+        }
+    }
+
+    *rcount = count;
+}
+
+/*
+void Mesh_extract_refinement_cells(const Mesh *M, ArrayI *rcells)
+{
+    rcells->count = 0;
+
+    for (E_Int cid = 0; cid < M->nc; cid++) {
+        rcells->count += (M->cref[cid] > 0);
+    }
+
+    rcells->ptr = (E_Int *)XMALLOC(rcells->count * sizeof(E_Int));
+    E_Int *ptr = rcells->ptr;
+
+    for (E_Int cid = 0; cid < M->nc; cid++) {
+        if (M->cref[cid] > 0)
+            *ptr++ = cid;
+    }
+}
+*/
+
+void smooth_cell_refinement_data(Mesh *M)
+{
+    E_Int nc = M->nc;
+    E_Int stack_size = 3*nc;
+    E_Int *cstack = (E_Int *)XMALLOC(stack_size * sizeof(E_Int));
+    memset(cstack, -1, stack_size * sizeof(E_Int));
+
+    E_Int l = 0;
+
+    for (E_Int cid = 0; cid < nc; cid++) {
+        if (M->cref[cid] > 0)
+            cstack[l++] = cid;
+    }
+
+    while (--l >= 0) {
+        E_Int cid = cstack[l];
+
+        E_Int nn, neis[24];
+        Mesh_get_cneis(M, cid, nn, neis);
+
+        for (E_Int i = 0; i < nn; i++) {
+            E_Int nei = neis[i];
+            E_Int incr_nei = M->cref[nei] + M->clevel[nei];
+            E_Int incr_cid = M->cref[cid] + M->clevel[cid];
+            E_Int diff = abs(incr_nei - incr_cid);
+            if (diff <= 1) continue;
+            E_Int idx_to_modify = incr_cid > incr_nei ? nei : cid;
+            M->cref[idx_to_modify] += 1;
+            l++;
+            assert(l < stack_size);
+            cstack[l] = idx_to_modify;
+        }
+    }
+}
+
+static
+void Mesh_set_face_as_cell_bottom(Mesh *M, E_Int fid, E_Int cid)
+{
+    // Make fid the bottom face
+    E_Int *cell = Mesh_get_cell(M, cid);
+    E_Int size = 4*M->cstride[cid];
+    E_Int pos = Get_pos(fid, cell, size);
+    assert(pos != -1);
+    assert(pos % 4 == 0);
+    Right_shift(cell, pos, size);
+    assert(cell[0] == fid);
+    E_Int *crange = Mesh_get_crange(M, cid);
+    Right_shift(crange, pos/4, M->cstride[cid]);
+}
+
+void reorder_cells_for_H18(const SkinGraph *skin_graph, const E_Int *indices,
+    const ArrayI *rfaces, Mesh *M)
+{
+    for (E_Int i = 0; i < rfaces->count; i++) {
+        E_Int idx_in_skin = indices[rfaces->ptr[i]];
+        E_Int fid = skin_graph->skin[idx_in_skin];
+        E_Int own = M->owner[fid];
+        assert(M->cref[own] == 1);
+
+        while (M->cref[own] == 1) {
+            Mesh_set_face_as_cell_bottom(M, fid, own);
+            // Get the top face
+            fid = Mesh_get_cell(M, own)[4];
+            // Get the top neighbour
+            own = Mesh_get_cnei(M, own, fid);
+        }
+    }
+}
+
+void assign_face_refinement_data(Mesh *M)
+{
+    for (E_Int cid = 0; cid < M->nc; cid++) {
+        if (M->cref[cid] == 0) continue;
+        assert(M->cref[cid] == 1);
+
+        E_Int *cell = Mesh_get_cell(M, cid);
+        E_Int *crange = Mesh_get_crange(M, cid);
+        E_Int cstride = M->cstride[cid];
+        E_Int clvl = M->clevel[cid];
+
+        for (E_Int i = 0; i < cstride; i++) {
+            E_Int *pf = cell + 4*i;
+
+            for (E_Int j = 0; j < crange[i]; j++) {
+                E_Int face = pf[j];
+                if (M->fref[face] == 1) continue;
+
+                E_Int flvl = M->flevel[face];
+
+                assert(flvl >= clvl);
+
+                if (flvl == clvl) M->fref[face] = 1;
+            }
+        }
+    }
+}
+
+// TODO(Imad): isotropic resizing for now
+
+void Mesh_isolate_refinement_entities(Mesh *M, ArrayI *rcells, ArrayI *rfaces)
+{
+    rcells->count = 0;
+    for (E_Int cid = 0; cid < M->nc; cid++) {
+        rcells->count += (M->cref[cid] == 1);
+    }
+    rcells->ptr = (E_Int *)XMALLOC(rcells->count * sizeof(E_Int));
+    E_Int *ptr = rcells->ptr;
+    for (E_Int cid = 0; cid < M->nc; cid++) {
+        if (M->cref[cid] > 0) {
+            assert(M->cref[cid] == 1);
+            *ptr++ = cid;
+        }
+    }
+
+    rfaces->count = 0;
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        rfaces->count += (M->fref[fid] == 1);
+    }
+    rfaces->ptr = (E_Int *)XMALLOC(rfaces->count * sizeof(E_Int));
+    ptr = rfaces->ptr;
+    for (E_Int fid = 0; fid < M->nf; fid++) {
+        if (M->fref[fid] > 0) {
+            assert(M->fref[fid] == 1);
+            *ptr++ = fid;
+        }
+    }
+}
+
+void Mesh_resize(Mesh *M, const ArrayI *rcells, const ArrayI *rfaces)
+{
+    // 7 new cells per refined cells
+    E_Int cell_incr = rcells->count * 7;
+    // 3 new faces per refined face + 12 new faces per refined cell
+    E_Int face_incr = rfaces->count * 3 + rcells->count * 12;
+    // Estimate point increase
+    E_Int point_incr = 2 * face_incr;
+
+    E_Int new_nc = M->nc + cell_incr;
+    E_Int new_nf = M->nf + face_incr;
+    E_Int new_np = M->np + point_incr;
+
+    M->X = (E_Float *)XRESIZE(M->X, new_np * sizeof(E_Float));
+    M->Y = (E_Float *)XRESIZE(M->Y, new_np * sizeof(E_Float));
+    M->Z = (E_Float *)XRESIZE(M->Z, new_np * sizeof(E_Float));
+
+    Mesh_resize_face_data(M, new_nf);
+    Mesh_resize_cell_data(M, new_nc);
+}
+
+void Mesh_refine_dir(Mesh *M, ArrayI *ref_cells, ArrayI *ref_faces)
+{
+    std::set<E_Int> levelset;
+
+    for (E_Int i = 0; i < ref_cells->count; i++) {
+        levelset.insert(M->clevel[ref_cells->ptr[i]]);
+    }
+
+    for (E_Int i = 0; i < ref_faces->count; i++) {
+        levelset.insert(M->flevel[ref_faces->ptr[i]]);
+    }
+
+    std::vector<E_Int> levels;
+    for (E_Int level : levelset) levels.push_back(level);
+    std::sort(levels.begin(), levels.end());
+
+    std::reverse(ref_cells->ptr, ref_cells->ptr + ref_cells->count);
+    std::reverse(ref_faces->ptr, ref_faces->ptr + ref_faces->count);
+
+    E_Int cells_left = ref_cells->count-1;
+    E_Int faces_left = ref_faces->count-1;
+
+    for (E_Int level : levels) {
+        while (faces_left >= 0 && M->flevel[ref_faces->ptr[faces_left]] == level) {
+            E_Int face = ref_faces->ptr[faces_left];
+            E_Int pattern = get_face_pattern(face, M);
+            faces_left--;
+            refine_face_dir(face, pattern, M);
+        }
+
+        while (cells_left >= 0 && M->clevel[ref_cells->ptr[cells_left]] == level) {
+            E_Int cell = ref_cells->ptr[cells_left];
+            cells_left--;
+            refine_cell_dir(cell, M);
+        }
+    }
+}
+
+/*
+void get_face_refinement_direction(const Mesh *M, const ArrayI *rcells,
+    const ArrayI *rfaces)
+{
+    for (E_Int i = 0; i < rfaces->count; i++) {
+        E_Int fid = rfaces->ptr[i];
+        E_Int own = M->owner[fid];
+        
+        // TODO(Imad): improve
+        H18_reorder(own, M);
+
+        E_Int *cell = M->get_cell(M, own);
+        
+        E_Int bot = cell[0];
+
+    }
+}
+*/
+
 PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 {
     PyObject *AMESH, *SMESH;
@@ -829,6 +1111,11 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
     Mesh *M = (Mesh *)PyCapsule_GetPointer(AMESH, "AdaptMesh");
     Mesh *S = (Mesh *)PyCapsule_GetPointer(SMESH, "AdaptMesh");
 
+    if (M->npc > 1) {
+        RAISE("AdaptGeom is sequential.");
+        return NULL;
+    }
+
     // Refine M volumetric wrt to S tagged faces point cloud
     // Refine S surfacic wrt to M tagged faces point cloud
 
@@ -843,53 +1130,21 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         ArrayI spoints;
         Mesh_extract_points_from_ftag(S, &spoints);
         
-        /*
-        // Spoints must belong to one of the tagged Mfaces
-        FaceSort *mfaces = NULL;
-        E_Int mcount = 0;
-        Mesh_extract_faces_from_ftag(M, &mfaces, &mcount);
-        printf("Mfaces: %d\n", mcount);
-        assert(mfaces);
-
-        // Compute their centroids
-        FaceSort_compute_data(M, mfaces, mcount);
-
-        // Build a BVH for mfaces
-        const Box3 huge = {-FLT_MAX, -FLT_MAX, -FLT_MAX,
-                            FLT_MAX,  FLT_MAX,  FLT_MAX};
-        BVH_node *bvh = BVH_make(M, mfaces, 0, mcount, &huge);
-
-        // Locate spoints in mfaces
-        PointFaces *sploc =
-            (PointFaces *)XMALLOC(spoints.count * sizeof(PointFaces));
-        memset(sploc, 0, spoints.count * sizeof(PointFaces));
-        locate_spoints_in_mtris
-        (
-            S, &spoints,
-            mfaces, bvh,
-            sploc
-        );
-
-        
-
-        
-        */
-        
         // We need the skin connectivity graph
         SkinGraph skin_graph;
         Mesh_make_skin_graph(M, &skin_graph);
         printf("Skin: %d faces\n", skin_graph.nf);
 
         // BVH the skin
-        Vec3f *skin_fc;
-        Mesh_make_face_centers(M, skin_graph.nf, skin_graph.skin, &skin_fc);
+        Vec3f *skin_fc = (Vec3f *)XMALLOC(skin_graph.nf * sizeof(Vec3f));
+        Mesh_make_face_centers(M, skin_graph.nf, skin_graph.skin, skin_fc);
         E_Int *indices = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
         for (E_Int i = 0; i < skin_graph.nf; i++) indices[i] = i;
         const Box3 huge = {-FLT_MAX, -FLT_MAX, -FLT_MAX,
                             FLT_MAX,  FLT_MAX,  FLT_MAX};
         BVH_node *bvh = BVH_make(M, skin_graph.skin, skin_fc, indices, 0,
             skin_graph.nf, &huge);
-        puts("ok bvh");
+        puts("BVH constructed");
 
         // Locate spoints in skin
         PointFaces *sploc =
@@ -902,6 +1157,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             bvh,
             sploc
         );
+        puts("Points located");
 
         // Isolate faces that contain more than MAX_POINTS_PER_FACE spoints
         ArrayI rfaces;
@@ -912,14 +1168,94 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             MAX_POINTS_PER_FACE,
             &rfaces
         );
-
+        puts("Refinement faces isolated");
         printf("Refinement faces: %d\n", rfaces.count);
 
+        // Smooth face refinement data
+        E_Int *fdat = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
+        memset(fdat, 0, skin_graph.nf * sizeof(E_Int));
+        for (E_Int i = 0; i < rfaces.count; i++) {
+            E_Int idx_in_skin = indices[rfaces.ptr[i]];
+            E_Int fid = skin_graph.skin[idx_in_skin];
+            fdat[idx_in_skin] = M->flevel[fid] + 1;
+        }
+        smooth_skin_ref_data(&skin_graph, fdat);
+        E_Int smooth_nfref = 0;
+        for (E_Int i = 0; i < rfaces.count; i++) {
+            E_Int idx_in_skin = indices[rfaces.ptr[i]];
+            E_Int fid = skin_graph.skin[idx_in_skin];
+            fdat[idx_in_skin] -= M->flevel[fid];
+            if (fdat[idx_in_skin] > 0) smooth_nfref++;
+        }
+        puts("Face refinement smoothed out");
+        printf("Smooth refinement face count: %d\n", smooth_nfref);
+
+        /*
+        npy_intp dims[2];
+        dims[1] = 1;
+        dims[0] = (npy_intp)smooth_nfref;
+        PyArrayObject *FACES = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+
+        E_Int *pf = (E_Int *)PyArray_DATA(FACES);
+        E_Int *ptr = pf;
+        for (E_Int i = 0; i < skin_graph.nf; i++) {
+            if (fdat[i] > 0) {
+                *ptr++ = skin_graph.skin[i]+1;
+            }
+        }
+        return (PyObject *)FACES;
+        */
+
+        // Allocate
+        M->cref = (E_Int *)XRESIZE(M->cref, M->nc * sizeof(E_Int));
+        memset(M->cref, 0, M->nc * sizeof(E_Int));
+
+        // Cells
+        E_Int ref_cell_count;
+        init_skin_refinement_cells(&skin_graph, fdat, M, &ref_cell_count);
+        printf("Refinement cells: %d\n", ref_cell_count);
+
+        // Smooth cell refinement data
+        smooth_cell_refinement_data(M);
+        puts("Cell refinement smoothed out");
+
+        // Setup bottom/top face chain
+        reorder_cells_for_H18(&skin_graph, indices, &rfaces, M);
+
+        // Assign refinement data
+        M->fref = (E_Int *)XRESIZE(M->fref, M->nf * sizeof(E_Int));
+        memset(M->fref, 0, M->nf * sizeof(E_Int));
+        assign_face_refinement_data(M);
+
+        // Isolate cells/faces to be refined
+        ArrayI ref_cells, ref_faces;
+        Mesh_isolate_refinement_entities(M, &ref_cells, &ref_faces);
+        printf("Refinement cells: %d\n", ref_cells.count);
+        printf("Refinement faces: %d\n", ref_faces.count);
+
+        // Resize for refinement
+        Mesh_resize(M, &ref_cells, &ref_faces);
+        puts("Mesh resized for refinement");
+
+        // Sort entities by refinement level
+        std::sort(ref_cells.ptr, ref_cells.ptr + ref_cells.count,
+            [&] (E_Int i, E_Int j) { return M->clevel[i] < M->clevel[j]; });
+        puts("Refinement cells sorted");
+        std::sort(ref_faces.ptr, ref_faces.ptr + ref_faces.count,
+            [&] (E_Int i, E_Int j) { return M->flevel[i] < M->flevel[j]; });
+        puts("Refinement faces sorted");
+        
+        // Refine
+        //Mesh_refine_dir(M, &ref_cells, &ref_faces);
+
+
+        
 
         // FREE
 
     } while (ref_S);
 
+    
 
     return Py_None;
 }
