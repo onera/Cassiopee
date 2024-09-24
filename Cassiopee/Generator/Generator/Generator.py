@@ -7,7 +7,7 @@ from . import generator
 import numpy
 import Converter as C
 
-from .TFIs import TFITri, TFIO, TFIHalfO, TFIMono, TFIStar, TFIStar2, mergeEdges
+from .TFIs import allTFI, TFI, TFITri, TFIO, TFIHalfO, TFIMono, TFIStar, TFIStar2
 
 __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
     'cartPyra', 'cartNGon', 'cylinder', 'cylinder2', 'cylinder3', 'delaunay',
@@ -20,8 +20,8 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
     'mapCurvature', 'refine', 'defineSizeMapForMMGs', 'mmgs', 'densify',
     'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4', 'close', 'closeLegacy', 'zip',
     'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts', 'grow', 'stack', 
-    'TFI', 
-    'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar', 'TFIStar2', 'mergeEdges',
+    'allTFI', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 
+    'TFIStar', 'TFIStar2',
     'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
     'getCellCenters', 'getFaceCentersAndAreas', 'getNormalMap',
     'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
@@ -945,11 +945,6 @@ def stack(array1, array2=None):
     Usage: stack(array1, array2)"""
     if array2 is not None: return generator.stack([array1, array2])
     else: return generator.stack(array1)
-
-def TFI(arrays):
-    """Generate a transfinite interpolation mesh from boundaries.
-    Usage: TFI(arrays)"""
-    return generator.TFI(arrays)
 
 def TTM(array, niter=100):
     """Smooth a mesh with Thompson-Mastin elliptic generator.

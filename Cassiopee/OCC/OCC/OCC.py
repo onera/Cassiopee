@@ -10,10 +10,9 @@ import Transform
 import Generator
 import KCore
 import Converter.Mpi as Cmpi
-import numpy
 
 __all__ = ['convertCAD2Arrays', 'switch2UV', 'switch2UV2', '_scaleUV', '_unscaleUV',
-'allTFI', 'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__', 
+'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__', 
 'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__', 
 'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct']
 
@@ -105,44 +104,6 @@ def _unscaleUV(edges, T, vu='x', vv='y'):
         e[1][pv,:] = e[1][pv,:]*dv+vmin
     return None
 
-# Build a TFI for a set of edges
-# IN: edges: list of arrays defining a loop
-# OUT: list of surface meshes
-def allTFI(edges):
-    nedges = len(edges)
-    if nedges == 4:
-        try: return [Generator.TFI(edges)]
-        except: pass
-    elif nedges == 1:
-        try: return Generator.TFIO(edges[0])
-        except: pass
-    elif nedges == 2:
-        try: return Generator.TFIHalfO(edges[0], edges[1])
-        except: pass
-    elif nedges == 3:
-        try: return Generator.TFITri(edges[0],edges[1],edges[2])
-        except: pass
-    
-    # Try to merge
-    medges = Generator.mergeEdges(edges, 0.1)
-    nedges = len(medges)
-    print("trying merge => %d edges."%nedges)
-    if nedges == 4:
-        try: return [Generator.TFI(medges)]
-        except: pass
-    elif nedges == 1:
-        try: return Generator.TFIO(medges[0])
-        except: pass
-    elif nedges == 2:
-        try: return Generator.TFIHalfO(medges[0], medges[1])
-        except: pass
-    elif nedges == 3:
-        try: return Generator.TFITri(medges[0],medges[1],medges[2])
-        except: pass
-        
-    # Fallback use TFIStar
-    #return Generator.TFIStar2(edges)
-    return Generator.TFIStar(edges)
         
 # Mailleur structure de CAD
 # IN: N: the number of points for each patch boundary
@@ -174,7 +135,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
         edges = Generator.close(edges, 1.e-6) # the weakness
         # TFI dans espace uv
         try:
-            als = allTFI(edges)
+            als = Generator.allTFI(edges)
             # unscale uv
             _unscaleUV(als, T)
             for a in als:
@@ -459,7 +420,7 @@ def meshQUAD__(hook, N=11, order=1, faceSubset=None, faceNo=None):
         edges = Generator.close(edges, 1.e-6) # the weakness
         # TFI dans espace uv
         try:
-            als = allTFI(edges)
+            als = Generator.allTFI(edges)
             # unscale uv
             _unscaleUV(als, T)
             als = Converter.convertArray2Hexa(als)
@@ -703,7 +664,7 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
         #edges = Generator.close(edges, 1.e-6) # the weakness
         # TFI dans espace uv
         try:
-            als = allTFI(edges)
+            als = Generator.allTFI(edges)
             # unscale uv
             _unscaleUV(als, T)
             for c, a in enumerate(als):

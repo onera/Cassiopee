@@ -20,9 +20,9 @@ def meshCADEdges(event=None):
     CTK.setCursor(2, WIDGETS['frame'])
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
-    edges[2] = []
+    if edges is not None: edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-    faces[2] = []
+    if faces is not None: faces[2] = []
     OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -43,7 +43,7 @@ def meshCADFaces(event=None):
     CTK.setCursor(2, WIDGETS['meshFaceButton'])
     
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-    faces[2] = []
+    if faces is not None: faces[2] = []
     if mtype == 'TRI':
         OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmax=hmax, hausd=hausd)
     elif mtype == 'STRUCT':

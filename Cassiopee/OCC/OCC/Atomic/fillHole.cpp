@@ -29,6 +29,7 @@
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
 #include "StdFail_NotDone.hxx"
+#include "BRepFill_Filling.hxx"
 
 //=====================================================================
 // Remove some faces and rebuild compound
@@ -76,6 +77,7 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   bool fail = false;
   try {
     myWire = wireMaker.Wire();
+    //myWire.Reversed();
   } catch (StdFail_NotDone& e) { fail = true; }
   if (fail) 
   {
@@ -86,24 +88,48 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   // Build face on wire
   TopoDS_Face F;
   try {
-    BRepBuilderAPI_MakeFace faceMaker(myWire);
+    BRepBuilderAPI_MakeFace faceMaker(myWire, Standard_False);
     //faceMaker.Add(myWire);
     F = faceMaker.Face();
 
     if (not faceMaker.IsDone())
     {
-      PyErr_SetString(PyExc_TypeError, "fillHole: fail to generate face.");  
-      return NULL;
+      fail = true;
+      //PyErr_SetString(PyExc_TypeError, "fillHole: fail to generate face (isDone).");  
+      //return NULL;
     }
 
   } catch (StdFail_NotDone& e) { fail = true; }
   if (fail) 
   {
-    PyErr_SetString(PyExc_TypeError, "fillHole: fail to generate face.");  
-    return NULL;
+    //PyErr_SetString(PyExc_TypeError, "fillHole: fail to generate face (notDone).");  
+    //return NULL;
   }
   
-
+  // try with brepfill
+  if (fail)
+  {
+    BRepFill_Filling filler;
+    for (E_Int no = 0; no < PyList_Size(listEdges); no++)
+    {
+      PyObject* noEdgeO = PyList_GetItem(listEdges, no);
+      E_Int noEdge = PyInt_AsLong(noEdgeO);
+      if (noEdge < 0 && noEdge >= -nEdges)
+      {
+        const TopoDS_Edge& E = TopoDS::Edge(edges(-noEdge));
+        E.Reversed();  
+        filler.Add(E, GeomAbs_C1, true);
+      }
+      else if (noEdge > 0 && noEdge <= nEdges)
+      {
+        const TopoDS_Edge& E = TopoDS::Edge(edges(noEdge));
+        filler.Add(E, GeomAbs_C1, true);
+      }
+      else printf("Warning: fillHole: invalid edge.\n");
+    }
+    filler.Build();
+    F = filler.Face();
+  }
   // Add face to shape
   //ShapeBuild_ReShape reshaper;
   //reshaper.Add(F); // no add

@@ -607,7 +607,6 @@ def _remeshTreeFromEdges(hook, t, edges):
   faceList = set()
   for edge in edges:
     cad = Internal.getNodeFromName1(edge, 'CAD')
-    #hook = Internal.getNodeFromName1(cad, 'hook')[1]
     facel = Internal.getNodeFromName1(cad, 'faceList')
     if facel is not None:
       facel = facel[1]
@@ -618,15 +617,16 @@ def _remeshTreeFromEdges(hook, t, edges):
   # build hList from CAD/hsize
   hList = []
   b = Internal.getNodeFromName1(t, 'FACES')
+  if b is None: faceList = [] # forced when no FACES
   be = Internal.getNodeFromName1(t, 'EDGES')
   for f in faceList:
     z = b[2][f-1]
-    CAD = Internal.getNodeFromName1(z, "CAD")
-    hsize = Internal.getNodeFromName1(CAD, "hsize")
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+    hsize = Internal.getNodeFromName1(CAD, 'hsize')
     hsize = hsize[1]
 
     # modify hmax/hmin from edge sizes
-    edgeList = Internal.getNodeFromName1(CAD, "edgeList")
+    edgeList = Internal.getNodeFromName1(CAD, 'edgeList')
     edgeList = edgeList[1]
     fedges = []
     for e in edgeList:
@@ -639,7 +639,7 @@ def _remeshTreeFromEdges(hook, t, edges):
     #print("hsize=",hmine,hmaxe,hausde)
     hsize = ( min(hmine, hsize[0]), max(hmaxe, hsize[1]), min(hausde, hsize[2]) )
     hList.append(hsize)
-  
+    
   # get dedges (all CAD edges - suppose CAD order)
   b = Internal.getNodeFromName1(t, 'EDGES')
   dedges = []
