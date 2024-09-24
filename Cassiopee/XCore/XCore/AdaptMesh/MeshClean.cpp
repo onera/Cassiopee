@@ -78,6 +78,7 @@ void Mesh_reset_adaptation_data(Mesh *M)
 
     XFREE(M->cref);
     XFREE(M->fref);
+    XFREE(M->fpattern);
 
     XFREE(M->clevel);
     XFREE(M->flevel);

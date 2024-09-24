@@ -130,6 +130,7 @@ struct Mesh {
 
     E_Int *cref;
     E_Int *fref;
+    E_Int *fpattern;
 
     E_Int *clevel;
     E_Int *flevel;

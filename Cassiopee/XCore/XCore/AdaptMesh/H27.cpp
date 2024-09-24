@@ -1350,7 +1350,6 @@ void H27_reorder(E_Int hexa, Mesh *M)
     }
 }
 
-static
 void reconstruct_quad(Mesh *M, E_Int hexa, E_Int *fids, E_Int crange, E_Int normalIn,
     E_Int NODE, E_Int pn[4])
 {

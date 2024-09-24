@@ -54,6 +54,7 @@ Mesh::Mesh()
 
     cref = NULL;
     fref = NULL;
+    fpattern = NULL;
 
     clevel = NULL;
     flevel = NULL;

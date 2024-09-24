@@ -57,3 +57,44 @@ void Mesh_refine_dir(Mesh *M, std::vector<E_Int> &ref_cells,
         }
     }
 }
+
+/*
+void Mesh_prepare_cell_ordering_and_face_refinement_patterns(Mesh *M,
+    const ArrayI *rcells, const ArrayI *rfaces, ArrayI *fpatterns)
+{
+    for (E_Int i = 0; i < rcells->count; i++) {
+        H18_reorder(rcells->ptr[i], M);
+    }
+
+    fpatterns->count = rfaces->count;
+    fpatterns->ptr = (E_Int *)XMALLOC(rfaces->count * sizeof(E_Int));
+
+    for (E_Int i = 0; i < rfaces->count; i++) {
+        E_Int fid = rfaces->ptr[i];
+        E_Int own = M->owner[fid];
+        
+        E_Int *cell = Mesh_get_cell(M, own);
+
+        E_Int pos = Get_pos(fid, cell, 4*M->cstride[own]);
+        E_Int side = pos / 4;
+        E_Int idx = pos % 4;
+
+        if (side == 0 || side == 1) {
+            fpatterns->ptr[i] = ISO;
+        } else if (side == 2) {
+            
+        } else if (side == 3) {
+
+
+        } else if (side == 4) {
+
+
+        } else if (side == 5) {
+
+
+        } else {
+
+        }
+    }
+}
+*/

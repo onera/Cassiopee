@@ -1032,6 +1032,348 @@ void Mesh_resize(Mesh *M, const ArrayI *rcells, const ArrayI *rfaces)
     Mesh_resize_cell_data(M, new_nc);
 }
 
+#define DIR_ISO 0
+#define DIR_X 1
+#define DIR_Y 2
+
+void prepare_cell_ordering_and_face_refinement_patterns(Mesh *M,
+    const ArrayI *rcells, const ArrayI *rfaces)
+{
+    for (E_Int i = 0; i < rcells->count; i++) {
+        E_Int cid = rcells->ptr[i];
+        assert(M->cref[cid] == 1);
+        if (M->clevel[cid] == 0) {
+            H18_reorder(cid, M);
+            assert(check_canon_hexa(cid, M) == 0); 
+        }
+    }
+
+    for (E_Int i = 0; i < rfaces->count; i++) {
+        E_Int fid = rfaces->ptr[i];
+        if (M->flevel[fid] > 0) continue;
+
+        E_Int cid = M->owner[fid];
+        if (M->cref[cid] == 0)
+            cid = M->neigh[fid]; 
+
+        assert(cid != -1);
+        assert(M->cref[cid] == 1);
+        
+        E_Int *cell = Mesh_get_cell(M, cid);
+        E_Int *crange = Mesh_get_crange(M, cid);
+
+        E_Int pos = Get_pos(fid, cell, 4*M->cstride[cid]);
+        E_Int side = pos / 4;
+        E_Int *face = Mesh_get_face(M, fid);
+
+        if (side == 0 || side == 1) {
+            M->fpattern[fid] = DIR_ISO;
+        } else {
+
+            // Reconstruct bottom
+            E_Int map[4];
+            E_Int bot = cell[0];
+            E_Int N0 = Mesh_get_face(M, bot)[0];
+            reconstruct_quad(M, cid, cell, crange[0], normalIn_H[0], N0, map); 
+
+            M->fpattern[fid] = DIR_ISO;
+            
+            E_Int i0;
+            E_Int reorient;
+
+            if (side == 2) {
+
+                E_Int np, lpts[8];
+                for (E_Int j = 0; j < 8; j++) lpts[j] = -1;
+                Mesh_get_fpoints(M, fid, np, lpts);
+            
+                // Must share map[0] && map[3]
+                i0 = Get_pos(map[3], face, 8);
+                assert(i0 != -1);
+                i0 = Get_pos(map[0], face, 8);
+                assert(i0 != -1);
+                reorient = Mesh_get_reorient(M, fid, cid, normalIn_H[side]);
+
+            } else if (side == 3) {
+
+                // Must share map[1] && map[2]
+                i0 = Get_pos(map[2], face, 8);
+                assert(i0 != -1);
+                i0 = Get_pos(map[1], face, 8);
+                assert(i0 != -1);
+                reorient = Mesh_get_reorient(M, fid, cid, normalIn_H[side]);
+
+            } else if (side == 4) {
+
+                // Must share map[1] && map[0]
+                i0 = Get_pos(map[0], face, 8);
+                assert(i0 != -1);
+                i0 = Get_pos(map[1], face, 8);
+                assert(i0 != -1);
+                reorient = Mesh_get_reorient(M, fid, cid, normalIn_H[side]);
+
+            } else if (side == 5) {
+                
+                // Must share map[2] && map[3]
+                i0 = Get_pos(map[3], face, 8);
+                assert(i0 != -1);
+                i0 = Get_pos(map[2], face, 8);
+                assert(i0 != -1);
+                reorient = Mesh_get_reorient(M, fid, cid, normalIn_H[side]);
+
+            } else {
+                assert(0);
+            }
+
+
+            i0 /= 2;
+
+            assert(i0 == 0 || i0 == 1 || i0 == 2 || i0 == 3);
+
+            if (reorient == 0) {
+                if (i0 == 0 || i0 == 2) M->fpattern[fid] = DIR_X;
+                else M->fpattern[fid] = DIR_Y;
+            } else {
+                if (i0 == 0 || i0 == 2) M->fpattern[fid] = DIR_Y;
+                else M->fpattern[fid] = DIR_X;
+            }
+
+            assert(M->fpattern[fid] != DIR_ISO);
+            
+            /*
+            bool swap_1 = (reorient == 0) && (i0 == 1 || i0 == 3);
+            bool swap_2 = (reorient == 1) && (i0 == 0 || i0 == 2);
+
+            if (swap_1 || swap_2) M->fpattern[fid] = DIR_Y;
+            */
+        }
+    }
+}
+
+E_Int refine_quad_X(E_Int quad, Mesh *M)
+{
+    assert(M->fref[quad] == 1);
+    E_Int NODES[8];
+
+    E_Int *fpts = Mesh_get_face(M, quad);
+    E_Int *frange = Mesh_get_frange(M, quad);
+
+    // BOT
+    NODES[0] = fpts[0];
+    if (frange[0] == 2) {
+        NODES[4] = fpts[1];
+    } else {
+        E_Int p = fpts[0];
+        E_Int q = fpts[2];
+        Mesh_refine_or_get_edge_center(M, p, q, NODES[4]);
+    }
+
+    // RGT
+    NODES[1] = fpts[2];
+    NODES[5] = fpts[3];
+
+    // TOP
+    NODES[2] = fpts[4];
+    if (frange[2] == 2) {
+        NODES[6] = fpts[5];
+    } else {
+        E_Int p = fpts[4];
+        E_Int q = fpts[6];
+        Mesh_refine_or_get_edge_center(M, p, q, NODES[6]);
+    }
+
+    // LFT
+    NODES[3] = fpts[6];
+    NODES[7] = fpts[7];
+
+
+    // Second child
+    fpts = Mesh_get_face(M, M->nf);
+    fpts[0] = NODES[4];
+    fpts[1] = -1;
+    fpts[2] = NODES[1];
+    fpts[3] = NODES[5];
+    fpts[4] = NODES[2];
+    fpts[5] = -1;
+    fpts[6] = NODES[6];
+    fpts[7] = -1;
+
+    // First child replaces quad
+    fpts = Mesh_get_face(M, quad);
+    fpts[0] = NODES[0];
+    fpts[1] = -1;
+    fpts[2] = NODES[4];
+    fpts[3] = -1;
+    fpts[4] = NODES[6];
+    fpts[5] = -1;
+    fpts[6] = NODES[3];
+    fpts[7] = NODES[7];
+
+    // Update ranges and strides
+    Mesh_update_face_range_and_stride(M, quad, M->nf, 1);
+
+    // Conformize parent cells
+
+    E_Int own = M->owner[quad];
+
+    assert(M->clevel[own] == M->flevel[quad]);
+
+    if (Mesh_conformize_cell_face(M, own, quad, M->nf, 2) != 0) return 1;
+
+    E_Int nei = M->neigh[quad];
+
+    if (nei != -1) {
+        assert(M->clevel[nei] == M->flevel[quad]);
+
+        if (Mesh_conformize_cell_face(M, nei, quad, M->nf, 2) != 0) return 1;
+    }
+
+    for (E_Int i = 0; i < 1; i++) {
+        M->owner[M->nf+i] = own;
+        M->neigh[M->nf+i] = nei;
+    }
+
+    // Update adaptation info
+    M->flevel[quad]++;
+
+    assert(M->fref[quad] == FACE_REFINED);
+
+    for (E_Int i = 0; i < 1; i++) {
+        E_Int fid = M->nf + i;
+
+        M->flevel[fid] = M->flevel[quad];
+        M->ftype[fid] = M->ftype[quad];
+
+        M->fref[fid] = FACE_NEW;
+    }
+
+    M->fchildren[quad] = {quad, M->nf};
+
+    M->fparent[M->nf] = quad;
+
+    M->ftag[M->nf] = M->ftag[quad];
+
+    // Increment face/edge/point count
+    M->nf += 1;
+
+    return 0;
+}
+
+E_Int refine_quad_Y(E_Int quad, Mesh *M)
+{
+    assert(M->fref[quad] == 1);
+    E_Int NODES[8];
+
+    E_Int *fpts = Mesh_get_face(M, quad);
+    E_Int *frange = Mesh_get_frange(M, quad);
+
+    // BOT
+    NODES[0] = fpts[0];
+    NODES[4] = fpts[1];
+
+    // RGT
+    NODES[1] = fpts[2];
+    if (frange[1] == 2) {
+        NODES[5] = fpts[3];
+    } else {
+        E_Int p = fpts[2];
+        E_Int q = fpts[4];
+        Mesh_refine_or_get_edge_center(M, p, q, NODES[5]);
+    }
+
+    // TOP
+    NODES[2] = fpts[4];
+    NODES[6] = fpts[5];
+    
+    // LFT
+    NODES[3] = fpts[6];
+    if (frange[3] == 2) {
+        NODES[7] = fpts[7];
+    } else {
+        E_Int p = fpts[6];
+        E_Int q = fpts[0];
+        Mesh_refine_or_get_edge_center(M, p, q, NODES[7]);
+    }
+
+    // Second child
+    fpts = Mesh_get_face(M, M->nf);
+    fpts[0] = NODES[7];
+    fpts[1] = -1;
+    fpts[2] = NODES[5];
+    fpts[3] = -1;
+    fpts[4] = NODES[2];
+    fpts[5] = NODES[6];
+    fpts[6] = NODES[3];
+    fpts[7] = -1;
+
+    // First child replaces quad
+    fpts = Mesh_get_face(M, quad);
+    fpts[0] = NODES[0];
+    fpts[1] = NODES[4];
+    fpts[2] = NODES[1];
+    fpts[3] = -1;
+    fpts[4] = NODES[5];
+    fpts[5] = -1;
+    fpts[6] = NODES[7];
+    fpts[7] = -1;
+
+    // Update ranges and strides
+    Mesh_update_face_range_and_stride(M, quad, M->nf, 1);
+
+    // Conformize parent cells
+
+    E_Int own = M->owner[quad];
+
+    assert(M->clevel[own] == M->flevel[quad]);
+
+    if (Mesh_conformize_cell_face(M, own, quad, M->nf, 2) != 0) return 1;
+
+    E_Int nei = M->neigh[quad];
+
+    if (nei != -1) {
+        assert(M->clevel[nei] == M->flevel[quad]);
+
+        if (Mesh_conformize_cell_face(M, nei, quad, M->nf, 2) != 0) return 1;
+    }
+
+    for (E_Int i = 0; i < 1; i++) {
+        M->owner[M->nf+i] = own;
+        M->neigh[M->nf+i] = nei;
+    }
+
+    // Update adaptation info
+    M->flevel[quad]++;
+
+    assert(M->fref[quad] == FACE_REFINED);
+
+    for (E_Int i = 0; i < 1; i++) {
+        E_Int fid = M->nf + i;
+
+        M->flevel[fid] = M->flevel[quad];
+        M->ftype[fid] = M->ftype[quad];
+
+        M->fref[fid] = FACE_NEW;
+    }
+
+    M->fchildren[quad] = {quad, M->nf};
+
+    M->fparent[M->nf] = quad;
+
+    M->ftag[M->nf] = M->ftag[quad];
+
+    // Increment face/edge/point count
+    M->nf += 1;
+
+    return 0;
+}
+
+E_Int refine_quad_dir(E_Int fid, Mesh *M)
+{
+    if (M->fpattern[fid] == DIR_X) return refine_quad_X(fid, M);
+    if (M->fpattern[fid] == DIR_Y) return refine_quad_Y(fid, M);
+    return Q9_refine(fid, M);
+}
+
 void Mesh_refine_dir(Mesh *M, ArrayI *ref_cells, ArrayI *ref_faces)
 {
     std::set<E_Int> levelset;
@@ -1048,8 +1390,8 @@ void Mesh_refine_dir(Mesh *M, ArrayI *ref_cells, ArrayI *ref_faces)
     for (E_Int level : levelset) levels.push_back(level);
     std::sort(levels.begin(), levels.end());
 
-    std::reverse(ref_cells->ptr, ref_cells->ptr + ref_cells->count);
-    std::reverse(ref_faces->ptr, ref_faces->ptr + ref_faces->count);
+    //std::reverse(ref_cells->ptr, ref_cells->ptr + ref_cells->count);
+    //std::reverse(ref_faces->ptr, ref_faces->ptr + ref_faces->count);
 
     E_Int cells_left = ref_cells->count-1;
     E_Int faces_left = ref_faces->count-1;
@@ -1057,9 +1399,8 @@ void Mesh_refine_dir(Mesh *M, ArrayI *ref_cells, ArrayI *ref_faces)
     for (E_Int level : levels) {
         while (faces_left >= 0 && M->flevel[ref_faces->ptr[faces_left]] == level) {
             E_Int face = ref_faces->ptr[faces_left];
-            E_Int pattern = get_face_pattern(face, M);
             faces_left--;
-            refine_face_dir(face, pattern, M);
+            refine_quad_dir(face, M);
         }
 
         while (cells_left >= 0 && M->clevel[ref_cells->ptr[cells_left]] == level) {
@@ -1069,25 +1410,6 @@ void Mesh_refine_dir(Mesh *M, ArrayI *ref_cells, ArrayI *ref_faces)
         }
     }
 }
-
-/*
-void get_face_refinement_direction(const Mesh *M, const ArrayI *rcells,
-    const ArrayI *rfaces)
-{
-    for (E_Int i = 0; i < rfaces->count; i++) {
-        E_Int fid = rfaces->ptr[i];
-        E_Int own = M->owner[fid];
-        
-        // TODO(Imad): improve
-        H18_reorder(own, M);
-
-        E_Int *cell = M->get_cell(M, own);
-        
-        E_Int bot = cell[0];
-
-    }
-}
-*/
 
 PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 {
@@ -1219,9 +1541,6 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         smooth_cell_refinement_data(M);
         puts("Cell refinement smoothed out");
 
-        // Setup bottom/top face chain
-        reorder_cells_for_H18(&skin_graph, indices, &rfaces, M);
-
         // Assign refinement data
         M->fref = (E_Int *)XRESIZE(M->fref, M->nf * sizeof(E_Int));
         memset(M->fref, 0, M->nf * sizeof(E_Int));
@@ -1233,20 +1552,34 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         printf("Refinement cells: %d\n", ref_cells.count);
         printf("Refinement faces: %d\n", ref_faces.count);
 
+        // Setup bottom/top face chain
+        reorder_cells_for_H18(&skin_graph, indices, &rfaces, M);
+
+        // Prepare cell ordering and face refinement direction
+        M->fpattern = (E_Int *)XMALLOC(M->nf * sizeof(E_Int));
+        memset(M->fpattern, -1, M->nf * sizeof(E_Int));
+        prepare_cell_ordering_and_face_refinement_patterns(M, &ref_cells,
+            &ref_faces);
+        
         // Resize for refinement
         Mesh_resize(M, &ref_cells, &ref_faces);
         puts("Mesh resized for refinement");
 
         // Sort entities by refinement level
         std::sort(ref_cells.ptr, ref_cells.ptr + ref_cells.count,
-            [&] (E_Int i, E_Int j) { return M->clevel[i] < M->clevel[j]; });
+            [&] (E_Int i, E_Int j) { return M->clevel[i] > M->clevel[j]; });
         puts("Refinement cells sorted");
         std::sort(ref_faces.ptr, ref_faces.ptr + ref_faces.count,
-            [&] (E_Int i, E_Int j) { return M->flevel[i] < M->flevel[j]; });
+            [&] (E_Int i, E_Int j) { return M->flevel[i] > M->flevel[j]; });
         puts("Refinement faces sorted");
         
         // Refine
-        //Mesh_refine_dir(M, &ref_cells, &ref_faces);
+        printf("Cells before refinement: %d\n", M->nc);
+        printf("Faces before refinement: %d\n", M->nf);
+        Mesh_refine_dir(M, &ref_cells, &ref_faces);
+
+        printf("Cells after refinement: %d\n", M->nc);
+        printf("Faces after refinement: %d\n", M->nf);
 
 
         
@@ -1256,6 +1589,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
     } while (ref_S);
 
     
+    Mesh_conformize_face_edge(M);    
 
     return Py_None;
 }

@@ -237,11 +237,9 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->fparent = IntArray(M->nf);
     for (E_Int i = 0; i < M->nf; i++) M->fparent[i] = i;
 
-    //M->cref = IntArray(M->nc);
-    //M->fref = IntArray(M->nf);
-
     M->cref = NULL;
     M->fref = NULL;
+    M->fpattern = NULL;
 
     M->ctag = IntArray(M->nc);
     M->ftag = IntArray(M->nf);

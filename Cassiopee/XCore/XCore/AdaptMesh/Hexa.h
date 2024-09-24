@@ -32,6 +32,9 @@ void H18_refine(E_Int hexa, Mesh *M);
 
 void H18_reorder(E_Int hexa, Mesh *M);
 
+void reconstruct_quad(Mesh *M, E_Int hexa, E_Int *fids, E_Int crange, E_Int normalIn,
+    E_Int NODE, E_Int pn[4]);
+
 E_Int check_canon_hexa(E_Int hexa, Mesh *M);
 
 void update_range_and_stride(Mesh *M, E_Int hexa, E_Int cpos, E_Int nchildren);
