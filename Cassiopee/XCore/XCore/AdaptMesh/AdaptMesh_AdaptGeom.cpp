@@ -1,6 +1,8 @@
 #include "Mesh.h"
 #include "common/mem.h"
 
+// TODO(Imad): sorting routines
+
 struct Point {
     E_Float x, y, z;
 };
@@ -317,73 +319,12 @@ bool Point_in_Box3D(const Point *p, const Box3 *box)
            (p->z >= box->zmin) && (p->z <= box->zmax);
 }
 
-void BVH_locate_point
-(
-    const BVH_node *node,
-    const FaceSort *mfaces,
-    const Point *p,
-    PointFaces *pfaces
-)
-{
-    if (node->left == NULL && node->right == NULL) {
-        for (E_Int i = node->start; i < node->end; i++) {
-            const FaceSort *mface = &mfaces[i];
-
-            if (Point_in_FaceSort(p, mface)) {
-                if (pfaces->count >= MAX_FACES_PER_POINT) {
-                    fprintf(stderr, 
-                        "bvh_locate: MAX_FACES_PER_POINT exceeded!\n");
-                    abort();
-                }
-                pfaces->ptr[pfaces->count++] = i; //mface->fid;
-            }
-        }
-        return;
-    }
-
-    assert(node->left && node->right);
-    assert(Box3_in_Box3(node->left->box, node->box));
-    assert(Box3_in_Box3(node->right->box, node->box));
-
-    bool in_box = Point_in_Box3D(p, &node->box);
-    
-    if (!in_box)
-        return;
-
-    BVH_locate_point(node->left, mfaces, p, pfaces);
-    BVH_locate_point(node->right, mfaces, p, pfaces);
-}
-
-void locate_spoints_in_mtris
-(
-    const Mesh *S,
-    const ArrayI *spoints,
-    const FaceSort *mfaces,
-    const BVH_node *bvh,
-    PointFaces *sploc
-)
-{
-    for (E_Int i = 0; i < spoints->count; i++) {
-        E_Int spid = spoints->ptr[i];
-        const Point p = {S->X[spid], S->Y[spid], S->Z[spid]};
-        PointFaces *pfaces = &sploc[i];
-        assert(Point_in_Box3D(&p, &bvh->box));
-        BVH_locate_point(bvh, mfaces, &p, pfaces);
-        if (pfaces->count == 0) {
-            fprintf(stderr, "bvh_locate: failed at point index %d (%d)!\n",
-                i, spid);
-            point_write(p);
-            abort();
-        }
-    }
-}
-
 #define MAX_POINTS_PER_FACE 1
 
 void extract_faces_by_threshold
 (
     const PointFaces *sploc, E_Int spcount,
-    const FaceSort *mtris, E_Int mcount,
+    const E_Int *skin, E_Int mcount,
     const E_Int threshold,
     ArrayI *faces
 )
@@ -409,7 +350,7 @@ void extract_faces_by_threshold
 
     for (E_Int i = 0; i < mcount; i++) {
         if (ftag[i] > threshold)
-            *ptr++ = mtris[i].fid;
+            *ptr++ = skin[i];
     }
 }
 
@@ -575,14 +516,296 @@ void Mesh_make_skin_neighbours(const Mesh *M, SkinGraph *skin_graph)
     }
 }
 
-void Mesh_make_skin_graph(Mesh *M, SkinGraph *skin_graph)
+void Mesh_make_skin_graph(const Mesh *M, SkinGraph *skin_graph)
 {
     Mesh_extract_skin(M, &skin_graph->nf, &skin_graph->skin);
     Mesh_make_skin_connectivity(M, skin_graph);
     Mesh_make_skin_neighbours(M, skin_graph);
 }
 
+struct Vec3f {
+    E_Float x, y, z;
+};
 
+void Mesh_make_face_centers(const Mesh *M, const E_Int nf, const E_Int *skin,
+    Vec3f **fc)
+{
+    *fc = (Vec3f *)XMALLOC(nf * sizeof(Vec3f));
+    Vec3f *ptr = *fc;
+
+    for (E_Int i = 0; i < nf; i++) {
+        E_Int fid = skin[i];
+        const E_Int *face = Mesh_get_face(M, fid);
+        const E_Int *frange = Mesh_get_frange(M, fid);
+        ptr[i].x = ptr[i].y = ptr[i].z = 0.0;
+        E_Int np = 0;
+        for (E_Int j = 0; j < M->fstride[fid]; j++) {
+            const E_Int *pn = face + 2*j;
+            for (E_Int k = 0; k < frange[j]; k++) {
+                ptr[i].x += M->X[pn[k]];
+                ptr[i].y += M->Y[pn[k]];
+                ptr[i].z += M->Z[pn[k]];
+                np++;
+            }
+        }
+        ptr[i].x /= np; ptr[i].y /= np; ptr[i].z /= np;
+    }
+}
+
+Box3 Box3_make
+(
+    const Mesh *M,
+    const E_Int *skin,
+    const E_Int *indices,
+    E_Int start, E_Int end
+)
+{
+    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
+    xmin = ymin = zmin = FLT_MAX;
+    xmax = ymax = zmax = -FLT_MAX;
+
+    for (E_Int i = start; i < end; i++) {
+        E_Int fid = skin[indices[i]];
+        E_Int *face = Mesh_get_face(M, fid);
+        E_Int *frange = Mesh_get_frange(M, fid);
+
+        for (E_Int j = 0; j < M->fstride[fid]; j++) {
+            E_Int *pn = face + 2*j;
+            for (E_Int k = 0; k < frange[j]; k++) {
+                E_Int pid = pn[k];
+                if (M->X[pid] < xmin) xmin = M->X[pid];
+                if (M->Y[pid] < ymin) ymin = M->Y[pid];
+                if (M->Z[pid] < zmin) zmin = M->Z[pid];
+
+                if (M->X[pid] > xmax) xmax = M->X[pid];
+                if (M->Y[pid] > ymax) ymax = M->Y[pid];
+                if (M->Z[pid] > zmax) zmax = M->Z[pid];
+            }
+        }
+    }
+
+    // Safety
+    E_Float dx = (xmax - xmin) * 0.01;
+    E_Float dy = (ymax - ymin) * 0.01;
+    E_Float dz = (zmax - zmin) * 0.01;
+    xmin -= dx;
+    ymin -= dy;
+    zmin -= dz;
+    xmax += dx;
+    ymax += dy;
+    zmax += dz;
+
+    return {xmin, ymin, zmin, xmax, ymax, zmax};
+}
+
+BVH_node *BVH_make(const Mesh *M, const E_Int *skin, const Vec3f *fc,
+    E_Int *indices, E_Int start, E_Int end, const Box3 *parent_box)
+{
+    Box3 box = Box3_make(M, skin, indices, start, end);
+    Box3_clamp(parent_box, &box);
+    assert(Box3_in_Box3(box, *parent_box));
+
+    E_Int count = end - start;
+    if (count <= MAX_FACES_PER_BVH_LEAF) {
+        return BVH_create_node(&box, start, end, NULL, NULL);
+    }
+
+    E_Float dx = box.xmax - box.xmin;
+    E_Float dy = box.ymax - box.ymin;
+    E_Float dz = box.zmax - box.zmin;
+
+    E_Int dim = -1;
+
+    if (dx >= dy && dx >= dz) {
+        dim = 0;
+    } else if (dy >= dz) {
+        dim = 1;
+    } else {
+        dim = 2;
+    }
+
+    std::sort(indices + start, indices + end,
+        [&](const E_Int i, const E_Int j)
+        {
+            E_Float *fci = (E_Float *)(&fc[i]);
+            E_Float *fcj = (E_Float *)(&fc[j]);
+            return fci[dim] < fcj[dim];
+        });
+    
+    E_Int mid = start + count/2;
+
+    BVH_node *left  = BVH_make(M, skin, fc, indices, start, mid, &box);
+    BVH_node *right = BVH_make(M, skin, fc, indices, mid, end, &box);
+
+    assert(Box3_in_Box3(left->box, box));
+    assert(Box3_in_Box3(right->box, box));
+
+    return BVH_create_node(&box, start, end, left, right);
+}
+
+bool point_in_tri(E_Float px, E_Float py, E_Float pz,
+    E_Float ax, E_Float ay, E_Float az,
+    E_Float bx, E_Float by, E_Float bz,
+    E_Float cx, E_Float cy, E_Float cz)
+{
+    // Normal vector to the plane
+    E_Float Y[3] = {bx-ax, by-ay, bz-az};
+    E_Float Z[3] = {cx-ax, cy-ay, cz-az};
+    E_Float N[3];
+    K_MATH::cross(Y, Z, N);
+
+    E_Float X[3] = {px-ax, py-ay, pz-az};
+
+    E_Float dp = K_MATH::dot(N, X, 3);
+    
+    // Is the point on the plane?
+    if (dp < -TOL || dp > TOL) return 0;
+
+    E_Float x1 = K_MATH::dot(X, Y, 3);
+    E_Float y1 = K_MATH::dot(Y, Y, 3);
+    E_Float z1 = K_MATH::dot(Z, Y, 3);
+    E_Float x2 = K_MATH::dot(X, Z, 3);
+    E_Float y2 = K_MATH::dot(Y, Z, 3);
+    E_Float z2 = K_MATH::dot(Z, Z, 3);
+
+    E_Float u = (x1*z2 - x2*z1) / (y1*z2 - y2*z1);
+    if (u < -TOL || u > 1 + TOL) return false;
+
+    E_Float v = (-x1*y2 + x2*y1) / (y1*z2 - y2*z1);
+    if (v < -TOL || v > 1 + TOL) return false;
+
+    E_Float w = 1 - u - v;
+    if (w < -TOL || w > 1 + TOL) return false;
+
+    return true;
+}
+
+bool Mesh_point_in_tri(const Mesh *M, const Point *p, E_Int tid)
+{
+    const E_Int *face = Mesh_get_face(M, tid);
+    E_Int A = face[0], B = face[2], C = face[4];
+    return point_in_tri(p->x, p->y, p->z,
+                        M->X[A], M->Y[A], M->Z[A],
+                        M->X[B], M->Y[B], M->Z[B],
+                        M->X[C], M->Y[C], M->Z[C]);
+}
+
+bool Mesh_point_in_quad(const Mesh *M, const Point *p, E_Int qid)
+{
+    // TODO(Imad): maybe compute face centers once in pre-pass
+    // Star the quad into 4 triangles
+    E_Float O[3] = {0.0, 0.0, 0.0};
+    const E_Int *face = Mesh_get_face(M, qid);
+    E_Int A = face[0], B = face[2], C = face[4], D = face[6];
+    O[0] = (M->X[A] + M->X[B] + M->X[C] + M->X[D]) * 0.25;
+    O[1] = (M->Y[A] + M->Y[B] + M->Y[C] + M->Y[D]) * 0.25;
+    O[2] = (M->Z[A] + M->Z[B] + M->Z[C] + M->Z[D]) * 0.25;
+
+    bool hit = false;
+
+    // First triangle
+    hit = point_in_tri(p->x, p->y, p->z,
+                       O[0], O[1], O[2],
+                       M->X[A], M->Y[A], M->Z[A],
+                       M->X[B], M->Y[B], M->Z[B]);
+    if (hit) return true;
+
+    // Second triangle
+    hit = point_in_tri(p->x, p->y, p->z,
+                       O[0], O[1], O[2],
+                       M->X[B], M->Y[B], M->Z[B],
+                       M->X[C], M->Y[C], M->Z[C]);
+    if (hit) return true;
+
+
+    // Third triangle
+    hit = point_in_tri(p->x, p->y, p->z,
+                       O[0], O[1], O[2],
+                       M->X[C], M->Y[C], M->Z[C],
+                       M->X[D], M->Y[D], M->Z[D]);
+    if (hit) return true;
+
+    // Fourth triangle
+    hit = point_in_tri(p->x, p->y, p->z,
+                       O[0], O[1], O[2],
+                       M->X[D], M->Y[D], M->Z[D],
+                       M->X[A], M->Y[A], M->Z[A]);
+    if (hit) return true;
+
+    return false;
+}
+
+bool Mesh_point_in_face(const Mesh *M, const Point *p, E_Int fid)
+{
+    if (M->ftype[fid] == QUAD) return Mesh_point_in_quad(M, p, fid);
+    assert(M->ftype[fid] == TRI);
+    return Mesh_point_in_tri(M, p, fid);
+}
+
+void BVH_locate_point
+(
+    const BVH_node *node,
+    const Mesh *M,
+    const E_Int *skin,
+    const E_Int *indices,
+    const Point *p,
+    PointFaces *pfaces
+)
+{
+    if (node->left == NULL && node->right == NULL) {
+        for (E_Int i = node->start; i < node->end; i++) {
+            E_Int fid = skin[indices[i]];
+
+            if (Mesh_point_in_face(M, p, fid)) {
+                if (pfaces->count >= MAX_FACES_PER_POINT) {
+                    fprintf(stderr, 
+                        "bvh_locate: MAX_FACES_PER_POINT exceeded!\n");
+                    abort();
+                }
+                pfaces->ptr[pfaces->count++] = i;
+            }
+        }
+        return;
+    }
+
+    assert(node->left && node->right);
+    assert(Box3_in_Box3(node->left->box, node->box));
+    assert(Box3_in_Box3(node->right->box, node->box));
+
+    bool in_box = Point_in_Box3D(p, &node->box);
+    
+    if (!in_box)
+        return;
+
+    BVH_locate_point(node->left, M, skin, indices, p, pfaces);
+    BVH_locate_point(node->right, M, skin, indices, p, pfaces);
+}
+
+void locate_spoints_in_mskin
+(
+    const Mesh *S,
+    const ArrayI *spoints,
+    const Mesh *M,
+    const E_Int *skin,
+    const E_Int *indices,
+    const BVH_node *bvh,
+    PointFaces *sploc
+)
+{
+    for (E_Int i = 0; i < spoints->count; i++) {
+        E_Int spid = spoints->ptr[i];
+        const Point p = {S->X[spid], S->Y[spid], S->Z[spid]};
+        PointFaces *pfaces = &sploc[i];
+        assert(Point_in_Box3D(&p, &bvh->box));
+        BVH_locate_point(bvh, M, skin, indices, &p, pfaces);
+        if (pfaces->count == 0) {
+            fprintf(stderr, "bvh_locate: failed at point index %d (%d)!\n",
+                i, spid);
+            point_write(p);
+            abort();
+        }
+    }
+}
 
 PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 {
@@ -647,17 +870,9 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             sploc
         );
 
-        // Isolate faces that contain more than MAX_POINTS_PER_FACE spoints
-        ArrayI rfaces;
-        extract_faces_by_threshold
-        (
-            sploc, spoints.count,
-            mfaces, mcount,
-            MAX_POINTS_PER_FACE,
-            &rfaces
-        );
+        
 
-        printf("Refinement faces: %d\n", rfaces.count);
+        
         */
         
         // We need the skin connectivity graph
@@ -665,7 +880,40 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         Mesh_make_skin_graph(M, &skin_graph);
         printf("Skin: %d faces\n", skin_graph.nf);
 
+        // BVH the skin
+        Vec3f *skin_fc;
+        Mesh_make_face_centers(M, skin_graph.nf, skin_graph.skin, &skin_fc);
+        E_Int *indices = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
+        for (E_Int i = 0; i < skin_graph.nf; i++) indices[i] = i;
+        const Box3 huge = {-FLT_MAX, -FLT_MAX, -FLT_MAX,
+                            FLT_MAX,  FLT_MAX,  FLT_MAX};
+        BVH_node *bvh = BVH_make(M, skin_graph.skin, skin_fc, indices, 0,
+            skin_graph.nf, &huge);
+        puts("ok bvh");
 
+        // Locate spoints in skin
+        PointFaces *sploc =
+            (PointFaces *)XMALLOC(spoints.count * sizeof(PointFaces));
+        memset(sploc, 0, spoints.count * sizeof(PointFaces));
+        locate_spoints_in_mskin
+        (
+            S, &spoints,
+            M, skin_graph.skin, indices,
+            bvh,
+            sploc
+        );
+
+        // Isolate faces that contain more than MAX_POINTS_PER_FACE spoints
+        ArrayI rfaces;
+        extract_faces_by_threshold
+        (
+            sploc, spoints.count,
+            skin_graph.skin, skin_graph.nf,
+            MAX_POINTS_PER_FACE,
+            &rfaces
+        );
+
+        printf("Refinement faces: %d\n", rfaces.count);
 
 
         // FREE
