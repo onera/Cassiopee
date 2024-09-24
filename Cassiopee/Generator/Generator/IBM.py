@@ -1094,12 +1094,12 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01):
     tb = Internal.rmNodesFromName(tb, "*_sym")
 
     snears    = Internal.getNodesFromName(tb, 'snear')
-    h         = min(snears, key=lambda x: x[1])[1][0]*4.
+    h         = min(snears, key=lambda x: x[1])[1][0]
 
     for z in Internal.getZones(tb):
         snear = Internal.getNodeFromName(z, 'snear')[1]
         zname = z[0]
-        if snear <= 1.5*h/4.:
+        if snear <= 1.5*h:
             if dimPb == 2:
                 z2 = D_IBM.closeContour(z)
             else:
