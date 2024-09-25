@@ -804,7 +804,7 @@ void locate_spoints_in_mskin
     }
 }
 
-void smooth_skin_ref_data(const SkinGraph *skin_graph, E_Int *fdat)
+void smooth_skin_ref_data(Mesh *M, const SkinGraph *skin_graph, E_Int *fdat)
 {
     E_Int nf = skin_graph->nf;
     E_Int stack_size = 3*nf;
@@ -829,8 +829,8 @@ void smooth_skin_ref_data(const SkinGraph *skin_graph, E_Int *fdat)
         const E_Int *neis = &fnei[start];
         for (E_Int i = 0; i < nneis; i++) {
             E_Int nei = neis[i];
-            E_Int incr_nei = fdat[nei];
-            E_Int incr_fid = fdat[fid];
+            E_Int incr_nei = fdat[nei] + M->flevel[skin_graph->skin[nei]];
+            E_Int incr_fid = fdat[fid] + M->flevel[skin_graph->skin[fid]];
             E_Int diff = abs(incr_nei - incr_fid);
             if (diff <= 1) continue;
             E_Int idx_to_modify = incr_fid > incr_nei ? nei : fid;
@@ -1411,6 +1411,29 @@ void Mesh_refine_dir(Mesh *M, ArrayI *ref_cells, ArrayI *ref_faces)
     }
 }
 
+void BVH_free(BVH_node *node)
+{
+    if (node == NULL) return;
+
+    BVH_free(node->left);
+    BVH_free(node->right);
+    
+    XFREE(node);
+}
+
+void ArrayI_free(ArrayI *arr)
+{
+    XFREE(arr->ptr);
+}
+
+void SkinGraph_free(SkinGraph *skin_graph)
+{
+    XFREE(skin_graph->skin);
+    XFREE(skin_graph->xadj);
+    XFREE(skin_graph->fpts);
+    XFREE(skin_graph->fnei);
+}
+
 PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 {
     PyObject *AMESH, *SMESH;
@@ -1447,6 +1470,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 
     do {
         iter++;
+        printf("iter: %d\n", iter);
 
         // Extract spoints from tagged sfaces
         ArrayI spoints;
@@ -1468,6 +1492,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             skin_graph.nf, &huge);
         puts("BVH constructed");
 
+        
         // Locate spoints in skin
         PointFaces *sploc =
             (PointFaces *)XMALLOC(spoints.count * sizeof(PointFaces));
@@ -1481,6 +1506,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         );
         puts("Points located");
 
+
         // Isolate faces that contain more than MAX_POINTS_PER_FACE spoints
         ArrayI rfaces;
         extract_faces_by_threshold
@@ -1493,40 +1519,39 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         puts("Refinement faces isolated");
         printf("Refinement faces: %d\n", rfaces.count);
 
+                
         // Smooth face refinement data
         E_Int *fdat = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
         memset(fdat, 0, skin_graph.nf * sizeof(E_Int));
         for (E_Int i = 0; i < rfaces.count; i++) {
             E_Int idx_in_skin = indices[rfaces.ptr[i]];
-            E_Int fid = skin_graph.skin[idx_in_skin];
-            fdat[idx_in_skin] = M->flevel[fid] + 1;
+            fdat[idx_in_skin] = 1;
         }
-        smooth_skin_ref_data(&skin_graph, fdat);
-        E_Int smooth_nfref = 0;
-        for (E_Int i = 0; i < rfaces.count; i++) {
-            E_Int idx_in_skin = indices[rfaces.ptr[i]];
-            E_Int fid = skin_graph.skin[idx_in_skin];
-            fdat[idx_in_skin] -= M->flevel[fid];
-            if (fdat[idx_in_skin] > 0) smooth_nfref++;
-        }
+        smooth_skin_ref_data(M, &skin_graph, fdat);
         puts("Face refinement smoothed out");
+        
+        E_Int smooth_nfref = 0;
+        for (E_Int i = 0; i < skin_graph.nf; i++) {
+            if (fdat[i] > 0) smooth_nfref++;
+        }
         printf("Smooth refinement face count: %d\n", smooth_nfref);
 
-        /*
-        npy_intp dims[2];
-        dims[1] = 1;
-        dims[0] = (npy_intp)smooth_nfref;
-        PyArrayObject *FACES = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+        if (iter == 2) {
+            npy_intp dims[2];
+            dims[1] = 1;
+            dims[0] = (npy_intp)smooth_nfref;
+            PyArrayObject *FACES = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
 
-        E_Int *pf = (E_Int *)PyArray_DATA(FACES);
-        E_Int *ptr = pf;
-        for (E_Int i = 0; i < skin_graph.nf; i++) {
-            if (fdat[i] > 0) {
-                *ptr++ = skin_graph.skin[i]+1;
+            E_Int *pf = (E_Int *)PyArray_DATA(FACES);
+            E_Int *ptr = pf;
+            for (E_Int i = 0; i < skin_graph.nf; i++) {
+                if (fdat[i] > 0) {
+                    *ptr++ = skin_graph.skin[i]+1;
+                }
             }
+            //puts("");
+            return (PyObject *)FACES;
         }
-        return (PyObject *)FACES;
-        */
 
         // Allocate
         M->cref = (E_Int *)XRESIZE(M->cref, M->nc * sizeof(E_Int));
@@ -1536,6 +1561,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         E_Int ref_cell_count;
         init_skin_refinement_cells(&skin_graph, fdat, M, &ref_cell_count);
         printf("Refinement cells: %d\n", ref_cell_count);
+        if (ref_cell_count == 0) break;
 
         // Smooth cell refinement data
         smooth_cell_refinement_data(M);
@@ -1556,7 +1582,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         reorder_cells_for_H18(&skin_graph, indices, &rfaces, M);
 
         // Prepare cell ordering and face refinement direction
-        M->fpattern = (E_Int *)XMALLOC(M->nf * sizeof(E_Int));
+        M->fpattern = (E_Int *)XRESIZE(M->fpattern, M->nf * sizeof(E_Int));
         memset(M->fpattern, -1, M->nf * sizeof(E_Int));
         prepare_cell_ordering_and_face_refinement_patterns(M, &ref_cells,
             &ref_faces);
@@ -1580,16 +1606,29 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 
         printf("Cells after refinement: %d\n", M->nc);
         printf("Faces after refinement: %d\n", M->nf);
+    
+        Mesh_conformize_face_edge(M);    
+        puts("");
 
+
+        BVH_free(bvh);
+        ArrayI_free(&spoints);
+        ArrayI_free(&ref_cells);
+        ArrayI_free(&ref_faces);
+        ArrayI_free(&rfaces);
+        SkinGraph_free(&skin_graph);
+        XFREE(fdat);
+        XFREE(sploc);
+        XFREE(indices);
+        XFREE(skin_fc);
 
         
 
         // FREE
 
-    } while (ref_S);
+    } while (1);
 
     
-    Mesh_conformize_face_edge(M);    
 
     return Py_None;
 }
