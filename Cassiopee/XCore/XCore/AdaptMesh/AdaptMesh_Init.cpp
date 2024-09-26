@@ -239,7 +239,8 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
 
     M->cref = NULL;
     M->fref = NULL;
-    M->fpattern = NULL;
+    M->fpattern = (E_Int *)XMALLOC(M->nf * sizeof(E_Int));
+    memset(M->fpattern, -1, M->nf * sizeof(E_Int));
 
     M->ctag = IntArray(M->nc);
     M->ftag = IntArray(M->nf);

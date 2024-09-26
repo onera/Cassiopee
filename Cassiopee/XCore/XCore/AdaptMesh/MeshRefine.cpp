@@ -96,6 +96,9 @@ void Mesh_resize_face_data(Mesh *M, E_Int new_nf)
 
     M->ftag = (E_Int *)XRESIZE(M->ftag, new_nf * sizeof(E_Int));
     for (E_Int i = M->nf; i < new_nf; i++) M->ftag[i] = -1;
+
+    M->fpattern = (E_Int *)XRESIZE(M->fpattern, new_nf * sizeof(E_Int));
+    for (E_Int i = M->nf; i < new_nf; i++) M->fpattern[i] = -1;
 }
 
 void Mesh_resize_cell_data(Mesh *M, E_Int new_nc)

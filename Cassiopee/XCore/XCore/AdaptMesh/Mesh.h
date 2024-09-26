@@ -42,7 +42,15 @@
 #define ISO 0
 #define DIR 1
 
+#define DIR_ISO 0
+#define DIR_X 1
+#define DIR_Y 2
+
 struct Karray;
+struct SkinGraph;
+struct Point;
+struct Vec3f;
+struct ArrayI;
 
 struct BPatch {
     E_Int gid;
@@ -505,3 +513,26 @@ void Mesh_triangulate_faces(Mesh *M, E_Int *faces, E_Int nf);
 
 void Mesh_face_to_prism(Mesh *M, E_Int fid);
 void Mesh_generate_prisms(Mesh *M, E_Int *faces, E_Int nf);
+
+/* Extract */
+
+void Mesh_extract_skin(const Mesh *M, E_Int *count, E_Int **skin);
+
+void Mesh_make_skin_connectivity(const Mesh *M, SkinGraph *skin_graph);
+
+void Mesh_make_skin_graph(const Mesh *M, SkinGraph *skin_graph);
+
+void Mesh_make_face_centers(const Mesh *M, const E_Int nf, const E_Int *skin,
+    Vec3f *fc);
+
+void Mesh_extract_points_from_ftag(const Mesh *M, ArrayI *pids);
+
+void Mesh_SkinGraph_compute_normals(const Mesh *M, SkinGraph *skin_graph);
+
+/* Locate */
+
+bool Mesh_point_in_tri(const Mesh *M, const Point *p, E_Int tid);
+
+bool Mesh_point_in_quad(const Mesh *M, const Point *p, E_Int qid);
+
+bool Mesh_point_in_face(const Mesh *M, const Point *p, E_Int fid);

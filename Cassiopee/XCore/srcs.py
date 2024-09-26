@@ -96,6 +96,18 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/AdaptMesh/Edge.cpp',
             'XCore/AdaptMesh/Karray.cpp',
 
+            'XCore/AdaptMesh/BVH.cpp',
+            'XCore/AdaptMesh/Box.cpp',
+            'XCore/AdaptMesh/FaceSort.cpp',
+            'XCore/AdaptMesh/MeshExtract.cpp',
+            'XCore/AdaptMesh/MeshLocate.cpp',
+            'XCore/AdaptMesh/Point.cpp',
+            'XCore/AdaptMesh/constants.cpp',
+            'XCore/AdaptMesh/Skin.cpp',
+            'XCore/AdaptMesh/Array.cpp',
+
+
+
             'XCore/extractFacesFromPointTag.cpp',
             ]
 if mpi: # source that requires mpi
