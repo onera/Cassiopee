@@ -371,6 +371,11 @@ E_Int Mesh_load_balance(Mesh *M);
 
 /* Adaptation */
 
+void Mesh_smooth_skin_ref_data(Mesh *M, const SkinGraph *skin_graph,
+    E_Int *fdat);
+
+void Mesh_smooth_cell_refinement_data(Mesh *M);
+
 E_Int Mesh_smooth_cref(Mesh *M);
 
 void Mesh_get_ref_entities(Mesh *M, std::vector<E_Int> &ref_cells,

@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <list>
 
 #include "xcore.h"
 #include "common/common.h"
@@ -48,6 +49,14 @@ struct DynMesh {
 
     std::vector<E_Int> fref;
 
+    std::vector<E_Int> flevel;
+
+    std::set<E_Int> factive;
+
+    std::map<E_Int, std::vector<E_Int>> fchildren;
+
+    std::map<uEdge, E_Int> ecenter;
+
     DynMesh();
 
     DynMesh(Karray *karray);
@@ -58,8 +67,6 @@ struct DynMesh {
 
     void make_face_centers(const E_Int NF, const E_Int *skin,
         Vec3f *fc);
-
-    void smooth_skin_ref_data(SkinGraph *skin_graph, E_Int *fdat);
 
     bool point_in_tri(const Point *p, E_Int tid) const;
 
@@ -75,38 +82,28 @@ struct DynMesh {
 
     void make_skin_neighbours(SkinGraph *skin_graph);
 
+    void init_adaptation_data(E_Int *tagged_faces, E_Int count);
+
+    void init_adaptation_data();
+
+    void prepare_for_refinement(ArrayI *ref_faces);
+
+    void refine_faces(ArrayI *ref_faces);
 
     inline bool face_is_quad(E_Int face) const { return F[face].size() == 4; }
     
     inline bool face_is_tri(E_Int face) const { return F[face].size() == 3; }
+
+    DynMesh extract_conformized();
 
     void write_ngon(const char *fname);
 
     void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
 
     void write_face(const char *fname, E_Int fid) const;
-
-    // Adaptation
-    void init_adaptation_data();
-
-    std::vector<E_Int> smooth_ref_data(
-        const std::map<E_Int, std::vector<E_Int>> &sensor);
-
-    std::vector<E_Int> prepare_for_refinement(
-        const std::vector<E_Int> &ref_data);
-
-    std::set<E_Int> factive;
-    std::map<E_Int, std::vector<E_Int>> fchildren;
-    std::vector<E_Int> flevel;
-
-    std::map<uEdge, E_Int> ecenter;
-
-    size_t refine(const DynMesh &S);
     
     inline bool face_is_active(E_Int face) const
     { return factive.find(face) != factive.end(); }
-
-    void refine_faces(const std::vector<E_Int> &ref_faces);
 
     void resize_point_data(size_t nref_faces);
 
@@ -116,19 +113,13 @@ struct DynMesh {
 
     void refine_tri(E_Int tri);
 
-    DynMesh extract_conformized();
-
     void get_fleaves(E_Int face, std::vector<E_Int> &fleaves);
 
-    PyObject *export_karray(E_Int remove_periodic = 0);
+    PyObject *export_karray();
 
-    PyObject *export_karray_orig();
-
-    PyObject *export_karray_periodic();
+    void extract_edge_points(E_Int a, E_Int b, std::list<E_Int> &points);
 
     /* TOPO */
-
-    
 
     void flag_and_get_external_faces(std::vector<E_Int> &fflags,
         std::vector<E_Int> &efaces);

@@ -136,3 +136,35 @@ E_Int Mesh_smooth_cref(Mesh *M)
 
     return 0;
 }
+
+// TODO(Imad): exactly the same as Mesh_smooth_cref...
+void Mesh_smooth_cell_refinement_data(Mesh *M)
+{
+    E_Int nc = M->nc;
+
+    std::stack<E_Int> stk;
+
+    for (E_Int cid = 0; cid < nc; cid++) {
+        if (M->cref[cid] > 0)
+            stk.push(cid);
+    }
+
+    while (!stk.empty()) {
+        E_Int cid = stk.top();
+        stk.pop();
+
+        E_Int nn, neis[24];
+        Mesh_get_cneis(M, cid, nn, neis);
+
+        for (E_Int i = 0; i < nn; i++) {
+            E_Int nei = neis[i];
+            E_Int incr_nei = M->cref[nei] + M->clevel[nei];
+            E_Int incr_cid = M->cref[cid] + M->clevel[cid];
+            E_Int diff = abs(incr_nei - incr_cid);
+            if (diff <= 1) continue;
+            E_Int idx_to_modify = incr_cid > incr_nei ? nei : cid;
+            M->cref[idx_to_modify] += diff-1;
+            stk.push(idx_to_modify);
+        }
+    }
+}

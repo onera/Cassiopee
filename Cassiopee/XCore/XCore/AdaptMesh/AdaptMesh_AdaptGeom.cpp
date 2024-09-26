@@ -67,42 +67,6 @@ void locate_points_in_skin
     }
 }
 
-void smooth_skin_ref_data(Mesh *M, const SkinGraph *skin_graph, E_Int *fdat)
-{
-    E_Int nf = skin_graph->nf;
-
-    std::stack<E_Int> stk;
-
-    for (E_Int i = 0; i < nf; i++) {
-        if (fdat[i] > 0)
-            stk.push(i);
-    }
-
-    const E_Int *xadj = skin_graph->xadj;
-    const E_Int *fnei = skin_graph->fnei;
-
-    while (!stk.empty()) {
-
-        E_Int fid = stk.top();
-        stk.pop();
-
-        E_Int start = xadj[fid];
-        E_Int nneis = xadj[fid+1] - start;
-        const E_Int *neis = &fnei[start];
-
-        for (E_Int i = 0; i < nneis; i++) {
-            E_Int nei = neis[i];
-            E_Int incr_nei = fdat[nei] + M->flevel[skin_graph->skin[nei]];
-            E_Int incr_fid = fdat[fid] + M->flevel[skin_graph->skin[fid]];
-            E_Int diff = abs(incr_nei - incr_fid);
-            if (diff <= 1) continue;
-            E_Int idx_to_modify = incr_fid > incr_nei ? nei : fid;
-            fdat[idx_to_modify] += diff-1;
-            stk.push(idx_to_modify);
-        }
-    }
-}
-
 void init_skin_refinement_cells(const SkinGraph *skin_graph,
     const E_Int *fdat, Mesh *M, E_Int *rcount)
 {
@@ -121,37 +85,6 @@ void init_skin_refinement_cells(const SkinGraph *skin_graph,
     }
 
     *rcount = count;
-}
-
-void smooth_cell_refinement_data(Mesh *M)
-{
-    E_Int nc = M->nc;
-
-    std::stack<E_Int> stk;
-
-    for (E_Int cid = 0; cid < nc; cid++) {
-        if (M->cref[cid] > 0)
-            stk.push(cid);
-    }
-
-    while (!stk.empty()) {
-        E_Int cid = stk.top();
-        stk.pop();
-
-        E_Int nn, neis[24];
-        Mesh_get_cneis(M, cid, nn, neis);
-
-        for (E_Int i = 0; i < nn; i++) {
-            E_Int nei = neis[i];
-            E_Int incr_nei = M->cref[nei] + M->clevel[nei];
-            E_Int incr_cid = M->cref[cid] + M->clevel[cid];
-            E_Int diff = abs(incr_nei - incr_cid);
-            if (diff <= 1) continue;
-            E_Int idx_to_modify = incr_cid > incr_nei ? nei : cid;
-            M->cref[idx_to_modify] += diff-1;
-            stk.push(idx_to_modify);
-        }
-    }
 }
 
 void Mesh_set_face_as_cell_bottom(Mesh *M, E_Int fid, E_Int cid)
@@ -566,6 +499,8 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < tag_size; i++) {
         S.ftag[tagged_faces[i]] = 1;
     }
+    //S.init_adaptation_data(tagged_faces, tag_size);
+    S.init_adaptation_data();
 
     // Refine M volumetric wrt to S tagged faces point cloud
     // Refine S surfacic wrt to M tagged faces point cloud
@@ -620,7 +555,6 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             Mesh_SkinGraph_compute_normals(M, &skin_graph);
 
             E_Int *xadj = skin_graph.xadj;
-            E_Int *fpts = skin_graph.fpts;
             E_Int *fnei = skin_graph.fnei;
             Vec3f *fnml = skin_graph.fnml;
 
@@ -646,7 +580,6 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
                 E_Int start = xadj[fid];
                 E_Int end = xadj[fid+1];
                 E_Int stride = end - start;
-                E_Int *pp = &fpts[start];
                 E_Int *pn = &fnei[start];
 
                 Vec3f *fid_nml = &fnml[fid];
@@ -657,7 +590,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 
                     Vec3f *nei_nml = &fnml[nei];
                     E_Float dp = K_MATH::dot((E_Float *)fid_nml, (E_Float *)nei_nml, 3);
-                    assert(dp >= 0.0);
+                    //assert(dp >= 0.0);
                     dp = std::max(dp, -1.0);
                     dp = std::min(dp, 1.0);
                     E_Float theta = acos(dp) * 180.0 / K_MATH::PI;
@@ -737,7 +670,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
                 }
             }
 
-            assert(cvisit = M->nc);
+            assert(cvisit == M->nc);
 
             XFREE(visited);
             XFREE(fqueue);
@@ -765,7 +698,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
                 E_Int idx_in_skin = indices[rfaces.ptr[i]];
                 fdat[idx_in_skin] = 1;
             }
-            smooth_skin_ref_data(M, &skin_graph, fdat);
+            SkinGraph_smooth_ref_data(&skin_graph, fdat, M);
             puts("Face refinement smoothed out");
             
             E_Int smooth_nfref = 0;
@@ -785,7 +718,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             if (ref_cell_count == 0) break;
 
             // Smooth cell refinement data
-            smooth_cell_refinement_data(M);
+            Mesh_smooth_cell_refinement_data(M);
             puts("Cell refinement smoothed out");
 
             // Assign refinement data
@@ -840,9 +773,9 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         // Extract mpoints from tagged mfaces
         ArrayI mpoints;
         Mesh_extract_points_from_ftag(M, &mpoints);
-        printf("mpoints: %d\n", mpoints);
+        printf("mpoints: %d\n", mpoints.count);
         
-        //if (iter == 10)
+        /*if (iter == 10)
         {
             std::vector<Point> points;
             for (E_Int i = 0; i < mpoints.count; i++) {
@@ -852,6 +785,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             }
             points_write("mpoints", points);
         }
+        */
 
         // We need the skin connectivity graph
         skin_graph = {0};
@@ -891,6 +825,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         printf("Refinement faces: %d\n", rfaces.count);
         ref_count_S = rfaces.count;
 
+        /*
         if (iter == 2)
         {
             npy_intp dims[2];
@@ -909,6 +844,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 
             return (PyObject *)FACES;
         }
+        */
 
         if (rfaces.count > 0) {
     
@@ -919,45 +855,55 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
                 E_Int idx_in_skin = indices[rfaces.ptr[i]];
                 fdat[idx_in_skin] = 1;
             }
-            S.smooth_skin_ref_data(&skin_graph, fdat);
+            SkinGraph_smooth_ref_data(&skin_graph, fdat, &S);
             puts("Face refinement smoothed out");
             
             // Assign refinement data
-            S.fref.resize(M->nf, 0);
+            S.fref.resize(S.nf, 0);
 
             E_Int smooth_nfref = 0;
             for (E_Int i = 0; i < skin_graph.nf; i++) {
                 if (fdat[i] > 0) {
                     E_Int fid = skin_graph.skin[i];
+                    assert(S.face_is_active(fid));
                     S.fref[fid] = 1;
                     smooth_nfref++;
                 }
             }
             printf("Smooth refinement face count: %d\n", smooth_nfref);
 
-            /*
             // Isolate refinement faces
             ArrayI ref_faces;
-            Mesh_isolate_refinement_faces(S, &ref_faces);
+            S.prepare_for_refinement(&ref_faces);
             printf("Refinement faces: %d\n", ref_faces.count);
             assert(ref_faces.count == smooth_nfref);
 
-            // Resize for refinement
-            E_Int face_incr = ref_faces.count * 3;
-            E_Int new_nf = S->nf + face_incr;
-            E_Int new_np = S->np + face_incr;
-            Mesh_resize_face_data(S, S->nf + ref_faces.count * 3);
-            Mesh_resize_point_data(S, ref_faces.count * 2);
-            */
+            // Refine
+            S.refine_faces(&ref_faces);
+
+            XFREE(fdat);
+            ArrayI_free(&ref_faces);
         }
-
-
 
         // FREE
 
+        BVH_free(bvh);
+        ArrayI_free(&rfaces);
+        ArrayI_free(&mpoints);
+        XFREE(mploc);
+        XFREE(indices);
+        XFREE(skin_fc);
+        SkinGraph_free(&skin_graph);
+
     } while (iter < max_iter && (ref_count_M > 0 || ref_count_S > 0));
 
-    
+    S = S.extract_conformized();
+
+    PyObject *Sout = S.export_karray();
+
+    Karray_free_ngon(sarray);
+
+    return Sout;
 
     return Py_None;
 }

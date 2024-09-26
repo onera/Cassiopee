@@ -106,7 +106,13 @@ def AdaptMesh_AdaptGeom(AM, slave, tagged_faces):
 
     keep = I.getNodeFromName(zs, 'keep')
 
-    return xcore.AdaptMesh_AdaptGeom(AM, s, tagged_faces)
+    s = xcore.AdaptMesh_AdaptGeom(AM, s, tagged_faces)
+
+    zso = I.createZoneNode("S_adapted", s)
+
+    ts = C.newPyTree(["S_adapted", zso])
+
+    return ts
 
     '''
     s, spatch = xcore.AdaptMesh_AdaptGeom(AM, s, tagged_faces)

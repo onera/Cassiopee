@@ -1,5 +1,9 @@
 #include "Skin.h"
 #include "common/mem.h"
+#include "Mesh.h"
+#include "DynMesh.h"
+
+#include <stack>
 
 void SkinGraph_free(SkinGraph *skin_graph)
 {
@@ -73,8 +77,8 @@ void SkinGraph_make_skin_neighbours(SkinGraph *skin_graph)
     const E_Int *fpts = skin_graph->fpts;
 
     skin_graph->fnei = (E_Int *)XMALLOC(xadj[nf] * sizeof(E_Int));
-    E_Int *fnei = skin_graph->fnei;
-    memset(fnei, -1, xadj[nf] * sizeof(E_Int));
+    memset(skin_graph->fnei, -1, xadj[nf] * sizeof(E_Int));
+    E_Int *fnei = skin_graph->fnei; 
 
     EdgeNode **ht = (EdgeNode **)XMALLOC(nf * sizeof(EdgeNode *));
     memset(ht, 0, nf * sizeof(EdgeNode *));
@@ -105,14 +109,88 @@ void SkinGraph_make_skin_neighbours(SkinGraph *skin_graph)
         EdgeNode *node = ht[i];
         while (node) {
             E_Int pi = xadj[node->i] + node->posi;
-            assert(fnei[pi] == -1);
+            //assert(fnei[pi] == -1);
             fnei[pi] = node->j;
             
             E_Int pj = xadj[node->j] + node->posj;
-            assert(fnei[pj] == -1);
+            //assert(fnei[pj] == -1);
             fnei[pj] = node->i;
 
             node = node->next;
+        }
+    }
+}
+
+void SkinGraph_smooth_ref_data(const SkinGraph *skin_graph, E_Int *fdat,
+    const Mesh *M)
+{
+    E_Int nf = skin_graph->nf;
+
+    std::stack<E_Int> stk;
+
+    for (E_Int i = 0; i < nf; i++) {
+        if (fdat[i] > 0)
+            stk.push(i);
+    }
+
+    const E_Int *xadj = skin_graph->xadj;
+    const E_Int *fnei = skin_graph->fnei;
+
+    while (!stk.empty()) {
+
+        E_Int fid = stk.top();
+        stk.pop();
+
+        E_Int start = xadj[fid];
+        E_Int nneis = xadj[fid+1] - start;
+        const E_Int *neis = &fnei[start];
+
+        for (E_Int i = 0; i < nneis; i++) {
+            E_Int nei = neis[i];
+            E_Int incr_nei = fdat[nei] + M->flevel[skin_graph->skin[nei]];
+            E_Int incr_fid = fdat[fid] + M->flevel[skin_graph->skin[fid]];
+            E_Int diff = abs(incr_nei - incr_fid);
+            if (diff <= 1) continue;
+            E_Int idx_to_modify = incr_fid > incr_nei ? nei : fid;
+            fdat[idx_to_modify] += diff-1;
+            stk.push(idx_to_modify);
+        }
+    }
+}
+
+void SkinGraph_smooth_ref_data(const SkinGraph *skin_graph, E_Int *fdat,
+    const DynMesh *M)
+{
+    E_Int nf = skin_graph->nf;
+
+    std::stack<E_Int> stk;
+
+    for (E_Int i = 0; i < nf; i++) {
+        if (fdat[i] > 0)
+            stk.push(i);
+    }
+
+    const E_Int *xadj = skin_graph->xadj;
+    const E_Int *fnei = skin_graph->fnei;
+
+    while (!stk.empty()) {
+
+        E_Int fid = stk.top();
+        stk.pop();
+
+        E_Int start = xadj[fid];
+        E_Int nneis = xadj[fid+1] - start;
+        const E_Int *neis = &fnei[start];
+
+        for (E_Int i = 0; i < nneis; i++) {
+            E_Int nei = neis[i];
+            E_Int incr_nei = fdat[nei] + M->flevel[skin_graph->skin[nei]];
+            E_Int incr_fid = fdat[fid] + M->flevel[skin_graph->skin[fid]];
+            E_Int diff = abs(incr_nei - incr_fid);
+            if (diff <= 1) continue;
+            E_Int idx_to_modify = incr_fid > incr_nei ? nei : fid;
+            fdat[idx_to_modify] += diff-1;
+            stk.push(idx_to_modify);
         }
     }
 }

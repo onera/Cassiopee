@@ -80,8 +80,8 @@ Smesh::Smesh(const IMesh &M)
         nf++;
     }
 
-    assert(np == g2lp.size());
-    assert(np == l2gp.size());
+    assert((size_t)np == g2lp.size());
+    assert((size_t)np == l2gp.size());
 
     // Get the points
     //np = g2lp.size();
@@ -140,7 +140,7 @@ void Smesh::make_edges()
         }
     }
 
-    assert(ne == E.size());
+    assert((size_t)ne == E.size());
 
     // Make edge_to_face
     E2F.resize(ne, {-1,-1});

@@ -61,7 +61,6 @@ void Mesh_extract_faces_from_ftag(const Mesh *M, FaceSort **mfaces,
     assert(*mcount == count);
 }
 
-static
 void Mesh_extract_skin(const Mesh *M, E_Int *count, E_Int **skin)
 {
     *count = 0;
@@ -79,7 +78,6 @@ void Mesh_extract_skin(const Mesh *M, E_Int *count, E_Int **skin)
     }
 }
 
-static
 void Mesh_make_skin_connectivity(const Mesh *M, SkinGraph *skin_graph)
 {
     // Count
