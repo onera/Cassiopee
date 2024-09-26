@@ -69,19 +69,25 @@ C._initVars(sp1, 'centers:keep', 0.0)
 zp = I.getZones(sp)[0]
 zp1 = I.getZones(sp1)[0]
 sp = T.merge([zp, zp1])
-C.convertPyTree2File(sp, "sp.cgns")
 sfaces = X.extractFacesFromPointTag(sp, "tag")
+print(len(sfaces))
+cont = I.createUniqueChild(I.getZones(sp)[0], 'ZoneBC', 'ZoneBC_t')
+I.newBC(name='CONTACT', pointList=sfaces[:]+1, btype='BCWall', parent=cont)
+C.convertPyTree2File(sp, "sp.cgns")
+
 
 # AdaptGeom
 
 AM = X.AdaptMesh_Init(mm)
 
-sfaces = X.AdaptMesh_AdaptGeom(AM, sp, sfaces)
-cont = I.createUniqueChild(I.getZones(sp)[0], 'ZoneBC', 'ZoneBC_t')
-I.newBC(name='CONTACT', pointList=sfaces, btype='BCWall', parent=cont)
-C.convertPyTree2File(sp, "sp.cgns")
+#sfaces = X.AdaptMesh_AdaptGeom(AM, sp, sfaces)
+#cont = I.createUniqueChild(I.getZones(sp)[0], 'ZoneBC', 'ZoneBC_t')
+#I.newBC(name='CONTACT', pointList=sfaces, btype='BCWall', parent=cont)
+sa = X.AdaptMesh_AdaptGeom(AM, sp, sfaces)
+C.convertPyTree2File(sa, "sa.cgns")
 
-mp = X.AdaptMesh_ExtractMesh(AM)
-C.convertPyTree2File(mp, "mp.cgns")
+ma = X.AdaptMesh_ExtractMesh(AM)
+C.convertPyTree2File(ma, "ma.cgns")
 
-#C.convertPyTree2File(si, "si.cgns")
+X.IntersectMesh_Exit(IM)
+X.AdaptMesh_Exit(AM)
