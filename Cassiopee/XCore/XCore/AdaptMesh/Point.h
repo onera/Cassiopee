@@ -17,7 +17,7 @@ struct PointFaces {
     E_Int ptr[MAX_FACES_PER_POINT];
 };
 
-bool point_in_tri(E_Float px, E_Float py, E_Float pz,
+bool Point_in_tri(E_Float px, E_Float py, E_Float pz,
     E_Float ax, E_Float ay, E_Float az,
     E_Float bx, E_Float by, E_Float bz,
     E_Float cx, E_Float cy, E_Float cz);

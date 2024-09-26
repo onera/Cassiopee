@@ -5,7 +5,7 @@ bool Mesh_point_in_tri(const Mesh *M, const Point *p, E_Int tid)
 {
     const E_Int *face = Mesh_get_face(M, tid);
     E_Int A = face[0], B = face[2], C = face[4];
-    return point_in_tri(p->x, p->y, p->z,
+    return Point_in_tri(p->x, p->y, p->z,
                         M->X[A], M->Y[A], M->Z[A],
                         M->X[B], M->Y[B], M->Z[B],
                         M->X[C], M->Y[C], M->Z[C]);
@@ -25,14 +25,14 @@ bool Mesh_point_in_quad(const Mesh *M, const Point *p, E_Int qid)
     bool hit = false;
 
     // First triangle
-    hit = point_in_tri(p->x, p->y, p->z,
+    hit = Point_in_tri(p->x, p->y, p->z,
                        O[0], O[1], O[2],
                        M->X[A], M->Y[A], M->Z[A],
                        M->X[B], M->Y[B], M->Z[B]);
     if (hit) return true;
 
     // Second triangle
-    hit = point_in_tri(p->x, p->y, p->z,
+    hit = Point_in_tri(p->x, p->y, p->z,
                        O[0], O[1], O[2],
                        M->X[B], M->Y[B], M->Z[B],
                        M->X[C], M->Y[C], M->Z[C]);
@@ -40,14 +40,14 @@ bool Mesh_point_in_quad(const Mesh *M, const Point *p, E_Int qid)
 
 
     // Third triangle
-    hit = point_in_tri(p->x, p->y, p->z,
+    hit = Point_in_tri(p->x, p->y, p->z,
                        O[0], O[1], O[2],
                        M->X[C], M->Y[C], M->Z[C],
                        M->X[D], M->Y[D], M->Z[D]);
     if (hit) return true;
 
     // Fourth triangle
-    hit = point_in_tri(p->x, p->y, p->z,
+    hit = Point_in_tri(p->x, p->y, p->z,
                        O[0], O[1], O[2],
                        M->X[D], M->Y[D], M->Z[D],
                        M->X[A], M->Y[A], M->Z[A]);

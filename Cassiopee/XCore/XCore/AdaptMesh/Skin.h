@@ -13,3 +13,5 @@ struct SkinGraph {
 };
 
 void SkinGraph_free(SkinGraph *skin_graph);
+
+void SkinGraph_make_skin_neighbours(SkinGraph *skin_graph);

@@ -5,7 +5,7 @@
 #include "Array.h"
 #include "common/mem.h"
 
-bool point_in_tri(E_Float px, E_Float py, E_Float pz,
+bool Point_in_tri(E_Float px, E_Float py, E_Float pz,
     E_Float ax, E_Float ay, E_Float az,
     E_Float bx, E_Float by, E_Float bz,
     E_Float cx, E_Float cy, E_Float cz)
@@ -101,6 +101,8 @@ void PointFaces_extract_by_threshold
         if (ftag[i] > threshold)
             *ptr++ = i;//skin[i];
     }
+
+    XFREE(ftag);
 }
 
 void points_write(const char *fname, const std::vector<Point> &P)

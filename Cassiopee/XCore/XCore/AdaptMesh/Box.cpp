@@ -1,6 +1,7 @@
 #include "Box.h"
 #include "Mesh.h"
 #include "FaceSort.h"
+#include "DynMesh.h"
 
 Box3 Box3_make
 (
@@ -88,6 +89,87 @@ Box3 Box3_make
                 if (M->Y[pid] > ymax) ymax = M->Y[pid];
                 if (M->Z[pid] > zmax) zmax = M->Z[pid];
             }
+        }
+    }
+
+    // Safety
+    E_Float dx = (xmax - xmin) * 0.01;
+    E_Float dy = (ymax - ymin) * 0.01;
+    E_Float dz = (zmax - zmin) * 0.01;
+    xmin -= dx;
+    ymin -= dy;
+    zmin -= dz;
+    xmax += dx;
+    ymax += dy;
+    zmax += dz;
+
+    return {xmin, ymin, zmin, xmax, ymax, zmax};
+}
+
+/* DynMesh */
+
+Box3 Box3_make
+(
+    const DynMesh *M,
+    const FaceSort *mfaces,
+    E_Int start, E_Int end
+)
+{
+    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
+    xmin = ymin = zmin = FLT_MAX;
+    xmax = ymax = zmax = -FLT_MAX;
+
+    for (E_Int i = start; i < end; i++) {
+        E_Int fid = mfaces[i].fid;
+        const auto &pn = M->F[fid];
+        
+        for (E_Int pid : pn) {
+            if (M->X[pid] < xmin) xmin = M->X[pid];
+            if (M->Y[pid] < ymin) ymin = M->Y[pid];
+            if (M->Z[pid] < zmin) zmin = M->Z[pid];
+            if (M->X[pid] > xmax) xmax = M->X[pid];
+            if (M->Y[pid] > ymax) ymax = M->Y[pid];
+            if (M->Z[pid] > zmax) zmax = M->Z[pid];
+        }
+    }
+
+    // Safety
+    E_Float dx = (xmax - xmin) * 0.01;
+    E_Float dy = (ymax - ymin) * 0.01;
+    E_Float dz = (zmax - zmin) * 0.01;
+    xmin -= dx;
+    ymin -= dy;
+    zmin -= dz;
+    xmax += dx;
+    ymax += dy;
+    zmax += dz;
+
+    return {xmin, ymin, zmin, xmax, ymax, zmax};
+}
+
+Box3 Box3_make
+(
+    const DynMesh *M,
+    const E_Int *skin,
+    const E_Int *indices,
+    E_Int start, E_Int end
+)
+{
+    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
+    xmin = ymin = zmin = FLT_MAX;
+    xmax = ymax = zmax = -FLT_MAX;
+
+    for (E_Int i = start; i < end; i++) {
+        E_Int fid = skin[indices[i]];
+        const auto &pn = M->F[fid];
+
+        for (E_Int pid : pn) {
+            if (M->X[pid] < xmin) xmin = M->X[pid];
+            if (M->Y[pid] < ymin) ymin = M->Y[pid];
+            if (M->Z[pid] < zmin) zmin = M->Z[pid];
+            if (M->X[pid] > xmax) xmax = M->X[pid];
+            if (M->Y[pid] > ymax) ymax = M->Y[pid];
+            if (M->Z[pid] > zmax) zmax = M->Z[pid];
         }
     }
 

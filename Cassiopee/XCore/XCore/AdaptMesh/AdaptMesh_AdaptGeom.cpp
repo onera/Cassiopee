@@ -6,36 +6,66 @@
 #include "Point.h"
 #include "Skin.h"
 #include "Vec.h"
+#include "DynMesh.h"
+#include <stack>
 
 // TODO(Imad): sorting routines
 
-void locate_spoints_in_mskin
+void locate_points_in_skin
 (
-    const Mesh *S,
-    const ArrayI *spoints,
-    const Mesh *M,
+    const Mesh *source,
+    const ArrayI *points,
+    const DynMesh *target,
     const E_Int *skin,
     const E_Int *indices,
     const BVH_node *bvh,
-    PointFaces *sploc
+    PointFaces *ploc
 )
 {
-    for (E_Int i = 0; i < spoints->count; i++) {
-        E_Int spid = spoints->ptr[i];
-        const Point p = {S->X[spid], S->Y[spid], S->Z[spid]};
-        PointFaces *pfaces = &sploc[i];
-        assert(Point_in_Box3D(&p, &bvh->box));
-        BVH_locate_point(bvh, M, skin, indices, &p, pfaces);
+    for (E_Int i = 0; i < points->count; i++) {
+        E_Int pid = points->ptr[i];
+        const Point p = {source->X[pid], source->Y[pid], source->Z[pid]};
+        PointFaces *pfaces = &ploc[i];
+        //assert(Point_in_Box3D(&p, &bvh->box));
+        BVH_locate_point(bvh, target, skin, indices, &p, pfaces);
+        /*
         if (pfaces->count == 0) {
             fprintf(stderr, "bvh_locate: failed at point index %d (%d)!\n",
                 i, spid);
             point_write(&p);
             abort();
         }
+        */
     }
 }
 
-#include <stack>
+void locate_points_in_skin
+(
+    const DynMesh *source,
+    const ArrayI *points,
+    const Mesh *target,
+    const E_Int *skin,
+    const E_Int *indices,
+    const BVH_node *bvh,
+    PointFaces *ploc
+)
+{
+    for (E_Int i = 0; i < points->count; i++) {
+        E_Int pid = points->ptr[i];
+        const Point p = {source->X[pid], source->Y[pid], source->Z[pid]};
+        PointFaces *pfaces = &ploc[i];
+        //assert(Point_in_Box3D(&p, &bvh->box));
+        BVH_locate_point(bvh, target, skin, indices, &p, pfaces);
+        /*
+        if (pfaces->count == 0) {
+            fprintf(stderr, "bvh_locate: failed at point index %d (%d)!\n",
+                i, spid);
+            point_write(&p);
+            abort();
+        }
+        */
+    }
+}
 
 void smooth_skin_ref_data(Mesh *M, const SkinGraph *skin_graph, E_Int *fdat)
 {
@@ -484,11 +514,13 @@ void Mesh_refine_dir(Mesh *M, ArrayI *ref_cells, ArrayI *ref_faces)
     }
 }
 
+#include "Karray.h"
+
 PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 {
-    PyObject *AMESH, *SMESH;
+    PyObject *AMESH, *SLAVE, *TAGGED_FACES;
 
-    if (!PYPARSETUPLE_(args, OO_, &AMESH, &SMESH)) {
+    if (!PYPARSETUPLE_(args, OOO_, &AMESH, &SLAVE, &TAGGED_FACES)) {
         RAISE("Wrong input.");
         return NULL;
     }
@@ -498,33 +530,60 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyCapsule_IsValid(SMESH, "AdaptMesh")) {
-        RAISE("Bad second AdaptMesh hook.");
-        return NULL;
-    }
-
     Mesh *M = (Mesh *)PyCapsule_GetPointer(AMESH, "AdaptMesh");
-    Mesh *S = (Mesh *)PyCapsule_GetPointer(SMESH, "AdaptMesh");
 
     if (M->npc > 1) {
         RAISE("AdaptGeom is sequential.");
         return NULL;
     }
 
+    Karray sarray;
+
+    E_Int ret;
+
+    ret = Karray_parse_ngon(SLAVE, sarray);
+
+    if (ret != 0) {
+        RAISE("Bad slave mesh.");
+        return NULL;
+    }
+
+    puts("Preparing meshes for intersection...");
+
+    // Check slave point tags
+    E_Int *tagged_faces = NULL;
+    E_Int tag_size = -1;
+    ret = K_NUMPY::getFromNumpyArray(TAGGED_FACES, tagged_faces, tag_size, true);
+    if (ret != 1) {
+        Karray_free_ngon(sarray);
+        RAISE("Bad slave points tag.");
+        return NULL;
+    }
+ 
+    // Init slave mesh
+    DynMesh S(&sarray);
+    S.orient_skin(OUT);
+    for (E_Int i = 0; i < tag_size; i++) {
+        S.ftag[tagged_faces[i]] = 1;
+    }
+
     // Refine M volumetric wrt to S tagged faces point cloud
     // Refine S surfacic wrt to M tagged faces point cloud
 
-    //E_Int ref_M = 0;
-    E_Int ref_S = 0;
     E_Int iter = 0;
     E_Int max_iter = 10;
+    E_Int ref_count_M, ref_count_S;
+
     do {
         iter++;
-        printf("iter: %d\n", iter);
+        
+        /************************** M refinement **************************/
+    
+        printf("\niter: %d\n", iter);
 
         // Extract spoints from tagged sfaces
         ArrayI spoints;
-        Mesh_extract_points_from_ftag(S, &spoints);
+        S.extract_points_from_ftag(&spoints);
         
         // We need the skin connectivity graph
         SkinGraph skin_graph = {0};
@@ -547,28 +606,14 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         PointFaces *sploc =
             (PointFaces *)XMALLOC(spoints.count * sizeof(PointFaces));
         memset(sploc, 0, spoints.count * sizeof(PointFaces));
-        locate_spoints_in_mskin
+        locate_points_in_skin
         (
-            S, &spoints,
+            &S, &spoints,
             M, skin_graph.skin, indices,
             bvh,
             sploc
         );
         puts("Points located");
-
-
-        // Isolate faces that contain more than MAX_POINTS_PER_FACE spoints
-        ArrayI rfaces;
-        PointFaces_extract_by_threshold
-        (
-            sploc, spoints.count,
-            skin_graph.skin, skin_graph.nf,
-            1, // threshold
-            &rfaces
-        );
-        puts("Refinement faces isolated");
-        printf("Refinement faces: %d\n", rfaces.count);
-        if (rfaces.count == 0) break;
 
         if (iter == 1) {
             // We need the skin face normals
@@ -586,8 +631,8 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             E_Int *fqueue = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
             memset(fqueue, -1, skin_graph.nf * sizeof(E_Int));
 
-            // Start from the first rface
-            E_Int fseed = indices[rfaces.ptr[0]];
+            // Start from the first mface
+            E_Int fseed = indices[sploc[0].ptr[0]];
 
             E_Int front = 0, rear = 0;
             fqueue[rear++] = fseed;
@@ -625,29 +670,14 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
                 }
             }
 
-            /*
-            {
-                npy_intp dims[2];
-                dims[1] = 1;
-                dims[0] = (npy_intp)nvisited;
-                PyArrayObject *FACES = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-
-                E_Int *pf = (E_Int *)PyArray_DATA(FACES);
-                E_Int *ptr = pf;
-                for (E_Int i = 0; i < skin_graph.nf; i++) {
-                    if (visited[i]) {
-                        *ptr++ = skin_graph.skin[i]+1;
-                    }
-                }
-
-                return (PyObject *)FACES;
-            }
-            */
-
             // Set the base patch
             E_Int cvisit = 0;
             for (E_Int i = 0; i < skin_graph.nf; i++) {
                 if (visited[i] == 0) continue;
+
+                // Tag this face for later
+                assert(M->ftag[skin_graph.skin[i]] == 0);
+                M->ftag[skin_graph.skin[i]] = 1;
 
                 E_Int fid = skin_graph.skin[i];
                 E_Int cid = M->owner[fid];
@@ -712,107 +742,220 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
             XFREE(visited);
             XFREE(fqueue);
         }
-    
-        // Smooth face refinement data
-        E_Int *fdat = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
-        memset(fdat, 0, skin_graph.nf * sizeof(E_Int));
-        for (E_Int i = 0; i < rfaces.count; i++) {
-            E_Int idx_in_skin = indices[rfaces.ptr[i]];
-            fdat[idx_in_skin] = 1;
-        }
-        smooth_skin_ref_data(M, &skin_graph, fdat);
-        puts("Face refinement smoothed out");
+
+        // Isolate faces that contain more than MAX_POINTS_PER_FACE spoints
+        ArrayI rfaces;
+        PointFaces_extract_by_threshold
+        (
+            sploc, spoints.count,
+            skin_graph.skin, skin_graph.nf,
+            1, // threshold
+            &rfaces
+        );
+        puts("Refinement faces isolated");
+        printf("Refinement faces: %d\n", rfaces.count);
+        ref_count_M = rfaces.count;
         
-        E_Int smooth_nfref = 0;
-        for (E_Int i = 0; i < skin_graph.nf; i++) {
-            if (fdat[i] > 0) smooth_nfref++;
-        }
-        printf("Smooth refinement face count: %d\n", smooth_nfref);
-
-        /*
-        if (iter == 1) {
-            npy_intp dims[2];
-            dims[1] = 1;
-            dims[0] = (npy_intp)smooth_nfref;
-            PyArrayObject *FACES = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-
-            E_Int *pf = (E_Int *)PyArray_DATA(FACES);
-            E_Int *ptr = pf;
-            for (E_Int i = 0; i < skin_graph.nf; i++) {
-                if (fdat[i] > 0) {
-                    *ptr++ = skin_graph.skin[i]+1;
-                }
+        if (rfaces.count > 0) {
+    
+            // Smooth face refinement data
+            E_Int *fdat = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
+            memset(fdat, 0, skin_graph.nf * sizeof(E_Int));
+            for (E_Int i = 0; i < rfaces.count; i++) {
+                E_Int idx_in_skin = indices[rfaces.ptr[i]];
+                fdat[idx_in_skin] = 1;
             }
-            //puts("");
-            return (PyObject *)FACES;
+            smooth_skin_ref_data(M, &skin_graph, fdat);
+            puts("Face refinement smoothed out");
+            
+            E_Int smooth_nfref = 0;
+            for (E_Int i = 0; i < skin_graph.nf; i++) {
+                if (fdat[i] > 0) smooth_nfref++;
+            }
+            printf("Smooth refinement face count: %d\n", smooth_nfref);
+
+            // Allocate
+            M->cref = (E_Int *)XRESIZE(M->cref, M->nc * sizeof(E_Int));
+            memset(M->cref, 0, M->nc * sizeof(E_Int));
+
+            // Cells
+            E_Int ref_cell_count;
+            init_skin_refinement_cells(&skin_graph, fdat, M, &ref_cell_count);
+            printf("Refinement cells: %d\n", ref_cell_count);
+            if (ref_cell_count == 0) break;
+
+            // Smooth cell refinement data
+            smooth_cell_refinement_data(M);
+            puts("Cell refinement smoothed out");
+
+            // Assign refinement data
+            M->fref = (E_Int *)XRESIZE(M->fref, M->nf * sizeof(E_Int));
+            memset(M->fref, 0, M->nf * sizeof(E_Int));
+            assign_face_refinement_data(M);
+
+            // Isolate cells/faces to be refined
+            ArrayI ref_cells, ref_faces;
+            Mesh_isolate_refinement_entities(M, &ref_cells, &ref_faces);
+            printf("Refinement cells: %d\n", ref_cells.count);
+            printf("Refinement faces: %d\n", ref_faces.count);
+            
+            // Resize for refinement
+            Mesh_resize(M, &ref_cells, &ref_faces);
+            puts("Mesh resized for refinement");
+
+            // Sort entities by refinement level
+            std::sort(ref_cells.ptr, ref_cells.ptr + ref_cells.count,
+                [&] (E_Int i, E_Int j) { return M->clevel[i] > M->clevel[j]; });
+            puts("Refinement cells sorted");
+            std::sort(ref_faces.ptr, ref_faces.ptr + ref_faces.count,
+                [&] (E_Int i, E_Int j) { return M->flevel[i] > M->flevel[j]; });
+            puts("Refinement faces sorted");
+            
+            // Refine
+            printf("Cells before refinement: %d\n", M->nc);
+            printf("Faces before refinement: %d\n", M->nf);
+            Mesh_refine_dir(M, &ref_cells, &ref_faces);
+
+            printf("Cells after refinement: %d\n", M->nc);
+            printf("Faces after refinement: %d\n", M->nf);
+        
+            Mesh_conformize_face_edge(M);
+
+            ArrayI_free(&ref_cells);
+            ArrayI_free(&ref_faces);
+            XFREE(fdat);
         }
-        */
-
-        // Allocate
-        M->cref = (E_Int *)XRESIZE(M->cref, M->nc * sizeof(E_Int));
-        memset(M->cref, 0, M->nc * sizeof(E_Int));
-
-        // Cells
-        E_Int ref_cell_count;
-        init_skin_refinement_cells(&skin_graph, fdat, M, &ref_cell_count);
-        printf("Refinement cells: %d\n", ref_cell_count);
-        if (ref_cell_count == 0) break;
-
-        // Smooth cell refinement data
-        smooth_cell_refinement_data(M);
-        puts("Cell refinement smoothed out");
-
-        // Assign refinement data
-        M->fref = (E_Int *)XRESIZE(M->fref, M->nf * sizeof(E_Int));
-        memset(M->fref, 0, M->nf * sizeof(E_Int));
-        assign_face_refinement_data(M);
-
-        // Isolate cells/faces to be refined
-        ArrayI ref_cells, ref_faces;
-        Mesh_isolate_refinement_entities(M, &ref_cells, &ref_faces);
-        printf("Refinement cells: %d\n", ref_cells.count);
-        printf("Refinement faces: %d\n", ref_faces.count);
-        
-        // Resize for refinement
-        Mesh_resize(M, &ref_cells, &ref_faces);
-        puts("Mesh resized for refinement");
-
-        // Sort entities by refinement level
-        std::sort(ref_cells.ptr, ref_cells.ptr + ref_cells.count,
-            [&] (E_Int i, E_Int j) { return M->clevel[i] > M->clevel[j]; });
-        puts("Refinement cells sorted");
-        std::sort(ref_faces.ptr, ref_faces.ptr + ref_faces.count,
-            [&] (E_Int i, E_Int j) { return M->flevel[i] > M->flevel[j]; });
-        puts("Refinement faces sorted");
-        
-        // Refine
-        printf("Cells before refinement: %d\n", M->nc);
-        printf("Faces before refinement: %d\n", M->nf);
-        Mesh_refine_dir(M, &ref_cells, &ref_faces);
-
-        printf("Cells after refinement: %d\n", M->nc);
-        printf("Faces after refinement: %d\n", M->nf);
-    
-        Mesh_conformize_face_edge(M);    
-        puts("");
-
 
         BVH_free(bvh);
-        ArrayI_free(&spoints);
-        ArrayI_free(&ref_cells);
-        ArrayI_free(&ref_faces);
         ArrayI_free(&rfaces);
-        SkinGraph_free(&skin_graph);
-        XFREE(fdat);
+        ArrayI_free(&spoints);
+        
         XFREE(sploc);
         XFREE(indices);
         XFREE(skin_fc);
+        SkinGraph_free(&skin_graph);
 
+        /************************** S refinement **************************/
+
+        // Extract mpoints from tagged mfaces
+        ArrayI mpoints;
+        Mesh_extract_points_from_ftag(M, &mpoints);
+        printf("mpoints: %d\n", mpoints);
         
+        //if (iter == 10)
+        {
+            std::vector<Point> points;
+            for (E_Int i = 0; i < mpoints.count; i++) {
+                E_Int p = mpoints.ptr[i];
+                Point point = {M->X[p], M->Y[p], M->Z[p]};
+                points.push_back(point);
+            }
+            points_write("mpoints", points);
+        }
+
+        // We need the skin connectivity graph
+        skin_graph = {0};
+        S.make_skin_graph(&skin_graph);
+        printf("Skin: %d faces\n", skin_graph.nf);
+
+        // BVH the skin
+        skin_fc = (Vec3f *)XCALLOC(skin_graph.nf, sizeof(Vec3f));
+        S.make_face_centers(skin_graph.nf, skin_graph.skin, skin_fc);
+        indices = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
+        for (E_Int i = 0; i < skin_graph.nf; i++) indices[i] = i;
+        bvh = BVH_make(&S, skin_graph.skin, skin_fc, indices, 0,
+            skin_graph.nf, &huge);
+        puts("BVH constructed");
+
+        // Locate mpoints in skin
+        PointFaces *mploc =
+            (PointFaces *)XCALLOC(mpoints.count, sizeof(PointFaces));
+        locate_points_in_skin
+        (
+            M, &mpoints,
+            &S, skin_graph.skin, indices,
+            bvh,
+            mploc
+        );
+        puts("Points located");
+
+        // Isolate faces that contain more than MAX_POINTS_PER_FACE mpoints
+        PointFaces_extract_by_threshold
+        (
+            mploc, mpoints.count,
+            skin_graph.skin, skin_graph.nf,
+            1, // threshold
+            &rfaces
+        );
+        puts("Refinement faces isolated");
+        printf("Refinement faces: %d\n", rfaces.count);
+        ref_count_S = rfaces.count;
+
+        if (iter == 2)
+        {
+            npy_intp dims[2];
+
+            // faces array
+            dims[1] = 1;
+            dims[0] = (npy_intp)rfaces.count;
+        
+            PyArrayObject *FACES = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+            E_Int *pf = (E_Int *)PyArray_DATA(FACES);
+            E_Int *ptr = pf;
+
+            for (E_Int j = 0; j < rfaces.count; j++) {
+                *ptr++ = skin_graph.skin[indices[rfaces.ptr[j]]]+1;
+            }
+
+            return (PyObject *)FACES;
+        }
+
+        if (rfaces.count > 0) {
+    
+            // Smooth face refinement data
+            E_Int *fdat = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
+            memset(fdat, 0, skin_graph.nf * sizeof(E_Int));
+            for (E_Int i = 0; i < rfaces.count; i++) {
+                E_Int idx_in_skin = indices[rfaces.ptr[i]];
+                fdat[idx_in_skin] = 1;
+            }
+            S.smooth_skin_ref_data(&skin_graph, fdat);
+            puts("Face refinement smoothed out");
+            
+            // Assign refinement data
+            S.fref.resize(M->nf, 0);
+
+            E_Int smooth_nfref = 0;
+            for (E_Int i = 0; i < skin_graph.nf; i++) {
+                if (fdat[i] > 0) {
+                    E_Int fid = skin_graph.skin[i];
+                    S.fref[fid] = 1;
+                    smooth_nfref++;
+                }
+            }
+            printf("Smooth refinement face count: %d\n", smooth_nfref);
+
+            /*
+            // Isolate refinement faces
+            ArrayI ref_faces;
+            Mesh_isolate_refinement_faces(S, &ref_faces);
+            printf("Refinement faces: %d\n", ref_faces.count);
+            assert(ref_faces.count == smooth_nfref);
+
+            // Resize for refinement
+            E_Int face_incr = ref_faces.count * 3;
+            E_Int new_nf = S->nf + face_incr;
+            E_Int new_np = S->np + face_incr;
+            Mesh_resize_face_data(S, S->nf + ref_faces.count * 3);
+            Mesh_resize_point_data(S, ref_faces.count * 2);
+            */
+        }
+
+
 
         // FREE
 
-    } while (iter < max_iter);
+    } while (iter < max_iter && (ref_count_M > 0 || ref_count_S > 0));
 
     
 

@@ -4,6 +4,7 @@
 
 struct Mesh;
 struct FaceSort;
+struct DynMesh;
 
 struct Box3 {
     E_Float xmin, ymin, zmin;
@@ -34,3 +35,20 @@ Box3 Box3_make
 );
 
 void Box3_clamp(const Box3 *parent, Box3 *child);
+
+/* DynMesh */
+
+Box3 Box3_make
+(
+    const DynMesh *M,
+    const FaceSort *mfaces,
+    E_Int start, E_Int end
+);
+
+Box3 Box3_make
+(
+    const DynMesh *M,
+    const E_Int *skin,
+    const E_Int *indices,
+    E_Int start, E_Int end
+);

@@ -100,8 +100,30 @@ def AdaptMesh_TriangulateFaces(AM, faces):
 def AdaptMesh_GeneratePrisms(AM, faces):
     return xcore.AdaptMesh_GeneratePrisms(AM, faces)
 
-def AdaptMesh_AdaptGeom(AM, AS):
-    return xcore.AdaptMesh_AdaptGeom(AM, AS)
+def AdaptMesh_AdaptGeom(AM, slave, tagged_faces):
+    zs = I.getZones(slave)[0]
+    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    keep = I.getNodeFromName(zs, 'keep')
+
+    return xcore.AdaptMesh_AdaptGeom(AM, s, tagged_faces)
+
+    '''
+    s, spatch = xcore.AdaptMesh_AdaptGeom(AM, s, tagged_faces)
+
+    zso = I.createZoneNode("S_adapted", s)
+
+    zbcs = I.createUniqueChild(zso, 'ZoneBC', 'ZoneBC_t')
+
+    I.newBC(name="intersection_patch", pointList=spatch, family='UserDefined', parent=zbcs)
+
+    ts = C.newPyTree(["S_adapted", zso])
+
+    if keep is not None:
+        C._cpVars(slave, 'centers:keep', ts, 'centers:keep')
+
+    return ts
+    '''
 
 def AdaptMesh_ExtractTaggedFaces(AM):
     return xcore.AdaptMesh_ExtractTaggedFaces(AM)
