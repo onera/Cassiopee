@@ -499,8 +499,11 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < tag_size; i++) {
         S.ftag[tagged_faces[i]] = 1;
     }
-    //S.init_adaptation_data(tagged_faces, tag_size);
-    S.init_adaptation_data();
+
+    S.triangulate(tagged_faces, tag_size);
+
+    //S = S.extract_conformized();
+    //return S.export_karray();
 
     // Refine M volumetric wrt to S tagged faces point cloud
     // Refine S surfacic wrt to M tagged faces point cloud
@@ -788,17 +791,16 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         */
 
         // We need the skin connectivity graph
-        skin_graph = {0};
-        S.make_skin_graph(&skin_graph);
-        printf("Skin: %d faces\n", skin_graph.nf);
+        S.make_tri_graph();
+        printf("Skin: %lu faces\n", S.tri_graph.nf);
 
         // BVH the skin
-        skin_fc = (Vec3f *)XCALLOC(skin_graph.nf, sizeof(Vec3f));
-        S.make_face_centers(skin_graph.nf, skin_graph.skin, skin_fc);
-        indices = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
-        for (E_Int i = 0; i < skin_graph.nf; i++) indices[i] = i;
-        bvh = BVH_make(&S, skin_graph.skin, skin_fc, indices, 0,
-            skin_graph.nf, &huge);
+        skin_fc = (Vec3f *)XCALLOC(S.tri_graph.nf, sizeof(Vec3f));
+        S.make_face_centers(S.tri_graph.nf, S.tri_graph.skin.data(), skin_fc);
+        indices = (E_Int *)XMALLOC(S.tri_graph.nf * sizeof(E_Int));
+        for (size_t i = 0; i < S.tri_graph.nf; i++) indices[i] = i;
+        bvh = BVH_make(&S, S.tri_graph.skin.data(), skin_fc, indices, 0,
+            S.tri_graph.nf, &huge);
         puts("BVH constructed");
 
         // Locate mpoints in skin
@@ -807,7 +809,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         locate_points_in_skin
         (
             M, &mpoints,
-            &S, skin_graph.skin, indices,
+            &S, S.tri_graph.skin.data(), indices,
             bvh,
             mploc
         );
@@ -817,7 +819,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         PointFaces_extract_by_threshold
         (
             mploc, mpoints.count,
-            skin_graph.skin, skin_graph.nf,
+            S.tri_graph.skin.data(), S.tri_graph.nf,
             1, // threshold
             &rfaces
         );
@@ -849,44 +851,33 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
         if (rfaces.count > 0) {
     
             // Smooth face refinement data
-            E_Int *fdat = (E_Int *)XMALLOC(skin_graph.nf * sizeof(E_Int));
-            memset(fdat, 0, skin_graph.nf * sizeof(E_Int));
+            S.tri_graph.fdat.clear();
+            S.tri_graph.fdat.resize(S.tri_graph.nf, 0);
             for (E_Int i = 0; i < rfaces.count; i++) {
                 E_Int idx_in_skin = indices[rfaces.ptr[i]];
-                fdat[idx_in_skin] = 1;
+                S.tri_graph.fdat[idx_in_skin] = 1;
             }
-            SkinGraph_smooth_ref_data(&skin_graph, fdat, &S);
-            puts("Face refinement smoothed out");
             
-            // Assign refinement data
-            S.fref.resize(S.nf, 0);
-
-            E_Int smooth_nfref = 0;
-            for (E_Int i = 0; i < skin_graph.nf; i++) {
-                if (fdat[i] > 0) {
-                    E_Int fid = skin_graph.skin[i];
-                    assert(S.face_is_active(fid));
-                    S.fref[fid] = 1;
-                    smooth_nfref++;
-                }
-            }
-            printf("Smooth refinement face count: %d\n", smooth_nfref);
-
             // Isolate refinement faces
             ArrayI ref_faces;
             S.prepare_for_refinement(&ref_faces);
             printf("Refinement faces: %d\n", ref_faces.count);
-            assert(ref_faces.count == smooth_nfref);
 
             // Refine
             S.refine_faces(&ref_faces);
 
-            XFREE(fdat);
+            // Make sure to copy ftag data
+            S = S.extract_conformized();
+
+            return S.export_karray();
+            
             ArrayI_free(&ref_faces);
         }
 
         // FREE
-
+        S.tri_graph.clear();
+        S.fchildren.clear();
+        S.ecenter.clear();
         BVH_free(bvh);
         ArrayI_free(&rfaces);
         ArrayI_free(&mpoints);
@@ -897,7 +888,6 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 
     } while (iter < max_iter && (ref_count_M > 0 || ref_count_S > 0));
 
-    S = S.extract_conformized();
 
     PyObject *Sout = S.export_karray();
 

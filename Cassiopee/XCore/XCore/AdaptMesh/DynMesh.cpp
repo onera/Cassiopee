@@ -63,7 +63,7 @@ void DynMesh::extract_points_from_ftag(ArrayI *pids)
     memset(ptag, 0, np * sizeof(E_Int));
     pids->count = 0;
 
-    for (E_Int fid : factive) {
+    for (E_Int fid = 0; fid < nf; fid++) {
         if (ftag[fid] != 1) continue;
         const auto &pn = F[fid];
         
@@ -82,23 +82,6 @@ void DynMesh::extract_points_from_ftag(ArrayI *pids)
     }
 
     XFREE(ptag);
-}
-
-void DynMesh::extract_skin(E_Int *count, E_Int **skin)
-{
-    *count = 0;
-    
-    for (E_Int fid : factive) {
-        *count += (neigh[fid] == -1);
-    }
-
-    *skin = (E_Int *)XMALLOC(*count * sizeof(E_Int));
-    E_Int *ptr = *skin;
-
-    for (E_Int fid : factive) {
-        if (neigh[fid] == -1)
-            *ptr++ = fid;
-    }
 }
 
 void DynMesh::make_skin_connectivity(SkinGraph *skin_graph)
@@ -131,21 +114,14 @@ void DynMesh::make_skin_connectivity(SkinGraph *skin_graph)
     assert(ptr - skin_graph->fpts == xadj[skin_graph->nf]);
 }
 
-void DynMesh::make_skin_graph(SkinGraph *skin_graph)
-{
-    extract_skin(&skin_graph->nf, &skin_graph->skin);
-    make_skin_connectivity(skin_graph);
-    SkinGraph_make_skin_neighbours(skin_graph);
-}
-
 void DynMesh::make_face_centers(const E_Int NF, const E_Int *skin,
     Vec3f *fc)
 {
     for (E_Int i = 0; i < NF; i++) {
         fc[i].x = fc[i].y = fc[i].z = 0.0;
         E_Int fid = skin[i];
-        assert(face_is_active(fid));
         const auto &pn = F[fid];
+        assert(ftag[skin[i]] == 1);
         for (E_Int p : pn) {
             fc[i].x += X[p];
             fc[i].y += Y[p];
@@ -216,39 +192,20 @@ bool DynMesh::point_in_face(const Point *p, E_Int fid) const
     return point_in_tri(p, fid);
 }
 
-void DynMesh::init_adaptation_data(E_Int *tagged_faces, E_Int count)
-{
-    flevel.resize(nf, 0);
-
-    for (E_Int i = 0; i < count; i++) factive.insert(tagged_faces[i]);
-}
-
-void DynMesh::init_adaptation_data()
-{
-    flevel.resize(nf, 0);
-
-    for (E_Int i = 0; i < nf; i++) factive.insert(i);
-}
-
 void DynMesh::prepare_for_refinement(ArrayI *ref_faces)
 {
     ref_faces->count = 0;
-    for (E_Int fid : factive) {
-        ref_faces->count += (fref[fid] == 1);
+    for (size_t i = 0; i < tri_graph.nf; i++) {
+        ref_faces->count += (tri_graph.fdat[i] == 1);
     }
     ref_faces->ptr = (E_Int *)XMALLOC(ref_faces->count * sizeof(E_Int));
     E_Int *ptr = ref_faces->ptr;
-    for (E_Int fid = 0; fid < nf; fid++) {
-        if (fref[fid] > 0) {
-            assert(fref[fid] == 1);
-            *ptr++ = fid;
+    for (size_t i = 0; i < tri_graph.nf; i++) {
+        if (tri_graph.fdat[i] == 1) {
+            *ptr++ = i;
         }
     }
 
-    // Refine the lower-level faces first
-    std::sort(ref_faces->ptr, ref_faces->ptr + ref_faces->count,
-        [&] (E_Int i, E_Int j) { return flevel[i] < flevel[j]; });
-    
     // Resize data structures
     resize_point_data(ref_faces->count);
     resize_face_data(ref_faces->count);
@@ -256,16 +213,24 @@ void DynMesh::prepare_for_refinement(ArrayI *ref_faces)
 
 void DynMesh::refine_faces(ArrayI *ref_faces)
 {
+    tri_graph.T.resize(tri_graph.nf + ref_faces->count*4, {-1, -1, -1});
+    tri_graph.E.resize(tri_graph.nf + ref_faces->count*4, {-1, -1, -1});
+    tri_graph.skin.resize(tri_graph.nf + ref_faces->count*4, -1);
+    tri_graph.level.resize(tri_graph.nf + ref_faces->count*4, 0);
+
+    printf("Faces before refinement: %d\n", nf);
+
     for (E_Int i = 0; i < ref_faces->count; i++) {
         E_Int fid = ref_faces->ptr[i];
-        if (face_is_tri(fid)) refine_tri(fid);
-        else refine_quad(fid);
+        assert(tri_graph.level[fid] == 0);
+        assert(face_is_tri(tri_graph.skin[fid]));
+        refine_tri(fid);
     }
 }
 
 void DynMesh::resize_point_data(size_t nref_faces)
 {
-    size_t nnew_points = np + nref_faces * 5;
+    size_t nnew_points = np + nref_faces * 3;
     X.resize(nnew_points);
     Y.resize(nnew_points);
     Z.resize(nnew_points);
@@ -273,71 +238,34 @@ void DynMesh::resize_point_data(size_t nref_faces)
 
 void DynMesh::resize_face_data(size_t nref_faces)
 {
-    size_t nnew_faces = nf + nref_faces * 4;
+    size_t nnew_faces = nf + nref_faces * 4; // 3 new triangles + 1 potential neighbor triangle
     F.resize(nnew_faces);
-    flevel.resize(nnew_faces, -1);
     owner.resize(nnew_faces);
     neigh.resize(nnew_faces);
     ftag.resize(nnew_faces, 0);
 }
 
-void DynMesh::refine_tri(E_Int tri)
+E_Int DynMesh::get_edge_index(E_Int nei, E_Int tri)
 {
+    for (E_Int i = 0; i < 3; i++) {
+        if (tri_graph.E[nei][i] == tri)
+            return i;
+    }
+    return -1;
+}
+
+void DynMesh::refine_tri(E_Int tri_idx)
+{
+    assert(tri_graph.level[tri_idx] == 0);
+    puts("refining");
+    fflush(stdout);
+    E_Int tri = tri_graph.skin[tri_idx];
+
     // Refine the edges
     const auto &pn = F[tri];
     E_Int ec[3];
 
-    for (size_t i = 0; i < pn.size(); i++) {
-        E_Int p = pn[i];
-        E_Int q = pn[(i+1)%pn.size()];
-        uEdge edge(p, q);
-
-        auto it = ecenter.find(edge);
-
-        if (it == ecenter.end()) {
-            X[np] = 0.5 * (X[p] + X[q]);
-            Y[np] = 0.5 * (Y[p] + Y[q]);
-            Z[np] = 0.5 * (Z[p] + Z[q]);
-            ecenter[edge] = np;
-            ec[i] = np;
-            np++;
-        } else {
-            ec[i] = it->second;
-        }
-    }
-
-    // New face points
-    E_Int nf0 = nf, nf1 = nf+1, nf2 = nf+2, nf3 = nf+3;
-
-    F[nf0] = { pn[0], ec[0], ec[2] };
-    F[nf1] = { ec[0], pn[1], ec[1] };
-    F[nf2] = { ec[2], ec[1], pn[2] };
-    F[nf3] = { ec[0], ec[1], ec[2] };
-
-    // Disable quad and enable its children
-    factive.erase(tri);
-    factive.insert(nf0);
-    factive.insert(nf1);
-    factive.insert(nf2);
-    factive.insert(nf3);
-
-    // Set quad children pointers
-    fchildren[tri] = { nf0, nf1, nf2, nf3 };
-    flevel[nf0] = flevel[nf1] = flevel[nf2] = flevel[nf3] = flevel[tri] + 1;
-
-    ftag[nf0] = ftag[nf1] = ftag[nf2] = ftag[nf3] = ftag[tri];
-
-    neigh[nf0] = neigh[nf1] = neigh[nf2] = neigh[nf3] = neigh[tri];
-    owner[nf0] = owner[nf1] = owner[nf2] = owner[nf3] = owner[tri];
-
-    nf += 4;
-}
-
-void DynMesh::refine_quad(E_Int quad)
-{
-    // Refine the edges
-    const auto &pn = F[quad];
-    E_Int ec[4];
+    assert(pn.size() == 3);
 
     for (size_t i = 0; i < pn.size(); i++) {
         E_Int p = pn[i];
@@ -357,46 +285,208 @@ void DynMesh::refine_quad(E_Int quad)
             ec[i] = it->second;
         }
     }
+    
+    E_Int vn[3] = {pn[0], pn[1], pn[2]};
 
-    // Face centroid
+    // Create new triangles
+    F[tri]  = {vn[0], ec[0], ec[2]};
+    F[nf]   = {ec[0], vn[1], ec[1]};
+    F[nf+1] = {ec[2], ec[1], vn[2]};
+    F[nf+2] = {ec[0], ec[1], ec[2]};
 
-    X[np] = Y[np] = Z[np] = 0.0;
-    for (E_Int i = 0; i < 4; i++) {
-        E_Int p = pn[i];
-        X[np] += X[p];
-        Y[np] += Y[p];
-        Z[np] += Z[p];
+    fchildren[tri] = {nf, nf+1, nf+2};
+    ftag[nf] = ftag[nf+1] = ftag[nf+2] = ftag[tri];
+
+    // Update owners and neighbours
+    neigh[nf] = neigh[nf+1] = neigh[nf+2] = neigh[tri];
+    owner[nf] = owner[nf+1] = owner[nf+2] = owner[tri];
+
+    // Skin
+
+    // Add the new triangles
+    size_t NF = tri_graph.nf;
+    
+    auto &T = tri_graph.T;
+    auto &E = tri_graph.E;
+    
+    T[tri_idx][0] = vn[0]; T[tri_idx][1] = ec[0]; T[tri_idx][2] = ec[2];
+    assert(T[tri_idx][0] != T[tri_idx][1]);
+    assert(T[tri_idx][0] != T[tri_idx][2]);
+    assert(T[tri_idx][1] != T[tri_idx][2]);
+
+    T[NF][0]   = ec[0]; T[NF][1]   = vn[1]; T[NF][2]   = ec[1];
+    T[NF+1][0] = ec[2]; T[NF+1][1] = ec[1]; T[NF+1][2] = vn[2];
+    T[NF+2][0] = ec[0]; T[NF+2][1] = ec[1]; T[NF+2][2] = ec[2];
+    
+    E_Int N0 = NF;
+    E_Int N1 = NF+1;
+    E_Int N2 = NF+2;
+
+    E_Int A = tri_graph.E[tri_idx][0];
+    E_Int B = tri_graph.E[tri_idx][1];
+    E_Int C = tri_graph.E[tri_idx][2];
+    
+    E[tri_idx][0] = A; E[tri_idx][1] = N2; E[tri_idx][2] = C;
+    E[N0][0] = A;  E[N0][1] = B;  E[N0][2] = N2;
+    E[N1][0] = N2; E[N1][1] = B;  E[N1][2] = C;
+    E[N2][0] = N0; E[N2][1] = N1; E[N2][2] = tri_idx;
+ 
+    tri_graph.skin[NF] = nf;
+    tri_graph.skin[NF+1] = nf+1;
+    tri_graph.skin[NF+2] = nf+2;
+
+    tri_graph.level[tri_idx]++;
+    assert(tri_graph.level[tri_idx] == 1);
+    tri_graph.level[NF] = tri_graph.level[NF+1] = tri_graph.level[NF+2] = 1;
+    
+    // Increment face count
+    nf += 3; 
+    tri_graph.nf += 3;
+
+    NF = tri_graph.nf;
+
+    bool cut_A = (A != -1) && (tri_graph.level[A] == 0 && tri_graph.fdat[A] == 0); 
+    
+    if (cut_A) {
+        E_Int edge_idx = get_edge_index(A, tri_idx);
+        assert(edge_idx != -1);
+        E_Int P = T[A][(edge_idx+2)%3];
+
+        E_Int D = E[A][(edge_idx+1)%3];
+        E_Int e = E[A][(edge_idx+2)%3];
+
+        // A points and neighbours
+        T[A][0] = ec[0];   T[A][1] = vn[0]; T[A][2] = P;
+
+        // NF points and neighbours
+        T[NF][0] = ec[0]; T[NF][1] = P; T[NF][2] = vn[1];
+        
+        // e neighbours (if it exists)
+        if (e != -1) {
+            E_Int idx = get_edge_index(e, A);
+            E[e][idx] = NF;
+        }
+
+        E[A][0] = tri_idx; E[A][1] = D; E[A][2] = NF;
+        E[NF][0] = A;     E[NF][1] = e; E[NF][2] = N0;
+        
+        // N0 neighbours
+        E[N0][0] = NF;// E[N1][0] = B; E[N1][1] = N2;
+        
+        tri_graph.skin[NF] = nf;
+
+        assert(tri_graph.level[A] == 0);
+        assert(tri_graph.level[NF] == 0);
+        
+        NF += 1;
+        
+        // Global stuff
+        E_Int gA = tri_graph.skin[A];
+        F[gA] = {ec[0], vn[0], P};
+        fchildren[gA].push_back(nf);
+
+        F[nf] = {ec[0], P, vn[1]};
+        ftag[nf] = ftag[gA];
+        owner[nf] = owner[gA];
+        neigh[nf] = neigh[gA];
+
+        nf += 1;
     }
-    X[np] *= 0.25;
-    Y[np] *= 0.25;
-    Z[np] *= 0.25;
 
-    // New face points
-    E_Int nf0 = nf, nf1 = nf+1, nf2 = nf+2, nf3 = nf+3;
+    bool cut_B = (B != -1) && (tri_graph.level[B] == 0 && tri_graph.fdat[B] == 0); 
+    
+    if (cut_B) {
+        E_Int edge_idx = get_edge_index(B, tri_idx);
+        assert(edge_idx != -1);
+        E_Int P = T[B][(edge_idx+2)%3];
 
-    F[nf0] = { pn[0], ec[0], np,    ec[3] };
-    F[nf1] = { ec[0], pn[1], ec[1], np    };
-    F[nf2] = { np   , ec[1], pn[2], ec[2] };
-    F[nf3] = { ec[3], np   , ec[2], pn[3] };
+        E_Int f = E[B][(edge_idx+1)%3];
+        E_Int G = E[B][(edge_idx+2)%3];
 
-    // Disable quad and enable its children
-    factive.erase(quad);
-    factive.insert(nf0);
-    factive.insert(nf1);
-    factive.insert(nf2);
-    factive.insert(nf3);
+        // B points and neighbours
+        T[B][0] = ec[1]; T[B][1] = vn[1]; T[B][2] = P;
 
-    // Set quad children pointers
-    fchildren[quad] = { nf0, nf1, nf2, nf3 };
-    flevel[nf0] = flevel[nf1] = flevel[nf2] = flevel[nf3] = flevel[quad] + 1;
+        // NF points and neighbours
+        T[NF][0] = ec[1]; T[NF][1] = P; T[NF][2] = vn[2];
+        
+        // G neighbours (if it exists)
+        if (G != -1) {
+            E_Int idx = get_edge_index(G, B);
+            E[G][idx] = NF;
+        }
 
-    ftag[nf0] = ftag[nf1] = ftag[nf2] = ftag[nf3] = ftag[quad];
+        E[B][0] = N0;    E[B][1] = f;     E[B][2] = NF;
+        E[NF][0] = B;     E[NF][1] = G; E[NF][2] = N1;
 
-    neigh[nf0] = neigh[nf1] = neigh[nf2] = neigh[nf3] = neigh[quad];
-    owner[nf0] = owner[nf1] = owner[nf2] = owner[nf3] = owner[quad];
+        // N1 neighbours
+        E[N1][1] = NF;
+        
+        assert(tri_graph.level[B] ==  0);
+        assert(tri_graph.level[NF] == 0);
+        
+        tri_graph.skin[NF] = nf;
+        NF += 1;
+        
+        // Global stuff
+        E_Int gB = tri_graph.skin[B];
+        F[gB] = {ec[1], vn[1], P};
+        fchildren[gB].push_back(nf);
 
-    np += 1;
-    nf += 4;
+        F[nf] = {ec[1], P, vn[2]};
+        ftag[nf] = ftag[gB];
+        owner[nf] = owner[gB];
+        neigh[nf] = neigh[gB];
+
+        nf += 1;
+    }
+
+    bool cut_C = (C != -1) && (tri_graph.level[C] == 0 && tri_graph.fdat[C] == 0); 
+
+    if (cut_C) {
+        E_Int edge_idx = get_edge_index(C, tri_idx);
+        assert(edge_idx != -1);
+        E_Int P = T[C][(edge_idx+2)%3];
+
+        E_Int I = E[C][(edge_idx+1)%3];
+        E_Int H = E[C][(edge_idx+2)%3];
+        
+        // C points and neighbours
+        T[C][0] = ec[2]; T[C][1] = P; T[C][2] = vn[0];
+
+        // NF points and neighbours
+        T[NF][0] = ec[2]; T[NF][1] = vn[2]; T[NF][2] = P;
+        
+        // I neighbours (if it exists)
+        if (I != -1) {
+            E_Int idx = get_edge_index(I, C);
+            E[I][idx] = NF;
+        }
+
+        E[C][0] = NF;    E[C][1] = H; E[C][2] = tri_idx;
+        E[NF][0] = N1;    E[NF][1] = I;     E[NF][2] = C;
+        
+
+        // N1 adjacency
+        E[N1][2] = NF;
+        
+        assert(tri_graph.level[C] == 0);
+        assert(tri_graph.level[NF] == 0);
+        
+        tri_graph.skin[NF] = nf;
+        NF += 1;
+        
+        // Global stuff
+        E_Int gC = tri_graph.skin[C];
+        F[gC] = {ec[2], vn[2], P};
+        fchildren[gC].push_back(nf);
+
+        F[nf] = {ec[2], P, vn[0]};
+        ftag[nf] = ftag[gC];
+        owner[nf] = owner[gC];
+        neigh[nf] = neigh[gC];
+
+        nf += 1;
+    }
 }
 
 DynMesh DynMesh::extract_conformized()
@@ -406,18 +496,13 @@ DynMesh DynMesh::extract_conformized()
 
     // Conformize the faces
 
-    std::vector<std::vector<E_Int>> new_F(factive.size());
+    std::vector<std::vector<E_Int>> new_F(nf);
 
-    E_Int new_nf = 0;
-    
-    std::map<E_Int, E_Int> new_fids;
+    for (E_Int fid = 0; fid < nf; fid++) {
 
-    for (E_Int face : factive) {
-        new_fids[face] = new_nf;
+        const auto &pn = F[fid];
 
-        const auto &pn = F[face];
-
-        auto &new_face = new_F[new_nf];
+        auto &new_face = new_F[fid];
 
         for (size_t j = 0; j < pn.size(); j++) {
             E_Int p = pn[j];
@@ -432,8 +517,6 @@ DynMesh DynMesh::extract_conformized()
             for (auto it = epoints.begin(); it != epoints.end(); it++)
                 new_face.push_back(*it);
         }
-
-        new_nf++;
     }
 
     // Update cell connectivity
@@ -445,16 +528,16 @@ DynMesh DynMesh::extract_conformized()
 
         auto &new_cell = new_C[i];
 
-        for (E_Int face : pf) {
+        for (E_Int fid : pf) {
+            auto it = fchildren.find(fid);
 
-            if (face_is_active(face)) {
-                new_cell.push_back(new_fids[face]);
+            if (it == fchildren.end()) {
+                new_cell.push_back(fid);
             } else {
                 std::vector<E_Int> fleaves;
-                get_fleaves(face, fleaves);
-
-                for (E_Int fleaf : fleaves)
-                    new_cell.push_back(new_fids[fleaf]);
+                get_fleaves(fid, fleaves);
+                for (E_Int leaf : fleaves)
+                    new_cell.push_back(leaf);
             }
         }
     }
@@ -464,16 +547,28 @@ DynMesh DynMesh::extract_conformized()
     new_M.X = X;
     new_M.Y = Y;
     new_M.Z = Z;
-    new_M.nf = new_nf;
+    new_M.nf = nf;
     new_M.F = new_F;
     new_M.nc = nc;
     new_M.C = new_C;
+    new_M.ftag = ftag;
 
-    for (E_Int face : factive) {
-        new_M.factive.insert(new_fids[face]);
-    }
 
     return new_M;
+}
+
+void DynMesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
+{
+    fleaves.push_back(face);
+    
+    const auto it = fchildren.find(face);
+
+    if (it == fchildren.end()) {
+        return;
+    }
+    
+    for (E_Int child : it->second)
+        get_fleaves(child, fleaves);
 }
 
 PyObject *DynMesh::export_karray()
@@ -560,12 +655,116 @@ void DynMesh::extract_edge_points(E_Int a, E_Int b, std::list<E_Int> &points)
     } while (ref);
 }
 
-void DynMesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
+struct EdgeNode {
+    E_Int p, q;
+    E_Int fi, posi;
+    mutable E_Int fj, posj;
+    EdgeNode(E_Int p_, E_Int q_)
+    {
+        p = std::min(p_, q_);
+        q = std::max(p_, q_);
+        fi = posi = fj = posj = -1;
+    }
+    bool operator<(const EdgeNode &e) const
+    {
+        return (p < e.p) || (p == e.p && q < e.q);
+    }
+};
+
+void DynMesh::make_tri_graph()
 {
-    if (face_is_active(face)) {
-        fleaves.push_back(face);
-        return;
+    tri_graph.nf = 0;
+    
+    // From tagged faces
+    for (E_Int i = 0; i < nf; i++) {
+        tri_graph.nf += (ftag[i] == 1);
+    }
+    tri_graph.skin.clear();
+    tri_graph.skin.resize(tri_graph.nf);
+    E_Int *skin = tri_graph.skin.data();
+    E_Int *ptr = skin;
+    for (E_Int i = 0; i < nf; i++) {
+        if (ftag[i] == 1)
+            *ptr++ = i;
     }
 
-    for (E_Int child : fchildren.at(face)) get_fleaves(child, fleaves);
+    tri_graph.T.clear();
+    tri_graph.E.clear();
+    tri_graph.level.clear();
+
+    tri_graph.T.resize(tri_graph.nf, {-1, -1, -1});
+    tri_graph.E.resize(tri_graph.nf, {-1, -1, -1});
+    tri_graph.level.resize(tri_graph.nf, 0);
+
+    std::set<EdgeNode> edges;
+
+    for (size_t i = 0; i < tri_graph.nf; i++) {
+        E_Int fid = tri_graph.skin[i];
+        const auto &pn = F[fid];
+        assert(pn.size() == 3);
+        for (size_t j = 0; j < pn.size(); j++) {
+            E_Int p = pn[j];
+
+            tri_graph.T[i][j] = p;
+
+            E_Int q = pn[(j+1)%3];
+
+            EdgeNode node(p, q);
+            auto it = edges.find(node);
+            if (it == edges.end()) {
+                node.fi = i;
+                node.posi = j;
+                edges.insert(node);
+            } else {
+                assert(it->fi != -1);
+                assert(it->posi != -1);
+                assert(it->fj == -1);
+                assert(it->posj == -1);
+                it->fj = i;
+                it->posj = j;
+            }
+        }
+    }
+
+    for (const auto &e : edges) {
+        assert(e.fi != -1);
+        tri_graph.E[e.fi][e.posi] = e.fj;
+        if (e.fj != -1)
+            tri_graph.E[e.fj][e.posj] = e.fi;
+        else
+            assert(e.posj == -1);
+    }
+}
+
+
+void DynMesh::triangulate(const E_Int *faces, E_Int fcount)
+{
+    F.resize(nf + fcount);
+    owner.resize(nf + fcount, -1);
+    neigh.resize(nf + fcount, -1);
+    ftag.resize(nf + fcount, 0);
+
+    for (E_Int i = 0; i < fcount; i++) {
+        E_Int fid = faces[i];
+
+        auto &pn = F[fid];
+        auto &tri = F[nf];
+        
+        tri = { pn[0], pn[2], pn[3] };
+        pn = { pn[0], pn[1], pn[2] };
+
+        auto &pown = C[owner[fid]];
+        pown.push_back(nf);
+
+        if (neigh[fid] != -1) {
+            auto &pnei = C[neigh[fid]];
+            pnei.push_back(nf);
+        }
+
+        owner[nf] = owner[fid];
+        neigh[nf] = neigh[fid];
+        ftag[nf] = ftag[fid];
+
+        nf++;
+    }
 }
