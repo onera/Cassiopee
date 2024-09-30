@@ -373,13 +373,6 @@ def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     # diffusivite thermique en W/m/K
     lambdaInf = 1.5207e-11*TInf**3 -4.857e-8*TInf**2+1.0184e-4*TInf-3.9333e-4
 
-    #print('RoInf=', RoInf)
-    #print('TInf=', TInf)
-    #print('MuInf=', MuInf)
-    #print('NuInf=', NuInf)
-    #print('Pinf=', PInf)
-    #print('lambdaInf=', lambdaInf)
-
     # deduit
     RouInf1 = RoInf * UInf * math.cos(alz)
     RovInf1 = RoInf * UInf * math.sin(alz)
@@ -392,26 +385,20 @@ def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     RoEInf = RoeInf+0.5*RoInf*UInf*UInf
     aInf = math.sqrt(Gamma*PInf/RoInf)
     MInf = UInf/aInf
-    #print('aInf=', aInf)
-    #print('MInf=', MInf)
 
     eInf = RoeInf/RoInf
     cvInf = eInf/TInf
     cpInf = Gamma*cvInf
-    #print('cpInf=', cpInf)
 
     # si Mtip existe, les grandeurs visqueuses et turbulentes
     # sont prises par rapport a Mtip
     if Mtip is not None: UInf = Mtip*aInf 
 
     ReInf = UInf*LInf/NuInf
-    #print('ReInf=', ReInf)
 
     Pr = MuInf*cpInf/lambdaInf # Prandtl (sans dimension)
-    #print('Pr=', Pr)
 
     # Cs
-    #print('Cs=', Cs)
 
     # Pour k-omega
     RokInf = 1.5 * RoInf * (TurbLevelInf * UInf)**2
