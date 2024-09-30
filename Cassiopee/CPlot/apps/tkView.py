@@ -396,14 +396,14 @@ def loadSlot():
     pos = Internal.getNodesFromName(slot, 'isoScales*')
     if pos != []:
         updateIsoWidgets(); updateIsoPyTree()
-        scales = []
-        for p in pos:
-            name = p[0]
-            name = name.replace('isoScales[', '')
-            name = name[0:-2]
-            out = [name]+p[1].tolist()
-            scales.append(out)
-            if scales != []: CPlot.setState(isoScales=scales)
+    scales = []
+    for p in pos:
+        name = p[0]
+        name = name.replace('isoScales[', '')
+        name = name[0:-2]
+        out = [name]+p[1].tolist()
+        scales.append(out)
+        if scales != []: CPlot.setState(isoScales=scales)
     
     pos = Internal.getNodeFromName1(slot, 'mode')
     if pos is not None:

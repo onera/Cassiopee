@@ -118,6 +118,7 @@ E_Int __getParamHausd(const TopoDS_Edge& E, E_Float hausd, E_Int& nbPoints, E_Fl
   return 0;
 }
 
+// ============================================================================
 // Geom distrib entre u0 et u1, h0 et h1 (interieurs)
 void geom1(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& ue)
 {

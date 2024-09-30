@@ -1155,6 +1155,7 @@ def enforceLocal(event=None):
     imax = ind+1+delta
     
     CAD = Internal.getNodeFromName1(z, 'CAD')
+    render = Internal.getNodeFromName1(z, '.RenderInfo')
 
     #print("imin=",imin,"imax",imax,"ind",ind,"npts",npts)
     if imin > 1: z0 = T.subzone(z, (1,1,1), (imin,-1,-1))
@@ -1220,6 +1221,7 @@ def enforceLocal(event=None):
     if z1 is not None: zo = T.join(zo, z1)
     zo[0] = z[0] # keep orig name and CAD
     zo[2].append(CAD)
+    if render: zo[2].append(render)
 
     CTK.replace(CTK.t, nob, noz, zo)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)

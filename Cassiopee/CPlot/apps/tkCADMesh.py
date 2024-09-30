@@ -17,6 +17,7 @@ def meshCADEdges(event=None):
     import OCC.PyTree as OCC
     hmax = CTK.varsFromWidget(VARS[0].get(), 1)[0]
     hausd = CTK.varsFromWidget(VARS[1].get(), 1)[0]
+    CTK.saveTree()
     CTK.setCursor(2, WIDGETS['frame'])
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
@@ -38,10 +39,9 @@ def meshCADFaces(event=None):
     import OCC.PyTree as OCC
     hmax = CTK.varsFromWidget(VARS[0].get(), 1)[0]
     hausd = CTK.varsFromWidget(VARS[1].get(), 1)[0]
-    
+    CTK.saveTree()
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['meshFaceButton'])
-    
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     if faces is not None: faces[2] = []
     if mtype == 'TRI':
