@@ -2361,17 +2361,17 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
     if len(res)>3:
         allProjectPts = res[3]
         allProjectPts = Converter.extractVars(allProjectPts,['ProjectionType'])
-    outputProjection3 = [[],[],[],[],[],[],[],[],[]]
-    outputProjection4 = [[],[],[],[],[],[],[],[],[]]
-    for noz in range(nzonesR):
-        arrayLocal = allProjectPts[noz][1][0]
-        type_3     = numpy.count_nonzero(arrayLocal==3)
-        type_4     = numpy.count_nonzero(arrayLocal==4)
-        if type_3>0: _prepOutputProject__(outputProjection3, 3, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
-        if type_4>0: _prepOutputProject__(outputProjection4, 4, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
-
-    if outputProjection3[0] and check: _writeOutputProject__(outputProjection3, 'projection3.cgns')
-    if outputProjection4[0] and check: _writeOutputProject__(outputProjection4, 'projection4.cgns')
+        outputProjection3 = [[],[],[],[],[],[],[],[],[]]
+        outputProjection4 = [[],[],[],[],[],[],[],[],[]]
+        for noz in range(nzonesR):
+            arrayLocal = allProjectPts[noz][1][0]
+            type_3     = numpy.count_nonzero(arrayLocal==3)
+            type_4     = numpy.count_nonzero(arrayLocal==4)
+            if type_3>0: _prepOutputProject__(outputProjection3, 3, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
+            if type_4>0: _prepOutputProject__(outputProjection4, 4, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
+        
+        if outputProjection3[0] and check: _writeOutputProject__(outputProjection3, 'projection3.cgns')
+        if outputProjection4[0] and check: _writeOutputProject__(outputProjection4, 'projection4.cgns')
 
 
     if len(res)>=3:
