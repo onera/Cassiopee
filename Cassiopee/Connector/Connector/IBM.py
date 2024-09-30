@@ -343,6 +343,8 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
                                tbFilament=tbFilament)
 
     _redispatch__(t=t, tc=tc, tc2=tc2)
+   
+    _setInjOutlet__(tc,tb)
     
     if isinstance(tc_out, str):
         if cartesian: tcp = Compressor.compressCartesian(tc)
@@ -4001,3 +4003,42 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
         for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
     return tc
+
+
+
+def _setInjOutlet__(tc,tb):
+    DicInj  = {}
+    DicOutP = {}
+    for z in Internal.getZones(tb):
+        sol = Internal.getNodeFromName(z,'.Solver#define')
+        if sol:
+            ibctype = Internal.getValue(Internal.getNodeFromName(sol,'ibctype'))
+            if ibctype=='outpress':
+                famName  = Internal.getValue(Internal.getNodeFromName(z,'FamilyName'));
+                pStatic  = Internal.getValue(Internal.getNodeFromName(sol,'pStatic'));
+                isDensity = Internal.getValue(Internal.getNodeFromName(sol,'isDensityConstant'));
+                DicOutP[famName]  = str(pStatic)+'|'+str(isDensity)
+            if ibctype=='inj':
+                famName  = Internal.getValue(Internal.getNodeFromName(z,'FamilyName'));
+                pStag    = Internal.getValue(Internal.getNodeFromName(sol,'StagnationPressure'));
+                hStag    = Internal.getValue(Internal.getNodeFromName(sol,'StagnationEnthalpy'));
+                dirx     = Internal.getValue(Internal.getNodeFromName(sol,'dirx'));
+                diry     = Internal.getValue(Internal.getNodeFromName(sol,'diry'));
+                dirz     = Internal.getValue(Internal.getNodeFromName(sol,'dirz'));    
+                DicInj[famName]  = str(pStag)+'|'+str(hStag)+'|'+str(dirx)+'|'+str(diry)+'|'+str(dirz)
+            
+    for dic in DicOutP:
+        PStatic   = float(DicOutP[dic].split('|')[0])
+        isDensity = float(DicOutP[dic].split('|')[-1])
+        isDensityConstant=False
+        if isDensity>0: isDensityConstant=True
+        D_IBM._initOutflow(tc, dic, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=isDensityConstant)
+        
+    for dic in DicInj:
+        PTot = float(DicInj[dic].split('|')[0])
+        HTot = float(DicInj[dic].split('|')[1])
+        dirx = float(DicInj[dic].split('|')[2])
+        diry = float(DicInj[dic].split('|')[3])
+        dirz = float(DicInj[dic].split('|')[4])
+        D_IBM._initInj(tc, dic, PTot, HTot, injDir=[dirx,diry,dirz], InterpolPlane=None, PressureVar=0, EnthalpyVar=0)
+    
