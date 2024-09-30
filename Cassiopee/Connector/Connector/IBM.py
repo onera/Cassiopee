@@ -4015,17 +4015,19 @@ def _setInjOutlet__(tc,tb):
             ibctype = Internal.getValue(Internal.getNodeFromName(sol,'ibctype'))
             if ibctype=='outpress':
                 famName  = Internal.getValue(Internal.getNodeFromName(z,'FamilyName'));
-                pStatic  = Internal.getValue(Internal.getNodeFromName(sol,'pStatic'));
-                isDensity = Internal.getValue(Internal.getNodeFromName(sol,'isDensityConstant'));
-                DicOutP[famName]  = str(pStatic)+'|'+str(isDensity)
+                if Internal.getNodeFromName(sol,'pStatic'):
+                    pStatic  = Internal.getValue(Internal.getNodeFromName(sol,'pStatic'));
+                    isDensity = Internal.getValue(Internal.getNodeFromName(sol,'isDensityConstant'));
+                    DicOutP[famName]  = str(pStatic)+'|'+str(isDensity)
             if ibctype=='inj':
                 famName  = Internal.getValue(Internal.getNodeFromName(z,'FamilyName'));
-                pStag    = Internal.getValue(Internal.getNodeFromName(sol,'StagnationPressure'));
-                hStag    = Internal.getValue(Internal.getNodeFromName(sol,'StagnationEnthalpy'));
-                dirx     = Internal.getValue(Internal.getNodeFromName(sol,'dirx'));
-                diry     = Internal.getValue(Internal.getNodeFromName(sol,'diry'));
-                dirz     = Internal.getValue(Internal.getNodeFromName(sol,'dirz'));    
-                DicInj[famName]  = str(pStag)+'|'+str(hStag)+'|'+str(dirx)+'|'+str(diry)+'|'+str(dirz)
+                if Internal.getNodeFromName(sol,'StagnationPressure'):
+                    pStag    = Internal.getValue(Internal.getNodeFromName(sol,'StagnationPressure'));
+                    hStag    = Internal.getValue(Internal.getNodeFromName(sol,'StagnationEnthalpy'));
+                    dirx     = Internal.getValue(Internal.getNodeFromName(sol,'dirx'));
+                    diry     = Internal.getValue(Internal.getNodeFromName(sol,'diry'));
+                    dirz     = Internal.getValue(Internal.getNodeFromName(sol,'dirz'));    
+                    DicInj[famName]  = str(pStag)+'|'+str(hStag)+'|'+str(dirx)+'|'+str(diry)+'|'+str(dirz)
             
     for dic in DicOutP:
         PStatic   = float(DicOutP[dic].split('|')[0])
