@@ -2404,9 +2404,9 @@ def checkOccupancyCellN(lowerLimit, t):
 
     return list_zones,list_occupancy,list_zones_below
 
-def printMinMaxAndErrors(t, isPrintErrors=False, listVars=[]):
+def printMinMaxAndErrors(t, printErrors=False, listVars=[]):
     """Check min/max of given fields"""
-    if isPrintErrors:
+    if printErrors:
         errors = Internal.checkPyTree(t)
         print("Printing Errors")
         print(errors)

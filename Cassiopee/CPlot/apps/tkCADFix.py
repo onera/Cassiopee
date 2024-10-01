@@ -84,6 +84,9 @@ def sewCAD(event=None):
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['sewingButton'])
     
+    NL = OCC.getNbLonelyEdges(CTK.t)
+    VARS[4].set('Lonely edges: %d'%NL)
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -174,6 +177,9 @@ def removeFaces(event=None):
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['removeFacesButton'])
 
+    NL = OCC.getNbLonelyEdges(CTK.t)
+    VARS[4].set('Lonely edges: %d'%NL)
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -204,7 +210,7 @@ def fillHole(event=None):
     CTK.setCursor(2, WIDGETS['fillHoleButton'])
 
     edges = OCC.orderEdgeList(edges)
-    print('edgeList', edges, flush=True)
+    #print('edgeList', edges, flush=True)
     try:
         OCC._fillHole(hook, edges)
     except: 
@@ -223,6 +229,9 @@ def fillHole(event=None):
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['fillHoleButton'])
     
+    NL = OCC.getNbLonelyEdges(CTK.t)
+    VARS[4].set('Lonely edges: %d'%NL)
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -253,9 +262,11 @@ def createApp(win):
 
     #- VARS -
     if CTK.CADHOOK is not None:
-        import OCC
-        fileName, fileFmt = OCC.occ.getFileAndFormat(CTK.CADHOOK)
-    else: fileName = ''; fileFmt = 'fmt_step'
+        import OCC.PyTree as OCC
+        fileName, fileFmt = OCC.getFileAndFormat(CTK.CADHOOK)
+        CAD = Internal.getNodeFromName1(CTK.t, 'CAD')
+        if CAD is not None: NL = OCC.getNbLonelyEdges(CTK.t)
+    else: fileName = ''; fileFmt = 'fmt_step'; NL = 0
 
     # -0- CAD file name -
     V = TK.StringVar(win); V.set(fileName); VARS.append(V)
@@ -265,6 +276,17 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
     # -3- Fillet radius -
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
+    # -4- Bilan des edges lonely
+    V = TK.StringVar(win); V.set('Lonely edges: %d'%NL); VARS.append(V)
+
+    # CAD file name
+    B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
+    B.grid(row=0, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='CAD file name.')
+
+    # CAD fille format
+    B = TTK.OptionMenu(Frame, VARS[1], 'fmt_step', 'fmt_iges')
+    B.grid(row=0, column=1, sticky=TK.EW)
 
     # Read/write CAD file    
     B = TTK.Button(Frame, text="Read", command=readCAD)
@@ -275,44 +297,42 @@ def createApp(win):
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Write CAD to file.')
 
-    B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
-    B.grid(row=0, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='CAD file name.')
-
-    B = TTK.OptionMenu(Frame, VARS[1], 'fmt_step', 'fmt_iges')
-    B.grid(row=0, column=1, sticky=TK.EW)
+    # Lonely edges
+    B = TTK.Label(Frame, textvariable=VARS[4])
+    B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Number of lonely edges.')
 
     # Sewing
     B = TTK.Button(Frame, text="Sew", command=sewCAD)
-    B.grid(row=2, column=0, sticky=TK.EW)
+    B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Sew CAD to fix multiple edges.')
     WIDGETS['sewingButton'] = B
 
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=10)
-    B.grid(row=2, column=1, sticky=TK.EW)
+    B.grid(row=3, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Sewing tolerance.')
     B.bind('<Return>', sewCAD)
 
     # Fillet
     B = TTK.Button(Frame, text="Fillet", command=filletCAD)
-    B.grid(row=3, column=0, sticky=TK.EW)
+    B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Make a fillet from edges selection.')
     WIDGETS['filletButton'] = B
 
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
-    B.grid(row=3, column=1, sticky=TK.EW)
+    B.grid(row=4, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fillet radius.')
     B.bind('<Return>', filletCAD)
 
     # Remove faces
     B = TTK.Button(Frame, text="Remove faces", command=removeFaces)
-    B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Remove selected faces from CAD.')
     WIDGETS['removeFacesButton'] = B
 
     # Fill hole
     B = TTK.Button(Frame, text="Fill hole", command=fillHole)
-    B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fill hole from CAD edges.')
     WIDGETS['fillHoleButton'] = B
 

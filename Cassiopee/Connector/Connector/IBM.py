@@ -342,7 +342,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
 
     _redispatch__(t=t, tc=tc, tc2=tc2)
    
-    _setInjOutlet__(tc,tb)
+    _setInjOutlet__(tc, tb)
     
     if isinstance(tc_out, str):
         if cartesian: tcp = Compressor.compressCartesian(tc)
@@ -4014,7 +4014,6 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
                         print('LEVELS= ', levelrcv, leveldnr)
 
 
-
         for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname])
 
         for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
@@ -4022,28 +4021,27 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
     return tc
 
 
-def _setInjOutlet__(tc,tb):
-    DicInj  = {}
-    DicOutP = {}
+def _setInjOutlet__(tc, tb):
+    DicInj  = {}; DicOutP = {}
     for z in Internal.getZones(tb):
-        sol = Internal.getNodeFromName(z,'.Solver#define')
+        sol = Internal.getNodeFromName(z, '.Solver#define')
         if sol:
-            ibctype = Internal.getValue(Internal.getNodeFromName(sol,'ibctype'))
-            if ibctype=='outpress':
-                famName  = Internal.getValue(Internal.getNodeFromName(z,'FamilyName'));
-                if Internal.getNodeFromName(sol,'pStatic'):
-                    pStatic  = Internal.getValue(Internal.getNodeFromName(sol,'pStatic'));
-                    isDensity = Internal.getValue(Internal.getNodeFromName(sol,'isDensityConstant'));
-                    DicOutP[famName]  = str(pStatic)+'|'+str(isDensity)
-            if ibctype=='inj':
-                famName  = Internal.getValue(Internal.getNodeFromName(z,'FamilyName'));
+            ibctype = Internal.getValue(Internal.getNodeFromName(sol, 'ibctype'))
+            if ibctype == 'outpress':
+                famName = Internal.getValue(Internal.getNodeFromName(z, 'FamilyName'));
+                if Internal.getNodeFromName(sol, 'pStatic'):
+                    pStatic  = Internal.getValue(Internal.getNodeFromName(sol, 'pStatic'));
+                    isDensity = Internal.getValue(Internal.getNodeFromName(sol, 'isDensityConstant'));
+                    DicOutP[famName] = str(pStatic)+'|'+str(isDensity)
+            if ibctype == 'inj':
+                famName = Internal.getValue(Internal.getNodeFromName(z, 'FamilyName'));
                 if Internal.getNodeFromName(sol,'StagnationPressure'):
-                    pStag    = Internal.getValue(Internal.getNodeFromName(sol,'StagnationPressure'));
-                    hStag    = Internal.getValue(Internal.getNodeFromName(sol,'StagnationEnthalpy'));
-                    dirx     = Internal.getValue(Internal.getNodeFromName(sol,'dirx'));
-                    diry     = Internal.getValue(Internal.getNodeFromName(sol,'diry'));
-                    dirz     = Internal.getValue(Internal.getNodeFromName(sol,'dirz'));    
-                    DicInj[famName]  = str(pStag)+'|'+str(hStag)+'|'+str(dirx)+'|'+str(diry)+'|'+str(dirz)
+                    pStag    = Internal.getValue(Internal.getNodeFromName(sol, 'StagnationPressure'));
+                    hStag    = Internal.getValue(Internal.getNodeFromName(sol, 'StagnationEnthalpy'));
+                    dirx     = Internal.getValue(Internal.getNodeFromName(sol, 'dirx'));
+                    diry     = Internal.getValue(Internal.getNodeFromName(sol, 'diry'));
+                    dirz     = Internal.getValue(Internal.getNodeFromName(sol, 'dirz'));    
+                    DicInj[famName] = str(pStag)+'|'+str(hStag)+'|'+str(dirx)+'|'+str(diry)+'|'+str(dirz)
             
     for dic in DicOutP:
         PStatic   = float(DicOutP[dic].split('|')[0])
@@ -4061,9 +4059,10 @@ def _setInjOutlet__(tc,tb):
         D_IBM._initInj(tc, dic, PTot, HTot, injDir=[dirx,diry,dirz], InterpolPlane=None, PressureVar=0, EnthalpyVar=0)
         
     return None
+
 ## Separate IBM points that have a type 3 and type 4 projection
-def _prepOutputProject__(outputProjection,typeValue,arrayLocal,allCorrectedPts,allWallPts,allInterpPts):
-    indicesSave  = numpy.argwhere(arrayLocal==typeValue)
+def _prepOutputProject__(outputProjection, typeValue, arrayLocal, allCorrectedPts, allWallPts, allInterpPts):
+    indicesSave = numpy.argwhere(arrayLocal==typeValue)
     for i in indicesSave:
         outputProjection[0].append(allCorrectedPts[0][i][0])
         outputProjection[1].append(allCorrectedPts[1][i][0])
@@ -4079,7 +4078,7 @@ def _prepOutputProject__(outputProjection,typeValue,arrayLocal,allCorrectedPts,a
     return None
 
 ## Write CGNS file with the IBM points that have a type 3 and type 4 projection
-def _writeOutputProject__(outputProjection,fileName):
+def _writeOutputProject__(outputProjection, fileName):
     nameZone = ['IBM','Wall','Image']
     tLocal = C.newPyTree(nameZone)
     for i in range(3):

@@ -739,8 +739,12 @@ def _setCADcontainer(t, fileName, fileFmt, hmax, hausd):
   return None
 
 # mesh all edges
-def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1):
+def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1, edgeList=None):
   
+  if edgeList is None: 
+    nbEdges = occ.getNbEdges(hook)
+    edgeList = range(1, nbEdges+1)
+
   edges = OCC.meshAllEdges(hook, hmax, hausd, N)
   b = Internal.getNodeFromName1(t, 'EDGES')
   if b is None: b = Internal.newCGNSBase('EDGES', parent=t)
@@ -857,7 +861,7 @@ def _meshAllFacesStruct(hook, t, faceList=None):
   dedges = []
   for z in Internal.getZones(b):
     pf = Internal.getNodeFromName2(z, 'u')
-    if pf is None: print("U field missing in edges.")
+    if pf is None: print("Error: meshAllFaces: u field missing in edges.")
     e = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, api=2)[0]
     dedges.append(e)
 
@@ -917,6 +921,20 @@ def _setLonelyEdgesColor(t):
       else: # strange!!
         CPlot._addRender2Zone(ze, color='Red')
   return None
+
+# Return the number of lonely edges in t
+def getNbLonelyEdges(t):
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  if b is None: return 0
+  nb = 0
+  zones = Internal.getZones(b)
+  for ze in zones:
+    CAD = Internal.getNodeFromName1(ze, 'CAD')
+    faceList = Internal.getNodeFromName1(CAD, 'faceList')
+    if faceList is not None:
+      size = faceList[1].size
+      if size == 1: nb += 1
+  return nb
 
 #===========================================================================================
 # Build interpData with ghostcells from a CAD PyTree t and its
@@ -1132,9 +1150,9 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
 # CAD fixing
 #=============================================================================
 
-# edges: list of arrays
-# edgeList: list of edge number in CAD
 # return ordered edgeList with possible negative number (meaning to be reversed)
+# edges: list of arrays
+# return edgeList: list of edge numbers in CAD
 def orderEdgeList(edges, tol=1.e-10):
   """Order edges in a loop."""
   import Transform.PyTree as T
@@ -1168,11 +1186,13 @@ def orderEdgeList(edges, tol=1.e-10):
     outno.append(no)
   return outno
 
-# faces: face list no
+# sew a set of faces
+# faces: face list numbers
 def _sewing(hook, faces, tol=1.e-6):
   OCC.occ.sewing(hook, faces, tol)
   return None
 
+# add fillet from edges with given radius
 def _addFillet(hook, edges, radius):
   OCC.occ.addFillet(hook, edges, radius)
   return None
@@ -1182,19 +1202,26 @@ def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
   OCC.occ.removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
   return None
 
-# edges: edge list no must be ordered
+# fill hole from edges
+# edges: edge list numbers (must be ordered)
 def _fillHole(hook, edges):
   OCC.occ.fillHole(hook, edges)
   return None
 
+# Return the number of edges in CAD hook
 def getNbEdges(hook):
   """Return the number of edges in CAD hook."""
   return OCC.occ.getNbEdges(hook)
 
+# Return the number of faces in CAD hook
 def getNbFaces(hook):
   """Return the number of faces in CAD hook."""
   return OCC.occ.getNbFaces(hook)
 
+# Return the file and format used to load CAD in hook
+def getFileAndFormat(hook):
+  return OCC.occ.getFileAndFormat(hook)
+  
 # IN: new2old: new2old map
 # IN: Nold: size of old entities 
 # OUT: odl2new array
@@ -1207,7 +1234,7 @@ def getOld2NewMap(Nold, new2old):
     if v > 0: old2new[v-1] = n+1
   return old2new
  
-# update numbering in persistent zones
+# update numbering in persistent zones (common part)
 def _updateCADNumbering__(b, old2new, name):
   zones = Internal.getZones(b)
   for z in zones:
@@ -1218,7 +1245,6 @@ def _updateCADNumbering__(b, old2new, name):
       no = no.replace(name, '')
       no = int(no)
       no = old2new[no-1]
-      print("updating ",no)
       Internal._setValue(n, name+'%03d'%no)
       z[0] = name+'%03d'%no
       n = Internal.getNodeFromName1(CAD, 'no')
@@ -1227,7 +1253,7 @@ def _updateCADNumbering__(b, old2new, name):
       Internal._setValue(n, no)
   return None
 
-# update numbering first step
+# update numbering in persistent zones (edge part)
 def _updateEdgesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
   b = Internal.getNodeFromName1(t, 'EDGES')
   _updateCADNumbering__(b, old2NewEdgeMap, 'edge')
@@ -1243,6 +1269,7 @@ def _updateEdgesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
         n[1] = numpy.delete(pn, index)
   return None
 
+# update numbering in persistent zones (faces part)
 def _updateFacesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
   b = Internal.getNodeFromName1(t, 'FACES')
   _updateCADNumbering__(b, old2NewFaceMap, 'face')
@@ -1258,6 +1285,7 @@ def _updateFacesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
         n[1] = numpy.delete(pn, index)
   return None
 
+# update numbering (edges and faces)
 def _updateNumbering(t, old2NewEdgeMap, old2NewFaceMap):
   _updateEdgesNumbering__(t, old2NewEdgeMap, old2NewFaceMap)
   _updateFacesNumbering__(t, old2NewEdgeMap, old2NewFaceMap)
@@ -1298,7 +1326,13 @@ def _updateTree(t, oldNbEdges, oldNbFaces, new2OldEdgeMap, new2OldFaceMap):
   # update numbering of persistent zones
   _updateNumbering(t, old2NewEdgeMap, old2NewFaceMap)
 
-  # add new edges and faces...
+  # sort zone by names
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  Internal._sortByName(b, recursive=False)
+  b = Internal.getNodeFromName1(t, 'FACES')
+  Internal._sortByName(b, recursive=False)
+
+  # New edges and faces must be added manually after this function call
 
   # recolor
   _setLonelyEdgesColor(t)
