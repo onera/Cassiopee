@@ -209,9 +209,7 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
             Mesh_free(M);
             return NULL;
         }
-    }
 
-    if (M->mode_2D) {
         ret = Mesh_set_cells_for_2D(M);
         if (ret != 0) {
             RAISE("Failed to set cells for 2D.");

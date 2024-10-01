@@ -48,6 +48,7 @@ PyObject *K_XCORE::AdaptMesh_Exit(PyObject *self, PyObject *args)
     Mesh_reset_tags(M);
 
     XFREE(M->reqs);
+    delete [] M->mode_2D;
 
     delete M;
 
