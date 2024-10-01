@@ -128,5 +128,6 @@ void Mesh_free(Mesh *M)
     Mesh_reset_adaptation_data(M);
     Mesh_reset_comm_data(M);
     Mesh_reset_parallel_data(M);
+    Mesh_reset_tags(M);
     delete M;
 }

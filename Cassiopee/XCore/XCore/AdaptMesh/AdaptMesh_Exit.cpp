@@ -45,6 +45,8 @@ PyObject *K_XCORE::AdaptMesh_Exit(PyObject *self, PyObject *args)
 
     Mesh_reset_parallel_data(M);
 
+    Mesh_reset_tags(M);
+
     XFREE(M->reqs);
 
     delete M;
