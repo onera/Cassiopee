@@ -108,6 +108,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
 
             'XCore/AdaptMesh/DynMesh.cpp',
             'XCore/AdaptMesh/DynMeshTopo.cpp',
+            'XCore/AdaptMesh/TriGraph.cpp',
 
 
 

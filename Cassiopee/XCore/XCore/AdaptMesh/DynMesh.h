@@ -7,6 +7,7 @@
 
 #include "xcore.h"
 #include "common/common.h"
+#include "TriGraph.h"
 
 struct Karray;
 struct ArrayI;
@@ -43,27 +44,25 @@ struct DynMesh {
 
     std::vector<E_Int> owner, neigh;
 
-    std::vector<E_Int> skin;
-
     std::vector<E_Int> ftag;
-
-    std::vector<E_Int> fref;
-
-    std::vector<E_Int> flevel;
-
-    std::set<E_Int> factive;
 
     std::map<E_Int, std::vector<E_Int>> fchildren;
 
     std::map<uEdge, E_Int> ecenter;
 
+    TriGraph tri_graph;
+
     DynMesh();
 
     DynMesh(Karray *karray);
 
+    void triangulate(const E_Int *faces, E_Int fcount);
+
+    E_Int get_edge_index(E_Int nei, E_Int tri);
+
     void extract_points_from_ftag(ArrayI *points);
 
-    void make_skin_graph(SkinGraph *skin_graph);
+    void make_tri_graph();
 
     void make_face_centers(const E_Int NF, const E_Int *skin,
         Vec3f *fc);
@@ -82,16 +81,10 @@ struct DynMesh {
 
     void make_skin_neighbours(SkinGraph *skin_graph);
 
-    void init_adaptation_data(E_Int *tagged_faces, E_Int count);
-
-    void init_adaptation_data();
-
     void prepare_for_refinement(ArrayI *ref_faces);
 
     void refine_faces(ArrayI *ref_faces);
 
-    inline bool face_is_quad(E_Int face) const { return F[face].size() == 4; }
-    
     inline bool face_is_tri(E_Int face) const { return F[face].size() == 3; }
 
     DynMesh extract_conformized();
@@ -102,14 +95,9 @@ struct DynMesh {
 
     void write_face(const char *fname, E_Int fid) const;
     
-    inline bool face_is_active(E_Int face) const
-    { return factive.find(face) != factive.end(); }
-
     void resize_point_data(size_t nref_faces);
 
     void resize_face_data(size_t nref_faces);
-
-    void refine_quad(E_Int quad);
 
     void refine_tri(E_Int tri);
 

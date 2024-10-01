@@ -21,6 +21,3 @@ void SkinGraph_make_skin_neighbours(SkinGraph *skin_graph);
 
 void SkinGraph_smooth_ref_data(const SkinGraph *skin_graph,
     E_Int *fdat, const Mesh *M);
-
-void SkinGraph_smooth_ref_data(const SkinGraph *skin_graph,
-    E_Int *fdat, const DynMesh *M);

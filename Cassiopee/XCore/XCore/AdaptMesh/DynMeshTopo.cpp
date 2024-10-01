@@ -27,10 +27,6 @@ E_Int DynMesh::orient_skin(E_Int normal_direction)
 
     E_Int nefaces = (E_Int)efaces.size();
 
-    if (skin.size()) {
-        assert(efaces.size() == skin.size());
-    }
-
     for (E_Int i = 0; i < nefaces; i++) xadj[i+1] += xadj[i];
 
     // build skin neighbourhood
