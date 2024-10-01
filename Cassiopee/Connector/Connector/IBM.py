@@ -2209,7 +2209,6 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                     IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1.,
                     hmod=0.1, isLBM=False, isWireModel=False, isOrthoFirst=False, check=False):
     """Returns the dictionary of IBM points."""
-    import Geom.PyTree as D
     if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected=1 # signe de la distance aux points corriges
 
@@ -2358,6 +2357,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
     dictOfWallPtsByIBCType={}
     nzonesR = len(allInterpPts)
 
+    ## Ouput the IBM points that have a type 3 and type 4 projection			    
     if len(res)>3:
         allProjectPts = res[3]
         allProjectPts = Converter.extractVars(allProjectPts,['ProjectionType'])
@@ -4020,7 +4020,7 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
     return tc
 
 
-
+## Separate IBM points that have a type 3 and type 4 projection
 def _prepOutputProject__(outputProjection,typeValue,arrayLocal,allCorrectedPts,allWallPts,allInterpPts):
     indicesSave  = numpy.argwhere(arrayLocal==typeValue)
     for i in indicesSave:
@@ -4037,6 +4037,7 @@ def _prepOutputProject__(outputProjection,typeValue,arrayLocal,allCorrectedPts,a
         outputProjection[8].append(allInterpPts[2][i][0])
     return None
 
+## Write CGNS file with the IBM points that have a type 3 and type 4 projection
 def _writeOutputProject__(outputProjection,fileName):
     nameZone = ['IBM','Wall','Image']
     tLocal = C.newPyTree(nameZone)
