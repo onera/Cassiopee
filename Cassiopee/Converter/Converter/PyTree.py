@@ -1017,13 +1017,14 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       CAD = Internal.getNodeFromName1(t, 'CAD')
       if CAD is not None: # reload CAD
         file = Internal.getNodeFromName1(CAD, 'file')
-        file = Internal.getValue(file)
+        if file is not None: file = Internal.getValue(file)
         fmt = Internal.getNodeFromName1(CAD, 'format')
-        fmt = Internal.getValue(fmt)
-        import OCC.PyTree as OCC
-        import CPlot.Tk as CTK
-        hook = OCC.readCAD(file, fmt)
-        CTK.CADHOOK = hook
+        if fmt is not None: fmt = Internal.getValue(fmt)
+        if file is not None and fmt is not None:
+          import OCC.PyTree as OCC
+          import CPlot.Tk as CTK
+          hook = OCC.readCAD(file, fmt)
+          CTK.CADHOOK = hook
       return t
     except:
       if format == 'bin_cgns' or format == 'bin_adf':

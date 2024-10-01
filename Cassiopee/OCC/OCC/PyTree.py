@@ -462,12 +462,14 @@ def getNo(e):
     return no
 
 # return the position of entities in base baseName by number
-def getPos(t, baseName):
+def getPos(t, baseName=None):
   pos = {}; posi = {}
-  b = Internal.getNodeFromName1(t, baseName)
+  if baseName is not None:
+    b = Internal.getNodeFromName1(t, baseName)
+  else: b = t # suppose t is already chosen base
   for c, e in enumerate(b[2]):
     cad = Internal.getNodeFromName1(e, 'CAD')
-    if cad is not None: # this is a CAD edge
+    if cad is not None: # this is a CAD edge or face
       no = Internal.getNodeFromName1(cad, 'no')
       no = Internal.getValue(no)
       pos[no] = c
@@ -804,7 +806,7 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmax=-1, hau
   dedges = []
   for z in Internal.getZones(b):
     pf = Internal.getNodeFromName2(z, 'u')
-    if pf is None: print("u field missing in edges.")
+    if pf is None: print("Error: meshAllFacesTri: u field missing in edges.")
     e = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, api=2)[0]
     dedges.append(e)
 
@@ -817,7 +819,8 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmax=-1, hau
     faceList = range(nstart+1, nend+1)
 
   if hList is None or hList == []:
-    if hausd < 0: hList = [(hmax,hmax,hausd)]*len(faceList)
+    if hausd < 0 and hmax > 0: hList = [(hmax,hmax,hausd)]*len(faceList)
+    elif hausd > 0 and hmax < 0: hList = [(1.e-5,10000.,hausd)]*len(faceList)
     else: hList = [(hmax*0.8,hmax*1.2,hausd)]*len(faceList)
 
   faces = OCC.meshAllFacesTri(hook, dedges, metric, faceList, hList)
@@ -1174,11 +1177,129 @@ def _addFillet(hook, edges, radius):
   OCC.occ.addFillet(hook, edges, radius)
   return None
 
-def _removeFaces(hook, faces):
-  OCC.occ.removeFaces(hook, faces)
+# edgeMap and faceMap are new2old maps
+def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+  OCC.occ.removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
   return None
 
 # edges: edge list no must be ordered
 def _fillHole(hook, edges):
   OCC.occ.fillHole(hook, edges)
-  return None  
+  return None
+
+def getNbEdges(hook):
+  """Return the number of edges in CAD hook."""
+  return OCC.occ.getNbEdges(hook)
+
+def getNbFaces(hook):
+  """Return the number of faces in CAD hook."""
+  return OCC.occ.getNbFaces(hook)
+
+# IN: new2old: new2old map
+# IN: Nold: size of old entities 
+# OUT: odl2new array
+def getOld2NewMap(Nold, new2old):
+  old2new = numpy.zeros( (Nold), dtype=Internal.E_NpyInt)
+  old2new[:] = -1
+  Nnew = len(new2old)
+  for n in range(Nnew): 
+    v = new2old[n]
+    if v > 0: old2new[v-1] = n+1
+  return old2new
+ 
+# update numbering in persistent zones
+def _updateCADNumbering__(b, old2new, name):
+  zones = Internal.getZones(b)
+  for z in zones:
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+    if CAD is not None:
+      n = Internal.getNodeFromName1(CAD, 'name')
+      no = Internal.getValue(n)
+      no = no.replace(name, '')
+      no = int(no)
+      no = old2new[no-1]
+      print("updating ",no)
+      Internal._setValue(n, name+'%03d'%no)
+      z[0] = name+'%03d'%no
+      n = Internal.getNodeFromName1(CAD, 'no')
+      no = Internal.getValue(n)
+      no = old2new[no-1]
+      Internal._setValue(n, no)
+  return None
+
+# update numbering first step
+def _updateEdgesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  _updateCADNumbering__(b, old2NewEdgeMap, 'edge')
+  for z in Internal.getZones(b):
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+    if CAD is not None:
+      n = Internal.getNodeFromName1(CAD, 'faceList')
+      if n is not None:
+        pn = n[1]; index = []
+        for i in range(pn.size): 
+          pn[i] = old2NewFaceMap[pn[i]-1]
+          if pn[i] == -1: index.append(i)
+        n[1] = numpy.delete(pn, index)
+  return None
+
+def _updateFacesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
+  b = Internal.getNodeFromName1(t, 'FACES')
+  _updateCADNumbering__(b, old2NewFaceMap, 'face')
+  for z in Internal.getZones(b):
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+    if CAD is not None:
+      n = Internal.getNodeFromName1(CAD, 'edgeList')
+      if n is not None:
+        pn = n[1]; index = []
+        for i in range(pn.size):
+          pn[i] = old2NewEdgeMap[pn[i]-1]
+          if pn[i] == -1: index.append(i)
+        n[1] = numpy.delete(pn, index)
+  return None
+
+def _updateNumbering(t, old2NewEdgeMap, old2NewFaceMap):
+  _updateEdgesNumbering__(t, old2NewEdgeMap, old2NewFaceMap)
+  _updateFacesNumbering__(t, old2NewEdgeMap, old2NewFaceMap)
+  return None
+
+# suppress edge or face depending on old2new
+def _suppressZones__(b, old2new):
+  rme = []
+  for i in range(old2new.size):
+    if old2new[i] == -1: rme.append(i+1)
+  pos, posi = getPos(b)
+  rme = list(reversed(rme))
+  for c, f in enumerate(rme):
+    cd = pos[f]
+    del b[2][cd]
+  return None
+
+# add zones depending on new2old
+def _addZones__(b, new2old):
+  addme = []
+  for i in range(new2old.size):
+    if new2old[i] == -1: addme.append(i+1)
+  # mesh and add zone...
+  return None
+
+# update tree when CAD hook is modified
+def _updateTree(t, oldNbEdges, oldNbFaces, new2OldEdgeMap, new2OldFaceMap):
+  """Update tree when CAD is mmodified."""
+  old2NewEdgeMap = getOld2NewMap(oldNbEdges, new2OldEdgeMap)
+  old2NewFaceMap = getOld2NewMap(oldNbFaces, new2OldFaceMap)
+  
+  # remove zones that are no longer in CAD
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  _suppressZones__(b, old2NewEdgeMap)
+  b = Internal.getNodeFromName1(t, 'FACES')
+  _suppressZones__(b, old2NewFaceMap)
+
+  # update numbering of persistent zones
+  _updateNumbering(t, old2NewEdgeMap, old2NewFaceMap)
+
+  # add new edges and faces...
+
+  # recolor
+  _setLonelyEdgesColor(t)
+  return None

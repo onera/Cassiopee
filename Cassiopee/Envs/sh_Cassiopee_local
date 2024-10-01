@@ -157,6 +157,9 @@ elif [ "$MAC" = "ubuntu" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export ASAN_OPTIONS=verify_asan_link_order=false
+    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
     
 elif [ "$MAC" = "azure" ]; then
 #------------------------ azure: ubuntu - github actions ----------------------

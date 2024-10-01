@@ -161,14 +161,15 @@ def removeFaces(event=None):
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['removeFacesButton'])
     
-    OCC._removeFaces(hook, faces)
+    edgeMap = []; faceMap = []
+    OCC._removeFaces(hook, faces, edgeMap, faceMap)
 
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
+    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd)
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['removeFacesButton'])
