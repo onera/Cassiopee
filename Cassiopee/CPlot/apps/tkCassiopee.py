@@ -32,7 +32,7 @@ BLOCKAPPS = ['tkBlock', '---',
              'tkTransform', 'tkNGon', 'tkGhostCells', '---',
              'tkSplit', 'tkReorder']
 BCAPPS = ['tkBC', '---',
-          'tkChimera', 'tkIBC', '---',
+          'tkChimera', 'tkIBC2', '---',
           'tkExtractBC']
 MOTIONAPPS = ['tkRigidMotion', 'tkTime']
 SOLVERAPPS = ['tkInit', 'tkDistributor', 'tkDist2Walls', '---',
