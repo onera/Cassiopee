@@ -154,7 +154,7 @@ E_Int Q9_refine(E_Int quad, Mesh *M)
     M->ftag[M->nf+1] = M->ftag[quad];
     M->ftag[M->nf+2] = M->ftag[quad];
 
-    assert(M->fpattern[quad] == DIR_ISO);
+    //assert(M->fpattern[quad] == DIR_ISO);
     M->fpattern[M->nf] = M->fpattern[quad];
     M->fpattern[M->nf+1] = M->fpattern[quad];
     M->fpattern[M->nf+2] = M->fpattern[quad];

@@ -70,8 +70,8 @@ E_Int Mesh_smooth_cref_local(Mesh *M)
 
             E_Int cell_to_mod = incr_cell > incr_nei ? nei : cid;
 
-            //M->cref[cell_to_mod] += diff-1;
-            M->cref[cell_to_mod] += 1;
+            M->cref[cell_to_mod] += diff-1;
+            //M->cref[cell_to_mod] += 1;
 
             stk.push(cell_to_mod);
         }
