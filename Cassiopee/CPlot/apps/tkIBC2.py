@@ -316,7 +316,7 @@ def getData():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkIBC  [ + ]  ', font=CTK.FRAMEFONT, 
+                           text='tkIBC2  [ + ]  ', font=CTK.FRAMEFONT, 
                            takefocus=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
@@ -330,7 +330,7 @@ def createApp(win):
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
-    CTK.addPinMenu(FrameMenu, 'tkIBC')
+    CTK.addPinMenu(FrameMenu, 'tkIBC2')
     WIDGETS['frameMenu'] = FrameMenu
 
     # - VARS -
@@ -436,7 +436,7 @@ def createApp(win):
     ## WIDGETS THAT APPEAR & DISAPPEAR
 
     # - Symmetry plane -
-    slip = TTK.LabelFrame(Frame, borderwidth=2, relief="solid")
+    slip = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Slip Parameters:")
     slip.columnconfigure(0, weight=1)
     slip.columnconfigure(1, weight=1)
     slip.grid(row=10, column=0, columnspan=2)
@@ -450,7 +450,7 @@ def createApp(win):
 
 
     ## Wall Conditions
-    wall = TTK.LabelFrame(Frame, borderwidth=2, relief="solid")
+    wall = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Wall Parameters:")
     wall.columnconfigure(0, weight=0)
     wall.columnconfigure(1, weight=0)
     wall.columnconfigure(2, weight=0)
@@ -478,7 +478,7 @@ def createApp(win):
 
 
     ## Outlet Pressure
-    outpress = TTK.LabelFrame(Frame, borderwidth=2, relief="solid")
+    outpress = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Outlet Pressure Parameters:")
     outpress.columnconfigure(0, weight=0)
     outpress.columnconfigure(1, weight=1)
     outpress.columnconfigure(2, weight=0)
@@ -496,7 +496,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Set a fixed outlet density')
 
     ## Injection
-    inj = TTK.LabelFrame(Frame, borderwidth=2, relief="solid")
+    inj = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Injection Parameters:")
     inj.columnconfigure(0, weight=0)
     inj.columnconfigure(1, weight=1)
     inj.columnconfigure(2, weight=0)
@@ -515,34 +515,34 @@ def createApp(win):
     B = TTK.Entry(inj, textvariable=VARS[11], width=4, background="White")
     B.grid(row=11, column=1, columnspan=2, sticky=TK.EW)
 
-    B = TTK.Label(inj, text="Normal: x")
+    B = TTK.Label(inj, text="Unit Normal: x")
     B.grid(row=12, column=0, sticky=TK.EW)
     B = TTK.Entry(inj, textvariable=VARS[12], width=4, background="White")
     B.grid(row=12, column=1, columnspan=2, sticky=TK.EW)
 
-    B = TTK.Label(inj, text="Normal: y")
+    B = TTK.Label(inj, text="Unit Normal: y")
     B.grid(row=13, column=0, sticky=TK.EW)
     B = TTK.Entry(inj, textvariable=VARS[13], width=4, background="White")
     B.grid(row=13, column=1, columnspan=2, sticky=TK.EW)
 
-    B = TTK.Label(inj, text="Normal: z")
+    B = TTK.Label(inj, text="Unit Normal: z")
     B.grid(row=14, column=0, sticky=TK.EW)
     B = TTK.Entry(inj, textvariable=VARS[14], width=4, background="White")
     B.grid(row=14, column=1, columnspan=2, sticky=TK.EW)
 
     ## Rectilienar
-    rec = TTK.LabelFrame(Frame, borderwidth=2, relief="solid")
+    rec = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Rectilinear Parameters:")
     rec.columnconfigure(0, weight=1)
     rec.columnconfigure(1, weight=1)
     rec.columnconfigure(2, weight=1)
     rec.grid(row=10, column=0, columnspan=3)
     WIDGETS['rec'] = rec
 
-    B = TTK.Label(rec, text="dirx")
+    B = TTK.Label(rec, text="x-dir")
     B.grid(row=10, column=0, sticky=TK.EW)
-    B = TTK.Label(rec, text="diry")
+    B = TTK.Label(rec, text="y-dir")
     B.grid(row=10, column=1, sticky=TK.EW)
-    B = TTK.Label(rec, text="dirz")
+    B = TTK.Label(rec, text="z-dir")
     B.grid(row=10, column=2, sticky=TK.EW)
 
     B = TTK.Entry(rec, textvariable=VARS[12], width=4, background="White")
@@ -553,7 +553,7 @@ def createApp(win):
     B.grid(row=11, column=2, sticky=TK.EW)
 
     ## Wire Mesh Model
-    wmm = TTK.LabelFrame(Frame, borderwidth=2, relief="solid")
+    wmm = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Wire Mesh Model Parameters:")
     wmm.columnconfigure(0, weight=1)
     wmm.columnconfigure(1, weight=1)
     wmm.columnconfigure(2, weight=1)
@@ -589,7 +589,7 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkIBC')
+    try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkIBC2')
     except: pass
     CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
     getData()
@@ -622,7 +622,7 @@ if __name__ == "__main__":
         except: pass
 
     # Main window
-    (win, menu, file, tools) = CTK.minimal('tkIBC '+C.__version__)
+    (win, menu, file, tools) = CTK.minimal('tkIBC2 '+C.__version__)
 
     createApp(win); showApp()
 
