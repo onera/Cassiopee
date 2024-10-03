@@ -28,13 +28,17 @@
 #include "BRep_Builder.hxx"
 #include "BRepFilletAPI_MakeFillet.hxx"
 
+void getEdgeMap(TopTools_IndexedMapOfShape& oldFaces, TopTools_IndexedMapOfShape& newFaces, PyObject*& faceMap);
+void getFaceMap(TopTools_IndexedMapOfShape& oldFaces, TopTools_IndexedMapOfShape& newFaces, PyObject*& faceMap);
+
 //=====================================================================
 // Remove some faces and rebuild compound
 //=====================================================================
 PyObject* K_OCC::addFillet(PyObject* self, PyObject* args)
 {
   PyObject* hook; PyObject* listEdges; E_Float radius;
-  if (!PYPARSETUPLE_(args, OO_ R_, &hook, &listEdges, &radius)) return NULL;
+  PyObject* edgeMap; PyObject* faceMap;
+  if (!PYPARSETUPLE_(args, OO_ R_ OO_, &hook, &listEdges, &radius, &edgeMap, &faceMap)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -60,20 +64,20 @@ PyObject* K_OCC::addFillet(PyObject* self, PyObject* args)
   TopoDS_Shape shc = mkFillet.Shape();
 
   // export
-  delete shp;
   TopoDS_Shape* newshp = new TopoDS_Shape(shc);
-
-  // Export
-  packet[0] = newshp;
-  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
-  delete ptr;
   TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
-  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
-  delete ptr2;
   TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
+  getFaceMap(surfaces, *sf, faceMap);
+  getEdgeMap(edges, *se, edgeMap);
+  delete shp;
+  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
+  delete ptr;
+  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
+  delete ptr2;
+  packet[0] = newshp;  
+  packet[1] = sf;
   packet[2] = se;
   printf("INFO: after removeFaces: Nb edges=%d\n", se->Extent());
   printf("INFO: after removeFaces: Nb faces=%d\n", sf->Extent());

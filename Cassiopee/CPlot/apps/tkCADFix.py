@@ -164,25 +164,32 @@ def removeFaces(event=None):
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['removeFacesButton'])
     
-    edgeMap = []; faceMap = []
-    OCC._removeFaces(hook, faces, edgeMap, faceMap)
+    # old style (full remesh)
+    #edgeMap = []; faceMap = []
+    #OCC._removeFaces(hook, faces, edgeMap, faceMap)
+    #edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
+    #edges[2] = []
+    #faces = Internal.getNodeFromName1(CTK.t, 'FACES')
+    #faces[2] = []
+    #OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd)
+    #OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
 
-    # remesh CAD and redisplay
-    edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
-    edges[2] = []
-    faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-    faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd)
-    OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
+    # new style (no remesh)
+    nbEdges = OCC.getNbEdges(hook)
+    nbFaces = OCC.getNbFaces(hook)
+    new2OldEdgeMap = []; new2OldFaceMap = []
+    OCC._removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
+    OCC._updateTree(CTK.t, nbEdges, nbFaces, new2OldEdgeMap, new2OldFaceMap)
+    
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['removeFacesButton'])
-
     NL = OCC.getNbLonelyEdges(CTK.t)
     VARS[4].set('Lonely edges: %d'%NL)
 
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
+    
     CTK.TXT.insert('START', 'Faces removed from CAD.\n')
 
 #==============================================================================

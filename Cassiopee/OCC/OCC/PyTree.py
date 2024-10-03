@@ -1193,8 +1193,9 @@ def _sewing(hook, faces, tol=1.e-6):
   return None
 
 # add fillet from edges with given radius
-def _addFillet(hook, edges, radius):
-  OCC.occ.addFillet(hook, edges, radius)
+def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
+  OCC.occ.addFillet(hook, edges, radius, new2OldEdgeMap, new2OldFaceMap)
+  print(new2OldEdgeMap, new2OldFaceMap)
   return None
 
 # edgeMap and faceMap are new2old maps

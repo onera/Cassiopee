@@ -29,6 +29,8 @@
 #include "BRep_Builder.hxx"
 
 //=============================================================
+// Get new->old for edges
+//=============================================================
 void getEdgeMap(TopTools_IndexedMapOfShape& oldEdges, TopTools_IndexedMapOfShape& newEdges, PyObject*& edgeMap)
 {
   bool found;
@@ -56,8 +58,9 @@ void getEdgeMap(TopTools_IndexedMapOfShape& oldEdges, TopTools_IndexedMapOfShape
   }
 }
 
-//=============================================================
+//===============================================================
 // Get new->old for faces
+//===============================================================
 void getFaceMap(TopTools_IndexedMapOfShape& oldFaces, TopTools_IndexedMapOfShape& newFaces, PyObject*& faceMap)
 {
   bool found;
@@ -89,7 +92,8 @@ void getFaceMap(TopTools_IndexedMapOfShape& oldFaces, TopTools_IndexedMapOfShape
 //=====================================================================
 PyObject* K_OCC::removeFaces(PyObject* self, PyObject* args)
 {
-  PyObject* hook; PyObject* listFaces; PyObject* edgeMap; PyObject* faceMap;
+  PyObject* hook; PyObject* listFaces; 
+  PyObject* edgeMap; PyObject* faceMap;
   if (!PYPARSETUPLE_(args, OO_ OO_, &hook, &listFaces, &edgeMap, &faceMap)) return NULL;
 
   void** packet = NULL;

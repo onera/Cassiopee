@@ -18,14 +18,24 @@ def meshCADEdges(event=None):
     hmax = CTK.varsFromWidget(VARS[0].get(), 1)[0]
     hausd = CTK.varsFromWidget(VARS[1].get(), 1)[0]
     CTK.saveTree()
+
     CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['MeshEdgeButton'])
+    CTK.setCursor(2, WIDGETS['HEntry'])
+    CTK.setCursor(2, WIDGETS['DEntry'])
+    
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
     if edges is not None: edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     if faces is not None: faces[2] = []
     OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmax=hmax, hausd=hausd)
+    
     CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['MeshEdgeButton'])
+    CTK.setCursor(0, WIDGETS['HEntry'])
+    CTK.setCursor(0, WIDGETS['DEntry'])
+    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -40,8 +50,10 @@ def meshCADFaces(event=None):
     hmax = CTK.varsFromWidget(VARS[0].get(), 1)[0]
     hausd = CTK.varsFromWidget(VARS[1].get(), 1)[0]
     CTK.saveTree()
+
     CTK.setCursor(2, WIDGETS['frame'])
-    CTK.setCursor(2, WIDGETS['meshFaceButton'])
+    CTK.setCursor(2, WIDGETS['MeshFaceButton'])
+    
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     if faces is not None: faces[2] = []
     if mtype == 'TRI':
@@ -50,7 +62,7 @@ def meshCADFaces(event=None):
         OCC._meshAllFacesStruct(CTK.CADHOOK, CTK.t)
     
     CTK.setCursor(0, WIDGETS['frame'])
-    CTK.setCursor(0, WIDGETS['meshFaceButton'])
+    CTK.setCursor(0, WIDGETS['MeshFaceButton'])
     
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -101,20 +113,23 @@ def createApp(win):
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='H step of surface mesh.')
     B.bind('<Return>', meshCADEdges)
+    WIDGETS['HEntry'] = B
 
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=10)
     B.grid(row=0, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Deviation of surface mesh.')
     B.bind('<Return>', meshCADEdges)
+    WIDGETS['DEntry'] = B
 
     B = TTK.Button(Frame, text="Mesh all CAD edges", command=meshCADEdges)
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Mesh all CAD egdes with given h and deviation.')
+    WIDGETS['MeshEdgeButton'] = B
 
     B = TTK.Button(Frame, text="Mesh all CAD faces", command=meshCADFaces)
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Mesh the CAD faces from edges.')
-    WIDGETS['meshFaceButton'] = Frame
+    WIDGETS['MeshFaceButton'] = Frame
     
     B = TTK.OptionMenu(Frame, VARS[2], 'TRI', 'STRUCT')
     B.grid(row=2, column=1, sticky=TK.EW)
