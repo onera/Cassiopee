@@ -71,6 +71,9 @@ static PyMethodDef Pyocc [] =
   {"fixShape", K_OCC::fixShape, METH_VARARGS},
   {"trimFaces", K_OCC::trimFaces, METH_VARARGS},
   {"sewing", K_OCC::sewing, METH_VARARGS},
+  {"removeFaces", K_OCC::removeFaces, METH_VARARGS},
+  {"fillHole", K_OCC::fillHole, METH_VARARGS},
+  {"addFillet", K_OCC::addFillet, METH_VARARGS},
 
   {"getOppData", K_OCC::getOppData, METH_VARARGS},
 

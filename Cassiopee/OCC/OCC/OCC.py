@@ -10,10 +10,9 @@ import Transform
 import Generator
 import KCore
 import Converter.Mpi as Cmpi
-import numpy
 
 __all__ = ['convertCAD2Arrays', 'switch2UV', 'switch2UV2', '_scaleUV', '_unscaleUV',
-'allTFI', 'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__', 
+'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__', 
 'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__', 
 'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct']
 
@@ -105,23 +104,6 @@ def _unscaleUV(edges, T, vu='x', vv='y'):
         e[1][pv,:] = e[1][pv,:]*dv+vmin
     return None
 
-# Build a TFI for a set of edges
-# IN: edges: list of arrays defining a loop
-# OUT: list of surface meshes
-def allTFI(edges):
-    nedges = len(edges)
-    if nedges == 4:
-        return [Generator.TFI(edges)]
-    elif nedges == 1:
-        return Generator.TFIO(edges[0])
-    elif nedges == 2:
-        return Generator.TFIHalfO(edges[0], edges[1])
-    elif nedges == 3:
-        return Generator.TFITri(edges[0],edges[1],edges[2])
-    else:
-        # TFIStar
-        #return Generator.TFIStar2(edges)
-        return Generator.TFIStar(edges)
         
 # Mailleur structure de CAD
 # IN: N: the number of points for each patch boundary
@@ -153,7 +135,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
         edges = Generator.close(edges, 1.e-6) # the weakness
         # TFI dans espace uv
         try:
-            als = allTFI(edges)
+            als = Generator.allTFI(edges)
             # unscale uv
             _unscaleUV(als, T)
             for a in als:
@@ -438,7 +420,7 @@ def meshQUAD__(hook, N=11, order=1, faceSubset=None, faceNo=None):
         edges = Generator.close(edges, 1.e-6) # the weakness
         # TFI dans espace uv
         try:
-            als = allTFI(edges)
+            als = Generator.allTFI(edges)
             # unscale uv
             _unscaleUV(als, T)
             als = Converter.convertArray2Hexa(als)
@@ -602,11 +584,14 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     return SUCCESS
 
 # mesh all CAD edges with hmax, hausd
-def meshAllEdges(hook, hmax, hausd, N):
-    nbEdges = occ.getNbEdges(hook)
+def meshAllEdges(hook, hmax, hausd, N, edgeList=None):
+    if edgeList is None:
+        nbEdges = occ.getNbEdges(hook)
+        edgeList = range(1, nbEdges+1)
     dedges = []
-    for i in range(nbEdges):
-        e = occ.meshOneEdge(hook, i+1, hmax, hausd, N, None)
+    print(edgeList)
+    for i in edgeList:
+        e = occ.meshOneEdge(hook, i, hmax, hausd, N, None)
         dedges.append(e)
     return dedges
 
@@ -682,7 +667,7 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
         #edges = Generator.close(edges, 1.e-6) # the weakness
         # TFI dans espace uv
         try:
-            als = allTFI(edges)
+            als = Generator.allTFI(edges)
             # unscale uv
             _unscaleUV(als, T)
             for c, a in enumerate(als):

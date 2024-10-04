@@ -463,7 +463,6 @@ void K_OCC::OCCSurface::__normalize(E_Float& u, E_Float& v) const
   v = (v - _V0) / (_V1 - _V0);
 }
 
-
 void K_OCC::OCCSurface::__denormalize(E_Float& u, E_Float& v) const 
 {
   if (!_normalize_domain) return;
@@ -510,7 +509,6 @@ void K_OCC::OCCSurface::__traverse_face_edges(const TopoDS_Face& F, TopExp_Explo
 void K_OCC::OCCSurface::__get_params_and_type
 (const TopoDS_Face& F, E_Float& U0, E_Float& U1, E_Float& V0, E_Float& V1, bool& isUClosed, bool& isVClosed)
 {
-  
   E_Float paramtol = 1.e-6;
   
   ShapeAnalysis::GetFaceUVBounds(F, U0, U1, V0, V1);
@@ -530,4 +528,4 @@ void K_OCC::OCCSurface::__get_params_and_type
   isUClosed = (U0 == paramtol) & (U1 == (twoPI - paramtol));
   isVClosed = (V0 == paramtol) & (V1 == (twoPI - paramtol));
   
-  }
+}

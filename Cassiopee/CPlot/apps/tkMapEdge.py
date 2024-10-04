@@ -253,7 +253,7 @@ def refine1D(density, npts, factor):
 #==============================================================================
 # Uniformize pour les zones edges
 #==============================================================================
-def uniformize1D(density, h, npts, factor):
+def uniformize1D(density, h, npts, gnpts, factor):
     fail = False
     nzs = CPlot.getSelectedZones()
     zones = []
@@ -266,7 +266,7 @@ def uniformize1D(density, h, npts, factor):
         if npts > 0:
             for z in zones: D._uniformize(z, npts, h, factor, density)
         else:
-            D._uniformize(zones, npts, h, factor, density)
+            D._uniformize(zones, gnpts, h, factor, density)
         for c, nz in enumerate(nzs):
             nob = CTK.Nb[nz]+1
             noz = CTK.Nz[nz]
@@ -524,7 +524,6 @@ def apply3D(density, h, npts, factor, ntype):
             #fns = T.subzone(fn, (2,2,1), (dimsf[1]-1,dimsf[2]-1,1))
             #fns = T.projectOrtho(fns, [i])
             #fn = T.patch(fn, fns, position=(2,2,1))
-
             #fn = T.projectOrtho(fn, [i])
             outf.append(fn)
         else: return True
@@ -733,31 +732,36 @@ def uniformize(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     rtype = VARS[2].get()
-    density = -1; npts = 2; factor = -1; h = -1
+    density = -1; npts = -1; gnpts = -1; factor = -1; h = -1
     if rtype == 'Density':
         density = CTK.varsFromWidget(VARS[0].get(), 1)
         if len(density) != 1:
             CTK.TXT.insert('START', 'Invalid points density.\n')
-            CTK.TXT.insert('START', 'Error: ', 'Error')
+            CTK.TXT.insert('START', 'Error: ', 'Error'); return
         density = density[0]
     elif rtype == 'Npts':
         npts = CTK.varsFromWidget(VARS[0].get(), 2)
         if len(npts) != 1:
             CTK.TXT.insert('START', 'Invalid number of points.\n')
-            CTK.TXT.insert('START', 'Error: ', 'Error')
+            CTK.TXT.insert('START', 'Error: ', 'Error'); return
         npts = npts[0]
+    elif rtype == 'GNpts': # global number of points
+        gnpts = CTK.varsFromWidget(VARS[0].get(), 2)
+        if len(gnpts) != 1:
+            CTK.TXT.insert('START', 'Invalid number of points.\n')
+            CTK.TXT.insert('START', 'Error: ', 'Error'); return
+        gnpts = gnpts[0]
     elif rtype == 'NFactor':
         factor = CTK.varsFromWidget(VARS[0].get(), 1)
         if len(factor) != 1:
             CTK.TXT.insert('START', 'Invalid number factor.\n')
-            CTK.TXT.insert('START', 'Error: ', 'Error')
+            CTK.TXT.insert('START', 'Error: ', 'Error'); return
         factor = factor[0]
     elif rtype == 'H':
         h = CTK.varsFromWidget(VARS[0].get(), 1)
-        print('h', h)
         if len(h) != 1:
             CTK.TXT.insert('START', 'Invalid h step.\n')
-            CTK.TXT.insert('START', 'Error: ', 'Error')
+            CTK.TXT.insert('START', 'Error: ', 'Error'); return
         h = h[0]
 
     CTK.saveTree()
@@ -774,8 +778,8 @@ def uniformize(event=None):
             fail = apply3D(density, h, npts, factor, ntype=0)
         elif dim[2] != 1 and dim[3] == 1: 
             fail = apply2D(density, h, npts, factor, ntype=0)
-        else: fail = uniformize1D(density, h, npts, factor)
-    else: fail = uniformize1D(density, h, npts, factor) # all zones
+        else: fail = uniformize1D(density, h, npts, gnpts, factor)
+    else: fail = uniformize1D(density, h, npts, gnpts, factor) # all zones
 
     if not fail:
         CTK.TXT.insert('START', 'Uniformize successfull.\n')
@@ -1151,6 +1155,7 @@ def enforceLocal(event=None):
     imax = ind+1+delta
     
     CAD = Internal.getNodeFromName1(z, 'CAD')
+    render = Internal.getNodeFromName1(z, '.RenderInfo')
 
     #print("imin=",imin,"imax",imax,"ind",ind,"npts",npts)
     if imin > 1: z0 = T.subzone(z, (1,1,1), (imin,-1,-1))
@@ -1216,6 +1221,7 @@ def enforceLocal(event=None):
     if z1 is not None: zo = T.join(zo, z1)
     zo[0] = z[0] # keep orig name and CAD
     zo[2].append(CAD)
+    if render: zo[2].append(render)
 
     CTK.replace(CTK.t, nob, noz, zo)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -1292,7 +1298,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Uniformize", command=uniformize)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Uniformize an edge with regular spacing.')
-    B = TTK.OptionMenu(Frame, VARS[2], 'NFactor', 'Density', 'Npts', 'H')
+    B = TTK.OptionMenu(Frame, VARS[2], 'NFactor', 'Density', 'Npts', 'GNpts', 'H')
     B.grid(row=0, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=7)
     B.grid(row=0, column=2, columnspan=2, sticky=TK.EW)

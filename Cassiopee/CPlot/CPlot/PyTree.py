@@ -949,7 +949,7 @@ def style2Colormap(style):
     return colormap, light
     
 #==============================================================================
-# loadView form slot
+# loadView from slot
 #==============================================================================
 def loadView(t, slot=0):
     """Load a view stored in slot."""
@@ -1018,7 +1018,7 @@ def loadView(t, slot=0):
     if legend == 1: CPlot.setState(displayIsoLegend=legend)
 
     CPlot.setState(colormap=style)
-    pos = Internal.getNodesFromName1(slot, 'isoScales*')
+    pos = Internal.getNodesFromName(slot, 'isoScales*')
     scales = []
     for p in pos:
       name = p[0]

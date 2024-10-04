@@ -18,20 +18,20 @@
 */
 
 #include "occ.h"
-#include <TopoDS_Face.hxx>
-#include <GeomAPI_ProjectPointOnSurf.hxx>
-#include <BRep_Tool.hxx>
-#include <TopTools_IndexedMapOfShape.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TopoDS.hxx>
-#include <StdFail_NotDone.hxx>
+#include "TopoDS_Face.hxx"
+#include "GeomAPI_ProjectPointOnSurf.hxx"
+#include "BRep_Tool.hxx"
+#include "TopTools_IndexedMapOfShape.hxx"
+#include "TopExp_Explorer.hxx"
+#include "TopoDS.hxx"
+#include "StdFail_NotDone.hxx"
 
-#include <BRepBuilderAPI_MakeVertex.hxx>
-#include <BRepExtrema_DistShapeShape.hxx>
+#include "BRepBuilderAPI_MakeVertex.hxx"
+#include "BRepExtrema_DistShapeShape.hxx"
 
 #include "Nuga/include/BbTree.h"
-#include <Bnd_Box.hxx>
-#include <BRepBndLib.hxx>
+#include "Bnd_Box.hxx"
+#include "BRepBndLib.hxx"
 
 // Project coords on CAD face
 void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const TopoDS_Face& F)
@@ -50,10 +50,10 @@ void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const To
       {  
         GeomAPI_ProjectPointOnSurf o(Point, face, Extrema_ExtAlgo_Tree);
         gp_Pnt Pj = o.NearestPoint();
-        printf("projection %f %f %f -> %f %f %f\n",px[i],py[i],pz[i],Pj.X(),Pj.Y(),Pj.Z());
+        printf("Info: projection %f %f %f -> %f %f %f\n",px[i],py[i],pz[i],Pj.X(),Pj.Y(),Pj.Z());
         px[i] = Pj.X(); py[i] = Pj.Y(); pz[i] = Pj.Z();
       }
-      catch( StdFail_NotDone& e ) { printf("FAIL for point %g %g %g\n", px[i],py[i],pz[i]); }
+      catch (StdFail_NotDone& e) { printf("Info: projectOnFace: fail for point %g %g %g.\n", px[i],py[i],pz[i]); }
     }
   }
 }

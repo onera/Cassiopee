@@ -1,8 +1,10 @@
 # Various specific TFIs
 from . import Generator as G
+from . import generator
 try: import Converter as C
 except ImportError:
     raise ImportError("TFIs: requires Converter module.")
+import KCore.Vector as Vector
 
 try: range = xrange
 except: pass
@@ -28,17 +30,12 @@ def quality(meshes):
         elif max2 < 1.e-12 and min2 > 0: score += 1000.
     return score
 
-# distance au carre entre deux points
-def distance2(P0,P1):
-    dx = P0[0]-P1[0]
-    dy = P0[1]-P1[1]
-    dz = P0[2]-P1[2]
-    return dx*dx+dy*dy+dz*dz
-
+#==============================================================================
 # Order a set of structured edges in a loop
+#==============================================================================
 def orderEdges(edges, tol=1.e-10):
     """Order edges in a loop."""
-    import Transform as T
+    import Transform
     out = [] # ordered list of edges
     pool = edges[:] # list copy
     cur = pool[0]; pool.pop(0)
@@ -49,18 +46,175 @@ def orderEdges(edges, tol=1.e-10):
         for c, p in enumerate(pool):
             P0 = (p[1][0,0],p[1][1,0],p[1][2,0])
             P1 = (p[1][0,-1],p[1][1,-1],p[1][2,-1])
-            if distance2(P1p,P0) < tol*tol: 
+            if Vector.squareDist(P1p,P0) < tol*tol:
                 cur = p; out.append(cur); P1p = P1; pool.pop(c); found=True; break
-            if distance2(P1p,P1) < tol*tol: 
-                cur = T.reorder(p,(-1,1,1)); out.append(cur); P1p = P0; pool.pop(c); found=True; break
+            if Vector.squareDist(P1p,P1) < tol*tol:
+                cur = Transform.reorder(p,(-1,2,3)); out.append(cur); P1p = P0; pool.pop(c); found=True; break
         if not found: break
     return out
+
+#==============================================================================
+# Compute junction angles for already ordered edges
+#==============================================================================
+def computeJunctionAngles(edges):
+    """Compute junction angle in radians."""
+    angles = []
+    for c, p in enumerate(edges):
+        P0 = (p[1][0,0],p[1][1,0],p[1][2,0])
+        P1 = (p[1][0,1],p[1][1,1],p[1][2,1])
+        if c == 0: pn = edges[-1]
+        else: pn = edges[c-1]
+        P2 = (pn[1][0,-2],pn[1][1,-2],pn[1][2,-2])
+        v1 = Vector.sub(P1, P0)
+        v2 = Vector.sub(P2, P0)
+        v1 = Vector.normalize(v1)
+        v2 = Vector.normalize(v2)
+        s = Vector.dot(v1, v2)
+        v = Vector.norm(Vector.cross(v1, v2))
+        angle = float(numpy.arctan2(v, s))
+        angles.append(angle)
+    return angles
+
+#==============================================================================
+# Try to merge edges to get less edges, thresold in radians, ordered edges
+#==============================================================================
+def mergeEdgesAngle(edges, thresold=0.3):
+    """Merge edges with a junction angle less than thresold."""
+    import Transform
+    angles = computeJunctionAngles(edges)
+    print('angles=', angles)
+    medges = []
+    for c, e in enumerate(edges):
+        tangle = abs(angles[c] - numpy.pi)
+        if tangle < thresold and len(medges) > 0:
+            e2 = Transform.join(medges[-1], e); medges[-1] = e2            
+        else: medges.append(e)
+    tangle0 = abs(angles[0] - numpy.pi)
+    if tangle0 < thresold and len(medges) > 0:
+        e2 = Transform.join(medges[-1], medges[0]); medges[-1] = e2; medges.pop(0)
+    print('out', len(medges))
+    return medges
+
+def findSplitInEdges(edges, N2):
+    isp = 0; N = 0
+    for e in edges:
+        N += C.getNPts(e)-1 
+        if N == N2-1: break
+        if N > N2: isp = -1; break
+        isp += 1
+    return isp
+
+#==============================================================================
+# merge edges to get a set of 4 edges, ordered edges
+# if fail, return None
+#==============================================================================
+def mergeEdges4(iedges):
+    import Transform
+    edges = iedges[:] # copie
+    # total number of points
+    Ntot = 0
+    for e in edges: Ntot += C.getNPts(e)-1
+    Ntot += 1
+    N2 = Ntot//2+1
+    print("Ntot=", Ntot,"N2=",N2)
+    print(Ntot - (N2-1)*2+1)
+    if Ntot - ((N2-1)*2+1) != 0: return None # can not be merged in 4
+    
+    # Find the nearest 90 degrees junction
+    #angles = computeJunctionAngles(edges)
+    #c90 = 0
+    #for c, a in angles:
+    #    if abs(a-numpy/2.) < abs(angles[c90]-numpy.pi/2): c90 = c
+    #if c90 > 0: 
+    #    e1 = edges[0:c90]; e2 = edges[c90:]; edges = e2+e1
+
+    # try to find first split
+    nedges = len(edges)
+    roll = 0; isp = -1
+    while (isp == -1 and roll < nedges):
+        isp = findSplitInEdges(edges, N2)
+        if isp == -1:
+            edges = edges[1:]+edges[0]
+            roll += 1
+
+    print("isp=",isp,"roll=",roll,flush=True)
+
+    # try to find second split
+    e1 = edges[0:isp+1]; e2 = edges[isp+1:]
+    n1 = len(e1); n2 = len(e2)
+    print("resulting",n1,n2,flush=True)
+    if n1 == 2: # obvious
+        N1 = C.getNPts(e1[0])
+        isp = findSplitInEdges(e2, N1)
+        if isp == -1: print("This is a problem")
+        e3 = e2[0:isp+1]; e4 = e2[isp+1:]
+        e3 = Transform.join(e3); e4 = Transform.join(e4)
+        return e1+[e3,e4]
+    if n2 == 2: # obvious
+        N2 = C.getNPts(e2[0])
+        isp = findSplitInEdges(e1, N2)
+        if isp == -1: print("This is a problem")
+        e3 = e1[0:isp+1]; e4 = e1[isp+1:]
+        e3 = Transform.join(e3); e4 = Transform.join(e4)
+        return [e3,e4]+e2
+    # all need to join but how?
+    return None
+
+#===============================================================================
+# Build a TFI for a set of edges
+# IN: edges: list of arrays defining a loop
+# OUT: list of surface meshes
+#===============================================================================
+def allTFI__(edges):
+    nedges = len(edges)
+    if nedges == 4:
+        try: return [TFI(edges)]
+        except: pass
+    elif nedges == 1:
+        try: return TFIO(edges[0])
+        except: pass
+    elif nedges == 2:
+        try: return TFIHalfO(edges[0], edges[1])
+        except: pass
+    elif nedges == 3:
+        try: return TFITri(edges[0], edges[1], edges[2])
+        except: pass
+    return None
+
+def allTFI(edges):
+    print("direct TFI.")
+    ret = allTFI__(edges)
+    if ret is not None: return ret
+
+    # try to merge in 4
+    medges = mergeEdges4(edges)
+    if medges is not None:
+        print("merged4.")
+        ret = allTFI__(medges)
+        if ret is not None: return ret
+
+    # Try to merge with angles
+    medges = mergeEdgesAngle(edges, 0.5)
+    print("merged angles ", len(medges))
+    ret = allTFI__(medges)
+    if ret is not None: return ret
+
+    # Fallback use TFIStar
+    #return Generator.TFIStar2(edges)
+    return TFIStar(medges)
+
+#==============================================================================
+def TFI(arrays):
+    """Generate a transfinite interpolation mesh from boundaries.
+    Usage: TFI(arrays)"""
+    return generator.TFI(arrays)
 
 #==============================================================================
 # IN: a1,a2,a3: les 3 cotes du triangle (N3-N2+N1 impair)
 # OUT: 3 maillages
 #==============================================================================
 def TFITri(a1, a2, a3, tol=1.e-6):
+    """Generate a transfinite interpolation mesh from 3 input curves."""
     import Geom as D
     import Transform as T
     N1 = a1[2]; N2 = a2[2]; N3 = a3[2]
@@ -224,7 +378,7 @@ def TFIO__(a, weight, offset=0):
 # des points interieurs
 #==============================================================================
 def TFIO(a, weight=None):
-    """O-TFI from one edge.""" 
+    """Generate a transfinite interpolation mesh for 1 input curve."""
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = a[2]
     if Nt//2 - Nt*0.5 == 0: raise ValueError("TFIO: number of points must be odd.")
@@ -343,7 +497,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
 # TFI half O (N1 et N2 impairs)
 #==============================================================================
 def TFIHalfO(a1, a2):
-    """HalfO TFI from two edges."""
+    """Generate a transfinite interpolation mesh for 2 input curves."""
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt1 = a1[2]; Nt2 = a2[2]
     if Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0:
@@ -368,7 +522,7 @@ def TFIHalfO(a1, a2):
 # Celle qui a le plus de points est prise pour round.
 #==============================================================================
 def TFIMono(a1, a2):
-    """Mono TFI from two edges."""
+    """Generate a transfinite interpolation mesh for 2 input curves."""
     import Transform as T
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
@@ -391,10 +545,12 @@ def TFIMono(a1, a2):
     m1 = G.TFI([a1,b1,b3,b2])
     return [m1]
 
+#==============================================================================
 # Cree un ensemble de maillages TFI en etoilant les edges et en 
 # faisant des TFIs par triangle
+#==============================================================================
 def TFIStar(edges):
-    """Make TFIs from edges."""
+    """Generate a transfinite interpolation mesh for a list of input curves."""
     import Geom as D
     XG = G.barycenter(edges)
     out = []
@@ -403,24 +559,23 @@ def TFIStar(edges):
         ep = e[1]
         P0 = (ep[0,0], ep[1,0], ep[2,0])
         P1 = (ep[0,-1], ep[1,-1], ep[2,-1])
-        l1 = D.line(P0,XG,N=N)
-        l2 = D.line(XG,P1,N=N)
-        ret = TFITri(e,l1,l2)
+        l1 = D.line(P0, XG, N=N)
+        l2 = D.line(XG, P1, N=N)
+        ret = TFITri(e, l1, l2)
         out += ret
     return out
 
 # Cree un ensemble de maillages TFI en etoilant les milieux des edges
 # Les edges doivent tous avoir le meme nombre de points impair
 def TFIStar2(edges):
-    """Make TFIs from edges."""
+    """Generate a transfinite interpolation mesh for a list of input curves."""
     import Geom as D
     import Transform as T
     orderEdges(edges, tol=1.e-6)
     
     XG = G.barycenter(edges) # a optimiser
     out = []
-    for c in range(len(edges)):
-        e = edges[c]
+    for c, e in enumerate(edges):
         N1 = e[2]//2+1
         e1 = T.subzone(e, (N1,1,1), (-1,1,1))
         if c == len(edges)-1: en = edges[0]

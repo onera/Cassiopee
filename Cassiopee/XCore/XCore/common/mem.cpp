@@ -75,3 +75,77 @@ void *xresize(void *ptr, E_Int nbytes, const char *file, E_Int line)
     }
     return ptr;
 }
+
+Mem_arena::Mem_arena()
+{
+    arena = NULL;
+    size = 0;
+    capacity = 0;
+    nresize = 0;
+    nalloc = 0;
+}
+
+Mem_arena::Mem_arena(size_t nbytes)
+{
+    arena = XMALLOC(nbytes);
+    size = 0;
+    capacity = nbytes;
+    nresize = 0;
+    nalloc = 0;
+}
+
+void Mem_arena::reserve(size_t nbytes)
+{
+    assert(arena == NULL);
+    arena = XMALLOC(nbytes);
+    capacity = nbytes;
+}
+
+void *Mem_arena::alloc(size_t nbytes, const char *file, int line)
+{
+    void *ptr = NULL;
+    
+    nalloc++;
+    
+    if (size + nbytes > capacity) {
+        /*
+        nresize++;
+        size_t new_size = size + nbytes;
+        size_t new_capacity = (size_t)((E_Float)new_size * 1.5);
+        arena = XRESIZE(arena, new_capacity);
+        assert(size + nbytes < new_capacity);
+        
+        ptr = (void *)((char *)arena + size);
+        
+        size = new_size;
+        capacity = new_capacity;
+        */
+        fprintf(stderr, "Mem_arena: out of memory at %s:%d\n", file, line);
+        print_stats();
+        exit(1);
+    } else {
+        ptr = (void *)((char *)arena + size);
+        size += nbytes;
+    }
+    
+    return ptr;
+}
+
+void Mem_arena::drop()
+{
+    XFREE(arena);
+    size = capacity = nalloc = nresize = 0;
+}
+
+void Mem_arena::print_stats()
+{
+    printf("\n");
+    printf("    /**** Mem_arena stats ****/\n");
+    printf("      size:     %zu B\n", size);
+    printf("      capacity: %zu B\n", capacity);
+    printf("      usage:    %.2f %%\n", size * 100.0f / capacity);
+    printf("      number of allocations:   %zu\n", nalloc);
+    printf("      number of reallocations: %zu\n", nresize);
+    printf("    /*************************/\n");
+    printf("\n");
+}

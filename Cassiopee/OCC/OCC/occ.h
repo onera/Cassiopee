@@ -70,6 +70,9 @@ namespace K_OCC
   PyObject* fixShape(PyObject* self, PyObject* args);
   PyObject* trimFaces(PyObject* self, PyObject* args);
   PyObject* sewing(PyObject* self, PyObject* args);
+  PyObject* removeFaces(PyObject* self, PyObject* args);
+  PyObject* fillHole(PyObject* self, PyObject* args);
+  PyObject* addFillet(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
 

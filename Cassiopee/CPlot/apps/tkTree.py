@@ -789,7 +789,6 @@ class Node:
             cont = ret[0]
             if cont[3] == 'FlowSolution_t':
                 gp = Internal.getNodeFromType1(cont, 'GridLocation_t')
-                
                 field = None
                 if cont[0] == Internal.__FlowSolutionNodes__:
                     field = pid[0]
