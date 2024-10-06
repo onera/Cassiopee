@@ -932,7 +932,7 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
     
     E_Int found = 0;
     E_Int walk = 0;
-    E_Int max_walk = 10;
+    E_Int max_walk = 100;
 
     Face *current_face = F[start_face];
 
@@ -1124,7 +1124,7 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
     for (size_t hid = 0; hid < s_hedges.size(); hid++) {
         Hedge *sh = s_hedges[hid];
 
-        //printf("Tracing hedge %d / %zu\n", hid+1, s_hedges.size());
+        printf("Tracing hedge %zu / %zu\n", hid+1, s_hedges.size());
 
         trace_hedge(sh, M, S, hid);
     }
