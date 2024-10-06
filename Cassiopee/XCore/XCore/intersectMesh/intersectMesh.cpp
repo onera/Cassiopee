@@ -343,8 +343,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Smesh Mf(M);
     Smesh Sf(S);
     
-    //Mf.write_ngon("Mf");
-    //Sf.write_ngon("Sf");
+    Mf.write_ngon("Mf");
+    Sf.write_ngon("Sf");
 
     puts("Making point edges...");
     Mf.make_point_edges();
