@@ -435,6 +435,14 @@ def intersectMesh(IM, slave):
 def IntersectMesh_ExtractFaceSet(AM):
     return xcore.IntersectMesh_ExtractFaceSet(AM)
 
+def IntersectMesh_Merge(M, S):
+    zm = I.getZones(M)[0]
+    m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    zs = I.getZones(S)[0]
+    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    return xcore.IntersectMesh_Merge(m, s)
+
 def extractCell(a, cid):
     z = I.getZones(a)[0]
 

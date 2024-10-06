@@ -30,6 +30,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/IntersectMesh_ExtractMesh.cpp',
             'XCore/intersectMesh/IntersectMesh_Exit.cpp',
             'XCore/intersectMesh/IntersectMesh_ExtractFaceSet.cpp',
+            'XCore/intersectMesh/IntersectMesh_Merge.cpp',
 
             'XCore/intersectMesh/intersectMesh.cpp',
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
