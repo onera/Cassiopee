@@ -32,6 +32,22 @@ struct Karray {
 
     E_Float *X, *Y, *Z;
     E_Int npts;
+
+    inline E_Int *indpg() const { return cn->getIndPG(); }
+    inline E_Int *indph() const { return cn->getIndPH(); }
+
+    inline E_Int *ngon() const { return cn->getNGon(); }
+    inline E_Int *nface() const { return cn->getNFace(); }
+
+    inline E_Int *get_face(E_Int face, E_Int &np) const
+    { return cn->getFace(face, np, ngon(), indpg()); }
+
+    inline E_Int *get_cell(E_Int cell, E_Int &nf) const
+    { return cn->getElt(cell, nf, nface(), indph()); }
+
+    inline E_Int npoints() const { return npts; }
+    inline E_Int nfaces() const { return cn->getNFaces(); }
+    inline E_Int ncells() const { return cn->getNElts(); }
 };
 
 void Karray_free_ngon(Karray &karray);
