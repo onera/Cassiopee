@@ -95,7 +95,7 @@ struct IMesh {
     E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
         E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
     
-    void triangulate_face_set();
+    void triangulate_face_set(bool propagate = true);
     
     void hash_patch();
 

@@ -33,8 +33,42 @@
 #include "ray.h"
 #include "io.h"
 
-void IMesh::triangulate_face_set()
+void IMesh::triangulate_face_set(bool propagate)
 {
+    if (propagate) {
+        E_Float xmin, ymin, zmin, xmax, ymax, zmax;
+        xmin = ymin = zmin = EFLOATMAX;
+        xmax = ymax = zmax = EFLOATMIN;
+
+        for (auto fid : faces_to_tri) {
+            const auto &pn = F[fid];
+            for (auto p : pn) {
+                if (X[p] < xmin) xmin = X[p];
+                if (Y[p] < ymin) ymin = Y[p];
+                if (Z[p] < zmin) zmin = Z[p];
+                if (X[p] > xmax) xmax = X[p];
+                if (Y[p] > ymax) ymax = Y[p];
+                if (Z[p] > zmax) zmax = Z[p];
+            }
+        }
+
+        make_skin();
+
+        faces_to_tri.clear();
+
+        for (auto fid : skin) {
+            const auto &pn = F[fid];
+            for (auto p : pn) {
+                if (X[p] >= xmin && X[p] <= xmax &&
+                    Y[p] >= ymin && Y[p] <= ymax &&
+                    Z[p] >= zmin && Z[p] <= zmax) {
+                    faces_to_tri.insert(fid);
+                    break;
+                }
+            }
+        }
+    }
+
     E_Int NF = nf;
 
     E_Int face_incr = (E_Int)faces_to_tri.size();
@@ -92,9 +126,11 @@ void IMesh::triangulate_face_set()
 
     faces_to_tri.clear();
 
+    /*
     for (E_Int cid = 0; cid < nc; cid++) {
         assert(C[cid].size() == 6 || C[cid].size() == 7);
     }
+    */
 }
 
 struct DEdge {
