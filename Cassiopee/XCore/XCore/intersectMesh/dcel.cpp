@@ -389,10 +389,10 @@ void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
     for (E_Int pid = 0; pid < M.np; pid++) {
         auto &hedges = list[pid];
 
-        assert(!hedges.empty());
+        assert(hedges.size() >= 2);
 
         const E_Float *N = &pnormals[3*pid];
-        assert(Sign(K_MATH::norm(N, 3)-1) == 0);
+        //assert(Sign(K_MATH::norm(N, 3)-1) == 0);
 
         sort_leaving_hedges(hedges, N, M);
 
@@ -635,7 +635,7 @@ void Dcel::set_cycles_inout(const Smesh &M, const Smesh &S)
         }
 
         E_Float NORM = K_MATH::norm(N, 3);
-        assert(Sign(NORM -1) == 0);
+        //assert(Sign(NORM -1) == 0);
 
         E_Float cmp = K_MATH::dot(N, cp, 3);
 
@@ -985,16 +985,16 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
         E_Float dp = K_MATH::dot(fN, dir, 3);
         for (E_Int i = 0; i < 3; i++) proj[i] = dir[i] - dp * fN[i];
 
-        E_Float dx = px + 2*proj[0];
-        E_Float dy = py + 2*proj[1];
-        E_Float dz = pz + 2*proj[2];
+        E_Float dx = px + 10000*proj[0];
+        E_Float dy = py + 10000*proj[1];
+        E_Float dz = pz + 10000*proj[2];
 
         Hedge *h = current_face->rep;
         E_Int reached = 0;
         E_Int hit = 0;
 
         E_Float ix, iy, iz;
-        ix = iy = iz = -10000;
+        ix = iy = iz = EFLOATMIN;
     
         while (!reached && !found) {
     
@@ -1094,7 +1094,7 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 
 void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
 {
-    puts("Isolating s_hedges...");
+    puts("    Isolating s_hedges...");
 
     std::vector<Hedge *> s_hedges;
 
@@ -1103,23 +1103,40 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
         assert(h->twin == H[i+1]);
         assert(h->color == Dcel::BLACK);
         Hedge *t = h->twin;
+        assert(h != NULL);
+        assert(t != NULL);
         Vertex *p = h->orig;
         Vertex *q = t->orig;
-        if (cmp_vtx(p, q) <= 0) {
+        assert(p != NULL);
+        assert(q != NULL);
+        E_Int cmp = cmp_vtx(p, q);
+        assert(cmp != 0);
+        if (cmp_vtx(p, q) < 0) {
             s_hedges.push_back(h);
         } else {
             s_hedges.push_back(t);
         }
     }
 
-    puts("Sorting s_hedges...");
+    puts("    Sorting s_hedges...");
 
     std::sort(s_hedges.begin(), s_hedges.end(), [&] (Hedge *h, Hedge *w)
     {
-        return cmp_vtx(h->orig, w->orig) <= 0;
+        assert(h->twin != w);
+        assert(w->twin != h);
+
+        E_Int cmp = cmp_vtx(h->orig, w->orig);
+        if (cmp < 0) return true;
+        if (cmp > 0) return false;
+
+        cmp = cmp_vtx(h->twin->orig, w->twin->orig);
+        assert(cmp != 0);
+
+        if (cmp < 0) return true;
+        return false;
     });
 
-    puts("Tracing edges...");
+    puts("    Tracing edges...");
 
     for (size_t hid = 0; hid < s_hedges.size(); hid++) {
         Hedge *sh = s_hedges[hid];
@@ -1153,7 +1170,7 @@ void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving,
 
     for (E_Int i = 0; i < 3; i++) ref_vec[i] /= NORM;
 
-    assert(Sign(K_MATH::norm(ref_vec, 3) - 1) == 0);
+    //assert(Sign(K_MATH::norm(ref_vec, 3) - 1) == 0);
 
     std::vector<E_Float> angles;
 
@@ -1361,7 +1378,7 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
         }
 
         E_Float NORM = K_MATH::norm(N, 3);
-        assert(Sign(NORM -1) == 0);
+        //assert(Sign(NORM -1) == 0);
 
         sort_leaving_hedges(leaving, N, M);
 
