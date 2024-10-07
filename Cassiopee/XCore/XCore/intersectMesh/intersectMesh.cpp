@@ -320,8 +320,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     M.orient_skin(OUT);
     S.orient_skin(IN);
 
-    M.patch.clear();
-    for (E_Int fid : M.skin) M.patch.insert(fid);
+    //M.patch.clear();
+    //for (E_Int fid : M.skin) M.patch.insert(fid);
 
     printf("Master patch: %zu faces\n", M.patch.size());
 
