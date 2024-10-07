@@ -96,6 +96,8 @@ struct IMesh {
         E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
     
     void triangulate_face_set(bool propagate = true);
+
+    size_t refine_slave(const IMesh &master);
     
     void hash_patch();
 
