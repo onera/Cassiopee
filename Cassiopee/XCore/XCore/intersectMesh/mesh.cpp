@@ -87,6 +87,8 @@ void IMesh::triangulate_face_set(bool propagate)
 
     assert(skin.size() > 0);
 
+    patch.clear();
+
     for (E_Int fid : faces_to_tri) {
 
         auto &pn = F[fid];
@@ -117,20 +119,16 @@ void IMesh::triangulate_face_set(bool propagate)
 
         skin.push_back(NF);
 
+        // Update patch
+        patch.insert(fid);
+        patch.insert(NF);
+
         NF++;
     }
 
     assert(NF == nf + face_incr);
 
     nf = NF;
-
-    faces_to_tri.clear();
-
-    /*
-    for (E_Int cid = 0; cid < nc; cid++) {
-        assert(C[cid].size() == 6 || C[cid].size() == 7);
-    }
-    */
 }
 
 struct DEdge {
@@ -337,8 +335,8 @@ E_Int IMesh::RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
 {
     const auto &pn = F[fid];
 
-    // TODO(Imad): hexa mesh for now
-    assert(pn.size() == 4);
+    // TODO(Imad): quads or tris for now
+    assert(pn.size() == 4 || pn.size() == 3);
 
     E_Int a = pn[0], b = pn[1], c = pn[2];
 
@@ -360,6 +358,8 @@ E_Int IMesh::RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
 
         return 1;
     }
+
+    if (pn.size() == 3) return 0;
 
     E_Int d = pn[3];
 
