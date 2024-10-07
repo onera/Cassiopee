@@ -45,12 +45,12 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
 
     IMesh &M = *(IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
 
-    M.make_skin();
-    assert(M.patch.empty());
-    for (E_Int fid : M.skin) {
-        assert(fid < M.nf);
-        M.patch.insert(fid);
-    }
+    //M.make_skin();
+    //assert(M.patch.empty());
+    //for (E_Int fid : M.skin) {
+    //    assert(fid < M.nf);
+    //    M.patch.insert(fid);
+    //}
 
     Karray sarray;
 
@@ -81,11 +81,13 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     // Init master/slave meshes
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
     S.make_skin();
+    S.patch.clear();
+
+    assert(tag_size == S.np);
 
     for (E_Int fid : S.skin) {
         const auto &pn = S.F[fid];
         size_t stride = pn.size();
-        assert(stride == 3 || stride == 4);
 
         E_Int keep = 1;
 
@@ -100,7 +102,17 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
         if (keep) S.patch.insert(fid);
     }
 
+    printf("S.patch size before triangulation: %lu\n", S.patch.size());
+
+    S.faces_to_tri.clear();
+    for (auto fid : S.patch) S.faces_to_tri.insert(fid);
+    S.triangulate_face_set(false);
+
+    printf("S.patch size after triangulation: %lu\n", S.patch.size());
+
     puts("Adapting intersection zones...");
+
+    printf("M.patch size before refinement: %lu\n", M.patch.size());
 
     ret = meshes_mutual_refinement(M, S);
     if (ret != 0) {
@@ -109,11 +121,14 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    printf("M.patch size after refinement: %lu\n", M.patch.size());
+    printf("S.patch size after refinement: %lu\n", S.patch.size());
+
     puts("Extracting conformized meshes...");
 
     S = S.extract_conformized();
     M = M.extract_conformized();
-    
+
     // Export
     puts("Exporting to CGNS format...");
 
