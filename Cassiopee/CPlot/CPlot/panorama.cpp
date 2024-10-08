@@ -22,7 +22,7 @@
 
 #define M_PI 3.1415926535897932384626433832795
 
-// in texture interpolation
+// interpolation when using images
 void interp(E_Int ind,
             E_Float* final1, E_Float* final2, E_Float* final3, E_Float* final4,
             E_Float* im1, E_Float* im2, E_Float* im3, E_Float* im4, 
@@ -47,6 +47,66 @@ void interp(E_Int ind,
   final4[ind] = bx*by*im4[ind1]+ax*by*im4[ind2]+bx*ay*im4[ind3]+ax*ay*im4[ind4];
 }
 
+// interpolation when using slit buffers
+void interp2(E_Int ind,
+             char* final, char* im, 
+             E_Float px, E_Float py, E_Int ni1, E_Int nj1)
+{
+  E_Int i1 = E_Int(px*ni1);
+  E_Int i1p1 = std::min(i1+1, ni1);
+  E_Int j1 = E_Int(py*nj1);
+  E_Int j1p1 = std::min(j1+1, nj1);
+
+  E_Int ind1 = i1+j1*(ni1+1);
+  E_Int ind2 = i1p1+j1*(ni1+1);
+  E_Int ind3 = i1+j1p1*(ni1+1);
+  E_Int ind4 = i1p1+j1p1*(ni1+1);
+  
+  E_Float ax = px*ni1-i1;
+  E_Float bx = 1.-ax;
+  E_Float ay = py*nj1-j1;
+  E_Float by = 1.-ay;
+
+  ax = 0.5; bx = 0.5;
+  ay = 0.5; by = 0.5;
+  
+  //printf("%g %g // %g %d\n", ax, ay, py, nj1);
+  //printf("%g %g\n", ax, bx);
+
+  E_Float a1, a2, a3, a4;
+  uint8_t ret;
+
+  //char c = (uint8_t)im[3*ind1];
+  //ret = (int)c;
+
+  a1 = bx*by*(uint8_t)im[3*ind1];
+  a2 = ax*by*(uint8_t)im[3*ind2];
+  a3 = bx*ay*(uint8_t)im[3*ind3];
+  a4 = ax*ay*(uint8_t)im[3*ind4];
+  ret = std::round(a1 + a2 + a3 + a4);
+  //printf("ret=%d // %d %d\n", ret, im[3*ind1], im[3*ind2]);
+  final[3*ind] = (char)ret;
+  a1 = bx*by*(uint8_t)im[3*ind1+1];
+  a2 = ax*by*(uint8_t)im[3*ind2+1];
+  a3 = bx*ay*(uint8_t)im[3*ind3+1];
+  a4 = ax*ay*(uint8_t)im[3*ind4+1];
+  ret = std::round(a1 + a2 + a3 + a4);
+  final[3*ind+1] = (char)(ret);
+  a1 = bx*by*(uint8_t)im[3*ind1+2];
+  a2 = ax*by*(uint8_t)im[3*ind2+2];
+  a3 = bx*ay*(uint8_t)im[3*ind3+2];
+  a4 = ax*ay*(uint8_t)im[3*ind4+2];
+  ret = std::round(a1 + a2 + a3 + a4);
+  final[3*ind+2] = (char)(ret);
+
+  //final[3*ind] = E_Int(im[3*ind4]);
+  //final[3*ind+1] = E_Int(im[3*ind4+1]);
+  //final[3*ind+2] = E_Int(im[3*ind4+2]);
+  
+  //final[3*ind]   = bx*by*im[3*ind1]  +ax*by*im[3*ind2]  +bx*ay*im[3*ind3]  +ax*ay*im[3*ind4];
+  //final[3*ind+1] = bx*by*im[3*ind1+1]+ax*by*im[3*ind2+1]+bx*ay*im[3*ind3+1]+ax*ay*im[3*ind4+1];
+  //final[3*ind+2] = bx*by*im[3*ind1+2]+ax*by*im[3*ind2+2]+bx*ay*im[3*ind3+2]+ax*ay*im[3*ind4+2];
+}
 
 // Create 1D half gaussian kernel coefficients
 // IN: sigma: in pixels
@@ -71,7 +131,7 @@ void createGaussFilter(E_Float sigma, E_Int n, E_Float* c)
 // IN: c: kernel coef
 // IN: n: kernel half size
 // OUT: out: color array (already allocated)
-void gaussianBlur(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float* out)
+void gaussianBlur2(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float* out)
 {
   // filter en i
   for (E_Int j = 0; j < nj; j++)
@@ -343,9 +403,9 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
     E_Float* out2 = out.begin(2);
     E_Float* out3 = out.begin(3);
 
-    gaussianBlur(final1, nil, njl, c, n, out1);
-    gaussianBlur(final2, nil, njl, c, n, out2);
-    gaussianBlur(final3, nil, njl, c, n, out3);
+    gaussianBlur2(final1, nil, njl, c, n, out1);
+    gaussianBlur2(final2, nil, njl, c, n, out2);
+    gaussianBlur2(final3, nil, njl, c, n, out3);
     
     /*
     #pragma omp parallel
@@ -501,12 +561,13 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   E_Int njl1 = njl-1;
   E_Int ni1 = ni-1; // cube image
   E_Int nj1 = nj-1;
-  printf("ni=%d, nj=%d\n", ni, nj);
+  //printf("ni=%d, nj=%d\n", ni, nj);
 
   E_Int ind;
-  E_Int mid = ni/2;
   
   // direct sliting
+  /*
+  E_Int mid = ni/2;
   for (E_Int i = 0; i < nangles; i++)
   {
     for (E_Int j = 0; j < njl; j++)
@@ -518,6 +579,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
       final4[ind] = imb4[i][mid+j*ni];
     }
   }
+  */
   //return Py_None;
 
   // transformation
@@ -547,7 +609,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
               imf1[i], imf2[i], imf3[i], imf4[i],
               0.5, py, ni1, nj1);
       }
-      else if (phi > M_PI/4.) // bottom
+      else if (phi >= M_PI/4.) // bottom
       {
         scale = -1.0 / y;
         py = ( z*scale + 1.0) / 2.0;
@@ -555,12 +617,8 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
         interp(ind, final1, final2, final3, final4,
               imb1[i], imb2[i], imb3[i], imb4[i],
               0.5, py, ni1, nj1);
-        //final1[ind] = 0.;
-        //final2[ind] = 0.;
-        //final3[ind] = 0.;
-        //final4[ind] = 255.;
       }
-      else if (phi < -M_PI/4.) // top
+      else if (phi <= -M_PI/4.) // top
       {
         scale = -1.0 / y;
         py = ( z*scale + 1.0) / 2.0;
@@ -568,10 +626,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
         interp(ind, final1, final2, final3, final4,
               imt1[i], imt2[i], imt3[i], imt4[i],
               0.5, py, ni1, nj1);
-        //final1[ind] = 255.;
-        //final2[ind] = 0.;
-        //final3[ind] = 0.;
-        //final4[ind] = 255.;
       }
     }
   }
@@ -586,4 +640,67 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   RELEASESHAREDS(finalArray, final);
   
   return Py_None;
+}
+
+// acumulate one slit in image at place i
+void accumulateSlit(E_Int ni, E_Int nj, char* imf, char* imt, char* imb, 
+                    E_Int i, E_Int nil, E_Int njl, char* imOut)
+{
+  E_Int nijl = nil*njl; // final image
+  E_Int nil1 = nil-1;
+  E_Int njl1 = njl-1;
+  E_Int ni1 = ni-1; // slit image
+  E_Int nj1 = nj-1;
+  //printf("ni=%d, nj=%d\n", ni, nj);
+  //printf("nil=%d, njl=%d\n", nil, njl);
+
+  E_Int ind;
+  E_Float scale, ty, py, phi, x, y, z;
+  
+  // direct sliting for test
+  /*
+  E_Int mid = ni/2;
+  for (E_Int j = 0; j < nj; j++)
+  {
+    ind = i + j*nil;
+    imOut[3*ind] = imb[3*(mid+j*ni)];
+    imOut[3*ind+1] = imb[3*(mid+j*ni)+1];
+    imOut[3*ind+2] = imb[3*(mid+j*ni)+2];
+  }
+  return;
+  */
+
+  // 1D interpolation
+  for (E_Int j = 0; j < njl; j++)
+  {
+    ty = (1.*j)/nj1;
+    phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
+    ind = i + (njl-j-1)*nil;
+
+    x = 0.;
+    y = sin(phi); // entre -1 et 1
+    z = cos(phi); // entre 0 et 0
+
+    if (phi > -M_PI/4. && phi < M_PI/4.)
+    {
+      scale = 1.0 / z;
+      py = ( y*scale + 1.0) / 2.0;
+      interp2(ind, imOut, imf,
+              0.5, py, ni1, nj1);
+    }
+    else if (phi >= M_PI/4.) // top
+    {
+      scale = -1.0 / y;
+      py = ( z*scale + 1.0) / 2.0;
+      interp2(ind, imOut, imt,
+              0.5, py, ni1, nj1);
+    }
+    else if (phi <= -M_PI/4.) // bottom
+    {
+      scale = -1.0 / y;
+      py = ( z*scale + 1.0) / 2.0;
+      interp2(ind, imOut, imb,
+              0.5, py, ni1, nj1);
+    }
+  }
 }

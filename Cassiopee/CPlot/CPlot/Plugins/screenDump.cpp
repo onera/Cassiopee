@@ -23,6 +23,9 @@
 // if 0: getDepth with OSMESA, if 1: getDepth with openGL
 #define GETDEPTH 1
 
+void accumulateSlit(E_Int ni, E_Int nj, char* imf, char* imt, char* imb, 
+                    E_Int i, E_Int nil, E_Int njl, char* imOut);
+
 //=============================================================================
 // Screen dump plugins
 //=============================================================================
@@ -346,7 +349,6 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;
     OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
-    //printf("bpv=%d\n", bpv);
     if (bpv == 2)
     {
       unsigned short* d = (unsigned short*)depthl;
@@ -507,7 +509,7 @@ void Data::dumpWindow()
       exportWidth = (exportWidth/2)*2;
       exportHeight = (exportHeight/2)*2; // doit etre pair
       antialiasing=1; // FBO rendering with no compositing
-    } 
+    }
     if (antialiasing == 1)
     {
       // get image X2
@@ -540,19 +542,61 @@ void Data::dumpWindow()
       for (E_Int i = 0; i < 3*exportWidth*exportHeight; i++) buffer[i] = buffer2[i];
       free(buffer2);
     }
-
+     
+    // For ODS accumulate in odsImage
+    if (ptrState->odsRun)
+    {
+      E_Int no = ptrState->odsSlit;
+      E_Int ni = 2;
+      E_Int nj = exportHeight;
+      E_Int nil = ptrState->odsNSlits;
+      E_Int njl = exportHeight;
+      E_Int i = no/3;
+        
+      if (no%3 == 2)
+      {
+        accumulateSlit(ni, nj, ptrState->odsFrontImage, ptrState->odsTopImage, buffer,
+                       i, nil, njl, ptrState->odsImage);
+      }
+      else if (no%3 == 1) 
+      { 
+        memcpy(ptrState->odsTopImage, buffer, ni*nj*3);
+      }
+      else 
+      { 
+        memcpy(ptrState->odsFrontImage, buffer, ni*nj*3);
+      }
+    }
+    
     // Dump the buffer to a file
-    if (ptrState->offscreen != 3 && ptrState->offscreen != 5 && ptrState->offscreen != 7)
-      _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
+    if (not ptrState->odsRun)
+    { 
+      if (ptrState->offscreen != 3 && ptrState->offscreen != 5 && ptrState->offscreen != 7)
+        _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
 
 #ifdef _MPI
-    if (ptrState->offscreen == 7)
-    {
-      int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank == 0)
-        _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
-    }
+      if (ptrState->offscreen == 7)
+      {
+        int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        if (rank == 0)
+          _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
+      }
 #endif
+    }
+    else if (ptrState->odsRun && ptrState->odsSlit == 3*(ptrState->odsNSlits)-1) 
+    { 
+      if (ptrState->offscreen != 3 && ptrState->offscreen != 5 && ptrState->offscreen != 7)
+        _pref.screenDump->f(this, fileName, ptrState->odsImage, ptrState->odsNSlits, exportHeight, 0);
+
+#ifdef _MPI
+      if (ptrState->offscreen == 7)
+      {
+        int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        if (rank == 0)
+          _pref.screenDump->f(this, fileName, ptrState->odsImage, ptrState->odsNSlits, exportHeight, 0);
+      }
+#endif
+    }
     
     free(buffer);
   }

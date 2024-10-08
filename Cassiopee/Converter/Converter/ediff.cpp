@@ -237,8 +237,10 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   vector<E_Bool> coordPresent;
   vector<E_Int> pos, posx1, posy1, posz1, posx2, posy2, posz2;
   vector<vector<E_Int> > pos1, pos2;
-  char varString[field1.size()][K_ARRAY::VARSTRINGLENGTH];
-  char varStringl[field1.size()][K_ARRAY::VARSTRINGLENGTH];
+  char** varString = new char* [field1.size()];
+  char** varStringl = new char* [field1.size()];
+  for (size_t i = 0; i < field1.size(); i++) varString[i] = new char [K_ARRAY::VARSTRINGLENGTH];
+  for (size_t i = 0; i < field1.size(); i++) varStringl[i] = new char [K_ARRAY::VARSTRINGLENGTH];
   
   for (size_t i = 0; i < field1.size(); i++)
   {
@@ -348,6 +350,11 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   /*------------------*/
   /* Little cleaning  */
   /*------------------*/
+  for (size_t i = 0; i < field1.size(); i++) delete [] varString[i];
+  delete [] varString;
+  for (size_t i = 0; i < field1.size(); i++) delete [] varStringl[i];
+  delete [] varStringl;
+
   for (size_t i = 0; i < field1.size(); i++) 
   { 
     if (ni1[i] == -1) { RELEASESHAREDU(object1[i], field1[i], cn1[i]); }

@@ -141,10 +141,52 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   d->ptrState->render = 0; // 1 ou pas?
   d->ptrState->shootScreen = 0;
   gdisplay(); // build DL
-  if (d->ptrState->stereo == 0) d->display();
-  else d->displayAnaglyph();
-  d->exportFile();
-  //printf("done.\n");
+
+  if (posCamList == Py_None)
+  {
+    if (d->ptrState->stereo == 0) d->display();
+    else d->displayAnaglyph();
+    d->exportFile();
+    //printf("done.\n");
+  }
+  else // list of posCams: ODS
+  {
+    d->ptrState->odsRun = true;
+    E_Int nslits = PyList_Size(posCamList)/9; // xyz+front/top/bot
+    d->ptrState->odsNSlits = nslits;
+    E_Int height = d->ptrState->exportHeight;
+    d->ptrState->odsImage = new char [nslits*height*3];
+    d->ptrState->odsFrontImage = new char [2*height*3];
+    d->ptrState->odsTopImage = new char [2*height*3];
+      
+    for (E_Int i = 0; i < 3*nslits; i++)
+    {
+      d->ptrState->odsSlit = i;
+      PyObject* v = PyList_GetItem(posCamList, 3*i); 
+      d->_view.xcam = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posCamList, 3*i+1);
+      d->_view.ycam = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posCamList, 3*i+2); 
+      d->_view.zcam = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posEyeList, 3*i); 
+      d->_view.xeye = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posEyeList, 3*i+1); 
+      d->_view.yeye = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posEyeList, 3*i+2); 
+      d->_view.zeye = PyFloat_AsDouble(v);
+      v = PyList_GetItem(dirCamList, 3*i); 
+      d->_view.dirx = PyFloat_AsDouble(v);
+      v = PyList_GetItem(dirCamList, 3*i+1); 
+      d->_view.diry = PyFloat_AsDouble(v);
+      v = PyList_GetItem(dirCamList, 3*i+2); 
+      d->_view.dirz = PyFloat_AsDouble(v);
+      d->display();
+      d->exportFile();
+    }
+    delete [] d->ptrState->odsImage;
+    delete [] d->ptrState->odsFrontImage;
+    delete [] d->ptrState->odsTopImage;
+  }
 #else
   printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif

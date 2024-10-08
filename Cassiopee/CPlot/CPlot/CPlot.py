@@ -57,7 +57,8 @@ def display(arrays,
             stereo=-1, stereoDist=-1., panorama=0,
             export="None", exportResolution="None",
             zoneNames=[], renderTags=[], frameBuffer=-1,
-            offscreen=0):
+            offscreen=0,
+            posCamList=None, posEyeList=None, dirCamList=None):
     """Display arrays.
     Usage: display(arrays)"""
     if arrays != [] and not isinstance(arrays[0], list): arrays = [arrays]
@@ -78,7 +79,8 @@ def display(arrays,
                         shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
                         stereo, stereoDist, panorama,
                         export, exportResolution, zoneNames, renderTags,
-                        frameBuffer, offscreen)
+                        frameBuffer, offscreen, 
+                        posCamList, posEyeList, dirCamList)
             __slot__ = 1
         else:
             cplotOSMesa.displayAgain(arrays, dim, mode, scalarField, vectorField1,
@@ -92,7 +94,8 @@ def display(arrays,
                         shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
                         stereo, stereoDist, panorama,
                         export, exportResolution, zoneNames, renderTags,
-                        frameBuffer, offscreen)
+                        frameBuffer, offscreen,
+                        posCamList, posEyeList, dirCamList)
         return
     from . import cplot
     if __slot__ is None:
@@ -109,7 +112,8 @@ def display(arrays,
                      shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
                      stereo, stereoDist, panorama,
                      export, exportResolution, zoneNames, renderTags,
-                     frameBuffer, offscreen)
+                     frameBuffer, offscreen,
+                     posCamList, posEyeList, dirCamList)
     else:
         displayAgain__(arrays, dim, mode, scalarField, vectorField1,
                        vectorField2, vectorField3, displayBB, displayInfo,
@@ -122,7 +126,8 @@ def display(arrays,
                        shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
                        stereo, stereoDist, panorama,
                        export, exportResolution,
-                       zoneNames, renderTags, frameBuffer, offscreen)
+                       zoneNames, renderTags, frameBuffer, offscreen,
+                       posCamList, posEyeList, dirCamList)
     
 #==============================================================================
 def render():
@@ -763,7 +768,8 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                  shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
                  stereo, stereoDist, panorama,
-                 export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
+                 export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen,
+                 posCamList, posEyeList, dirCamList):
     global __slot__
     import threading
     if colormap != -1: 
@@ -786,7 +792,8 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           shadow, lightOffset, dof, dofPower, gamma, toneMapping,  
                           stereo, stereoDist, panorama,
                           export, exportResolution,
-                          zoneNames, renderTags, frameBuffer, offscreen), {})
+                          zoneNames, renderTags, frameBuffer, offscreen, 
+                          posCamList, posEyeList, dirCamList), {})
     else: # python3 - daemon
         a = threading.Thread(None, cplot.displayNew, None,
                          (arrays, dim, mode, scalarField, vectorField1,
@@ -802,7 +809,8 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           shadow, lightOffset, dof, dofPower, gamma, toneMapping,  
                           stereo, stereoDist, panorama,
                           export, exportResolution,
-                          zoneNames, renderTags, frameBuffer, offscreen), {}, daemon=daemon)
+                          zoneNames, renderTags, frameBuffer, offscreen,
+                          posCamList, posEyeList, dirCamList), {}, daemon=daemon)
     a.start()
     __slot__ = a
 
@@ -816,7 +824,8 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                    shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
                    stereo, stereoDist, panorama,
-                   export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
+                   export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen,
+                   posCamList, posEyeList, dirCamList):
     if colormap != -1: 
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     from . import cplot
@@ -832,5 +841,6 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                        shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
                        stereo, stereoDist, panorama, 
                        export, exportResolution, zoneNames, renderTags,
-                       frameBuffer, offscreen)
+                       frameBuffer, offscreen, 
+                       posCamList, posEyeList, dirCamList)
     time.sleep(__timeStep__)
