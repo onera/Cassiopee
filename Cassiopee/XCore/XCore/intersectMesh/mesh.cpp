@@ -93,6 +93,10 @@ void IMesh::triangulate_face_set(bool propagate)
 
         auto &pn = F[fid];
 
+        patch.insert(fid);
+
+        if (pn.size() == 3) continue;
+
         assert(pn.size() == 4);
 
         std::vector<E_Int> tri0(3), tri1(3);
@@ -120,15 +124,14 @@ void IMesh::triangulate_face_set(bool propagate)
         skin.push_back(NF);
 
         // Update patch
-        patch.insert(fid);
+
         patch.insert(NF);
 
         NF++;
     }
 
-    assert(NF == nf + face_incr);
-
     nf = NF;
+    F.resize(NF);
 }
 
 struct DEdge {
