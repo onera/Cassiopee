@@ -102,11 +102,13 @@ struct Dcel {
     void reconstruct(const Smesh &M, const Smesh &S);
 
     E_Int get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
-        const std::vector<E_Int> &pf, E_Float dir[3]);
+        const std::vector<E_Int> &pf, E_Float dir[3], E_Int hid);
 
     void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
 
     void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
+    
+    E_Int trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
 
     void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3],
         const Smesh &M) const;
