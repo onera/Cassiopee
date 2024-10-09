@@ -392,45 +392,57 @@ def prepareMeshesForIntersection(IM, slave):
 
     keep = I.getNodeFromName(zs, 'keep')
 
-    s, spatch = xcore.prepareMeshesForIntersection(IM, s, tag)
+    m, mpatch, s, spatch = xcore.prepareMeshesForIntersection(IM, s, tag)
+
+    zmo = I.createZoneNode("M_adapted", m)
+    zbcs = I.createUniqueChild(zmo, 'ZoneBC', 'ZoneBC_t')
+    I.newBC(name="intersection_patch", pointList=mpatch, family='UserDefined', parent=zbcs)
+    ma = C.newPyTree(["M_adapted", zmo])
 
     zso = I.createZoneNode("S_adapted", s)
-
     zbcs = I.createUniqueChild(zso, 'ZoneBC', 'ZoneBC_t')
-
     I.newBC(name="intersection_patch", pointList=spatch, family='UserDefined', parent=zbcs)
-
-    ts = C.newPyTree(["S_adapted", zso])
-
-    if keep is not None:
-        C._cpVars(slave, 'centers:keep', ts, 'centers:keep')
-
-    return ts
-
-def intersectMesh(IM, slave):
-    zs = I.getZones(slave)[0]
-
-    keep = I.getNodeFromName(zs, 'keep')
-
-    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
-
-    spatch = I.getNodeFromName(zs, "intersection_patch")[2][0][1]
-    
-    sinter = xcore.intersectMesh(IM, s, spatch)
-
-    zso = I.createZoneNode("S_inter", sinter)
-
-    ts = C.newPyTree(["S_inter", zso])
+    sa = C.newPyTree(["S_adapted", zso])
 
     try: import Intersector.PyTree as XOR
     except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
 
-    ts = XOR.closeCells(ts)
+    ma = XOR.closeCells(ma)
+    sa = XOR.closeCells(sa)
 
     if keep is not None:
-        C._cpVars(slave, 'centers:keep', ts, 'centers:keep')
+        C._cpVars(slave, 'centers:keep', sa, 'centers:keep')
 
-    return ts
+    return ma, sa
+
+def intersectMesh(master, slave):
+    zm = I.getZones(master)[0]
+    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    mpatch = I.getNodeFromName(zm, "intersection_patch")[2][0][1]
+
+    zs = I.getZones(slave)[0]
+    keep = I.getNodeFromName(zs, 'keep')
+    sarr = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+    spatch = I.getNodeFromName(zs, "intersection_patch")[2][0][1]
+
+    marr, sarr = xcore.intersectMesh(marr, mpatch, sarr, spatch)
+
+    zmo = I.createZoneNode("mi", marr)
+    zso = I.createZoneNode("si", sarr)
+    
+    mi = C.newPyTree(["mi", zmo])
+    si = C.newPyTree(["si", zso])
+
+    try: import Intersector.PyTree as XOR
+    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
+
+    mi = XOR.closeCells(mi)
+    si = XOR.closeCells(si)
+
+    if keep is not None:
+        C._cpVars(slave, 'centers:keep', si, 'centers:keep')
+
+    return mi, si
 
 def IntersectMesh_ExtractFaceSet(AM):
     return xcore.IntersectMesh_ExtractFaceSet(AM)
