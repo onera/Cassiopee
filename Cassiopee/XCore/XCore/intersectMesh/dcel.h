@@ -114,6 +114,8 @@ struct Dcel {
     E_Int trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
         std::map<Hedge *, std::vector<Vertex *>> &hedge_intersections);
 
+    void cut_hedges(std::map<Hedge *, std::vector<Vertex *>> &hmap);
+
     void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3],
         const Smesh &M) const;
 };

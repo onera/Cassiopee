@@ -1224,6 +1224,8 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
     }
     point_write("vertices_crossed", v_crossed);
 
+    cut_hedges(hedge_intersections);
+
     exit(0);
 }
 

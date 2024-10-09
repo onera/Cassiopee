@@ -42,6 +42,8 @@ struct Vertex {
 
     Hedge *xhedge = NULL;
 
+    E_Float d = 0;
+
     Vertex(E_Float X, E_Float Y, E_Float Z, E_Int Oid, E_Int color);
 
     Vertex(E_Float X, E_Float Y, E_Float Z);
