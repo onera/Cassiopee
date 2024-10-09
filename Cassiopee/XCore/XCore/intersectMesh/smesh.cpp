@@ -932,9 +932,9 @@ void Smesh::make_bbox()
 
 void Smesh::hash_faces()
 {
-    NX = 50;
-    NY = 50;
-    NZ = 50;
+    NX = 100;
+    NY = 100;
+    NZ = 100;
 
     HX = (xmax - xmin) / NX;
     HY = (ymax - ymin) / NY;

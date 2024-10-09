@@ -51,6 +51,9 @@ struct Dcel {
     std::map<Vertex *, std::vector<Hedge *>> Cp;
     std::map<Vertex *, std::vector<Hedge *>> Lp;
 
+    E_Int dup_x = 0; // Number of duplicate intersections
+    std::set<Vertex *> vertices_crossed; // M vertices crossed by S hedges
+
     Dcel(Smesh &M0, Smesh &M1);
 
     ~Dcel();
@@ -108,7 +111,8 @@ struct Dcel {
 
     void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
     
-    E_Int trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
+    E_Int trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
+        std::map<Hedge *, std::vector<Vertex *>> &hedge_intersections);
 
     void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3],
         const Smesh &M) const;

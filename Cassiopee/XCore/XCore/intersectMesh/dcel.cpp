@@ -1204,26 +1204,27 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
 
     puts("    Tracing edges...");
 
+    std::map<Hedge *, std::vector<Vertex *>> hedge_intersections;
+    
     for (size_t hid = 0; hid < s_hedges.size(); hid++) {
         Hedge *sh = s_hedges[hid];
 
         //printf("Tracing hedge %zu / %zu\n", hid+1, s_hedges.size());
 
         //trace_hedge(sh, M, S, hid);
-        trace_hedge_2(sh, M, S, hid);
+        trace_hedge_2(sh, M, S, hid, hedge_intersections);
     }
+
+    printf("Duplicate intersections: %d\n", dup_x);
+    printf("Vertices crossed: %lu\n", vertices_crossed.size());
+
+    std::vector<Point> v_crossed;
+    for (Vertex *v : vertices_crossed) {
+        v_crossed.push_back(Point(v->x, v->y, v->z));
+    }
+    point_write("vertices_crossed", v_crossed);
 
     exit(0);
-
-    //point_write("xpoints", points);
-
-    /*
-    std::vector<Point> all_points;
-    for (Vertex *v : V) {
-        all_points.push_back(Point(v->x, v->y, v->z));
-    }
-    point_write("all_points", all_points);
-    */
 }
 
 void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving,

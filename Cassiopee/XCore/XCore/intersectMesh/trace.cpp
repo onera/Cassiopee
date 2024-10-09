@@ -3,6 +3,7 @@
 #include "primitives.h"
 #include "hedge.h"
 #include "io.h"
+#include "event.h"
 
 static
 bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,
@@ -172,7 +173,8 @@ void get_shared_faces(const Vertex *v, const Smesh &M, std::vector<E_Int> &ret,
     }
 }
 
-E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
+E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
+    std::map<Hedge *, std::vector<Vertex *>> &hedge_intersections)
 {
     Vertex *O = sh->orig;
     Vertex *T = sh->twin->orig;
@@ -289,12 +291,29 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
                     next_pos[0] = current_pos[0] + t * proj[0];
                     next_pos[1] = current_pos[1] + t * proj[1];
                     next_pos[2] = current_pos[2] + t * proj[2];
-                } 
+
+                    // Register intersection
+                    Event *xit = Q.lookup(next_pos[0], next_pos[1], next_pos[2]);
+                    Vertex *x = NULL;
+                    if (xit == NULL) {
+                        x = new Vertex(next_pos[0], next_pos[1], next_pos[2]);
+                        x->id = V.size();
+                        V.push_back(x);
+                    } else {
+                        x = xit->key;
+                        dup_x++;
+                    }
+
+                    hedge_intersections[sh].push_back(x);
+                    // TODO(Imad): H[eid] or its twin?
+                    hedge_intersections[H[eid]].push_back(x);
+                }
 
                 // Intersection on an endpoint
                 else {
                     bool hit_p = (s <= TOL);
                     bool hit_q = (s >= 1 - TOL);
+
 
                     last_edge = -1;
 
@@ -317,28 +336,30 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 
                         last_vertex = q;
                     }
-                   
-                    // Exclude current_fid
+                    
                     const auto &pf = M.P2F[last_vertex];
                     
-                    /*
-                    std::vector<E_Int> pf(M.P2F[last_vertex]);
-                    E_Int found_fid = false;
-                    for (auto &fid : pf) {
-                        if (fid == current_fid) {
-                            found_fid = true;
-                            fid = pf.back();
-                            break;
-                        }
-                    }
-                    pf.resize(pf.size()-1);
-                    */
-
                     next_fid = deduce_face(pf, M,
                         next_pos[0], next_pos[1], next_pos[2], D,
                         last_vertex, last_edge
                     );
                     assert(next_fid != -1);
+
+                    // Register intersection
+
+                    Event *xit = Q.lookup(M.X[last_vertex],
+                        M.Y[last_vertex], M.Z[last_vertex]);
+                    assert(xit != NULL);
+                    Vertex *x = xit->key;
+
+                    // Edges from S do not cross
+                    assert(x->oid[1] == -1);
+
+                    assert(vertices_crossed.find(x) == vertices_crossed.end());
+                    vertices_crossed.insert(x);
+
+                    hedge_intersections[sh].push_back(x);
+
                 }
 
                 break;
