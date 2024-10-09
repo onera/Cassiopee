@@ -45,13 +45,6 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
 
     IMesh &M = *(IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
 
-    //M.make_skin();
-    //assert(M.patch.empty());
-    //for (E_Int fid : M.skin) {
-    //    assert(fid < M.nf);
-    //    M.patch.insert(fid);
-    //}
-
     Karray sarray;
 
     E_Int ret;
@@ -132,30 +125,40 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     // Export
     puts("Exporting to CGNS format...");
 
+    PyObject *Mout = M.export_karray();
     PyObject *Sout = S.export_karray();
-
-    PyObject *Out = PyList_New(0);
-
-    PyList_Append(Out, Sout);
-
-    Py_DECREF(Sout);
 
     Karray_free_ngon(sarray);
 
     // Extract master and slave patches
-    puts("Saving slave intersection patch...");
+    puts("Saving intersection patches...");
     npy_intp dims[2];
     dims[1] = 1;
+
+    dims[0] = (npy_intp)M.patch.size();
+    PyArrayObject *MP = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+    E_Int *mptr = (E_Int *)PyArray_DATA(MP);
+    E_Int *ptr = mptr;
+    for (E_Int fid : M.patch) *ptr++ = fid + 1;
 
     dims[0] = (npy_intp)S.patch.size();
     PyArrayObject *SP = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
     E_Int *sptr = (E_Int *)PyArray_DATA(SP);
-    E_Int *ptr = sptr;
-    for (E_Int face : S.patch) *ptr++ = face + 1;
+    ptr = sptr;
+    for (E_Int fid : S.patch) *ptr++ = fid + 1;
 
+    PyObject *Out = PyList_New(0);    
+
+    PyList_Append(Out, Mout);
+    PyList_Append(Out, (PyObject *)MP);
+    PyList_Append(Out, Sout);
     PyList_Append(Out, (PyObject *)SP);
 
+    Py_DECREF(Mout);
+    Py_DECREF(Sout);
+    Py_DECREF(MP);
     Py_DECREF(SP);
+
     Py_DECREF(TAG);
 
     return Out;

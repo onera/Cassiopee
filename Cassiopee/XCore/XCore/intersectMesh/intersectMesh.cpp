@@ -287,23 +287,24 @@ IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, E_Int color)
 
 PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 {
-    PyObject *MASTER, *SLAVE, *SPATCH;
+    PyObject *MASTER, *SLAVE, *MPATCH, *SPATCH;
   
-    if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVE, &SPATCH)) {
+    if (!PYPARSETUPLE_(args, OOOO_, &MASTER, &MPATCH, &SLAVE, &SPATCH)) {
         RAISE("Bad input.");
         return NULL;
     }
 
-    if (!PyCapsule_IsValid(MASTER, "IntersectMesh")) {
-        RAISE("Bad mesh hook.");
+    Karray marray;
+
+    E_Int ret;
+
+    ret = Karray_parse_ngon(MASTER, marray);
+
+    if (ret != 0) {
         return NULL;
     }
 
-    IMesh &M = *(IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
-
     Karray sarray;
-
-    E_Int ret;
 
     ret = Karray_parse_ngon(SLAVE, sarray);
 
@@ -312,6 +313,7 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     }
 
     // Init and orient master/slave meshes
+    IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
     IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
     M.make_skin();
@@ -320,23 +322,31 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     M.orient_skin(OUT);
     S.orient_skin(IN);
 
-    //M.patch.clear();
-    //for (E_Int fid : M.skin) M.patch.insert(fid);
+    // Check intersection patches (one-based)
+    E_Int *mpatch = NULL;
+    E_Int mpatch_size = -1;
+    ret = K_NUMPY::getFromNumpyArray(MPATCH, mpatch, mpatch_size, true);
+    if (ret != 1) {
+        Karray_free_ngon(marray);
+        RAISE("Bad master patch.");
+        return NULL;
+    }
+    printf("Master patch: " SF_D_ " faces\n", mpatch_size);
 
-    printf("Master patch: %zu faces\n", M.patch.size());
-
-    // Check slave intersection patch (zero-based)
     E_Int *spatch = NULL;
     E_Int spatch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(SPATCH, spatch, spatch_size, true);
     if (ret != 1) {
+        Karray_free_ngon(marray);
         Karray_free_ngon(sarray);
         RAISE("Bad slave patch.");
         return NULL;
     }
-
     printf("Slave patch: " SF_D_ " faces\n", spatch_size);
 
+    assert(M.patch.empty());
+    assert(S.patch.empty());
+    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]-1);
     for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]-1);
 
     // Extract surface meshes
@@ -366,6 +376,22 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     Dcel D(Mf, Sf);
 
+    /*
+    for (Vertex *v : D.V) {
+        if (v->oid[0] != -1) {
+            Mf.X[v->oid[0]] = v->x;
+            Mf.Y[v->oid[0]] = v->y;
+            Mf.Z[v->oid[0]] = v->z;
+        }
+
+        if (v->oid[1] != -1) {
+            Sf.X[v->oid[1]] = v->x;
+            Sf.Y[v->oid[1]] = v->y;
+            Sf.Z[v->oid[1]] = v->z;
+        }
+    }
+    */
+
     puts("Locating points...");
 
     D.locate_spoints(Mf, Sf);
@@ -389,21 +415,29 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
         oid = v->oid[1];
         if (oid != -1) v->oid[1] = Sf.l2gp[oid];
     }
-    
-    M = reconstruct_mesh(M, Mf, D, Dcel::RED);
 
+    IMesh M_inter = reconstruct_mesh(M, Mf, D, Dcel::RED);
     IMesh S_inter = reconstruct_mesh(S, Sf, D, Dcel::BLACK);
 
     // Export
     printf("Exporting... ");
 
+    PyObject *Mout = M_inter.export_karray();
     PyObject *Sout = S_inter.export_karray();
 
     printf("Done.\n");
 
+    Karray_free_ngon(marray);
     Karray_free_ngon(sarray);
-
+    
+    Py_DECREF(MPATCH);
     Py_DECREF(SPATCH);
 
-    return Sout;
+    PyObject *out = PyList_New(0);
+    PyList_Append(out, Mout);
+    PyList_Append(out, Sout);
+    Py_DECREF(Mout);
+    Py_DECREF(Sout);
+
+    return out;
 }
