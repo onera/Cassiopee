@@ -17,21 +17,27 @@ WIDGETS = {}; VARS = []
 
 # Set IBM data in zone
 # if zone is 1D STRUCT or BAR: remesh
-def _setDataInZone(z, snear, ibctype, dfar, inv):
+def _setDataInZone(z, bLocal, snear, ibctype, dfar, inv):
     # set IBM data in .Solver#define
-    if Internal.getNodeFromName1(z, '.Solver#define'):
-        Internal._rmNode(z,Internal.getNodeFromName1(z, '.Solver#define'))
     
-    n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
     if VARS[1].get()!='rectilinear':
+        if Internal.getNodeFromName1(z, '.Solver#define'):
+            Internal._rmNode(z,Internal.getNodeFromName1(z, '.Solver#define'))
+        n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
         Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
         Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
         Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
         Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
     else:
-        Internal.createUniqueChild(n, 'dirx', 'DataArray_t', value=int(VARS[12].get()))
-        Internal.createUniqueChild(n, 'diry', 'DataArray_t', value=int(VARS[13].get()))
-        Internal.createUniqueChild(n, 'dirz', 'DataArray_t', value=int(VARS[14].get()))
+        if Internal.getNodeFromName1(bLocal, '.Solver#define'):
+            Internal._rmNode(z,Internal.getNodeFromName1(bLocal, '.Solver#define'))
+        n = Internal.createUniqueChild(bLocal, '.Solver#define', 'UserDefinedData_t')
+        Internal.createUniqueChild(n, 'dirx'       , 'DataArray_t', value=int(VARS[12].get()))
+        Internal.createUniqueChild(n, 'diry'       , 'DataArray_t', value=int(VARS[13].get()))
+        Internal.createUniqueChild(n, 'dirz'       , 'DataArray_t', value=int(VARS[14].get()))
+        if VARS[15].get()=='coarse(0)': granLocal = 0
+        elif VARS[15].get()=='fine(1)': granLocal = 1
+        Internal.createUniqueChild(n, 'granularity', 'DataArray_t', value=granLocal)
 
     if VARS[1].get() in ['noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear']:
         # Set Extractions triggers in .Solver#define
@@ -150,8 +156,9 @@ def setData():
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        z = CTK.t[2][nob][2][noz]
-        _setDataInZone(z, snear, ibctype, dfar, inv)
+        bLocal = CTK.t[2][nob]
+        z      = bLocal[2][noz]
+        _setDataInZone(z, bLocal, snear, ibctype, dfar, inv)
         CTK.replace(CTK.t, nob, noz, z)
 
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -364,6 +371,8 @@ def createApp(win):
     V = TK.DoubleVar(win); V.set(0); VARS.append(V)
     # -14- Injection dirz
     V = TK.DoubleVar(win); V.set(0); VARS.append(V)
+    # -15- Rectilinear granularity
+    V = TK.StringVar(win); V.set('coarse'); VARS.append(V)
 
     # - Snear settings -
     B = TTK.Label(Frame, text="snear")
@@ -551,6 +560,12 @@ def createApp(win):
     B.grid(row=11, column=1, sticky=TK.EW)
     B = TTK.Entry(rec, textvariable=VARS[14], width=4, background="White")
     B.grid(row=11, column=2, sticky=TK.EW)
+
+    B = TTK.Label(rec, text="Rectilinear granularity")
+    B.grid(row=12, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Specify the granularity of the rectilinear approach.')
+    B = TTK.OptionMenu(rec, VARS[15], 'coarse(0)', 'fine(1)')
+    B.grid(row=12, column=1, sticky=TK.EW)
 
     ## Wire Mesh Model
     wmm = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Wire Mesh Model Parameters:")
