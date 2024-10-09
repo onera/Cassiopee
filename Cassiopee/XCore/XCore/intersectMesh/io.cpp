@@ -37,6 +37,7 @@ void face_write(const char *fname, Face *f)
     
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%d\n", np);
+
     h = f->rep;
     Vertex *v = h->orig;
     fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
@@ -46,6 +47,41 @@ void face_write(const char *fname, Face *f)
         fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
         w = w->next;
     }
+    fclose(fh);
+}
+
+void faces_write(const char *fname, const std::vector<Face *> &faces, E_Float scale)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    E_Int NP = 0;
+    for (const Face *f : faces) {
+        E_Int np = 1;
+        Hedge *h = f->rep;
+        Hedge *w = h->next;
+        while (w != h) {
+            np++;
+            w = w->next;
+        }
+        NP += np;
+    }
+
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%d\n", NP);
+
+    for (const Face *f : faces) {
+        Hedge *h = f->rep;
+        Vertex *v = h->orig;
+        fprintf(fh, "%f %f %f\n", scale*v->x, scale*v->y, scale*v->z);
+        Hedge *w = h->next;
+        while (w != h) {
+            v = w->orig;
+            fprintf(fh, "%f %f %f\n", scale*v->x, scale*v->y, scale*v->z);
+            w = w->next;
+        }
+    }
+
     fclose(fh);
 }
 

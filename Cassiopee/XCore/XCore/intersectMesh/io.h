@@ -39,6 +39,8 @@ struct IO_Edge {
 
 void face_write(const char *fname, Face *face);
 
+void faces_write(const char *fname, const std::vector<Face *> &faces, E_Float scale = 1.0);
+
 void point_write(const char *fname, E_Float x, E_Float y, E_Float z);
 
 void point_write(const char *fname, Vertex *v);
