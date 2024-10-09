@@ -831,6 +831,7 @@ E_Int Dcel::get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
     const std::vector<E_Int> &pf, E_Float dir[3], E_Int hid)
 {
     E_Int next_face = -1;
+    /*
     E_Float t_min = EFLOATMAX;
 
     for (size_t i = 0; i < pf.size(); i++) {
@@ -886,19 +887,7 @@ E_Int Dcel::get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
         }
     }
 
-    /*
-    if (next_face == -1) {
-
-        point_write("test_point", px, py, pz);
-
-        for (E_Int fid : pf) {
-            char fname[128] = {};
-            sprintf(fname, "test_face_%d", fid);
-            face_write(fname, F[fid]);
-        }
-    }
     */
-
     return next_face;
 }
 
@@ -906,6 +895,8 @@ std::vector<Point> points;
 
 void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 {
+/*
+
     Vertex *p = sh->orig;
     Vertex *q = sh->twin->orig;
 
@@ -1051,31 +1042,29 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 
                 if (x != NULL) {
 
-                    /*
-                    // Stop if reached destination
-                    if (x->oid[1] != -1) {
-                        assert(x == q);
-                        found = 1;
-                    }
+                    //// Stop if reached destination
+                    //if (x->oid[1] != -1) {
+                    //    assert(x == q);
+                    //    found = 1;
+                    //}
 
-                    // M point, get the next face
-                    else if (x->oid[0] != -1) {
+                    //// M point, get the next face
+                    //else if (x->oid[0] != -1) {
 
-                        E_Int mpid = x->oid[0];
-                        const auto &pf = M.P2F[mpid];
-                        E_Int next_fid = get_next_face(M, x->x, x->y, x->z, pf, dir, hid);
-                        assert(next_fid != -1);
-                        assert(next_fid != current_fid);
-                        current_face = F[next_fid];
+                    //    E_Int mpid = x->oid[0];
+                    //    const auto &pf = M.P2F[mpid];
+                    //    E_Int next_fid = get_next_face(M, x->x, x->y, x->z, pf, dir, hid);
+                    //    assert(next_fid != -1);
+                    //    assert(next_fid != current_fid);
+                    //    current_face = F[next_fid];
 
-                    } else {
-                        
-                        // Intersection, move
+                    //} else {
+                    //    
+                    //    // Intersection, move
 
-                        current_face = h->twin->left;
+                    //    current_face = h->twin->left;
     
-                    }
-                    */
+                    //}
 
             
                     bool is_mpoint = x->oid[0] != -1;
@@ -1160,6 +1149,7 @@ void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
     }
 
     assert(walk < max_walk);
+    */
 }
 
 void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)

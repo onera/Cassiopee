@@ -48,6 +48,7 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
         printf("Refined mf: %zu\n", refM);
 
         // Refine S wrt M
+        /*
         if (iter == 1 || (iter > 1 && refM > 0)) {
             M.make_point_faces();
             S.make_bbox();
@@ -56,11 +57,11 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
             refS = S.refine_slave(M);
             printf("Refined sf: %zu\n", refS);
         }
+        */
         
-    } while (refM > 0 || refS > 0);
+    } while (refS > 0);
 
     S.make_point_faces();
-    M.hash_skin();
 
     // Project all the new points from S onto M faces
     // TODO(Imad): shouldn't this step be done after conformizing?
@@ -138,6 +139,7 @@ size_t IMesh::refine_slave(const IMesh &master)
     for (const auto fid : patch) {
         const auto &pn = F[fid];
         assert(face_is_tri(fid));
+        assert(face_is_active(fid));
         E_Int a = pn[0], b = pn[1], c = pn[2];
         E_Float v0[3] = {X[b]-X[a], Y[b]-Y[a], Z[b]-Z[a]};
         E_Float v1[3] = {X[c]-X[a], Y[c]-Y[a], Z[c]-Z[a]};

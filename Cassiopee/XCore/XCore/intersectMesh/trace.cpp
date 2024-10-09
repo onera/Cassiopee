@@ -203,13 +203,13 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
     E_Float current_pos[3] = {O->x, O->y, O->z};
 
     E_Int walk = 0;
-    E_Int max_walks = 10;
+    E_Int max_walks = 20;
 
-    if (hid == 1663) hedge_write("sh", sh);
+    if (hid == 1953) hedge_write("sh", sh);
 
-    while (!found_tail && walk < max_walks) {
+    while (!found_tail && walk <= max_walks) {
 
-        if (hid == 1663) face_write("current_face", F[current_fid]);
+        if (hid == 1953) face_write("current_face", F[current_fid]);
 
         // We are on current_face
 
@@ -260,7 +260,7 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 
             if (hit) {
 
-                if (hid == 1663) point_write("hit", current_pos[0] + t * proj[0], current_pos[1] + t * proj[1], current_pos[2] + t * proj[2]);
+                if (hid == 1953) point_write("hit", current_pos[0] + t * proj[0], current_pos[1] + t * proj[1], current_pos[2] + t * proj[2]);
 
                 // Intersection within the edge
                 if (s > TOL && s < 1 - TOL) {
@@ -359,9 +359,8 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
         walk++;
     }
 
-    if (walk >= max_walks) {
-        fprintf(stderr, "Warning : Could not find the tail after %d max walks!",
-            max_walks);
+    if (walk > max_walks) {
+        fprintf(stderr, "Warning : Could not reach the tail of edge %d after %d max walks!", hid, max_walks);
         assert(0);
         return 1;
     }
