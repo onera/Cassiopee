@@ -620,7 +620,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
                 for i in range(NBases):
                     ZONEStbOneOver[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ \
                                                     ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3], sizeMax=sizeMax)
-                    C.convertPyTree2File(ZONEStbOneOver[i],'t_Base_'+str(i)+'.cgns')
+                    #C.convertPyTree2File(ZONEStbOneOver[i],'t_Base_'+str(i)+'.cgns')
                     zones +=ZONEStbOneOver[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
