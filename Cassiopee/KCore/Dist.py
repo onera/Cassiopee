@@ -867,9 +867,8 @@ def getCArgs():
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
         if DEBUG: 
             options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
-            options += ['-fsanitize=address']
+            options += ['-ggdb', '-fsanitize=address']
             if mySystem[0] == 'mingw': options.remove('-fsanitize=address') # no asan on mingw
-             
         else: options += ['-DNDEBUG', '-O3', '-Wall', '-Werror=return-type']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
