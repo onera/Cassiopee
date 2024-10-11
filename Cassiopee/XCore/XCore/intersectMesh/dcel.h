@@ -53,14 +53,21 @@ struct Dcel {
 
     E_Int dup_x = 0; // Number of duplicate intersections
     std::set<Vertex *> vertices_crossed; // M vertices crossed by S hedges
+    std::map<Hedge *, std::vector<Vertex *>> hedge_intersections;
+
+    std::map<E_Int, std::vector<E_Int>> grid;
+
+    Dcel(const Smesh &M, E_Int color);
 
     Dcel(Smesh &M0, Smesh &M1);
 
     ~Dcel();
+
+    void init_mh_sv_intersections(const Smesh &M);
     
     void init_vertices(const Smesh &M0, const Smesh &M1);
 
-    void init_hedges_and_faces(Smesh &M, E_Int color);
+    void init_hedges_and_faces(const Smesh &M, E_Int color);
 
     static E_Int check_hedges(const std::vector<Hedge *> &H);
 
@@ -77,7 +84,7 @@ struct Dcel {
 
     void update_hedge_faces(const std::vector<Face *> &F);
 
-    void set_cycles_inout(const Smesh &M, const Smesh &S);
+    void set_cycles_inout(const Smesh &M);//, const Smesh &S);
 
     std::vector<E_Int> extract_indices_of_type(E_Int inout);
     
@@ -111,11 +118,12 @@ struct Dcel {
 
     void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
     
-    E_Int trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
-        std::map<Hedge *, std::vector<Vertex *>> &hedge_intersections);
+    E_Int trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
 
-    void cut_hedges(std::map<Hedge *, std::vector<Vertex *>> &hmap);
+    void cut_hedges();
 
     void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3],
         const Smesh &M) const;
+    
+    Smesh export_smesh() const;
 };

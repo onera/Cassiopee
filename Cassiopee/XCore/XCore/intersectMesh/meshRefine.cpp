@@ -48,16 +48,14 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
         printf("Refined mf: %zu\n", refM);
 
         // Refine S wrt M
-        /*
-        if (iter == 1 || (iter > 1 && refM > 0)) {
+        /*if (iter == 1 || (iter > 1 && refM > 0)) {
             M.make_point_faces();
             S.make_bbox();
             S.hash_skin(); // TODO(Imad): hash_patch!
 
             refS = S.refine_slave(M);
             printf("Refined sf: %zu\n", refS);
-        }
-        */
+        }*/
         
     } while (refS > 0);
 

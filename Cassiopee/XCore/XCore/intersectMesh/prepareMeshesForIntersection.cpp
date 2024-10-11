@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "xcore.h"
-#include "karray.h"
+#include "common/Karray.h"
 #include "common/common.h"
 #include "mesh.h"
 #include "smesh.h"
@@ -72,7 +72,7 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     // TODO(Imad): quasi-planar surfaces
 
     // Init master/slave meshes
-    IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
+    IMesh S(*sarray.cn, sarray.X(), sarray.Y(), sarray.Z(), sarray.npts);
     S.make_skin();
     S.patch.clear();
 
@@ -102,6 +102,8 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     S.triangulate_face_set(false);
 
     printf("S.patch size after triangulation: %lu\n", S.patch.size());
+
+    //M.project_patch(S);
 
     puts("Adapting intersection zones...");
 

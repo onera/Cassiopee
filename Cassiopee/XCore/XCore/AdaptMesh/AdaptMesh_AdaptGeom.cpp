@@ -447,7 +447,7 @@ void Mesh_refine_dir(Mesh *M, ArrayI *ref_cells, ArrayI *ref_faces)
     }
 }
 
-#include "Karray.h"
+#include "common/Karray.h"
 
 PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 {

@@ -3,6 +3,10 @@
 
 void IMesh::hash_skin()
 {
+    HX = (xmax - xmin) / NX;
+    HY = (ymax - ymin) / NY;
+    HZ = (zmax - zmin) / NZ;
+    
     bin_faces.clear();
 
     bin_faces.resize(NXYZ);

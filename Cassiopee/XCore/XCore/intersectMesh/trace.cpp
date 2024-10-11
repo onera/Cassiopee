@@ -37,7 +37,7 @@ bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,
     K_MATH::cross(v, dl, tmp);
 
     t = K_MATH::dot(tmp, n, 3) / denom;
-    
+
     if (t < TOL) return false;
 
     K_MATH::cross(v, dr, tmp);
@@ -173,8 +173,7 @@ void get_shared_faces(const Vertex *v, const Smesh &M, std::vector<E_Int> &ret,
     }
 }
 
-E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
-    std::map<Hedge *, std::vector<Vertex *>> &hedge_intersections)
+E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 {
     Vertex *O = sh->orig;
     Vertex *T = sh->twin->orig;
@@ -207,11 +206,11 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
     E_Int walk = 0;
     E_Int max_walks = 20;
 
-    if (hid == 1953) hedge_write("sh", sh);
+    //if (hid == hid) hedge_write("sh", sh);
 
     while (!found_tail && walk <= max_walks) {
 
-        if (hid == 1953) face_write("current_face", F[current_fid]);
+        //if (hid == hid) face_write("current_face", F[current_fid]);
 
         // We are on current_face
 
@@ -262,7 +261,7 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
 
             if (hit) {
 
-                if (hid == 1953) point_write("hit", current_pos[0] + t * proj[0], current_pos[1] + t * proj[1], current_pos[2] + t * proj[2]);
+                //if (hid == hid) point_write("hit", current_pos[0] + t * proj[0], current_pos[1] + t * proj[1], current_pos[2] + t * proj[2]);
 
                 // Intersection within the edge
                 if (s > TOL && s < 1 - TOL) {
@@ -296,9 +295,11 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
                     Event *xit = Q.lookup(next_pos[0], next_pos[1], next_pos[2]);
                     Vertex *x = NULL;
                     if (xit == NULL) {
-                        x = new Vertex(next_pos[0], next_pos[1], next_pos[2]);
+                        xit = Q.insert(next_pos[0], next_pos[1], next_pos[2]);
+                        x = xit->key;
                         x->id = V.size();
                         V.push_back(x);
+                        x->meid = last_edge;
                     } else {
                         x = xit->key;
                         dup_x++;
@@ -306,7 +307,10 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
 
                     hedge_intersections[sh].push_back(x);
                     // TODO(Imad): H[eid] or its twin?
-                    hedge_intersections[H[eid]].push_back(x);
+                    Hedge *mh = H[2*eid];
+                    if (cmp_vtx(mh->orig, mh->twin->orig) > 0)
+                        mh = mh->twin;
+                    hedge_intersections[mh].push_back(x);
                 }
 
                 // Intersection on an endpoint
@@ -320,22 +324,16 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid,
                     if (hit_p) {
                         assert(hit_q == false);
 
-                        // Next_pos is p
-                        next_pos[0] = M.X[p];
-                        next_pos[1] = M.Y[p];
-                        next_pos[2] = M.Z[p];
-
                         last_vertex = p;
  
                     } else if (hit_q) {
 
-                        // Next_pos is q
-                        next_pos[0] = M.X[q];
-                        next_pos[1] = M.Y[q];
-                        next_pos[2] = M.Z[q];
-
                         last_vertex = q;
                     }
+
+                    next_pos[0] = M.X[last_vertex];
+                    next_pos[1] = M.Y[last_vertex];
+                    next_pos[2] = M.Z[last_vertex];
                     
                     const auto &pf = M.P2F[last_vertex];
                     

@@ -1,4 +1,4 @@
-#include "AdaptMesh/Karray.h"
+#include "common/Karray.h"
 
 PyObject *K_XCORE::extractFacesFromPointTag(PyObject *self, PyObject *args)
 {

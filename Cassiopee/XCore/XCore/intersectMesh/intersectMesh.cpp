@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "xcore.h"
-#include "karray.h"
+#include "common/Karray.h"
 #include "common/common.h"
 #include "mesh.h"
 #include "smesh.h"
@@ -130,6 +130,33 @@ IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, E_Int color)
 
     // All ofaces must be present in the map
     assert(ofid_to_ofids.size() == pfset.size());
+
+    /*
+    {
+        if (color == 1) {
+            std::vector<Face *> faces;
+            auto it = ofid_to_ofids.find(24406);
+            assert(it != ofid_to_ofids.end());
+            const auto &pf = it->second;
+            printf("number of children: %lu\n", pf.size());
+            for (auto i : pf) faces.push_back(D.F[i]);
+            faces_write("children1", faces);
+        }
+
+        if (color == 1) {
+            std::vector<Face *> faces;
+            auto it = ofid_to_ofids.find(40246);
+            assert(it != ofid_to_ofids.end());
+            const auto &pf = it->second;
+            printf("number of children: %lu\n", pf.size());
+            for (auto i : pf) {
+                char fname[64] = {0};
+                sprintf(fname, "child%d", i);
+                face_write(fname, D.F[i]);
+            }
+        }
+    }
+    */
 
     // Write untouched points
     std::vector<E_Float> new_X(np, -1), new_Y(np, -1), new_Z(np, -1);
@@ -313,8 +340,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     }
 
     // Init and orient master/slave meshes
-    IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
-    IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
+    IMesh M(*marray.cn, marray.X(), marray.Y(), marray.Z(), marray.npts);
+    IMesh S(*sarray.cn, sarray.X(), sarray.Y(), sarray.Z(), sarray.npts);
 
     M.make_skin();
     S.make_skin();
@@ -349,6 +376,21 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]-1);
     for (E_Int i = 0; i < spatch_size; i++) S.patch.insert(spatch[i]-1);
 
+
+    {
+        //E_Int weird[2];
+        //E_Int count = 0;
+        //const auto &pf = S.C[7726];
+        //for (auto fid : pf) {
+        //    if (S.patch.find(fid) != S.patch.end()) {
+        //        weird[count++] = fid;
+        //        assert(count == 1 || count == 2);
+        //    }
+        //}
+        //printf("weirds: %d - %d\n", weird[0], weird[1]);
+    }
+
+
     // Extract surface meshes
     Smesh Mf(M);
     Smesh Sf(S);
@@ -374,7 +416,27 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     puts("Initaliazing...");
 
+    /*
+    puts("Doing Mf to Dcel");
+    Dcel Dm(Mf, Dcel::RED);
+    Dm.export_smesh();
+    puts("Doing Sf to Dcel");
+    Dcel Ds(Sf, Dcel::RED);
+    Ds.export_smesh();
+    */
+
     Dcel D(Mf, Sf);
+
+    /*
+    {
+        Face *f1 = D.F[Mf.nf + Sf.g2lf[D.weird1]];
+        Face *f2 = D.F[Mf.nf + Sf.g2lf[D.weird2]];
+        face_write("f1", f1);
+        face_write("f2", f2);
+    }
+    */
+
+
 
     /*
     for (Vertex *v : D.V) {
@@ -407,6 +469,11 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     puts("Reconstructing meshes...");
 
     D.reconstruct(Mf, Sf);
+
+    puts("Constructing surface mesh...");
+
+    //Smesh smesh = D.export_smesh();
+    //smesh.write_ngon("smesh");
 
     for (Vertex *v : D.V) {
         E_Int oid = v->oid[0];

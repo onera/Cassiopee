@@ -52,7 +52,6 @@ bool Smesh::ccw_oriented(E_Int face)
 Smesh::Smesh(const IMesh &M)
 {
     F.resize(M.patch.size());
-    //assert(M.patch.size() == M.skin.size());
 
     nf = 0;
     np = 0;
@@ -166,6 +165,14 @@ void Smesh::make_edges()
 
 
     // Check
+
+    assert(np - ne + nf + 1 == 2);
+
+    for (E_Int i = 0; i < ne; i++) {
+        assert(count[i] == 1 || count[i] == 2);
+    }
+
+
     for (E_Int i = 0; i < ne; i++) {
         E_Int fi = E2F[i][0];
         E_Int fj = E2F[i][1];
@@ -860,7 +867,7 @@ void Smesh::make_fnormals()
         E_Float *N = &fnormals[3*fid];
         K_MATH::cross(oa, ob, N);
         E_Float NORM = K_MATH::norm(N, 3);
-        assert(Sign(NORM) != 0);
+        //assert(Sign(NORM) != 0);
         for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
     }
 }

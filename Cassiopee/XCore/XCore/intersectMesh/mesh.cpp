@@ -32,9 +32,12 @@
 #include "primitives.h"
 #include "ray.h"
 #include "io.h"
+#include "common/Karray.h"
 
 void IMesh::triangulate_face_set(bool propagate)
 {
+    make_skin();
+    
     if (propagate) {
         E_Float xmin, ymin, zmin, xmax, ymax, zmax;
         xmin = ymin = zmin = EFLOATMAX;
@@ -52,7 +55,6 @@ void IMesh::triangulate_face_set(bool propagate)
             }
         }
 
-        make_skin();
 
         faces_to_tri.clear();
 
@@ -74,18 +76,6 @@ void IMesh::triangulate_face_set(bool propagate)
     E_Int face_incr = (E_Int)faces_to_tri.size();
 
     F.resize(NF + face_incr);
-
-    std::vector<E_Int> owner(NF, -1), neigh(NF, -1);
-
-    for (E_Int i = 0; i < nc; i++) {
-        const auto &pf = C[i];
-        for (E_Int fid : pf) {
-            if (owner[fid] == -1) owner[fid] = i;
-            else neigh[fid] = i;
-        }
-    }
-
-    assert(skin.size() > 0);
 
     patch.clear();
 
@@ -224,6 +214,49 @@ bool IMesh::faces_are_dups(E_Int mface, E_Int sface, const IMesh &S)
 IMesh::IMesh()
 {}
 
+IMesh::IMesh(const Karray &karray)
+{
+    np = karray.npoints();
+    nf = karray.nfaces();
+    nc = karray.ncells();
+
+    X.resize(np);
+    Y.resize(np);
+    Z.resize(np);
+    for (E_Int i = 0; i < np; i++) {
+        X[i] = karray.x[i];
+        Y[i] = karray.y[i];
+        Z[i] = karray.z[i];
+    }
+
+    F.reserve(nf);
+    for (E_Int fid = 0; fid < nf; fid++) {
+        E_Int np = -1;
+        E_Int *pn = karray.get_face(fid, np);
+        std::vector<E_Int> points(np);
+        for (E_Int j = 0; j < np; j++)
+            points[j] = pn[j] - 1;
+        F.push_back(points);
+    }
+
+    C.reserve(nc);
+    for (E_Int cid = 0; cid < nc; cid++) {
+        E_Int nf = -1;
+        E_Int *pf = karray.get_cell(cid, nf);
+        std::vector<E_Int> faces(nf);
+        for (E_Int j = 0; j < nf; j++)
+            faces[j] = pf[j] - 1;
+        C.push_back(faces);
+    }
+
+    // Grid
+    NX = 100;
+    NY = 100;
+    NZ = 100;
+    NXY = NX * NY;
+    NXYZ = NXY * NZ;
+}
+
 IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
 {
     NX = 100;
@@ -306,30 +339,37 @@ void IMesh::make_bbox()
         if (Z[i] > zmax) zmax = Z[i];
     }
 
+    xmin = xmin - (xmax - xmin) * 0.01;
+    ymin = ymin - (ymax - ymin) * 0.01;
+    zmin = zmin - (zmax - zmin) * 0.01;
     xmax = xmax + (xmax - xmin) * 0.01;
     ymax = ymax + (ymax - ymin) * 0.01;
     zmax = zmax + (zmax - zmin) * 0.01;
-
-    HX = (xmax - xmin) / NX;
-    HY = (ymax - ymin) / NY;
-    HZ = (zmax - zmin) / NZ;
 }
 
 void IMesh::make_skin()
 {
     skin.clear();
 
+    owner.clear();
+    neigh.clear();
+
+    owner.resize(nf, -1);
+    neigh.resize(nf, -1);
+
     std::vector<E_Int> count(nf, 0);
-    
-    for (const auto &cn : C) {
-        for (E_Int face : cn)
-            count[face]++;
+
+    for (E_Int cid = 0; cid < nc; cid++) {
+        const auto &pf = C[cid];
+        for (auto fid : pf) {
+           if (owner[fid] == -1) owner[fid] = cid;
+           else neigh[fid] = cid;
+        }
     }
 
-    for (E_Int i = 0; i < nf; i++) {
-        E_Int c = count[i];
-        assert(c == 1 || c == 2);
-        if (c == 1) skin.push_back(i);
+    for (E_Int fid = 0; fid < nf; fid++) {
+        if (neigh[fid] == -1)
+            skin.push_back(fid);
     }
 }
 

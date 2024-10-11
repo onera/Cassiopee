@@ -1,5 +1,5 @@
 #include "DynMesh.h"
-#include "Karray.h"
+#include "common/Karray.h"
 #include "Array.h"
 #include "Skin.h"
 #include "Vec.h"

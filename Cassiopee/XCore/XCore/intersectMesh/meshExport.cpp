@@ -193,7 +193,6 @@ PyObject *IMesh::export_karray_orig()
     delete f;
     delete cn;
 
-
     return array;
 }
 

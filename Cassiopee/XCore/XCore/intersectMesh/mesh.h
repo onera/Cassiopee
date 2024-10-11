@@ -29,12 +29,13 @@
 #include "common/common.h"
 #include "triangleIntersection.h"
 #include "AABB.h"
+#include "smesh.h"
 
 #define OUT 0
 #define IN 1
 
 struct Ray;
-struct Smesh;
+struct Karray;
 
 struct UEdge {
     E_Int p, q;
@@ -51,6 +52,13 @@ struct UEdge {
     }
 };
 
+struct skin_graph {
+    const std::vector<E_Int> &skin;
+
+
+
+};
+
 struct IMesh {
     E_Int np, ne, nf, nc;
 
@@ -65,6 +73,8 @@ struct IMesh {
     std::vector<std::vector<E_Int>> C;
 
     std::vector<E_Int> skin;
+    std::vector<E_Int> owner;
+    std::vector<E_Int> neigh;
 
     E_Float xmin, ymin, zmin;
     E_Float xmax, ymax, zmax;
@@ -82,6 +92,9 @@ struct IMesh {
 
     std::vector<int> ctag;
 
+    Smesh make_patch(const E_Float *ptag);
+    Smesh make_patch(const Smesh &spatch);
+
     inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
     {
         return I + J * NX + (NX * NY) * K;
@@ -97,11 +110,15 @@ struct IMesh {
     
     void triangulate_face_set(bool propagate = true);
 
+    void triangulate_skin();
+
     size_t refine_slave(const IMesh &master);
     
     void hash_patch();
 
     IMesh();
+
+    IMesh(const Karray &karray);
 
     IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
 
@@ -151,6 +168,8 @@ struct IMesh {
     std::set<E_Int> faces_to_tri;
 
     size_t refine(const IMesh &S);
+
+    std::vector<PointLoc> locate(const Smesh &Sf);
 
     //std::vector<pointFace> locate(E_Int p, E_Float x, E_Float y, E_Float z,
     //    const std::set<E_Int> &patch) const;

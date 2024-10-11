@@ -341,12 +341,14 @@ def IntersectMesh_ExtractMesh(IM, removePeriodic=0):
     t = XOR.closeCells(t)
     return t
 
-def removeIntersectingKPlanes(IM, slave):
-
-    slave_bases = I.getBases(slave)
+def removeIntersectingKPlanes(IM, slave_struct):
+    slave_bases = I.getBases(slave_struct)
 
     iter = -1
 
+    import Generator.PyTree as G
+    import Transform.PyTree as T
+    
     ts = I.newCGNSTree()
 
     for slave_base in slave_bases:
@@ -367,13 +369,21 @@ def removeIntersectingKPlanes(IM, slave):
 
         new_base = I.newCGNSBase('slave'+str(iter), 3, 3, parent=ts)
 
+        zones = []
         for i in range(len(new_slaves_and_tags)):
             new_slave, tag = new_slaves_and_tags[i]
             zname = zs[i][0]
             zo = I.createZoneNode(zname, new_slave)
             cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
             I.newDataArray("tag", value=tag, parent=cont)
-            I.addChild(new_base, zo)
+            C._convertArray2NGon(zo)
+            G._close(zo)
+            zones.append(zo)
+        
+        merged = T.merge(zones)
+        merged = G.close(merged)
+        I.addChild(new_base, merged)
+
 
     return ts
 
@@ -423,6 +433,7 @@ def intersectMesh(master, slave):
     zs = I.getZones(slave)[0]
     keep = I.getNodeFromName(zs, 'keep')
     sarr = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+    #spatch = I.getNodeFromName(zs, "intersection_patch")[2][1][1][0]
     spatch = I.getNodeFromName(zs, "intersection_patch")[2][0][1]
 
     marr, sarr = xcore.intersectMesh(marr, mpatch, sarr, spatch)
@@ -470,3 +481,38 @@ def extractFacesFromPointTag(t, tag_name):
     if tag is None: raise ValueError(tag_name + 'not found')
     arr = C.getFields(I.__GridCoordinates__, z, api=3)[0]
     return xcore.extractFacesFromPointTag(arr, tag[1])
+
+def icapsule_init(mp, sp):
+    zm = I.getZones(mp)[0]
+    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    
+    sarrs = []
+    tags = []
+    bases = I.getBases(sp)
+
+    for base in bases:
+        zs = I.getZones(base)[0]
+        sarr = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+        sarrs.append(sarr)
+        tag = I.getNodeFromName(zs, 'tag')[1]
+        tags.append(tag)
+
+    return xcore.icapsule_init(marr, sarrs, tags)
+
+def icapsule_extract_master(icap):
+    marr = xcore.icapsule_extract_master(icap)
+    zm = I.createZoneNode("master", marr)
+    return zm
+
+def icapsule_extract_slave(icap, index=0):
+    sarr = xcore.icapsule_extract_slave(icap, index)
+    zs = I.createZoneNode("slave", sarr)
+    return zs
+
+def triangulate_skin(m):
+    zm = I.getZones(m)[0]
+    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    mo = xcore.triangulate_skin(marr)
+    zo = I.createZoneNode("triangulated", mo)
+    return zo 
+

@@ -33,6 +33,48 @@
 #include "cycle.h"
 #include "triangle.h"
 
+Smesh Dcel::export_smesh() const
+{
+    Smesh smesh;
+    smesh.ne = 0;
+
+    smesh.np = V.size();
+
+    smesh.X.resize(smesh.np);
+    smesh.Y.resize(smesh.np);
+    smesh.Z.resize(smesh.np);
+
+    for (Vertex *v : V) {
+        smesh.X[v->id] = v->x;
+        smesh.Y[v->id] = v->y;
+        smesh.Z[v->id] = v->z;
+    }
+
+    for (size_t i = 0; i < F.size(); i++) {
+        Face *f = F[i];
+        Hedge *REP = f->rep;
+        Cycle *c = REP->cycle;
+        if (c->inout != Cycle::OUTER) continue;
+        Hedge *h = REP;
+
+        std::vector<E_Int> pn;
+
+        do {
+            Vertex *v = h->orig;
+            pn.push_back(v->id);
+            h = h->next;
+        } while (h != REP);
+
+        smesh.F.push_back(pn);
+    }
+
+    smesh.nf = (E_Int)smesh.F.size();
+
+    smesh.make_edges();
+    
+    return smesh;
+}
+
 E_Int Dcel::RED = 0;
 E_Int Dcel::BLACK = 1;
 E_Int Dcel::NO_IDEA = 2;
@@ -243,6 +285,9 @@ void Dcel::set_face_labels(std::vector<Face *> &F)
             // Only single color possible is RED, otherwise intersection problem
             // is ill-posed
             Hedge *REP = (R != NULL) ? R : B;
+            if (REP != R) {
+                hedge_write("black", REP);
+            }
             assert(REP == R);
             assert(REP->color == Dcel::RED);
             assert(REP->left);
@@ -300,6 +345,23 @@ void Dcel::init_vertices(const Smesh &M0, const Smesh &M1)
     }
 }
 
+Dcel::Dcel(const Smesh &M, E_Int color)
+{
+    for (E_Int i = 0; i < M.np; i++) {
+        Q.insert(M.X[i], M.Y[i], M.Z[i], i, color);
+    }
+    Q.inorder(V);
+    for (size_t i = 0; i < V.size(); i++) {
+        V[i]->id = i;
+    }
+    assert(V.size() == (size_t)M.np);
+    init_hedges_and_faces(M, color);
+    assert(check_hedges(H));
+    assert(check_faces(H, F));
+    make_cycles();
+    set_cycles_inout(M);
+}
+
 Dcel::Dcel(Smesh &M0, Smesh &M1)
 {
     init_vertices(M0, M1);
@@ -343,7 +405,7 @@ void mat3_vec(E_Float A[3][3], E_Float x[3], E_Float b[3])
     }
 }
 
-void Dcel::init_hedges_and_faces(Smesh &M, E_Int color)
+void Dcel::init_hedges_and_faces(const Smesh &M, E_Int color)
 {
     printf("Doing color %d\n", color);
     size_t nh = H.size();
@@ -512,7 +574,7 @@ Dcel::~Dcel()
     Q.drop();
 }
 
-void Dcel::set_cycles_inout(const Smesh &M, const Smesh &S)
+void Dcel::set_cycles_inout(const Smesh &M)//, const Smesh &S)
 {
     E_Int inner = 0;
     E_Int outer = 0;
@@ -620,14 +682,19 @@ void Dcel::set_cycles_inout(const Smesh &M, const Smesh &S)
         // Intersection
         else {
 
-            Hedge *h = v->xhedge;
-            assert(h);
+            //Hedge *h = v->xhedge;
+            //assert(h);
+            //Face *f1 = h->left;
+            //Face *f2 = h->twin->left;
+            //E_Int mf1 = f1->oid[0];
+            //E_Int mf2 = f2->oid[0];
 
-            Face *f1 = h->left;
-            Face *f2 = h->twin->left;
+            E_Int eid = v->meid;
+            const auto &pf = M.E2F[eid];
 
-            E_Int mf1 = f1->oid[0];
-            E_Int mf2 = f2->oid[0];
+            E_Int mf1 = pf[0];
+            E_Int mf2 = pf[1];
+            assert(mf2 != -1);
     
             const E_Float *fN1 = &M.fnormals[3*mf1];
             const E_Float *fN2 = &M.fnormals[3*mf2];
@@ -678,6 +745,14 @@ std::vector<Vertex *> Dcel::get_face_vertices(Face *f)
     return ret;
 }
 
+static
+E_Int Sign_tol(E_Float x, E_Float tol)
+{
+    if (x > tol) return 1;
+    if (x < -tol) return -1;
+    return 0;
+}
+
 void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
 {
     for (E_Int sp = 0; sp < S.np; sp++) {
@@ -723,7 +798,8 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
                 E_Float u, v, w;
 
                 if (Triangle::is_point_inside(
-                    S.X[sp], S.Y[sp], S.Z[sp],
+                    S.X[sp], S.Y[sp], S.Z[sp], 
+                    //V->x, V->y, V->z,
                     M.X[p], M.Y[p], M.Z[p],
                     M.X[q], M.Y[q], M.Z[q],
                     o[0], o[1], o[2],
@@ -732,11 +808,17 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
                     found = 1;
 
                     ploc.fid = fid;
+                    ploc.u = u;
+                    ploc.v = v;
+                    ploc.w = w;
 
                     // TODO(Imad): this absolutely needs to be robust
-                    if (Sign(v) == 0) ploc.e_idx = i;
-                    else if (Sign(1-u) == 0) ploc.v_idx = (i+1)%pn.size();
-                    else if (Sign(1-w) == 0) ploc.v_idx = i;
+                    if (Sign_tol(v, 1e-3) == 0)
+                        ploc.e_idx = i;
+                    else if (Sign_tol(1-u, 1e-3) == 0)
+                        ploc.v_idx = (i+1)%pn.size();
+                    else if (Sign_tol(1-w, 1e-3) == 0)
+                        ploc.v_idx = i;
 
                     break;
                 }
@@ -785,46 +867,6 @@ void Dcel::cut_hedge_at_vertex(Hedge *e, Vertex *x)
 
     Cp[x].push_back(e1);
     Cp[x].push_back(e2);
-}
-
-void Dcel::handle_intersecting_endpoint(Vertex *v, const Smesh &M)
-{
-    if (!Cp[v].empty()) return;
-
-    const auto &vloc = v->loc;
-
-    if (vloc.e_idx == -1) return;
-
-    E_Int fid = vloc.fid;
-
-    const auto &pe = M.F2E[fid]; 
-
-    E_Int me = pe[vloc.e_idx];
-
-    Hedge *start = H[2*me];
-
-    Face *face = F[fid];
-
-    if (start->left != face) start = start->twin;
-
-    Hedge *h = start;
-
-    E_Int done = 0;
-
-    while (1) {
-
-        if (hedge_contains_vertex(h, v)) {
-            done = 1;
-            v->xhedge = h;
-            cut_hedge_at_vertex(h, v);
-            break;
-        }
-
-        h = h->next;
-        if (h == start) break;
-    }
-
-    assert(done == 1);
 }
 
 E_Int Dcel::get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
@@ -1196,15 +1238,13 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
         return false;
     });
 
-    for (Vertex *v : V) {
-        if (v->oid[1] != -1 && v->oid[0] == -1) {
-            handle_intersecting_endpoint(v, M);
-        }
-    }
+    puts("    Registering endpoint-edge intersections...");
+
+    init_mh_sv_intersections(M);
 
     puts("    Tracing edges...");
 
-    std::map<Hedge *, std::vector<Vertex *>> hedge_intersections;
+    size_t before = V.size();
     
     for (size_t hid = 0; hid < s_hedges.size(); hid++) {
         Hedge *sh = s_hedges[hid];
@@ -1212,21 +1252,22 @@ void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
         //printf("Tracing hedge %zu / %zu\n", hid+1, s_hedges.size());
 
         //trace_hedge(sh, M, S, hid);
-        trace_hedge_2(sh, M, S, hid, hedge_intersections);
+        trace_hedge_2(sh, M, S, hid);
     }
+
+    size_t after = V.size();
 
     printf("Duplicate intersections: %d\n", dup_x);
     printf("Vertices crossed: %lu\n", vertices_crossed.size());
 
-    std::vector<Point> v_crossed;
-    for (Vertex *v : vertices_crossed) {
-        v_crossed.push_back(Point(v->x, v->y, v->z));
+    std::vector<Point> xpoints;
+    for (size_t i = before; i < after; i++) {
+        Vertex *v = V[i];
+        xpoints.push_back(Point(v->x, v->y, v->z));
     }
-    point_write("vertices_crossed", v_crossed);
+    point_write("xpoints", xpoints);
 
-    cut_hedges(hedge_intersections);
-
-    exit(0);
+    cut_hedges();
 }
 
 void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving,
@@ -1366,6 +1407,7 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
             leaving.push_back(h);
         }
 
+        /*
         E_Int do_sort = 0;
 
         for (size_t i = 1; i < leaving.size(); i++) {
@@ -1376,9 +1418,12 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
         }
 
         if (!do_sort) continue;
+        */
+
+        
         
 
-        E_Float N[3]= { };
+        E_Float N[3]= {0};
 
         // M point
         if (v->oid[0] != -1) {
@@ -1438,14 +1483,19 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
         // Intersection
         else {
 
-            Hedge *h = v->xhedge;
-            assert(h);
+            //Hedge *h = v->xhedge;
+            //assert(h);
+            //Face *f1 = h->left;
+            //Face *f2 = h->twin->left;
+            //E_Int mf1 = f1->oid[0];
+            //E_Int mf2 = f2->oid[0];
 
-            Face *f1 = h->left;
-            Face *f2 = h->twin->left;
+            E_Int eid = v->meid;
+            const auto &pf = M.E2F[eid];
 
-            E_Int mf1 = f1->oid[0];
-            E_Int mf2 = f2->oid[0];
+            E_Int mf1 = pf[0];
+            E_Int mf2 = pf[1];
+            assert(mf2 != -1);
     
             const E_Float *fN1 = &M.fnormals[3*mf1];
             const E_Float *fN2 = &M.fnormals[3*mf2];
@@ -1479,7 +1529,7 @@ void Dcel::reconstruct(const Smesh &M, const Smesh &S)
 
     make_cycles();
 
-    set_cycles_inout(M, S);
+    set_cycles_inout(M);
 
     auto new_F = make_cycle_faces(C);
     

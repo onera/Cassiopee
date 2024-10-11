@@ -18,7 +18,7 @@
 */
 #include "xcore.h"
 #include "common/common.h"
-#include "karray.h"
+#include "common/Karray.h"
 #include "mesh.h"
 #include "ray.h"
 #include "io.h"
@@ -63,9 +63,9 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
 
-    E_Float *Xs = sarray.X;
-    E_Float *Ys = sarray.Y;
-    E_Float *Zs = sarray.Z;
+    E_Float *Xs = sarray.X();
+    E_Float *Ys = sarray.Y();
+    E_Float *Zs = sarray.Z();
 
     // Last k-plane outside of M
     std::vector<E_Int> kmax(nij, -1);
@@ -130,13 +130,6 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
         TI.pid = p;
 
         point_hit_table[p] = TI;
-    }
-
-    for (const auto &ploc : point_hit_table) {
-        E_Int fid = ploc.second.face;
-        const auto &pn = M->F[fid];
-        assert(pn.size() == 4);
-        M->faces_to_tri.insert(fid);
     }
 
     // Construct the new faces and cells
@@ -376,9 +369,9 @@ E_Int get_kmax(IMesh *M, Karray& sarray)
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
 
-    E_Float *Xs = sarray.X;
-    E_Float *Ys = sarray.Y;
-    E_Float *Zs = sarray.Z;
+    E_Float *Xs = sarray.X();
+    E_Float *Ys = sarray.Y();
+    E_Float *Zs = sarray.Z();
 
     E_Int kmax = -1;
 
@@ -411,9 +404,9 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
 
-    E_Float *Xs = sarray.X;
-    E_Float *Ys = sarray.Y;
-    E_Float *Zs = sarray.Z;
+    E_Float *Xs = sarray.X();
+    E_Float *Ys = sarray.Y();
+    E_Float *Zs = sarray.Z();
 
     // Indices of points to be projected
     std::vector<E_Int> proj_points;
@@ -459,13 +452,6 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
         TI.pid = p;
 
         point_hit_table[p] = TI;
-    }
-
-    for (const auto &ploc : point_hit_table) {
-        E_Int fid = ploc.second.face;
-        const auto &pn = M->F[fid];
-        assert(pn.size() == 4);
-        M->faces_to_tri.insert(fid);
     }
 
     // Make out cartesian mesh
@@ -571,6 +557,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    /*
     E_Int kmax = 10000000;
 
     for (E_Int i = 0; i < nslaves; i++) {
@@ -580,13 +567,14 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
 
     printf("kmax: %d\n", kmax);
+    */
 
     PyObject *slaves_out = PyList_New(0);
 
     for (E_Int i = 0; i < nslaves; i++) {
         printf("Projecting %d / %d\n", i+1, nslaves);
-        PyObject *st = handle_slave2(M, sarrays[i], kmax);
-        //PyObject *st = handle_slave(M, sarrays[i]);
+        //PyObject *st = handle_slave2(M, sarrays[i], kmax);
+        PyObject *st = handle_slave(M, sarrays[i]);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);

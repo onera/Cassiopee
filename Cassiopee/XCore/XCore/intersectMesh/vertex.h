@@ -22,12 +22,7 @@
 
 #include "xcore.h"
 #include "common/common.h"
-
-struct PointLoc {
-    E_Int fid = -1;
-    E_Int v_idx = -1;
-    E_Int e_idx = -1;
-};
+#include "point.h"
 
 struct Hedge;
 
@@ -40,7 +35,8 @@ struct Vertex {
 
     PointLoc loc;
 
-    Hedge *xhedge = NULL;
+    //Hedge *xhedge = NULL;
+    E_Int meid = -1;
 
     E_Float d = 0;
 

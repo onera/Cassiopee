@@ -25,10 +25,10 @@
 
 E_Float TOL = 1e-12;
 
-E_Int Sign(E_Float x)
+E_Int Sign(E_Float x, E_Float tol)
 {
-    if (x > TOL) return 1;
-    if (x < -TOL) return -1;
+    if (x > tol) return 1;
+    if (x < -tol) return -1;
     //assert(x == 0.0);
     return 0;
 }
