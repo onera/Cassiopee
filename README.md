@@ -10,7 +10,7 @@
 
 ## Installation from binaries
 
-- [Docker image](https://github.com/onera/Cassiopee/blob/main/docs/developers/Docker/UsingDocker.md)
+<!-- - [Docker image](https://github.com/onera/Cassiopee/blob/main/docs/developers/Docker/UsingDocker.md) -->
 
 <!--- - with pip -->
 <!-- - On windows, download setup.exe -->

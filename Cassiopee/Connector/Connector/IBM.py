@@ -2113,65 +2113,41 @@ def extractIBMInfo(tc_in, IBCNames="IBCD_*", fileout=None):
     for zname in Zones:
         xPC = XPC[zname]; yPC = YPC[zname]; zPC = ZPC[zname]
         size = xPC[0].shape[0]
-        coordxPC = ['CoordinateX',xPC[0],[],'DataArray_t']
-        coordyPC = ['CoordinateY',yPC[0],[],'DataArray_t']
-        coordzPC = ['CoordinateZ',zPC[0],[],'DataArray_t']
         zone = G.cart((0,0,0),(1,1,1),(size,1,1))
         zone[0] = 'correctedPts_'+zname
 
-        XPC0 = Internal.getNodeFromName(zone,'CoordinateX')
-        parent,d = Internal.getParentOfNode(zone, XPC0)
-        parent[2][d] = coordxPC
-
-        YPC0 = Internal.getNodeFromName(zone,'CoordinateY')
-        parent,d = Internal.getParentOfNode(zone, YPC0)
-        parent[2][d] = coordyPC
-
-        ZPC0 = Internal.getNodeFromName(zone,'CoordinateZ')
-        parent,d = Internal.getParentOfNode(zone, ZPC0)
-        parent[2][d] = coordzPC
+        XPC0 = Internal.getNodeFromName2(zone, 'CoordinateX')
+        XPC0[1] = xPC[0]
+        YPC0 = Internal.getNodeFromName2(zone, 'CoordinateY')
+        YPC0[1] = yPC[0]
+        ZPC0 = Internal.getNodeFromName2(zone, 'CoordinateZ')
+        ZPC0[1] = zPC[0]
         corrected.append(zone)
         #
         xPI = XPI[zname]; yPI = YPI[zname]; zPI = ZPI[zname]
         size = xPI[0].shape[0]
-        coordxPI = ['CoordinateX',xPI[0],[],'DataArray_t']
-        coordyPI = ['CoordinateY',yPI[0],[],'DataArray_t']
-        coordzPI = ['CoordinateZ',zPI[0],[],'DataArray_t']
         zone = G.cart((0,0,0),(1,1,1),(size,1,1))
         zone[0] = 'interpPts_'+zname
 
-        XPI0 = Internal.getNodeFromName(zone,'CoordinateX')
-        parent,d = Internal.getParentOfNode(zone, XPI0)
-        parent[2][d] = coordxPI
-
-        YPI0 = Internal.getNodeFromName(zone,'CoordinateY')
-        parent,d = Internal.getParentOfNode(zone, YPI0)
-        parent[2][d] = coordyPI
-
-        ZPI0 = Internal.getNodeFromName(zone,'CoordinateZ')
-        parent,d = Internal.getParentOfNode(zone, ZPI0)
-        parent[2][d] = coordzPI
+        XPI0 = Internal.getNodeFromName2(zone, 'CoordinateX')
+        XPI0[1] = xPI[0]
+        YPI0 = Internal.getNodeFromName2(zone, 'CoordinateY')
+        YPI0[1] = yPI[0]
+        ZPI0 = Internal.getNodeFromName2(zone,'CoordinateZ')
+        ZPI0[1] = zPI[0]
         interp.append(zone)
 
-        xPW = XPW[zname];yPW = YPW[zname];zPW = ZPW[zname]
+        xPW = XPW[zname]; yPW = YPW[zname]; zPW = ZPW[zname]
         size = xPW[0].shape[0]
-        coordxPW = ['CoordinateX',xPW[0],[],'DataArray_t']
-        coordyPW = ['CoordinateY',yPW[0],[],'DataArray_t']
-        coordzPW = ['CoordinateZ',zPW[0],[],'DataArray_t']
         zone = G.cart((0,0,0),(1,1,1),(size,1,1))
         zone[0] = 'wallPts_'+zname
 
-        XPW0 = Internal.getNodeFromName(zone,'CoordinateX')
-        parent,d = Internal.getParentOfNode(zone, XPW0)
-        parent[2][d] = coordxPW
-
-        YPW0 = Internal.getNodeFromName(zone,'CoordinateY')
-        parent,d = Internal.getParentOfNode(zone, YPW0)
-        parent[2][d] = coordyPW
-
-        ZPW0 = Internal.getNodeFromName(zone,'CoordinateZ')
-        parent,d = Internal.getParentOfNode(zone, ZPW0)
-        parent[2][d] = coordzPW
+        XPW0 = Internal.getNodeFromName2(zone, 'CoordinateX')
+        XPW0[1] = xPW[0]
+        YPW0 = Internal.getNodeFromName2(zone, 'CoordinateY')
+        YPW0[1] = yPW[0]
+        ZPW0 = Internal.getNodeFromName2(zone, 'CoordinateZ')
+        ZPW0[1] = zPW[0]
         wall.append(zone)
 
     t[2][1][2] = corrected; t[2][2][2] = wall; t[2][3][2] = interp
@@ -4079,27 +4055,22 @@ def _prepOutputProject__(outputProjection, typeValue, arrayLocal, allCorrectedPt
 
 ## Write CGNS file with the IBM points that have a type 3 and type 4 projection
 def _writeOutputProject__(outputProjection, fileName):
-    nameZone = ['IBM','Wall','Image']
+    nameZone = ['IBM', 'Wall', 'Image']
     tLocal = C.newPyTree(nameZone)
     for i in range(3):
         size     = len(outputProjection[i*3])
-        coordxPC = ['CoordinateX',numpy.array(outputProjection[i*3  ]),[],'DataArray_t']
-        coordyPC = ['CoordinateY',numpy.array(outputProjection[i*3+1]),[],'DataArray_t']
-        coordzPC = ['CoordinateZ',numpy.array(outputProjection[i*3+2]),[],'DataArray_t']        
+        coordxPC = numpy.array(outputProjection[i*3  ])
+        coordyPC = numpy.array(outputProjection[i*3+1])
+        coordzPC = numpy.array(outputProjection[i*3+2])        
         zone = G.cart((0,0,0),(1,1,1),(size,1,1))
         zone[0] = nameZone[i]
-        
-        XPC0 = Internal.getNodeFromName(zone,'CoordinateX')
-        parent,d = Internal.getParentOfNode(zone, XPC0)
-        parent[2][d] = coordxPC
-        
-        YPC0 = Internal.getNodeFromName(zone,'CoordinateY')
-        parent,d = Internal.getParentOfNode(zone, YPC0)
-        parent[2][d] = coordyPC
-        
-        ZPC0 = Internal.getNodeFromName(zone,'CoordinateZ')
-        parent,d = Internal.getParentOfNode(zone, ZPC0)
-        parent[2][d] = coordzPC     
+        cont = Internal.getNodeFromName1(zone, Internal.__GridCoordinates__)
+        XPC0 = Internal.getNodeFromName1(cont, 'CoordinateX')
+        XPC0[1] = coordxPC        
+        YPC0 = Internal.getNodeFromName1(cont, 'CoordinateY')
+        YPC0[1] = coordyPC
+        ZPC0 = Internal.getNodeFromName1(cont, 'CoordinateZ')
+        ZPC0[1] = coordzPC
         Internal.addChild(Internal.getNodeFromName(tLocal,nameZone[i]), zone, pos=-1) # at the end
     tLocal = C.convertArray2Node(tLocal)
     Cmpi.convertPyTree2File(tLocal, fileName)
