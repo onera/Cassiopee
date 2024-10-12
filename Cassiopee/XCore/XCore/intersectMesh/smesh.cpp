@@ -515,7 +515,7 @@ void Smesh::init_adaptation_data()
     }
 }
 
-void Smesh::make_point_faces()
+void Smesh::make_point_faces_active()
 {
     P2F.clear();
     P2F.resize(np);
@@ -527,9 +527,8 @@ void Smesh::make_point_faces()
     }
 }
 
-void Smesh::make_point_faces_all()
+void Smesh::make_point_faces()
 {
-    assert(P2F.empty());
     P2F.clear();
     P2F.resize(np);
 
@@ -771,7 +770,15 @@ void Smesh::make_fnormals()
 
 void Smesh::make_pnormals()
 {
-    make_fnormals();
+    if (fnormals.empty()) {
+        fprintf(stderr, "Trying to compute pnormals without fnormals!\n");
+        assert(0);
+    }
+
+    if (P2F.empty()) {
+        fprintf(stderr, "Trying to compute pnormals without P2F!\n");
+        assert(0);
+    }
 
     pnormals.clear();
     pnormals.resize(3*np, 0);
@@ -901,4 +908,42 @@ void Smesh::compute_min_distance_between_points()
     }
 
     assert(ndists == np*(np-1)/2);
+}
+
+void Smesh::write_edges(const char *fname, const std::set<E_Int> &eids) const
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%lu\n", eids.size()*2);
+    for (E_Int eid : eids) {
+        const auto &e = E[eid];
+        E_Int p = e.p;
+        E_Int q = e.q;
+        fprintf(fh, "%f %f %f\n", X[p], Y[p], Z[p]);
+        fprintf(fh, "%f %f %f\n", X[q], Y[q], Z[q]);
+    }
+    fprintf(fh, "EDGES\n");
+    fprintf(fh, "%lu\n", eids.size());
+    for (size_t i = 0; i < 2*eids.size(); i++) {
+        fprintf(fh, "%lu ", i);
+    }
+    fprintf(fh, "\n");
+
+    fclose(fh);
+}
+
+void Smesh::write_points(const char *fname, const std::set<E_Int> &pids) const
+{
+    FILE *fh= fopen(fname, "w");
+    assert(fh);
+
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%lu\n", pids.size());
+    for (E_Int pid : pids){
+        fprintf(fh, "%f %f %f\n", X[pid], Y[pid], Z[pid]);
+    }
+
+    fclose(fh);
 }

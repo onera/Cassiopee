@@ -5,7 +5,6 @@
 #include "io.h"
 #include "event.h"
 
-static
 bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,
     E_Float dx, E_Float dy, E_Float dz,
     E_Float px, E_Float py, E_Float pz,

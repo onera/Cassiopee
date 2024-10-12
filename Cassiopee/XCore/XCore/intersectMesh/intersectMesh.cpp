@@ -398,13 +398,15 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Mf.write_ngon("Mf");
     Sf.write_ngon("Sf");
 
+    /*
     puts("Making point edges...");
     Mf.make_point_edges();
     Sf.make_point_edges();
+    */
 
     puts("Making point faces...");
-    Mf.make_point_faces_all();
-    Sf.make_point_faces_all();
+    Mf.make_point_faces();
+    Sf.make_point_faces();
 
     puts("Making point/face normals...");
     Mf.make_pnormals();

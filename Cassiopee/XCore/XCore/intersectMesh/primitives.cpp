@@ -23,8 +23,6 @@
 #include "primitives.h"
 #include "event.h"
 
-E_Float TOL = 1e-12;
-
 E_Int Sign(E_Float x, E_Float tol)
 {
     if (x > tol) return 1;

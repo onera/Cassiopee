@@ -4,6 +4,19 @@
 #include "io.h"
 #include "primitives.h"
 
+E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
+    const E_Float fN[3], E_Float px, E_Float py, E_Float pz)
+{
+    E_Float w[3] = {px-o[0], py-o[1], pz-o[2]};
+    E_Float c[3];
+    K_MATH::cross(d, w, c);
+    E_Float dp = K_MATH::dot(c, fN, 3);
+    E_Int cmp = Sign(dp);
+    if (cmp > 0) return 1;
+    if (cmp < 0) return -1;
+    return 0;
+}
+
 Smesh IMesh::make_smesh(const E_Float *ptag)
 {
     patch.clear();
@@ -90,6 +103,8 @@ void Smesh::correct_near_points_and_edges(Smesh &Sf,
 }
 
 std::vector<Point> chain_points;
+std::set<E_Int> walls;
+std::set<E_Int> pwalls;
 
 Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
     const std::vector<PointLoc> &plocs)
@@ -117,6 +132,7 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
 
     E_Int current_point = pchain[1];
 
+
     while (pchain.size() < nbedges) {
         E_Int to_delete = -1;
         for (auto e : bedges) {
@@ -142,7 +158,28 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
         chain_points.push_back(Point(Sf.X[p], Sf.Y[p], Sf.Z[p]));
     }
 
-    std::set<E_Int> bfids;
+    point_write("first",  Sf.X[pchain[0]], Sf.Y[pchain[0]], Sf.Z[pchain[0]]);
+    point_write("second", Sf.X[pchain[1]], Sf.Y[pchain[1]], Sf.Z[pchain[1]]);
+    point_write("third",  Sf.X[pchain[2]], Sf.Y[pchain[2]], Sf.Z[pchain[2]]);
+    
+    // Sort the pchain counterclockwise
+    E_Int a = pchain[0], b = pchain[1], c = pchain[2];
+    E_Float ux = Sf.X[b] - Sf.X[a];
+    E_Float uy = Sf.Y[b] - Sf.Y[a];
+    E_Float uz = Sf.Z[b] - Sf.Z[a];
+    E_Float vx = Sf.X[c] - Sf.X[b];
+    E_Float vy = Sf.Y[c] - Sf.Y[b];
+    E_Float vz = Sf.Z[c] - Sf.Z[b];
+    E_Float cp[3] = {uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx};
+    const E_Float *N_b = &fnormals[3*plocs[b].fid];
+    E_Float dp = K_MATH::dot(cp, N_b, 3);
+    E_Int cmp = Sign(dp);
+    assert(cmp != 0);
+    if (cmp < 0)
+        std::reverse(pchain.begin(), pchain.end());
+
+    std::set<E_Int> bfids; // Boundary face ids
+    std::set<E_Int> weids; // Wall edge ids
     
     for (size_t i = 0; i < pchain.size(); i++) {
         E_Int p = pchain[i];
@@ -168,22 +205,121 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
         assert(starting_face != -1);
 
         bool found_tail = false;
-        E_Int current_fid = starting_face;
-        E_Float current_pos[3] = {px, py, pz};
+        E_Int cur_fid = starting_face;
+        E_Float cur_pos[3] = {px, py, pz};
 
         E_Int walk = 0;
         E_Int max_walks = 20;
 
         while (!found_tail && walk <= max_walks) {
-            found_tail = true;
+
+            // Add current face to the set of boundary faces
+            bfids.insert(cur_fid);
+            
+            E_Float proj[3];
+            get_unit_projected_direction(cur_fid, D, proj);
+
+            const auto &pn = F[cur_fid];
+            const auto &pe = F2E[cur_fid];
+
+            const E_Float *fN = &fnormals[3*cur_fid];
+
+            // First pass: define the wall points
+            for (size_t i = 0; i < pn.size(); i++) {
+                E_Int p = pn[i];
+                //E_Int q = pn[(i+1)%pn.size()];
+                //E_Int e = pe[i];
+                E_Float px = X[p], py = Y[p], pz = Z[p];
+                //E_Float qx = X[q], qy = Y[q], qz = Z[q];
+                if (ray_point_orient(cur_pos, proj, fN, px, py, pz) <= 0) {// &&
+                    //ray_point_orient(cur_pos, proj, fN, qx, qy, qz) <= 0) {
+                    //walls.insert(e);
+                    //weids.insert(e);
+                    pwalls.insert(p);
+                }
+            }
+
+            for (auto fid : tail_faces) {
+                if (fid == cur_fid) {
+                    found_tail = true;
+                    break;
+                }
+            }
+
+            if (found_tail) break;
+
+            E_Int next_fid = -1;
+            E_Float next_pos[3] = {EFLOATMAX, EFLOATMAX, EFLOATMAX};
+
+            bool hit = false;
+            
+            for (size_t i = 0; i < pn.size(); i++) {
+                E_Int p = pn[i];
+                E_Int q = pn[(i+1)%pn.size()];
+                E_Int e = pe[i];
+
+
+                if (p == last_vertex || q == last_vertex || e == last_edge)
+                    continue;
+                
+                E_Float px = X[p], py = Y[p], pz = Z[p];
+                E_Float qx = X[q], qy = Y[q], qz = Z[q];
+            
+                E_Float t, s;
+                hit = ray_edge_intersect(
+                    cur_pos[0], cur_pos[1], cur_pos[2],
+                    proj[0], proj[1], proj[2],
+                    px, py, pz, qx, qy, qz,
+                    t, s
+                );
+
+                if (hit) {
+                    if (s > TOL && s < 1 - TOL) {
+                        const auto &pe = F2E[cur_fid];
+                        E_Int eid = pe[i];
+                        last_edge = eid;
+                        last_vertex = -1;
+                        if (E2F[eid][0] == cur_fid) next_fid = E2F[eid][1];
+                        else next_fid = E2F[eid][0];
+
+                        next_pos[0] = cur_pos[0] + t * proj[0];
+                        next_pos[1] = cur_pos[1] + t * proj[1];
+                        next_pos[2] = cur_pos[2] + t * proj[2];
+                    } else {
+                        bool hit_p = (s <= TOL);
+                        bool hit_q = (s >= 1 - TOL);
+                        assert(!(hit_p && hit_q));
+                        last_edge = -1;
+                        if (hit_p) last_vertex = p;
+                        else last_vertex = q;
+                        next_pos[0] = X[last_vertex];
+                        next_pos[1] = Y[last_vertex];
+                        next_pos[2] = Z[last_vertex];
+                        const auto &pf = P2F[last_vertex];
+                        next_fid = deduce_face(pf,
+                            next_pos[0], next_pos[1], next_pos[2],
+                            D, last_vertex, last_edge
+                        );
+                        assert(next_fid != -1);
+                    }
+                    break;
+                }
+            }
+
+            assert(hit);
+            assert(next_fid != cur_fid);
+            cur_fid = next_fid;
+            cur_pos[0] = next_pos[0];
+            cur_pos[1] = next_pos[1];
+            cur_pos[2] = next_pos[2];
             walk++;
         }
 
         assert(found_tail);
         assert(walk <= max_walks);
-
-
     }
+
+    //write_edges("wall", weids);
 
     return Smesh();
 }
@@ -203,6 +339,8 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     Mf.make_bbox();
     Mf.hash_faces();
     Mf.make_fnormals();
+    Mf.make_point_faces();
+    Mf.make_pnormals();
 
     Ss.reserve(sarrays.size());
     spatches.reserve(sarrays.size());
@@ -220,6 +358,9 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         spatches.push_back(Ss[i].make_smesh(ptags[i]));
         spatches[i].make_bbox();
         spatches[i].hash_faces();
+        spatches[i].make_fnormals();
+        spatches[i].make_point_faces();
+        spatches[i].make_pnormals();
         spatches[i].compute_min_distance_between_points();
         plocs.push_back(Mf.locate(spatches[i]));
         Mf.correct_near_points_and_edges(spatches[i], plocs[i]);
@@ -230,6 +371,8 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     point_write("cpoints", cpoints);
 
     point_write("chain", chain_points);
+    //Mf.write_edges("walls", walls);
+    Mf.write_points("pwalls", pwalls);
 }
 
 
@@ -268,6 +411,11 @@ PyObject *K_XCORE::icapsule_extract_slave(PyObject *self, PyObject *args)
     }
 
     ICapsule *icap = (ICapsule *)PyCapsule_GetPointer(ICAPSULE, "ICapsule");
+
+    if (INDEX >= icap->Ss.size()) {
+        RAISE("Bad slave index.");
+        return NULL;
+    }
 
     auto Sout = icap->Ss[INDEX].export_karray();
 

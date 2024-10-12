@@ -126,7 +126,7 @@ struct Smesh {
 
     void make_point_faces();
     
-    void make_point_faces_all();
+    void make_point_faces_active();
     
     void make_point_edges();
 
@@ -139,6 +139,10 @@ struct Smesh {
     //size_t refine(Smesh &M);
 
     std::vector<PointLoc> locate(const Smesh &Sf) const;
+
+    void write_points(const char *fname, const std::set<E_Int> &pids) const;
+
+    void write_edges(const char *fname, const std::set<E_Int> &eids) const;
 
     void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
 

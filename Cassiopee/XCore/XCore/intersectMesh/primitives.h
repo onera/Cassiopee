@@ -24,7 +24,7 @@
 #include "status.h"
 #include "common/common.h"
 
-extern E_Float TOL;
+constexpr E_Float TOL = 1e-12;
 
 void compute_intersection(Queue &Q, Snode *sit0, Snode *sit1,
     std::vector<Vertex *> &I);
@@ -42,7 +42,7 @@ E_Float DifferenceOfProducts(E_Float a, E_Float b, E_Float c, E_Float d);
 
 E_Float TwoDiff(E_Float a, E_Float b);
 
-E_Int Sign(E_Float x, E_Float tol=1e-12);
+E_Int Sign(E_Float x, E_Float tol=TOL);
 
 E_Int orient3D(E_Float *A, E_Float *B, E_Float *C, E_Float *D);
 
@@ -61,3 +61,12 @@ E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float 
 E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
     E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz,
     E_Float &t);
+
+bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,
+    E_Float dx, E_Float dy, E_Float dz,
+    E_Float px, E_Float py, E_Float pz,
+    E_Float qx, E_Float qy, E_Float qz,
+    E_Float &t, E_Float &u);
+
+E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
+    const E_Float fN[3], E_Float px, E_Float py, E_Float pz);
