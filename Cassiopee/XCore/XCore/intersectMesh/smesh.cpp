@@ -990,3 +990,32 @@ void Smesh::hash_faces()
         }
     }
 }
+
+void Smesh::compute_min_distance_between_points()
+{
+    min_pdist_squared = EFLOATMAX;
+    E_Int ndists = 0;
+
+    for (E_Int i = 0; i < np; i++) {
+        E_Float xi = X[i];
+        E_Float yi = Y[i];
+        E_Float zi = Z[i];
+        for (E_Int j = i+1; j < np; j++) {
+            E_Float xj = X[j];
+            E_Float yj = Y[j];
+            E_Float zj = Z[j];
+
+            E_Float dx = xj-xi;
+            E_Float dy = yj-yi;
+            E_Float dz = zj-zi;
+
+            E_Float dist = dx*dx + dy*dy + dz*dz;
+
+            if (dist < min_pdist_squared) min_pdist_squared = dist;
+
+            ndists++;
+        }
+    }
+
+    assert(ndists == np*(np-1)/2);
+}

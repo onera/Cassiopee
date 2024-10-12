@@ -808,9 +808,9 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
                     found = 1;
 
                     ploc.fid = fid;
-                    ploc.u = u;
-                    ploc.v = v;
-                    ploc.w = w;
+                    ploc.bcrd[0] = u;
+                    ploc.bcrd[1] = v;
+                    ploc.bcrd[2] = w;
 
                     // TODO(Imad): this absolutely needs to be robust
                     if (Sign_tol(v, 1e-3) == 0)

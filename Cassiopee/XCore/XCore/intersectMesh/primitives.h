@@ -42,7 +42,7 @@ E_Float DifferenceOfProducts(E_Float a, E_Float b, E_Float c, E_Float d);
 
 E_Float TwoDiff(E_Float a, E_Float b);
 
-E_Int Sign(E_Float x, E_Float tol=TOL);
+E_Int Sign(E_Float x, E_Float tol=1e-12);
 
 E_Int orient3D(E_Float *A, E_Float *B, E_Float *C, E_Float *D);
 

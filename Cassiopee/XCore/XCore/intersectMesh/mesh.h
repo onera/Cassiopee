@@ -52,11 +52,10 @@ struct UEdge {
     }
 };
 
-struct skin_graph {
-    const std::vector<E_Int> &skin;
-
-
-
+struct Sgraph {
+    std::vector<E_Int> xadj;
+    std::vector<E_Int> fpts;
+    std::vector<E_Int> fadj;
 };
 
 struct IMesh {
@@ -75,6 +74,9 @@ struct IMesh {
     std::vector<E_Int> skin;
     std::vector<E_Int> owner;
     std::vector<E_Int> neigh;
+    Sgraph sgraph;
+    E_Float NEAR_VERTEX_TOL = 1e-3;
+    E_Float NEAR_EDGE_TOL = 1e-3;
 
     E_Float xmin, ymin, zmin;
     E_Float xmax, ymax, zmax;
@@ -91,9 +93,16 @@ struct IMesh {
     std::vector<Point> entries;
 
     std::vector<int> ctag;
+    
+    void set_tolerances(E_Float near_vertex_tol, E_Float near_edge_tol)
+    {
+        NEAR_VERTEX_TOL = near_vertex_tol;
+        NEAR_EDGE_TOL = near_edge_tol;
+    }
 
     Smesh make_patch(const E_Float *ptag);
-    Smesh make_patch(const Smesh &spatch);
+    Smesh make_patch(const Smesh &spatch, const std::vector<PointLoc> &plocs);
+    void make_skin_graph();
 
     inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
     {

@@ -23,12 +23,6 @@ std::vector<PointLoc> IMesh::locate(const Smesh &Sf)
 
         // w, u, v
         auto &loc = ploc[pid];
-        assert(loc.fid == -1);
-        assert(loc.v_idx == -1);
-        assert(loc.e_idx == -1);
-        assert(loc.u == -1);
-        assert(loc.v == -1);
-        assert(loc.w == -1);
 
         for (size_t i = 0; i < pf.size() && !found; i++) {
             E_Int fid = pf[i];
@@ -45,16 +39,16 @@ std::vector<PointLoc> IMesh::locate(const Smesh &Sf)
                 found = true;
 
                 loc.fid = fid;
-                loc.u = u;
-                loc.v = v;
-                loc.w = w;
+                loc.bcrd[0] = u;
+                loc.bcrd[1] = v;
+                loc.bcrd[2] = w;
 
-                if      (Sign(1-u, 1e-3) == 0) loc.v_idx = 0;
-                else if (Sign(1-v, 1e-3) == 0) loc.v_idx = 1;
-                else if (Sign(1-w, 1e-3) == 0) loc.v_idx = 2;
-                else if (Sign(w, 1e-3) == 0) loc.e_idx = 0;
-                else if (Sign(u, 1e-3) == 0) loc.e_idx = 1;
-                else if (Sign(v, 1e-3) == 0) loc.e_idx = 2;
+                if      (Sign(1-u, NEAR_VERTEX_TOL) == 0) loc.v_idx = 0;
+                else if (Sign(1-v, NEAR_VERTEX_TOL) == 0) loc.v_idx = 1;
+                else if (Sign(1-w, NEAR_VERTEX_TOL) == 0) loc.v_idx = 2;
+                else if (Sign(w, NEAR_EDGE_TOL) == 0) loc.e_idx = 0;
+                else if (Sign(u, NEAR_EDGE_TOL) == 0) loc.e_idx = 1;
+                else if (Sign(v, NEAR_EDGE_TOL) == 0) loc.e_idx = 2;
 
                 break;
             }

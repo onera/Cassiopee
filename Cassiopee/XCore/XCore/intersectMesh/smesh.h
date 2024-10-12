@@ -72,11 +72,15 @@ struct Smesh {
 
     std::map<E_Int, std::vector<E_Int>> fmap;
 
+    E_Float min_pdist_squared = EFLOATMIN;
+
     void make_fnormals();
     void make_pnormals();
 
     void make_bbox();
     void hash_faces();
+
+    void compute_min_distance_between_points();
 
     AABB AABB_face(const std::vector<E_Int> &pn) const;
 

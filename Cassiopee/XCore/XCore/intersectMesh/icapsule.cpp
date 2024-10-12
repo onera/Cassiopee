@@ -2,6 +2,7 @@
 #include "common/Karray.h"
 #include "point.h"
 #include "io.h"
+#include "primitives.h"
 
 Smesh IMesh::make_patch(const E_Float *ptag)
 {
@@ -23,7 +24,60 @@ Smesh IMesh::make_patch(const E_Float *ptag)
     return Smesh(*this);
 }
 
-Smesh IMesh::make_patch(const Smesh &spatch)
+std::vector<Point> epoints;
+std::vector<Point> cpoints;
+
+void ICapsule::correct_near_points_and_edges(Smesh &Sf,
+    std::vector<PointLoc> &plocs, const IMesh &M)
+{
+    E_Int on_vertex = 0, on_edge = 0;
+    for (size_t i = 0; i < plocs.size(); i++) {
+        auto &ploc = plocs[i];
+
+        E_Int fid = ploc.fid;
+        const auto &pn = M.F[fid];
+
+        if (ploc.v_idx != -1) {
+            on_vertex++;
+            E_Int p = pn[ploc.v_idx];
+            E_Float dx = M.X[p]-Sf.X[i];
+            E_Float dy = M.Y[p]-Sf.Y[i];
+            E_Float dz = M.Z[p]-Sf.Z[i];
+            E_Float dist = dx*dx + dy*dy + dz*dz;
+            if (dist >= Sf.min_pdist_squared) {
+                fprintf(stderr, "Tight near-vertex situation!\n");
+                point_write("mpoint", M.X[p], M.Y[p], M.Z[p]);
+                point_write("spoint", Sf.X[i], Sf.Y[i], Sf.Z[i]);
+                assert(0);
+            } else {
+                Sf.X[i] = M.X[p];
+                Sf.Y[i] = M.Y[p];
+                Sf.Z[i] = M.Z[p];
+            }
+        } else if (ploc.e_idx != -1) {
+            on_edge++;
+            E_Int zero_crd = (ploc.e_idx+2)%3;
+            E_Float U = ploc.bcrd[zero_crd];
+            assert(Sign(U, NEAR_EDGE_TOL) == 0);
+            E_Int i1 = (zero_crd+1)%3;
+            E_Int i2 = (zero_crd+2)%3;
+            E_Float V = ploc.bcrd[i1];
+            E_Float W = ploc.bcrd[i2];
+            E_Int a = pn[i1];
+            E_Int b = pn[i2];
+            V += U;
+            assert(Sign(V+W-1) == 0);
+            //epoints.push_back(Point(Sf.X[i], Sf.Y[i], Sf.Z[i]));
+            Sf.X[i] = V*M.X[a] + W*M.X[b];
+            Sf.Y[i] = V*M.Y[a] + W*M.Y[b];
+            Sf.Z[i] = V*M.Z[a] + W*M.Z[b];
+            //cpoints.push_back(Point(Sf.X[i], Sf.Y[i], Sf.Z[i]));
+        }
+    }
+    printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
+}
+
+Smesh IMesh::make_patch(const Smesh &spatch, const std::vector<PointLoc> &plocs)
 {
     //patch.clear();
 
@@ -34,47 +88,37 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     const std::vector<E_Float *> &ptags)
 {
     M = IMesh(marray);
+    M.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
     M.make_skin();
     M.orient_skin(OUT);
     M.triangulate_skin();
     M.make_bbox();
     M.hash_skin();
+    M.make_skin_graph();
 
     Ss.reserve(sarrays.size());
     spatches.reserve(sarrays.size());
 
     std::vector<std::vector<PointLoc>> plocs;
     plocs.reserve(sarrays.size());
+    mpatches.reserve(sarrays.size());
 
     for (size_t i = 0; i < sarrays.size(); i++) {
         Ss.push_back(IMesh(sarrays[i]));
+        Ss[i].set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
         Ss[i].make_skin();
         Ss[i].orient_skin(IN);
         Ss[i].triangulate_skin();
         spatches.push_back(Ss[i].make_patch(ptags[i]));
+        spatches[i].compute_min_distance_between_points();
         plocs.push_back(M.locate(spatches[i]));
+        correct_near_points_and_edges(spatches[i], plocs[i], M);
+        mpatches.push_back(M.make_patch(spatches[i], plocs[i]));
     }
 
-    // Correct near-vertex/edge situations
-    std::vector<Point> points;
-    for (size_t i = 0; i < sarrays.size(); i++) {
-        const Smesh &Sf = spatches[i];
-        const std::vector<PointLoc> &locs = plocs[i];
-        assert(locs.size() == (size_t)spatches[i].np);
-        E_Int on_vertex = 0, on_edge = 0;
-        for (size_t j = 0; j < locs.size(); j++) {
-            if (locs[j].v_idx != -1) on_vertex++;
-            else if (locs[j].e_idx != -1) {
-                on_edge++;
-                points.push_back(Point(Sf.X[j], Sf.Y[j], Sf.Z[j]));
-            }
-        }
-        printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
-    }
+    //point_write("epoints", epoints);
+    //point_write("cpoints", cpoints);
 
-    point_write("points", points); 
-    
-    mpatches.reserve(sarrays.size());
 }
 
 

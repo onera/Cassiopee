@@ -26,9 +26,7 @@ struct PointLoc {
     E_Int fid = -1;
     E_Int v_idx = -1;
     E_Int e_idx = -1;
-    E_Float u = -1;
-    E_Float v = -1;
-    E_Float w = -1;
+    E_Float bcrd[3] = {-1, -1, -1};
 };
 
 struct pointFace {

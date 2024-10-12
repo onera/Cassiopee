@@ -24,6 +24,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/icapsule.cpp',
             'XCore/intersectMesh/triangulate.cpp',
             'XCore/intersectMesh/locate.cpp',
+            'XCore/intersectMesh/sgraph.cpp',
 
             'XCore/intersectMesh/BVH.cpp',
             'XCore/intersectMesh/AABB.cpp',
