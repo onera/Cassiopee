@@ -77,9 +77,57 @@ void ICapsule::correct_near_points_and_edges(Smesh &Sf,
     printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
 }
 
-Smesh IMesh::make_patch(const Smesh &spatch, const std::vector<PointLoc> &plocs)
+std::vector<Point> chain_points;
+
+Smesh IMesh::make_patch(const Smesh &Sf, const std::vector<PointLoc> &plocs)
 {
-    //patch.clear();
+    // Get boundary edges from spatch
+    std::set<E_Int> bedges;
+    for (size_t i = 0; i < Sf.E2F.size(); i++) {
+        const auto &pf = Sf.E2F[i];
+        assert(pf[0] != -1);
+        if (pf[1] == -1) bedges.insert(i);
+    }
+    size_t nbedges = bedges.size();
+
+    // Make the boundary point chain
+    std::vector<E_Int> pchain;
+
+    const auto &E = Sf.E;
+
+    E_Int first_edge = *bedges.begin();
+
+    pchain.push_back(E[first_edge].p);
+    pchain.push_back(E[first_edge].q);
+
+    bedges.erase(first_edge);
+
+    E_Int current_point = pchain[1];
+
+    while (pchain.size() < nbedges) {
+        E_Int to_delete = -1;
+        for (auto e : bedges) {
+            if (E[e].p == current_point) {
+                pchain.push_back(E[e].q);
+                current_point = pchain.back();
+                to_delete = e;
+                break;
+            } else if (E[e].q == current_point) {
+                pchain.push_back(E[e].p);
+                current_point = pchain.back();
+                to_delete = e;
+                break;
+            }
+        }
+        bedges.erase(to_delete);
+    }
+
+    assert(pchain.size() == nbedges);
+
+    for (auto p : pchain)
+        chain_points.push_back(Point(Sf.X[p], Sf.Y[p], Sf.Z[p]));
+
+
 
     return Smesh();
 }
@@ -119,6 +167,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     //point_write("epoints", epoints);
     //point_write("cpoints", cpoints);
 
+    point_write("chain", chain_points);
 }
 
 
