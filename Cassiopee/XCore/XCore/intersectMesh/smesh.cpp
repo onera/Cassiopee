@@ -49,8 +49,11 @@ bool Smesh::ccw_oriented(E_Int face)
     return sign < 0;
 }
 
-Smesh::Smesh(const IMesh &M)
+Smesh::Smesh(const IMesh &M, bool is_planar)
 {
+    NEAR_VERTEX_TOL = M.NEAR_VERTEX_TOL;
+    NEAR_EDGE_TOL = M.NEAR_EDGE_TOL;
+
     F.resize(M.patch.size());
 
     nf = 0;
@@ -83,7 +86,6 @@ Smesh::Smesh(const IMesh &M)
     assert((size_t)np == l2gp.size());
 
     // Get the points
-    //np = g2lp.size();
     X.resize(np);
     Y.resize(np);
     Z.resize(np);
@@ -94,7 +96,7 @@ Smesh::Smesh(const IMesh &M)
         Z[pids.second] = M.Z[pids.first];
     }
 
-    make_edges();
+    make_edges(is_planar);
 }
 
 o_edge::o_edge(E_Int P, E_Int Q)
@@ -113,7 +115,7 @@ struct o_edge_cmp {
     }
 };
 
-void Smesh::make_edges()
+void Smesh::make_edges(bool is_planar)
 {
     // Make the edges
     F2E.resize(F.size());
@@ -164,9 +166,9 @@ void Smesh::make_edges()
     }
 
 
-    // Check
-
-    assert(np - ne + nf + 1 == 2);
+    // Check Euler formula for planar graphs
+    if (is_planar)
+        assert(np - ne + nf + 1 == 2);
 
     for (E_Int i = 0; i < ne; i++) {
         assert(count[i] == 1 || count[i] == 2);
@@ -286,72 +288,6 @@ void Smesh::make_edges()
             }
         }
     }
-}
-
-#define TRI 5
-#define QUAD 9
-
-Smesh::Smesh(const char *fname)
-{
-    FILE *fh = fopen(fname, "r");
-    assert(fh);
-
-    char buf[256];
-
-    fgets(buf, 256, fh);
-    fgets(buf, 256, fh);
-    char *next = strtok(buf, " ");
-    next = strtok(NULL, "\n");
-   
-    char *bad_ptr = NULL;
-    nf = strtod(next, &bad_ptr);
-    assert(*bad_ptr == '\0'); 
-    printf("Faces: " SF_D_ "\n", nf);
-
-    F.resize(nf);
-
-    E_Int ret, type, dummy;
-
-    for (E_Int i = 0; i < nf; i++) {
-        auto &cn = F[i];
-        ret = fscanf(fh, SF_D_ " ", &type);
-        if (ret != 1) abort();
-        if (type == TRI) {
-            cn.resize(3);
-            ret = fscanf(fh, SF_D_ SF_D_ SF_D_ SF_D_ "\n", 
-                &cn[0], &cn[1], &cn[2], &dummy);
-            if (ret != 4) abort();
-        } else if (type == QUAD) {
-            cn.resize(4);
-            ret = fscanf(fh, SF_D_ SF_D_ SF_D_ SF_D_ SF_D_ "\n",
-                &cn[0], &cn[1], &cn[2], &cn[3], &dummy);
-            if (ret != 5) abort();
-        } else {
-            assert(0);
-        }
-    }
-
-    fgets(buf, 256, fh);
-    next = strtok(buf, " ");
-    next = strtok(NULL, "\n");
-   
-    np = strtod(next, &bad_ptr);
-    assert(*bad_ptr == '\0'); 
-    printf("points: " SF_D_ "\n", np);
-
-    X.resize(np);
-    Y.resize(np);
-
-    for (E_Int i = 0; i < np; i++) {
-        ret = fscanf(fh, "%lf %lf " SF_D_ "\n", &X[i], &Y[i], &dummy);
-        if (ret != 3) abort();
-    }
-
-    fclose(fh);
-
-    make_edges();
-
-    init_adaptation_data();
 }
 
 // Refine M0/M1 as long as one of its faces contains another face from M1/M0
@@ -564,45 +500,6 @@ E_Int Smesh::face_contains_point(E_Int face, E_Float x, E_Float y, E_Float z) co
 
     return -1;
 }
-
-/*
-std::vector<pointFace> Smesh::locate(E_Float x, E_Float y, E_Float z) const
-{
-    E_Int a, b, c;
-    E_Int hit = 0;
-    std::vector<pointFace> HITS;
-
-    for (E_Int face : factive) {
-        const auto &cn = F[face];
-        if (cn.size() == 4) {
-            // First triangle
-            a = cn[0], b = cn[1], c = cn[2];
-            hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
-                X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
-            if (hit) {
-                HITS.push_back(pointFace(face, 0));
-            } else {
-                // Second triangle
-                a = cn[0], b = cn[2], c = cn[3];
-                hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
-                    X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
-                if (hit) {
-                    HITS.push_back(pointFace(face, 1));
-                }
-            }
-        } else {
-            a = cn[0], b = cn[1], c = cn[2];
-            hit = Triangle::is_point_inside(x, y, z, X[a], Y[a], Z[a],
-                X[b], Y[b], Z[b], X[c], Y[c], Z[c]);
-            if (hit) {
-                HITS.push_back(pointFace(face, 0));
-            }
-        }
-    }
-
-    return HITS;
-}
-*/
 
 void Smesh::init_adaptation_data()
 {
@@ -897,22 +794,14 @@ void Smesh::make_pnormals()
     }
 }
 
-AABB Smesh::AABB_face(const std::vector<E_Int> &pn) const
-{
-    AABB ret;
-    for (E_Int p : pn) {
-        if (X[p] > ret.xmax) ret.xmax = X[p];
-        if (X[p] < ret.xmin) ret.xmin = X[p];
-        if (Y[p] > ret.ymax) ret.ymax = Y[p];
-        if (Y[p] < ret.ymin) ret.ymin = Y[p];
-        if (Z[p] > ret.zmax) ret.zmax = Z[p];
-        if (Z[p] < ret.zmin) ret.zmin = Z[p];
-    }
-    return ret;
-}
-
 void Smesh::make_bbox()
 {
+    NX = 100;
+    NY = 100;
+    NZ = 100;
+    NXY = NX * NY;
+    NXYZ = NXY * NZ;
+
     xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
     xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
 
@@ -935,22 +824,16 @@ void Smesh::make_bbox()
     xmax = xmax + dx*0.01;
     ymax = ymax + dy*0.01;
     zmax = zmax + dz*0.01;
-}
-
-void Smesh::hash_faces()
-{
-    NX = 100;
-    NY = 100;
-    NZ = 100;
 
     HX = (xmax - xmin) / NX;
     HY = (ymax - ymin) / NY;
     HZ = (zmax - zmin) / NZ;
+}
 
-    NXY = NX * NY;
-    E_Int NXYZ = NX * NY * NZ;
-
-    fmap.clear();
+void Smesh::hash_faces()
+{
+    bin_faces.clear();
+    bin_faces.resize(NXYZ);
 
     for (E_Int fid = 0; fid < nf; fid++) {
         const auto &pn = F[fid];
@@ -981,10 +864,10 @@ void Smesh::hash_faces()
         for (E_Int I = Imin; I <= Imax; I++) {
             for (E_Int J = Jmin; J <= Jmax; J++) {
                 for (E_Int K = Kmin; K <= Kmax; K++) {
-                    E_Int voxel = I + J * NX + (NX * NY) * K;
+                    E_Int voxel = get_voxel(I, J, K);
                     assert(voxel >= 0);
                     assert(voxel < NXYZ);
-                    fmap[voxel].push_back(fid);
+                    bin_faces[voxel].push_back(fid);
                 }
             }
         }

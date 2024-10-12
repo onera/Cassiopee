@@ -13,7 +13,4 @@ struct ICapsule {
 
     ICapsule(const Karray &marray, const std::vector<Karray> &sarray,
         const std::vector<E_Float *> &ptags);
-
-    void correct_near_points_and_edges(Smesh &Sf, std::vector<PointLoc> &plocs,
-        const IMesh &M);
 };

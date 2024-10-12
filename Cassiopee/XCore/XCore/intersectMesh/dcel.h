@@ -125,5 +125,5 @@ struct Dcel {
     void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3],
         const Smesh &M) const;
     
-    Smesh export_smesh() const;
+    Smesh export_smesh(bool is_planar=true) const;
 };

@@ -49,15 +49,14 @@ bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,
     return true;
 }
 
-static
-void get_unit_projected_direction(E_Int fid, const Smesh &M, const E_Float D[3],
-    E_Float proj[3])
+void Smesh::get_unit_projected_direction(E_Int fid, const E_Float D[3],
+    E_Float proj[3]) const
 {
     assert(fid >= 0);
-    assert(fid < M.nf);
+    assert(fid < nf);
 
     // Unit normal
-    const E_Float *fN = &M.fnormals[3*fid];
+    const E_Float *fN = &fnormals[3*fid];
 
     E_Float dp = K_MATH::dot(D, fN, 3); 
 
@@ -68,10 +67,9 @@ void get_unit_projected_direction(E_Int fid, const Smesh &M, const E_Float D[3],
     proj[0] /= NORM, proj[1] /= NORM, proj[2] /= NORM;
 }
 
-static
-E_Int deduce_face(const std::vector<E_Int> &pf, const Smesh &M,
+E_Int Smesh::deduce_face(const std::vector<E_Int> &pf,
     E_Float ox, E_Float oy, E_Float oz, E_Float D[3], 
-    E_Int last_vertex, E_Int last_edge)
+    E_Int last_vertex, E_Int last_edge) const
 {
     // Intersect the projection of D with all the faces in pf
     // At least one intersection must exist
@@ -88,10 +86,10 @@ E_Int deduce_face(const std::vector<E_Int> &pf, const Smesh &M,
         // Compute the unit projection of D on this face
 
         E_Float proj[3];
-        get_unit_projected_direction(fid, M, D, proj);
+        get_unit_projected_direction(fid, D, proj);
 
-        const auto &pn = M.F[fid];
-        const auto &pe = M.F2E[fid];
+        const auto &pn = F[fid];
+        const auto &pe = F2E[fid];
         assert(pn.size() == pe.size());
 
         for (size_t i = 0; i < pn.size(); i++) {
@@ -107,8 +105,8 @@ E_Int deduce_face(const std::vector<E_Int> &pf, const Smesh &M,
 
             bool hit = ray_edge_intersect(ox, oy, oz,
                 proj[0], proj[1], proj[2],
-                M.X[p], M.Y[p], M.Z[p],
-                M.X[q], M.Y[q], M.Z[q],
+                X[p], Y[p], Z[p],
+                X[q], Y[q], Z[q],
                 t, s
             );
 
@@ -132,22 +130,19 @@ E_Int deduce_face(const std::vector<E_Int> &pf, const Smesh &M,
     return ret_face;
 }
 
-static
-void get_shared_faces(const Vertex *v, const Smesh &M, std::vector<E_Int> &ret,
-    E_Int &pid, E_Int &eid)
+void Smesh::get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
+    E_Int &pid, E_Int &eid) const
 {
     ret.clear();
-
-    const auto &loc = v->loc;
 
     E_Int fid = loc.fid;
     assert(fid != -1);
 
     if (loc.e_idx != -1) {
         assert(loc.v_idx == -1);
-        const auto &pe = M.F2E[fid];
+        const auto &pe = F2E[fid];
         eid = pe[loc.e_idx];
-        const auto &pf = M.E2F[eid];
+        const auto &pf = E2F[eid];
         assert(pf[0] == fid || pf[1] == fid);
         ret.push_back(pf[0]);
         // O could be on a boundary edge
@@ -155,9 +150,9 @@ void get_shared_faces(const Vertex *v, const Smesh &M, std::vector<E_Int> &ret,
     }
     else if (loc.v_idx != -1) {
         assert(loc.e_idx == -1);
-        const auto &pn = M.F[fid];
+        const auto &pn = F[fid];
         pid = pn[loc.v_idx];
-        const auto &pf = M.P2F[pid];
+        const auto &pf = P2F[pid];
         // For consistency
         bool found_fid = false;
         for (auto face : pf) {
@@ -188,13 +183,13 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
     std::vector<E_Int> orig_faces, tail_faces;
     E_Int last_vertex = -1, last_edge = -1;
     E_Int dummy;
-    get_shared_faces(O, M, orig_faces, last_vertex, last_edge);
-    get_shared_faces(T, M, tail_faces, dummy, dummy);
+    M.get_shared_faces(O->loc, orig_faces, last_vertex, last_edge);
+    M.get_shared_faces(T->loc, tail_faces, dummy, dummy);
 
     // If O is inside fid, we could skip this check
     // We keep it for consistency
-    E_Int starting_face = deduce_face(
-        orig_faces, M, O->x, O->y, O->z, D,
+    E_Int starting_face = M.deduce_face(
+        orig_faces, O->x, O->y, O->z, D,
         last_vertex, last_edge
     );
     assert(starting_face != -1);
@@ -234,7 +229,7 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 
         // Project D onto current face
         E_Float proj[3];
-        get_unit_projected_direction(current_fid, M, D, proj);
+        M.get_unit_projected_direction(current_fid, D, proj);
 
         E_Int next_fid = -1;
         E_Float next_pos[3] = {EFLOATMAX, EFLOATMAX, EFLOATMAX};
@@ -337,7 +332,7 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
                     
                     const auto &pf = M.P2F[last_vertex];
                     
-                    next_fid = deduce_face(pf, M,
+                    next_fid = M.deduce_face(pf,
                         next_pos[0], next_pos[1], next_pos[2], D,
                         last_vertex, last_edge
                     );

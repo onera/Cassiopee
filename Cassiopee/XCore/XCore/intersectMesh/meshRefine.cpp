@@ -326,11 +326,9 @@ size_t IMesh::refine(const IMesh &S)
         E_Int voxel_z = floor((S.Z[spt] - zmin) / HZ);
         E_Int spt_bin = voxel_x + NX * voxel_y + NXY * voxel_z;
 
-        auto it = fmap.find(spt_bin);
+        const auto &pf = bin_faces[spt_bin];
 
-        if (it == fmap.end()) continue;
-
-        const auto &pf = it->second;
+        assert(pf.size() > 0);
 
         for (E_Int fid : pf) {
 

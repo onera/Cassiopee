@@ -1,8 +1,8 @@
-#include "mesh.h"
+#include "smesh.h"
 #include "triangle.h"
 #include "primitives.h"
 
-std::vector<PointLoc> IMesh::locate(const Smesh &Sf)
+std::vector<PointLoc> Smesh::locate(const Smesh &Sf) const
 {
     std::vector<PointLoc> ploc(Sf.np);
 

@@ -248,13 +248,6 @@ IMesh::IMesh(const Karray &karray)
             faces[j] = pf[j] - 1;
         C.push_back(faces);
     }
-
-    // Grid
-    NX = 100;
-    NY = 100;
-    NZ = 100;
-    NXY = NX * NY;
-    NXYZ = NXY * NZ;
 }
 
 IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
@@ -327,6 +320,13 @@ void IMesh::make_point_faces()
 
 void IMesh::make_bbox()
 {
+    // Grid
+    NX = 100;
+    NY = 100;
+    NZ = 100;
+    NXY = NX * NY;
+    NXYZ = NXY * NZ;
+
     xmin = ymin = zmin = EFLOATMAX;
     xmax = ymax = zmax = EFLOATMIN;
 
@@ -345,6 +345,10 @@ void IMesh::make_bbox()
     xmax = xmax + (xmax - xmin) * 0.01;
     ymax = ymax + (ymax - ymin) * 0.01;
     zmax = zmax + (zmax - zmin) * 0.01;
+
+    HX = (xmax - xmin) / NX;
+    HY = (ymax - ymin) / NY;
+    HZ = (zmax - zmin) / NZ;
 }
 
 void IMesh::make_skin()

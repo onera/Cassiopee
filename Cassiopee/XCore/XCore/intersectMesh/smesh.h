@@ -66,14 +66,32 @@ struct Smesh {
     std::vector<E_Float> fnormals;
     std::vector<E_Float> pnormals;
 
-    E_Int NX, NY, NZ, NXY;
+    E_Int NX, NY, NZ, NXY, NXYZ;
     E_Float xmin, xmax, ymin, ymax, zmin, zmax;
     E_Float HX, HY, HZ;
 
-    std::map<E_Int, std::vector<E_Int>> fmap;
+    std::vector<std::vector<E_Int>> bin_faces;
 
     E_Float min_pdist_squared = EFLOATMIN;
 
+    E_Float NEAR_VERTEX_TOL = 1e-3;
+    E_Float NEAR_EDGE_TOL = 1e-3;
+
+    Smesh extract_bounding_smesh(const Smesh &Sf,
+        const std::vector<PointLoc> &plocs);
+
+    void correct_near_points_and_edges(Smesh &Sf, std::vector<PointLoc> &plocs);
+    
+    E_Int deduce_face(const std::vector<E_Int> &pf,
+        E_Float ox, E_Float oy, E_Float oz, E_Float D[3], 
+        E_Int last_vertex, E_Int last_edge) const;
+
+    void get_unit_projected_direction(E_Int fid, const E_Float D[3],
+        E_Float proj[3]) const;
+    
+    void get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
+        E_Int &pid, E_Int &eid) const;
+    
     void make_fnormals();
     void make_pnormals();
 
@@ -98,15 +116,13 @@ struct Smesh {
 
     Smesh() {};
 
-    Smesh(const char *fname);
-
-    Smesh(const IMesh &M);
+    Smesh(const IMesh &M, bool is_planar=true);
     
     Smesh(const IMesh &M, const std::vector<E_Int> &faces);
 
     bool ccw_oriented(E_Int face);
 
-    void make_edges();
+    void make_edges(bool is_planar);
 
     void make_point_faces();
     
@@ -122,7 +138,7 @@ struct Smesh {
 
     //size_t refine(Smesh &M);
 
-    //std::vector<pointFace> locate(E_Float x, E_Float y, E_Float z) const;
+    std::vector<PointLoc> locate(const Smesh &Sf) const;
 
     void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
 
@@ -173,4 +189,10 @@ struct Smesh {
     Smesh extract_conformized();
 
     bool faces_are_dups(E_Int face, E_Int mface, const Smesh &M);
+
+    inline E_Int get_voxel(E_Int i, E_Int j, E_Int k) const
+    {
+        return i + NX*j + NXY*k;
+    }
 };
+

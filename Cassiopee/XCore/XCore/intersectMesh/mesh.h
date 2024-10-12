@@ -86,8 +86,6 @@ struct IMesh {
 
     std::vector<std::vector<E_Int>> bin_faces;
 
-    std::map<E_Int, std::vector<E_Int>> fmap;
-
     std::set<E_Int> patch;
 
     std::vector<Point> entries;
@@ -100,8 +98,8 @@ struct IMesh {
         NEAR_EDGE_TOL = near_edge_tol;
     }
 
-    Smesh make_patch(const E_Float *ptag);
-    Smesh make_patch(const Smesh &spatch, const std::vector<PointLoc> &plocs);
+    Smesh make_smesh(const E_Float *ptag);
+    Smesh make_smesh_from_skin(bool is_planar = true);
     void make_skin_graph();
 
     inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
@@ -178,11 +176,6 @@ struct IMesh {
 
     size_t refine(const IMesh &S);
 
-    std::vector<PointLoc> locate(const Smesh &Sf);
-
-    //std::vector<pointFace> locate(E_Int p, E_Float x, E_Float y, E_Float z,
-    //    const std::set<E_Int> &patch) const;
-    
     inline bool face_is_active(E_Int face) const
     { return factive.find(face) != factive.end(); }
 

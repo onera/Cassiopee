@@ -33,7 +33,7 @@
 #include "cycle.h"
 #include "triangle.h"
 
-Smesh Dcel::export_smesh() const
+Smesh Dcel::export_smesh(bool is_planar) const
 {
     Smesh smesh;
     smesh.ne = 0;
@@ -70,7 +70,7 @@ Smesh Dcel::export_smesh() const
 
     smesh.nf = (E_Int)smesh.F.size();
 
-    smesh.make_edges();
+    smesh.make_edges(is_planar);
     
     return smesh;
 }
@@ -770,11 +770,9 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
         E_Int voxel_z = floor((S.Z[sp] - M.zmin) / M.HZ);
         E_Int sp_bin = voxel_x + M.NX * voxel_y + M.NXY * voxel_z;
 
-        auto it = M.fmap.find(sp_bin);
+        const auto &pf = M.bin_faces[sp_bin];
 
-        assert(it != M.fmap.end());
-
-        const auto &pf = it->second;
+        assert(pf.size() > 0);
 
         for (size_t mf = 0; mf < pf.size() && !found; mf++) {
 

@@ -2,11 +2,7 @@
 #include "primitives.h"
 
 void IMesh::hash_skin()
-{
-    HX = (xmax - xmin) / NX;
-    HY = (ymax - ymin) / NY;
-    HZ = (zmax - zmin) / NZ;
-    
+{ 
     bin_faces.clear();
 
     bin_faces.resize(NXYZ);
@@ -52,7 +48,7 @@ void IMesh::hash_skin()
 
 void IMesh::hash_patch()
 {
-    fmap.clear();
+    bin_faces.clear();
 
     for (E_Int fid : patch) {
         assert(face_is_active(fid));
@@ -88,7 +84,7 @@ void IMesh::hash_patch()
                     E_Int voxel = get_voxel(I, J, K);
                     assert(voxel >= 0);
                     assert(voxel < NXYZ);
-                    fmap[voxel].push_back(fid);
+                    bin_faces[voxel].push_back(fid);
                 }
             }
         }
