@@ -142,15 +142,14 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
         chain_points.push_back(Point(Sf.X[p], Sf.Y[p], Sf.Z[p]));
     }
 
-    /*
     std::set<E_Int> bfids;
     
     for (size_t i = 0; i < pchain.size(); i++) {
         E_Int p = pchain[i];
         E_Int q = pchain[(i+1)%pchain.size()];
 
-        E_Float px = Mf.X[p], py = Mf.Y[p], pz = Mf.Z[p];
-        E_Float qx = Mf.X[q], qy = Mf.Y[q], qz = Mf.Z[q];
+        E_Float px = Sf.X[p], py = Sf.Y[p], pz = Sf.Z[p];
+        E_Float qx = Sf.X[q], qy = Sf.Y[q], qz = Sf.Z[q];
 
         E_Float D[3] = {qx-px, qy-py, qz-pz};
         E_Float NORM = K_MATH::norm(D, 3);
@@ -161,10 +160,10 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
 
         E_Int last_vertex = -1, last_edge = -1, dummy;
 
-        Mf.get_shared_faces(plocs[p], orig_faces, last_vertex, last_edge); 
-        Mf.get_shared_faces(plocs[q], tail_faces, dummy, dummy); 
+        get_shared_faces(plocs[p], orig_faces, last_vertex, last_edge); 
+        get_shared_faces(plocs[q], tail_faces, dummy, dummy); 
 
-        E_Int starting_face = Mf.deduce_face(orig_faces, px, py, pz,
+        E_Int starting_face = deduce_face(orig_faces, px, py, pz,
             D, last_vertex, last_edge);
         assert(starting_face != -1);
 
@@ -185,7 +184,6 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
 
 
     }
-    */
 
     return Smesh();
 }
