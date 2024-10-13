@@ -1016,6 +1016,20 @@ void Smesh::write_edges(const char *fname, const std::set<E_Int> &eids) const
     fclose(fh);
 }
 
+void Smesh::write_points(const char *fname, const std::vector<E_Int> &pids) const
+{
+    FILE *fh= fopen(fname, "w");
+    assert(fh);
+
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%lu\n", pids.size());
+    for (E_Int pid : pids){
+        fprintf(fh, "%f %f %f\n", X[pid], Y[pid], Z[pid]);
+    }
+
+    fclose(fh);
+}
+
 void Smesh::write_points(const char *fname, const std::set<E_Int> &pids) const
 {
     FILE *fh= fopen(fname, "w");

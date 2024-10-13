@@ -140,7 +140,9 @@ struct Smesh {
 
     std::vector<PointLoc> locate(const Smesh &Sf) const;
 
-    void write_points(const char *fname, const std::set<E_Int> &pids) const;
+    void write_points(const char *fname, const std::set<E_Int> &pset) const;
+    
+    void write_points(const char *fname, const std::vector<E_Int> &pids) const;
 
     void write_edges(const char *fname, const std::set<E_Int> &eids) const;
 
