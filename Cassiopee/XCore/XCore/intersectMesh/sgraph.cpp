@@ -44,7 +44,7 @@ void IMesh::make_skin_graph()
         const auto &pn = F[fid];
         E_Int start = xadj[i];
         E_Int end = xadj[i+1];
-        for (size_t j = 0; j < end-start; j++)
+        for (E_Int j = 0; j < end-start; j++)
             fpts[start+j] = pn[j];
     }
 

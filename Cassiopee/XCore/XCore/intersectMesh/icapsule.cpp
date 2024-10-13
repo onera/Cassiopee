@@ -48,9 +48,6 @@ Smesh IMesh::make_smesh_from_skin(bool is_planar)
     return Smesh(*this, is_planar);
 }
 
-std::vector<Point> epoints;
-std::vector<Point> cpoints;
-
 void Smesh::correct_near_points_and_edges(Smesh &Sf,
     std::vector<PointLoc> &plocs)
 {
@@ -92,22 +89,19 @@ void Smesh::correct_near_points_and_edges(Smesh &Sf,
             E_Int b = pn[i2];
             V += U;
             assert(Sign(V+W-1) == 0);
-            epoints.push_back(Point(Sf.X[i], Sf.Y[i], Sf.Z[i]));
             Sf.X[i] = V*X[a] + W*X[b];
             Sf.Y[i] = V*Y[a] + W*Y[b];
             Sf.Z[i] = V*Z[a] + W*Z[b];
-            cpoints.push_back(Point(Sf.X[i], Sf.Y[i], Sf.Z[i]));
         }
     }
     printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
 }
 
-std::vector<Point> chain_points;
-std::set<E_Int> walls;
+std::set<E_Int> ewalls;
 std::set<E_Int> pwalls;
 
 Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
-    const std::vector<PointLoc> &plocs)
+    const std::vector<PointLoc> &plocs) const
 {
     // Get boundary edges from spatch
     std::set<E_Int> bedges;
@@ -121,28 +115,25 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
     // Make the boundary point chain
     std::vector<E_Int> pchain;
 
-    const auto &E = Sf.E;
-
     E_Int first_edge = *bedges.begin();
 
-    pchain.push_back(E[first_edge].p);
-    pchain.push_back(E[first_edge].q);
+    pchain.push_back(Sf.E[first_edge].p);
+    pchain.push_back(Sf.E[first_edge].q);
 
     bedges.erase(first_edge);
 
     E_Int current_point = pchain[1];
 
-
     while (pchain.size() < nbedges) {
         E_Int to_delete = -1;
         for (auto e : bedges) {
-            if (E[e].p == current_point) {
-                pchain.push_back(E[e].q);
+            if (Sf.E[e].p == current_point) {
+                pchain.push_back(Sf.E[e].q);
                 current_point = pchain.back();
                 to_delete = e;
                 break;
-            } else if (E[e].q == current_point) {
-                pchain.push_back(E[e].p);
+            } else if (Sf.E[e].q == current_point) {
+                pchain.push_back(Sf.E[e].p);
                 current_point = pchain.back();
                 to_delete = e;
                 break;
@@ -154,14 +145,6 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
 
     assert(pchain.size() == nbedges);
 
-    for (auto p : pchain) {
-        chain_points.push_back(Point(Sf.X[p], Sf.Y[p], Sf.Z[p]));
-    }
-
-    point_write("first",  Sf.X[pchain[0]], Sf.Y[pchain[0]], Sf.Z[pchain[0]]);
-    point_write("second", Sf.X[pchain[1]], Sf.Y[pchain[1]], Sf.Z[pchain[1]]);
-    point_write("third",  Sf.X[pchain[2]], Sf.Y[pchain[2]], Sf.Z[pchain[2]]);
-    
     // Sort the pchain counterclockwise
     E_Int a = pchain[0], b = pchain[1], c = pchain[2];
     E_Float ux = Sf.X[b] - Sf.X[a];
@@ -178,9 +161,9 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
     if (cmp < 0)
         std::reverse(pchain.begin(), pchain.end());
 
-    std::set<E_Int> bfids; // Boundary face ids
-    std::set<E_Int> weids; // Wall edge ids
-    
+    std::set<E_Int> wfids;
+    std::set<E_Int> weids;
+ 
     for (size_t i = 0; i < pchain.size(); i++) {
         E_Int p = pchain[i];
         E_Int q = pchain[(i+1)%pchain.size()];
@@ -212,30 +195,25 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
         E_Int max_walks = 20;
 
         while (!found_tail && walk <= max_walks) {
-
-            // Add current face to the set of boundary faces
-            bfids.insert(cur_fid);
             
+            wfids.insert(cur_fid);
+
             E_Float proj[3];
             get_unit_projected_direction(cur_fid, D, proj);
 
             const auto &pn = F[cur_fid];
             const auto &pe = F2E[cur_fid];
-
             const E_Float *fN = &fnormals[3*cur_fid];
 
             // First pass: define the wall points
             for (size_t i = 0; i < pn.size(); i++) {
                 E_Int p = pn[i];
-                //E_Int q = pn[(i+1)%pn.size()];
-                //E_Int e = pe[i];
+                E_Int q = pn[(i+1)%pn.size()];
+                E_Int e = pe[i];
                 E_Float px = X[p], py = Y[p], pz = Z[p];
-                //E_Float qx = X[q], qy = Y[q], qz = Z[q];
-                if (ray_point_orient(cur_pos, proj, fN, px, py, pz) <= 0) {// &&
-                    //ray_point_orient(cur_pos, proj, fN, qx, qy, qz) <= 0) {
-                    //walls.insert(e);
-                    //weids.insert(e);
-                    pwalls.insert(p);
+                if (ray_point_orient(cur_pos, proj, fN, px, py, pz) <= 0 ||
+                    ray_point_orient(cur_pos, proj, fN, qx, qy, qz) <= 0) {
+                    weids.insert(e);
                 }
             }
 
@@ -318,9 +296,15 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
         assert(found_tail);
         assert(walk <= max_walks);
     }
+    
+    for (E_Int eid : weids) ewalls.insert(eid);
 
-    //write_edges("wall", weids);
+    // TODO(Imad): project wpids on best-fit plane and jarvis march
 
+
+    // BFS to get the smesh mpids
+
+    
     return Smesh();
 }
 
@@ -341,6 +325,15 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     Mf.make_fnormals();
     Mf.make_point_faces();
     Mf.make_pnormals();
+    Mf.make_point_edges();
+
+    for (E_Int pid = 0; pid < Mf.np; pid++) {
+        const auto &pe = Mf.P2E[pid];
+        for (E_Int eid : pe) {
+            const auto &e = Mf.E[eid];
+            assert(e.p == pid || e.q == pid);
+        }
+    }
 
     Ss.reserve(sarrays.size());
     spatches.reserve(sarrays.size());
@@ -367,12 +360,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         mpatches.push_back(Mf.extract_bounding_smesh(spatches[i], plocs[i]));
     }
 
-    point_write("epoints", epoints);
-    point_write("cpoints", cpoints);
-
-    point_write("chain", chain_points);
-    //Mf.write_edges("walls", walls);
-    Mf.write_points("pwalls", pwalls);
+    Mf.write_edges("ewalls", ewalls);
 }
 
 
@@ -412,7 +400,7 @@ PyObject *K_XCORE::icapsule_extract_slave(PyObject *self, PyObject *args)
 
     ICapsule *icap = (ICapsule *)PyCapsule_GetPointer(ICAPSULE, "ICapsule");
 
-    if (INDEX >= icap->Ss.size()) {
+    if (INDEX >= (E_Int)icap->Ss.size()) {
         RAISE("Bad slave index.");
         return NULL;
     }

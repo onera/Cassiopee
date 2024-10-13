@@ -708,9 +708,6 @@ void Dcel::set_cycles_inout(const Smesh &M)//, const Smesh &S)
             for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
         }
 
-        E_Float NORM = K_MATH::norm(N, 3);
-        //assert(Sign(NORM -1) == 0);
-
         E_Float cmp = K_MATH::dot(N, cp, 3);
 
         if (cmp < 0) {
@@ -1506,9 +1503,6 @@ void Dcel::resolve_hedges(const Smesh &M, const Smesh &S)
             E_Float NORM = K_MATH::norm(N, 3);
             for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
         }
-
-        E_Float NORM = K_MATH::norm(N, 3);
-        //assert(Sign(NORM -1) == 0);
 
         sort_leaving_hedges(leaving, N, M);
 

@@ -78,7 +78,7 @@ struct Smesh {
     E_Float NEAR_EDGE_TOL = 1e-3;
 
     Smesh extract_bounding_smesh(const Smesh &Sf,
-        const std::vector<PointLoc> &plocs);
+        const std::vector<PointLoc> &plocs) const;
 
     void correct_near_points_and_edges(Smesh &Sf, std::vector<PointLoc> &plocs);
     

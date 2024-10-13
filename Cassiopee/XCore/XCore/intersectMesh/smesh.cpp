@@ -548,6 +548,15 @@ void Smesh::make_point_edges()
         P2E[E[eid].p].push_back(eid);
         P2E[E[eid].q].push_back(eid);
     }
+
+    for (E_Int pid = 0; pid < np; pid++) {
+        const auto &pe = P2E[pid];
+        for (auto eid : pe) {
+            const auto &e = E[eid];
+            assert(e.p == pid || e.q == pid);
+        }
+    }
+
 }
 
 Smesh Smesh::extract_conformized()
