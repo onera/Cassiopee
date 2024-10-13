@@ -29,6 +29,13 @@ struct PointLoc {
     E_Float bcrd[3] = {-1, -1, -1};
 };
 
+struct PointData {
+    E_Int pid; // my id in spatch
+    E_Int fid; // id of the mface I am on
+    E_Int sid; // if of the smesh I belong to
+    E_Float x, y, z;
+};
+
 struct pointFace {
     E_Int F;
 

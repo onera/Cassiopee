@@ -369,8 +369,8 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     Ss.reserve(sarrays.size());
     spatches.reserve(sarrays.size());
 
-    std::vector<std::vector<PointLoc>> plocs;
-    plocs.reserve(sarrays.size());
+    std::vector<std::vector<PointLoc>> plocs_list;
+    plocs_list.reserve(sarrays.size());
     std::vector<std::set<E_Int>> bfaces_list;
     bfaces_list.reserve(sarrays.size());
 
@@ -387,32 +387,54 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         spatches[i].make_point_faces();
         spatches[i].make_pnormals();
         spatches[i].compute_min_distance_between_points();
-        plocs.push_back(Mf.locate(spatches[i]));
-        Mf.correct_near_points_and_edges(spatches[i], plocs[i]);
-        bfaces_list.push_back(Mf.extract_bounding_faces(spatches[i], plocs[i]));
+        plocs_list.push_back(Mf.locate(spatches[i]));
+        Mf.correct_near_points_and_edges(spatches[i], plocs_list[i]);
+        bfaces_list.push_back(
+            Mf.extract_bounding_faces(spatches[i], plocs_list[i]));
     }
 
     Mf.write_edges("ewalls", ewalls);
     Mf.write_ngon("fwalls", fwalls);
     point_write("pchains", pchains);
 
-    // Isolate the mfaces that contain spoints from different spatches
-    std::map<E_Int, std::set<E_Int>> wfid_to_spatch;
+    // mfaces to spoints
+    std::map<E_Int, std::vector<PointData>> mfid_to_spids;
 
-    for (size_t i = 0; i < bfaces_list.size(); i++) {
-        const auto &bfaces = bfaces_list[i];
-        for (E_Int fid : bfaces) {
-            wfid_to_spatch[fid].insert(i);
+    for (size_t i = 0; i < plocs_list.size(); i++) {
+        const auto &plocs = plocs_list[i];
+        for (size_t j = 0; j < plocs.size(); j++) {
+            const auto &ploc = plocs[j];
+            PointData point_data;
+            point_data.pid = j;
+            point_data.fid = ploc.fid;
+            point_data.sid = i;
+            point_data.x = spatches[i].X[j];
+            point_data.y = spatches[i].Y[j];
+            point_data.z = spatches[i].Z[j];
+
+            mfid_to_spids[ploc.fid].push_back(point_data);
         }
     }
-    
-    std::set<E_Int> ref_faces;
-    for (const auto &fdata : wfid_to_spatch) {
-        if (fdata.second.size() > 1)
-            ref_faces.insert(fdata.first);
+
+    std::vector<E_Int> fids_to_erase;
+    for (const auto &mfdata : mfid_to_spids) {
+        std::set<E_Int> sids;
+        for (const auto &spdata : mfdata.second)
+            sids.insert(spdata.sid);
+        if (sids.size() == 1)
+            fids_to_erase.push_back(mfdata.first);
     }
 
+    for (E_Int fid : fids_to_erase)
+        mfid_to_spids.erase(fid);
+
+    std::vector<E_Int> ref_faces;
+    for (const auto &mfdata : mfid_to_spids)
+        ref_faces.push_back(mfdata.first);
+
     Mf.write_ngon("ref_faces", ref_faces);
+
+    Mf.refine(mfid_to_spids);
 }
 
 
