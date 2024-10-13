@@ -36,6 +36,19 @@ struct o_edge {
     o_edge(E_Int P, E_Int Q);
 };
 
+struct u_edge {
+    E_Int p, q;
+
+    u_edge(E_Int P, E_Int Q)
+    : p(std::min(P, Q)), q(std::max(P, Q))
+    {}
+
+    bool operator<(const u_edge& e) const
+    {
+        return (p < e.p) || (p == e.p && q < e.q);
+    }
+};
+
 struct Smesh {
     E_Int np, ne, nf;
 
@@ -50,18 +63,11 @@ struct Smesh {
     std::vector<std::vector<E_Int>> F2E;
     std::vector<std::vector<E_Int>> F2F;
 
-    E_Int M_np;
-    E_Int M_ne;
-    E_Int M_nf;
-
     std::map<E_Int, E_Int> g2lp;
     std::map<E_Int, E_Int> l2gp;
 
     std::map<E_Int, E_Int> g2lf;
     std::map<E_Int, E_Int> l2gf;
-
-    std::map<E_Int, E_Int> g2le;
-    std::map<E_Int, E_Int> l2ge;
 
     std::vector<E_Float> fnormals;
     std::vector<E_Float> pnormals;
@@ -76,6 +82,14 @@ struct Smesh {
 
     E_Float NEAR_VERTEX_TOL = 1e-3;
     E_Float NEAR_EDGE_TOL = 1e-3;
+
+    std::map<u_edge, E_Int> ecenter;
+
+    Smesh();
+
+    void resize_for_refinement(size_t nref_faces);
+
+    void refine(const std::map<E_Int, std::vector<PointData>> &sensor);
 
     std::set<E_Int> extract_bounding_faces(const Smesh &Sf,
         const std::vector<PointLoc> &plocs) const;
@@ -100,21 +114,9 @@ struct Smesh {
 
     void compute_min_distance_between_points();
 
-    AABB AABB_face(const std::vector<E_Int> &pn) const;
-
-    // Adaptation
     void get_leaves(E_Int face, std::vector<E_Int> &leaves) const;
 
-
-    std::map<E_Int, std::vector<E_Int>> fchildren;
-    std::set<E_Int> factive;
-    std::vector<E_Int> flevel;
-
-    std::map<E_Int, std::vector<E_Int>> echildren;
-    std::set<E_Int> eactive;
-    std::vector<E_Int> elevel;
-
-    Smesh() {};
+    std::map<E_Int, std::vector<std::array<E_Int, 3>>> fchildren;
 
     Smesh extract_smesh(const std::set<E_Int> &fids, bool is_planar=true);
 
@@ -122,23 +124,11 @@ struct Smesh {
     
     Smesh(const IMesh &M, const std::vector<E_Int> &faces);
 
-    bool ccw_oriented(E_Int face);
-
     void make_edges(bool is_planar);
 
     void make_point_faces();
     
-    void make_point_faces_active();
-    
     void make_point_edges();
-
-    inline bool edge_is_active(E_Int edge) const
-    { return eactive.find(edge) != eactive.end(); }
-
-    inline bool face_is_active(E_Int face) const
-    { return factive.find(face) != factive.end(); }
-
-    //size_t refine(Smesh &M);
 
     std::vector<PointLoc> locate(const Smesh &Sf) const;
 
@@ -154,51 +144,13 @@ struct Smesh {
 
     void write_ngon(const char *fname);
 
-    inline bool face_is_tri(E_Int fid) const { return F[fid].size() == 3; }
-
-    inline bool face_is_quad(E_Int fid) const { return F[fid].size() == 4; }
-
-    bool face_contains_Mface(E_Int face, E_Int mface, const Smesh &M) const;
-
-    E_Int face_contains_point(E_Int face, E_Float x, E_Float y, E_Float z) const;
-
-    std::vector<E_Int> smooth_ref_data(std::map<E_Int, std::vector<E_Int>> &sensor);
-
-    std::vector<E_Int> prepare_for_refinement(const std::vector<E_Int> &ref_data);
-
     void refine_faces(const std::vector<E_Int> &ref_faces);
 
-    std::vector<E_Int> get_active_neighbours(E_Int face);
+    void refine_tri(E_Int fid);
 
-    inline E_Int get_neighbour(E_Int face, E_Int edge) const
-    {
-        assert(E2F[edge][0] == face || E2F[edge][1] == face);
-        return (E2F[edge][0] == face) ? E2F[edge][1] : E2F[edge][0];
-    }
-
-    void resize_point_data(size_t nref_faces);
-
-    void resize_edge_data(size_t nref_faces);
-
-    void resize_face_data(size_t nref_faces);
-
-    void refine_tri(E_Int tri);
-
-    void refine_quad(E_Int quad);
-
-    void refine_edge(E_Int edge);
+    void refine_edge(const u_edge &e);
     
-    inline E_Int get_edge_center(E_Int edge)
-    {
-        assert(echildren.find(edge) != echildren.end());
-        return E[echildren[edge][0]].q;
-    }
-
-    void init_adaptation_data();
-
     Smesh extract_conformized();
-
-    bool faces_are_dups(E_Int face, E_Int mface, const Smesh &M);
 
     inline E_Int get_voxel(E_Int i, E_Int j, E_Int k) const
     {
