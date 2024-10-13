@@ -77,7 +77,7 @@ struct Smesh {
     E_Float NEAR_VERTEX_TOL = 1e-3;
     E_Float NEAR_EDGE_TOL = 1e-3;
 
-    Smesh extract_bounding_smesh(const Smesh &Sf,
+    std::set<E_Int> extract_bounding_faces(const Smesh &Sf,
         const std::vector<PointLoc> &plocs) const;
 
     void correct_near_points_and_edges(Smesh &Sf, std::vector<PointLoc> &plocs);
@@ -115,6 +115,8 @@ struct Smesh {
     std::vector<E_Int> elevel;
 
     Smesh() {};
+
+    Smesh extract_smesh(const std::set<E_Int> &fids, bool is_planar=true);
 
     Smesh(const IMesh &M, bool is_planar=true);
     

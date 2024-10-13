@@ -1043,3 +1043,8 @@ void Smesh::write_points(const char *fname, const std::set<E_Int> &pids) const
 
     fclose(fh);
 }
+
+Smesh Smesh::extract_smesh(const std::set<E_Int> &fids, bool is_planar)
+{
+    return Smesh();
+}

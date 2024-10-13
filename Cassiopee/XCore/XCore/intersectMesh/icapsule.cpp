@@ -103,7 +103,7 @@ std::set<E_Int> ewalls;
 std::set<E_Int> fwalls;
 std::vector<Point> pchains;
 
-Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
+std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
     const std::vector<PointLoc> &plocs) const
 {
     // Get boundary edges from spatch
@@ -313,8 +313,6 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
     std::queue<E_Int> Q;
     for (E_Int fid : wfids) Q.push(fid);
 
-    printf("wfids before: %lu", wfids.size());
-
     while (!Q.empty()) {
         E_Int fid = Q.front();
         Q.pop();
@@ -335,12 +333,10 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
 
     write_ngon("wfids", wfids);
 
-    printf(" - after: %lu\n", wfids.size());
-    
     for (E_Int eid : weids) ewalls.insert(eid);
     for (E_Int fid : wfids) fwalls.insert(fid);
     
-    return Smesh();
+    return wfids;
 }
 
 ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
@@ -375,7 +371,8 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
 
     std::vector<std::vector<PointLoc>> plocs;
     plocs.reserve(sarrays.size());
-    mpatches.reserve(sarrays.size());
+    std::vector<std::set<E_Int>> bfaces_list;
+    bfaces_list.reserve(sarrays.size());
 
     for (size_t i = 0; i < sarrays.size(); i++) {
         Ss.push_back(IMesh(sarrays[i]));
@@ -392,13 +389,30 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         spatches[i].compute_min_distance_between_points();
         plocs.push_back(Mf.locate(spatches[i]));
         Mf.correct_near_points_and_edges(spatches[i], plocs[i]);
-        printf("slave %d\n", i);
-        mpatches.push_back(Mf.extract_bounding_smesh(spatches[i], plocs[i]));
+        bfaces_list.push_back(Mf.extract_bounding_faces(spatches[i], plocs[i]));
     }
 
     Mf.write_edges("ewalls", ewalls);
     Mf.write_ngon("fwalls", fwalls);
     point_write("pchains", pchains);
+
+    // Isolate the mfaces that contain spoints from different spatches
+    std::map<E_Int, std::set<E_Int>> wfid_to_spatch;
+
+    for (size_t i = 0; i < bfaces_list.size(); i++) {
+        const auto &bfaces = bfaces_list[i];
+        for (E_Int fid : bfaces) {
+            wfid_to_spatch[fid].insert(i);
+        }
+    }
+    
+    std::set<E_Int> ref_faces;
+    for (const auto &fdata : wfid_to_spatch) {
+        if (fdata.second.size() > 1)
+            ref_faces.insert(fdata.first);
+    }
+
+    Mf.write_ngon("ref_faces", ref_faces);
 }
 
 
