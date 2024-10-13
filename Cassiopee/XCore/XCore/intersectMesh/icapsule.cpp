@@ -3,6 +3,7 @@
 #include "point.h"
 #include "io.h"
 #include "primitives.h"
+#include <queue>
 
 E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
     const E_Float fN[3], E_Float px, E_Float py, E_Float pz)
@@ -11,6 +12,7 @@ E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
     E_Float c[3];
     K_MATH::cross(d, w, c);
     E_Float dp = K_MATH::dot(c, fN, 3);
+    // TODO(Imad): needs FEA + float128
     E_Int cmp = Sign(dp);
     if (cmp > 0) return 1;
     if (cmp < 0) return -1;
@@ -94,11 +96,12 @@ void Smesh::correct_near_points_and_edges(Smesh &Sf,
             Sf.Z[i] = V*Z[a] + W*Z[b];
         }
     }
-    printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
+    //printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
 }
 
 std::set<E_Int> ewalls;
-std::set<E_Int> pwalls;
+std::set<E_Int> fwalls;
+std::vector<Point> pchains;
 
 Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
     const std::vector<PointLoc> &plocs) const
@@ -161,6 +164,9 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
     if (cmp < 0)
         std::reverse(pchain.begin(), pchain.end());
 
+    Sf.write_points("pchain", pchain);
+    for (E_Int p : pchain) pchains.push_back({Sf.X[p], Sf.Y[p], Sf.Z[p]});
+
     std::set<E_Int> wfids;
     std::set<E_Int> weids;
  
@@ -205,12 +211,13 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
             const auto &pe = F2E[cur_fid];
             const E_Float *fN = &fnormals[3*cur_fid];
 
-            // First pass: define the wall points
+            // First pass: define the wall data
             for (size_t i = 0; i < pn.size(); i++) {
                 E_Int p = pn[i];
                 E_Int q = pn[(i+1)%pn.size()];
                 E_Int e = pe[i];
                 E_Float px = X[p], py = Y[p], pz = Z[p];
+                E_Float qx = X[q], qy = Y[q], qz = Z[q];
                 if (ray_point_orient(cur_pos, proj, fN, px, py, pz) <= 0 ||
                     ray_point_orient(cur_pos, proj, fN, qx, qy, qz) <= 0) {
                     weids.insert(e);
@@ -296,14 +303,42 @@ Smesh Smesh::extract_bounding_smesh(const Smesh &Sf,
         assert(found_tail);
         assert(walk <= max_walks);
     }
+
+    write_edges("weids", weids);
     
-    for (E_Int eid : weids) ewalls.insert(eid);
 
     // TODO(Imad): project wpids on best-fit plane and jarvis march
 
-
     // BFS to get the smesh mpids
+    std::queue<E_Int> Q;
+    for (E_Int fid : wfids) Q.push(fid);
 
+    printf("wfids before: %lu", wfids.size());
+
+    while (!Q.empty()) {
+        E_Int fid = Q.front();
+        Q.pop();
+
+        const auto &neis = F2F[fid];
+        const auto &pe = F2E[fid];
+
+        for (size_t i = 0; i < pe.size(); i++) {
+            E_Int eid = pe[i];
+            if (weids.find(eid) != weids.end()) continue;
+            E_Int nei = neis[i];
+            if (wfids.find(nei) == wfids.end()) {
+                wfids.insert(nei);
+                Q.push(nei);
+            }
+        }
+    }
+
+    write_ngon("wfids", wfids);
+
+    printf(" - after: %lu\n", wfids.size());
+    
+    for (E_Int eid : weids) ewalls.insert(eid);
+    for (E_Int fid : wfids) fwalls.insert(fid);
     
     return Smesh();
 }
@@ -357,10 +392,13 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         spatches[i].compute_min_distance_between_points();
         plocs.push_back(Mf.locate(spatches[i]));
         Mf.correct_near_points_and_edges(spatches[i], plocs[i]);
+        printf("slave %d\n", i);
         mpatches.push_back(Mf.extract_bounding_smesh(spatches[i], plocs[i]));
     }
 
     Mf.write_edges("ewalls", ewalls);
+    Mf.write_ngon("fwalls", fwalls);
+    point_write("pchains", pchains);
 }
 
 
