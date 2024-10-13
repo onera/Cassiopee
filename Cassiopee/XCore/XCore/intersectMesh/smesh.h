@@ -144,7 +144,9 @@ struct Smesh {
 
     void write_edges(const char *fname, const std::set<E_Int> &eids) const;
 
-    void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
+    void write_ngon(const char *fname, const std::set<E_Int> &fset) const;
+
+    void write_ngon(const char *fname, const std::vector<E_Int> &faces) const;
 
     void write_ngon(const char *fname);
 
