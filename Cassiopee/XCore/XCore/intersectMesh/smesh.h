@@ -22,11 +22,9 @@
 #include <array>
 #include <map>
 #include <set>
-#include <cassert>
 
-#include "point.h"
 #include "xcore.h"
-#include "AABB.h"
+#include "point.h"
 
 struct IMesh;
 
@@ -50,111 +48,92 @@ struct u_edge {
 };
 
 struct Smesh {
-    E_Int np, ne, nf;
 
+    // Connectivity
+
+    E_Int np, ne, nf;
     std::vector<E_Float> X, Y, Z;
     std::vector<std::vector<E_Int>> P2F;
     std::vector<std::vector<E_Int>> P2E;
-    
     std::vector<o_edge> E;
     std::vector<std::array<E_Int, 2>> E2F;
-
     std::vector<std::vector<E_Int>> F;
     std::vector<std::vector<E_Int>> F2E;
     std::vector<std::vector<E_Int>> F2F;
-
     std::map<E_Int, E_Int> g2lp;
     std::map<E_Int, E_Int> l2gp;
-
     std::map<E_Int, E_Int> g2lf;
     std::map<E_Int, E_Int> l2gf;
 
+    // Constructors
+
+    Smesh();
+    Smesh(const IMesh &M, bool is_planar=true);
+    Smesh(const IMesh &M, const std::vector<E_Int> &faces);
+    void make_edges(bool is_planar);
+
+    // Geometry
+
     std::vector<E_Float> fnormals;
     std::vector<E_Float> pnormals;
+    E_Float min_pdist_squared = EFLOATMIN;
+    E_Float NEAR_VERTEX_TOL = 1e-3;
+    E_Float NEAR_EDGE_TOL = 1e-3;
+    
+    void make_fnormals();
+    void make_pnormals();
+    void make_point_faces();
+    void make_point_edges();
+    std::vector<PointLoc> locate(const Smesh &Sf) const;
+    void correct_near_points_and_edges(Smesh &Sf, std::vector<PointLoc> &plocs);
+    void get_unit_projected_direction(E_Int fid, const E_Float D[3],
+        E_Float proj[3]) const;
+    void compute_min_distance_between_points();
+
+    // Hash
 
     E_Int NX, NY, NZ, NXY, NXYZ;
     E_Float xmin, xmax, ymin, ymax, zmin, zmax;
     E_Float HX, HY, HZ;
-
     std::vector<std::vector<E_Int>> bin_faces;
-
-    E_Float min_pdist_squared = EFLOATMIN;
-
-    E_Float NEAR_VERTEX_TOL = 1e-3;
-    E_Float NEAR_EDGE_TOL = 1e-3;
-
-    std::map<u_edge, E_Int> ecenter;
-
-    Smesh();
-
-    void resize_for_refinement(size_t nref_faces);
-
-    void refine(const std::map<E_Int, std::vector<PointData>> &sensor);
-
-    std::set<E_Int> extract_bounding_faces(const Smesh &Sf,
-        const std::vector<PointLoc> &plocs) const;
-
-    void correct_near_points_and_edges(Smesh &Sf, std::vector<PointLoc> &plocs);
     
-    E_Int deduce_face(const std::vector<E_Int> &pf,
-        E_Float ox, E_Float oy, E_Float oz, E_Float D[3], 
-        E_Int last_vertex, E_Int last_edge) const;
-
-    void get_unit_projected_direction(E_Int fid, const E_Float D[3],
-        E_Float proj[3]) const;
-    
-    void get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
-        E_Int &pid, E_Int &eid) const;
-    
-    void make_fnormals();
-    void make_pnormals();
-
     void make_bbox();
     void hash_faces();
-
-    void compute_min_distance_between_points();
-
-    void get_leaves(E_Int face, std::vector<E_Int> &leaves) const;
-
-    std::map<E_Int, std::vector<std::array<E_Int, 3>>> fchildren;
-
-    Smesh extract_smesh(const std::set<E_Int> &fids, bool is_planar=true);
-
-    Smesh(const IMesh &M, bool is_planar=true);
-    
-    Smesh(const IMesh &M, const std::vector<E_Int> &faces);
-
-    void make_edges(bool is_planar);
-
-    void make_point_faces();
-    
-    void make_point_edges();
-
-    std::vector<PointLoc> locate(const Smesh &Sf) const;
-
-    void write_points(const char *fname, const std::set<E_Int> &pset) const;
-    
-    void write_points(const char *fname, const std::vector<E_Int> &pids) const;
-
-    void write_edges(const char *fname, const std::set<E_Int> &eids) const;
-
-    void write_ngon(const char *fname, const std::set<E_Int> &fset) const;
-
-    void write_ngon(const char *fname, const std::vector<E_Int> &faces) const;
-
-    void write_ngon(const char *fname);
-
-    void refine_faces(const std::vector<E_Int> &ref_faces);
-
-    void refine_tri(E_Int fid);
-
-    void refine_edge(const u_edge &e);
-    
-    Smesh extract_conformized();
-
     inline E_Int get_voxel(E_Int i, E_Int j, E_Int k) const
     {
         return i + NX*j + NXY*k;
     }
+
+    // Adaptation
+
+    std::map<u_edge, E_Int> ecenter;
+    std::map<E_Int, std::vector<std::array<E_Int, 3>>> fchildren;
+    
+    void resize_for_refinement(size_t nref_faces);
+    void refine(const std::map<E_Int, std::vector<PointData>> &sensor);
+    void get_leaves(E_Int face, std::vector<E_Int> &leaves) const;
+    void refine_tri(E_Int fid);
+    void refine_edge(const u_edge &e);
+
+    // Topology
+
+    std::set<E_Int> extract_bounding_faces(const Smesh &Sf,
+        const std::vector<PointLoc> &plocs) const;
+    E_Int deduce_face(const std::vector<E_Int> &pf,
+        E_Float ox, E_Float oy, E_Float oz, E_Float D[3], 
+        E_Int last_vertex, E_Int last_edge) const;
+    void get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
+        E_Int &pid, E_Int &eid) const;
+    Smesh extract_smesh(const std::set<E_Int> &fids, bool is_planar=true);
+    Smesh extract_conformized();
+
+    // IO
+
+    void write_points(const char *fname, const std::set<E_Int> &pset) const;
+    void write_points(const char *fname, const std::vector<E_Int> &pids) const;
+    void write_edges(const char *fname, const std::set<E_Int> &eids) const;
+    void write_ngon(const char *fname, const std::set<E_Int> &fset) const;
+    void write_ngon(const char *fname, const std::vector<E_Int> &faces) const;
+    void write_ngon(const char *fname) const;
 };
 

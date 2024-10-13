@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <cstdio>
-
 #include "smesh.h"
 
 void Smesh::refine_edge(const u_edge &e)
@@ -68,6 +66,16 @@ void Smesh::resize_for_refinement(size_t nref_faces)
     X.resize(np + pincr);
     Y.resize(np + pincr);
     Z.resize(np + pincr);
+}
+
+void Smesh::refine(const std::map<E_Int, std::vector<PointData>> &sensor)
+{
+    size_t nref = sensor.size();
+
+    while (nref > 0) {
+        resize_for_refinement(nref);
+        nref = 0;
+    }
 }
 
 void Smesh::get_leaves(E_Int fid, std::vector<E_Int> &leaves) const

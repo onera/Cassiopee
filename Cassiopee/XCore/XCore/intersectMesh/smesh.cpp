@@ -24,7 +24,6 @@
 #include "point.h"
 
 #include <cassert>
-#include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <map>
@@ -34,7 +33,6 @@
 
 Smesh::Smesh()
 {}
-
 
 Smesh::Smesh(const IMesh &M, bool is_planar)
 {
@@ -309,166 +307,6 @@ void Smesh::make_point_edges()
 
 }
 
-Smesh Smesh::extract_conformized()
-{
-    assert(0);
-    return Smesh();
-}
-
-void Smesh::write_ngon(const char *fname, const std::set<E_Int> &fset) const
-{
-    std::vector<E_Int> flist;
-    flist.reserve(fset.size());
-    for (E_Int fid : fset) flist.push_back(fid);
-    write_ngon(fname, flist);
-}
-
-void Smesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
-{
-    std::vector<E_Int> INDPH(faces.size() + 1);
-    INDPH[0] = 0;
-
-    std::map<E_Int, E_Int> new_pids;
-    std::map<E_Int, E_Int> new_eids;
-    E_Int idx = 0;
-    E_Int NP = 0;
-    E_Int NE = 0;
-    E_Int NF = (E_Int)faces.size();
-
-    for (E_Int fid : faces) {
-        const auto &pn = F[fid];
-        const auto &pe = F2E[fid];
-        
-        INDPH[idx+1] = INDPH[idx] + (E_Int)pn.size();
-        idx++;
-
-        for (E_Int pid : pn) {
-            if (new_pids.find(pid) == new_pids.end()) {
-                new_pids[pid] = NP;
-                NP++;
-            }
-        }
-
-        for (E_Int eid : pe) {
-            if (new_eids.find(eid) == new_eids.end()) {
-                new_eids[eid] = NE;
-                NE++;
-            }
-        }
-    }
-
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "%lu\n", new_pids.size());
-
-    std::vector<E_Float> nX(NP), nY(NP), nZ(NP);
-    for (const auto &pids : new_pids) {
-        E_Int opid = pids.first;
-        E_Int npid = pids.second;
-        nX[npid] = X[opid];
-        nY[npid] = Y[opid];
-        nZ[npid] = Z[opid];
-    }
-
-    for (size_t pid = 0; pid < NP; pid++) {
-        fprintf(fh, "%f %f %f\n", nX[pid], nY[pid], nZ[pid]);
-    }
-
-    fprintf(fh, "INDPG\n");
-    fprintf(fh, "%lu\n", new_eids.size()+1);
-    E_Int sizeNGon = -2;
-    for (size_t i = 0; i < new_eids.size() + 1; i++) {
-        sizeNGon += 2;
-        fprintf(fh, "%d ", sizeNGon);
-    }
-    fprintf(fh, "\n");
-    assert(sizeNGon == 2*NE);
-
-    std::vector<o_edge> nE(new_eids.size(), {-1, -1});
-    for (const auto &eids : new_eids) {
-        E_Int oeid = eids.first;
-        E_Int neid = eids.second;
-        nE[neid].p = new_pids[E[oeid].p];
-        nE[neid].q = new_pids[E[oeid].q];
-    }
-    
-    fprintf(fh, "NGON\n");
-    fprintf(fh, "%d\n", 2*NE);
-    for (const auto &e : nE) {
-        fprintf(fh, "%d %d ", e.p, e.q);
-    }
-    fprintf(fh, "\n");
-
-    fprintf(fh, "INDPH\n");
-    fprintf(fh, "%d\n", NF+1);
-    for (E_Int i = 0; i < NF+1; i++)
-        fprintf(fh, "%d ", INDPH[i]);
-    fprintf(fh, "\n");
-
-    fprintf(fh, "NFACE\n");
-    fprintf(fh, "%d\n", INDPH[NF]);
-    for (size_t i = 0; i < faces.size(); i++) {
-        const auto &pe = F2E[faces[i]];
-        for (E_Int eid : pe) {
-            fprintf(fh, "%d ", new_eids[eid]);
-        }
-    }
-    fprintf(fh, "\n");
-
-
-    fclose(fh);
-}
-
-
-void Smesh::write_ngon(const char *fname)
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, SF_D_ "\n", np);
-    for (E_Int i = 0; i < np; i++) {
-        fprintf(fh, "%f %f %f\n", X[i], Y[i], Z[i]);
-    }
-
-    fprintf(fh, "INDPG\n");
-    fprintf(fh, SF_D_ "\n", ne+1);
-    size_t sizeNGon = 0;
-    fprintf(fh, "0 ");
-    for (E_Int i = 0; i < ne; i++) {
-        sizeNGon += 2;
-        fprintf(fh, "%zu ", sizeNGon);
-    }
-    fprintf(fh, "\n");
-
-    fprintf(fh, "NGON\n");
-    fprintf(fh, "%zu\n", sizeNGon);
-    for (E_Int i = 0; i < ne; i++) {
-        fprintf(fh, SF_D_  " " SF_D_  " ", E[i].p, E[i].q);
-    }
-    fprintf(fh, "\n");
-
-    fprintf(fh, "INDPH\n");
-    fprintf(fh, SF_D_ "\n", nf+1);
-    size_t sizeNFace = 0;
-    fprintf(fh, "0 ");
-    for (E_Int i = 0; i < nf; i++) {
-        sizeNFace += F2E[i].size();
-        fprintf(fh, "%zu ", sizeNFace);
-    }
-    fprintf(fh, "\n");
-
-    fprintf(fh, "NFACE\n");
-    fprintf(fh, "%zu\n", sizeNFace);
-    for (E_Int i = 0; i < nf; i++) {
-        for (E_Int e : F2E[i]) fprintf(fh, SF_D_ " ", e);
-    }
-    fprintf(fh, "\n");
-
-    fclose(fh);
-}
-
 void Smesh::make_fnormals()
 {
     fnormals.clear();
@@ -476,41 +314,18 @@ void Smesh::make_fnormals()
     
     for (E_Int fid = 0; fid < nf; fid++) {
         const auto &pn = F[fid];
-
-        E_Float o[3] = {0, 0, 0};
-        for (E_Int p : pn) {
-            o[0] += X[p];
-            o[1] += Y[p];
-            o[2] += Z[p];
-        }
-        for (int i = 0; i < 3; i++) o[i] /= pn.size();
-
-        E_Int a = pn[0];
-        E_Int b = pn[1];
-
-        E_Float oa[3] = {X[a]-o[0], Y[a]-o[1], Z[a]-o[2]};
-        E_Float ob[3] = {X[b]-o[0], Y[b]-o[1], Z[b]-o[2]};
-
+        E_Int a = pn[0], b = pn[1], c = pn[2];
+        E_Float v0[3] = {X[b]-X[a], Y[b]-Y[a], Z[b]-Z[a]};
+        E_Float v1[3] = {X[c]-X[a], Y[c]-Y[a], Z[c]-Z[a]};
         E_Float *N = &fnormals[3*fid];
-        K_MATH::cross(oa, ob, N);
+        K_MATH::cross(v0, v1, N);
         E_Float NORM = K_MATH::norm(N, 3);
-        //assert(Sign(NORM) != 0);
         for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
     }
 }
 
 void Smesh::make_pnormals()
 {
-    if (fnormals.empty()) {
-        fprintf(stderr, "Trying to compute pnormals without fnormals!\n");
-        assert(0);
-    }
-
-    if (P2F.empty()) {
-        fprintf(stderr, "Trying to compute pnormals without P2F!\n");
-        assert(0);
-    }
-
     pnormals.clear();
     pnormals.resize(3*np, 0);
     
@@ -641,69 +456,3 @@ void Smesh::compute_min_distance_between_points()
     assert(ndists == np*(np-1)/2);
 }
 
-void Smesh::write_edges(const char *fname, const std::set<E_Int> &eids) const
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-    
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "%lu\n", eids.size()*2);
-    for (E_Int eid : eids) {
-        const auto &e = E[eid];
-        E_Int p = e.p;
-        E_Int q = e.q;
-        fprintf(fh, "%f %f %f\n", X[p], Y[p], Z[p]);
-        fprintf(fh, "%f %f %f\n", X[q], Y[q], Z[q]);
-    }
-    fprintf(fh, "EDGES\n");
-    fprintf(fh, "%lu\n", eids.size());
-    for (size_t i = 0; i < 2*eids.size(); i++) {
-        fprintf(fh, "%lu ", i);
-    }
-    fprintf(fh, "\n");
-
-    fclose(fh);
-}
-
-void Smesh::write_points(const char *fname, const std::vector<E_Int> &pids) const
-{
-    FILE *fh= fopen(fname, "w");
-    assert(fh);
-
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "%lu\n", pids.size());
-    for (E_Int pid : pids){
-        fprintf(fh, "%f %f %f\n", X[pid], Y[pid], Z[pid]);
-    }
-
-    fclose(fh);
-}
-
-void Smesh::write_points(const char *fname, const std::set<E_Int> &pids) const
-{
-    FILE *fh= fopen(fname, "w");
-    assert(fh);
-
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "%lu\n", pids.size());
-    for (E_Int pid : pids){
-        fprintf(fh, "%f %f %f\n", X[pid], Y[pid], Z[pid]);
-    }
-
-    fclose(fh);
-}
-
-Smesh Smesh::extract_smesh(const std::set<E_Int> &fids, bool is_planar)
-{
-    return Smesh();
-}
-
-void Smesh::refine(const std::map<E_Int, std::vector<PointData>> &sensor)
-{
-    size_t nref = sensor.size();
-
-    while (nref > 0) {
-        resize_for_refinement(nref);
-        nref = 0;
-    }
-}
