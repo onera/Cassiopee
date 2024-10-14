@@ -454,7 +454,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
             T._addkplane(tzones)
             T._contract(tzones, (0,0,0), (1,0,0), (0,1,0), 0.01)
             tbOneOver=T.addkplane(tbOneOver)
-            T._contract(tbOneOver, (0,0,0), (1,0,0), (0,1,0), 0.01)
+            tbOneOver=T.contract(tbOneOver, (0,0,0), (1,0,0), (0,1,0), 0.01)
 
         ##RECTILINEAR REGION
         tzones2         = C.newPyTree(['Base', tzones])
@@ -818,12 +818,12 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         if dimPb==2:
             T._addkplane(tbb)
             T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
-            tbOneOver2=T.addkplane(tbOneOver)
-            T._contract(tbOneOver2, (0,0,0), (1,0,0), (0,1,0), 0.01)
-
+            tbOneOver=T.addkplane(tbOneOver)
+            tbOneOver=T.contract(tbOneOver, (0,0,0), (1,0,0), (0,1,0), 0.01)
+            
         ## RECTILINEAR REGION
         tzones2  = Internal.copyTree(tbb)
-        for i in Internal.getBases(tbOneOver2):
+        for i in Internal.getBases(tbOneOver):
             checkOneOver = Internal.getNodeByName(i,".Solver#define")
             if checkOneOver:
                 granularityLocal = 0
