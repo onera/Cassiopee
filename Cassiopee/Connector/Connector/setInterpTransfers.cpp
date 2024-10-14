@@ -1379,7 +1379,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
             shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
             shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
               }// type
-//#pragma omp barrier
+#pragma omp barrier
           }// autorisation transfert
           }//irac
       }//pass_inst
