@@ -462,7 +462,8 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
         for i in Internal.getBases(tbOneOver):
             checkOneOver = Internal.getNodeByName(i,".Solver#define")
             granularityLocal = 0
-            if checkOneOver: granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
+            if checkOneOver and  Internal.getNodeByName(checkOneOver, 'granularity'):
+                granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
             if granularityLocal==1:
                 listSavetbOneOverTmp = []
                 C._initVars(tzones2, 'cellNOneOver', 1.)
@@ -825,7 +826,9 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         for i in Internal.getBases(tbOneOver2):
             checkOneOver = Internal.getNodeByName(i,".Solver#define")
             if checkOneOver:
-                granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
+                granularityLocal = 0
+                if Internal.getNodeByName(checkOneOver, 'granularity'):
+                    granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
                 oneoverX         = int(Internal.getNodeByName(checkOneOver, 'dirx')[1])
                 oneoverY         = int(Internal.getNodeByName(checkOneOver, 'diry')[1])
                 oneoverZ         = int(Internal.getNodeByName(checkOneOver, 'dirz')[1])
