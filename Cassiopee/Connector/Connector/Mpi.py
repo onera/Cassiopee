@@ -366,9 +366,11 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
 
     ##for moving IBMs
     isIbmMoving_int  = 0
-    motionType = int(Internal.getNodeFromName(zones,"Parameter_real")[1][64])
-    motionType = Cmpi.allreduce(motionType, op=Cmpi.MAX)
-    if motionType==3: isIbmMoving_int=1
+    #modif Ivan: souci si rigidext et ibm fixe: empeche le comportememnt normal de impli-local
+    #modif Ivan: voir avec antoine
+    #motionType = int(Internal.getNodeFromName(zones,"Parameter_real")[1][64])
+    #motionType = Cmpi.allreduce(motionType, op=Cmpi.MAX)
+    #if motionType==3: isIbmMoving_int=1
 	
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
@@ -426,16 +428,15 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
             field = n[1]
         
             isSetPartialFields = True
-            if isSetPartialFieldsCheck==1 and field != [] and field[0] !='Nada':                
-                if (numpy.ndarray.max(field[1][0])==numpy.ndarray.min(field[1][0]) and \
-                    numpy.ndarray.max(field[1][0])< -1e05):
-                    isSetPartialFields=False
+            if isSetPartialFieldsCheck==1 and field != []:
+              minfld = numpy.ndarray.min(field[1][0])
+              maxfld = numpy.ndarray.max(field[1][0])
+              if (maxfld == minfld and maxfld < -1e05): isSetPartialFields=False
             
             if isSetPartialFields:
                 listIndices = n[2]
                 z = zones[rcvName]
                 C._setPartialFields(z, [field], [listIndices], loc='centers')
-
 
     return None
 
@@ -554,8 +555,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 
             # coordonnees dans le repere absolu de la zone receptrice
             # on les recupere de zc pour eviter un node2center des coordonnees de z
-            nobc = dictOfNobOfRcvZonesC[zname]
-            nozc = dictOfNozOfRcvZonesC[zname]
+            nobc = dictOfNobOfRcvZonesC[zname]  #no base
+            nozc = dictOfNozOfRcvZonesC[zname]  #no zone
             zc = tc[2][nobc][2][nozc]
             if zc[0] != zname: # check
                 raise ValueError("_transfer: t and tc skeletons must be identical.")
@@ -563,7 +564,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             C._cpVars(z, 'centers:'+cellNName, zc, cellNName)
             res = X.getInterpolatedPoints(zc, loc='nodes', cellNName=cellNName) 
             if res is not None: 
-                indicesI, XI, YI, ZI = res
+                indicesI, XI, YI, ZI = res  #indiceI des pts cellN=2 et coord des pts
                 # passage des coordonnees du recepteur dans le repere absolu
                 # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
                 if not absFrame:

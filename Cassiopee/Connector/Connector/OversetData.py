@@ -6,6 +6,8 @@ import KCore.Vector as Vector
 import numpy
 __version__ = Connector.__version__
 
+import Converter.GhostCells as GhostCells
+
 try: range = xrange
 except: pass
 
@@ -1224,7 +1226,6 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
     nozr = -1
 
     for z in zonesRcv:
-        #print(z[0], flush=True)
         nozr += 1
         if loc == 'nodes': cellNPresent = C.isNamePresent(z, 'cellN')
         else: cellNPresent = C.isNamePresent(z, 'centers:cellN')
@@ -1321,7 +1322,6 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                                 cellNOrphan = Converter.array('cellN#Orphan', listOrphan.size, 1, 1)
                                 cellNOrphan = Converter.initVars(cellNOrphan, 'cellN#Orphan', -2.)
                                 C._setPartialFields(z, [cellNOrphan], [listOrphan], loc=locR)
-
                 #----------------------------------
                 # Etape 3: Stockage dans l'arbre
                 # direct: on stocke dans aR
@@ -1548,8 +1548,6 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
 
 def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
 
-    try: import Converter.GhostCells as GhostCells
-    except: raise ImportError("setInterpDataForGhostCellsStruct__ requires Converter.GhostCells module.")
     # empty numpy arrays for zonesubregion nodes
     indicesExtrap = numpy.array([], dtype=Internal.E_NpyInt)
     indicesOrphan = numpy.array([], dtype=Internal.E_NpyInt)
@@ -4032,3 +4030,75 @@ def getTransfo(zdonor, zrcv):
         transfo[2]=(numpy.nonzero(mat__[2,:])[0][0]+1)*numpy.sign(mat__[2,numpy.nonzero(mat__[2,:])[0][0]])
 
         return transfo
+
+#================================================================================
+# Chimere: modif cellN BC pour interp chimere pour eviter interp inutile
+# IN: t
+# IN: depth= nombre de couche
+#================================================================================
+def _modifcellNBC(t, BCTarget=['BCWall'], depth=2,dim=3):
+
+   for z in Internal.getZones(t):
+      bc = Internal.getNodeFromName1(z,'ZoneBC')
+      bcs=[]
+      if bc is not None: bcs = Internal.getNodesFromType(bc,'BC_t')
+      for bc in bcs:
+        bctyp = Internal.getValue(bc)
+        if bctyp in BCTarget: 
+           ptrg = Internal.getNodeFromName1(bc,'PointRange')
+           dimZ = Internal.getZoneDim(z)
+           #print(z[0], dimZ,'range', ptrg[1])
+
+           idir = GhostCells.getDirection__(dim, [ptrg])
+
+           #print('idir=',idir)
+           cellN= Internal.getNodeFromName2(z,'cellN')[1]
+
+           if idir==0: 
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+              for k in range(kmin,kmax):
+               for j in range(jmin,jmax):
+                 for d in range(depth):
+                   if cellN[depth-1-d,j,k]>=1.99 : cellN[depth-1-d,j,k]=1
+           if idir==1: 
+              i1 = ptrg[1][0,1]-depth-1
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+              for k in range(kmin,kmax):
+               for j in range(jmin,jmax):
+                 for d in range(depth):
+                   if cellN[i1+d,j,k]>=1.99: cellN[i1+d,j,k]=1
+           if idir==2: 
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+              #print(z[0],'range', imin, imax,kmin,kmax,depth-1)
+              for k in range(kmin,kmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                  if  cellN[i,depth-1-d,k]>=1.99: cellN[i,depth-1-d,k]= 1
+           if idir==3: 
+              js = ptrg[1][1,1]-depth-1
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+              for k in range(kmin,kmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   if cellN[i,js+d,k]>=1.99: cellN[i,js+d,k]= 1.
+           if idir==4: 
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+              for j in range(jmin,jmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   if cellN[i,j,depth-1-d]>=1.99: cellN[i,j,depth-1-d]= 1.
+
+           if idir==5: 
+              ks = ptrg[1][2,1]-depth-1
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+              for j in range(jmin,jmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   if cellN[i,j,ks+d]>=1.99: cellN[i,j,ks+d]= 1.
+   return None
