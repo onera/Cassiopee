@@ -162,9 +162,9 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     
     if (posCamList == Py_None)
     {
-      if (d->ptrState->stereo == 0) d->display();
-      else d->displayAnaglyph();
-      d->exportFile();
+      //if (d->ptrState->stereo == 0) d->display();
+      //else d->displayAnaglyph();
+      d->exportFile(); // perfoms display
       // use finalizeExport to free OSMesaContext
     }
     else // list of posCams: ODS
@@ -179,6 +179,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
       
       for (E_Int i = 0; i < 3*nslits; i++)
       {
+        //printf("%d / %d\n", i, 3*nslits);
         d->ptrState->odsSlit = i;
         PyObject* v = PyList_GetItem(posCamList, 3*i); 
         d->_view.xcam = PyFloat_AsDouble(v);
@@ -198,8 +199,8 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
         d->_view.diry = PyFloat_AsDouble(v);
         v = PyList_GetItem(dirCamList, 3*i+2); 
         d->_view.dirz = PyFloat_AsDouble(v);
-        d->display();
-        d->exportFile();
+        //d->display(); // done in export
+        d->exportFile(); // performs display
       }
       delete [] d->ptrState->odsImage;
       delete [] d->ptrState->odsFrontImage;

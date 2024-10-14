@@ -1328,7 +1328,6 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     display(t, **lkwargs)
     finalizeExport(offscreen)
 
-    print("done", flush=True)
     return None
 
 # subfunction of display 360. Display the n views with rotating posCam
@@ -1343,7 +1342,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     nangles = int(nangles)
     # fov of each image
     fov = 90.
-
+    
     # locrez of each image
     locRez = exportRez.split('x')[1]
     locRez1 = 2
@@ -1365,7 +1364,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
         # simple parallel hack  
         #if i%Cmpi.size != Cmpi.rank: continue
         
-        theta = i*360./nangles-180.
+        theta = 180. - i*360./nangles
 
         point = D.point(v1)
         point = T.rotate(point, (0,0,0), vz, theta)
@@ -1432,7 +1431,6 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
         display(t, **lkwargs)
         finalizeExport(offscreen)
 
-    print("done", flush=True)
     Cmpi.barrier() # wait for completion
     return None
 
@@ -1451,7 +1449,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
     nangles = int(nangles)
     # fov of each image
     fov = 90.
-
+    
     # locrez of each image
     locRez = exportRez.split('x')[1]
     locRez1 = 2
@@ -1473,7 +1471,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
     # start from -pi to pi and rotate left
     for i in range(nangles):
                 
-        theta = i*360./nangles-180.
+        theta = 180. - i*360./nangles
 
         point = D.point(v1)
         point = T.rotate(point, (0,0,0), vz, theta)
@@ -1571,6 +1569,8 @@ def display360(t, type360=0, **kwargs):
 
     elif stereo == 1: # stereo (ODS)
 
+        if offscreen == 2: raise ValueError("display360: stereo=1 only for osmesa."); return None
+
         export1 = export.rsplit('.', 1)
         if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
         else: export1 = export+'_1'
@@ -1581,20 +1581,24 @@ def display360(t, type360=0, **kwargs):
         # right eye
         #stereoDist = 0. # forced to 0 for debug
         kwargs['export'] = export1
-        display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
-        #display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
-        #if Cmpi.rank == 0:
-        #    panoramaODS(export1, exportRez, type360=type360)
-        #Cmpi.barrier() # wait for completion
+        if offscreen == 2:
+            display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
+            if Cmpi.rank == 0:
+                panoramaODS(export1, exportRez, type360=type360)
+            Cmpi.barrier() # wait for completion
+        else:
+            display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
 
         # left eye
         kwargs['export'] = export2
-        display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
-        #display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
-        #if Cmpi.rank == 0:
-        #    panoramaODS(export2, exportRez, type360=type360)
-        #Cmpi.barrier() # wait for completion
-
+        if offscreen == 2:
+            display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
+            if Cmpi.rank == 0:
+                panoramaODS(export2, exportRez, type360=type360)
+            Cmpi.barrier() # wait for completion
+        else:
+            display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
+        
         # stitch
         if Cmpi.rank == 0:
             panoramaStereo(export, export1, export2, exportRez, type360=type360)

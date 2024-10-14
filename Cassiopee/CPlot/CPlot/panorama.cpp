@@ -651,56 +651,43 @@ void accumulateSlit(E_Int ni, E_Int nj, char* imf, char* imt, char* imb,
   E_Int njl1 = njl-1;
   E_Int ni1 = ni-1; // slit image
   E_Int nj1 = nj-1;
-  //printf("ni=%d, nj=%d\n", ni, nj);
-  //printf("nil=%d, njl=%d\n", nil, njl);
-
-  E_Int ind;
-  E_Float scale, ty, py, phi, x, y, z;
   
-  // direct sliting for test
-  /*
-  E_Int mid = ni/2;
-  for (E_Int j = 0; j < nj; j++)
   {
-    ind = i + j*nil;
-    imOut[3*ind] = imb[3*(mid+j*ni)];
-    imOut[3*ind+1] = imb[3*(mid+j*ni)+1];
-    imOut[3*ind+2] = imb[3*(mid+j*ni)+2];
-  }
-  return;
-  */
+    E_Int ind;
+    E_Float scale, ty, py, phi, x, y, z;
 
-  // 1D interpolation
-  for (E_Int j = 0; j < njl; j++)
-  {
-    ty = (1.*j)/nj1;
-    phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
-    ind = i + (njl-j-1)*nil;
+    // 1D interpolation
+    for (E_Int j = 0; j < njl; j++)
+    {
+      ty = (1.*j)/nj1;
+      phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
+      ind = i + (njl-j-1)*nil;
 
-    x = 0.;
-    y = sin(phi); // entre -1 et 1
-    z = cos(phi); // entre 0 et 0
+      x = 0.;
+      y = sin(phi); // entre -1 et 1
+      z = cos(phi); // entre 0 et 0
 
-    if (phi > -M_PI/4. && phi < M_PI/4.)
-    {
-      scale = 1.0 / z;
-      py = ( y*scale + 1.0) / 2.0;
-      interp2(ind, imOut, imf,
-              0.5, py, ni1, nj1);
+      if (phi > -M_PI/4. && phi < M_PI/4.)
+      {
+        scale = 1.0 / z;
+        py = ( y*scale + 1.0) / 2.0;
+        interp2(ind, imOut, imf,
+                0.5, py, ni1, nj1);
+      }
+      else if (phi >= M_PI/4.) // top
+      {
+        scale = -1.0 / y;
+        py = ( z*scale + 1.0) / 2.0;
+        interp2(ind, imOut, imt,
+                0.5, py, ni1, nj1);
+      }
+      else if (phi <= -M_PI/4.) // bottom
+      {
+        scale = -1.0 / y;
+        py = ( z*scale + 1.0) / 2.0;
+        interp2(ind, imOut, imb,
+                0.5, py, ni1, nj1);
+      }
     }
-    else if (phi >= M_PI/4.) // top
-    {
-      scale = -1.0 / y;
-      py = ( z*scale + 1.0) / 2.0;
-      interp2(ind, imOut, imt,
-              0.5, py, ni1, nj1);
-    }
-    else if (phi <= -M_PI/4.) // bottom
-    {
-      scale = -1.0 / y;
-      py = ( z*scale + 1.0) / 2.0;
-      interp2(ind, imOut, imb,
-              0.5, py, ni1, nj1);
-    }
-  }
+  } 
 }
