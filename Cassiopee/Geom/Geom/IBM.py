@@ -658,3 +658,22 @@ def localWMMFlags__(tb,tbFilament):
                         isWireModel=True
                         break
     return isFilamentOnly,isWireModel
+
+
+
+
+#====================================================================================
+#Add .Solver#Define with dirx,diry, & dirz to the base of the rectilinear in tbox
+def _addOneOverLocally(FileName,oneOver):
+    count   = 0
+    t_local = C.convertFile2PyTree(FileName)
+    for b in Internal.getBases(t_local):
+        Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(b, '.Solver#define')
+        Internal._createUniqueChild(n, 'dirx'       , 'DataArray_t', value=oneOver[count][0])
+        Internal._createUniqueChild(n, 'diry'       , 'DataArray_t', value=oneOver[count][1])
+        Internal._createUniqueChild(n, 'dirz'       , 'DataArray_t', value=oneOver[count][2])
+        Internal._createUniqueChild(n, 'granularity', 'DataArray_t', value=oneOver[count][3])
+        count+=1
+    C.convertPyTree2File(t_local,FileName)
+    return None

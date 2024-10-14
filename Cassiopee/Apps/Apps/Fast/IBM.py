@@ -29,7 +29,7 @@ import numpy
 
 from Geom.IBM import setSnear, _setSnear, setDfar, _setDfar, snearFactor, _snearFactor, \
 setFluidInside, _setFluidInside, setIBCType, _setIBCType, changeIBCType, \
-initOutflow, initInj, _initOutflow, _initInj, transformTc2
+initOutflow, initInj, _initOutflow, _initInj, transformTc2, _addOneOverLocally
 
 import Post.IBM as P_IBM
 #import Post.PyTree as P_IBM
@@ -1337,32 +1337,6 @@ def interpolateSolutionCoarse2Fine(tCoarse, tFine, NPprep, NPinterp):
     Internal._rmNodesByName(tFine,'FlowSolution')
     return tFine
     
-
-#====================================================================================
-#Add .Solver#Define with dirx,diry, & dirz to the base of the tboneover. tboneover is the
-#PyTree that defines the region in space wherein a one over n coarsening will be pursued
-#during the automatic cartesian grid generator of FastIBC.
-#IN: FileName: name of the file. tboneover is read in this function.
-#IN: oneOver: list of list of dirx,diry,dirz for each base in tboneover. E.g. oneOver=[[1,1,2],[1,2,1],[2,1,1]]
-#             for a tboneover with 3 bases where the 1st base has dirx=1, diry=1, & dirz=2
-#                                                    2nd base has dirx=1, diry=2, & dirz=1
-#                                                    3rd base has dirx=2, diry=1, & dirz=1
-#OUT: Nothing. Rewrite tboneover with the same FileName as that original used
-##NOTE # 1: To be run SEQUENTIALLY ONLY. This is ok as we are dealing with a surface geometry which tend to be
-##          relatively small.
-##NOTE # 2: Generation of tboneover is similar to that used for tbox.
-def _addOneOverLocally(FileName,oneOver):
-    count   = 0
-    t_local = C.convertFile2PyTree(FileName)
-    for b in Internal.getBases(t_local):
-        Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
-        n = Internal.getNodeFromName1(b, '.Solver#define')
-        Internal._createUniqueChild(n, 'dirx', 'DataArray_t', value=oneOver[count][0])
-        Internal._createUniqueChild(n, 'diry', 'DataArray_t', value=oneOver[count][1])
-        Internal._createUniqueChild(n, 'dirz', 'DataArray_t', value=oneOver[count][2])
-        count+=1
-    C.convertPyTree2File(t_local,FileName)
-    return None
 
 
 # IN: maillage surfacique + reference State + snears
