@@ -669,9 +669,7 @@ def _addOneOverLocally(FileName,oneOver):
     t_local = C.convertFile2PyTree(FileName)
     nodes   = Internal.getNodesFromNameAndType(t_local, '*OneOver*', 'CGNSBase_t')
     for b in nodes:
-        if not Internal.getNodeFromName1(z, '.Solver#define'):
-            Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
-            
+        Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')           
         n = Internal.getNodeFromName1(b, '.Solver#define')
         Internal._createUniqueChild(n, 'dirx'       , 'DataArray_t', value=oneOver[count][0])
         Internal._createUniqueChild(n, 'diry'       , 'DataArray_t', value=oneOver[count][1])
