@@ -13,4 +13,7 @@ struct ICapsule {
 
     ICapsule(const Karray &marray, const std::vector<Karray> &sarray,
         const std::vector<E_Float *> &ptags);
+    
+    void refine(Smesh &Mf, const std::set<E_Int> &mfids, Smesh &Sf,
+        std::vector<PointLoc> &plocs_s);
 };

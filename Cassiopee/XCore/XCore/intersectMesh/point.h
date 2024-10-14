@@ -26,7 +26,11 @@ struct PointLoc {
     E_Int fid = -1;
     E_Int v_idx = -1;
     E_Int e_idx = -1;
-    E_Float bcrd[3] = {-1, -1, -1};
+    E_Float bcrd[3] = {EFLOATMAX, EFLOATMAX, EFLOATMAX};
+    E_Float t = EFLOATMAX;
+    E_Float x = EFLOATMAX;
+    E_Float y = EFLOATMAX;
+    E_Float z = EFLOATMAX;
 };
 
 struct PointData {

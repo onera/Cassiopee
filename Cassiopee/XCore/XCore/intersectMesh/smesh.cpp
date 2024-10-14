@@ -275,6 +275,22 @@ void Smesh::make_edges(bool is_planar)
     }
 }
 
+void Smesh::make_fcenters()
+{
+    fcenters.clear();
+    fcenters.resize(3*nf, 0);
+    for (E_Int fid = 0; fid < nf; fid++) {
+        E_Float *fc = &fcenters[3*fid];
+        const auto &pn = F[fid];
+        for (E_Int p : pn) {
+            fc[0] += X[p];
+            fc[1] += Y[p];
+            fc[2] += Z[p];
+        }
+        for (E_Int i = 0; i < 3; i++) fc[i] /= pn.size();
+    }
+}
+
 void Smesh::make_point_faces()
 {
     P2F.clear();

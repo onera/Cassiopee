@@ -27,6 +27,8 @@
 #include "point.h"
 
 struct IMesh;
+struct AABB;
+struct BVH_node;
 
 struct o_edge {
     E_Int p, q;
@@ -74,12 +76,14 @@ struct Smesh {
 
     // Geometry
 
+    std::vector<E_Float> fcenters;
     std::vector<E_Float> fnormals;
     std::vector<E_Float> pnormals;
     E_Float min_pdist_squared = EFLOATMIN;
     E_Float NEAR_VERTEX_TOL = 1e-3;
     E_Float NEAR_EDGE_TOL = 1e-3;
     
+    void make_fcenters();
     void make_fnormals();
     void make_pnormals();
     void make_point_faces();
@@ -89,6 +93,11 @@ struct Smesh {
     void get_unit_projected_direction(E_Int fid, const E_Float D[3],
         E_Float proj[3]) const;
     void compute_min_distance_between_points();
+    void project(const Smesh &Mf, const std::vector<E_Int> &mpids,
+        std::vector<PointLoc> &plocs);
+    void ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
+        E_Float dx, E_Float dy, E_Float dz, BVH_node *node,
+        std::vector<PointLoc> &plocs);
 
     // Hash
 
@@ -96,6 +105,9 @@ struct Smesh {
     E_Float xmin, xmax, ymin, ymax, zmin, zmax;
     E_Float HX, HY, HZ;
     std::vector<std::vector<E_Int>> bin_faces;
+    std::vector<E_Int> bvh_indices;
+    static const E_Int MAX_FACES_PER_BVH_LEAF = 8;
+    BVH_node *bvh_root = NULL;
     
     void make_bbox();
     void hash_faces();
@@ -103,6 +115,11 @@ struct Smesh {
     {
         return i + NX*j + NXY*k;
     }
+    void make_BVH();
+    AABB make_AABB(E_Int start, E_Int end);
+    BVH_node *make_BVH_node(const AABB &box, E_Int start, E_Int end,
+        BVH_node *left, BVH_node *right);
+    BVH_node *make_BVH_subtree(E_Int start, E_Int end, const AABB &parent);
 
     // Adaptation
 

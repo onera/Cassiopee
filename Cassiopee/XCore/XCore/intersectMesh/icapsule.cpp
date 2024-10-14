@@ -381,16 +381,20 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         Ss[i].orient_skin(IN);
         Ss[i].triangulate_skin();
         spatches.push_back(Ss[i].make_smesh(ptags[i]));
-        spatches[i].make_bbox();
-        spatches[i].hash_faces();
+        spatches[i].make_fcenters();
         spatches[i].make_fnormals();
         spatches[i].make_point_faces();
         spatches[i].make_pnormals();
         spatches[i].compute_min_distance_between_points();
         plocs_list.push_back(Mf.locate(spatches[i]));
         Mf.correct_near_points_and_edges(spatches[i], plocs_list[i]);
+
         bfaces_list.push_back(
             Mf.extract_bounding_faces(spatches[i], plocs_list[i]));
+        
+        spatches[i].make_bbox();
+        spatches[i].hash_faces();
+        refine(Mf, bfaces_list[i], spatches[i], plocs_list[i]);
     }
 
     Mf.write_edges("ewalls", ewalls);
@@ -434,7 +438,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
 
     Mf.write_ngon("ref_faces", ref_faces);
 
-    Mf.refine(mfid_to_spids);
+    //Mf.refine(mfid_to_spids);
 }
 
 

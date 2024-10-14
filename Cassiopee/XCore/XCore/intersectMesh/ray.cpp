@@ -18,6 +18,131 @@
 */
 #include "ray.h"
 #include "primitives.h"
+#include "AABB.h"
+
+bool ray_AABB_intersect(E_Float ox, E_Float oy, E_Float oz,
+    E_Float dx, E_Float dy, E_Float dz,
+    const AABB &box)
+{
+    E_Float inv_dx = (dx != 0.0) ? 1.0/dx : EFLOATMAX;
+    E_Float inv_dy = (dy != 0.0) ? 1.0/dy : EFLOATMAX;
+    E_Float inv_dz = (dz != 0.0) ? 1.0/dz : EFLOATMAX;
+
+    E_Float t_min = EFLOATMIN;
+    E_Float t_max = EFLOATMAX;
+
+    // X
+    if (dx == 0.0) {
+        if (ox < box.xmin || ox > box.xmax) {
+            return false;
+        }
+    } else {
+        E_Float t1 = (box.xmin - ox) * inv_dx;
+        E_Float t2 = (box.xmax - ox) * inv_dx;
+
+        if (t1 > t2) std::swap(t1, t2);
+
+        t_min = std::max(t_min, t1);
+        t_max = std::max(t_max, t2);
+
+        if (t_min > t_max)
+            return false;
+    }
+
+    // Y
+    if (dy == 0.0) {
+        if (oy < box.ymin || oy > box.ymax) {
+            return false;
+        }
+    } else {
+        E_Float t1 = (box.ymin - oy) * inv_dy;
+        E_Float t2 = (box.ymax - oy) * inv_dy;
+
+        if (t1 > t2) std::swap(t1, t2);
+
+        t_min = std::max(t_min, t1);
+        t_max = std::max(t_max, t2);
+
+        if (t_min > t_max)
+            return false;
+    }
+
+    // Z
+    if (dz == 0.0) {
+        if (oz < box.zmin || oz > box.zmax) {
+            return false;
+        }
+    } else {
+        E_Float t1 = (box.zmin - oz) * inv_dz;
+        E_Float t2 = (box.zmax - oz) * inv_dz;
+
+        if (t1 > t2) std::swap(t1, t2);
+
+        t_min = std::max(t_min, t1);
+        t_max = std::max(t_max, t2);
+
+        if (t_min > t_max)
+            return false;
+    }
+
+    return true;
+}
+
+bool MollerTrumboreAnyDir(
+    E_Float px, E_Float py, E_Float pz,
+    E_Float dx, E_Float dy, E_Float dz,
+    E_Float ax, E_Float ay, E_Float az,
+    E_Float bx, E_Float by, E_Float bz,
+    E_Float cx, E_Float cy, E_Float cz,
+    E_Float &u, E_Float &v, E_Float &w, E_Float &t,
+    E_Float &x, E_Float &y, E_Float &z)
+{
+    E_Float e1x = bx - ax;
+    E_Float e1y = by - ay;
+    E_Float e1z = bz - az;
+
+    E_Float e2x = cx - ax;
+    E_Float e2y = cy - ay;
+    E_Float e2z = cz - az;
+
+    E_Float pvecx = dy * e2z - dz * e2y;
+    E_Float pvecy = dz * e2x - dx * e2z;
+    E_Float pvecz = dx * e2y - dy * e2x;
+
+    E_Float det = e1x * pvecx + e1y * pvecy + e1z * pvecz;
+
+    if (det > -TOL && det < TOL) return false;
+
+    E_Float inv_det = 1.0 / det;
+
+    E_Float tvecx = px - ax;
+    E_Float tvecy = py - ay;
+    E_Float tvecz = pz - az;
+
+    u = inv_det * (tvecx * pvecx + tvecy * pvecy + tvecz * pvecz);
+
+    if (u < -TOL || u > 1+TOL) return false;
+
+    E_Float qvecx = tvecy * e1z - tvecz * e1y;
+    E_Float qvecy = tvecz * e1x - tvecx * e1z;
+    E_Float qvecz = tvecx * e1y - tvecy * e1x;
+
+    v = inv_det * (dx * qvecx + dy * qvecy + dz * qvecz);
+
+    if (v < -TOL || v > 1+TOL) return false;
+
+    w = 1 - u - v;
+
+    if (w < -TOL || w > 1+TOL) return false;
+
+    t = inv_det * (e2x * qvecx + e2y * qvecy + e2z * qvecz);
+
+    x = px + t * dx;
+    y = py + t * dy;
+    z = pz + t * dz;
+
+    return true;
+}
 
 E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
     E_Float dz, E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by, E_Float bz,
