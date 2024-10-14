@@ -757,9 +757,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     E_Int type;
     E_Int indD0, indD, i, j, k, ncfLoc, indCoef, noi, sizecoefs, imd, jmd, imdjmd;
 
-    //vector< E_Float* > vectOfRcvFields( nvars );
-    //vector< E_Float* > vectOfDnrFields( nvars );
-
     E_Float** vectOfRcvFields = RcvFields + nvars*(ithread-1);
     E_Float** vectOfDnrFields = DnrFields + nvars*(ithread-1);
 
@@ -767,13 +764,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     // 2eme pass: transfert
     //
     for ( E_Int ipass_typ = pass_deb; ipass_typ < pass_fin; ipass_typ++ )
-      {
-	// 1ere pass_inst: les raccord fixe
-	// 2eme pass_inst: les raccord instationnaire
-	E_Int count_rac = 0;
+    {
+      // 1ere pass_inst: les raccord fixe
+      // 2eme pass_inst: les raccord instationnaire
+	    E_Int count_rac = 0;
 
-	for ( E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
-	  {
+      for ( E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
+	    {
 	    E_Int irac_deb = 0;
 	    E_Int irac_fin = nrac_steady;
 	    if ( pass_inst == 1 )

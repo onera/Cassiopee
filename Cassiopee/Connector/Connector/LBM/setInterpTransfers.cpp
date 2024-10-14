@@ -649,6 +649,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 
   E_Float** RcvFields = new E_Float*[ nvars*threadmax_sdm];
   E_Float** DnrFields = new E_Float*[ nvars*threadmax_sdm];
+
   // [LBM]
   E_Float meax       = 0;
   E_Float meay       = 0;
@@ -676,7 +677,6 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 
     // [LBM ==> Q or Qstar]
     vector<E_Float*> vectOfRcvFieldsLoc(nvars);
-    //vector<E_Float*> vectOfDnrFields(nvars);
     E_Float** vectOfRcvFields = RcvFields + nvars*(ithread-1);
     E_Float** vectOfDnrFields = DnrFields + nvars*(ithread-1);
 
@@ -778,7 +778,8 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
  	      imd= ipt_param_intR[ NoD ][ NIJK ]; jmd= ipt_param_intR[ NoD ][ NIJK+1];
  	      for (E_Int eq = 0; eq < nvars_loc; eq++){
 		vectOfRcvFieldsLoc[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
-		vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
+		vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
+        vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
  	      }
 	      
 	      // [LBM]
@@ -793,8 +794,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 		for (E_Int eq = 0; eq < nvars_loc; eq++){
  		  vectOfQneqRcvFields[eq] = ipt_Qneq_localR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
  		  vectOfQneqDnrFields[eq] = ipt_Qneq_localD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
-
-		  vectOfQm1DnrFields[eq]    = ipt_Qm1_localD[ NoD]  + eq*ipt_param_intR[ NoD ][ NDIMDX ];
+		  vectOfQm1DnrFields[eq]  = ipt_Qm1_localD[ NoD]  + eq*ipt_param_intR[ NoD ][ NDIMDX ];
 		}
 		for (E_Int eq = 0; eq < nvars_macro_local; eq++){
 		  vectOfmacrom1DnrFields[eq]= ipt_macrosm1_localD[NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
@@ -1124,7 +1124,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
     fclose(outfile);
   }*/
   
-  delete [] RcvFields;  delete [] DnrFields;
+  delete [] RcvFields; delete [] DnrFields;
   delete [] ipt_param_intR;
   delete [] ipt_roR;
   delete [] ipt_ndimdxD;

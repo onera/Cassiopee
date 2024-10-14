@@ -545,8 +545,8 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
         if c==1: break
         c += 1
         #Modif Ivan 11/10/24
-        #ng = 0
-        ng = 2
+        ng = 0
+        #ng = 2
         for z in Internal.getZones(tree):    
             zdim = Internal.getValue(z)
              
@@ -885,13 +885,11 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
     C._initVars(t_curvi,"centers:cellN",1.)
     t_curvi = TBX.modifyBCOverlapsForGhostMesh(t_curvi,2)
     
-    dimPb = Internal.getValue(Internal.getNodeFromName(t_3d, 'EquationDimension'))
-    
     for z in Internal.getZones(t_curvi):
         apply=False
-        if  filter_zone  == None: apply=True
+        if  filter_zone is None: apply=True
         elif filter_zone in z[0]: apply=True
-        if apply==True:
+        if apply:
             C._fillEmptyBCWith(z,'inactive','BCExtrapolated',dim=dim)
             C._rmBCOfType(z,'BCOverlap')
             C._fillEmptyBCWith(z,'trou','BCOverlap',dim=dim)

@@ -3260,7 +3260,6 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
   E_Float** DnrFields = new E_Float*[ nvars];
   E_Float** vectOfRcvFields = RcvFields;
   E_Float** vectOfDnrFields = DnrFields;
-  //vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
   E_Int* ptrcnd;
   char* eltTypeR; char* eltTypeD;
   //codage general (lent ;-) )
@@ -3703,7 +3702,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersForPressureGradientsOrder2(PyObject* self
   E_Float* gradzyP = gradzyPressF->begin();
   E_Float* gradzzP = gradzzPressF->begin();
 
-  vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
+  vector<E_Float*> fieldsR; vector<E_Float*> fieldsD;
   vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
   E_Int* ptrcnd;
   char* eltTypeR; char* eltTypeD;

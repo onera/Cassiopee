@@ -604,9 +604,6 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
   E_Float** vectOfRcvFields = RcvFields;
   E_Float** vectOfDnrFields = DnrFields;
 
-  //vector<E_Float*> vectOfRcvFields(nvars);
-  //vector<E_Float*> vectOfDnrFields(nvars);
-
   for  (E_Int irac=0; irac< nrac; irac++)
   {
     for (E_Int eq = 0; eq < nvars; eq++)
@@ -745,7 +742,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
 
 
   delete [] ipt_ndimdxR; delete [] ipt_roR;
-  delete [] RcvFields;  delete [] DnrFields;
+  delete [] RcvFields; delete [] DnrFields;
 
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   RELEASESHAREDN(pyParam_int    , param_int    );
@@ -1062,9 +1059,6 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
     E_Float** vectOfRcvFields = RcvFields + (nvars+nvars_Pnt2)*(ithread-1);
     E_Float** vectOfDnrFields = DnrFields +  nvars*(ithread-1);
-
-    //vector<E_Float*> vectOfRcvFields(nvars+nvars_Pnt2);
-    //vector<E_Float*> vectOfDnrFields(nvars);
     
     //1ere pass_typ: IBC
     //2eme pass_typ: transfert
@@ -1389,7 +1383,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
 
   delete [] ipt_param_intR; delete [] ipt_roR; delete [] ipt_ndimdxD; delete [] ipt_roD; delete [] ipt_cnd;
-  delete [] RcvFields;  delete [] DnrFields;
+  delete [] RcvFields; delete [] DnrFields;
 
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   RELEASESHAREDN(pydtloc        , dtloc        );
