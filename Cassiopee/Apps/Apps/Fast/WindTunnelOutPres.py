@@ -216,7 +216,7 @@ def _controlOutletPressureMachProbe(tc,dctProbes,controlProbeName,DIRECTORY_PROB
         #print(current_it, previous_it, current_mach, previous_mach,flush=True)
         oldPressure    = values4gain[0]
         values4gain[0] += values4gain[7] * (current_mach - values4gain[1]) + values4gain[8] * (current_mach - previous_mach)  
-        print("Control of Output Pressure:: target Ma = {:.5f}, current Ma = {:.5f}|| old Pout = {:.1f} Pa, new Pout = {:.1f} Pa, ".format(values4gain[1], current_mach, oldPressure, values4gain[0]), flush=True)
+        print("Control of Output Pressure:: target Ma = {:.5f}, current Ma = {:.5f}|| old Pout = {:.1f} Pa, new Pout = {:.1f} Pa, ".format(values4gain[1], current_mach, oldPressure, values4gain[0]))
     Cmpi.bcast(values4gain[0], root=0) 
     D_IBM._initOutflow(tc, familyName, values4gain[0]) 
     Cmpi.barrier()
