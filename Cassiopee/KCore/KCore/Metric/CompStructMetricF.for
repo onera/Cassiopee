@@ -41,7 +41,7 @@ C_OUT
       REAL_E     cix(0:nbInt-1), ciy(0:nbInt-1), ciz(0:nbInt-1)
 
 C_LOCAL
-      INTEGER_E  i, j, k, nbIntij
+      INTEGER_E  i, j, k, c, nbIntij
       INTEGER_E  ni1, nj1, ni1nj1, nk1
       INTEGER_E  incInti, incIntj, incIntk
       INTEGER_E  lv, n1, n2, n3, n4, n5, n6
@@ -72,45 +72,45 @@ C
       incIntj = ni1
       incIntk = ni1nj1
 C
-!$OMP PARALLEL PRIVATE(i,j,k,lv,n1,v1,n2,v2,n3,v3,n4,v4,n5,v5,n6,v6)
+!$OMP PARALLEL PRIVATE(i,j,k,c,lv,n1,v1,n2,v2,n3,v3,n4,v4,n5,v5,n6,v6)
 !$OMP DO
-      DO k = 1, nk1
-      DO j = 1, nj1
-      DO i = 1, ni1
-         lv = i-1 + (j-1)*ni1 + (k-1)*ni1nj1
-         n1 = i-1 + (j-1)*ni  + (k-1)*ni*nj1
+      DO c = 0, ni1nj1*nk1-1
+         i = MOD(c, ni1)
+         j = MOD(c/ni1, nj1)
+         k = c/ni1nj1
+C
+         lv = i + j*ni1 + k*ni1nj1
+         n1 = i + j*ni  + k*ni*nj1
          v1 =  cix(n1) * surfx(n1) 
      &        + ciy(n1) * surfy(n1)
      &        + ciz(n1) * surfz(n1)
-         
+C
          n2 = n1 + incInti
          v2 =  cix(n2) * surfx(n2) 
      &        + ciy(n2) * surfy(n2)
      &        + ciz(n2) * surfz(n2)
-    
-         n3 = i-1 + (j-1)*ni1 + (k-1)*ni1*nj + nbInti
+C
+         n3 = i + j*ni1 + k*ni1*nj + nbInti
          v3 =  cix(n3) * surfx(n3) 
      &        + ciy(n3) * surfy(n3)
      &        + ciz(n3) * surfz(n3)
-    
+C
          n4 = n3 + incIntj
          v4 =  cix(n4) * surfx(n4) 
      &        + ciy(n4) * surfy(n4)
      &        + ciz(n4) * surfz(n4)
-         
-         n5 =  i-1 + (j-1)*ni1 + (k-1)*ni1nj1 + nbIntij
+C
+         n5 =  i+ j*ni1 + k*ni1nj1 + nbIntij
          v5 =  cix(n5) * surfx(n5) 
      &        + ciy(n5) * surfy(n5)
      &        + ciz(n5) * surfz(n5)
-         
+C
          n6 = n5 + incIntk
          v6 =  cix(n6) * surfx(n6) 
      &        + ciy(n6) * surfy(n6)
      &        + ciz(n6) * surfz(n6)
-         
+C
          vol(lv) = (v2 - v1 + v4 - v3 + v6 - v5) * onethird
-      ENDDO
-      ENDDO
       ENDDO
 !$OMP END DO
 !$OMP END PARALLEL
