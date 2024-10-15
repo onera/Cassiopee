@@ -36,10 +36,9 @@
 Smesh Dcel::export_smesh(bool is_planar) const
 {
     Smesh smesh;
-    smesh.ne = 0;
+    smesh.is_planar = is_planar;
 
     smesh.np = V.size();
-
     smesh.X.resize(smesh.np);
     smesh.Y.resize(smesh.np);
     smesh.Z.resize(smesh.np);
@@ -70,7 +69,9 @@ Smesh Dcel::export_smesh(bool is_planar) const
 
     smesh.nf = (E_Int)smesh.F.size();
 
-    smesh.make_edges(is_planar);
+    smesh.Fc = smesh.F;
+
+    smesh.make_edges();
     
     return smesh;
 }
@@ -767,7 +768,7 @@ void Dcel::locate_spoints(const Smesh &M, const Smesh &S)
         E_Int voxel_z = floor((S.Z[sp] - M.zmin) / M.HZ);
         E_Int sp_bin = voxel_x + M.NX * voxel_y + M.NXY * voxel_z;
 
-        const auto &pf = M.bin_faces[sp_bin];
+        const auto &pf = M.bin_faces.at(sp_bin);
 
         assert(pf.size() > 0);
 
@@ -929,265 +930,6 @@ E_Int Dcel::get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
 }
 
 std::vector<Point> points;
-
-void Dcel::trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
-{
-/*
-
-    Vertex *p = sh->orig;
-    Vertex *q = sh->twin->orig;
-
-    E_Float dir[3] = {q->x-p->x, q->y-p->y, q->z-p->z};
-
-    const auto &ploc = p->loc; 
-
-    std::vector<E_Int> test_faces;
-
-    E_Int mfid = ploc.fid;
-
-    // Get the potential starting faces
-
-    if (ploc.e_idx != -1) {
-        assert(ploc.v_idx == -1);
-        const auto &pe = M.F2E[mfid];
-        E_Int eid = pe[ploc.e_idx];
-        const auto &pf = M.E2F[eid];
-        for (E_Int fid : pf) test_faces.push_back(fid);
-    } else if (ploc.v_idx != -1) {
-        assert(ploc.e_idx == -1);
-        const auto &pn = M.F[mfid];
-        E_Int pid = pn[ploc.v_idx];
-        const auto &pf = M.P2F[pid];
-        for (E_Int fid : pf) test_faces.push_back(fid);
-    } else {
-        test_faces.push_back(mfid);
-    }
-
-    // Handle potential intersection of starting point
-
-    //handle_intersecting_endpoint(p, M);
-    //handle_intersecting_endpoint(q, M);
-
-    // Determine the starting face
-    E_Int start_face = test_faces[0];
-    if (test_faces.size() > 1)
-        start_face = get_next_face(M, p->x, p->y, p->z, test_faces, dir, hid);
-
-    if (start_face == -1) {
-        hedge_write("sh", sh);
-        point_write("orig", sh->orig);
-        std::vector<Face *> faces;
-        for (auto fid : test_faces) {
-            faces.push_back(F[fid]);
-        }
-        printf("test_faces: %lu\n", test_faces.size());
-        faces_write("test_faces", faces);
-    }
-    assert(start_face != -1);
-
-    // Trace
-    
-    E_Int found = 0;
-    E_Int walk = 0;
-    E_Int max_walk = 5;
-
-    Face *current_face = F[start_face];
-
-    E_Float px = p->x, py = p->y, pz = p->z;
-
-    Hedge *start_hedge = current_face->rep;
-
-    Hedge *current_hedge = sh;
-
-    // Pinpoint the endpoint
-    std::vector<E_Int> end_faces;
-    const auto &qloc = q->loc;
-    E_Int qfid = qloc.fid;
-
-    if (qloc.e_idx != -1) {
-        assert(qloc.v_idx == -1);
-        const auto &pe = M.F2E[qfid];
-        E_Int eid = pe[qloc.e_idx];
-        const auto &pf = M.E2F[eid];
-        for (E_Int fid : pf) end_faces.push_back(fid);
-    } else if (qloc.v_idx != -1) {
-        assert(qloc.e_idx == -1);
-        const auto &pn = M.F[qfid];
-        E_Int pid = pn[qloc.v_idx];
-        const auto &pf = M.P2F[pid];
-        for (E_Int fid : pf) end_faces.push_back(fid);
-    } else {
-        end_faces.push_back(qfid);
-    }
-
-
-    while (!found && walk < max_walk) {
-
-        // Check if we reached q
-
-        for (E_Int fid : end_faces) {
-            if (F[fid] == current_face) {
-                found = 1;
-                break;
-            }
-        }
-
-        if (found) break;
-
-        E_Int current_fid = current_face->oid[0];
-
-        const E_Float *fN = &M.fnormals[3*current_fid];
-
-        E_Float proj[3] = { };
-        E_Float dp = K_MATH::dot(fN, dir, 3);
-        for (E_Int i = 0; i < 3; i++) proj[i] = dir[i] - dp * fN[i];
-
-        E_Float dx = px + 1.0 * proj[0];
-        E_Float dy = py + 1.0 * proj[1];
-        E_Float dz = pz + 1.0 * proj[2];
-
-        Hedge *h = current_face->rep;
-        E_Int reached = 0;
-        E_Int hit = 0;
-
-        E_Float ix, iy, iz;
-        ix = iy = iz = EFLOATMIN;
-    
-        while (!reached && !found) {
-    
-            Vertex *a = h->orig;
-            Vertex *b = h->twin->orig;
-
-            hit = EdgeEdgeIntersect(
-                px, py, pz,
-                dx, dy, dz,
-                a->x, a->y, a->z,
-                b->x, b->y, b->z,
-                ix, iy, iz);
-
-            if (hit) {
-
-                Vertex *x = NULL;
-
-                E_Int hit_a = cmp_points(ix, iy, iz, a->x, a->y, a->z) == 0;
-                E_Int hit_b = cmp_points(ix, iy, iz, b->x, b->y, b->z) == 0;
-
-                // Hit a vertex: original m vertex, or intersection
-
-                if (hit_a) x = a;
-                else if (hit_b) x = b;
-
-                if (x != NULL) {
-
-                    //// Stop if reached destination
-                    //if (x->oid[1] != -1) {
-                    //    assert(x == q);
-                    //    found = 1;
-                    //}
-
-                    //// M point, get the next face
-                    //else if (x->oid[0] != -1) {
-
-                    //    E_Int mpid = x->oid[0];
-                    //    const auto &pf = M.P2F[mpid];
-                    //    E_Int next_fid = get_next_face(M, x->x, x->y, x->z, pf, dir, hid);
-                    //    assert(next_fid != -1);
-                    //    assert(next_fid != current_fid);
-                    //    current_face = F[next_fid];
-
-                    //} else {
-                    //    
-                    //    // Intersection, move
-
-                    //    current_face = h->twin->left;
-    
-                    //}
-
-            
-                    bool is_mpoint = x->oid[0] != -1;
-                    bool is_spoint = x->oid[1] != -1;
-
-                    // Stictly an M point, get the next face
-
-                    if (is_mpoint && !is_spoint) {
-                        E_Int mpid = x->oid[0];
-                        const auto &pf = M.P2F[mpid];
-                        E_Int next_fid = get_next_face(M, x->x, x->y, x->z, pf, dir, hid);
-                        assert(next_fid != -1);
-                        assert(next_fid != current_fid);
-                        current_face = F[next_fid];
-                    }
-
-
-                    // S point, must be q since edges from S do not cross
-                    else if (is_spoint) {
-                        assert(x == q);
-                        assert(cmp_vtx(x, q) == 0);
-                        found = 1;
-                    }
-
-                    else {
-                        assert(0);
-                    }
-
-
-                } else {
-
-                    // Hit the inside of an edge
-
-                    // Must be a new intersection
-                    Event *xit = Q.lookup(ix, iy, iz);
-
-                    assert(xit == NULL);
-
-                    x = new Vertex(ix, iy, iz);
-                    assert(x->oid[0] == -1);
-                    assert(x->oid[1] == -1);
-                    x->id = V.size();
-                    V.push_back(x);
-                    x->xhedge = h;
-
-                    cut_hedge_at_vertex(h, x);
-
-                    current_face = h->twin->left;
-
-                }
-
-                assert(x);
-
-                points.push_back(Point(x->x, x->y, x->z));
-
-                if (found) break;
-
-                cut_hedge_at_vertex(current_hedge, x);
-                current_hedge = current_hedge->next;
-
-                px = ix;
-                py = iy;
-                pz = iz;
-
-                break;
-            }
-
-            h = h->next;
-            if (h == start_hedge) {
-                reached = 1;
-            }
-        }
-
-        if (reached != 0) {
-            fprintf(stderr, "    Reached start_hedge!\n");
-            face_write("last_face", current_face);
-            assert(0);
-            abort();
-        }
-
-        walk++;
-    }
-
-    assert(walk < max_walk);
-    */
-}
 
 void Dcel::find_intersections_3D(const Smesh &M, const Smesh &S)
 {

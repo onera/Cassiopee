@@ -25,10 +25,10 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/icapsule_refine.cpp',
 
             'XCore/intersectMesh/triangulate.cpp',
-            'XCore/intersectMesh/locate.cpp',
             'XCore/intersectMesh/sgraph.cpp',
             
             'XCore/intersectMesh/smesh.cpp',
+            'XCore/intersectMesh/smesh_locate.cpp',
             'XCore/intersectMesh/smesh_io.cpp',
             'XCore/intersectMesh/smesh_refine.cpp',
             'XCore/intersectMesh/smesh_extract.cpp',

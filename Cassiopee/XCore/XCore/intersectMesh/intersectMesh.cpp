@@ -392,8 +392,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
 
     // Extract surface meshes
-    Smesh Mf(M);
-    Smesh Sf(S);
+    Smesh Mf = Smesh::Smesh_from_mesh_patch(M);
+    Smesh Sf = Smesh::Smesh_from_mesh_patch(S);
     
     Mf.write_ngon("Mf");
     Sf.write_ngon("Sf");

@@ -98,8 +98,6 @@ struct IMesh {
         NEAR_EDGE_TOL = near_edge_tol;
     }
 
-    Smesh make_smesh(const E_Float *ptag);
-    Smesh make_smesh_from_skin(bool is_planar = true);
     void make_skin_graph();
 
     inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const

@@ -87,7 +87,7 @@ E_Int Smesh::deduce_face(const std::vector<E_Int> &pf,
         E_Float proj[3];
         get_unit_projected_direction(fid, D, proj);
 
-        const auto &pn = F[fid];
+        const auto &pn = Fc[fid];
         const auto &pe = F2E[fid];
         assert(pn.size() == pe.size());
 
@@ -137,6 +137,8 @@ void Smesh::get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
     E_Int fid = loc.fid;
     assert(fid != -1);
 
+    // TODO(Imad): e_idx is no good!!!!
+
     if (loc.e_idx != -1) {
         assert(loc.v_idx == -1);
         const auto &pe = F2E[fid];
@@ -149,7 +151,7 @@ void Smesh::get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
     }
     else if (loc.v_idx != -1) {
         assert(loc.e_idx == -1);
-        const auto &pn = F[fid];
+        const auto &pn = Fc[fid];
         pid = pn[loc.v_idx];
         const auto &pf = P2F[pid];
         // For consistency

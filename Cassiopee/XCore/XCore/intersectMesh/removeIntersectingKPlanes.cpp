@@ -55,7 +55,6 @@ void construct_faces(std::vector<std::vector<E_Int>> &faces,
     NF++;
 }
 
-static
 PyObject *handle_slave(IMesh *M, Karray& sarray)
 {
     E_Int ni = sarray.ni;
@@ -361,7 +360,6 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
     return out;
 }
 
-static
 E_Int get_kmax(IMesh *M, Karray& sarray)
 {
     E_Int ni = sarray.ni;
@@ -396,7 +394,6 @@ E_Int get_kmax(IMesh *M, Karray& sarray)
     return kmax;
 }
 
-static
 PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
 {
     E_Int ni = sarray.ni;

@@ -19,37 +19,6 @@ E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
     return 0;
 }
 
-Smesh IMesh::make_smesh(const E_Float *ptag)
-{
-    patch.clear();
-
-    for (E_Int fid : skin) {
-        const auto &pn = F[fid];
-        bool is_patch = true;
-        for (E_Int pid : pn) {
-            if (ptag[pid] != 1) {
-                is_patch = false;
-                break;
-            }
-        }
-        if (is_patch)
-            patch.insert(fid);
-    }
-    
-    return Smesh(*this);
-}
-
-Smesh IMesh::make_smesh_from_skin(bool is_planar)
-{
-    patch.clear();
-
-    for (E_Int fid : skin) {
-        patch.insert(fid);
-    }
-    
-    return Smesh(*this, is_planar);
-}
-
 void Smesh::correct_near_points_and_edges(Smesh &Sf,
     std::vector<PointLoc> &plocs)
 {
@@ -59,7 +28,7 @@ void Smesh::correct_near_points_and_edges(Smesh &Sf,
 
         E_Int fid = ploc.fid;
         assert(fid < nf);
-        const auto &pn = F[fid];
+        const auto &pn = Fc[fid];
 
         if (ploc.v_idx != -1) {
             on_vertex++;
@@ -80,23 +49,20 @@ void Smesh::correct_near_points_and_edges(Smesh &Sf,
             }
         } else if (ploc.e_idx != -1) {
             on_edge++;
-            E_Int zero_crd = (ploc.e_idx+2)%3;
-            E_Float U = ploc.bcrd[zero_crd];
-            assert(Sign(U, NEAR_EDGE_TOL) == 0);
-            E_Int i1 = (zero_crd+1)%3;
-            E_Int i2 = (zero_crd+2)%3;
-            E_Float V = ploc.bcrd[i1];
-            E_Float W = ploc.bcrd[i2];
-            E_Int a = pn[i1];
-            E_Int b = pn[i2];
-            V += U;
-            assert(Sign(V+W-1) == 0);
-            Sf.X[i] = V*X[a] + W*X[b];
-            Sf.Y[i] = V*Y[a] + W*Y[b];
-            Sf.Z[i] = V*Z[a] + W*Z[b];
+            E_Float u = ploc.bcrd[0];
+            E_Float v = ploc.bcrd[1];
+            E_Float w = ploc.bcrd[2];
+            assert(Sign(w, NEAR_EDGE_TOL) == 0);
+            u += w;
+            assert(Sign(u+v-1) == 0);
+            E_Int p = pn[ploc.e_idx];
+            E_Int q = pn[(ploc.e_idx+1)%pn.size()];
+            Sf.X[i] = u*X[p] + v*X[q];
+            Sf.Y[i] = u*Y[p] + v*Y[q];
+            Sf.Z[i] = u*Z[p] + v*Z[q];
         }
     }
-    //printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
+    printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
 }
 
 std::set<E_Int> ewalls;
@@ -157,14 +123,15 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
     E_Float vy = Sf.Y[c] - Sf.Y[b];
     E_Float vz = Sf.Z[c] - Sf.Z[b];
     E_Float cp[3] = {uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx};
+    // TODO(Imad): inherit fnormals
     const E_Float *N_b = &fnormals[3*plocs[b].fid];
     E_Float dp = K_MATH::dot(cp, N_b, 3);
     E_Int cmp = Sign(dp);
     assert(cmp != 0);
-    if (cmp < 0)
-        std::reverse(pchain.begin(), pchain.end());
+    if (cmp < 0) std::reverse(pchain.begin(), pchain.end());
 
     Sf.write_points("pchain", pchain);
+
     for (E_Int p : pchain) pchains.push_back({Sf.X[p], Sf.Y[p], Sf.Z[p]});
 
     std::set<E_Int> wfids;
@@ -177,6 +144,9 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
         E_Float px = Sf.X[p], py = Sf.Y[p], pz = Sf.Z[p];
         E_Float qx = Sf.X[q], qy = Sf.Y[q], qz = Sf.Z[q];
 
+        //point_write("p", px, py, pz);
+        //point_write("q", qx, qy, qz);
+
         E_Float D[3] = {qx-px, qy-py, qz-pz};
         E_Float NORM = K_MATH::norm(D, 3);
         D[0] /= NORM, D[1] /= NORM, D[2] /= NORM;
@@ -187,7 +157,7 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
         E_Int last_vertex = -1, last_edge = -1, dummy;
 
         get_shared_faces(plocs[p], orig_faces, last_vertex, last_edge); 
-        get_shared_faces(plocs[q], tail_faces, dummy, dummy); 
+        get_shared_faces(plocs[q], tail_faces, dummy, dummy);
 
         E_Int starting_face = deduce_face(orig_faces, px, py, pz,
             D, last_vertex, last_edge);
@@ -204,11 +174,14 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
             
             wfids.insert(cur_fid);
 
+            //write_face("cur_fid", cur_fid);
+
             E_Float proj[3];
             get_unit_projected_direction(cur_fid, D, proj);
 
-            const auto &pn = F[cur_fid];
+            const auto &pn = Fc[cur_fid];
             const auto &pe = F2E[cur_fid];
+            assert(pe.size() == pn.size());
             const E_Float *fN = &fnormals[3*cur_fid];
 
             // First pass: define the wall data
@@ -223,6 +196,8 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
                     weids.insert(e);
                 }
             }
+
+            //write_edges("wall", weids);
 
             for (auto fid : tail_faces) {
                 if (fid == cur_fid) {
@@ -264,6 +239,7 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
                         E_Int eid = pe[i];
                         last_edge = eid;
                         last_vertex = -1;
+                        assert(E2F[eid][0] == cur_fid || E2F[eid][1] == cur_fid);
                         if (E2F[eid][0] == cur_fid) next_fid = E2F[eid][1];
                         else next_fid = E2F[eid][0];
 
@@ -304,14 +280,13 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
         assert(walk <= max_walks);
     }
 
-    write_edges("weids", weids);
-    
-
     // TODO(Imad): project wpids on best-fit plane and jarvis march
 
     // BFS to get the smesh mpids
     std::queue<E_Int> Q;
     for (E_Int fid : wfids) Q.push(fid);
+
+    //write_ngon("fwall_before_BFS", wfids);
 
     while (!Q.empty()) {
         E_Int fid = Q.front();
@@ -331,7 +306,10 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
         }
     }
 
-    write_ngon("wfids", wfids);
+    //write_ngon("fwall_after_BFS", wfids);
+
+    //write_ngon("fwall", wfids);
+    //write_edges("ewall", weids);
 
     for (E_Int eid : weids) ewalls.insert(eid);
     for (E_Int fid : wfids) fwalls.insert(fid);
@@ -349,22 +327,13 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     M.triangulate_skin();
     M.make_bbox();
     M.hash_skin();
-    M.make_skin_graph();
-    Smesh Mf = M.make_smesh_from_skin(false);
+    //M.make_skin_graph();
+    Smesh Mf(M, M.skin, false);
     Mf.make_bbox();
     Mf.hash_faces();
+    Mf.make_fcenters();
     Mf.make_fnormals();
-    Mf.make_point_faces();
     Mf.make_pnormals();
-    Mf.make_point_edges();
-
-    for (E_Int pid = 0; pid < Mf.np; pid++) {
-        const auto &pe = Mf.P2E[pid];
-        for (E_Int eid : pe) {
-            const auto &e = Mf.E[eid];
-            assert(e.p == pid || e.q == pid);
-        }
-    }
 
     Ss.reserve(sarrays.size());
     spatches.reserve(sarrays.size());
@@ -375,70 +344,43 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     bfaces_list.reserve(sarrays.size());
 
     for (size_t i = 0; i < sarrays.size(); i++) {
-        Ss.push_back(IMesh(sarrays[i]));
-        Ss[i].set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
-        Ss[i].make_skin();
-        Ss[i].orient_skin(IN);
-        Ss[i].triangulate_skin();
-        spatches.push_back(Ss[i].make_smesh(ptags[i]));
-        spatches[i].make_fcenters();
-        spatches[i].make_fnormals();
-        spatches[i].make_point_faces();
-        spatches[i].make_pnormals();
-        spatches[i].compute_min_distance_between_points();
-        plocs_list.push_back(Mf.locate(spatches[i]));
-        Mf.correct_near_points_and_edges(spatches[i], plocs_list[i]);
+        // Create IMesh S
+        IMesh S(sarrays[i]);
+        S.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
+        S.make_skin();
+        S.orient_skin(IN);
+        S.triangulate_skin();
+        Ss.push_back(S);
 
-        bfaces_list.push_back(
-            Mf.extract_bounding_faces(spatches[i], plocs_list[i]));
-        
-        spatches[i].make_bbox();
-        spatches[i].hash_faces();
-        refine(Mf, bfaces_list[i], spatches[i], plocs_list[i]);
+        // Create SMesh Sf
+        Smesh Sf = Smesh::Smesh_from_point_tags(S, ptags[i]);
+        Sf.make_fcenters();
+        Sf.make_fnormals();
+        Sf.make_pnormals();
+        Sf.compute_min_distance_between_points();
+
+        // Locate Sf points on Mf faces
+        auto plocs = Mf.locate(Sf);
+        Mf.correct_near_points_and_edges(Sf, plocs);
+
+        // Correct AABB and Sf faces hash
+        Sf.make_bbox();
+        Sf.hash_faces();
+
+        // Extract the initial Mf faces that bound Sf
+        auto bfaces = Mf.extract_bounding_faces(Sf, plocs);
+
+        // Refinement loop
+        refine(Mf, bfaces, Sf, plocs);
+
+        // Add Sf
+        spatches.push_back(Sf);
+
+        // Add plocs
+        plocs_list.push_back(plocs);
     }
 
-    Mf.write_edges("ewalls", ewalls);
-    Mf.write_ngon("fwalls", fwalls);
-    point_write("pchains", pchains);
-
-    // mfaces to spoints
-    std::map<E_Int, std::vector<PointData>> mfid_to_spids;
-
-    for (size_t i = 0; i < plocs_list.size(); i++) {
-        const auto &plocs = plocs_list[i];
-        for (size_t j = 0; j < plocs.size(); j++) {
-            const auto &ploc = plocs[j];
-            PointData point_data;
-            point_data.pid = j;
-            point_data.fid = ploc.fid;
-            point_data.sid = i;
-            point_data.x = spatches[i].X[j];
-            point_data.y = spatches[i].Y[j];
-            point_data.z = spatches[i].Z[j];
-
-            mfid_to_spids[ploc.fid].push_back(point_data);
-        }
-    }
-
-    std::vector<E_Int> fids_to_erase;
-    for (const auto &mfdata : mfid_to_spids) {
-        std::set<E_Int> sids;
-        for (const auto &spdata : mfdata.second)
-            sids.insert(spdata.sid);
-        if (sids.size() == 1)
-            fids_to_erase.push_back(mfdata.first);
-    }
-
-    for (E_Int fid : fids_to_erase)
-        mfid_to_spids.erase(fid);
-
-    std::vector<E_Int> ref_faces;
-    for (const auto &mfdata : mfid_to_spids)
-        ref_faces.push_back(mfdata.first);
-
-    Mf.write_ngon("ref_faces", ref_faces);
-
-    //Mf.refine(mfid_to_spids);
+    Mf.write_ngon("refined_Mf");
 }
 
 
@@ -538,7 +480,7 @@ PyObject *K_XCORE::icapsule_init(PyObject *self, PyObject *args)
         PyObject *PTAG = PyList_GetItem(PTAGS, i);
         E_Int size = -1;
         E_Int ret = K_NUMPY::getFromNumpyArray(PTAG, ptags[i], size, true);
-        Py_DECREF(PTAG);
+        //Py_DECREF(PTAG);
         if (ret != 1 || size != sarrays[i].npoints()) {
             RAISE("Ptag[i] should have size sarrays[i].npoints.");
             Karray_free_ngon(marray);

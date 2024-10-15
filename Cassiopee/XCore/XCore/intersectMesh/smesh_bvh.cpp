@@ -21,9 +21,16 @@ AABB Smesh::make_AABB(E_Int start, E_Int end)
         }
     }
 
-    E_Float dx = (xmax - xmin) * 0.01;
-    E_Float dy = (ymax - ymin) * 0.01;
-    E_Float dz = (zmax - zmin) * 0.01;
+    E_Float dx = xmax - xmin;
+    E_Float dy = ymax - ymin;
+    E_Float dz = zmax - zmin;
+
+    xmin -= dx * 0.01;
+    ymin -= dy * 0.01;
+    zmin -= dz * 0.01;
+    xmax += dx * 0.01;
+    ymax += dy * 0.01;
+    zmax += dz * 0.01;
 
     return {xmin, ymin, zmin, xmax, ymax, zmax};
 }
@@ -86,4 +93,14 @@ void Smesh::make_BVH()
     for (E_Int i = 0; i < nf; i++) bvh_indices.push_back(i);
 
     bvh_root = make_BVH_subtree(0, nf, AABB_HUGE);
+}
+
+void Smesh::destroy_BVH(BVH_node *root)
+{
+    if (root == NULL) return;
+
+    destroy_BVH(root->left);
+    destroy_BVH(root->right);
+
+    delete root;
 }

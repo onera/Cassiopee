@@ -31,6 +31,7 @@ struct PointLoc {
     E_Float x = EFLOATMAX;
     E_Float y = EFLOATMAX;
     E_Float z = EFLOATMAX;
+    E_Int sub = -1;
 };
 
 struct PointData {

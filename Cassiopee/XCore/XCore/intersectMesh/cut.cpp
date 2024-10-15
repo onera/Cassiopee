@@ -31,46 +31,6 @@ void Dcel::init_mh_sv_intersections(const Smesh &M)
     }
 }
 
-/*
-void Dcel::cut_hedges_intersecting_with_endpoint(Vertex *v, const Smesh &M)
-{
-    const auto &vloc = v->loc;
-
-    if (vloc.e_idx == -1) return;
-
-    E_Int fid = vloc.fid;
-
-    const auto &pe = M.F2E[fid];
-
-    E_Int me = pe[vloc.e_idx];
-
-    Hedge *start = H[2*me];
-
-    Face *face = F[fid];
-
-    if (start->left != face) start = start->twin;
-
-    Hedge *h = start;
-
-    E_Int done = 0;
-
-    while (1) {
-
-        if (hedge_contains_vertex(h, v)) {
-            done = 1;
-            v->xhedge = h;
-            cut_hedge_at_vertex(h, v);
-            break;
-        }
-
-        h = h->next;
-        if (h == start) break;
-    }
-
-    assert(done == 1);
-}
-*/
-
 void Dcel::cut_hedges()
 {
     size_t hid = 0;

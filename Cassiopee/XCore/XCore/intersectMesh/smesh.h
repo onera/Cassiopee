@@ -51,17 +51,26 @@ struct u_edge {
 
 struct Smesh {
 
-    // Connectivity
+    // Universal data
 
-    E_Int np, ne, nf;
+    E_Int np, nf;
     std::vector<E_Float> X, Y, Z;
+    std::vector<std::vector<E_Int>> F;
+
+    // Conformal data
+    E_Int ne;
+    std::vector<std::vector<E_Int>> Fc;
     std::vector<std::vector<E_Int>> P2F;
     std::vector<std::vector<E_Int>> P2E;
     std::vector<o_edge> E;
     std::vector<std::array<E_Int, 2>> E2F;
-    std::vector<std::vector<E_Int>> F;
     std::vector<std::vector<E_Int>> F2E;
     std::vector<std::vector<E_Int>> F2F;
+
+    void clear_conformal_data();
+
+    // Link to parent mesh
+
     std::map<E_Int, E_Int> g2lp;
     std::map<E_Int, E_Int> l2gp;
     std::map<E_Int, E_Int> g2lf;
@@ -70,9 +79,16 @@ struct Smesh {
     // Constructors
 
     Smesh();
-    Smesh(const IMesh &M, bool is_planar=true);
-    Smesh(const IMesh &M, const std::vector<E_Int> &faces);
-    void make_edges(bool is_planar);
+    Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool is_planar=true);
+    static Smesh Smesh_from_point_tags(const IMesh &M, const E_Float *ptag,
+        bool is_planar=true);
+    static Smesh Smesh_from_mesh_skin(const IMesh &M,
+        const std::vector<E_Int> &skin, bool is_planar=true);
+    static Smesh Smesh_from_mesh_patch(const IMesh &M,
+        bool is_planar=true);
+    //Smesh(const IMesh &M, const std::vector<E_Int> &faces);
+    void make_edges();
+    void clear();
 
     // Geometry
 
@@ -98,18 +114,20 @@ struct Smesh {
     void ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
         E_Float dx, E_Float dy, E_Float dz, BVH_node *node,
         std::vector<PointLoc> &plocs);
+    inline void compute_face_center(E_Int fid);
 
     // Hash
 
     E_Int NX, NY, NZ, NXY, NXYZ;
     E_Float xmin, xmax, ymin, ymax, zmin, zmax;
     E_Float HX, HY, HZ;
-    std::vector<std::vector<E_Int>> bin_faces;
+    std::map<E_Int, std::vector<E_Int>> bin_faces;
     std::vector<E_Int> bvh_indices;
     static const E_Int MAX_FACES_PER_BVH_LEAF = 8;
     BVH_node *bvh_root = NULL;
     
     void make_bbox();
+    inline void bin_face(E_Int fid);
     void hash_faces();
     inline E_Int get_voxel(E_Int i, E_Int j, E_Int k) const
     {
@@ -120,6 +138,7 @@ struct Smesh {
     BVH_node *make_BVH_node(const AABB &box, E_Int start, E_Int end,
         BVH_node *left, BVH_node *right);
     BVH_node *make_BVH_subtree(E_Int start, E_Int end, const AABB &parent);
+    void destroy_BVH(BVH_node *root);
 
     // Adaptation
 
@@ -127,12 +146,20 @@ struct Smesh {
     std::map<E_Int, std::vector<std::array<E_Int, 3>>> fchildren;
     
     void resize_for_refinement(size_t nref_faces);
-    void refine(const std::map<E_Int, std::vector<PointData>> &sensor);
+    void refine(const std::vector<E_Int> &ref_faces);
     void get_leaves(E_Int face, std::vector<E_Int> &leaves) const;
     void refine_tri(E_Int fid);
     void refine_edge(const u_edge &e);
+    void update_plocs(const std::vector<E_Int> &parents,
+        std::vector<PointLoc> &plocs);
+    void conformize();
+    void get_edge_centers(E_Int p, E_Int q, std::list<E_Int> &edge_centers,
+        E_Int left_right);
+    
 
     // Topology
+
+    bool is_planar = true;
 
     std::set<E_Int> extract_bounding_faces(const Smesh &Sf,
         const std::vector<PointLoc> &plocs) const;
@@ -152,5 +179,6 @@ struct Smesh {
     void write_ngon(const char *fname, const std::set<E_Int> &fset) const;
     void write_ngon(const char *fname, const std::vector<E_Int> &faces) const;
     void write_ngon(const char *fname) const;
+    void write_face(const char *fname, E_Int fid) const;
 };
 

@@ -73,7 +73,7 @@ void Smesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
     E_Int NF = (E_Int)faces.size();
 
     for (E_Int fid : faces) {
-        const auto &pn = F[fid];
+        const auto &pn = Fc[fid];
         const auto &pe = F2E[fid];
         
         INDPH[idx+1] = INDPH[idx] + (E_Int)pn.size();
@@ -108,7 +108,7 @@ void Smesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
         nZ[npid] = Z[opid];
     }
 
-    for (size_t pid = 0; pid < NP; pid++) {
+    for (E_Int pid = 0; pid < NP; pid++) {
         fprintf(fh, "%f %f %f\n", nX[pid], nY[pid], nZ[pid]);
     }
 
@@ -152,6 +152,47 @@ void Smesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
         }
     }
     fprintf(fh, "\n");
+
+    fclose(fh);
+}
+
+void Smesh::write_face(const char *fname, E_Int fid) const
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    const auto &pn = Fc[fid];
+    E_Int np = (size_t)pn.size();
+
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%d\n", np);
+    for (E_Int p : pn) {
+        fprintf(fh, "%f %f %f\n", X[p], Y[p], Z[p]);
+    }
+
+    fprintf(fh, "INDPG\n");
+    fprintf(fh, "%d\n", np + 1);
+    E_Int sizeNGon = -2;
+    for (E_Int i = 0; i < np+1; i++) {
+        sizeNGon += 2;
+        fprintf(fh, "%d ", sizeNGon);
+    }
+    fprintf(fh, "\n");
+
+    fprintf(fh, "NGON\n");
+    fprintf(fh, "%d\n", 2*np);
+    for (E_Int i = 0; i < np; i++) {
+        fprintf(fh, "%d %d ", i, (i+1)%np);
+    }
+    fprintf(fh, "\n");
+
+    fprintf(fh, "INDPH\n");
+    fprintf(fh, "%d\n", 2);
+    fprintf(fh, "0 %d\n", np);
+
+    fprintf(fh, "NFACE\n");
+    fprintf(fh, "%d\n", np);
+    for (E_Int i = 0; i < np; i++) fprintf(fh, "%d ", i);
 
     fclose(fh);
 }

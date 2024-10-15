@@ -31,25 +31,128 @@
 #include <queue>
 #include <stack>
 
+#define LEFT 0
+#define RIGHT 1
+
+void Smesh::get_edge_centers(E_Int p, E_Int q, std::list<E_Int> &edge_centers,
+    E_Int left_right)
+{
+    u_edge e(p, q);
+    auto it = ecenter.find(e);
+    if (it == ecenter.end()) return;
+
+    E_Int ec = it->second;
+    if (left_right == LEFT) edge_centers.push_front(ec);
+    else edge_centers.push_back(ec);
+    
+    get_edge_centers(p, ec, edge_centers, LEFT);
+    get_edge_centers(ec, q, edge_centers, RIGHT);
+}
+
+void Smesh::clear_conformal_data()
+{
+    //Fc.clear();
+    F2E.clear();
+    F2F.clear();
+
+    P2F.clear();
+    P2E.clear();
+
+    ne = 0;
+    E.clear();
+    E2F.clear();
+}
+
+void Smesh::conformize()
+{
+    clear_conformal_data();
+
+    std::vector<std::vector<E_Int>> new_Fc(nf);
+    
+    for (E_Int fid = 0; fid < nf; fid++) {
+        const auto &pn = Fc[fid];
+
+        std::vector<E_Int> new_pn;
+
+        for (size_t i = 0; i < pn.size(); i++) {
+            E_Int p = pn[i];
+            E_Int q = pn[(i+1)%pn.size()];
+
+            new_pn.push_back(p);
+
+            std::list<E_Int> edge_points;
+            get_edge_centers(p, q, edge_points, LEFT);
+            for (E_Int ep : edge_points) new_pn.push_back(ep);
+        }
+
+        new_Fc[fid] = new_pn;
+    }
+
+    Fc = new_Fc;
+
+    make_edges();
+    make_point_faces();
+    make_point_edges();
+}
+
 Smesh::Smesh()
 {}
 
-Smesh::Smesh(const IMesh &M, bool is_planar)
+Smesh Smesh::Smesh_from_mesh_skin(const IMesh &M,
+    const std::vector<E_Int> &skin, bool is_planar)
+{
+    return Smesh(M, skin, is_planar);
+}
+
+Smesh Smesh::Smesh_from_point_tags(const IMesh &M, const E_Float *ptag,
+    bool is_planar)
+{
+    std::vector<E_Int> fids;
+
+    for (E_Int fid : M.skin) {
+        const auto &pn = M.F[fid];
+        bool keep = true;
+        for (E_Int pid : pn) {
+            if (ptag[pid] != 1) {
+                keep = false;
+                break;
+            }
+        }
+        if (keep) fids.push_back(fid);
+    }
+    
+    return Smesh(M, fids, is_planar);
+}
+
+Smesh Smesh::Smesh_from_mesh_patch(const IMesh &M, bool is_planar)
+{
+    std::vector<E_Int> fids;
+
+    for (E_Int fid : M.patch) {
+        fids.push_back(fid);
+    }
+    
+    return Smesh(M, fids, is_planar);
+}
+
+Smesh::Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool is_planar_)
 {
     NEAR_VERTEX_TOL = M.NEAR_VERTEX_TOL;
     NEAR_EDGE_TOL = M.NEAR_EDGE_TOL;
 
-    F.resize(M.patch.size());
+    is_planar = is_planar_;
+
+    F.resize(fids.size());
 
     nf = 0;
     np = 0;
 
     // Get the faces
-    for (E_Int gf : M.patch) {
+    for (E_Int gf : fids) {
         g2lf[gf] = nf;
         l2gf[nf] = gf;
 
-        auto &face = F[nf];
+        auto &pn = F[nf];
 
         for (E_Int gp : M.F[gf]) {
             auto it = g2lp.find(gp);
@@ -57,10 +160,10 @@ Smesh::Smesh(const IMesh &M, bool is_planar)
             if (it == g2lp.end()) {
                 g2lp[gp] = np;
                 l2gp[np] = gp;
-                face.push_back(np);
+                pn.push_back(np);
                 np++;
             } else {
-                face.push_back(it->second);
+                pn.push_back(it->second);
             }
         }
 
@@ -81,7 +184,10 @@ Smesh::Smesh(const IMesh &M, bool is_planar)
         Z[pids.second] = M.Z[pids.first];
     }
 
-    make_edges(is_planar);
+    Fc = F;
+    make_edges();
+    make_point_faces();
+    make_point_edges();
 }
 
 o_edge::o_edge(E_Int P, E_Int Q)
@@ -100,16 +206,17 @@ struct o_edge_cmp {
     }
 };
 
-void Smesh::make_edges(bool is_planar)
+void Smesh::make_edges()
 {
     // Make the edges
-    F2E.resize(F.size());
+    F2E.resize(Fc.size());
     std::map<o_edge, E_Int, o_edge_cmp> edges;
 
+    assert(E.empty());
     ne = 0;
 
     for (E_Int i = 0; i < nf; i++) {
-        auto &face = F[i];
+        auto &face = Fc[i];
         for (size_t j = 0; j < face.size(); j++) {
             E_Int p = face[j];
             E_Int q = face[(j+1)%face.size()];
@@ -129,17 +236,18 @@ void Smesh::make_edges(bool is_planar)
     assert((size_t)ne == E.size());
 
     // Make edge_to_face
+    assert(E2F.empty());
     E2F.resize(ne, {-1,-1});
 
     std::vector<E_Int> count(ne, 0);
 
     for (E_Int i = 0; i < nf; i++) {
-        const auto &face = F2E[i];
-        const auto &pn = F[i];
-        assert(face.size() == pn.size());
+        const auto &pe = F2E[i];
+        const auto &pn = Fc[i];
+        assert(pe.size() == pn.size());
 
-        for (size_t j = 0; j < face.size(); j++) {
-            E_Int e = face[j];
+        for (size_t j = 0; j < pe.size(); j++) {
+            E_Int e = pe[j];
             count[e]++;
 
             if (E2F[e][0] == -1) E2F[e][0] = i;
@@ -155,19 +263,20 @@ void Smesh::make_edges(bool is_planar)
     if (is_planar)
         assert(np - ne + nf + 1 == 2);
 
+    // Check that each edge's count is 1 or 2
     for (E_Int i = 0; i < ne; i++) {
         assert(count[i] == 1 || count[i] == 2);
     }
 
-
+    // Check consistency between E2F and F2E
     for (E_Int i = 0; i < ne; i++) {
         E_Int fi = E2F[i][0];
         E_Int fj = E2F[i][1];
 
-        const auto &face_i = F2E[fi];
+        const auto &pe_i = F2E[fi];
         E_Int found = false;
-        for (size_t j = 0; j < face_i.size(); j++) {
-            if (face_i[j] == (E_Int)i) {
+        for (size_t j = 0; j < pe_i.size(); j++) {
+            if (pe_i[j] ==  i) {
                 found = true;
                 break;
             }
@@ -177,10 +286,10 @@ void Smesh::make_edges(bool is_planar)
 
         if (fj == -1) continue;
 
-        const auto &face_j = F2E[fj];
+        const auto &pe_j = F2E[fj];
         found = false;
-        for (size_t j = 0; j < face_j.size(); j++) {
-            if (face_j[j] == (E_Int)i) {
+        for (size_t j = 0; j < pe_j.size(); j++) {
+            if (pe_j[j] == i) {
                 found = true;
                 break;
             }
@@ -190,16 +299,18 @@ void Smesh::make_edges(bool is_planar)
     }
 
     // Make faces neighbourhood
+    assert(F2F.empty());
     F2F.resize(nf);
-    for (size_t i = 0; i < F2E.size(); i++) {
-        auto &face = F2E[i];
+    for (E_Int i = 0; i < nf; i++) {
+        const auto &pe = F2E[i];
         auto &neis = F2F[i];
-        for (size_t j = 0; j < face.size(); j++) {
-            E_Int e = face[j];
-            if (E2F[e][0] == (E_Int)i) neis.push_back(E2F[e][1]);
-            else if (E2F[e][1] == (E_Int)i) neis.push_back(E2F[e][0]);
-            else assert(0);
+        for (size_t j = 0; j < pe.size(); j++) {
+            E_Int e = pe[j];
+            assert(E2F[e][0] == i || E2F[e][1] == i);
+            if (E2F[e][0] == i) neis.push_back(E2F[e][1]);
+            else neis.push_back(E2F[e][0]);
         }
+        assert(neis.size() == pe.size());
     }
 
     // Traverse the face list breadth-first and adjust edges accordingly
@@ -217,16 +328,16 @@ void Smesh::make_edges(bool is_planar)
         visited[f] = 1;
 
         auto &neis = F2F[f];
-        auto &edgs = F2E[f];
-        auto &face = F[f];
+        auto &pe = F2E[f];
+        auto &pn = Fc[f];
 
-        for (size_t j = 0; j < face.size(); j++) {
+        for (size_t j = 0; j < pn.size(); j++) {
             E_Int nei = neis[j];
             
-            E_Int p = face[j];
-            E_Int q = face[(j+1)%face.size()];
+            E_Int p = pn[j];
+            E_Int q = pn[(j+1)%pn.size()];
             
-            E_Int e = edgs[j];
+            E_Int e = pe[j];
             
             if (nei == -1) {
                 assert(E[e].p == p);
@@ -256,18 +367,18 @@ void Smesh::make_edges(bool is_planar)
 
     // Check
     for (E_Int i = 0; i < nf; i++) {
-        auto &face = F[i];
-        for (size_t j = 0; j < face.size(); j++) {
+        const auto &pn = Fc[i];
+        for (size_t j = 0; j < pn.size(); j++) {
             E_Int e = F2E[i][j];
-            E_Int p = face[j];
-            E_Int q = face[(j+1)%face.size()];
+            E_Int p = pn[j];
+            E_Int q = pn[(j+1)%pn.size()];
 
             if (E[e].p == p) {
                 assert(E[e].q == q);
-                assert(E2F[e][0] == (E_Int)i);
+                assert(E2F[e][0] == i);
             } else if (E[e].q == p) {
                 assert(E[e].p == q);
-                assert(E2F[e][1] == (E_Int)i);
+                assert(E2F[e][1] == i);
             } else {
                 assert(0);
             }
@@ -296,10 +407,9 @@ void Smesh::make_point_faces()
     P2F.clear();
     P2F.resize(np);
 
-    for (E_Int face = 0; face < nf; face++) {
-        const auto &cn = F[face];
-        for (auto p : cn)
-            P2F[p].push_back(face);
+    for (E_Int fid = 0; fid < nf; fid++) {
+        const auto &pn = Fc[fid];
+        for (auto p : pn) P2F[p].push_back(fid);
     }
 }
 
@@ -347,12 +457,14 @@ void Smesh::make_pnormals()
     
     // Point normals: aggregate of shared faces normals
 
+    assert(fnormals.size() == (size_t)(3*nf));
+
     for (E_Int pid = 0; pid < np; pid++) {
-        const auto &faces = P2F[pid];
+        const auto &pf = P2F[pid];
 
         E_Float *N = &pnormals[3*pid];
 
-        for (E_Int fid : faces) {
+        for (E_Int fid : pf) {
             E_Float *fN = &fnormals[3*fid];
             for (E_Int i = 0; i < 3; i++) N[i] += fN[i];
         }
@@ -360,86 +472,6 @@ void Smesh::make_pnormals()
         E_Float NORM = K_MATH::norm(N, 3);
 
         for (E_Int i = 0; i < 3; i++) N[i] /= NORM;
-    }
-}
-
-void Smesh::make_bbox()
-{
-    NX = 100;
-    NY = 100;
-    NZ = 100;
-    NXY = NX * NY;
-    NXYZ = NXY * NZ;
-
-    xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
-    xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
-
-    for (E_Int i = 0; i < np; i++) {
-        if (X[i] < xmin) xmin = X[i];
-        if (Y[i] < ymin) ymin = Y[i];
-        if (Z[i] < zmin) zmin = Z[i];
-        if (X[i] > xmax) xmax = X[i];
-        if (Y[i] > ymax) ymax = Y[i];
-        if (Z[i] > zmax) zmax = Z[i];
-    }
-
-    E_Float dx = xmax - xmin;
-    E_Float dy = ymax - ymin;
-    E_Float dz = zmax - zmin;
-
-    xmin = xmin - dx*0.01;
-    ymin = ymin - dy*0.01;
-    zmin = zmin - dz*0.01;
-    xmax = xmax + dx*0.01;
-    ymax = ymax + dy*0.01;
-    zmax = zmax + dz*0.01;
-
-    HX = (xmax - xmin) / NX;
-    HY = (ymax - ymin) / NY;
-    HZ = (zmax - zmin) / NZ;
-}
-
-void Smesh::hash_faces()
-{
-    bin_faces.clear();
-    bin_faces.resize(NXYZ);
-
-    for (E_Int fid = 0; fid < nf; fid++) {
-        const auto &pn = F[fid];
-
-        E_Int Imin, Jmin, Kmin;
-        E_Int Imax, Jmax, Kmax;
-
-        Imin = Jmin = Kmin = NXYZ;
-        Imax = Jmax = Kmax = -1;
-
-        for (E_Int p : pn) {
-            E_Float x = X[p];
-            E_Float y = Y[p];
-            E_Float z = Z[p];
-
-            E_Int I = floor((x - xmin) / HX);
-            E_Int J = floor((y - ymin) / HY);
-            E_Int K = floor((z - zmin) / HZ);
-
-            if (I < Imin) Imin = I;
-            if (J < Jmin) Jmin = J;
-            if (K < Kmin) Kmin = K;
-            if (I > Imax) Imax = I;
-            if (J > Jmax) Jmax = J;
-            if (K > Kmax) Kmax = K;
-        }
-
-        for (E_Int I = Imin; I <= Imax; I++) {
-            for (E_Int J = Jmin; J <= Jmax; J++) {
-                for (E_Int K = Kmin; K <= Kmax; K++) {
-                    E_Int voxel = get_voxel(I, J, K);
-                    assert(voxel >= 0);
-                    assert(voxel < NXYZ);
-                    bin_faces[voxel].push_back(fid);
-                }
-            }
-        }
     }
 }
 
@@ -472,3 +504,21 @@ void Smesh::compute_min_distance_between_points()
     assert(ndists == np*(np-1)/2);
 }
 
+void Smesh::clear()
+{
+    np = ne = nf = 0;
+    X.clear();
+    Y.clear();
+    Z.clear();
+    P2F.clear();
+    P2E.clear();
+    E.clear();
+    E2F.clear();
+    F.clear();
+    F2E.clear();
+    F2F.clear();
+    g2lp.clear();
+    l2gp.clear();
+    g2lf.clear();
+    l2gf.clear();
+}
