@@ -11,7 +11,6 @@ import RigidMotion.PyTree as R
 import Transform.PyTree as T
 import KCore.test as test
 import math, os
-import subprocess
 import numpy
 
 LOCAL = test.getLocal()
