@@ -18,7 +18,7 @@
 */
 #include "xcore.h"
 #include "common/common.h"
-#include "karray.h"
+#include "common/Karray.h"
 #include "mesh.h"
 #include "ray.h"
 #include "io.h"
@@ -63,9 +63,9 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
 
-    E_Float *Xs = sarray.X;
-    E_Float *Ys = sarray.Y;
-    E_Float *Zs = sarray.Z;
+    E_Float *Xs = sarray.x;
+    E_Float *Ys = sarray.y;
+    E_Float *Zs = sarray.z;
 
     // Last k-plane outside of M
     std::vector<E_Int> kmax(nij, -1);

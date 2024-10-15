@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "xcore.h"
-#include "karray.h"
+#include "common/Karray.h"
 #include "common/common.h"
 #include "mesh.h"
 #include "smesh.h"
@@ -312,7 +312,7 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     }
 
     // Init and orient master/slave meshes
-    IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
+    IMesh S(*sarray.cn, sarray.x, sarray.y, sarray.z, sarray.npts);
 
     M.make_skin();
     S.make_skin();

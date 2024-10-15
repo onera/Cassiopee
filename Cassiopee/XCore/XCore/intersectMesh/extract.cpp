@@ -1,5 +1,5 @@
 #include "mesh.h"
-#include "karray.h"
+#include "common/Karray.h"
 
 PyObject *K_XCORE::extractCell(PyObject *self, PyObject *args)
 {
@@ -19,7 +19,7 @@ PyObject *K_XCORE::extractCell(PyObject *self, PyObject *args)
 
     if (ret != 0) return NULL;
 
-    IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
+    IMesh M(*marray.cn, marray.x, marray.y, marray.z, marray.npts);
 
     IMesh M_out;
 
