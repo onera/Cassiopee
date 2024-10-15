@@ -53,39 +53,39 @@ SANITIZE="0"
 
 while getopts :hpsn:t:a: OPTION
 do
-     case $OPTION in
-         h)
-             echo 'ex: kpython -n 5 -t 2 script.py'
-             echo 'Run 5 processes with 2 threads.'
-             echo 'kpython -a "args": pass args to mpi run.'
-             echo 'kpython -s: use sanitize if compiled in debug.'    
-             exit 1
-             ;;
-         n)
-             if [[ ${OPTARG:0:1} == "p" ]]
-             then
+    case $OPTION in
+        h)
+            echo 'ex: kpython -n 5 -t 2 script.py'
+            echo 'Run 5 processes with 2 threads.'
+            echo 'kpython -a "args": pass args to mpi run.'
+            echo 'kpython -s: use sanitize if compiled in debug.'    
+            exit 1
+            ;;
+        n)
+            if [[ ${OPTARG:0:1} == "p" ]]
+            then
                 NPROCS=${OPTARG:1}
-             else
+            else
                 NPROCS=$OPTARG
-             fi
-             ;;
-         t)
-             NTHREADS=$OPTARG
-             ;;
-         a)
-             ARGS+=$OPTARG
-             ;;
-         p) 
-             ARGS+="-m cProfile -s tottime"
-             ;;
-         s) 
-             SANITIZE="1"
-             ;;
+            fi
+            ;;
+        t)
+            NTHREADS=$OPTARG
+            ;;
+        a)
+            ARGS+=$OPTARG
+            ;;
+        p) 
+            ARGS+="-m cProfile -s tottime"
+            ;;
+        s) 
+            SANITIZE="1"
+            ;;
         
-         \?)
-             PYARGS+=$OPTARG
-             ;;
-     esac
+        \?)
+            PYARGS+=$OPTARG
+            ;;
+    esac
 done
 shift $((OPTIND-1))
 # Remaining script name and arguments
@@ -94,15 +94,18 @@ SCRIPT=$*
 # Machine avec remote GL (utilisant virtual GL)
 if command -v xdpyinfo &> /dev/null
 then
-    xdpyinfo | grep VNC > /dev/null
-    if [ $? -eq 0 ]; then
-        cat $SCRIPT | grep "offscreen=1" > /dev/null
-        if [ $? -ne 0 ]; then
-            cat $SCRIPT | grep "offscreen=7" > /dev/null
+    xdpyinfo &> /dev/null
+    if [ $? == 0 ]; then
+        xdpyinfo | grep VNC &> /dev/null
+        if [ $? -eq 0 ]; then
+            cat $SCRIPT | grep "offscreen=1" > /dev/null
             if [ $? -ne 0 ]; then
-                cat $SCRIPT | grep "offscreen=5" > /dev/null
+                cat $SCRIPT | grep "offscreen=7" > /dev/null
                 if [ $? -ne 0 ]; then
-                    PYTHONEXE='vglrun '$PYTHONEXE
+                    cat $SCRIPT | grep "offscreen=5" > /dev/null
+                    if [ $? -ne 0 ]; then
+                        PYTHONEXE='vglrun '$PYTHONEXE
+                    fi
                 fi
             fi
         fi
