@@ -336,6 +336,10 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
             if z1 is not None:
                 walls = C.extractBCOfType(z1, 'BCWall')
                 walls1 += walls
+                walls = C.extractBCOfType(z1, 'BCWallExchange')
+                walls1 += walls
+                walls = C.extractBCOfType(z1, 'BCWallmodel')
+                walls1 += walls
 
         #C.convertPyTree2File(walls1, 'walls%d.cgns'%Cmpi.rank)
         walls1 = Cmpi.allgatherZones(walls1, coord=True, variables=['centers:cellN'])

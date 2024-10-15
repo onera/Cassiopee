@@ -453,16 +453,34 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
         if dimPb==2:
             T._addkplane(tzones)
             T._contract(tzones, (0,0,0), (1,0,0), (0,1,0), 0.01)
+            tbOneOver=T.addkplane(tbOneOver)
+            T._contract(tbOneOver, (0,0,0), (1,0,0), (0,1,0), 0.01)
 
         ##RECTILINEAR REGION
-        tbbB            = G.BB(tbOneOver)
-        NBases          = len(Internal.getBases(tbbB))
-        interDict_scale = X.getIntersectingDomains(tbbB, tzones)
-        for i in interDict_scale:
-            listSavetbOneOverTmp = []
-            for z in interDict_scale[i]: listSavetbOneOverTmp.append(z)
-            listSavetbOneOver.append(listSavetbOneOverTmp)
-
+        tzones2         = C.newPyTree(['Base', tzones])
+        NBases          = len(Internal.getBases(tbOneOver))
+        for i in Internal.getBases(tbOneOver):
+            checkOneOver = Internal.getNodeByName(i,".Solver#define")
+            granularityLocal = 0
+            if checkOneOver and  Internal.getNodeByName(checkOneOver, 'granularity'):
+                granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
+            if granularityLocal==1:
+                listSavetbOneOverTmp = []
+                C._initVars(tzones2, 'cellNOneOver', 1.)
+                X_IBM._blankByIBCBodies(tzones2, i, 'nodes', dimPb, cellNName='cellNOneOver')
+                
+                for z in Internal.getZones(tzones2):
+                    if C.getMinValue(z, 'cellNOneOver')<1:listSavetbOneOverTmp.append(z[0])
+                listSavetbOneOver.append(listSavetbOneOverTmp)
+            elif granularityLocal==0:
+                interDict_scale = X.getIntersectingDomains(G.BB(i), tzones)
+                listSavetbOneOverTmp = []
+                for j in interDict_scale:
+                    for z in interDict_scale[j]: listSavetbOneOverTmp.append(z)
+                    listSavetbOneOver.append(listSavetbOneOverTmp)
+                
+        del tzones2
+            
     if parento is None:
         ## Rectilinear mesh modifications
         ZONEStbOneOver    = None
@@ -497,19 +515,17 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
         # gather zones by parent octant
         if dimPb == 2:
             ZONES=[[],[],[],[]]; noct = 4;
-            ## Rectilinear mesh modifications
-            if tbOneOver:
-                ZONEStbOneOver    = [[],[],[],[]];
-                ZONEStbOneOverTmp = []
-                for i in range(NBases): ZONEStbOneOverTmp.append([[],[],[],[]])
-
         else:
             ZONES = [[],[],[],[],[],[],[],[]]; noct = 8 ;
-            ## Rectilinear mesh modifications
-            if tbOneOver:
-                ZONEStbOneOver    = [[],[],[],[],[],[],[],[]];
-                ZONEStbOneOverTmp = []
-                for i in range(NBases): ZONEStbOneOverTmp.append([[],[],[],[],[],[],[],[]])
+        ## Rectilinear mesh modifications
+        if tbOneOver:
+            ZONEStbOneOver    = []
+            ZONEStbOneOverTmp = []
+            for i in range(NBases):
+                if dimPb==2: ZONEStbOneOverTmp.append([[],[],[],[]])
+                else: ZONEStbOneOverTmp.append([[],[],[],[],[],[],[],[]])
+                ZONEStbOneOver.append([])
+                
         for z in zones:
             xminz = C.getValue(z,'CoordinateX',0)
             yminz = C.getValue(z,'CoordinateY',0)
@@ -546,7 +562,6 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
                 else:
                     if xmaxz < xmeano+eps: noo=2
                     else: noo=3
-                    
             if noo > -1:
                 if not any(z[0] in sublist for sublist in listSavetbOneOver): ZONES[noo].append(z)
                 else:
@@ -568,9 +583,8 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
                     if nzones > 1:
                         print('Merging %d Cartesian zones of subdomain %d - OneOverRegion # %d '%(nzones,noo,i))
                         ZONEStbOneOverTmp[i][noo] = mergeByParent__(ZONEStbOneOverTmp[i][noo], parento[noo], sizeMax)
-                        print('Nb of merged zones - OneOverRegion # %d : %d.' %(1,len(ZONEStbOneOverTmp[i][noo])))
-                    ZONEStbOneOver[noo].append(ZONEStbOneOverTmp[i][noo])
-                ZONEStbOneOver[noo]=sum(ZONEStbOneOver[noo],[])
+                        #C.convertPyTree2File(ZONEStbOneOverTmp[i][noo],'t_BaseTmp_'+str(i)+'_'+str(noo)+'.cgns')
+                        print('Nb of merged zones - OneOverRegion # %d : %d.' %(i,len(ZONEStbOneOverTmp[i][noo])))
         if dimPb == 3:
             ZONES0 = T.mergeCart(ZONES[0]+ZONES[4],sizeMax=sizeMax)# XM
             ZONES1 = T.mergeCart(ZONES[2]+ZONES[6],sizeMax=sizeMax)# XP
@@ -586,15 +600,15 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
             del ZONES2
             
             ## Rectilinear mesh modifications
-            if ZONEStbOneOver is not None:
+            if tbOneOver:
                 for i in range(NBases):
-                    ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ZONEStbOneOverTmp[i][2]+ \
-                                                       ZONEStbOneOverTmp[i][3]+ZONEStbOneOverTmp[i][4]+ZONEStbOneOverTmp[i][5]+ \
-                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7], sizeMax=sizeMax)
-                    zones +=ZONEStbOneOverTmp[i]
-            if ZONEStbOneOver is not None: del ZONEStbOneOverTmp
-            del ZONEStbOneOver
-            
+                    ZONEStbOneOver[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ZONEStbOneOverTmp[i][2]+ \
+                                                    ZONEStbOneOverTmp[i][3]+ZONEStbOneOverTmp[i][4]+ZONEStbOneOverTmp[i][5]+ \
+                                                    ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7], sizeMax=sizeMax)
+                    #C.convertPyTree2File(ZONEStbOneOver[i],'t_Base_'+str(i)+'.cgns')
+                    zones +=ZONEStbOneOver[i]
+                del ZONEStbOneOver
+                del ZONEStbOneOverTmp
         else: # dim=2
             ZONES[0] = T.mergeCart(ZONES[0]+ZONES[2],sizeMax=sizeMax)# XM
             ZONES[1] = T.mergeCart(ZONES[1]+ZONES[3],sizeMax=sizeMax)# XP
@@ -603,14 +617,14 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
             del ZONES
             
             ## Rectilinear mesh modifications
-            if ZONEStbOneOver is not None:
+            if tbOneOver:
                 for i in range(NBases):
-                    ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ \
-                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3], sizeMax=sizeMax)
-                    zones +=ZONEStbOneOverTmp[i]
+                    ZONEStbOneOver[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ \
+                                                    ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3], sizeMax=sizeMax)
+                    #C.convertPyTree2File(ZONEStbOneOver[i],'t_Base_'+str(i)+'.cgns')
+                    zones +=ZONEStbOneOver[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
-                      
     print('After merging: nb Cartesian zones=%d (ext. =%d).'%(len(zones),ext))
     # Cas ext=-1, ne fait pas les extensions ni les BCs ou raccords
     if ext == -1: return zones
@@ -798,30 +812,50 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     test.printMem(">>> cart grids --> rectilinear grids [start]")        
     listDone = []
     if tbOneOver:
+        test.printMem(">>> cart grids --> rectilinear grids [inside]")    
         tbb = G.BB(t)
 
         if dimPb==2:
             T._addkplane(tbb)
             T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
+            tbOneOver2=T.addkplane(tbOneOver)
+            T._contract(tbOneOver2, (0,0,0), (1,0,0), (0,1,0), 0.01)
 
         ## RECTILINEAR REGION
-        ## Select regions that need to be coarsened
-        tbbB            = G.BB(tbOneOver)
-        interDict_scale = X.getIntersectingDomains(tbbB, tbb)
-        ## Avoid a zone to be coarsened twice
-        for i in interDict_scale:
-            (b,btmp) = Internal.getParentOfNode(tbOneOver,Internal.getNodeByName(tbOneOver,i))
-            checkOneOver = Internal.getNodeByName(b,".Solver#define")
+        tzones2  = Internal.copyTree(tbb)
+        for i in Internal.getBases(tbOneOver2):
+            checkOneOver = Internal.getNodeByName(i,".Solver#define")
             if checkOneOver:
-                b        = Internal.getNodeByName(b,".Solver#define")
-                oneoverX = int(Internal.getNodeByName(b, 'dirx')[1])
-                oneoverY = int(Internal.getNodeByName(b, 'diry')[1])
-                oneoverZ = int(Internal.getNodeByName(b, 'dirz')[1])
-                for z in interDict_scale[i]:
-                    if z not in listDone:
-                        zLocal = Internal.getNodeFromName(t,z)
-                        T._oneovern(zLocal, (oneoverX,oneoverY,oneoverZ));
-                        listDone.append(z)
+                granularityLocal = 0
+                if Internal.getNodeByName(checkOneOver, 'granularity'):
+                    granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
+                oneoverX         = int(Internal.getNodeByName(checkOneOver, 'dirx')[1])
+                oneoverY         = int(Internal.getNodeByName(checkOneOver, 'diry')[1])
+                oneoverZ         = int(Internal.getNodeByName(checkOneOver, 'dirz')[1])
+                ## Select regions that need to be coarsened
+                if granularityLocal==1:
+                    C._initVars(tzones2, 'cellNOneOver', 1.)
+                    X_IBM._blankByIBCBodies(tzones2, i, 'nodes', dimPb, cellNName='cellNOneOver')
+                    
+                    for z in Internal.getZones(tzones2):
+                        if C.getMinValue(z, 'cellNOneOver')<1:
+                            if z[0] not in listDone:
+                                zLocal = Internal.getNodeFromName(t,z[0])
+                                T._oneovern(zLocal, (oneoverX,oneoverY,oneoverZ));
+                                ### Avoid a zone to be coarsened twice
+                                listDone.append(z[0])
+                elif granularityLocal==0:
+                     interDict_scale = X.getIntersectingDomains(G.BB(i), tbb)
+                     ## Avoid a zone to be coarsened twice
+                     for j in interDict_scale:
+                         for z in interDict_scale[j]:
+                             if z not in listDone:
+                                 zLocal = Internal.getNodeFromName(t,z)
+                                 T._oneovern(zLocal, (oneoverX,oneoverY,oneoverZ));
+                                 listDone.append(z)                     
+
+        del tzones2
+        
     test.printMem(">>> cart grids --> rectilinear grids [end]")     
 
     zones = Internal.getZones(t)

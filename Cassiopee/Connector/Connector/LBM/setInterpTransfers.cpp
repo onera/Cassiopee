@@ -647,6 +647,9 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
   FldArrayF  tmp(size*14*threadmax_sdm);
   E_Float* ipt_tmp = tmp.begin();
 
+  E_Float** RcvFields = new E_Float*[ nvars*threadmax_sdm];
+  E_Float** DnrFields = new E_Float*[ nvars*threadmax_sdm];
+
   // [LBM]
   E_Float meax       = 0;
   E_Float meay       = 0;
@@ -673,8 +676,9 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
     E_Int indD0, indD, i, j, k, ncfLoc/*, nocf*/, indCoef, noi, sizecoefs, /*Nbchunk,*/ imd, jmd, imdjmd;
 
     // [LBM ==> Q or Qstar]
-    vector<E_Float*> vectOfRcvFields(nvars);
-    vector<E_Float*> vectOfDnrFields(nvars);
+    vector<E_Float*> vectOfRcvFieldsLoc(nvars);
+    E_Float** vectOfRcvFields = RcvFields + nvars*(ithread-1);
+    E_Float** vectOfDnrFields = DnrFields + nvars*(ithread-1);
 
     // [LBM ==> Macro properties]
     vector<E_Float*> vectOfmacroRcvFields(nvars_macro_local);
@@ -773,8 +777,9 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
  	    else {
  	      imd= ipt_param_intR[ NoD ][ NIJK ]; jmd= ipt_param_intR[ NoD ][ NIJK+1];
  	      for (E_Int eq = 0; eq < nvars_loc; eq++){
+		vectOfRcvFieldsLoc[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
 		vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
-		vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
+        vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
  	      }
 	      
 	      // [LBM]
@@ -789,8 +794,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 		for (E_Int eq = 0; eq < nvars_loc; eq++){
  		  vectOfQneqRcvFields[eq] = ipt_Qneq_localR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
  		  vectOfQneqDnrFields[eq] = ipt_Qneq_localD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
-
-		  vectOfQm1DnrFields[eq]    = ipt_Qm1_localD[ NoD]  + eq*ipt_param_intR[ NoD ][ NDIMDX ];
+		  vectOfQm1DnrFields[eq]  = ipt_Qm1_localD[ NoD]  + eq*ipt_param_intR[ NoD ][ NDIMDX ];
 		}
 		for (E_Int eq = 0; eq < nvars_macro_local; eq++){
 		  vectOfmacrom1DnrFields[eq]= ipt_macrosm1_localD[NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
@@ -976,8 +980,8 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
  	      				    xPW    , xPW     +nbRcvPts, xPW     +nbRcvPts*2,
  	      				    xPI    , xPI     +nbRcvPts, xPI     +nbRcvPts*2, 
  	      				    densPtr, 
- 	      				    ipt_tmp, size,
-                            param_realLoc,
+ 	      				    ipt_tmp, size, nvars,
+                                            param_realLoc,
  	      				    vectOfDnrFields, vectOfRcvFields);
 		   }
  	      	else if (varType == 42){
@@ -1011,7 +1015,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 					    ipt_param_realR[ NoR ][ LBM_difcoef ],
 					    densPtr+shift_qstart, varType          , ipt_intrQ         , gamma_precon_inv,
 					    ipt_H2H3            , imd              , imdjmd            ,
-					    vectOfmacroRcvFields ,vectOfQneqRcvFields  ,vectOfRcvFields,
+					    vectOfmacroRcvFields ,vectOfQneqRcvFields  ,vectOfRcvFieldsLoc,
 					    vectOfcellNIBMRcvFields);
 
  		}
@@ -1043,7 +1047,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 					    ipt_param_realR[ NoR ][ LBM_difcoef ],
 					    densPtr+shift_qstart, varType          , ipt_intrQ         , gamma_precon_inv,
 					    ipt_H2H3            , imd              , imdjmd            ,
-					    vectOfmacroRcvFields ,vectOfQneqRcvFields  ,vectOfRcvFields,
+					    vectOfmacroRcvFields ,vectOfQneqRcvFields  ,vectOfRcvFieldsLoc,
 					    vectOfcellNIBMRcvFields );
 		  
 		}
@@ -1056,7 +1060,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 					     ipt_bcs , num_bcs      , densPtr+nbRcvPts*12,
  					     ipt_tmp , size         , meax,
 					     meay, meaz, 
- 					     vectOfRcvFields,vectOfQstarRcvFields);
+ 					     vectOfRcvFieldsLoc,vectOfQstarRcvFields);
  		}
 		else if (varType == 45){
 		  //printf("==== IBM Bouzidis et al. \n");
@@ -1068,7 +1072,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 					     ipt_bcs    , num_bcs      , densPtr+nbRcvPts*12,
  					     ipt_tmp    , size         , meax,
 					     meay, meaz, 
- 					     vectOfRcvFields,vectOfQstarRcvFields);
+ 					     vectOfRcvFieldsLoc,vectOfQstarRcvFields);
  		}
 		else if (varType == 46){
 		  //printf("==== IBM Mei \n");
@@ -1082,7 +1086,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 					     ipt_bcs          , num_bcs      , densPtr+nbRcvPts*12,
  					     ipt_tmp          , size         , meax,
 					     meay             , meaz         , 
- 					     vectOfRcvFields,vectOfQstarRcvFields,vectOfmacroRcvFields);
+ 					     vectOfRcvFieldsLoc,vectOfQstarRcvFields,vectOfmacroRcvFields);
  		}
 		else if (varType == 47){
 		  //printf("==== IBM Zhao \n");
@@ -1095,7 +1099,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 					     ipt_bcs    , num_bcs      , densPtr+nbRcvPts*12,
  					     ipt_tmp    , size         , meax,
 					     meay       , meaz         , 
- 					     vectOfRcvFields,vectOfQstarRcvFields);
+ 					     vectOfRcvFieldsLoc,vectOfQstarRcvFields);
  		}
 		
  	      }
@@ -1120,7 +1124,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
     fclose(outfile);
   }*/
   
-  
+  delete [] RcvFields; delete [] DnrFields;
   delete [] ipt_param_intR;
   delete [] ipt_roR;
   delete [] ipt_ndimdxD;

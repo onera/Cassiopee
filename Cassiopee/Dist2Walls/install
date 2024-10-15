@@ -35,7 +35,7 @@ if [ "$PRODMODE" = "" ]; then
 fi
 
 # Compilation et installation
-if [ $PRODMODE -le 1 ]; then
+if [ $PRODMODE -le 2 ]; then
     sconsf=`which scons`
     if [ "$OMP_NUM_THREADS" != "" ]; then
         export SCONSOPT="-j $OMP_NUM_THREADS"

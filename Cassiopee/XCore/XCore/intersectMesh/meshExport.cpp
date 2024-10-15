@@ -47,7 +47,7 @@ PyObject *IMesh::export_karray_periodic()
 
     for (const auto &fdat : new_fids) {
         E_Int ofid = fdat.first;
-        E_Int nfid = fdat.second;
+        //E_Int nfid = fdat.second;
 
         const auto &pn = F[ofid];
 

@@ -289,6 +289,13 @@ struct CPlotState
     volatile int    _mustExport, _isExporting;
     pthread_cond_t  unlocked_export;
 
+    bool odsRun; // true if ODS run
+    E_Int odsNSlits; // the number of slits
+    E_Int odsSlit; // the number of current slit for ODS
+    char* odsImage; // pointer to ODS final image
+    char* odsFrontImage; // pointer to ods front slit image
+    char* odsTopImage; // pointer to ods top slit image
+
     // Others
     E_Int fullScreen;  // 1: full screen, 0: window
     E_Int bgColor;     // background color

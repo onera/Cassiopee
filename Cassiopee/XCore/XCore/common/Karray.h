@@ -43,10 +43,6 @@ struct Karray {
     inline E_Int *ngon() const { return cn->getNGon(); }
     inline E_Int *nface() const { return cn->getNFace(); }
 
-    inline E_Float *X() const { return x; }
-    inline E_Float *Y() const { return y; }
-    inline E_Float *Z() const { return z; }
-
     inline E_Int *get_face(E_Int face, E_Int &np) const
     { return cn->getFace(face, np, ngon(), indpg()); }
 
@@ -54,7 +50,7 @@ struct Karray {
     { return cn->getElt(cell, nf, nface(), indph()); }
 
     inline E_Int orient_boundary()
-    { return K_CONNECT::orient_boundary_ngon(X(), Y(), Z(), *cn); }
+    { return K_CONNECT::orient_boundary_ngon(x, y, z, *cn); }
 
     inline E_Int build_parent_elements(E_Int *owner, E_Int *neigh)
     { return K_CONNECT::build_parent_elements_ngon(*cn, owner, neigh); }

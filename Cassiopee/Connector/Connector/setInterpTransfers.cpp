@@ -598,8 +598,11 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
     ipt_roR[irac]     = iptroR;
   }
 
-  vector<E_Float*> vectOfRcvFields(nvars);
-  vector<E_Float*> vectOfDnrFields(nvars);
+  E_Float** RcvFields = new E_Float*[ nvars];
+  E_Float** DnrFields = new E_Float*[ nvars];
+
+  E_Float** vectOfRcvFields = RcvFields;
+  E_Float** vectOfDnrFields = DnrFields;
 
   for  (E_Int irac=0; irac< nrac; irac++)
   {
@@ -727,7 +730,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
                     xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
                     xPI, xPI+nbRcvPts, xPI+nbRcvPts*2,
                     densPtr,
-                    ipt_tmp, size,
+                    ipt_tmp, size, nvars,
                     param_real,
                     vectOfDnrFields, vectOfRcvFields);
         else {printf("Warning: setInterpTransfers: varType must be 2 or 21 \n");}
@@ -739,6 +742,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
 
 
   delete [] ipt_ndimdxR; delete [] ipt_roR;
+  delete [] RcvFields; delete [] DnrFields;
 
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   RELEASESHAREDN(pyParam_int    , param_int    );
@@ -1033,6 +1037,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   FldArrayF  tmp(size*17*threadmax_sdm);
   E_Float* ipt_tmp = tmp.begin();
   
+  E_Float** RcvFields = new E_Float*[ (nvars+nvars_Pnt2)*threadmax_sdm];
+  E_Float** DnrFields = new E_Float*[              nvars*threadmax_sdm];
 
   //# pragma omp parallel default(shared)  num_threads(1)
 # pragma omp parallel default(shared)
@@ -1051,8 +1057,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
     E_Int indR, type;
     E_Int indD0, indD, i, j, k, ncfLoc/*, nocf*/, indCoef, noi, sizecoefs, /*Nbchunk,*/ imd, jmd, imdjmd;
 
-    vector<E_Float*> vectOfRcvFields(nvars+nvars_Pnt2);
-    vector<E_Float*> vectOfDnrFields(nvars);
+    E_Float** vectOfRcvFields = RcvFields + (nvars+nvars_Pnt2)*(ithread-1);
+    E_Float** vectOfDnrFields = DnrFields +  nvars*(ithread-1);
     
     //1ere pass_typ: IBC
     //2eme pass_typ: transfert
@@ -1071,6 +1077,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           irac_fin = ipt_param_int[ ech + 4 + it_target + timelevel ];
         }
 
+////# pragma omp for schedule(dynamic)
         for  (E_Int irac=irac_deb; irac< irac_fin; irac++)
         {
           E_Int irac_auto= irac-irac_deb;
@@ -1253,6 +1260,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                 else             { pt_deb = ideb; pt_fin = ideb;}
               }
 
+              // ATTENTION
+              //pt_deb = ideb; pt_fin = ifin;
 
               noi       = shiftDonor;                             // compteur sur le tableau d indices donneur
               indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
@@ -1333,7 +1342,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                                   xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
                                   xPI, xPI+nbRcvPts, xPI+nbRcvPts*2,
                                   densPtr, 
-                                  ipt_tmp, size,
+                                  ipt_tmp, size, nvars,
                                   ipt_param_realR[ NoR ],
                                   vectOfDnrFields, vectOfRcvFields);
 
@@ -1374,6 +1383,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
 
   delete [] ipt_param_intR; delete [] ipt_roR; delete [] ipt_ndimdxD; delete [] ipt_roD; delete [] ipt_cnd;
+  delete [] RcvFields; delete [] DnrFields;
 
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   RELEASESHAREDN(pydtloc        , dtloc        );

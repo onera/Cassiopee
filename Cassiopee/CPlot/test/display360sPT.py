@@ -5,7 +5,7 @@ import Generator.PyTree as G
 import Geom.PyTree as D
 import CPlot.PyTree as CPlot
 
-offscreen = 2
+offscreen = 1
 
 # Create model
 #a = G.cart((-4,-4,-4), (1,1,1), (9,9,9))

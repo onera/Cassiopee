@@ -480,9 +480,10 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 					     E_Float* xPW, E_Float* yPW, E_Float* zPW,
 					     E_Float* xPI, E_Float* yPI, E_Float* zPI, 
 					     E_Float* densPtr, 
-					     E_Float* tmp, E_Int& size,
+					     E_Float* tmp, E_Int& size, E_Int& nvars, 
 					     E_Float*  param_real,
-					     vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields,
+					     //vector<E_Float*>& vectOfDnrFields, vector<E_Float*>& vectOfRcvFields,
+					     E_Float** vectOfDnrFields, E_Float** vectOfRcvFields,
 					     E_Int nbptslinelets, E_Float* linelets, E_Int* indexlinelets)
 {
   E_Float Pr           = param_real[ PRANDT ];
@@ -721,8 +722,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float one_third = 1./3.;
   /* fin parametres loi de parois*/
 
-  E_Int nvars    = vectOfDnrFields.size();
-  E_Int nvarsRcv = vectOfRcvFields.size();
+  //E_Int nvars    = vectOfDnrFields.size();
+  //E_Int nvarsRcv = vectOfRcvFields.size();
 
   E_Float a0,a1,a2,b0,b1,b2,n0,n1,n2;
   E_Float t0,t1,t2;
@@ -3041,8 +3042,13 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   FldArrayF fieldROut(fr->getSize(), fr->getNfld(), ptrFieldOut, true);
   fieldROut = *fr;
 
-  vector<E_Float*> vectOfDnrFields;
-  vector<E_Float*> vectOfRcvFields;
+  //vector<E_Float*> vectOfDnrFields;
+  //vector<E_Float*> vectOfRcvFields;
+  E_Float** RcvFields = new E_Float*[ nvars*10];
+  E_Float** DnrFields = new E_Float*[ nvars*10];
+  E_Float** vectOfRcvFields = RcvFields;
+  E_Float** vectOfDnrFields = DnrFields;
+
   E_Int posvr, posvd;
   // Extrait les positions des variables a transferer
   E_Int nfoundvar = 0;
@@ -3061,8 +3067,10 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 		  posvr = K_ARRAY::isNamePresent(varname, varStringR);
 		  if (posvd != -1 && posvr != -1)
 		    {
-		      vectOfDnrFields.push_back(fd->begin(posvd+1));
-		      vectOfRcvFields.push_back(fieldROut.begin(posvr+1));
+		      vectOfDnrFields[nfoundvar]= fd->begin(posvd+1);
+		      vectOfRcvFields[nfoundvar]= fieldROut.begin(posvr+1);
+		      //vectOfDnrFields.push_back(fd->begin(posvd+1));
+		      //vectOfRcvFields.push_back(fieldROut.begin(posvr+1));
 		      nfoundvar += 1;
 		    }
 		}
@@ -3074,8 +3082,10 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
 		  posvr = K_ARRAY::isNamePresent(varname, varStringR);
 		  if (posvd != -1 && posvr != -1)
 		    {
-		      vectOfDnrFields.push_back(fd->begin(posvd+1));
-		      vectOfRcvFields.push_back(fieldROut.begin(posvr+1));
+		      vectOfDnrFields[nfoundvar]= fd->begin(posvd+1);
+		      vectOfRcvFields[nfoundvar]= fieldROut.begin(posvr+1);
+		      //vectOfDnrFields.push_back(fd->begin(posvd+1));
+		      //vectOfRcvFields.push_back(fieldROut.begin(posvr+1));
 		      nfoundvar += 1;
 		    }
 		}
@@ -3143,14 +3153,14 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
       setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
 				xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
 				density, 
-				ipt_tmp, size,
+				ipt_tmp, size, nvars,
 				param_real,
 				vectOfDnrFields, vectOfRcvFields);
     else {printf(" setIBCTransfers: only valid for vartype=2 or 21 \n");}
  
   } // Fin zone // omp
 
-
+  delete [] RcvFields;  delete [] DnrFields;
   // sortie
   RELEASESHAREDB(resr, arrayR, fr, cnr);
   RELEASESHAREDB(resd, arrayD, fd, cnd);
@@ -3245,7 +3255,11 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
 # include "IBC/extract_IBC.h"
 
   vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
-  vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
+
+  E_Float** RcvFields = new E_Float*[ nvars];
+  E_Float** DnrFields = new E_Float*[ nvars];
+  E_Float** vectOfRcvFields = RcvFields;
+  E_Float** vectOfDnrFields = DnrFields;
   E_Int* ptrcnd;
   char* eltTypeR; char* eltTypeD;
   //codage general (lent ;-) )
@@ -3402,7 +3416,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
       setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
 				xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
 				density, 
-				ipt_tmp, size,
+				ipt_tmp, size, nvars,
 				param_real,
 				vectOfDnrFields, vectOfRcvFields); 
 
@@ -3410,6 +3424,8 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
     else 
       {printf("Warning: _setIBCTransfers only valid for vartype=2 or 21 \n");}
   } // Fin zone // omp
+
+  delete [] RcvFields;  delete [] DnrFields;
   // sortie
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   BLOCKRELEASEMEM;
@@ -3686,7 +3702,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersForPressureGradientsOrder2(PyObject* self
   E_Float* gradzyP = gradzyPressF->begin();
   E_Float* gradzzP = gradzzPressF->begin();
 
-  vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
+  vector<E_Float*> fieldsR; vector<E_Float*> fieldsD;
   vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
   E_Int* ptrcnd;
   char* eltTypeR; char* eltTypeD;

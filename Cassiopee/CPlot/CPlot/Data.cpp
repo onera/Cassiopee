@@ -348,9 +348,9 @@ void Data::initState()
   ptrState->selectionStyle = 0;
   ptrState->colormap = 0;
   ptrState->colormapR1 = 0.;
-  ptrState->colormapG1 = 0.; 
+  ptrState->colormapG1 = 0.;
   ptrState->colormapB1 = 0.; 
-  ptrState->colormapR2 = 1.; 
+  ptrState->colormapR2 = 1.;
   ptrState->colormapG2 = 1.; 
   ptrState->colormapB2 = 1.;
   ptrState->colormapR3 = 0.5; 
@@ -385,6 +385,13 @@ void Data::initState()
   pthread_mutex_init(&ptrState->export_mutex, NULL);
   pthread_cond_init(&ptrState->unlocked_export, NULL);
   ptrState->_mustExport = 0;
+
+  ptrState->odsRun = false;
+  ptrState->odsNSlits = 0;
+  ptrState->odsSlit = 0;
+  ptrState->odsImage = NULL;
+  ptrState->odsFrontImage = NULL;
+  ptrState->odsTopImage = NULL;
 
   // Others
   ptrState->fullScreen = 0;
