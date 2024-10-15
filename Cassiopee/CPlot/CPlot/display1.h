@@ -19,7 +19,7 @@
   int bgColor, shadow, dof, offscreen, stereo, frameBuffer, panorama;
   E_Float lightOffsetX, lightOffsetY;
   E_Float dofPower, gamma; int toneMapping;
-  PyObject* posCamList; PyObject* posEyeList; PyObject* dirCamList; PyObject* exportList; // only for ODS
+  PyObject* posCamList; PyObject* posEyeList; PyObject* dirCamList; // only for ODS
   if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iddiidissOOiiOOO",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,

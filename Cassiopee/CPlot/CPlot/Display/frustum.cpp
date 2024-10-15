@@ -18,13 +18,14 @@
 */
 #include "../ViewInfo.h"
 #include "../Zone.h"
+#include <GL/gl.h>
 #include <math.h>
 #include <stdio.h>
 
-#define TOL 1.e-6
+#define TOL 1.e-4
 
 //=============================================================================
-// Compute frustum planes
+// Compute frustum planes from view
 //=============================================================================
 void computeFrustumPlanes(ViewInfo& view)
 {
@@ -154,6 +155,90 @@ void computeFrustumPlanes(ViewInfo& view)
   view.RightNx = -Nx;
   view.RightNy = -Ny;
   view.RightNz = -Nz;
+
+  //printf("Nx=%g; Ny=%g; Nz=%g; di=%g\n", view.RightNx, view.RightNy, view.RightNz, view.RightD);
+  //printf("Nx=%g; Ny=%g; Nz=%g; di=%g\n", view.LeftNx, view.LeftNy, view.LeftNz, view.LeftD);
+  //printf("Nx=%g; Ny=%g; Nz=%g; di=%g\n", view.TopNx, view.TopNy, view.TopNz, view.TopD);
+  //printf("Nx=%g; Ny=%g; Nz=%g; di=%g\n", view.BottomNx, view.BottomNy, view.BottomNz, view.BottomD);
+  //printf("Nx=%g; Ny=%g; Nz=%g; di=%g\n", view.NearNx, view.NearNy, view.NearNz, view.NearD);
+  //printf("Nx=%g; Ny=%g; Nz=%g; di=%g\n", view.FarNx, view.FarNy, view.FarNz, view.FarD);
+}
+
+// Compute frustum planes from view matrices
+void computeFrustumPlanes2()
+{
+  // need further check
+  float proj[16]; float mod[16];
+  glGetFloatv(GL_PROJECTION_MATRIX, proj);
+  glGetFloatv(GL_MODELVIEW_MATRIX, mod);
+
+  float clip[16];
+  clip[0] = mod[0] * proj[0] + mod[1] * proj[4] + mod[2] * proj[8] + mod[3] * proj[12];
+  clip[1] = mod[0] * proj[1] + mod[1] * proj[5] + mod[2] * proj[9] + mod[3] * proj[13];
+  clip[2] = mod[0] * proj[2] + mod[1] * proj[6] + mod[2] * proj[10] + mod[3] * proj[14];
+  clip[3] = mod[0] * proj[3] + mod[1] * proj[7] + mod[2] * proj[11] + mod[3] * proj[15];
+
+  clip[4] = mod[4] * proj[0] + mod[5] * proj[4] + mod[6] * proj[8] + mod[7] * proj[12];
+  clip[5] = mod[4] * proj[1] + mod[5] * proj[5] + mod[6] * proj[9] + mod[7] * proj[13];
+  clip[6] = mod[4] * proj[2] + mod[5] * proj[6] + mod[6] * proj[10] + mod[7] * proj[14];
+  clip[7] = mod[4] * proj[3] + mod[5] * proj[7] + mod[6] * proj[11] + mod[7] * proj[15];
+
+  clip[8] = mod[8] * proj[0] + mod[9] * proj[4] + mod[10] * proj[8] + mod[11] * proj[12];
+  clip[9] = mod[8] * proj[1] + mod[9] * proj[5] + mod[10] * proj[9] + mod[11] * proj[13];
+  clip[10] = mod[8] * proj[2] + mod[9] * proj[6] + mod[10] * proj[10] + mod[11] * proj[14];
+  clip[11] = mod[8] * proj[3] + mod[9] * proj[7] + mod[10] * proj[11] + mod[11] * proj[15];
+
+  clip[12] = mod[12] * proj[0] + mod[13] * proj[4] + mod[14] * proj[8] + mod[15] * proj[12];
+  clip[13] = mod[12] * proj[1] + mod[13] * proj[5] + mod[14] * proj[9] + mod[15] * proj[13];
+  clip[14] = mod[12] * proj[2] + mod[13] * proj[6] + mod[14] * proj[10] + mod[15] * proj[14];
+  clip[15] = mod[12] * proj[3] + mod[13] * proj[7] + mod[14] * proj[11] + mod[15] * proj[15];
+
+  struct Plane { float a, b, c, d; };
+  Plane planes[6];
+
+  // Right plane
+  planes[0].a = clip[3] - clip[0];
+  planes[0].b = clip[7] - clip[4];
+  planes[0].c = clip[11] - clip[8];
+  planes[0].d = clip[15] - clip[12];
+
+  // Left plane
+  planes[1].a = clip[3] + clip[0];
+  planes[1].b = clip[7] + clip[4];
+  planes[1].c = clip[11] + clip[8];
+  planes[1].d = clip[15] + clip[12];
+
+  // Top plane
+  planes[2].a = clip[3] - clip[1];
+  planes[2].b = clip[7] - clip[5];
+  planes[2].c = clip[11] - clip[9];
+  planes[2].d = clip[15] - clip[13];
+
+  // Bottom plane
+  planes[3].a = clip[3] + clip[1];
+  planes[3].b = clip[7] + clip[5];
+  planes[3].c = clip[11] + clip[9];
+  planes[3].d = clip[15] + clip[13];
+
+  // near plane
+  planes[4].a = clip[3] - clip[2];
+  planes[4].b = clip[7] - clip[6];
+  planes[4].c = clip[11] - clip[10];
+  planes[4].d = clip[15] - clip[14];
+
+  // far plane
+  planes[5].a = clip[3] + clip[2];
+  planes[5].b = clip[7] + clip[6];
+  planes[5].c = clip[11] + clip[10];
+  planes[5].d = clip[15] + clip[14];
+
+  //printf("a=%g; b=%g; c=%g; d=%g\n", planes[0].a, planes[0].b, planes[0].c, planes[0].d);
+  //printf("a=%g; b=%g; c=%g; d=%g\n", planes[1].a, planes[1].b, planes[1].c, planes[1].d);
+  //printf("a=%g; b=%g; c=%g; d=%g\n", planes[2].a, planes[2].b, planes[2].c, planes[2].d);
+  //printf("a=%g; b=%g; c=%g; d=%g\n", planes[3].a, planes[3].b, planes[3].c, planes[3].d);
+  //printf("a=%g; b=%g; c=%g; d=%g\n", planes[4].a, planes[4].b, planes[4].c, planes[2].d);
+  //printf("a=%g; b=%g; c=%g; d=%g\n", planes[5].a, planes[5].b, planes[5].c, planes[3].d);
+  return;
 }
 
 //=============================================================================
@@ -164,7 +249,7 @@ E_Int isInFrustum(Zone* z, ViewInfo& view)
 {
 #ifdef __MESA__
   // to avoid abusive clipping in osmesa
-  return 1;
+  //return 1;
 #endif
 
   E_Int out;
@@ -223,7 +308,7 @@ E_Int isInFrustum(Zone* z, ViewInfo& view)
   }
   if (out == 8) return 0;
   
-  // all points roght of righ plane
+  // all points right of right plane
   out = 0;
   for (E_Int k = 0; k < 8; k++)
   {
@@ -232,7 +317,7 @@ E_Int isInFrustum(Zone* z, ViewInfo& view)
   }
   if (out == 8) return 0;
   
-  // all points top of top plane
+  // all points above top plane
   out = 0;
   for (E_Int k = 0; k < 8; k++)
   {
@@ -241,7 +326,7 @@ E_Int isInFrustum(Zone* z, ViewInfo& view)
   }
   if (out == 8) return 0;
   
-  // all points bottom of bottom plane
+  // all points below bottom plane
   out = 0;
   for (E_Int k = 0; k < 8; k++)
   {

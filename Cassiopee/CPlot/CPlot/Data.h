@@ -615,6 +615,7 @@ void gmenuArrows(int key, int x, int y);
 
 // frustum
 void computeFrustumPlanes(ViewInfo& view);
+void computeFrustumPlanes2();
 int isInFrustum(Zone* z, ViewInfo& view);
 
 // files

@@ -453,7 +453,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
 
   char* varString;
   E_Int ni, nj, nk, res;
-  FldArrayF* array; FldArrayI* cn; char* eltType;
+  FldArrayI* cn; char* eltType;
   std::vector<FldArrayF*> frontImages(nangles);
   for (E_Int i = 0; i < nangles; i++)
   {
@@ -541,7 +541,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
     imb4[i] = botImages[i]->begin(7);
   }
 
-
   // final image pointers
   E_Float* final1 = final->begin(4); // r,g,b,a
   E_Float* final2 = final->begin(5);
@@ -553,16 +552,9 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
   else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
-  // fov of each cube image
-  E_Float fov = 90.;
-
-  E_Int nijl = nil*njl; // final image
-  E_Int nil1 = nil-1;
-  E_Int njl1 = njl-1;
   E_Int ni1 = ni-1; // cube image
   E_Int nj1 = nj-1;
-  //printf("ni=%d, nj=%d\n", ni, nj);
-
+  
   E_Int ind;
   
   // direct sliting
@@ -583,8 +575,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   //return Py_None;
 
   // transformation
-  E_Float theta = 0.;
-  E_Float x, y, z, scale, py, phi, ty;
+  E_Float y, z, scale, py, phi, ty;
 
   for (E_Int i = 0; i < nangles; i++)
   {
@@ -596,7 +587,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   
       ind = i + j*nil;
       
-      x = 0.;
       y = sin(phi); // entre -1 et 1
       z = cos(phi); // entre 0 et 0
 
@@ -646,15 +636,12 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
 void accumulateSlit(E_Int ni, E_Int nj, char* imf, char* imt, char* imb, 
                     E_Int i, E_Int nil, E_Int njl, char* imOut)
 {
-  E_Int nijl = nil*njl; // final image
-  E_Int nil1 = nil-1;
-  E_Int njl1 = njl-1;
   E_Int ni1 = ni-1; // slit image
   E_Int nj1 = nj-1;
   
   {
     E_Int ind;
-    E_Float scale, ty, py, phi, x, y, z;
+    E_Float scale, ty, py, phi, y, z;
 
     // 1D interpolation
     for (E_Int j = 0; j < njl; j++)
@@ -663,7 +650,6 @@ void accumulateSlit(E_Int ni, E_Int nj, char* imf, char* imt, char* imb,
       phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
       ind = i + (njl-j-1)*nil;
 
-      x = 0.;
       y = sin(phi); // entre -1 et 1
       z = cos(phi); // entre 0 et 0
 

@@ -75,7 +75,7 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
   // resolution
   GLuint fb, rb, db;
 #ifdef __SHADERS__
-  if (ptrState->offscreen == 2 || ptrState->offscreen == 3 || ptrState->offscreen == 4) // openGL offscreen rendering
+  if (ptrState->offscreen == 0 || ptrState->offscreen == 2 || ptrState->offscreen == 3 || ptrState->offscreen == 4) // openGL offscreen rendering
   { 
     glGenFramebuffersEXT(1, &fb);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
@@ -108,14 +108,14 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
   //  // Attach depth buffer to FBO
   //  glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER_EXT, db);
   //}
-  else if (ptrState->offscreen == 2) // opengl offscreen
+  else if (ptrState->offscreen == 0 || ptrState->offscreen == 2) // opengl offscreen
   {
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, exportWidth, exportHeight);
     // Attach depth buffer to FBO
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, db);
   }
 
-  if (ptrState->offscreen == 2 || ptrState->offscreen == 3 || ptrState->offscreen == 4) // opengl offscreen
+  if (ptrState->offscreen == 0 || ptrState->offscreen == 2 || ptrState->offscreen == 3 || ptrState->offscreen == 4) // opengl offscreen
   { 
     int status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
     if (status == GL_FRAMEBUFFER_COMPLETE_EXT)
