@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "xcore.h"
-#include "karray.h"
+#include "common/Karray.h"
 #include "common/common.h"
 #include "mesh.h"
 #include "smesh.h"
@@ -79,7 +79,7 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     // TODO(Imad): quasi-planar surfaces
 
     // Init master/slave meshes
-    IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
+    IMesh S(*sarray.cn, sarray.x, sarray.y, sarray.z, sarray.npts);
     S.make_skin();
 
     for (E_Int fid : S.skin) {

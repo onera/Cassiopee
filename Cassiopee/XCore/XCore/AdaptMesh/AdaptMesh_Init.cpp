@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Mesh.h"
-#include "Karray.h"
+#include "common/Karray.h"
 #include "common/mem.h"
 
 PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
