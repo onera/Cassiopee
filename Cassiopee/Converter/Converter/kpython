@@ -92,25 +92,25 @@ shift $((OPTIND-1))
 SCRIPT=$*
 
 # Machine avec remote GL (utilisant virtual GL)
-if command -v xdpyinfo &> /dev/null
-then
-    xdpyinfo &> /dev/null
-    if [ $? == 0 ]; then
-        xdpyinfo | grep VNC &> /dev/null
-        if [ $? -eq 0 ]; then
-            cat $SCRIPT | grep "offscreen=1" > /dev/null
-            if [ $? -ne 0 ]; then
-                cat $SCRIPT | grep "offscreen=7" > /dev/null
-                if [ $? -ne 0 ]; then
-                    cat $SCRIPT | grep "offscreen=5" > /dev/null
-                    if [ $? -ne 0 ]; then
-                        PYTHONEXE='vglrun '$PYTHONEXE
-                    fi
-                fi
-            fi
-        fi
-    fi
-fi
+#if command -v xdpyinfo &> /dev/null
+#then
+#    xdpyinfo &> /dev/null
+#    if [ $? == 0 ]; then
+#        xdpyinfo | grep VNC &> /dev/null
+#        if [ $? -eq 0 ]; then
+#            cat $SCRIPT | grep "offscreen=1" > /dev/null
+#            if [ $? -ne 0 ]; then
+#                cat $SCRIPT | grep "offscreen=7" > /dev/null
+#                if [ $? -ne 0 ]; then
+#                    cat $SCRIPT | grep "offscreen=5" > /dev/null
+#                    if [ $? -ne 0 ]; then
+#                        PYTHONEXE='vglrun '$PYTHONEXE
+#                    fi
+#                fi
+#            fi
+#        fi
+#    fi
+#fi
 
 if [ "$NTHREADS" = "0" ]
 then
