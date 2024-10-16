@@ -160,6 +160,10 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     d->ptrState->shootScreen = 0;
     gdisplay(); // build DL
     
+    // print current renderer
+    const char* renderer = (const char*)glGetString(GL_RENDERER);
+    printf("Renderer: %s\n", renderer);
+
     if (posCamList == Py_None)
     {
       //if (d->ptrState->stereo == 0) d->display();

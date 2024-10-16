@@ -1076,6 +1076,7 @@ def loadImageFiles(t, offscreen=0):
 
 #==============================================================================
 # subfunction of display 360. Display 6 views rotating over posCam.
+#==============================================================================
 def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     import KCore.Vector as Vector
     
@@ -1190,7 +1191,7 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     # Compute all front view vectors
     v1 = Vector.sub(posEye, posCam) # view vector
     vz = Vector.normalize(dirCam) # third view vector
-    v2 = Vector.cross(vz, v1) # second view vector
+    v2 = Vector.cross(v1, vz) # second view vector
     v2 = Vector.normalize(v2)
 
     import Geom.PyTree as D
@@ -1221,10 +1222,10 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
 
     # top image
     point = D.point(v1p)
-    point = T.rotate(point, (0,0,0), v2p, -90)
+    point = T.rotate(point, (0,0,0), v2p, +90)
     v1z = C.getValue(point, 'GridCoordinates', 0)
     point = D.point(dirCam)
-    point = T.rotate(point, (0,0,0), v2p, -90)
+    point = T.rotate(point, (0,0,0), v2p, +90)
     v2z = C.getValue(point, 'GridCoordinates', 0)
         
     posEye0 = Vector.add(v1z, posCam)
@@ -1241,10 +1242,10 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
 
     # bottom image
     point = D.point(v1p)
-    point = T.rotate(point, (0,0,0), v2p, 90)
+    point = T.rotate(point, (0,0,0), v2p, -90)
     v1z = C.getValue(point, 'GridCoordinates', 0)
     point = D.point(dirCam)
-    point = T.rotate(point, (0,0,0), v2p, 90)
+    point = T.rotate(point, (0,0,0), v2p, -90)
     v2z = C.getValue(point, 'GridCoordinates', 0)
         
     posEye0 = Vector.add(v1z, posCam)
@@ -1352,7 +1353,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     # Compute all front view vectors
     v1 = Vector.sub(posEye, posCam) # view vector
     vz = Vector.normalize(dirCam) # third view vector
-    v2 = Vector.cross(vz, v1) # second view vector
+    v2 = Vector.cross(v1, vz) # second view vector
     v2 = Vector.normalize(v2)
 
     import Geom.PyTree as D
@@ -1391,10 +1392,10 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
 
         # top image
         point = D.point(v1p)
-        point = T.rotate(point, (0,0,0), v2p, -90)
+        point = T.rotate(point, (0,0,0), v2p, +90)
         v1z = C.getValue(point, 'GridCoordinates', 0)
         point = D.point(dirCam)
-        point = T.rotate(point, (0,0,0), v2p, -90)
+        point = T.rotate(point, (0,0,0), v2p, +90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
         
         posEye0 = Vector.add(v1z, posCam)
@@ -1412,10 +1413,10 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
 
         # bottom image
         point = D.point(v1p)
-        point = T.rotate(point, (0,0,0), v2p, 90)
+        point = T.rotate(point, (0,0,0), v2p, -90)
         v1z = C.getValue(point, 'GridCoordinates', 0)
         point = D.point(dirCam)
-        point = T.rotate(point, (0,0,0), v2p, 90)
+        point = T.rotate(point, (0,0,0), v2p, -90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
         
         posEye0 = Vector.add(v1z, posCam)
@@ -1438,7 +1439,6 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
 # tentative only for osmesa
 def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift, kwargs):
 
-    import Converter.Mpi as Cmpi
     import KCore.Vector as Vector
     lkwargs = kwargs.copy()
 
@@ -1462,7 +1462,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
     # Compute all front view vectors
     v1 = Vector.sub(posEye, posCam) # view vector
     vz = Vector.normalize(dirCam) # third view vector
-    v2 = Vector.cross(vz, v1) # second view vector
+    v2 = Vector.cross(v1, vz) # second view vector
     v2 = Vector.normalize(v2)
 
     import Geom.PyTree as D
@@ -1493,10 +1493,10 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
         
         # top image
         point = D.point(v1p)
-        point = T.rotate(point, (0,0,0), v2p, -90)
+        point = T.rotate(point, (0,0,0), v2p, +90)
         v1z = C.getValue(point, 'GridCoordinates', 0)
         point = D.point(dirCam)
-        point = T.rotate(point, (0,0,0), v2p, -90)
+        point = T.rotate(point, (0,0,0), v2p, +90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
         
         posEye0 = Vector.add(v1z, posCam)
@@ -1509,10 +1509,10 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
         
         # bottom image
         point = D.point(v1p)
-        point = T.rotate(point, (0,0,0), v2p, 90)
+        point = T.rotate(point, (0,0,0), v2p, -90)
         v1z = C.getValue(point, 'GridCoordinates', 0)
         point = D.point(dirCam)
-        point = T.rotate(point, (0,0,0), v2p, 90)
+        point = T.rotate(point, (0,0,0), v2p, -90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
         
         posEye0 = Vector.add(v1z, posCam)
@@ -1549,7 +1549,7 @@ def display360(t, type360=0, **kwargs):
     offscreen = kwargs.get("offscreen", 1)
     stereo = kwargs.get("stereo", 0)
     stereoDist = kwargs.get("stereoDist", 0.07) # stereoDist is in real world distance
-    if stereo == 1: kwargs['stereo'] = 0
+    kwargs['stereo'] = 0 # force no anaglyph 
 
     # orthogonalisation de v1 et dirCam si ils ne sont pas orthos
     v1 = Vector.sub(posEye, posCam) # view vector
@@ -1567,9 +1567,9 @@ def display360(t, type360=0, **kwargs):
             panorama(export, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
 
-    elif stereo == 1: # stereo (ODS)
+    elif stereo == 1: # stereo ODS internal (only offscreen=1 or 7)
 
-        if offscreen == 2: raise ValueError("display360: stereo=1 only for osmesa."); return None
+        if offscreen != 1 and offscreen != 7: raise ValueError("display360: stereo=1 only for osmesa."); return None
 
         export1 = export.rsplit('.', 1)
         if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
@@ -1581,30 +1581,18 @@ def display360(t, type360=0, **kwargs):
         # right eye
         #stereoDist = 0. # forced to 0 for debug
         kwargs['export'] = export1
-        if offscreen == 2:
-            display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
-            if Cmpi.rank == 0:
-                panoramaODS(export1, exportRez, type360=type360)
-            Cmpi.barrier() # wait for completion
-        else:
-            display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
+        display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
 
         # left eye
         kwargs['export'] = export2
-        if offscreen == 2:
-            display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
-            if Cmpi.rank == 0:
-                panoramaODS(export2, exportRez, type360=type360)
-            Cmpi.barrier() # wait for completion
-        else:
-            display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
+        display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
         
         # stitch
         if Cmpi.rank == 0:
             panoramaStereo(export, export1, export2, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
 
-    else: # stereo = 2 (wrong stereo)
+    elif stereo == 2: # stereo = 2 (wrong stereo)
         export1 = export.rsplit('.', 1)
         if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
         else: export1 = export+'_1'
@@ -1624,6 +1612,68 @@ def display360(t, type360=0, **kwargs):
             panorama(export2, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
 
+        # stitch
+        if Cmpi.rank == 0:
+            panoramaStereo(export, export1, export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+    elif stereo == 3: # stereo = 3 (wrong stereo 2)
+        export1 = export.rsplit('.', 1)
+        if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
+        else: export1 = export+'_1'
+        export2 = export.rsplit('.', 1)
+        if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
+        else: export2 = export+'_2'
+
+        v1 = Vector.sub(posEye, posCam) # view vector
+        vz = Vector.normalize(dirCam) # third view vector
+        v2 = Vector.cross(v1, vz) # second view vector
+        v2 = Vector.normalize(v2)
+        dv = Vector.mul(stereoDist/2, v2)
+
+        # right eye
+        posCam0 = Vector.add(posCam, dv)
+        display360__(t, posCam0, posEye, dirCam, offscreen, exportRez, kwargs)
+        if Cmpi.rank == 0:
+            panorama(export1, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+        
+        # left eye
+        posCam0 = Vector.sub(posCam, dv)
+        display360__(t, posCam0, posEye, dirCam, offscreen, exportRez, kwargs)
+        if Cmpi.rank == 0:
+            panorama(export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+        # stitch
+        if Cmpi.rank == 0:
+            panoramaStereo(export, export1, export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+    elif stereo == 4: # stereo ODS external
+
+        export1 = export.rsplit('.', 1)
+        if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
+        else: export1 = export+'_1'
+        export2 = export.rsplit('.', 1)
+        if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
+        else: export2 = export+'_2'
+
+        # right eye
+        #stereoDist = 0. # forced to 0 for debug
+        kwargs['export'] = export1
+        display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
+        if Cmpi.rank == 0:
+            panoramaODS(export1, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+        # left eye
+        kwargs['export'] = export2
+        display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
+        if Cmpi.rank == 0:
+            panoramaODS(export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+        
         # stitch
         if Cmpi.rank == 0:
             panoramaStereo(export, export1, export2, exportRez, type360=type360)
@@ -1659,6 +1709,7 @@ def panorama(export, exportRez, type360=0):
     return a7
 
 # assemble 2 images panoramiques en une image panoramique stereo
+# export1: right, export2: left
 def panoramaStereo(export, export1, export2, exportRez, type360=0):
     import Generator.PyTree as G
     # assemble 2 panoramic images in a single stereo image
