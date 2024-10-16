@@ -2334,7 +2334,9 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
     dictOfCorrectedPtsByIBCType={}
     dictOfWallPtsByIBCType={}
     nzonesR = len(allInterpPts)
-
+    nameZone = ['IBM', 'Wall', 'Image']
+    tLocal3   = C.newPyTree(nameZone)
+    tLocal4   = C.newPyTree(nameZone)
     ## Ouput the IBM points that have a type 3 and type 4 projection			    
     if len(res)>3:
         allProjectPts = res[3]
@@ -2348,10 +2350,15 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             if type_3>0: _prepOutputProject__(outputProjection3, 3, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
             if type_4>0: _prepOutputProject__(outputProjection4, 4, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
         
-        if outputProjection3[0] and check: _writeOutputProject__(outputProjection3, 'projection3.cgns')
-        if outputProjection4[0] and check: _writeOutputProject__(outputProjection4, 'projection4.cgns')
-
-
+        if outputProjection3[0] and check: tLocal3=_writeOutputProject__(outputProjection3, tLocal3)
+        if outputProjection4[0] and check: tLocal4=_writeOutputProject__(outputProjection4, tLocal4)
+        
+        if check:
+            Cmpi.convertPyTree2File(tLocal3, 'projection3.cgns')
+            Cmpi.convertPyTree2File(tLocal4, 'projection4.cgns')
+    del tLocal3
+    del tLocal4
+    
     if len(res)>=3:
         allIndicesByIBCType = res[2]
         for noz in range(nzonesR):
@@ -4054,16 +4061,15 @@ def _prepOutputProject__(outputProjection, typeValue, arrayLocal, allCorrectedPt
     return None
 
 ## Write CGNS file with the IBM points that have a type 3 and type 4 projection
-def _writeOutputProject__(outputProjection, fileName):
+def _writeOutputProject__(outputProjection, tLocal):
     nameZone = ['IBM', 'Wall', 'Image']
-    tLocal = C.newPyTree(nameZone)
     for i in range(3):
         size     = len(outputProjection[i*3])
         coordxPC = numpy.array(outputProjection[i*3  ])
         coordyPC = numpy.array(outputProjection[i*3+1])
         coordzPC = numpy.array(outputProjection[i*3+2])        
         zone = G.cart((0,0,0),(1,1,1),(size,1,1))
-        zone[0] = nameZone[i]
+        zone[0] = nameZone[i]+"%"+str(Cmpi.rank)
         cont = Internal.getNodeFromName1(zone, Internal.__GridCoordinates__)
         XPC0 = Internal.getNodeFromName1(cont, 'CoordinateX')
         XPC0[1] = coordxPC        
@@ -4073,5 +4079,5 @@ def _writeOutputProject__(outputProjection, fileName):
         ZPC0[1] = coordzPC
         Internal.addChild(Internal.getNodeFromName(tLocal,nameZone[i]), zone, pos=-1) # at the end
     tLocal = C.convertArray2Node(tLocal)
-    Cmpi.convertPyTree2File(tLocal, fileName)
-    return None
+    Cmpi._setProc(tLocal, Cmpi.rank)
+    return tLocal
