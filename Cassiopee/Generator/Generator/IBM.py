@@ -1167,7 +1167,7 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01):
 
 def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
     """Predicts the final size of the mesh when extruding 2D to 3D in the z-direction.
-    Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
+    Usage: _projectMeshSize(t, NPas, span, dictNz, isCartesianExtrude)"""
     NP             = Cmpi.size
     rank           = Cmpi.rank
     NPTS           = numpy.zeros(NP, dtype=Internal.E_NpyInt)
@@ -1397,6 +1397,8 @@ def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10,
     return t, tb
 
 def checkCartesian(t, nghost=0):
+    """Checks if the provided mesh in Cartesian or Rectilinear.
+     Usage: checkCartesian(t, nghost)"""
     dimPb = Internal.getNodeFromName(t, 'EquationDimension')
     if dimPb is None: raise ValueError('prepareIBMData: EquationDimension is missing in input tree.')
     dimPb = Internal.getValue(dimPb)
@@ -1442,3 +1444,85 @@ def checkCartesian(t, nghost=0):
     if isCartesian==1:cartesian=True
     else:             cartesian=False
     return cartesian
+
+
+
+
+##Files saved here - are not current supported for modified dist2walls but can plug-in if necessary
+def _dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers', model='NSLaminar'):
+    import Dist2Walls.PyTree as DTW
+    if model == 'NSLaminar':
+        list_final_zones=[]
+        for z in Internal.getZones(t):
+            list_final_zones.append(z[0])
+        
+        tBB =G.BB(t)
+        tbBB=G.BB(tb)
+
+        ##PRT1 - Zones flagged by the intersection of the bounding boxes of t and tb
+        interDict = X.getIntersectingDomains(tBB, tbBB)    
+        zt       = []
+        zt_names = []
+        for i in interDict:
+            if interDict[i]:
+                zt.append(Internal.getNodeByName(t,i))
+                zt_names.append(i)
+        
+        if zt_names:
+            DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
+        del zt
+                
+        ###PRT2 - Zones flagged by the intersection of the bounding boxes of t and scaled version of tb
+        list_additional_zones = getZonesScaleUpDown__(tbBB,tBB,zt_names,dim=dim)
+               
+        ##PRT2
+        if list_additional_zones:        
+            zt=[]
+            for i in list_additional_zones:
+                zt.append(Internal.getNodeByName(t,i))
+            DTW._distance2Walls(zt, tb, type=type, signed=signed, dim=dim, loc=loc)
+            
+    else:
+        DTW._distance2Walls(t, tb, type=type, signed=signed, dim=dim, loc=loc)    
+        
+    return None
+        
+        
+def getZonesScaleUpDown__(tbBB, tBB, zt_names, diff_percent=0.15, sweep_num=4, scaleDirection=0, dim=2):
+    mean_tb=[]
+    for bb in Internal.getZones(tbBB): mean_tb.append(getMean__(bb))
+        
+    diff_percentz = diff_percent
+    if dim == 2: diff_percentz=0
+    
+    list_additional_zones=[]
+    list_additional_zonesCGNSFile=[]
+    for i in range(1, sweep_num+1):
+        if scaleDirection >= 0:            
+            tbBB_scale = T.scale(tbBB, factor=(1.0+i*diff_percent,1.0+i*diff_percent,1.0+i*diff_percentz))
+            _add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
+        if scaleDirection<=0:
+            tbBB_scale = T.scale(tbBB, factor=(1.0-i*diff_percent,1.0-i*diff_percent,1.0-i*diff_percentz))
+            _add2listAdditionalZones__(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
+
+    return list_additional_zones
+
+
+def getMean__(bb):
+    mean_local=[]
+    for i in ['CoordinateX', 'CoordinateY','CoordinateZ']: mean_local.append(C.getMeanValue(bb, i))
+    return mean_local
+
+
+def _add2listAdditionalZones__(list_additional_zones, tbBB_scale, tBB, mean_tb, zt_names):
+    count=0
+    for bb in Internal.getZones(tbBB_scale):
+        mean_tbscale=getMean__(bb)
+        T._translate(bb, (mean_tb[count][0]-mean_tbscale[0],mean_tb[count][1]-mean_tbscale[1],mean_tb[count][2]-mean_tbscale[2]))
+        
+        interDict_scale = X.getIntersectingDomains(tBB, bb)
+        for i in interDict_scale:
+            if interDict_scale[i] and i not in list_additional_zones and i not in zt_names:
+                list_additional_zones.append(i)
+        count += 1        
+    return None
