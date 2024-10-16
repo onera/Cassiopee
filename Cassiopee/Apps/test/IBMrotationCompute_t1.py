@@ -10,10 +10,12 @@ import FastS.PyTree as FastS
 import RigidMotion.PyTree as R
 import Transform.PyTree as T
 import KCore.test as test
-import math
+import math, os
 import numpy
 
 LOCAL = test.getLocal()
+
+from IBMrotation import *
 
 ## =======================
 ## =======================
@@ -46,8 +48,8 @@ numz2 = numz.copy()
 numz2['scheme'] = 'ausmpred'
 
 # load t, tc
-fileTIn ='/t.cgns'
-fileTcIn='/tc.cgns'
+fileTIn ='/tRotComp.cgns'
+fileTcIn='/tcRotComp.cgns'
 t,tc,ts,graph = Fast.load(LOCAL+fileTIn,LOCAL+fileTcIn)
 baseNameIBM   ='CARTESIAN_NEARBODY'
 baseNameBKGD  ='CARTESIAN_OFFBODY'
@@ -63,7 +65,7 @@ for n in [baseNameBKGD]:
 
 
 # load bodies
-tb = C.convertFile2PyTree(LOCAL+'/bodiesBlank.cgns')
+tb = C.convertFile2PyTree(LOCAL+'/bodiesBlankRotComp.cgns')
 
 # Warmup
 it0 = 0; time0 = 0.
@@ -200,3 +202,6 @@ test.testT(tc,2)
 #Cmpi.convertPyTree2File(t , LOCAL+'/t_restart.cgns')
 #Cmpi.convertPyTree2File(tc, LOCAL+'/tc_restart.cgns')
 
+os.remove(LOCAL+'/tRotComp.cgns')
+os.remove(LOCAL+'/tcRotComp.cgns')
+os.remove(LOCAL+'/bodiesBlankRotComp.cgns')
