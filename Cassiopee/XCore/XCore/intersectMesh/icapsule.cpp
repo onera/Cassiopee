@@ -344,6 +344,9 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     bfaces_list.reserve(sarrays.size());
 
     for (size_t i = 0; i < sarrays.size(); i++) {
+
+        printf("S%lu\n", i);
+
         // Create IMesh S
         IMesh S(sarrays[i]);
         S.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
@@ -361,7 +364,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
 
         // Locate Sf points on Mf faces
         auto plocs = Mf.locate(Sf);
-        Mf.correct_near_points_and_edges(Sf, plocs);
+        //Mf.correct_near_points_and_edges(Sf, plocs);
 
         // Correct AABB and Sf faces hash
         Sf.make_bbox();
@@ -369,15 +372,23 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
 
         // Extract the initial Mf faces that bound Sf
         auto bfaces = Mf.extract_bounding_faces(Sf, plocs);
+        //Mf.write_ngon("bounding_before", bfaces);
+
+        //Sf.write_ngon("Sf");
 
         // Refinement loop
         refine(Mf, bfaces, Sf, plocs);
+
+        //bfaces = Mf.extract_bounding_faces(Sf, plocs);
+        //Mf.write_ngon("bounding_after", bfaces);
 
         // Add Sf
         spatches.push_back(Sf);
 
         // Add plocs
         plocs_list.push_back(plocs);
+
+        puts("");
     }
 
     Mf.write_ngon("refined_Mf");

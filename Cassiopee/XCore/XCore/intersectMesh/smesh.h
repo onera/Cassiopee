@@ -110,10 +110,11 @@ struct Smesh {
         E_Float proj[3]) const;
     void compute_min_distance_between_points();
     void project(const Smesh &Mf, const std::vector<E_Int> &mpids,
-        std::vector<PointLoc> &plocs);
+        std::vector<PointLoc> &plocs) const;
+    void project_and_replace(Smesh &Mf, E_Int start) const;
     void ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
         E_Float dx, E_Float dy, E_Float dz, BVH_node *node,
-        std::vector<PointLoc> &plocs);
+        std::vector<PointLoc> &plocs) const;
     inline void compute_face_center(E_Int fid);
 
     // Hash
@@ -155,7 +156,9 @@ struct Smesh {
     void conformize();
     void get_edge_centers(E_Int p, E_Int q, std::list<E_Int> &edge_centers,
         E_Int left_right);
-    
+    std::vector<E_Int> deduce_ref_faces(const std::vector<E_Int> &mpids,
+        const std::vector<PointLoc> &plocs_m, const Smesh &Mf,
+        std::vector<E_Int> &ref_faces);
 
     // Topology
 

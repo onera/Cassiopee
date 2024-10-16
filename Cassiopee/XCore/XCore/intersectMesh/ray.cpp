@@ -89,7 +89,7 @@ bool ray_AABB_intersect(E_Float ox, E_Float oy, E_Float oz,
 }
 
 bool MollerTrumboreAnyDir(
-    E_Float px, E_Float py, E_Float pz,
+    E_Float ox, E_Float oy, E_Float oz,
     E_Float dx, E_Float dy, E_Float dz,
     E_Float ax, E_Float ay, E_Float az,
     E_Float bx, E_Float by, E_Float bz,
@@ -97,49 +97,33 @@ bool MollerTrumboreAnyDir(
     E_Float &u, E_Float &v, E_Float &w, E_Float &t,
     E_Float &x, E_Float &y, E_Float &z)
 {
-    E_Float e1x = bx - ax;
-    E_Float e1y = by - ay;
-    E_Float e1z = bz - az;
+    E_Float v1[3] = {bx-ax, by-ay, bz-az};
+    E_Float v2[3] = {cx-ax, cy-ay, cz-az};
 
-    E_Float e2x = cx - ax;
-    E_Float e2y = cy - ay;
-    E_Float e2z = cz - az;
-
-    E_Float pvecx = dy * e2z - dz * e2y;
-    E_Float pvecy = dz * e2x - dx * e2z;
-    E_Float pvecz = dx * e2y - dy * e2x;
-
-    E_Float det = e1x * pvecx + e1y * pvecy + e1z * pvecz;
-
-    if (det > -TOL && det < TOL) return false;
+    E_Float d[3] = {dx, dy, dz};
+    E_Float h[3];
+    K_MATH::cross(d, v2, h);
+    E_Float det = K_MATH::dot(v1, h, 3);
+    if (Sign(det) == 0) return false;
 
     E_Float inv_det = 1.0 / det;
 
-    E_Float tvecx = px - ax;
-    E_Float tvecy = py - ay;
-    E_Float tvecz = pz - az;
-
-    u = inv_det * (tvecx * pvecx + tvecy * pvecy + tvecz * pvecz);
-
+    E_Float s[3] = {ox-ax, oy-ay, oz-az};
+    u = K_MATH::dot(s, h, 3) * inv_det;
     if (u < -TOL || u > 1+TOL) return false;
 
-    E_Float qvecx = tvecy * e1z - tvecz * e1y;
-    E_Float qvecy = tvecz * e1x - tvecx * e1z;
-    E_Float qvecz = tvecx * e1y - tvecy * e1x;
-
-    v = inv_det * (dx * qvecx + dy * qvecy + dz * qvecz);
-
+    E_Float q[3];
+    K_MATH::cross(s, v1, q);
+    v = K_MATH::dot(d, q, 3) * inv_det;
     if (v < -TOL || v > 1+TOL) return false;
 
     w = 1 - u - v;
-
     if (w < -TOL || w > 1+TOL) return false;
 
-    t = inv_det * (e2x * qvecx + e2y * qvecy + e2z * qvecz);
-
-    x = px + t * dx;
-    y = py + t * dy;
-    z = pz + t * dz;
+    t = K_MATH::dot(v2, q, 3) * inv_det;
+    x = ox + t * dx;
+    y = oy + t * dy;
+    z = oz + t * dz;
 
     return true;
 }

@@ -107,25 +107,35 @@ std::vector<PointLoc> Smesh::locate(const Smesh &Sf) const
 
         bool found = false;
 
-        // w, u, v
         auto &loc = ploc[pid];
+
+        /*
+        if (pid == 371)
+            point_write("lost", x, y, z);
+        */
 
         for (size_t i = 0; i < pf.size() && !found; i++) {
             E_Int fid = pf[i];
             const auto &pn = Fc[fid];
             const E_Float *fc = &fcenters[3*fid];
 
-            //point_write("o", fc[0], fc[1], fc[2]);
-            //std::vector<E_Int> dummy;
-            //dummy.push_back(fid);
-            //write_ngon("fid", dummy);
-            
+            /*
+            if (pid == 371) {
+                write_face("fid", fid);
+                point_write("fc", fc[0], fc[1], fc[2]);
+            }
+            */
+
             for (size_t j = 0; j < pn.size(); j++) {
                 E_Int p = pn[j];
                 E_Int q = pn[(j+1)%pn.size()];
 
-                //point_write("p", X[p], Y[p], Z[p]);
-                //point_write("q", X[q], Y[q], Z[q]);
+                /*
+                if (pid == 371) {
+                    point_write("p", X[p], Y[p], Z[p]);
+                    point_write("q", X[q], Y[q], Z[q]);
+                }
+                */
 
                 E_Float u, v, w;
 
@@ -159,8 +169,8 @@ std::vector<PointLoc> Smesh::locate(const Smesh &Sf) const
         }
 
         if (!found) {
-            write_ngon("bin", pf);
             point_write("lost", x, y, z);
+            write_ngon("bin", pf);
         }
 
         assert(found);
