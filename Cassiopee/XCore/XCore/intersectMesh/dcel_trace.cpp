@@ -1,176 +1,16 @@
 #include "dcel.h"
 #include "smesh.h"
 #include "primitives.h"
-#include "hedge.h"
 #include "io.h"
-#include "event.h"
 
-bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,
-    E_Float dx, E_Float dy, E_Float dz,
-    E_Float px, E_Float py, E_Float pz,
-    E_Float qx, E_Float qy, E_Float qz,
-    E_Float &t, E_Float &u)
-{
-    E_Float v[3]= {px-ox, py-oy, pz-oz};
 
-    E_Float dl[3] = {qx-px, qy-py, qz-pz};
 
-    E_Float dr[3] = {dx, dy, dz};
 
-    /*
-    E_Float w[3];
-    K_MATH::cross(v, dl, w);
-    E_Float det = K_MATH::dot(w, dr, 3);
-
-    // ray and edge must be coplanar
-    if (Sign(det) != 0) return false;
-    */
-
-    // ray and edge must not be parallel
-    E_Float n[3];
-    K_MATH::cross(dr, dl, n);
-    E_Float denom = K_MATH::dot(n, n, 3);
-    if (Sign(denom) == 0) return false;
-
-    E_Float tmp[3];
-    K_MATH::cross(v, dl, tmp);
-
-    t = K_MATH::dot(tmp, n, 3) / denom;
-
-    if (t < TOL) return false;
-
-    K_MATH::cross(v, dr, tmp);
-
-    u = K_MATH::dot(tmp, n, 3) / denom;
-
-    if (u < -TOL || u > 1 + TOL) return false;
-
-    return true;
-}
-
-void Smesh::get_unit_projected_direction(E_Int fid, const E_Float D[3],
-    E_Float proj[3]) const
-{
-    assert(fid >= 0);
-    assert(fid < nf);
-
-    // Unit normal
-    const E_Float *fN = &fnormals[3*fid];
-
-    E_Float dp = K_MATH::dot(D, fN, 3); 
-
-    proj[0] = D[0] - dp * fN[0];
-    proj[1] = D[1] - dp * fN[1];
-    proj[2] = D[2] - dp * fN[2];
-    E_Float NORM = K_MATH::norm(proj, 3);
-    proj[0] /= NORM, proj[1] /= NORM, proj[2] /= NORM;
-}
-
-E_Int Smesh::deduce_face(const std::vector<E_Int> &pf,
-    E_Float ox, E_Float oy, E_Float oz, E_Float D[3], 
-    E_Int last_vertex, E_Int last_edge) const
-{
-    // Intersect the projection of D with all the faces in pf
-    // At least one intersection must exist
-    // Return the face with the earliest intersection
-
-    // For debugging
-    E_Int faces_hit = 0;
-
-    E_Float t_min = EFLOATMAX;
-    E_Int ret_face = -1;
-
-    for (auto fid : pf) {
-
-        // Compute the unit projection of D on this face
-
-        E_Float proj[3];
-        get_unit_projected_direction(fid, D, proj);
-
-        const auto &pn = Fc[fid];
-        const auto &pe = F2E[fid];
-        assert(pn.size() == pe.size());
-
-        for (size_t i = 0; i < pn.size(); i++) {
-
-            E_Int p = pn[i];
-            E_Int q = pn[(i+1)%pn.size()];
-            E_Int e = pe[i];
-
-            if (p == last_vertex || q == last_vertex || e == last_edge)
-                continue;
-
-            E_Float t, s;
-
-            bool hit = ray_edge_intersect(ox, oy, oz,
-                proj[0], proj[1], proj[2],
-                X[p], Y[p], Z[p],
-                X[q], Y[q], Z[q],
-                t, s
-            );
-
-            if (hit) {
-                faces_hit += 1;
-
-                if (t < t_min) {
-                    t_min = t;
-                    ret_face = fid;
-                }
-
-                // Hit an edge of the face, stop
-                break;
-            }
-        }
-    }
-
-    // We must have hit a face
-    assert(faces_hit > 0);
-
-    return ret_face;
-}
-
-void Smesh::get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
-    E_Int &pid, E_Int &eid) const
-{
-    ret.clear();
-
-    E_Int fid = loc.fid;
-    assert(fid != -1);
-
-    // TODO(Imad): e_idx is no good!!!!
-
-    if (loc.e_idx != -1) {
-        assert(loc.v_idx == -1);
-        const auto &pe = F2E[fid];
-        eid = pe[loc.e_idx];
-        const auto &pf = E2F[eid];
-        assert(pf[0] == fid || pf[1] == fid);
-        ret.push_back(pf[0]);
-        // O could be on a boundary edge
-        if (pf[1] != -1) ret.push_back(pf[1]);
-    }
-    else if (loc.v_idx != -1) {
-        assert(loc.e_idx == -1);
-        const auto &pn = Fc[fid];
-        pid = pn[loc.v_idx];
-        const auto &pf = P2F[pid];
-        // For consistency
-        bool found_fid = false;
-        for (auto face : pf) {
-            ret.push_back(face);
-            if (face == fid) {
-                found_fid = true;
-            }
-        }
-        assert(found_fid == true);
-    }
-    else {
-        ret.push_back(fid);
-    }
-}
 
 E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
 {
+    assert(0);
+    /*
     Vertex *O = sh->orig;
     Vertex *T = sh->twin->orig;
     E_Float D[3] = {T->x-O->x, T->y-O->y, T->z-O->z};
@@ -381,6 +221,7 @@ E_Int Dcel::trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid)
     }
 
     assert(found_tail);
+    */
 
     return 0;
 }

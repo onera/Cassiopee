@@ -79,13 +79,14 @@ struct Smesh {
     // Constructors
 
     Smesh();
-    Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool is_planar=true);
+    Smesh(const Smesh &Mf, const std::set<E_Int> &fids, bool check_Euler=true);
+    Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool check_Euler=true);
     static Smesh Smesh_from_point_tags(const IMesh &M, const E_Float *ptag,
-        bool is_planar=true);
+        bool check_Euler=true);
     static Smesh Smesh_from_mesh_skin(const IMesh &M,
-        const std::vector<E_Int> &skin, bool is_planar=true);
+        const std::vector<E_Int> &skin, bool check_Euler=true);
     static Smesh Smesh_from_mesh_patch(const IMesh &M,
-        bool is_planar=true);
+        bool check_Euler=true);
     //Smesh(const IMesh &M, const std::vector<E_Int> &faces);
     void make_edges();
     void clear();
@@ -162,7 +163,7 @@ struct Smesh {
 
     // Topology
 
-    bool is_planar = true;
+    bool check_Euler = true;
 
     std::set<E_Int> extract_bounding_faces(const Smesh &Sf,
         const std::vector<PointLoc> &plocs) const;
@@ -171,7 +172,7 @@ struct Smesh {
         E_Int last_vertex, E_Int last_edge) const;
     void get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
         E_Int &pid, E_Int &eid) const;
-    Smesh extract_smesh(const std::set<E_Int> &fids, bool is_planar=true);
+    Smesh extract_smesh(const std::set<E_Int> &fids, bool check_Euler=true);
     Smesh extract_conformized();
 
     // IO

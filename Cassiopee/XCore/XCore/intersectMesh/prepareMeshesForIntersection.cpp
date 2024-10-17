@@ -22,15 +22,12 @@
 #include "mesh.h"
 #include "smesh.h"
 #include "dcel.h"
-#include "vertex.h"
-#include "face.h"
-#include "hedge.h"
 #include "io.h"
-#include "cycle.h"
 #include "triangle.h"
 
 PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
 {
+    /*
     PyObject *MASTER, *SLAVE, *TAG;
   
     if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVE, &TAG)) {
@@ -164,4 +161,6 @@ PyObject *K_XCORE::prepareMeshesForIntersection(PyObject *self, PyObject *args)
     Py_DECREF(TAG);
 
     return Out;
+    */
+    return Py_None;
 }

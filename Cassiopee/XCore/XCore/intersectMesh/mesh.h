@@ -27,7 +27,7 @@
 #include "point.h"
 #include "xcore.h"
 #include "common/common.h"
-#include "triangleIntersection.h"
+#include "triangle.h"
 #include "AABB.h"
 #include "smesh.h"
 

@@ -20,6 +20,20 @@
 #include "primitives.h"
 #include "AABB.h"
 
+E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
+    const E_Float fN[3], E_Float px, E_Float py, E_Float pz)
+{
+    E_Float w[3] = {px-o[0], py-o[1], pz-o[2]};
+    E_Float c[3];
+    K_MATH::cross(d, w, c);
+    E_Float dp = K_MATH::dot(c, fN, 3);
+    // TODO(Imad): needs FEA + float128
+    E_Int cmp = Sign(dp);
+    if (cmp > 0) return 1;
+    if (cmp < 0) return -1;
+    return 0;
+}
+
 bool ray_AABB_intersect(E_Float ox, E_Float oy, E_Float oz,
     E_Float dx, E_Float dy, E_Float dz,
     const AABB &box)
@@ -183,12 +197,18 @@ E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
     return 0;
 }
 
-Ray::Ray(Point O, Vec3 D)
+/*
+Ray::Ray(Point O, E_Float D[3])
 : org(O), dir(D)
 {
-    E_Float adx = fabs(dir[0]);
-    E_Float ady = fabs(dir[1]);
-    E_Float adz = fabs(dir[2]);
+    org.x = O.x;
+    org.y = O.y;
+    org.z = O.z;
+
+
+    E_Float adx = fabs(dir.x);
+    E_Float ady = fabs(dir.y);
+    E_Float adz = fabs(dir.z);
 
     if (adx > ady && adx > adz) kz = 0;
     else if (ady > adz) kz = 1;
@@ -271,3 +291,4 @@ E_Int Ray::intersect_triangle(const Point &a, const Point &b, const Point &c,
 
     return 1;
 }
+*/

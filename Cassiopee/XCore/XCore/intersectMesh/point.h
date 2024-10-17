@@ -18,9 +18,11 @@
 */
 #pragma once
 
-#include "vec3.h"
+#include "xcore.h"
 
-typedef Vec3 Point;
+struct Point {
+    E_Float x, y, z;
+};
 
 struct PointLoc {
     E_Int fid = -1;

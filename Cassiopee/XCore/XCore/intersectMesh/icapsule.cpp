@@ -1,321 +1,11 @@
+#include <queue>
+
 #include "icapsule.h"
 #include "common/Karray.h"
 #include "point.h"
 #include "io.h"
 #include "primitives.h"
-#include <queue>
-
-E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
-    const E_Float fN[3], E_Float px, E_Float py, E_Float pz)
-{
-    E_Float w[3] = {px-o[0], py-o[1], pz-o[2]};
-    E_Float c[3];
-    K_MATH::cross(d, w, c);
-    E_Float dp = K_MATH::dot(c, fN, 3);
-    // TODO(Imad): needs FEA + float128
-    E_Int cmp = Sign(dp);
-    if (cmp > 0) return 1;
-    if (cmp < 0) return -1;
-    return 0;
-}
-
-void Smesh::correct_near_points_and_edges(Smesh &Sf,
-    std::vector<PointLoc> &plocs)
-{
-    E_Int on_vertex = 0, on_edge = 0;
-    for (size_t i = 0; i < plocs.size(); i++) {
-        auto &ploc = plocs[i];
-
-        E_Int fid = ploc.fid;
-        assert(fid < nf);
-        const auto &pn = Fc[fid];
-
-        if (ploc.v_idx != -1) {
-            on_vertex++;
-            E_Int p = pn[ploc.v_idx];
-            E_Float dx = X[p]-Sf.X[i];
-            E_Float dy = Y[p]-Sf.Y[i];
-            E_Float dz = Z[p]-Sf.Z[i];
-            E_Float dist = dx*dx + dy*dy + dz*dz;
-            if (dist >= Sf.min_pdist_squared) {
-                fprintf(stderr, "Tight near-vertex situation!\n");
-                point_write("mpoint", X[p], Y[p], Z[p]);
-                point_write("spoint", Sf.X[i], Sf.Y[i], Sf.Z[i]);
-                assert(0);
-            } else {
-                Sf.X[i] = X[p];
-                Sf.Y[i] = Y[p];
-                Sf.Z[i] = Z[p];
-            }
-        } else if (ploc.e_idx != -1) {
-            on_edge++;
-            E_Float u = ploc.bcrd[0];
-            E_Float v = ploc.bcrd[1];
-            E_Float w = ploc.bcrd[2];
-            assert(Sign(w, NEAR_EDGE_TOL) == 0);
-            u += w;
-            assert(Sign(u+v-1) == 0);
-            E_Int p = pn[ploc.e_idx];
-            E_Int q = pn[(ploc.e_idx+1)%pn.size()];
-            Sf.X[i] = u*X[p] + v*X[q];
-            Sf.Y[i] = u*Y[p] + v*Y[q];
-            Sf.Z[i] = u*Z[p] + v*Z[q];
-        }
-    }
-    printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
-}
-
-std::set<E_Int> ewalls;
-std::set<E_Int> fwalls;
-std::vector<Point> pchains;
-
-std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
-    const std::vector<PointLoc> &plocs) const
-{
-    // Get boundary edges from spatch
-    std::set<E_Int> bedges;
-    for (size_t i = 0; i < Sf.E2F.size(); i++) {
-        const auto &pf = Sf.E2F[i];
-        assert(pf[0] != -1);
-        if (pf[1] == -1) bedges.insert(i);
-    }
-    size_t nbedges = bedges.size();
-
-    // Make the boundary point chain
-    std::vector<E_Int> pchain;
-
-    E_Int first_edge = *bedges.begin();
-
-    pchain.push_back(Sf.E[first_edge].p);
-    pchain.push_back(Sf.E[first_edge].q);
-
-    bedges.erase(first_edge);
-
-    E_Int current_point = pchain[1];
-
-    while (pchain.size() < nbedges) {
-        E_Int to_delete = -1;
-        for (auto e : bedges) {
-            if (Sf.E[e].p == current_point) {
-                pchain.push_back(Sf.E[e].q);
-                current_point = pchain.back();
-                to_delete = e;
-                break;
-            } else if (Sf.E[e].q == current_point) {
-                pchain.push_back(Sf.E[e].p);
-                current_point = pchain.back();
-                to_delete = e;
-                break;
-            }
-        }
-        assert(to_delete != -1);
-        bedges.erase(to_delete);
-    }
-
-    assert(pchain.size() == nbedges);
-
-    // Sort the pchain counterclockwise
-    E_Int a = pchain[0], b = pchain[1], c = pchain[2];
-    E_Float ux = Sf.X[b] - Sf.X[a];
-    E_Float uy = Sf.Y[b] - Sf.Y[a];
-    E_Float uz = Sf.Z[b] - Sf.Z[a];
-    E_Float vx = Sf.X[c] - Sf.X[b];
-    E_Float vy = Sf.Y[c] - Sf.Y[b];
-    E_Float vz = Sf.Z[c] - Sf.Z[b];
-    E_Float cp[3] = {uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx};
-    // TODO(Imad): inherit fnormals
-    const E_Float *N_b = &fnormals[3*plocs[b].fid];
-    E_Float dp = K_MATH::dot(cp, N_b, 3);
-    E_Int cmp = Sign(dp);
-    assert(cmp != 0);
-    if (cmp < 0) std::reverse(pchain.begin(), pchain.end());
-
-    Sf.write_points("pchain", pchain);
-
-    for (E_Int p : pchain) pchains.push_back({Sf.X[p], Sf.Y[p], Sf.Z[p]});
-
-    std::set<E_Int> wfids;
-    std::set<E_Int> weids;
- 
-    for (size_t i = 0; i < pchain.size(); i++) {
-        E_Int p = pchain[i];
-        E_Int q = pchain[(i+1)%pchain.size()];
-
-        E_Float px = Sf.X[p], py = Sf.Y[p], pz = Sf.Z[p];
-        E_Float qx = Sf.X[q], qy = Sf.Y[q], qz = Sf.Z[q];
-
-        //point_write("p", px, py, pz);
-        //point_write("q", qx, qy, qz);
-
-        E_Float D[3] = {qx-px, qy-py, qz-pz};
-        E_Float NORM = K_MATH::norm(D, 3);
-        D[0] /= NORM, D[1] /= NORM, D[2] /= NORM;
-
-        std::vector<E_Int> orig_faces;
-        std::vector<E_Int> tail_faces;
-
-        E_Int last_vertex = -1, last_edge = -1, dummy;
-
-        get_shared_faces(plocs[p], orig_faces, last_vertex, last_edge); 
-        get_shared_faces(plocs[q], tail_faces, dummy, dummy);
-
-        E_Int starting_face = deduce_face(orig_faces, px, py, pz,
-            D, last_vertex, last_edge);
-        assert(starting_face != -1);
-
-        bool found_tail = false;
-        E_Int cur_fid = starting_face;
-        E_Float cur_pos[3] = {px, py, pz};
-
-        E_Int walk = 0;
-        E_Int max_walks = 20;
-
-        while (!found_tail && walk <= max_walks) {
-            
-            wfids.insert(cur_fid);
-
-            //write_face("cur_fid", cur_fid);
-
-            E_Float proj[3];
-            get_unit_projected_direction(cur_fid, D, proj);
-
-            const auto &pn = Fc[cur_fid];
-            const auto &pe = F2E[cur_fid];
-            assert(pe.size() == pn.size());
-            const E_Float *fN = &fnormals[3*cur_fid];
-
-            // First pass: define the wall data
-            for (size_t i = 0; i < pn.size(); i++) {
-                E_Int p = pn[i];
-                E_Int q = pn[(i+1)%pn.size()];
-                E_Int e = pe[i];
-                E_Float px = X[p], py = Y[p], pz = Z[p];
-                E_Float qx = X[q], qy = Y[q], qz = Z[q];
-                if (ray_point_orient(cur_pos, proj, fN, px, py, pz) <= 0 ||
-                    ray_point_orient(cur_pos, proj, fN, qx, qy, qz) <= 0) {
-                    weids.insert(e);
-                }
-            }
-
-            //write_edges("wall", weids);
-
-            for (auto fid : tail_faces) {
-                if (fid == cur_fid) {
-                    found_tail = true;
-                    break;
-                }
-            }
-
-            if (found_tail) break;
-
-            E_Int next_fid = -1;
-            E_Float next_pos[3] = {EFLOATMAX, EFLOATMAX, EFLOATMAX};
-
-            bool hit = false;
-            
-            for (size_t i = 0; i < pn.size(); i++) {
-                E_Int p = pn[i];
-                E_Int q = pn[(i+1)%pn.size()];
-                E_Int e = pe[i];
-
-
-                if (p == last_vertex || q == last_vertex || e == last_edge)
-                    continue;
-                
-                E_Float px = X[p], py = Y[p], pz = Z[p];
-                E_Float qx = X[q], qy = Y[q], qz = Z[q];
-            
-                E_Float t, s;
-                hit = ray_edge_intersect(
-                    cur_pos[0], cur_pos[1], cur_pos[2],
-                    proj[0], proj[1], proj[2],
-                    px, py, pz, qx, qy, qz,
-                    t, s
-                );
-
-                if (hit) {
-                    if (s > TOL && s < 1 - TOL) {
-                        const auto &pe = F2E[cur_fid];
-                        E_Int eid = pe[i];
-                        last_edge = eid;
-                        last_vertex = -1;
-                        assert(E2F[eid][0] == cur_fid || E2F[eid][1] == cur_fid);
-                        if (E2F[eid][0] == cur_fid) next_fid = E2F[eid][1];
-                        else next_fid = E2F[eid][0];
-
-                        next_pos[0] = cur_pos[0] + t * proj[0];
-                        next_pos[1] = cur_pos[1] + t * proj[1];
-                        next_pos[2] = cur_pos[2] + t * proj[2];
-                    } else {
-                        bool hit_p = (s <= TOL);
-                        bool hit_q = (s >= 1 - TOL);
-                        assert(!(hit_p && hit_q));
-                        last_edge = -1;
-                        if (hit_p) last_vertex = p;
-                        else last_vertex = q;
-                        next_pos[0] = X[last_vertex];
-                        next_pos[1] = Y[last_vertex];
-                        next_pos[2] = Z[last_vertex];
-                        const auto &pf = P2F[last_vertex];
-                        next_fid = deduce_face(pf,
-                            next_pos[0], next_pos[1], next_pos[2],
-                            D, last_vertex, last_edge
-                        );
-                        assert(next_fid != -1);
-                    }
-                    break;
-                }
-            }
-
-            assert(hit);
-            assert(next_fid != cur_fid);
-            cur_fid = next_fid;
-            cur_pos[0] = next_pos[0];
-            cur_pos[1] = next_pos[1];
-            cur_pos[2] = next_pos[2];
-            walk++;
-        }
-
-        assert(found_tail);
-        assert(walk <= max_walks);
-    }
-
-    // TODO(Imad): project wpids on best-fit plane and jarvis march
-
-    // BFS to get the smesh mpids
-    std::queue<E_Int> Q;
-    for (E_Int fid : wfids) Q.push(fid);
-
-    //write_ngon("fwall_before_BFS", wfids);
-
-    while (!Q.empty()) {
-        E_Int fid = Q.front();
-        Q.pop();
-
-        const auto &neis = F2F[fid];
-        const auto &pe = F2E[fid];
-
-        for (size_t i = 0; i < pe.size(); i++) {
-            E_Int eid = pe[i];
-            if (weids.find(eid) != weids.end()) continue;
-            E_Int nei = neis[i];
-            if (wfids.find(nei) == wfids.end()) {
-                wfids.insert(nei);
-                Q.push(nei);
-            }
-        }
-    }
-
-    //write_ngon("fwall_after_BFS", wfids);
-
-    //write_ngon("fwall", wfids);
-    //write_edges("ewall", weids);
-
-    for (E_Int eid : weids) ewalls.insert(eid);
-    for (E_Int fid : wfids) fwalls.insert(fid);
-    
-    return wfids;
-}
+#include "dcel.h"
 
 ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     const std::vector<E_Float *> &ptags)
@@ -351,7 +41,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         IMesh S(sarrays[i]);
         S.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
         S.make_skin();
-        S.orient_skin(IN);
+        S.orient_skin(OUT);
         S.triangulate_skin();
         Ss.push_back(S);
 
@@ -379,8 +69,25 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         // Refinement loop
         refine(Mf, bfaces, Sf, plocs);
 
-        //bfaces = Mf.extract_bounding_faces(Sf, plocs);
-        //Mf.write_ngon("bounding_after", bfaces);
+        bfaces = Mf.extract_bounding_faces(Sf, plocs);
+        //Mf.write_ngon("bounding_after.im", bfaces);
+
+        // Make a patch out of Mf bounding faces
+        Smesh Bf(Mf, bfaces, false);
+        Bf.make_fcenters();
+        Bf.make_fnormals();
+        Bf.make_pnormals();
+        
+        // Make two DCELs out of Bf and Sf
+        Dcel Db(Bf, Dcel::RED);
+        Db.write_inner_cycles("Db.im");
+
+        Sf.write_ngon("refinement_Sf.im");
+
+        Dcel Ds(Sf, Dcel::BLACK);
+        Ds.write_inner_cycles("Ds_inner.im");
+        Ds.write_outer_cycles("Ds_outer.im");
+        Ds.write_hole_cycles("Ds_hole.im");
 
         // Add Sf
         spatches.push_back(Sf);
@@ -391,7 +98,9 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         puts("");
     }
 
-    Mf.write_ngon("refined_Mf");
+    Mf.write_ngon("refined_Mf.im");
+
+
 }
 
 

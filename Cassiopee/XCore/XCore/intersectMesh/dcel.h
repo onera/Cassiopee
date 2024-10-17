@@ -23,33 +23,84 @@
 #include <map>
 
 #include "common/common.h"
-#include "queue.h"
 #include "point.h"
+#include "primitives.h"
 
-struct Vertex;
-struct Hedge;
-struct Face;
-struct Segment;
 struct Smesh;
-struct Cycle;
 
 struct Dcel {
+
+    static const int RED = 0;
+    static const int BLACK = 1;
+    static const int NO_IDEA = -1;
+
+    struct Vertex {
+        E_Float x, y, z;
+        E_Int oids[2] = {-1, -1};
+        E_Int id = -1;
+
+        Vertex(E_Float x_, E_Float y_, E_Float z_)
+        {
+            x = x_;
+            y = y_;
+            z = z_;
+            oids[0] = -1;
+            oids[1] = -1;
+        }
+    };
+
+    int cmp_vtx(const Vertex *p, const Vertex *q) const
+    {
+        return cmp_points(p->x, p->y, p->z, q->x, q->y, q->z);
+    }
+
+    struct Face;
+    struct Cycle;
+
+    struct Hedge {
+        Vertex *orig = NULL;
+        Hedge *twin = NULL;
+        Hedge *next = NULL;
+        Hedge *prev = NULL;
+        Face *left = NULL;
+        int color = NO_IDEA;
+        Cycle *cycle = NULL;
+
+        Hedge(Vertex *V, int color_)
+        {
+            orig = V;
+            color = color_;
+        }
+    };
+
+    struct Face {
+        Hedge *rep = NULL;
+        E_Int oids[2] = {-1, -1};
+    };
+
+    struct Cycle {
+        Hedge *rep = NULL;
+        int inout = 0;
+
+        static const int HOLE = -1;
+        static const int DEGEN = 0;
+        static const int INNER = 1;
+        static const int OUTER = 2;
+
+        Cycle(Hedge *h)
+        : rep(h)
+        {}
+    };
+
     std::vector<Vertex *> V;
     std::vector<Hedge *> H;
     std::vector<Face *> F;
     std::vector<Cycle *> C;
 
-    Queue Q; // Filters out duplicate vertices
-
-    Face *f_unbounded[2];
-
-    static E_Int RED;
-    static E_Int BLACK;
-    static E_Int NO_IDEA;
-
-    std::map<Vertex *, std::vector<Hedge *>> Up;
-    std::map<Vertex *, std::vector<Hedge *>> Cp;
-    std::map<Vertex *, std::vector<Hedge *>> Lp;
+    E_Int inner = 0;
+    E_Int outer = 0;
+    E_Int degen = 0;
+    E_Int hole = 0;
 
     E_Int dup_x = 0; // Number of duplicate intersections
     std::set<Vertex *> vertices_crossed; // M vertices crossed by S hedges
@@ -84,20 +135,9 @@ struct Dcel {
 
     void update_hedge_faces(const std::vector<Face *> &F);
 
-    void set_cycles_inout(const Smesh &M);//, const Smesh &S);
+    void set_cycles_inout(const Smesh &M, E_Int color);
 
-    std::vector<E_Int> extract_indices_of_type(E_Int inout);
     
-    std::vector<Face *> extract_faces_of_indices(
-        const std::vector<E_Int> &indices);
-
-    void write_ngon(const char *fname, const std::vector<Face *> &faces) const;
-
-    void write_degen_faces(const char *fname);
-    
-    void write_outer_faces(const char *fname);
-    
-    void write_inner_faces(const char *fname);
 
     static std::vector<Vertex *> get_face_vertices(Face *f);
 
@@ -113,17 +153,33 @@ struct Dcel {
 
     E_Int get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
         const std::vector<E_Int> &pf, E_Float dir[3], E_Int hid);
-
-    void handle_intersecting_endpoint(Vertex *v, const Smesh &M);
-
-    void trace_hedge(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
     
     E_Int trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
 
     void cut_hedges();
 
-    void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3],
-        const Smesh &M) const;
+    void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3]) const;
     
-    Smesh export_smesh(bool is_planar=true) const;
+    Smesh export_smesh(bool check_Euler=true) const;
+
+    // Extract
+
+    std::vector<E_Int> extract_indices_of_type(int inout) const;
+    std::vector<Cycle *> extract_cycles_of_indices(
+        const std::vector<E_Int> &indices) const;
+
+    // IO
+
+    void write_face(const char *fname, const Face *face) const;
+    void write_faces(const char *fname, const std::vector<Face *> &faces,
+        E_Float scale = 1.0) const;
+    void write_hedge(const char *fname, const Hedge *h) const;
+    void write_point(const char *fname, const Vertex *v) const;
+    void write_point(const char *fname, const std::vector<Dcel::Vertex *> &I) const;
+    void write_ngon(const char *fname, const std::vector<Cycle *> &cycles) const;
+    void write_degen_cycles(const char *fname) const;
+    void write_inner_cycles(const char *fname) const;
+    void write_hole_cycles(const char *fname) const;
+    void write_outer_cycles(const char *fname) const;
+    void write_cycles_of_type(const char *fname, E_Int type) const;
 };

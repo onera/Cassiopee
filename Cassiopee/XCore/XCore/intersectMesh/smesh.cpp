@@ -98,14 +98,69 @@ void Smesh::conformize()
 Smesh::Smesh()
 {}
 
-Smesh Smesh::Smesh_from_mesh_skin(const IMesh &M,
-    const std::vector<E_Int> &skin, bool is_planar)
+Smesh::Smesh(const Smesh &Mf, const std::set<E_Int> &fids, bool check_Euler_)
 {
-    return Smesh(M, skin, is_planar);
+    NEAR_VERTEX_TOL = Mf.NEAR_VERTEX_TOL;
+    NEAR_EDGE_TOL = Mf.NEAR_EDGE_TOL;
+
+    check_Euler = check_Euler_;
+
+    F.resize(fids.size());
+
+    nf = 0;
+    np = 0;
+
+    // Get the faces
+    for (E_Int gf : fids) {
+        g2lf[gf] = nf;
+        l2gf[nf] = gf;
+
+        auto &pn = F[nf];
+
+        for (E_Int gp : Mf.Fc[gf]) {
+            auto it = g2lp.find(gp);
+
+            if (it == g2lp.end()) {
+                g2lp[gp] = np;
+                l2gp[np] = gp;
+                pn.push_back(np);
+                np++;
+            } else {
+                pn.push_back(it->second);
+            }
+        }
+
+        nf++;
+    }
+
+    assert((size_t)np == g2lp.size());
+    assert((size_t)np == l2gp.size());
+
+    // Get the points
+    X.resize(np);
+    Y.resize(np);
+    Z.resize(np);
+
+    for (const auto &pids : g2lp) {
+        X[pids.second] = Mf.X[pids.first];
+        Y[pids.second] = Mf.Y[pids.first];
+        Z[pids.second] = Mf.Z[pids.first];
+    }
+
+    Fc = F;
+    make_edges();
+    make_point_faces();
+    make_point_edges();
+}
+
+Smesh Smesh::Smesh_from_mesh_skin(const IMesh &M,
+    const std::vector<E_Int> &skin, bool check_Euler)
+{
+    return Smesh(M, skin, check_Euler);
 }
 
 Smesh Smesh::Smesh_from_point_tags(const IMesh &M, const E_Float *ptag,
-    bool is_planar)
+    bool check_Euler)
 {
     std::vector<E_Int> fids;
 
@@ -121,10 +176,10 @@ Smesh Smesh::Smesh_from_point_tags(const IMesh &M, const E_Float *ptag,
         if (keep) fids.push_back(fid);
     }
     
-    return Smesh(M, fids, is_planar);
+    return Smesh(M, fids, check_Euler);
 }
 
-Smesh Smesh::Smesh_from_mesh_patch(const IMesh &M, bool is_planar)
+Smesh Smesh::Smesh_from_mesh_patch(const IMesh &M, bool check_Euler)
 {
     std::vector<E_Int> fids;
 
@@ -132,15 +187,15 @@ Smesh Smesh::Smesh_from_mesh_patch(const IMesh &M, bool is_planar)
         fids.push_back(fid);
     }
     
-    return Smesh(M, fids, is_planar);
+    return Smesh(M, fids, check_Euler);
 }
 
-Smesh::Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool is_planar_)
+Smesh::Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool check_Euler_)
 {
     NEAR_VERTEX_TOL = M.NEAR_VERTEX_TOL;
     NEAR_EDGE_TOL = M.NEAR_EDGE_TOL;
 
-    is_planar = is_planar_;
+    check_Euler = check_Euler_;
 
     F.resize(fids.size());
 
@@ -260,7 +315,7 @@ void Smesh::make_edges()
 
 
     // Check Euler formula for planar graphs
-    if (is_planar)
+    if (check_Euler)
         assert(np - ne + nf + 1 == 2);
 
     // Check that each edge's count is 1 or 2
@@ -310,9 +365,9 @@ void Smesh::make_edges()
             if (E2F[e][0] == i) neis.push_back(E2F[e][1]);
             else neis.push_back(E2F[e][0]);
         }
-        assert(neis.size() == pe.size());
     }
 
+    /*
     // Traverse the face list breadth-first and adjust edges accordingly
     std::vector<E_Int> visited(nf, 0);
     std::queue<E_Int> Q;
@@ -384,6 +439,7 @@ void Smesh::make_edges()
             }
         }
     }
+    */
 }
 
 void Smesh::make_fcenters()
@@ -440,9 +496,10 @@ void Smesh::make_fnormals()
     
     for (E_Int fid = 0; fid < nf; fid++) {
         const auto &pn = F[fid];
-        E_Int a = pn[0], b = pn[1], c = pn[2];
-        E_Float v0[3] = {X[b]-X[a], Y[b]-Y[a], Z[b]-Z[a]};
-        E_Float v1[3] = {X[c]-X[a], Y[c]-Y[a], Z[c]-Z[a]};
+        const E_Float *fc = &fcenters[3*fid];
+        E_Int a = pn[0], b = pn[1];
+        E_Float v0[3] = {X[a]-fc[0], Y[a]-fc[1], Z[a]-fc[2]};
+        E_Float v1[3] = {X[b]-fc[0], Y[b]-fc[1], Z[b]-fc[2]};
         E_Float *N = &fnormals[3*fid];
         K_MATH::cross(v0, v1, N);
         E_Float NORM = K_MATH::norm(N, 3);

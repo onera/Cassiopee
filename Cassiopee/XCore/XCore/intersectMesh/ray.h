@@ -18,10 +18,14 @@
 */
 #pragma once
 
-#include "triangleIntersection.h"
+#include "triangle.h"
 #include "point.h"
 
 struct AABB;
+
+struct Vec3 {
+    E_Float x, y, z;
+};
 
 struct Ray {
     Point org;
@@ -34,6 +38,9 @@ struct Ray {
     E_Int intersect_triangle(const Point &a, const Point &b, const Point &c,
         TriangleIntersection &TI);
 };
+
+E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
+    const E_Float fN[3], E_Float px, E_Float py, E_Float pz);
 
 bool ray_AABB_intersect(E_Float ox, E_Float oy, E_Float oz,
     E_Float dx, E_Float dy, E_Float dz,

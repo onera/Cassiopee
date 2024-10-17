@@ -3,6 +3,52 @@
 #include "primitives.h"
 #include "io.h"
 
+void Smesh::correct_near_points_and_edges(Smesh &Sf,
+    std::vector<PointLoc> &plocs)
+{
+    E_Int on_vertex = 0, on_edge = 0;
+    for (size_t i = 0; i < plocs.size(); i++) {
+        auto &ploc = plocs[i];
+
+        E_Int fid = ploc.fid;
+        assert(fid < nf);
+        const auto &pn = Fc[fid];
+
+        if (ploc.v_idx != -1) {
+            on_vertex++;
+            E_Int p = pn[ploc.v_idx];
+            E_Float dx = X[p]-Sf.X[i];
+            E_Float dy = Y[p]-Sf.Y[i];
+            E_Float dz = Z[p]-Sf.Z[i];
+            E_Float dist = dx*dx + dy*dy + dz*dz;
+            if (dist >= Sf.min_pdist_squared) {
+                fprintf(stderr, "Tight near-vertex situation!\n");
+                point_write("mpoint", X[p], Y[p], Z[p]);
+                point_write("spoint", Sf.X[i], Sf.Y[i], Sf.Z[i]);
+                assert(0);
+            } else {
+                Sf.X[i] = X[p];
+                Sf.Y[i] = Y[p];
+                Sf.Z[i] = Z[p];
+            }
+        } else if (ploc.e_idx != -1) {
+            on_edge++;
+            E_Float u = ploc.bcrd[0];
+            E_Float v = ploc.bcrd[1];
+            E_Float w = ploc.bcrd[2];
+            assert(Sign(w, NEAR_EDGE_TOL) == 0);
+            u += w;
+            assert(Sign(u+v-1) == 0);
+            E_Int p = pn[ploc.e_idx];
+            E_Int q = pn[(ploc.e_idx+1)%pn.size()];
+            Sf.X[i] = u*X[p] + v*X[q];
+            Sf.Y[i] = u*Y[p] + v*Y[q];
+            Sf.Z[i] = u*Z[p] + v*Z[q];
+        }
+    }
+    printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
+}
+
 void Smesh::make_bbox()
 {
     NX = 100;

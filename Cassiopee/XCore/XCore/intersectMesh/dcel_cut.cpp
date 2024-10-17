@@ -1,6 +1,4 @@
 #include "dcel.h"
-#include "hedge.h"
-#include "vertex.h"
 #include "primitives.h"
 #include "smesh.h"
 #include "io.h"

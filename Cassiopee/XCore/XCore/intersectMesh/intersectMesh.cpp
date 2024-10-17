@@ -22,17 +22,14 @@
 #include "mesh.h"
 #include "smesh.h"
 #include "dcel.h"
-#include "vertex.h"
-#include "face.h"
-#include "hedge.h"
 #include "io.h"
-#include "cycle.h"
 #include "triangle.h"
 #include "primitives.h"
 
-static
 IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, E_Int color)
 {
+    assert(0);
+    /*
     // Isolate patch faces
     std::set<E_Int> pfset(M.patch);
 
@@ -130,33 +127,6 @@ IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, E_Int color)
 
     // All ofaces must be present in the map
     assert(ofid_to_ofids.size() == pfset.size());
-
-    /*
-    {
-        if (color == 1) {
-            std::vector<Face *> faces;
-            auto it = ofid_to_ofids.find(24406);
-            assert(it != ofid_to_ofids.end());
-            const auto &pf = it->second;
-            printf("number of children: %lu\n", pf.size());
-            for (auto i : pf) faces.push_back(D.F[i]);
-            faces_write("children1", faces);
-        }
-
-        if (color == 1) {
-            std::vector<Face *> faces;
-            auto it = ofid_to_ofids.find(40246);
-            assert(it != ofid_to_ofids.end());
-            const auto &pf = it->second;
-            printf("number of children: %lu\n", pf.size());
-            for (auto i : pf) {
-                char fname[64] = {0};
-                sprintf(fname, "child%d", i);
-                face_write(fname, D.F[i]);
-            }
-        }
-    }
-    */
 
     // Write untouched points
     std::vector<E_Float> new_X(np, -1), new_Y(np, -1), new_Z(np, -1);
@@ -310,10 +280,13 @@ IMesh reconstruct_mesh(IMesh &M, Smesh &Mf, const Dcel &D, E_Int color)
     new_M.ctag = M.ctag;
 
     return new_M;
+    */
+    return IMesh();
 }
 
 PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 {
+    /*
     PyObject *MASTER, *SLAVE, *MPATCH, *SPATCH;
   
     if (!PYPARSETUPLE_(args, OOOO_, &MASTER, &MPATCH, &SLAVE, &SPATCH)) {
@@ -398,11 +371,9 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Mf.write_ngon("Mf");
     Sf.write_ngon("Sf");
 
-    /*
     puts("Making point edges...");
     Mf.make_point_edges();
     Sf.make_point_edges();
-    */
 
     puts("Making point faces...");
     Mf.make_point_faces();
@@ -418,43 +389,7 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
     puts("Initaliazing...");
 
-    /*
-    puts("Doing Mf to Dcel");
-    Dcel Dm(Mf, Dcel::RED);
-    Dm.export_smesh();
-    puts("Doing Sf to Dcel");
-    Dcel Ds(Sf, Dcel::RED);
-    Ds.export_smesh();
-    */
-
     Dcel D(Mf, Sf);
-
-    /*
-    {
-        Face *f1 = D.F[Mf.nf + Sf.g2lf[D.weird1]];
-        Face *f2 = D.F[Mf.nf + Sf.g2lf[D.weird2]];
-        face_write("f1", f1);
-        face_write("f2", f2);
-    }
-    */
-
-
-
-    /*
-    for (Vertex *v : D.V) {
-        if (v->oid[0] != -1) {
-            Mf.X[v->oid[0]] = v->x;
-            Mf.Y[v->oid[0]] = v->y;
-            Mf.Z[v->oid[0]] = v->z;
-        }
-
-        if (v->oid[1] != -1) {
-            Sf.X[v->oid[1]] = v->x;
-            Sf.Y[v->oid[1]] = v->y;
-            Sf.Z[v->oid[1]] = v->z;
-        }
-    }
-    */
 
     puts("Locating points...");
 
@@ -509,4 +444,6 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Py_DECREF(Sout);
 
     return out;
+    */
+    return Py_None;
 }
