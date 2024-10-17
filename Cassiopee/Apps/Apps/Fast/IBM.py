@@ -1,5 +1,4 @@
 # Class for FastS "IBM" prepare and compute
-import FastC.PyTree as FastC
 import FastS.ToolboxChimera as TBX
 import Converter.PyTree as C
 import Geom.PyTree as D
@@ -32,13 +31,10 @@ setFluidInside, _setFluidInside, setIBCType, _setIBCType, changeIBCType, \
 initOutflow, initInj, _initOutflow, _initInj, transformTc2, _addOneOverLocally
 
 import Post.IBM as P_IBM
-#import Post.PyTree as P_IBM
 import Connector.IBM as X_IBM
 import Generator.IBM as G_IBM
 import Generator.IBMmodelHeight as G_IBM_Height
 
-try: range = xrange
-except: pass
 KCOMM = Cmpi.KCOMM
 
 RENAMEIBCNODES=False # renommage des ibcd*
@@ -544,8 +540,8 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
     
         if c==1: break
         c += 1
-        #Modif Ivan 11/10/24
         ng = 0
+        #Modif Ivan 11/10/24
         #ng = 2
         for z in Internal.getZones(tree):    
             zdim = Internal.getValue(z)

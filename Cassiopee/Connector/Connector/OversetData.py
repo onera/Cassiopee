@@ -8,9 +8,6 @@ __version__ = Connector.__version__
 
 import Converter.GhostCells as GhostCells
 
-try: range = xrange
-except: pass
-
 try:
     import Converter.Internal as Internal
     import Converter.PyTree as C

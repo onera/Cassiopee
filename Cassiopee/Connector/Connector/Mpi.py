@@ -7,8 +7,6 @@ import Converter.converter
 import numpy 
 from . import connector
 import RigidMotion.PyTree as RM
-try: range = xrange
-except: pass
 
 #==============================================================================
 # optimizeOverlap
@@ -361,14 +359,13 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
     ## 1:: YES :wire model treatment
     ## 0:: NO  :wire model treatment
     ##-1:: NO  :wire model treatment BUT a treatment on locks for IBC for ___setInterpTransfers
-    isWireModel_intv2      =max(isWireModel_int,0)
-    isSetPartialFieldsCheck=max(abs(isWireModel_int),0)
+    isWireModel_intv2 = max(isWireModel_int,0)
+    isSetPartialFieldsCheck = max(abs(isWireModel_int),0)
 
     ##for moving IBMs
     isIbmMoving_int  = 0
     #modif Ivan: souci si rigidext et ibm fixe: empeche le comportememnt normal de impli-local
-    #modif Ivan: voir avec antoine
-    #motionType = int(Internal.getNodeFromName(zones,"Parameter_real")[1][64])
+    #motionType = int(Internal.getNodeFromName(zones, "Parameter_real")[1][64])
     #motionType = Cmpi.allreduce(motionType, op=Cmpi.MAX)
     #if motionType==3: isIbmMoving_int=1
 	
@@ -393,7 +390,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
             rank  = Cmpi.rank
             infos = connector.__setInterpTransfersD(zones, zonesD, vars, dtloc, param_int, param_real, it_target, varType,
                                                     type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage, rank,
-	    					    isWireModel_int,isIbmMoving_int) 
+                                                    isWireModel_int, isIbmMoving_int) 
             if infos != []:
                for n in infos:
                   rcvNode = dest
