@@ -27,25 +27,26 @@ classifiers = [
 numpy = ">=1.23.3"
 mpi4py = ">=3.1.3"
 scons = ">=4.4.0"
-KCore = ">=4.0"
-XCore = ">=4.0"
-Converter = ">=4.0"
-Geom = ">=4.0"
-Transform = ">=4.0"
-Generator = ">=4.0"
-Post = ">=4.0"
-Initiator = ">=4.0"
-Connector = ">=4.0"
-Distributor2 = ">=4.0"
-Dist2Walls = ">=4.0"
-RigidMotion = ">=4.0"
-Compressor = ">=4.0"
-Modeler = ">=4.0"
-Intersector = ">=4.0"
-Apps = ">=4.0"
-CPlot = ">=4.0"
+KCore = {path = "Cassiopee/KCore"}
+XCore = {path = "Cassiopee/XCore"}
+Converter = {path = "Cassiopee/Converter"}
+Geom = {path = "Cassiopee/Geom"}
+Transform = {path = "Cassiopee/Transform"}
+Generator = {path = "Cassiopee/Generator"}
+Post = {path = "Cassiopee/Post"}
+Initiator = {path = "Cassiopee/Initiator"}
+Connector = {path = "Cassiopee/Connector"}
+Distributor2 = {path = "Cassiopee/Distributor2"}
+Dist2Walls = {path = "Cassiopee/Dist2Walls"}
+RigidMotion = {path = "Cassiopee/RigidMotion"}
+Compressor = {path = "Cassiopee/Compressor"}
+Modeler = {path = "Cassiopee/Modeler"}
+Intersector = {path = "Cassiopee/Intersector"}
+Apps = {path = "Cassiopee/Apps"}
 
 [project.optional-dependencies]
+CPlot = {path = "Cassiopee/CPlot"}
+OCC = {path = "Cassiopee/OCC"}
 
 [project.urls]
 Homepage = "https://github.com/onera/Cassiopee"
