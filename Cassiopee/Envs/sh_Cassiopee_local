@@ -542,21 +542,21 @@ elif [ "$MAC" = "spiro_pgi" ]; then
 
 elif [ "$MAC" = "spiro_gpu" ]; then
 #----------------------------- spiro gpu ------------------------------------
-        export ELSAPROD=spiro_gpu
-        export ELSAPROD=$ELSAPROD$EXT
-        source /opt/tools/Modules/init/bash
-        module purge
-        module load python/3.12.2-gnu850
-        module load nvhpc/23.7-gnu850-full
-        module load hdf5/1.10.5-gnu831-ompi405
-        # Set next two lines only if python is not python
-        export PYTHONEXE=python3
-        # Number of threads
-        export OMP_NUM_THREADS=48
-        export PRODMODE=1
-        export PIP_DISABLE_PIP_VERSION_CHECK=1
-        unset $(env | grep SLURM | cut -d'=' -f 1)
-        unset OMP_PLACES
+    export ELSAPROD=spiro_gpu
+    export ELSAPROD=$ELSAPROD$EXT
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load python/3.12.2-gnu850
+    module load nvhpc/23.7-gnu850-full
+    module load hdf5/1.10.5-gnu831-ompi405
+    # Set next two lines only if python is not python
+    export PYTHONEXE=python3
+    # Number of threads
+    export OMP_NUM_THREADS=48
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    unset OMP_PLACES
 
 elif [ "$MAC" = "juno" ]; then
 #----------------------------- juno -----------------------------------------
@@ -614,21 +614,21 @@ elif [ "$MAC" = "juno_gcc" ]; then
 
 elif [ "$MAC" = "juno_gpu" ]; then
 #----------------------------- juno gpu ------------------------------------
-        export ELSAPROD=juno_gpu
-        export ELSAPROD=$ELSAPROD$EXT
-        source /opt/tools/Modules/init/bash
-        module purge
-        module load python/3.12.2-gnu850
-        module load nvhpc/23.7-gnu850-full
-        module load hdf5/1.10.5-gnu831-ompi405
-        # Set next two lines only if python is not python
-        export PYTHONEXE=python3
-        # Number of threads
-        export OMP_NUM_THREADS=48
-        export PRODMODE=1
-        export PIP_DISABLE_PIP_VERSION_CHECK=1
-        unset $(env | grep SLURM | cut -d'=' -f 1)
-        unset OMP_PLACES
+    export ELSAPROD=juno_gpu
+    export ELSAPROD=$ELSAPROD$EXT
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load python/3.12.2-gnu850
+    module load nvhpc/23.7-gnu850-full
+    module load hdf5/1.10.5-gnu831-ompi405
+    # Set next two lines only if python is not python
+    export PYTHONEXE=python3
+    # Number of threads
+    export OMP_NUM_THREADS=48
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    unset OMP_PLACES
 
 elif [ "$MAC" = "juno_coda" ]; then
 #----------------------------- juno -----------------------------------------
@@ -639,6 +639,7 @@ elif [ "$MAC" = "juno_coda" ]; then
     # modules
     module purge
     source /stck/rhea/dist/juno_v2024_02_python3108/source.sh --env coda_dev --compiler gcc@10 --mpi openmpi
+    module load occt/7.6.1-gnu831
     module load subversion/1.14.1-gnu831
     export PYTHONEXE=python3
     export PRODMODE=1
