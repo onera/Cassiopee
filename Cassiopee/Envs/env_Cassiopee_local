@@ -254,15 +254,13 @@ else if ($MAC == "visio_python3") then
             module unload $x
         end
         module load python/3.6.1
-        # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         module load gcc/4.8.1
         module load intel/17.0.4
         module load impi/17
         # Nombre de threads
         setenv OMP_NUM_THREADS 16
-        #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],explicit"
-
+        
 else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
@@ -277,8 +275,7 @@ else if ($MAC == "visio") then
         module load impi/17
         # Nombre de threads
         setenv OMP_NUM_THREADS 16
-        #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],explicit"
-
+        
 else if ($MAC == "visung") then
 #------------------------------- visung ---------------------------------------
         setenv ELSAPROD visung_r8
