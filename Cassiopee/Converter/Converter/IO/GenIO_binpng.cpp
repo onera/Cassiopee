@@ -363,6 +363,7 @@ E_Int K_IO::GenIO::pngwrite(
   if (setjmp(png_jmpbuf(png_ptr))) {delete[] row_pointers; return 1;}
 
   png_write_end(png_ptr, NULL);
+  png_destroy_write_struct(&png_ptr, &info_ptr);
 
   /* cleanup allocations */
   delete [] row_pointers;
