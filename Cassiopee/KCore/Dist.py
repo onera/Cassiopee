@@ -469,6 +469,10 @@ def writeSetupCfg():
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=unix\n')
         p.close()
+    elif Cppcompiler == 'craycc' or Cppcompiler == 'craycxx':
+        p = open("./setup.cfg", 'w')
+        p.write('[build_ext]\ncompiler=unix\n')
+        p.close()   
     else:
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=%s\n'%Cppcompiler)
@@ -488,26 +492,36 @@ def getDistUtilsCompilers():
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
     if Cppcompiler != 'None' or Cppcompiler != '':
-        if Cppcompiler == 'clang++':
-            vars[0] = Cppcompiler.replace('clang++', 'clang'); vars[1] = Cppcompiler
-        elif Cppcompiler == 'clang':
+        if Cppcompiler == 'clang':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('clang', 'clang++')
+        elif Cppcompiler == 'clang++':
+            vars[0] = Cppcompiler.replace('clang++', 'clang'); vars[1] = Cppcompiler
+        
         elif Cppcompiler == 'pgcc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('pgcc', 'pgc++')
         elif Cppcompiler == 'pgc++':
-            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('pgc++', 'pgcc')
+            vars[0] = Cppcompiler.replace('pgc++', 'pgcc'); vars[1] = Cppcompiler
+            
+        elif Cppcompiler == 'craycc':
+            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('craycc', 'craycxx')
+        elif Cppcompiler == 'craycxx':
+            vars[0] = Cppcompiler.replace('craycxx', 'craycc'); vars[1] = Cppcompiler
+            
         elif Cppcompiler == 'nvc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvc', 'nvc++')
         elif Cppcompiler == 'nvc++':
-            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvc++', 'nvc')
+            vars[0] = Cppcompiler.replace('nvc++', 'nvc'); vars[1] = Cppcompiler
+            
         elif Cppcompiler.find('g++') != -1: # g++-version + mingw-g++-version
             vars[0] = Cppcompiler.replace('g++', 'gcc'); vars[1] = Cppcompiler
         elif Cppcompiler.find('gcc') != -1:
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('gcc', 'g++')
+            
         elif Cppcompiler == 'icpc':
             vars[0] = Cppcompiler.replace('icpc', 'icc'); vars[1] = Cppcompiler
         elif Cppcompiler == 'icc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icc', 'icpc')
+            
         elif Cppcompiler == 'icpx':
             vars[0] = Cppcompiler.replace('icpx', 'icx'); vars[1] = Cppcompiler
         elif Cppcompiler == 'icx':
@@ -928,6 +942,14 @@ def getCArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         return options
+    elif Cppcompiler == "craycc" or Cppcompiler == "craycxx":
+        if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
+        else: options += ['-DNDEBUG', '-O3', '-Wall']
+        if useOMP() == 1: options += ['-h omp']
+        if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
+        else: options += ['-fPIC']
+        options += getSimdOptions()
+        return options
     else: return options
 
 # Options pour le compilateur C++
@@ -935,9 +957,7 @@ def getCppArgs():
     opt = getCArgs()
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
-    if (Cppcompiler == 'g++' or Cppcompiler == 'gcc') and getSystem()[0] == 'mingw':
-        opt += ["-std=c++11"]        
-    elif Cppcompiler == "icl.exe":
+    if Cppcompiler == "icl.exe":
         opt += ["/std=c++11"]
     else:
         opt += ["-std=c++11"]
@@ -1039,6 +1059,15 @@ def getForArgs():
     elif f77compiler == "ifort.exe":
         if useOMP() == 1: return ['/names:lowercase', '/assume:underscore', '/Qopenmp']
         else: return ['/names:lowercase', '/assume:underscore']
+    elif f77compiler == "crayftn":
+        if useStatic() == 1: options += ['-static']
+        else: options += ['-fPIC']
+        if DEBUG: options += ['-g', '-O0']
+        else: options += ['-O3']
+        if useOMP() == 1: options += ['-h omp']
+        options += getSimdOptions()
+        if EDOUBLEINT: options += ['-i8']
+        return options
     else: return options
 
 #==============================================================================
@@ -1068,6 +1097,10 @@ def getLinkArgs():
          else: out += ['-shared']
          if useOMP() == 1: out += ['-mp=multicore']
          if useCuda() == 1: out += ['-acc=gpu', '-Minfo:accel']
+    elif Cppcompiler == 'craycc' or Cppcompiler == 'craycxx':
+         if useStatic() == 1: out += ['-static']
+         else: out += ['-shared']
+         if useOMP() == 1: out += ['-h omp']
     mySystem = getSystem()[0]
     if mySystem == 'Darwin':
         if useStatic() == 0: out += ['-dynamiclib']
@@ -2026,6 +2059,22 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             if l is not None:
                 libs += ['nvomp']; paths += [l]
             else: ret = False
+            
+    # crayftn
+    if f77compiler == 'crayftn':
+        l = checkLibFile__('libf.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libf.a', additionalLibPaths)
+        if l is not None:
+            libs += ['f', 'rt']; paths += [l]
+        
+        if useOMP:
+            l = checkLibFile__('libomp.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libomp.a', additionalLibPaths)
+            if l is not None:
+                libs += ['omp']; paths += [l]
+            else: ret = False
 
     return (ret, libs, paths)
 
@@ -2152,9 +2201,8 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         l = checkLibFile__('libnvc.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libnvc.a', additionalLibPaths)
-
         if l is not None:
-            libs += []; paths += [l]
+            libs += ['nvc']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
@@ -2177,9 +2225,8 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         l = checkLibFile__('libnvc.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libnvc.a', additionalLibPaths)
-
         if l is not None:
-            libs += []; paths += [l]
+            libs += ['nvc']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
@@ -2189,6 +2236,30 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
                 libs += ['nvomp']; paths += [l]
             else: ret = False
 
+    # craycc
+    if Cppcompiler == 'craycc' or Cppcompiler == 'craycxx':
+        os.environ['CC'] = 'craycc' # forced to overide setup.cfg
+        os.environ['CXX'] = 'craycxx'
+        os.environ['LDSHARED'] = 'crayftn'
+        from distutils import sysconfig
+        cflags = sysconfig.get_config_var('CFLAGS')
+        sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
+        sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
+
+        l = checkLibFile__('libcraymp.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libcraymp.a', additionalLibPaths)
+        if l is not None:
+            libs += ['craymp']; paths += [l]
+
+        if useOMP:
+            l = checkLibFile__('libomp.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libomp.a', additionalLibPaths)
+            if l is not None:
+                libs += ['omp']; paths += [l]
+            else: ret = False
+            
     return (ret, libs, paths)
 
 #==============================================================================

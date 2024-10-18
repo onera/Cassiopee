@@ -15,8 +15,6 @@ of standard functions (but with enhanced functionality).
 
 #include <GKlib.h>
 
-
-
 /************************************************************************/
 /*! \brief Replaces certain characters in a string.
  
@@ -479,39 +477,6 @@ char *gk_time2str(time_t time)
   else
     return datestr;
 }
-
-
-
-#if !defined(WIN32) && !defined(__MINGW32__)
-/************************************************************************/
-/*! \brief Converts a date/time string into its equivalent time_t value
-
-This function takes date and/or time specification and converts it in
-the equivalent time_t representation. The conversion is done using the
-strptime() function. The format that gk_str2time() understands is
-<em>mm/dd/yyyy hh:mm:ss</em>, in which the hours are in military time.
-
-\param str is the date/time string to be converted.
-\return If the conversion was successful it returns the time, otherwise 
-        it returns -1.
-*/
-/*************************************************************************/
-time_t gk_str2time(char *str)
-{
-  struct tm time;
-  time_t rtime;
-
-  memset(&time, '\0', sizeof(time));
-  
-  strptime(str, "%m/%d/%Y %H:%M:%S", &time);
-  /*
-  if (strptime(str, "%m/%d/%Y %H:%M:%S", &time) == NULL)
-    return -1;
-  */
-  rtime = mktime(&time);
-  return (rtime < 0 ? 0 : rtime);
-}
-#endif
 
 
 /*************************************************************************
