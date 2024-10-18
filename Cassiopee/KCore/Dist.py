@@ -945,7 +945,7 @@ def getCArgs():
     elif Cppcompiler == "craycc" or Cppcompiler == "craycxx":
         if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
         else: options += ['-DNDEBUG', '-O3', '-Wall']
-        if useOMP() == 1: options += ['-h omp']
+        if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
         else: options += ['-fPIC']
         options += getSimdOptions()
@@ -1064,7 +1064,7 @@ def getForArgs():
         else: options += ['-fPIC']
         if DEBUG: options += ['-g', '-O0']
         else: options += ['-O3']
-        if useOMP() == 1: options += ['-h omp']
+        if useOMP() == 1: options += ['-fopenmp']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
         return options
@@ -1100,7 +1100,7 @@ def getLinkArgs():
     elif Cppcompiler == 'craycc' or Cppcompiler == 'craycxx':
          if useStatic() == 1: out += ['-static']
          else: out += ['-shared']
-         if useOMP() == 1: out += ['-h omp']
+         if useOMP() == 1: out += ['-fopenmp']
     mySystem = getSystem()[0]
     if mySystem == 'Darwin':
         if useStatic() == 0: out += ['-dynamiclib']
@@ -2251,7 +2251,11 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             l = checkLibFile__('libcraymp.a', additionalLibPaths)
         if l is not None:
             libs += ['craymp']; paths += [l]
-
+        l = checkLibFile__('libsci_cray.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libsci_cray.a', additionalLibPaths)
+        if l is not None:
+            libs += ['sci_cray']; paths += [l]
         if useOMP:
             l = checkLibFile__('libomp.so*', additionalLibPaths)
             if l is None:

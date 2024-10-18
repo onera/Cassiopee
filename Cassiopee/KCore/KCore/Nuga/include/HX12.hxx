@@ -29,7 +29,8 @@
 namespace NUGA
 {
 	template <>
-	struct splitting_t<K_MESH::Hexahedron, NUGA::Xd, 1> : public splitting_base_t {
+	class splitting_t<K_MESH::Hexahedron, NUGA::Xd, 1> : public splitting_base_t {
+	public:
 		E_Int FACES[10];
 		E_Int nodes[12];
 

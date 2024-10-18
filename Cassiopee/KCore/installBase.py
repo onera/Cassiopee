@@ -719,7 +719,7 @@ True, # useCuda
 'craycxx', # Cppcompiler
 [], # CppAdditionalOptions
 [], # f77AdditionalOptions
-True, # useOMP
+False, # useOMP
 False, # static
 [], # additionalIncludePaths
 [], # additionalLibs

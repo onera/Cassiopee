@@ -190,7 +190,9 @@ if MMGS:
                   "Generator/MMGS/zaldy_s.c",
                   "Generator/MMGS/mmgexterns.c",
                   "Generator/MMGS/mmgsexterns.c"]
-
+else:
+    cpp_srcs2 += ["Generator/mmgs_stub.cpp"]
+    
 #==============================================================================
 # Fichiers fortran
 #==============================================================================

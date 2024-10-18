@@ -16,16 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-# include "generator.h"
+
+// Remaillage surfacique avec mmgs
+
+#include "generator.h"
+#include "MMGS/mmgs.h"
+
 using namespace std;
 using namespace K_FLD;
+using namespace K_FUNC; 
 
-//=========================================================================
-/* tetgen stub (tetgen) */
-//=========================================================================
-PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
+// ============================================================================
+/* MMGS
+   IN: maillage TRI
+   IN: eventuellement metric ou solution
+   IN: 
+   IN: 
+   OUT: maillage TRI remaille. */
+// ============================================================================
+PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_TypeError,
-		  "tetgen: Generator was not installed with tetgen.");
+		  "mmgs: Generator was not installed with mmgs.");
   return NULL;
 }

@@ -1368,7 +1368,6 @@ struct ngon_t
     Vector_t<E_Int> inds;
     std::set<E_Int> tmp;
     
-    E_Int nb_facets;
     nodes_ph(PHi, inds, false); //false to do the shift only once
     tmp.insert(inds.begin(), inds.end());
    
@@ -1441,9 +1440,9 @@ struct ngon_t
 
     E_Float P[3];
 
-    E_Int sz = PGs.size(), err(0);
+    E_Int sz = PGs.size();
 
-    for (E_Int j=0; (j<sz) ; ++j)
+    for (E_Int j=0; j < sz; ++j)
     {
       if (process && (*process)[j] == false)
         continue;
@@ -4579,7 +4578,7 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
       for (E_Int j = 0; j < nb_pgs; ++j)
       {
         const E_Int& Kn = *(pKn + j);
-        E_Int Fn = *(pFn + j) - 1;
+        //E_Int Fn = *(pFn + j) - 1;
 
         if (Kn == IDX_NONE) continue;
         E_Int attracK = (attractor[Kn] == IDX_NONE)? Kn : attractor[Kn];
@@ -4639,7 +4638,7 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
       for (size_t j = 0; j < nb_pgs; ++j)
       {
         const E_Int& Kn = *(pKn + j);
-        E_Int Fn = *(pFn + j) - 1;
+        //E_Int Fn = *(pFn + j) - 1;
         assert(K != Kn);
         if (Kn == IDX_NONE)
         {
