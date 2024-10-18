@@ -838,7 +838,7 @@ PyObject* K_POST::computeDiv2Struct3D(
   E_Float ffx, ffy, ffz;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpdv = gp.begin(n);
+    E_Float* gpdv = gp.begin(n+1);
     E_Float* fpx = faceField.begin(3*n+1);
     E_Float* fpy = faceField.begin(3*n+2);
     E_Float* fpz = faceField.begin(3*n+3);
