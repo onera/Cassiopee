@@ -26,8 +26,9 @@
 
 namespace DELAUNAY
 {
-  struct MeshData
+  class MeshData
   {
+  public:
     typedef E_Int                        size_type;
     typedef NUGA::int_vector_type  int_vector_type;
     typedef NUGA::bool_vector_type bool_vector_type;

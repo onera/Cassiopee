@@ -471,7 +471,6 @@ void MeshTool::refine_T3s(const K_FLD::FloatArray& coord, K_FLD::IntArray& conne
         pg_molec.push_back(Nn);
     }
 
-    E_Int sz0 = new_cnt.cols();
     K_MESH::Polygon::triangulate(dt, coord, &pg_molec[0], pg_molec.size(), 0, new_cnt, false, true);
     oids.resize(new_cnt.cols(), i);
   }

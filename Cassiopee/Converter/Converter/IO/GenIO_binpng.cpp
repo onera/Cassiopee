@@ -140,7 +140,7 @@ E_Int K_IO::GenIO::pngread(
   // Stockage du champ
   E_Int nil = width;
   E_Int njl = height;
-  FldArrayF* f;
+  FldArrayF* f = NULL;
   if (components == 1) // greyscale
   {
     strcpy(varString, "x,y,z,r");
@@ -160,6 +160,10 @@ E_Int K_IO::GenIO::pngread(
   {
     strcpy(varString, "x,y,z,r,g,b,a");
     f = new FldArrayF(nil*njl, 7);
+  }
+  else
+  {
+    printf("Warning: bin_png: unkown number of components.\n");
   }
  
   f->setAllValuesAtNull();

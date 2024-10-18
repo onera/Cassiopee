@@ -576,8 +576,8 @@ namespace DELAUNAY
     
     E_Float h0 = ::sqrt(1./lambda0);
     E_Float h1 = ::sqrt(1./lambda1);
-    E_Float Pix = parent_type::_pos(0,Ni);
-    E_Float Piy = parent_type::_pos(1,Ni);
+    //E_Float Pix = parent_type::_pos(0,Ni);
+    //E_Float Piy = parent_type::_pos(1,Ni);
 
     // P0 = Pi +/- h0*v0
     NUGA::sum<3>(1., parent_type::_pos->col(Ni), h0, v0, P0);

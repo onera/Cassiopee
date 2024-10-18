@@ -1344,15 +1344,11 @@ TRI_Conformizer<DIM>::__get_mesh_data
     keep.resize(crd.cols(), -1);
     for (E_Int i=0; i < n0; ++i)
     {
-      const E_Int & n1 = cnt1(0,i);
-      const E_Int & n2 = cnt1(1,i);
       keep[cnt1(0,i)]=keep[cnt1(1,i)]=1; //always keep contour points
     }
   
     for (E_Int i=n0; i < cnt1.cols(); ++i)
     {
-      const E_Int & n1 = cnt1(0,i);
-      const E_Int & n2 = cnt1(1,i);
       if (keep[cnt1(0,i)] != 1 || keep[cnt1(1,i)] != 1)
       {
         do_the_reject_test=true; break;

@@ -2068,13 +2068,13 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
         if l is not None:
             libs += ['f', 'rt']; paths += [l]
         
-        if useOMP:
-            l = checkLibFile__('libomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libomp.a', additionalLibPaths)
-            if l is not None:
-                libs += ['omp']; paths += [l]
-            else: ret = False
+        #if useOMP:
+        #    l = checkLibFile__('libomp.so*', additionalLibPaths)
+        #    if l is None:
+        #        l = checkLibFile__('libomp.a', additionalLibPaths)
+        #    if l is not None:
+        #        libs += ['omp']; paths += [l]
+        #    else: ret = False
 
     return (ret, libs, paths)
 
@@ -2246,23 +2246,23 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
-        l = checkLibFile__('libcraymp.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libcraymp.a', additionalLibPaths)
-        if l is not None:
-            libs += ['craymp']; paths += [l]
+        #l = checkLibFile__('libcraymp.so*', additionalLibPaths)
+        #if l is None:
+        #    l = checkLibFile__('libcraymp.a', additionalLibPaths)
+        #if l is not None:
+        #    libs += ['craymp']; paths += [l]
         l = checkLibFile__('libsci_cray.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libsci_cray.a', additionalLibPaths)
         if l is not None:
             libs += ['sci_cray']; paths += [l]
-        if useOMP:
-            l = checkLibFile__('libomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libomp.a', additionalLibPaths)
-            if l is not None:
-                libs += ['omp']; paths += [l]
-            else: ret = False
+        #if useOMP:
+        #    l = checkLibFile__('libomp.so*', additionalLibPaths)
+        #    if l is None:
+        #        l = checkLibFile__('libomp.a', additionalLibPaths)
+        #    if l is not None:
+        #        libs += ['omp']; paths += [l]
+        #    else: ret = False
             
     return (ret, libs, paths)
 

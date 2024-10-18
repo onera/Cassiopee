@@ -4633,7 +4633,7 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
     {
       E_Int nb_pgs = ng.PHs.stride(K);
       const E_Int* pKn = neighbors.get_facets_ptr(K);
-      const E_Int* pFn = ng.PHs.get_facets_ptr(K);
+      //const E_Int* pFn = ng.PHs.get_facets_ptr(K);
 
       for (size_t j = 0; j < nb_pgs; ++j)
       {
@@ -4667,7 +4667,7 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
 
       E_Int nb_pgs = ng.PHs.stride(i);
       bool toprocess = false;
-      const E_Int* pKn = neighbors.get_facets_ptr(i);
+      //const E_Int* pKn = neighbors.get_facets_ptr(i);
       const E_Int* pFn = ng.PHs.get_facets_ptr(i);
       for (size_t j = 0; (j < nb_pgs) && !toprocess; ++j)
       {
@@ -4680,7 +4680,6 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
         new_phs.add(nb_pgs, ng.PHs.get_facets_ptr(i));
         new_neigh.add(nb_pgs, neighbors.get_facets_ptr(i));
         nids[i] = nnid++;
-        E_Int a1 = -1;
         if (new_neigh.size() > 1)
           new_neigh.get_facet(1, 0);
         continue; // cannot add to a separate ngon_t as doesnt mean that this will not be an aggregate attractor

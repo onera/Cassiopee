@@ -480,7 +480,7 @@ namespace DELAUNAY
     size_type nb_nodes(_data->hardNodes.size()), Ni;
 
     std::vector<E_Int> newIds;
-    int unconstrained;
+    int unconstrained = 0;
     for (size_type i = 0; (i < nb_nodes) && (_err == 0); ++i)
     {
       Ni = _data->hardNodes[i];
@@ -792,7 +792,7 @@ namespace DELAUNAY
     chrono c;
 #endif
 
-    float contrained;
+    float constrained = 0.;
     E_Int iter = 0;
     bool carry_on = false;
     
@@ -843,7 +843,7 @@ namespace DELAUNAY
       for (size_type i = 0; (i < nb_refine_nodes) && !_err; ++i)
       {
         Ni = refine_nodes[i];
-        _err = _kernel->insertNode(Ni, (*_metric)[Ni], contrained);
+        _err = _kernel->insertNode(Ni, (*_metric)[Ni], constrained);
         _tree->insert(Ni);
       }
 

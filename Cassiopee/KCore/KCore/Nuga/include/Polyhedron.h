@@ -656,8 +656,8 @@ namespace K_MESH
           if (j == IDX_NONE)
             return 1;
 
-          const E_Int* nodesj = lpgs.get_facets_ptr(j);
-          E_Int nb_nodsj = lpgs.stride(j);
+          //const E_Int* nodesj = lpgs.get_facets_ptr(j);
+          //E_Int nb_nodsj = lpgs.stride(j);
 
           bool rev = (lorient[j] == -1);
           E_Int er = K_MESH::Polygon::get_oriented_normal(crd, lpgs, j, rev, nj, normals);
