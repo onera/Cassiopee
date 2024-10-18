@@ -3,6 +3,19 @@
 #include "primitives.h"
 #include "io.h"
 
+void Smesh::replace_by_projections(const std::vector<E_Int> &pids,
+    const std::vector<PointLoc> &plocs)
+{
+    for (size_t i = 0; i < pids.size(); i++) {
+        E_Int pid = pids[i];
+        assert(pid == i);
+        const auto &ploc = plocs[pid];
+        X[pid] = ploc.x;
+        Y[pid] = ploc.y;
+        Z[pid] = ploc.z;
+    }
+}
+
 void Smesh::correct_near_points_and_edges(Smesh &Sf,
     std::vector<PointLoc> &plocs)
 {

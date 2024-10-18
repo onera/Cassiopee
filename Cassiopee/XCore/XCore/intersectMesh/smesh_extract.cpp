@@ -3,6 +3,7 @@
 #include "smesh.h"
 #include "primitives.h"
 #include "ray.h"
+#include "io.h"
 
 void Smesh::get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
     E_Int &pid, E_Int &eid) const
@@ -137,6 +138,8 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
 
         get_shared_faces(plocs[p], orig_faces, last_vertex, last_edge); 
         get_shared_faces(plocs[q], tail_faces, dummy, dummy);
+
+        //write_ngon("shared", orig_faces);
 
         E_Int starting_face = deduce_face(orig_faces, px, py, pz,
             D, last_vertex, last_edge);

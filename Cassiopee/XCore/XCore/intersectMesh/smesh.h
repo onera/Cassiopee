@@ -112,7 +112,8 @@ struct Smesh {
     void compute_min_distance_between_points();
     void project(const Smesh &Mf, const std::vector<E_Int> &mpids,
         std::vector<PointLoc> &plocs) const;
-    void project_and_replace(Smesh &Mf, E_Int start) const;
+    void replace_by_projections(const std::vector<E_Int> &pids,
+        const std::vector<PointLoc> &plocs);
     void ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
         E_Float dx, E_Float dy, E_Float dz, BVH_node *node,
         std::vector<PointLoc> &plocs) const;

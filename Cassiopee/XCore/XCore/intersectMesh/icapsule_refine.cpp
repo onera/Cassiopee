@@ -75,9 +75,6 @@ void Smesh::project(const Smesh &Mf, const std::vector<E_Int> &mpids,
 {
     for (size_t i = 0; i < mpids.size(); i++) {
         E_Int mpid = mpids[i];
-        assert(mpid >= 0);
-        assert(mpid < Mf.np);
-        assert(Mf.pnormals.size() == (size_t)(3*Mf.np));
         const E_Float *N = &Mf.pnormals[3*mpid];
         E_Float mx = Mf.X[mpid];
         E_Float my = Mf.Y[mpid];
@@ -95,26 +92,6 @@ void Smesh::project(const Smesh &Mf, const std::vector<E_Int> &mpids,
         if (ploc.fid != -1) {
             projections.push_back({ploc.x, ploc.y, ploc.z});
         }
-    }
-}
-
-void Smesh::project_and_replace(Smesh &Mf, E_Int start) const
-{
-    E_Int NP = Mf.np - start;
-    std::vector<E_Int> pids(NP);
-    for (E_Int i = 0; i < NP; i++) pids[i] = start+i;
-
-    std::vector<PointLoc> plocs(NP);
-
-    project(Mf, pids, plocs);
-
-    // Replace
-    for (E_Int i = 0; i < NP; i++) {
-        assert(plocs[i].fid != -1);
-        E_Int pid = pids[i];
-        Mf.X[pid] = plocs[i].x;
-        Mf.Y[pid] = plocs[i].y;
-        Mf.Z[pid] = plocs[i].z;
     }
 }
 
@@ -203,26 +180,16 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
         // Deduce sfids to refine
         std::vector<E_Int> sref_faces;
         Sf.deduce_ref_faces(mpids, plocs_m, Mf, sref_faces);
+        printf("Fat sfids: %lu\n", sref_faces.size());
 
-        for (const E_Int sfid : sref_faces) {
-            fat_sfids.push_back(sfid);
-        }
-        printf("Fat sfids: %lu\n", fat_sfids.size());
-
+        // Refine
         ref_S = sref_faces.size();
         if (ref_S > 0) {
-            // Cache the number of points before refinement
-            E_Int NP = Sf.np;
             Sf.refine(sref_faces);
             Sf.conformize();
-            Sf.hash_faces();
             Sf.make_pnormals();
-            Mf.project_and_replace(Sf, NP);
-            //Sf.write_ngon("refined_Sf");
         }
-        
-        plocs_s = Mf.locate(Sf);
-        
+
 
         /*********************** Mf refinement ***********************/
 
@@ -231,20 +198,20 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
         spids.reserve(Sf.np);
         for (E_Int i = 0; i < Sf.np; i++) spids.push_back(i);
 
+        // Reproject spids on mfaces
+        plocs_s.resize(Sf.np);
+        Mf.project(Sf, spids, plocs_s);
+        Sf.replace_by_projections(spids, plocs_s);
+        
         // Deduce mfids to refine
         std::vector<E_Int> mref_faces;
         Mf.deduce_ref_faces(spids, plocs_s, Sf, mref_faces);
-
-        for (const E_Int mfid : mref_faces) {
-            fat_mfids.push_back(mfid);
-        }
-        printf("Fat mfids: %lu\n", fat_mfids.size());
+        printf("Fat mfids: %lu\n", mref_faces.size());
 
         ref_M = mref_faces.size();
         if (ref_M > 0) {
             Mf.refine(mref_faces);
             Mf.conformize();
-            Mf.hash_faces();
             Mf.make_pnormals();
             // update mfids
             for (E_Int fparent : mref_faces) {
@@ -256,6 +223,9 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
         Mf.destroy_BVH(Mf.bvh_root);
         Sf.destroy_BVH(Sf.bvh_root);
     } while (ref_M > 0 || ref_S > 0);
+
+    Mf.hash_faces();
+    Sf.hash_faces();
 
     //point_write("projections", projections);
 }

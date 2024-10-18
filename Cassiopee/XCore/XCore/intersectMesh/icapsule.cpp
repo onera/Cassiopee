@@ -68,6 +68,8 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
 
         // Refinement loop
         refine(Mf, bfaces, Sf, plocs);
+        //Sf.write_ngon("refined_Sf.im");
+        //Mf.write_ngon("refined_Mf.im");
 
         bfaces = Mf.extract_bounding_faces(Sf, plocs);
         //Mf.write_ngon("bounding_after.im", bfaces);
@@ -82,7 +84,6 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         Dcel Db(Bf, Dcel::RED);
         Db.write_inner_cycles("Db.im");
 
-        Sf.write_ngon("refinement_Sf.im");
 
         Dcel Ds(Sf, Dcel::BLACK);
         Ds.write_inner_cycles("Ds_inner.im");

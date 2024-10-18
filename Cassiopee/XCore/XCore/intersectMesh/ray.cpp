@@ -123,16 +123,16 @@ bool MollerTrumboreAnyDir(
     E_Float inv_det = 1.0 / det;
 
     E_Float s[3] = {ox-ax, oy-ay, oz-az};
-    u = K_MATH::dot(s, h, 3) * inv_det;
-    if (u < -TOL || u > 1+TOL) return false;
+    v = K_MATH::dot(s, h, 3) * inv_det;
+    if (v < -TOL || v > 1+TOL) return false;
 
     E_Float q[3];
     K_MATH::cross(s, v1, q);
-    v = K_MATH::dot(d, q, 3) * inv_det;
-    if (v < -TOL || v > 1+TOL) return false;
-
-    w = 1 - u - v;
+    w = K_MATH::dot(d, q, 3) * inv_det;
     if (w < -TOL || w > 1+TOL) return false;
+
+    u = 1 - v - w;
+    if (u < -TOL || u > 1+TOL) return false;
 
     t = K_MATH::dot(v2, q, 3) * inv_det;
     x = ox + t * dx;

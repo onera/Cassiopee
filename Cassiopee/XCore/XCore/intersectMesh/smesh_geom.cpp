@@ -1,5 +1,6 @@
 #include "smesh.h"
 #include "primitives.h"
+#include "io.h"
 
 void Smesh::get_unit_projected_direction(E_Int fid, const E_Float D[3],
     E_Float proj[3]) const
