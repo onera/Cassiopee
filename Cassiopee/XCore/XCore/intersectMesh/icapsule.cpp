@@ -71,8 +71,11 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         //Sf.write_ngon("refined_Sf.im");
         //Mf.write_ngon("refined_Mf.im");
 
+        assert(Sf.check_Euler);
+        assert(Sf.np - Sf.ne + Sf.nf + 1 == 2);
+
         bfaces = Mf.extract_bounding_faces(Sf, plocs);
-        //Mf.write_ngon("bounding_after.im", bfaces);
+        Mf.write_ngon("bounding_after.im", bfaces);
 
         // Make a patch out of Mf bounding faces
         Smesh Bf(Mf, bfaces, false);
@@ -89,6 +92,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         Ds.write_inner_cycles("Ds_inner.im");
         Ds.write_outer_cycles("Ds_outer.im");
         Ds.write_hole_cycles("Ds_hole.im");
+        Ds.write_degen_cycles("Ds_degen.im");
 
         // Add Sf
         spatches.push_back(Sf);

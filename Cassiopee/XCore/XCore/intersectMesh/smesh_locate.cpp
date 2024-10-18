@@ -8,7 +8,6 @@ void Smesh::replace_by_projections(const std::vector<E_Int> &pids,
 {
     for (size_t i = 0; i < pids.size(); i++) {
         E_Int pid = pids[i];
-        assert(pid == i);
         const auto &ploc = plocs[pid];
         X[pid] = ploc.x;
         Y[pid] = ploc.y;

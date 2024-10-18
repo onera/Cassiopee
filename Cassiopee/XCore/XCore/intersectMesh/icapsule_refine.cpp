@@ -15,7 +15,7 @@ void Smesh::ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
 
     if (!node->left && !node->right) {
         for (E_Int i = node->start; i < node->end; i++) {
-            E_Int fid = bvh_indices[i];
+            E_Int fid = bvh_fids[i];
             const auto &pn = Fc[fid];
             const E_Float *fc = &fcenters[3*fid];
 
@@ -161,7 +161,7 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
         
         puts("Making BVHs");
         Sf.make_BVH();
-        Mf.make_BVH();
+        Mf.make_BVH(mfids);
 
         /*********************** Sf refinement ***********************/
 

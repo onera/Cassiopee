@@ -125,7 +125,7 @@ struct Smesh {
     E_Float xmin, xmax, ymin, ymax, zmin, zmax;
     E_Float HX, HY, HZ;
     std::map<E_Int, std::vector<E_Int>> bin_faces;
-    std::vector<E_Int> bvh_indices;
+    std::vector<E_Int> bvh_fids;
     static const E_Int MAX_FACES_PER_BVH_LEAF = 8;
     BVH_node *bvh_root = NULL;
     
@@ -137,6 +137,7 @@ struct Smesh {
         return i + NX*j + NXY*k;
     }
     void make_BVH();
+    void make_BVH(const std::set<E_Int> &fids);
     AABB make_AABB(E_Int start, E_Int end);
     BVH_node *make_BVH_node(const AABB &box, E_Int start, E_Int end,
         BVH_node *left, BVH_node *right);

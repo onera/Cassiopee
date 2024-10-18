@@ -9,7 +9,7 @@ AABB Smesh::make_AABB(E_Int start, E_Int end)
     xmax = ymax = zmax = EFLOATMIN;
 
     for (E_Int i = start; i < end; i++) {
-        E_Int fid = bvh_indices[i];
+        E_Int fid = bvh_fids[i];
         const auto &pn = F[fid];
         for (E_Int p : pn) {
             if (X[p] < xmin) xmin = X[p];
@@ -70,10 +70,10 @@ BVH_node *Smesh::make_BVH_subtree(E_Int start, E_Int end, const AABB &parent)
         dim = 2;
     }
 
-    std::sort(bvh_indices.begin() + start, bvh_indices.begin() + end,
-        [&] (E_Int i, E_Int j) {
-            E_Float *fci = &fcenters[3*i];
-            E_Float *fcj = &fcenters[3*j];
+    std::sort(bvh_fids.begin() + start, bvh_fids.begin() + end,
+        [&] (E_Int fi, E_Int fj) {
+            E_Float *fci = &fcenters[3*fi];
+            E_Float *fcj = &fcenters[3*fj];
             return fci[dim] < fcj[dim];
         }
     );
@@ -88,11 +88,22 @@ BVH_node *Smesh::make_BVH_subtree(E_Int start, E_Int end, const AABB &parent)
 
 void Smesh::make_BVH()
 {
-    bvh_indices.clear();
-    bvh_indices.reserve(nf);
-    for (E_Int i = 0; i < nf; i++) bvh_indices.push_back(i);
+    bvh_fids.clear();
+    bvh_fids.reserve(nf);
+    for (E_Int i = 0; i < nf; i++) {
+        bvh_fids.push_back(i);
+    }
 
     bvh_root = make_BVH_subtree(0, nf, AABB_HUGE);
+}
+
+void Smesh::make_BVH(const std::set<E_Int> &fids)
+{
+    bvh_fids.clear();
+    bvh_fids.reserve(fids.size());
+    for (auto fid : fids) bvh_fids.push_back(fid);
+
+    bvh_root = make_BVH_subtree(0, fids.size(), AABB_HUGE);
 }
 
 void Smesh::destroy_BVH(BVH_node *root)

@@ -327,7 +327,8 @@ void Dcel::set_cycles_inout(const Smesh &Mf, E_Int color)
 
         const E_Float *N = &Mf.pnormals[3*pid];
 
-        E_Float cmp = K_MATH::dot(N, cp, 3);
+        E_Float dp = K_MATH::dot(N, cp, 3);
+        E_Int cmp = Sign(dp);
 
         if (cmp < 0) {
             c->inout = Cycle::OUTER;

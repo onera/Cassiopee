@@ -128,7 +128,6 @@ void Dcel::write_outer_cycles(const char *fname) const
     write_cycles_of_type(fname, Cycle::OUTER);
 }
 
-
 void Dcel::write_ngon(const char *fname, const std::vector<Cycle *> &cycles) const
 {
     FILE *fh = fopen(fname, "w");
