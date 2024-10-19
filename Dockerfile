@@ -34,16 +34,13 @@ RUN apt-get update && apt-get install -y \
     meld \
     cmake \
     git \
+    libocct-foundation-dev \
+    libocct-modeling-algorithms-dev \
+    libocct-data-exchange-dev \
+    libocct-modeling-data-dev \
+    libocct-draw-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-#    tcl \
-#    tk \
-#    doxygen \
-#    libfreetype6-dev \
-#    libxmu-dev \
-#    libxi-dev \
-#    libxext-dev \
-#    libocct-ocaf-7.6t64 \
 
 # Install latest versions of HDF5 and CGNS tools
 # Adapted from James Clark's Dockerfile
@@ -80,8 +77,6 @@ ENV LD_LIBRARY_PATH="${CGNS_INSTALL_DIR}/lib:${HDF5_INSTALL_DIR}/lib:${LD_LIBRAR
 ENV CGNS_DIR="${CGNS_INSTALL_DIR}"
     
 # Set environment variables
-#ENV PATH=/OCCT/bin:$PATH
-#ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/
 ENV CASSIOPEE=/Cassiopee
 ENV MACHINE=ubuntu
 
@@ -95,9 +90,6 @@ WORKDIR $CASSIOPEE
 # Copy the current directory contents into the container
 COPY . $CASSIOPEE
 
-# Exclude the OCC module temporarily
-RUN echo -e "FREEMODULES='KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot'\nexport FREEMODULES\nFULLMODULES='KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot'\nexport FULLMODULES\nOTHERS=''" > $CASSIOPEE/Cassiopee/MODULES
-
 # Source environment and run install script
 RUN . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 \
     && cd $CASSIOPEE/Cassiopee \
@@ -109,4 +101,3 @@ SHELL ["/bin/bash", "-c"]
 # Define the default command to run the application: start an interactive shell
 # session
 ENTRYPOINT . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 && /bin/bash
-#CMD ["source" "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"]
