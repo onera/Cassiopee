@@ -507,7 +507,7 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
 
 #===============================================================================
 # TRI Mesh Face no i of CAD from parametrized edges
-# IN: hook; cad hook
+# IN: hook: cad hook
 # IN: i: no de la face
 # IN: edges structured one per wire
 # hmax: hmin/hmax/hausd par face
@@ -589,12 +589,11 @@ def meshAllEdges(hook, hmax, hausd, N, edgeList=None):
         nbEdges = occ.getNbEdges(hook)
         edgeList = range(1, nbEdges+1)
     dedges = []
-    print(edgeList)
     for i in edgeList:
         e = occ.meshOneEdge(hook, i, hmax, hausd, N, None)
         dedges.append(e)
     return dedges
-
+    
 #=================================================================
 # mesh TRI given CAD faces from discrete edges U + hList
 # IN: hook: hook of cad

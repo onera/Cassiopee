@@ -764,6 +764,16 @@ def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1, edgeList=None):
   _setCADcontainer(t, None, None, hmax, hausd)
   return None
 
+# remesh all CAD edges with odd number of points
+def _remeshAllEdgesOdd(t):
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for e in Internal.getZones(b):
+    npts = C.getNPts(e)
+    if npts//2-0.5*npts == 0:
+      factor = (npts-1.)/(npts)
+      G._refine(e, factor, 1)
+  return None    
+
 def getCADcontainer(t):
   hmax = None; hausd = None
   CAD = Internal.getNodeFromName1(t, 'CAD')
