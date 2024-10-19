@@ -112,13 +112,17 @@ threadSystemCoreNbr ()
 	corenbr = 1;
     }
 #elif (defined (COMMON_OS_WINDOWS))
-    SYSTEM_INFO         sinfdat;
+    SYSTEM_INFO sinfdat;
     GetSystemInfo (&sinfdat);
     corenbr = sinfdat.dwNumberOfProcessors;
 #else /* (defined (COMMON_OS_LINUX) || defined (COMMON_OS_FREEBSD) || defined (COMMON_OS_AIX)) */
     //corenbr = sysconf (_SC_NPROCESSORS_ONLN);
     // CBX
+#ifdef _OPENMP
     corenbr = omp_get_max_threads();
+#else
+    corenbr = 1;
+#endif
 #endif
 
     threadsystemcorenbr = corenbr;

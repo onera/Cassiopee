@@ -86,7 +86,8 @@ GapsManager::run
 
   OneSurface2 = OneSurface1;
   // Zip what can be zipped.
-  if ((refine == false) /*&& (pcase == POST_CENTER)*/)
+  //if ((refine == false) && (pcase == POST_CENTER)) 
+  if (refine == false)
   {
     K_FLD::IntArray connectB;
     NUGA::MeshTool::getBoundary(OneSurface1, connectB);
