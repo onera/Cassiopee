@@ -764,11 +764,16 @@ elif [ "$MAC" = "adastra_cpu" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=48
     export PRODMODE=1
-    module load PrgEnv-cray
+    module purge
+    #module load craype-x86-genoa
+    #module load PrgEnv-cray
+    #module load cray-mpich/8.1.28
+    #module load cray-libsci/23.05.1.4
+    
+    module load CCE-CPU-3.1.0
     module load cray-python/3.11.5
-    module load cray-mpich/8.1.28
     module load cray-hdf5-parallel/1.12.2.5
-    module load cray-libsci/23.05.1.4
+    
     export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
     export PYTHONEXE=python3

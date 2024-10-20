@@ -716,7 +716,7 @@ True, # useCuda
 'adastra_cpu': [ 'Machine CINES Cray',
 'crayftn', # f77compiler
 'crayftn', # f90compiler
-'craycxx', # Cppcompiler
+'craycc', # Cppcompiler
 [], # CppAdditionalOptions
 [], # f77AdditionalOptions
 False, # useOMP

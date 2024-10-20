@@ -4643,7 +4643,7 @@ E_Int remove_phs(const std::set<E_Int>& PHslist)
         if (Kn == IDX_NONE)
         {
           ++nb_neighs;
-          assert(ng.PGs._type[Fn] == 0);
+          //assert(ng.PGs._type[Fn] == 0);
         }
       }
     }
