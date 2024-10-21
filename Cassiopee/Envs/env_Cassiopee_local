@@ -669,6 +669,7 @@ else if ($MAC == "juno") then
         unsetenv I_MPI_FABRICS
         unsetenv I_MPI_PMI_LIBRARY
         unsetenv I_MPI_TCP_NETMASK
+        unsetenv I_MPI_HYDRA_BOOTSTRAP_EXEC_EXTRA_ARGS I_MPI_HYDRA_BOOTSTRAP HYDRA_BOOTSTRAP
         unsetenv SLURM*
         setenv OMP_PLACES cores
         setenv PYTHONEXE python3
