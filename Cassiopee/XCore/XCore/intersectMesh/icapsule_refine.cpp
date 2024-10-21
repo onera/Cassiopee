@@ -158,8 +158,7 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
 
         std::vector<E_Int> fat_sfids;
         std::vector<E_Int> fat_mfids;
-        
-        puts("Making BVHs");
+
         Sf.make_BVH();
         Mf.make_BVH(mfids);
 
@@ -176,7 +175,6 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
 
         // Project mpids on Sf
         std::vector<PointLoc> plocs_m(mpids.size());
-        puts("Projecting");
         Sf.project(Mf, mpids, plocs_m);
 
         // Deduce sfids to refine
@@ -187,11 +185,8 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
         // Refine
         ref_S = sref_faces.size();
         if (ref_S > 0) {
-            puts("Refining");
             Sf.refine(sref_faces);
-            puts("Conformizing");
             Sf.conformize();
-            puts("Making pnormals");
             Sf.make_pnormals();
         }
 
@@ -205,39 +200,34 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
 
         // Reproject spids on mfaces
         plocs_s.resize(Sf.np);
-        puts("Projecting");
         Mf.project(Sf, spids, plocs_s);
-        puts("Replacing");
         Sf.replace_by_projections(spids, plocs_s);
         
         // Deduce mfids to refine
         std::vector<E_Int> mref_faces;
-        puts("Deducing fat faces");
         Mf.deduce_ref_faces(spids, plocs_s, Sf, mref_faces);
         printf("Fat mfids: %lu\n", mref_faces.size());
 
         ref_M = mref_faces.size();
         if (ref_M > 0) {
-            puts("Refining");
             Mf.refine(mref_faces);
-            puts("Conformizing");
             Mf.conformize();
-            puts("Making pnormals");
             Mf.make_pnormals();
             // update mfids
-            puts("Updating mfids");
             for (E_Int fparent : mref_faces) {
                 const auto &children = Mf.fchildren[fparent].back();
                 for (E_Int child : children) mfids.insert(child);
             }
         }
 
-        puts("Destroying BVHs");
         Mf.destroy_BVH(Mf.bvh_root);
         Sf.destroy_BVH(Sf.bvh_root);
     } while (ref_M > 0 || ref_S > 0);
 
+    Mf.make_bbox();
     Mf.hash_faces();
+    
+    Sf.make_bbox();
     Sf.hash_faces();
 
     //point_write("projections", projections);

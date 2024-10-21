@@ -87,7 +87,6 @@ struct Smesh {
         const std::vector<E_Int> &skin, bool check_Euler=true);
     static Smesh Smesh_from_mesh_patch(const IMesh &M,
         bool check_Euler=true);
-    //Smesh(const IMesh &M, const std::vector<E_Int> &faces);
     void make_edges();
     void clear();
 

@@ -101,7 +101,7 @@ void Dcel::write_point(const char *fname,
     fclose(fh);
 }
 
-void Dcel::write_cycles_of_type(const char *fname, E_Int type) const
+void Dcel::write_cycles_of_type(const char *fname, int type) const
 {
     auto indices = extract_indices_of_type(type);
     auto cids = extract_cycles_of_indices(indices);

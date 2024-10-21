@@ -32,6 +32,14 @@ E_Int Sign(E_Float x, E_Float tol)
 E_Int cmp_points(E_Float x1, E_Float y1, E_Float z1,
     E_Float x2, E_Float y2, E_Float z2)
 {
+    if (x1 < x2) return -1;
+    if (x1 > x2) return 1;
+    if (y1 < y2) return -1;
+    if (y1 > y2) return 1;
+    if (z1 < z2) return -1;
+    if (z1 > z2) return 1;
+    return 0;
+    /*
     E_Float t = x1 - x2;
     E_Int s = Sign(t);
     if (s) return s;
@@ -42,6 +50,7 @@ E_Int cmp_points(E_Float x1, E_Float y1, E_Float z1,
 
     t = z1 - z2;
     return Sign(t);
+    */
 }
 
 bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,

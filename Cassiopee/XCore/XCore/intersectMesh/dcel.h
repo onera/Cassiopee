@@ -39,6 +39,9 @@ struct Dcel {
         E_Int oids[2] = {-1, -1};
         E_Int id = -1;
 
+        PointLoc ploc;
+        E_Float d2;
+
         Vertex(E_Float x_, E_Float y_, E_Float z_)
         {
             x = x_;
@@ -53,6 +56,13 @@ struct Dcel {
     {
         return cmp_points(p->x, p->y, p->z, q->x, q->y, q->z);
     }
+
+    struct cmp_vertex {
+        bool operator()(const Vertex *p, const Vertex *q) const
+        {
+            return cmp_points(p->x, p->y, p->z, q->x, q->y, q->z) < 0;
+        }
+    };
 
     struct Face;
     struct Cycle;
@@ -97,69 +107,45 @@ struct Dcel {
     std::vector<Face *> F;
     std::vector<Cycle *> C;
 
+    std::set<Vertex *, cmp_vertex> vertex_set;
+
     E_Int inner = 0;
     E_Int outer = 0;
     E_Int degen = 0;
     E_Int hole = 0;
 
-    E_Int dup_x = 0; // Number of duplicate intersections
-    std::set<Vertex *> vertices_crossed; // M vertices crossed by S hedges
     std::map<Hedge *, std::vector<Vertex *>> hedge_intersections;
 
-    std::map<E_Int, std::vector<E_Int>> grid;
-
-    Dcel(const Smesh &M, E_Int color);
-
-    Dcel(Smesh &M0, Smesh &M1);
-
+    Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs);
+    Dcel(const Smesh &Mf, int color);
     ~Dcel();
-
-    void init_mh_sv_intersections(const Smesh &M);
     
-    void init_vertices(const Smesh &M0, const Smesh &M1);
+    // Intersection
 
-    void init_hedges_and_faces(const Smesh &M, E_Int color);
+    void init_vertices(const Smesh &Mf, const Smesh &Sf,
+        const std::vector<PointLoc> &plocs);
+    void init_hedges_and_faces(const Smesh &Mf, int color);
+    void sort_leaving_hedges(std::vector<Hedge *> &leaving,
+        const E_Float N[3]) const;
+    void make_cycles();
+    void set_cycles_inout(bool intersected);
+    void set_face_labels(std::vector<Face *> &F);
+    std::vector<Face *> make_cycle_faces(const std::vector<Cycle *> &C);
+    void reconstruct(const Smesh &Mf, const Smesh &Sf);
+
+    // Checks
 
     static E_Int check_hedges(const std::vector<Hedge *> &H);
-
     static E_Int check_faces(const std::vector<Hedge *> &H,
         const std::vector<Face *> &F);
     
-    void make_cycles();
+    // Helpers
 
-    void set_face_labels(std::vector<Face *> &F);
-
-    Hedge *get_hedge_of_color(Face *f, E_Int color);
-
-    std::vector<Face *> make_cycle_faces(const std::vector<Cycle *> &C);
-
+    Hedge *get_hedge_of_color(Face *f, int color);
     void update_hedge_faces(const std::vector<Face *> &F);
 
-    void set_cycles_inout(const Smesh &M, E_Int color);
+    // Export
 
-    
-
-    static std::vector<Vertex *> get_face_vertices(Face *f);
-
-    void locate_spoints(const Smesh &M, const Smesh &S);
-
-    void find_intersections_3D(const Smesh &M, const Smesh &S);
-
-    void cut_hedge_at_vertex(Hedge *h, Vertex *v);
-
-    void resolve_hedges(const Smesh &M, const Smesh &S);
-
-    void reconstruct(const Smesh &M, const Smesh &S);
-
-    E_Int get_next_face(const Smesh &M, E_Float px, E_Float py, E_Float pz,
-        const std::vector<E_Int> &pf, E_Float dir[3], E_Int hid);
-    
-    E_Int trace_hedge_2(Hedge *sh, const Smesh &M, const Smesh &S, E_Int hid);
-
-    void cut_hedges();
-
-    void sort_leaving_hedges(std::vector<Hedge *> &leaving, const E_Float N[3]) const;
-    
     Smesh export_smesh(bool check_Euler=true) const;
 
     // Extract
@@ -175,11 +161,11 @@ struct Dcel {
         E_Float scale = 1.0) const;
     void write_hedge(const char *fname, const Hedge *h) const;
     void write_point(const char *fname, const Vertex *v) const;
-    void write_point(const char *fname, const std::vector<Dcel::Vertex *> &I) const;
+    void write_point(const char *fname, const std::vector<Vertex *> &I) const;
     void write_ngon(const char *fname, const std::vector<Cycle *> &cycles) const;
     void write_degen_cycles(const char *fname) const;
     void write_inner_cycles(const char *fname) const;
     void write_hole_cycles(const char *fname) const;
     void write_outer_cycles(const char *fname) const;
-    void write_cycles_of_type(const char *fname, E_Int type) const;
+    void write_cycles_of_type(const char *fname, int type) const;
 };

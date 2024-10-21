@@ -28,11 +28,6 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     Ss.reserve(sarrays.size());
     spatches.reserve(sarrays.size());
 
-    std::vector<std::vector<PointLoc>> plocs_list;
-    plocs_list.reserve(sarrays.size());
-    std::vector<std::set<E_Int>> bfaces_list;
-    bfaces_list.reserve(sarrays.size());
-
     for (size_t i = 0; i < sarrays.size(); i++) {
 
         printf("S%lu\n", i);
@@ -41,7 +36,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         IMesh S(sarrays[i]);
         S.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
         S.make_skin();
-        S.orient_skin(OUT);
+        S.orient_skin(IN);
         S.triangulate_skin();
         Ss.push_back(S);
 
@@ -54,51 +49,36 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
 
         // Locate Sf points on Mf faces
         auto plocs = Mf.locate(Sf);
-        //Mf.correct_near_points_and_edges(Sf, plocs);
-
-        // Correct AABB and Sf faces hash
-        Sf.make_bbox();
-        Sf.hash_faces();
 
         // Extract the initial Mf faces that bound Sf
         auto bfaces = Mf.extract_bounding_faces(Sf, plocs);
-        //Mf.write_ngon("bounding_before", bfaces);
-
-        //Sf.write_ngon("Sf");
 
         // Refinement loop
         refine(Mf, bfaces, Sf, plocs);
-        //Sf.write_ngon("refined_Sf.im");
-        //Mf.write_ngon("refined_Mf.im");
 
         assert(Sf.check_Euler);
         assert(Sf.np - Sf.ne + Sf.nf + 1 == 2);
 
         bfaces = Mf.extract_bounding_faces(Sf, plocs);
-        Mf.write_ngon("bounding_after.im", bfaces);
 
         // Make a patch out of Mf bounding faces
         Smesh Bf(Mf, bfaces, false);
         Bf.make_fcenters();
         Bf.make_fnormals();
         Bf.make_pnormals();
-        
-        // Make two DCELs out of Bf and Sf
-        Dcel Db(Bf, Dcel::RED);
-        Db.write_inner_cycles("Db.im");
+        Bf.make_bbox();
+        Bf.hash_faces();
 
+        // Update plocs to local ids of Bf
+        plocs = Bf.locate(Sf);
 
-        Dcel Ds(Sf, Dcel::BLACK);
-        Ds.write_inner_cycles("Ds_inner.im");
-        Ds.write_outer_cycles("Ds_outer.im");
-        Ds.write_hole_cycles("Ds_hole.im");
-        Ds.write_degen_cycles("Ds_degen.im");
+        // Intersect
+        Bf.write_ngon("Bf.im");
+        Sf.write_ngon("Sf.im");
+        Dcel D(Bf, Sf, plocs);
 
         // Add Sf
         spatches.push_back(Sf);
-
-        // Add plocs
-        plocs_list.push_back(plocs);
 
         puts("");
     }
