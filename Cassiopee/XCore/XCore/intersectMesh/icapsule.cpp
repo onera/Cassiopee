@@ -10,6 +10,46 @@
 ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     const std::vector<E_Float *> &ptags)
 {
+    /*
+    {
+        Smesh Mf;
+        Mf.np = 3, Mf.nf = 1;
+        Mf.check_Euler = true;
+        Mf.X.push_back(0); Mf.Y.push_back(0); Mf.Z.push_back(0);
+        Mf.X.push_back(2); Mf.Y.push_back(0); Mf.Z.push_back(0);
+        Mf.X.push_back(2); Mf.Y.push_back(2); Mf.Z.push_back(0);
+        Mf.F.push_back({0, 1, 2});
+        Mf.Fc = Mf.F;
+        Mf.conformize();
+        Mf.make_fcenters();
+        Mf.make_fnormals();
+        Mf.make_pnormals();
+        Mf.make_bbox();
+        Mf.hash_faces();
+
+
+        Smesh Sf;
+        Sf.np = 3, Sf.nf = 1;
+        Sf.check_Euler = true;
+        Sf.X.push_back(0); Sf.Y.push_back(0); Sf.Z.push_back(0);
+        Sf.X.push_back(1); Sf.Y.push_back(0); Sf.Z.push_back(0);
+        Sf.X.push_back(1); Sf.Y.push_back(1); Sf.Z.push_back(0);
+        Sf.F.push_back({0, 1, 2});
+        Sf.Fc = Sf.F;
+        Sf.conformize();
+        Sf.make_fcenters();
+        Sf.make_fnormals();
+        Sf.make_pnormals();
+        auto plocs = Mf.locate(Sf);
+
+        Dcel D(Mf, Sf, plocs);
+        D.write_hole_cycles("hole.im");
+        D.write_inner_cycles("inner.im");
+        D.write_degen_cycles("degen.im");
+        exit(0);
+    }
+    */
+
     M = IMesh(marray);
     M.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
     M.make_skin();
@@ -76,6 +116,9 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         Bf.write_ngon("Bf.im");
         Sf.write_ngon("Sf.im");
         Dcel D(Bf, Sf, plocs);
+        D.write_hole_cycles("hole.im");
+        D.write_degen_cycles("degen.im");
+        D.write_inner_cycles("inner.im");
 
         // Add Sf
         spatches.push_back(Sf);

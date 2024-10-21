@@ -65,35 +65,6 @@ void Dcel::init_vertices(const Smesh &Mf, const Smesh &Sf,
     printf("Duplicate vertices: %d\n", duplicate_vertices);
 }
 
-Dcel::Dcel(const Smesh &Mf, int color)
-{
-    const auto &X = Mf.X;
-    const auto &Y = Mf.Y;
-    const auto &Z = Mf.Z;
-
-    V.reserve(Mf.np);
-    for (E_Int pid = 0; pid < Mf.np; pid++) {
-        Vertex *v = new Vertex(X[pid], Y[pid], Z[pid]);
-        v->oids[color] = pid;
-        V.push_back(v);
-    }
-
-    init_hedges_and_faces(Mf, color);
-
-    if (check_hedges(H) != 0) {
-        fprintf(stderr, "Dcel: Inconsistent half-edge records!\n");
-        abort();
-    }
-
-    if (check_faces(H, F) != 0) {
-        fprintf(stderr, "Dcel: Inconsistent face records!\n");
-        abort();
-    }
-
-    make_cycles();
-    set_cycles_inout(false);
-}
-
 Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
 {
     init_vertices(Mf, Sf, plocs);
@@ -111,8 +82,8 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
         abort();
     }
 
-    make_cycles();
-    set_cycles_inout(false);
+    //make_cycles();
+    //set_cycles_inout(false);
 
     std::vector<Point> xpoints;
 
@@ -143,7 +114,6 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
         }
     }
     printf("Sf points on Mf edges: %d\n", v_on_e);
-    point_write("xpoints.im", xpoints);
 
     // Trace
     for (E_Int eid_s = 0; eid_s < Sf.ne; eid_s++) {
@@ -252,7 +222,6 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
                         x->id = V.size();
                         V.push_back(x);
                         vertex_set.insert(x);
-                        xpoints.push_back({x->x,x->y,x->z});
 
                         // Register the intersection
                         Hedge *hm = H[2*eid_m];
@@ -289,6 +258,8 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
 
                         // Register the intersection
                         hedge_intersections[hs].push_back(x);
+
+                        xpoints.push_back({x->x, x->y, x->z});
                     }
                     break;
                 }
@@ -307,12 +278,19 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
         assert(walk <= max_walks);
     }
 
+    point_write("xpoints.im", xpoints);
+
     // Cut
     for (auto &h2x : hedge_intersections) {
         Hedge *h = h2x.first;
+        auto it = hedge_intersections.find(h->twin);
+        assert(it == hedge_intersections.end());
+
         auto &xs = h2x.second;
 
         Vertex *o = h->orig;
+        Vertex *tail = h->twin->orig;
+        assert(cmp_vtx(o, tail) < 0);
 
         // TODO(Imad): check that the intersections are 'sufficiently' spaced out
         for (Vertex *x : xs) {
@@ -370,6 +348,8 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
 
     for (size_t vid = 0; vid < V.size(); vid++) {
         Vertex *v = V[vid];
+        //printf("vid = %d - vertex id %d\n", vid, v->id);
+        assert(v->id == vid);
 
         E_Float N[3] = {0, 0, 0};
         
@@ -393,8 +373,6 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
 
         auto &leaving = list[vid];
 
-        for (Hedge *h : leaving) assert(h->orig == v);
-        
         /*
         bool do_sort = false;
         for (size_t i = 1; i < leaving.size(); i++) {
@@ -407,6 +385,13 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
         */
 
         sort_leaving_hedges(leaving, N);
+
+        /*
+        for (Hedge *h : leaving) {
+            printf("%d ", h->twin->orig->id);
+            puts("");
+        }
+        */
 
         for (size_t i = 0; i < leaving.size(); i++) {
             Hedge *h = leaving[i];
@@ -425,10 +410,27 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
     make_cycles();
     set_cycles_inout(true);
 
-    auto new_F = make_cycle_faces(C);
-    printf("Non-hole faces: %lu\n", new_F.size());
+    /*
+    for (Cycle *c : C) {
+        if (c->inout == Cycle::INNER) puts("inner");
+        else if (c->inout == Cycle::HOLE) puts("hole");
+        else if (c->inout == Cycle::DEGEN) puts("degen");
+        Hedge *h = c->rep;
+        Vertex *v = h->orig;
+        printf("%d ", v->id);
+        Hedge *w = h->next;
+        while (w != h) {
+            v = w->orig;
+            printf("%d ", v->id);
+            w = w->next;
+        }
+        puts("");
+    }
+    */
 
-    set_face_labels(new_F);
+    //auto new_F = make_cycle_faces(C);
+
+    //set_face_labels(new_F);
 
     /*
     update_hedge_faces(new_F);
@@ -440,7 +442,7 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
     */
 
 
-    puts("ok");
+    //puts("ok");
 }
 
 void Dcel::set_face_labels(std::vector<Face *> &new_F)
@@ -696,9 +698,14 @@ void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving,
         assert(O_w == O_h);
         assert(T_w == T_h);
 
-        if (cmp_vtx(O_w, T_w) < 0) return true;
-            
-        return false;
+        // If this is the origin: red comes first
+        if (cmp_vtx(O_w, T_w) < 0) {
+            if (h->color == RED) return true;
+            return false;
+        } else {
+            if (h->color == RED) return false;
+            return true;
+        }
     });
     
     std::vector<Hedge *> tmp(leaving);
@@ -766,15 +773,27 @@ void Dcel::make_cycles()
 void Dcel::set_cycles_inout(bool intersected)
 {
     inner = 0;
-    outer = 0;
     degen = 0;
     hole = 0;
 
     for (Cycle *cycle : C) {
-        Hedge *h = cycle->rep;
 
-        bool is_hole = (intersected && h->left == NULL && h->color == RED) ||
-            (!intersected && h->left == NULL);
+        // Hole cycle is a cycle where all hedges have a null left face
+        bool is_hole = true;
+
+        Hedge *h = cycle->rep;
+        if (!h->left) {
+            Hedge *w = h->next;
+            while (w != h) {
+                if (w->left) {
+                    is_hole = false;
+                    break;
+                }
+                w = w->next;
+            }
+        } else {
+            is_hole = false;
+        }
 
         if (is_hole) {
             cycle->inout = Cycle::HOLE;
@@ -826,10 +845,6 @@ void Dcel::set_cycles_inout(bool intersected)
     printf("Inner cycles: " SF_D_ "\n", inner);
     printf("Degen cycles: " SF_D_ "\n", degen);
     printf("Hole cycles: " SF_D_ "\n", hole);
-
-    write_degen_cycles("degen.im");
-    write_inner_cycles("inner.im");
-    write_hole_cycles("hole.im");
 }
 
 Dcel::~Dcel()
@@ -879,3 +894,34 @@ void Dcel::reconstruct(const Smesh &M, const Smesh &S)
     write_outer_faces("outer");
 }
 */
+
+Dcel::Dcel(const Smesh &Mf, int color)
+{
+    const auto &X = Mf.X;
+    const auto &Y = Mf.Y;
+    const auto &Z = Mf.Z;
+
+    V.reserve(Mf.np);
+    for (E_Int pid = 0; pid < Mf.np; pid++) {
+        Vertex *v = new Vertex(X[pid], Y[pid], Z[pid]);
+        v->oids[color] = pid;
+        V.push_back(v);
+    }
+
+    init_hedges_and_faces(Mf, color);
+
+    if (check_hedges(H) != 0) {
+        fprintf(stderr, "Dcel: Inconsistent half-edge records!\n");
+        abort();
+    }
+
+    if (check_faces(H, F) != 0) {
+        fprintf(stderr, "Dcel: Inconsistent face records!\n");
+        abort();
+    }
+
+    make_cycles();
+    set_cycles_inout(false);
+}
+
+
