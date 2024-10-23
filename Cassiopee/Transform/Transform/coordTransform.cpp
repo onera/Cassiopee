@@ -39,56 +39,6 @@ extern "C"
                       const E_Int& ni, const E_Int& nj, const E_Int& nk,
                       E_Float* x, E_Float* y, E_Float* z);
 }
-// ============================================================================
-/* Homothety from an array describing a mesh */
-// ============================================================================
-PyObject* K_TRANSFORM::homothety(PyObject* self, PyObject* args)
-{
-  E_Float xc, yc, zc;
-  E_Float alpha;
-  PyObject* array;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ R_,
-                    &array, &xc, &yc, &zc, &alpha))
-  {
-      return NULL;
-  }
-
-  // Check array
-  E_Int nil, njl, nkl;
-  FldArrayF* f; FldArrayI* cn;
-  char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, cn, eltType);
-
-  if (res != 1 && res != 2)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "homothety: not a valid array.");
-    return NULL;
-  }
-
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-  if (posx == -1 || posy == -1 || posz == -1)
-  {
-    RELEASESHAREDB(res, array, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "homothety: can't find coordinates in array.");
-    return NULL;
-  }
-  posx++; posy++; posz++;
-   
-  E_Int npts = f->getSize();
-  // Homothety
-  k6homothety_(npts,
-               f->begin(posx), f->begin(posy), f->begin(posz),
-               xc, yc, zc, alpha,
-               f->begin(posx), f->begin(posy), f->begin(posz));
-  RELEASESHAREDB(res, array, f, cn);
-  Py_INCREF(Py_None);
-  return Py_None;
-}
 
 // ============================================================================
 /* Contract python array describing a mesh */
