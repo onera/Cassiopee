@@ -1750,6 +1750,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
   if (size == 0)
   {
     RELEASESHAREDZ(hook, varString, eltType);
+    delete [] sizeLoc;
     Py_INCREF(Py_None);
     return Py_None;
   }
