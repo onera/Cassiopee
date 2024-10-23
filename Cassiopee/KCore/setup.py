@@ -31,10 +31,9 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
-srcs = ['KCore/kcore.cpp']
 extensions = [
     Extension('KCore.kcore',
-              sources=srcs,
+              sources=['KCore/kcore.cpp'],
               include_dirs=["KCore"]+additionalIncludePaths+[numpyIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,

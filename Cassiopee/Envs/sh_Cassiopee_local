@@ -766,31 +766,39 @@ elif [ "$MAC" = "adastra_cpu" ]; then
     export OMP_NUM_THREADS=48
     export PRODMODE=1
     module purge
+
+    # CPU craycc
     #module load craype-x86-genoa
     #module load PrgEnv-cray
     #module load cray-mpich/8.1.28
     #module load cray-libsci/23.05.1.4
+
+    #module load CCE-CPU-3.1.0
+
+    # CPU GCC
+    module load PrgEnv-gnu
+    export LD_LIBRARY_PATH="/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12":$LD_LIBRARY_PATH
     
-    module load CCE-CPU-3.1.0
     module load cray-python/3.11.5
     module load cray-hdf5-parallel/1.12.2.5
-    
     export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
+
     export PYTHONEXE=python3
 
 elif [ "$MAC" = "adastra_gpu" ]; then
 #----------------------------- adastra gpu  ---------------------------------------
     export ELSAPROD=adastra_gpu
     export ELSAPROD=$ELSAPROD$EXT
-    export OMP_NUM_THREADS=48
+    export OMP_NUM_THREADS=12
     export PRODMODE=1
-    module load PrgEnv-cray
-    craype-accel-amd-gfx90
+    module purge
+    #craype-accel-amd-gfx90
+    module load CCE-GPU-3.1.0
     module load cray-python/3.11.5
-    module load cray-mpich/8.1.28
     module load cray-hdf5-parallel/1.12.2.5
-    module load cray-libsci/23.05.1.4
+    export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
     export PYTHONEXE=python3
     
 elif [ "$MAC" = "aryen" ]; then
