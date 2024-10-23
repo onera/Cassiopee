@@ -37,13 +37,7 @@ extern "C"
   void k6compmeanlengthoftetracell_(E_Int& npts, E_Int& indA, E_Int& indB,
                                    E_Int& indC, E_Int& indD, 
                                    E_Float* xt, E_Float* yt, E_Float* zt, 
-                                   E_Float& meanl);
-  
-  void k6computevelocity_(const E_Int& npts, const E_Int& neq,
-                          const E_Int& posro,
-                          const E_Int& posrou, const E_Int& posrov,
-                          const E_Int& posrow,
-                          const E_Float* field, E_Float* velo);
+                                   E_Float& meanl);  
 }
 
 //=============================================================================
