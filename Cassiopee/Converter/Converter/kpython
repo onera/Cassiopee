@@ -212,7 +212,7 @@ else
             ;;
         'win64' ) # MSYS 2 With Win64 production
             # MSMPI
-	          mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
+            mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
             [ $? != 0 ] && exit 1;
             ;;
         *) # default
