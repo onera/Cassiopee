@@ -3,18 +3,98 @@
 #include "primitives.h"
 #include "io.h"
 
-void Smesh::replace_by_projections(const std::vector<E_Int> &pids,
-    const std::vector<PointLoc> &plocs)
+std::vector<PointLoc> Smesh::locate(const Smesh &Sf) const
 {
-    for (size_t i = 0; i < pids.size(); i++) {
-        E_Int pid = pids[i];
-        const auto &ploc = plocs[pid];
-        X[pid] = ploc.x;
-        Y[pid] = ploc.y;
-        Z[pid] = ploc.z;
+    std::vector<PointLoc> ploc(Sf.np);
+
+    for (E_Int pid = 0; pid < Sf.np; pid++) {
+
+        E_Float x = Sf.X[pid];
+        E_Float y = Sf.Y[pid];
+        E_Float z = Sf.Z[pid];
+
+        E_Int I = floor((x - xmin) / HX);
+        E_Int J = floor((y - ymin) / HY);
+        E_Int K = floor((z - zmin) / HZ);
+        E_Int voxel = get_voxel(I, J, K);
+
+        const auto &pf = bin_faces.at(voxel);
+
+        bool found = false;
+
+        auto &loc = ploc[pid];
+
+        for (size_t i = 0; i < pf.size() && !found; i++) {
+            E_Int fid = pf[i];
+            const auto &pn = Fc[fid];
+            const E_Float *fc = &fcenters[3*fid];
+
+            for (size_t j = 0; j < pn.size(); j++) {
+                E_Int p = pn[j];
+                E_Int q = pn[(j+1)%pn.size()];
+
+                E_Float u, v, w;
+
+                found = Triangle::is_point_inside(x, y, z,
+                    X[p], Y[p], Z[p],
+                    X[q], Y[q], Z[q],
+                    fc[0], fc[1], fc[2],
+                    u, v, w
+                );
+
+                if (found) {
+                    loc.fid = fid;
+                    loc.sub = j;
+                    loc.bcrd[0] = u;
+                    loc.bcrd[1] = v;
+                    loc.bcrd[2] = w;
+
+                    /*
+                    if (pid == 107) {
+                        printf("fid: %d - size: %d\n", fid, pn.size());
+                        printf("u: %f - v: %f - w: %f\n", u, v, w);
+                        printf("%f %f %f\n", fc[0], fc[1], fc[2]);
+                    }
+                    */
+
+                    // on p
+                    if      (Sign(1-u, NEAR_VERTEX_TOL) == 0) {
+                        loc.v_idx = j;
+                        loc.x = X[p]; loc.y = Y[p]; loc.z = Z[p];
+                        loc.bcrd[0] = 1; loc.bcrd[1] = 0; loc.bcrd[2] = 0;
+                    }
+                    // on q
+                    else if (Sign(1-v, NEAR_VERTEX_TOL) == 0) {
+                        loc.v_idx = (j+1)%pn.size();
+                        loc.x = X[q]; loc.y = Y[q]; loc.z = Z[q];
+                        loc.bcrd[0] = 0; loc.bcrd[1] = 1; loc.bcrd[2] = 0;
+                    }
+                    // on edge {p, q}
+                    else if (Sign(w, NEAR_EDGE_TOL) == 0) {
+                        loc.e_idx = j;
+                        loc.x = u*X[p] + (1-u)*X[q];
+                        loc.y = u*Y[p] + (1-u)*Y[q];
+                        loc.z = u*Z[p] + (1-u)*Z[q];
+                        loc.bcrd[1] = 1-u; loc.bcrd[2] = 0;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        if (!found) {
+            point_write("lost", x, y, z);
+            write_ngon("bin", pf);
+        }
+
+        assert(found);
     }
+
+    return ploc;
 }
 
+/*
 void Smesh::correct_near_points_and_edges(Smesh &Sf,
     std::vector<PointLoc> &plocs)
 {
@@ -23,7 +103,7 @@ void Smesh::correct_near_points_and_edges(Smesh &Sf,
         auto &ploc = plocs[i];
 
         E_Int fid = ploc.fid;
-        assert(fid < nf);
+        assert(fid != -1);
         const auto &pn = Fc[fid];
 
         if (ploc.v_idx != -1) {
@@ -49,17 +129,35 @@ void Smesh::correct_near_points_and_edges(Smesh &Sf,
             E_Float v = ploc.bcrd[1];
             E_Float w = ploc.bcrd[2];
             assert(Sign(w, NEAR_EDGE_TOL) == 0);
-            u += w;
-            assert(Sign(u+v-1) == 0);
+            v = 1 - u, w = 0;
+
             E_Int p = pn[ploc.e_idx];
             E_Int q = pn[(ploc.e_idx+1)%pn.size()];
-            Sf.X[i] = u*X[p] + v*X[q];
-            Sf.Y[i] = u*Y[p] + v*Y[q];
-            Sf.Z[i] = u*Z[p] + v*Z[q];
+            E_Float new_x = u*X[p] + v*X[q];
+            E_Float new_y = u*Y[p] + v*Y[q];
+            E_Float new_z = u*Z[p] + v*Z[q];
+
+            E_Float dx = new_x-Sf.X[i];
+            E_Float dy = new_y-Sf.Y[i];
+            E_Float dz = new_z-Sf.Z[i];
+            E_Float dist = dx*dx + dy*dy + dz*dz;
+            if (dist >= Sf.min_pdist_squared) {
+                fprintf(stderr, "Tight near-edge situation!\n");
+                point_write("mpoint", X[p], Y[p], Z[p]);
+                point_write("spoint", Sf.X[i], Sf.Y[i], Sf.Z[i]);
+                assert(0);
+            } else {
+                ploc.bcrd[1] = v; ploc.bcrd[2] = 0;
+
+                Sf.X[i] = new_x;
+                Sf.Y[i] = new_y;
+                Sf.Z[i] = new_z;
+            }
         }
     }
     printf("on vertex: %d - on edge: %d\n", on_vertex, on_edge);
 }
+*/
 
 void Smesh::make_bbox()
 {
@@ -69,8 +167,8 @@ void Smesh::make_bbox()
     NXY = NX * NY;
     NXYZ = NXY * NZ;
 
-    xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
-    xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
+    xmin = ymin = zmin = EFLOATMAX;
+    xmax = ymax = zmax = EFLOATMIN;
 
     for (E_Int i = 0; i < np; i++) {
         if (X[i] < xmin) xmin = X[i];
@@ -92,9 +190,9 @@ void Smesh::make_bbox()
     ymax = ymax + dy*0.01;
     zmax = zmax + dz*0.01;
 
-    HX = (xmax - xmin) / NX;
-    HY = (ymax - ymin) / NY;
-    HZ = (zmax - zmin) / NZ;
+    HX = (dx != 0) ? (xmax - xmin) / NX : 1;
+    HY = (dy != 0) ? (ymax - ymin) / NY : 1;
+    HZ = (dz != 0) ? (zmax - zmin) / NZ : 1;
 }
 
 inline
@@ -144,95 +242,4 @@ void Smesh::hash_faces()
     for (E_Int fid = 0; fid < nf; fid++) {
         bin_face(fid);
     }
-}
-
-std::vector<PointLoc> Smesh::locate(const Smesh &Sf) const
-{
-    std::vector<PointLoc> ploc(Sf.np);
-
-    for (E_Int pid = 0; pid < Sf.np; pid++) {
-
-        E_Float x = Sf.X[pid];
-        E_Float y = Sf.Y[pid];
-        E_Float z = Sf.Z[pid];
-
-        E_Int I = floor((x - xmin) / HX);
-        E_Int J = floor((y - ymin) / HY);
-        E_Int K = floor((z - zmin) / HZ);
-        E_Int voxel = get_voxel(I, J, K);
-
-        const auto &pf = bin_faces.at(voxel);
-
-        bool found = false;
-
-        auto &loc = ploc[pid];
-
-        /*
-        if (pid == 371)
-            point_write("lost", x, y, z);
-        */
-
-        for (size_t i = 0; i < pf.size() && !found; i++) {
-            E_Int fid = pf[i];
-            const auto &pn = Fc[fid];
-            const E_Float *fc = &fcenters[3*fid];
-
-            /*
-            if (pid == 371) {
-                write_face("fid", fid);
-                point_write("fc", fc[0], fc[1], fc[2]);
-            }
-            */
-
-            for (size_t j = 0; j < pn.size(); j++) {
-                E_Int p = pn[j];
-                E_Int q = pn[(j+1)%pn.size()];
-
-                /*
-                if (pid == 371) {
-                    point_write("p", X[p], Y[p], Z[p]);
-                    point_write("q", X[q], Y[q], Z[q]);
-                }
-                */
-
-                E_Float u, v, w;
-
-                found = Triangle::is_point_inside(x, y, z,
-                    X[p], Y[p], Z[p],
-                    X[q], Y[q], Z[q],
-                    fc[0], fc[1], fc[2],
-                    u, v, w
-                );
-
-                if (found) {
-                    loc.fid = fid;
-                    loc.sub = j;
-                    loc.bcrd[0] = u;
-                    loc.bcrd[1] = v;
-                    loc.bcrd[2] = w;
-
-                    // on p
-                    if      (Sign(1-u, NEAR_VERTEX_TOL) == 0)
-                        loc.v_idx = j;
-                    // on q
-                    else if (Sign(1-v, NEAR_VERTEX_TOL) == 0)
-                        loc.v_idx = (j+1)%pn.size();
-                    // on edge {p, q}
-                    else if (Sign(w, NEAR_EDGE_TOL) == 0)
-                        loc.e_idx = j;
-
-                    break;
-                }
-            }
-        }
-
-        if (!found) {
-            point_write("lost", x, y, z);
-            write_ngon("bin", pf);
-        }
-
-        assert(found);
-    }
-
-    return ploc;
 }

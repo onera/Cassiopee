@@ -128,7 +128,7 @@ struct Dcel {
     void sort_leaving_hedges(std::vector<Hedge *> &leaving,
         const E_Float N[3]) const;
     void make_cycles();
-    void set_cycles_inout(bool intersected);
+    void set_cycles_inout();
     void set_face_labels(std::vector<Face *> &F);
     std::vector<Face *> make_cycle_faces(const std::vector<Cycle *> &C);
     void reconstruct(const Smesh &Mf, const Smesh &Sf);
@@ -142,7 +142,7 @@ struct Dcel {
     // Helpers
 
     Hedge *get_hedge_of_color(Face *f, int color);
-    void update_hedge_faces(const std::vector<Face *> &F);
+    void update_hedge_faces(std::vector<Face *> &F);
 
     // Export
 

@@ -2,6 +2,59 @@
 #include "primitives.h"
 #include "io.h"
 
+void Smesh::replace_by_projections(const std::vector<E_Int> &pids,
+    const std::vector<PointLoc> &plocs)
+{
+    for (size_t i = 0; i < pids.size(); i++) {
+        E_Int pid = pids[i];
+        const auto &ploc = plocs[pid];
+        if (ploc.v_idx != -1 || ploc.e_idx != -1) {
+            E_Float dx = X[pid]-ploc.x;
+            E_Float dy = Y[pid]-ploc.y;
+            E_Float dz = Z[pid]-ploc.z;
+            E_Float d = sqrt(dx*dx + dy*dy + dz*dz);
+            if (d >= min_pdist) {
+                fprintf(stderr, "Tight near vertex/edge situation!\n");
+                point_write("orig", X[pid], Y[pid], Z[pid]);
+                point_write("dest", ploc.x, ploc.y, ploc.z);
+                assert(0);
+            }
+            X[pid] = ploc.x;
+            Y[pid] = ploc.y;
+            Z[pid] = ploc.z;
+        }
+    }
+}
+
+void Smesh::compute_min_distance_between_points()
+{
+    min_pdist = EFLOATMAX;
+    size_t ndists = 0;
+
+    for (E_Int i = 0; i < np; i++) {
+        E_Float xi = X[i];
+        E_Float yi = Y[i];
+        E_Float zi = Z[i];
+        for (E_Int j = i+1; j < np; j++) {
+            E_Float xj = X[j];
+            E_Float yj = Y[j];
+            E_Float zj = Z[j];
+
+            E_Float dx = xj-xi;
+            E_Float dy = yj-yi;
+            E_Float dz = zj-zi;
+
+            E_Float dist = sqrt(dx*dx + dy*dy + dz*dz);
+
+            if (dist < min_pdist) min_pdist = dist;
+
+            ndists++;
+        }
+    }
+
+    assert(ndists == (size_t)np*((size_t)np-1)/2);
+}
+
 void Smesh::get_unit_projected_direction(E_Int fid, const E_Float D[3],
     E_Float proj[3]) const
 {
@@ -22,7 +75,7 @@ void Smesh::get_unit_projected_direction(E_Int fid, const E_Float D[3],
 
 E_Int Smesh::deduce_face(const std::vector<E_Int> &pf,
     E_Float ox, E_Float oy, E_Float oz, E_Float D[3], 
-    E_Int last_vertex, E_Int last_edge) const
+    E_Int last_vertex, E_Int last_edge, E_Int eid) const
 {
     // Intersect the projection of D with all the faces in pf
     // At least one intersection must exist
@@ -56,6 +109,11 @@ E_Int Smesh::deduce_face(const std::vector<E_Int> &pf,
 
             E_Float t, s;
 
+            //if (eid == 133) {
+            //    point_write("p.im", X[p], Y[p], Z[p]);
+            //    point_write("q.im", X[q], Y[q], Z[q]);
+            //}
+
             bool hit = ray_edge_intersect(ox, oy, oz,
                 proj[0], proj[1], proj[2],
                 X[p], Y[p], Z[p],
@@ -78,6 +136,10 @@ E_Int Smesh::deduce_face(const std::vector<E_Int> &pf,
     }
 
     // We must have hit a face
+    if (faces_hit == 0) {
+        write_ngon("pf.im", pf);
+        edge_write("ray.im", ox, oy, oz, ox+D[0], oy+D[1], oz+D[2]);
+    }
     assert(faces_hit > 0);
 
     return ret_face;

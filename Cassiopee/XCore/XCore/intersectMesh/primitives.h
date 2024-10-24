@@ -22,7 +22,7 @@
 
 #include "common/common.h"
 
-constexpr E_Float TOL = 1e-12;
+constexpr E_Float TOL = 1e-11;
 
 E_Int Sign(E_Float x, E_Float tol=TOL);
 

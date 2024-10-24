@@ -95,7 +95,7 @@ struct Smesh {
     std::vector<E_Float> fcenters;
     std::vector<E_Float> fnormals;
     std::vector<E_Float> pnormals;
-    E_Float min_pdist_squared = EFLOATMIN;
+    E_Float min_pdist = EFLOATMIN;
     E_Float NEAR_VERTEX_TOL = 1e-3;
     E_Float NEAR_EDGE_TOL = 1e-3;
     
@@ -109,8 +109,8 @@ struct Smesh {
     void get_unit_projected_direction(E_Int fid, const E_Float D[3],
         E_Float proj[3]) const;
     void compute_min_distance_between_points();
-    void project(const Smesh &Mf, const std::vector<E_Int> &mpids,
-        std::vector<PointLoc> &plocs) const;
+    std::vector<PointLoc> project(const Smesh &Mf,
+        const std::vector<E_Int> &mpids) const;
     void replace_by_projections(const std::vector<E_Int> &pids,
         const std::vector<PointLoc> &plocs);
     void ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
@@ -166,11 +166,11 @@ struct Smesh {
 
     bool check_Euler = true;
 
-    std::set<E_Int> extract_bounding_faces(const Smesh &Sf,
+    std::set<E_Int> extract_covering_faces(const Smesh &Sf,
         const std::vector<PointLoc> &plocs) const;
     E_Int deduce_face(const std::vector<E_Int> &pf,
         E_Float ox, E_Float oy, E_Float oz, E_Float D[3], 
-        E_Int last_vertex, E_Int last_edge) const;
+        E_Int last_vertex, E_Int last_edge, E_Int eid) const;
     void get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
         E_Int &pid, E_Int &eid) const;
     Smesh extract_smesh(const std::set<E_Int> &fids, bool check_Euler=true);

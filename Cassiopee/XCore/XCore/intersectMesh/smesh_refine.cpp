@@ -43,7 +43,7 @@ void Smesh::compute_face_center(E_Int fid)
 {
     E_Float *fc = &fcenters[3*fid];
     fc[0] = fc[1] = fc[2] = 0;
-    const auto &pn = F[fid];
+    const auto &pn = Fc[fid];
     for (E_Int p : pn) {
         fc[0] += X[p];
         fc[1] += Y[p];
@@ -89,8 +89,8 @@ void Smesh::refine_tri(E_Int fid)
         for (E_Int j = 0; j < 3; j++) fN[j] = N[j];
     }
 
-    compute_face_center(fid);
-    for (E_Int i = 0; i < 3; i++) compute_face_center(nf+i);
+    //compute_face_center(fid);
+    //for (E_Int i = 0; i < 3; i++) compute_face_center(nf+i);
 
     nf += 3;
 }

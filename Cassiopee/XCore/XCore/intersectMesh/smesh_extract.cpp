@@ -49,7 +49,7 @@ std::set<E_Int> ewalls;
 std::set<E_Int> fwalls;
 std::vector<Point> pchains;
 
-std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
+std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
     const std::vector<PointLoc> &plocs) const
 {
     // Get boundary edges from spatch
@@ -94,6 +94,7 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
 
     assert(pchain.size() == nbedges);
 
+    /*
     // Sort the pchain counterclockwise
     E_Int a = pchain[0], b = pchain[1], c = pchain[2];
     E_Float ux = Sf.X[b] - Sf.X[a];
@@ -109,6 +110,7 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
     E_Int cmp = Sign(dp);
     assert(cmp != 0);
     if (cmp < 0) std::reverse(pchain.begin(), pchain.end());
+    */
 
     Sf.write_points("pchain.im", pchain);
 
@@ -142,7 +144,7 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
         //write_ngon("shared", orig_faces);
 
         E_Int starting_face = deduce_face(orig_faces, px, py, pz,
-            D, last_vertex, last_edge);
+            D, last_vertex, last_edge, dummy);
         assert(starting_face != -1);
 
         bool found_tail = false;
@@ -241,8 +243,7 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
                         const auto &pf = P2F[last_vertex];
                         next_fid = deduce_face(pf,
                             next_pos[0], next_pos[1], next_pos[2],
-                            D, last_vertex, last_edge
-                        );
+                            D, last_vertex, last_edge, dummy);
                         assert(next_fid != -1);
                     }
                     break;
@@ -261,6 +262,8 @@ std::set<E_Int> Smesh::extract_bounding_faces(const Smesh &Sf,
         assert(found_tail);
         assert(walk <= max_walks);
     }
+
+    write_edges("wall", weids);
 
     // TODO(Imad): project wpids on best-fit plane and jarvis march
 

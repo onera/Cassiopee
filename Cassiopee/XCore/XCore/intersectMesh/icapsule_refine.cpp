@@ -46,14 +46,29 @@ void Smesh::ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
                     ploc.z = z;
 
                     // on p
-                    if      (Sign(1-u, NEAR_VERTEX_TOL) == 0)
+                    if      (Sign(1-u, NEAR_VERTEX_TOL) == 0) {
                         ploc.v_idx = j;
+                        ploc.bcrd[0] = 1, ploc.bcrd[1] = 0, ploc.bcrd[2] = 0;
+                        ploc.x = X[p];
+                        ploc.y = Y[p];
+                        ploc.z = Z[p];
+                    }
                     // on q
-                    else if (Sign(1-v, NEAR_VERTEX_TOL) == 0)
+                    else if (Sign(1-v, NEAR_VERTEX_TOL) == 0) {
                         ploc.v_idx = (j+1)%pn.size();
+                        ploc.bcrd[0] = 0, ploc.bcrd[1] = 1, ploc.bcrd[2] = 0;
+                        ploc.x = X[q];
+                        ploc.y = Y[q];
+                        ploc.z = Z[q];
+                    }
                     // on edge {p, q}
-                    else if (Sign(w, NEAR_EDGE_TOL) == 0)
+                    else if (Sign(w, NEAR_EDGE_TOL) == 0) {
                         ploc.e_idx = j;
+                        ploc.bcrd[0] = u, ploc.bcrd[1] = 1-u, ploc.bcrd[2] = 0;
+                        ploc.x = u*X[p] + (1-u)*X[q];
+                        ploc.y = u*Y[p] + (1-u)*Y[q];
+                        ploc.z = u*Z[p] + (1-u)*Z[q];
+                    }
 
                     plocs.push_back(ploc);
                     
@@ -68,20 +83,22 @@ void Smesh::ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
     ray_BVH_intersect(ox, oy, oz, dx, dy, dz, node->right, plocs);
 }
 
-std::vector<Point> projections;
-
-void Smesh::project(const Smesh &Mf, const std::vector<E_Int> &mpids,
-    std::vector<PointLoc> &plocs) const
+std::vector<PointLoc> Smesh::project(const Smesh &Mf,
+    const std::vector<E_Int> &mpids) const
 {
+    std::vector<PointLoc> plocs;
+    plocs.reserve(mpids.size());
+
     for (size_t i = 0; i < mpids.size(); i++) {
         E_Int mpid = mpids[i];
+        //printf("%lu\n", i);
         const E_Float *N = &Mf.pnormals[3*mpid];
         E_Float mx = Mf.X[mpid];
         E_Float my = Mf.Y[mpid];
         E_Float mz = Mf.Z[mpid];
         std::vector<PointLoc> mlocs; // to parse
         ray_BVH_intersect(mx, my, mz, N[0], N[1], N[2], bvh_root, mlocs);
-        auto &ploc = plocs[i];
+        PointLoc ploc;
         E_Float min_abs_t = EFLOATMAX;
         for (const auto &mloc : mlocs) {
             if (fabs(mloc.t) < min_abs_t) {
@@ -89,10 +106,10 @@ void Smesh::project(const Smesh &Mf, const std::vector<E_Int> &mpids,
                 ploc = mloc;
             }
         }
-        if (ploc.fid != -1) {
-            projections.push_back({ploc.x, ploc.y, ploc.z});
-        }
+        plocs.push_back(ploc);
     }
+
+    return plocs;
 }
 
 std::vector<E_Int> Smesh::deduce_ref_faces(const std::vector<E_Int> &mpids,
@@ -146,12 +163,14 @@ std::vector<E_Int> Smesh::deduce_ref_faces(const std::vector<E_Int> &mpids,
     return ref_faces;
 }
 
-void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
-    std::vector<PointLoc> &plocs_s)
+std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
+    Smesh &Sf)
 {
     size_t ref_M, ref_S;
     
     E_Int iter = 0;
+    
+    std::vector<PointLoc> plocs_s;
 
     do {
         iter++;
@@ -160,36 +179,13 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
         std::vector<E_Int> fat_mfids;
 
         Sf.make_BVH();
-        Mf.make_BVH(mfids);
+        //Mf.make_BVH(mfids);
 
-        /*********************** Sf refinement ***********************/
+        //Sf.make_bbox();
+        //Sf.hash_faces();
 
-        // Isolate the points to project
-        std::set<E_Int> mpids_set;
-        for (E_Int fid : mfids) {
-            const auto &pn = Mf.F[fid];
-            for (E_Int p : pn) mpids_set.insert(p);
-        }
-        std::vector<E_Int> mpids;
-        for (E_Int p : mpids_set) mpids.push_back(p);
-
-        // Project mpids on Sf
-        std::vector<PointLoc> plocs_m(mpids.size());
-        Sf.project(Mf, mpids, plocs_m);
-
-        // Deduce sfids to refine
-        std::vector<E_Int> sref_faces;
-        Sf.deduce_ref_faces(mpids, plocs_m, Mf, sref_faces);
-        printf("Fat sfids: %lu\n", sref_faces.size());
-
-        // Refine
-        ref_S = sref_faces.size();
-        if (ref_S > 0) {
-            Sf.refine(sref_faces);
-            Sf.conformize();
-            Sf.make_pnormals();
-        }
-
+        Mf.make_bbox();
+        Mf.hash_faces();
 
         /*********************** Mf refinement ***********************/
 
@@ -199,10 +195,10 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
         for (E_Int i = 0; i < Sf.np; i++) spids.push_back(i);
 
         // Reproject spids on mfaces
-        plocs_s.resize(Sf.np);
-        Mf.project(Sf, spids, plocs_s);
+        Mf.make_fcenters();
+        plocs_s = Mf.locate(Sf);
         Sf.replace_by_projections(spids, plocs_s);
-        
+
         // Deduce mfids to refine
         std::vector<E_Int> mref_faces;
         Mf.deduce_ref_faces(spids, plocs_s, Sf, mref_faces);
@@ -220,15 +216,39 @@ void ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids, Smesh &Sf,
             }
         }
 
-        Mf.destroy_BVH(Mf.bvh_root);
+        /*********************** Sf refinement ***********************/
+
+        // Isolate the points to project
+        std::set<E_Int> mpids_set;
+        for (E_Int fid : mfids) {
+            const auto &pn = Mf.Fc[fid];
+            for (E_Int p : pn) mpids_set.insert(p);
+        }
+        std::vector<E_Int> mpids;
+        for (E_Int p : mpids_set) mpids.push_back(p);
+
+        // Project mpids on Sf
+        puts("making Sf centers");
+        Sf.make_fcenters();
+        puts("projecting mpids on Sf");
+        auto plocs_m = Sf.project(Mf, mpids);
+
+        // Deduce sfids to refine
+        std::vector<E_Int> sref_faces;
+        Sf.deduce_ref_faces(mpids, plocs_m, Mf, sref_faces);
+        printf("Fat sfids: %lu\n", sref_faces.size());
+
+        // Refine
+        ref_S = sref_faces.size();
+        if (ref_S > 0) {
+            Sf.refine(sref_faces);
+            Sf.conformize();
+            Sf.make_pnormals();
+        }
+
+        //Mf.destroy_BVH(Mf.bvh_root);
         Sf.destroy_BVH(Sf.bvh_root);
     } while (ref_M > 0 || ref_S > 0);
 
-    Mf.make_bbox();
-    Mf.hash_faces();
-    
-    Sf.make_bbox();
-    Sf.hash_faces();
-
-    //point_write("projections", projections);
+    return plocs_s;
 }
