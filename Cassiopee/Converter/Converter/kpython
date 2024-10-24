@@ -28,12 +28,12 @@ if [ -n "$OMP_NUM_THREADS" ]
 then
     ncpu=$OMP_NUM_THREADS # suppose que l'OMP_NUM_THREADS de env correspond a tous les coeurs disponibles
 else
-    ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
+    ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
     if [ -z "$ncpu" ]
     then
         ncpu=1
     else
-        ncpu=$((ncpu + 1 ))
+        ncpu=$((ncpu + 1))
     fi
 fi
 
@@ -144,80 +144,81 @@ then
 else
     export MPIRUN=1
     export OMP_NUM_THREADS=$NTHREADS
-    if [ "$ELSAPROD" = 'x86_r8' ] # eos
-    then
-        # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'ld' ] || [ "$ELSAPROD" = 'ld_i8' ] || [ "$ELSAPROD" = 'ld_DBG' ] || [ "$ELSAPROD" = 'ld_i8_DBG' ] # ld
-    then
-        # openMpi    
-        if [ $SANITIZE = '1' ]
-        then
-            mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -x LD_PRELOAD=$ASAN_LIB -np $NPROCS $PYTHONEXE $SCRIPT
-        else
+    case "$ELSAPROD" in
+        'x86_r8' ) # eos
+            # intelMpi
+            mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        'ld' | 'ld_*' ) # localhost
+            # openMpi    
+            if [ $SANITIZE = '1' ]
+            then
+                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -x LD_PRELOAD=$ASAN_LIB -np $NPROCS $PYTHONEXE $SCRIPT
+            else
+                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
+            fi
+            [ $? != 0 ] && exit 1;
+            ;;
+        'visung_r8' | 'visung_r8_*' ) # visung
+            # openMpi
             mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
-        fi
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'visung_r8' ] || [ "$ELSAPROD" = 'visung_r8_i8' ] # visung
-    then
-        # openMpi
-        mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'aus_r8' ] # austri
-    then
-        # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'sat_r8' ] # sator
-    then
-        # intelMpi
-        mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'sat_cas_r8' ] || [ "$ELSAPROD" = 'sat_cas_r8_i8' ] # sator-new
-    then
-        # intelMpi
-        mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'spiro_el8' ] || [ "$ELSAPROD" = 'spiro_el8_i8' ] || [ "$ELSAPROD" = 'spiro_amdrm_r8' ] || [ "$ELSAPROD" = 'spiro_amdnp_r8' ] || [ "$ELSAPROD" = 'spiro_sky_r8' ] || [ "$ELSAPROD" = 'spiro_cas_r8' ] # spiro
-    then
-        # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'juno' ] || [ "$ELSAPROD" = 'juno_i8' ] || [ "$ELSAPROD" = 'juno_DBG' ] || [ "$ELSAPROD" = 'juno_i8_DBG' ] # juno
-    then
-        # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'juno_gcc' ] || [ "$ELSAPROD" = 'juno_gcc_i8' ] || [ "$ELSAPROD" = 'juno_gcc_DBG' ] || [ "$ELSAPROD" = 'juno_gcc_i8_DBG' ] # juno gcc
-    then
-        # openMpi
-        if [ $SANITIZE = '1' ]
-        then
-            mpirun $ARGS -x LD_PRELOAD=$ASAN_LIB -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
-        else
-            mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
-        fi
-        [ $? != 0 ] && exit 1;    
-    elif [ "$ELSAPROD" = 'cob_r8' ] # cobalt
-    then
-        export OMP_NUM_THREADS=$NTHREADS
-        ccc_mprun -n $NPROCS $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'msys64' ] # MSYS 2 With Win64 production
-    then
-	    # MSMPI
-	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    elif [ "$ELSAPROD" = 'win64' ] # MSYS 2 With Win64 production
-    then
-	    # MSMPI
-	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    else # default 
-        mpirun $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
-        [ $? != 0 ] && exit 1;
-    fi
+            [ $? != 0 ] && exit 1;
+            ;;
+        'aus_r8' ) # austri
+            # intelMpi
+            mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        'sat_r8' ) # sator
+            # intelMpi
+            mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        'sat_cas_r8' | 'sat_cas_r8_*' ) # sator-new
+            # intelMpi
+            mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        'spiro_el8' | 'spiro_el8_*' | 'spiro_amdrm_r8' | 'spiro_amdnp_r8' | 'spiro_sky_r8' | 'spiro_cas_r8' ) # spiro
+            # intelMpi
+            mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        'juno_gcc' | 'juno_gcc_*' ) # juno gcc, to list before juno
+            # openMpi
+            if [ $SANITIZE = '1' ]
+            then
+                mpirun $ARGS -x LD_PRELOAD=$ASAN_LIB -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
+            else
+                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
+            fi
+            [ $? != 0 ] && exit 1;  
+            ;;
+        'juno' | 'juno_*' ) # juno
+            # intelMpi
+            mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        'cob_r8' ) # cobalt
+            export OMP_NUM_THREADS=$NTHREADS
+            ccc_mprun -n $NPROCS $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        'msys64' ) # MSYS 2 With Win64 production
+            # MSMPI
+            mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        'win64' ) # MSYS 2 With Win64 production
+            # MSMPI
+            mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+            ;;
+        *) # default
+            mpirun $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
+            [ $? != 0 ] && exit 1;
+    esac
     unset MPIRUN
     export OMP_NUM_THREADS=$OMPNUMTHREADSINIT
 fi

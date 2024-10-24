@@ -86,7 +86,7 @@ def getDataFolderName(name='Data'):
         if not '_i8' in elsaprod and EDOUBLEINT:
             print("Warning: ELSAPROD {} compiled in i8 but recommended suffix "
                   "'_i8' is missing".format(elsaprod))
-        if not elsaprod.endswith('_DBG') and DEBUG:
+        if not '_DBG' in elsaprod and DEBUG:
             print("Warning: ELSAPROD {} compiled in DEBUG but recommended "
                   "suffix '_DBG' is missing".format(elsaprod))
         name += '_' + elsaprod
@@ -320,7 +320,14 @@ def writeInstallPath():
         p.write('libPath = \'%s/local/%s\'\n'%(prefix,Lib))
     else:
         p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))
-    p.write('includePath = \'%s\'\n'%(os.getcwd()))
+    cwd = os.getcwd()
+    p.write('includePath = \'%s\'\n'%(cwd))
+    gitOrigin = getGitOrigin(cwd)
+    gitBranch = getGitBranch(cwd)
+    gitHash = getGitHash(cwd)[:7]
+    p.write('gitOrigin = \'%s\'\n'%(gitOrigin))
+    p.write('gitBranch = \'%s\'\n'%(gitBranch))
+    p.write('gitHash = \'%s\'\n'%(gitHash))
     p.close()
     
 #==============================================================================

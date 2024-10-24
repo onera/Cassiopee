@@ -2,6 +2,7 @@
 # *Cassiopee* machine specific (local) variables
 
 # Preliminary checks
+unset ELSAPROD
 if [ "$CASSIOPEE" = "" ]; then
     echo "You must specify a CASSIOPEE variable in your environment."
     echo "This variable specifies the installation path of *Cassiopee*."
@@ -43,39 +44,40 @@ if echo "$KC" | grep -q 'Aryen'; then export MAC="aryen"; fi
 if echo "$KC" | grep -q 'WDAAA161Z'; then export MAC="WDAAA161Z"; fi
 
 # Detect MAC environement from MACHINE
-INTTYPE=""
-DBGMODE=""
-case $MACHINE in
-    *_DBG)
-        MACHINETMP=${MACHINE%"_DBG"}
+EXT=""
+if [ -n "$MACHINE" ]; then
+    INTTYPE=""
+    DBGMODE=""
+    BRANCHNAME=""
+    MACHINETMP=$MACHINE
+    if [ "${MACHINETMP#*_DBG*}" != "$MACHINETMP" ]; then
+        MACHINETMP="${MACHINETMP//_DBG/}"
         DBGMODE="_DBG"
-        ;;
-    DBG)
-        DBGMODE="_DBG"
-        ;;
-    *)
-        MACHINETMP=$MACHINE
-        ;;
-esac
-case $MACHINETMP in
-    *_i8*)
-        export MAC=${MACHINETMP%"_i8"}
+    fi
+
+    if [ "${MACHINETMP#*_i8*}" != "$MACHINETMP" ]; then
+        MACHINETMP="${MACHINETMP//_i8/}"
         INTTYPE="_i8"
-        ;;
-    i8*)
-        INTTYPE="_i8"
-        ;;
-    "")
-        if [ -z "$MAC" ]; then
-            echo 'Your machine is not known by uname. Try to set MACHINE.'
-        fi
-        ;;
-    *)
-        export MAC=$MACHINETMP
-        ;;
-esac
-unset MACHINETMP
-EXT=$INTTYPE$DBGMODE
+    fi
+    
+    if [ "${MACHINETMP#*_b-*}" != "$MACHINETMP" ]; then
+        BRANCHNAME=${MACHINETMP#*_b-$BRANCHNAME}
+        BRANCHNAME=${BRANCHNAME%_*}
+        MACHINETMP="${MACHINETMP//_b-$BRANCHNAME/}"
+        MACHINETMP=${MACHINETMP%_}
+        BRANCHNAME="_$BRANCHNAME"
+    fi
+    
+    export MAC=$MACHINETMP
+    EXT=$BRANCHNAME$INTTYPE$DBGMODE
+    unset MACHINETMP BRANCHNAME INTTYPE DBGMODE
+fi
+
+if [ -z "$MAC" ]; then
+    echo 'Your machine is not known by uname. Try to set MACHINE.'
+    return 1
+fi
+
 
 # ----------------------------- Prods ------------------------------------------
 if [ "$MAC" = "ld_eos8" ]; then
