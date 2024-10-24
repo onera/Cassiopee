@@ -59,9 +59,9 @@ def writeDist(contents):
 def check_elsaprod(dbgMode):
   elsaprod = os.getenv("ELSAPROD")
   if elsaprod is not None:
-    if dbgMode and not elsaprod.endswith("_DBG"):
+    if dbgMode and not "_DBG" in elsaprod:
       print("Add '_DBG' suffix to $ELSAPROD: {}_DBG".format(elsaprod))
-    elif not dbgMode and elsaprod.endswith("_DBG"):
+    elif not dbgMode and "_DBG" in elsaprod:
       print("Remove '_DBG' suffix from $ELSAPROD: {}".format(elsaprod[:-4]))
   return
   

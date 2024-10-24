@@ -2,6 +2,7 @@
 # *Cassiopee* machine specific (local) variables
 
 # Preliminary checks
+unset ELSAPROD
 if ($?CASSIOPEE == 0) then
     echo "You must specify a CASSIOPEE variable in your environment."
     echo "This variable specifies the installation path of *Cassiopee*."
@@ -38,37 +39,41 @@ set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 set MAC0=`echo $KC | grep 'topaze'`; if ($%MAC0 != 0) set MAC="topaze"
 
 # Detect MAC environment from MACHINE
-set INTTYPE=""
-set DBGMODE=""
-if ($?MACHINE == 0) then
-    if ($?MAC == 0) then
-        echo 'Your machine is not known by uname. Try to set MACHINE.'
+set EXT=""
+if ("$MACHINE" != "") then
+    set INTTYPE=""
+    set DBGMODE=""
+    set BRANCHNAME=""
+    set MACHINETMP="$MACHINE"
+
+    if ("$MACHINETMP" =~ *_DBG*) then
+        set MACHINETMP=`echo "$MACHINETMP" | sed 's/_DBG//g'`
+        set DBGMODE="_DBG"
     endif
-else
-    if ("$MACHINE" == "i8") then
+
+    if ("$MACHINETMP" =~ *_i8*) then
+        set MACHINETMP=`echo "$MACHINETMP" | sed 's/_i8//g'`
         set INTTYPE="_i8"
-    else if ("$MACHINE" == "DBG") then
-        set DBGMODE="_DBG"
-    else if ("$MACHINE" == "i8_DBG") then
-        set INTTYPE="_i8"
-        set DBGMODE="_DBG"
-    else if ("$MACHINE" =~ "*_DBG") then
-        set MAC=`echo $MACHINE | rev | cut -c 5- | rev`
-        set DBGMODE="_DBG"
-        if ("$MAC" =~ "*_i8") then
-            set MAC=`echo $MACHINE | rev | cut -c 4- | rev`
-            set INTTYPE="_i8"
-        endif
-    else    
-        if ("$MACHINE" =~ "*_i8") then
-            set MAC=`echo $MACHINE | rev | cut -c 4- | rev`
-            set INTTYPE="_i8"
-        else
-            set MAC=$MACHINE
-        endif
     endif
+
+    if ("$MACHINETMP" =~ *_b-*) then
+        set BRANCHNAME=`echo "$MACHINETMP" | sed -n 's/.*_b-\(.*\)/\1/p'`
+        set BRANCHNAME=`echo "$BRANCHNAME" | sed 's/_.*//g'`
+        set MACHINETMP=`echo "$MACHINETMP" | sed "s/_b-$BRANCHNAME//"`
+        set MACHINETMP=`echo "$MACHINETMP" | sed 's/_$//'`
+        set BRANCHNAME="_$BRANCHNAME"
+    endif
+
+    setenv MAC "$MACHINETMP"
+    set EXT="$BRANCHNAME$INTTYPE$DBGMODE"
+    unset MACHINETMP BRANCHNAME INTTYPE DBGMODE
 endif
-set EXT=$INTTYPE$DBGMODE
+
+# Check if MAC is empty
+if ("$MAC" == "") then
+    echo 'Your machine is not known by uname. Try to set MACHINE.'
+    return 1
+endif
 
 
 # ----------------------------- Prods ------------------------------------------
