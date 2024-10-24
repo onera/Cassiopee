@@ -1233,7 +1233,6 @@ bool metric_sensor<mesh_t>::FIX_LFT_RGT(E_Int PHi, E_Int nei, output_t& adap_inc
     FIX:
     fix_beta_gamma(PHi, nei, adap_incr);
     
-    end:
     bool has_changed = !(adap_incr.cell_adap_incr[PHi].n[0] == ao &&
              adap_incr.cell_adap_incr[PHi].n[1] == bo &&
              adap_incr.cell_adap_incr[PHi].n[2] == co);
@@ -1276,7 +1275,6 @@ bool metric_sensor<mesh_t>::FIX_FRO_BCK(E_Int PHi, E_Int nei, output_t& adap_inc
     FIX:
     fix_alpha_gamma(PHi, nei, adap_incr);
     
-    end:
     bool has_changed = !(adap_incr.cell_adap_incr[PHi].n[0] == ao &&
              adap_incr.cell_adap_incr[PHi].n[1] == bo &&
              adap_incr.cell_adap_incr[PHi].n[2] == co);

@@ -426,7 +426,8 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
       char s0 = sv0[strlen(sv0)-1];
       char s1 = sv1[strlen(sv1)-1];
       char s2 = sv2[strlen(sv2)-1];
-      if (s0 != 'X' || s1 != 'Y' || s2 != 'Z') {
+      if (s0 != 'X' || s1 != 'Y' || s2 != 'Z') 
+      {
         PyErr_SetString(PyExc_TypeError,
                         "computeDiv2: error with the order of given scalar fields.");
         return NULL;

@@ -56,8 +56,6 @@ extern "C" void k6setallbvaluesatf_(const E_Int& sizeLoc,
                                     const E_Int& nj,
                                     const E_Int& nk,
                                     const E_Int& border);
-extern "C" void k6fldsqrt_(E_Float* _data,
-                           const E_Int& sizeTotLoc);
 
 // Set rake for a compact array
 #define SETRAKE                                                         \
@@ -1031,17 +1029,15 @@ E_Int FldArray<T>::indMax(E_Int inc, E_Int nfld) const
 TEMPLATE_T
 void FldArray<T>::sqrt()
 {
-  k6fldsqrt_(_data, _nfldLoc*_sizeMax);
-  /*
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
     for (E_Int n = 0; n < _nfldLoc; n++)
     {
         T* pt = _rake[n];
-#pragma omp for
+        #pragma omp for
         for (E_Int i = 0; i < _sizeLoc; i++) pt[i*_stride] = std::sqrt(pt[i*_stride]);
     }
-    }*/
+  }
 }
 
 //OK---------------------------------------------------------------------------

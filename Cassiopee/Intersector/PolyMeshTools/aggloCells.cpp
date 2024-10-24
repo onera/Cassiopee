@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 # include <string>
 # include <sstream> 
 # include "intersector.h"
@@ -215,7 +214,7 @@ PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyOb
   K_FLD::IntArray & cnt = *cn;
 
   E_Int* pgsList=NULL;
-  E_Int size, nfld;
+  E_Int size=0, nfld=1;
   if (py_pgs != Py_None)
     K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, 1);
 

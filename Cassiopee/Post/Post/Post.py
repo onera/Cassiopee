@@ -745,25 +745,19 @@ def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=Non
         if arrayCenters != []:
             if len(arrayNodes) != len(arrayCenters): raise ValueError("selectCells: Nodes and Centers arrays have different size.")
             
-        for i in range(len(arrayNodes)):
+        for i, an in enumerate(arrayNodes):
             if arrayCenters != []:
-                ret = selectCells__(arrayNodes[i], F, arrayCenters[i], varStrings, strict, F2E)
+                ret = selectCells__(an, F, arrayCenters[i], varStrings, strict, F2E)
             else:
-                ret = selectCells__(arrayNodes[i], F, [], varStrings, strict, F2E)
-                
-            if F2E is None and arrayCenters == []:
-                b.append(ret[0])
-            else:
-                b.append(ret)
-            
+                ret = selectCells__(an, F, [], varStrings, strict, F2E)
+            if F2E is None and arrayCenters == []: b.append(ret[0])
+            else: b.append(ret)
         return b
     else:
         ret = selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E, cleanConnectivity)
 
-        if F2E is None and arrayCenters == []:
-            return ret[0]
-        else:
-            return ret
+        if F2E is None and arrayCenters == []: return ret[0]
+        else: return ret
 
 #------------------------------------------------------------------------------
 # Select cells where tag=1
@@ -816,9 +810,9 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None, cleanConnectivity=T
         if sizean != sizetag or loc == 1: # centers
             if ac == []:
                 if F2E is not None:
-                    (PE2, retn)  = post.selectCellCenters(an, tag, F2E, cleanConnectivity)
+                    (PE2, retn) = post.selectCellCenters(an, tag, F2E, cleanConnectivity)
                 else:
-                    retn         = post.selectCellCenters(an, tag, None, cleanConnectivity)[0]
+                    retn = post.selectCellCenters(an, tag, None, cleanConnectivity)[0]
             else:
                 if F2E is not None:
                     (PE2, retn, retc) = post.selectCellCentersBoth(an, ac, tag, F2E, cleanConnectivity)
@@ -829,7 +823,7 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None, cleanConnectivity=T
                 if F2E is not None:
                     (PE2, retn)  = post.selectCells(an, tag, strict, F2E, cleanConnectivity)
                 else:
-                    retn         = post.selectCells(an, tag, strict, None, cleanConnectivity)[0]
+                    retn = post.selectCells(an, tag, strict, None, cleanConnectivity)[0]
             else:
                 if F2E is not None:
                     (PE2, retn, retc) = post.selectCellsBoth(an, ac, tag, strict, F2E, cleanConnectivity)
@@ -906,7 +900,6 @@ def isoLine(array, var, value):
                     i = post.isoLine(i, var, v)
                     ret.append(i)
                 except: pass
-
             try:
                 import Transform
                 if ret != []:
@@ -1190,7 +1183,6 @@ def silhouette(array, vector):
 #==============================================================================
 def renameVars(array, varsPrev, varsNew):
     """Rename variables names in varsPrev with names defined by varsNew."""
-
     if isinstance(array[0], list): # liste d'arrays
         res = []
         for a in array:
@@ -1203,12 +1195,10 @@ def renameVars(array, varsPrev, varsNew):
                 except: pass
             b[0] = ','.join(varsb)
             res.append(b)
-
         return res
     else:
         res = array[:]
         varsb = res[0]; varsb = varsb.split(',')
-
         for nov in range(len(varsPrev)):
             try:
                 pos = varsb.index(varsPrev[nov])
@@ -1255,7 +1245,7 @@ def computeIndicatorField_AMR(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
     if nptsfin < nbTargetPts:
         return indicator1
 
-    count = 0;
+    count = 0
     while count < 100 and nptsfin/nbTargetPts > 1.02:
         valMean    = 0.5*(valMin+valMax)
         valMax    += 0.25*abs(valMean-valMin)
@@ -1264,7 +1254,7 @@ def computeIndicatorField_AMR(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
         res        = G.adaptOctree(octreeHexa, indicator1)
         nptsfin    = len(res[1][0])
         count     += 1
-        print('Number of points: Pre %d | Post %d | Increase: %f | Lower Threshold: %f | Upper Threshold: %f | Limits Modif. Loop Cnt: %d'%(npts, nptsfin, nunt))
+        print('Number of points: Pre %d | Post %d | Increase: %f | Lower Threshold: %f | Upper Threshold: %f | Limits Modif. Loop Cnt: %d'%(npts, nptsfin, count))
 
     return indicator1
 

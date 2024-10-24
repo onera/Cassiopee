@@ -10,6 +10,7 @@ namespace Expression
 	class ast::node 
 	{
 	public:
+		virtual ~node() {}
 		/**
 		 * @brief Evaluate the node at index i
 		 * @details evaluate the node at index i. If this node is not a terminal node

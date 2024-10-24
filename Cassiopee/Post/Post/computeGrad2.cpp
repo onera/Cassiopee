@@ -407,6 +407,12 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
     tpl = computeGrad2Struct3D(ni, nj, nk, nic, njc, nkc, varStringOut, cellNp, 
                                f->begin(posx), f->begin(posy), f->begin(posz),
                                *fc, faceField, cellG, cellD, indices, field);
+  else
+  { 
+    PyErr_SetString(PyExc_TypeError,
+                    "computeGrad2: invalid pb dimension.");
+    tpl = NULL;
+  }
   delete [] varStringOut;
   RELEASESHAREDS(array,f);
   RELEASESHAREDS(arrayc, fc);
