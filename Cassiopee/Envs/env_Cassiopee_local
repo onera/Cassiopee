@@ -40,7 +40,7 @@ set MAC0=`echo $KC | grep 'topaze'`; if ($%MAC0 != 0) set MAC="topaze"
 
 # Detect MAC environment from MACHINE
 set EXT=""
-if ("$MACHINE" != "") then
+if ($?MACHINE != 0) then
     set INTTYPE=""
     set DBGMODE=""
     set BRANCHNAME=""
@@ -64,7 +64,7 @@ if ("$MACHINE" != "") then
         set BRANCHNAME="_$BRANCHNAME"
     endif
 
-    setenv MAC "$MACHINETMP"
+    set MAC="$MACHINETMP"
     set EXT="$BRANCHNAME$INTTYPE$DBGMODE"
     unset MACHINETMP BRANCHNAME INTTYPE DBGMODE
 endif
