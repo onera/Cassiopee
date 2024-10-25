@@ -479,7 +479,11 @@ def writeSetupCfg():
     elif Cppcompiler == 'craycc' or Cppcompiler == 'craycxx':
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=unix\n')
-        p.close()   
+        p.close()
+    elif Cppcompiler == 'cc' or Cppcompiler == 'cc':
+        p = open("./setup.cfg", 'w')
+        p.write('[build_ext]\ncompiler=unix\n')
+        p.close()     
     else:
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=%s\n'%Cppcompiler)
@@ -513,6 +517,9 @@ def getDistUtilsCompilers():
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('craycc', 'craycxx')
         elif Cppcompiler == 'craycxx':
             vars[0] = Cppcompiler.replace('craycxx', 'craycc'); vars[1] = Cppcompiler
+            
+        elif Cppcompiler == 'cc':
+            vars[0] = Cppcompiler; vars[1] = Cppcompiler
             
         elif Cppcompiler == 'nvc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvc', 'nvc++')
@@ -957,6 +964,14 @@ def getCArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         return options
+    elif Cppcompiler == "cc":
+        if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
+        else: options += ['-DNDEBUG', '-O3', '-Wall']
+        if useOMP() == 1: options += ['-fopenmp']
+        if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
+        else: options += ['-fPIC']
+        options += getSimdOptions()
+        return options
     else: return options
 
 # Options pour le compilateur C++
@@ -1075,6 +1090,15 @@ def getForArgs():
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
         return options
+    elif f77compiler == "ftn":
+        if useStatic() == 1: options += ['-static']
+        else: options += ['-fPIC']
+        if DEBUG: options += ['-g', '-O0']
+        else: options += ['-O3']
+        if useOMP() == 1: options += ['-fopenmp']
+        options += getSimdOptions()
+        if EDOUBLEINT: options += ['-i8']
+        return options
     else: return options
 
 #==============================================================================
@@ -1108,6 +1132,10 @@ def getLinkArgs():
          if useStatic() == 1: out += ['-static']
          else: out += ['-shared']
          if useOMP() == 1: out += ['-fopenmp']
+    elif Cppcompiler == 'cc':
+         if useStatic() == 1: out += ['-static']
+         else: out += ['-shared']
+         if useOMP() == 1: out += ['-fopenmp']    
     mySystem = getSystem()[0]
     if mySystem == 'Darwin':
         if useStatic() == 0: out += ['-dynamiclib']
@@ -2270,7 +2298,22 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         #    if l is not None:
         #        libs += ['omp']; paths += [l]
         #    else: ret = False
-            
+        # craycc
+        
+    if Cppcompiler == 'cc':
+        os.environ['CC'] = 'cc' # forced to overide setup.cfg
+        os.environ['CXX'] = 'cc'
+        os.environ['LDSHARED'] = 'ftn'
+        from distutils import sysconfig
+        cflags = sysconfig.get_config_var('CFLAGS')
+        sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
+        sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
+        l = checkLibFile__('libsci_cray.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libsci_cray.a', additionalLibPaths)
+        if l is not None:
+            libs += ['sci_cray']; paths += [l]
+    
     return (ret, libs, paths)
 
 #==============================================================================
@@ -2520,6 +2563,7 @@ def createExtensions(module, srcs, includeDirs, libraryDirs, libraries,
 # doit voir
 #==============================================================================
 def getEnvForScons():
+    #return dict(os.environ) # for adastra
     return {'PATH': getenv('PATH'),
             'LD_LIBRARY_PATH': getenv('LD_LIBRARY_PATH'),
             'LM_LICENSE_FILE': getenv('LM_LICENSE_FILE'),

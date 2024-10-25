@@ -766,6 +766,7 @@ elif [ "$MAC" = "adastra_cpu" ]; then
     export ELSAPROD=adastra_cpu
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=48
+    export OMP_PLACES=cores
     export PRODMODE=1
     module purge
 
@@ -793,13 +794,24 @@ elif [ "$MAC" = "adastra_gpu" ]; then
     export ELSAPROD=adastra_gpu
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=12
+    export OMP_PLACES=cores
     export PRODMODE=1
+
+    #module purge
+    #module load CCE-GPU-3.1.0
+    #module load rocm
+    #module load cray-python/3.11.5
+    #module load cray-hdf5-parallel/1.12.2.5
+
     module purge
-    #craype-accel-amd-gfx90
-    module load CCE-GPU-3.1.0
+    module load cpe/23.12
+    module load craype-accel-amd-gfx90a craype-x86-trento
+    module load PrgEnv-cray
+    module load rocm
     module load cray-python/3.11.5
     module load cray-hdf5-parallel/1.12.2.5
-    export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
+
+    #export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
     export PYTHONEXE=python3
     
