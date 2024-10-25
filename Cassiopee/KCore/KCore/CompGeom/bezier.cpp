@@ -126,14 +126,20 @@ E_Int K_COMPGEOM::factorielle(E_Int N)
   else return(N*K_COMPGEOM::factorielle(N-1));
 }
 
+E_Int K_COMPGEOM::combinations(E_Int n, E_Int i)
+{
+    if (i > n) return 0;
+    if (i == 0 or i == n) return 1;
+    if (i > n - i) i = n - i; // symmetry
+    E_Int comb = 1;
+    for (E_Int j = 0; j < i; j++) comb = comb*(n - j)/(j + 1);
+    return comb;
+}
+
 //=============================================================================
 E_Float K_COMPGEOM::Bernstein(E_Int i, E_Int n, E_Float t) 
 {
-  E_Int num = factorielle(n);
-  E_Int denom = factorielle(n-i)*factorielle(i);
-  E_Float resultat = num/denom;
-  resultat = resultat * pow(t,i)*pow((1-t),(n-i));
-  return resultat;
+  return combinations(n, i) * pow(t, i) * pow(1.-t, n-i);
 }
 
 //===========================================================================

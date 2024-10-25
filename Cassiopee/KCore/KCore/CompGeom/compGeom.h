@@ -128,7 +128,8 @@ typedef struct {
 
   /* interne */
   E_Int factorielle(E_Int i);
-  E_Float Bernstein(E_Int i, E_Int j, E_Float t);
+  E_Int combinations(E_Int n, E_Int i);
+  E_Float Bernstein(E_Int i, E_Int n, E_Float t);
 
   /* Evalue une courbe B-spline a partir des points de controle
      IN: n: nb de pts de controle
