@@ -8,46 +8,51 @@ local_scheme = "node-and-date"
 
 [project]
 name = "Cassiopee"
+version = "4.0"
 authors = [
-  { name="ONERA", email="christophe.benoit@onera.fr" },
+  {name="ONERA", email="christophe.benoit@onera.fr"},
 ]
-license = {text="GPLv3"}
+license = {text="LGPLv3"}
 description = "Computational Fluid Dynamics pre- and post-processing python modules"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
   "Programming Language :: Python",
-  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
   "Operating System :: Unix",
   "Operating System :: Microsoft :: Windows",
   "Topic :: Scientific/Engineering :: Physics"
 ]
+dependencies = [
+    "numpy>=1.23.3",
+    "mpi4py>=3.1.3",
+    "scons>=4.4.0"
+]
 
-[project.dependencies]
-numpy = ">=1.23.3"
-mpi4py = ">=3.1.3"
-scons = ">=4.4.0"
-KCore = {path = "Cassiopee/KCore"}
-XCore = {path = "Cassiopee/XCore"}
-Converter = {path = "Cassiopee/Converter"}
-Geom = {path = "Cassiopee/Geom"}
-Transform = {path = "Cassiopee/Transform"}
-Generator = {path = "Cassiopee/Generator"}
-Post = {path = "Cassiopee/Post"}
-Initiator = {path = "Cassiopee/Initiator"}
-Connector = {path = "Cassiopee/Connector"}
-Distributor2 = {path = "Cassiopee/Distributor2"}
-Dist2Walls = {path = "Cassiopee/Dist2Walls"}
-RigidMotion = {path = "Cassiopee/RigidMotion"}
-Compressor = {path = "Cassiopee/Compressor"}
-Modeler = {path = "Cassiopee/Modeler"}
-Intersector = {path = "Cassiopee/Intersector"}
-Apps = {path = "Cassiopee/Apps"}
-
-[project.optional-dependencies]
-CPlot = {path = "Cassiopee/CPlot"}
-OCC = {path = "Cassiopee/OCC"}
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "KCore",
+    "XCore",
+    "Converter",
+    "Geom",
+    "Transform",
+    "Generator",
+    "Post",
+    "Initiator",
+    "Connector",
+    "Distributor2",
+    "Dist2Walls",
+    "RigidMotion",
+    "Compressor",
+    "Modeler",
+    "Intersector",
+    "Apps",
+    "CPlot" 
+]
 
 [project.urls]
 Homepage = "https://github.com/onera/Cassiopee"
+Documentation = "https://cassiopee.onera.fr/"
+Repository = "https://github.com/onera/Cassiopee.git"
 Issues = "https://github.com/onera/Cassiopee/issues"

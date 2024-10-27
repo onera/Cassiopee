@@ -164,7 +164,7 @@ elif [ "$MAC" = "ubuntu" ]; then
     export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
     
 elif [ "$MAC" = "azure" ]; then
-#------------------------ azure: ubuntu - github actions ----------------------
+#------------------------ azure: Centos7 - github actions ----------------------
     export ELSAPROD=azure
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=4
