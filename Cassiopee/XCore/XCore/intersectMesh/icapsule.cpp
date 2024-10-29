@@ -40,7 +40,8 @@ ICapsule ICapsule::do_it(const Karray &marray,
         S.triangulate_skin();
 
         // Create SMesh Sf
-        Smesh Sf = Smesh::Smesh_from_point_tags(S, ptags[i]);
+        Smesh Sf = Smesh::Smesh_from_point_tags(S, ptags[i], true);
+
         Sf.make_fcenters();
         Sf.make_fnormals();
         Sf.make_pnormals();
@@ -59,10 +60,6 @@ ICapsule ICapsule::do_it(const Karray &marray,
 
         // Extract the initial Mf faces that cover Sf
         auto bfaces = Mf.extract_covering_faces(Sf, plocs);
-        {
-            Smesh If(Mf, bfaces, false);
-            If.write_ngon("If.im");
-        }
 
         // Refinement loop
         plocs = refine(Mf, bfaces, Sf);
@@ -82,13 +79,24 @@ ICapsule ICapsule::do_it(const Karray &marray,
         Bf.write_ngon("Bf.im");
         Sf.write_ngon("Sf.im");
 
+        /*
         {
             Dcel Db(Bf, Dcel::RED);
             Dcel Ds(Sf, Dcel::BLACK);
         }
+        */
 
         // Intersect
         Dcel D(Bf, Sf, plocs);
+
+        {
+            Smesh new_Bf = D.reconstruct(Bf, Dcel::RED, false);
+            new_Bf.write_ngon("new_Bf.im");
+            puts("reconstruted new Bf");
+            Smesh new_Sf = D.reconstruct(Sf, Dcel::BLACK, true);
+            new_Sf.write_ngon("new_Sf.im");
+            puts("reconstruted new Sf");
+        }
 
         puts("");
     }
@@ -211,7 +219,7 @@ PyObject *K_XCORE::icapsule_init(PyObject *self, PyObject *args)
         }
     }
 
-    ICapsule capsule = ICapsule::do_it(marray, sarrays, ptags);
+    ICapsule::do_it(marray, sarrays, ptags);
 
     Karray_free_ngon(marray);
     for (E_Int i = 0; i < nslaves; i++)
