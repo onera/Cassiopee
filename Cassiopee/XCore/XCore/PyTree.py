@@ -491,11 +491,12 @@ def icapsule_init(mp, sp):
     bases = I.getBases(sp)
 
     for base in bases:
-        zs = I.getZones(base)[0]
-        sarr = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
-        sarrs.append(sarr)
-        tag = I.getNodeFromName(zs, 'tag')[1]
-        tags.append(tag)
+        zones = I.getZones(base)
+        for zone in zones:
+            sarr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+            sarrs.append(sarr)
+            tag = I.getNodeFromName(zone, 'tag')[1]
+            tags.append(tag)
 
     return xcore.icapsule_init(marr, sarrs, tags)
 
