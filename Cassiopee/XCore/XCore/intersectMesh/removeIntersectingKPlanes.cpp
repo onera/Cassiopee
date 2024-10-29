@@ -55,7 +55,7 @@ void construct_faces(std::vector<std::vector<E_Int>> &faces,
     NF++;
 }
 
-PyObject *handle_slave(IMesh *M, Karray& sarray)
+PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
 {
     E_Int ni = sarray.ni;
     E_Int nj = sarray.nj;
@@ -120,6 +120,7 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
 
         dx /= NORM, dy /= NORM, dz /= NORM;
 
+        /*
         TriangleIntersection TI;
 
         E_Int hit = M->project_point(px, py, pz, dx, dy, dz, TI, i);
@@ -128,6 +129,23 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
 
         TI.pid = p;
 
+        point_hit_table[p] = TI;
+        */
+
+        std::vector<PointLoc> mlocs;
+        Mf.ray_BVH_intersect(px, py, pz, dx, dy, dz, Mf.bvh_root, mlocs);
+        PointLoc ploc;
+        E_Float min_abs_t = EFLOATMAX;
+        for (const auto &mloc : mlocs) {
+            if (fabs(mloc.t) < min_abs_t) {
+                min_abs_t = fabs(mloc.t);
+                ploc = mloc;
+            }
+        }
+
+        TriangleIntersection TI;
+        TI.pid = p;
+        TI.x = ploc.x, TI.y = ploc.y, TI.z = ploc.z;
         point_hit_table[p] = TI;
     }
 
@@ -510,6 +528,7 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
     return out;
 }
 
+#include "smesh.h"
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
@@ -530,6 +549,12 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     M->make_skin();
     M->make_bbox();
     M->hash_skin();
+    //M->make_bvh();
+
+    Smesh Mf = Smesh::Smesh_from_mesh_skin(*M, M->skin, false);
+    printf("Mf: %d tris\n", Mf.nf);
+    Mf.make_fcenters();
+    Mf.make_BVH();
 
     E_Int nslaves = PyList_Size(SLAVES);
     E_Int i, ret;
@@ -571,11 +596,13 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < nslaves; i++) {
         printf("Projecting %d / %d\n", i+1, nslaves);
         //PyObject *st = handle_slave2(M, sarrays[i], kmax);
-        PyObject *st = handle_slave(M, sarrays[i]);
+        PyObject *st = handle_slave(M, Mf, sarrays[i]);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);
     }
+
+    Mf.destroy_BVH(Mf.bvh_root);
 
     return slaves_out;
 }
