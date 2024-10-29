@@ -218,3 +218,94 @@ void Dcel::write_ngon(const char *fname, const std::vector<Cycle *> &cycles) con
 
     fclose(fh);
 }
+
+void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+
+    E_Int np = 0;
+    E_Int ne = 0;
+    E_Int nf = (E_Int)faces.size();
+
+    std::map<Vertex *, E_Int> vmap;
+    std::vector<Vertex *> new_pids;
+
+    for (size_t i = 0; i < faces.size(); i++) {
+        Face *c = faces[i];
+        Hedge *h = c->rep;
+        ne++;
+        Vertex *p = h->orig;
+        if (vmap.find(p) == vmap.end()) {
+            vmap[p] = np++;
+            new_pids.push_back(p);
+        }
+        Hedge *w = h->next;
+        while (w != h) {
+            p = w->orig;
+            if (vmap.find(p) == vmap.end()) {
+                vmap[p] = np++;
+                new_pids.push_back(p);
+            }
+            ne++;
+            w = w->next;
+        }
+    }
+
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, SF_D_ "\n", np);
+    for (const auto &v : new_pids) {
+        fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
+    }
+
+    fprintf(fh, "INDPG\n");
+    fprintf(fh, SF_D_ "\n", ne+1);
+    E_Int sizeNGon = 0;
+    fprintf(fh, SF_D_ " ", sizeNGon);
+    for (E_Int i = 0; i < ne; i++) {
+        sizeNGon += 2;
+        fprintf(fh, SF_D_ " ", sizeNGon);
+    }
+    assert(sizeNGon == 2*ne);
+    fprintf(fh, "\n");
+
+    fprintf(fh, "NGON\n");
+    fprintf(fh, SF_D_ "\n", sizeNGon);
+    for (Face *c : faces) {
+        Hedge *h = c->rep;
+        Vertex *p = h->orig;
+        Vertex *q = h->twin->orig;
+        fprintf(fh, SF_D_ " "  SF_D_ " ", vmap[p], vmap[q]);
+        Hedge *w = h->next;
+        while (w != h) {
+            p = w->orig;
+            q = w->twin->orig;
+            fprintf(fh, SF_D_ " " SF_D_ " ", vmap[p], vmap[q]);
+            w = w->next;
+        }
+    }
+    fprintf(fh, "\n");
+
+    fprintf(fh, "INDPH\n");
+    fprintf(fh, SF_D_ "\n", nf+1);
+    E_Int sizeNFace = 0;
+    fprintf(fh, SF_D_ " ", sizeNFace);
+    for (Face *c : faces) {
+        Hedge *h = c->rep;
+        sizeNFace += 1;
+        Hedge *w = h->next;
+        while (w != h) {
+            sizeNFace += 1;
+            w = w->next;
+        }
+        fprintf(fh, SF_D_ " ", sizeNFace);
+    }
+    fprintf(fh, "\n");
+
+    fprintf(fh, "NFACE\n");
+    fprintf(fh, SF_D_ "\n", sizeNFace);
+    for (E_Int i = 0; i < sizeNFace; i++)
+        fprintf(fh, SF_D_ " ", i);
+
+    fclose(fh);
+}

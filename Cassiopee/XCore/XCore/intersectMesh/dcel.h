@@ -143,10 +143,12 @@ struct Dcel {
 
     Hedge *get_hedge_of_color(Face *f, int color);
     void update_hedge_faces(std::vector<Face *> &F);
+    std::vector<Vertex *> get_face_vertices(const Face *f) const;
 
     // Export
 
     Smesh export_smesh(bool check_Euler=true) const;
+    Smesh reconstruct(const Smesh &Mf, int color, bool check_Euler) const;
 
     // Extract
 
@@ -163,6 +165,7 @@ struct Dcel {
     void write_point(const char *fname, const Vertex *v) const;
     void write_point(const char *fname, const std::vector<Vertex *> &I) const;
     void write_ngon(const char *fname, const std::vector<Cycle *> &cycles) const;
+    void write_ngon(const char *fname, const std::vector<Face *> &faces) const;
     void write_degen_cycles(const char *fname) const;
     void write_inner_cycles(const char *fname) const;
     void write_hole_cycles(const char *fname) const;

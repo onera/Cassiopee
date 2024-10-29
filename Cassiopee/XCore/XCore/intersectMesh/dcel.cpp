@@ -41,7 +41,6 @@ void Dcel::init_vertices(const Smesh &Mf, const Smesh &Sf,
     for (E_Int i = 0; i < Sf.np; i++) {
         Vertex tmp(Sf.X[i], Sf.Y[i], Sf.Z[i]);
         auto it = vertex_set.find(&tmp);
-        const auto &ploc = plocs[i];
         Vertex *v = NULL;
         if (it == vertex_set.end()) {
             v = new Vertex(Sf.X[i], Sf.Y[i], Sf.Z[i]);
@@ -60,9 +59,89 @@ void Dcel::init_vertices(const Smesh &Mf, const Smesh &Sf,
         v->id = V.size();
         V.push_back(v);
     }
-    assert(V.back()->id == V.size()-1);
 
     printf("Duplicate vertices: %d\n", duplicate_vertices);
+}
+
+std::vector<Dcel::Vertex *> Dcel::get_face_vertices(const Face *f) const
+{
+    assert(f);
+    std::vector<Vertex *> ret;
+    Hedge *h = f->rep;
+    ret.push_back(h->orig);
+    Hedge *w = h->next;
+    while (w != h) {
+        ret.push_back(w->orig);
+        w = w->next;
+    }
+    return ret;
+}
+
+Smesh Dcel::reconstruct(const Smesh &Mf, int color, bool check_Euler) const
+{
+    Smesh ret;
+    ret.check_Euler = check_Euler;
+    auto &new_F = ret.F;
+    std::map<Vertex *, E_Int> new_pids;
+    ret.np = ret.nf = 0;
+
+    std::vector<Face *> fids;
+
+    for (size_t i = 0; i < F.size(); i++) {
+        Face *f = F[i];
+        Hedge *h = f->rep;
+        if (h->color != color) continue;
+        Hedge *w = h->next;
+        while (w != h) {
+            if (w->color != h->color) break;
+            w = w->next;
+        }
+        if (w == h) {
+            fids.push_back(f);
+        }
+    }
+
+    char fname[128] = {0};
+    sprintf(fname, "single_color_%d.im", color);
+    write_ngon(fname, fids);
+
+    for (Face *f : F) {
+        if (f->oids[color] == -1) continue;
+
+        std::vector<E_Int> pn;
+
+        std::vector<Vertex *> vertices = get_face_vertices(f);
+        for (Vertex *v : vertices) {
+            auto it = new_pids.find(v);
+            if (it == new_pids.end()) {
+                new_pids[v] = ret.np;
+                pn.push_back(ret.np);
+                ret.np++;
+            } else {
+                pn.push_back(it->second);
+            }
+        }
+
+        new_F.push_back(pn);
+        ret.nf++;
+    }
+
+    auto &new_X = ret.X;
+    auto &new_Y = ret.Y;
+    auto &new_Z = ret.Z;
+
+    new_X.resize(ret.np), new_Y.resize(ret.np), new_Z.resize(ret.np);
+    for (const auto &vdat : new_pids) {
+        new_X[vdat.second] = vdat.first->x;
+        new_Y[vdat.second] = vdat.first->y;
+        new_Z[vdat.second] = vdat.first->z;
+    }
+
+    ret.Fc = ret.F;
+
+    ret.make_edges();
+
+    return ret;
 }
 
 Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
@@ -180,7 +259,7 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
             const auto &pn = Mf.Fc[cur_fid];
             const auto &pe = Mf.F2E[cur_fid];
             assert(pe.size() == pn.size());
-            const E_Float *fN = &Mf.fnormals[3*cur_fid];
+            //const E_Float *fN = &Mf.fnormals[3*cur_fid];
 
             E_Int next_fid = -1;
             E_Float next_pos[3] = {EFLOATMAX, EFLOATMAX, EFLOATMAX};
@@ -317,9 +396,6 @@ Dcel::Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs)
 
         Hedge *current_h = h;
         Hedge *t = h->twin;
-
-        Hedge *t_next = t->next;
-        Hedge *h_next = h->next;
 
         for (Vertex *x : xs) {
             Hedge *e1 = new Hedge(x, current_h->color);
@@ -870,32 +946,6 @@ Dcel::~Dcel()
     for (Face *f : F) delete f;
     for (Cycle *c : C) delete c;
 }
-
-/*
-void Dcel::reconstruct(const Smesh &M, const Smesh &S)
-{
-    check_hedges(H);
-
-    make_cycles();
-    assert(0);
-    set_cycles_inout(M, 0);
-
-    auto new_F = make_cycle_faces(C);
-    
-    set_face_labels(new_F);
-
-    update_hedge_faces(new_F);
-
-    for (Face *f : F) delete f;
-    F = new_F;
-
-    check_faces(H, F);
-
-    write_degen_faces("degen");
-    write_inner_faces("inner");
-    write_outer_faces("outer");
-}
-*/
 
 Dcel::Dcel(const Smesh &Mf, int color)
 {
