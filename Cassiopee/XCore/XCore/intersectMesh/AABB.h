@@ -9,6 +9,9 @@ struct AABB {
     E_Float xmax;
     E_Float ymax;
     E_Float zmax;
+    E_Float dx;
+    E_Float dy;
+    E_Float dz;
 };
 
 const AABB AABB_HUGE = {EFLOATMIN, EFLOATMIN, EFLOATMIN,

@@ -25,10 +25,10 @@
 
 #include "xcore.h"
 #include "point.h"
+#include "BVH.h"
 
 struct IMesh;
 struct AABB;
-struct BVH_node;
 
 struct o_edge {
     E_Int p, q;
@@ -113,9 +113,6 @@ struct Smesh {
         const std::vector<E_Int> &mpids) const;
     void replace_by_projections(const std::vector<E_Int> &pids,
         const std::vector<PointLoc> &plocs);
-    void ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
-        E_Float dx, E_Float dy, E_Float dz, BVH_node *node,
-        std::vector<PointLoc> &plocs) const;
     inline void compute_face_center(E_Int fid);
 
     // Hash
@@ -124,9 +121,6 @@ struct Smesh {
     E_Float xmin, xmax, ymin, ymax, zmin, zmax;
     E_Float HX, HY, HZ;
     std::map<E_Int, std::vector<E_Int>> bin_faces;
-    std::vector<E_Int> bvh_fids;
-    static const E_Int MAX_FACES_PER_BVH_LEAF = 8;
-    BVH_node *bvh_root = NULL;
     
     void make_bbox();
     inline void bin_face(E_Int fid);
@@ -135,13 +129,21 @@ struct Smesh {
     {
         return i + NX*j + NXY*k;
     }
+
+
+    // BVH
+        
+    E_Int root_node_idx, nodes_used;
+    std::vector<E_Int> tri_idx;
+    std::vector<BVH_node> bvh_nodes;
+    static const E_Int MAX_TRIS_PER_BVH_LEAF = 2;
     void make_BVH();
     void make_BVH(const std::set<E_Int> &fids);
-    AABB make_AABB(E_Int start, E_Int end);
-    BVH_node *make_BVH_node(const AABB &box, E_Int start, E_Int end,
-        BVH_node *left, BVH_node *right);
-    BVH_node *make_BVH_subtree(E_Int start, E_Int end, const AABB &parent);
-    void destroy_BVH(BVH_node *root);
+    void update_node_bounds(E_Int node_idx);
+    void BVH_subdivide(E_Int node_idx);
+    void ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
+        E_Float dx, E_Float dy, E_Float dz, E_Int node_idx,
+        std::vector<PointLoc> &plocs) const;
 
     // Adaptation
 

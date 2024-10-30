@@ -4,85 +4,6 @@
 #include "io.h"
 #include "primitives.h"
 
-// Returns a list of all the intersections, forwards and backwards
-// Up to the caller to parse the data
-void Smesh::ray_BVH_intersect(E_Float ox, E_Float oy, E_Float oz,
-    E_Float dx, E_Float dy, E_Float dz, BVH_node *node,
-    std::vector<PointLoc> &plocs) const
-{
-    bool hit = ray_AABB_intersect(ox, oy, oz, dx, dy, dz, node->box);
-    if (!hit) return;
-
-    if (!node->left && !node->right) {
-        for (E_Int i = node->start; i < node->end; i++) {
-            E_Int fid = bvh_fids[i];
-            const auto &pn = Fc[fid];
-            const E_Float *fc = &fcenters[3*fid];
-
-            for (size_t j = 0; j < pn.size(); j++) {
-                E_Int p = pn[j];
-                E_Int q = pn[(j+1)%pn.size()];
-
-                E_Float u, v, w, t, x, y, z;
-                
-                bool hit = MollerTrumboreAnyDir(
-                    ox, oy, oz, dx, dy, dz,
-                    X[p], Y[p], Z[p],
-                    X[q], Y[q], Z[q],
-                    fc[0], fc[1], fc[2],
-                    u, v, w, t, x, y, z
-                );
-                
-                if (hit) {
-                    PointLoc ploc;
-                    ploc.fid = fid;
-                    ploc.sub = j;
-                    ploc.bcrd[0] = u;
-                    ploc.bcrd[1] = v;
-                    ploc.bcrd[2] = w;
-                    ploc.t = t;
-                    ploc.x = x;
-                    ploc.y = y;
-                    ploc.z = z;
-
-                    // on p
-                    if      (Sign(1-u, NEAR_VERTEX_TOL) == 0) {
-                        ploc.v_idx = j;
-                        ploc.bcrd[0] = 1, ploc.bcrd[1] = 0, ploc.bcrd[2] = 0;
-                        ploc.x = X[p];
-                        ploc.y = Y[p];
-                        ploc.z = Z[p];
-                    }
-                    // on q
-                    else if (Sign(1-v, NEAR_VERTEX_TOL) == 0) {
-                        ploc.v_idx = (j+1)%pn.size();
-                        ploc.bcrd[0] = 0, ploc.bcrd[1] = 1, ploc.bcrd[2] = 0;
-                        ploc.x = X[q];
-                        ploc.y = Y[q];
-                        ploc.z = Z[q];
-                    }
-                    // on edge {p, q}
-                    else if (Sign(w, NEAR_EDGE_TOL) == 0) {
-                        ploc.e_idx = j;
-                        ploc.bcrd[0] = u, ploc.bcrd[1] = 1-u, ploc.bcrd[2] = 0;
-                        ploc.x = u*X[p] + (1-u)*X[q];
-                        ploc.y = u*Y[p] + (1-u)*Y[q];
-                        ploc.z = u*Z[p] + (1-u)*Z[q];
-                    }
-
-                    plocs.push_back(ploc);
-                    
-                    break;
-                }
-            }
-        }
-        return;
-    }
-
-    ray_BVH_intersect(ox, oy, oz, dx, dy, dz, node->left, plocs);
-    ray_BVH_intersect(ox, oy, oz, dx, dy, dz, node->right, plocs);
-}
-
 std::vector<PointLoc> Smesh::project(const Smesh &Mf,
     const std::vector<E_Int> &mpids) const
 {
@@ -91,13 +12,12 @@ std::vector<PointLoc> Smesh::project(const Smesh &Mf,
 
     for (size_t i = 0; i < mpids.size(); i++) {
         E_Int mpid = mpids[i];
-        //printf("%lu\n", i);
         const E_Float *N = &Mf.pnormals[3*mpid];
         E_Float mx = Mf.X[mpid];
         E_Float my = Mf.Y[mpid];
         E_Float mz = Mf.Z[mpid];
         std::vector<PointLoc> mlocs; // to parse
-        ray_BVH_intersect(mx, my, mz, N[0], N[1], N[2], bvh_root, mlocs);
+        ray_intersect_BVH(mx, my, mz, N[0], N[1], N[2], root_node_idx, mlocs);
         PointLoc ploc;
         E_Float min_abs_t = EFLOATMAX;
         for (const auto &mloc : mlocs) {
@@ -179,10 +99,6 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
         std::vector<E_Int> fat_mfids;
 
         Sf.make_BVH();
-        //Mf.make_BVH(mfids);
-
-        //Sf.make_bbox();
-        //Sf.hash_faces();
 
         Mf.make_bbox();
         Mf.hash_faces();
@@ -246,8 +162,6 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
             Sf.make_pnormals();
         }
 
-        //Mf.destroy_BVH(Mf.bvh_root);
-        Sf.destroy_BVH(Sf.bvh_root);
     } while (ref_M > 0 || ref_S > 0);
 
     return plocs_s;

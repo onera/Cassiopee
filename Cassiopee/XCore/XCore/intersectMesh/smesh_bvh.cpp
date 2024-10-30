@@ -1,7 +1,9 @@
 #include "smesh.h"
-#include "AABB.h"
 #include "BVH.h"
+#include "ray.h"
+#include "primitives.h"
 
+/*
 AABB Smesh::make_AABB(E_Int start, E_Int end)
 {
     E_Float xmin, ymin, zmin, xmax, ymax, zmax;
@@ -34,84 +36,211 @@ AABB Smesh::make_AABB(E_Int start, E_Int end)
 
     return {xmin, ymin, zmin, xmax, ymax, zmax};
 }
-
-BVH_node *Smesh::make_BVH_node(const AABB &box, E_Int start, E_Int end,
-    BVH_node *left, BVH_node *right)
-{
-    BVH_node *node = new BVH_node;
-    node->box = box;
-    node->start = start;
-    node->end = end;
-    node->left = left;
-    node->right = right;
-    return node;
-}
-
-BVH_node *Smesh::make_BVH_subtree(E_Int start, E_Int end, const AABB &parent)
-{
-    AABB box = make_AABB(start, end);
-    AABB_clamp(box, parent);
-
-    E_Int count = end - start;
-    if (count <= Smesh::MAX_FACES_PER_BVH_LEAF) {
-        return make_BVH_node(box, start, end, NULL, NULL);
-    }
-
-    E_Float dx = box.xmax - box.xmin;
-    E_Float dy = box.ymax - box.ymin;
-    E_Float dz = box.zmax - box.zmin;
-
-    E_Int dim = -1;
-    if (dx >= dy && dx >= dz) {
-        dim = 0;
-    } else if (dy >= dz) {
-        dim = 1;
-    } else {
-        dim = 2;
-    }
-
-    std::sort(bvh_fids.begin() + start, bvh_fids.begin() + end,
-        [&] (E_Int fi, E_Int fj) {
-            E_Float *fci = &fcenters[3*fi];
-            E_Float *fcj = &fcenters[3*fj];
-            return fci[dim] < fcj[dim];
-        }
-    );
-
-    E_Int mid = start + count/2;
-
-    BVH_node *left = make_BVH_subtree(start, mid, box);
-    BVH_node *right = make_BVH_subtree(mid, end, box);
-
-    return make_BVH_node(box, start, end, left, right);
-}
+*/
 
 void Smesh::make_BVH()
 {
-    bvh_fids.clear();
-    bvh_fids.reserve(nf);
-    for (E_Int i = 0; i < nf; i++) {
-        bvh_fids.push_back(i);
+    bvh_nodes.clear();
+    bvh_nodes.resize(2*nf - 1);
+    root_node_idx = 0, nodes_used = 1;
+
+    tri_idx.clear();
+    tri_idx.resize(nf);
+    for (E_Int i = 0; i < nf; i++) tri_idx[i] = i;
+    assert(fcenters.size() == nf*3);
+
+    // Assign all triangles to root node
+    BVH_node &root = bvh_nodes[root_node_idx];
+    root.left_node = 1;
+    root.first_tri_idx = 0;
+    root.tri_count = nf;
+    update_node_bounds(root_node_idx);
+    BVH_subdivide(root_node_idx);
+}
+
+void Smesh::update_node_bounds(E_Int node_idx)
+{
+    BVH_node &node = bvh_nodes[node_idx];
+    node.box.xmin = node.box.ymin = node.box.zmin = EFLOATMAX;
+    node.box.xmax = node.box.ymax = node.box.zmax = EFLOATMIN;
+    for (E_Int first = node.first_tri_idx, i = 0; i < node.tri_count; i++) {
+        E_Int leaf_tri_idx = tri_idx[first + i];
+        const auto &pn = F[leaf_tri_idx];
+        for (E_Int p : pn) {
+            node.box.xmin = std::min(node.box.xmin, X[p]);
+            node.box.ymin = std::min(node.box.ymin, Y[p]);
+            node.box.zmin = std::min(node.box.zmin, Z[p]);
+            node.box.xmax = std::max(node.box.xmax, X[p]);
+            node.box.ymax = std::max(node.box.ymax, Y[p]);
+            node.box.zmax = std::max(node.box.zmax, Z[p]);
+        }
+        node.box.dx = node.box.xmax - node.box.xmin;
+        node.box.dy = node.box.ymax - node.box.ymin;
+        node.box.dz = node.box.zmax - node.box.zmin;
+    }
+}
+
+void Smesh::BVH_subdivide(E_Int node_idx)
+{
+    // Terminate recursion
+    BVH_node &node = bvh_nodes[node_idx];
+    if (node.tri_count <= MAX_TRIS_PER_BVH_LEAF) return;
+
+    // Determine split axis and position
+    int axis;
+    E_Float split_pos;
+    if (node.box.dx > node.box.dy && node.box.dx > node.box.dz) {
+        axis = 0;
+        split_pos = node.box.xmin + node.box.dx*0.5;
+    }
+    else if (node.box.dy > node.box.dz) {
+        axis = 1;
+        split_pos = node.box.ymin + node.box.dy*0.5;
+    }
+    else {
+        axis = 2;
+        split_pos = node.box.zmin + node.box.dz*0.5;
     }
 
-    bvh_root = make_BVH_subtree(0, nf, AABB_HUGE);
+    // In-place partition
+    E_Int i = node.first_tri_idx;
+    E_Int j = i + node.tri_count - 1;
+    while (i <= j) {
+        const E_Float *fc = &fcenters[3*tri_idx[i]];
+        if (fc[axis] < split_pos)
+            i++;
+        else
+            std::swap(tri_idx[i], tri_idx[j--]);
+    }
+
+    // Abort split if one of the sides is empty
+    E_Int left_count = i - node.first_tri_idx;
+    if (left_count == 0 || left_count == node.tri_count) return;
+
+    // Create child nodes
+    E_Int left_child_idx = nodes_used++;
+    E_Int right_child_idx = nodes_used++;
+    bvh_nodes[left_child_idx].first_tri_idx = node.first_tri_idx;
+    bvh_nodes[left_child_idx].tri_count = left_count;
+    bvh_nodes[right_child_idx].first_tri_idx = i;
+    bvh_nodes[right_child_idx].tri_count = node.tri_count - left_count;
+    node.left_node = left_child_idx;
+    node.tri_count = 0;
+    update_node_bounds(left_child_idx);
+    update_node_bounds(right_child_idx);
+
+    // Recurse
+    BVH_subdivide(left_child_idx);
+    BVH_subdivide(right_child_idx);
 }
 
 void Smesh::make_BVH(const std::set<E_Int> &fids)
 {
-    bvh_fids.clear();
-    bvh_fids.reserve(fids.size());
-    for (auto fid : fids) bvh_fids.push_back(fid);
+    bvh_nodes.clear();
+    size_t NF = fids.size();
+    bvh_nodes.resize(2*NF - 1);
+    root_node_idx = 0, nodes_used = 1;
 
-    bvh_root = make_BVH_subtree(0, fids.size(), AABB_HUGE);
+    tri_idx.clear();
+    tri_idx.reserve(NF);
+    for (E_Int fid : fids) tri_idx.push_back(fid);
+
+    // Assign all triangles to root node
+    BVH_node &root = bvh_nodes[root_node_idx];
+    root.left_node = 1;
+    root.first_tri_idx = 0;
+    root.tri_count = NF;
+    update_node_bounds(root_node_idx);
+    BVH_subdivide(root_node_idx);
 }
 
-void Smesh::destroy_BVH(BVH_node *root)
+static
+bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
+    E_Float dx, E_Float dy, E_Float dz, const AABB &box)
 {
-    if (root == NULL) return;
-
-    destroy_BVH(root->left);
-    destroy_BVH(root->right);
-
-    delete root;
+    E_Float tx1 = (box.xmin - ox) / dx, tx2 = (box.xmax - ox) / dx;
+    E_Float tmin = std::min(tx1, tx2), tmax = std::max(tx1, tx2);
+    E_Float ty1 = (box.ymin - oy) / dy, ty2 = (box.ymax - oy) / dy;
+    tmin = std::max(tmin, std::min(ty1, ty2));
+    tmax = std::min(tmax, std::max(ty1, ty2));
+    E_Float tz1 = (box.zmin - oz) / dz, tz2 = (box.zmax - oz) / dz;
+    tmin = std::max(tmin, std::min(tz1, tz2));
+    tmax = std::min(tmax, std::max(tz1, tz2));
+    return tmax >= tmin;
 }
+
+void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
+    E_Float dx, E_Float dy, E_Float dz, E_Int node_idx,
+    std::vector<PointLoc> &plocs) const
+{
+    const BVH_node &node = bvh_nodes[node_idx];
+    if (!ray_intersect_AABB(ox, oy, oz, dx, dy, dz, node.box)) return;
+    if (node.is_leaf()) {
+        for (E_Int i = 0; i < node.tri_count; i++) {
+            E_Int tri = tri_idx[node.first_tri_idx+i];
+            const auto &pn = Fc[tri];
+            const E_Float *fc = &fcenters[3*tri];
+
+            for (size_t j = 0; j < pn.size(); j++) {
+                E_Int p = pn[j];
+                E_Int q = pn[(j+1)%pn.size()];
+                E_Float u, v, w, t, x, y, z;
+
+                bool hit = MollerTrumboreAnyDir(
+                    ox, oy, oz, dx, dy, dz,
+                    X[p], Y[p], Z[p],
+                    X[q], Y[q], Z[q],
+                    fc[0], fc[1], fc[2],
+                    u, v, w, t, x, y, z
+                );
+                
+                if (hit) {
+                    PointLoc ploc;
+                    ploc.fid = tri;
+                    ploc.sub = j;
+                    ploc.bcrd[0] = u;
+                    ploc.bcrd[1] = v;
+                    ploc.bcrd[2] = w;
+                    ploc.t = t;
+                    ploc.x = x;
+                    ploc.y = y;
+                    ploc.z = z;
+
+                    // on p
+                    if      (Sign(1-u, NEAR_VERTEX_TOL) == 0) {
+                        ploc.v_idx = j;
+                        ploc.bcrd[0] = 1, ploc.bcrd[1] = 0, ploc.bcrd[2] = 0;
+                        ploc.x = X[p];
+                        ploc.y = Y[p];
+                        ploc.z = Z[p];
+                    }
+                    // on q
+                    else if (Sign(1-v, NEAR_VERTEX_TOL) == 0) {
+                        ploc.v_idx = (j+1)%pn.size();
+                        ploc.bcrd[0] = 0, ploc.bcrd[1] = 1, ploc.bcrd[2] = 0;
+                        ploc.x = X[q];
+                        ploc.y = Y[q];
+                        ploc.z = Z[q];
+                    }
+                    // on edge {p, q}
+                    else if (Sign(w, NEAR_EDGE_TOL) == 0) {
+                        ploc.e_idx = j;
+                        ploc.bcrd[0] = u, ploc.bcrd[1] = 1-u, ploc.bcrd[2] = 0;
+                        ploc.x = u*X[p] + (1-u)*X[q];
+                        ploc.y = u*Y[p] + (1-u)*Y[q];
+                        ploc.z = u*Z[p] + (1-u)*Z[q];
+                    }
+
+                    plocs.push_back(ploc);
+                    
+                    break;
+                }
+            }
+        }
+        return ;
+    }
+
+    ray_intersect_BVH(ox, oy, oz, dx, dy, dz, node.left_node, plocs);
+    ray_intersect_BVH(ox, oy, oz, dx, dy, dz, node.left_node+1, plocs);
+}
+

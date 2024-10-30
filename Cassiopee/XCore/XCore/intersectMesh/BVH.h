@@ -4,8 +4,6 @@
 
 struct BVH_node {
     AABB box = AABB_HUGE;
-    E_Int start = -1;
-    E_Int end = -1;
-    BVH_node *left = NULL;
-    BVH_node *right = NULL;
+    E_Int left_node, first_tri_idx, tri_count;
+    bool is_leaf() const { return tri_count > 0; }
 };

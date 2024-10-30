@@ -133,7 +133,7 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
         */
 
         std::vector<PointLoc> mlocs;
-        Mf.ray_BVH_intersect(px, py, pz, dx, dy, dz, Mf.bvh_root, mlocs);
+        Mf.ray_intersect_BVH(px, py, pz, dx, dy, dz, Mf.root_node_idx, mlocs);
         PointLoc ploc;
         E_Float min_abs_t = EFLOATMAX;
         for (const auto &mloc : mlocs) {
@@ -549,7 +549,6 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     M->make_skin();
     M->make_bbox();
     M->hash_skin();
-    //M->make_bvh();
 
     Smesh Mf = Smesh::Smesh_from_mesh_skin(*M, M->skin, false);
     printf("Mf: %d tris\n", Mf.nf);
@@ -601,8 +600,6 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);
     }
-
-    Mf.destroy_BVH(Mf.bvh_root);
 
     return slaves_out;
 }
