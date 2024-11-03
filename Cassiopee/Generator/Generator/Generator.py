@@ -7,7 +7,7 @@ from . import generator
 import numpy
 import Converter as C
 
-from .TFIs import allTFI, TFI, TFITri, TFIO, TFIHalfO, TFIMono, TFIStar, TFIStar2
+from .TFIs import allTFI, TFI, TFITri, TFITri2, TFIO, TFIHalfO, TFIMono, TFIStar, TFIStar2
 
 __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
     'cartPyra', 'cartNGon', 'cylinder', 'cylinder2', 'cylinder3', 'delaunay',
@@ -20,7 +20,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
     'mapCurvature', 'refine', 'defineSizeMapForMMGs', 'mmgs', 'densify',
     'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4', 'close', 'closeLegacy', 'zip',
     'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts', 'grow', 'stack', 
-    'allTFI', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 
+    'allTFI', 'TFI', 'TFITri', 'TFITri2', 'TFIO', 'TFIHalfO', 'TFIMono', 
     'TFIStar', 'TFIStar2',
     'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
     'getCellCenters', 'getFaceCentersAndAreas', 'getNormalMap',

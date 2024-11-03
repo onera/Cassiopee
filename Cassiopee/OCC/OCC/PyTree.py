@@ -765,13 +765,29 @@ def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1, edgeList=None):
   return None
 
 # remesh all CAD edges with odd number of points
-def _remeshAllEdgesOdd(t):
+def _remeshAllEdgesOdd(hook, t):
+  """Remesh all edges to have an odd number of points."""
+  import Geom.PyTree as D
   b = Internal.getNodeFromName1(t, 'EDGES')
-  for e in Internal.getZones(b):
-    npts = C.getNPts(e)
+  for edge in Internal.getZones(b):
+    npts = C.getNPts(edge)
     if npts//2-0.5*npts == 0:
-      factor = (npts-1.)/(npts)
-      G._refine(e, factor, 1)
+      factor = (npts*1.)/(npts-1.)
+      G._refine(edge, factor, 1)
+      print('rem=',npts, C.getNPts(edge), factor)
+      D._getCurvilinearAbscissa(edge)
+      edgeno = getNo(edge)
+      aedge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
+      e = occ.meshOneEdge(hook, edgeno, -1, -1, -1, aedge)
+      cad = Internal.getNodeFromName1(edge, 'CAD')
+      render = Internal.getNodeFromName1(edge, '.RenderInfo')
+      z = Internal.createZoneNode('edge%03d'%(edgeno), e, [],
+                                  Internal.__GridCoordinates__,
+                                  Internal.__FlowSolutionNodes__,
+                                  Internal.__FlowSolutionCenters__)
+      z[2].append(cad)
+      if render is not None: z[2].append(render)
+      b[2][edgeno-1] = z
   return None    
 
 def getCADcontainer(t):

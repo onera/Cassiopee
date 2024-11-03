@@ -1,19 +1,18 @@
 # Various specific TFIs
 from . import Generator as G
 from . import generator
-try: import Converter as C
+try: 
+    import Converter as C
+    import Transform as T
 except ImportError:
-    raise ImportError("TFIs: requires Converter module.")
+    raise ImportError("TFIs: requires Converter and Transform module.")
 import KCore.Vector as Vector
-
-try: range = xrange
-except: pass
-
 import numpy
-
+    
 #==============================================================================
 # Evalue la qualite du maillage m
-# Plus le score est elevee pour le maillage est mauvais
+# Plus le score est elevee, plus le maillage est mauvais
+# Si le score est > 1000., le maillage a un volume negatif.
 #==============================================================================
 def quality(meshes):
     """Measure the quality of mesh."""
@@ -26,7 +25,7 @@ def quality(meshes):
         min2 = C.getMinValue(vol, 'vol')
         max2 = C.getMaxValue(vol, 'vol')
         score = max(score, min1); score = max(score, max1)
-        if min2 < 1.e-12 and max2 > 0: score += 1000.
+        if min2 < 1.e-12 and max2 > 0: score += 1000. # vol neg.
         elif max2 < 1.e-12 and min2 > 0: score += 1000.
     return score
 
@@ -35,7 +34,6 @@ def quality(meshes):
 #==============================================================================
 def orderEdges(edges, tol=1.e-10):
     """Order edges in a loop."""
-    import Transform
     out = [] # ordered list of edges
     pool = edges[:] # list copy
     cur = pool[0]; pool.pop(0)
@@ -49,7 +47,7 @@ def orderEdges(edges, tol=1.e-10):
             if Vector.squareDist(P1p,P0) < tol*tol:
                 cur = p; out.append(cur); P1p = P1; pool.pop(c); found=True; break
             if Vector.squareDist(P1p,P1) < tol*tol:
-                cur = Transform.reorder(p,(-1,2,3)); out.append(cur); P1p = P0; pool.pop(c); found=True; break
+                cur = T.reorder(p,(-1,2,3)); out.append(cur); P1p = P0; pool.pop(c); found=True; break
         if not found: break
     return out
 
@@ -80,21 +78,19 @@ def computeJunctionAngles(edges):
 #==============================================================================
 def mergeEdgesAngle(edges, thresold=0.3):
     """Merge edges with a junction angle less than thresold."""
-    import Transform
     angles = computeJunctionAngles(edges)
-    print('angles=', angles)
     medges = []
     for c, e in enumerate(edges):
         tangle = abs(angles[c] - numpy.pi)
         if tangle < thresold and len(medges) > 0:
-            e2 = Transform.join(medges[-1], e); medges[-1] = e2            
+            e2 = T.join(medges[-1], e); medges[-1] = e2            
         else: medges.append(e)
     tangle0 = abs(angles[0] - numpy.pi)
     if tangle0 < thresold and len(medges) > 0:
-        e2 = Transform.join(medges[-1], medges[0]); medges[-1] = e2; medges.pop(0)
-    print('out', len(medges))
+        e2 = T.join(medges[-1], medges[0]); medges[-1] = e2; medges.pop(0)
     return medges
 
+# Find a split
 def findSplitInEdges(edges, N2):
     isp = 0; N = 0
     for e in edges:
@@ -104,20 +100,30 @@ def findSplitInEdges(edges, N2):
         isp += 1
     return isp
 
+# remesh edges for point number to be odd
+def _remeshEdgesOdd(edges):
+    """Remesh edges with odd number of points."""
+    for c, e in enumerate(edges):
+        npts = C.getNPts(e)
+        if npts//2-0.5*npts == 0:
+            factor = (npts*1.)/(npts-1)
+            e = G.refine(e, factor, 1)
+            edges[c] = e
+    return None
+
 #==============================================================================
 # merge edges to get a set of 4 edges, ordered edges
 # if fail, return None
 #==============================================================================
 def mergeEdges4(iedges):
-    import Transform
     edges = iedges[:] # copie
     # total number of points
     Ntot = 0
     for e in edges: Ntot += C.getNPts(e)-1
     Ntot += 1
     N2 = Ntot//2+1
-    print("Ntot=", Ntot,"N2=",N2)
-    print(Ntot - (N2-1)*2+1)
+    #print("Ntot=", Ntot, "N2=", N2)
+    #print(Ntot - (N2-1)*2+1)
     if Ntot - ((N2-1)*2+1) != 0: return None # can not be merged in 4
     
     # Find the nearest 90 degrees junction
@@ -137,28 +143,36 @@ def mergeEdges4(iedges):
             edges = edges[1:]+edges[0]
             roll += 1
 
-    print("isp=",isp,"roll=",roll,flush=True)
-
     # try to find second split
     e1 = edges[0:isp+1]; e2 = edges[isp+1:]
     n1 = len(e1); n2 = len(e2)
-    print("resulting",n1,n2,flush=True)
     if n1 == 2: # obvious
         N1 = C.getNPts(e1[0])
         isp = findSplitInEdges(e2, N1)
         if isp == -1: print("This is a problem")
         e3 = e2[0:isp+1]; e4 = e2[isp+1:]
-        e3 = Transform.join(e3); e4 = Transform.join(e4)
+        e3 = T.join(e3); e4 = T.join(e4)
         return e1+[e3,e4]
     if n2 == 2: # obvious
         N2 = C.getNPts(e2[0])
         isp = findSplitInEdges(e1, N2)
         if isp == -1: print("This is a problem")
         e3 = e1[0:isp+1]; e4 = e1[isp+1:]
-        e3 = Transform.join(e3); e4 = Transform.join(e4)
+        e3 = T.join(e3); e4 = T.join(e4)
         return [e3,e4]+e2
     # all need to join but how?
     return None
+
+#===============================================================================
+# merge edges and split them following an angle criteria
+# return a set of edges for performing TFIs
+#===============================================================================
+def getEdges4TFI(edges, angle=45.):
+    edges = C.convertArray2Tetra(edges)
+    e = T.join(edges)
+    es = T.splitSharpEdges(e, angle)
+    es = C.convertBAR2Struct(es)
+    return es
 
 #===============================================================================
 # Build a TFI for a set of edges
@@ -166,42 +180,87 @@ def mergeEdges4(iedges):
 # OUT: list of surface meshes
 #===============================================================================
 def allTFI__(edges):
+    # testing zone
+    #pedges = getEdges4TFI(edges, 45.)
+    #pedges = T.join(edges)
+    #return [G.stitchedHat(pedges, offset=(0.,0.,0.))]
+    #pedges = T.join(edges)
+    #return TFISingle__(pedges)
+    # end of testing zone
+
     nedges = len(edges)
     if nedges == 4:
-        try: return [TFI(edges)]
+        # TFI directe ou TFIQuad
+        try: 
+            ret = [TFI(edges)]
+            q = quality(ret)
+            if q >= 1000: return None
+            print("%d: 4 side TFI"%nedges)
+            return ret
         except: pass
     elif nedges == 1:
-        try: return TFIO(edges[0])
-        except: pass
+        # TFIO ou TFISingle
+        try: 
+            ret = TFISingle(edges[0])
+            q = quality(ret)
+            if q >= 1000: return None
+            print("%d: TFI Single"%nedges)
+            return ret
+        except:
+            try: 
+                ret = TFIO(edges[0])
+                q = quality(ret)
+                if q >= 1000: return None
+                print("%d: TFIO"%nedges)
+                return ret
+            except: pass
     elif nedges == 2:
-        try: return TFIHalfO(edges[0], edges[1])
+        # TFIHalfO
+        try: 
+            ret = TFIHalfO(edges[0], edges[1])
+            q = quality(ret)
+            if q >= 1000: return None
+            print("%d: TFI half O"%nedges)
+            return ret
         except: pass
     elif nedges == 3:
-        try: return TFITri(edges[0], edges[1], edges[2])
+        # TFITri
+        try: 
+            ret = TFITri2(edges[0], edges[1], edges[2])
+            q = quality(ret)
+            if q >= 1000: return None
+            print("%d: TFITri"%nedges)
+            return ret
         except: pass
     return None
 
 def allTFI(edges):
-    print("direct TFI.")
-    ret = allTFI__(edges)
+    # Essai sur les edges donnes
+    #ret = allTFI__(edges)
+    #if ret is not None: return ret
+
+    # Essai sur les edges merges
+    pedges = getEdges4TFI(edges, 45.)
+    ret = allTFI__(pedges)
     if ret is not None: return ret
 
     # try to merge in 4
-    medges = mergeEdges4(edges)
-    if medges is not None:
-        print("merged4.")
-        ret = allTFI__(medges)
-        if ret is not None: return ret
+    #medges = mergeEdges4(edges)
+    #if medges is not None:
+    #    print("merged4.")
+    #    ret = allTFI__(medges)
+    #    if ret is not None: return ret
 
     # Try to merge with angles
-    medges = mergeEdgesAngle(edges, 0.5)
-    print("merged angles ", len(medges))
-    ret = allTFI__(medges)
-    if ret is not None: return ret
+    #medges = mergeEdgesAngle(edges, 0.5)
+    #print("merged angles ", len(medges))
+    #ret = allTFI__(medges)
+    #if ret is not None: return ret
 
     # Fallback use TFIStar
     #return Generator.TFIStar2(edges)
-    return TFIStar(medges)
+    print("%d: Fallback star"%len(pedges))
+    return TFIStar(pedges)
 
 #==============================================================================
 def TFI(arrays):
@@ -216,7 +275,6 @@ def TFI(arrays):
 def TFITri(a1, a2, a3, tol=1.e-6):
     """Generate a transfinite interpolation mesh from 3 input curves."""
     import Geom as D
-    import Transform as T
     N1 = a1[2]; N2 = a2[2]; N3 = a3[2]
     
     # Verif de N
@@ -227,7 +285,7 @@ def TFITri(a1, a2, a3, tol=1.e-6):
     if N > N1-1: raise ValueError("TFITri: invalid number of points for this operation.")
     if N > N2-1: raise ValueError("TFITri: invalid number of points for this operation.")
 
-    # Assure la continuite
+    # Assure la continuite entre les edges
     P0 = (a1[1][0,N1-1], a1[1][1,N1-1], a1[1][2,N1-1])
     P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
     P01 = (a2[1][0,N2-1], a2[1][1,N2-1], a2[1][2,N2-1])
@@ -283,12 +341,93 @@ def TFITri(a1, a2, a3, tol=1.e-6):
     #return [s1,l1,l3,s6,m1]
     return [m1,m2,m3]
 
+# new version
+def TFITri2(a1, a2, a3, tol=1.e-6):
+    """Generate a transfinite interpolation mesh from 3 input curves."""
+    import Geom as D
+    Nt1 = a1[2]; Nt2 = a2[2]; Nt3 = a3[2]
+    
+    # Constraint Npts
+    ai = numpy.array([[0.5,0.5,-0.5],[0.5,-0.5,0.5],[-0.5,0.5,0.5]], dtype=numpy.float64)
+    N1 = ai[0,0]*(Nt1+1) + ai[0,1]*(Nt2+1) + ai[0,2]*(Nt3+1)
+    N2 = ai[1,0]*(Nt1+1) + ai[1,1]*(Nt2+1) + ai[1,2]*(Nt3+1)
+    N3 = ai[2,0]*(Nt1+1) + ai[2,1]*(Nt2+1) + ai[2,2]*(Nt3+1)
+    print(N1,N2,N3)
+    if N1 != int(N1): raise ValueError('TFITri: N1 is not integer.') # true if Nt1, Nt2, Nt3 odd
+    if N2 != int(N2): raise ValueError('TFITri: N2 is not integer.')
+    if N3 != int(N3): raise ValueError('TFITri: N3 is not integer.')
+    N1 = int(N1)
+    N2 = int(N2)
+    N3 = int(N3)
+    N4 = N1
+    N5 = N2
+    N6 = N3
+    if N1 <= 1: raise ValueError('TFITri: N1 <= 1.')
+    if N1+1 >= Nt1: raise ValueError('TFITri: N1+1 >= Nt1.')
+    if N3 <= 1: raise ValueError('TFITri: N3 <= 1.')
+    if N3+1 >= Nt2: raise ValueError('TFITri: N3+1 >= Nt2.')
+
+    # Assure la continuite entre les edges
+    P0 = (a1[1][0,Nt1-1], a1[1][1,Nt1-1], a1[1][2,Nt1-1])
+    P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
+    P01 = (a2[1][0,Nt2-1], a2[1][1,Nt2-1], a2[1][2,Nt2-1])
+    if abs(P0[0]-P00[0]) + abs(P0[1]-P00[1]) + abs(P0[2]-P00[2]) > tol and abs(P0[0]-P01[0]) + abs(P0[1]-P01[1]) + abs(P0[2]-P01[2]) > tol:
+        t = a2; a2 = a3; a3 = t
+        Nt2 = a2[2]; Nt3 = a3[2]
+        P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
+        
+    if abs(P0[0]-P00[0]) > tol: a2 = T.reorder(a2, (-1,2,3))
+    elif abs(P0[1]-P00[1]) > tol: a2 = T.reorder(a2, (-1,2,3))
+    elif abs(P0[2]-P00[2]) > tol: a2 = T.reorder(a2, (-1,2,3))
+    P0 = (a2[1][0,Nt2-1], a2[1][1,Nt2-1], a2[1][2,Nt2-1])
+    P00 = (a3[1][0,0], a3[1][1,0], a3[1][2,0])
+    if abs(P0[0]-P00[0]) > tol: a3 = T.reorder(a3, (-1,2,3))
+    elif abs(P0[1]-P00[1]) > tol: a3 = T.reorder(a3, (-1,2,3))
+    elif abs(P0[2]-P00[2]) > tol: a3 = T.reorder(a3, (-1,2,3))
+
+    # Center
+    w1 = C.array('weight', Nt1, 1, 1)
+    w1 = C.initVars(w1, 'weight', 1)
+    w2 = C.array('weight', Nt2, 1, 1)
+    w2 = C.initVars(w2, 'weight', 1)
+    w3 = C.array('weight', Nt3, 1, 1)
+    w3 = C.initVars(w3, 'weight', 1)
+    CC = G.barycenter([a1,a2,a3], [w1,w2,w3])
+    
+    # subzones
+    s1 = T.subzone(a1, (1,1,1), (N1,1,1))
+    s2 = T.subzone(a1, (N1,1,1), (Nt1,1,1))
+    s3 = T.subzone(a2, (1,1,1), (N3,1,1))
+    s4 = T.subzone(a2, (N3,1,1), (Nt2,1,1))
+    s5 = T.subzone(a3, (1,1,1), (N5,1,1))
+    s6 = T.subzone(a3, (N5,1,1), (Nt3,1,1))
+
+    # Lines (can be improved with TFI image)
+    index = N1-1
+    P01 = (a1[1][0,index], a1[1][1,index], a1[1][2,index])
+    index = N3-1
+    P12 = (a2[1][0,index], a2[1][1,index], a2[1][2,index])
+    index = N5-1
+    P23 = (a3[1][0,index], a3[1][1,index], a3[1][2,index])
+    l1 = D.line(CC, P01, N=N3)
+    l2 = D.line(CC, P12, N=N2)
+    l3 = D.line(CC, P23, N=N1)
+    #C.convertArrays2File([l1,l2,l3,s1,s2,s3,s4,s5,s6], 'dbg.plt')
+    #return [l1,l2,l3,s1,s2,s3,s4,s5,s6]
+    #return [s1,l1,l3,s6]
+
+    # TFIs
+    m1 = G.TFI([s1,l1,l3,s6])
+    m2 = G.TFI([l1,s2,s3,l2])
+    m3 = G.TFI([l2,s4,s5,l3])
+
+    return [m1,m2,m3]
+
 #==============================================================================
 # Cree un maillage en O avec un carre au milieu (5 maillages)
 # IN: une seule courbe avec nombre impair de points
 #==============================================================================
 def TFIO__(a, weight, offset=0):
-    import Transform as T
     import Geom as D
     
     Nt = a[2]
@@ -412,7 +551,6 @@ def TFIO(a, weight=None):
 # Celle qui a le plus de points est prise pour round.
 #==============================================================================
 def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
-    import Transform as T
     import Geom as D
 
     Nt1 = a1[2]; Nt2 = a2[2]
@@ -512,7 +650,7 @@ def TFIHalfO(a1, a2):
                 if score < optScore:
                     optWeight = i; optScore = score; optOffset = j
             except: pass
-    print('Info: TFIHalfO; resulting score=%g'%optScore)
+    print('Info: TFIHalfO: resulting score=%g'%optScore)
     return TFIHalfO__(a1, a2, optWeight, optOffset)
 
 #==============================================================================
@@ -520,10 +658,10 @@ def TFIHalfO(a1, a2):
 # a1: straight, a2: round
 # Il faut N1-N2 pair.
 # Celle qui a le plus de points est prise pour round.
+# Alternative to TFI Half O
 #==============================================================================
 def TFIMono(a1, a2):
     """Generate a transfinite interpolation mesh for 2 input curves."""
-    import Transform as T
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
     if diff == 0:
@@ -532,7 +670,6 @@ def TFIMono(a1, a2):
         b2 = T.subzone(a1, (Np+1,1,1), (N1,1,1))
         b3 = T.subzone(a2, (1,1,1), (N1-Np,1,1))
         b4 = T.subzone(a2, (N1-Np,1,1), (N2,1,1))
-        #C.convertArrays2File([b1,b2,b3,b4], 'test.plt')
         m1 = G.TFI([b1,b2,b3,b4])
         return [m1]
 
@@ -544,6 +681,42 @@ def TFIMono(a1, a2):
     b3 = T.subzone(a2, (Np,1,1), (N2-Np+1,1,1))
     m1 = G.TFI([a1,b1,b3,b2])
     return [m1]
+
+#==============================================================================
+# TFI for a single edge, generate only one grid
+# Nt must be odd (impair)
+#==============================================================================
+def TFISingle__(a1):
+    Nt = C.getNPts(a1)
+    N1 = (Nt+3)//4
+    N2 = (Nt+3-2*N1)//2
+    print(N1,N2,Nt+3,2*N1+2*N2)
+    e1 = T.subzone(a1, (1,1,1), (N1,1,1))
+    e2 = T.subzone(a1, (N1,1,1), (N1+N2-1,1,1))
+    e3 = T.subzone(a1, (N1+N2-1,1,1), (2*N1+N2-2,1,1))
+    e4 = T.subzone(a1, (2*N1+N2-2,1,1), (-1,1,1))
+    return [G.TFI([e1,e2,e3,e4])]
+
+# try to find best first point
+def TFISingle(a1):
+    Nt = C.getNPts(a1)
+    if Nt//2 - Nt*0.5 == 0: raise ValueError("TFISingle: Nt must be odd.")
+    # Find best first point
+    N = Nt//4
+    Nstep = N//20+1
+    istart = 1
+    ret = TFISingle__(a1)
+    q0 = quality(ret)
+    while istart < N:
+        istart += Nstep
+        e1 = T.subzone(a1, (1,1,1), (Nstep,1,1))
+        e2 = T.subzone(a1, (Nstep,1,1), (-1,1,1))
+        a1 = T.join(e2, e1)
+        ret1 = TFISingle__(a1)
+        q1 = quality(ret1)
+        #print(istart, q1)
+        if q1 < q0: ret = ret1
+    return ret
 
 #==============================================================================
 # Cree un ensemble de maillages TFI en etoilant les edges et en 
@@ -570,7 +743,6 @@ def TFIStar(edges):
 def TFIStar2(edges):
     """Generate a transfinite interpolation mesh for a list of input curves."""
     import Geom as D
-    import Transform as T
     orderEdges(edges, tol=1.e-6)
     
     XG = G.barycenter(edges) # a optimiser
@@ -592,4 +764,14 @@ def TFIStar2(edges):
         out += [ret]
     
     return out
+
+# Perform smoothing, return mesh only if improved
+def qualitySmooth(meshes):
+    q0 = quality(meshes)
+    print("qual 0=", q0)
+    meshes1 = T.smooth(meshes, niter=5)
+    q1 = quality(meshes1)
+    print("qual 1=", q1)
+    if q1 > q0: return meshes1
+    return meshes
     
