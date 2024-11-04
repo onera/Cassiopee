@@ -2680,8 +2680,7 @@ def createFortranFiles(env, srcs, deps={}):
     return ppf
 
 # Decoupe une liste de fichiers object en morceaux de taille egale a chunkSize
-def chunkObjectFiles(ppf, chunkSize=None):
-    if chunkSize is None: return ppf
+def chunkObjectFiles(ppf, chunkSize=100):
     chunked_ppf = []
     for i in range(0, len(ppf), chunkSize):
         chunked_ppf.append(ppf[i:i+chunkSize])
