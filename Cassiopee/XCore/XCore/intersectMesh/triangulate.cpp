@@ -28,6 +28,9 @@ void IMesh::triangulate_skin()
 {
     E_Int NF = nf;
 
+    owner.resize(nf + skin.size(), -1);
+    neigh.resize(nf + skin.size(), -1);
+
     for (auto fid : skin) {
         assert(neigh[fid] == -1);
 
@@ -45,6 +48,8 @@ void IMesh::triangulate_skin()
         E_Int own = owner[fid];
         auto &pf = C[own];
         pf.push_back(nf);
+
+        owner[nf] = own;
 
         nf++;
     }

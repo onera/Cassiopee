@@ -27,6 +27,9 @@
 #include "point.h"
 #include "BVH.h"
 
+#define LEFT 0
+#define RIGHT 1
+
 struct IMesh;
 struct AABB;
 
@@ -76,6 +79,8 @@ struct Smesh {
     std::map<E_Int, E_Int> g2lf;
     std::map<E_Int, E_Int> l2gf;
 
+    void reconstruct(IMesh &M);
+
     // Constructors
 
     Smesh();
@@ -87,8 +92,12 @@ struct Smesh {
         const std::vector<E_Int> &skin, bool check_Euler=true);
     static Smesh Smesh_from_mesh_patch(const IMesh &M,
         bool check_Euler=true);
+    static Smesh Smesh_from_tagged_faces(const IMesh &M, bool check_Euler);
+    static Smesh make_sub(const Smesh &Mf, const std::set<E_Int> &bfaces,
+        bool check_Euler);
     void make_edges();
     void clear();
+    void tag_faces(IMesh &M) const;
 
     // Geometry
 
@@ -149,6 +158,8 @@ struct Smesh {
 
     std::map<u_edge, E_Int> ecenter;
     std::map<E_Int, std::vector<std::array<E_Int, 3>>> fchildren;
+    E_Int np_before_adapt;
+    E_Int nf_before_adapt;
     
     void resize_for_refinement(size_t nref_faces);
     void refine(const std::vector<E_Int> &ref_faces);
@@ -158,8 +169,7 @@ struct Smesh {
     void update_plocs(const std::vector<E_Int> &parents,
         std::vector<PointLoc> &plocs);
     void conformize();
-    void get_edge_centers(E_Int p, E_Int q, std::list<E_Int> &edge_centers,
-        E_Int left_right);
+    void get_edge_centers(E_Int p, E_Int q, std::vector<E_Int> &edge_centers);
     std::vector<E_Int> deduce_ref_faces(const std::vector<E_Int> &mpids,
         const std::vector<PointLoc> &plocs_m, const Smesh &Mf,
         std::vector<E_Int> &ref_faces);

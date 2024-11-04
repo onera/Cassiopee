@@ -25,6 +25,8 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/icapsule_refine.cpp',
 
             'XCore/intersectMesh/triangulate.cpp',
+
+            'XCore/intersectMesh/mesh_io.cpp',
             
             'XCore/intersectMesh/smesh.cpp',
             'XCore/intersectMesh/smesh_locate.cpp',
@@ -33,6 +35,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/smesh_extract.cpp',
             'XCore/intersectMesh/smesh_bvh.cpp',
             'XCore/intersectMesh/smesh_geom.cpp',
+            'XCore/intersectMesh/smesh_reconstruct.cpp',
             
             'XCore/intersectMesh/dcel.cpp',
             'XCore/intersectMesh/dcel_extract.cpp',

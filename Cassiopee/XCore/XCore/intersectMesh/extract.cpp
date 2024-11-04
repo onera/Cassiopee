@@ -19,7 +19,7 @@ PyObject *K_XCORE::extractCell(PyObject *self, PyObject *args)
 
     if (ret != 0) return NULL;
 
-    IMesh M(*marray.cn, marray.X(), marray.Y(), marray.Z(), marray.npts);
+    IMesh M(marray);
 
     IMesh M_out;
 

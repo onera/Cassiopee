@@ -149,6 +149,8 @@ struct Dcel {
 
     Smesh export_smesh(bool check_Euler=true) const;
     Smesh reconstruct(const Smesh &Mf, int color, bool check_Euler) const;
+    void reconstruct_smesh(Smesh &Mf, int color, bool check_Euler) const;
+
 
     // Extract
 

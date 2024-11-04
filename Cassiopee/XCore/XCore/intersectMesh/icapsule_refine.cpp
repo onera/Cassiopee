@@ -144,9 +144,7 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
         for (E_Int p : mpids_set) mpids.push_back(p);
 
         // Project mpids on Sf
-        puts("making Sf centers");
         Sf.make_fcenters();
-        puts("projecting mpids on Sf");
         auto plocs_m = Sf.project(Mf, mpids);
 
         // Deduce sfids to refine

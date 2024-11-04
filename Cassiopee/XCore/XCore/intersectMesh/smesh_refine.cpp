@@ -114,7 +114,3 @@ void Smesh::refine(const std::vector<E_Int> &ref_faces)
     for (E_Int fid : ref_faces)
         refine_tri(fid);
 }
-
-void Smesh::get_leaves(E_Int fid, std::vector<E_Int> &leaves) const
-{
-}

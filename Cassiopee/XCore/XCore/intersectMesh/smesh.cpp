@@ -31,22 +31,18 @@
 #include <queue>
 #include <stack>
 
-#define LEFT 0
-#define RIGHT 1
-
-void Smesh::get_edge_centers(E_Int p, E_Int q, std::list<E_Int> &edge_centers,
-    E_Int left_right)
+void Smesh::get_edge_centers(E_Int p, E_Int q, std::vector<E_Int> &edge_centers)
 {
     u_edge e(p, q);
     auto it = ecenter.find(e);
-    if (it == ecenter.end()) return;
+    if (it == ecenter.end()) {
+        edge_centers.push_back(p);
+        return;
+    }
 
     E_Int ec = it->second;
-    if (left_right == LEFT) edge_centers.push_front(ec);
-    else edge_centers.push_back(ec);
-    
-    get_edge_centers(p, ec, edge_centers, LEFT);
-    get_edge_centers(ec, q, edge_centers, RIGHT);
+    get_edge_centers(p, ec, edge_centers);
+    get_edge_centers(ec, q, edge_centers);
 }
 
 void Smesh::clear_conformal_data()
@@ -74,6 +70,7 @@ void Smesh::conformize()
 
         std::vector<E_Int> new_pn;
 
+        /*
         for (size_t i = 0; i < pn.size(); i++) {
             E_Int p = pn[i];
             E_Int q = pn[(i+1)%pn.size()];
@@ -83,6 +80,18 @@ void Smesh::conformize()
             std::list<E_Int> edge_points;
             get_edge_centers(p, q, edge_points, LEFT);
             for (E_Int ep : edge_points) new_pn.push_back(ep);
+            assert(new_pn.back() != q);
+        }
+        */
+
+        for (size_t i = 0; i < pn.size(); i++) {
+            E_Int p = pn[i];
+            E_Int q = pn[(i+1)%pn.size()];
+
+            std::vector<E_Int> local;
+            get_edge_centers(p, q, local);
+            for (E_Int p : local) new_pn.push_back(p);
+            assert(local[0] == p);
         }
 
         new_Fc[fid] = new_pn;
@@ -97,61 +106,6 @@ void Smesh::conformize()
 
 Smesh::Smesh()
 {}
-
-Smesh::Smesh(const Smesh &Mf, const std::set<E_Int> &fids, bool check_Euler_)
-{
-    NEAR_VERTEX_TOL = Mf.NEAR_VERTEX_TOL;
-    NEAR_EDGE_TOL = Mf.NEAR_EDGE_TOL;
-
-    check_Euler = check_Euler_;
-
-    F.resize(fids.size());
-
-    nf = 0;
-    np = 0;
-
-    // Get the faces
-    for (E_Int gf : fids) {
-        g2lf[gf] = nf;
-        l2gf[nf] = gf;
-
-        auto &pn = F[nf];
-
-        for (E_Int gp : Mf.Fc[gf]) {
-            auto it = g2lp.find(gp);
-
-            if (it == g2lp.end()) {
-                g2lp[gp] = np;
-                l2gp[np] = gp;
-                pn.push_back(np);
-                np++;
-            } else {
-                pn.push_back(it->second);
-            }
-        }
-
-        nf++;
-    }
-
-    assert((size_t)np == g2lp.size());
-    assert((size_t)np == l2gp.size());
-
-    // Get the points
-    X.resize(np);
-    Y.resize(np);
-    Z.resize(np);
-
-    for (const auto &pids : g2lp) {
-        X[pids.second] = Mf.X[pids.first];
-        Y[pids.second] = Mf.Y[pids.first];
-        Z[pids.second] = Mf.Z[pids.first];
-    }
-
-    Fc = F;
-    make_edges();
-    make_point_faces();
-    make_point_edges();
-}
 
 Smesh Smesh::Smesh_from_mesh_skin(const IMesh &M,
     const std::vector<E_Int> &skin, bool check_Euler)
@@ -175,7 +129,7 @@ Smesh Smesh::Smesh_from_point_tags(const IMesh &M, const E_Float *ptag,
         }
         if (keep) fids.push_back(fid);
     }
-    
+
     return Smesh(M, fids, check_Euler);
 }
 
@@ -186,8 +140,14 @@ Smesh Smesh::Smesh_from_mesh_patch(const IMesh &M, bool check_Euler)
     for (E_Int fid : M.patch) {
         fids.push_back(fid);
     }
-    
+
     return Smesh(M, fids, check_Euler);
+}
+
+Smesh Smesh::Smesh_from_tagged_faces(const IMesh &M, bool check_Euler)
+{
+    assert(0);
+    return Smesh();
 }
 
 Smesh::Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool check_Euler_)
@@ -228,6 +188,10 @@ Smesh::Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool check_Euler_)
     assert((size_t)np == g2lp.size());
     assert((size_t)np == l2gp.size());
 
+    // Cache the original number of points and faces
+    np_before_adapt = np;
+    nf_before_adapt = nf;
+
     // Get the points
     X.resize(np);
     Y.resize(np);
@@ -237,6 +201,65 @@ Smesh::Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool check_Euler_)
         X[pids.second] = M.X[pids.first];
         Y[pids.second] = M.Y[pids.first];
         Z[pids.second] = M.Z[pids.first];
+    }
+
+    Fc = F;
+    make_edges();
+    make_point_faces();
+    make_point_edges();
+}
+
+Smesh::Smesh(const Smesh &Mf, const std::set<E_Int> &fids, bool check_Euler_)
+{
+    NEAR_VERTEX_TOL = Mf.NEAR_VERTEX_TOL;
+    NEAR_EDGE_TOL = Mf.NEAR_EDGE_TOL;
+
+    check_Euler = check_Euler_;
+
+    F.resize(fids.size());
+
+    nf = 0;
+    np = 0;
+
+    // Get the faces
+    for (E_Int gf : fids) {
+        g2lf[gf] = nf;
+        l2gf[nf] = gf;
+
+        auto &pn = F[nf];
+
+        for (E_Int gp : Mf.Fc[gf]) {
+            auto it = g2lp.find(gp);
+
+            if (it == g2lp.end()) {
+                g2lp[gp] = np;
+                l2gp[np] = gp;
+                pn.push_back(np);
+                np++;
+            } else {
+                pn.push_back(it->second);
+            }
+        }
+
+        nf++;
+    }
+
+    assert((size_t)np == g2lp.size());
+    assert((size_t)np == l2gp.size());
+
+    // Cache the original number of points and faces
+    np_before_adapt = np;
+    nf_before_adapt = nf;
+
+    // Get the points
+    X.resize(np);
+    Y.resize(np);
+    Z.resize(np);
+
+    for (const auto &pids : g2lp) {
+        X[pids.second] = Mf.X[pids.first];
+        Y[pids.second] = Mf.Y[pids.first];
+        Z[pids.second] = Mf.Z[pids.first];
     }
 
     Fc = F;
@@ -271,10 +294,10 @@ void Smesh::make_edges()
     ne = 0;
 
     for (E_Int i = 0; i < nf; i++) {
-        auto &face = Fc[i];
-        for (size_t j = 0; j < face.size(); j++) {
-            E_Int p = face[j];
-            E_Int q = face[(j+1)%face.size()];
+        auto &pn = Fc[i];
+        for (size_t j = 0; j < pn.size(); j++) {
+            E_Int p = pn[j];
+            E_Int q = pn[(j+1)%pn.size()];
             o_edge EDGE(p, q);
             auto it = edges.find(EDGE);
             if (it == edges.end()) {
@@ -366,80 +389,6 @@ void Smesh::make_edges()
             else neis.push_back(E2F[e][0]);
         }
     }
-
-    /*
-    // Traverse the face list breadth-first and adjust edges accordingly
-    std::vector<E_Int> visited(nf, 0);
-    std::queue<E_Int> Q;
-    Q.push(0);
-    visited[0] = 1;
-
-    while (!Q.empty()) {
-        E_Int f = Q.front();
-        Q.pop();
-
-        assert(f != -1);
-
-        visited[f] = 1;
-
-        auto &neis = F2F[f];
-        auto &pe = F2E[f];
-        auto &pn = Fc[f];
-
-        for (size_t j = 0; j < pn.size(); j++) {
-            E_Int nei = neis[j];
-            
-            E_Int p = pn[j];
-            E_Int q = pn[(j+1)%pn.size()];
-            
-            E_Int e = pe[j];
-            
-            if (nei == -1) {
-                assert(E[e].p == p);
-                assert(E[e].q == q);
-                continue;
-            }
-
-            if (visited[nei]) {
-                assert(E2F[e][0] == nei);
-                assert(E2F[e][1] == f);
-                assert(E[e].p == q);
-                assert(E[e].q == p);
-                continue;
-            }
- 
-            if (E[e].p != p) {
-                assert(visited[nei] == 0);
-                assert(E[e].q == p);
-                assert(E[e].p == q);
-                std::swap(E[e].p, E[e].q);
-                E2F[e][0] = f;
-                E2F[e][1] = nei;
-                Q.push(nei);
-            } 
-        }
-    }
-
-    // Check
-    for (E_Int i = 0; i < nf; i++) {
-        const auto &pn = Fc[i];
-        for (size_t j = 0; j < pn.size(); j++) {
-            E_Int e = F2E[i][j];
-            E_Int p = pn[j];
-            E_Int q = pn[(j+1)%pn.size()];
-
-            if (E[e].p == p) {
-                assert(E[e].q == q);
-                assert(E2F[e][0] == i);
-            } else if (E[e].q == p) {
-                assert(E[e].p == q);
-                assert(E2F[e][1] == i);
-            } else {
-                assert(0);
-            }
-        }
-    }
-    */
 }
 
 void Smesh::make_fcenters()
@@ -549,4 +498,14 @@ void Smesh::clear()
     l2gp.clear();
     g2lf.clear();
     l2gf.clear();
+}
+
+void Smesh::tag_faces(IMesh &M) const
+{
+    M.ftag.clear();
+    M.ftag.reserve(nf);
+
+    for (E_Int fid = 0; fid < nf; fid++) {
+        M.ftag.push_back(l2gf.at(fid));
+    }
 }

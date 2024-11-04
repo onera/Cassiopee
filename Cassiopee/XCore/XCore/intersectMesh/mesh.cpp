@@ -124,92 +124,61 @@ void IMesh::triangulate_face_set(bool propagate)
     F.resize(NF);
 }
 
-struct DEdge {
-    E_Int p, q;
-
-    DEdge(E_Int P, E_Int Q) : p(P), q(Q) {}
-
-    bool operator<(const DEdge &f) const
+struct o_edge_cmp {
+    bool operator()(const o_edge &e, const o_edge &f) const
     {
-        E_Int ep = std::min(p, q);
-        E_Int eq = std::max(p, q);
-        E_Int fp = std::min(f.p, f.q);
-        E_Int fq = std::max(f.p, f.q);
-        return (ep < fp) || (ep == fp && eq < fq);
+        E_Int e_p = std::min(e.p, e.q);
+        E_Int e_q = std::max(e.p, e.q);
+        E_Int f_p = std::min(f.p, f.q);
+        E_Int f_q = std::max(f.p, f.q);
+        return (e_p < f_p) ||
+               (e_p == f_p && e_q < f_q);
     }
 };
 
 void IMesh::make_edges()
 {
-    std::map<DEdge, E_Int> edges;
+    F2E.clear();
+    F2E.resize(F.size());
+    std::map<o_edge, E_Int, o_edge_cmp> edges;
 
+    E.clear();
+    assert(E.empty());
     ne = 0;
 
-    F2E.resize(nf);
-
-    for (E_Int i = 0; i < nf; i++) {
-        const auto &pn = F[i];
-        
-        F2E[i].resize(pn.size());
-
+    for (E_Int fid = 0; fid < nf; fid++) {
+        auto &pn = F[fid];
         for (size_t j = 0; j < pn.size(); j++) {
             E_Int p = pn[j];
             E_Int q = pn[(j+1)%pn.size()];
-            DEdge e(p, q); 
-            auto it = edges.find(e);
+            o_edge EDGE(p, q);
+            auto it = edges.find(EDGE);
             if (it == edges.end()) {
-                F2E[i][j] = ne;
-                edges[e] = ne;
+                F2E[fid].push_back(ne);
+                edges[EDGE] = ne;
+                E.push_back(EDGE);
                 ne++;
             } else {
-                F2E[i][j] = it->second;
+                F2E[fid].push_back(it->second);
             }
         }
     }
 
-    E.resize(ne);
+    assert((size_t)ne == E.size());
 
-    for (const auto &edata : edges) {
-        E[edata.second][0] = edata.first.p;
-        E[edata.second][1] = edata.first.q;
-    }
-}
+    E2F.clear();
+    E2F.resize(ne);
 
-void IMesh::init_adaptation_data()
-{
-    flevel.resize(nf, 0);
+    for (E_Int fid = 0; fid < nf; fid++) {
+        const auto &pe = F2E[fid];
 
-    for (E_Int i = 0; i < nf; i++) factive.insert(i);
-}
-
-bool IMesh::faces_are_dups(E_Int mface, E_Int sface, const IMesh &S)
-{
-    const auto &pnm = F[mface];
-    const auto &pns = S.F[sface];
-
-    assert(face_is_quad(mface) || face_is_tri(mface));
-    assert(S.face_is_quad(sface) || S.face_is_tri(sface));
-
-    if (pnm.size() != pns.size()) return false;
-
-    E_Int mfound[4] = { 0, 0, 0, 0 };
-
-    for (size_t i = 0; i < pnm.size(); i++) {
-        E_Int pm = pnm[i];
-        for (size_t j = 0; j < pns.size(); j++) {
-            E_Int ps = pns[j];
-            if (cmp_points(X[pm], Y[pm], Z[pm], S.X[ps], S.Y[ps], S.Z[ps]) == 0) {
-                assert(mfound[i] == 0);
-                mfound[i] = 1;
-                break;
-            }
+        for (E_Int eid : pe) {
+            E2F[eid].push_back(fid);
         }
-
-        if (mfound[i] == 0) return false;
     }
-
-    return true;
 }
+
+
 
 IMesh::IMesh()
 {}
@@ -248,63 +217,6 @@ IMesh::IMesh(const Karray &karray)
             faces[j] = pf[j] - 1;
         C.push_back(faces);
     }
-}
-
-IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
-{
-    NX = 100;
-    NY = 100;
-    NZ = 100;
-    NXY = NX * NY;
-    NXYZ = NXY * NZ;
-
-    np = npts;
-    ne = 0;
-    nf = cn.getNFaces();
-    nc = cn.getNElts();
-
-    X.resize(np);
-    Y.resize(np);
-    Z.resize(np);
-    for (E_Int i = 0; i < np; i++) {
-        X[i] = x[i];
-        Y[i] = y[i];
-        Z[i] = z[i];
-    }
-
-    F.reserve(nf);
-    E_Int *indPG = cn.getIndPG();
-    E_Int *ngon = cn.getNGon();
-    for (E_Int i = 0; i < nf; i++) {
-        E_Int np = -1;
-        E_Int *pn = cn.getFace(i, np, ngon, indPG);
-        std::vector<E_Int> points(np);
-        for (E_Int j = 0; j < np; j++)
-            points[j] = pn[j] - 1;
-        F.push_back(points);
-    }
-
-    C.reserve(nc);
-    E_Int *indPH = cn.getIndPH();
-    E_Int *nface = cn.getNFace();
-    for (E_Int i = 0; i < nc; i++) {
-        E_Int nf = -1;
-        E_Int *pf = cn.getElt(i, nf, nface, indPH);
-        std::vector<E_Int> faces(nf);
-        for (E_Int j = 0; j < nf; j++)
-            faces[j] = pf[j] - 1;
-        C.push_back(faces);
-    }
-
-    //make_skin();
-
-    //make_bbox();
-
-    //hash_skin();
-
-    //make_point_faces();
-
-    //init_adaptation_data();
 }
 
 void IMesh::make_point_faces()
@@ -811,89 +723,6 @@ void IMesh::write_face(const char *fname, E_Int fid) const
 
     fclose(fh);
 }
-
-void IMesh::write_faces(const char *fname, const std::vector<E_Int> &faces) const
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-
-    std::map<E_Int, E_Int> new_pids;
-    std::map<E_Int, E_Int> old_pids;
-
-    E_Int npts = 0;
-
-    for (E_Int face : faces) {
-        const auto &pn = F[face];
-
-        for (E_Int p : pn) {
-            if (new_pids.find(p) == new_pids.end()) {
-                new_pids[p] = npts;
-                old_pids[npts] = p;
-                npts++;
-            }
-        }
-    }
-    
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "%d\n", npts);
-    for (E_Int i = 0; i < npts; i++) {
-        E_Int opid = old_pids[i];
-        fprintf(fh, "%f %f %f\n", X[opid], Y[opid], Z[opid]);
-    }
-
-    fclose(fh);
-}
-
-void IMesh::write_ngon(const char *fname)
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, SF_D_ "\n", np);
-    for (E_Int i = 0; i < np; i++) {
-        fprintf(fh, "%f %f %f\n", X[i], Y[i], Z[i]);
-    }
-
-    fprintf(fh, "INDPG\n");
-    fprintf(fh, SF_D_ "\n", nf+1);
-    E_Int sizeNGon = 0;
-    fprintf(fh, SF_D_ " ", sizeNGon);
-    for (E_Int i = 0; i < nf; i++) {
-        sizeNGon += F[i].size();
-        fprintf(fh, SF_D_ " ", sizeNGon);
-    }
-    fprintf(fh, "\n");
-
-    fprintf(fh, "NGON\n");
-    fprintf(fh, SF_D_ "\n", sizeNGon);
-    for (E_Int i = 0; i < nf; i++) {
-        for (E_Int p : F[i])
-            fprintf(fh, SF_D_ " ", p);
-    }
-    fprintf(fh, "\n");
-
-    fprintf(fh, "INDPH\n");
-    fprintf(fh, SF_D_ "\n", nc+1);
-    E_Int sizeNFace = 0;
-    fprintf(fh, SF_D_ " ", sizeNFace);
-    for (E_Int i = 0; i < nc; i++) {
-        sizeNFace += C[i].size();
-        fprintf(fh, SF_D_ " ", sizeNFace);
-    }
-    fprintf(fh, "\n");
-
-    fprintf(fh, "NFace\n");
-    fprintf(fh, SF_D_ "\n", sizeNFace);
-    for (E_Int i = 0; i < nc; i++) {
-        for (E_Int p : C[i])
-            fprintf(fh, SF_D_ " ", p);
-    }
-    fprintf(fh, "\n");
-
-    fclose(fh); 
-}
-
 
 bool IMesh::face_contains_sface(E_Int face, E_Int sface, const IMesh &S) const
 {

@@ -62,11 +62,13 @@ struct IMesh {
     E_Int np, ne, nf, nc;
 
     std::vector<E_Float> X, Y, Z;
-    std::vector<std::vector<E_Int>> P2F;
-
-    std::vector<std::array<E_Int, 2>> E;
-    
     std::vector<std::vector<E_Int>> F;
+
+    std::vector<std::vector<E_Int>> P2F;
+    std::vector<std::vector<E_Int>> P2E;
+
+    std::vector<o_edge> E;
+    std::vector<std::vector<E_Int>> E2F;
     std::vector<std::vector<E_Int>> F2E;
 
     std::vector<std::vector<E_Int>> C;
@@ -74,7 +76,7 @@ struct IMesh {
     std::vector<E_Int> skin;
     std::vector<E_Int> owner;
     std::vector<E_Int> neigh;
-    Sgraph sgraph;
+
     E_Float NEAR_VERTEX_TOL = 1e-3;
     E_Float NEAR_EDGE_TOL = 1e-3;
 
@@ -87,8 +89,7 @@ struct IMesh {
     std::vector<std::vector<E_Int>> bin_faces;
 
     std::set<E_Int> patch;
-
-    std::vector<Point> entries;
+    std::vector<E_Int> ftag;
 
     std::vector<int> ctag;
     
@@ -97,8 +98,6 @@ struct IMesh {
         NEAR_VERTEX_TOL = near_vertex_tol;
         NEAR_EDGE_TOL = near_edge_tol;
     }
-
-    void make_skin_graph();
 
     inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
     {
@@ -125,7 +124,7 @@ struct IMesh {
 
     IMesh(const Karray &karray);
 
-    IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
+    //IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
 
     void make_patch(E_Int *faces, E_Int nfaces);
 
@@ -147,7 +146,9 @@ struct IMesh {
 
     void write_ngon(const char *fname);
 
-    void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
+    void write_ngon(const char *fname, const std::vector<E_Int> &faces) const;
+
+    void write_ngon(const char *fname, const std::set<E_Int> &fset) const;
 
     void write_face(const char *fname, E_Int fid) const;
 

@@ -10,16 +10,31 @@
 ICapsule ICapsule::do_it(const Karray &marray,
     const std::vector<Karray> &sarrays, const std::vector<E_Float *> &ptags)
 {
+    ICapsule icap;
+    auto &M = icap.M;
+    auto &Ss = icap.Ss;
+
     E_Float NEAR_VERTEX_TOL = 1e-3;
     E_Float NEAR_EDGE_TOL = 1e-3;
-    auto M = IMesh(marray);
+
+    puts("Creating mesh from karray");
+    M = IMesh(marray);
     M.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
+    puts("Making skin");
     M.make_skin();
+    puts("Orienting skin");
     M.orient_skin(OUT);
+    puts("Triangulating skin");
     M.triangulate_skin();
+    puts("Making edge data");
+    M.make_edges();
+    puts("Making bbox");
     M.make_bbox();
+    puts("Hashing skin");
     M.hash_skin();
+    puts("Creating surface mesh");
     Smesh Mf(M, M.skin, false);
+    puts("Making surface mesh data");
     Mf.make_bbox();
     Mf.hash_faces();
     Mf.make_fcenters();
@@ -27,6 +42,10 @@ ICapsule ICapsule::do_it(const Karray &marray,
     Mf.make_pnormals();
 
     Mf.write_ngon("Mf_raw.im");
+
+    Ss.reserve(sarrays.size());
+
+    // Adapt
 
     for (size_t i = 0; i < sarrays.size(); i++) {
 
@@ -38,9 +57,15 @@ ICapsule ICapsule::do_it(const Karray &marray,
         S.make_skin();
         S.orient_skin(IN);
         S.triangulate_skin();
+        S.make_edges();
 
         // Create SMesh Sf
         Smesh Sf = Smesh::Smesh_from_point_tags(S, ptags[i], true);
+
+        for (E_Int fid = 0; fid < Sf.nf; fid++) {
+            E_Int gfid = Sf.l2gf.at(fid);
+            assert(S.neigh[gfid] == -1);
+        }
 
         Sf.make_fcenters();
         Sf.make_fnormals();
@@ -62,12 +87,39 @@ ICapsule ICapsule::do_it(const Karray &marray,
         auto bfaces = Mf.extract_covering_faces(Sf, plocs);
 
         // Refinement loop
-        plocs = refine(Mf, bfaces, Sf);
+        refine(Mf, bfaces, Sf);
 
-        bfaces = Mf.extract_covering_faces(Sf, plocs);
+        // Reconstruct S
+        Sf.reconstruct(S);
 
-        // Make a patch out of Mf bounding faces
-        Smesh Bf(Mf, bfaces, false);
+        // TODO(Imad): Tag Sf faces
+        Sf.tag_faces(S);
+
+        // Append
+        Ss.push_back(S);
+
+        puts("");
+    }
+
+    Mf.reconstruct(M);
+
+    return icap;
+
+    /*
+    // Intersect
+
+    for (size_t i = 0; i < sarrays.size(); i++) {
+
+        // Make Sf
+        Smesh Sf = Smesh::Smesh_from_tagged_faces(Ss[i], true);
+
+        // Make Bf
+        M.make_skin();
+        Smesh Mf(M, M.skin, false);
+        auto plocs = Mf.locate(Sf);
+
+        auto bfaces = Mf.extract_covering_faces(Sf, plocs);
+        Smesh Bf = Smesh::make_sub(Mf, bfaces, false);
         Bf.make_fcenters();
         Bf.make_fnormals();
         Bf.make_pnormals();
@@ -76,18 +128,12 @@ ICapsule ICapsule::do_it(const Karray &marray,
 
         plocs = Bf.locate(Sf);
 
-        Bf.write_ngon("Bf.im");
-        Sf.write_ngon("Sf.im");
-
-        /*
-        {
-            Dcel Db(Bf, Dcel::RED);
-            Dcel Ds(Sf, Dcel::BLACK);
-        }
-        */
-
         // Intersect
         Dcel D(Bf, Sf, plocs);
+
+        // Reconstruct Bf and Sf
+        D.reconstruct_smesh(Bf, Dcel::RED, false);
+        D.reconstruct_smesh(Sf, Dcel::BLACK, true);
 
         {
             Smesh new_Bf = D.reconstruct(Bf, Dcel::RED, false);
@@ -98,19 +144,20 @@ ICapsule ICapsule::do_it(const Karray &marray,
             puts("reconstruted new Sf");
         }
 
+        // Reconstruct M and S
+        Bf.reconstruct(M);
+        Sf.reconstruct(Ss[i]);
+
         puts("");
     }
 
     Mf.write_ngon("refined_Mf.im");
-
-    return ICapsule();
+    */
 }
 
 
 PyObject *K_XCORE::icapsule_extract_master(PyObject *self, PyObject *args)
 {
-    return Py_None;
-    /*
     PyObject *ICAPSULE;
     if (!PYPARSETUPLE_(args, O_, &ICAPSULE)) {
         RAISE("Bad input.");
@@ -127,13 +174,10 @@ PyObject *K_XCORE::icapsule_extract_master(PyObject *self, PyObject *args)
     auto Mout = icap->M.export_karray();
 
     return Mout;
-    */
 }
 
 PyObject *K_XCORE::icapsule_extract_slave(PyObject *self, PyObject *args)
 {
-    return Py_None;
-    /*
     PyObject *ICAPSULE;
     E_Int INDEX;
     if (!PYPARSETUPLE_(args, O_ I_, &ICAPSULE, &INDEX)) {
@@ -156,7 +200,6 @@ PyObject *K_XCORE::icapsule_extract_slave(PyObject *self, PyObject *args)
     auto Sout = icap->Ss[INDEX].export_karray();
 
     return Sout;
-    */
 }
 
 PyObject *K_XCORE::icapsule_init(PyObject *self, PyObject *args)
@@ -219,11 +262,14 @@ PyObject *K_XCORE::icapsule_init(PyObject *self, PyObject *args)
         }
     }
 
-    ICapsule::do_it(marray, sarrays, ptags);
+    ICapsule *icap = new ICapsule();
+    *icap = ICapsule::do_it(marray, sarrays, ptags);
 
     Karray_free_ngon(marray);
     for (E_Int i = 0; i < nslaves; i++)
         Karray_free_ngon(sarrays[i]);
+    
+    PyObject *hook = PyCapsule_New((void *)icap, "ICapsule", NULL);
 
-    return Py_None;
+    return hook;
 }
