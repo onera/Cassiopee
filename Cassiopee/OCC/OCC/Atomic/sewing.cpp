@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// CAD split for parallel
+// CAD sewing
 #include "occ.h"
 
 #include "TopoDS.hxx"

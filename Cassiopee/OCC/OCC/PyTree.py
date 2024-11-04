@@ -1235,6 +1235,11 @@ def _fillHole(hook, edges):
   OCC.occ.fillHole(hook, edges)
   return None
 
+# trim two set of surfaces
+def _trimFaces(hook, faces1, faces2):
+  OCC.occ.trimFaces(hook, faces1, faces2)
+  return None
+
 # Return the number of edges in CAD hook
 def getNbEdges(hook):
   """Return the number of edges in CAD hook."""

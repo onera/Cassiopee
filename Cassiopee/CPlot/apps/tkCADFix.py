@@ -6,6 +6,7 @@ import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
+import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -143,7 +144,7 @@ def removeFaces(event=None):
     if CTK.CADHOOK is None: return
     hook = CTK.CADHOOK
     [hmax, hausd] = OCC.getCADcontainer(CTK.t)
-    # Get selected edges
+    # Get selected faces
     nzs = CPlot.getSelectedZones()
     faces = []
     for nz in nzs:
@@ -245,6 +246,91 @@ def fillHole(event=None):
     CTK.TXT.insert('START', 'Fill hole in CAD.\n')
 
 #==============================================================================
+def setTrimFace1():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    selected = ''
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        b = CTK.t[2][nob]
+        if b[0] != 'FACES': continue
+        z = CTK.t[2][nob][2][noz]
+        CAD = Internal.getNodeFromName1(z, 'CAD')
+        if CAD is not None:
+            no = Internal.getNodeFromName1(CAD, 'no')
+            no = Internal.getValue(no)
+            selected += str(no)+' '
+    print(selected, flush=True)
+    VARS[5].set(selected)
+
+#==============================================================================
+def trimFaces(event=None):
+    import OCC.PyTree as OCC
+    if CTK.CADHOOK is None: return
+    hook = CTK.CADHOOK
+    [hmax, hausd] = OCC.getCADcontainer(CTK.t)
+    # Get selected faces
+    nzs = CPlot.getSelectedZones()
+    faces1 = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        b = CTK.t[2][nob]
+        if b[0] != 'FACES': continue
+        z = CTK.t[2][nob][2][noz]
+        CAD = Internal.getNodeFromName1(z, 'CAD')
+        if CAD is not None:
+            no = Internal.getNodeFromName1(CAD, 'no')
+            no = Internal.getValue(no)
+            faces1.append(no)
+    if faces1 == []: 
+        CTK.TXT.insert('START', 'No valid faces in selection.\n')
+        return
+    
+    faces2 = []
+    st = VARS[5].get()
+    st = st.split(' ')
+    for s in st:
+        try: 
+            val = int(s) 
+            faces2.append(val)
+        except: pass
+    if faces2 == []: 
+        CTK.TXT.insert('START', 'No valid faces in selection.\n')
+        return    
+
+    CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['trimFacesButton'])
+    
+    OCC.occ.trimFaces(hook, faces1, faces2)
+
+    # remesh CAD and redisplay
+    edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
+    edges[2] = []
+    faces = Internal.getNodeFromName1(CTK.t, 'FACES')
+    faces[2] = []
+    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
+    OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
+
+    CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['trimFacesButton'])
+    NL = OCC.getNbLonelyEdges(CTK.t)
+    VARS[4].set('Lonely edges: %d'%NL)
+
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CTK.display(CTK.t)
+    
+    CTK.TXT.insert('START', 'Faces trimmed in CAD.\n')
+
+#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
@@ -285,13 +371,15 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
     # -4- Bilan des edges lonely
     V = TK.StringVar(win); V.set('Lonely edges: %d'%NL); VARS.append(V)
+    # -5- List of face to trim (compound 1)
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
 
     # CAD file name
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='CAD file name.')
 
-    # CAD fille format
+    # CAD file format
     B = TTK.OptionMenu(Frame, VARS[1], 'fmt_step', 'fmt_iges')
     B.grid(row=0, column=1, sticky=TK.EW)
 
@@ -333,16 +421,25 @@ def createApp(win):
 
     # Remove faces
     B = TTK.Button(Frame, text="Remove faces", command=removeFaces)
-    B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=5, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Remove selected faces from CAD.')
     WIDGETS['removeFacesButton'] = B
 
     # Fill hole
     B = TTK.Button(Frame, text="Fill hole", command=fillHole)
-    B.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=5, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fill hole from CAD edges.')
     WIDGETS['fillHoleButton'] = B
 
+    # Trim
+    B = TTK.Button(Frame, text="Trim faces", command=trimFaces)
+    B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Trim faces.')
+    WIDGETS['trimFacesButton'] = B
+    B = TTK.Button(Frame, command=setTrimFace1,
+                   image=iconics.PHOTO[8], padx=0, pady=0)
+    BB = CTK.infoBulle(parent=B, text='Set the faces for first compound.')
+    B.grid(row=6, column=1, columnspan=1, sticky=TK.EW)
 
 #==============================================================================
 # Called to display widgets
