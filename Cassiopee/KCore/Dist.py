@@ -2665,35 +2665,27 @@ def envFortranWithDeps(env, filename, deps={}):
     return env.Fortran(target=target)
 
 # Cree les noms des fichiers
-def createFortranFiles(env, srcs, chunkSize=None, deps={}):
+def createFortranFiles(env, srcs, deps={}):
     for_srcs = []
-    if chunkSize is None:
-        try:
-            for_srcs.extend(srcs.for_srcs[:])
-        except: pass
-        try:
-            for_srcs.extend(srcs.f90_srcs[:])
-        except: pass
-        ppf = []
-        for f in for_srcs:
-            ofile = envFortranWithDeps(env=env, filename=f, deps=deps)
-            ppf.append(ofile[0])
-    else:
-        try:
-            for i in range(0, len(srcs.for_srcs), chunkSize):
-                for_srcs.append(srcs.for_srcs[i:i+chunkSize])
-        except: pass
-        try:
-            for i in range(0, len(srcs.f90_srcs), chunkSize):
-                for_srcs.append(srcs.f90_srcs[i:i+chunkSize])
-        except: pass
-        nchunks = len(for_srcs)
-        ppf = [[] for _ in range(nchunks)]
-        for c in range(nchunks):
-            for f in for_srcs[c]:
-                ofile = envFortranWithDeps(env=env, filename=f, deps=deps)
-                ppf[c].append(ofile[0])
+    try:
+        for_srcs.extend(srcs.for_srcs[:])
+    except: pass
+    try:
+        for_srcs.extend(srcs.f90_srcs[:])
+    except: pass
+    ppf = []
+    for f in for_srcs:
+        ofile = envFortranWithDeps(env=env, filename=f, deps=deps)
+        ppf.append(ofile[0])
     return ppf
+
+# Decoupe une liste de fichiers object en morceaux de taille egale a chunkSize
+def chunkObjectFiles(ppf, chunkSize=None):
+    if chunkSize is None: return ppf
+    chunked_ppf = []
+    for i in range(0, len(ppf), chunkSize):
+        chunked_ppf.append(ppf[i:i+chunkSize])
+    return chunked_ppf
 
 # Scan les .f pour faire les dependences (include)
 def fortranScan(node, env, path, arg=None):
