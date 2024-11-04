@@ -66,7 +66,7 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
   }
   if (km != 1)
   {
-    printf("Warning: TTM : applied only on k=1 zones.\n"); 
+    printf("Warning: TTM: applied only on k=1 zones.\n"); 
     delete f;
     return array;
   }

@@ -1276,7 +1276,8 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                               isOrthoFirst=isFilamentOnly, check=check)
         if twoFronts:
             res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
-                                   cellNName='cellNIBC', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check)
+                                   cellNName='cellNIBC', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
+                                   twoFronts=twoFronts)
         if isWireModel:
             tb_filament_localWMM=Internal.copyTree(tbFilament)
             for z in Internal.getZones(tbFilament):
@@ -2170,7 +2171,6 @@ def extractIBMInfo(tc_in, IBCNames="IBCD_*", fileout=None):
 # IN: he:NOT SURE BUT USED WHEN tb IS NOT PROVIDED.
 # IN: tb: immersed bodies
 # IN: tFront: IBM front for first set of image points (always needed)
-# IN: tFront2: IBM front for second set of image points
 # IN: frontType: type of front= 0,1,42
 # IN: cellNName: name of cellN used to get IBM point.
 # IN: IBCType: type of IBM method: -1 points inside solid; 1 point in fluid
@@ -2182,10 +2182,11 @@ def extractIBMInfo(tc_in, IBCNames="IBCD_*", fileout=None):
 # IN: isLBM: is it an LBM run?
 # IN: isWireModel: is the Wire Mesh Model used?
 # IN: isOrthoFirst: Apply orthogonal projection first and level set normal decscent second. Needed for IBC filaments only.
+# IN: twoFront: Needed to change the output of the projection write files.
 # =============================================================================
-def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=None, frontType=0, cellNName='cellN', 
+def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontType=0, cellNName='cellN', 
                     IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1.,
-                    hmod=0.1, isLBM=False, isWireModel=False, isOrthoFirst=False, check=False):
+                    hmod=0.1, isLBM=False, isWireModel=False, isOrthoFirst=False, check=False, twoFronts=False):
     """Returns the dictionary of IBM points."""
     if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected=1 # signe de la distance aux points corriges
@@ -2219,10 +2220,6 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             if frontType == 42: listOfModelisationHeightsLoc.append(G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref))
             else:
                 listOfModelisationHeightsLoc.append(0.)
-                # if tfront2 is not None:
-                #     listOfModelisationHeightsLoc.append(hmod)
-                # else:
-                #     listOfModelisationHeightsLoc.append(0.)
     else:        
         for z in Internal.getZones(t):
             an = C.getFields(Internal.__GridCoordinates__,z)[0]
@@ -2247,10 +2244,6 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             if frontType == 42: listOfModelisationHeightsLoc.append(G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref))
             else:
                 listOfModelisationHeightsLoc.append(0.)
-                # if tfront2 is not None:
-                #     listOfModelisationHeightsLoc.append(hmod)
-                # else:
-                #     listOfModelisationHeightsLoc.append(0.)
     #-------------------------------------------
     # 2. Get the list of IBC wall and interp pts
     #-------------------------------------------
@@ -2299,29 +2292,17 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             bodies.append(body)
             listOfIBCTypes.append(itype)
 
-        if tfront2 is not None:
-            # premier essai de projection orthogonal sur tfront
-            # si echec, second essai sur tfront2 en suivant les etapes de Stephanie
-            front = C.getFields(Internal.__GridCoordinates__,tfront)
-            front = Converter.convertArray2Tetra(front)
-            front2 = C.getFields(Internal.__GridCoordinates__,tfront2)
-            front2 = Converter.convertArray2Tetra(front2)
-            allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
-            res = connector.getIBMPtsWithTwoFronts(allCorrectedPts, listOfSnearsLoc, listOfModelisationHeightsLoc, bodies,
-                                               front, front2, varsn, signOfDistCorrected, depth)
-
+        if frontType == 0:
+            dmin = C.getMaxValue(tfront, 'TurbulentDistance')
+            allCorrectedPts = Converter.initVars(allCorrectedPts,'dist',dmin)
+            res = connector.getIBMPtsWithoutFront(allCorrectedPts, bodies, varsn, 'dist', signOfDistCorrected)
         else:
-            if frontType == 0:
-                dmin = C.getMaxValue(tfront, 'TurbulentDistance')
-                allCorrectedPts = Converter.initVars(allCorrectedPts,'dist',dmin)
-                res = connector.getIBMPtsWithoutFront(allCorrectedPts, bodies, varsn, 'dist', signOfDistCorrected)
-            else:
-                front = C.getFields(Internal.__GridCoordinates__,tfront)
-                
-                front = Converter.convertArray2Tetra(front)
-                allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
-                res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, listOfModelisationHeightsLoc, bodies,
-                                                   front, varsn, signOfDistCorrected, depth, int(isWireModel), int(isOrthoFirst))                
+            front = C.getFields(Internal.__GridCoordinates__,tfront)
+            
+            front = Converter.convertArray2Tetra(front)
+            allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
+            res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, listOfModelisationHeightsLoc, bodies,
+                                               front, varsn, signOfDistCorrected, depth, int(isWireModel), int(isOrthoFirst))                
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
 
@@ -2334,11 +2315,14 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
     dictOfCorrectedPtsByIBCType={}
     dictOfWallPtsByIBCType={}
     nzonesR = len(allInterpPts)
-    nameZone = ['IBM', 'Wall', 'Image']
-    tLocal3   = C.newPyTree(nameZone)
-    tLocal4   = C.newPyTree(nameZone)
+    
     ## Ouput the IBM points that have a type 3 and type 4 projection			    
     if len(res)>3:
+        nameZone = ['IBM', 'Wall', 'Image']
+        tLocal3   = C.newPyTree(nameZone)
+        tLocal4   = C.newPyTree(nameZone)
+        isWrite3  = 0
+        isWrite4  = 0
         allProjectPts = res[3]
         allProjectPts = Converter.extractVars(allProjectPts,['ProjectionType'])
         outputProjection3 = [[],[],[],[],[],[],[],[],[]]
@@ -2350,14 +2334,24 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
             if type_3>0: _prepOutputProject__(outputProjection3, 3, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
             if type_4>0: _prepOutputProject__(outputProjection4, 4, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
         
-        if outputProjection3[0] and check: tLocal3=_writeOutputProject__(outputProjection3, tLocal3)
-        if outputProjection4[0] and check: tLocal4=_writeOutputProject__(outputProjection4, tLocal4)
+        if outputProjection3[0] and check:
+            tLocal3  = _writeOutputProject__(outputProjection3, tLocal3)
+            isWrite3 = 1
+        if outputProjection4[0] and check:
+            tLocal4  = _writeOutputProject__(outputProjection4, tLocal4)
+            isWrite4 = 1
         
         if check:
-            Cmpi.convertPyTree2File(tLocal3, 'projection3.cgns')
-            Cmpi.convertPyTree2File(tLocal4, 'projection4.cgns')
-    del tLocal3
-    del tLocal4
+            suffixLocal = '.cgns'
+            if twoFronts: suffixLocal = '_Front2.cgns'
+            if cellNName=='cellNFilWMM':
+                suffixLocal = '_WMM_Front1.cgns'
+                if isWireModel: suffixLocal = '_WMM_Front2.cgns'
+            if Cmpi.allreduce(isWrite3,op=Cmpi.MAX)>0: Cmpi.convertPyTree2File(tLocal3, 'projection3'+suffixLocal)
+            if Cmpi.allreduce(isWrite4,op=Cmpi.MAX)>0: Cmpi.convertPyTree2File(tLocal4, 'projection4'+suffixLocal)
+            
+        del tLocal3
+        del tLocal4
     
     if len(res)>=3:
         allIndicesByIBCType = res[2]
