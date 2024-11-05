@@ -224,7 +224,6 @@ elif [ "$MAC" = "visung" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     #. /etc/profile.d/modules-dri.sh
     module purge
-    module load hdf5/1.10.5-intel2120-impi
     module load occt/7.6.1-gnu831
     module load emacs/27.2-gnu831
     module load subversion/1.14.1-gnu831

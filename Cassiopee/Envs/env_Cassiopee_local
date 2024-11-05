@@ -18,6 +18,9 @@ limit stacksize unlimited
 set KC=`uname -n`
 set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator_cas"
 set MAC0=`echo $KC | grep 'ld'`; if ($%MAC0 != 0) set MAC="ld"
+set MAC0=`echo $KC | grep 'f0'`; if ($%MAC0 != 0) set MAC="juno"
+set MAC0=`echo $KC | grep 'n0'`; if ($%MAC0 != 0) set MAC="juno"
+set MAC0=`echo $KC | grep 'v0'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'ubuntu'`; if ($%MAC0 != 0) set MAC="ubuntu"
 set MAC0=`echo $KC | grep 'fulvio'`; if ($%MAC0 != 0) set MAC="fulvio"
@@ -25,13 +28,10 @@ set MAC0=`echo $KC | grep 'visio'`; if ($%MAC0 != 0) set MAC="visio"
 set MAC0=`echo $KC | grep 'austri'`; if ($%MAC0 != 0) set MAC="austri"
 set MAC0=`echo $KC | grep 'laura'`; if ($%MAC0 != 0) set MAC="laura"
 set MAC0=`echo $KC | grep 'celeste'`; if ($%MAC0 != 0) set MAC="visio"
-set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="juno"
+set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="visung"
 set MAC0=`echo $KC | grep 'giulia'`; if ($%MAC0 != 0) set MAC="giulia"
 set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_cas"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
-set MAC0=`echo $KC | grep 'f0'`; if ($%MAC0 != 0) set MAC="juno"
-set MAC0=`echo $KC | grep 'n0'`; if ($%MAC0 != 0) set MAC="juno"
-set MAC0=`echo $KC | grep 'v0'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
 set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
 set MAC0=`echo $KC | grep 'jean-zay'`; if ($%MAC0 != 0) set MAC="jean-zay"
@@ -281,22 +281,31 @@ else if ($MAC == "visio") then
         # Nombre de threads
         setenv OMP_NUM_THREADS 16
         
-else if ($MAC == "visung") then
-#------------------------------- visung ---------------------------------------
-        setenv ELSAPROD visung_r8
+else if ($MAC == "visung_gcc") then
+#------------------------------- visung_gcc ---------------------------------------
+        setenv ELSAPROD visung_gcc
         setenv ELSAPROD "$ELSAPROD$EXT"
         module purge
-        module load subversion
-        module load occt/7.6.1-gnu831
-        module load python/3.8.14-gnu831
-        #module load intel/21.2.0
-        module load gcc/10.2.0
-        module load hdf5/1.10.5-gnu831-ompi405
         module load lapack/3.9.1-gnu831
-        setenv PRODMODE 1
-        # Set next two lines only if python is not python
+        module load occt/7.6.1-gnu831
+        module load socle-cfd/7.0-gnu850-ompi502
+        module load subversion/1.14.1-gnu831
+        module load emacs/27.2-gnu831
+        #setenv PRODMODE 1
         setenv PYTHONEXE python3
-        # Nombre de threads
+        setenv OMP_NUM_THREADS 72
+
+else if ($MAC == "visung") then
+#------------------------------- visung ---------------------------------------
+        setenv ELSAPROD visung
+        setenv ELSAPROD "$ELSAPROD$EXT"
+        module purge
+        module load occt/7.6.1-gnu831
+        module load emacs/27.2-gnu831
+        module load subversion/1.14.1-gnu831
+        module load socle-cfd/6.0-intel2220-impi
+        #setenv PRODMODE 1
+        setenv PYTHONEXE python3
         setenv OMP_NUM_THREADS 72
 
 else if ($MAC == "visung_el8") then
