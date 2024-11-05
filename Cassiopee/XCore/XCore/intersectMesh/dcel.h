@@ -25,6 +25,7 @@
 #include "common/common.h"
 #include "point.h"
 #include "primitives.h"
+#include "u_edge.h"
 
 struct Smesh;
 
@@ -115,7 +116,14 @@ struct Dcel {
     E_Int hole = 0;
 
     std::map<Hedge *, std::vector<Vertex *>> hedge_intersections;
+    std::map<std::pair<Vertex *, Vertex *>, Vertex *> vcenter[2];
 
+    std::map<E_Int, E_Int> l2gp;
+    std::map<E_Int, E_Int> g2lp;
+    std::map<E_Int, E_Int> l2gf;
+    std::map<E_Int, E_Int> g2lf;
+
+    Dcel();
     Dcel(const Smesh &Mf, const Smesh &Sf, const std::vector<PointLoc> &plocs);
     Dcel(const Smesh &Mf, int color);
     ~Dcel();
@@ -132,6 +140,8 @@ struct Dcel {
     void set_face_labels(std::vector<Face *> &F);
     std::vector<Face *> make_cycle_faces(const std::vector<Cycle *> &C);
     void reconstruct(const Smesh &Mf, const Smesh &Sf);
+    static Dcel intersect(const Smesh &Mf, const Smesh &Sf,
+        const std::vector<PointLoc> &plocs);
 
     // Checks
 
@@ -148,8 +158,7 @@ struct Dcel {
     // Export
 
     Smesh export_smesh(bool check_Euler=true) const;
-    Smesh reconstruct(const Smesh &Mf, int color, bool check_Euler) const;
-    void reconstruct_smesh(Smesh &Mf, int color, bool check_Euler) const;
+    void reconstruct(Smesh &Mf, int color) const;
 
 
     // Extract
@@ -168,6 +177,7 @@ struct Dcel {
     void write_point(const char *fname, const std::vector<Vertex *> &I) const;
     void write_ngon(const char *fname, const std::vector<Cycle *> &cycles) const;
     void write_ngon(const char *fname, const std::vector<Face *> &faces) const;
+    void write_ngon(const char *fname, const std::vector<E_Int> &fids) const;
     void write_degen_cycles(const char *fname) const;
     void write_inner_cycles(const char *fname) const;
     void write_hole_cycles(const char *fname) const;

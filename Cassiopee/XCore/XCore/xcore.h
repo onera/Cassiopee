@@ -73,8 +73,13 @@ namespace K_XCORE
     PyObject *IntersectMesh_Merge(PyObject *self, PyObject *args);
     
     PyObject *icapsule_init(PyObject *self, PyObject *args);
+    PyObject *icapsule_adapt(PyObject *self, PyObject *args);
+    PyObject *icapsule_intersect(PyObject *self, PyObject *args);
     PyObject *icapsule_extract_master(PyObject *self, PyObject *args);
     PyObject *icapsule_extract_slave(PyObject *self, PyObject *args);
+    PyObject *icapsule_extract_slaves(PyObject *self, PyObject *args);
+   
+
     PyObject *triangulate_skin(PyObject *self, PyObject *args);
 
     PyObject *extractCell(PyObject *self, PyObject *args);

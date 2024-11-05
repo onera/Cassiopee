@@ -70,20 +70,6 @@ void Smesh::conformize()
 
         std::vector<E_Int> new_pn;
 
-        /*
-        for (size_t i = 0; i < pn.size(); i++) {
-            E_Int p = pn[i];
-            E_Int q = pn[(i+1)%pn.size()];
-
-            new_pn.push_back(p);
-
-            std::list<E_Int> edge_points;
-            get_edge_centers(p, q, edge_points, LEFT);
-            for (E_Int ep : edge_points) new_pn.push_back(ep);
-            assert(new_pn.back() != q);
-        }
-        */
-
         for (size_t i = 0; i < pn.size(); i++) {
             E_Int p = pn[i];
             E_Int q = pn[(i+1)%pn.size()];
@@ -146,8 +132,7 @@ Smesh Smesh::Smesh_from_mesh_patch(const IMesh &M, bool check_Euler)
 
 Smesh Smesh::Smesh_from_tagged_faces(const IMesh &M, bool check_Euler)
 {
-    assert(0);
-    return Smesh();
+    return Smesh(M, M.ftag, check_Euler);
 }
 
 Smesh::Smesh(const IMesh &M, const std::vector<E_Int> &fids, bool check_Euler_)

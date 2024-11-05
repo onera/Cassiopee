@@ -47,7 +47,7 @@ void Smesh::make_BVH()
     tri_idx.clear();
     tri_idx.resize(nf);
     for (E_Int i = 0; i < nf; i++) tri_idx[i] = i;
-    assert(fcenters.size() == nf*3);
+    assert(fcenters.size() == (size_t)nf*3);
 
     // Assign all triangles to root node
     BVH_node &root = bvh_nodes[root_node_idx];

@@ -40,6 +40,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/dcel.cpp',
             'XCore/intersectMesh/dcel_extract.cpp',
             'XCore/intersectMesh/dcel_io.cpp',
+            'XCore/intersectMesh/dcel_reconstruct.cpp',
 
             'XCore/intersectMesh/AABB.cpp',
 

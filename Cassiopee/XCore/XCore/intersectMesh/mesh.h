@@ -90,7 +90,7 @@ struct IMesh {
 
     std::set<E_Int> patch;
     std::vector<E_Int> ftag;
-
+    std::vector<E_Float> ptag;
     std::vector<int> ctag;
     
     void set_tolerances(E_Float near_vertex_tol, E_Float near_edge_tol)

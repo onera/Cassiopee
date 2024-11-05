@@ -112,7 +112,7 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
     if (cmp < 0) std::reverse(pchain.begin(), pchain.end());
     */
 
-    Sf.write_points("pchain.im", pchain);
+    //Sf.write_points("pchain.im", pchain);
 
     for (E_Int p : pchain) pchains.push_back({Sf.X[p], Sf.Y[p], Sf.Z[p]});
 
@@ -263,7 +263,7 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
         assert(walk <= max_walks);
     }
 
-    write_edges("wall", weids);
+    //write_edges("wall", weids);
 
     // TODO(Imad): project wpids on best-fit plane and jarvis march
 

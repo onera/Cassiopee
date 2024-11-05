@@ -162,8 +162,8 @@ void Smesh::reconstruct(IMesh &M)
 
     /*
     {
-        if (M.nc > 27555) {
-            auto pf = M.C[27555];
+        if (M.nc > 24) {
+            auto pf = M.C[24];
             std::map<E_Int, E_Int> local_map;
             int npts = 0;
             int i = 0;
@@ -176,8 +176,24 @@ void Smesh::reconstruct(IMesh &M)
                         local_map[p] = npts;
                         printf("%d ", npts);
 
-                        if (npts == 19) {
-                            point_write("point19.im", M.X[p], M.Y[p], M.Z[p]);
+                        if (npts == 10) {
+                            point_write("10.im", M.X[p], M.Y[p], M.Z[p]);
+                        }
+
+                        if (npts == 11) {
+                            point_write("11.im", M.X[p], M.Y[p], M.Z[p]);
+                        }
+
+                        if (npts == 12) {
+                            point_write("12.im", M.X[p], M.Y[p], M.Z[p]);
+                        }
+
+                        if (npts == 13) {
+                            point_write("13.im", M.X[p], M.Y[p], M.Z[p]);
+                        }
+
+                        if (npts == 14) {
+                            point_write("14.im", M.X[p], M.Y[p], M.Z[p]);
                         }
 
                         npts++;

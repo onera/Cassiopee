@@ -219,6 +219,13 @@ void Dcel::write_ngon(const char *fname, const std::vector<Cycle *> &cycles) con
     fclose(fh);
 }
 
+void Dcel::write_ngon(const char *fname, const std::vector<E_Int> &fids) const
+{
+    std::vector<Face *> faces;
+    for (E_Int fid : fids) faces.push_back(F[fid]);
+    write_ngon(fname, faces);
+}
+
 void Dcel::write_ngon(const char *fname, const std::vector<Face *> &faces) const
 {
     FILE *fh = fopen(fname, "w");

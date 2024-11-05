@@ -24,6 +24,7 @@
 #include <set>
 
 #include "xcore.h"
+#include "u_edge.h"
 #include "point.h"
 #include "BVH.h"
 
@@ -37,19 +38,6 @@ struct o_edge {
     E_Int p, q;
 
     o_edge(E_Int P, E_Int Q);
-};
-
-struct u_edge {
-    E_Int p, q;
-
-    u_edge(E_Int P, E_Int Q)
-    : p(std::min(P, Q)), q(std::max(P, Q))
-    {}
-
-    bool operator<(const u_edge& e) const
-    {
-        return (p < e.p) || (p == e.p && q < e.q);
-    }
 };
 
 struct Smesh {
@@ -157,7 +145,7 @@ struct Smesh {
     // Adaptation
 
     std::map<u_edge, E_Int> ecenter;
-    std::map<E_Int, std::vector<std::array<E_Int, 3>>> fchildren;
+    std::map<E_Int, std::vector<std::vector<E_Int>>> fchildren;
     E_Int np_before_adapt;
     E_Int nf_before_adapt;
     

@@ -500,14 +500,28 @@ def icapsule_init(mp, sp):
 
     return xcore.icapsule_init(marr, sarrs, tags)
 
-def icapsule_extract_master(icap):
-    marr = xcore.icapsule_extract_master(icap)
+def icapsule_adapt(IC):
+    return xcore.icapsule_adapt(IC)
+
+def icapsule_intersect(IC):
+    return xcore.icapsule_intersect(IC)
+
+def icapsule_extract_master(IC):
+    marr = xcore.icapsule_extract_master(IC)
     zm = I.createZoneNode("master", marr)
     return zm
 
-def icapsule_extract_slave(icap, index=0):
-    sarr = xcore.icapsule_extract_slave(icap, index)
+def icapsule_extract_slave(IC, index=0):
+    sarr = xcore.icapsule_extract_slave(IC, index)
     zs = I.createZoneNode("slave", sarr)
+    return zs
+
+def icapsule_extract_slaves(IC):
+    sarrs = xcore.icapsule_extract_slaves(IC)
+    zs = []
+    for i in range(len(sarrs)):
+        z = I.createZoneNode("slave"+str(i), sarrs[i])
+        zs.append(z)
     return zs
 
 def triangulate_skin(m):
