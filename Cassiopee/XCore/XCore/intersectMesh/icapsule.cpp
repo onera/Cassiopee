@@ -365,7 +365,7 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         Mf.make_fcenters();
         Mf.make_fnormals();
         Mf.make_pnormals();
-        Mf.write_ngon("Mf.im");
+        Mf.write_ngon("Mf_before_intersect.im");
 
         auto &S = Ss[i];
 
@@ -373,15 +373,19 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         Sf.make_fcenters();
         Sf.make_fnormals();
         Sf.make_pnormals();
+        Sf.write_ngon("Sf_before_intersect.im");
+        printf("Sf points: %d\n", Sf.np);
         
         auto plocs = Mf.locate(Sf);
 
         Dcel D = Dcel::intersect(Mf, Sf, plocs);
 
+        E_Int nf_before_intersect = Sf.nf;
+
         D.reconstruct(Mf, Dcel::RED);
-        Mf.write_ngon("Mf.im");
+        Mf.write_ngon("Mf_after_intersect.im");
         D.reconstruct(Sf, Dcel::BLACK);
-        Sf.write_ngon("Sf.im");
+        Sf.write_ngon("Sf_after_intersect.im");
 
         {
             D.write_inner_cycles("intersected.im");
@@ -390,11 +394,11 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         Sf.reconstruct(Ss[i]);
 
         // Tag the new Sf faces
-        //S.ftag.resize(S.nf, 0);
-        //for (E_Int fid = 0; fid < Sf.nf; fid++) {
-        //    E_Int gfid = Sf.g2lf.at(fid);
-        //    S.ftag[gfid] = 1;
-        //}
+        for (E_Int fid = nf_before_intersect; fid < Sf.nf; fid++) {
+            E_Int gfid = Sf.l2gf.at(fid);
+            S.ftag.push_back(gfid);
+        }
+        assert(S.ftag.size() == Sf.nf);
 
         puts("");
     }

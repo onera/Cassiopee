@@ -142,6 +142,7 @@ struct Dcel {
     void reconstruct(const Smesh &Mf, const Smesh &Sf);
     static Dcel intersect(const Smesh &Mf, const Smesh &Sf,
         const std::vector<PointLoc> &plocs);
+    void triangulate(const Smesh &Mf, const Smesh &Sf);
 
     // Checks
 
@@ -154,6 +155,8 @@ struct Dcel {
     Hedge *get_hedge_of_color(Face *f, int color);
     void update_hedge_faces(std::vector<Face *> &F);
     std::vector<Vertex *> get_face_vertices(const Face *f) const;
+    void get_vertex_normal(Vertex *q, const Smesh &Mf, E_Float N[3]);
+    bool is_vertex_in_triangle(Vertex *v, Vertex *a, Vertex *b, Vertex *c);
 
     // Export
 

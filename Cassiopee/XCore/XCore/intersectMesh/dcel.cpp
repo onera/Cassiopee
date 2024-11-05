@@ -164,12 +164,12 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
         Mf.get_shared_faces(plocs[p], orig_faces, last_vertex, last_edge); 
         Mf.get_shared_faces(plocs[q], tail_faces, dummy, dummy);
 
-        //if (eid_s == 133) {
-        //    point_write("O.im", O->x, O->y, O->z);
-        //    point_write("T.im", T->x, T->y, T->z);
-        //    Mf.write_ngon("ofaces.im", orig_faces);
-        //    Mf.write_ngon("tfaces.im", tail_faces);
-        //}
+        if (eid_s == 490) {
+            point_write("O.im", O->x, O->y, O->z);
+            point_write("T.im", T->x, T->y, T->z);
+            Mf.write_ngon("ofaces.im", orig_faces);
+            Mf.write_ngon("tfaces.im", tail_faces);
+        }
 
         E_Int starting_face = Mf.deduce_face(orig_faces, spx, spy, spz,
             DIR, last_vertex, last_edge, eid_s);
@@ -450,7 +450,225 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
     for (Face *f : D.F) delete f;
     D.F = new_F;
 
+    D.triangulate(Mf, Sf);
+
     return D;
+}
+
+void Dcel::get_vertex_normal(Vertex *q, const Smesh &Mf, E_Float N[3])
+{
+    N[0] = N[1] = N[2] = 0;
+    if (q->oids[0] != -1) {
+        const E_Float *pN = &Mf.pnormals[3*q->oids[0]];
+        for (E_Int i = 0; i < 3; i++) N[i] = pN[i];
+    } else if (q->oids[1] != -1) {
+        const E_Float *fN = &Mf.fnormals[3*q->ploc.fid];
+        for (E_Int i = 0; i < 3; i++) N[i] = fN[i];
+    } else {
+        E_Int fid_m = q->ploc.fid;
+        E_Int eid_m = Mf.F2E[fid_m][q->ploc.e_idx];
+        const auto &pf = Mf.E2F[eid_m];
+        assert(pf[0] == fid_m || pf[1] == fid_m);
+        const E_Float *fN1 = &Mf.fnormals[3*pf[0]];
+        const E_Float *fN2 = &Mf.fnormals[3*pf[1]];
+        for (int i = 0; i < 3; i++) N[i] += fN1[i] + fN2[i];
+        E_Float NORM = K_MATH::norm(N, 3);
+        for (int i = 0; i < 3; i++) N[i] /= NORM;
+    }
+}
+
+bool Dcel::is_vertex_in_triangle(Vertex *v, Vertex *a, Vertex *b, Vertex *c)
+{
+    assert(0);
+    return true;
+}
+
+// Circular doubly linked list
+
+struct VNode {
+    Dcel::Vertex *v;
+    VNode *next;
+    VNode *prev;
+
+    VNode(Dcel::Vertex *V)
+    {
+        v = V;
+        next = this;
+        prev = this;
+    }
+};
+
+void VNode_push_front(VNode **head, Dcel::Vertex *v)
+{
+    VNode *node = new VNode(v);
+    if (*head == NULL) {
+        *head = node;
+    } else {
+        VNode *last = (*head)->prev;
+        node->next = *head;
+        node->prev = last;
+        last->next = node;
+        (*head)->prev = node;
+        *head = node;
+    }
+}
+
+void VNode_push_back(VNode **head, Dcel::Vertex *v)
+{
+    VNode *node = new VNode(v);
+    if (*head == NULL) {
+        *head = node;
+    } else {
+        VNode *last = (*head)->prev;
+        node->next = *head;
+        node->prev = last;
+        last->next = node;
+        (*head)->prev = node;
+    }
+}
+
+void VNode_erase(VNode **head, Dcel::Vertex *v)
+{
+    if (*head == NULL) return;
+
+    VNode *current = *head;
+    do {
+        if (current->v == v) {
+            if (current->next == current) {
+                // Single node in the list
+                *head = NULL;
+            } else {
+                VNode *prev = current->prev;
+                VNode *next = current->next;
+                prev->next = next;
+                next->prev = prev;
+                if (current == *head) {
+                    // If head to be deleted, set it to the next element
+                    *head = next;
+                }
+            }
+            delete current;
+            return;
+        }
+        current = current->next;
+    } while (current != *head);
+
+    assert(0);
+}
+
+void VNode_free_list(VNode *head)
+{
+    if (!head) return;
+    VNode *current = head;
+    do {
+        VNode *next = current->next;
+        delete current;
+        current = next;
+    } while (current != head);
+}
+
+void Dcel::triangulate(const Smesh &Mf, const Smesh &Sf)
+{
+    E_Int non_convex_count = 0;
+    std::vector<Face *> non_convex_faces;
+
+    for (size_t fid = 0; fid < F.size(); fid++) {
+        Face *f = F[fid];
+        // TODO(Imad): skip single color faces
+        
+        auto vertices = get_face_vertices(f);
+
+        for (size_t i = 0; i < vertices.size(); i++) {
+            Vertex *p = vertices[i];
+            Vertex *q = vertices[(i+1)%vertices.size()];
+            Vertex *r = vertices[(i+2)%vertices.size()];
+
+            E_Float A[3] = {q->x-p->x, q->y-p->y, q->z-p->z};
+            E_Float B[3] = {r->x-q->x, r->y-q->y, r->z-q->z};
+            E_Float C[3];
+            K_MATH::cross(A, B, C);
+
+            E_Float N[3];
+            get_vertex_normal(q, Mf, N);
+
+            E_Float dp = K_MATH::dot(C, N, 3);
+            if (dp < 0) {
+                non_convex_faces.push_back(f);
+                non_convex_count++;
+                break;
+            }
+        }
+    }
+
+    printf("Total faces: %lu\n", F.size());
+    printf("Non-convex count: %d\n", non_convex_count);
+    write_ngon("non_convex.im", non_convex_faces);
+
+    for (size_t i = 0; i < non_convex_faces.size(); i++) {
+        Face *f = non_convex_faces[i];
+
+        // Store the polygon
+
+        auto vertices = get_face_vertices(f);
+
+        VNode *polygon = NULL;
+        for (Vertex *v : vertices) VNode_push_back(&polygon, v);
+
+        // Find the convex/reflex vertices
+
+        VNode *convex = NULL, *reflex = NULL;
+
+        for (size_t j = 0; j < vertices.size(); j++) {
+            Vertex *p = vertices[j];
+            Vertex *q = vertices[(j+1)%vertices.size()];
+            Vertex *r = vertices[(j+2)%vertices.size()];
+
+            E_Float A[3] = {q->x-p->x, q->y-p->y, q->z-p->z};
+            E_Float B[3] = {r->x-q->x, r->y-q->y, r->z-q->z};
+            E_Float C[3];
+            K_MATH::cross(A, B, C);
+
+            E_Float N[3];
+            get_vertex_normal(q, Mf, N);
+
+            E_Float dp = K_MATH::dot(C, N, 3);
+
+            if (dp < 0) VNode_push_back(&reflex, q);
+            else VNode_push_back(&convex, q);
+        }
+
+        // Store the ears
+
+        VNode *ear_tips = NULL;
+
+        for (size_t j = 0; j < vertices.size(); j++) {
+            Vertex *p = vertices[j];
+            Vertex *q = vertices[(j+1)%vertices.size()];
+            Vertex *r = vertices[(j+2)%vertices.size()];
+
+            // An ear does not include any reflex vertex
+            bool is_ear = true;
+            VNode *current = reflex;
+            
+            do {
+                Vertex *v = current->v;
+                if (v != p && v != q && v != r) {
+                    is_ear = !is_vertex_in_triangle(v, p, q, r);
+                }
+                current = current->next;
+            } while (current != reflex && is_ear);
+
+            if (is_ear)
+                VNode_push_back(&ear_tips, q);
+        }
+
+        // Ear-clipping algorithm
+        //while (polygon.size() > 3) {
+        //    
+        //
+        //}
+
+    }
 }
 
 void Dcel::update_hedge_faces(std::vector<Face *> &new_F)

@@ -29,9 +29,18 @@ std::vector<PointLoc> Smesh::locate(const Smesh &Sf) const
             const auto &pn = Fc[fid];
             const E_Float *fc = &fcenters[3*fid];
 
+            if (pid == 276) {
+                point_write("fc.im", fc[0], fc[1], fc[2]);
+            }
+
             for (size_t j = 0; j < pn.size(); j++) {
                 E_Int p = pn[j];
                 E_Int q = pn[(j+1)%pn.size()];
+
+                if (pid == 276) {
+                    point_write("p.im", X[p], Y[p], Z[p]);
+                    point_write("q.im", X[q], Y[q], Z[q]);
+                }
 
                 E_Float u, v, w;
 
