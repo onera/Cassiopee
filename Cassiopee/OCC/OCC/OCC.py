@@ -689,3 +689,48 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
         print("STRUCTFAILED on face = %03d_edgeUV.plt"%f)
     
     return dfaces, nloct, nofacet
+
+#=============================================================================
+# CAD fixing
+#=============================================================================
+
+# sew a set of faces
+# faces: face list numbers
+def _sewing(hook, faces, tol=1.e-6):
+  occ.sewing(hook, faces, tol)
+  return None
+
+# add fillet from edges with given radius
+def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
+  occ.addFillet(hook, edges, radius, new2OldEdgeMap, new2OldFaceMap)
+  return None
+
+# edgeMap and faceMap are new2old maps
+def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+  occ.removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
+  return None
+
+# fill hole from edges
+# edges: edge list numbers (must be ordered)
+def _fillHole(hook, edges, faces=[], continuity=0):
+  occ.fillHole(hook, edges, faces, continuity)
+  return None
+
+# trim two set of surfaces
+def _trimFaces(hook, faces1, faces2):
+  occ.trimFaces(hook, faces1, faces2)
+  return None
+
+# Return the number of edges in CAD hook
+def getNbEdges(hook):
+  """Return the number of edges in CAD hook."""
+  return occ.getNbEdges(hook)
+
+# Return the number of faces in CAD hook
+def getNbFaces(hook):
+  """Return the number of faces in CAD hook."""
+  return occ.getNbFaces(hook)
+
+# Return the file and format used to load CAD in hook
+def getFileAndFormat(hook):
+  return occ.getFileAndFormat(hook)

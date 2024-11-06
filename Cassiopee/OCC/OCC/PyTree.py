@@ -1221,7 +1221,6 @@ def _sewing(hook, faces, tol=1.e-6):
 # add fillet from edges with given radius
 def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
   OCC.occ.addFillet(hook, edges, radius, new2OldEdgeMap, new2OldFaceMap)
-  print(new2OldEdgeMap, new2OldFaceMap)
   return None
 
 # edgeMap and faceMap are new2old maps
@@ -1231,8 +1230,8 @@ def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
 
 # fill hole from edges
 # edges: edge list numbers (must be ordered)
-def _fillHole(hook, edges):
-  OCC.occ.fillHole(hook, edges)
+def _fillHole(hook, edges, faces=[], continuity=0):
+  OCC.occ.fillHole(hook, edges, faces, continuity)
   return None
 
 # trim two set of surfaces
