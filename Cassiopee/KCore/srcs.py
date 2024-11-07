@@ -10,7 +10,6 @@ cpp_srcs = ['KCore/isNamePresent.cpp',
             'KCore/OmpMaxThreads.cpp',
             'KCore/empty.cpp',
             'KCore/tester.cpp',
-            'KCore/testerAcc.cpp',
             'KCore/Def/DefCplusPlusConst.cpp',
             'KCore/Array/cleanArrays.cpp',
             'KCore/Array/eltString2TypeId.cpp',
@@ -138,7 +137,10 @@ cpp_srcs = ['KCore/isNamePresent.cpp',
             'KCore/Logger/log_to_std_error.cpp',
             'KCore/Logger/log_to_file.cpp',
             'KCore/Logger/log_from_distributed_file.cpp',
-            'KCore/Math/math.cpp'
+            'KCore/Math/math.cpp',
+            'KCore/Acc/testerAcc.cpp',
+            'KCore/Acc/copyto.cpp',
+            'KCore/Acc/copyfrom.cpp',
             ]
 if PNG:
     cpp_srcs += [       
@@ -157,7 +159,6 @@ if PNG:
             'KCore/Images/libz/inffast.c',
             'KCore/Images/libz/inftrees.c',
             'KCore/Images/libz/uncompr.c',
-
             'KCore/Images/png/pngerror.c',
             'KCore/Images/png/pngmem.c',
             'KCore/Images/png/pngread.c',

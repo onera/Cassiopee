@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// tester for openacc
+// tester for accelerators (gpu with openacc or openmp)
 
 #include "kcore.h"
 #include <cassert>
@@ -36,6 +36,7 @@ PyObject* K_KCORE::testerAcc(PyObject* self, PyObject* args)
     double* c = new double [n];
     for (E_Int i = 0; i < n; i++) c[i] = 0.;
 
+    // tester for openACC
 #ifdef _OPENACC
     // get connected device type (must be 4=gpu)
     acc_device_t devtype = acc_get_device_type();
@@ -58,6 +59,8 @@ PyObject* K_KCORE::testerAcc(PyObject* self, PyObject* args)
         }
     }
 #endif
+
+    // tester for openmp5
 
     printf("c=%f (must be 2)\n", c[0]);
 

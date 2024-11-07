@@ -1135,7 +1135,7 @@ def getLinkArgs():
     elif Cppcompiler == 'cc':
          if useStatic() == 1: out += ['-static']
          else: out += ['-shared']
-         if useOMP() == 1: out += ['-fopenmp']    
+         if useOMP() == 1: out += ['-fopenmp']
     mySystem = getSystem()[0]
     if mySystem == 'Darwin':
         if useStatic() == 0: out += ['-dynamiclib']

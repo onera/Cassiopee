@@ -36,6 +36,8 @@ static PyMethodDef Pykcore [] =
   {"empty", K_KCORE::empty, METH_VARARGS},
   {"tester", K_KCORE::tester, METH_VARARGS},
   {"testerAcc", K_KCORE::testerAcc, METH_VARARGS},
+  {"copyto", K_KCORE::copyto, METH_VARARGS},
+  {"copyfrom", K_KCORE::copyfrom, METH_VARARGS},
   {NULL, NULL}
 };
 
