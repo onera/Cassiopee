@@ -456,7 +456,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         E_Int indint, indcellg, indcelld;
         
         // faces en i
-        #pragma omp for nowait
+        #pragma omp for
         for (E_Int idx = 0; idx < nkc*njc*nic1; idx++) 
         {
           i = idx%nic1 + 1;
@@ -542,7 +542,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
 
         // bords des faces en k
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int idx = 0; idx < njc*nic; idx++) 
         {
           i = idx%nic;
@@ -576,7 +576,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         E_Int indint, indcellg, indcelld;
         
         // faces en i
-        #pragma omp for nowait
+        #pragma omp for
         for (E_Int idx = 0; idx < nkc*njc*nic1; idx++) 
         {
           i = idx%nic1 + 1;
@@ -668,7 +668,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // bords des faces en k
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int idx = 0; idx < njc*nic; idx++) 
         {
           i = idx%nic;
@@ -825,7 +825,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     E_Int indm, indp;
     E_Float d13x, d13y, d13z, d24x, d24y, d24z;
     
-    #pragma omp for nowait
+    #pragma omp for
     for (E_Int idx = 0; idx < ninjc; idx++)
     {
       i = idx%ni;
@@ -844,7 +844,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       szint[idx] = 0.5*(d13x*d24y - d13y*d24x);
     }
     
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int idx = 0; idx < nicnj; idx++)
     {
       i = idx%nic;
@@ -952,7 +952,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         E_Int indint, indcellg, indcelld;
         
         // faces en i internes
-        #pragma omp for nowait
+        #pragma omp for
         for (E_Int idx = 0; idx < njc*nic1; idx++) 
         {
           i = idx%nic1 + 1;
@@ -984,7 +984,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         }
 
         // faces en j internes
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int idx = 0; idx < nic*njc1; idx++) 
         {
           i = idx%nic;
@@ -999,7 +999,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         }
         
         // bords des faces en j
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nic; i++)
         {
           // faces j = 0
