@@ -2848,6 +2848,45 @@ def createCythonFiles(env, srcs):
         base = os.path.dirname(str(i))
         deps += env.Install('../../'+base, i)
     return deps
+    
+#==============================================================================
+# Create static library and copy built files to installPath
+#==============================================================================
+def createStaticLibrary(env, ppf, parentFolder, moduleName):
+    """
+    Create a static library for a list of pre-processed Fortran and cpp files,
+    and return the name of the static library
+    """
+    if isinstance(ppf[0], list):
+        nchunks = len(ppf)
+        elsaprod = os.getenv("ELSAPROD")
+        staticLib = "lib{}.a".format(moduleName.lower())
+        staticLibPath = os.path.join("build", elsaprod, staticLib)
+        chunkedStaticLib = "lib{}{:d}.a"
+        mergeL = "create {}\n".format(staticLibPath)
+        for c in range(nchunks):
+            mergeL += "addlib build/{}/lib{}{:d}.a\n".format(
+                elsaprod, moduleName, c+1)
+        mergeL += "save\nend"
+        filename = os.path.join(parentFolder, 'merge.l')
+        with open(filename, 'w') as f: f.write(mergeL)
+        env.Command(
+            staticLib,
+            [chunkedStaticLib.format(moduleName, c+1) for c in range(nchunks)] + ['merge.l'],
+            "ar -M < merge.l"
+        )
+        for c in range(nchunks):
+            env.StaticLibrary(chunkedStaticLib.format(moduleName, c+1), ppf[c])
+    else:
+        staticLib = env.StaticLibrary(ppf)
+    return staticLib
+
+def copyBuiltFiles(env, staticLib, moduleName, installPath):        
+    # Copy built files and python files to the install folder
+    modDir = os.path.join(installPath, moduleName)
+    dp1 = env.Install(modDir, staticLib)
+    dp2 = env.Install(modDir, glob.glob('{}/*.py'.format(moduleName)))
+    env.Alias(target="install", source=[dp1, dp2])
 
 #==============================================================================
 if __name__ == "__main__":
