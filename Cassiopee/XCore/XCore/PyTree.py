@@ -352,7 +352,7 @@ def removeIntersectingKPlanes(IM, slave_struct):
     ts = I.newCGNSTree()
 
     for slave_base in slave_bases:
-        
+
         iter = iter + 1
 
         zs = I.getZones(slave_base)
@@ -501,10 +501,50 @@ def icapsule_init(mp, sp):
     return xcore.icapsule_init(marr, sarrs, tags)
 
 def icapsule_adapt(IC):
-    return xcore.icapsule_adapt(IC)
+    marr, sarrs, stags = xcore.icapsule_adapt(IC)
+    zm = I.createZoneNode("ma", marr)
+    assert(len(sarrs) == len(stags))
+    slave_zones = []
+    for i in range(len(sarrs)):
+        zs = I.createZoneNode("sa"+str(i), sarrs[i])
+        cont = I.createUniqueChild(zs, 'ZoneBC', 'ZoneBC_t')
+        bc = I.newBC(name="IntersectionFaces", pointList=stags[i],
+            family="IntersectionFaces", parent=cont)
+        slave_zones.append(zs)
+    tm = C.newPyTree(['Base', zm])
+    ts = C.newPyTree(['Base', slave_zones])
+    return tm, ts
 
-def icapsule_intersect(IC):
-    return xcore.icapsule_intersect(IC)
+def icapsule_intersect(ma, sa):
+    zm = I.getZones(ma)[0]
+    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+
+    zs = I.getZones(sa)
+    sarrs = []
+    stags = []
+    for zone in zs:
+        sarr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+        sarrs.append(sarr)
+        zonebc = I.getNodeFromType(zs, 'ZoneBC_t')
+        zbc = I.getNodesFromType(zonebc, 'BC_t')
+        stag = I.getNodeFromName(zbc, 'PointList')[1]
+        stags.append(stag)
+
+    marr_i, slist_i, stags_i = xcore.icapsule_intersect(marr, sarrs, stags)
+
+    zm = I.createZoneNode("mi", marr_i)
+    assert(len(slist_i) == len(stags_i))
+    slave_zones = []
+    for i in range(len(slist_i)):
+        zs = I.createZoneNode("si"+str(i), slist_i[i])
+        cont = I.createUniqueChild(zs, 'ZoneBC', 'ZoneBC_t')
+        bc = I.newBC(name="IntersectionFaces", pointList=stags_i[i],
+            family="IntersectionFaces", parent=cont)
+        slave_zones.append(zs)
+    tm = C.newPyTree(['Base', zm])
+    ts = C.newPyTree(['Base', slave_zones])
+    return tm, ts
+
 
 def icapsule_extract_master(IC):
     marr = xcore.icapsule_extract_master(IC)

@@ -80,7 +80,7 @@ void Dcel::write_hedge(const char *fname, const Hedge *h) const
     fclose(fh);
 }
 
-void Dcel::write_point(const char *fname, const Vertex *v) const
+void Dcel::write_vertex(const char *fname, const Vertex *v) const
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);

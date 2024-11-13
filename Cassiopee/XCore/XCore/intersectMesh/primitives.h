@@ -23,7 +23,7 @@
 #include "common/common.h"
 
 constexpr E_Float TOL = 1e-11;
-//constexpr E_Float RAY_EDGE_TOL = 1e-6;
+constexpr E_Float RAY_EDGE_TOL = 1e-5;
 
 E_Int Sign(E_Float x, E_Float tol=TOL);
 

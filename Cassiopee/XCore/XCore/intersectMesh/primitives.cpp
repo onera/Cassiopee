@@ -92,7 +92,7 @@ bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,
 
     u = K_MATH::dot(tmp, n, 3) / denom;
 
-    if (u < -TOL || u > 1 + TOL) return false;
+    if (u < -RAY_EDGE_TOL || u > 1 + RAY_EDGE_TOL) return false;
 
     return true;
 }

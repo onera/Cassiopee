@@ -33,7 +33,7 @@ void Dcel::reconstruct(Smesh &Mf, int color) const
     for (size_t i = 0; i < faces_to_keep.size(); i++) {
         E_Int fid = faces_to_keep[i];
         Face *f = F[fid];
-        auto vertices = get_face_vertices(f);
+        const auto &vertices = Fv[fid];
         for (size_t j = 0; j < vertices.size(); j++) {
             Vertex *v = vertices[j];
             if (v->oids[color] != -1) continue;
@@ -53,7 +53,7 @@ void Dcel::reconstruct(Smesh &Mf, int color) const
         const auto &children = fdat.second;
 
         // In Mf, replace parent with first child
-        auto vertices = get_face_vertices(F[children[0]]);
+        const auto &vertices = Fv[children[0]];
         std::vector<E_Int> PN(vertices.size());
         for (size_t i = 0; i < vertices.size(); i++) {
             Vertex *v = vertices[i];
@@ -72,7 +72,7 @@ void Dcel::reconstruct(Smesh &Mf, int color) const
         // Add the rest of the children
         for (size_t i = 1; i < children.size(); i++) {
             Face *f = F[children[i]];
-            auto vertices = get_face_vertices(f);
+            const auto &vertices = Fv[children[i]];
             std::vector<E_Int> PN(vertices.size());
             for (size_t j = 0; j < vertices.size(); j++) {
                 Vertex *v = vertices[j];

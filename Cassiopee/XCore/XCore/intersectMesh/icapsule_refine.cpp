@@ -112,7 +112,7 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
 
         // Reproject spids on mfaces
         Mf.make_fcenters();
-        plocs_s = Mf.locate(Sf);
+        plocs_s = Mf.locate2(Sf);
         Sf.replace_by_projections(spids, plocs_s);
 
         // Deduce mfids to refine

@@ -200,11 +200,11 @@ struct IMesh {
 
     void get_fleaves(E_Int face, std::vector<E_Int> &fleaves);
 
-    PyObject *export_karray(E_Int remove_periodic = 0);
+    PyObject *export_karray(E_Int remove_periodic = 0) const;
 
-    PyObject *export_karray_orig();
+    PyObject *export_karray_orig() const;
 
-    PyObject *export_karray_periodic();
+    PyObject *export_karray_periodic() const;
 
     /* TOPO */
 

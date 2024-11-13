@@ -63,6 +63,7 @@ void Smesh::get_unit_projected_direction(E_Int fid, const E_Float D[3],
 
     // Unit normal
     const E_Float *fN = &fnormals[3*fid];
+    assert(Sign(K_MATH::norm(fN, 3)) != 0);
 
     E_Float dp = K_MATH::dot(D, fN, 3); 
 

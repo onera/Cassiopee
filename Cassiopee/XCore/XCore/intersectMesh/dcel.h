@@ -108,6 +108,8 @@ struct Dcel {
     std::vector<Face *> F;
     std::vector<Cycle *> C;
 
+    std::vector<std::vector<Vertex *>> Fv;
+
     std::set<Vertex *, cmp_vertex> vertex_set;
 
     E_Int inner = 0;
@@ -154,15 +156,16 @@ struct Dcel {
 
     Hedge *get_hedge_of_color(Face *f, int color);
     void update_hedge_faces(std::vector<Face *> &F);
-    std::vector<Vertex *> get_face_vertices(const Face *f) const;
-    void get_vertex_normal(Vertex *q, const Smesh &Mf, E_Float N[3]);
-    bool is_vertex_in_triangle(Vertex *v, Vertex *a, Vertex *b, Vertex *c);
+    void get_face_vertices(const Face *f, std::vector<Vertex *> &vertices);
+    //void get_vertex_normal(Vertex *q, const Smesh &Mf, E_Float N[3]);
+    //bool is_vertex_in_triangle(Vertex *v, Vertex *a, Vertex *b, Vertex *c);
+    //bool vertex_list_is_convex(const Vertex *a, const Vertex *b,
+    //    const Vertex *c, const Smesh &Mf);
 
     // Export
 
     Smesh export_smesh(bool check_Euler=true) const;
     void reconstruct(Smesh &Mf, int color) const;
-
 
     // Extract
 
@@ -176,7 +179,7 @@ struct Dcel {
     void write_faces(const char *fname, const std::vector<Face *> &faces,
         E_Float scale = 1.0) const;
     void write_hedge(const char *fname, const Hedge *h) const;
-    void write_point(const char *fname, const Vertex *v) const;
+    void write_vertex(const char *fname, const Vertex *v) const;
     void write_point(const char *fname, const std::vector<Vertex *> &I) const;
     void write_ngon(const char *fname, const std::vector<Cycle *> &cycles) const;
     void write_ngon(const char *fname, const std::vector<Face *> &faces) const;

@@ -1,13 +1,13 @@
 #include "mesh.h"
 
-PyObject *IMesh::export_karray(E_Int remove_periodic)
+PyObject *IMesh::export_karray(E_Int remove_periodic) const
 {
     if (remove_periodic) return export_karray_periodic();
 
     return export_karray_orig();
 }
 
-PyObject *IMesh::export_karray_periodic()
+PyObject *IMesh::export_karray_periodic() const
 {
     // Keep the cells whose tag is 1
 
@@ -141,7 +141,7 @@ PyObject *IMesh::export_karray_periodic()
     return array;
 }
 
-PyObject *IMesh::export_karray_orig()
+PyObject *IMesh::export_karray_orig() const
 {
     E_Int sizeNGon = 0, sizeNFace = 0;
 

@@ -280,15 +280,19 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
 
     Smesh Mf(M, M.skin, false);
     puts("Making surface mesh data");
-    Mf.make_bbox();
-    Mf.hash_faces();
-    Mf.make_fcenters();
-    Mf.make_fnormals();
-    Mf.make_pnormals();
+    
     Mf.write_ngon("Mf_before_inter.im");
 
     for (size_t i = 0; i < Ss.size(); i++) {
         printf("S%lu\n", i);
+
+        Mf.make_bbox();
+        Mf.hash_faces();
+        Mf.make_fcenters();
+        Mf.make_fnormals();
+        Mf.make_pnormals();
+        Mf.make_point_faces();
+
         auto &S = Ss[i];
 
         Smesh Sf = Smesh::Smesh_from_point_tags(S, S.ptag.data(), true);
@@ -299,12 +303,12 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
         Sf.make_bbox();
         Sf.hash_faces();
         Sf.compute_min_distance_between_points();
-        printf("Min dist: %f\n", Sf.min_pdist);
+        //printf("Min dist: %f\n", Sf.min_pdist);
 
-        Sf.write_ngon("Sf_before_inter.im");
+        //Sf.write_ngon("Sf_before_inter.im");
 
         // Locate Sf points on Mf faces
-        auto plocs = Mf.locate(Sf);
+        auto plocs = Mf.locate2(Sf);
         std::vector<E_Int> spids(Sf.np);
         for (int i = 0; i < Sf.np; i++) spids[i] = i;
         Sf.replace_by_projections(spids, plocs);
@@ -327,44 +331,89 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
 
     Mf.reconstruct(M);
 
-    //PyObject *marray = M.export_karray();
-    //PyObject *sarrays = PyList_New(0);
-    //for (const auto &Ss)
+    PyObject *out = PyList_New(0);
+    PyList_Append(out, M.export_karray());
+    
+    PyObject *slist = PyList_New(0);
+    for (const auto &S : Ss) {
+        PyList_Append(slist, S.export_karray());
+    }
+    PyList_Append(out, slist);
+    Py_DECREF(slist);
 
-    return Py_None;
+    PyObject *tlist = PyList_New(0);
+    for (const auto &S : Ss) {
+        npy_intp dims[2];
+        dims[0] = (npy_intp)S.ftag.size();
+        dims[1] = 1;
+        PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+        E_Int *ptr = (E_Int *)PyArray_DATA(arr);
+        for (size_t i = 0; i < S.ftag.size(); i++) ptr[i] = S.ftag[i]+1;
+        PyList_Append(tlist, (PyObject *)arr);
+        Py_DECREF(arr);
+    }
+    PyList_Append(out, tlist);
+    Py_DECREF(tlist);
+
+    return out;
 }
 
 PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
 {
-    PyObject *ICAPSULE;
-    if (!PYPARSETUPLE_(args, O_, &ICAPSULE)) {
+    PyObject *MASTER, *SLAVES, *STAGS;
+    if (!PYPARSETUPLE_(args, OOO_, &MASTER, &SLAVES, &STAGS)) {
         RAISE("Bad input.");
         return NULL;
     }
 
-    if (!PyCapsule_IsValid(ICAPSULE, "ICAPSULE")) {
-        RAISE("Bad capsule hook.");
+    Karray marray;
+    int ret = Karray_parse_ngon(MASTER, marray);
+    if (ret != 0) {
+        RAISE("Bad master mesh.");
         return NULL;
     }
+    IMesh M(marray);
 
-    ICapsule *icap = (ICapsule *)PyCapsule_GetPointer(ICAPSULE, "ICAPSULE");
+    int slave_count = PyList_Size(SLAVES);
+    std::vector<IMesh> Ss;
+    Ss.reserve(slave_count);
 
-    // Intersect
-    auto &M = icap->M;
-    auto &Ss = icap->Ss;
+    for (int i = 0; i < slave_count; i++) {
+        Karray sarray;
+        ret = Karray_parse_ngon(PyList_GetItem(SLAVES, i), sarray);
+        assert(ret == 0);
+        IMesh S(sarray);
+        S.make_skin();
+        S.orient_skin(IN);
+
+        PyObject *STAG = PyList_GetItem(STAGS, i);
+        E_Int *tag = NULL;
+        E_Int tag_size = -1;
+        ret = K_NUMPY::getFromNumpyArray(STAG, tag, tag_size, true);
+        assert(ret == 1);
+        printf("tag_size = %lu\n", tag_size);
+        S.ftag.reserve(tag_size);
+        for (int j = 0; j < tag_size; j++) S.ftag.push_back(tag[j]-1);
+
+        Ss.push_back(S);
+    }
 
     M.make_skin();
     M.orient_skin(OUT);
     Smesh Mf(M, M.skin, false);
 
-    //for (size_t i = 0; i < 4; i++) {
-    for (size_t i = 0; i < Ss.size(); i++) {
+    for (E_Int i = Ss.size()-1; i >= 0; i--) {
+    //for (size_t i = 0; i < Ss.size(); i++) {
+        
+        printf("Intersecting slave %d\n", i);
 
         Mf.make_bbox();
         Mf.hash_faces();
         Mf.make_fcenters();
         Mf.make_fnormals();
         Mf.make_pnormals();
+        Mf.make_point_faces();
+
         Mf.write_ngon("Mf_before_intersect.im");
 
         auto &S = Ss[i];
@@ -373,10 +422,14 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         Sf.make_fcenters();
         Sf.make_fnormals();
         Sf.make_pnormals();
-        Sf.write_ngon("Sf_before_intersect.im");
-        printf("Sf points: %d\n", Sf.np);
+
+        {
+            char fname[32] = {0};
+            sprintf(fname, "Sf_before_intersect_%d.im", i);
+            Sf.write_ngon(fname);
+        }
         
-        auto plocs = Mf.locate(Sf);
+        auto plocs = Mf.locate2(Sf);
 
         Dcel D = Dcel::intersect(Mf, Sf, plocs);
 
@@ -384,26 +437,57 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
 
         D.reconstruct(Mf, Dcel::RED);
         Mf.write_ngon("Mf_after_intersect.im");
+        
         D.reconstruct(Sf, Dcel::BLACK);
-        Sf.write_ngon("Sf_after_intersect.im");
 
         {
-            D.write_inner_cycles("intersected.im");
+            char fname[32] = {0};
+            sprintf(fname, "Sf_after_intersect_%d.im", i);
+            Sf.write_ngon(fname);
         }
 
-        Sf.reconstruct(Ss[i]);
-
-        // Tag the new Sf faces
-        for (E_Int fid = nf_before_intersect; fid < Sf.nf; fid++) {
-            E_Int gfid = Sf.l2gf.at(fid);
-            S.ftag.push_back(gfid);
+        {
+            char fname[32] = {0};
+            sprintf(fname, "intersected_enoval_%d.im", i);
+            D.write_inner_cycles(fname);
         }
-        assert(S.ftag.size() == Sf.nf);
+
+        Sf.reconstruct(S);
+
+        // Tag Sf faces
+        Sf.tag_faces(S);
 
         puts("");
     }
     
     Mf.reconstruct(M);
 
-    return Py_None;
+    PyObject *out = PyList_New(0);
+
+    PyList_Append(out, M.export_karray());
+
+    PyObject *slist = PyList_New(0);
+
+    for (const auto &S : Ss) {
+        PyList_Append(slist, S.export_karray());    
+    }
+
+    PyList_Append(out, slist);
+    Py_DECREF(slist);
+
+    PyObject *tlist = PyList_New(0);
+    for (const auto &S : Ss) {
+        npy_intp dims[2];
+        dims[0] = (npy_intp)S.ftag.size();
+        dims[1] = 1;
+        PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+        E_Int *ptr = (E_Int *)PyArray_DATA(arr);
+        for (size_t i = 0; i < S.ftag.size(); i++) ptr[i] = S.ftag[i]+1;
+        PyList_Append(tlist, (PyObject *)arr);
+        Py_DECREF(arr);
+    }
+    PyList_Append(out, tlist);
+    Py_DECREF(tlist);
+
+    return out;
 }

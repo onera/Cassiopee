@@ -31,6 +31,16 @@
 #define LEFT 0
 #define RIGHT 1
 
+struct Point3D
+{
+    E_Float x, y, z;
+};
+
+struct Point2D
+{
+    E_Float x, y;
+};
+
 struct IMesh;
 struct AABB;
 
@@ -95,6 +105,12 @@ struct Smesh {
     E_Float min_pdist = EFLOATMIN;
     E_Float NEAR_VERTEX_TOL = 1e-3;
     E_Float NEAR_EDGE_TOL = 1e-3;
+
+    bool is_point_in_3D_polygon(E_Float x, E_Float y, E_Float z, E_Int fid) const;
+    bool is_point_on_a_polygon_edge(E_Float x, E_Float y, E_Float z, E_Int fid,
+        PointLoc &ploc) const;
+    bool is_point_a_polygon_vertex(E_Float x, E_Float y, E_Float z, E_Int fid,
+        PointLoc &ploc) const;
     
     void make_fcenters();
     void make_fnormals();
@@ -102,6 +118,7 @@ struct Smesh {
     void make_point_faces();
     void make_point_edges();
     std::vector<PointLoc> locate(const Smesh &Sf) const;
+    std::vector<PointLoc> locate2(const Smesh &Sf) const;
     void correct_near_points_and_edges(Smesh &Sf, std::vector<PointLoc> &plocs);
     void get_unit_projected_direction(E_Int fid, const E_Float D[3],
         E_Float proj[3]) const;
