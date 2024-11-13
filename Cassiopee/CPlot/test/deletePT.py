@@ -10,4 +10,4 @@ c = G.cart( (0,11,0), (1,1,1), (10,10,10) )
 t = C.newPyTree(['Base', a, b, c])
 
 CPlot.display(t); time.sleep(1)
-CPlot.delete(['Base/cartTetra']); CPlot.render(); time.sleep(1)
+CPlot.delete(['Base\cartTetra']); CPlot.render(); time.sleep(1)

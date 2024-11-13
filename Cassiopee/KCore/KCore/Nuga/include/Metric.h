@@ -722,9 +722,9 @@ namespace DELAUNAY{
   /// evaluation de la longeur d'un edge dans l'espace physique (avec la metrique)
   template <typename T> inline
     E_Float
-    VarMetric<T>::lengthEval (size_type Ni, const T& mi, size_type Nj, const T& mj)
+    VarMetric<T>::lengthEval(size_type Ni, const T& mi, size_type Nj, const T& mj)
   {
-    E_Float v[2];
+    E_Float v[2]; // allocation sur la stack a supprimer
     E_Float vi[2];
     E_Float vj[2];
     E_Float r1;
@@ -783,7 +783,7 @@ namespace DELAUNAY{
   ///
   template <> inline
     E_Float
-    VarMetric<E_Float>::lengthEval (size_type Ni, const E_Float& mi, size_type Nj, const E_Float& mj)
+    VarMetric<E_Float>::lengthEval(size_type Ni, const E_Float& mi, size_type Nj, const E_Float& mj)
   {
     // Warning : input mi and mj are in fact hi and hj.
     return 0.5 * ((1./mi) + (1./mj)) * ::sqrt(NUGA::sqrDistance(_pos->col(Ni), _pos->col(Nj), _pos->rows()));
@@ -791,10 +791,10 @@ namespace DELAUNAY{
 
   template <> inline
   E_Float
-  VarMetric<DELAUNAY::Aniso3D>::lengthEval (size_type Ni, const DELAUNAY::Aniso3D& mi,
+  VarMetric<DELAUNAY::Aniso3D>::lengthEval(size_type Ni, const DELAUNAY::Aniso3D& mi,
     size_type Nj, const DELAUNAY::Aniso3D& mj)
   {
-    E_Float v[3];
+    E_Float v[3]; // allocation sur la stack a supprimer
     E_Float vi[3];
     E_Float vj[3];
     E_Float r1;
@@ -831,7 +831,7 @@ namespace DELAUNAY{
     return res;
   }
   
-  ///
+  /// Return curvature radius
   template<> inline
     E_Float
     VarMetric<E_Float>::getRadius(size_type Ni)
@@ -839,17 +839,17 @@ namespace DELAUNAY{
     return _field[Ni];
   }
 
-  ///
+  /// Return curvature radius
   template<> inline
     E_Float
     VarMetric<Aniso2D>::getRadius(size_type Ni)
   {
-    E_Float lmax,lmin;
+    E_Float lmax, lmin;
     _field[Ni].eigen_values(lmax, lmin);
     return 1./::sqrt(lmin);
   }
 
-  ///
+  /// Return curvature radius
   template<> inline
     E_Float
     VarMetric<Aniso3D>::getRadius(size_type Ni)
@@ -868,13 +868,12 @@ namespace DELAUNAY{
     //       where X is the intersection point of the ellipse with the line (Ni, dir)
     
     // (h2, dir) => X => hnew, the one between h1new and h2new that maximize hnew/hold
-    
     E_Float hdir = ::sqrt(hdir2);
     E_Float NiX[] = {normed_dir[0]*hdir, normed_dir[1]*hdir};
     
     // Diagonalization
     E_Float lambda0, lambda1, v0[2], v1[2];
-    K_LINEAR::DelaunayMath::eigen_vectors (_field[Ni][0], _field[Ni][2], _field[Ni][1], lambda0, lambda1, v0, v1);
+    K_LINEAR::DelaunayMath::eigen_vectors(_field[Ni][0], _field[Ni][2], _field[Ni][1], lambda0, lambda1, v0, v1);
     K_FLD::FloatArray D(2,2, 0.);
     D(0,0) = lambda0;
     D(1,1) = lambda1;

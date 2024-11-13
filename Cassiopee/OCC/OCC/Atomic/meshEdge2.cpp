@@ -402,6 +402,13 @@ E_Int __getParamHmaxHausd(const TopoDS_Edge& E, E_Float hmax, E_Float hausd, E_I
 }
 
 // ============================================================================
+// Return the nbPoints and ue for meshing E with hmin/hmax/hausd
+// ============================================================================
+//E_Int __getParamHminHmaxHausd(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, E_Float hausd, E_Int& nbPoints, E_Float*& ue)
+//{  
+//}
+
+// ============================================================================
 // Return ue for meshing with given param in [0,1]
 // ============================================================================
 E_Int __getParamExt(const TopoDS_Edge& E, E_Int nbPoints, E_Float* uext, E_Float*& ue)

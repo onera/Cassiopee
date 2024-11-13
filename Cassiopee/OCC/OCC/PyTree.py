@@ -774,7 +774,6 @@ def _remeshAllEdgesOdd(hook, t):
     if npts//2-0.5*npts == 0:
       factor = (npts*1.)/(npts-1.)
       G._refine(edge, factor, 1)
-      print('rem=',npts, C.getNPts(edge), factor)
       D._getCurvilinearAbscissa(edge)
       edgeno = getNo(edge)
       aedge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]

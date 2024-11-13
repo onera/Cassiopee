@@ -160,7 +160,7 @@ else
             fi
             [ $? != 0 ] && exit 1;
             ;;
-        'visung_r8' | 'visung_r8_*' ) # visung
+        'visung_r8' | 'visung' ) # visung
             # openMpi
             mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
             [ $? != 0 ] && exit 1;

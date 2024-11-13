@@ -141,11 +141,11 @@ def render():
     CPlot.render()
 
 #==============================================================================
+# This function doesnt remove zone from t
 def delete(zlist):
-    """Delete zones from plotter.
-    Usage: delete([i1,i2,...])"""
-    CPlot.delete(zlist)
-    
+    """Delete zones from plotter."""
+    CPlot.delete(zlist)    
+
 #==============================================================================
 def add(t, nob, noz, zone):
     """Add/insert a zone to plotter.

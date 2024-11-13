@@ -331,6 +331,58 @@ def trimFaces(event=None):
     CTK.TXT.insert('START', 'Faces trimmed in CAD.\n')
 
 #==============================================================================
+def checkWatertight(event=None):
+    if CTK.t == []: return
+    b = Internal.getNodeFromName1(CTK.t, 'FACES')
+    if b is None:
+        CTK.TXT.insert('START', 'No FACES base. Check not performed.\n')
+        return
+    import Transform.PyTree as T
+    import Post.PyTree as P
+
+    CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['checkWatertight'])
+
+    CTK.saveTree()
+    p = Internal.getNodesFromName1(CTK.t, 'LEAKS')
+    if p is not None:
+        zones = []
+        for z in Internal.getZones(p): zones.append('LEAKS'+Internal.SEP1+z[0]) 
+        CPlot.delete(zones)
+        gnob = C.getNobOfBase(p, CTK.t)
+        del CTK.t[2][gnob]
+    
+    CTK.t = C.addBase2PyTree(CTK.t, 'LEAKS', 1)
+    p = Internal.getNodesFromName1(CTK.t, 'LEAKS')
+    gnob = C.getNobOfBase(p, CTK.t)
+
+    f = Internal.getZones(b)
+    f = T.join(f, tol=1.e-6)
+    ef = T.splitConnexity(f)
+    VARS[6].set('Components: %d'%(len(ef)))
+    
+    isWatertight = False
+    try:
+        ext = P.exteriorFaces(f)
+        ext = T.splitConnexity(ext)
+        for i in ext: CTK.add(CTK.t, gnob, -1, i)
+        if len(ext) == 0: isWatertight = True
+    except: isWatertight = True
+
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CTK.display(CTK.t)
+
+    CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['checkWatertight'])
+
+    if  isWatertight: TTK.setButtonGreen(WIDGETS['checkWatertight'])
+    else: TTK.setButtonRed(WIDGETS['checkWatertight'])    
+    
+    if isWatertight: CTK.TXT.insert('START', 'CAD is watertight.\n')
+    else: CTK.TXT.insert('START', 'CAD is not watertight.\n')
+
+#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
@@ -373,7 +425,9 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Lonely edges: %d'%NL); VARS.append(V)
     # -5- List of face to trim (compound 1)
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-
+    # -6- Number of components
+    V = TK.StringVar(win); V.set('Components: 0'); VARS.append(V)
+ 
     # CAD file name
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -394,52 +448,63 @@ def createApp(win):
 
     # Lonely edges
     B = TTK.Label(Frame, textvariable=VARS[4])
-    B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of lonely edges.')
+
+    # Number of components
+    B = TTK.Label(Frame, textvariable=VARS[6])
+    B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Number of connex watertight components.')
+
+    # Check watertight
+    B = TTK.Button(Frame, text="Check watertight", command=checkWatertight)
+    B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Check if CAD is watertight.')
+    WIDGETS['checkWatertight'] = B
 
     # Sewing
     B = TTK.Button(Frame, text="Sew", command=sewCAD)
-    B.grid(row=3, column=0, sticky=TK.EW)
+    B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Sew CAD to fix multiple edges.')
     WIDGETS['sewingButton'] = B
 
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=10)
-    B.grid(row=3, column=1, sticky=TK.EW)
+    B.grid(row=4, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Sewing tolerance.')
     B.bind('<Return>', sewCAD)
 
     # Fillet
     B = TTK.Button(Frame, text="Fillet", command=filletCAD)
-    B.grid(row=4, column=0, sticky=TK.EW)
+    B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Make a fillet from edges selection.')
     WIDGETS['filletButton'] = B
 
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
-    B.grid(row=4, column=1, sticky=TK.EW)
+    B.grid(row=5, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fillet radius.')
     B.bind('<Return>', filletCAD)
 
     # Remove faces
     B = TTK.Button(Frame, text="Remove faces", command=removeFaces)
-    B.grid(row=5, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Remove selected faces from CAD.')
     WIDGETS['removeFacesButton'] = B
 
     # Fill hole
     B = TTK.Button(Frame, text="Fill hole", command=fillHole)
-    B.grid(row=5, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=6, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fill hole from CAD edges.')
     WIDGETS['fillHoleButton'] = B
 
     # Trim
     B = TTK.Button(Frame, text="Trim faces", command=trimFaces)
-    B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=7, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Trim faces.')
     WIDGETS['trimFacesButton'] = B
     B = TTK.Button(Frame, command=setTrimFace1,
                    image=iconics.PHOTO[8], padx=0, pady=0)
     BB = CTK.infoBulle(parent=B, text='Set the faces for first compound.')
-    B.grid(row=6, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=7, column=1, columnspan=1, sticky=TK.EW)
 
 #==============================================================================
 # Called to display widgets

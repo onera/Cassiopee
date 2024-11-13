@@ -1,4 +1,4 @@
-# - generate surface mesh of CAD -
+# - generate surface mesh of a CAD -
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
@@ -10,6 +10,8 @@ import Converter.Internal as Internal
 # local widgets list
 WIDGETS = {}; VARS = []
     
+#==============================================================================
+# mesh cad edges
 #==============================================================================
 def meshCADEdges(event=None):
     if CTK.CADHOOK is None: return
@@ -42,6 +44,8 @@ def meshCADEdges(event=None):
     CTK.TXT.insert('START', 'All CAD edges remeshed.\n')
 
 #==============================================================================
+# mesh cad faces
+#==============================================================================
 def meshCADFaces(event=None):
     if CTK.CADHOOK is None: return
     if CTK.t == []: return 
@@ -59,6 +63,7 @@ def meshCADFaces(event=None):
     if mtype == 'TRI':
         OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmax=hmax, hausd=hausd)
     elif mtype == 'STRUCT':
+        OCC._remeshAllEdgesOdd(CTK.CADHOOK, CTK.t)
         OCC._meshAllFacesStruct(CTK.CADHOOK, CTK.t)
     
     CTK.setCursor(0, WIDGETS['frame'])
