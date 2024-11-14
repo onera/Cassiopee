@@ -76,6 +76,7 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
         for (E_Int i = 0; i < ni; i++) {
 
             E_Int base = i + ni*j;
+            bool was_inside = false;
 
             for (E_Int k = 0; k < nk; k++) {
 
@@ -91,49 +92,59 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
                     // Cache the point to be projected
                     E_Int proj_id = base + nij*kmax[base];
                     proj_points.push_back(proj_id);
+
+                    was_inside = true;
                     break;
                 }
+            }
+
+            if (!was_inside) {
+                // i-j line completely outside of M
+                // Projection points is the last point
+                kmax[base] = nk-1;
+                E_Int proj_id = base + nij*kmax[base];
+                proj_points.push_back(proj_id);
             }
         }
     }
 
-    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+    assert(proj_points.size() == (size_t)nij);
+
+    //point_write("proj_points.im", Xs, Ys, Zs, proj_points);
+    //printf("points written!\n");
+    //fflush(stdout);
 
     E_Int np = ni*nj*nk;
 
     // Project points onto marray surface
     std::unordered_map<E_Int, TriangleIntersection> point_hit_table;
 
+    //std::vector<Point> projections;
+
     for (E_Int i = 0; i < nij; i++) {
         E_Int p = proj_points[i];
-        E_Int q = p + nij;
+        E_Int q = p - nij;
 
         E_Float px = Xs[p];
         E_Float py = Ys[p];
         E_Float pz = Zs[p];
 
-        E_Float dx = Xs[q] - Xs[p];
-        E_Float dy = Ys[q] - Ys[p];
-        E_Float dz = Zs[q] - Zs[p];
+        E_Float dx = Xs[p] - Xs[q];
+        E_Float dy = Ys[p] - Ys[q];
+        E_Float dz = Zs[p] - Zs[q];
 
         E_Float NORM = sqrt(dx*dx + dy*dy + dz*dz);
 
         dx /= NORM, dy /= NORM, dz /= NORM;
 
-        /*
-        TriangleIntersection TI;
-
-        E_Int hit = M->project_point(px, py, pz, dx, dy, dz, TI, i);
-
-        assert(hit);
-
-        TI.pid = p;
-
-        point_hit_table[p] = TI;
-        */
-
         std::vector<PointLoc> mlocs;
         Mf.ray_intersect_BVH(px, py, pz, dx, dy, dz, Mf.root_node_idx, mlocs);
+
+        //if (mlocs.empty()) {
+        //    point_write("lost.im", px, py, pz);
+        //}
+
+        assert(mlocs.size() > 0);
         PointLoc ploc;
         E_Float min_abs_t = EFLOATMAX;
         for (const auto &mloc : mlocs) {
@@ -147,7 +158,11 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
         TI.pid = p;
         TI.x = ploc.x, TI.y = ploc.y, TI.z = ploc.z;
         point_hit_table[p] = TI;
+
+        //projections.push_back({ploc.x, ploc.y, ploc.z});
     }
+
+    //point_write("projections.im", projections);
 
     // Construct the new faces and cells
 
