@@ -283,6 +283,7 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
     
     Mf.write_ngon("Mf_before_inter.im");
 
+    //for (E_Int i = 25; i < 26; i++) {
     for (size_t i = 0; i < Ss.size(); i++) {
         printf("S%lu\n", i);
 
@@ -303,7 +304,7 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
         Sf.make_bbox();
         Sf.hash_faces();
         Sf.compute_min_distance_between_points();
-        //printf("Min dist: %f\n", Sf.min_pdist);
+        printf("Min dist: %f\n", Sf.min_pdist);
 
         //Sf.write_ngon("Sf_before_inter.im");
 
@@ -378,6 +379,8 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
     std::vector<IMesh> Ss;
     Ss.reserve(slave_count);
 
+    assert(PyList_Size(SLAVES) == PyList_Size(STAGS));
+
     for (int i = 0; i < slave_count; i++) {
         Karray sarray;
         ret = Karray_parse_ngon(PyList_GetItem(SLAVES, i), sarray);
@@ -391,9 +394,12 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         E_Int tag_size = -1;
         ret = K_NUMPY::getFromNumpyArray(STAG, tag, tag_size, true);
         assert(ret == 1);
-        printf("tag_size = %lu\n", tag_size);
         S.ftag.reserve(tag_size);
-        for (int j = 0; j < tag_size; j++) S.ftag.push_back(tag[j]-1);
+        for (int j = 0; j < tag_size; j++) {
+            E_Int fid = tag[j]-1;
+            assert(fid < S.nf);
+            S.ftag.push_back(fid);
+        }
 
         Ss.push_back(S);
     }
@@ -402,8 +408,7 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
     M.orient_skin(OUT);
     Smesh Mf(M, M.skin, false);
 
-    for (E_Int i = Ss.size()-1; i >= 0; i--) {
-    //for (size_t i = 0; i < Ss.size(); i++) {
+    for (size_t i = 0; i < Ss.size(); i++) {
         
         printf("Intersecting slave %d\n", i);
 
@@ -414,7 +419,7 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         Mf.make_pnormals();
         Mf.make_point_faces();
 
-        Mf.write_ngon("Mf_before_intersect.im");
+        //Mf.write_ngon("Mf_before_intersect.im");
 
         auto &S = Ss[i];
 
@@ -423,11 +428,11 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         Sf.make_fnormals();
         Sf.make_pnormals();
 
-        {
-            char fname[32] = {0};
-            sprintf(fname, "Sf_before_intersect_%d.im", i);
-            Sf.write_ngon(fname);
-        }
+        //{
+        //    char fname[32] = {0};
+        //    sprintf(fname, "Sf_before_intersect_%d.im", i);
+        //    Sf.write_ngon(fname);
+        //}
         
         auto plocs = Mf.locate2(Sf);
 
@@ -436,28 +441,29 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         E_Int nf_before_intersect = Sf.nf;
 
         D.reconstruct(Mf, Dcel::RED);
-        Mf.write_ngon("Mf_after_intersect.im");
+        //Mf.write_ngon("Mf_after_intersect.im");
         
         D.reconstruct(Sf, Dcel::BLACK);
 
-        {
-            char fname[32] = {0};
-            sprintf(fname, "Sf_after_intersect_%d.im", i);
-            Sf.write_ngon(fname);
-        }
+        //{
+        //    char fname[32] = {0};
+        //    sprintf(fname, "Sf_after_intersect_%d.im", i);
+        //    Sf.write_ngon(fname);
+        //}
 
-        {
-            char fname[32] = {0};
-            sprintf(fname, "intersected_enoval_%d.im", i);
-            D.write_inner_cycles(fname);
-        }
+        //{
+        //    char fname[32] = {0};
+        //    sprintf(fname, "intersected_%d.im", i);
+        //    D.write_inner_cycles(fname);
+        //}
 
         Sf.reconstruct(S);
 
         // Tag Sf faces
         Sf.tag_faces(S);
 
-        puts("");
+        puts("Intersection OK\n");
+        fflush(stdout);
     }
     
     Mf.reconstruct(M);

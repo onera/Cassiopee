@@ -56,7 +56,7 @@ bool Smesh::is_point_in_3D_polygon(E_Float x, E_Float y, E_Float z, E_Int fid) c
 }
 
 bool Smesh::is_point_a_polygon_vertex(E_Float x, E_Float y, E_Float z,
-    E_Int fid, PointLoc &ploc) const
+    E_Int fid, PointLoc &ploc, E_Float min_pdist) const
 {
     const auto &pn = Fc[fid];
 
@@ -64,7 +64,7 @@ bool Smesh::is_point_a_polygon_vertex(E_Float x, E_Float y, E_Float z,
         E_Int p = pn[i];
         E_Float dist = (x-X[p])*(x-X[p]) + (y-Y[p])*(y-Y[p]) + (z-Z[p])*(z-Z[p]);
         dist = sqrt(dist);
-        if (dist < 1e-6) {
+        if (dist < min_pdist/10) {
             ploc.v_idx = i;
             ploc.x = X[p];
             ploc.y = Y[p];
@@ -77,7 +77,7 @@ bool Smesh::is_point_a_polygon_vertex(E_Float x, E_Float y, E_Float z,
 }
 
 bool Smesh::is_point_on_a_polygon_edge(E_Float x, E_Float y, E_Float z,
-    E_Int fid, PointLoc &ploc) const
+    E_Int fid, PointLoc &ploc, E_Float min_pdist) const
 {
     const auto &pn = Fc[fid];
 
@@ -96,8 +96,8 @@ bool Smesh::is_point_on_a_polygon_edge(E_Float x, E_Float y, E_Float z,
         if (dp1 >= 0 && dp1 <= dp2) {
             ploc.e_idx = i;
             E_Float t;
-            if (fabs(X[a]-X[b]) > TOL) t = (x-X[a])/(X[b]-X[a]);
-            else if (fabs(Y[a]-Y[b]) > TOL) t = (y-Y[a])/(Y[b]-Y[a]);
+            if (fabs(X[a]-X[b]) > 1e-3) t = (x-X[a])/(X[b]-X[a]);
+            else if (fabs(Y[a]-Y[b]) > 1e-3) t = (y-Y[a])/(Y[b]-Y[a]);
             else t = (z-Z[a])/(Z[b]-Z[a]);
             ploc.x = X[a] + t * (X[b]-X[a]);
             ploc.y = Y[a] + t * (Y[b]-Y[a]);
@@ -115,7 +115,7 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
 
     size_t on_vertex = 0, on_edge = 0;
 
-    std::vector<Point> oedge, dedge;
+    //std::vector<Point> oedge, dedge, vpoints;
 
     for (E_Int pid = 0; pid < Sf.np; pid++) {
         E_Float x = Sf.X[pid];
@@ -129,6 +129,8 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
 
         const auto &pf = bin_faces.at(voxel);
 
+        //if (pid == 332) write_ngon("pf.im", pf);
+
         bool found = false;
 
         auto &ploc = plocs[pid];
@@ -138,13 +140,16 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
 
             if (found) {
 
+                //if (pid == 332) write_face("fid.im", fid);
+
                 ploc.fid = fid;
                 
-                if (is_point_a_polygon_vertex(x, y, z, fid, ploc)) {
+                if (is_point_a_polygon_vertex(x, y, z, fid, ploc, Sf.min_pdist)) {
                     on_vertex++;
-                } else if (is_point_on_a_polygon_edge(x, y, z, fid, ploc)) {
-                    oedge.push_back({x, y, z});
-                    dedge.push_back({ploc.x, ploc.y, ploc.z});
+                    //vpoints.push_back({x, y, z});
+                } else if (is_point_on_a_polygon_edge(x, y, z, fid, ploc, Sf.min_pdist)) {
+                    //oedge.push_back({x, y, z});
+                    //dedge.push_back({ploc.x, ploc.y, ploc.z});
                     on_edge++;
                 }
 
@@ -164,8 +169,9 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
     printf("on vertex: %lu\n", on_vertex);
     printf("on edge: %lu\n", on_edge);
 
-    point_write("oedge.im", oedge);
-    point_write("dedge.im", dedge);
+    //point_write("oedge.im", oedge);
+    //point_write("dedge.im", dedge);
+    //point_write("vpoints.im", vpoints);
 
     return plocs;
 }

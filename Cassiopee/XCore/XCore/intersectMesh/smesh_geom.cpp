@@ -13,10 +13,10 @@ void Smesh::replace_by_projections(const std::vector<E_Int> &pids,
             E_Float dy = Y[pid]-ploc.y;
             E_Float dz = Z[pid]-ploc.z;
             E_Float d = sqrt(dx*dx + dy*dy + dz*dz);
-            if (d >= min_pdist) {
+            if (d >= min_pdist/10) {
                 fprintf(stderr, "Tight near vertex/edge situation!\n");
-                point_write("orig", X[pid], Y[pid], Z[pid]);
-                point_write("dest", ploc.x, ploc.y, ploc.z);
+                point_write("orig.im", X[pid], Y[pid], Z[pid]);
+                point_write("dest.im", ploc.x, ploc.y, ploc.z);
                 assert(0);
             }
             X[pid] = ploc.x;

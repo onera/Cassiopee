@@ -491,6 +491,8 @@ void Smesh::tag_faces(IMesh &M) const
     M.ftag.reserve(nf);
 
     for (E_Int fid = 0; fid < nf; fid++) {
-        M.ftag.push_back(l2gf.at(fid));
+        E_Int gfid = l2gf.at(fid);
+        assert(gfid < M.nf);
+        M.ftag.push_back(gfid);
     }
 }

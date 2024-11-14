@@ -108,9 +108,9 @@ struct Smesh {
 
     bool is_point_in_3D_polygon(E_Float x, E_Float y, E_Float z, E_Int fid) const;
     bool is_point_on_a_polygon_edge(E_Float x, E_Float y, E_Float z, E_Int fid,
-        PointLoc &ploc) const;
+        PointLoc &ploc, E_Float min_pdist) const;
     bool is_point_a_polygon_vertex(E_Float x, E_Float y, E_Float z, E_Int fid,
-        PointLoc &ploc) const;
+        PointLoc &ploc, E_Float min_pdist) const;
     
     void make_fcenters();
     void make_fnormals();
