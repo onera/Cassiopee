@@ -158,6 +158,38 @@ static
 bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
     E_Float dx, E_Float dy, E_Float dz, const AABB &box)
 {
+    E_Float tmin = 0;
+    E_Float tmax = EFLOATMAX;
+
+    E_Float origin[3] = { ox, oy, oz };
+    E_Float direction[3] = { dx, dy, dz };
+    E_Float boxMin[3] = { box.xmin, box.ymin, box.zmin };
+    E_Float boxMax[3] = { box.xmax, box.ymax, box.zmax };
+
+    for (int i = 0; i < 3; i++) {
+        E_Float o = origin[i];
+        E_Float d = direction[i];
+        E_Float bmin = boxMin[i];
+        E_Float bmax = boxMax[i];
+
+        if (d != 0) {
+            E_Float t1 = (bmin - o) / d;
+            E_Float t2 = (bmax - o) / d;
+
+            if (t1 > t2) { E_Float temp = t1; t1 = t2; t2 = temp; }
+
+            tmin = (t1 > tmin) ? t1 : tmin;
+            tmax = (t2 < tmax) ? t2 : tmax;
+
+            if (tmin > tmax) return false;  // No intersection
+        } else {
+            if (o < bmin || o > bmax) return false;  // Parallel and outside slab
+        }
+    }
+
+    return true;
+
+    /*
     E_Float tx1 = (box.xmin - ox) / dx, tx2 = (box.xmax - ox) / dx;
     E_Float tmin = std::min(tx1, tx2), tmax = std::max(tx1, tx2);
     E_Float ty1 = (box.ymin - oy) / dy, ty2 = (box.ymax - oy) / dy;
@@ -167,6 +199,7 @@ bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
     tmin = std::max(tmin, std::min(tz1, tz2));
     tmax = std::min(tmax, std::max(tz1, tz2));
     return tmax >= tmin;
+    */
 }
 
 void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
