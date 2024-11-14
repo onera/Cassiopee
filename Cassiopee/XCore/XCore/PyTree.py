@@ -525,7 +525,7 @@ def icapsule_intersect(ma, sa):
     for zone in zs:
         sarr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
         sarrs.append(sarr)
-        zonebc = I.getNodeFromType(zs, 'ZoneBC_t')
+        zonebc = I.getNodeFromType(zone, 'ZoneBC_t')
         zbc = I.getNodesFromType(zonebc, 'BC_t')
         stag = I.getNodeFromName(zbc, 'PointList')[1]
         stags.append(stag)
