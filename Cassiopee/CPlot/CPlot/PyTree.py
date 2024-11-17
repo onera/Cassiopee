@@ -435,11 +435,11 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     """Move camera.
     Usage: moveCamera(checkPoints, moveEye, N, speed, pos)."""
     if isinstance(posCams[0], str): # zone
-        posCams = C.getAllFields(posCams, 'nodes')
+        posCams = C.getAllFields(posCams, 'nodes')[0]
     if posEyes is not None and isinstance(posEyes[0], str): # zone
-        posEyes = C.getAllFields(posEyes, 'nodes')
+        posEyes = C.getAllFields(posEyes, 'nodes')[0]
     if dirCams is not None and isinstance(dirCams[0], str): # zone
-        dirCams = C.getAllFields(dirCams, 'nodes')
+        dirCams = C.getAllFields(dirCams, 'nodes')[0]
     ret = CPlot.moveCamera(posCams, posEyes, dirCams, moveEye, N, speed, pos)
     return ret
 

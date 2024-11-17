@@ -291,7 +291,7 @@ else if ($MAC == "visung_gcc") then
         module load socle-cfd/7.0-gnu850-ompi502
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
-        #setenv PRODMODE 1
+        setenv PRODMODE 1
         setenv PYTHONEXE python3
         setenv OMP_NUM_THREADS 72
 
@@ -304,7 +304,7 @@ else if ($MAC == "visung") then
         module load emacs/27.2-gnu831
         module load subversion/1.14.1-gnu831
         module load socle-cfd/6.0-intel2220-impi
-        #setenv PRODMODE 1
+        setenv PRODMODE 1
         setenv PYTHONEXE python3
         setenv OMP_NUM_THREADS 72
 
