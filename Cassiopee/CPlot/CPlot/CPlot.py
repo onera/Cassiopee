@@ -17,6 +17,7 @@ __timeStep__ = 0.01
 __slot__ = None
 
 #==============================================================================
+# -- configuration --
 def configure(useRender):
     """Configure CPlot for direct rendering (cplot.useDirect), display Lists (cplot.useDL)
         or VBO (cplot.useVBO)"""
@@ -752,7 +753,17 @@ def travelOut(xr=0.1, N=100):
     return moveCamera(checkPoints, N=N)
 
 #==============================================================================
+# image
+#==============================================================================
+def blur(a, blurSigma=0.8):
+    """Blur an image array."""
+    from . import cplot
+    if isinstance(a[0], list):
+        for i in a: cplot.blur(i, blurSigma)
+    else: cplot.blur(a, blurSigma)
+    return None
 
+#==============================================================================
 # -- Internal functions --
 def setFileName__(name):
     from . import cplot

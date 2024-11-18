@@ -1786,3 +1786,9 @@ def panoramaODS(export, exportRez, type360=0):
     CPlot.cplot.panoramaODS(front, top, bottom, a7f, type360)
     C.convertPyTree2File(a7, export)
     
+# blur an image
+def _blur(t, blurSigma=0.8):
+    """Blur an image."""
+    arrays = C.getAllFields(t, 'nodes', api=3)
+    CPlot.blur(arrays, blurSigma)
+    return None
