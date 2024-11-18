@@ -96,8 +96,11 @@ bool Smesh::is_point_on_a_polygon_edge(E_Float x, E_Float y, E_Float z,
         if (dp1 >= 0 && dp1 <= dp2) {
             ploc.e_idx = i;
             E_Float t;
-            if (fabs(X[a]-X[b]) > 1e-3) t = (x-X[a])/(X[b]-X[a]);
-            else if (fabs(Y[a]-Y[b]) > 1e-3) t = (y-Y[a])/(Y[b]-Y[a]);
+            E_Float dx = fabs(X[a]-X[b]);
+            E_Float dy = fabs(Y[a]-Y[b]);
+            E_Float dz = fabs(Z[a]-Z[b]);
+            if (dx > dy && dx > dz) t = (x-X[a])/(X[b]-X[a]);
+            else if (dy > dz) t = (y-Y[a])/(Y[b]-Y[a]);
             else t = (z-Z[a])/(Z[b]-Z[a]);
             ploc.x = X[a] + t * (X[b]-X[a]);
             ploc.y = Y[a] + t * (Y[b]-Y[a]);
