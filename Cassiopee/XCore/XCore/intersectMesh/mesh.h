@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 #include <list>
+#include <unordered_map>
 
 #include "point.h"
 #include "xcore.h"
@@ -58,6 +59,11 @@ struct Sgraph {
     std::vector<E_Int> fadj;
 };
 
+struct Py_BC {
+    E_Int size;
+    E_Int *ptr;
+};
+
 struct IMesh {
     E_Int np, ne, nf, nc;
 
@@ -91,7 +97,7 @@ struct IMesh {
     std::set<E_Int> patch;
     std::vector<E_Int> ftag;
     std::vector<E_Float> ptag;
-    std::vector<int> ctag;
+    std::vector<E_Float> ctag;
     
     void set_tolerances(E_Float near_vertex_tol, E_Float near_edge_tol)
     {
@@ -113,6 +119,9 @@ struct IMesh {
         E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
     
     void triangulate_face_set(bool propagate = true);
+
+    std::vector<PyArrayObject *> triangulate_skin(const std::vector<Py_BC> &bcs_in,
+        const std::unordered_map<E_Int, E_Int> &fid_to_bc);
 
     void triangulate_skin();
 

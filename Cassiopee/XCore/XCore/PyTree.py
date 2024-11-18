@@ -564,10 +564,27 @@ def icapsule_extract_slaves(IC):
         zs.append(z)
     return zs
 
-def triangulate_skin(m):
-    zm = I.getZones(m)[0]
-    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
-    mo = xcore.triangulate_skin(marr)
-    zo = I.createZoneNode("triangulated", mo)
-    return zo 
+def triangulateSkin(m):
+    m_copy = I.copyRef(m)
+    _triangulateSkin(m_copy)
+    return m_copy
 
+def _triangulateSkin(m):
+    zones = I.getNodesFromType(m, 'Zone_t')
+    for i, zone in enumerate(zones):
+        marr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+        zbc = I.getNodeFromType(zone, 'ZoneBC_t')
+        ptlists = []
+        if zbc is not None:
+            bcs = I.getNodesFromType(zbc, 'BC_t')
+            for bc in bcs:
+                ptlists.append(I.getNodeFromName(bc, 'PointList')[1][0])
+        m_out, ptlists_out = xcore.triangulate_skin(marr, ptlists)
+        C.setFields([m_out], zone, 'nodes')
+        if zbc is not None:
+            bcs = I.getNodesFromType(zbc, 'BC_t')
+            for j, bc in enumerate(bcs):
+                ptlist = I.getNodeFromName(bc, 'PointList')
+                ptlist[1] = ptlists_out[j]
+
+    return None
