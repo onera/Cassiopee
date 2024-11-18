@@ -905,6 +905,13 @@ generateIBMMeshPara = generateIBMMesh
 # only in buildOctree
 def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
     tbSolid = Internal.rmNodesByName(tb, 'IBCFil*')
+    if dim == 2:
+        tbSolid = T.addkplane(tbSolid)
+        tbSolid = T.translate(tbSolid, (0,0,-0.5))
+
+        tbox = T.addkplane(tbox)
+        tbox = T.translate(tbox, (0,0,-0.5))
+
     boxes = []
     for b in Internal.getBases(tbox):
         boxes.append(Internal.getNodesFromType1(b, 'Zone_t'))
@@ -925,7 +932,6 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
                         snearl = Internal.getValue(snearl)
                         snearsf.append(snearl*(vmin-1))
 
-
     to = C.newPyTree(['Base', o])
     end = 0
     G._getVolumeMap(to)
@@ -934,22 +940,28 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
     volmin0 = 1.*volmin0
     while end == 0:
         # Do not refine inside obstacles
-        C._initVars(to, 'centers:cellN', 1.)
-        to = X_IBM.blankByIBCBodies(to, tbSolid, 'centers', dim)
+        C._initVars(to,'cellN',1.)
+        to = X_IBM.blankByIBCBodies(to, tbSolid, 'nodes', 3)
+        to = C.node2Center(to, 'cellN')
+        Internal._rmNodesFromName(to, Internal.__FlowSolutionNodes__)
+        C._initVars(to, '{centers:cellN}=({centers:cellN}>0.9)')
         C._initVars(to, '{centers:cellNBody}={centers:cellN}')
         nob = 0
         C._initVars(to, 'centers:indicator', 0.)
         for box in boxes:
             volmin2 = 1.09*(snearsf[nob])**(dim)
-            C._initVars(to,'centers:cellN',1.)
+            C._initVars(to,'cellN',1.)
             tboxl = C.newPyTree(['BOXLOC']); tboxl[2][1][2] = box
-            to = X_IBM.blankByIBCBodies(to, tboxl, 'centers', dim)
+            to = X_IBM.blankByIBCBodies(to, tboxl, 'nodes', 3)
+            to = C.node2Center(to, 'cellN')
+            C._initVars(to, '{centers:cellN}=({centers:cellN}>0.9)')
+            Internal._rmNodesFromName(to, Internal.__FlowSolutionNodes__)
             fact = 1.1
             while C.getMinValue(to, 'centers:cellN') == 1 and fact < 10.:
                 print("Info: addRefinementZones: tbox too small - increase tbox by fact = %2.1f"%(fact))
                 box2 = T.scale(box, fact) 
                 tboxl[2][1][2] = box2
-                to = X_IBM.blankByIBCBodies(to, tboxl, 'centers', dim)
+                to = X_IBM.blankByIBCBodies(to, tboxl, 'centers', 3)
                 fact += 0.1
 
             C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%g)'%volmin2)
@@ -1120,7 +1132,7 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01):
     import Geom.IBM as D_IBM
     import Geom.Offset as O
 
-    pointsPerUnitLength = 10 if dimPb == 3 else 100
+    pointsPerUnitLength = 25 if dimPb == 3 else 1000
 
     refinementBodies = []
 
@@ -1146,7 +1158,7 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01):
             
             if dimPb == 2:
                 a = T.reorder(a, (1,2,3))
-                a = D.uniformize(a)
+                a = D.uniformize(a, N=1000)
 
             D_IBM._setSnear(a, snear)
             if dimPb == 2:

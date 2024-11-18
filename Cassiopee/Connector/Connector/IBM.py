@@ -227,8 +227,6 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         Reynolds = Internal.getValue(Reynolds)
         if Reynolds < 1.e5: frontType = 1
     else: Reynolds = 1.e6
-
-    if frontType == 42: expand= 4
     
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('prepareIBMData: EquationDimension is missing in input geometry tree.')
@@ -545,6 +543,131 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
 
     if Cmpi.size > 1: Cmpi.barrier()
     if verbose: printTimeAndMemory__('initialize and clean', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
+
+    if tc2 is not None: return t, tc, tc2
+    else: return t, tc
+
+def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
+                   depth=2, IBCType=1, verbose=True,
+                   check=False, twoFronts=False, cartesian=True,
+                   yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
+    
+    import time as python_time
+
+    if model is None: raise ValueError('prepareIBMDataAdapt: input tree is missing.')
+
+    if isinstance(t_in, str): t = Cmpi.convertFile2PyTree(t_in, proc=Cmpi.rank)
+    else: t = Internal.copyTree(t_in)
+
+    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    else: tb = Internal.copyTree(t_case)
+
+    frontType = 42
+
+    refstate = Internal.getNodeFromName(tb, 'ReferenceState')
+    flowEqn  = Internal.getNodeFromName(tb, 'FlowEquationSet')          
+
+    Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
+    if Reynolds is not None:
+        Reynolds = Internal.getValue(Reynolds)
+        if Reynolds < 1.e5: frontType = 1
+    else: Reynolds = 1.e6
+    
+    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
+    if dimPb is None: raise ValueError('prepareIBMDataAdapt: EquationDimension is missing in input geometry tree.')
+    dimPb = Internal.getValue(dimPb)
+    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.)
+    
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError('prepareIBMDataAdapt: GoverningEquations is missing in input geometry tree.')
+    model = Internal.getValue(model)
+
+    ibctypes = Internal.getNodesFromName(tb, 'ibctype')
+    if ibctypes is None: raise ValueError('prepareIBMDataAdapt: ibc type is missing in input geometry tree.')
+    ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
+
+    if model == 'Euler':
+        if any(ibc in ['Musker', 'MuskerMob', 'Mafzal', 'Log', 'TBLE', 'TBLE_FULL'] for ibc in ibctypes):
+            raise ValueError("prepareIBMDataAdapt: governing equations (Euler) not consistent with ibc types %s"%(ibctypes))
+
+    C._initVars(t, '{centers:TurbulentDistance}=(({centers:cellN} > 0)*1 + ({centers:cellN} == 0)*-1)*{centers:TurbulentDistance}')
+    C._rmVars(t, 'centers:cellN')
+
+    Internal._rmNodesFromName(tb,"SYM")
+
+    #===================
+    # STEP 3 : BLANKING IBM
+    #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1)
+    _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
+                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
+                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
+                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42)
+    Cmpi.barrier()
+    _redispatch__(t=t)
+    if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0)
+
+    #===================
+    # STEP 4 : INTERP DATA CHIM
+    #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=-1)
+    tc = C.node2Center(t)
+
+    if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
+        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
+    Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
+    if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0)
+
+    #===================
+    # STEP 4 : BUILD FRONT
+    #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1)
+    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, tb=tb, dimPb=dimPb, frontType=frontType, 
+                                         cartesian=cartesian, twoFronts=twoFronts, check=check)
+    if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0)
+
+    #===================
+    # STEP 5 : INTERP DATA IBM
+    #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1)
+    _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
+                      Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
+                      cartesian=cartesian, twoFronts=twoFronts, check=check)
+    if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0)
+
+    #===================
+    # STEP 6 : INIT IBM
+    #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1)
+
+    t, tc, tc2 = initializeIBM(Internal.copyRef(t), tc, tb, dimPb=dimPb, twoFronts=twoFronts)
+
+    _redispatch__(t=t, tc=tc, tc2=tc2)
+   
+    _setInjOutlet__(tc, tb)
+    
+    if isinstance(tc_out, str):
+        if cartesian: tcp = Compressor.compressCartesian(tc)
+        else: tcp = tc
+        Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
+        
+        if tc2:
+            if cartesian: tcp2 = Compressor.compressCartesian(tc2)
+            else: tcp2 = tc2
+            tc2_out = tc_out.replace('tc', 'tc2') if 'tc' in tc_out else 'tc2.cgns'
+            Cmpi.convertPyTree2File(tcp2, tc2_out, ignoreProcNodes=True)
+        
+    if isinstance(t_out, str):
+        if cartesian: tp = Compressor.compressCartesian(t)
+        else: tp = t
+        Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
+
+    _computeMeshInfo(t)
+
+    Cmpi.barrier()
+    if verbose: printTimeAndMemory__('initialize and clean', time=python_time.time()-pt0)
+
+    if Cmpi.size > 1: Cmpi.barrier()
 
     if tc2 is not None: return t, tc, tc2
     else: return t, tc

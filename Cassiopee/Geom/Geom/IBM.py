@@ -592,9 +592,12 @@ def closeSurface(surface):
 
     for c in cont:
         c = T.reorder(c, (1,2,3))
-        p = G.fittingPlaster(c)
-        p = G.gapfixer(c, p)
-        listOfZones.append(p)
+        try:
+            p = G.fittingPlaster(c)
+            p = G.gapfixer(c, p)
+            listOfZones.append(p)
+        except:
+            print("Info: closeSurface: one gapfixer failed, moving on to the next")
 
     surface2 = C.newPyTree(['Base', listOfZones])
 
