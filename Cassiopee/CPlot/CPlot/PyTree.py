@@ -1535,7 +1535,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
 # display360 (offscreen=1, 2 or 7)
 # type360=0 (360 degres), =1 (180 degres)
 #==============================================================================
-def display360(t, type360=0, **kwargs):
+def display360(t, type360=0, blurSigma=-1., **kwargs):
     """Display for 360 images."""
     import KCore.Vector as Vector
     import Converter.Mpi as Cmpi
@@ -1549,7 +1549,7 @@ def display360(t, type360=0, **kwargs):
     offscreen = kwargs.get("offscreen", 1)
     stereo = kwargs.get("stereo", 0)
     stereoDist = kwargs.get("stereoDist", 0.07) # stereoDist is in real world distance
-    kwargs['stereo'] = 0 # force no anaglyph 
+    kwargs['stereo'] = 0 # force no anaglyph
 
     # orthogonalisation de v1 et dirCam si ils ne sont pas orthos
     v1 = Vector.sub(posEye, posCam) # view vector
@@ -1564,7 +1564,7 @@ def display360(t, type360=0, **kwargs):
         display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs)
         # Create the 360 image from cube images
         if Cmpi.rank == 0:
-            panorama(export, exportRez, type360=type360)
+            panorama(export, exportRez, type360=type360, blurSigma=blurSigma)
         Cmpi.barrier() # wait for completion
 
     elif stereo == 1: # stereo ODS internal (only offscreen=1 or 7)
@@ -1635,14 +1635,14 @@ def display360(t, type360=0, **kwargs):
         posCam0 = Vector.add(posCam, dv)
         display360__(t, posCam0, posEye, dirCam, offscreen, exportRez, kwargs)
         if Cmpi.rank == 0:
-            panorama(export1, exportRez, type360=type360)
+            panorama(export1, exportRez, type360=type360, blueSigma=blurSigma)
         Cmpi.barrier() # wait for completion
         
         # left eye
         posCam0 = Vector.sub(posCam, dv)
         display360__(t, posCam0, posEye, dirCam, offscreen, exportRez, kwargs)
         if Cmpi.rank == 0:
-            panorama(export2, exportRez, type360=type360)
+            panorama(export2, exportRez, type360=type360, blueSigma=blurSigma)
         Cmpi.barrier() # wait for completion
 
         # stitch
@@ -1683,7 +1683,7 @@ def display360(t, type360=0, **kwargs):
 
 # assemble 6 cube images en une image panoramique
 # type360=0 -> 360, type360=1 -> 180
-def panorama(export, exportRez, type360=0):
+def panorama(export, exportRez, type360=0, blurSigma=-1.):
     res = exportRez.split('x')
     if type360 == 0: resx = int(res[0]); resy = int(res[1])
     else: resx = int(res[1]); resy = int(res[1])
@@ -1705,6 +1705,7 @@ def panorama(export, exportRez, type360=0):
     C._addVars(a7, ['r','g','b','a'])
     a7f = C.getFields('nodes', a7, api=3)[0]
     CPlot.cplot.panorama(a1, a2, a3, a4, a5, a6, a7f, type360)
+    CPlot.cplot.blur(a7f, blurSigma)
     C.convertPyTree2File(a7, export)
     return a7
 

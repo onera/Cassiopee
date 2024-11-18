@@ -70,6 +70,7 @@ static PyMethodDef Pycplot [] =
   {"configure", K_CPLOT::configure, METH_VARARGS},
   {"panorama", K_CPLOT::panorama, METH_VARARGS},
   {"panoramaODS", K_CPLOT::panoramaODS, METH_VARARGS},
+  {"blur", K_CPLOT::blur, METH_VARARGS},
   {NULL, NULL}
 };
 

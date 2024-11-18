@@ -108,58 +108,6 @@ void interp2(E_Int ind,
   //final[3*ind+2] = bx*by*im[3*ind1+2]+ax*by*im[3*ind2+2]+bx*ay*im[3*ind3+2]+ax*ay*im[3*ind4+2];
 }
 
-// Create 1D half gaussian kernel coefficients
-// IN: sigma: in pixels
-// IN: n: half size of kernel
-// OUT: c: half kernel coefficients
-void createGaussFilter(E_Float sigma, E_Int n, E_Float* c)
-{
-  E_Float sigma2 = (sigma*sigma);
-  for (E_Int i = 0; i <= n; i++)
-  {
-    c[i] = exp( -(i*i) / (2.*sigma2)) / (sigma*sqrt(2.)*M_PI);
-  }
-  printf("gaussian coefficients: ");
-  for (E_Int i = 0; i <= n; i++) printf("%g ", c[i]);
-  printf("\n");
-
-}
-
-// Apply gaussian blur to in
-// IN: in: color array
-// IN: ni,nj: image size
-// IN: c: kernel coef
-// IN: n: kernel half size
-// OUT: out: color array (already allocated)
-void gaussianBlur2(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float* out)
-{
-  // filter en i
-  for (E_Int j = 0; j < nj; j++)
-  for (E_Int i = n; i < ni-n; i++)
-  {
-    out[i+j*ni] = in[i+j*ni]*c[0];
-
-    for (E_Int k = 1; k < n; k++)
-    {
-      out[i+j*ni] += in[i-k+j*ni]*c[k];
-      out[i+j*ni] += in[i+k+j*ni]*c[k];
-    }
-  }
-
-  // filter en j
-  for (E_Int j = n; j < nj-n; j++)
-  for (E_Int i = 0; i < ni; i++)
-  {
-    in[i+j*ni] = out[i+j*ni]*c[0];
-
-    for (E_Int k = 1; k < n; k++)
-    {
-      in[i+j*ni] += out[i+(j-k)*ni]*c[k];
-      in[i+j*ni] += out[i+(j+k)*ni]*c[k];
-    }
-  }
-}
-
 // perform the stitching (identical to panorama.frag but on the cpu)
 // it doesnt have the texture size limit
 // si type360=0 -> 360 deg
@@ -300,8 +248,8 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
   // fov of each image
-  E_Float fov = 90.;
-  printf("fov=%g\n", fov);
+  //E_Float fov = 90.;
+  //printf("fov=%g\n", fov);
   
   #pragma omp parallel
   {
@@ -389,37 +337,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
         }
       }
     }
-  }
-
-  // gaussian blur needed for headsets
-  E_Float blurSigma = -1.;
-  if (blurSigma > 0.)
-  {
-    E_Int n = 3; // half kernel size
-    E_Float* c = new E_Float [n+1]; // kernel coeff
-    createGaussFilter(blurSigma, n, c);
-    FldArrayF out(nil*njl, 3);
-    E_Float* out1 = out.begin(1);
-    E_Float* out2 = out.begin(2);
-    E_Float* out3 = out.begin(3);
-
-    gaussianBlur2(final1, nil, njl, c, n, out1);
-    gaussianBlur2(final2, nil, njl, c, n, out2);
-    gaussianBlur2(final3, nil, njl, c, n, out3);
-    
-    /*
-    #pragma omp parallel
-    {
-      #pragma omp for
-      for (E_Int ind = 0; ind < nil*njl; ind++) 
-      {  
-        final1[ind] = out1[ind];
-        final2[ind] = out2[ind];
-        final3[ind] = out3[ind];
-      }
-    }
-    */
-    delete [] c;
   }
 
   RELEASESHAREDS(frontArray, front);
@@ -548,7 +465,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   E_Float* final4 = final->begin(7);
 
   E_Float tinf, tsup;
-
   if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
   else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
