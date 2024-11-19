@@ -51,7 +51,7 @@ X_IBM.prepareIBMData(tb               , tFile        , tcFile   , tbox=tboffset,
                      snears=snears    , dfars=dfars  , vmin=vmin, 
                      check=True       , frontType=1  , cartesian=False)
 App._distribute(tFile, tcFile, NP=Cmpi.size)
-t       = Fast.loadTree(tFile , split='single',  mpirun=True)
+t       = Fast.loadTree(os.path.basename(tFile), directory=LOCAL, split='single',  mpirun=True)
 tc,graph= Fast.loadFile(tcFile, split='single',  mpirun=True, graph=True)
 
 if Cmpi.rank == 0:
@@ -90,13 +90,14 @@ FastC._setNum2Base(t, numb)
 FastC._setNum2Zones(t, numz)
 ts = None
 (t, tc, metrics) = FastS.warmup(t, tc, graph,tmy=ts)
+graphInvIBCD_WM  = Cmpi.computeGraph(tc, type='INV_IBCD', procDict=graph['procDict'])
 
 file_select = 1
 time_step   = Internal.getNodeFromName(t, 'time_step')
 time_step   = Internal.getValue(time_step)
 
 for it in range(NIT):
-    FastS._compute(t, metrics, it, tc, graph, layer="Python")
+    FastS._compute(t, metrics, it, tc, graph, layer="Python", graphInvIBCD_WM=graphInvIBCD_WM)
     time0 += time_step
     
     if it%display_probe_freq == 0:
