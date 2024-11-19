@@ -245,6 +245,10 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         if any(ibc in ['Musker', 'MuskerMob', 'Mafzal', 'Log', 'TBLE', 'TBLE_FULL'] for ibc in ibctypes):
             raise ValueError("prepareIBMData: governing equations (Euler) not consistent with ibc types %s"%(ibctypes))
 
+    if frontType == 42 and tbox is None:
+        print("Info: prepareIBMData: frontType 42 is used, but no tbox has been provided to ensure that the near-wall resolution is sufficiently propagated. Forcing expand=4.")
+        expand = 4
+
     #===================
     # STEP 0 : GET FILAMENT BODIES
     #===================
