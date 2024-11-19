@@ -1127,12 +1127,14 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
 #==============================================================================
 # 
 #==============================================================================
-def createRefinementBodies(tb, dimPb=3, hmod=0.01):
+def createRefinementBodies(tb, dimPb=3, hmod=0.01, pointsPerUnitLength=None):
     """Creates refinement bodies from the immersed boundaries to extend the finest resolution in the fluid domain."""
     import Geom.IBM as D_IBM
     import Geom.Offset as O
 
-    pointsPerUnitLength = 25 if dimPb == 3 else 1000
+    if pointsPerUnitLength is None: 
+      print("Info: createRefinementBodies: pointsPerUnitLength is None, using default values (25 for 3D or 1000 for 2D).")
+      pointsPerUnitLength = 25 if dimPb == 3 else 1000
 
     refinementBodies = []
 
