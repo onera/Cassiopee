@@ -75,6 +75,6 @@ PyObject* K_OCC::analyseEdges(PyObject* self, PyObject* args)
   if (Np > 20000) hmax = ltot / 20000.;
   E_Float hmin = emin / 30.;
   E_Float hausd = hmax / 10.;
-  printf("INFO: suggested hmax=%g hausd=%g\n", hmax, hausd);
-  return Py_BuildValue("ddd", hmax, hmin, hausd);
+  printf("INFO: suggested hmin=%g hmax=%g hausd=%g\n", hmin, hmax, hausd);
+  return Py_BuildValue("ddd", hmin, hmax, hausd);
 }

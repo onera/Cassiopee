@@ -584,13 +584,13 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     return SUCCESS
 
 # mesh all CAD edges with hmax, hausd
-def meshAllEdges(hook, hmax, hausd, N, edgeList=None):
+def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
     if edgeList is None:
         nbEdges = occ.getNbEdges(hook)
         edgeList = range(1, nbEdges+1)
     dedges = []
     for i in edgeList:
-        e = occ.meshOneEdge(hook, i, hmax, hausd, N, None)
+        e = occ.meshOneEdge(hook, i, hmin, hmax, hausd, N, None)
         dedges.append(e)
     return dedges
     

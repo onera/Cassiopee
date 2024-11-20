@@ -1061,10 +1061,9 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     hook = OCC.readCAD(fileName, format)
     if hmax == 0.:
         # auto setting
-        (hmax,hmin,hausd) = OCC.occ.analyseEdges(hook)
-        print('hmax=', hmax, 'hausd=', hausd)
+        (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
     CTK.CADHOOK = hook
-    t = OCC.getFirstTree(hook, hmax, hausd)
+    t = OCC.meshAll(hook, hmax, hmax, -1.) # constant hmax
     _upgradeTree(t)
     return t
 

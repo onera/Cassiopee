@@ -412,7 +412,7 @@ def createApp(win):
         CAD = Internal.getNodeFromName1(CTK.t, 'CAD')
         if CAD is not None: NL = OCC.getNbLonelyEdges(CTK.t)
     else: fileName = ''; fileFmt = 'fmt_step'; NL = 0
-
+    
     # -0- CAD file name -
     V = TK.StringVar(win); V.set(fileName); VARS.append(V)
     # -1- CAD file format -
