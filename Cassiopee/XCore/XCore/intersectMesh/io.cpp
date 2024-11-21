@@ -20,50 +20,6 @@
 #include <cassert>
 
 #include "io.h"
-#include "face.h"
-
-void face_write(const char *fname, Face *f)
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-
-    E_Int np = 1;
-    Hedge *h = f->rep;
-    Hedge *w = h->next;
-    while (w != h) {
-        np++;
-        w = w->next;
-    }
-    
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "%d\n", np);
-    h = f->rep;
-    Vertex *v = h->orig;
-    fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
-    w = h->next;
-    while (w != h) {
-        v = w->orig;
-        fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
-        w = w->next;
-    }
-    fclose(fh);
-}
-
-void hedge_write(const char *fname, const Hedge *h)
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "2\n");
-    Vertex *p = h->orig;
-    Vertex *q = h->twin->orig;
-    fprintf(fh, "%f %f %f\n", p->x, p->y, p->z);
-    fprintf(fh, "%f %f %f\n", q->x, q->y, q->z);
-    fprintf(fh, "EDGES\n");
-    fprintf(fh, "1\n");
-    fprintf(fh, "0 1\n");
-    fclose(fh);
-}
 
 void point_write(const char *fname, E_Float x, E_Float y, E_Float z)
 {
@@ -72,26 +28,6 @@ void point_write(const char *fname, E_Float x, E_Float y, E_Float z)
     fprintf(fh, "POINTS\n");
     fprintf(fh, "1\n");
     fprintf(fh, "%f %f %f\n", x, y, z);
-    fclose(fh);
-}
-
-void point_write(const char *fname, Vertex *v)
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "1\n");
-    fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
-    fclose(fh);
-}
-
-void point_write(const char *fname, const std::vector<Vertex *> &I)
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "%zu\n", I.size());
-    for (auto &v : I) fprintf(fh, "%f %f %f\n", v->x, v->y, v->z);
     fclose(fh);
 }
 
@@ -112,7 +48,7 @@ void point_write(const char *fname, const std::vector<Point> &P)
     assert(fh);
     fprintf(fh, "POINTS\n");
     fprintf(fh, "%zu\n", P.size());
-    for (auto p : P) fprintf(fh, "%f %f %f\n", p[0], p[1], p[2]);
+    for (auto p : P) fprintf(fh, "%f %f %f\n", p.x, p.y, p.z);
     fclose(fh);
 }
 
@@ -150,24 +86,5 @@ void edge_write(const char *fname, E_Float px, E_Float py, E_Float pz,
     fprintf(fh, "EDGES\n");
     fprintf(fh, "1\n");
     fprintf(fh, "0 1\n");
-    fclose(fh);
-}
-
-void edges_write(const char *fname, const std::vector<IO_Edge> &edges)
-{
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-    fprintf(fh, "POINTS\n");
-    fprintf(fh, "%zu\n", edges.size() * 2);
-    for (auto e : edges) {
-        fprintf(fh, "%f %f %f\n", e.px, e.py, e.pz);
-        fprintf(fh, "%f %f %f\n", e.qx, e.qy, e.qz);
-    }
-    fprintf(fh, "EDGES\n");
-    fprintf(fh, "%zu\n", edges.size());
-    for (size_t i = 0; i < 2*edges.size(); i++) {
-        fprintf(fh, "%zu ", i);
-    }
-    fprintf(fh, "\n");
     fclose(fh);
 }

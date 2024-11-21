@@ -39,7 +39,7 @@ PyObject *K_XCORE::IntersectMesh_Init(PyObject *self, PyObject *args)
 
     // Init mesh
 
-    IMesh *M = new IMesh(*karray.cn, karray.x, karray.y, karray.z, karray.npts);
+    IMesh *M = new IMesh(karray);
     /*
     M->make_skin();
     puts("Making BVH");

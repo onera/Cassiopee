@@ -576,7 +576,9 @@ PyObject *export_conformal_mesh(Mesh *M)
         for (E_Int j = 0; j < M->fstride[i]; j++) {
             E_Int *pn = face + 2*j;
 
-            for (E_Int k = 0; k < frange[j]; k++) *ptr++ = pn[k] + 1;
+            for (E_Int k = 0; k < frange[j]; k++) {
+                *ptr++ = pn[k] + 1;
+            }
         }
     }
 
@@ -606,7 +608,9 @@ PyObject *export_conformal_mesh(Mesh *M)
         for (E_Int j = 0; j < M->cstride[i]; j++) {
             E_Int *pf = cell + 4*j;
 
-            for (E_Int k = 0; k < crange[j]; k++) *ptr++ = pf[k] + 1;
+            for (E_Int k = 0; k < crange[j]; k++) {
+                *ptr++ = pf[k] + 1;
+            }
         }
     }
 

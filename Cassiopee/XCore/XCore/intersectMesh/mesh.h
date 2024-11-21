@@ -23,18 +23,20 @@
 #include <map>
 #include <set>
 #include <list>
+#include <unordered_map>
 
 #include "point.h"
 #include "xcore.h"
 #include "common/common.h"
-#include "triangleIntersection.h"
+#include "triangle.h"
 #include "AABB.h"
+#include "smesh.h"
 
 #define OUT 0
 #define IN 1
 
 struct Ray;
-struct Smesh;
+struct Karray;
 
 struct UEdge {
     E_Int p, q;
@@ -51,20 +53,38 @@ struct UEdge {
     }
 };
 
+struct Sgraph {
+    std::vector<E_Int> xadj;
+    std::vector<E_Int> fpts;
+    std::vector<E_Int> fadj;
+};
+
+struct Py_BC {
+    E_Int size;
+    E_Int *ptr;
+};
+
 struct IMesh {
     E_Int np, ne, nf, nc;
 
     std::vector<E_Float> X, Y, Z;
-    std::vector<std::vector<E_Int>> P2F;
-
-    std::vector<std::array<E_Int, 2>> E;
-    
     std::vector<std::vector<E_Int>> F;
+
+    std::vector<std::vector<E_Int>> P2F;
+    std::vector<std::vector<E_Int>> P2E;
+
+    std::vector<o_edge> E;
+    std::vector<std::vector<E_Int>> E2F;
     std::vector<std::vector<E_Int>> F2E;
 
     std::vector<std::vector<E_Int>> C;
 
     std::vector<E_Int> skin;
+    std::vector<E_Int> owner;
+    std::vector<E_Int> neigh;
+
+    E_Float NEAR_VERTEX_TOL = 1e-3;
+    E_Float NEAR_EDGE_TOL = 1e-3;
 
     E_Float xmin, ymin, zmin;
     E_Float xmax, ymax, zmax;
@@ -74,13 +94,16 @@ struct IMesh {
 
     std::vector<std::vector<E_Int>> bin_faces;
 
-    std::map<E_Int, std::vector<E_Int>> fmap;
-
     std::set<E_Int> patch;
-
-    std::vector<Point> entries;
-
-    std::vector<int> ctag;
+    std::vector<E_Int> ftag;
+    std::vector<E_Float> ptag;
+    std::vector<E_Float> ctag;
+    
+    void set_tolerances(E_Float near_vertex_tol, E_Float near_edge_tol)
+    {
+        NEAR_VERTEX_TOL = near_vertex_tol;
+        NEAR_EDGE_TOL = near_edge_tol;
+    }
 
     inline E_Int get_voxel(E_Int I, E_Int J, E_Int K) const
     {
@@ -95,13 +118,22 @@ struct IMesh {
     E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
         E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
     
-    void triangulate_face_set();
+    void triangulate_face_set(bool propagate = true);
+
+    std::vector<PyArrayObject *> triangulate_skin(const std::vector<Py_BC> &bcs_in,
+        const std::unordered_map<E_Int, E_Int> &fid_to_bc);
+
+    void triangulate_skin();
+
+    size_t refine_slave(const IMesh &master);
     
     void hash_patch();
 
     IMesh();
 
-    IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
+    IMesh(const Karray &karray);
+
+    //IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
 
     void make_patch(E_Int *faces, E_Int nfaces);
 
@@ -123,7 +155,9 @@ struct IMesh {
 
     void write_ngon(const char *fname);
 
-    void write_faces(const char *fname, const std::vector<E_Int> &faces) const;
+    void write_ngon(const char *fname, const std::vector<E_Int> &faces) const;
+
+    void write_ngon(const char *fname, const std::set<E_Int> &fset) const;
 
     void write_face(const char *fname, E_Int fid) const;
 
@@ -150,9 +184,6 @@ struct IMesh {
 
     size_t refine(const IMesh &S);
 
-    //std::vector<pointFace> locate(E_Int p, E_Float x, E_Float y, E_Float z,
-    //    const std::set<E_Int> &patch) const;
-    
     inline bool face_is_active(E_Int face) const
     { return factive.find(face) != factive.end(); }
 
@@ -178,11 +209,11 @@ struct IMesh {
 
     void get_fleaves(E_Int face, std::vector<E_Int> &fleaves);
 
-    PyObject *export_karray(E_Int remove_periodic = 0);
+    PyObject *export_karray(E_Int remove_periodic = 0) const;
 
-    PyObject *export_karray_orig();
+    PyObject *export_karray_orig() const;
 
-    PyObject *export_karray_periodic();
+    PyObject *export_karray_periodic() const;
 
     /* TOPO */
 

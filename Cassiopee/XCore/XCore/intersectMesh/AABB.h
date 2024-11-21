@@ -2,8 +2,6 @@
 
 #include "xcore.h"
 
-struct IMesh;
-
 struct AABB {
     E_Float xmin;
     E_Float ymin;
@@ -11,8 +9,12 @@ struct AABB {
     E_Float xmax;
     E_Float ymax;
     E_Float zmax;
-
-    AABB();
-
-    AABB(const IMesh &M, E_Int *ids, E_Int count);
+    E_Float dx;
+    E_Float dy;
+    E_Float dz;
 };
+
+const AABB AABB_HUGE = {EFLOATMIN, EFLOATMIN, EFLOATMIN,
+                        EFLOATMAX, EFLOATMAX, EFLOATMAX};
+
+void AABB_clamp(AABB &box, const AABB &parent);

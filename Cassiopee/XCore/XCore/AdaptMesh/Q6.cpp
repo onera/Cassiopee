@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Quad.h"
+#include "Mesh.h"
 
 E_Int Q6_refine(E_Int quad, Mesh *M)
 {
@@ -146,6 +147,8 @@ E_Int Q6_refine(E_Int quad, Mesh *M)
     M->fchildren[quad] = {quad, M->nf};
 
     M->fparent[M->nf] = quad;
+
+    M->ftag[M->nf] = M->ftag[quad];
 
     // Increment face/edge/point count
     M->nf += 1;

@@ -1,13 +1,13 @@
 #include "mesh.h"
 
-PyObject *IMesh::export_karray(E_Int remove_periodic)
+PyObject *IMesh::export_karray(E_Int remove_periodic) const
 {
     if (remove_periodic) return export_karray_periodic();
 
     return export_karray_orig();
 }
 
-PyObject *IMesh::export_karray_periodic()
+PyObject *IMesh::export_karray_periodic() const
 {
     // Keep the cells whose tag is 1
 
@@ -47,7 +47,6 @@ PyObject *IMesh::export_karray_periodic()
 
     for (const auto &fdat : new_fids) {
         E_Int ofid = fdat.first;
-        //E_Int nfid = fdat.second;
 
         const auto &pn = F[ofid];
 
@@ -142,7 +141,7 @@ PyObject *IMesh::export_karray_periodic()
     return array;
 }
 
-PyObject *IMesh::export_karray_orig()
+PyObject *IMesh::export_karray_orig() const
 {
     E_Int sizeNGon = 0, sizeNFace = 0;
 
@@ -193,7 +192,6 @@ PyObject *IMesh::export_karray_orig()
 
     delete f;
     delete cn;
-
 
     return array;
 }

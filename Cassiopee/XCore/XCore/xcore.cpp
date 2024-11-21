@@ -38,12 +38,16 @@ static PyMethodDef Pyxcore [] =
     {"AdaptMesh_Adapt", K_XCORE::AdaptMesh_Adapt, METH_VARARGS},
     {"AdaptMesh_ExtractMesh", K_XCORE::AdaptMesh_ExtractMesh, METH_VARARGS},
     {"AdaptMesh_Exit", K_XCORE::AdaptMesh_Exit, METH_VARARGS},
-
     {"AdaptMesh_ExtractOwners", K_XCORE::AdaptMesh_ExtractOwners, METH_VARARGS},
     {"AdaptMesh_ExtractNeighbours", K_XCORE::AdaptMesh_ExtractNeighbours, METH_VARARGS},
     {"AdaptMesh_ExtractCellLevels", K_XCORE::AdaptMesh_ExtractCellLevels, METH_VARARGS},
     {"AdaptMesh_ExtractCellRanges", K_XCORE::AdaptMesh_ExtractCellRanges, METH_VARARGS},
     {"AdaptMesh_ExtractHaloCellLevels", K_XCORE::AdaptMesh_ExtractHaloCellLevels, METH_VARARGS},
+    {"AdaptMesh_TagFaces", K_XCORE::AdaptMesh_TagFaces, METH_VARARGS},
+    {"AdaptMesh_TriangulateFaces", K_XCORE::AdaptMesh_TriangulateFaces, METH_VARARGS},
+    {"AdaptMesh_GeneratePrisms", K_XCORE::AdaptMesh_GeneratePrisms, METH_VARARGS},
+    {"AdaptMesh_AdaptGeom", K_XCORE::AdaptMesh_AdaptGeom, METH_VARARGS},
+    {"AdaptMesh_ExtractTaggedFaces", K_XCORE::AdaptMesh_ExtractTaggedFaces, METH_VARARGS},
 
     {"intersectMesh", K_XCORE::intersectMesh, METH_VARARGS},
     {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
@@ -53,8 +57,22 @@ static PyMethodDef Pyxcore [] =
     {"IntersectMesh_TriangulateFaceSet", K_XCORE::IntersectMesh_TriangulateFaceSet, METH_VARARGS},
     {"IntersectMesh_ExtractMesh", K_XCORE::IntersectMesh_ExtractMesh, METH_VARARGS},
     {"IntersectMesh_Exit", K_XCORE::IntersectMesh_Exit, METH_VARARGS},
+    {"IntersectMesh_ExtractFaceSet", K_XCORE::IntersectMesh_ExtractFaceSet, METH_VARARGS},
+    {"IntersectMesh_Merge", K_XCORE::IntersectMesh_Merge, METH_VARARGS},
+    
+    {"icapsule_init", K_XCORE::icapsule_init, METH_VARARGS},
+    {"icapsule_adapt", K_XCORE::icapsule_adapt, METH_VARARGS},
+    {"icapsule_intersect", K_XCORE::icapsule_intersect, METH_VARARGS},
+    
+    {"icapsule_extract_master", K_XCORE::icapsule_extract_master, METH_VARARGS},
+    {"icapsule_extract_slave", K_XCORE::icapsule_extract_slave, METH_VARARGS},
+    {"icapsule_extract_slaves", K_XCORE::icapsule_extract_slaves, METH_VARARGS},
+
+    {"triangulate_skin", K_XCORE::triangulate_skin, METH_VARARGS},
 
     {"extractCell", K_XCORE::extractCell, METH_VARARGS},
+    
+    {"extractFacesFromPointTag", K_XCORE::extractFacesFromPointTag, METH_VARARGS},
 
     {NULL, NULL}
 };

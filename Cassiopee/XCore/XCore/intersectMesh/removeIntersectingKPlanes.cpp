@@ -55,8 +55,7 @@ void construct_faces(std::vector<std::vector<E_Int>> &faces,
     NF++;
 }
 
-static
-PyObject *handle_slave(IMesh *M, Karray& sarray)
+PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
 {
     E_Int ni = sarray.ni;
     E_Int nj = sarray.nj;
@@ -77,6 +76,7 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
         for (E_Int i = 0; i < ni; i++) {
 
             E_Int base = i + ni*j;
+            bool was_inside = false;
 
             for (E_Int k = 0; k < nk; k++) {
 
@@ -92,52 +92,77 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
                     // Cache the point to be projected
                     E_Int proj_id = base + nij*kmax[base];
                     proj_points.push_back(proj_id);
+
+                    was_inside = true;
                     break;
                 }
+            }
+
+            if (!was_inside) {
+                // i-j line completely outside of M
+                // Projection points is the last point
+                kmax[base] = nk-1;
+                E_Int proj_id = base + nij*kmax[base];
+                proj_points.push_back(proj_id);
             }
         }
     }
 
-    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+    assert(proj_points.size() == (size_t)nij);
+
+    //point_write("proj_points.im", Xs, Ys, Zs, proj_points);
+    //printf("points written!\n");
+    //fflush(stdout);
 
     E_Int np = ni*nj*nk;
 
     // Project points onto marray surface
     std::unordered_map<E_Int, TriangleIntersection> point_hit_table;
 
+    //std::vector<Point> projections;
+
     for (E_Int i = 0; i < nij; i++) {
         E_Int p = proj_points[i];
-        E_Int q = p + nij;
+        E_Int q = p - nij;
 
         E_Float px = Xs[p];
         E_Float py = Ys[p];
         E_Float pz = Zs[p];
 
-        E_Float dx = Xs[q] - Xs[p];
-        E_Float dy = Ys[q] - Ys[p];
-        E_Float dz = Zs[q] - Zs[p];
+        E_Float dx = Xs[p] - Xs[q];
+        E_Float dy = Ys[p] - Ys[q];
+        E_Float dz = Zs[p] - Zs[q];
 
         E_Float NORM = sqrt(dx*dx + dy*dy + dz*dz);
 
         dx /= NORM, dy /= NORM, dz /= NORM;
 
+        std::vector<PointLoc> mlocs;
+        Mf.ray_intersect_BVH(px, py, pz, dx, dy, dz, Mf.root_node_idx, mlocs);
+
+        //if (mlocs.empty()) {
+        //    point_write("lost.im", px, py, pz);
+        //}
+
+        assert(mlocs.size() > 0);
+        PointLoc ploc;
+        E_Float min_abs_t = EFLOATMAX;
+        for (const auto &mloc : mlocs) {
+            if (fabs(mloc.t) < min_abs_t) {
+                min_abs_t = fabs(mloc.t);
+                ploc = mloc;
+            }
+        }
+
         TriangleIntersection TI;
-
-        E_Int hit = M->project_point(px, py, pz, dx, dy, dz, TI, i);
-
-        assert(hit);
-
         TI.pid = p;
-
+        TI.x = ploc.x, TI.y = ploc.y, TI.z = ploc.z;
         point_hit_table[p] = TI;
+
+        //projections.push_back({ploc.x, ploc.y, ploc.z});
     }
 
-    for (const auto &ploc : point_hit_table) {
-        E_Int fid = ploc.second.face;
-        const auto &pn = M->F[fid];
-        assert(pn.size() == 4);
-        M->faces_to_tri.insert(fid);
-    }
+    //point_write("projections.im", projections);
 
     // Construct the new faces and cells
 
@@ -368,6 +393,158 @@ PyObject *handle_slave(IMesh *M, Karray& sarray)
     return out;
 }
 
+E_Int get_kmax(IMesh *M, Karray& sarray)
+{
+    E_Int ni = sarray.ni;
+    E_Int nj = sarray.nj;
+    E_Int nk = sarray.nk;
+    E_Int nij = ni * nj;
+
+    E_Float *Xs = sarray.x;
+    E_Float *Ys = sarray.y;
+    E_Float *Zs = sarray.z;
+
+    E_Int kmax = -1;
+
+    for (E_Int k = 0; k < nk && kmax == -1; k++) {
+        for (E_Int j = 0; j < nj && kmax == -1; j++) {
+            for (E_Int i = 0; i < ni; i++) {
+                E_Int idx = i + ni*j + nij*k;
+
+                E_Float px = Xs[idx];
+                E_Float py = Ys[idx];
+                E_Float pz = Zs[idx];
+
+                if (M->is_point_inside(px, py, pz)) {
+                    kmax = k-1;
+                    return kmax;
+                }
+            }
+        }
+    }
+
+    assert(0);
+    return kmax;
+}
+
+PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
+{
+    E_Int ni = sarray.ni;
+    E_Int nj = sarray.nj;
+    E_Int nk = sarray.nk;
+    E_Int nij = ni * nj;
+
+    E_Float *Xs = sarray.x;
+    E_Float *Ys = sarray.y;
+    E_Float *Zs = sarray.z;
+
+    // Indices of points to be projected
+    std::vector<E_Int> proj_points;
+
+    for (E_Int j = 0; j < nj; j++) {
+        for (E_Int i = 0; i < ni; i++) {
+
+            E_Int idx = i + ni*j + nij*kmax;
+
+            proj_points.push_back(idx);
+        }
+    }
+
+    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+
+    //E_Int np = ni*nj*nk;
+
+    // Project points onto marray surface
+    std::unordered_map<E_Int, TriangleIntersection> point_hit_table;
+
+    for (E_Int i = 0; i < nij; i++) {
+        E_Int p = proj_points[i];
+        E_Int q = p + nij;
+
+        E_Float px = Xs[p];
+        E_Float py = Ys[p];
+        E_Float pz = Zs[p];
+
+        E_Float dx = Xs[q] - Xs[p];
+        E_Float dy = Ys[q] - Ys[p];
+        E_Float dz = Zs[q] - Zs[p];
+
+        E_Float NORM = sqrt(dx*dx + dy*dy + dz*dz);
+
+        dx /= NORM, dy /= NORM, dz /= NORM;
+
+        TriangleIntersection TI;
+
+        E_Int hit = M->project_point(px, py, pz, dx, dy, dz, TI, i);
+
+        assert(hit);
+
+        TI.pid = p;
+
+        point_hit_table[p] = TI;
+    }
+
+    // Make out cartesian mesh
+    PyObject *tpl;
+    nk = kmax + 2;
+    tpl = K_ARRAY::buildArray3(3, "x,y,z", ni, nj, nk, 3);
+
+    K_FLD::FldArrayF *f;
+    K_FLD::FldArrayI *c;
+    char *varString, *eltType;
+    K_ARRAY::getFromArray3(tpl, varString, f, ni, nj, nk, c, eltType);
+
+    E_Float* xt = f->begin(1);
+    E_Float* yt = f->begin(2);
+    E_Float* zt = f->begin(3);
+
+    // Copy all the points up to kmax
+    for (E_Int k = 0; k < kmax+1; k++) {
+        for (E_Int j = 0; j < nj; j++) {
+            for (E_Int i = 0; i < ni; i++) {
+                E_Int ind = i + j*ni + k*nij;
+                xt[ind] = Xs[ind];
+                yt[ind] = Ys[ind];
+                zt[ind] = Zs[ind];
+            }
+        }
+    }
+
+    // Copy the projected points
+    E_Int ind = nij*(kmax+1);
+    for (E_Int i = 0; i < nij; i++) {
+        E_Int p = proj_points[i];
+        auto EH = point_hit_table[p];
+        E_Float x = EH.x;
+        E_Float y = EH.y;
+        E_Float z = EH.z;
+        xt[ind] = x;
+        yt[ind] = y;
+        zt[ind] = z;
+        ind++;
+    }
+
+    // Tag the projected points
+    npy_intp dims[2];
+    dims[1] = 1;
+    dims[0] = (npy_intp)ni*nj*nk;
+    PyArrayObject *tag = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    E_Float *ptag = (E_Float *)PyArray_DATA(tag);
+    for (E_Int i = 0; i < nij*(kmax+1); i++) ptag[i] = 0.0;
+    for (E_Int i = nij*(kmax+1); i < nij*nk; i++) ptag[i] = 1.0;
+
+    PyObject *out = PyList_New(0);
+    PyList_Append(out, tpl);
+    PyList_Append(out, (PyObject *)tag);
+    RELEASESHAREDS(tpl, f);
+    Py_DECREF(tpl);
+    Py_DECREF(tag);
+
+    return out;
+}
+
+#include "smesh.h"
+
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
     PyObject *MASTER, *SLAVES;
@@ -387,6 +564,11 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     M->make_skin();
     M->make_bbox();
     M->hash_skin();
+
+    Smesh Mf = Smesh::Smesh_from_mesh_skin(*M, M->skin, false);
+    printf("Mf: %d tris\n", Mf.nf);
+    Mf.make_fcenters();
+    Mf.make_BVH();
 
     E_Int nslaves = PyList_Size(SLAVES);
     E_Int i, ret;
@@ -411,11 +593,24 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    /*
+    E_Int kmax = 10000000;
+
+    for (E_Int i = 0; i < nslaves; i++) {
+        E_Int k = get_kmax(M, sarrays[i]);
+        printf("k: %d\n", k);
+        if (k < kmax) kmax = k;
+    }
+
+    printf("kmax: %d\n", kmax);
+    */
+
     PyObject *slaves_out = PyList_New(0);
 
     for (E_Int i = 0; i < nslaves; i++) {
         printf("Projecting %d / %d\n", i+1, nslaves);
-        PyObject *st = handle_slave(M, sarrays[i]);
+        //PyObject *st = handle_slave2(M, sarrays[i], kmax);
+        PyObject *st = handle_slave(M, Mf, sarrays[i]);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);

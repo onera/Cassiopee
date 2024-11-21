@@ -314,15 +314,14 @@ def checkAssemblyForlSolver(t, fullcheck=False, nb_comps=1):
       print('Boolean WARNING : quality might be not good enough for solver')
       #import sys; sys.exit()
 
+  if fullcheck == False: return
+
   # VERIFICATION 4 : VOL MIN
   print("Check min cell volume ...")
   (vmin, cellid, zoneid) = checkCellsVolume(t)
   print('vol min : ', vmin)
   if vmin < VOLMIN_SOLVER:
       print('Boolean ERROR : too small cells detected : under solver threshold')
-
-  if fullcheck == False:
-    return
 
   # print("Check cell volume extrema...")
   # res = statsSize(t, 1)

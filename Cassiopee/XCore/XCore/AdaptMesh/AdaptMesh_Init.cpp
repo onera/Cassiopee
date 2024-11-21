@@ -209,9 +209,7 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
             Mesh_free(M);
             return NULL;
         }
-    }
 
-    if (M->mode_2D) {
         ret = Mesh_set_cells_for_2D(M);
         if (ret != 0) {
             RAISE("Failed to set cells for 2D.");
@@ -237,8 +235,14 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->fparent = IntArray(M->nf);
     for (E_Int i = 0; i < M->nf; i++) M->fparent[i] = i;
 
-    M->cref = IntArray(M->nc);
-    M->fref = IntArray(M->nf);
+    M->cref = NULL;
+    M->fref = NULL;
+    M->fpattern = (E_Int *)XMALLOC(M->nf * sizeof(E_Int));
+    memset(M->fpattern, -1, M->nf * sizeof(E_Int));
+
+    M->ctag = IntArray(M->nc);
+    M->ftag = IntArray(M->nf);
+    M->ptag = IntArray(M->np);
 
     // Clean-up
 

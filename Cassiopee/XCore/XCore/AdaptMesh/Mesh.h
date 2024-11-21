@@ -24,6 +24,8 @@
 
 #include "xcore.h"
 #include "common/common.h"
+#include "Quad.h"
+#include "Hexa.h"
 
 #define HEXA 0
 #define TETRA 1
@@ -37,7 +39,18 @@
 #define FACE_REFINED 1
 #define FACE_NEW 2
 
+#define ISO 0
+#define DIR 1
+
+#define DIR_ISO 0
+#define DIR_X 1
+#define DIR_Y 2
+
 struct Karray;
+struct SkinGraph;
+struct Point;
+struct Vec3f;
+struct ArrayI;
 
 struct BPatch {
     E_Int gid;
@@ -125,6 +138,7 @@ struct Mesh {
 
     E_Int *cref;
     E_Int *fref;
+    E_Int *fpattern;
 
     E_Int *clevel;
     E_Int *flevel;
@@ -165,6 +179,10 @@ struct Mesh {
 
     E_Int *xneis;
     E_Int *cneis;
+    
+    E_Int *ctag;
+    E_Int *ftag;
+    E_Int *ptag;
 
     Mesh();
 };
@@ -172,8 +190,6 @@ struct Mesh {
 /* Topo */
 
 E_Int Mesh_set_cells_for_2D(Mesh *M);
-
-void Mesh_get_cneis(Mesh *M, E_Int cid, E_Int &nn, E_Int neis[24]);
 
 E_Int Mesh_set_face_types(Mesh *M);
 
@@ -196,6 +212,15 @@ void Mesh_update_ppatches(Mesh *M);
 void Mesh_update_global_face_ids(Mesh *M);
 
 E_Int Mesh_get_global_face_count(Mesh *M);
+
+void Mesh_get_cneis(Mesh *M, E_Int cid, E_Int &nn, E_Int neis[24]);
+
+inline
+E_Int Mesh_get_cnei(Mesh *M, E_Int cid, E_Int fid)
+{
+    assert(cid == M->owner[fid] || cid == M->neigh[fid]);
+    return (M->owner[fid] == cid) ? M->neigh[fid] : M->owner[fid];
+}
 
 inline
 E_Int *Mesh_get_cell(Mesh *M, E_Int cid)
@@ -224,19 +249,19 @@ E_Int Mesh_get_sizeNFace(Mesh *M)
 }
 
 inline
-E_Int *Mesh_get_face(Mesh *M, E_Int fid)
+E_Int *Mesh_get_face(const Mesh *M, E_Int fid)
 {
     return &M->faces[8*fid];
 }
 
 inline
-E_Int *Mesh_get_frange(Mesh *M, E_Int fid)
+E_Int *Mesh_get_frange(const Mesh *M, E_Int fid)
 {
     return &M->frange[4*fid];
 }
 
 inline
-E_Int *Mesh_get_fedges(Mesh *M, E_Int fid)
+E_Int *Mesh_get_fedges(const Mesh *M, E_Int fid)
 {
     return &M->fedg[8*fid];
 }
@@ -257,7 +282,7 @@ E_Int Mesh_get_sizeNGon(Mesh *M)
 
 
 inline
-void Mesh_get_fpoints(Mesh *M, E_Int fid, E_Int &np, E_Int pts[8])
+void Mesh_get_fpoints(const Mesh *M, E_Int fid, E_Int &np, E_Int pts[8])
 {
     np = 0;
     E_Int *face = Mesh_get_face(M, fid);
@@ -321,6 +346,8 @@ void Mesh_reset_adaptation_data(Mesh *M);
 
 void Mesh_reset_parallel_data(Mesh *M);
 
+void Mesh_reset_tags(Mesh *M);
+
 void Mesh_free(Mesh *M);
 
 
@@ -344,6 +371,11 @@ E_Int Mesh_load_balance(Mesh *M);
 
 /* Adaptation */
 
+void Mesh_smooth_skin_ref_data(Mesh *M, const SkinGraph *skin_graph,
+    E_Int *fdat);
+
+void Mesh_smooth_cell_refinement_data(Mesh *M);
+
 E_Int Mesh_smooth_cref(Mesh *M);
 
 void Mesh_get_ref_entities(Mesh *M, std::vector<E_Int> &ref_cells,
@@ -351,6 +383,10 @@ void Mesh_get_ref_entities(Mesh *M, std::vector<E_Int> &ref_cells,
 
 void Mesh_resize_for_refinement(Mesh *M, const std::vector<E_Int> &ref_cells,
     const std::vector<E_Int> &ref_faces, const std::set<UEdge> &ref_edges);
+
+void Mesh_resize_face_data(Mesh *M, E_Int new_nf);
+
+void Mesh_resize_cell_data(Mesh *M, E_Int new_nc);
 
 void Mesh_sort_ref_entities_by_level(Mesh *M,
     std::vector<E_Int> &ref_cells, std::vector<E_Int> &ref_faces,
@@ -368,6 +404,23 @@ void Mesh_refine_iso(Mesh *M, std::vector<E_Int> &ref_cells,
 
 void Mesh_refine_dir(Mesh *M, std::vector<E_Int> &ref_cells,
     std::vector<E_Int> &ref_faces, std::set<UEdge> &ref_edges);
+
+inline
+void update_shell_pe(E_Int parent, Mesh *M)
+{
+    const auto &children = M->cchildren.at(parent);
+
+    for (E_Int cid : children) {
+        E_Int *child = Mesh_get_cell(M, cid);
+
+        for (E_Int j = 0; j < M->cstride[cid]; j++) {
+            E_Int face = child[4*j];
+            
+            if      (M->owner[face] == parent) M->owner[face] = cid;
+            else if (M->neigh[face] == parent) M->neigh[face] = cid;
+        }
+    }
+}
 
 inline
 void Mesh_update_face_range_and_stride(Mesh *M, E_Int quad, E_Int fpos, E_Int nchild)
@@ -405,3 +458,86 @@ void Mesh_refine_or_get_edge_center(Mesh *M, E_Int p, E_Int q, E_Int &node)
         node = it->second;
     }
 }
+
+inline
+void refine_cell_dir(E_Int cell, Mesh *M)
+{
+    switch (M->ctype[cell]) {
+        case HEXA:
+            H18_refine(cell, M);
+            break;
+        default:
+            assert(0);
+            break;
+    }
+}
+
+inline
+void refine_face_dir(E_Int face, E_Int pattern, Mesh *M)
+{
+    switch (M->ftype[face]) {
+        case QUAD: {
+            if (pattern == ISO) Q9_refine(face, M);
+            else Q6_refine(face, M);
+            break;
+        }
+        default:
+            assert(0);
+            break;
+    }
+}
+
+inline
+E_Int get_face_pattern(E_Int fid, Mesh *M)
+{
+    E_Int own = M->owner[fid];
+    E_Int fpos = -1;
+    E_Int *cell = Mesh_get_cell(M, own);
+    E_Int *crange = Mesh_get_crange(M, own);
+
+    for (E_Int j = 0; j < M->cstride[own] && fpos == -1; j++) {
+        E_Int *pf = cell + 4*j;
+        for (E_Int k = 0; k < crange[j]; k++) {
+            E_Int face = pf[k];
+            if (face == fid) {
+                fpos = j;
+                assert(k == 0);
+                break;
+            }
+        }
+    }
+
+    assert(fpos != -1);
+
+    if (fpos == 0 || fpos == 1) return ISO;
+    return DIR;
+}
+
+void Mesh_triangulate_face(Mesh *M, E_Int fid);
+void Mesh_triangulate_faces(Mesh *M, E_Int *faces, E_Int nf);
+
+void Mesh_face_to_prism(Mesh *M, E_Int fid);
+void Mesh_generate_prisms(Mesh *M, E_Int *faces, E_Int nf);
+
+/* Extract */
+
+void Mesh_extract_skin(const Mesh *M, E_Int *count, E_Int **skin);
+
+void Mesh_make_skin_connectivity(const Mesh *M, SkinGraph *skin_graph);
+
+void Mesh_make_skin_graph(const Mesh *M, SkinGraph *skin_graph);
+
+void Mesh_make_face_centers(const Mesh *M, const E_Int nf, const E_Int *skin,
+    Vec3f *fc);
+
+void Mesh_extract_points_from_ftag(const Mesh *M, ArrayI *pids);
+
+void Mesh_SkinGraph_compute_normals(const Mesh *M, SkinGraph *skin_graph);
+
+/* Locate */
+
+bool Mesh_point_in_tri(const Mesh *M, const Point *p, E_Int tid);
+
+bool Mesh_point_in_quad(const Mesh *M, const Point *p, E_Int qid);
+
+bool Mesh_point_in_face(const Mesh *M, const Point *p, E_Int fid);

@@ -21,6 +21,7 @@
 
 void H18_refine(E_Int hexa, Mesh *M)
 {
+    // This should be replaced by get_ordered_data...
     H18_reorder(hexa, M);
 
     E_Int *cell = Mesh_get_cell(M, hexa);
@@ -268,6 +269,12 @@ void H18_refine(E_Int hexa, Mesh *M)
         M->fstride[fid] = 4;
         M->fref[fid] = FACE_NEW;
     }
+
+    // Update patterns
+    M->fpattern[M->nf]   = DIR_X;
+    M->fpattern[M->nf+1] = DIR_X;
+    M->fpattern[M->nf+2] = DIR_X;
+    M->fpattern[M->nf+3] = DIR_X;
 
     // Assemble children
     E_Int *child = NULL;
@@ -653,7 +660,7 @@ void H18_reorder(E_Int hexa, Mesh *M)
         Right_shift(local, i0, 8);
         E_Int reorient = Mesh_get_reorient(M, RGT[0], hexa, normalIn_H[3]);
         if (reorient) std::reverse(local+1, local+8);
-        assert(local[0] == NODES[0]);
+        assert(local[0] == NODES[1]);
         assert(local[1] == NODES[9]);
         assert(local[2] == NODES[2]);
         NODES[6]  = local[4];

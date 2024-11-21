@@ -19,7 +19,8 @@
 #pragma once
 
 #include "common/common.h"
-#include "Mesh.h"
+
+struct Mesh;
 
 E_Int Q9_refine(E_Int quad, Mesh *M);
 
@@ -27,15 +28,4 @@ E_Int Q6_refine(E_Int quad, Mesh *M);
 
 void Q4_reorder(E_Int *pn, E_Int reorient, E_Int i0, E_Int local[4]);
 
-inline
-void refine_face_iso(E_Int face, Mesh *M)
-{
-    switch (M->ftype[face]) {
-        case QUAD:
-            Q9_refine(face, M);
-            break;
-        default:
-            assert(0);
-            break;
-    }
-}
+void refine_face_iso(E_Int face, Mesh *M);
