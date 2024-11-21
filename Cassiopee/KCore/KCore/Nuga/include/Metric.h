@@ -112,7 +112,7 @@ namespace DELAUNAY{
     inline bool aniso_smooth(size_type Ni, size_type Nj, E_Float gr);
     
     bool is_valid() {
-      bool res= true; E_Int i=0; 
+      bool res=true; E_Int i=0; 
       for (; (i < _field.size()) && res; ++i) res &= isValidMetric(_field[i]); 
       if (i != _field.size()) std::cout << "failed at " << i-1 << std::endl; 
       return res;
@@ -121,7 +121,7 @@ namespace DELAUNAY{
     inline void convertIsoToAniso(const std::vector<E_Float>& isoM, std::vector<T>& anisoM);
     inline void convertIsoToAniso(const std::vector<E_Float>& isoM); //set the aniso field in this->_field
 
-    static E_Int eig(std::array<E_Float, 9> N, E_Float lambda[3], E_Float[3][3]);
+    static E_Int eig(std::array<E_Float, 9>& N, E_Float lambda[3], E_Float v[3][3]);
 
 #ifdef DEBUG_METRIC
   void append_unity_ellipse(const K_FLD::FloatArray& c, E_Int i, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, E_Int Nc = -1);
@@ -161,9 +161,9 @@ namespace DELAUNAY{
 
   public:
 
-    ///
+    /// min h size
     E_Float                   _hmin;
-    ///
+    /// max h size
     E_Float                   _hmax;
     /// Metric vector defined at each node in pos.
     field_type                _field;
@@ -171,6 +171,14 @@ namespace DELAUNAY{
     K_FLD::FloatArray*        _pos;
     ///
     Interpolator<T>*          _interpol;
+    // internal - to avoid stack allocation 
+    // (metric must be local to thread in openmp)  
+    //E_Float                   _pta2[2];
+    //E_Float                   _ptb2[2];
+    //E_Float                   _ptc2[2];
+    //E_Float                   _pt3[3];
+    //E_Float                   _pt9[9];
+    
   public:
     E_Int _N0;
     
@@ -178,11 +186,10 @@ namespace DELAUNAY{
  
   template <typename T> inline
   E_Int
-  VarMetric<T>::eig(std::array<E_Float, 9> N, E_Float lambda[3], E_Float v[3][3])
+  VarMetric<T>::eig(std::array<E_Float, 9>& N, E_Float lambda[3], E_Float v[3][3])
   {
-    E_Float mat[9];
-   for (int i = 0; i < 9; i++) mat[i] = N[i];
-   return NUGA::eigenv(0, mat, lambda, v);
+    E_Float* mat = N.data();
+    return NUGA::eigenv(0, mat, lambda, v);
   }
 
   /// 
@@ -203,7 +210,6 @@ namespace DELAUNAY{
   bool
   VarMetric<Aniso3D>::isValidMetric(const E_Float* mi)
   {
-
     const E_Float& a = mi[0];
     const E_Float& b = mi[1];
     const E_Float& c = mi[2];
@@ -216,7 +222,7 @@ namespace DELAUNAY{
     return (a > 0.) && (a*d > b*b) && (det > 0.);
   }
   
-    template<> inline
+  template<> inline
   bool
   VarMetric<E_Float>::isValidMetric(const E_Float& mi)
   {
@@ -254,7 +260,8 @@ namespace DELAUNAY{
   
   template<> inline
   bool
-  VarMetric<Aniso2D>::isIsotropic(const Aniso2D& mi) {
+  VarMetric<Aniso2D>::isIsotropic(const Aniso2D& mi) 
+  {
     const E_Float& a11 = mi[0];
     const E_Float& a12 = mi[1];
     const E_Float& a22 = mi[2];
@@ -295,7 +302,7 @@ namespace DELAUNAY{
     const E_Float& m33 = _field[Ni][5];
 
     E_Float l = m11*dir[0]*dir[0] + m22*dir[1]*dir[1] + m33*dir[2]*dir[2] +
-		2.*m12*dir[0]*dir[1] + 2.*m13*dir[0]*dir[2] + 2.*m23*dir[1]*dir[2];
+    2.*m12*dir[0]*dir[1] + 2.*m13*dir[0]*dir[2] + 2.*m23*dir[1]*dir[2];
 
     return ::sqrt(l);
   }
@@ -313,7 +320,7 @@ namespace DELAUNAY{
     
     E_Float rr = (std::min(h1old2, h2old2)/std::max(h1old2, h2old2));
     
-    return (  rr < r*r );
+    return ( rr < r*r );
   }
     
 #ifdef DEBUG_METRIC
@@ -679,7 +686,7 @@ namespace DELAUNAY{
      // Now take the user metric into account at each node when it's valid.
      // Only the first row of the input matrix is taken into account.
      //compute_intersection(_metric, metric);
-     setUserMetric (metric, _field);
+     setUserMetric(metric, _field);
 
    }
 
@@ -724,9 +731,6 @@ namespace DELAUNAY{
     E_Float
     VarMetric<T>::lengthEval(size_type Ni, const T& mi, size_type Nj, const T& mj)
   {
-    E_Float v[2]; // allocation sur la stack a supprimer
-    E_Float vi[2];
-    E_Float vj[2];
     E_Float r1;
     E_Float r2;
     r1 = r2 = 0.;
@@ -735,7 +739,10 @@ namespace DELAUNAY{
     assert (isValidMetric(mi));
     assert (isValidMetric(mj));
 #endif
-    
+    E_Float v[2]; E_Float vi[2]; E_Float vj[2];
+    //E_Float* v = _pta2;
+    //E_Float* vi = _ptb2;
+    //E_Float* vj = _ptc2;
     NUGA::diff<2> (_pos->col(Nj), _pos->col(Ni), v);
 
     vi[0] = mi[0]*v[0] + mi[1]*v[1];
@@ -794,9 +801,6 @@ namespace DELAUNAY{
   VarMetric<DELAUNAY::Aniso3D>::lengthEval(size_type Ni, const DELAUNAY::Aniso3D& mi,
     size_type Nj, const DELAUNAY::Aniso3D& mj)
   {
-    E_Float v[3]; // allocation sur la stack a supprimer
-    E_Float vi[3];
-    E_Float vj[3];
     E_Float r1;
     E_Float r2;
     r1 = r2 = 0.;
@@ -805,6 +809,11 @@ namespace DELAUNAY{
     assert (isValidMetric(mi));
     assert (isValidMetric(mj));
 #endif
+
+    E_Float v[2]; E_Float vi[2]; E_Float vj[2];
+    //E_Float* v = _pta2;
+    //E_Float* vi = _ptb2;
+    //E_Float* vj = _ptc2;
 
     NUGA::diff<3> (_pos->col(Nj), _pos->col(Ni), v);
 
@@ -856,7 +865,7 @@ namespace DELAUNAY{
   {
     E_Float lmax, lmin;
     _field[Ni].eigen_values(lmax, lmin);
-    return 1. / ::sqrt(lmin);
+    return 1./::sqrt(lmin);
   }
   
   ///
@@ -889,7 +898,8 @@ namespace DELAUNAY{
     tP(1,1) = P(1,1) = v1[1];
     
     // X expressed in BD
-    E_Float Xbd[2];
+    //E_Float* Xbd = _pta2;
+    E_Float Xbd[2]; 
     Xbd[0] = tP(0,0) * NiX[0] + tP(0,1) * NiX[1];
     Xbd[1] = tP(1,0) * NiX[0] + tP(1,1) * NiX[1];
     
@@ -978,10 +988,11 @@ namespace DELAUNAY{
 //    if (isValidMetric(_field[Nj]) && !isWeakAniso(Nj, 0.25))
 //      directional_metric_reduce(Nj, hjnew2, normed_dir); //orientation of NiNj does not matter
 //    else //isotropic reduction
+    E_Float t = hjold2 / hjnew2;
     {
-      _field[Nj][0] *= ( hjold2 / hjnew2) ;
-      _field[Nj][2] *= ( hjold2 / hjnew2);
-      _field[Nj][1] *= ( hjold2 / hjnew2) ;
+      _field[Nj][0] *= t;
+      _field[Nj][2] *= t;
+      _field[Nj][1] *= t;
     }
   }
 
@@ -993,8 +1004,9 @@ namespace DELAUNAY{
     //    if (isValidMetric(_field[Nj]) && !isWeakAniso(Nj, 0.25))
     //      directional_metric_reduce(Nj, hjnew2, normed_dir); //orientation of NiNj does not matter
     //    else //isotropic reduction
+    E_Float t = hjold2 / hjnew2;
     {
-      for (size_t k=0; k < 6; ++k) _field[Nj][k] *= (hjold2 / hjnew2);
+      for (size_t k=0; k < 6; ++k) _field[Nj][k] *= t;
     }
   }
 
@@ -1024,16 +1036,16 @@ namespace DELAUNAY{
     E_Float DET = a11*(a33*a22 - a32*a23) - a21*(a33*a12 - a32*a13) + a31*(a23*a12 - a22*a13);
 
     // assert DET != 0...
-	  
-    inv[0][0] = (a33*a22 - a32*a23) / DET;
-    inv[0][1] = (a32*a13 - a33*a12) / DET;
-    inv[0][2] = (a23*a12 - a22*a13) / DET;
-    inv[1][0] = (a31*a23 - a33*a21) / DET;
-    inv[1][1] = (a33*a11 - a31*a13) / DET;
-    inv[1][2] = (a21*a13 - a23*a11) / DET;
-    inv[2][0] = (a32*a21 - a31*a22) / DET;
-    inv[2][1] = (a31*a12 - a32*a11) / DET;
-    inv[2][2] = (a22*a11 - a21*a12) / DET;
+    E_Float deti = 1./DET;
+    inv[0][0] = (a33*a22 - a32*a23) * deti;
+    inv[0][1] = (a32*a13 - a33*a12) * deti;
+    inv[0][2] = (a23*a12 - a22*a13) * deti;
+    inv[1][0] = (a31*a23 - a33*a21) * deti;
+    inv[1][1] = (a33*a11 - a31*a13) * deti;
+    inv[1][2] = (a21*a13 - a23*a11) * deti;
+    inv[2][0] = (a32*a21 - a31*a22) * deti;
+    inv[2][1] = (a31*a12 - a32*a11) * deti;
+    inv[2][2] = (a22*a11 - a21*a12) * deti;
   }
   
   ///
@@ -1041,10 +1053,10 @@ namespace DELAUNAY{
   void
   VarMetric<Aniso3D>::computeMetric(size_type N, size_type Ni, size_type Nj, E_Float r)
   {
-    // simulaneous reduction
+    // simultaneous reduction
     const auto& Mi = _field[Ni];
     const auto& Mj = _field[Nj];
-	   auto& M = _field[N];
+    auto& M = _field[N];
 
     if (Mi == Mj) 
     {
@@ -1053,7 +1065,9 @@ namespace DELAUNAY{
     }
 
     std::array<E_Float, 9> NN = Mi.inverse() * Mj;
-    E_Float lambda[3], v[3][3];
+    //E_Float* lambda = _pt3;
+    E_Float lambda[3];
+    E_Float v[3][3];
     eig(NN, lambda, v);
 
     // diagonal terms of Mi and Mj in (v0, v1, v2) basis
@@ -1064,7 +1078,7 @@ namespace DELAUNAY{
     E_Float la0 = (Mi[0]*v00 + Mi[1]*v01 + Mi[2]*v02) * v00 + (Mi[1]*v00 + Mi[3]*v01 + Mi[4]*v02) * v01 + (Mi[2]*v00 + Mi[4]*v01 + Mi[5]*v02) * v02;
     E_Float la1 = (Mi[0]*v10 + Mi[1]*v11 + Mi[2]*v12) * v10 + (Mi[1]*v10 + Mi[3]*v11 + Mi[4]*v12) * v11 + (Mi[2]*v10 + Mi[4]*v11 + Mi[5]*v12) * v12;
     E_Float la2 = (Mi[0]*v20 + Mi[1]*v21 + Mi[2]*v22) * v20 + (Mi[1]*v20 + Mi[3]*v21 + Mi[4]*v22) * v21 + (Mi[2]*v20 + Mi[4]*v21 + Mi[5]*v22) * v22;
-	
+  
     E_Float mu0 = (Mj[0]*v00 + Mj[1]*v01 + Mj[2]*v02) * v00 + (Mj[1]*v00 + Mj[3]*v01 + Mj[4]*v02) * v01 + (Mj[2]*v00 + Mj[4]*v01 + Mj[5]*v02) * v02;
     E_Float mu1 = (Mj[0]*v10 + Mj[1]*v11 + Mj[2]*v12) * v10 + (Mj[1]*v10 + Mj[3]*v11 + Mj[4]*v12) * v11 + (Mj[2]*v10 + Mj[4]*v11 + Mj[5]*v12) * v12;
     E_Float mu2 = (Mj[0]*v20 + Mj[1]*v21 + Mj[2]*v22) * v20 + (Mj[1]*v20 + Mj[3]*v21 + Mj[4]*v22) * v21 + (Mj[2]*v20 + Mj[4]*v21 + Mj[5]*v22) * v22;
@@ -1073,7 +1087,7 @@ namespace DELAUNAY{
     E_Float L0 = la0*::pow(mu0 / la0, r);
     E_Float L1 = la1*::pow(mu1 / la1, r);
     E_Float L2 = la2*::pow(mu2 / la2, r);
-	
+
     // M = inv(v) * Diag(L0,L1,L2) * inv(transpose(v))
     E_Float iv[3][3];
     inverse_matrix(v, iv);
@@ -1092,7 +1106,7 @@ namespace DELAUNAY{
     M[0] = iv[0][0]*itv[0][0] + iv[0][1]*itv[1][0] + iv[0][2]*itv[2][0];
     M[1] = iv[0][0]*itv[0][1] + iv[0][1]*itv[1][1] + iv[0][2]*itv[2][1];
     M[2] = iv[0][0]*itv[0][2] + iv[0][1]*itv[1][2] + iv[0][2]*itv[2][2];
-	
+  
     M[3] = iv[1][0]*itv[0][1] + iv[1][1]*itv[1][1] + iv[1][2]*itv[2][1];
     M[4] = iv[1][0]*itv[0][2] + iv[1][1]*itv[1][2] + iv[1][2]*itv[2][2];
 
@@ -1112,14 +1126,15 @@ namespace DELAUNAY{
 
     if (Mi == Mj) return false;
 
+    //E_Float* NiNj = _pt3;
     E_Float NiNj[3];
     NUGA::diff<3>(_pos->col(Nj), _pos->col(Ni), NiNj);
 
-   // do Mi
-   E_Float lP = get_h2_along_dir(Ni, NiNj);
-   E_Float fact = ::pow(1. + gr*lP, -2);
-   auto Mjf = Mj * fact;
-	 
+    // do Mi
+    E_Float lP = get_h2_along_dir(Ni, NiNj);
+    E_Float fact = ::pow(1. + gr*lP, -2);
+    auto Mjf = Mj * fact;
+   
     std::array<E_Float, 9> NN = Mi.inverse() * Mjf;
     E_Float lambda[3], v[3][3];
     eig(NN, lambda, v);
@@ -1166,7 +1181,8 @@ namespace DELAUNAY{
 
     assert(isValidMetric(Mii));
 
-    if (Mi != Mii) {
+    if (Mi != Mii) 
+    {
       Mi = Mii;
       return true;
     }
@@ -1306,20 +1322,20 @@ namespace DELAUNAY{
     K_MESH::NO_Edge e;
     E_Int stride, n0, n1, PGi, i;
 
-   for (PGi = 0; PGi < PGs.size(); PGi++) 
-   {
-     stride = PGs.stride(PGi);
-     const E_Int *pN = PGs.get_facets_ptr(PGi);
-     for (i = 0; i < stride; i++) 
-     {
-       n0 = pN[i]-1; n1 = pN[(i+1)%stride]-1;
-       e.setNodes(n0, n1);
-       edges.insert(e);
-     }
-   }
+    for (PGi = 0; PGi < PGs.size(); PGi++) 
+    { 
+      stride = PGs.stride(PGi);
+      const E_Int *pN = PGs.get_facets_ptr(PGi);
+      for (i = 0; i < stride; i++) 
+      {
+        n0 = pN[i]-1; n1 = pN[(i+1)%stride]-1;
+        e.setNodes(n0, n1);
+        edges.insert(e);
+      }
+    }
     
-   //std::cout << "nedges: " << edges.size() << std::endl;
-   smoothing_loop(edges, gr, itermax, N0);
+    //std::cout << "nedges: " << edges.size() << std::endl;
+    smoothing_loop(edges, gr, itermax, N0);
   }
   
   ///

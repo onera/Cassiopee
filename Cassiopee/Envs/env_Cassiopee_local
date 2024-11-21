@@ -304,6 +304,7 @@ else if ($MAC == "visung") then
         module load emacs/27.2-gnu831
         module load subversion/1.14.1-gnu831
         module load socle-cfd/6.0-intel2220-impi
+        setenv I_MPI_FABRICS shm
         setenv PRODMODE 1
         setenv PYTHONEXE python3
         setenv OMP_NUM_THREADS 72

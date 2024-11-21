@@ -42,7 +42,7 @@ ICapsule ICapsule::do_it(const Karray &marray,
     //for (size_t i = 0; i < 4; i++) {
     for (size_t i = 0; i < sarrays.size(); i++) {
 
-        printf("S%lu\n", i);
+        printf("S%zu\n", i);
 
         // Create IMesh S
         IMesh S(sarrays[i]);
@@ -285,7 +285,7 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
 
     //for (E_Int i = 25; i < 26; i++) {
     for (size_t i = 0; i < Ss.size(); i++) {
-        printf("S%lu\n", i);
+        printf("S%zu\n", i);
 
         Mf.make_bbox();
         Mf.hash_faces();
@@ -410,7 +410,7 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
 
     for (size_t i = 0; i < Ss.size(); i++) {
         
-        printf("Intersecting slave %lu\n", i);
+        printf("Intersecting slave %zu\n", i);
 
         Mf.make_bbox();
         Mf.hash_faces();

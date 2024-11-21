@@ -70,7 +70,8 @@ static double Id[3][3] = {
  * Find root(s) of a polynomial of degree 3: \f$P(x) = x^3+bx^2+cx+d\f$.
  *
  */
-static int newton3(double p[4],double x[3]) {
+static int newton3(double p[4], double x[3]) 
+{
   double      b,c,d,da,db,dc,epsd;
   double      delta,fx,dfx,dxx;
   double      fdx0,fdx1,dx0,dx1,x1,x2;
@@ -343,7 +344,8 @@ int check_accuracy(double mat[6],double lambda[3], double v[3][3],
  * \remark the i^{th} eigenvector is stored in v[i][.].
  *
  */
-inline int eigenv(int symmat,double *mat,double lambda[3],double v[3][3]) {
+inline int eigenv(int symmat,double *mat,double lambda[3],double v[3][3]) 
+{
   double    a11,a12,a13,a21,a22,a23,a31,a32,a33;
   double    aa,bb,cc,dd,ee,ii,vx1[3],vx2[3],vx3[3],dd1,dd2,dd3;
   double    maxd,maxm,valm,p[4],w1[3],w2[3],w3[3];

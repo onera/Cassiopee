@@ -43,7 +43,7 @@ def setInfo(event=None):
 # Write CPlot command
 #==============================================================================
 def exportInfo(event=None):
-    com = 'display( '
+    com = 'CPlot.display( t, '
     posCam = CPlot.getState('posCam'); com += 'posCam=%s'%str(posCam)
     posEye = CPlot.getState('posEye'); com += ', posEye=%s'%str(posEye)
     dirCam = CPlot.getState('dirCam'); com += ', dirCam=%s'%str(dirCam)

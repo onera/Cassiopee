@@ -6,7 +6,7 @@ void Smesh::write_edges(const char *fname, const std::set<E_Int> &eids) const
     assert(fh);
     
     fprintf(fh, "POINTS\n");
-    fprintf(fh, "%lu\n", eids.size()*2);
+    fprintf(fh, "%zu\n", eids.size()*2);
     for (E_Int eid : eids) {
         const auto &e = E[eid];
         E_Int p = e.p;
@@ -15,9 +15,9 @@ void Smesh::write_edges(const char *fname, const std::set<E_Int> &eids) const
         fprintf(fh, "%f %f %f\n", X[q], Y[q], Z[q]);
     }
     fprintf(fh, "EDGES\n");
-    fprintf(fh, "%lu\n", eids.size());
+    fprintf(fh, "%zu\n", eids.size());
     for (size_t i = 0; i < 2*eids.size(); i++) {
-        fprintf(fh, "%lu ", i);
+        fprintf(fh, "%zu ", i);
     }
     fprintf(fh, "\n");
 
@@ -30,7 +30,7 @@ void Smesh::write_points(const char *fname, const std::vector<E_Int> &pids) cons
     assert(fh);
 
     fprintf(fh, "POINTS\n");
-    fprintf(fh, "%lu\n", pids.size());
+    fprintf(fh, "%zu\n", pids.size());
     for (E_Int pid : pids){
         fprintf(fh, "%f %f %f\n", X[pid], Y[pid], Z[pid]);
     }
@@ -44,7 +44,7 @@ void Smesh::write_points(const char *fname, const std::set<E_Int> &pids) const
     assert(fh);
 
     fprintf(fh, "POINTS\n");
-    fprintf(fh, "%lu\n", pids.size());
+    fprintf(fh, "%zu\n", pids.size());
     for (E_Int pid : pids){
         fprintf(fh, "%f %f %f\n", X[pid], Y[pid], Z[pid]);
     }
@@ -97,7 +97,7 @@ void Smesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
-    fprintf(fh, "%lu\n", new_pids.size());
+    fprintf(fh, "%zu\n", new_pids.size());
 
     std::vector<E_Float> nX(NP), nY(NP), nZ(NP);
     for (const auto &pids : new_pids) {
@@ -113,7 +113,7 @@ void Smesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
     }
 
     fprintf(fh, "INDPG\n");
-    fprintf(fh, "%lu\n", new_eids.size()+1);
+    fprintf(fh, "%zu\n", new_eids.size()+1);
     E_Int sizeNGon = -2;
     for (size_t i = 0; i < new_eids.size() + 1; i++) {
         sizeNGon += 2;

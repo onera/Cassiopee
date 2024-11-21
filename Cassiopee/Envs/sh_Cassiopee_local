@@ -231,10 +231,7 @@ elif [ "$MAC" = "visung" ]; then
     export PYTHONEXE=python3
     export OMP_NUM_THREADS=72
     export PRODMODE=1
-    unset I_MPI_FABRICS_LIST
-    unset I_MPI_FABRICS
-    unset I_MPI_TCP_NETMASK
-    unset I_MPI_PMI_LIBRARY
+    export I_MPI_FABRICS=shm
 
 elif [ "$MAC" = "austri" ]; then
 #----------------------------- austri -----------------------------------------
