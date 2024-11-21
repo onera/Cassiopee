@@ -62,9 +62,9 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
 
-    E_Float *Xs = sarray.X();
-    E_Float *Ys = sarray.Y();
-    E_Float *Zs = sarray.Z();
+    E_Float *Xs = sarray.x;
+    E_Float *Ys = sarray.y;
+    E_Float *Zs = sarray.z;
 
     // Last k-plane outside of M
     std::vector<E_Int> kmax(nij, -1);
@@ -400,9 +400,9 @@ E_Int get_kmax(IMesh *M, Karray& sarray)
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
 
-    E_Float *Xs = sarray.X();
-    E_Float *Ys = sarray.Y();
-    E_Float *Zs = sarray.Z();
+    E_Float *Xs = sarray.x;
+    E_Float *Ys = sarray.y;
+    E_Float *Zs = sarray.z;
 
     E_Int kmax = -1;
 
@@ -434,9 +434,9 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
     E_Int nk = sarray.nk;
     E_Int nij = ni * nj;
 
-    E_Float *Xs = sarray.X();
-    E_Float *Ys = sarray.Y();
-    E_Float *Zs = sarray.Z();
+    E_Float *Xs = sarray.x;
+    E_Float *Ys = sarray.y;
+    E_Float *Zs = sarray.z;
 
     // Indices of points to be projected
     std::vector<E_Int> proj_points;

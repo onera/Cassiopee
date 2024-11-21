@@ -106,9 +106,9 @@ PyObject *K_XCORE::IntersectMesh_Merge(PyObject *self, PyObject *args)
     std::set<Vtx> points;
 
     // Master points
-    E_Float *X = marray.X();
-    E_Float *Y = marray.Y();
-    E_Float *Z = marray.Z();
+    E_Float *X = marray.x;
+    E_Float *Y = marray.y;
+    E_Float *Z = marray.z;
 
     printf("M points: %d\n", marray.npts);
     printf("S points: %d\n", sarray.npts);
@@ -128,9 +128,9 @@ PyObject *K_XCORE::IntersectMesh_Merge(PyObject *self, PyObject *args)
     assert((size_t)NP == points.size());
 
     // Slave points
-    X = sarray.X();
-    Y = sarray.Y();
-    Z = sarray.Z();
+    X = sarray.x;
+    Y = sarray.y;
+    Z = sarray.z;
 
     for (E_Int i = 0; i < sarray.npts; i++) {
         Vtx xyz(X[i], Y[i], Z[i]);
@@ -151,9 +151,9 @@ PyObject *K_XCORE::IntersectMesh_Merge(PyObject *self, PyObject *args)
 
     // Change the points ids within marray
 
-    X = marray.X();
-    Y = marray.Y();
-    Z = marray.Z();
+    X = marray.x;
+    Y = marray.y;
+    Z = marray.z;
 
     for (E_Int fid = 0; fid < marray.nfaces(); fid++) {
         E_Int np = -1;
@@ -169,9 +169,9 @@ PyObject *K_XCORE::IntersectMesh_Merge(PyObject *self, PyObject *args)
 
     // Change the points within sarray
 
-    X = sarray.X();
-    Y = sarray.Y();
-    Z = sarray.Z();
+    X = sarray.x;
+    Y = sarray.y;
+    Z = sarray.z;
 
     for (E_Int fid = 0; fid < sarray.nfaces(); fid++) {
         E_Int np = -1;

@@ -19,9 +19,9 @@ DynMesh::DynMesh(Karray *karray)
     X.resize(np);
     Y.resize(np);
     Z.resize(np);
-    memcpy(X.data(), karray->X(), np * sizeof(E_Float));
-    memcpy(Y.data(), karray->Y(), np * sizeof(E_Float));
-    memcpy(Z.data(), karray->Z(), np * sizeof(E_Float));
+    memcpy(X.data(), karray->x, np * sizeof(E_Float));
+    memcpy(Y.data(), karray->y, np * sizeof(E_Float));
+    memcpy(Z.data(), karray->z, np * sizeof(E_Float));
 
     F.reserve(nf);
 
