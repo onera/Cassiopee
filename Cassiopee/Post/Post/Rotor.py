@@ -696,6 +696,74 @@ def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
 
     return None
 
+#============================================================
+# Clean stress for KIM post-processing
+# IN: teff: stress tree
+# IN: cpt: flowsol and grodcoordinate container number
+#============================================================
+def cleanStress(teff, cpt):
+    tclean = Internal.copyRef(teff)
+
+    flowSol = Internal.getNodeFromName(tclean, Internal.__FlowSolutionCenters__)
+    varnames = [z[0] for z in flowSol[2][1:]]
+    for v in varnames:
+        if v != 'Pressure': Internal._rmNodesByName(tclean, v)
+
+    Internal._rmNodesByName(tclean, 'CARTESIAN')
+    Internal._rmNodesByName(tclean, 'FLEX')
+    Internal._rmNodesByName(tclean, '.Solver#ownData')
+    Internal._rmNodesByName(tclean, 'ReferenceState')
+    Internal._rmNodesByName(tclean, 'FlowEquationSet')
+    Internal._rmNodesByName(tclean, 'TimeMotion')           
+    Internal._rmNodesByName(tclean, Internal.__GridCoordinates__+"#Init")
+
+    Internal._renameNode(tclean, Internal.__GridCoordinates__, Internal.__GridCoordinates__+"#%d"%cpt)
+    Internal._renameNode(tclean, Internal.__FlowSolutionCenters__, Internal.__FlowSolutionCenters__+"#%d"%cpt)
+
+    listOfZones = []
+    for b in Internal.getBases(tclean):
+        listOfZones = listOfZones+Internal.getZones(b)
+
+    tclean = C.newPyTree(['Base', listOfZones])
+
+    return tclean
+
+#============================================================
+# Concatenate stress files (F-order) for KIM post-processing
+# IN: t1, t2: stress trees
+# IN: cpt: flowsol and grodcoordinate container number
+#============================================================
+def concatenateStress(t1, t2, cpt):
+    for z1, z2 in zip(Internal.getZones(t1), Internal.getZones(t2)):
+        coordinates1 = Internal.getNodeFromName(z1, Internal.__GridCoordinates__+"#%d"%cpt)
+        coordinates2 = Internal.getNodeFromName(z2, Internal.__GridCoordinates__+"#%d"%cpt)
+
+        flowSol1 = Internal.getNodeFromName(z1, Internal.__FlowSolutionCenters__+"#%d"%cpt)
+        flowSol2 = Internal.getNodeFromName(z2, Internal.__FlowSolutionCenters__+"#%d"%cpt)
+
+        for cname in ['CoordinateX', 'CoordinateY', 'CoordinateZ']:
+            c1 = Internal.getNodeFromName(coordinates1, cname)[1]
+            c2 = Internal.getNodeFromName(coordinates2, cname)[1]
+            if numpy.shape(c1) == numpy.shape(c2):
+                c1 = numpy.stack((c1,c2), axis=2)
+            else:
+                c1 = numpy.concatenate((c1,c2[:,:,numpy.newaxis]), axis=2)
+
+            Internal.getNodeFromName(coordinates1, cname)[1] = numpy.asfortranarray(c1)
+
+        for vname in ['Pressure']:
+            v1 = Internal.getNodeFromName(flowSol1, vname)[1]
+            v2 = Internal.getNodeFromName(flowSol2, vname)[1]
+
+            if numpy.shape(v1) == numpy.shape(v2):
+                v1 = numpy.stack((v1,v2), axis=2)
+            else:
+                v1 = numpy.concatenate((v1,v2[:,:,numpy.newaxis]), axis=2)
+
+            Internal.getNodeFromName(flowSol1, vname)[1] = numpy.asfortranarray(v1)
+
+    return t1
+
 #=========================================================================
 # Extrait des slices a certains radius
 # Calcul Kp, Cf, CnM2, CmM2
