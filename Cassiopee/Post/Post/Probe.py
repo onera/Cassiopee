@@ -39,7 +39,7 @@ class Probe:
         self._blockName = None
         # the proc blockName is on
         self._proc = 0
-        
+
         # -- data probe mode=3 --
         self._ts = None
         self._graph = None
@@ -90,7 +90,7 @@ class Probe:
             self._posX = X[0]
             self._posY = X[1]
             self._posZ = X[2]
-        
+
             if t is not None and loc is not None:
                 self.locateProbeXYZ(t, X, loc)
             else: print("Warning: probe: need t for probe with point coordinates.")
@@ -111,9 +111,9 @@ class Probe:
         # Empilement de zones
         else: 
             self._mode = 2
-        
+
         if Cmpi.rank == 0: print('Info: probe is in mode ', self._mode)
-        
+
         # Cree la probe et on relit le fichier uniquement en mode=0 et 1
         if self._mode == 0 or self._mode == 1 or self._mode == 4:
             if self._proc is not None and self._fields is not None:
@@ -123,7 +123,7 @@ class Probe:
                 self.checkFile(append=self._append)
             #if t is not None and fields is not None: 
             #    self.checkVariables(t, fields)
-        
+
     # examine la localisation des champs
     # IN: fields
     def getFieldLoc(self, fields):
@@ -147,7 +147,7 @@ class Probe:
         P = D.point(X)
         zones = Internal.getZones(t)
         dist = 1.e16; blockName = None; ind = 0
-        
+
         for z in zones:
             if loc == 'centers': zc = C.node2Center(z)
             else: zc = z
@@ -164,7 +164,7 @@ class Probe:
             if i is not None and i < dist: 
                 dist = i; proc = p
         if Cmpi.rank == 0: print('Info: probe found on proc: %d on block: %s.'%(proc,blockName))
-        
+
         [ind,blockName,dist,proc] = Cmpi.bcast([ind,blockName,dist,proc], root=proc)
 
         # set
@@ -173,7 +173,7 @@ class Probe:
         self._dist = dist
         self._proc = proc
         return None
-        
+
     # locate probe from ind and blockName
     # IN: t: pyTree
     # IN: ind, blockName
@@ -271,7 +271,7 @@ class Probe:
                 self._probeZones.append(zp)
                 C._initVars(zp, '{time}=-1.') # time sentinel
                 for v in self._fields: C._initVars(zp, v, 0.)
-        
+
         elif self._mode == 3 and source is not None: # surface permeable
             zones = Internal.getZones(source)
             self._probeZones = []
@@ -300,7 +300,7 @@ class Probe:
         tcs = Internal.copyRef(tc)
         Xmpi._setInterpData2(self._ts, tcs, loc='nodes', cartesian=cartesian)
         return tcs
- 
+
     # Check file, if it doesnt exist, write probe zone in it
     # else get the filecur
     # IN: _proc: proc of probe
@@ -313,7 +313,7 @@ class Probe:
                 if Cmpi.rank == 0: isFilePresent = os.path.exists(self._fileName)
                 else: isFilePresent = None
                 isFilePresent = Cmpi.bcast(isFilePresent, root=0)
-    
+
             if isFilePresent:
                 if self._mode == 0 or self._mode == 1:
                     tl = Distributed.convertFile2SkeletonTree(self._fileName)
@@ -321,7 +321,7 @@ class Probe:
                     tl = C.convertFile2PyTree(self._fileName)
                 else: 
                     tl = Cmpi.convertFile2SkeletonTree(self._fileName)
-                    
+
                 zones = Internal.getZones(tl)
                 if len(zones) > 0:
                     nodes = Internal.getNodesFromName(zones[0], 'GridCoordinates#*')
@@ -338,7 +338,7 @@ class Probe:
                 C.convertPyTree2File(self._probeZones, self._fileName)
             else:
                 Cmpi.convertPyTree2File(self._probeZones, self._fileName)
-                
+
             self._filecur = 0
             return None
 
@@ -357,10 +357,10 @@ class Probe:
                     if D2.getProc(z) == Cmpi.rank: bl[2].append(z)
                 else:bl[2].append(z)
         tl = to
-            
+
         self._probeZones = Internal.getZones(tl)
 
-                     
+
         # load GC
         zones = Internal.getZones(tl)
         paths = []
@@ -372,7 +372,7 @@ class Probe:
             for c, z in enumerate(self._probeZones):
                 cont = Internal.getNodeFromName2(z, 'GridCoordinates')
                 if cont is not None: cont[2] = nodes[c][2]
-        
+
         # load FS
         paths = []
         for z in zones:
@@ -383,7 +383,7 @@ class Probe:
             for c, z in enumerate(self._probeZones):
                 cont = Internal.getNodeFromName2(z, 'FlowSolution')
                 if cont is not None: cont[2] = nodes[c][2]
-        
+
         # load FS center
         paths = []
         for z in zones:
@@ -456,14 +456,14 @@ class Probe:
 
         if self._mode == 0 or self._mode == 1: # single point
             self.extract1(t, time)
-            
+
         elif self._mode == 2: # single zone
             self.extract2(t, time)
-            
+
         elif self._mode == 3:
             # attention ici : t is tcs
             self.extract3(t, time, onlyTransfer)
-            
+
         elif self._mode == 4: # store values that are given
             self.extract4(t, time, list_vals)
         return None
@@ -567,7 +567,7 @@ class Probe:
             self.createProbeZones(self._ts)
             self.checkFile(append=self._append)
             for v in self._fields: C._initVars(self._ts, v, 0.)
-        
+
         Cmpi.barrier()
         # ts: permeable surface
         # tcs: tc for surface interp must be set
@@ -577,7 +577,7 @@ class Probe:
             if Cmpi.size == 1:
                 for i in self._procDicts:
                     if self._procDicts[i] < 0: self._procDicts[i] = 0 
-        
+
         Cmpi.barrier()    
         if self._graph is None:
             tcsBB = Cmpi.createBBoxTree(tcs)
@@ -623,7 +623,7 @@ class Probe:
 
         self._icur += 1
         if self._icur >= self._bsize: self.flush()
-                
+
         return None
 
     def extract4(self, t, time,list_vals):
@@ -639,7 +639,7 @@ class Probe:
         if self._icur >= self._bsize: self.flush()
         return None
 
-    
+
     def share(self, tcs, tc):
         """Share coordinates and fields between tcs and tc."""
         zones = Internal.getZones(tc)
@@ -740,7 +740,7 @@ class Probe:
                     nodes += [fcc]
                     paths += ['CGNSTree/Base/%s/FlowSolution#Centers'%pzone[0]]
                 Distributed.writeNodesFromPaths(self._fileName, paths, nodes, None, -1, 1)
-        
+
         return None
 
     # read all probe times as a single zone
@@ -778,7 +778,7 @@ class Probe:
                 isFC = True
                 paths += ['CGNSTree/Base/%s/FlowSolution#Centers#%d'%(z[0], cont)]
             nodes2 = Distributed.readNodesFromPaths(self._fileName, paths)
-            
+
             dimz = Internal.getZoneDim(z)
             nrec = dimz[1]; ni = dimz[2]; nj = dimz[3]
             if self.getFieldLoc(self._fields) == 'centers': # attention!
@@ -799,7 +799,7 @@ class Probe:
                     ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
                     oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
                     oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
-                
+
                 if isFS:
                     pos = 0
                     if isGC: pos = 1
@@ -940,7 +940,7 @@ class Probe:
                     else: jj = i//ni; ii = i-jj*ni
                     ptx[start:start+size,c] = ptx2[0:size,ii,jj]
         return None
-    
+
     # mode 2: lit un container, retourne un numpy du champ pour 
     # chaque probe zone (ncells, ntime), concatene avec le precedent
     def readCont2(self, cont, field, pin):
@@ -955,10 +955,10 @@ class Probe:
 
         # read container
         out = self.read(cont=cont)
-    
+
         # concatenate all times in p
         zones = Internal.getZones(out)
-    
+
         # get all probe zone names and number of time
         ntime = 0
         zoneNames = {}

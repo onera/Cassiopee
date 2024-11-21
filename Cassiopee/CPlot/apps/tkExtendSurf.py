@@ -29,7 +29,7 @@ def extendSurf():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if z[0] == sname[1]: surfaces.append(z)
-                    
+
     # - Hauteur de chaque maille -
     dhloc = CTK.varsFromWidget(VARS[1].get(), type=1); dhloc = dhloc[0]
     N = CTK.varsFromWidget(VARS[2].get(), type=2); N = N[0]
@@ -59,12 +59,12 @@ def extendSurf():
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         CTK.t[2][nob][2][noz] = zlist[c]; c += 1
-        
+
     CTK.TXT.insert('START', 'Surface extension done.\n')    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 def setSurface():
     if (CTK.t == []): return
@@ -96,7 +96,7 @@ def createApp(win):
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - VARS -
     # -0- Surface to extend - 
     V = TK.StringVar(win); V.set(''); VARS.append(V)
@@ -106,15 +106,15 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
     # -3- Nombre d'iterations de lissage
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    
+
     # - Surface -
     B = TK.Button(Frame, text="Ref surf", command=setSurface)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Reference surface.')
-    
+
     B = TK.Entry(Frame, textvariable=VARS[0], background='White')
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
-    
+
     # - Extension data
     B = TK.Entry(Frame, textvariable=VARS[1], background='White', width=5)
     B.grid(row=2, column=0, sticky=TK.EW)
@@ -132,7 +132,7 @@ def createApp(win):
     B = TK.Button(Frame, text="Extend", command=extendSurf)
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extend.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

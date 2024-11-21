@@ -24,17 +24,17 @@ def distribute(event=None):
     if CTK.t == []: return
     try: NProc = int(VARS[0].get())
     except:
-         CTK.TXT.insert('START', 'distribute: NProc is invalid.\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error')
-         return
+        CTK.TXT.insert('START', 'distribute: NProc is invalid.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
     try: comSpeed = float(VARS[1].get())
     except:
-         CTK.TXT.insert('START', 'distribute: ComSpeed is invalid.\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error')
-         return
+        CTK.TXT.insert('START', 'distribute: ComSpeed is invalid.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
     algo = VARS[2].get()
     useCom =  VARS[3].get()
-        
+
     CTK.saveTree()
     CTK.t, STATS = D.distribute(CTK.t, NProc, perfo=(1.,0.,comSpeed),
                                 useCom=useCom, algorithm=algo)
@@ -50,14 +50,14 @@ def splitAndDistribute(event=None):
     if CTK.t == []: return
     try: NProc = int(VARS[0].get())
     except:
-         CTK.TXT.insert('START', 'distribute: NProc is invalid.\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error')
-         return
+        CTK.TXT.insert('START', 'distribute: NProc is invalid.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
     try: comSpeed = float(VARS[1].get())
     except:
-         CTK.TXT.insert('START', 'distribute: ComSpeed is invalid.\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error')
-         return
+        CTK.TXT.insert('START', 'distribute: ComSpeed is invalid.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
     algo = VARS[2].get()
     useCom = VARS[3].get()
     level = int(VARS[5].get())
@@ -76,7 +76,7 @@ def splitAndDistribute(event=None):
             CTK.TXT.insert('START', 'Warning: ', 'Warning')
             ndim = 3
         CTK.t = X.connectMatch(CTK.t, dim=ndim)
-            
+
         CTK.display(CTK.t)
     except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: distribute/split')
@@ -156,12 +156,12 @@ def setProcField():
 def computeStats():
     if CTK.t == []: return
     zones = Internal.getZones(CTK.t)
-    
+
     try: NProc = int(VARS[0].get())
     except:
-         CTK.TXT.insert('START', 'stats: NProc is invalid.\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error')
-         return
+        CTK.TXT.insert('START', 'stats: NProc is invalid.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
 
     a = numpy.zeros((NProc), dtype=Internal.E_NpyInt)
     m = 0; ntot = 0
@@ -212,9 +212,9 @@ def updateStats():
 
     try: NProc = int(VARS[0].get())
     except:
-         CTK.TXT.insert('START', 'stats: NProc is invalid.\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error')
-         return
+        CTK.TXT.insert('START', 'stats: NProc is invalid.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
 
     # Calcul du nombre de pts par proc
     zones = Internal.getZones(CTK.t)
@@ -235,21 +235,21 @@ def updateStats():
     fmin = 1.e10; fmax = 0
     for i in a:
         fmin = min(i, fmin); fmax = max(i, fmax)
-    
+
     alpha = min(1./abs(fmax-m+1.e-6), 1./abs(fmin-m+1.e-6))
     alpha = min(alpha, 1./m)
-    
+
     barWidth = width*1. / (NProc*1.)
     for i in range(NProc):
         v = -alpha*(a[i] - m*1.)
         if a[i] == 0: fillColor = 'yellow'
         elif i%2 == 0: fillColor = 'blue'
         else: fillColor = 'red'
-       
+
         c.create_rectangle(i*barWidth, height/2., (i+1)*barWidth,
                            v*height/2.+height/2.,
                            fill=fillColor)
-        
+
     varRMS = int(STATS['varRMS']*10000)/100.
     varMin = int(STATS['varMin']*10000)/100.
     varMax = int(STATS['varMax']*10000)/100.
@@ -279,18 +279,18 @@ def adjustNProc():
     except: NProc = 1
     try: comSpeed = float(VARS[1].get())
     except:
-         CTK.TXT.insert('START', 'distribute: ComSpeed is invalid.\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error')
-         return
+        CTK.TXT.insert('START', 'distribute: ComSpeed is invalid.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
     algo = VARS[2].get()
     useCom = VARS[3].get()
-    
+
     classes = [8,16,32,64,128,256,512]
     CTK.saveTree()
 
     for c in range(len(classes)):
         if NProc > classes[c]: break;
-    
+
     CTK.t, stat1 = D.distribute(CTK.t, classes[c], perfo=(1.,0.,comSpeed),
                                 useCom=useCom, algorithm=algo)
     if c > 0:
@@ -306,12 +306,12 @@ def adjustNProc():
     VARS[0].set(str(classes[c])) 
     CTK.t, STATS = D.distribute(CTK.t, classes[c], perfo=(1.,0.,comSpeed),
                                 useCom=useCom, algorithm=algo)
-    
+
     CTK.TXT.insert('START', 'Blocks distributed.\n')
     CTK.TKTREE.updateApp()
     updateStats()
     return 
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -328,7 +328,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -371,7 +371,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=3)
     BB = CTK.infoBulle(parent=B, text='Weight of communication\ncompared to solver.')
     B.grid(row=0, column=1, sticky=TK.EW)
-    
+
     # - Multigrid level for split -
     B = TTK.OptionMenu(Frame, VARS[5], '0', '1', '2' )
     B.grid(row=0, column=2, sticky=TK.EW)
@@ -420,7 +420,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Distribution stats.')
     WIDGETS['canvas'] = B
     WIDGETS['bulle'] = BB
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -468,7 +468,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

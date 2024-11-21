@@ -180,7 +180,7 @@ def setC1Color(event=None):
         CPlot.setState(colormapC1=color)
         WIDGETS['colormapC1'].config(bg=color)
         WIDGETS['colormapC1'].config(activebackground=color)
-        
+
 #==============================================================================
 # set ending color for bi/tri-color colormaps
 def setC2Color(event=None):
@@ -192,7 +192,7 @@ def setC2Color(event=None):
         WIDGETS['colormapC2'].config(bg=color)
         WIDGETS['colormapC2'].config(activebackground=color)
         CPlot.setState(colormapC2=color)
-        
+
 #==============================================================================
 # set mid color for tri-color colormaps
 def setC3Color(event=None):
@@ -204,7 +204,7 @@ def setC3Color(event=None):
         WIDGETS['colormapC3'].config(bg=color)
         WIDGETS['colormapC3'].config(activebackground=color)
         CPlot.setState(colormapC3=color)
-        
+
 #==============================================================================
 def displayFieldl(v, l):
     v.set(l); displayField()
@@ -212,7 +212,7 @@ def displayFieldl(v, l):
 #==============================================================================
 def displayVectorl(v, l):
     v.set(l); displayVector()
-    
+
 #==============================================================================
 # Display pour les scalar fields
 #==============================================================================
@@ -236,7 +236,7 @@ def displayField(event=None):
         if i == field: break
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield += 1
-        
+
     if ifield == lenvars:
         CTK.TXT.insert('START', 'Variable not found in tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -260,12 +260,12 @@ def displayVector(event=None):
     for i in zvars:
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             lenvars += 1
-            
+
     for i in zvars:
         if i == field1: break
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield1 += 1
-        
+
     if ifield1 == lenvars:
         CTK.TXT.insert('START', 'Variable not found in tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -274,7 +274,7 @@ def displayVector(event=None):
         if i == field2: break
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield2 += 1
-        
+
     if ifield2 == lenvars:
         CTK.TXT.insert('START', 'Variable not found in tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -283,11 +283,11 @@ def displayVector(event=None):
         if i == field3: break
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
             ifield3 += 1
-        
+
     if ifield3 == lenvars:
         CTK.TXT.insert('START', 'Variable not found in tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     CPlot.setState(mode=4, vectorField1=ifield1, vectorField2=ifield2,
                    vectorField3=ifield3)
     CTK.TXT.insert('START', 'Variable '+field1+','+field2+','+field3+' displayed.\n')
@@ -313,7 +313,7 @@ def displayVector1(event=None):
     VARS[21].set(zvars[index2])
     VARS[22].set(zvars[index3])
     displayVector(event)
-    
+
 #==============================================================================
 def saveSlot():
     if CTK.t == []: return
@@ -343,7 +343,7 @@ def saveSlot():
                             colormap=colormap)
     CTK.TKTREE.updateApp()
     CTK.TXT.insert('START', 'Slot saved.\n')
-     
+
 #==============================================================================
 def loadSlot():
     if CTK.t == []: return
@@ -404,13 +404,13 @@ def loadSlot():
         out = [name]+p[1].tolist()
         scales.append(out)
         if scales != []: CPlot.setState(isoScales=scales)
-    
+
     pos = Internal.getNodeFromName1(slot, 'mode')
     if pos is not None:
         n = pos[1]
         VARS[6].set(n.tobytes().decode())
         setMode()
-    
+
     pos = Internal.getNodeFromName1(renderInfo, 'materials')
     if pos is not None:
         out = []
@@ -426,7 +426,7 @@ def loadSlot():
         out = []
         for i in pos[2]: out.append(Internal.getValue(i)) #; out += [1,1]
         CPlot.setState(billBoards=out, billBoardSize=0.8)
-        
+
     pos = Internal.getNodeFromName1(slot, 'dof')
     if pos is not None:
         CPlot.setState(dof=Internal.getValue(pos))
@@ -466,7 +466,7 @@ def setIsoLegend(event=None):
     if CTK.t == []: return
     legend = int(VARS[7].get())
     CPlot.setState(displayIsoLegend=legend)
-   
+
 #==============================================================================
 def setNiso(event=None):
     if CTK.t == []: return
@@ -476,7 +476,7 @@ def setNiso(event=None):
     niso = niso[0]
     if VARNO >= 0: updateIsoPyTree()
     else: CPlot.setState(niso=niso)
-    
+
 #==============================================================================
 def setIsoEdges(event=None):
     if CTK.t == []: return
@@ -492,7 +492,7 @@ def setColormapLight(event=None):
     if light == 'IsoLight on': light = 1
     else: light = 0
     style = CPlot.colormap2Style(colormap, light)
-        
+
     if colormap == 'BiColorRGB' or colormap == 'BiColorHSV':
         WIDGETS['colormapC1'].grid(row=7, column=1, sticky=TK.EW)
         WIDGETS['colormapC2'].grid(row=7, column=2, sticky=TK.EW)
@@ -505,7 +505,7 @@ def setColormapLight(event=None):
         WIDGETS['colormapC1'].grid_forget()
         WIDGETS['colormapC2'].grid_forget()
         WIDGETS['colormapC3'].grid_forget()
-                
+
     CPlot.setState(colormap=style)
     updateIsoPyTree()
 
@@ -540,33 +540,33 @@ def setVectorStyle(event=None):
         WIDGETS['vectorShape'].grid_forget()
 
     CPlot.setState(vectorStyle=style)
-    
+
 #==============================================================================
 def setScaleVector(event=None):
     val = float(VARS[24].get())
     WIDGETS['vectorScale'].set(val)
     CPlot.setState(vectorScale=val)
-    
+
 #==============================================================================
 def scaleVector(event=None):
     if CTK.t == []: return
     val = WIDGETS['vectorScale'].get()
     VARS[24].set(str(val))
     CPlot.setState(vectorScale=val)
-    
+
 #==============================================================================
 def setDensityVector(event=None):
     val = float(VARS[25].get())
     WIDGETS['vectorDensity'].set(val)
     CPlot.setState(vectorDensity=val)
-    
+
 #==============================================================================
 def densityVector(event=None):
     if CTK.t == []: return
     val = WIDGETS['vectorDensity'].get()
     VARS[25].set(str(val))
     CPlot.setState(vectorDensity=val)
-    
+
 #==============================================================================
 def setNormalizeVector(event=None):
     if CTK.t == []: return
@@ -758,13 +758,13 @@ def compIsoMax(event=None):
         WIDGETS['max'].set(s)
         updateIsoPyTree()
     except: pass
-    
+
 #==============================================================================
 def setIsoMin(event=None):
     if CTK.t == []: return
     if VARNO < 0: return
     updateIsoPyTree()
-    
+
 #==============================================================================
 def setIsoMax(event=None):
     if CTK.t == []: return
@@ -776,7 +776,7 @@ def setCutoffMin(event=None):
     if CTK.t == []: return
     if VARNO < 0: return
     updateIsoPyTree()
-    
+
 #==============================================================================
 def setCutoffMax(event=None):
     if CTK.t == []: return
@@ -791,7 +791,7 @@ def scaleIsoMin(event=None):
     fmin = VARMIN + (VARMAX - VARMIN)*val/100.
     VARS[9].set(str(fmin))
     updateIsoPyTree()
-    
+
 #==============================================================================
 def scaleIsoMax(event=None):
     if CTK.t == []: return
@@ -809,7 +809,7 @@ def scaleCutoffMin(event=None):
     fmin = VARMIN + (VARMAX - VARMIN)*val/100.
     VARS[30].set(str(fmin))
     updateIsoPyTree()
-    
+
 #==============================================================================
 def scaleCutoffMax(event=None):
     if CTK.t == []: return
@@ -826,7 +826,7 @@ def updateIsoWidgets():
     sl = Internal.getNodeFromName2(CTK.t, 'Slot'+slot)
     if sl is None:
         compIsoMin(); compIsoMax(); return
-    
+
     field = VARS[18].get()
     pos = Internal.getNodeFromName1(sl, 'isoScales[%s]'%field)
     if pos is not None and pos[1] is not None:
@@ -866,7 +866,7 @@ def updateIsoWidgets():
             c += 4
         compIsoMin(); compIsoMax()
         return
-    
+
     compIsoMin(); compIsoMax()
 
 #==============================================================================
@@ -901,7 +901,7 @@ def deleteIsoBase():
     CPlot.delete(dels)
     ret = Internal.getParentOfNode(CTK.t, base)
     del ret[0][2][ret[1]]
-    
+
 #==============================================================================
 def triggerIsoLines(event=None):
     if CTK.t == []: return
@@ -960,13 +960,13 @@ def setStyle(event=None):
     elif v == 'White/2-sides': style = 3
     elif v == 'Multicolor/outlined': style = 4
     CPlot.setState(solidStyle=style)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
     ttk = CTK.importTtk()
-    
+
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkView  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
@@ -979,7 +979,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -1076,7 +1076,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[8], '3D', '2D',
                        command=setDim)
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
-    
+
     # - Choix du mode -
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
@@ -1121,7 +1121,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Solid style.')
     B = TTK.OptionMenu(Solid, VARS[17], 'Monocolor/1-side', 'Multicolor/2-sides', 'White/2-sides', 'Multicolor/outlined', command=setStyle)
     B.grid(row=0, column=1, sticky=TK.EW)
-    
+
     # - Render frame -
     Render = TTK.LabelFrame(Frame, borderwidth=0)
     Render.columnconfigure(0, weight=1)
@@ -1151,13 +1151,13 @@ def createApp(win):
         F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['scalarField'] = B
     else:
-       B = ttk.Combobox(F, textvariable=VARS[18], 
-                        values=[], state='readonly', width=10)
-       B.bind('<<ComboboxSelected>>', displayField) 
-       B.grid(sticky=TK.EW)
-       F.bind('<Enter>', updateVarNameList_2)
-       F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
-       WIDGETS['scalarField'] = B
+        B = ttk.Combobox(F, textvariable=VARS[18], 
+                         values=[], state='readonly', width=10)
+        B.bind('<<ComboboxSelected>>', displayField) 
+        B.grid(sticky=TK.EW)
+        F.bind('<Enter>', updateVarNameList_2)
+        F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
+        WIDGETS['scalarField'] = B
 
     B = TTK.Label(Scalar, text='Style:')
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -1166,7 +1166,7 @@ def createApp(win):
                        command=setScalarStyle)
     B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Scalar style.')
-    
+
     B = TTK.Label(Scalar, text='Isos:')
     B.grid(row=2, column=0, sticky=TK.EW)
     B = TTK.Entry(Scalar, textvariable=VARS[2], width=4, background='White')
@@ -1182,7 +1182,7 @@ def createApp(win):
     WIDGETS['edges'] = B
     B.grid(row=2, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[32])
-    
+
     B = TTK.Button(Scalar, text="Min", command=compIsoMinFull)
     B.grid(row=3, column=0, sticky=TK.EW)
     B = TTK.Entry(Scalar, textvariable=VARS[9], width=4, background='White')
@@ -1194,7 +1194,7 @@ def createApp(win):
     WIDGETS['min'] = B
     B.grid(row=3, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Min of isos for this field.')
-    
+
     B = TTK.Button(Scalar, text="Max", command=compIsoMaxFull)
     B.grid(row=4, column=0, sticky=TK.EW)
     B = TTK.Entry(Scalar, textvariable=VARS[10], width=4, background='White')
@@ -1206,7 +1206,7 @@ def createApp(win):
     WIDGETS['max'] = B
     B.grid(row=4, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Max of isos for this field.')
-    
+
     # Cutoffs for isovalues
     B = TTK.Label(Scalar, text="cutoffs:")
     B.grid(row=5, column=0, sticky=TK.EW)
@@ -1219,7 +1219,7 @@ def createApp(win):
     #WIDGETS['cutoffMin'] = B
     #B.grid(row=5, column=2, sticky=TK.EW)
     #BB = CTK.infoBulle(parent=B, text='Cutoff min for this field.')
-    
+
     #B = TTK.Label(Scalar, text="max cut:")
     #B.grid(row=6, column=0, sticky=TK.EW)
     B = TTK.Entry(Scalar, textvariable=VARS[31], width=4, background='White')
@@ -1231,7 +1231,7 @@ def createApp(win):
     #WIDGETS['cutoffMax'] = B
     #B.grid(row=6, column=2, sticky=TK.EW)
     #BB = CTK.infoBulle(parent=B, text='Cutoff max for this field.')
-    
+
     # - Legend + Colormap + light -
     B = TTK.Checkbutton(Scalar, text='Legend', variable=VARS[7],
                         command=setIsoLegend)
@@ -1267,7 +1267,7 @@ def createApp(win):
     B.config(bg="#777777")
     B.config(activebackground="#777777")
     WIDGETS['colormapC3'] = B
-    
+
     # - Vector field frame -
     Vector = TTK.LabelFrame(Frame, borderwidth=0)
     Vector.columnconfigure(0, weight=0)
@@ -1383,7 +1383,7 @@ def createApp(win):
     B = TTK.OptionMenu(Vector, VARS[28], '3D arrows', 'Flat arrows', 'Tetra arrows', command=setVectorShape)
     BB = CTK.infoBulle(parent=B, text='Shape of the arrows.')
     WIDGETS['vectorShape'] = B
-    
+
     # - Edge activation -
     B = TTK.Checkbutton(Frame, text='AEdges', variable=VARS[12],
                         command=setVals)
@@ -1479,7 +1479,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

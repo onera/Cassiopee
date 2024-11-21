@@ -4,7 +4,7 @@ import Generator as G
 import Geom as D
 
 P0 = (0,0,0); P1 = (5,0,0); P2 = (7,3,0); P3 = (4,5,0); P4 = (-2,2,0)
-    
+
 # 5 curves (dont need to be lines)
 d1 = D.line(P0, P1, N=11)
 d2 = D.line(P1, P2, N=11)

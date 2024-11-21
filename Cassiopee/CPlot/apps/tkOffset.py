@@ -34,7 +34,7 @@ def remap():
         CTK.TXT.insert('START', 'Density is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     pointsPerUnitLength = density[0]
-    
+
     # offset
     offset = CTK.varsFromWidget(VARS[1].get(), type=1)
     if len(offset) != 1:
@@ -43,27 +43,27 @@ def remap():
     offset = offset[0]
 
     CTK.saveTree()
-    
+
     if VARS[2].get() == '0': algo = 0
     else: algo = 1
-    
+
     CTK.setCursor(2, WIDGETS['remap'])
     iso = Geom.PyTree.offsetSurface(a, offset, pointsPerUnitLength, algo)
     CTK.setCursor(0, WIDGETS['remap'])
-    
+
     if iso != []:
         nob = CTK.Nb[nzs[0]]+1
         for i in iso: CTK.add(CTK.t, nob, -1, i)
-    
+
         #C._fillMissingVariables(CTK.t)
         CTK.TXT.insert('START', 'Surface filtered and offset (offset=%g).\n'%offset)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render()
     else:
-         CTK.TXT.insert('START', 'Surface filter failed.\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error')     
-    
+        CTK.TXT.insert('START', 'Surface filter failed.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')     
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -81,7 +81,7 @@ def createApp(win):
     Frame.columnconfigure(2, weight=2)
     Frame.columnconfigure(3, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -120,13 +120,13 @@ def createApp(win):
     B = TTK.Checkbutton(Frame, text='', variable=VARS[2])
     B.grid(row=0, column=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Toggle octree algorithm.')
-    
+
     # - Remap -
     B = TTK.Button(Frame, text="Offset", command=remap)
     WIDGETS['remap'] = B
     BB = CTK.infoBulle(parent=B, text='Offset a surface of a given distance with a given spacing.')
     B.grid(row=2, column=0, columnspan=4, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -154,7 +154,7 @@ def saveApp():
     CTK.PREFS['tkOffsetOffset'] = VARS[1].get()
     CTK.PREFS['tkOffsetType'] = VARS[2].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('1.')
@@ -168,7 +168,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

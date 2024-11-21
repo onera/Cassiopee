@@ -24,7 +24,7 @@ ac = C.initVars(ac,'cellN', sphere, ['x','y','z'])
 for d in [-2,-1,0,1,2,5]:
     celln = X.setHoleInterpolatedPoints(ac, depth=d)
     test.testA([celln],nod); nod+=1
-    
+
 
 # Méthode "octahedron" - dir 3
 # Cas structure: champ cellN en noeud

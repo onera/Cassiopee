@@ -24,6 +24,6 @@ for app in K.SOLVERAPPS: K.addMenuItem(app, menus[8], frames[8])
 for app in K.POSTAPPS: K.addMenuItem(app, menus[9], frames[9])
 for app in K.VISUAPPS: K.addMenuItem(app, menus[10], frames[10])
 for app in K.RENDERAPPS: K.addMenuItem(app, menus[11], frames[11])
-    
+
 win.mainloop()
 CTK.PHOTOS = []

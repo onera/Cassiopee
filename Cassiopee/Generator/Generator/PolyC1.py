@@ -28,17 +28,17 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     alpha0 = 4.*math.atan((2*depth-1)*yplus*density)*180/math.pi
     alpha0 = max(alpha0, dalpha)
     alphaMax = 360.-alpha0
-    
+
     # Split curve
     curve = G.close(curve)    
     curves = T.splitCurvatureRadius(curve, splitCrit)
     #C.convertArrays2File(curves, 'split.plt')
 
     addFactor = 0.2
-    
+
     eps = 1.e-14 # tolerance sur les raccords entre courbes C1
     eps = eps*eps # car les distances sont au carres dans la suite
-    
+
     # curves est maintenant une liste de i-arrays representant une segmentation
     # du profil d'un corps (continus)
     ne = len(curves)
@@ -111,7 +111,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
 
     #for c in xrange(ne):
     #    print 'courbe ',c,' voisin0=',nghb[c,0],', voisin1=',nghb[c,1]
-        
+
     # Courbe unique
     unique = T.join(curves)
 
@@ -120,7 +120,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     out = C.addVars([unique, curvature])
     #C.convertArrays2File([out], 'angle.plt')
     #unique = C.convertArray2Tetra(unique)
-    
+
     # Normale sur unique
     unique2 = T.addkplane(unique)
     nunique = G.getNormalMap(unique2)
@@ -150,7 +150,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     #for c in xrange(ne):
     #    print 'courbe ',c,' n0=',surfxpts[c,0],surfypts[c,0],surfzpts[c,0],\
     #          ', n1=',surfxpts[c,1],surfypts[c,1],surfzpts[c,1]
-        
+
     # Calcul de l'extension
     # ext=1 ; extension chimere
     # ext=0 ; TFI paroi
@@ -165,7 +165,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
             ext[c,0] = 0
         elif (cpts[c,0] >= 90+38): # TFI MD + TTM
             ext[c,0] = -1
-            
+
         if (cpts[c,1] >= alphaMax): # extension coincidente
             ext[c,1] = 2
         elif (cpts[c,1] >= 185): # extension chimere
@@ -198,13 +198,13 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
         for x in range(r[2]):
             if (rp[0,x] <= 0 and -rp[0,x] < rmin):
                 rmin = -rp[0,x]
-        
+
         if ( h > rmin ):
             h = float(0.99 * rmin)
             print("Warning: height changed to", h, "...")
             print("...because curvature radius in segment", n, "is", rmin)
         n = n+1
-    
+
     # Detection de la densite minimum
     nj = int(h*density)+1
     if (nj < 4):
@@ -234,7 +234,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     # Generation des maillages
     mesh = []; walls = []
     cm = 0
-    
+
     for c in range(ne):
         if (ext[c,0] == 1 and ext[c,1] == 1):
             m = generateExtExt(curves[c], density, extension, delta)
@@ -313,7 +313,7 @@ def findNeighbourIndex(polyLine, index, e):
 #==============================================================================
 # Extension lineaire
 def generateExtExt(curve, density, extension, delta):
-    
+
     l = D.getLength(curve)
     ni = int(l*density)+1
     hm = l/(ni-1)
@@ -369,12 +369,12 @@ def generateExtExtMatch(c, curves, density, extension, delta,
     lv1 = D.getLength(curvev1)
     niv1 = int(lv1*density)+1
     hmv1 = lv1/(niv1-1)
-    
+
     curvev2 = curves[int(nghb2)]
     lv2 = D.getLength(curvev2)
     niv2 = int(lv2*density)+1
     hmv2 = lv2/(niv2-1)
-    
+
     if nghbind1 == 1: indv1 = 1
     else: indv1 = nghbind1-2
     if nghbind2 == 1: indv2 = 1
@@ -387,7 +387,7 @@ def generateExtExtMatch(c, curves, density, extension, delta,
     px1 = x1 - ext*(x2-x1)*hm/norm
     py1 = y1 - ext*(y2-y1)*hm/norm
     pz1 = z1 - ext*(z2-z1)*hm/norm
-    
+
     x3 = curvev1[1][0,indv1]; y3 = curvev1[1][1,indv1]; z3 = curvev1[1][2,indv1]
     # recup des coordonnees du pt suivant de la courbe voisine
     norm = math.sqrt( (x1-x3)*(x1-x3)+(y1-y3)*(y1-y3)+(z1-z3)*(z1-z3) )
@@ -396,7 +396,7 @@ def generateExtExtMatch(c, curves, density, extension, delta,
     pz2 = z1 - ext*(z3-z1)*hmv1/norm
     line1 = D.line((x1,y1,z1), (0.5*(px1+px2),0.5*(py1+py2),0.5*(pz1+pz2)),ext)
     curve2 = T.join(line1, curve2)
-    
+
     # extension coincidente en i=n-1
     x1 = f[0,np-2]; y1 = f[1,np-2]; z1 = f[2,np-2]
     x2 = f[0,np-1]; y2 = f[1,np-1]; z2 = f[2,np-1]
@@ -452,7 +452,7 @@ def generateExtExtMatch(c, curves, density, extension, delta,
         m2 = G.TFI([d1,d2,d3,d4])
         m = T.join(m1,m); m = T.join(m,m2)
         return m
-    
+
 #==============================================================================
 # Autres cas d'extension
 def generateOtherCases(curve, curves,
@@ -481,11 +481,11 @@ def generateOtherCases(curve, curves,
         lv1 = D.getLength(curvev1)
         niv1 = int(lv1*density)+1
         hmv1 = lv1/(niv1-1)
-            
+
         curvev2 = curves[int(nghb2)]
         if nghbind2 == 1: indv2 = 1
         else: indv2 = nghbind2-2
-        
+
         x1 = f[0,0]; y1 = f[1,0]; z1 = f[2,0]
         x2 = f[0,1]; y2 = f[1,1]; z2 = f[2,1]
         d1 = curve0; nid1 = d1[2]
@@ -506,7 +506,7 @@ def generateOtherCases(curve, curves,
                 ind = D.getDistantIndex(curvev2, nghbind2, -h0)
                 d4 = T.subzone( curvev2, (ind,1,1), (curvev[2],1,1) )
                 d4 = T.reorder(d4, (-1,2,3))
-                
+
         elif (ext2 == -1):# TFI MD + TTM
             nil = d1[2]
             px2 = d1[1][0,nil-1]
@@ -516,7 +516,7 @@ def generateOtherCases(curve, curves,
             py4 = py2 + n1y * h
             pz4 = pz2 + n1z * h
             d4 = D.line((px2,py2,pz2), (px4,py4,pz4),ext)
-            
+
         elif (ext2 == 1): #extension recouvrante
             p = f.shape[1]
             x1 = f[0,p-1]; y1 = f[1,p-1]; z1 = f[2,p-1]
@@ -531,11 +531,11 @@ def generateOtherCases(curve, curves,
             py3 = py1 + n[1][1,p-1] * h
             pz3 = pz1 + n[1][2,p-1] * h
             d4 = D.line((px1,py1,pz1), (px3,py3,pz3),ext)
-        
+
         d2 = buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2) 
         r02 = G.cart((0,0,0), (1./(d1[2]-1),1,1), (d1[2],1,1))
         d2 = G.map(d2,r02)
-        
+
         # Ajout de l'extension coincidente en i=1
         x1 = f[0,0]; y1 = f[1,0]; z1 = f[2,0]
         x2 = f[0,1]; y2 = f[1,1]; z2 = f[2,1]
@@ -591,7 +591,7 @@ def generateOtherCases(curve, curves,
                 ind = D.getDistantIndex(curvev, nghbind2, -h0)
                 d4 = T.subzone( curvev, (ind,1,1), (curvev[2],1,1) )
                 d4 = T.reorder(d4, (-1,2,3))
-                             
+
         elif (ext2 == -1):
             nil = d1[2]
             px2 = d1[1][0,nil-1]
@@ -621,7 +621,7 @@ def generateOtherCases(curve, curves,
             else:
                 d3 = C.copy(curvev)
             d3 = T.reorder(d3, (-1,2,3))
-        
+
         if (ext2 == 1):
             p = f.shape[1]
             x1 = f[0,p-1]; y1 = f[1,p-1]; z1 = f[2,p-1]
@@ -636,11 +636,11 @@ def generateOtherCases(curve, curves,
             py3 = py1 + n[1][1,p-1] * h
             pz3 = pz1 + n[1][2,p-1] * h
             d4 = D.line((px1,py1,pz1), (px3,py3,pz3),ext)
-            
+
         elif (ext2 == 2):
             d1,d4, d2 = buildd1d4Match(curves[int(nghb2)], nghbind2, density, delta, \
                                        f, ext, d1, d3, hm, h, n, ext1, ext2, angle1, angle2)
-            
+
         elif (ext2 == 0):
             d1 = curve0
             curvev = curves[int(nghb2)]
@@ -654,7 +654,7 @@ def generateOtherCases(curve, curves,
                 nil = curvev[2]
                 d4 = T.subzone( curvev, (ind,1,1), (nil,1,1) )
                 d4 = T.reorder(d4, (-1,2,3))
-            
+
         else: # ext2 = -1
             d1 = curve0
             p = f.shape[1]
@@ -663,7 +663,7 @@ def generateOtherCases(curve, curves,
             py3 = y1 + n1y * h
             pz3 = z1 + n1z * h
             d4 = D.line((x1,y1,z1), (px3,py3,pz3),ext)
-            
+
     else: # ext1 == -1
         d1 = curve0
         px1 = d1[1][0,0]
@@ -674,7 +674,7 @@ def generateOtherCases(curve, curves,
         pz3 = pz1 + n0z * h
         #print 'points ',px1,py1,pz1,'->',px3,py3,pz3
         d3 = D.line((px1,py1,pz1), (px3,py3,pz3),ext)
-        
+
         if (ext2  == 1):
             nil = f.shape[1]
             x1 = f[0,nil-1]; y1 = f[1,nil-1]; z1 = f[2,nil-1]
@@ -689,7 +689,7 @@ def generateOtherCases(curve, curves,
             py3 = py1 + n[1][1,nil-1] * h
             pz3 = pz1 + n[1][2,nil-1] * h
             d4 = D.line((px1,py1,pz1), (px3,py3,pz3),ext)
-            
+
         elif (ext2 == 2):
             d1,d4,d2 = buildd1d4Match(curves[int(nghb2)], nghbind2, density, delta, \
                                       f, ext, d1, d3, hm, h, n, ext1, ext2, angle1, angle2)
@@ -706,7 +706,7 @@ def generateOtherCases(curve, curves,
                 nil = curvev[2]
                 d4 = T.subzone( curvev, (ind,1,1), (nil,1,1) )
                 d4 = T.reorder(d4, (-1,2,3))
-                             
+
         if (ext2 == -1):
             nil = d1[2]
             px2 = d1[1][0,nil-1]
@@ -724,7 +724,7 @@ def generateOtherCases(curve, curves,
 
     if ext1 > 0: ni = ni+ext
     if ext2 > 0: ni = ni+ext
-            
+
     r1 = d1; r2 = d2
     r3 = G.map(d3, distrib)
     r4 = G.map(d4, distrib)
@@ -732,7 +732,7 @@ def generateOtherCases(curve, curves,
     #r3 = T.reorder(r3, (-1,2,-3))
     m = G.TFI([r3, r4, r1, r2])
     m = T.reorder(m, (-1,2,3))
-    
+
     #m = G.TTM(m, 20)   
     curve[0] = vars
     return m
@@ -751,7 +751,7 @@ def buildd1d4Match(curvev2, nghbind2, density, delta, f, ext, d1, d3, hm, h, n, 
     p = f.shape[1]
     x1 = f[0,p-2]; y1 = f[1,p-2]; z1 = f[2,p-2]
     x2 = f[0,p-1]; y2 = f[1,p-1]; z2 = f[2,p-1]
-    
+
     px = x2 + n[1][0,p-1] * h
     py = y2 + n[1][1,p-1] * h
     pz = z2 + n[1][2,p-1] * h
@@ -772,7 +772,7 @@ def buildd1d4Match(curvev2, nghbind2, density, delta, f, ext, d1, d3, hm, h, n, 
     px2 = x2 + ext*(x2-x3)*hmv2/norm3
     py2 = y2 + ext*(y2-y3)*hmv2/norm3
     pz2 = z2 + ext*(z2-z3)*hmv2/norm3
-    
+
     px1 = 0.5*(px1+px2); py1 = 0.5*(py1+py2); z1 = 0.5*(pz1+pz2)
     line1 = D.line((x2,y2,z2), (px1,py1,pz1),ext)
     #
@@ -815,7 +815,7 @@ def buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2):
         s1 = 1./float(d1[2])
     else:
         s1 = 1./18.
-        
+
     if (ext2 == 0):
         H = compH(h, angle2)
         s2 = 1.- H / l
@@ -832,9 +832,9 @@ def buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2):
     #print ext1,ext2,s1,s2, ind13, ind23, d1[2]
     #print d1[1][0,0], d1[1][1,0] 
     #print ind13, ind23, l, 1./3.*l
-    
+
     d1p = d1[1]; d3p = d3[1]; d4p = d4[1]
-    
+
     x1 = d1p[0,0]; y1 = d1p[1,0]; z1 = d1p[2,0]
     p = d3[2]
     x3 = d3p[0,p-1]; y3 = d3p[1,p-1]; z3 = d3p[2,p-1]
@@ -846,7 +846,7 @@ def buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2):
     h1x = x3 - x1; h1y = y3 - y1; h1z = z3 - z1
     h2x = x4 - x2; h2y = y4 - y2; h2z = z4 - z2
     hmx = 0.5*(h1x+h2x); hmy = 0.5*(h1y+h2y); hmz = 0.5*(h1z+h2z)
-    
+
     ni = s[2]; sp = s[1]
     vect = C.array('hx,hy,hz', ni, 1, 1)
 
@@ -871,7 +871,7 @@ def buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2):
 # Build boundary conditions
 #=============================================================================
 def buildBC(m, walls,  ext1, ext2, extension):
-    
+
     # Walls
     wl = []
     if ext1 > 0 and ext2 > 0:
@@ -885,18 +885,18 @@ def buildBC(m, walls,  ext1, ext2, extension):
         i2 = m[2];  i1 = extension
     else:
         i2 = m[2]-extension+1; i1 = 1  
-    
+
     wrange = [i1,i2,1,1,1,m[4]]
     wl.append(wrange)
 
     if (ext2 == 0):
         wrange = [1,1,1,m[3],1,m[4]]
         wl.append(wrange)
-            
+
     if (ext1 == 0):
         wrange = [m[2],m[2],1,m[3],1,m[4]]
         wl.append(wrange)
-        
+
     walls.append(wl)
     return
 

@@ -20,7 +20,7 @@ Dist.writeSetupCfg()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLib) = Dist.checkKCore()
-    
+
 # Compilation des fortrans ===================================================
 from KCore.config import *
 if f77compiler == "None":

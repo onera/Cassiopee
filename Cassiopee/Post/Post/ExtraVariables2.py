@@ -124,7 +124,7 @@ def _computeLambda2(t, ghostCells=False):
     C._initVars(t, 'centers:a13 = {centers:s11}*{centers:s13}+{centers:s12}*{centers:s23}+{centers:s13}*{centers:s33} - {centers:o12}*{centers:o23}')
     C._initVars(t, 'centers:a23 = {centers:s12}*{centers:s13}+{centers:s22}*{centers:s23}+{centers:s23}*{centers:s33} - {centers:o12}*{centers:o13}')
     C._initVars(t, 'centers:Lambda2 = 0.')
-    
+
     zones = Internal.getZones(t)
     for z in zones:
         nc = C.getNCells(z)
@@ -144,7 +144,7 @@ def _computeLambda2(t, ghostCells=False):
         p = Internal.getNodeFromName(z, 'a23')[1].ravel('k')
         AAA[:,1,2] = p[:]
         AAA[:,2,1] = p[:]
-        
+
         # Criterion : second eigenvalue (real and sorted) < 0
         lambda2 = numpy.linalg.eigvals(AAA)
         AAA = None

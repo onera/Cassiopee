@@ -45,7 +45,7 @@ for t in [t3D,tb3D]:
     zmin   = C.getMinValue(t, 'CoordinateZ');
     zavg   = (zmax+zmin)/2
     T._translate(t, (0,0,0-zavg))
-    
+
 #C.convertPyTree2File(t3D ,LOCAL+'/t3D_checking.cgns')
 #C.convertPyTree2File(tb3D,LOCAL+'/tb3D_checking.cgns') 
 

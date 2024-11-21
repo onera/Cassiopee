@@ -115,7 +115,7 @@ def moveForward(zmap, pos, unit=1., headStop=0.1):
     (xpe,ype,zpe) = Vector.add(posCam, delta2)
     zp = getZ(zmap,xp,yp)
     zpe = getZ(zmap,xpe,ype)
-    
+
     if zpe-zp>headStop*unit: zpe = zp+headStop*unit
     elif zpe-zp<-headStop*unit: zpe = zp-headStop*unit
     if abs(zp+H-z) < deltaZ*unit:
@@ -294,17 +294,17 @@ def simpleLoop2(zmap, pos, unit=0.3):
     while 1 != 2:
         getKeys(kstate)
         if kstate['forward'] == 1: # forward
-           pos = moveForward(zmap, pos, unit)    
+            pos = moveForward(zmap, pos, unit)    
         if kstate['backward'] == 1: #backward
-           pos = moveBackward(zmap, pos, unit) 
+            pos = moveBackward(zmap, pos, unit) 
         if kstate['left'] == 1: # left
-           pos = turnLeft(zmap, pos, 5.)   
+            pos = turnLeft(zmap, pos, 5.)   
         if kstate['right'] == 1: # right
-           pos = turnRight(zmap, pos, 5.)
+            pos = turnRight(zmap, pos, 5.)
         if kstate['jump'] == 1: # jump
-           pos = jump(zmap, pos, 1.+4*unit)
-           kstate['jump']=0
+            pos = jump(zmap, pos, 1.+4*unit)
+            kstate['jump']=0
         pos = completeMotion(zmap, pos)
         time.sleep(0.05)
         t += 1
- 
+

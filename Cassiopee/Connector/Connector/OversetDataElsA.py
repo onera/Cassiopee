@@ -641,7 +641,7 @@ def getInterpolationDomains__(bases, nob0, noz0, zn0, surfacest=[],
                             names.append(donorName); zones.append(zn); cellns.append(cellN)
                             if surf == 1: surfaces.append(surfacest[nob][noz])
     return [names, zones, cellns, surfaces, periodiczones]
-    
+
 #------------------------------------------------------------------------------
 # Calcul des transferts Chimere a partir d'un stockage inverse
 # Les noms des champs sur lesquels on applique les transferts Chimere sont
@@ -671,7 +671,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
     # liste des zones locales (sur le processeur courant)
     localZonesName = []
     for z in zones: localZonesName.append(z[0])
-     
+
     # Definition de dictionnaires pour les champs interpoles : 
     # Cle : nom zone receveuse. Valeurs : champs interpole + indices pts receveurs + volume cellule donneuse    
     rcvFields = {} 
@@ -918,7 +918,7 @@ def _chimeraDonorAspect__(t):
     except: raise ImportError("chimeraInfo: requires Generator module.")
     G._getEdgeRatio(t)  
     zones = Internal.getZones(t)
-    
+
     # First pass : direct storage
     for zr in zones:
         subRegions2 = Internal.getNodesFromType1(zr,'ZoneSubRegion_t')
@@ -952,7 +952,7 @@ def _chimeraDonorAspect__(t):
                         indD = ListDnr[noind]          
                         field[1][0,noind] = edgeRatio[0,indD]
                     C._setPartialFields(zr, [field], [ListRcv], loc='centers')
-    
+
     # Inverse storage
     zones = Internal.getZones(t)
     for zd in zones:
@@ -1037,7 +1037,7 @@ def _chimeraNatureOfCells__(t, nature):
                         field = Converter.array('orphan',ListOrphan.size,1,1)
                         field = Converter.initVars(field,'orphan',1.)
                         C._setPartialFields(zr, [field], [ListOrphan],loc='centers')          
-    
+
     # 2nd pass: storage in donor zones
     zones = Internal.getZones(t)
     for zd in zones:
@@ -1066,15 +1066,15 @@ def _chimeraNatureOfCells__(t, nature):
                             field = Converter.initVars(field,'interpolated',1.)
                             C._setPartialFields(zr, [field], [ListRcv], loc='centers')                        
                     elif nature == 'extrapolated':
-                         ListExtrap = Internal.getNodesFromName1(s,'ExtrapPointList')
-                         if ListExtrap != []:
-                             ListExtrap = ListExtrap[0][1]
-                             DonorTypes = Internal.getNodesFromName1(s,'InterpolantsType')[0][1] 
-                             Coefs = Internal.getNodesFromName1(s,'InterpolantsDonor')[0][1]
-                             ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
-                             # Somme des |coefs| : necessite ListRcv, ListExtrap, Coefs, DonorType
-                             field = Connector.connector.getExtrapAbsCoefs(ListRcv, ListExtrap, DonorTypes, Coefs)
-                             C._setPartialFields(zr, [field], [ListExtrap], loc='centers')       
+                        ListExtrap = Internal.getNodesFromName1(s,'ExtrapPointList')
+                        if ListExtrap != []:
+                            ListExtrap = ListExtrap[0][1]
+                            DonorTypes = Internal.getNodesFromName1(s,'InterpolantsType')[0][1] 
+                            Coefs = Internal.getNodesFromName1(s,'InterpolantsDonor')[0][1]
+                            ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
+                            # Somme des |coefs| : necessite ListRcv, ListExtrap, Coefs, DonorType
+                            field = Connector.connector.getExtrapAbsCoefs(ListRcv, ListExtrap, DonorTypes, Coefs)
+                            C._setPartialFields(zr, [field], [ListExtrap], loc='centers')       
                     elif nature == 'orphan':
                         orphans = Internal.getNodesFromName(s, 'OrphanPointList')
                         if orphans != []:

@@ -66,7 +66,7 @@ def createColormap(type='Blue2Red'):
                   (0.50,[0,1,0]),
                   (0.75,[1,1,0]),
                   (1.00,[1,0,0])]
-    
+
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list('Blue2Red', colors)
     return cmap
 
@@ -135,7 +135,7 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
     # Titre de la barre
     if title is not None:
         cbar.ax.set_title(title, fontdict=fontdict, color=color, pad=0.15*dpi)
-    
+
     fig.subplots_adjust(wspace=0.)    
     return cbar
 

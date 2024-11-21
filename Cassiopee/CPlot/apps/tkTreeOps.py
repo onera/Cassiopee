@@ -67,7 +67,7 @@ def moveSelection():
     CPlot.delete(deletedZoneNames)
     nob = C.getNobOfBase(base, CTK.t)
     for i in Z: CTK.add(CTK.t, nob, -1, i)
-    
+
     CTK.TXT.insert('START', 'Selection moved to %s.\n'%baseName)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -81,7 +81,7 @@ def moveNodeUp():
     (p, c) = Internal.getParentOfNode(CTK.t, node)
     if c == 0: return # already first
     if node[3] == 'CGNSBase_t' and c == 1: return # keep CGNSversion first
-    
+
     if node[3] == 'Zone_t': # optimise
         z1 = p[2][c-1]
         z2 = p[2][c]
@@ -162,7 +162,7 @@ def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkTreeOps  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
-    
+
     #BB = CTK.infoBulle(parent=Frame, text='Operations on pyTree.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
@@ -179,7 +179,7 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkTreeOps')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Base to move to -
     V = TK.StringVar(win); V.set('New Base'); VARS.append(V)
@@ -245,14 +245,14 @@ def showApp():
     try: CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkTreeOps')
     except: pass
     CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['TreeNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -261,7 +261,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

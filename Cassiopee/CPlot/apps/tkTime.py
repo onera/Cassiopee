@@ -14,14 +14,14 @@ WIDGETS = {}; VARS = []
 
 #==============================================================================
 def buildWalls(zones):
-     Z = C.extractBCOfType(zones, 'BCWall', topTree=CTK.t)
-     return Z
- 
+    Z = C.extractBCOfType(zones, 'BCWall', topTree=CTK.t)
+    return Z
+
 #==============================================================================
 def stop(event=None):
     CTK.__BUSY__ = False
     CPlot.setState(cursor=0)
-    
+
 #==============================================================================
 def setSlider(event=None):
     t0 = CTK.varsFromWidget(VARS[0].get(), type=1)[0]
@@ -32,7 +32,7 @@ def setSlider(event=None):
     VARS[1].set(str(time))
     VARS[4].set('Time [%g].'%time)
     #setTime()
-    
+
 #==============================================================================
 def setTime(event=None):
     if CTK.t == []: return
@@ -45,7 +45,7 @@ def setTime(event=None):
     t0 = CTK.varsFromWidget(VARS[0].get(), type=1)[0]
     tf = CTK.varsFromWidget(VARS[2].get(), type=1)[0]
     step = (tf - t0)/100.
-    
+
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
     if walls == '1' and CTK.dt == []:
@@ -55,7 +55,7 @@ def setTime(event=None):
 
     if walls == '1': temp = RM.evalPosition(CTK.dt, time)
     else: temp = RM.evalPosition(CTK.t, time)
-    
+
     WIDGETS['slider'].set((time-t0)/step); WIDGETS['slider'].update()
     if time == 0.: CTK.display(CTK.t, mainTree=CTK.MAIN)
     else: CTK.display(temp, mainTree=CTK.TIME)
@@ -88,7 +88,7 @@ def playForward(event=None):
         WIDGETS['time'].update(); WIDGETS['slider'].update()
     CTK.__BUSY__ = False
     CPlot.setState(cursor=0)
-        
+
 #==============================================================================
 def playBackward(event=None):
     if CTK.t == []: return
@@ -126,7 +126,7 @@ def setWalls(event=None):
         Z = buildWalls(zones)
         CTK.dt = C.newPyTree(['Base']); CTK.dt[2][1][2] += Z
     else: CTK.dt = []
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -143,7 +143,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -186,7 +186,7 @@ def createApp(win):
     WIDGETS['slider'] = B
     B.grid(row=1, columnspan=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[4])
-    
+
     # - Options -
     B = TTK.Checkbutton(Frame, text='Walls', variable=VARS[3], command=setWalls)
     BB = CTK.infoBulle(parent=B, text='Show only BCWalls.')
@@ -204,7 +204,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="<", command=playBackward)
     B.grid(row=3, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Play backward.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -232,7 +232,7 @@ def saveApp():
     CTK.PREFS['tkTimeTF'] = VARS[2].get()
     CTK.PREFS['tkTimeWall'] = VARS[3].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('0.')
@@ -246,7 +246,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

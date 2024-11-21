@@ -35,7 +35,7 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
     if NP > 1 : t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
     t = X.connectMatch(t)
     isPerio=0
-    
+
     if TX != 0.:
         isPerio=1
         t = X.connectMatchPeriodic(t,translation=[TX,0,0])
@@ -49,7 +49,7 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
     # Creation des zones periodiques : periodicite par translation en x et y
     if isPerio:
         C._addPeriodicZones__(t[2][1])
-        
+
         # Rajout des coins
         zonesDup=[]; zonesDupNames=[]
         for z in Internal.getZones(t[2][1]):
@@ -82,14 +82,14 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
         del zonesDup                
         t[2][1][2]+= zcorners
         del zcorners
-        
+
         dictOfTempPerNodes={}
         for z in Internal.getZones(t):
             pernode = Internal.getNodeFromName1(z,'TempPeriodicZone')
             if pernode is not None:
                 dictOfTempPerNodes[z[0]]=pernode
         Internal._rmNodesFromName2(t[2][1],'TempPeriodicZone')
-    
+
     # duplication par periodicite en Z
     if isPerio: C._rmBCOfType(t,"BCMatch")
     #en fait, il faudrait enlever la notion de periodicite, noeud GridConnectivityProperty
@@ -115,7 +115,7 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
     #
     tc = X.setInterpData(t,tc,nature=1, loc='centers', storage='inverse', 
                          sameName=1,itype='chimera')
-  
+
     # on remet chez la zone initiale les donnees d interp
     if isPerio:
         for z in Internal.getZones(tc):
@@ -232,7 +232,7 @@ def prepareNonUniform0(t_case, t_out, tc_out, zones_dict={}, translation=[0.,0.,
                 zdup[0] = zdupname
                 zcorners.append(zdup)
     t[2][1][2]+=zcorners
-    
+
     zcorners = []
     for z in Internal.getZones(t):
         dx_zone = numpy.abs(C.getValue(z, 'CoordinateX',0)-C.getValue(z, 'CoordinateX',1))
@@ -277,20 +277,20 @@ def prepareNonUniform0(t_case, t_out, tc_out, zones_dict={}, translation=[0.,0.,
                 cellN[:,:,k] = 0.0
             for k in range(cellN.shape[-1]-2,cellN.shape[-1]):
                 cellN[:,:,k] = 0.0
-    
+
     for z in Internal.getZones(t):
         C._addBC2Zone(z, 'PerioZ', 'BCautoperiod','kmin')
         C._addBC2Zone(z, 'PerioZ', 'BCautoperiod','kmax')
         C._addBC2Zone(z, 'PerioY', 'BCautoperiod','jmin')
         C._addBC2Zone(z, 'PerioY', 'BCautoperiod','jmax')
-        
+
     zonesNamesORIG = []
     for z in Internal.getZones(t):
         if 'dup' not in z[0]:
             zonesNamesORIG.append(z[0])
 
     tc = C.node2Center(t)
-    
+
     # Raccords
     for z in Internal.getZones(t):
         if z[0] not in zonesNamesORIG:
@@ -353,7 +353,7 @@ class LBM(Common):
         self.__version__ = "0.0"
         self.authors = ["stephanie.peron@onera.fr"]
         self.cartesian = True
-        
+
     # Prepare 
     def prepare(self, t_case, t_out=None, tc_out=None, NP=0, translation=[0.,0.,0.],NG=1):
         #if NP is None: NP = Cmpi.size
@@ -361,7 +361,7 @@ class LBM(Common):
         #else: print('Preparing for a computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, translation=translation, NP=NP, format=self.data['format'],NG=NG)
         return ret
-    
+
     # Prepare for non uniform grids (overset and/or grid refinement)
     def prepareNonUniform(self, t_case, t_out=None, tc_out=None, NP=0, zones_dict={}, translation=[0.,0.,0.],NG=1):
         #if NP is None: NP = Cmpi.size

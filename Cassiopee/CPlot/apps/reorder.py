@@ -20,7 +20,7 @@ while (bool == 0):
             C.convertArrays2File(a, 'out.plt')
             import sys; sys.exit();
         time.sleep(0.1)
-    
+
     # Reorder suivant le type de zone
     z = a[l-1]
     if (len(z) == 5): # structure

@@ -10,7 +10,7 @@ def F(x):
 def celln(y):
     if ( y > 5. ): return True
     else: return False
-    
+
 #-------------------------------
 # centres 2D structure
 #-------------------------------

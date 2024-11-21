@@ -143,7 +143,7 @@ if TETGEN:
                   "Generator/tetgen.cpp"]
 else:
     cpp_srcs2 += ["Generator/tetgen_stub.cpp"]
-   
+
 # mmg
 if MMGS:
     cpp_srcs2 += ["Generator/mmgs.cpp",
@@ -192,7 +192,7 @@ if MMGS:
                   "Generator/MMGS/mmgsexterns.c"]
 else:
     cpp_srcs2 += ["Generator/mmgs_stub.cpp"]
-    
+
 #==============================================================================
 # Fichiers fortran
 #==============================================================================

@@ -39,10 +39,10 @@
 # ----------------------------------------------------------------------------
 
 def stringAsKeyDict(l):
-  return dict(zip(l,range(len(l))))
+    return dict(zip(l,range(len(l))))
 
 def enumAsKeyDict(l):
-  return dict(zip(range(len(l)),l))
+    return dict(zip(range(len(l)),l))
 
 CGNSHDF5ROOT_s = "HDF5 MotherNode"
 
@@ -270,7 +270,7 @@ PointSetType  = stringAsKeyDict(PointSetType_l)
 PointSetType_ = enumAsKeyDict(PointSetType_l)
 (Null,UserDefined,PointList,PointListDonor,PointRange,PointRangeDonor,
  ElementRange,ElementList,CellListDonor)=PointSetType_.keys()
- 
+
 ZoneDonorName_s = "ZoneDonorName"
 
 # ------------------------------------------------------------
@@ -1207,7 +1207,7 @@ ElementTypeNPE = dict(zip(ElementType_l,ElementTypeNPE_l))
  QUAD_16, TETRA_16, TETRA_20, PYRA_21, PYRA_29,
  PYRA_30, PENTA_24, PENTA_38, PENTA_40, HEXA_32,
  HEXA_56, HEXA_64)=ElementType_.keys()
- 
+
 ElementType3D = [TETRA_4, TETRA_10, PYRA_5, PYRA_14,
                  PENTA_6, PENTA_15, PENTA_18,
                  HEXA_8, HEXA_20, HEXA_27, MIXED, PYRA_13,
@@ -1227,7 +1227,7 @@ ElementType_hexa  = [HEXA_8, HEXA_20, HEXA_27, HEXA_32, HEXA_56, HEXA_64]
 ElementType_trionly  = ElementType_tetra
 ElementType_quadonly = ElementType_hexa
 ElementType_triquad  = ElementType_pyra + ElementType_penta
- 
+
 ElementRangeList_s = "ElementRangeList"
 #
 
@@ -1236,7 +1236,7 @@ cgnsnames=[globals()[k] for k in dir() if (k[-2:]=='_s')]
 cgnstypes=[globals()[k] for k in dir() if (k[-3:]=='_ts')]
 cgnsenums={}
 for k in dir():
-  if k[-2:] == '_l': cgnsenums[k[:-1]+'t']=locals()[k]
+    if k[-2:] == '_l': cgnsenums[k[:-1]+'t']=locals()[k]
 #
 cgnsnames.sort()
 cgnstypes.sort()

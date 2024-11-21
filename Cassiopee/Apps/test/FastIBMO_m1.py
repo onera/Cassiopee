@@ -29,7 +29,7 @@ if Cmpi.rank == 0:
     Internal._rmNodesByName(t, '.Solver#dtloc')
     test.testT(t,2)
 Cmpi.barrier()
-        
+
 t = T.subzone(t,(1,1,1),(-1,-1,1))
 for nob in range(len(t[2])):
     if t[2][nob][0] != 'CARTESIAN' and t[2][nob][3] == 'CGNSBase_t':

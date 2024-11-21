@@ -51,7 +51,7 @@ def intersection():
         Panels.displayErrors([0,str(e)], header='Error: intersection')
         CTK.TXT.insert('START', 'Intersection failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
 #==============================================================================
 # Exterior faces: recupere les faces externes
 # IN: t, cplot.selectedZones
@@ -92,7 +92,7 @@ def exteriorFaces():
 
     if fail:
         Panels.displayErrors(errors, header='Error: exteriorFaces') 
-        
+
     if exts == []:
         CTK.TXT.insert('START', 'External edges set is empty.\n')
     else:
@@ -106,7 +106,7 @@ def exteriorFaces():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # silhouette: recupere les edges de silhouette
 # IN: t, cplot.selectedZones
@@ -157,7 +157,7 @@ def silhouette():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # sharpEdges
 # IN: t, cplot.selectedZones
@@ -173,17 +173,17 @@ def sharpEdges():
         CTK.TXT.insert('START', 'Angle is incorrect.\n');
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     alphaRef = alphaRef[0]
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     CTK.saveTree()
     sharps = []
     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
     p = C.Internal.getNodeFromName1(CTK.t, 'CONTOURS')
-    
+
     fail = False; errors = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -199,7 +199,7 @@ def sharpEdges():
         Panels.displayErrors(errors, header='Error: sharpEdges')
 
     if sharps == []:
-         CTK.TXT.insert('START', 'Sharp edges set is empty.\n');
+        CTK.TXT.insert('START', 'Sharp edges set is empty.\n');
     else:
         nob = C.getNobOfBase(p, CTK.t)
         for i in sharps: CTK.add(CTK.t, nob, -1, i)
@@ -211,7 +211,7 @@ def sharpEdges():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # splitTBranches
 #==============================================================================
@@ -230,7 +230,7 @@ def splitTBranches():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     # Type de la premiere zone
     nob = CTK.Nb[0]+1
     noz = CTK.Nz[0]
@@ -294,7 +294,7 @@ def convertBAR2Struct():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
@@ -318,7 +318,7 @@ def convertBAR2Struct():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -335,7 +335,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=2)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -351,7 +351,7 @@ def createApp(win):
         V.set(CTK.PREFS['tkExtractEdgesSplitAngle'])
     # -1- Tolerance for T-branches splitting -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
-    
+
     # - External edges -
     B = TTK.Button(Frame, text="External edges", command=exteriorFaces)
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
@@ -387,7 +387,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="BAR2Struct", command=convertBAR2Struct)
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Convert BARs to i-arrays.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -413,7 +413,7 @@ def updateApp(): return
 def saveApp():
     CTK.PREFS['tkExtractEdgesSplitAngle'] = VARS[0].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('30.')
@@ -423,7 +423,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
- 
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

@@ -54,7 +54,7 @@ libraries += fortranLibs
 
 mySystem = Dist.getSystem()
 if mySystem[0] == 'mingw': 
-  libraries += ["wsock32"]
+    libraries += ["wsock32"]
 
 if cc == 'icc':
     ADDITIONALCPPFLAGS = ['-fpermissive']
@@ -70,10 +70,10 @@ if mpi:
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
 if mpi: libraries += mpiLibs
-        
+
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-    
+
 # Extensions ==================================================================
 listExtensions = []
 listExtensions.append(
@@ -91,31 +91,31 @@ cython = Dist.checkCython(additionalLibPaths, additionalIncludePaths)
 
 if cython and mpi and mpi4py:
     if srcs.PARADIGMA == 2:
-      import srcs_paradigma23 as srcs_paradigma
-      paradigmaDir = "XCore/paradgima"
+        import srcs_paradigma23 as srcs_paradigma
+        paradigmaDir = "XCore/paradgima"
     elif srcs.PARADIGMA == 1:
-      import srcs_paradigma
-      paradigmaDir = "XCore/paradigma23"
+        import srcs_paradigma
+        paradigmaDir = "XCore/paradigma23"
     if srcs.PARADIGMA != 0:
-      PPATH = srcs_paradigma.PPATH
-      from Cython.Build import cythonize
-      for c in srcs_paradigma.pyx_srcs:
-        name = c.replace('.pyx', '')
-        names = name.split('/')
-        name = names[0]+'.'+names[-1]
-        listExtensionsPyx.append(
-            Extension(name,
-                    sources=[c],
-                    include_dirs=["XCore","%s"%PPATH,"%s/ppart"%PPATH,"%s/struct"%PPATH,"%s/pario"%PPATH,"%s/mesh"%PPATH,"%s/meshgen"%PPATH,"%s/mpi_wrapper"%PPATH, "%s/util"%PPATH]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
-                    library_dirs=additionalLibPaths+libraryDirs,
-                    libraries=libraries+additionalLibs,
-                    extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-                    extra_link_args=[],
-                    language='c++'
-                    ) )
+        PPATH = srcs_paradigma.PPATH
+        from Cython.Build import cythonize
+        for c in srcs_paradigma.pyx_srcs:
+            name = c.replace('.pyx', '')
+            names = name.split('/')
+            name = names[0]+'.'+names[-1]
+            listExtensionsPyx.append(
+                Extension(name,
+                        sources=[c],
+                        include_dirs=["XCore","%s"%PPATH,"%s/ppart"%PPATH,"%s/struct"%PPATH,"%s/pario"%PPATH,"%s/mesh"%PPATH,"%s/meshgen"%PPATH,"%s/mpi_wrapper"%PPATH, "%s/util"%PPATH]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
+                        library_dirs=additionalLibPaths+libraryDirs,
+                        libraries=libraries+additionalLibs,
+                        extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+                        extra_link_args=[],
+                        language='c++'
+                        ) )
     else:
-      def cythonize(srcs, include_path): return []
-      paradigmaDir = '' 
+        def cythonize(srcs, include_path): return []
+        paradigmaDir = '' 
 else:
     def cythonize(srcs, include_path): return []
     paradigmaDir = ''

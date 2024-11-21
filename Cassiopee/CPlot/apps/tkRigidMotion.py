@@ -50,7 +50,7 @@ def resetVars():
     if type == 1: resetVars1()
     elif type == 2: resetVars2()
     elif type == 3: resetVars3()
-    
+
 #==============================================================================
 def resetVars1():
     VARS[1].set('0')
@@ -76,7 +76,7 @@ def resetVars3():
     VARS[44].set('0.; 0.; 0.')
     VARS[45].set('0.; 0.; 1.')
     VARS[46].set(0.)
-    
+
 #==============================================================================
 def getVars(event=None):
     nzs = CPlot.getSelectedZones()
@@ -101,14 +101,14 @@ def getVars(event=None):
     motion = motion[0]
     t = Internal.getNodesFromName1(motion, 'MotionType')
     ntype = t[0][1][0]
-    
+
     if ntype == 1:
         VARS[11].set('1:MotionStrings'); changeMotionType(); getVars1()
     elif ntype == 2:
         VARS[11].set('2:KMotionRotor'); changeMotionType(); getVars2()
     elif ntype == 3:
         VARS[11].set('3:ConstantMotion'); changeMotionType(); getVars3()
-    
+
 #==============================================================================
 # Si Name existe deja dans la selection, affiche
 # Sinon, ne fait rien
@@ -122,7 +122,7 @@ def getVars1(event=None):
     nob = CTK.Nb[nzs[0]]+1
     noz = CTK.Nz[nzs[0]]
     z = CTK.t[2][nob][2][noz]
-        
+
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
     if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
@@ -170,7 +170,7 @@ def getVars2(event=None):
     nob = CTK.Nb[nzs[0]]+1
     noz = CTK.Nz[nzs[0]]
     z = CTK.t[2][nob][2][noz]
-        
+
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
     if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
@@ -265,7 +265,7 @@ def getVars3(event=None):
     nob = CTK.Nb[nzs[0]]+1
     noz = CTK.Nz[nzs[0]]
     z = CTK.t[2][nob][2][noz]
-        
+
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
     if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
@@ -287,14 +287,14 @@ def getVars3(event=None):
     VARS[45].set(str(t[0][1][0])+'; '+str(t[0][1][1])+'; '+str(t[0][1][2]))
     t = Internal.getNodesFromName1(motion, 'omega')
     VARS[46].set(t[0][1][0])
-    
+
 #==============================================================================
 def setVars(event=None):
     ntype = getMotionType()
     if ntype == 1: setVars1()
     elif ntype == 2: setVars2()
     elif ntype == 3: setVars3()
-    
+
 #==============================================================================
 # set vars pour le motion type 1
 #==============================================================================
@@ -362,7 +362,7 @@ def setVars2(event=None):
     tets = CTK.varsFromWidget(VARS[35].get(), 1)
 
     span_vct = CTK.varsFromWidget(VARS[36].get(), 1)
-    
+
     pre_lag_pnt = CTK.varsFromWidget(VARS[37].get(), 1)
     pre_lag_vct = CTK.varsFromWidget(VARS[38].get(), 1)
     pre_lag_ang = VARS[39].get()
@@ -427,7 +427,7 @@ def setVars3(event=None):
             axis_vct=axis_vct, omega=omega)
     CTK.TKTREE.updateApp()
     CTK.TXT.insert('START', 'Motion set in selected zones.\n')
-    
+
 #==============================================================================
 def changeMotionType(event=None):
     ntype = getMotionType()
@@ -458,7 +458,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -569,13 +569,13 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.; 0.; 1.'); VARS.append(V)
     # -46- omega -
     V = TK.DoubleVar(win); V.set(0.); VARS.append(V)
-    
+
     # - Settings -
     B = TTK.OptionMenu(Frame, VARS[11], '1:MotionStrings', '2:KMotionRotor',
                        '3:ConstantMotion', 
                        command=changeMotionType)
     B.grid(row=0, column=0, columnspan=3, sticky=TK.EW)
-    
+
     B = TTK.Label(Frame, text="Name:")
     BB = CTK.infoBulle(parent=B, text='Name of motion.')
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -617,7 +617,7 @@ def createApp(win):
                        text='Translation of origin.\nCan depend on {t}.')
     B.grid(row=0, column=1, sticky=TK.EW)
     B.bind('<Return>', setVars1)
-    
+
     B = TTK.Label(Frame1, text="ty:")
     BB = CTK.infoBulle(parent=B,
                        text='Translation of origin.\nCan depend on {t}.')
@@ -707,7 +707,7 @@ def createApp(win):
     B = TTK.Button(Frame1, text="Set", command=set2Axis)
     B.grid(row=8, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set rot axis from mouse.')
-    
+
     B = TTK.Label(Frame1, text="angle:")
     BB = CTK.infoBulle(parent=B,
                        text='Rotation angle.\nCan depend on {t}. In degrees.')
@@ -726,12 +726,12 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='transl_speed.')
     B.grid(row=0, column=1, sticky=TK.EW)
     B.bind('<Return>', setVars2)
-    
+
     B = TTK.Entry(Frame2, textvariable=VARS[36], background='White', width=10)
     BB = CTK.infoBulle(parent=B, text='span vector.')
     B.grid(row=0, column=2, sticky=TK.EW)
     B.bind('<Return>', setVars2)
-    
+
     B = TTK.Label(Frame2, text="psi0:")
     BB = CTK.infoBulle(parent=B, text='Azymuth at t=0.')
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -802,7 +802,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='dels.')
     B.grid(row=5, column=2, sticky=TK.EW)
     B.bind('<Return>', setVars2)
-    
+
     B = TTK.Label(Frame2, text="bet:")
     BB = CTK.infoBulle(parent=B, text='..')
     B.grid(row=6, column=0, sticky=TK.EW)
@@ -920,7 +920,7 @@ def createApp(win):
     B.bind('<Return>', setVars3)
 
     changeMotionType()
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -945,7 +945,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

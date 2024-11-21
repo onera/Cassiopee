@@ -68,29 +68,29 @@ def remesh():
 
     ridgeAngle = CTK.varsFromWidget(VARS[0].get(), type=1)
     if len(ridgeAngle) != 1:
-            CTK.TXT.insert('START', 'Invalid ridge angle.\n')
-            CTK.TXT.insert('START', 'Error: ', 'Error')
+        CTK.TXT.insert('START', 'Invalid ridge angle.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
     ridgeAngle = ridgeAngle[0]
     hausd = CTK.varsFromWidget(VARS[1].get(), type=1)
     if len(hausd) != 1:
-            CTK.TXT.insert('START', 'Invalid hausdorff distance.\n')
-            CTK.TXT.insert('START', 'Error: ', 'Error')
+        CTK.TXT.insert('START', 'Invalid hausdorff distance.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
     hausd = hausd[0]
     hmin = CTK.varsFromWidget(VARS[2].get(), type=1)
     if len(hmin) != 1:
-            CTK.TXT.insert('START', 'Invalid hmin.\n')
-            CTK.TXT.insert('START', 'Error: ', 'Error')
+        CTK.TXT.insert('START', 'Invalid hmin.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
     hmin = hmin[0]
     hmax = CTK.varsFromWidget(VARS[3].get(), type=1)
     if len(hmax) != 1:
-            CTK.TXT.insert('START', 'Invalid hmax.\n')
-            CTK.TXT.insert('START', 'Error: ', 'Error')
+        CTK.TXT.insert('START', 'Invalid hmax.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
     hmax = hmax[0]
-    
+
     # si hmax est negatif, on fait de l'optimisation du maillage
     if hmax < 0: optim = 1
     else: optim = 0
-    
+
     fixedConstraints = []
     # Exterior constraints
     if VARS[6].get() == "1":
@@ -102,7 +102,7 @@ def remesh():
                 ext = P.exteriorFaces(z)
                 fixedConstraints.append(ext)
             except: pass
-            
+
     # Other given constraints
     name = VARS[4].get()
     names = name.split(';')
@@ -114,7 +114,7 @@ def remesh():
             nodes = Internal.getNodesFromType1(base, 'Zone_t')
             for z in nodes:
                 if z[0] == sname[1]: fixedConstraints.append(z)
-                
+
     sizeConstraints = []
     name = VARS[5].get()
     names = name.split(';')
@@ -143,7 +143,7 @@ def remesh():
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.setCursor(0, WIDGETS['remesh'])
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -169,7 +169,7 @@ def createApp(win):
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkMMGs')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- ridgeAngle -
     V = TK.StringVar(win); V.set('45.'); VARS.append(V)
@@ -219,7 +219,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Maximum step in remeshed surface.')
-    
+
     # fixed exterior boundary
     B = TTK.Checkbutton(Frame, text='Fixed ext', variable=VARS[6])
     BB = CTK.infoBulle(parent=B, text='Add exterior boundary to fixed constraints.')
@@ -235,7 +235,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[4], background='White', width=8)
     B.grid(row=2, column=1, columnspan=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fixed curves for mmg.')
-    
+
     # size constraints
     B = TTK.Label(Frame, text="Size")
     B.grid(row=3, column=0, sticky=TK.EW)
@@ -246,13 +246,13 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[5], background='White', width=8)
     B.grid(row=3, column=1, columnspan=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Define size map.')
-    
+
     # - Remesh -
     B = TTK.Button(Frame, text="Remesh", command=remesh)
     B.grid(row=4, column=0, columnspan=5, sticky=TK.EW)
     WIDGETS['remesh'] = B
     BB = CTK.infoBulle(parent=B, text='Remesh a TRI surface.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -278,7 +278,7 @@ def updateApp(): return
 def saveApp():
     CTK.PREFS['tkTetraMesherType'] = VARS[0].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('netgen')
@@ -288,7 +288,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

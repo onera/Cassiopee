@@ -16,7 +16,7 @@ import Transform.PyTree as T
 #=====================================================================
 def building(base, height, h, hp):
     if len(base) != 4: raise ValueError('building: the base must have 4 sides.')
-    
+
     # line 0 with h
     a01 = D.uniformize(base[0], h=h)
     # line 1 with h
@@ -26,7 +26,7 @@ def building(base, height, h, hp):
     # line 3 with a1 npts
     a30 = D.uniformize(base[3], N=C.getNPts(a12))
     b0 = G.TFI([a01,a12,a23,a30])
-    
+
     # vertical line
     P0 = C.getValue(a01, 'GridCoordinates', ind=0)
     Pz0 = (P0[0],P0[1],P0[2]+height)
@@ -105,7 +105,7 @@ def domain(base, height, h, hp):
     # line 3 with a1 npts
     a30 = D.uniformize(base[3], N=C.getNPts(a12))
     b0 = G.TFI([a01,a12,a23,a30])
-    
+
     # vertical line
     P0 = C.getValue(a01, 'GridCoordinates', ind=0)
     Pz0 = (P0[0],P0[1],P0[2]+height)
@@ -133,7 +133,7 @@ def domain(base, height, h, hp):
     b3 = G.TFI([a12,a2z2,h12,a1z1])
     b4 = G.TFI([a23,a3z3,h23,a2z2])
     b5 = G.TFI([a30,a0z0,h30,a3z3])
-      
+
     # vol zone
     vol = G.TFI([b0,b1,b2,b3,b4,b5])
     vol = T.reorder(vol, (3,2,1))
@@ -171,7 +171,7 @@ def square(P0, P1):
     l2 = D.line(P1,P3,N=2)
     l3 = D.line(P3,P0,N=2)
     return [l0,l1,l2,l3]
-    
+
 #=====================================================================
 def map(P0, P1, fileName):
     s = square(P0,P1)

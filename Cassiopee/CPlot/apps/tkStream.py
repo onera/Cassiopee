@@ -40,7 +40,7 @@ def updateVarNameList2__(no):
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
         vars = C.getVarNames(CTK.t[2][nob][2][noz])
-    
+
     allvars = []
     if len(vars) > 0:
         for v in vars[0]: allvars.append(v)
@@ -105,7 +105,7 @@ def streamSurface():
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.setCursor(0, WIDGETS['streamSurface'])
-    
+
 
 #==============================================================================
 def streamLine():
@@ -116,7 +116,7 @@ def streamLine():
         CTK.TXT.insert('START', 'Error: ', 'Error') ; return
     npts = npts[0]
     v1 = VARS[1].get(); v2 = VARS[2].get(); v3 = VARS[3].get()
-    
+
     l = CPlot.getActivePoint()
     if l == []:
         CTK.TXT.insert('START', 'Click to select starting point...\n')
@@ -126,7 +126,7 @@ def streamLine():
     CTK.t = C.addBase2PyTree(CTK.t, 'STREAMS', 2)
     b = Internal.getNodesFromName1(CTK.t, 'STREAMS')
     nob = C.getNobOfBase(b[0], CTK.t)
-    
+
     # Arbre source (on enleve les Bases CANVAS, CONTOURS et STREAMS)
     print((l[0], l[1], l[2]))
     source = C.newPyTree()
@@ -148,7 +148,7 @@ def streamLine():
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.setCursor(0, WIDGETS['streamLine'])
-    
+
 #==============================================================================
 def streamRibbon():
     if CTK.t == []: return
@@ -158,25 +158,25 @@ def streamRibbon():
         CTK.TXT.insert('START', 'Error: ', 'Error') ; return
     npts = npts[0]
     v1 = VARS[1].get(); v2 = VARS[2].get(); v3 = VARS[3].get()
-    
+
     l = CPlot.getActivePoint()
     if l == []:
         CTK.TXT.insert('START', 'Click to select starting point...\n')
         return
-    
+
     CTK.setCursor(2, WIDGETS['streamRibbon'])
     CTK.saveTree()
     CTK.t = C.addBase2PyTree(CTK.t, 'STREAMS', 2)
     b = Internal.getNodesFromName1(CTK.t, 'STREAMS')
     nob = C.getNobOfBase(b[0], CTK.t)
-    
+
     # Arbre source (on enleve les Bases CANVAS, CONTOURS et STREAMS)
     source = C.newPyTree()
     bases = Internal.getBases(CTK.t)
     for b in bases:
         if b[0] != 'CANVAS' and b[0] != 'CONTOURS' and b[0] != 'STREAMS':
             source[2].append(b)
-    
+
     try:
         stream = P.streamRibbon(source, (l[0], l[1], l[2]), (0,0,0.01), 
                                 [v1, v2, v3], N=npts)
@@ -190,7 +190,7 @@ def streamRibbon():
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     CTK.setCursor(0, WIDGETS['streamRibbon'])
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -277,13 +277,13 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 3.')
         WIDGETS['variable3'] = B
     else:
-         B = ttk.Combobox(F, textvariable=VARS[3], 
-                          values=[], state='readonly', width=10)
-         B.grid(sticky=TK.EW)
-         F.bind('<Enter>', updateVarNameList3_2)
-         F.grid(row=0, column=2, sticky=TK.EW)
-         BB = CTK.infoBulle(parent=B, text='Variable 3.')
-         WIDGETS['variable3'] = B
+        B = ttk.Combobox(F, textvariable=VARS[3], 
+                         values=[], state='readonly', width=10)
+        B.grid(sticky=TK.EW)
+        F.bind('<Enter>', updateVarNameList3_2)
+        F.grid(row=0, column=2, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Variable 3.')
+        WIDGETS['variable3'] = B
 
     # - nptsmax -
     B = TTK.Label(Frame, text="nptsmax")
@@ -292,7 +292,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=5)
     BB = CTK.infoBulle(parent=B, text='Max number of points of streams.')
     B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
-    
+
     # - Stream line -
     B = TTK.Button(Frame, text="Line", command=streamLine)
     WIDGETS['streamLine'] = B
@@ -310,7 +310,7 @@ def createApp(win):
     WIDGETS['streamSurface'] = B
     B.grid(row=2, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Draw a stream surface from a BAR.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -346,7 +346,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

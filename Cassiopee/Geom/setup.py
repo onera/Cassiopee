@@ -20,7 +20,7 @@ Dist.writeSetupCfg()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
-    
+
 # Compilation des fortrans ===================================================
 from KCore.config import *
 prod = os.getenv("ELSAPROD")

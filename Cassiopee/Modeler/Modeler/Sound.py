@@ -12,7 +12,7 @@ except ImportError:
     def playSound(soundHandle, poolNo=[]): return None
     def closeAllSounds(): return None
     #raise ImportError("Sound module requires pyaudio.")
-    
+
 import wave
 
 # Globals

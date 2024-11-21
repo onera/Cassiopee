@@ -31,7 +31,7 @@ def initWallDistance():
         CTK.TXT.insert('START', 'Error: ', 'Error')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 def initSolution():
     if CTK.t == []: return
@@ -40,7 +40,7 @@ def initSolution():
     if state is None:
         CTK.TXT.insert('START', 'state is missing (tkState).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     # Check for GoverningEquations
     eqs = Internal.getNodeFromType(CTK.t, 'GoverningEquations_t')
     Model = 'NSTurbulent'
@@ -69,7 +69,7 @@ def initSolution():
     CTK.TXT.insert('START', 'Solution initialized.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -84,7 +84,7 @@ def createApp(win):
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -94,7 +94,7 @@ def createApp(win):
     # - VARS -
     # -0- Zone filter regexp -
     #V = TK.StringVar(win); V.set(''); VARS.append(V)
-    
+
     # - Init solution -
     B = TTK.Button(Frame, text="Initialize solution from state",
                    command=initSolution)
@@ -106,7 +106,7 @@ def createApp(win):
                    command=initWallDistance)
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Compute wall distances.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

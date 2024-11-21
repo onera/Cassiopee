@@ -65,7 +65,7 @@ def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
     # the corresponding list of valid connectivities is defined by 'validjoins' 
     # This dictionary will be used in second loop
     validjoins = []; dictjoins = {}; indexjoin = 0
-    
+
     c = 0
     isghost = [True]*len(zones) # pour le cas NGON avec modified=uniquement sur les centres
     for zp in zones:
@@ -107,7 +107,7 @@ def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
     # put ghost dimensions for zone
     #-------------------------------   
     for zp in zones: _updateZoneDim__(zp, d)
-    
+
     #------------------------------------------------------------
     # add Rind for zone
     #------------------------------------------------------------
@@ -145,7 +145,7 @@ def _addGhostCellsStruct__(zp, bp, d, modified, nodesRef, validjoins, dictjoins,
     # with ghost cells implemented, and their parent base.
     # This dictionnary will be used in second loop
     dimZone = Internal.getZoneDim(zp)
-    
+
     # 1. init with 0th order extrapolation
     _initWithExtrapStruct__(zp, dimZone, modified, d)
 
@@ -190,7 +190,7 @@ def _addGhostCellsNGON__(zp, bp, d, isghost, stdNode, modified):
         else: parentN[2][dN] = zp
     else: bp = zp # liste de zones   
     return isghost
-    
+
 #==============================================================================
 # Remove ghost Cells on GridConnectivity and all fields of FlowSolution
 # and FlowSolution#Centers
@@ -263,7 +263,7 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
             # Adapts physical BC
             #-------------------------------
             if adaptBCs == 1: _adaptBCStruct__(zp, dim, -d, nodesRef)               
- 
+
             #---------------------------------
             # Remove ghost dimensions for zone
             #---------------------------------
@@ -320,7 +320,7 @@ def getFieldsInContainer__(zp, modified, coords=True):
                         else:
                             fn = PyTree.getField(vname,zp)[0]
                             fieldsn = Converter.addVars([fieldsn,fn])
-                        
+
     return fieldsn, fieldsc
 
 def _rmGhostCellsNGON__(zp, bp, d, stdNode, modified):
@@ -385,7 +385,7 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
     rotationData = joininfo[6]
     typegc = 0
     if len(nmratio) == 3: typegc = 1
-    
+
     # Periodicity by rotation: vectors that must be modified
     vectorsR = []
     for v in ['Velocity','Momentum']:
@@ -548,7 +548,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
         elif dimZone == 2:
             incrrecv = increment__(dir_rcv[0],dir_rcv[1],im,jm,d)
             incrdonor = increment__(dir_donor[0],dir_donor[1],imdonor,jmdonor,0)
-        
+
         return [arrayborder, dim1border, dim2border,listdonor, direction, dirdonor, incrrecv, incrdonor, im, imdonor, shiftDir1, shiftDir2, isFine]
 
     else: # for fillJoinCorner
@@ -564,7 +564,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
         #    incrdonor: index between two cells in the direction of the frontier
         #    incrdonorI: index between two cells following the local axe I of the frontier
         #    incrdonorJ: index between two cells following the local axe J of the frontier
-        
+
         if dimZone == 3:
             if absdirection == 1:
                 incrrecv = increment__(1,0,0,im,jm,km,d)
@@ -614,7 +614,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
             absI = abs(DonorI); signI = absI//DonorI
             incrdonorI = signI*(2-absI) + signI*(absI-1)*(imdonor+2*d)
             incrdonorJ = 0
- 
+
         return [arrayborder, dim1border, dim2border, listdonor, incrrecvI, incrrecvJ, incrdonorI, incrdonorJ, direction, dirdonor, incrrecv, incrdonor, shiftDir1, shiftDir2, isFine]
 
 #==============================================================================
@@ -632,7 +632,7 @@ def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
     f = fdonor[1]
 
     [arrayborder, dim1, dim2, listdonor,incrrecvI,incrrecvJ,incrdonorI,incrdonorJ,direction,dirdonor,incrrecv,incrdonor, shiftDir1, shiftDir2, isFine] = borderinfo
-    
+
     # fill ghost corner values for join
     if typegc == 0:
         Converter.converter.fillCornerGhostCells(a, f, arrayborder, listdonor, loc, dim1, dim2, incrrecvI, incrrecvJ,
@@ -785,7 +785,7 @@ def getDirection__(dim, prange):
         if wimax == 1: direction = 0
         else: direction = 1
     return direction
-     
+
 #==============================================================================
 # Change PointRange taking into account a change of depth=d in grid
 # Implemented only for structured grids
@@ -799,7 +799,7 @@ def changePointRange__(prange, dimZone, direction, d, corners=0, extend=0):
     pr = numpy.copy(prange[0][1])
     ijk = int(direction/2)
     minmax = direction%2
-  
+
     for ind in range(dimZone[4]):
         if ind != ijk:
             #pr[ind][0] = max(pr[ind][0]+d,1)
@@ -903,10 +903,10 @@ def getContainers__(name, z, zdonor=None):
                             if zdonor is None:
                                 if f[3] == 'DataArray_t': containers.append(f); locations.append(loc)
                             else:
-                               if plocdonor == loc:
-                                   fdonor = Internal.getNodesFromName1(containerNodeDonor[0], f[0])
-                                   if fdonor != []:
-                                       containers.append(f); locations.append(loc); containersD.append(fdonor[0])
+                                if plocdonor == loc:
+                                    fdonor = Internal.getNodesFromName1(containerNodeDonor[0], f[0])
+                                    if fdonor != []:
+                                        containers.append(f); locations.append(loc); containersD.append(fdonor[0])
 
     if zdonor is None: return containers,locations
     else: return containers, containersD, locations
@@ -1017,7 +1017,7 @@ def _rmRindCells0(t):
     except:
         print("Warning: rmRindCells requires Transform module.")
         return None
-    
+
     for zp in Internal.getZones(t):
         dim = Internal.getZoneDim(zp)
         dimZone = dim[4]
@@ -1036,7 +1036,7 @@ def _rmRindCells0(t):
 
 def _rmRindCells(t, d=-1, modified=[]):
     if d == -1: return _rmRindCells0(t)
- 
+
     stdNode = Internal.isStdNode(t)
     nodes = Internal.getZones(t)
     for zp in nodes:
@@ -1254,7 +1254,7 @@ def _updateZoneDim__(zp, d):
         for j in range(zp[1].shape[1]-1):
             for i in range(zp[1].shape[0]):
                 zp[1][i,j] = zp[1][i,j] + 2*d
-            
+
 def updateZoneDim__(z,d):
     zp = Internal.copyRef(z)
     _updateZoneDim__(zp,d)
@@ -1328,7 +1328,7 @@ def getJoinInfo__(join, jointype, dimZone, nodesRef, d):
         else:
             delta = [wimax-wimin]
             deltadonor = [wimaxdonor-wimindonor]
-        
+
         if jointype == 'BCMatch':
             if delta[0] != deltadonor[abs(trirac[0])-1]: check = False
         if check:
@@ -1345,7 +1345,7 @@ def getJoinInfo__(join, jointype, dimZone, nodesRef, d):
                 return []
             else:
                 return [zdonor, prange, prangedonor, trirac, nmr, translVect, rotationData]
-            
+
     return []
 
 #==============================================================================
@@ -1412,18 +1412,18 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
     coordzD = Internal.getNodeFromPath(zD, 'GridCoordinates/CoordinateZ')[1]
 
     if no_layer > 1:
-      NG_PE_R = Internal.getNodeFromPath(zR, 'NGonElements/ParentElements')[1]    
-      NG_EC_R = Internal.getNodeFromPath(zR, 'NGonElements/ElementConnectivity')[1]    
-      NG_IDX_R= Internal.getNodeFromPath(zR, 'NGonElements/FaceIndex')[1]    
-      FA_EC_R = Internal.getNodeFromPath(zR, 'NFaceElements/ElementConnectivity')[1]    
-      FA_IDX_R= Internal.getNodeFromPath(zR, 'NFaceElements/ElementIndex')[1]    
-      coordxR = Internal.getNodeFromPath(zR, 'GridCoordinates/CoordinateX')[1]
-      coordyR = Internal.getNodeFromPath(zR, 'GridCoordinates/CoordinateY')[1]
-      coordzR = Internal.getNodeFromPath(zR, 'GridCoordinates/CoordinateZ')[1]
-  
-      zbc_D = Internal.getNodeFromType1(zD   , 'ZoneBC_t')
-      bc_D  = Internal.getNodesFromType1(zbc_D, 'BC_t')
-      bc_R  = Internal.getNodesFromType1(zbc_R, 'BC_t')
+        NG_PE_R = Internal.getNodeFromPath(zR, 'NGonElements/ParentElements')[1]    
+        NG_EC_R = Internal.getNodeFromPath(zR, 'NGonElements/ElementConnectivity')[1]    
+        NG_IDX_R= Internal.getNodeFromPath(zR, 'NGonElements/FaceIndex')[1]    
+        FA_EC_R = Internal.getNodeFromPath(zR, 'NFaceElements/ElementConnectivity')[1]    
+        FA_IDX_R= Internal.getNodeFromPath(zR, 'NFaceElements/ElementIndex')[1]    
+        coordxR = Internal.getNodeFromPath(zR, 'GridCoordinates/CoordinateX')[1]
+        coordyR = Internal.getNodeFromPath(zR, 'GridCoordinates/CoordinateY')[1]
+        coordzR = Internal.getNodeFromPath(zR, 'GridCoordinates/CoordinateZ')[1]
+
+        zbc_D = Internal.getNodeFromType1(zD   , 'ZoneBC_t')
+        bc_D  = Internal.getNodesFromType1(zbc_D, 'BC_t')
+        bc_R  = Internal.getNodesFromType1(zbc_R, 'BC_t')
 
     n = faceListD.size
     ptFaceD = faceListD.flat
@@ -1435,185 +1435,185 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
     for i in range(n):
         faceD = ptFaceD[i]-1
         if no_layer == 1:
-              if NG_PE_D[ faceD, 0] == 0: e1D = NG_PE_D[faceD,1]
-              else: e1D = NG_PE_D[faceD,0]
-              elts.add(e1D-one)
+            if NG_PE_D[ faceD, 0] == 0: e1D = NG_PE_D[faceD,1]
+            else: e1D = NG_PE_D[faceD,0]
+            elts.add(e1D-one)
 
-              # calcul centre maille
-              x0 = 0.; y0 = 0.; z0 = 0.
-              eltD = FA_IDX_D[e1D-1]
-              for face in range( 1, FA_EC_D[eltD ]+1):
-                 f       = FA_EC_D[ eltD  + face] -1
-                 ind_f   = NG_IDX_D[ f] 
-                 NvtxD   = NG_EC_D[ ind_f]
-                 for vtx in range( NvtxD ):
+            # calcul centre maille
+            x0 = 0.; y0 = 0.; z0 = 0.
+            eltD = FA_IDX_D[e1D-1]
+            for face in range( 1, FA_EC_D[eltD ]+1):
+                f       = FA_EC_D[ eltD  + face] -1
+                ind_f   = NG_IDX_D[ f] 
+                NvtxD   = NG_EC_D[ ind_f]
+                for vtx in range( NvtxD ):
                     vtxD = NG_EC_D[ ind_f +vtx +1 ] -1
                     x0 = x0 + coordxD[vtxD]
                     y0 = y0 + coordyD[vtxD]
                     z0 = z0 + coordzD[vtxD]
 
-              code = x0 + 1000000.*y0 +   1.e12*z0
-              xyz0.add( code )
+            code = x0 + 1000000.*y0 +   1.e12*z0
+            xyz0.add( code )
 
-              #print('elts', elts)
+            #print('elts', elts)
         else:
-              if (NG_PE_D[ faceD, 0] > NG_PE_D[ faceD, 1]):  e1D = NG_PE_D[faceD,1]
-              else:                                          e1D = NG_PE_D[faceD,0] 
-              #recuperation adresse element dans ElementConnectivity pour recuperer faces de l'element
-              ind_e1D = FA_IDX_D[e1D-1]
+            if (NG_PE_D[ faceD, 0] > NG_PE_D[ faceD, 1]):  e1D = NG_PE_D[faceD,1]
+            else:                                          e1D = NG_PE_D[faceD,0] 
+            #recuperation adresse element dans ElementConnectivity pour recuperer faces de l'element
+            ind_e1D = FA_IDX_D[e1D-1]
 
-              #print 'e1',e1D, faceD+1, mask
-              #print 'GD',NG_PE_D[faceD,1],NG_PE_D[faceD,0]
+            #print 'e1',e1D, faceD+1, mask
+            #print 'GD',NG_PE_D[faceD,1],NG_PE_D[faceD,0]
 
-              for fD in range( 1, FA_EC_D[ ind_e1D]+1):
-                 no_faceD = FA_EC_D[ ind_e1D + fD] -1
-                 if no_faceD != faceD:
+            for fD in range( 1, FA_EC_D[ ind_e1D]+1):
+                no_faceD = FA_EC_D[ ind_e1D + fD] -1
+                if no_faceD != faceD:
                     e3D = NG_PE_D[no_faceD,0]
                     e4D = NG_PE_D[no_faceD,1]
                     #on test si la cellule est un raccord ou un BC
                     if e3D*e4D != 0:       
-                       #print 'e34',e3D, e4D, NG_PE_D[faceD,0], NG_PE_D[faceD,1]
-                       #print 'face',no_faceD+1, faceD+1, face
-                       if   (e3D != e1D and ( e3D < mask[0] or e3D > mask[1]) ): 
-                           #calcul centre maille
-                           x0 = 0.
-                           y0 = 0.
-                           z0 = 0.
-                           eltD =  FA_IDX_D[e3D-1]
-                           for face in range(1, FA_EC_D[eltD ]+1):
+                        #print 'e34',e3D, e4D, NG_PE_D[faceD,0], NG_PE_D[faceD,1]
+                        #print 'face',no_faceD+1, faceD+1, face
+                        if   (e3D != e1D and ( e3D < mask[0] or e3D > mask[1]) ): 
+                            #calcul centre maille
+                            x0 = 0.
+                            y0 = 0.
+                            z0 = 0.
+                            eltD =  FA_IDX_D[e3D-1]
+                            for face in range(1, FA_EC_D[eltD ]+1):
                                 f       = FA_EC_D[ eltD  + face] -1
                                 ind_f   = NG_IDX_D[ f] 
                                 NvtxD   = NG_EC_D[ ind_f]
                                 for vtx in range(NvtxD):
-                                        vtxD = NG_EC_D[ ind_f +vtx +1] -1
-                                        x0=x0 + coordxD[vtxD]
-                                        y0=y0 + coordyD[vtxD]
-                                        z0=z0 + coordzD[vtxD]
+                                    vtxD = NG_EC_D[ ind_f +vtx +1] -1
+                                    x0=x0 + coordxD[vtxD]
+                                    y0=y0 + coordyD[vtxD]
+                                    z0=z0 + coordzD[vtxD]
 
-                           size1_xyz = len( xyz0)
-                           code = x0 + 1000000.*y0 + 1.e12*z0
-                           xyz0.add(code)
-                           size2_xyz = len( xyz0)
-                           if size2_xyz > size1_xyz: elts.add(e3D-one)
- 
-                       elif e4D < mask[0] or e4D > mask[1]: 
-                           #calcul centre maille
-                           x0 = 0.; y0 = 0.; z0 = 0.
-                           eltD =  FA_IDX_D[e4D-1]
-                           for face in range(1, FA_EC_D[eltD ]+1):
+                            size1_xyz = len( xyz0)
+                            code = x0 + 1000000.*y0 + 1.e12*z0
+                            xyz0.add(code)
+                            size2_xyz = len( xyz0)
+                            if size2_xyz > size1_xyz: elts.add(e3D-one)
+
+                        elif e4D < mask[0] or e4D > mask[1]: 
+                            #calcul centre maille
+                            x0 = 0.; y0 = 0.; z0 = 0.
+                            eltD =  FA_IDX_D[e4D-1]
+                            for face in range(1, FA_EC_D[eltD ]+1):
                                 f       = FA_EC_D[ eltD  + face] -1
                                 ind_f   = NG_IDX_D[ f]
                                 NvtxD   = NG_EC_D[ ind_f]
                                 for vtx in range(NvtxD):
-                                        vtxD = NG_EC_D[ ind_f +vtx +1 ] -1
-                                        x0 = x0 + coordxD[vtxD]
-                                        y0 = y0 + coordyD[vtxD]
-                                        z0 = z0 + coordzD[vtxD]
+                                    vtxD = NG_EC_D[ ind_f +vtx +1 ] -1
+                                    x0 = x0 + coordxD[vtxD]
+                                    y0 = y0 + coordyD[vtxD]
+                                    z0 = z0 + coordzD[vtxD]
 
-                           size1_xyz = len( xyz0)
-                           code = x0 + 1000000.*y0 + 1.e12*z0
-                           xyz0.add(code)
-                           size2_xyz = len(xyz0)
-                           if size2_xyz > size1_xyz: elts.add(e4D-one)
+                            size1_xyz = len( xyz0)
+                            code = x0 + 1000000.*y0 + 1.e12*z0
+                            xyz0.add(code)
+                            size2_xyz = len(xyz0)
+                            if size2_xyz > size1_xyz: elts.add(e4D-one)
                     else:
-                       #on cherche le matching entre la face BC dans donneur et receveur
-                       faceR= ptFaceR[i]-1
-                       e1R  = NG_PE_R[faceR,0]
-                       e2R  = NG_PE_R[faceR,1]
-                       #element couche externe a forcemment un no + grand
-                       if e1R > e2R: elR = e1R
-                       else          : elR = e2R  
-                       eltR =  FA_IDX_R[elR-1]
-                       face_bingo = []
-                       faceSearch = True
-                       faceR      = 1
-                       while faceSearch:
-                       #for faceR in range( 1, FA_EC_R[eltR]+1):
-                          no_faceR = FA_EC_R[ eltR + faceR] -1
-                          e3R      = NG_PE_R[no_faceR,0]
-                          e4R      = NG_PE_R[no_faceR,1]
-                          ind_fD   = NG_IDX_D[no_faceD]
-                          ind_fR   = NG_IDX_R[no_faceR]
-                          NvtxD    = NG_EC_D[ ind_fD]
-                          NvtxR    = NG_EC_R[ ind_fR]
-                          #on elimine les faces non externes, celle du raccord ou celle possedant un nbr de vextex different
-                          if no_faceR != faceR and e3R*e4R == 0 and NvtxD== NvtxR:
-                             
-                             searchD    = True
-                             bingo      = 0
-                             cd =1
-                             while searchD:
-                                 vtxD = NG_EC_D[ ind_fD+cd]-1
-                                 searchR= True
-                                 cr =1
-                                 while searchR:
-                                    vtxR = NG_EC_R[ ind_fR+cr]-1
-                                    #if(elR==26 and no_faceR ==104):
-                                    #  print 'xD=',  coordxD[vtxD], coordyD[vtxD],coordzD[vtxD]
-                                    #  print 'xr=',  coordxR[vtxR], coordyR[vtxR],coordzR[vtxR]
-                                    #  print 'cr=', cr
-                                    if coordxD[vtxD] == coordxR[vtxR]:
-                                      if coordyD[vtxD] == coordyR[vtxR]:
-                                         if coordzD[vtxD] == coordzR[vtxR]:  
-                                           bingo  +=1 
-                                           searchR = False
-                                    cr +=1
-                                    if cr == (NvtxR+1): searchR = False
+                        #on cherche le matching entre la face BC dans donneur et receveur
+                        faceR= ptFaceR[i]-1
+                        e1R  = NG_PE_R[faceR,0]
+                        e2R  = NG_PE_R[faceR,1]
+                        #element couche externe a forcemment un no + grand
+                        if e1R > e2R: elR = e1R
+                        else          : elR = e2R  
+                        eltR =  FA_IDX_R[elR-1]
+                        face_bingo = []
+                        faceSearch = True
+                        faceR      = 1
+                        while faceSearch:
+                        #for faceR in range( 1, FA_EC_R[eltR]+1):
+                            no_faceR = FA_EC_R[ eltR + faceR] -1
+                            e3R      = NG_PE_R[no_faceR,0]
+                            e4R      = NG_PE_R[no_faceR,1]
+                            ind_fD   = NG_IDX_D[no_faceD]
+                            ind_fR   = NG_IDX_R[no_faceR]
+                            NvtxD    = NG_EC_D[ ind_fD]
+                            NvtxR    = NG_EC_R[ ind_fR]
+                            #on elimine les faces non externes, celle du raccord ou celle possedant un nbr de vextex different
+                            if no_faceR != faceR and e3R*e4R == 0 and NvtxD== NvtxR:
 
-                                 cd +=1
-                                 if cd == (NvtxD+1): searchD = False
-                                 if bingo == NvtxR: 
-                                      face_bingo.append(no_faceR)
-                                      faceSearch = False
+                                searchD    = True
+                                bingo      = 0
+                                cd =1
+                                while searchD:
+                                    vtxD = NG_EC_D[ ind_fD+cd]-1
+                                    searchR= True
+                                    cr =1
+                                    while searchR:
+                                        vtxR = NG_EC_R[ ind_fR+cr]-1
+                                        #if(elR==26 and no_faceR ==104):
+                                        #  print 'xD=',  coordxD[vtxD], coordyD[vtxD],coordzD[vtxD]
+                                        #  print 'xr=',  coordxR[vtxR], coordyR[vtxR],coordzR[vtxR]
+                                        #  print 'cr=', cr
+                                        if coordxD[vtxD] == coordxR[vtxR]:
+                                            if coordyD[vtxD] == coordyR[vtxR]:
+                                                if coordzD[vtxD] == coordzR[vtxR]:  
+                                                    bingo  +=1 
+                                                    searchR = False
+                                        cr +=1
+                                        if cr == (NvtxR+1): searchR = False
 
-                          faceR += 1
-                          if (faceR == (FA_EC_R[eltR]+1)) : faceSearch = False
+                                    cd +=1
+                                    if cd == (NvtxD+1): searchD = False
+                                    if bingo == NvtxR: 
+                                        face_bingo.append(no_faceR)
+                                        faceSearch = False
 
-                       #on modifie le Nombre de face BC si la face n 'est pas un raccord
-                       for fbingo in  face_bingo:     
-                         for gD in bc_D:
-                           ptlist = Internal.getNodeFromName1(gD, 'PointList')[1]
-                           if no_faceD+1 in ptlist: 
-                              ldone    = False
-                              c        = 0
-                              clD      = Internal.getValue(gD)
-                              searchBC = True
-                              #Recherche existence CL sur la zone receuveuse, on ajoute la face en cas d'absence
-                              while searchBC:
-                                  clR    = Internal.getValue(bc_R[c])
-                                  if clD == clR and ldone == False:
+                            faceR += 1
+                            if (faceR == (FA_EC_R[eltR]+1)) : faceSearch = False
 
-                                     ptlistR = Internal.getNodeFromName1(bc_R[c], 'PointList')[1]
-                                     if fbingo+1 not in ptlistR: 
+                        #on modifie le Nombre de face BC si la face n 'est pas un raccord
+                        for fbingo in  face_bingo:     
+                            for gD in bc_D:
+                                ptlist = Internal.getNodeFromName1(gD, 'PointList')[1]
+                                if no_faceD+1 in ptlist: 
+                                    ldone    = False
+                                    c        = 0
+                                    clD      = Internal.getValue(gD)
+                                    searchBC = True
+                                    #Recherche existence CL sur la zone receuveuse, on ajoute la face en cas d'absence
+                                    while searchBC:
+                                        clR    = Internal.getValue(bc_R[c])
+                                        if clD == clR and ldone == False:
 
-                                       sizeR   = numpy.size(ptlistR)
-                                       datap   = numpy.empty(sizeR+1, dtype=Internal.E_NpyInt)
-                                       datap[0:sizeR] = ptlistR[0:sizeR]
-                                       datap[sizeR]   = fbingo +1
-                                       Internal.getNodeFromName1(bc_R[c], 'PointList')[1] = datap
+                                            ptlistR = Internal.getNodeFromName1(bc_R[c], 'PointList')[1]
+                                            if fbingo+1 not in ptlistR: 
 
-                                     searchBC = False
-                                     ldone    = True
-                                  c += 1
-                                  if c == len(bc_R): searchBC = False
+                                                sizeR   = numpy.size(ptlistR)
+                                                datap   = numpy.empty(sizeR+1, dtype=Internal.E_NpyInt)
+                                                datap[0:sizeR] = ptlistR[0:sizeR]
+                                                datap[sizeR]   = fbingo +1
+                                                Internal.getNodeFromName1(bc_R[c], 'PointList')[1] = datap
 
-                              #creation du noeud BC si type inconnu sur zone receveuse
-                              if not ldone:
-                                  print('type BC inconnu: creation from scratch',gD)
-                                  #ptlistR = Internal.getNodeFromName1(tmp, 'PointList')[1]
-                                  datap = numpy.empty(1, dtype=Internal.E_NpyInt)
-                                  datap[0] = fbingo +1
-                                  tmp = [ gD[0],  gD[1], [ gD[2][0] ], gD[3]]
-                                  tmp[2].append( [ 'PointList',  datap, [], 'IndexArray_t'] )
-                                  print('tmp',tmp)
-                                  zbc_R[2]+=tmp
+                                            searchBC = False
+                                            ldone    = True
+                                        c += 1
+                                        if c == len(bc_R): searchBC = False
+
+                                    #creation du noeud BC si type inconnu sur zone receveuse
+                                    if not ldone:
+                                        print('type BC inconnu: creation from scratch',gD)
+                                        #ptlistR = Internal.getNodeFromName1(tmp, 'PointList')[1]
+                                        datap = numpy.empty(1, dtype=Internal.E_NpyInt)
+                                        datap[0] = fbingo +1
+                                        tmp = [ gD[0],  gD[1], [ gD[2][0] ], gD[3]]
+                                        tmp[2].append( [ 'PointList',  datap, [], 'IndexArray_t'] )
+                                        print('tmp',tmp)
+                                        zbc_R[2]+=tmp
 
     #print('zoneD=', zD[0], 'elts new ', elts,'elts old ', elts_old)
     elts = elts-elts_old
 
     #print('layer=', no_layer, elts)
     b = T.subzone(zD, list(elts), type='elements')
-    
+
     return b, elts, zbc_R
 
 #==============================================================================
@@ -1663,14 +1663,14 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                     rac = 0
                     gcSearch = True
                     while  gcSearch:
-                      if Internal.getValue( gcD[rac]) == z[0]:
-                          gcSearch =  False
-                      else: rac +=1
+                        if Internal.getValue( gcD[rac]) == z[0]:
+                            gcSearch =  False
+                        else: rac +=1
                     maskD  =  zonenames.index(zdonor[0])
 
                     if no_layer ==1 :
-                       Internal._adaptNFace2Index(zdonor) 
-                       Internal._adaptNGon2Index(zdonor) 
+                        Internal._adaptNFace2Index(zdonor) 
+                        Internal._adaptNGon2Index(zdonor) 
 
                     #if c==2:
                     # print'maskD=',maskD, 'rac=', rac, 'plage=',  mask_elts[ maskD ][ rac ], 'nolayer=',no_layer
@@ -1681,9 +1681,9 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                     #determine la plage des elements ajoute par raccord pour eviter d'avoir des cellules en double en layer2
 
                     if no_layer ==1 :
-                       nbElts_add = len(elts_new)-1
-                       mask_elts[c][c1] = [ nbElts_inf, nbElts_inf + nbElts_add ]
-                       nbElts_inf      = nbElts_inf + nbElts_add +1
+                        nbElts_add = len(elts_new)-1
+                        mask_elts[c][c1] = [ nbElts_inf, nbElts_inf + nbElts_add ]
+                        nbElts_inf      = nbElts_inf + nbElts_add +1
 
                     #if no_layer==1:
                     # print'mask: zone= ',c, 'rac=', c1, 'plage=',  mask_elts[ c ][ c1 ]
@@ -1696,7 +1696,7 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
 
                     Internal._adaptNFace2PE(zp, remove=False)
                     NG_PE = Internal.getNodeFromPath(zp, 'NGonElements/ParentElements')[1]
-  
+
                 znameD[ z[0] ] = zp[0]
                 Internal._adaptNFace2PE(zp, remove=False)
                 Internal._adaptNFace2Index(zp) 
@@ -1707,11 +1707,11 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
     # on renome les nom de zones dans les connectivite
     zones = Internal.getZones(tpp)
     for z in zones:
-       gc = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-       for g in gc:
-           old_name = Internal.getValue(g)
-           #print('oldname ',  old_name, 'et newname: ',znameD[ old_name ])
-           Internal.setValue(g, znameD[ old_name ] )
+        gc = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+        for g in gc:
+            old_name = Internal.getValue(g)
+            #print('oldname ',  old_name, 'et newname: ',znameD[ old_name ])
+            Internal.setValue(g, znameD[ old_name ] )
 
     tp = Internal.pyTree2Node(tpp, ntype)
     return tp
@@ -1725,56 +1725,56 @@ def adapt2FastP(t, nlayers=2):
     xyz0 = []
     for layer in range(1,nlayers+1):
 
-      zones = Internal.getZones(t)
-      #sauvegarde taille de zone sans ghost et de la list des elememnt ajoutes
-      for z in zones:
+        zones = Internal.getZones(t)
+        #sauvegarde taille de zone sans ghost et de la list des elememnt ajoutes
+        for z in zones:
         #Nombre de face totale
-        NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
-        nface_tot  = NGON_range[1]-NGON_range[0] +1
-        #Nombre de face raccord
-        gc         = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-        nface_rac = 0
-        elts =[]
-        mask =[]
-        for g in gc:
-             elts.append( set() )
-             mask.append( None )
-             nface_rac = nface_rac + numpy.size( Internal.getNodeFromName1(g, 'PointListDonor')[1] )
-        #Nombre de face BC      
-        gc         = Internal.getNodesFromType2(z, 'BC_t')
-        nface_bc  = 0
-        for g in gc:
-             nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
+            NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
+            nface_tot  = NGON_range[1]-NGON_range[0] +1
+            #Nombre de face raccord
+            gc         = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+            nface_rac = 0
+            elts =[]
+            mask =[]
+            for g in gc:
+                elts.append( set() )
+                mask.append( None )
+                nface_rac = nface_rac + numpy.size( Internal.getNodeFromName1(g, 'PointListDonor')[1] )
+            #Nombre de face BC      
+            gc         = Internal.getNodesFromType2(z, 'BC_t')
+            nface_bc  = 0
+            for g in gc:
+                nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        #print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1)
+            #print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1)
 
-        list_elts.append( elts )
-        mask_elts.append( mask )
-        xyz0.append( set() )  
+            list_elts.append( elts )
+            mask_elts.append( mask )
+            xyz0.append( set() )  
 
-        Nvtx  = z[1][0][0]
-        Nelts = z[1][0][1]
-        dims_woghost.append( [ Nvtx , Nelts,  nface_tot, nface_rac, nface_bc ] )
+            Nvtx  = z[1][0][0]
+            Nelts = z[1][0][1]
+            dims_woghost.append( [ Nvtx , Nelts,  nface_tot, nface_rac, nface_bc ] )
 
-      #creation nouvel arbre avec ghost
-      t = addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, layer )
-      #print 'LAYER=',layer
-      #for list_el in list_elts:
-      #   print 'list-el', list_el
-      #print 'dim_wo apr', dims_woghost
+        #creation nouvel arbre avec ghost
+        t = addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, layer )
+        #print 'LAYER=',layer
+        #for list_el in list_elts:
+        #   print 'list-el', list_el
+        #print 'dim_wo apr', dims_woghost
 
     zones = Internal.getZones(t)
     c = 0
     nbzone = len(zones)
     for z in zones: 
-        #print 'verif',z[0]
+            #print 'verif',z[0]
         NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
         nface_tot  = NGON_range[1]-NGON_range[0] +1
         #Nombre de face BC      
         gc         = Internal.getNodesFromType2(z, 'BC_t')
         nface_bc  = 0
         for g in gc:
-             nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
+            nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
         #print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2)
 
@@ -1789,10 +1789,10 @@ def adapt2FastP(t, nlayers=2):
         l1 = c + nbzone
         l2 = c + nbzone*2
         if (nlayers ==2): 
-           data_ng[4] = dims_woghost[l2][4] - dims_woghost[c ][4]                    # couche 1: nbfacebc(1)
-           data_ng[3] = dims_woghost[l1][2] - dims_woghost[c ][2] - data_ng[4]       # couche 1: faceInterne(1)= nbfacetot -nfacebc(1) 
-           data_ng[5] = dims_woghost[l2][2] - dims_woghost[l1][2]                    # couche 2: nbintern(2)
-   
+            data_ng[4] = dims_woghost[l2][4] - dims_woghost[c ][4]                    # couche 1: nbfacebc(1)
+            data_ng[3] = dims_woghost[l1][2] - dims_woghost[c ][2] - data_ng[4]       # couche 1: faceInterne(1)= nbfacetot -nfacebc(1) 
+            data_ng[5] = dims_woghost[l2][2] - dims_woghost[l1][2]                    # couche 2: nbintern(2)
+
         node =  Internal.getNodeFromName1(z, 'NGonElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_ng)
 
@@ -1802,7 +1802,7 @@ def adapt2FastP(t, nlayers=2):
         l2 = c + nbzone*2
         data_nf[1] = dims_woghost[l1][1] -dims_woghost[c][1]                      # couche 1: nombre element
         if (nlayers ==2): 
-           data_nf[2] = dims_woghost[l2][1] -dims_woghost[l1][1]                     # couche 2: nombre element
+            data_nf[2] = dims_woghost[l2][1] -dims_woghost[l1][1]                     # couche 2: nombre element
         node =  Internal.getNodeFromName1(z, 'NFaceElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_nf)
 
@@ -1814,53 +1814,53 @@ def adapt2FastP(t, nlayers=2):
     c = 0
     for z in zones:
 
-      dim = Internal.getZoneDim(z)
+        dim = Internal.getZoneDim(z)
 
-      NG_PE = Internal.getNodeFromPath(z, 'NGonElements/ParentElements')[1]    
-      NG_EC = Internal.getNodeFromPath(z, 'NGonElements/ElementConnectivity')[1]    
-      NG_IDX= Internal.getNodeFromPath(z, 'NGonElements/FaceIndex')[1]    
-      FA_EC = Internal.getNodeFromPath(z, 'NFaceElements/ElementConnectivity')[1]    
-      FA_IDX= Internal.getNodeFromPath(z, 'NFaceElements/ElementIndex')[1]   
-    
-      zbc  = Internal.getNodeFromType1(z  , 'ZoneBC_t')
-      bcs  = Internal.getNodesFromType1(zbc, 'BC_t')
-      ptlist_bc=[]
-      for bc in bcs: 
-         ptlist_bc.append( Internal.getNodeFromName1( bc , 'PointList')[1] ) 
-         #print 'zone=',z[0], ' bc=', bc[0]
+        NG_PE = Internal.getNodeFromPath(z, 'NGonElements/ParentElements')[1]    
+        NG_EC = Internal.getNodeFromPath(z, 'NGonElements/ElementConnectivity')[1]    
+        NG_IDX= Internal.getNodeFromPath(z, 'NGonElements/FaceIndex')[1]    
+        FA_EC = Internal.getNodeFromPath(z, 'NFaceElements/ElementConnectivity')[1]    
+        FA_IDX= Internal.getNodeFromPath(z, 'NFaceElements/ElementIndex')[1]   
 
-      zgc  = Internal.getNodeFromType1(   z, 'ZoneGridConnectivity_t')
-      gcs=[]
-      if zgc is not None: gcs  = Internal.getNodesFromType1(zgc, 'GridConnectivity_t')
-      ptlist_rac =[]
-      ptlist_racD=[]
-      for gc in gcs: 
-             ptlist_rac.append( Internal.getNodeFromName1( gc , 'PointList')[1] )
-             #print 'zone=',z[0], ' rac =', gc[0]
-             donor      = Internal.getValue(gc)
-             zdonor     = Internal.getNodesFromName1(zones, donor)[0]
-             zgc_D  = Internal.getNodeFromType1( zdonor, 'ZoneGridConnectivity_t')
-             gcs_D  = Internal.getNodesFromType1( zgc_D, 'GridConnectivity_t')
-             for gc_D in gcs_D: 
+        zbc  = Internal.getNodeFromType1(z  , 'ZoneBC_t')
+        bcs  = Internal.getNodesFromType1(zbc, 'BC_t')
+        ptlist_bc=[]
+        for bc in bcs: 
+            ptlist_bc.append( Internal.getNodeFromName1( bc , 'PointList')[1] ) 
+            #print 'zone=',z[0], ' bc=', bc[0]
+
+        zgc  = Internal.getNodeFromType1(   z, 'ZoneGridConnectivity_t')
+        gcs=[]
+        if zgc is not None: gcs  = Internal.getNodesFromType1(zgc, 'GridConnectivity_t')
+        ptlist_rac =[]
+        ptlist_racD=[]
+        for gc in gcs: 
+            ptlist_rac.append( Internal.getNodeFromName1( gc , 'PointList')[1] )
+            #print 'zone=',z[0], ' rac =', gc[0]
+            donor      = Internal.getValue(gc)
+            zdonor     = Internal.getNodesFromName1(zones, donor)[0]
+            zgc_D  = Internal.getNodeFromType1( zdonor, 'ZoneGridConnectivity_t')
+            gcs_D  = Internal.getNodesFromType1( zgc_D, 'GridConnectivity_t')
+            for gc_D in gcs_D: 
                 receiver      = Internal.getValue(gc_D)
                 if (receiver == z[0]):
-                   ptlist_racD.append( Internal.getNodeFromName1( gc_D , 'PointListDonor')[1] )
-                   #print 'zone=',zdonor[0], ' racD=', gc[0]
+                    ptlist_racD.append( Internal.getNodeFromName1( gc_D , 'PointListDonor')[1] )
+                    #print 'zone=',zdonor[0], ' racD=', gc[0]
 
 
 
-      FA_intext=  Internal.getNodeFromPath(z,'NFaceElements/IntExt')[1]
-      FA_RG    = Internal.getNodeFromPath(z, 'NFaceElements/ElementRange')[1]    
-      NG_intext=  Internal.getNodeFromPath(z,'NGonElements/IntExt')[1]
-      NF       = Internal.getNodeFromPath(z, 'NFaceElements/ElementConnectivity')
-      nf       = converter.adapt2FastP(NG_EC, FA_EC, NG_PE,  NG_intext, FA_intext, ptlist_bc, ptlist_rac, ptlist_racD, dim[2])
-      NF[1]    = nf
-      #Mise a jour du nombre d'elemnt
-      print('FA_RG[1]', FA_RG[1], 'NG_intext[2]',NG_intext[2],'NG_intext[4]', NG_intext[4])
-      print('voir christophe pour probleme visu')
-      FA_RG[1] = FA_RG[1] + NG_intext[2] + NG_intext[4]
-      z[1][0,1]= z[1][0,1]+ NG_intext[2] + NG_intext[4]  
-      Internal._adaptNFace2Index(z) 
+        FA_intext=  Internal.getNodeFromPath(z,'NFaceElements/IntExt')[1]
+        FA_RG    = Internal.getNodeFromPath(z, 'NFaceElements/ElementRange')[1]    
+        NG_intext=  Internal.getNodeFromPath(z,'NGonElements/IntExt')[1]
+        NF       = Internal.getNodeFromPath(z, 'NFaceElements/ElementConnectivity')
+        nf       = converter.adapt2FastP(NG_EC, FA_EC, NG_PE,  NG_intext, FA_intext, ptlist_bc, ptlist_rac, ptlist_racD, dim[2])
+        NF[1]    = nf
+        #Mise a jour du nombre d'elemnt
+        print('FA_RG[1]', FA_RG[1], 'NG_intext[2]',NG_intext[2],'NG_intext[4]', NG_intext[4])
+        print('voir christophe pour probleme visu')
+        FA_RG[1] = FA_RG[1] + NG_intext[2] + NG_intext[4]
+        z[1][0,1]= z[1][0,1]+ NG_intext[2] + NG_intext[4]  
+        Internal._adaptNFace2Index(z) 
 
     return t
 
@@ -1868,51 +1868,51 @@ def adapt2FastP(t, nlayers=2):
 def adapt2FastP2(t, nlayers=2):
 
     dims_woghost=[]
-    
+
     for layer in range(1,nlayers+1):
 
-      zones = Internal.getZones(t)
-      #sauvegarde taille de zone sans ghost et de la list des elements ajoutes
-      for z in zones:
+        zones = Internal.getZones(t)
+        #sauvegarde taille de zone sans ghost et de la list des elements ajoutes
+        for z in zones:
         #Nombre de face totale
-        NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
-        nface_tot  = NGON_range[1]-NGON_range[0] +1
-        #Nombre de face raccord
-        gc         = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-        nface_rac = 0
+            NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
+            nface_tot  = NGON_range[1]-NGON_range[0] +1
+            #Nombre de face raccord
+            gc         = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+            nface_rac = 0
 
-        for g in gc:
-             nface_rac = nface_rac + numpy.size( Internal.getNodeFromName1(g, 'PointListDonor')[1] )
-        #Nombre de face BC      
-        gc         = Internal.getNodesFromType2(z, 'BC_t')
-        nface_bc  = 0
-        for g in gc:
-             nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
+            for g in gc:
+                nface_rac = nface_rac + numpy.size( Internal.getNodeFromName1(g, 'PointListDonor')[1] )
+            #Nombre de face BC      
+            gc         = Internal.getNodesFromType2(z, 'BC_t')
+            nface_bc  = 0
+            for g in gc:
+                nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
 
-        Nvtx  = z[1][0][0]
-        Nelts = z[1][0][1]
-        dims_woghost.append( [ Nvtx , Nelts,  nface_tot, nface_rac, nface_bc ] )
+            Nvtx  = z[1][0][0]
+            Nelts = z[1][0][1]
+            dims_woghost.append( [ Nvtx , Nelts,  nface_tot, nface_rac, nface_bc ] )
 
-        print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1, Nvtx, Nelts)
+            print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1, Nvtx, Nelts)
 
 
     # creation nouvel arbre avec ghost
     t = addGhostCellsNG(t, nlayers)
-    
+
     # 
     zones = Internal.getZones(t)
     c = 0
     nbzone = len(zones)
     for z in zones: 
-        #print 'verif',z[0]
+            #print 'verif',z[0]
         NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
         nface_tot  = NGON_range[1]-NGON_range[0] +1
         #Nombre de face BC      
         gc        = Internal.getNodesFromType2(z, 'BC_t')
         nface_bc  = 0
         for g in gc:
-             nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
+            nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
         '''
         #print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2
@@ -1964,54 +1964,54 @@ def addGhostCellsNG(t, nlayers=2):
 
     # merge des BC de meme type
     for z in zones:
-       bc_type={}
-       bcs   = Internal.getNodesFromType2(z, 'BC_t')
-       for bc in bcs:
-           tmp = Internal.getValue(bc)
-           if tmp in bc_type:
-            bc_type[tmp].append(bc)
-           else:
-            bc_type[tmp]=[bc]
-       for key in bc_type:
-           #print(key, len(bc_type[key]))
-           if len(bc_type[key]) != 1:
-             size_fen = 0
-             min_face= 10000000
-             max_face=-10000000
-             for bc in bc_type[key]:
-               ptlist  = Internal.getNodeFromName1(bc, 'PointList')[1]
-               min_face= min(min_face, numpy.amin(ptlist)) 
-               max_face= max(max_face, numpy.amax(ptlist)) 
-               size_fen+= numpy.size(ptlist)
-               #print("minmax", min_face, max_face, size_fen)
-             #bc contigu
-             if min_face + size_fen - 1 ==  max_face:
-               ptlistNew = numpy.arange(min_face, min_face + size_fen, dtype=Internal.E_NpyInt).reshape((1,size_fen))
-               #on supprime les noeuds merger et on gonfle le numpy du premier noeud
-               c=0
-               for bc in bc_type[key]:
-                 if c==0:
-                   Internal.getNodeFromName1(bc, 'PointList')[1] = ptlistNew
-                 else:
-                   Internal._rmNodesByName(z, bc[0])
-                 c+=1
-             else:
-                print(key,": cette CL n'est pas contigue et doit etre mergee")
-                ptlistNew = numpy.empty((1,size_fen), dtype=Internal.E_NpyInt)
-                c = 0
-                ipt_ptlist = 0
+        bc_type={}
+        bcs   = Internal.getNodesFromType2(z, 'BC_t')
+        for bc in bcs:
+            tmp = Internal.getValue(bc)
+            if tmp in bc_type:
+                bc_type[tmp].append(bc)
+            else:
+                bc_type[tmp]=[bc]
+        for key in bc_type:
+            #print(key, len(bc_type[key]))
+            if len(bc_type[key]) != 1:
+                size_fen = 0
+                min_face= 10000000
+                max_face=-10000000
                 for bc in bc_type[key]:
-                  if c==0:
-                    ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]
-                    ptlistNew[:,ipt_ptlist:ipt_ptlist+numpy.size(ptlistOld)]= ptlistOld[:]
-                    Internal.getNodeFromName1(bc, 'PointList')[1] = ptlistNew
-                    ipt_ptlist += numpy.size(ptlistOld)
-                  else:
-                    ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]
-                    ptlistNew[:,ipt_ptlist:ipt_ptlist+numpy.size(ptlistOld)]= ptlistOld[:]
-                    ipt_ptlist += numpy.size(ptlistOld)
-                    Internal._rmNodesByName(z, bc[0])
-                  c+=1
+                    ptlist  = Internal.getNodeFromName1(bc, 'PointList')[1]
+                    min_face= min(min_face, numpy.amin(ptlist)) 
+                    max_face= max(max_face, numpy.amax(ptlist)) 
+                    size_fen+= numpy.size(ptlist)
+                    #print("minmax", min_face, max_face, size_fen)
+                #bc contigu
+                if min_face + size_fen - 1 ==  max_face:
+                    ptlistNew = numpy.arange(min_face, min_face + size_fen, dtype=Internal.E_NpyInt).reshape((1,size_fen))
+                    #on supprime les noeuds merger et on gonfle le numpy du premier noeud
+                    c=0
+                    for bc in bc_type[key]:
+                        if c==0:
+                            Internal.getNodeFromName1(bc, 'PointList')[1] = ptlistNew
+                        else:
+                            Internal._rmNodesByName(z, bc[0])
+                        c+=1
+                else:
+                    print(key,": cette CL n'est pas contigue et doit etre mergee")
+                    ptlistNew = numpy.empty((1,size_fen), dtype=Internal.E_NpyInt)
+                    c = 0
+                    ipt_ptlist = 0
+                    for bc in bc_type[key]:
+                        if c==0:
+                            ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]
+                            ptlistNew[:,ipt_ptlist:ipt_ptlist+numpy.size(ptlistOld)]= ptlistOld[:]
+                            Internal.getNodeFromName1(bc, 'PointList')[1] = ptlistNew
+                            ipt_ptlist += numpy.size(ptlistOld)
+                        else:
+                            ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]
+                            ptlistNew[:,ipt_ptlist:ipt_ptlist+numpy.size(ptlistOld)]= ptlistOld[:]
+                            ipt_ptlist += numpy.size(ptlistOld)
+                            Internal._rmNodesByName(z, bc[0])
+                        c+=1
 
     ozones = []
     znames = []
@@ -2040,109 +2040,109 @@ def addGhostCellsNG(t, nlayers=2):
 
     nbz_unstruct=0
     for z in zones:
-      zname = z[0]
-      znames.append(zname)
+        zname = z[0]
+        znames.append(zname)
 
-      if Internal.getZoneType(z)==1: continue
-      
-      m = PyTree.getFields(Internal.__GridCoordinates__, z)[0]
-      zone_ngons.append(m)
+        if Internal.getZoneType(z)==1: continue
 
-      F2Esep = Internal.getNodeFromName2(z, 'ParentElements')
-      if F2Esep is not None: F2Esep=F2Esep[1]
+        m = PyTree.getFields(Internal.__GridCoordinates__, z)[0]
+        zone_ngons.append(m)
 
-      F2Es.append(F2Esep)
+        F2Esep = Internal.getNodeFromName2(z, 'ParentElements')
+        if F2Esep is not None: F2Esep=F2Esep[1]
 
-      raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-      nb_racs = len(raccords)
+        F2Es.append(F2Esep)
 
-      bcs = Internal.getNodesFromType2(z, 'BC_t')
-      nb_bcs = len(bcs)
+        raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+        nb_racs = len(raccords)
 
-      z_PointLists    = []
-      z_PointListsD   = []
-      z_bc_PointLists = []
-      z_donIds        = numpy.empty(nb_racs, Internal.E_NpyInt)
-      z_ptL_sizes     = numpy.empty(nb_racs, Internal.E_NpyInt)
-      z_bc_ptL_sizes  = numpy.empty(nb_bcs,  Internal.E_NpyInt)
+        bcs = Internal.getNodesFromType2(z, 'BC_t')
+        nb_bcs = len(bcs)
 
-      j=0
-      for rac in raccords:
+        z_PointLists    = []
+        z_PointListsD   = []
+        z_bc_PointLists = []
+        z_donIds        = numpy.empty(nb_racs, Internal.E_NpyInt)
+        z_ptL_sizes     = numpy.empty(nb_racs, Internal.E_NpyInt)
+        z_bc_ptL_sizes  = numpy.empty(nb_bcs,  Internal.E_NpyInt)
 
-        rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
-        jn = "".join(Internal.getValue(rt))
-        JNames.append(rac[0])
-        JTypes.append(jn)
+        j=0
+        for rac in raccords:
 
-        donnorName = "".join(Internal.getValue(rac))
+            rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
+            jn = "".join(Internal.getValue(rt))
+            JNames.append(rac[0])
+            JTypes.append(jn)
 
-        id = name2id[donnorName]
-        z_donIds[j] = id
-        
-        ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
-        sz  = len(ptList)
-        
-        z_ptL_sizes[j] = sz
-        z_PointLists.append(ptList)
+            donnorName = "".join(Internal.getValue(rac))
 
-        ptListD = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
-        z_PointListsD.append(ptListD)
+            id = name2id[donnorName]
+            z_donIds[j] = id
 
-        j = j+1
+            ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+            sz  = len(ptList)
 
-      b = 0
-      for bc in bcs:
-        BCNames.append(bc[0])
-        BCTypes.append(Internal.getValue(bc))
+            z_ptL_sizes[j] = sz
+            z_PointLists.append(ptList)
 
-        #o = Internal.getNodeFromName1(bc, 'PointList')[1]
-        #print(f"Internal get node : {o[0]}")
-        ptList = Internal.getNodeFromName1(bc, 'PointList')[1][0]
-        z_bc_PointLists.append(ptList)
-        z_bc_ptL_sizes[b] = len(ptList)
-        b = b+1
+            ptListD = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
+            z_PointListsD.append(ptListD)
 
-      PointLists.append(z_PointLists)
-      donIds.append(z_donIds)
-      ptL_sizes.append(z_ptL_sizes)
-      PointListsD.append(z_PointListsD)
+            j = j+1
 
-      bc_PointLists.append(z_bc_PointLists)
-      bc_ptL_sizes.append(z_bc_ptL_sizes)
+        b = 0
+        for bc in bcs:
+            BCNames.append(bc[0])
+            BCTypes.append(Internal.getValue(bc))
 
-      nbz_unstruct+=1
+            #o = Internal.getNodeFromName1(bc, 'PointList')[1]
+            #print(f"Internal get node : {o[0]}")
+            ptList = Internal.getNodeFromName1(bc, 'PointList')[1][0]
+            z_bc_PointLists.append(ptList)
+            z_bc_ptL_sizes[b] = len(ptList)
+            b = b+1
+
+        PointLists.append(z_PointLists)
+        donIds.append(z_donIds)
+        ptL_sizes.append(z_ptL_sizes)
+        PointListsD.append(z_PointListsD)
+
+        bc_PointLists.append(z_bc_PointLists)
+        bc_ptL_sizes.append(z_bc_ptL_sizes)
+
+        nbz_unstruct+=1
     #print "nb of bc in python side as input : %d"%len(bc_ptL_sizes)
 
     nodes = converter.addGhostCellsNG(zone_ngons, F2Es, ptL_sizes, PointLists, PointListsD, donIds, bc_ptL_sizes, bc_PointLists, nlayers)
-    
+
     ozones = []
 
     # Create zones with ghost upon exit
 
     for i in range(nbz_unstruct):
 
-      #print "zone %d"%i
+        #print "zone %d"%i
 
-      zwgh = PyTree.convertArrays2ZoneNode(znames[i], [nodes[i][0]])
-      #zwgh[0] = znames[i] # oblige de forcer, car la fonction getZoneName est appelee par convertArrays2ZoneNode
+        zwgh = PyTree.convertArrays2ZoneNode(znames[i], [nodes[i][0]])
+        #zwgh[0] = znames[i] # oblige de forcer, car la fonction getZoneName est appelee par convertArrays2ZoneNode
 
-      ######################################################################################
-      # FIXME : can be retrieved from K_CONVERTER::addGhostCellsNG instead of regenerating it
-      Internal._adaptNFace2PE(zwgh, remove=False) 
-      Internal._adaptNFace2Index(zwgh) 
-      Internal._adaptNGon2Index(zwgh) 
-      #######################################################################################
+        ######################################################################################
+        # FIXME : can be retrieved from K_CONVERTER::addGhostCellsNG instead of regenerating it
+        Internal._adaptNFace2PE(zwgh, remove=False) 
+        Internal._adaptNFace2Index(zwgh) 
+        Internal._adaptNGon2Index(zwgh) 
+        #######################################################################################
 
-      # MAJ BCs
-      nb_bcs = len(nodes[i][2])
-      for j in range(nb_bcs):
+        # MAJ BCs
+        nb_bcs = len(nodes[i][2])
+        for j in range(nb_bcs):
 
-        (oid, ids) = nodes[i][2][j]
-        # print oid
-        # print BCNames[oid], BCTypes[oid]
-        PyTree._addBC2Zone(zwgh, BCNames[oid], BCTypes[oid], faceList=ids) #BCTypes[oid]
+            (oid, ids) = nodes[i][2][j]
+            # print oid
+            # print BCNames[oid], BCTypes[oid]
+            PyTree._addBC2Zone(zwgh, BCNames[oid], BCTypes[oid], faceList=ids) #BCTypes[oid]
 
-      ozones.append(zwgh)
+        ozones.append(zwgh)
 
     # MAJ JOINS
 
@@ -2153,27 +2153,27 @@ def addGhostCellsNG(t, nlayers=2):
 
     for i in range(nbz_unstruct):
 
-      zwgh = ozones[i]
+        zwgh = ozones[i]
 
-      nb_joins = len(nodes[i][1])
-      for j in range(nb_joins):
+        nb_joins = len(nodes[i][1])
+        for j in range(nb_joins):
 
-         (oid, zid, ids) = nodes[i][1][j]
+            (oid, zid, ids) = nodes[i][1][j]
 
-         # get the corresponding join in corresponding joined ghosted zone
-         for k in range(len(nodes[zid][1])):
-             (donnor_oid, donnor_zid, donnor_ids) = nodes[zid][1][k]
-             if (donnor_zid == i): break
+            # get the corresponding join in corresponding joined ghosted zone
+            for k in range(len(nodes[zid][1])):
+                (donnor_oid, donnor_zid, donnor_ids) = nodes[zid][1][k]
+                if (donnor_zid == i): break
 
-         PyTree._addBC2Zone(zwgh, JNames[oid], JTypes[oid],
-               zoneDonor=ozones[zid],
-               faceList=ids ,           #elementList=elementList, elementRange=elementRange, data=data, subzone=subzone,
-               faceListDonor=donnor_ids #, elementListDonor=elementListDonor, elementRangeDonor=elementRangeDonor
-               )
-      node =  Internal.getNodeFromName1(zwgh, 'NFaceElements')
-      Internal.createUniqueChild(node, 'IntExt', 'DataArray_t',  nodes[i][3])
-      node =  Internal.getNodeFromName1(zwgh, 'NGonElements')
-      Internal.createUniqueChild(node, 'IntExt', 'DataArray_t',  nodes[i][4])
+            PyTree._addBC2Zone(zwgh, JNames[oid], JTypes[oid],
+                  zoneDonor=ozones[zid],
+                  faceList=ids ,           #elementList=elementList, elementRange=elementRange, data=data, subzone=subzone,
+                  faceListDonor=donnor_ids #, elementListDonor=elementListDonor, elementRangeDonor=elementRangeDonor
+                  )
+        node =  Internal.getNodeFromName1(zwgh, 'NFaceElements')
+        Internal.createUniqueChild(node, 'IntExt', 'DataArray_t',  nodes[i][3])
+        node =  Internal.getNodeFromName1(zwgh, 'NGonElements')
+        Internal.createUniqueChild(node, 'IntExt', 'DataArray_t',  nodes[i][4])
 
     tp[2][1][2] += ozones
 
@@ -2187,7 +2187,7 @@ def addGhostCellsNG(t, nlayers=2):
 #===============================================================================================================================================
 
 def _adaptBCStruct3__(join, dimZoneR,dimZoneD, d):
-    
+
     #BCMatch
     prange = Internal.getNodesFromName1(join, 'PointRange')
     direction = getDirection__(dimZoneR[4], prange)
@@ -2197,8 +2197,8 @@ def _adaptBCStruct3__(join, dimZoneR,dimZoneD, d):
 
     direction = getDirection__(dimZoneD[4], prangedonor)
     changePointRange__(prangedonor, dimZoneD, direction, d, extend=0)
-          
- 
+
+
     return None
 
 

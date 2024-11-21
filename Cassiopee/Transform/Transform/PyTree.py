@@ -54,7 +54,7 @@ def translate(t, transvect):
     """Translate a zone.
     Usage: translate(z, (v1,v2,v3))"""
     return C.TZGC3(t, 'nodes', False, Transform.translate, transvect)
-    
+
 def _translate(t, transvect):
     """Translate a zone."""
     C.__TZGC3(t, Transform._translate, transvect)
@@ -79,7 +79,7 @@ def _rotate(t, center, arg1, arg2=None, vectors=[]):
     C.__TZA3(t, 'nodes', Transform._rotate, center, arg1, arg2, vectorsN)
     C.__TZA3(t, 'centers', Transform._rotate, center, arg1, arg2, vectorsC)
     return None
-    
+
 def rotate(t, center, arg1, arg2=None, vectors=[]):
     """Rotate a zone."""
     vectorsN = []; vectorsC = []
@@ -98,7 +98,7 @@ def rotate(t, center, arg1, arg2=None, vectors=[]):
     tp = C.TZA3(t, 'nodes', 'nodes', True, Transform.rotate, center, arg1, arg2, vectorsN)
     C.__TZA3(tp, 'centers', Transform._rotate, center, arg1, arg2, vectorsC)
     return tp
-    
+
 def homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and
     of factor alpha.
@@ -363,8 +363,8 @@ def _patch(t1, t2, position=None, nodes=None, order=None):
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(t2)
     for z1,z2 in zip(zones1, zones2):
-      a2 = C.getAllFields(z2, 'nodes')[0]
-      C._TZA1(z1, 'nodes', 'nodes', True, Transform.patch, a2, position, nodes, order)
+        a2 = C.getAllFields(z2, 'nodes')[0]
+        C._TZA1(z1, 'nodes', 'nodes', True, Transform.patch, a2, position, nodes, order)
     return None
 
 #===============
@@ -603,10 +603,10 @@ def subzoneGC__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
     return z
 
 def subzone(t, minIndex, maxIndex=None, type=None):
-   """Take a subzone of mesh.
-   Usage: subzone(t, (imin,jmin,kmin), (imax,jmax,kmax))"""
-   if maxIndex is None: return subzoneUnstruct__(t, minIndex, type)
-   else: return subzoneStruct__(t, minIndex, maxIndex)
+    """Take a subzone of mesh.
+    Usage: subzone(t, (imin,jmin,kmin), (imax,jmax,kmax))"""
+    if maxIndex is None: return subzoneUnstruct__(t, minIndex, type)
+    else: return subzoneStruct__(t, minIndex, maxIndex)
 
 def subzoneUnstruct__(t, indices, type):
     tp = Internal.copyRef(t)
@@ -713,7 +713,7 @@ def intersectWins__(win1, win2, ret=0):
         if oi1 == oi2 and oj1 == oj2: return None
         if oi1 == oi2 and ok1 == ok2: return None
         if oj1 == oj2 and ok1 == ok2: return None
-        
+
     if ret == 0: return [oi1,oi2,oj1,oj2,ok1,ok2]
     else: return [oi1-fi1+1,oi2-fi1+1,oj1-fj1+1,oj2-fj1+1,ok1-fk1+1,ok2-fk1+1]
 
@@ -753,7 +753,7 @@ def triracopp__(trirac):
             if mopp[no,i] != 0:
                 triracopp[i] = int(mopp[no,i]*(no+1))
     return triracopp
-        
+
 # Retourne un indice sur le donneur
 # win: fenetre sur B (raccord match)
 # winDonor: fenetre correspondante a win1 sur opp(B)
@@ -885,7 +885,7 @@ def getWinDir(w):
         if oi1 == oi2: return 1
         elif oj1 == oj2: return 2
         else: return 3
-    
+
 def getCutDir(winz1, winz2):
     (oi1,oi2,oj1,oj2,ok1,ok2) = winz1
     (pi1,pi2,pj1,pj2,pk1,pk2) = winz2
@@ -902,16 +902,16 @@ def isWinCut(wins1, win):
     if wins1[0] == win[0] and wins1[1] == win[1] and \
         wins1[2] == win[2] and wins1[3] == win[3] and \
         wins1[4] == win[4] and wins1[5] == win[5]:
-     return False
+        return False
     else: return True
-    
+
 # Reporte les BC matchs de z sur z1 et z2 (et modifie t)
 def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
     bcs = getBCMatchs__(z)
     for b in bcs:
         (oppBlock, winz, winDonor, trirac, periodic) = getBCMatchData__(b) 
         triracopp = triracopp__(trirac)
-        
+
         if oppBlock == z[0]: # self attached BCMatch
             #print("z,z1,z2",z[0],z1[0],z2[0])
             #print('windonor',winDonor, winz1, winz2)
@@ -922,14 +922,14 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             #windonor1 = None; windonor2 = None
             #if wins1 is not None: windonor1 = wins1; oppBlock1 = z1[0]
             #if wins2 is not None: windonor2 = wins2; oppBlock2 = z2[0]
-            
+
             # Reporte cette BC sur z1
             wini1 = intersectWins__(winz1, winz, ret=0)
             wini = intersectWins__(winz1, winz, ret=1)
-            
+
             # Point de cut
             if wini is not None: # point de cut sur winz? Pt de cut sur winDonor
-                
+
                 #print('intersect z1 en ',wini1)
                 # wini1 sur z, winopp sur z, winopp1 sur z1, winopp2 sur z2
                 ind0 = donorIndex__(winz,winDonor,trirac,(wini1[0],wini1[2],wini1[4]))
@@ -946,7 +946,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
 
                 winopp1 = intersectWins__(winz1, winopp, ret=1)
                 winopp2 = intersectWins__(winz2, winopp, ret=1)
-                
+
                 if winopp1 is not None and winopp2 is None:
                     if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', wini, z1, winopp1, trirac)
                     else: C._addBC2Zone(z1, 'match', 'BCMatch', wini, z1, winopp1, trirac, 
@@ -982,7 +982,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                     ind1 = donorIndex__(winDonor,winz,triracoppn,(winopp2z[1],winopp2z[3],winopp2z[5]))
                     winstart2 = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
                     min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
-                    
+
                     winstarti1 = intersectWins__(winz1, winstart2, ret=1)
                     winstarti2 = intersectWins__(winz2, winstart2, ret=1)
                     if winstarti1 is not None:
@@ -1028,7 +1028,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             # Reporte cette BC sur z2
             wini1 = intersectWins__(winz2, winz, ret=0)
             wini = intersectWins__(winz2, winz, ret=1)
-            
+
             if wini is not None:
 
                 #print('intersect z2 en ',wini1)
@@ -1047,7 +1047,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
 
                 winopp1 = intersectWins__(winz1, winopp, ret=1)
                 winopp2 = intersectWins__(winz2, winopp, ret=1)
-    
+
                 if winopp1 is not None and winopp2 is None:
                     if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', wini, z1, winopp1, trirac)
                     else: C._addBC2Zone(z2, 'match', 'BCMatch', wini, z1, winopp1, trirac, 
@@ -1066,7 +1066,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                     ind1 = donorIndex__(winDonor,winz,triracoppn,(winopp1z[1],winopp1z[3],winopp1z[5]))
                     winstart1 = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
                     min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
-                    
+
                     # DBX
                     #winstarti1 = intersectWins__(winz1, winstart1, ret=0)
                     #winstarti2 = intersectWins__(winz2, winstart1, ret=0)
@@ -1090,7 +1090,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                     ind1 = donorIndex__(winDonor,winz,triracoppn,(winopp2z[1],winopp2z[3],winopp2z[5]))
                     winstart2 = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
                     min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
-                    
+
                     # DBX
                     #winstarti1 = intersectWins__(winz1, winstart2, ret=0)
                     #winstarti2 = intersectWins__(winz2, winstart2, ret=0)
@@ -1099,7 +1099,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
 
                     winstarti1 = intersectWins__(winz1, winstart2, ret=1)
                     winstarti2 = intersectWins__(winz2, winstart2, ret=1)
-                    
+
                     if winstarti1 is not None:
                         if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z2, winopp2, trirac)
                         else: C._addBC2Zone(z1, 'match', 'BCMatch', winstarti1, z2, winopp2, trirac, 
@@ -1129,7 +1129,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             #        if periodic is None: C._addBC2Zone(z2, 'match', 'BCMatch', wini, z2[0], windonor2, trirac)
             #        else: C._addBC2Zone(z2, 'match', 'BCMatch', wini, z2[0], windonor2, trirac, 
             #                            rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
-                
+
                 # DBX
                 #nodes = Internal.getNodesFromType(z2, 'GridConnectivity1to1_t')
                 #for n in nodes:
@@ -1137,9 +1137,9 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                 #    prd = Internal.getNodeFromName(n, 'PointRangeDonor')
                 #    print('out2',z2[0],n[0],Internal.range2Window(pr[1]))
                 #    print('out2',z2[0],n[0],Internal.range2Window(prd[1]))
-                
+
         else: # not self opposite
-                
+
             # Reporte cette BC sur z1
             wini1 = intersectWins__(winz1, winz, ret=0)
             wini = intersectWins__(winz1, winz, ret=1)
@@ -1149,7 +1149,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                 ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
                 winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
                 min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
-                
+
                 if periodic is None: C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock, winopp, trirac)
                 else: C._addBC2Zone(z1, 'match', 'BCMatch', wini, oppBlock, winopp, trirac, 
                                     rotationCenter=periodic[1], rotationAngle=periodic[2], translation=periodic[0])
@@ -1166,7 +1166,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                         #    prd = Internal.getNodeFromName(n, 'PointRangeDonor')
                         #    print('out3',z2[0],n[0],Internal.range2Window(pr[1]))
                         #    print('out3',z2[0],n[0],Internal.range2Window(prd[1]))
-                
+
             # Reporte cette BC sur z2
             wini1 = intersectWins__(winz2, winz, ret=0)
             wini = intersectWins__(winz2, winz, ret=1)
@@ -1192,7 +1192,7 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
                         #    prd = Internal.getNodeFromName(n, 'PointRangeDonor')
                         #    print('out4',z2[0],n[0],Internal.range2Window(pr[1]))
                         #    print('out4',z2[0],n[0],Internal.range2Window(prd[1]))
-        
+
 
     # Enleve les raccords de qui referent z[0] dans t
     if t is not None: _deleteBCMatchRef(t, z[0])
@@ -1234,7 +1234,7 @@ def split(z, dir=1, index=1, t=None):
             source = src
         Internal._setLoc2Glob(z1, source, win=w1, sourceDim=dim)
         Internal._setLoc2Glob(z2, source, win=w2, sourceDim=dim)
-        
+
     elif dir == 2: # direction j
         z1 = subzone(z, (1,1,1), (-1,index,-1))
         z1[0] = C.getZoneName(zoneName)
@@ -1317,10 +1317,10 @@ def _splitFullMatch(t):
         while len(stack) > 0:
             z = stack.pop(0)
             splitFullMatch__(z, stack, t)
-        
+
         zones = Internal.getZones(t)
         newlen = len(zones)
-        
+
     return None
 
 def splitFullMatch__(z, stack, t):
@@ -1733,7 +1733,7 @@ def reorderAll(t, dir=1):
     tp = Internal.copyRef(t)
     _reorderAll(tp, dir)
     return tp
-    
+
 def _reorderAll(t, dir=1):
     """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
@@ -1821,7 +1821,7 @@ def _makeCartesianXYZ(t, tol=1.e-10):
             if abs(dx_k) > tol: dirk = 1
             elif abs(dy_k) > tol: dirk = 2
             elif abs(dz_k) > tol: dirk = 3
-        
+
             if diri==-1:
                 sump = abs(dirj)+abs(dirk)
                 if sump==3: diri = 3
@@ -1848,7 +1848,7 @@ def _makeCartesianXYZ(t, tol=1.e-10):
             if dirk == 1: dirs[0] = 3
             elif dirk==2: dirs[1] = 3
             else: dirs[2] = 3
-     
+
             _reorder(z,(dirs[0], dirs[1], dirs[2]))
             dims = Internal.getZoneDim(z)
             ni = dims[1]; nj = dims[2]; nk = dims[3]
@@ -2222,7 +2222,7 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir, topTree):
             Rs[0] += getNCells(a); del SP[0]
             procs[0][1].append(a[0])
             procs[0][0] = Rs[0]
-                    
+
     # Affectation des procs
     try: 
         import Distributor2.PyTree as D2
@@ -2628,17 +2628,17 @@ def _splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
     if R is not None: type = 2
     if topTree is None: topTree = t
     if type == 0:
-       stack = []
-       for z in Internal.getZones(t): stack.append(z)
-       while len(stack)>0:
-        z = stack.pop()
-        _splitSize__(z, N, multigrid, dirs, topTree, stack)
+        stack = []
+        for z in Internal.getZones(t): stack.append(z)
+        while len(stack)>0:
+            z = stack.pop()
+            _splitSize__(z, N, multigrid, dirs, topTree, stack)
     elif type == 1:
-       stack = []
-       for z in Internal.getZones(t): stack.append(z)
-       while len(stack)>0:
-        z = stack.pop()
-        _splitSizeUp__(z, N, multigrid, dirs, topTree, stack)
+        stack = []
+        for z in Internal.getZones(t): stack.append(z)
+        while len(stack)>0:
+            z = stack.pop()
+            _splitSizeUp__(z, N, multigrid, dirs, topTree, stack)
     elif type == 2: 
         _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir, topTree)
     return None

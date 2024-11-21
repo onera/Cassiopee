@@ -280,7 +280,7 @@ class AutocompleteEntry(TK.Entry):
                 if self.lb_up:
                     self.lb.destroy()
                     self.lb_up = False
-        
+
     def selection(self, event):
         if self.lb_up:
             self.var.set(self.lb.get(TK.ACTIVE))
@@ -351,7 +351,7 @@ class AutocompleteEntry(TK.Entry):
             menus = CTK.WIDGETS['noteBookMenus']
             buttons = CTK.WIDGETS['noteBookButtons']
             if app in TREEAPPS: 
-               frame = frames[0]; menu = menus[0]; bt = buttons[0]
+                frame = frames[0]; menu = menus[0]; bt = buttons[0]
             elif app in STATEAPPS:
                 frame = frames[1]; menu = menus[1]; bt = buttons[1]
             elif app in EDGEAPPS:

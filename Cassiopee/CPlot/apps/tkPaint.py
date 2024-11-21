@@ -72,9 +72,9 @@ def paint():
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(w)
-       CPlot.setState(cursor=0)
+        CTK.__BUSY__ = False
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
 
 #==============================================================================
 # Get value from mouse pointer
@@ -115,7 +115,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=0)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -129,7 +129,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -2- Brush
     V = TK.StringVar(win); V.set('Sphere'); VARS.append(V)
-    
+
     # - Value -
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=5)
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
@@ -156,7 +156,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Enter paint mode.\nValue of field (scalar mode) is modified.')
     B.grid(row=0, column=2, columnspan=1, sticky=TK.EW)
     WIDGETS['paint'] = B
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -181,7 +181,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

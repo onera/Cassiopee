@@ -120,7 +120,7 @@ def updateInfo(event=None):
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    
+
     npTot = 0; ncellsTot = 0; nfacesTot = 0
     nzones = 0
     minv = 1e6; maxv = -1e6
@@ -159,7 +159,7 @@ def updateInfo(event=None):
     VARS[1].set(str(minv))
     VARS[2].set(str(maxv))
     VARS[4].set('')
-    
+
     if nzs == []:
         VARS[3].set('Tree')
         if nzones == 0 or nzones == 1:
@@ -185,7 +185,7 @@ def updateInfo(event=None):
     else:
         CTK.TXT.insert('START', 'Variable min-max was not computed.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -203,7 +203,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=2)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -227,7 +227,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -7- NFaces -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-    
+
 
     # - selected block name -
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=15)
@@ -238,7 +238,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[4], background='White')
     B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Currently selected zone type.')
-    
+
     # - Npts -
     B = TTK.Label(Frame, text="Npts")
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -288,7 +288,7 @@ def createApp(win):
         F.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Selected var name.')
         WIDGETS['variable'] = B
-    
+
     # - Min de la variable - 
     B = TTK.Label(Frame, text="Min:")
     B.grid(row=5, column=0, sticky=TK.EW)
@@ -297,7 +297,7 @@ def createApp(win):
                   width=10)
     B.grid(row=5, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Min of variable.')
-    
+
     # - Max de la variable -    
     B = TTK.Label(Frame, text="Max:")
     B.grid(row=6, column=0, sticky=TK.EW)
@@ -306,11 +306,11 @@ def createApp(win):
                   width=10)
     B.grid(row=6, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Max of variable.')
-    
+
     # - update -
     B = TTK.Button(Frame, text="Update info", command=updateInfo)
     B.grid(row=7, column=0, columnspan=2, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

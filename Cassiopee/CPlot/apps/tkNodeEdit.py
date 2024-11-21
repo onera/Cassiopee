@@ -19,7 +19,7 @@ def strFormat(v):
     if isinstance(v, int): return "%ld"%v
     elif isinstance(v, float): return "%.5g"%v
     else: return "%s"%v
-    
+
 # format string pour ecriture precise (12)
 def strFormat2(v):
     if isinstance(v, int): return "%ld"%v
@@ -37,7 +37,7 @@ def showNodeValue(event=None):
         VARS[2].set(''); VARS[3].set(''); VARS[4].set(''); return
 
     VARS[3].set(node[3]); VARS[4].set(node[0])
-    
+
     index = VARS[1].get()
     try: index = int(index)
     except: index = 0; VARS[1].set('0')
@@ -59,7 +59,7 @@ def showNodeValue(event=None):
                 dim = '('+str(sh[0])+'): '
             else:
                 dim = str(sh)+': '
-            
+
             try: vf = v.ravel(order='F')
             except: vf = v.flat
             if index >= v.size: index = v.size-1; VARS[1].set(str(index))
@@ -79,7 +79,7 @@ def showNodeValue(event=None):
                 flatView = dim+'...'+strFormat(vf[index-2])+' '+strFormat(vf[index-1])+' '
                 flatView2[0] = dim
                 CTK.TXT.insert('START', flatView)
-                
+
             elif index == 2:
                 if v.size <= index+1: flatView = ''
                 elif v.size <= index+2:
@@ -94,7 +94,7 @@ def showNodeValue(event=None):
                 CTK.TXT.insert('START', flatView, 'Warning')
                 flatView = dim+strFormat(vf[index-2])+' '+strFormat(vf[index-1])+' '
                 CTK.TXT.insert('START', flatView)
-                  
+
             elif index == 1:
                 if v.size <= index+1: flatView = ''
                 elif v.size <= index+2:
@@ -109,7 +109,7 @@ def showNodeValue(event=None):
                 CTK.TXT.insert('START', flatView, 'Warning')
                 flatView = dim+strFormat(vf[index-1])+' '
                 CTK.TXT.insert('START', flatView)
-                
+
             elif index == 0:
                 if v.size <= index+1: flatView = ''
                 elif v.size <= index+2:
@@ -124,7 +124,7 @@ def showNodeValue(event=None):
                 CTK.TXT.insert('START', flatView, 'Warning')
                 flatView = dim
                 CTK.TXT.insert('START', flatView)                
-            
+
             v = strFormat2(vf[index])
 
             SIZE = 10
@@ -138,21 +138,21 @@ def showNodeValue(event=None):
             else:
                 right = min(index+SIZE//2, vf.size)
                 left = max(right - SIZE, 0)
-            
+
             rep = ''
             for i in range(left, index):
                 rep += strFormat(vf[i])+' '
             if rep != '':
                 if left > 0: rep = '...'+rep 
                 flatView2[1] = rep
-            
+
             rep = strFormat(vf[index])+' '
             flatView2[2] = rep
-            
+
             rep = ''
             for i in range(index+1, right):
                 rep += strFormat(vf[i])+' '
-            
+
             if rep != '':
                 if right < vf.size: rep += '...'
                 flatView2[3] = rep
@@ -197,7 +197,7 @@ def decreaseIndex(event=None):
     index -= 1
     VARS[1].set(str(index))
     showNodeValue()
-    
+
 #==============================================================================
 # Changement de la valeur du noeud
 #==============================================================================
@@ -241,7 +241,7 @@ def setNodeType(event=None):
     node = CTK.TKTREE.getCurrentSelectedNode()
     if node == []: return
     node[3] = VARS[3].get()
-    
+
 #==============================================================================
 # Change le nom du noeud.
 #==============================================================================
@@ -296,16 +296,16 @@ def loadNode():
 
     # read node
     nodes = Filter.readNodesFromPaths(fileName, [path], maxDepth=depth)
-        
+
     # check if node is compressed
     if zdata is not None:
         depth -= 1
-        
+
     # depth replace
     setByLevel(node, nodes[0], 0, depth)
 
     updateNode(node)
-    
+
 #==============================================================================
 def freeNode():
     if CTK.t == []: return
@@ -338,7 +338,7 @@ def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkNodeEdit  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
-    
+
     #BB = CTK.infoBulle(parent=Frame, text='Edit pyTree nodes.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
@@ -355,7 +355,7 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkNodeEdit')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Base to move to -
     V = TK.StringVar(win); V.set('New Base'); VARS.append(V)
@@ -390,7 +390,7 @@ def createApp(win):
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Selected node type.\nYou can change this by pressing <Enter>.')
     B.bind('<Return>', setNodeType)
-    
+
     FrameA = TK.Frame(F)
     FrameA.columnconfigure(0, weight=0)
     FrameA.columnconfigure(1, weight=1)
@@ -404,7 +404,7 @@ def createApp(win):
     B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Button(FrameA, text=">", command=increaseIndex, width=2)
     B.grid(row=0, column=2, sticky=TK.EW)
-    
+
     B = TTK.Entry(F, textvariable=VARS[2], background='White', width=5, foreground="green")
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Selected node value at given index.\nYou can change this by pressing <Enter>.')
@@ -438,14 +438,14 @@ def showApp():
     try: CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkNodeEdit')
     except: pass
     CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['TreeNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -454,7 +454,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

@@ -21,7 +21,7 @@ STYPE=3 # DIR
 XOR._setZonesAndJoinsUId(z)
 hmsh = XOR.createHMesh(z, subdiv_type=STYPE) # 0 : ISOTROPIC subdivision 
 ######################################## 
- 
+
 #nodal specification
 n = C.getNCells(z)
 cell_vals = numpy.empty((n,), dtype=I.E_NpyInt)

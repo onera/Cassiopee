@@ -16,19 +16,19 @@ def polyLineMesher(polyLine, h, yplus, density):
     import Converter as C
     import math
     import Transform as T
-    
+
     polyLine = C.convertArray2Tetra(polyLine)
     polyLine = G.close(polyLine)
-    
+
     addFactor = 0.2
     if len(polyLine) != 4:
         raise TypeError("polyLineMesher: requires a BAR array.")
     else:
         if polyLine[3] != 'BAR':
             raise TypeError("polyLineMesher: requires a BAR array.")
-    
+
     f = polyLine[1]; c = polyLine[2]; ne = c.shape[1]
-    
+
     # Detection de la hauteur maximum admissible
     for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
@@ -39,7 +39,7 @@ def polyLineMesher(polyLine, h, yplus, density):
             h = 0.9*l
             print("Warning: height changed to", h,"...")
             print("...because length of line segment", i, "is", l)
-    
+
     # Detection de la densite minimum
     nj = int(h*density)+1
     if (nj < 4):
@@ -64,7 +64,7 @@ def polyLineMesher(polyLine, h, yplus, density):
     np = G.getNormalMap(polyLine2)
     np = C.center2Node(np)
     np = C.normalize(np, ['sx','sy','sz'])
-    
+
     nj = int(h*density)+1
     distrib = G.cart((0,0,0), (1./nj,1,1), (nj+1,1,1))
     add = max(nj * h / (20 * yplus), 1)
@@ -78,7 +78,7 @@ def polyLineMesher(polyLine, h, yplus, density):
     mesh = []; walls = []
 
     pool = 0; poolFirst = 0
-    
+
     # Generation des maillages
     for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
@@ -104,7 +104,7 @@ def polyLineMesher(polyLine, h, yplus, density):
             ext2 = 0
         elif (curvature[1][0,ind2] >= 90+38): # TFI MD + TTM
             ext2 = -1
-       
+
         # Toujours extension aux frontieres
         if (ext1 != 1):
             indv = findNeighbourIndex(polyLine, ind1+1, i+1)
@@ -113,7 +113,7 @@ def polyLineMesher(polyLine, h, yplus, density):
             indv = findNeighbourIndex(polyLine, ind2+1, i+1)
             if (indv == -1): ext2 = 1            
         #print 'mesh no=',i,' ext1=',ext1,' ext2=',ext2
-        
+
         lext1 = max(0,ext1) ; lext2 = max(0,ext2)
         px1 = x1 - lext1*(x2-x1)*hi
         py1 = y1 - lext1*(y2-y1)*hi
@@ -189,7 +189,7 @@ def polyLineMesher(polyLine, h, yplus, density):
             m = G.TFI([r1, r2, r3, r4])
             #m = G.TTM(r1, r2, r3, r4, 10)
             m = T.reorder(m, (2,1,3))
-         
+
 
         m = T.addkplane(m)
         mesh.append(m)
@@ -203,16 +203,16 @@ def polyLineMesher(polyLine, h, yplus, density):
         else: i2 = m[2]-extension
         wrange = [i1,i2, 1, 1, 1, m[4]]
         rangesw.append(wrange)
-            
+
         if (ext1 == 0):
             wrange = [1, 1, 1, m[3], 1, m[4]]
             rangesw.append(wrange)
-            
+
         if (ext2 == 0):
             wrange = [m[2], m[2], 1, m[3], 1, m[4]]
             rangesw.append(wrange)
         walls.append(rangesw)
-            
+
     return [mesh, walls, h, density]
 
 #=============================================================================

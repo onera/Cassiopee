@@ -48,7 +48,7 @@ for z in Internal.getZones(distTree):
 
     fsol = Internal.getNodeFromName2(z, 'FlowSolution')
     den = Internal.getNodeFromName1(fsol, 'Density')[1]
-    
+
     arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,[],[]])
 
 #comm_data = list of [neighbor proc (int), interproc faces (array),

@@ -20,13 +20,13 @@ def ediff__(file1, file2):
         L0 = C.normL0(ret, i)
         if abs(L0) > 1.e-12:
             print('INFO : ',i, ', L2=',L2, ', L0=',L0)
-    
+
 
 if (__name__ == "__main__"):
     import sys
     if (len(sys.argv) < 3):
         print("ediff : ediff file1 file2")
     else:
-      file1 = sys.argv[1]
-      file2 = sys.argv[2]
-      ediff__(file1, file2)
+        file1 = sys.argv[1]
+        file2 = sys.argv[2]
+        ediff__(file1, file2)

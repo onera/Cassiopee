@@ -23,10 +23,10 @@ def setPlusI(event=None):
 
 def setMoinsI(event=None):
     set__(VARS[0], VARS[1], VARS[6], -1)
-    
+
 def setFullI(event=None):
     setFull__(VARS[0], VARS[1])
-    
+
 def setPlusJ(event=None):
     set__(VARS[2], VARS[3], VARS[7], +1)
 
@@ -65,7 +65,7 @@ def setFull__(V0, V1):
     V0.set(str(1))
     V1.set(str(-1))
     show()
-       
+
 #==============================================================================
 # show
 #==============================================================================
@@ -84,7 +84,7 @@ def show(event=None):
     if len(v) > 0: kmin = v[0]
     v = CTK.varsFromWidget(VARS[5].get(), type=2)
     if len(v) > 0: kmax = v[0]
-    
+
     if CTK.__MAINTREE__ == CTK.MAIN:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
     active = []
@@ -93,12 +93,12 @@ def show(event=None):
     for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
     temp = C.newPyTree(['Base']); temp[2][1][2] += active
-        
+
     if CTK.__MAINTREE__ == CTK.SLICE:
         exts = Internal.getNodeFromName1(CTK.dt, 'Edges')
         if exts is None: exts = []
         else: exts = exts[2]
-        
+
     # Subzone les zones actives
     CTK.dt = C.newPyTree(['Base','Edges'])
     for z in Internal.getZones(temp):
@@ -151,7 +151,7 @@ def extract(event=None):
     if len(v) > 0: kmin = v[0]
     v = CTK.varsFromWidget(VARS[5].get(), type=2)
     if len(v) > 0: kmax = v[0]
-    
+
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
     active = []
@@ -160,10 +160,10 @@ def extract(event=None):
     for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
     temp = C.newPyTree(['Base']); temp[2][1][2] += active
-    
+
     C._addBase2PyTree(CTK.t, 'EXTRACT')
     base = Internal.getNodeFromName1(CTK.t, 'EXTRACT')
-    
+
     # Subzone les zones actives
     for z in Internal.getZones(temp):
         try:
@@ -224,7 +224,7 @@ def backFromIJK(event=None):
     if CTK.t == []: return
     if CTK.__MAINTREE__ == CTK.IJK:
         IJKVIEWDATA = CPlot.getState('posCam') + CPlot.getState('posEye') + CPlot.getState('dirCam')
-        
+
     if CTK.__MAINTREE__ != 1 and XYZVIEWDATA is not None:
         posCam = XYZVIEWDATA[0:3]
         posEye = XYZVIEWDATA[3:6]
@@ -236,7 +236,7 @@ def backFromIJK(event=None):
 # Create app widgets
 #==============================================================================
 def createApp(win):
-    
+
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkIJK  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
@@ -248,9 +248,9 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
-    
+
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -291,7 +291,7 @@ def createApp(win):
     B = TTK.Button(F, text='X', width=1, command=setFullI)
     BB = CTK.infoBulle(parent=B, text='Reset to full zone.')
     B.grid(row=0, column=2, sticky=TK.EW)
-    
+
     B = TTK.Entry(F, textvariable=VARS[0], background='White', width=5)
     BB = CTK.infoBulle(parent=B, text='imin.')
     B.bind('<Return>', show)
@@ -317,7 +317,7 @@ def createApp(win):
     B = TTK.Button(F, text='X', width=1, command=setFullJ)
     BB = CTK.infoBulle(parent=B, text='Reset to full zone.')
     B.grid(row=0, column=2, sticky=TK.EW)
-    
+
     B = TTK.Entry(F, textvariable=VARS[2], background='White', width=5)
     BB = CTK.infoBulle(parent=B, text='jmin.')
     B.bind('<Return>', show)
@@ -329,7 +329,7 @@ def createApp(win):
     B = TTK.Entry(F, textvariable=VARS[7], background='White', width=1)
     BB = CTK.infoBulle(parent=B, text='j step.')
     B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
-    
+
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
                         text='K', font=CTK.FRAMEFONT, takefocus=1)
     F.columnconfigure(0, weight=1)
@@ -343,7 +343,7 @@ def createApp(win):
     B = TTK.Button(F, text='X', width=1, command=setFullK)
     BB = CTK.infoBulle(parent=B, text='Reset to full zone.')
     B.grid(row=0, column=2, sticky=TK.EW)
-        
+
     B = TTK.Entry(F, textvariable=VARS[4], background='White', width=5)
     BB = CTK.infoBulle(parent=B, text='kmin.')
     B.bind('<Return>', show)

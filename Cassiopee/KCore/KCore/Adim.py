@@ -245,7 +245,7 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     Mus     = 1.78938e-5 # mu correspondant dimensionne
     MuInf   = Mus*math.sqrt(TInf/Ts)*(1.+Cs/Ts)/(1.+Cs/TInf)
     MuInf = MuInf * MuMultiplier
-    
+
     # nu en m2/s
     NuInf = MuInf / RoInf
 
@@ -282,7 +282,7 @@ def dim1(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
     # si Mtip existe, les grandeurs visqueuses et turbulentes
     # sont prises par rapport a Mtip
     if Mtip is not None: UInf = Mtip*aInf
-    
+
     ReInf = UInf*LInf/NuInf
     #print('ReInf=', ReInf)
 

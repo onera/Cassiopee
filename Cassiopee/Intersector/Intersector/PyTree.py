@@ -25,7 +25,7 @@ try:
     import Connector.PyTree as X
 except:
     raise ImportError("Intersector.PyTree: requires Converter.PyTree module.")
-        
+
 #=============================================================================
 # Ajout d'un champ 'var' pour une zone qui ne le contient pas.
 #=============================================================================
@@ -43,14 +43,14 @@ def _addVar__(t, var, loc='centers'):
 # Retourne le nombre de cellules d'un maillage (voir C.getNCells)
 #=============================================================================
 def nb_cells(a):
-  ncellsTot = 0
-  zones = Internal.getNodesFromType2(a, 'Zone_t')
-  for z in zones:
-      dim = Internal.getZoneDim(z)
-      np = dim[1]
-      ncells = dim[2]
-      ncellsTot += ncells
-  return ncellsTot
+    ncellsTot = 0
+    zones = Internal.getNodesFromType2(a, 'Zone_t')
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        np = dim[1]
+        ncells = dim[2]
+        ncellsTot += ncells
+    return ncellsTot
 
 #==============================================================================
 # nb_faces: Returns the number of faces in t
@@ -79,13 +79,13 @@ def nb_faces(t):
 # OUT: returns the adapted feature
 #==============================================================================
 def updateNugaData(field, oid):
-  new_fld = numpy.empty(len(oid), Internal.E_NpyInt)
-  i = -1
-  #print(oid)
-  for oi in oid:
-    i += 1
-    new_fld[i] = field[oi]
-  return new_fld
+    new_fld = numpy.empty(len(oid), Internal.E_NpyInt)
+    i = -1
+    #print(oid)
+    for oi in oid:
+        i += 1
+        new_fld[i] = field[oi]
+    return new_fld
 
 #==============================================================================
 # getTreeDim: XXX
@@ -93,18 +93,18 @@ def updateNugaData(field, oid):
 # OUT: XXX
 #==============================================================================
 def getTreeDim(t):
-  zs = Internal.getZones(t)
-  d = 0
-  nb_elts_per_zone = 0
-  for z in zs:
-    dims = Internal.getZoneDim(z)
-    if d == 0: d = dims[4]
-    if dims[4] != d: return 0 # mixed type : not handled
-    if dims[3] == 'NGON': nb_elts_per_zone += nb_cells(z)
+    zs = Internal.getZones(t)
+    d = 0
+    nb_elts_per_zone = 0
+    for z in zs:
+        dims = Internal.getZoneDim(z)
+        if d == 0: d = dims[4]
+        if dims[4] != d: return 0 # mixed type : not handled
+        if dims[3] == 'NGON': nb_elts_per_zone += nb_cells(z)
 
-  if d == 3 and nb_elts_per_zone == len(zs): d = 21 # NGON with one cell per zone => NUGA NGON => 2D
+    if d == 3 and nb_elts_per_zone == len(zs): d = 21 # NGON with one cell per zone => NUGA NGON => 2D
 
-  return d
+    return d
 
 #==============================================================================
 # getZoneNSTypeAndDim: XXX
@@ -112,16 +112,16 @@ def getTreeDim(t):
 # OUT: XXX
 #==============================================================================
 def getZoneNSTypeAndDim(z):
-  dims = Internal.getZoneDim(z)
-  d = dims[4]
-  if d == 2:
-    if dims[3] == 'NGON': return ('NGON_CASSIOPEE', 2)
-    else : return ('BASIC', 2)
-  else: # 3D
-    #print(nb_cells(z))
-    if dims[3] == 'NGON' and nb_cells(z) == 1: return ('NGON_NUGA',2)
-    elif dims[3] == 'NGON': return ('NGON', 3)
-    else : return ('BASIC', 3)
+    dims = Internal.getZoneDim(z)
+    d = dims[4]
+    if d == 2:
+        if dims[3] == 'NGON': return ('NGON_CASSIOPEE', 2)
+        else : return ('BASIC', 2)
+    else: # 3D
+        #print(nb_cells(z))
+        if dims[3] == 'NGON' and nb_cells(z) == 1: return ('NGON_NUGA',2)
+        elif dims[3] == 'NGON': return ('NGON', 3)
+        else : return ('BASIC', 3)
 
 #==============================================================================
 # InputType: XXX
@@ -130,28 +130,28 @@ def getZoneNSTypeAndDim(z):
 #==============================================================================
 # return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (PyTree), 4(list of zones), 5(list of list of numpies)
 def InputType(t): # fixme : based on first block only
-  if isinstance(t, list):
-    if isinstance(t[0], numpy.ndarray): return 1
-    # note (Imad): on check que t[0] est une liste et que le premier élément est un numpy
-    if isinstance(t[0], list):
-      if isinstance(t[0][0], numpy.ndarray): return 5
-    isnod = Internal.isStdNode(t)
-    #print(isnod)
-    if isnod == -1 or isnod == 0:
-      #print('is std node')
-      if XOR.isSingleZone(t):
+    if isinstance(t, list):
+        if isinstance(t[0], numpy.ndarray): return 1
+        # note (Imad): on check que t[0] est une liste et que le premier élément est un numpy
+        if isinstance(t[0], list):
+            if isinstance(t[0][0], numpy.ndarray): return 5
+        isnod = Internal.isStdNode(t)
+        #print(isnod)
+        if isnod == -1 or isnod == 0:
+            #print('is std node')
+            if XOR.isSingleZone(t):
         #print('is isSingleZone node')
-        return 2
-      if Internal.isTopTree(t):
-        #print('is isSingleZone node')
-        return 3
-      if XOR.isSingleZone(t[0]):
-        #print('is isSingleZone t0')
-        return 4
-    else: return -1
-  else:
-    if isinstance(t, numpy.ndarray): return 0
-    else: return -1 # error
+                return 2
+            if Internal.isTopTree(t):
+                #print('is isSingleZone node')
+                return 3
+            if XOR.isSingleZone(t[0]):
+                #print('is isSingleZone t0')
+                return 4
+        else: return -1
+    else:
+        if isinstance(t, numpy.ndarray): return 0
+        else: return -1 # error
 
 #==============================================================================
 # NGONBlock
@@ -165,30 +165,30 @@ def InputType(t): # fixme : based on first block only
 def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False, tol = 0.):
 
     if keep_BC == False:
-      C._deleteGridConnectivity__(t)
-      C._deleteZoneBC__(t)
-    
+        C._deleteGridConnectivity__(t)
+        C._deleteZoneBC__(t)
+
     if mixed_type:
         t = C.breakConnectivity(t)
         for zone in Internal.getZones(t):
             if Internal.getZoneDim(zone)[3] in ['TRI','QUAD']: Internal.rmNode(t,zone)
 
     t = C.convertArray2NGon(t, recoverBC=keep_BC)
-    
+
     #C.convertPyTree2File(t, 'tNG.cgns')
     # compute relevant tolerance : 1% of the minimum edge length
     TOL = tol
     if TOL == 0.:
-      TOL = 0.1 * edgeLengthExtrema(t)
-    
+        TOL = 0.1 * edgeLengthExtrema(t)
+
     t = concatenate(t, tol=TOL)
 
     valid = True
     if nb_comps > 0:
-      valid = isConformalNConnex(t, nb_comps)
+        valid = isConformalNConnex(t, nb_comps)
     if not valid:
-      #C.convertPyTree2File(t, 'bad_oper.cgns')
-      raise ValueError('NGONBlock: concatenation failed to produce a single connex and conformal block.')
+        #C.convertPyTree2File(t, 'bad_oper.cgns')
+        raise ValueError('NGONBlock: concatenation failed to produce a single connex and conformal block.')
 
     #Internal._correctPyTree(t) # to add families if required and missing    
     zs = Internal.getZones(t)
@@ -208,9 +208,9 @@ def isConformalNConnex(t, nb_comps):
     F = T.splitConnexity(F)
     zs = Internal.getZones(F)
     if len(zs) != nb_comps:
-      print('nb of contours: '+str(len(zs)))
-      print ('expected to be: '+str(nb_comps))
-      return False
+        print('nb of contours: '+str(len(zs)))
+        print ('expected to be: '+str(nb_comps))
+        return False
     F = P.exteriorFaces(F)
     zs = Internal.getZones(F)
     #print('nb of edge zones: ' + str(len(zs)))
@@ -249,20 +249,20 @@ def computeMeshAssemblyParameters(t):
 # OUT: returns the tolerance and the max bounding box size
 #==============================================================================
 def computeVmin(zones):
-  import sys;
-  vmin=sys.float_info.max
+    import sys;
+    vmin=sys.float_info.max
 
-  for z in zones:
-    tmp = Internal.createElsaHybrid(z, method=1, methodPE=1)
-    (vm, cellid, zoneid) = checkCellsVolume(tmp)
-    vmin = min(vmin, vm)
+    for z in zones:
+        tmp = Internal.createElsaHybrid(z, method=1, methodPE=1)
+        (vm, cellid, zoneid) = checkCellsVolume(tmp)
+        vmin = min(vmin, vm)
 
-  return vmin
+    return vmin
 
 def computeMetrics(NGzones):
     import sys
     MEL = GRmin = Vmin = sys.float_info.max
-    
+
     for z in NGzones:
 
         zi = Internal.createElsaHybrid(z, method=1, methodPE=1)
@@ -287,81 +287,81 @@ def computeMetrics(NGzones):
 #==============================================================================
 def checkAssemblyForlSolver(t, fullcheck=False, nb_comps=1):
 
-  MAXFLUXVAL=1.e-9
-  VOLMIN_SOLVER = 1.e-20
+    MAXFLUXVAL=1.e-9
+    VOLMIN_SOLVER = 1.e-20
 
-  # VERIFICATION 1 : CONFORMITE
-  conformal = isConformalNConnex(t, nb_comps)
-  if not conformal:
-    raise ValueError('checkAssemblyForSolver: non conformal mesh.')
-  else:
-    print('OK: conformal.')
+    # VERIFICATION 1 : CONFORMITE
+    conformal = isConformalNConnex(t, nb_comps)
+    if not conformal:
+        raise ValueError('checkAssemblyForSolver: non conformal mesh.')
+    else:
+        print('OK: conformal.')
 
-  # VERIFICATION 2 : CELLULES FERMEES
-  print("Check cells closure ...")
-  err = checkCellsClosure(t)
-  if err == 1:
-    print('Boolean ERROR : open cells')
-    import sys; sys.exit()
-  # else : 
-  #   print ('OK : all cells are closed')
+    # VERIFICATION 2 : CELLULES FERMEES
+    print("Check cells closure ...")
+    err = checkCellsClosure(t)
+    if err == 1:
+        print('Boolean ERROR : open cells')
+        import sys; sys.exit()
+    # else : 
+    #   print ('OK : all cells are closed')
 
-  # VERIFICATION 3 : ORIENTATION/QUALITE
-  print("Check orientation/quality ...")
-  (maxflux, cellid, zoneid) = checkCellsFlux(t)
-  print('max flux : '+str(maxflux))
-  if maxflux > MAXFLUXVAL:
-      print('Boolean WARNING : quality might be not good enough for solver')
-      #import sys; sys.exit()
+    # VERIFICATION 3 : ORIENTATION/QUALITE
+    print("Check orientation/quality ...")
+    (maxflux, cellid, zoneid) = checkCellsFlux(t)
+    print('max flux : '+str(maxflux))
+    if maxflux > MAXFLUXVAL:
+        print('Boolean WARNING : quality might be not good enough for solver')
+        #import sys; sys.exit()
 
-  if fullcheck == False: return
+    if fullcheck == False: return
 
-  # VERIFICATION 4 : VOL MIN
-  print("Check min cell volume ...")
-  (vmin, cellid, zoneid) = checkCellsVolume(t)
-  print('vol min : ', vmin)
-  if vmin < VOLMIN_SOLVER:
-      print('Boolean ERROR : too small cells detected : under solver threshold')
+    # VERIFICATION 4 : VOL MIN
+    print("Check min cell volume ...")
+    (vmin, cellid, zoneid) = checkCellsVolume(t)
+    print('vol min : ', vmin)
+    if vmin < VOLMIN_SOLVER:
+        print('Boolean ERROR : too small cells detected : under solver threshold')
 
-  # print("Check cell volume extrema...")
-  # res = statsSize(t, 1)
-  # dMax = res[0]
-  # smin = res[1]
-  # smax = res[2]
-  # vmin = res[3]
-  # vmax = res[4]
-  # print ('vmin')
-  # print (vmin)
-  # print ('vmax')
-  # print (vmax) 
+    # print("Check cell volume extrema...")
+    # res = statsSize(t, 1)
+    # dMax = res[0]
+    # smin = res[1]
+    # smax = res[2]
+    # vmin = res[3]
+    # vmax = res[4]
+    # print ('vmin')
+    # print (vmin)
+    # print ('vmax')
+    # print (vmax) 
 
-  #VERIFICATION 5 : BIG CELLS
-  print("Check big cells (over 40) ...")
-  N=40
-  big = checkForBigCells(t, N)
-  ofile = 'big_'+str(N)+'.cgns'
-  C.convertPyTree2File(big, ofile)
-  ofile = 'biggest.cgns'
-  z = extractBiggestCell(t)
-  C.convertPyTree2File(z, ofile)
+    #VERIFICATION 5 : BIG CELLS
+    print("Check big cells (over 40) ...")
+    N=40
+    big = checkForBigCells(t, N)
+    ofile = 'big_'+str(N)+'.cgns'
+    C.convertPyTree2File(big, ofile)
+    ofile = 'biggest.cgns'
+    z = extractBiggestCell(t)
+    C.convertPyTree2File(z, ofile)
 
-  #VERIDICATION 6 : check for degen
-  print("Check for degen cells...")
-  checkForDegenCells(t)
+    #VERIDICATION 6 : check for degen
+    print("Check for degen cells...")
+    checkForDegenCells(t)
 
-  #VERIF 7 
-  print("Check for over connected cells..")
-  detectOverConnectedFaces(t)
+    #VERIF 7 
+    print("Check for over connected cells..")
+    detectOverConnectedFaces(t)
 
-  #VERIF 8
-  print("extract pathos..")
-  z=extractPathologicalCells(t)
-  ofile = 'pathos.cgns'
-  #C.convertPyTree2File(z, ofile)
+    #VERIF 8
+    print("extract pathos..")
+    z=extractPathologicalCells(t)
+    ofile = 'pathos.cgns'
+    #C.convertPyTree2File(z, ofile)
 
-  #VERIF 9
-  print("Check for identical cells..")
-  detectIdenticalCells(t, TOL=1.e-10, clean=0)
+    #VERIF 9
+    print("Check for identical cells..")
+    detectIdenticalCells(t, TOL=1.e-10, clean=0)
 
 #=============================================================================
 # Concatenation des PointList d'un type de BC donne dans une liste de zones
@@ -369,41 +369,41 @@ def checkAssemblyForlSolver(t, fullcheck=False, nb_comps=1):
 def concatenateBC(bctype, zones, wallpgs, cur_shift):
     i = 0
     for z in zones:
-      c = C.getFields(Internal.__GridCoordinates__, z)
-      if c == []: continue
-      if len(c[0]) == 5: continue # structure (skip)
+        c = C.getFields(Internal.__GridCoordinates__, z)
+        if c == []: continue
+        if len(c[0]) == 5: continue # structure (skip)
 
-      #print(' -- zone : %d / %d' %(i+1, len(zones)))
-      i = i+1
-      bnds = Internal.getNodesFromType(z, 'BC_t')
-      #print(" -- this zone has %d boundaries"%(len(bnds)))
-      #print(' -- cur shift %d' %(cur_shift))
+        #print(' -- zone : %d / %d' %(i+1, len(zones)))
+        i = i+1
+        bnds = Internal.getNodesFromType(z, 'BC_t')
+        #print(" -- this zone has %d boundaries"%(len(bnds)))
+        #print(' -- cur shift %d' %(cur_shift))
 
-      # GET THE WALL PGS FROM THE POINTLISTS
-      for bb in bnds:
-        if Internal.isValue(bb, bctype) == False: continue
-          
-        wpgs = bb[2][1][1][0] # POINTLIST NUMPY fixme : can be somewhere else in the array
-        #print(wpgs)
-        # SYNC THE POINTLIST BEFORE APPENDING  : SHIFT WITH THE CURRENT NB OF STORED POLYGONS
-        id2 = numpy.empty(len(wpgs), Internal.E_NpyInt)
-        id2[:] = wpgs[:] + cur_shift
-        wallpgs.append(id2)
+        # GET THE WALL PGS FROM THE POINTLISTS
+        for bb in bnds:
+            if Internal.isValue(bb, bctype) == False: continue
 
-      c = c[0]
-      #z_nb_pts= len(c[1][0])
-      z_nb_pgs = c[2][0][0]
-      #print(z_nb_pts)
-      #print(z_nb_pgs)
-      cur_shift += z_nb_pgs
+            wpgs = bb[2][1][1][0] # POINTLIST NUMPY fixme : can be somewhere else in the array
+            #print(wpgs)
+            # SYNC THE POINTLIST BEFORE APPENDING  : SHIFT WITH THE CURRENT NB OF STORED POLYGONS
+            id2 = numpy.empty(len(wpgs), Internal.E_NpyInt)
+            id2[:] = wpgs[:] + cur_shift
+            wallpgs.append(id2)
+
+        c = c[0]
+        #z_nb_pts= len(c[1][0])
+        z_nb_pgs = c[2][0][0]
+        #print(z_nb_pts)
+        #print(z_nb_pgs)
+        cur_shift += z_nb_pgs
     return (wallpgs, cur_shift)
 
 # update BC and JOINS point lists given an indirection "new id to old id"
 def updatePointLists(z, zones, oids):
     if len(oids) == 0:
-      C._deleteZoneBC__(z)
-      C._deleteGridConnectivity__(z)
-      return
+        C._deleteZoneBC__(z)
+        C._deleteGridConnectivity__(z)
+        return
     updateBCPointLists1(z, oids)
     updateJoinsPointLists1(z, zones, oids)
 
@@ -413,8 +413,8 @@ def updateBCPointLists1(z, oids):
 
     ptLists = []
     for bb in bnds:
-      ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
-      ptLists.append(ptl[0][1][0])
+        ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
+        ptLists.append(ptl[0][1][0])
 
     if ptLists == []: return
 
@@ -425,21 +425,21 @@ def updateBCPointLists1(z, oids):
     bc_to_remove=[]
     #print('update the BC pointlists') 
     for bb in bnds:
-      torem = False
-      if isinstance(ptLists[i], numpy.ndarray):
-        if len(ptLists[i]) == 0: torem = True
-      elif ptLists[i] is None: torem = True
+        torem = False
+        if isinstance(ptLists[i], numpy.ndarray):
+            if len(ptLists[i]) == 0: torem = True
+        elif ptLists[i] is None: torem = True
 
-      if torem:
-        bc_to_remove.append(Internal.getPath(z, bb))
-        continue
-      
-      ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
-      ptLists[i] = ptLists[i].reshape(1, ptLists[i].size)
-      ptl[0][1] = ptLists[i]
-      #print('shape dans updateBCPointLists1 : '+str(numpy.shape(ptl[0][1])))
-      #print(ptl[0][1])
-      i=i+1
+        if torem:
+            bc_to_remove.append(Internal.getPath(z, bb))
+            continue
+
+        ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
+        ptLists[i] = ptLists[i].reshape(1, ptLists[i].size)
+        ptl[0][1] = ptLists[i]
+        #print('shape dans updateBCPointLists1 : '+str(numpy.shape(ptl[0][1])))
+        #print(ptl[0][1])
+        i=i+1
 
     for p in bc_to_remove: Internal._rmNodeFromPath(z, p)
 
@@ -452,7 +452,7 @@ def updateJoinsPointLists1(z, zones, oids):
     for j in joins:
         ptl = Internal.getNodeFromName1(j, 'PointList')
         ptLists.append(ptl[1])#ptl[0][1][0]
-    
+
     if ptLists == []: return
 
     # recalcul des pointlist
@@ -461,38 +461,38 @@ def updateJoinsPointLists1(z, zones, oids):
     i=0
     # update the Join pointlist and synchronize with other zones (their pointListDonnor)
     for j in joins:
-      donnorName = "".join(Internal.getValue(j))
+        donnorName = "".join(Internal.getValue(j))
 
-      # Match has disappeared > remove from tree
-      if not isinstance(ptLists[i], numpy.ndarray):
-          Internal._rmNode(z, j)
-          i=i+1 
-          continue
-      
-      ptl = Internal.getNodeFromName1(j, 'PointList')
-      # print("donnorName:", donnorName)
-      dz = Internal.getNodeFromName(zones, donnorName)
+        # Match has disappeared > remove from tree
+        if not isinstance(ptLists[i], numpy.ndarray):
+            Internal._rmNode(z, j)
+            i=i+1 
+            continue
 
-      if dz is not None:
-          joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
-          for jd in joinsD:
-              #dname = "".join(jd[1])
-              dname = "".join(Internal.getValue(jd))
-              # print("dname / zname : ", dname, zname)
-              if (dname != zname) : continue
-              ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
-              
-              PG0 = ptl[1][0][0] # first polygon in the point list 
-              PG0D = ptlD[1][0][0] # first polygon in the point list
-              if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
-                          
-              ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
+        ptl = Internal.getNodeFromName1(j, 'PointList')
+        # print("donnorName:", donnorName)
+        dz = Internal.getNodeFromName(zones, donnorName)
 
-              ptl[1]  = ptLists[i]
-              ptlD[1] = ptLists[i]
+        if dz is not None:
+            joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
+            for jd in joinsD:
+                #dname = "".join(jd[1])
+                dname = "".join(Internal.getValue(jd))
+                # print("dname / zname : ", dname, zname)
+                if (dname != zname) : continue
+                ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
 
-              break
-          i=i+1
+                PG0 = ptl[1][0][0] # first polygon in the point list 
+                PG0D = ptlD[1][0][0] # first polygon in the point list
+                if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
+
+                ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
+
+                ptl[1]  = ptLists[i]
+                ptlD[1] = ptLists[i]
+
+                break
+            i=i+1
 
 def getJoinsPtList(z, zname2id):
 	raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -504,7 +504,7 @@ def getJoinsPtList(z, zname2id):
 	j=0
 	for rac in raccords:
 		rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
-		
+
 		donnorName = "".join(Internal.getValue(rac))
 		#print(donnorName)
 		zid = zname2id[donnorName]
@@ -524,10 +524,10 @@ def getJoinsPtList(z, zname2id):
 # wrapper to catch errors
 #==============================================================================
 def getProperty(z, pname):
-  val = CD.getProperty(z, pname)
-  #if val == -1 :
-  #  print('ERROR : ' + str(pname) + ' is not set. You must call _setZonesAndJoinsUId on the input tree')
-  return val
+    val = CD.getProperty(z, pname)
+    #if val == -1 :
+    #  print('ERROR : ' + str(pname) + ' is not set. You must call _setZonesAndJoinsUId on the input tree')
+    return val
 
 #==============================================================================
 # getBCsPtLists : XXX
@@ -537,37 +537,37 @@ def getProperty(z, pname):
 #==============================================================================
 def getBCsPtLists(t):
 
-  zone_to_bcptlists = {}
-  zones = Internal.getZones(t)
-  #
-  for z in zones:
-    zid = getProperty(z, 'zid')
-    # BC and Joins point list (owned side)
-    bcptlists = getBCPtList(z)
-    zone_to_bcptlists[zid]=bcptlists
+    zone_to_bcptlists = {}
+    zones = Internal.getZones(t)
+    #
+    for z in zones:
+        zid = getProperty(z, 'zid')
+        # BC and Joins point list (owned side)
+        bcptlists = getBCPtList(z)
+        zone_to_bcptlists[zid]=bcptlists
 
-  return zone_to_bcptlists
+    return zone_to_bcptlists
 
 
 def getBCPtList(z):
-  #
-  bnds = Internal.getNodesFromType(z, 'BC_t')
-  
-  ptList = []
-  for bb in bnds :
-    ptlnod = Internal.getNodesFromType(bb, 'IndexArray_t')
-    if ptlnod == [] : continue
-    x = ptlnod[0][1]
+    #
+    bnds = Internal.getNodesFromType(z, 'BC_t')
 
-    if type(x[0]) is numpy.ndarray: # ptlnod[0][1] is a list with one ptlist : [ [...] ]
-      ptList.append(x[0])
-    else: # # ptlnod[0][1] is directly the ptlist : [...]
-      ptList.append(x)
+    ptList = []
+    for bb in bnds :
+        ptlnod = Internal.getNodesFromType(bb, 'IndexArray_t')
+        if ptlnod == [] : continue
+        x = ptlnod[0][1]
 
-  return ptList
+        if type(x[0]) is numpy.ndarray: # ptlnod[0][1] is a list with one ptlist : [ [...] ]
+            ptList.append(x[0])
+        else: # # ptlnod[0][1] is directly the ptlist : [...]
+            ptList.append(x)
+
+    return ptList
 
 def getBCPtListOfType(z, typesList, families = []):
-    #
+        #
     nodes = []
     for btyp in typesList:
         nodes += Internal.getNodesFromValue(z, btyp)
@@ -581,9 +581,9 @@ def getBCPtListOfType(z, typesList, families = []):
         x = ptlnod[0][1]
         #print(x)
         if type(x[0]) is numpy.ndarray: # ptlnod[0][1] is a list with one ptlist : [ [...] ]
-          ptList.append(x[0])
+            ptList.append(x[0])
         else: # # ptlnod[0][1] is directly the ptlist : [...]
-          ptList.append(x)
+            ptList.append(x)
 
     if (ptList != []) : ptList = numpy.concatenate(ptList).ravel() # create a single list
 
@@ -593,158 +593,158 @@ def getBCPtListOfType(z, typesList, families = []):
 # 
 #------------------------------------------------------------------------------
 def updateJoinsPointLists2(z, zones, jzids, ptLists):
-  # zone name to id
-  name2id = dict()
-  i = 0
-  for zz in zones :
-    name2id[zz[0]] = i
-    #print('zone ' + z[0] + ' has ' + str(i))
-    i += 1
+    # zone name to id
+    name2id = dict()
+    i = 0
+    for zz in zones :
+        name2id[zz[0]] = i
+        #print('zone ' + z[0] + ' has ' + str(i))
+        i += 1
 
-  #print('processed zone  : ' + z[0])
+    #print('processed zone  : ' + z[0])
 
-  joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-  zname=z[0]
+    joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+    zname=z[0]
 
-  # update the Join pointlist and synchronize with other zones (their pointListDonnor)
-  for j in joins:
-    #donnorName = b''.join(j[1]).decode() WORK, try below
-    donnorName = "".join(Internal.getValue(j))
-    #print(donnorName)
-    ptl = Internal.getNodeFromName1(j, 'PointList')
-    dz = Internal.getNodeFromName(zones, donnorName)
-    joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
-    for jd in joinsD:
-      dname = "".join(Internal.getValue(jd))
-      if (dname != zname) : continue
-      ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
-      
-      PG0 = ptl[1][0][0] # first polygon in the poitn list 
-      PG0D = ptlD[1][0][0] # first polygon in the poitn list
-      if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
-      
-      id = name2id[donnorName]
+    # update the Join pointlist and synchronize with other zones (their pointListDonnor)
+    for j in joins:
+        #donnorName = b''.join(j[1]).decode() WORK, try below
+        donnorName = "".join(Internal.getValue(j))
+        #print(donnorName)
+        ptl = Internal.getNodeFromName1(j, 'PointList')
+        dz = Internal.getNodeFromName(zones, donnorName)
+        joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
+        for jd in joinsD:
+            dname = "".join(Internal.getValue(jd))
+            if (dname != zname) : continue
+            ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
 
-      # print('donnor is ' + donnorName + ' with id  : ' + str(id))
-      # print(ptl[1])
-      # print(numpy.shape(ptl[1]))
+            PG0 = ptl[1][0][0] # first polygon in the poitn list 
+            PG0D = ptlD[1][0][0] # first polygon in the poitn list
+            if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
 
-      # find rank for this id and set list
-      i=-1
-      for k in jzids:
-        i+=1
-        if k != id: continue
+            id = name2id[donnorName]
 
-        #print('new j')
+            # print('donnor is ' + donnorName + ' with id  : ' + str(id))
+            # print(ptl[1])
+            # print(numpy.shape(ptl[1]))
 
-        ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
-        # print(ptLists[i])
+            # find rank for this id and set list
+            i=-1
+            for k in jzids:
+                i+=1
+                if k != id: continue
 
-        ptl[1]= ptLists[i]
-        ptlD[1] = ptLists[i]
+                #print('new j')
 
-        break
-      break
+                ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
+                # print(ptLists[i])
+
+                ptl[1]= ptLists[i]
+                ptlD[1] = ptLists[i]
+
+                break
+            break
 
 def updateBCPointLists2(z, ptLists):
     bnds = Internal.getNodesFromType(z, 'BC_t')
-    
+
     i=0
     # update the BC pointlists 
     for bb in bnds :
-      ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
-      ptl[0][1] = ptLists[i]
-      #print(ptl[0][1])
-      i=i+1
+        ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
+        ptl[0][1] = ptLists[i]
+        #print(ptl[0][1])
+        i=i+1
 
 #------------------------------------------------------------------------------
 # 
 #------------------------------------------------------------------------------
 def updateJoinsPointLists3(z, zidDict, rid_to_ptlist, ptlname): # 'PointList', 'PointListDonor'
 
-  joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-  zid = getProperty(z, 'zid')
+    joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+    zid = getProperty(z, 'zid')
 
-  # update the Join pointlist and synchronize with other zones (their PointListDonor)
+    # update the Join pointlist and synchronize with other zones (their PointListDonor)
 
-  processed_rid = set()
+    processed_rid = set()
 
-  for j in joins:
+    for j in joins:
 
-    ptl    = Internal.getNodeFromName1(j, ptlname)
+        ptl    = Internal.getNodeFromName1(j, ptlname)
 
-    rid    = getProperty(j, 'rid')
-    donnorName = "".join(Internal.getValue(j))
-    jzid   = zidDict[donnorName]
+        rid    = getProperty(j, 'rid')
+        donnorName = "".join(Internal.getValue(j))
+        jzid   = zidDict[donnorName]
 
-    if rid not in rid_to_ptlist : continue
+        if rid not in rid_to_ptlist : continue
 
-    L1     = rid_to_ptlist[rid]
+        L1     = rid_to_ptlist[rid]
 
-    if jzid==zid:
-      half   = int(len(rid_to_ptlist[rid]) / 2)
+        if jzid==zid:
+            half   = int(len(rid_to_ptlist[rid]) / 2)
 
-      if ptlname == 'PointList':        # appel apres conformisation
-        if rid in processed_rid:        ## deuxieme passe (i.e deuxime demi-raccord)
-          L1 = L1[half:]
-        else:                           ## premiere passe
-          processed_rid.add(rid)
-          L1 = L1[:half]
-      elif ptlname == 'PointListDonor': # appel apres echange de pointlist
-        if rid in processed_rid:        ## deuxieme passe (i.e deuxime demi-raccord)
-          L1 = L1[:half]
-        else:                           ## premiere passe
-          processed_rid.add(rid)
-          L1 = L1[half:]
-  
-    L1     = numpy.reshape(L1, (1,len(L1)))
-    ptl[1] = L1
+            if ptlname == 'PointList':        # appel apres conformisation
+                if rid in processed_rid:        ## deuxieme passe (i.e deuxime demi-raccord)
+                    L1 = L1[half:]
+                else:                           ## premiere passe
+                    processed_rid.add(rid)
+                    L1 = L1[:half]
+            elif ptlname == 'PointListDonor': # appel apres echange de pointlist
+                if rid in processed_rid:        ## deuxieme passe (i.e deuxime demi-raccord)
+                    L1 = L1[:half]
+                else:                           ## premiere passe
+                    processed_rid.add(rid)
+                    L1 = L1[half:]
+
+        L1     = numpy.reshape(L1, (1,len(L1)))
+        ptl[1] = L1
 
 #------------------------------------------------------------------------------
 # 
 #------------------------------------------------------------------------------
 def get_transfo_to_ptlist_dico(z):
 
-  # ----- 
+    # ----- 
 
-  dico_rotation_to_ptList = {}
+    dico_rotation_to_ptList = {}
 
-  key1 = [0.]*6
-  key1 = tuple(key1)
+    key1 = [0.]*6
+    key1 = tuple(key1)
 
-  raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
 
-  for rac in raccords:
-    rac_match_perio = Internal.getNodesFromType2(rac, 'GridConnectivityProperty_t')
+    for rac in raccords:
+        rac_match_perio = Internal.getNodesFromType2(rac, 'GridConnectivityProperty_t')
 
-    ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+        ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
 
-    if rac_match_perio: #perio BC
-      center_rotat  = Internal.getNodesFromName3(rac, 'RotationCenter')[0][1]
-      angle_rotat   = Internal.getNodesFromName3(rac, 'RotationAngle' )[0][1]
+        if rac_match_perio: #perio BC
+            center_rotat  = Internal.getNodesFromName3(rac, 'RotationCenter')[0][1]
+            angle_rotat   = Internal.getNodesFromName3(rac, 'RotationAngle' )[0][1]
 
-      # Condition to set negative angle as a translation like dict
+            # Condition to set negative angle as a translation like dict
 
-      key2 = numpy.concatenate((center_rotat, angle_rotat))
-      key2 = tuple(key2)
+            key2 = numpy.concatenate((center_rotat, angle_rotat))
+            key2 = tuple(key2)
 
-      if numpy.sum(angle_rotat) < 0: #negative rotation
-        if key1 in dico_rotation_to_ptList:
-          dico_rotation_to_ptList[key1] = numpy.concatenate((dico_rotation_to_ptList[key1], ptList))
-        else:
-          dico_rotation_to_ptList[key1] = ptList
-      else: #translation or positive rotation
-        if key2 in dico_rotation_to_ptList:
-          dico_rotation_to_ptList[key2] = numpy.concatenate((dico_rotation_to_ptList[key2], ptList))
-        else:
-          dico_rotation_to_ptList[key2] = ptList
-    else: #match BC
-      if key1 in dico_rotation_to_ptList: #following match BC
-        dico_rotation_to_ptList[key1] = numpy.concatenate((dico_rotation_to_ptList[key1], ptList))
-      else: #first match BC
-        dico_rotation_to_ptList[key1] = ptList
+            if numpy.sum(angle_rotat) < 0: #negative rotation
+                if key1 in dico_rotation_to_ptList:
+                    dico_rotation_to_ptList[key1] = numpy.concatenate((dico_rotation_to_ptList[key1], ptList))
+                else:
+                    dico_rotation_to_ptList[key1] = ptList
+            else: #translation or positive rotation
+                if key2 in dico_rotation_to_ptList:
+                    dico_rotation_to_ptList[key2] = numpy.concatenate((dico_rotation_to_ptList[key2], ptList))
+                else:
+                    dico_rotation_to_ptList[key2] = ptList
+        else: #match BC
+            if key1 in dico_rotation_to_ptList: #following match BC
+                dico_rotation_to_ptList[key1] = numpy.concatenate((dico_rotation_to_ptList[key1], ptList))
+            else: #first match BC
+                dico_rotation_to_ptList[key1] = ptList
 
-  return dico_rotation_to_ptList
+    return dico_rotation_to_ptList
 
 
 
@@ -791,14 +791,14 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
         typzone1 = s1[3]
         typzone2 = s2[3]
         if typzone1 == 'NGON' and typzone2 == 'NGON': # only for Volume/Volume
-          # compute the join tolerance
-          if jtol == 0.:
-            L1 = edgeLengthExtrema(a1)
-            L2 = edgeLengthExtrema(a2)
-            jtol = 0.01*min(L1,L2)
-            #print('jtol is : '+str(jtol))
+                    # compute the join tolerance
+            if jtol == 0.:
+                L1 = edgeLengthExtrema(a1)
+                L2 = edgeLengthExtrema(a2)
+                jtol = 0.01*min(L1,L2)
+                #print('jtol is : '+str(jtol))
 
-          return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
+            return booleanUnionMZ(a1, a2, tol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
 
     #multi_zone option is ignored from here
 
@@ -816,18 +816,18 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
     if (len(res) != 5) : is_zone_list = 1  
     elif (res[0][3] != 'NGON' and res[0][3] != 'TRI' and res[0][3] != 'BAR') : is_zone_list = 1
     if (len(res) == 1) : is_zone_list = 2 # Not NGON and not DEBUG 
-    
+
     if is_zone_list  == 0:
-        
+
         phnids1 = res[1]
         phnids2 = res[2]
         pgoids1 = res[3] # warning pgoids (not pgnids)
         pgoids2 = res[4] # warning pgoids (not pgnids)
-        
+
         # Restore BCs
         # ===========
         newz    = C.convertArrays2ZoneNode('union', [res[0]])
-        
+
         BC1s    = Internal.getNodesFromType(a1, "BC_t")
         BC2s    = Internal.getNodesFromType(a2, "BC_t")
 
@@ -840,7 +840,7 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
             name1s  = []
             for bc1 in BC1s:
                 name1s.append(bc1[0])
-                
+
             name2s  = []
             for bc2 in BC2s:
                 name2s.append(bc2[0])
@@ -848,45 +848,45 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
             for name1 in name1s:
                 if name1 in name2s:
                     BC1s = Internal.renameNode(BC1s, name1, name1+'b')
-                    
+
             # Update pointList
             for bc1 in BC1s:
                 # copy to avoid modif input tree
                 bc  = Internal.copyTree(bc1) 
                 Internal._addChild(zoneBC, bc)
-            
+
             updatePointLists(zs, newz, pgoids1) 
 
             newBC1s = Internal.getNodesFromType(newz, "BC_t")
-            
+
             Internal.rmNode(newz, zoneBC)
-            
+
             zoneBC  = Internal.createUniqueChild(newz, "ZoneBC", 'ZoneBC_t')
             for bc2 in BC2s:
                 # copy to avoid modif input tree
                 bc = Internal.copyTree(bc2)
                 Internal._addChild(zoneBC, bc)
-            
+
             updatePointLists(zs, newz, pgoids2)
-            
+
             Internal._addChild(zoneBC, newBC1s)
 
             # Search for BC families
             fam1_nodes = Internal.getNodesFromType(a1, 'Family_t')
             fam2_nodes = Internal.getNodesFromType(a2, 'Family_t')
-            
+
             for node in fam1_nodes:
                 Internal._addChild(newz, node)
-                
+
             for node in fam2_nodes:
                 Internal._addChild(newz, node)
-            
+
 
         # Restore fields
         # ==============
         # a. Build varnames list 
         varnames = []
-        
+
         cont1 = Internal.getNodeFromName(a1, Internal.__FlowSolutionCenters__)
         cont2 = Internal.getNodeFromName(a2, Internal.__FlowSolutionCenters__)
         cont  = [cont1,cont2]
@@ -904,12 +904,12 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
             for fld in flds:
                 if fld[0] not in varnames:
                     varnames.append(fld[0])
-                      
+
         # b. Build new var arrays 
         ncells  = C.getNCells(newz)
         nsize1  = len(phnids1) 
         nsize2  = len(phnids2) 
- 
+
         for varname in varnames:
             varnew  = numpy.zeros(ncells, numpy.float64)
             # Operande 1
@@ -930,14 +930,14 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
                         ik = phnids2[k]
                         if ik != -1:
                             varnew[ik] = varnode[1][k]
-                            
+
             # Create new var
             # --------------
             C._initVars(newz, 'centers:'+varname, 0)
             contnew    = Internal.getNodeFromName(newz, Internal.__FlowSolutionCenters__)
             varnode    = Internal.getNodeFromName(contnew, varname)
             varnode[1] = varnew
-                      
+
         return newz
 
     if is_zone_list  == 2:
@@ -947,8 +947,8 @@ def booleanUnion(a1, a2, tol=0., jtol=0., preserve_right=1, solid_right=1, agg_m
     ozones = []
 
     for i in range(len(res)):
-      if len(res[i][0][1]) != 0: ozones.append(C.convertArrays2ZoneNode(res[i][1], [res[i][0]])) #(zname, array)
-    
+        if len(res[i][0][1]) != 0: ozones.append(C.convertArrays2ZoneNode(res[i][1], [res[i][0]])) #(zname, array)
+
     return ozones
 
 def booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, simplify_pgs = True, hard_mode = 0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
@@ -966,20 +966,20 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
     m1s = []
     z1s = Internal.getZones(t1)
     for z in z1s:
-      m1s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+        m1s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
     m2s = []
     z2s = Internal.getZones(t2)
     for z in z2s:
-      m2s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+        m2s.append(C.getFields(Internal.__GridCoordinates__, z)[0])
 
     res = XOR.booleanUnionMZ(m1s, m2s, xtol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
 
     #if t1 and t2 does not overlap, merge
     if res == -7:
-      if t1_is_tree == True and t2_is_tree == True:
-        return Internal.merge([t1, t2])
-      else:
-        return z1s+z2s
+        if t1_is_tree == True and t2_is_tree == True:
+            return Internal.merge([t1, t2])
+        else:
+            return z1s+z2s
 
 
     i=0
@@ -996,54 +996,54 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
 
     # Matches updating (for zone names)
     for z in z1s:
-      # Update joins names
-      joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-      for j in joins:
-          oldname = Internal.getValue(j)
-          if oldname in newname:
-              Internal.setValue(j,newname[oldname])
-    
+        # Update joins names
+        joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+        for j in joins:
+            oldname = Internal.getValue(j)
+            if oldname in newname:
+                Internal.setValue(j,newname[oldname])
+
     iz=-1
     for z in z1s:
-      iz +=1
+        iz +=1
 
-      mesh = res[i]
-      pg_oids=res[i+1]
-      ph_oids=res[i+2]
-      
-      # print(" ")
-      # print("OP1 - pgoids: ", pg_oids)
-      
-      if mesh != []:  
+        mesh = res[i]
+        pg_oids=res[i+1]
+        ph_oids=res[i+2]
+
+        # print(" ")
+        # print("OP1 - pgoids: ", pg_oids)
+
+        if mesh != []:  
 
         # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes')
+            C.setFields([mesh], z, 'nodes')
 
-        # MAJ BCs
-        updatePointLists(z, z1s, pg_oids)
+            # MAJ BCs
+            updatePointLists(z, z1s, pg_oids)
 
-        # MAJ CHAMP CENTRE
-        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
-        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+            # MAJ CHAMP CENTRE
+            cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+            fields = Internal.getNodesFromType1(cont, 'DataArray_t')
 
-        for f in fields:
-            pt = f[1].ravel('k')
-            f[1] = numpy.empty( (ph_oids.size), numpy.float64)
-            f[1][:] = pt[ph_oids[:]]
+            for f in fields:
+                pt = f[1].ravel('k')
+                f[1] = numpy.empty( (ph_oids.size), numpy.float64)
+                f[1][:] = pt[ph_oids[:]]
 
-        zs.append(z)
+            zs.append(z)
 
-      else: # stocke le chemin des zones a supprimer
-        paths.append(Internal.getPath(t1, z))
-        
-      i += 3
+        else: # stocke le chemin des zones a supprimer
+            paths.append(Internal.getPath(t1, z))
+
+        i += 3
 
     for p in paths: Internal._rmNodeFromPath(t1, p)
     paths = []
 
     # Search for BC family nodes
     fam_nodes = Internal.getNodesFromType(t2, 'Family_t')
-    
+
     for node in fam_nodes:
         zs.append(node)
 
@@ -1057,52 +1057,52 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
 
     # Matches updating (for zone names)
     for z in z2s:
-      # Update joins names
-      joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-      for j in joins:
-          oldname = Internal.getValue(j)
-          if oldname in newname2:
-              Internal.setValue(j,newname2[oldname])
-        
+        # Update joins names
+        joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+        for j in joins:
+            oldname = Internal.getValue(j)
+            if oldname in newname2:
+                Internal.setValue(j,newname2[oldname])
+
     iz = -1
     for z in z2s:
-      iz +=1
-          
-      mesh = res[i]
-      pg_oids=res[i+1]
-      ph_oids=res[i+2]
+        iz +=1
 
-      # print(" ")
-      # print("OP2 - pgoids: ", pg_oids)
-      if mesh != []:  
+        mesh = res[i]
+        pg_oids=res[i+1]
+        ph_oids=res[i+2]
+
+        # print(" ")
+        # print("OP2 - pgoids: ", pg_oids)
+        if mesh != []:  
 
         # MAJ du maillage de la zone
-        C.setFields([mesh], z, 'nodes')
+            C.setFields([mesh], z, 'nodes')
 
-        # MAJ BCs
-        updatePointLists(z, z2s, pg_oids)
+            # MAJ BCs
+            updatePointLists(z, z2s, pg_oids)
 
-        # # MAJ CHAMP CENTRE
-        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
-        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+            # # MAJ CHAMP CENTRE
+            cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+            fields = Internal.getNodesFromType1(cont, 'DataArray_t')
 
-        for f in fields:
-            pt = f[1].ravel('k')
-            f[1] = numpy.empty( (ph_oids.size), numpy.float64)
-            f[1][:] = pt[ph_oids[:]]
+            for f in fields:
+                pt = f[1].ravel('k')
+                f[1] = numpy.empty( (ph_oids.size), numpy.float64)
+                f[1][:] = pt[ph_oids[:]]
 
-        zs.append(z)
+            zs.append(z)
 
-      else: # stocke le chemin des zones a supprimer
-        paths.append(Internal.getPath(t2, z))
+        else: # stocke le chemin des zones a supprimer
+            paths.append(Internal.getPath(t2, z))
 
-      i += 3
+        i += 3
 
     for p in paths: Internal._rmNodeFromPath(t2, p)
 
     # Search for BC family nodes
     fam_nodes = Internal.getNodesFromType(t1, 'Family_t')
-    
+
     for node in fam_nodes:
         zs.append(node)
 
@@ -1113,26 +1113,26 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
 
     joins = Internal.getNodesFromType(zs, 'GridConnectivity_t')
     zones = Internal.getZones(zs)
-    
+
     if joins == []:
         glob = 0
-        
+
         for zoneR in dict1_ptl.keys():
             dict1_zR = dict1_ptl[zoneR]
             for zoneD in dict1_zR:
                 faceListR = dict1_zR[zoneD]
                 dict2_zD  = dict2_ptl[zoneD]
                 faceListD = dict2_zD[zoneR]
-                
+
                 z1OppName = zones[zoneD][0]
                 z2OppName = zones[zoneR][0]
-                
+
                 name1     = 'match%d_%d'%(zoneR+1,glob); glob += 1
                 name2     = 'match%d_%d'%(zoneD+1,glob); glob += 1
-            
+
                 C._addBC2Zone(zones[zoneR],name1,'BCMatch',faceList=faceListR+1,\
                                   zoneDonor=z1OppName, faceListDonor=faceListD+1)
-        
+
                 C._addBC2Zone(zones[zoneD],name2,'BCMatch',faceList=faceListD+1,\
                                   zoneDonor=z2OppName, faceListDonor=faceListR+1)
     else:
@@ -1148,32 +1148,32 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual = False, 
                 faceListR = dict1_zR[zoneD]
                 dict2_zD  = dict2_ptl[zoneD]
                 faceListD = dict2_zD[zoneR]
-                
+
                 z1OppName = zones[zoneD][0]
                 z2OppName = zones[zoneR][0]
-                
+
                 name1     = 'match%d_%d'%(zoneR+1,glob); glob += 1
                 name2     = 'match%d_%d'%(zoneD+1,glob); glob += 1
 
                 # Assure unique match name 
                 while (name1 in matchName):
                     name1 = 'match%d_%d'%(zoneR+1,glob); glob += 1
-                    
+
                 while (name2 in matchName):
                     name2 = 'match%d_%d'%(zoneD+1,glob); glob += 1
 
                 C._addBC2Zone(zones[zoneR],name1,'BCMatch',faceList=faceListR+1,\
                                   zoneDonor=z1OppName, faceListDonor=faceListD+1)
-        
+
                 C._addBC2Zone(zones[zoneD],name2,'BCMatch',faceList=faceListD+1,\
                                   zoneDonor=z2OppName, faceListDonor=faceListR+1)
-    
-    
+
+
     if t1_is_tree == True and t2_is_tree == True:
         return Internal.merge([t1, t2])
     else:
         return zs
-      
+
 
 def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between two closed-surface or two volume meshes.
@@ -1190,7 +1190,7 @@ def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, o
     s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
     s = XOR.diffSurf(s1, s2, tol, preserve_right, agg_mode,improve_qual, outward_surf, itermax)
     return C.convertArrays2ZoneNode('VmS', [s])
-    
+
 def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improve_qual=False, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the transformed input solid after solving the intersection of its skin with a2.
     Usage: booleanModifiedSolid(a1, a2, tol, preserve_right, solid_right)"""
@@ -1222,16 +1222,16 @@ def XcellN(t, priorities, output_type=0, rtol=0.05):
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
 def _XcellN(t, priorities, output_type=0, rtol=0.05):
-  """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
-  Usage : _XcellN(t, priorities [, rtol])"""
+    """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
+    Usage : _XcellN(t, priorities [, rtol])"""
 
-  DIM = getTreeDim(t)
-  #print ('DIM ? ' +str(DIM))
-  if DIM != 2 and DIM != 3: # and DIM != 21: # 21 NUGA SURFACE
-    raise ValueError('XcellN: the input file has an unsupported format or contain mixed 2D/3D zones.')
-    
-  _XcellN_(t, priorities, output_type, rtol)
-  
+    DIM = getTreeDim(t)
+    #print ('DIM ? ' +str(DIM))
+    if DIM != 2 and DIM != 3: # and DIM != 21: # 21 NUGA SURFACE
+        raise ValueError('XcellN: the input file has an unsupported format or contain mixed 2D/3D zones.')
+
+    _XcellN_(t, priorities, output_type, rtol)
+
 #==============================================================================
 # _XcellN_ (in-place version)
 # IN: t: 3D NGON SURFACE mesh
@@ -1240,214 +1240,214 @@ def _XcellN(t, priorities, output_type=0, rtol=0.05):
 # OUT: returns a 3D NGON surface mesh with the xcelln field (if output_type=0/1, the clipped surface with solution if output_type=2)
 #==============================================================================
 def _XcellN_(t, priorities, output_type=0, rtol=0.05):
-  """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
-  Usage : _XcellNSurf(t, priorities [, rtol])"""
+    """Computes the weight coefficients of visibility for overset grid configurations as a field called xcelln, for any kind of surface mesh.
+    Usage : _XcellNSurf(t, priorities [, rtol])"""
 
-  DBG = False
-  TIMER = False
+    DBG = False
+    TIMER = False
 
-  try: import Transform.PyTree as T
-  except: raise ImportError("XcellN: requires Transform module.")
-  try: import Post.PyTree as P
-  except: raise ImportError("XcellN: requires Post module.")
-  try: import Generator.PyTree as G
-  except: raise ImportError("XcellN: requires Generator module.")
+    try: import Transform.PyTree as T
+    except: raise ImportError("XcellN: requires Transform module.")
+    try: import Post.PyTree as P
+    except: raise ImportError("XcellN: requires Post module.")
+    try: import Generator.PyTree as G
+    except: raise ImportError("XcellN: requires Generator module.")
 
-  WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal', 'BCSymmetryPlane']
+    WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal', 'BCSymmetryPlane']
 
-  DIM = getTreeDim(t)
-
-  bases = Internal.getBases(t)
-   #(BCs,BCNames,BCTypes) = C.getBCs(t)
-
-  if len(bases) == 1:
-    raise ValueError('XcellN: Only one base in the file. Each component must be separated in a given Base. No check between zones of the same component.')
-
-  min_compid = min(min(priorities, key=min))
-  max_compid = max(max(priorities, key=max))
-  if max_compid < 0:
-    raise ValueError('XcellN: Negativle values passes as priorities. mus be component id (0-based).')
-  if max_compid >= len(bases):
-    raise ValueError('XcellN: Greatest component specified in priorities exceeds nb of components.')
-
-  # 1 PREPARE INPUTS : NUGA NGON zones + oriented BAR boundaries with wall ids
-  if TIMER:
-    xcelln_time = time.time()
-    xcelln_time2 = time.time()
-  # 1.1 convert to NUGA NGON
-  tNG = convertTree2NUGANGON(t, True) # keepBC
-  #C.convertPyTree2File(tNG, 'tNG.cgns')
-  
-  # 1.2 reorient
-  if DIM == 3: _reorient(tNG)
-
-  if TIMER:
-    print ('XCellN: Preparing Inputs ::: NGON convert & reorientation ::: CPU time : ',time.time()-xcelln_time2,'s')
-    xcelln_time2 = time.time()
-
-  #C.convertPyTree2File(tNG, 'tNGo.cgns')
-  
-  # 1.3 get boundaries and wall ids
-  wall_ids = []
-  boundaries = []
-  wallfamilies = []
-
-  for z in Internal.getZones(tNG):
-    for btyp in WALLBCS:
-        wallfamilies += C.getFamilyBCNamesOfType(t, btyp)
-
-  wallfamilies = list(set(wallfamilies)) # make unique occurences
-  #print(wallfamilies)
-
-  basesNG = Internal.getBases(tNG)
-  bid=-1
-  for bNG in basesNG:
-    bid += 1
-    zj = concatenate(bNG, tol = 1.e-10) # discard inner joins
-    #if DBG: C.convertPyTree2File(zj, 'zj_'+str(bid)+'.cgns')
-    b_bounds = externalFaces(zj) # keeping orientation
-    if DBG: C.convertPyTree2File(b_bounds, 'bound_b_'+str(bid)+'.cgns')
-    
-    # empty set (e.g. sphere)
-    nbf = nb_cells(b_bounds)
-    if nbf == 0:
-      boundaries.append(None)
-      wall_ids.append(None)
-      continue
-
-    m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
-    boundaries.append(m_bounds)
-
-    # extract wall ids from input tree t and map them to tNG
-    bS = bases[bid]
-    dims = Internal.getZoneDim(Internal.getZones(bS)[0])
-    walls = C.extractBCOfType(bS, 'BCWall') # includes all wall types and families
-    wallf = None
-    if len(walls) != 0:
-      if dims[0] == 'Structured': walls = C.convertArray2Hexa(walls)
-      walls = T.join(walls)
-      if DIM == 2:
-        hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
-      elif DIM == 3:
-        hook = C.createHook(b_bounds, function='faceCenters')
-      wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
-      wallf = wallf[wallf >= 1]
-      if wallf.size > 0:
-        wallf -= 1 # make it 0 based
-      else: wallf = None
-
-    wall_ids.append(wallf)
-
-  if TIMER:
-    print ('XCellN: Preparing Inputs ::: BC and Walls ::: CPU time : ',time.time()-xcelln_time2,'s')
-    xcelln_time2 = time.time()
-
-  # 1.4 get the zones in a single list with parent base id
-  ngons = []
-  basenum = []
-  zwall_ids = [] # for double wall mgt
-  base_id = -1
-  for b in basesNG:
-    base_id += 1
-    zones = Internal.getZones(b)
-    for z in zones:
-        c = C.getFields(Internal.__GridCoordinates__, z)[0]
-        ngons.append(c)
-        basenum.append(base_id)
-        zwallf = getBCPtListOfType(z, WALLBCS, wallfamilies)
-        zwallf = numpy.asarray(zwallf, dtype=Internal.E_NpyInt)
-        if zwallf.size > 0: zwallf -= 1 # make it 0 based
-        zwall_ids.append(zwallf)
-
-  if TIMER:
-    print ('XCellN: Preparing Inputs: CPU time: ',time.time()-xcelln_time,'s')
-    xcelln_time = time.time()
-
-  # 2. COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
-  #print(wall_ids)
-  #print(boundaries)
-  xcellns = XOR.XcellN(ngons, zwall_ids, basenum, boundaries, wall_ids, priorities, output_type, rtol)
-
-  if TIMER:
-    print ('XCellN: Computing: CPU time: ',time.time()-xcelln_time,'s')
-    xcelln_time = time.time()
-
-  # 3. OUTPUT
-  if output_type == 2: # output as clipped NGON
-    i = 0
-    # delete all data that are no longer valid
-    C._deleteFlowSolutions__(t, 'nodes') #no histo for nodes currently
-    C._deleteGridConnectivity__(t)
-    C._deleteZoneBC__(t)
+    DIM = getTreeDim(t)
 
     bases = Internal.getBases(t)
-    paths = []
-    for b in bases:
-      zones = Internal.getZones(b)
-      for z in zones:
-        # grab solution ptrs
-        cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
-        fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+     #(BCs,BCNames,BCTypes) = C.getBCs(t)
 
-        # updating mesh and solution at centers
-        mesh = xcellns[i]
-        pg_oids = xcellns[i+1]
+    if len(bases) == 1:
+        raise ValueError('XcellN: Only one base in the file. Each component must be separated in a given Base. No check between zones of the same component.')
 
-        if mesh[1].size > 0:
-          C.setFields([mesh], z, 'nodes')
+    min_compid = min(min(priorities, key=min))
+    max_compid = max(max(priorities, key=max))
+    if max_compid < 0:
+        raise ValueError('XcellN: Negativle values passes as priorities. mus be component id (0-based).')
+    if max_compid >= len(bases):
+        raise ValueError('XcellN: Greatest component specified in priorities exceeds nb of components.')
 
-          for f in fields:
-            pt = f[1].ravel('k')
-            f[1] = numpy.empty( (pg_oids.size), numpy.float64)
-            f[1][:] = pt[pg_oids[:]]
-        else: # stocke le chemin des zones a supprimer
-          paths.append(Internal.getPath(t, z))
-        i += 2
-    for p in paths: Internal._rmNodeFromPath(t, p)
-    G._close(t)
+    # 1 PREPARE INPUTS : NUGA NGON zones + oriented BAR boundaries with wall ids
+    if TIMER:
+        xcelln_time = time.time()
+        xcelln_time2 = time.time()
+    # 1.1 convert to NUGA NGON
+    tNG = convertTree2NUGANGON(t, True) # keepBC
+    #C.convertPyTree2File(tNG, 'tNG.cgns')
+
+    # 1.2 reorient
+    if DIM == 3: _reorient(tNG)
 
     if TIMER:
-      print ('XCellN: Writing output: CPU time: ',time.time()-xcelln_time,'s')
-      xcelln_time = time.time()
+        print ('XCellN: Preparing Inputs ::: NGON convert & reorientation ::: CPU time : ',time.time()-xcelln_time2,'s')
+        xcelln_time2 = time.time()
+
+    #C.convertPyTree2File(tNG, 'tNGo.cgns')
+
+    # 1.3 get boundaries and wall ids
+    wall_ids = []
+    boundaries = []
+    wallfamilies = []
+
+    for z in Internal.getZones(tNG):
+        for btyp in WALLBCS:
+            wallfamilies += C.getFamilyBCNamesOfType(t, btyp)
+
+    wallfamilies = list(set(wallfamilies)) # make unique occurences
+    #print(wallfamilies)
+
+    basesNG = Internal.getBases(tNG)
+    bid=-1
+    for bNG in basesNG:
+        bid += 1
+        zj = concatenate(bNG, tol = 1.e-10) # discard inner joins
+        #if DBG: C.convertPyTree2File(zj, 'zj_'+str(bid)+'.cgns')
+        b_bounds = externalFaces(zj) # keeping orientation
+        if DBG: C.convertPyTree2File(b_bounds, 'bound_b_'+str(bid)+'.cgns')
+
+        # empty set (e.g. sphere)
+        nbf = nb_cells(b_bounds)
+        if nbf == 0:
+            boundaries.append(None)
+            wall_ids.append(None)
+            continue
+
+        m_bounds = C.getFields(Internal.__GridCoordinates__, b_bounds)[0]
+        boundaries.append(m_bounds)
+
+        # extract wall ids from input tree t and map them to tNG
+        bS = bases[bid]
+        dims = Internal.getZoneDim(Internal.getZones(bS)[0])
+        walls = C.extractBCOfType(bS, 'BCWall') # includes all wall types and families
+        wallf = None
+        if len(walls) != 0:
+            if dims[0] == 'Structured': walls = C.convertArray2Hexa(walls)
+            walls = T.join(walls)
+            if DIM == 2:
+                hook = C.createHook(b_bounds, function='elementCenters') # identifying edges
+            elif DIM == 3:
+                hook = C.createHook(b_bounds, function='faceCenters')
+            wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
+            wallf = wallf[wallf >= 1]
+            if wallf.size > 0:
+                wallf -= 1 # make it 0 based
+            else: wallf = None
+
+        wall_ids.append(wallf)
+
+    if TIMER:
+        print ('XCellN: Preparing Inputs ::: BC and Walls ::: CPU time : ',time.time()-xcelln_time2,'s')
+        xcelln_time2 = time.time()
+
+    # 1.4 get the zones in a single list with parent base id
+    ngons = []
+    basenum = []
+    zwall_ids = [] # for double wall mgt
+    base_id = -1
+    for b in basesNG:
+        base_id += 1
+        zones = Internal.getZones(b)
+        for z in zones:
+            c = C.getFields(Internal.__GridCoordinates__, z)[0]
+            ngons.append(c)
+            basenum.append(base_id)
+            zwallf = getBCPtListOfType(z, WALLBCS, wallfamilies)
+            zwallf = numpy.asarray(zwallf, dtype=Internal.E_NpyInt)
+            if zwallf.size > 0: zwallf -= 1 # make it 0 based
+            zwall_ids.append(zwallf)
+
+    if TIMER:
+        print ('XCellN: Preparing Inputs: CPU time: ',time.time()-xcelln_time,'s')
+        xcelln_time = time.time()
+
+    # 2. COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
+    #print(wall_ids)
+    #print(boundaries)
+    xcellns = XOR.XcellN(ngons, zwall_ids, basenum, boundaries, wall_ids, priorities, output_type, rtol)
+
+    if TIMER:
+        print ('XCellN: Computing: CPU time: ',time.time()-xcelln_time,'s')
+        xcelln_time = time.time()
+
+    # 3. OUTPUT
+    if output_type == 2: # output as clipped NGON
+        i = 0
+        # delete all data that are no longer valid
+        C._deleteFlowSolutions__(t, 'nodes') #no histo for nodes currently
+        C._deleteGridConnectivity__(t)
+        C._deleteZoneBC__(t)
+
+        bases = Internal.getBases(t)
+        paths = []
+        for b in bases:
+            zones = Internal.getZones(b)
+            for z in zones:
+            # grab solution ptrs
+                cont = Internal.getNodesFromName2(z, Internal.__FlowSolutionCenters__)
+                fields = Internal.getNodesFromType1(cont, 'DataArray_t')
+
+                # updating mesh and solution at centers
+                mesh = xcellns[i]
+                pg_oids = xcellns[i+1]
+
+                if mesh[1].size > 0:
+                    C.setFields([mesh], z, 'nodes')
+
+                    for f in fields:
+                        pt = f[1].ravel('k')
+                        f[1] = numpy.empty( (pg_oids.size), numpy.float64)
+                        f[1][:] = pt[pg_oids[:]]
+                else: # stocke le chemin des zones a supprimer
+                    paths.append(Internal.getPath(t, z))
+                i += 2
+        for p in paths: Internal._rmNodeFromPath(t, p)
+        G._close(t)
+
+        if TIMER:
+            print ('XCellN: Writing output: CPU time: ',time.time()-xcelln_time,'s')
+            xcelln_time = time.time()
+
+        return None
+
+    #SET XCELLN FIELD tO ZONES
+    # fixme : conversion here because tNG NUGA does not work with node2center
+    #         use convertArray2NGon to ensure that t is converted whatever its type
+    #         e.g convert2Hexa does not work if t is NGON
+    tNG = C.convertArray2NGon(t)
+    basesNG = Internal.getBases(tNG)
+
+    zid = -1; bid = -1
+    has_structured_bases = False
+    for b in bases:
+        bid +=1
+        zones = Internal.getZones(b)
+        dims = Internal.getZoneDim(zones[0])
+        if dims[0] == 'Structured': # set field on tNG
+            has_structured_bases = True
+            zonesNG = Internal.getZones(basesNG[bid])
+            for z in zonesNG:
+                zid += 1
+                #print('set field on tNG')
+                C.setFields([xcellns[zid]], z, 'centers', False)
+            mc = C.node2Center(basesNG[bid])
+            hookC = C.createGlobalHook([mc], 'nodes')
+            hookN = C.createGlobalHook([basesNG[bid]], 'nodes')
+
+            C._identifySolutions(b, basesNG[bid], hookN, hookC, tol=1000.)
+            C.freeHook(hookC)
+            C.freeHook(hookN)
+        else: # set field on t
+            for z in zones:
+                zid += 1
+                C.setFields([xcellns[zid]], z, 'centers', False)
+
+    if TIMER:
+        print('XCellN: Writing output: CPU time: ',time.time()-xcelln_time,'s')
 
     return None
-
-  #SET XCELLN FIELD tO ZONES
-  # fixme : conversion here because tNG NUGA does not work with node2center
-  #         use convertArray2NGon to ensure that t is converted whatever its type
-  #         e.g convert2Hexa does not work if t is NGON
-  tNG = C.convertArray2NGon(t)
-  basesNG = Internal.getBases(tNG)
-
-  zid = -1; bid = -1
-  has_structured_bases = False
-  for b in bases:
-    bid +=1
-    zones = Internal.getZones(b)
-    dims = Internal.getZoneDim(zones[0])
-    if dims[0] == 'Structured': # set field on tNG
-      has_structured_bases = True
-      zonesNG = Internal.getZones(basesNG[bid])
-      for z in zonesNG:
-        zid += 1
-        #print('set field on tNG')
-        C.setFields([xcellns[zid]], z, 'centers', False)
-      mc = C.node2Center(basesNG[bid])
-      hookC = C.createGlobalHook([mc], 'nodes')
-      hookN = C.createGlobalHook([basesNG[bid]], 'nodes')
-
-      C._identifySolutions(b, basesNG[bid], hookN, hookC, tol=1000.)
-      C.freeHook(hookC)
-      C.freeHook(hookN)
-    else: # set field on t
-      for z in zones:
-        zid += 1
-        C.setFields([xcellns[zid]], z, 'centers', False)
-
-  if TIMER:
-      print('XCellN: Writing output: CPU time: ',time.time()-xcelln_time,'s')
-    
-  return None
 
 #==============================================================================
 # P1ConservativeInterpolation
@@ -1456,7 +1456,7 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
 # OUT: XXX
 #==============================================================================
 def P1ConservativeInterpolation(tR, tD):
-     
+
     tp = Internal.copyRef(tR)
     _P1ConservativeInterpolation(tp, tD)
     return tp
@@ -1469,18 +1469,18 @@ def P1ConservativeInterpolation(tR, tD):
 #==============================================================================
 def _P1ConservativeInterpolation(tR, tD):
 
-  zR = Internal.getZones(tR)
-  zD = Internal.getZones(tD)
+    zR = Internal.getZones(tR)
+    zD = Internal.getZones(tD)
 
-  for zr in zR:
-    mR = C.getFields(Internal.__GridCoordinates__, zr)[0]
+    for zr in zR:
+        mR = C.getFields(Internal.__GridCoordinates__, zr)[0]
 
-    for zd in zD:
-      mD = C.getFields(Internal.__GridCoordinates__, zd)[0]
-      fldD = C.getFields(Internal.__FlowSolutionCenters__, zd)[0]
+        for zd in zD:
+            mD = C.getFields(Internal.__GridCoordinates__, zd)[0]
+            fldD = C.getFields(Internal.__FlowSolutionCenters__, zd)[0]
 
-      fldR = intersector.P1ConservativeInterpolation(mR, mD, fldD)
-      C.setFields([fldR], zr, 'centers', False)
+            fldR = intersector.P1ConservativeInterpolation(mR, mD, fldD)
+            C.setFields([fldR], zr, 'centers', False)
 
 #==============================================================================
 # superMesh
@@ -1491,29 +1491,29 @@ def _P1ConservativeInterpolation(tR, tD):
 # OUT: returns the polyclipping of surfz by sclip
 #==============================================================================
 def superMesh(surfz, sclip, tol=-1.e-4, proj_on_first=True):
-  """Polyclips surfz surface with sclip surface.
-  Usage: superMesh(surfz, sclip, priorFirst, tol)"""
-  m1 = C.getFields(Internal.__GridCoordinates__, surfz)[0]
-  m2 = C.getFields(Internal.__GridCoordinates__, sclip)[0]
+    """Polyclips surfz surface with sclip surface.
+    Usage: superMesh(surfz, sclip, priorFirst, tol)"""
+    m1 = C.getFields(Internal.__GridCoordinates__, surfz)[0]
+    m2 = C.getFields(Internal.__GridCoordinates__, sclip)[0]
 
-  res = XOR.superMesh(m1, m2, tol, proj_on_first)
-  if res == []: return None # empty result
+    res = XOR.superMesh(m1, m2, tol, proj_on_first)
+    if res == []: return None # empty result
 
-  mesh = res[0]
-  anc  = res[1]
+    mesh = res[0]
+    anc  = res[1]
 
-  xmatch = C.convertArrays2ZoneNode('xmatch', [mesh])
-  nnuga = Internal.getNodeFromName(surfz, 'NUGA')
-  if nnuga != None:
-    nnug = Internal.addChild(xmatch, nnuga)
-    nuga_fields = Internal.getChildren(nnug)
-    for nf in nuga_fields:
-        nf0 = nb_faces(surfz)
-        fld_sz = len(nf[1])
-        if nf0 == fld_sz : #valid face field stored => convert it
-          nf[1] = updateNugaData(nf[1], anc)
+    xmatch = C.convertArrays2ZoneNode('xmatch', [mesh])
+    nnuga = Internal.getNodeFromName(surfz, 'NUGA')
+    if nnuga != None:
+        nnug = Internal.addChild(xmatch, nnuga)
+        nuga_fields = Internal.getChildren(nnug)
+        for nf in nuga_fields:
+            nf0 = nb_faces(surfz)
+            fld_sz = len(nf[1])
+            if nf0 == fld_sz : #valid face field stored => convert it
+                nf[1] = updateNugaData(nf[1], anc)
 
-  return xmatch
+    return xmatch
 
 
 #==============================================================================
@@ -1525,35 +1525,35 @@ def superMesh(surfz, sclip, tol=-1.e-4, proj_on_first=True):
 # OUT: returns face indices and face surface values 
 #==============================================================================
 def superMesh2(surfz, sclip, tol=-1.e-4, proj_on_first=True):
-  """Polyclips surfz surface with sclip surface.
-  Usage: superMesh(surfz, sclip, priorFirst, tol)"""
-  m1 = C.getFields(Internal.__GridCoordinates__, surfz)[0]
-  m2 = C.getFields(Internal.__GridCoordinates__, sclip)[0]
+    """Polyclips surfz surface with sclip surface.
+    Usage: superMesh(surfz, sclip, priorFirst, tol)"""
+    m1 = C.getFields(Internal.__GridCoordinates__, surfz)[0]
+    m2 = C.getFields(Internal.__GridCoordinates__, sclip)[0]
 
-  res = intersector.superMeshCompSurf(m1, m2, tol, proj_on_first)
+    res = intersector.superMeshCompSurf(m1, m2, tol, proj_on_first)
 
-  if res == []: return (None, None, None) # empty result
+    if res == []: return (None, None, None) # empty result
 
-  mesh    = res[0]
-  anc     = res[1]
-  anc2    = res[2]
-  surf    = res[3]
-  isMatch = res[4]
+    mesh    = res[0]
+    anc     = res[1]
+    anc2    = res[2]
+    surf    = res[3]
+    isMatch = res[4]
 
-  xmatch = C.convertArrays2ZoneNode('xmatch', [mesh])
-  nnuga = Internal.getNodeFromName(surfz, 'NUGA')
-  if nnuga != None:
-    nnug = Internal.addChild(xmatch, nnuga)
-    nuga_fields = Internal.getChildren(nnug)
-    for nf in nuga_fields:
-        nf0 = nb_faces(surfz)
-        fld_sz = len(nf[1])
-        if nf0 == fld_sz : #valid face field stored => convert it
-          nf[1] = updateNugaData(nf[1], anc)
+    xmatch = C.convertArrays2ZoneNode('xmatch', [mesh])
+    nnuga = Internal.getNodeFromName(surfz, 'NUGA')
+    if nnuga != None:
+        nnug = Internal.addChild(xmatch, nnuga)
+        nuga_fields = Internal.getChildren(nnug)
+        for nf in nuga_fields:
+            nf0 = nb_faces(surfz)
+            fld_sz = len(nf[1])
+            if nf0 == fld_sz : #valid face field stored => convert it
+                nf[1] = updateNugaData(nf[1], anc)
 
-  # C.convertPyTree2File(xmatch,'xmatch.cgns')
+    # C.convertPyTree2File(xmatch,'xmatch.cgns')
 
-  return (anc, anc2, surf, isMatch)  
+    return (anc, anc2, surf, isMatch)  
 #==============================================================================
 def extractBCMatchTNC(ancA,ancB,weight,fields, iminA, jminA, kminA,
                       imaxA, jmaxA, kmaxA):
@@ -1571,11 +1571,11 @@ def extractBCMatchTNC(ancA,ancB,weight,fields, iminA, jminA, kminA,
 # OUT: returns z with replaced faces
 #==============================================================================
 def replaceFaces(z, face_soup):
-  """Replaces z faces with faces in face_soup having an indir for mapping.
-  Usage: replaceFaces(z, face_soup)"""
-  zp = Internal.copyRef(z)
-  _replaceFaces(zp, face_soup)
-  return zp
+    """Replaces z faces with faces in face_soup having an indir for mapping.
+    Usage: replaceFaces(z, face_soup)"""
+    zp = Internal.copyRef(z)
+    _replaceFaces(zp, face_soup)
+    return zp
 
 #==============================================================================
 # _replaceFaces
@@ -1584,33 +1584,33 @@ def replaceFaces(z, face_soup):
 # OUT: returns z with replaced faces
 #==============================================================================
 def _replaceFaces(z, face_soup):
-  """Replaces z faces with faces in face_soup having an indir for mapping (in-place)
-  Usage: _replaceFaces(z, face_soup)"""
-  nnuga = Internal.getNodeFromName(face_soup, 'NUGA')
-  if nnuga == None:
-    print('_replaceFaces : error : NUGA node is missing')
-    return
-  
-  vfoid = Internal.getNodeFromName(nnuga, 'vfoid')
-  if vfoid == None:
-    print('_replaceFaces : error : vfoid node is missing')
-    return
+    """Replaces z faces with faces in face_soup having an indir for mapping (in-place)
+    Usage: _replaceFaces(z, face_soup)"""
+    nnuga = Internal.getNodeFromName(face_soup, 'NUGA')
+    if nnuga == None:
+        print('_replaceFaces : error : NUGA node is missing')
+        return
 
-  vfoid = vfoid[1]
+    vfoid = Internal.getNodeFromName(nnuga, 'vfoid')
+    if vfoid == None:
+        print('_replaceFaces : error : vfoid node is missing')
+        return
 
-  m    = C.getFields(Internal.__GridCoordinates__, z)[0]
-  soup = C.getFields(Internal.__GridCoordinates__, face_soup)[0]
-  
-  res = intersector.replaceFaces(m, soup, vfoid)
+    vfoid = vfoid[1]
 
-  mesh = res[0]
-  oids = res[1]
+    m    = C.getFields(Internal.__GridCoordinates__, z)[0]
+    soup = C.getFields(Internal.__GridCoordinates__, face_soup)[0]
 
-  # MAJ du maillage de la zone
-  C.setFields([mesh], z, 'nodes')
+    res = intersector.replaceFaces(m, soup, vfoid)
 
-  # MAJ POINT LISTS #
-  updateBCPointLists1(z, oids)
+    mesh = res[0]
+    oids = res[1]
+
+    # MAJ du maillage de la zone
+    C.setFields([mesh], z, 'nodes')
+
+    # MAJ POINT LISTS #
+    updateBCPointLists1(z, oids)
 
 
 #==============================================================================
@@ -1621,9 +1621,9 @@ def _replaceFaces(z, face_soup):
 # OUT: returns a 3D NGON mesh with all the external faces triangulated
 #==============================================================================
 def triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
-  """Triangulates exterior polygons of a volume mesh.
-  Usage: triangulateExteriorFaces(t)"""
-  return C.TZA1(t, 'nodes', 'nodes', True, XOR.triangulateExteriorFaces, in_or_out, improve_qual)
+    """Triangulates exterior polygons of a volume mesh.
+    Usage: triangulateExteriorFaces(t)"""
+    return C.TZA1(t, 'nodes', 'nodes', True, XOR.triangulateExteriorFaces, in_or_out, improve_qual)
 
 #==============================================================================
 # _triangulateExteriorFaces
@@ -1633,9 +1633,9 @@ def triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
 # OUT: returns a 3D NGON mesh with all the external faces triangulated
 #==============================================================================
 def _triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
-  """Triangulates exterior polygons of a volume mesh (in-place).
-  Usage: triangulateExteriorFaces(t)"""
-  return C._TZA1(t, 'nodes', 'nodes', True, XOR.triangulateExteriorFaces, in_or_out, improve_qual)
+    """Triangulates exterior polygons of a volume mesh (in-place).
+    Usage: triangulateExteriorFaces(t)"""
+    return C._TZA1(t, 'nodes', 'nodes', True, XOR.triangulateExteriorFaces, in_or_out, improve_qual)
 
 
 #==============================================================================
@@ -1668,19 +1668,19 @@ def _triangulateSpecifiedFaces(t, pgs, improve_qual=1):
 
     i = 0
     for z in zones:
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      if m == []: continue
-      m = Converter.convertArray2NGon(m)
-      m = XOR.triangulateSpecifiedFaces(m, pgs[i], improve_qual)
-      mesh = m[0]
-      pg_oids= m[1]
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m == []: continue
+        m = Converter.convertArray2NGon(m)
+        m = XOR.triangulateSpecifiedFaces(m, pgs[i], improve_qual)
+        mesh = m[0]
+        pg_oids= m[1]
 
-      # MAJ du maillage de la zone
-      C.setFields([mesh], z, 'nodes') 
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes') 
 
-      # MAJ POINT LISTS #
-      updatePointLists(z, zones, pg_oids)
-      i += 1
+        # MAJ POINT LISTS #
+        updatePointLists(z, zones, pg_oids)
+        i += 1
 
 #==============================================================================
 # triangulateNonBasicFaces
@@ -1696,9 +1696,9 @@ def triangulateNFaces(t, improve_qual=1, min_nvertices=5, discard_joins= True):
     return tp
 
 def _triangulateNFaces(t, improve_qual=1, min_nvertices=5, discard_joins=True):
-    
+
     zones = Internal.getZones(t)
-   
+
     for z in zones:
         coords = C.getFields(Internal.__GridCoordinates__, z)[0]
         if coords == []: continue
@@ -1740,7 +1740,7 @@ def _triangulateNFaces(t, improve_qual=1, min_nvertices=5, discard_joins=True):
 # OUT: returns a 3D NGON mesh with all the external faces triangulated
 #==============================================================================
 def triangulateBC(t, bctype):
-     
+
     tp = Internal.copyRef(t)
     _triangulateBC(tp,bctype)
     return tp
@@ -1751,11 +1751,11 @@ def triangulateBC(t, bctype):
 # OUT: returns a 3D NGON mesh with all the external faces triangulated
 #==============================================================================
 def _triangulateBC(t, bctype):
-     
+
     zones = Internal.getZones(t)
-   
+
     for z in zones:
-        
+
         coords = C.getFields(Internal.__GridCoordinates__, z)[0]
         if coords == []: continue
 
@@ -1765,8 +1765,8 @@ def _triangulateBC(t, bctype):
 
         bcpgs = []
         for bb in bnds :
-          if (Internal.isValue(bb, bctype) == False) : continue
-          bcpgs.append(bb[2][1][1][0]) # POINTLIST NUMPY
+            if (Internal.isValue(bb, bctype) == False) : continue
+            bcpgs.append(bb[2][1][1][0]) # POINTLIST NUMPY
 
         if bcpgs == []: continue 
         bcpgs = numpy.concatenate(bcpgs) # create a single list
@@ -1809,50 +1809,50 @@ def externalFaces(t, discard_joins=False, geo_dim=-1):
 
     i=-1
     for z in zs:
-      i+=1
-      coords = C.getFields(Internal.__GridCoordinates__, z)[0]
-      if coords == []: continue
-      ids=None
-      if discard_joins == True:
-        joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-        if joins != []:
-          ids=[]
-          for j in joins :
-            ptl = Internal.getNodeFromName1(j, 'PointList')
-            #print(ptl[1][0])
-            ids.append(ptl[1][0])
+        i+=1
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
+        ids=None
+        if discard_joins == True:
+            joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+            if joins != []:
+                ids=[]
+                for j in joins :
+                    ptl = Internal.getNodeFromName1(j, 'PointList')
+                    #print(ptl[1][0])
+                    ids.append(ptl[1][0])
 
-          if (ids != []):
-            #print(ids)
-            ids = numpy.concatenate(ids) # create a single list
-            ids = ids -1 # 0-based
-            #ids = numpy.concatenate(ids) # create a single list
-          else:
-            ids=None
-      res = XOR.externalFaces(coords, ids, geo_dim)
-      #print(res)
-      ef = res[0]
-      vfoid=res[1] #ids in volume mesh
-      
-      zid = getProperty(z, 'zid')
-      #print('zid : '+str(zid))
-      zid_defined = True
-      if zid == -1 :
-        zid=i
-        zid_defined=False
+                if (ids != []):
+                    #print(ids)
+                    ids = numpy.concatenate(ids) # create a single list
+                    ids = ids -1 # 0-based
+                    #ids = numpy.concatenate(ids) # create a single list
+                else:
+                    ids=None
+        res = XOR.externalFaces(coords, ids, geo_dim)
+        #print(res)
+        ef = res[0]
+        vfoid=res[1] #ids in volume mesh
 
-      zonnod = C.convertArrays2ZoneNode('ef_z'+str(zid), [ef])
+        zid = getProperty(z, 'zid')
+        #print('zid : '+str(zid))
+        zid_defined = True
+        if zid == -1 :
+            zid=i
+            zid_defined=False
 
-      if zid_defined == True : # add it to the zone
-        l = Internal.newIntegralData(name='zid', parent=zonnod) #ceate a zid for each block    
-        l[1] = zid
+        zonnod = C.convertArrays2ZoneNode('ef_z'+str(zid), [ef])
 
-      # node : NUGA -> vfoid
-      Internal.createChild(zonnod, 'NUGA', 'UserDefinedData_t', value=None, children=[])
-      nnuga = Internal.getNodeFromName(zonnod, 'NUGA')
-      Internal.newDataArray('vfoid', value=vfoid, parent=nnuga)
+        if zid_defined == True : # add it to the zone
+            l = Internal.newIntegralData(name='zid', parent=zonnod) #ceate a zid for each block    
+            l[1] = zid
 
-      efs.append(zonnod)
+        # node : NUGA -> vfoid
+        Internal.createChild(zonnod, 'NUGA', 'UserDefinedData_t', value=None, children=[])
+        nnuga = Internal.getNodeFromName(zonnod, 'NUGA')
+        Internal.newDataArray('vfoid', value=vfoid, parent=nnuga)
+
+        efs.append(zonnod)
     return efs
 
 #==============================================================================
@@ -1873,7 +1873,7 @@ def _reorient(t, dir=1):
 # OUT: returns a 3D NGON mesh with all the external faces triangulated
 #==============================================================================
 def reorientBC(t, bctype, dir):
-     
+
     tp = Internal.copyRef(t)
     _reorientBC(tp,bctype, dir)
     return tp
@@ -1884,11 +1884,11 @@ def reorientBC(t, bctype, dir):
 # OUT: returns a 3D NGON mesh with all the external faces triangulated
 #==============================================================================
 def _reorientBC(t, bctype, dir):
-     
+
     zones = Internal.getZones(t)
-   
+
     for z in zones:
-        
+
         coords = C.getFields(Internal.__GridCoordinates__, z)[0]
         if coords == []: continue
 
@@ -1898,8 +1898,8 @@ def _reorientBC(t, bctype, dir):
 
         bcpgs = []
         for bb in bnds :
-          if (Internal.isValue(bb, bctype) == False) : continue
-          bcpgs.append(bb[2][1][1][0]) # POINTLIST NUMPY
+            if (Internal.isValue(bb, bctype) == False) : continue
+            bcpgs.append(bb[2][1][1][0]) # POINTLIST NUMPY
 
         if bcpgs == []: continue 
         bcpgs = numpy.concatenate(bcpgs) # create a single list
@@ -1922,7 +1922,7 @@ def _reorientBC(t, bctype, dir):
 # OUT: returns a 3D NGON Mesh with consistent orientation for specified polygons
 #==============================================================================
 def reorientSpecifiedFaces(t, pgs, dir):
-     
+
     tp = Internal.copyRef(t)
     _reorientSpecifiedFaces(tp,pgs, dir)
     return tp
@@ -1936,10 +1936,10 @@ def _reorientSpecifiedFaces(t, pgs, dir):
 
     i=0
     for z in zones:
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      m = XOR.reorientSpecifiedFaces(m, pgs[i], dir)
-      C.setFields([m], z, 'nodes') # replace the mesh in the zone
-      i = i+1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        m = XOR.reorientSpecifiedFaces(m, pgs[i], dir)
+        C.setFields([m], z, 'nodes') # replace the mesh in the zone
+        i = i+1
 
 #==============================================================================
 # reorientSurf
@@ -1948,7 +1948,7 @@ def _reorientSpecifiedFaces(t, pgs, dir):
 # OUT: returns a 3D NGON Mesh with consistent orientation for specified polygons
 #==============================================================================
 def reorientSurf(t, dir):
-     
+
     tp = Internal.copyRef(t)
     _reorientSurf(tp, dir)
     return tp
@@ -1956,11 +1956,11 @@ def reorientSurf(t, dir):
 def _reorientSurf(t, dir):
 
     zones = Internal.getZones(t)
-    
+
     for z in zones:
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      m = XOR.reorientSurf(m, dir)
-      C.setFields([m], z, 'nodes') # replace the mesh in the zone
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        m = XOR.reorientSurf(m, dir)
+        C.setFields([m], z, 'nodes') # replace the mesh in the zone
 
 #==============================================================================
 # prepareCellsSplit
@@ -1993,7 +1993,7 @@ def splitNonStarCells(t, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     m = XOR.splitNonStarCells(m, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold)
     return C.convertArrays2ZoneNode('splitNonStarCells', [m])
-  
+
 #==============================================================================
 # simplifyCells : agglomerate superfluous polygons that overdefine cells
 # IN: mesh: 3D NGON mesh
@@ -2010,28 +2010,28 @@ def _simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins
 
     for z in zones:
 
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      ids=None
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        ids=None
 
-      if treat_externals == 1 and discard_joins == True:
-        joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-        if joins != []:
-          ids=[]
-          for j in joins :
-            ptl = Internal.getNodeFromName1(j, 'PointList')
-            ids.append(ptl[1])
+        if treat_externals == 1 and discard_joins == True:
+            joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+            if joins != []:
+                ids=[]
+                for j in joins :
+                    ptl = Internal.getNodeFromName1(j, 'PointList')
+                    ids.append(ptl[1])
 
-          if (ids != []):
-            #print ids
-            ids = numpy.concatenate(ids) # create a single list
-            ids = ids -1 # 0-based
-            ids = numpy.concatenate(ids) # create a single list
-            #print ids
-          else:
-            ids=None
-    
-      m = XOR.simplifyCells(m, treat_externals, angular_threshold, discarded_ids=ids)
-      C.setFields([m], z, 'nodes') # replace the mesh in the zone
+                if (ids != []):
+                    #print ids
+                    ids = numpy.concatenate(ids) # create a single list
+                    ids = ids -1 # 0-based
+                    ids = numpy.concatenate(ids) # create a single list
+                    #print ids
+                else:
+                    ids=None
+
+        m = XOR.simplifyCells(m, treat_externals, angular_threshold, discarded_ids=ids)
+        C.setFields([m], z, 'nodes') # replace the mesh in the zone
 
 
 def simplifyCells(t, treat_externals, angular_threshold = 1.e-12, discard_joins=True):
@@ -2054,11 +2054,11 @@ def simplifyFaces(t):
 
     for z in zones:
 
-      m = C.getFields(Internal.__GridCoordinates__, t)[0]
-    
-      m = XOR.simplifyFaces(m)
+        m = C.getFields(Internal.__GridCoordinates__, t)[0]
 
-      ozones.append(C.convertArrays2ZoneNode(z[0], [m]))
+        m = XOR.simplifyFaces(m)
+
+        ozones.append(C.convertArrays2ZoneNode(z[0], [m]))
 
     return ozones
 
@@ -2099,17 +2099,17 @@ def agglomerateSmallCells(t, vmin=0., vratio=0.01, angular_threshold=1.e-12, met
 
     nb_phs1  = nb_cells(z)
     if nb_phs1 < nb_phs0:
-      nbc = int(nb_phs0 - nb_phs1)
-      print('agglomerateSmallCells : Nb of small cells agglomerated : ' + str(nbc))
+        nbc = int(nb_phs0 - nb_phs1)
+        print('agglomerateSmallCells : Nb of small cells agglomerated : ' + str(nbc))
     else:
-      print('agglomerateSmallCells : None agglomeration.')
+        print('agglomerateSmallCells : None agglomeration.')
 
     debug = False
 
     if (debug == False) : return z
 
     zones = []
-        
+
     nb_zones = len(res)-1
     if (nb_zones == 0) : return z
 
@@ -2143,10 +2143,10 @@ def shellAgglomerateSmallCells(t, vmin=0., vratio=1000.):
 
     nb_phs1  = nb_cells(z)
     if nb_phs1 < nb_phs0:
-      nbc = int(nb_phs0 - nb_phs1)
-      print('shellAgglomerateSmallCells : Nb of small cells agglomerated : ' + str(nbc))
+        nbc = int(nb_phs0 - nb_phs1)
+        print('shellAgglomerateSmallCells : Nb of small cells agglomerated : ' + str(nbc))
     else:
-      print('shellAgglomerateSmallCells : None agglomeration.')
+        print('shellAgglomerateSmallCells : None agglomeration.')
 
     return z
 
@@ -2172,7 +2172,7 @@ def agglomerateNonStarCells(t, angular_threshold=1.e-12):
     if (debug == False) : return z
 
     zones = []
-        
+
     nb_zones = len(res)-1
     if (nb_zones == 0) : return z
 
@@ -2190,7 +2190,7 @@ def agglomerateNonStarCells(t, angular_threshold=1.e-12):
 # OUT: returns a 3D NGON Mesh
 #==============================================================================
 def agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=1, amax = 1.e-12, treat_externals=1): # 0 : dno not simplify, 1 : simplify only internals, 2 : simlplify evrywhere
-     
+
     tp = Internal.copyRef(t)
     _agglomerateCellsWithSpecifiedFaces(tp,pgs, simplify, amax, treat_externals)
     return tp
@@ -2210,45 +2210,45 @@ def _agglomerateCellsWithSpecifiedFaces(t, pgs, simplify=1, amax = 1.e-12, treat
     i=-1
     for z in zones:
 
-      i+=1
-      jids = []
+        i+=1
+        jids = []
 
-      if simplify == 1 and treat_externals == 1: # keep track of join PGs to freeze them when simplifying
-        joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-        if joins != []:
-          for j in joins :
-            ptl = Internal.getNodeFromName1(j, 'PointList')
-            jids.append(ptl[1][0])
+        if simplify == 1 and treat_externals == 1: # keep track of join PGs to freeze them when simplifying
+            joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
+            if joins != []:
+                for j in joins :
+                    ptl = Internal.getNodeFromName1(j, 'PointList')
+                    jids.append(ptl[1][0])
 
-          if (jids != []):
-            #print(ids)
-            jids = numpy.concatenate(jids) # create a single list
-            jids = jids -1 # 0-based
-            #print(jids)
-          else:
-            jids=None
+                if (jids != []):
+                    #print(ids)
+                    jids = numpy.concatenate(jids) # create a single list
+                    jids = jids -1 # 0-based
+                    #print(jids)
+                else:
+                    jids=None
 
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      res = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i]) # FIXME : need oids to use discarded_ids
-      
-      m    = res[0]
-      nids = res[1] # 0-based
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res = XOR.agglomerateCellsWithSpecifiedFaces(m, pgs[i]) # FIXME : need oids to use discarded_ids
 
-      # update join ids
-      if jids != [] and len(nids) != 0:
-        for k in range(len(jids)):
-          oj = jids[k]
-          nj = nids[oj]
-          jids[k]=nj
-        jids = jids[jids > -1]
-      else:
-        jids = None
+        m    = res[0]
+        nids = res[1] # 0-based
 
-      if simplify == 1:
-        m = XOR.simplifyCells(m, treat_externals, angular_threshold=amax, discarded_ids = jids)
+        # update join ids
+        if jids != [] and len(nids) != 0:
+            for k in range(len(jids)):
+                oj = jids[k]
+                nj = nids[oj]
+                jids[k]=nj
+            jids = jids[jids > -1]
+        else:
+            jids = None
 
-      C.setFields([m], z, 'nodes') # replace the mesh in the zone
- 
+        if simplify == 1:
+            m = XOR.simplifyCells(m, treat_externals, angular_threshold=amax, discarded_ids = jids)
+
+        C.setFields([m], z, 'nodes') # replace the mesh in the zone
+
 #==============================================================================
 # agglomerateUncomputableCells : XXX
 #==============================================================================
@@ -2277,10 +2277,10 @@ def collapseSmallCells(t, vmin=0., grmin=-1.):
 def _collapseSmallCells(t, vmin=0., grmin=-1.):
     zones = Internal.getZones(t)
     for z in zones:
-      coords = C.getFields(Internal.__GridCoordinates__, z)[0]
-      if coords == []: continue
-      collapsed = XOR.collapseSmallCells(coords, vmin, grmin)
-      C.setFields([collapsed], z, 'nodes')
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
+        collapsed = XOR.collapseSmallCells(coords, vmin, grmin)
+        C.setFields([collapsed], z, 'nodes')
 
 #==============================================================================
 # removeNonManifoldExternalCells : removes any outer cell that has a non manifold edge
@@ -2312,39 +2312,39 @@ def _immerseNodes(t, s, TOL):
 
     DIM = getTreeDim(t)
     if DIM != 3:
-      print ('immerseNodes : t is not a 3D mesh')
-      return
+        print ('immerseNodes : t is not a 3D mesh')
+        return
 
     szones = Internal.getZones(s)
     sdims = Internal.getZoneDim(szones[0])
     #print(sdims[0])
     # go unstructured
     if sdims[0] == 'Structured':
-      s = C.convertArray2Hexa(s)
+        s = C.convertArray2Hexa(s)
     # single surface mesh
     s = T.join(s)
     # convert to NUGA surface
     if sdims[3] == 'NGON':
-      _convertNGON2DToNGON3D(s)
+        _convertNGON2DToNGON3D(s)
     else:
-      _convertBasic2NGONFaces(s)
+        _convertBasic2NGONFaces(s)
 
     # now we have a NUGA unstructured surface
     surf = C.getFields(Internal.__GridCoordinates__, s)[0]
 
     for z in zones:
 
-      coords = C.getFields(Internal.__GridCoordinates__, z)[0]
-      if coords == []: continue
+        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if coords == []: continue
 
-      dims = Internal.getZoneDim(z)
-      if dims[3] != 'NGON' :
-        coords = Converter.convertArray2NGon(coords)
+        dims = Internal.getZoneDim(z)
+        if dims[3] != 'NGON' :
+            coords = Converter.convertArray2NGon(coords)
 
-      moved = intersector.immerseNodes(coords, surf, TOL)
+        moved = intersector.immerseNodes(coords, surf, TOL)
 
-      # MAJ du maillage de la zone
-      C.setFields([moved], z, 'nodes')
+        # MAJ du maillage de la zone
+        C.setFields([moved], z, 'nodes')
 
     return t
 
@@ -2370,18 +2370,18 @@ def _closeCells(t):
     zids   = []
 
     for z in zs:
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      if m ==[] : continue
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m ==[] : continue
 
-      meshes.append(m)
+        meshes.append(m)
 
-      zid=getProperty(z, 'zid')
-      zids.append(zid)
+        zid=getProperty(z, 'zid')
+        zids.append(zid)
 
     zidDict={}
     zs = Internal.getZones(t)
     for z in zs:
-      zidDict[z[0]]=getProperty(z, 'zid')
+        zidDict[z[0]]=getProperty(z, 'zid')
 
     #
     zid_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
@@ -2394,15 +2394,15 @@ def _closeCells(t):
     # associate zid and closed mesh
     zid_to_m = {}
     for i in range(len(zids)) :
-      zid = zids[i]
-      m = meshes[i]
-      zid_to_m[zid]=m
+        zid = zids[i]
+        m = meshes[i]
+        zid_to_m[zid]=m
 
     for z in zs : 
-      zid = getProperty(z, 'zid')
-      m = zid_to_m[zid]
-      # MAJ du maillage de la zone
-      C.setFields([m], z, 'nodes')
+        zid = getProperty(z, 'zid')
+        m = zid_to_m[zid]
+        # MAJ du maillage de la zone
+        C.setFields([m], z, 'nodes')
 
     return t
 
@@ -2414,35 +2414,35 @@ def _closeCells(t):
 #==============================================================================
 def getJoinsPtLists(t, zidDict):
 
-  zone_to_rid_to_list_owned = {}
+    zone_to_rid_to_list_owned = {}
 
-  zones = Internal.getZones(t)
+    zones = Internal.getZones(t)
 
-  for z in zones:
-    zid = getProperty(z, 'zid')
+    for z in zones:
+        zid = getProperty(z, 'zid')
 
-    rid_to_list_owned = {}
+        rid_to_list_owned = {}
 
-    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-    for rac in raccords:
-      
-      rid = getProperty(rac, 'rid')
+        raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+        for rac in raccords:
 
-      donnorName = "".join(Internal.getValue(rac))
-      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+            rid = getProperty(rac, 'rid')
 
-      jzid = zidDict[donnorName]
-      if jzid==zid: # auto-match case
-        if rid in rid_to_list_owned:
-          rid_to_list_owned[rid] = numpy.concatenate((rid_to_list_owned[rid], ptList))
-        else:
-          rid_to_list_owned[rid] = ptList
-      else:         # other cases
-        rid_to_list_owned[rid] = ptList
+            donnorName = "".join(Internal.getValue(rac))
+            ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
 
-    zone_to_rid_to_list_owned[zid] = rid_to_list_owned
+            jzid = zidDict[donnorName]
+            if jzid==zid: # auto-match case
+                if rid in rid_to_list_owned:
+                    rid_to_list_owned[rid] = numpy.concatenate((rid_to_list_owned[rid], ptList))
+                else:
+                    rid_to_list_owned[rid] = ptList
+            else:         # other cases
+                rid_to_list_owned[rid] = ptList
 
-  return zone_to_rid_to_list_owned
+        zone_to_rid_to_list_owned[zid] = rid_to_list_owned
+
+    return zone_to_rid_to_list_owned
 
 
 #==============================================================================
@@ -2452,28 +2452,28 @@ def getJoinsPtLists(t, zidDict):
 # OUT: Returns the dictionary rid <-> (zid1,zid2)
 #==============================================================================
 def getRidToZones(t, zidDict):
-  """ Function returning ridDict (zones concerned 
-  by rac rid, given tree t as well as zidDict.
-  """
+    """ Function returning ridDict (zones concerned 
+    by rac rid, given tree t as well as zidDict.
+    """
 
-  ridDict = {}
+    ridDict = {}
 
-  zones = Internal.getZones(t)
-  for z in zones:
-    zid = getProperty(z, 'zid')
+    zones = Internal.getZones(t)
+    for z in zones:
+        zid = getProperty(z, 'zid')
 
-    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-    for rac in raccords:
-      rid = getProperty(rac, 'rid')
+        raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+        for rac in raccords:
+            rid = getProperty(rac, 'rid')
 
-      z1 = getProperty(z, 'zid')
+            z1 = getProperty(z, 'zid')
 
-      donnorName = "".join(Internal.getValue(rac))
-      z2 = zidDict[donnorName]
+            donnorName = "".join(Internal.getValue(rac))
+            z2 = zidDict[donnorName]
 
-      ridDict[rid] = (z1,z2)
+            ridDict[rid] = (z1,z2)
 
-  return ridDict
+    return ridDict
 
 
 #==============================================================================
@@ -2491,11 +2491,11 @@ def getRidToZones(t, zidDict):
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
 def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None, conformize=1):
-  """Adapts an unstructured mesh a with respect to a sensor.
-  Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None)"""
-  tp = Internal.copyRef(t)
-  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, sensor_metric_policy, hmesh, sensor, conformize)
-  return tp
+    """Adapts an unstructured mesh a with respect to a sensor.
+    Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None)"""
+    tp = Internal.copyRef(t)
+    _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, sensor_metric_policy, hmesh, sensor, conformize)
+    return tp
 
 def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None, conformize=1):
     """Adapts an unstructured mesh a with respect to a sensor.
@@ -2504,12 +2504,12 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     if sensor_type == 1: sensor_type=4 # initial xsensor does not exist anymore
 
     if sensor_type != 5 and sensdata is None and sensor is None:
-      print('INPUT ERROR : no source data to initialize a sensor')
-      return
+        print('INPUT ERROR : no source data to initialize a sensor')
+        return
 
     if hmesh is None and sensor is not None:
-      print ('INPUT ERROR : you must also give as an argument the hmesh targeted by the sensor')
-      return
+        print ('INPUT ERROR : you must also give as an argument the hmesh targeted by the sensor')
+        return
 
     zs = Internal.getZones(t)
     NBZ = len(zs)
@@ -2517,75 +2517,75 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     owesHmesh=0
 
     if hmesh is None :
-      #print("create hm : ", NBZ)
-      hmesh = createHMesh(t, subdiv_type)
-      if hmesh == [None] : # no basic elts in t (assumed because hmesh creation as done [None]
-        return
-      owesHmesh=1
+        #print("create hm : ", NBZ)
+        hmesh = createHMesh(t, subdiv_type)
+        if hmesh == [None] : # no basic elts in t (assumed because hmesh creation as done [None]
+            return
+        owesHmesh=1
 
     owesSensor=0
     if sensor is None : 
-      #print("create sensor")
-      sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
-      owesSensor=1
+        #print("create sensor")
+        sensor = createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
+        owesSensor=1
 
     err=0
 
     if sensdata is None and sensor_type == 5 : #extract metric fields
-      sensdata = [] # going to fill it
-      for z in zs : 
-        mxx = C.getField("mxx", z)
-        if mxx == [] : err = 1; break
-        mxy = C.getField("mxy", z)
-        if mxy == [] : err = 1; break
-        mxz = C.getField("mxz", z)
-        if mxz == [] : err = 1; break
-        myy = C.getField("myy", z)
-        if myy == [] : err = 1; break
-        myz = C.getField("myz", z)
-        if myz == [] : err = 1; break
-        mzz = C.getField("mzz", z)
-        if mzz == [] : err = 1; break
-        sensdata.append([mxx[0][1], mxy[0][1], mxz[0][1], myy[0][1], myz[0][1], mzz[0][1]])
+        sensdata = [] # going to fill it
+        for z in zs : 
+            mxx = C.getField("mxx", z)
+            if mxx == [] : err = 1; break
+            mxy = C.getField("mxy", z)
+            if mxy == [] : err = 1; break
+            mxz = C.getField("mxz", z)
+            if mxz == [] : err = 1; break
+            myy = C.getField("myy", z)
+            if myy == [] : err = 1; break
+            myz = C.getField("myz", z)
+            if myz == [] : err = 1; break
+            mzz = C.getField("mzz", z)
+            if mzz == [] : err = 1; break
+            sensdata.append([mxx[0][1], mxy[0][1], mxz[0][1], myy[0][1], myz[0][1], mzz[0][1]])
 
-      if err == 1 : 
-        print('INPUT ERROR : metric fields are missing or incomplete in the inout tree')
-        return
+        if err == 1 : 
+            print('INPUT ERROR : metric fields are missing or incomplete in the inout tree')
+            return
 
     #print(sensdata)
 
     if sensdata is not None:
-      #print("assignData2Sensor")
-      if sensor_type == 1 or sensor_type == 4:
-        sensdata = C.convertArray2NGon(sensdata)
-      err = assignData2Sensor(sensor, sensdata)
-      if err == 1:
-        print('INPUT ERROR : sensor data list must be sized as nb of sensors')
-        return
+        #print("assignData2Sensor")
+        if sensor_type == 1 or sensor_type == 4:
+            sensdata = C.convertArray2NGon(sensdata)
+        err = assignData2Sensor(sensor, sensdata)
+        if err == 1:
+            print('INPUT ERROR : sensor data list must be sized as nb of sensors')
+            return
 
     zidDict={}
     zs = Internal.getZones(t)
     for z in zs:
-      zidDict[z[0]]=getProperty(z, 'zid')
+        zidDict[z[0]]=getProperty(z, 'zid')
 
     #
     zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
-    
+
     rid_to_zones = getRidToZones(t, zidDict)
 
     #print('adaptCells..')
     intersector.adaptCells(hmesh, sensor, zone_to_rid_to_list_owned, rid_to_zones) #fxme agglo
-    
+
     if owesHmesh == 1: #and owesSensor == 1 :
-      #print("_conformizeHMesh")
-      _conformizeHMesh(t, hmesh, conformize)
-    
+        #print("_conformizeHMesh")
+        _conformizeHMesh(t, hmesh, conformize)
+
     if owesHmesh == 1:
     #   #print('delete owned hmesh')
-      deleteHMesh(hmesh)
+        deleteHMesh(hmesh)
     if owesSensor == 1: 
-      #print('delete owned sensor')
-      deleteSensor(sensor)
+        #print('delete owned sensor')
+        deleteSensor(sensor)
 
 #==============================================================================
 # adaptCellsNodal (deprecated): Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
@@ -2615,98 +2615,98 @@ def setZonesAndJoinsUId(t):
 
 def _setZonesAndJoinsUId(t):
 
-  zs = Internal.getZones(t)
-  iz = -1
-  ir = -1
+    zs = Internal.getZones(t)
+    iz = -1
+    ir = -1
 
-  # ---------------------------------------------------------------------
-  # dict_VD = {z1 : {z2 : {0 : {[idx_min_1, idx_min_2], [ir_1, ir_2]}, 1 : {[idx_min_1, idx_min_2], [ir_3, ir_4]}}}
-  #                 {z4 : {0 : {[idx_min], [ir_5]}, 1 : {[idx_min], [ir_6]}, 1 : {[idx_min], [ir_7]}, 1 : {[idx_min], [ir_8]}}}
-  #           {z2 : {z3 : {0 : {[idx_min, ...], [ir, ...]}}}
-  #           {z3 : {z4 : {0 : {[idx_min, ...], [ir, ...]}}}}
-  # ---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # dict_VD = {z1 : {z2 : {0 : {[idx_min_1, idx_min_2], [ir_1, ir_2]}, 1 : {[idx_min_1, idx_min_2], [ir_3, ir_4]}}}
+    #                 {z4 : {0 : {[idx_min], [ir_5]}, 1 : {[idx_min], [ir_6]}, 1 : {[idx_min], [ir_7]}, 1 : {[idx_min], [ir_8]}}}
+    #           {z2 : {z3 : {0 : {[idx_min, ...], [ir, ...]}}}
+    #           {z3 : {z4 : {0 : {[idx_min, ...], [ir, ...]}}}}
+    # ---------------------------------------------------------------------
 
-  dict_VD = {}
-  zidDict = {}
+    dict_VD = {}
+    zidDict = {}
 
-  for z in zs: # loop on blocks
-    iz += 1
+    for z in zs: # loop on blocks
+        iz += 1
 
-    zidDict[z[0]] = iz #build zidDict
+        zidDict[z[0]] = iz #build zidDict
 
-    l = Internal.newIntegralData(name='zid', parent=z) #ceate a zid for each block    
-    l[1] = iz
+        l = Internal.newIntegralData(name='zid', parent=z) #ceate a zid for each block    
+        l[1] = iz
 
-  for z in zs: # loop on blocks
+    for z in zs: # loop on blocks
 
-    raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t') # check if rac exists for block z
-    nb_racs  = len(raccords)
-    
-    for rac in raccords: # loop on racs
+        raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t') # check if rac exists for block z
+        nb_racs  = len(raccords)
 
-      # GET ZONES INDICES
-      z1 = getProperty(z, 'zid')
+        for rac in raccords: # loop on racs
 
-      donnorName = "".join(Internal.getValue(rac))
-      z2 = zidDict[donnorName]
+        # GET ZONES INDICES
+            z1 = getProperty(z, 'zid')
 
-      # re-arrange
-      if z1 > z2:
-        c  = z2
-        z2 = z1
-        z1 = c            
+            donnorName = "".join(Internal.getValue(rac))
+            z2 = zidDict[donnorName]
 
-      ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
-      ptList_donor = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
+            # re-arrange
+            if z1 > z2:
+                c  = z2
+                z2 = z1
+                z1 = c            
 
-      is_perio = Internal.getNodeFromName1(rac, 'GridConnectivityProperty')
-      idx_min  = numpy.minimum(numpy.min(ptList), numpy.min(ptList_donor))
+            ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
+            ptList_donor = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
 
-      # 0==match connec; 1==perio connec
-      if is_perio:
-        idx_perio = 1
-      else:
-        idx_perio = 0
+            is_perio = Internal.getNodeFromName1(rac, 'GridConnectivityProperty')
+            idx_min  = numpy.minimum(numpy.min(ptList), numpy.min(ptList_donor))
 
-      # -----
-
-      if z1 in dict_VD:
-        if z2 in dict_VD[z1]:
-          # if 'idx_min' in dict_VD[z1][z2]:
-          if idx_perio in dict_VD[z1][z2]:
-            if idx_min in dict_VD[z1][z2][idx_perio]:
-              r    = Internal.newIntegralData(name='rid', parent=rac)
-              r[1] = dict_VD[z1][z2][idx_perio][idx_min]
+            # 0==match connec; 1==perio connec
+            if is_perio:
+                idx_perio = 1
             else:
-              ir += 1
-              dict_VD[z1][z2][idx_perio][idx_min]=ir
-              
-              r    = Internal.newIntegralData(name='rid', parent=rac) 
-              r[1] = ir
-          else:
-            ir += 1
-            dict_VD[z1][z2][idx_perio] = {}
-            dict_VD[z1][z2][idx_perio][idx_min]=ir
+                idx_perio = 0
 
-            r    = Internal.newIntegralData(name='rid', parent=rac) 
-            r[1] = ir
-        else:
-          ir += 1
-          dict_VD[z1][z2] = {}
-          dict_VD[z1][z2][idx_perio] = {}
-          dict_VD[z1][z2][idx_perio][idx_min]=ir
+            # -----
 
-          r    = Internal.newIntegralData(name='rid', parent=rac) 
-          r[1] = ir
-      else:
-        ir += 1
-        dict_VD[z1] = {}
-        dict_VD[z1][z2] = {}
-        dict_VD[z1][z2][idx_perio] = {}
-        dict_VD[z1][z2][idx_perio][idx_min]=ir
+            if z1 in dict_VD:
+                if z2 in dict_VD[z1]:
+                    # if 'idx_min' in dict_VD[z1][z2]:
+                    if idx_perio in dict_VD[z1][z2]:
+                        if idx_min in dict_VD[z1][z2][idx_perio]:
+                            r    = Internal.newIntegralData(name='rid', parent=rac)
+                            r[1] = dict_VD[z1][z2][idx_perio][idx_min]
+                        else:
+                            ir += 1
+                            dict_VD[z1][z2][idx_perio][idx_min]=ir
 
-        r    = Internal.newIntegralData(name='rid', parent=rac) 
-        r[1] = ir
+                            r    = Internal.newIntegralData(name='rid', parent=rac) 
+                            r[1] = ir
+                    else:
+                        ir += 1
+                        dict_VD[z1][z2][idx_perio] = {}
+                        dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+                        r    = Internal.newIntegralData(name='rid', parent=rac) 
+                        r[1] = ir
+                else:
+                    ir += 1
+                    dict_VD[z1][z2] = {}
+                    dict_VD[z1][z2][idx_perio] = {}
+                    dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+                    r    = Internal.newIntegralData(name='rid', parent=rac) 
+                    r[1] = ir
+            else:
+                ir += 1
+                dict_VD[z1] = {}
+                dict_VD[z1][z2] = {}
+                dict_VD[z1][z2][idx_perio] = {}
+                dict_VD[z1][z2][idx_perio][idx_min]=ir
+
+                r    = Internal.newIntegralData(name='rid', parent=rac) 
+                r[1] = ir
 
 #==============================================================================
 # createHMesh : Returns a hierarchical mesh hook per zone
@@ -2715,25 +2715,25 @@ def _setZonesAndJoinsUId(t):
 # OUT: Returns a hierarchical zone hook 
 #==============================================================================
 def createHMesh(t, subdiv_type= 0):
-  """Returns a hierarchical mesh hook per zone.
-  Usage: createHMesh(t, subdiv_type= 0)"""
+    """Returns a hierarchical mesh hook per zone.
+    Usage: createHMesh(t, subdiv_type= 0)"""
 
-  zones = Internal.getZones(t)
-  
-  hmeshs = []
-  for z in zones:
+    zones = Internal.getZones(t)
 
-    m = C.getFields(Internal.__GridCoordinates__, z)[0]
+    hmeshs = []
+    for z in zones:
 
-    dico_rotation_to_ptList = get_transfo_to_ptlist_dico(z)
-    
-    m = intersector.initForAdaptCells(m, dico_rotation_to_ptList)
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
 
-    zid = getProperty(z, 'zid')
-    hm = intersector.createHMesh(m, subdiv_type, zid)
-    hmeshs.append(hm)
+        dico_rotation_to_ptList = get_transfo_to_ptlist_dico(z)
 
-  return hmeshs
+        m = intersector.initForAdaptCells(m, dico_rotation_to_ptList)
+
+        zid = getProperty(z, 'zid')
+        hm = intersector.createHMesh(m, subdiv_type, zid)
+        hmeshs.append(hm)
+
+    return hmeshs
 
 #==============================================================================
 # deleteHMesh : Releases a hierachical zone hook 
@@ -2744,8 +2744,8 @@ def deleteHMesh(hooks):
     """Releases a hierachical zone hook.
     Usage: deleteHMesh(hooks)"""
     for h in hooks:
-      if h == None : continue
-      intersector.deleteHMesh(h)
+        if h == None : continue
+        intersector.deleteHMesh(h)
 
 #==============================================================================
 # createSensor : Returns a sensor hook 
@@ -2758,10 +2758,10 @@ def createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1, senso
     Usage: createSensor(hmeshs, sensor_type = 0, smoothing_type=0 , itermax = -1)"""
     sensors = []
     for hmesh in hmeshs:
-      if hmesh == None : 
-        sensors.append(None)
-      else :
-        sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax,sensor_metric_policy))
+        if hmesh == None : 
+            sensors.append(None)
+        else :
+            sensors.append(intersector.createSensor(hmesh,sensor_type,smoothing_type,itermax,sensor_metric_policy))
     return sensors
 
 #==============================================================================
@@ -2773,8 +2773,8 @@ def deleteSensor(hooks):
     """Releases a sensor hook.
     Usage: deleteSensor(hooks)"""
     for h in hooks:
-      if h == None : continue
-      intersector.deleteSensor(h)
+        if h == None : continue
+        intersector.deleteSensor(h)
 
 #==============================================================================
 # assignData2Sensor : Assigns data to a sensor
@@ -2782,60 +2782,60 @@ def deleteSensor(hooks):
 # OUT: Nothing 
 #==============================================================================
 def assignData2Sensor(hooks, sensdata):
-  """Assigns data to a sensor.
-    Usage: assignData2Sensor(hooks, sensdata)"""
-  sens_data_typ = InputType(sensdata)
-  #print(sens_data_typ)
-  if sens_data_typ == -1 :
-    print('assignData2Sensor (geom) ERROR : wrong input data for sensor')
-    return 1
-  elif sens_data_typ == 2 : # single mesh/coords
-    data = C.getFields(Internal.__GridCoordinates__, sensdata)[0]
-    #print (data)
-    for h in hooks:
-      intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
+    """Assigns data to a sensor.
+      Usage: assignData2Sensor(hooks, sensdata)"""
+    sens_data_typ = InputType(sensdata)
+    #print(sens_data_typ)
+    if sens_data_typ == -1 :
+        print('assignData2Sensor (geom) ERROR : wrong input data for sensor')
+        return 1
+    elif sens_data_typ == 2 : # single mesh/coords
+        data = C.getFields(Internal.__GridCoordinates__, sensdata)[0]
+        #print (data)
+        for h in hooks:
+            intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
 
-  elif sens_data_typ == 3: # top tree => join
-    data = T.join(sensdata)
-    data = C.getFields(Internal.__GridCoordinates__, data)[0]
-    for h in hooks:
-      intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
+    elif sens_data_typ == 3: # top tree => join
+        data = T.join(sensdata)
+        data = C.getFields(Internal.__GridCoordinates__, data)[0]
+        for h in hooks:
+            intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
 
-  elif sens_data_typ == 4: # list of zones
-    if len(sensdata) != len(hooks):
-      data = T.join(sensdata)
-      data = C.getFields(Internal.__GridCoordinates__, data)[0]
-      for h in hooks:
-        intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
-    else:
-      i=-1
-      for h in hooks:
-        i+=1
-        data = C.getFields(Internal.__GridCoordinates__, sensdata[i])[0]
-        intersector.assignData2Sensor(h, data)
+    elif sens_data_typ == 4: # list of zones
+        if len(sensdata) != len(hooks):
+            data = T.join(sensdata)
+            data = C.getFields(Internal.__GridCoordinates__, data)[0]
+            for h in hooks:
+                intersector.assignData2Sensor(h, data) # assign the single source point input cloud to all sensors
+        else:
+            i=-1
+            for h in hooks:
+                i+=1
+                data = C.getFields(Internal.__GridCoordinates__, sensdata[i])[0]
+                intersector.assignData2Sensor(h, data)
 
-  elif sens_data_typ == 0: # single numpy
-    if len(hooks) != 1:
-      print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
-      return 1
-    intersector.assignData2Sensor(hooks[0], sensdata)
+    elif sens_data_typ == 0: # single numpy
+        if len(hooks) != 1:
+            print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
+            return 1
+        intersector.assignData2Sensor(hooks[0], sensdata)
 
-  elif sens_data_typ == 1 or sens_data_typ == 5: # list of numpies or list of list of numpies
-    if len(sensdata) != len(hooks):
-      print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
-      return 1
-    i=-1
-    for h in hooks:
-      i+=1
-      intersector.assignData2Sensor(h, sensdata[i])
-  return 0
+    elif sens_data_typ == 1 or sens_data_typ == 5: # list of numpies or list of list of numpies
+        if len(sensdata) != len(hooks):
+            print('assignData2Sensor (nodal or centered) ERROR : data list must be sized as number of sensors')
+            return 1
+        i=-1
+        for h in hooks:
+            i+=1
+            intersector.assignData2Sensor(h, sensdata[i])
+    return 0
 
 def createCom(t, subdiv_type = 0, nbz = 1):
     return intersector.createCom(t, subdiv_type, nbz)
 
 def deleteCom(hook):
     intersector.deleteCom(hook)
-        
+
 #==============================================================================
 # conformizeHMesh : Converts the basic element leaves of a hierarchical mesh (hooks is a list of hooks to hiearchical zones) to a conformal polyhedral mesh.
 #                   Each hiearchcial zone is referring to a zone in the original mesh t. So the mesh is replaced in the returned tree and the BCs/Joins/Fields are transferred.
@@ -2870,7 +2870,7 @@ def _conformizeHMesh(t, hooks, conformize=1):
 
     zidDict = {}
     for z in zones: # loop on blocks
-      zidDict[z[0]] = getProperty(z, 'zid')
+        zidDict[z[0]] = getProperty(z, 'zid')
 
     ### 1. UPDATE BC & JOIN POINTLISTS WITH CURRENT ENABLING STATUS AND MPI EXCHANGES
     zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
@@ -2880,88 +2880,88 @@ def _conformizeHMesh(t, hooks, conformize=1):
     i=0
     for z in zones:
 
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      if m == []: continue
-      if hooks[i] == None : continue
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m == []: continue
+        if hooks[i] == None : continue
 
-      zid = getProperty(z, 'zid')
+        zid = getProperty(z, 'zid')
 
-      # BC and Joins point list (owned side)
-      bcptlists = zone_to_bcptlists[zid]
-      rid_to_ptlist = zone_to_rid_to_list_owned[zid]
+        # BC and Joins point list (owned side)
+        bcptlists = zone_to_bcptlists[zid]
+        rid_to_ptlist = zone_to_rid_to_list_owned[zid]
 
-      fieldsC = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
-      if fieldsC == [] : fieldsC = None
+        fieldsC = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        if fieldsC == [] : fieldsC = None
 
-      fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-      if fieldsN == [] : fieldsN = None
+        fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        if fieldsN == [] : fieldsN = None
 
-      try:
-        pfieldsF = Internal.getNodeFromName(z, 'CADData')
-        fieldsF = Internal.getChildFromName(pfieldsF, 'fcadid')
-        fieldsF = [fieldsF[1]]
-        if fieldsF == [] : fieldsF = None # Unnecessary ?
-        
-      except TypeError:
-        fieldsF = None
+        try:
+            pfieldsF = Internal.getNodeFromName(z, 'CADData')
+            fieldsF = Internal.getChildFromName(pfieldsF, 'fcadid')
+            fieldsF = [fieldsF[1]]
+            if fieldsF == [] : fieldsF = None # Unnecessary ?
 
-      res = intersector.conformizeHMesh(hooks[i], bcptlists, rid_to_ptlist, rid_to_zones, fieldsC, fieldsN, fieldsF, conformize)
+        except TypeError:
+            fieldsF = None
 
-      # res[0] : mesh
-      # res[1] : List : updated bc pointlist
-      # res[2] : Dict : updated 'jzone to PtList'
-      # res[3] : List : center fields
-      # res[4] : List : node fields
-      # res[5] : List : face fields
+        res = intersector.conformizeHMesh(hooks[i], bcptlists, rid_to_ptlist, rid_to_zones, fieldsC, fieldsN, fieldsF, conformize)
 
-      mesh = res[0]
+        # res[0] : mesh
+        # res[1] : List : updated bc pointlist
+        # res[2] : Dict : updated 'jzone to PtList'
+        # res[3] : List : center fields
+        # res[4] : List : node fields
+        # res[5] : List : face fields
 
-      # MAJ du maillage de la zone
-      C.setFields([mesh], z, 'nodes')
+        mesh = res[0]
 
-      if len(res) < 2 : continue
+        # MAJ du maillage de la zone
+        C.setFields([mesh], z, 'nodes')
 
-      # MAJ BCs
-      bcptlists = res[1]
+        if len(res) < 2 : continue
 
-      if bcptlists != [] :
-        updateBCPointLists2(z, bcptlists)
-      else:
-        C._deleteZoneBC__(z)
+        # MAJ BCs
+        bcptlists = res[1]
 
-      # MAJ Joins
-      rid_to_ptlist = res[2]
+        if bcptlists != [] :
+            updateBCPointLists2(z, bcptlists)
+        else:
+            C._deleteZoneBC__(z)
 
-      zone_to_rid_to_list_owned[zid] = rid_to_ptlist #dico z_to_rid_to_ptlist_owned est mis à jour avant de le donner à exchangePointList
+        # MAJ Joins
+        rid_to_ptlist = res[2]
 
-      if rid_to_ptlist != {}:
-        updateJoinsPointLists3(z, zidDict, rid_to_ptlist, 'PointList')
+        zone_to_rid_to_list_owned[zid] = rid_to_ptlist #dico z_to_rid_to_ptlist_owned est mis à jour avant de le donner à exchangePointList
 
-      # MAJ FIELDS
+        if rid_to_ptlist != {}:
+            updateJoinsPointLists3(z, zidDict, rid_to_ptlist, 'PointList')
 
-      C._deleteFlowSolutions__(z)
+        # MAJ FIELDS
 
-      ## center fields
-      fieldz = [res[3]]
-      #print (fieldz)
-      if fieldz != [None]:
-        for f in fieldz:
-          C.setFields([f], z, 'centers', False)
+        C._deleteFlowSolutions__(z)
 
-      # # ## node fields
-      fieldz = [res[4]]
-      #print (fieldz)
-      if fieldz != [None]:
-        for f in fieldz:
-          C.setFields([f], z, 'nodes', False)
+        ## center fields
+        fieldz = [res[3]]
+        #print (fieldz)
+        if fieldz != [None]:
+            for f in fieldz:
+                C.setFields([f], z, 'centers', False)
 
-      ## face fields 
-      fieldz = [res[5]]
-      #print(fieldz)
-      if fieldz is not [None]:
-        Internal.newDataArray('fcadid', value=fieldz[0], parent=Internal.getNodeFromName(z, 'CADData'))
+        # # ## node fields
+        fieldz = [res[4]]
+        #print (fieldz)
+        if fieldz != [None]:
+            for f in fieldz:
+                C.setFields([f], z, 'nodes', False)
 
-      i +=1
+        ## face fields 
+        fieldz = [res[5]]
+        #print(fieldz)
+        if fieldz is not [None]:
+            Internal.newDataArray('fcadid', value=fieldz[0], parent=Internal.getNodeFromName(z, 'CADData'))
+
+        i +=1
     _transposePointLists(t, hooks, zidDict, rid_to_zones, zone_to_bcptlists, zone_to_rid_to_list_owned)
 
 #==============================================================================
@@ -2969,33 +2969,33 @@ def _conformizeHMesh(t, hooks, conformize=1):
 #==============================================================================
 def _transposePointLists(t, hooks, zidDict, rid_to_zones = None, zone_to_bcptlists=None, zone_to_rid_to_list_owned=None):
 
-  nb_hooks = len(hooks)
-  zones = Internal.getZones(t)
-  nb_zones = len(zones)
+    nb_hooks = len(hooks)
+    zones = Internal.getZones(t)
+    nb_zones = len(zones)
 
-  if nb_zones != nb_hooks:
-    print('must give one hook per zone')
-    return
+    if nb_zones != nb_hooks:
+        print('must give one hook per zone')
+        return
 
-  if zone_to_rid_to_list_owned == None :
-    zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
+    if zone_to_rid_to_list_owned == None :
+        zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)
 
-  if rid_to_zones == None:
-    rid_to_zones = getRidToZones(t, zidDict)
+    if rid_to_zones == None:
+        rid_to_zones = getRidToZones(t, zidDict)
 
-  #
-  zone_to_rid_to_list_opp = intersector.transposePointLists(rid_to_zones, zone_to_rid_to_list_owned)
+    #
+    zone_to_rid_to_list_opp = intersector.transposePointLists(rid_to_zones, zone_to_rid_to_list_owned)
 
-  if zone_to_rid_to_list_opp == {} : return # single block
-  #
-  for z in zones:
-    zid = getProperty(z, 'zid')
-    if zid not in zone_to_rid_to_list_opp : continue
+    if zone_to_rid_to_list_opp == {} : return # single block
+    #
+    for z in zones:
+        zid = getProperty(z, 'zid')
+        if zid not in zone_to_rid_to_list_opp : continue
 
-    rid_to_list_opp = zone_to_rid_to_list_opp[zid]
-    if rid_to_list_opp == {} : continue
+        rid_to_list_opp = zone_to_rid_to_list_opp[zid]
+        if rid_to_list_opp == {} : continue
 
-    updateJoinsPointLists3(z, zidDict, rid_to_list_opp, 'PointListDonor')
+        updateJoinsPointLists3(z, zidDict, rid_to_list_opp, 'PointListDonor')
 
 #==============================================================================
 # interpolateHMeshNodalField : XXX
@@ -3034,15 +3034,15 @@ def _interpolateHMeshNodalField(t, hooks, fname):
 
         #recuperation du field ayant pour nom fname : u ou v
         for j in range(len(fname)):
-          #print(fname[j])
-          fieldsN[j] = C.getFields(Internal.__FlowSolutionNodes__, C.extractVars(z, fname[j]))
-        
-          fieldN = fieldsN[j]
-          ofield = intersector.interpolateHMeshNodalField(hooks[i], fieldsN[j][0], bcptlists)
+                #print(fname[j])
+            fieldsN[j] = C.getFields(Internal.__FlowSolutionNodes__, C.extractVars(z, fname[j]))
 
-          ## MAJ node fields
-          C.setFields([ofield], z, 'nodes', False)
-           
+            fieldN = fieldsN[j]
+            ofield = intersector.interpolateHMeshNodalField(hooks[i], fieldsN[j][0], bcptlists)
+
+            ## MAJ node fields
+            C.setFields([ofield], z, 'nodes', False)
+
         i=i+1
 
 #==============================================================================
@@ -3067,20 +3067,20 @@ def extractUncomputables(t,neigh_level=2):
     Usage: extractUncomputables(t, neigh_level)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     res = XOR.extractUncomputables(m, neigh_level)
-    
+
     zones = []
     nb_zones = len(res)
-    
+
     if (nb_zones == 1) :
-      zones.append(C.convertArrays2ZoneNode('remaining', [res[0]]))
+        zones.append(C.convertArrays2ZoneNode('remaining', [res[0]]))
     else:
-      zones.append(C.convertArrays2ZoneNode('upgs', [res[0]]))
-      zones.append(C.convertArrays2ZoneNode('uphs', [res[1]]))
-      zones.append(C.convertArrays2ZoneNode('uphs_wv1', [res[2]]))
-      zones.append(C.convertArrays2ZoneNode('remaining', [res[3]]))
+        zones.append(C.convertArrays2ZoneNode('upgs', [res[0]]))
+        zones.append(C.convertArrays2ZoneNode('uphs', [res[1]]))
+        zones.append(C.convertArrays2ZoneNode('uphs_wv1', [res[2]]))
+        zones.append(C.convertArrays2ZoneNode('remaining', [res[3]]))
 
     return zones
-    
+
 #==============================================================================
 # extractPathologicalCells : Extracts cells that will cause a CFD solver run failure
 # IN: t          : 3D NGON mesh
@@ -3092,20 +3092,20 @@ def extractPathologicalCells(t, neigh_level=0):
     Usage: extractPathologicalCells(t, neigh_level)"""
     m = C.getFields(Internal.__GridCoordinates__, t)[0]
     res = XOR.extractPathologicalCells(m, neigh_level)
-    
+
     zones = []
-        
+
     nb_zones = len(res)
     if (nb_zones == 1) :
-      zones.append(C.convertArrays2ZoneNode('okstar', [res[0]]))
+        zones.append(C.convertArrays2ZoneNode('okstar', [res[0]]))
     else:
 
-      if (len(res[0][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('open_cells', [res[0]]))
-      if (len(res[1][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('with_degen_PGs', [res[1]]))
-      if (len(res[2][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('delaunay_failure', [res[2]]))
-      if (len(res[3][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('non_star', [res[3]]))
-      #if (len(res[4][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('neighbors', [res[4]]))
-      #if (len(res[5][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('good', [res[5]]))
+        if (len(res[0][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('open_cells', [res[0]]))
+        if (len(res[1][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('with_degen_PGs', [res[1]]))
+        if (len(res[2][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('delaunay_failure', [res[2]]))
+        if (len(res[3][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('non_star', [res[3]]))
+        #if (len(res[4][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('neighbors', [res[4]]))
+        #if (len(res[5][1][0]) != 0) : zones.append(C.convertArrays2ZoneNode('good', [res[5]]))
 
     return zones
 
@@ -3126,16 +3126,16 @@ def extractOuterLayers(t, N, discard_external=0, output_remaining=False):
 
     i=-1
     for z in zs:
-      i +=1
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      res = XOR.extractOuterLayers(m, N, discard_external)
-      nb_zones = len(res)
-      if (nb_zones == 1 and output_remaining == True) :
-        zones.append(C.convertArrays2ZoneNode('remaining_'+str(i), [res[0]]))
-      else:
-        zones.append(C.convertArrays2ZoneNode('outers_'+str(i), [res[0]]))
-        if output_remaining == True:
-          zones.append(C.convertArrays2ZoneNode('remaining_'+str(i), [res[1]]))
+        i +=1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res = XOR.extractOuterLayers(m, N, discard_external)
+        nb_zones = len(res)
+        if (nb_zones == 1 and output_remaining == True) :
+            zones.append(C.convertArrays2ZoneNode('remaining_'+str(i), [res[0]]))
+        else:
+            zones.append(C.convertArrays2ZoneNode('outers_'+str(i), [res[0]]))
+            if output_remaining == True:
+                zones.append(C.convertArrays2ZoneNode('remaining_'+str(i), [res[1]]))
 
     return zones
 
@@ -3229,28 +3229,28 @@ def extractBadVolCells(t, ar=0.125, vmin=0., nneighs=0):
     i=-1
 
     for z in zones:
-      i+=1
-      GEl = Internal.getElementNodes(z)
-      NGON = 0; found = False
-      for c in GEl:
-        if c[1][0] == 22: found = True; break
-        NGON += 1
-      PE = None
-      if found:
-        node = GEl[NGON]
-        PE = Internal.getNodeFromName1(node, 'ParentElements')
-        if PE is None:
-          print ('skipping zone %d as it does not have ParentElement'%i)
-          continue
-      else:
-        print ('skipping zone %d as it does not have ParentElement'%i)
-        continue
-        
-      print('extracting bad cells for zone %d'%i)
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      res=XOR.extractBadVolCells(m, PE[1], ar, vmin, nneighs)
-      res = C.convertArrays2ZoneNode('badcells_z_'+str(i), [res])
-      om.append(res)
+        i+=1
+        GEl = Internal.getElementNodes(z)
+        NGON = 0; found = False
+        for c in GEl:
+            if c[1][0] == 22: found = True; break
+            NGON += 1
+        PE = None
+        if found:
+            node = GEl[NGON]
+            PE = Internal.getNodeFromName1(node, 'ParentElements')
+            if PE is None:
+                print ('skipping zone %d as it does not have ParentElement'%i)
+                continue
+        else:
+            print ('skipping zone %d as it does not have ParentElement'%i)
+            continue
+
+        print('extracting bad cells for zone %d'%i)
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res=XOR.extractBadVolCells(m, PE[1], ar, vmin, nneighs)
+        res = C.convertArrays2ZoneNode('badcells_z_'+str(i), [res])
+        om.append(res)
 
     return om
 
@@ -3265,14 +3265,14 @@ def extractOverConnectedCells(t, nneighs=0):
     i=-1
 
     for z in zones:
-      i+=1
-        
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      res=XOR.extractOverConnectedCells(m, nneighs)
-      res = C.convertArrays2ZoneNode('overcon_cells_z_'+str(i), [res])
-      if nb_cells(res) > 0:
-        print('extracting fully-over-connected cells for zone %d'%i)
-        om.append(res)
+        i+=1
+
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res=XOR.extractOverConnectedCells(m, nneighs)
+        res = C.convertArrays2ZoneNode('overcon_cells_z_'+str(i), [res])
+        if nb_cells(res) > 0:
+            print('extracting fully-over-connected cells for zone %d'%i)
+            om.append(res)
 
     return om
 
@@ -3319,28 +3319,28 @@ def _collapseSmallEdges(t, eratio, lmax=-1.):
 # OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
 #==============================================================================
 def getOverlappingFaces(t1, t2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
-   """ Returns the list of polygons in a1 and a2 that are overlapping.
-   Usage: getOverlappingFaces(t1, t2, RTOL, amax, dir2)"""
+    """ Returns the list of polygons in a1 and a2 that are overlapping.
+    Usage: getOverlappingFaces(t1, t2, RTOL, amax, dir2)"""
 
-   try: import Transform as T
-   except: raise ImportError("getOverlappingFaces: requires Transform module.")
-   
-   zones2 = Internal.getZones(t2)
-   m2 = concatenate(zones2); m2 = G.close(m2)
-   m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
+    try: import Transform as T
+    except: raise ImportError("getOverlappingFaces: requires Transform module.")
 
-   zones1 = Internal.getZones(t1)
-   pgids = []
+    zones2 = Internal.getZones(t2)
+    m2 = concatenate(zones2); m2 = G.close(m2)
+    m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
 
-   i=-1
-   for z in zones1:
-     i+=1
-     m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
-     if m1 == []: continue
+    zones1 = Internal.getZones(t1)
+    pgids = []
 
-     pgids.append(XOR.getOverlappingFaces(m1,m2, RTOL, amax, dir2))
+    i=-1
+    for z in zones1:
+        i+=1
+        m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m1 == []: continue
 
-   return pgids
+        pgids.append(XOR.getOverlappingFaces(m1,m2, RTOL, amax, dir2))
+
+    return pgids
 
 #==============================================================================
 # getCollidingTopFaces  : Returns the list of top faces (HEXA and PRISM only) in t1 colliding t2.
@@ -3350,28 +3350,28 @@ def getOverlappingFaces(t1, t2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
 # OUT: list of t1 involved faces
 #==============================================================================
 def getCollidingTopFaces(t1, t2, RTOL = 0.1):
-   """ Returns the list of top faces (HEXA and PRISM only) in t1 colliding t2.
-   Usage: getCollidingTopFaces(t1, t2, RTOL)"""
+    """ Returns the list of top faces (HEXA and PRISM only) in t1 colliding t2.
+    Usage: getCollidingTopFaces(t1, t2, RTOL)"""
 
-   try: import Transform as T
-   except: raise ImportError("getCollidingTopFaces: requires Transform module.")
-   
-   zones2 = Internal.getZones(t2)
-   m2 = concatenate(zones2); m2 = G.close(m2)
-   m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
+    try: import Transform as T
+    except: raise ImportError("getCollidingTopFaces: requires Transform module.")
 
-   zones1 = Internal.getZones(t1)
-   pgids = []
+    zones2 = Internal.getZones(t2)
+    m2 = concatenate(zones2); m2 = G.close(m2)
+    m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
 
-   i=-1
-   for z in zones1:
-     i+=1
-     m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
-     if m1 == []: continue
+    zones1 = Internal.getZones(t1)
+    pgids = []
 
-     pgids.append(XOR.getCollidingTopFaces(m1,m2, RTOL))
+    i=-1
+    for z in zones1:
+        i+=1
+        m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m1 == []: continue
 
-   return pgids
+        pgids.append(XOR.getCollidingTopFaces(m1,m2, RTOL))
+
+    return pgids
 
 #==============================================================================
 # getCollidingCells     : returns the list of cells in a1 and a2 that are colliding.
@@ -3381,28 +3381,28 @@ def getCollidingTopFaces(t1, t2, RTOL = 0.1):
 # OUT: 2 lists of colliding cells, the first one for t1, the seoncd one for t2.
 #==============================================================================
 def getCollidingCells(t1, t2, RTOL = 1.e-12, only_externals = False):
-   """ Returns the list of cells in a1 and a2 that are colliding.
-   Usage: getOverlappingFaces(t1, t2, RTOL)"""
+    """ Returns the list of cells in a1 and a2 that are colliding.
+    Usage: getOverlappingFaces(t1, t2, RTOL)"""
 
-   try: import Transform as T
-   except: raise ImportError("getCollidingCells: requires Transform module.")
+    try: import Transform as T
+    except: raise ImportError("getCollidingCells: requires Transform module.")
 
-   zones2 = Internal.getZones(t2)
-   m2 = concatenate(zones2); m2 = G.close(m2)
-   m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
+    zones2 = Internal.getZones(t2)
+    m2 = concatenate(zones2); m2 = G.close(m2)
+    m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
 
-   zones1 = Internal.getZones(t1)
-   pgids = []
+    zones1 = Internal.getZones(t1)
+    pgids = []
 
-   i=-1
-   for z in zones1:
-     i+=1
-     m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
-     if m1 == []: continue
+    i=-1
+    for z in zones1:
+        i+=1
+        m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m1 == []: continue
 
-     pgids.append(XOR.getCollidingCells(m1,m2, RTOL, only_externals))
+        pgids.append(XOR.getCollidingCells(m1,m2, RTOL, only_externals))
 
-   return pgids
+    return pgids
 
 #==============================================================================
 # getAttachedCells     : returns the cells in t1 attached to polygons in s2.
@@ -3411,13 +3411,13 @@ def getCollidingCells(t1, t2, RTOL = 1.e-12, only_externals = False):
 # OUT: attached cells.
 #==============================================================================
 def getAttachedCells(t1, s2):
-   """ Returns the cells in t1 attached to polygons in s2.
-   Usage: getAttachedCells(t1, s2)"""
-   centsS = centroids(s2)
+    """ Returns the cells in t1 attached to polygons in s2.
+    Usage: getAttachedCells(t1, s2)"""
+    centsS = centroids(s2)
 
-   pgids = getFaceIdsWithCentroids(t1,s2)
+    pgids = getFaceIdsWithCentroids(t1,s2)
 
-   return getCells(t1, pgids)
+    return getCells(t1, pgids)
 
 #==============================================================================
 # getFacesWithCentroids     : returns the cells in t1 attached to polygons in s2.
@@ -3426,17 +3426,17 @@ def getAttachedCells(t1, s2):
 # OUT: attached cells.
 #==============================================================================
 def getFaceIdsWithCentroids(t1, cents):
-   """ Returns the faces in t1 having their centroids in cents.
-   Usage: getFacesWithCentroids(t1, cents)"""
-   c = C.getFields(Internal.__GridCoordinates__, cents)[0]
+    """ Returns the faces in t1 having their centroids in cents.
+    Usage: getFacesWithCentroids(t1, cents)"""
+    c = C.getFields(Internal.__GridCoordinates__, cents)[0]
 
-   zones1 = Internal.getZones(t1)
-   pgids=[]
-   for z in zones1:
-    m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
-    pgids.append(XOR.getFaceIdsWithCentroids(m1,c))
+    zones1 = Internal.getZones(t1)
+    pgids=[]
+    for z in zones1:
+        m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+        pgids.append(XOR.getFaceIdsWithCentroids(m1,c))
 
-   return pgids
+    return pgids
 
 #==============================================================================
 # getFaceIdsCollidingVertex     : returns the Faces in t1 colliding a cloud of vertices
@@ -3445,16 +3445,16 @@ def getFaceIdsWithCentroids(t1, cents):
 # OUT: attached cells.
 #==============================================================================
 def getFaceIdsCollidingVertex(t1, vtx):
-   """ Returns the faces in t1 having their centroids in cents.
-   Usage: getFaceIdsCollidingVertex(t1, [x,y,z])"""
-   
-   zones1 = Internal.getZones(t1)
-   pgids=[]
-   for z in zones1:
-    m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
-    pgids.append(XOR.getFaceIdsCollidingVertex(m1, vtx))
+    """ Returns the faces in t1 having their centroids in cents.
+    Usage: getFaceIdsCollidingVertex(t1, [x,y,z])"""
 
-   return pgids
+    zones1 = Internal.getZones(t1)
+    pgids=[]
+    for z in zones1:
+        m1 = C.getFields(Internal.__GridCoordinates__, z)[0]
+        pgids.append(XOR.getFaceIdsCollidingVertex(m1, vtx))
+
+    return pgids
 
 #==============================================================================
 # getCells              : Returns the cells in t1 having faces or cell ids
@@ -3464,34 +3464,34 @@ def getFaceIdsCollidingVertex(t1, vtx):
 # OUT: attached cells.
 #==============================================================================
 def getCells(t1, ids, are_face_ids = True):
-   """ Returns the cells in t1 having faces or cell ids.
-   Usage: getCells(t1, pgids, are_face_ids = True)"""
+    """ Returns the cells in t1 having faces or cell ids.
+    Usage: getCells(t1, pgids, are_face_ids = True)"""
 
-   zones1 = Internal.getZones(t1)
-   cells = []
+    zones1 = Internal.getZones(t1)
+    cells = []
 
-   if len(ids) != len(zones1):
-      print('getCells Input error : specified ids list must be sized as nb of zones')
-      return None
+    if len(ids) != len(zones1):
+        print('getCells Input error : specified ids list must be sized as nb of zones')
+        return None
 
-   i=-1
-   for z in zones1:
-    i+=1
-    m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    res = XOR.getCells(m, ids[i], are_face_ids)
-    narr = res[0] # mesh
-    oids = res[1] # old cell ids
+    i=-1
+    for z in zones1:
+        i+=1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res = XOR.getCells(m, ids[i], are_face_ids)
+        narr = res[0] # mesh
+        oids = res[1] # old cell ids
 
-    if len(narr[2][0]) == 4 : continue #no connectivity
+        if len(narr[2][0]) == 4 : continue #no connectivity
 
-    #print(narr[2])
-    #print(oids)
-    newz = C.convertArrays2ZoneNode('zone%s'%i,[narr])
-    if oids[1] != [] : C.setFields([oids], newz, 'centers', False)
+        #print(narr[2])
+        #print(oids)
+        newz = C.convertArrays2ZoneNode('zone%s'%i,[narr])
+        if oids[1] != [] : C.setFields([oids], newz, 'centers', False)
 
-    cells .append(newz)
+        cells .append(newz)
 
-   return cells
+    return cells
 
 #==============================================================================
 # getFaces              : returns the faces in t1 with ids in pgids.
@@ -3500,19 +3500,19 @@ def getCells(t1, ids, are_face_ids = True):
 # OUT: attached cells.
 #==============================================================================
 def getFaces(t1, pgids):
-   """ Returns the faces in t1 with ids in pgids.
-   Usage: getFaces(t1, pgids)"""
+    """ Returns the faces in t1 with ids in pgids.
+    Usage: getFaces(t1, pgids)"""
 
-   zones1 = Internal.getZones(t1)
-   cells = []
+    zones1 = Internal.getZones(t1)
+    cells = []
 
-   i=-1
-   for z in zones1:
-    i+=1
-    m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    cells .append(C.convertArrays2ZoneNode('face%s'%i, [XOR.getFaces(m, pgids[i])]))
+    i=-1
+    for z in zones1:
+        i+=1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        cells .append(C.convertArrays2ZoneNode('face%s'%i, [XOR.getFaces(m, pgids[i])]))
 
-   return cells
+    return cells
 
 
 #==============================================================================
@@ -3523,25 +3523,25 @@ def getFaces(t1, pgids):
 # OUT: Returns the list of cells in the N-th neighborhood.
 #==============================================================================
 def getNthNeighborhood(t, N, ids):
-   """ Returns the list of cells in the N-th neighborhood of cells given in ids.
-   Usage: getNthNeighborhood(t, N, ids)"""
+    """ Returns the list of cells in the N-th neighborhood of cells given in ids.
+    Usage: getNthNeighborhood(t, N, ids)"""
 
-   zones = Internal.getZones(t)
-   if len(ids) != len(zones) : 
-    print ('getNthNeighborhood : input ERROR : ids list and nb of zones are different')
-    return
+    zones = Internal.getZones(t)
+    if len(ids) != len(zones) : 
+        print ('getNthNeighborhood : input ERROR : ids list and nb of zones are different')
+        return
 
-   idsNeigh = []
+    idsNeigh = []
 
-   i=-1
-   for z in zones:
-     i+=1
-     m = C.getFields(Internal.__GridCoordinates__, z)[0]
-     if m == []: continue
+    i=-1
+    for z in zones:
+        i+=1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m == []: continue
 
-     idsNeigh.append(XOR.getNthNeighborhood(m, N, ids[i]))
+        idsNeigh.append(XOR.getNthNeighborhood(m, N, ids[i]))
 
-   return idsNeigh
+    return idsNeigh
 
 #==============================================================================
 # estimateAdapReq     : estimates an cell-specified adaptation requirement from 
@@ -3556,23 +3556,23 @@ def getNthNeighborhood(t, N, ids):
 #      per cell in the range [minv, maxv].
 #==============================================================================
 def estimateAdapReq(t, donnor, metric_policy=2, rtol= 1.e-12, minv=0, maxv=5):
-   """ estimates an cell-specified adaptation requirement from on a istotropic metric field based on donnor connectivity.
-    Usage : estimateAdapReq(t, donnor [, metric_policy, rtol, minv, maxv])"""
-   zones2 = Internal.getZones(donnor)
-   m2 = concatenate(zones2); m2 = G.close(m2)
-   m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
+    """ estimates an cell-specified adaptation requirement from on a istotropic metric field based on donnor connectivity.
+     Usage : estimateAdapReq(t, donnor [, metric_policy, rtol, minv, maxv])"""
+    zones2 = Internal.getZones(donnor)
+    m2 = concatenate(zones2); m2 = G.close(m2)
+    m2 = C.getFields(Internal.__GridCoordinates__, m2)[0]
 
-   zones = Internal.getZones(t)
-   cell_vals = []
-   i=-1
-   for z in zones:
-     i+=1
-     m = C.getFields(Internal.__GridCoordinates__, z)[0]
-     if m == []: continue
+    zones = Internal.getZones(t)
+    cell_vals = []
+    i=-1
+    for z in zones:
+        i+=1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m == []: continue
 
-     cell_vals.append(XOR.estimateAdapReq(m, m2, metric_policy, rtol, minv, maxv))
+        cell_vals.append(XOR.estimateAdapReq(m, m2, metric_policy, rtol, minv, maxv))
 
-   return cell_vals
+    return cell_vals
 
 #==============================================================================
 # getAnisoInnerFaces   : returns the list of polygons in a1 that are connecting 2 aniso elements.
@@ -3582,24 +3582,24 @@ def estimateAdapReq(t, donnor, metric_policy=2, rtol= 1.e-12, minv=0, maxv=5):
 # OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
 #==============================================================================
 def getAnisoInnerFaces(t1, aniso_ratio = 0.05):
-   """ Returns the list of polygons in a1 that are connecting 2 aniso elements.
-   Usage: getAnisoInnerFaces(t1, aniso_ratio)"""
+    """ Returns the list of polygons in a1 that are connecting 2 aniso elements.
+    Usage: getAnisoInnerFaces(t1, aniso_ratio)"""
 
-   try: import Transform as T
-   except: raise ImportError("getAnisoInnerFaces: requires Transform module.")
+    try: import Transform as T
+    except: raise ImportError("getAnisoInnerFaces: requires Transform module.")
 
-   zones = Internal.getZones(t1)
-   
-   pgids = []
-   
-   for z in zones:
-        
-     m = C.getFields(Internal.__GridCoordinates__, z)[0]
-     if m == []: continue
+    zones = Internal.getZones(t1)
 
-     pgids.append(XOR.getAnisoInnerFaces(m, aniso_ratio))
+    pgids = []
 
-   return pgids
+    for z in zones:
+
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        if m == []: continue
+
+        pgids.append(XOR.getAnisoInnerFaces(m, aniso_ratio))
+
+    return pgids
 
 #==============================================================================
 # diffMesh : Returns the diff between 2 meshes as 2 zones.
@@ -3630,14 +3630,14 @@ def diffMesh(t1, t2):
         nb_zones = len(res)
 
         if (nb_zones == 0) : # fixme : never happen
-          continue
+            continue
 
         if res[0][1].size == 0 and res[0][1].size == 0 : 
             continue
 
         zones.append(C.convertArrays2ZoneNode('z1', [res[0]]))
         zones.append(C.convertArrays2ZoneNode('z2', [res[1]]))
-    
+
     if len(zones) == 0:
         print("No differences")
 
@@ -3670,8 +3670,8 @@ def checkCellsClosure(t):
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         err = XOR.checkCellsClosure(m)
         if err == 1 :
-          print('checkCellsClosure found an open cell in ' + str(iz) + '-th zone')
-          return 1
+            print('checkCellsClosure found an open cell in ' + str(iz) + '-th zone')
+            return 1
     return 0
 
 #==============================================================================
@@ -3702,14 +3702,14 @@ def checkCellsFlux(t):
         else:
             print ('skipping zone %d as it does not have ParentElement'%i)
             continue
-        
+
         print('checking nullity of fluxes for zone %d'%i)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         res=XOR.checkCellsFlux(m, PE[1])
         if res[1] > maxflux:
-          maxflux=res[1]
-          cellid=res[0]
-          zoneid=i
+            maxflux=res[1]
+            cellid=res[0]
+            zoneid=i
         i+=1
     return (maxflux, cellid, zoneid)
 
@@ -3745,18 +3745,18 @@ def checkAngularExtrema(t):
         else:
             print ('skipping zone %d as it does not have ParentElement'%i)
             continue
-        
+
         print('checking nullity of fluxes for zone %d'%i)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         res=XOR.checkAngularExtrema(m, PE[1])
         if res[1] > maxA:
-           maxA=res[1]
-           maxcellid=res[0]
-           maxzoneid=i
+            maxA=res[1]
+            maxcellid=res[0]
+            maxzoneid=i
         if res[3] < minA:
-           minA=res[3]
-           mincellid=res[2]
-           minzoneid=i
+            minA=res[3]
+            mincellid=res[2]
+            minzoneid=i
         i+=1
     return (minA, mincellid, minzoneid, maxA, maxcellid, maxzoneid)
 
@@ -3788,14 +3788,14 @@ def checkCellsVolume(t):
         else:
             print ('skipping zone %d as it does not have ParentElement'%i)
             continue
-        
+
         print('checking vol min for zone %d'%i)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         res=XOR.checkCellsVolume(m, PE[1])
         if res[1] < vmin:
-          vmin=res[1]
-          cellid=res[0]
-          zoneid=i
+            vmin=res[1]
+            cellid=res[0]
+            zoneid=i
 
     return (vmin, cellid, zoneid)
 
@@ -3830,20 +3830,20 @@ def checkCellsVolumeAndGrowthRatio(t):
         else:
             print ('skipping zone %d as it does not have ParentElement'%i)
             continue
-        
+
         print('checking min vol and growth ratio for zone %d'%i)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         res=XOR.checkCellsVolumeAndGrowthRatio(m, PE[1])
         #print('vmin for this zone : '+str(res[1]))
         if res[1] < vmin:
-          vmin=res[1]
-          ivmin=res[0]
-          vzoneid=i
+            vmin=res[1]
+            ivmin=res[0]
+            vzoneid=i
         #print('grmin for this zone : '+str(res[3]))
         if res[3] < grmin:
-          grmin=res[3]
-          igrmin=res[2]
-          grzoneid=i
+            grmin=res[3]
+            igrmin=res[2]
+            grzoneid=i
 
     return (vmin, ivmin, vzoneid, grmin, igrmin, grzoneid)
 #==============================================================================
@@ -3898,10 +3898,10 @@ def _computeGrowthRatio(t, vmin=0.):
     zones = Internal.getZones(t)
     i=-1
     for z in zones:
-      i+=1
-      m = C.getFields(Internal.__GridCoordinates__, z)[0]
-      ar = XOR.computeGrowthRatio(m, vmin)
-      C.setFields([ar], z, 'centers', False)
+        i+=1
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        ar = XOR.computeGrowthRatio(m, vmin)
+        C.setFields([ar], z, 'centers', False)
 
 #==============================================================================
 # extrudeUserDefinedBC : XXX
@@ -3960,13 +3960,13 @@ def statsSize(t, compute_metrics=1):
 # removeBaffles : XXX
 #==============================================================================
 def removeBaffles(t):
-  return C.TZA1(t, 'nodes', 'nodes', True, XOR.removeBaffles)
+    return C.TZA1(t, 'nodes', 'nodes', True, XOR.removeBaffles)
 
 #==============================================================================
 # removeBaffles : XXX
 #==============================================================================
 def _removeBaffles(t):
-  return C._TZA1(t, 'nodes', 'nodes', True, XOR.removeBaffles)
+    return C._TZA1(t, 'nodes', 'nodes', True, XOR.removeBaffles)
 
 #==============================================================================
 # convert2Polyhedron : XXX
@@ -4057,33 +4057,33 @@ def convertTree2NUGANGON(t, keep_BC=False):
 
 def _convertTree2NUGANGON(t, keep_BC=False):
 
-  if keep_BC == True:
-      (BCs,BCNames,BCTypes) = C.getBCs(t)
+    if keep_BC == True:
+        (BCs,BCNames,BCTypes) = C.getBCs(t)
 
-  zones = Internal.getZones(t)
-  for z in zones:
-    dims = Internal.getZoneDim(z)
-    firstzonetype = dims[0]
-    #print(firstzonetype)
-    # Go Unstructured
-    if firstzonetype == 'Structured' :
-      #print('Structured -> Basic')
-      C._convertArray2Hexa(z)
+    zones = Internal.getZones(t)
+    for z in zones:
+        dims = Internal.getZoneDim(z)
+        firstzonetype = dims[0]
+        #print(firstzonetype)
+        # Go Unstructured
+        if firstzonetype == 'Structured' :
+        #print('Structured -> Basic')
+            C._convertArray2Hexa(z)
 
-    (typ, d) = getZoneNSTypeAndDim(z)
-    
-    #print((typ,d))
-    if typ == 'BASIC':
-      #print('BASic -> NGON cassiopee')
-      C._convertArray2NGon(z)
-      if d == 2 : typ = 'NGON_CASSIOPEE'
-    # now it s a NGON (cassiopee or NUGA)
-    if typ == 'NGON_CASSIOPEE':
-      #print('NGON cassiopee -> NUGA')
-      _convertNGON2DToNGON3D(z)
+        (typ, d) = getZoneNSTypeAndDim(z)
 
-  if keep_BC == True:
-      C._recoverBCs(t,(BCs,BCNames,BCTypes))
+        #print((typ,d))
+        if typ == 'BASIC':
+            #print('BASic -> NGON cassiopee')
+            C._convertArray2NGon(z)
+            if d == 2 : typ = 'NGON_CASSIOPEE'
+        # now it s a NGON (cassiopee or NUGA)
+        if typ == 'NGON_CASSIOPEE':
+            #print('NGON cassiopee -> NUGA')
+            _convertNGON2DToNGON3D(z)
+
+    if keep_BC == True:
+        C._recoverBCs(t,(BCs,BCNames,BCTypes))
 
 def centroids(t):
     tj = T.join(t)
@@ -4111,129 +4111,129 @@ def merge(tz, sz, tol = 1.e-15): #target zone, list source zones
     return XOR.merge(m, s, tol)
 
 def concatenate(t, tol = 1.e-15):
-  zones = Internal.getZones(t)
-    
-  
-  ms = []
-  for z in zones:
-    m  = C.getFields(Internal.__GridCoordinates__, z)[0]
-    ms.append(m)
-      
-  res = XOR.concatenate(ms, tol) 
-  m   = res[0]
+    zones = Internal.getZones(t)
 
-  nzone    = len(zones)
-  z_pgnids = []
-  z_phnids = []
-  
-  for i in range(nzone):
-      z_pgnids.append(res[i+1])
-      
-  for i in range(nzone):
-      z_phnids.append(res[i+nzone+1])
-  
-  newz = C.convertArrays2ZoneNode('assembly', [m])
 
-  # Restore BCs
-  zoneBC = Internal.createUniqueChild(newz, "ZoneBC", 'ZoneBC_t')
-  i = 0 
-  for z in zones:
-      BCs  = Internal.getNodesFromType(z, "BC_t")
-      for bc in BCs:
-          pointList = Internal.getNodeFromName(bc, Internal.__FACELIST__)
-          pointList = pointList[1][0]
-          for k in range(len(pointList)):
-              iface = pointList[k]-1 
-              nids  = z_pgnids[i][iface]
-              pointList[k] = nids+1
+    ms = []
+    for z in zones:
+        m  = C.getFields(Internal.__GridCoordinates__, z)[0]
+        ms.append(m)
 
-          # Restore BCDATASET
-          BCDataSets = Internal.getNodesFromType(bc, "BCDataSet_t")
+    res = XOR.concatenate(ms, tol) 
+    m   = res[0]
 
-          for BCDataSet in BCDataSets:
-              # Check size
-              for BCData in Internal.getNodesFromType(BCDataSet, "BCData_t"):
-                  for data in Internal.getNodesFromType(BCData, "DataArray_t"):
-                      if ( len(data[1]) != len(pointList)):
-                          raise ValueError('Concatenate. BC size differs for BCDataSet.')
-              
-              Internal._addChild(bc,BCDataSet)   
-          
-          Internal._addChild(zoneBC, bc)
-                       
-      i = i+1
+    nzone    = len(zones)
+    z_pgnids = []
+    z_phnids = []
 
-  famBC = Internal.getNodesFromType(t, "Family_t")
-  if famBC is not None:
-      Internal._addChild(newz, famBC)
+    for i in range(nzone):
+        z_pgnids.append(res[i+1])
 
-  # Restore fields
-  # --------------
-  # 1/ Compute new elt size and varname list
-  i        = 0
-  new_size = 0
-  varnames = []
-  for z in zones:
-      size_z   = numpy.count_nonzero(z_phnids[i] != -1) # new connectivity size
-      new_size = new_size + size_z
+    for i in range(nzone):
+        z_phnids.append(res[i+nzone+1])
 
-      cont     = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
-     
-      if cont is not None:
-          flds     = Internal.getNodesFromType1(cont, 'DataArray_t')
-      
-          for fld in flds:
-              if fld[0] not in varnames:
-                  varnames.append(fld[0])
-                  
-      i        = i+1
+    newz = C.convertArrays2ZoneNode('assembly', [m])
 
-  for varname in varnames:
-      # a. concatenate all old data for varname variable
-      varglob = None 
-      for z in zones:
-          ncells  = C.getNCells(z)
-          cont    = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
+    # Restore BCs
+    zoneBC = Internal.createUniqueChild(newz, "ZoneBC", 'ZoneBC_t')
+    i = 0 
+    for z in zones:
+        BCs  = Internal.getNodesFromType(z, "BC_t")
+        for bc in BCs:
+            pointList = Internal.getNodeFromName(bc, Internal.__FACELIST__)
+            pointList = pointList[1][0]
+            for k in range(len(pointList)):
+                iface = pointList[k]-1 
+                nids  = z_pgnids[i][iface]
+                pointList[k] = nids+1
 
-          if cont is not None: 
-          
-              varnode = Internal.getNodeFromName(cont, varname)
-              # Put zero if variable does not exist 
-              if varnode is None:
-                  varnode = numpy.zeros(ncells, numpy.float64)
-              else:
-                  varnode = varnode[1]             
+            # Restore BCDATASET
+            BCDataSets = Internal.getNodesFromType(bc, "BCDataSet_t")
 
-          else: # no FlowSolution in z
-              varnode = numpy.zeros(ncells, numpy.float64)
-              
-          if varglob is None:
-              varglob = varnode.ravel('k')
-          else:
-              varglob = numpy.concatenate((varglob,varnode)) 
+            for BCDataSet in BCDataSets:
+                # Check size
+                for BCData in Internal.getNodesFromType(BCDataSet, "BCData_t"):
+                    for data in Internal.getNodesFromType(BCData, "DataArray_t"):
+                        if ( len(data[1]) != len(pointList)):
+                            raise ValueError('Concatenate. BC size differs for BCDataSet.')
 
-              
-              
-      # b. Create new variable
-      C._initVars(newz, 'centers:'+varname, 0)
+                Internal._addChild(bc,BCDataSet)   
 
-      # c. Extract and replace new data array
-      varnew = numpy.zeros(new_size, numpy.float64)
-      i      = 0
-      ik     = 0
-      for z in zones:
-          nelt = len(z_phnids[i])
-          for k in range(nelt):
-              if (z_phnids[i][k] != -1):
-                  varnew[ik] = varglob[z_phnids[i][k]]
-                  ik         = ik + 1
-          i = i+1 
+            Internal._addChild(zoneBC, bc)
 
-      contnew    = Internal.getNodeFromName(newz, Internal.__FlowSolutionCenters__)
-      varnode    = Internal.getNodeFromName(contnew, varname)
-      varnode[1] = varnew
-    
-  return newz
+        i = i+1
+
+    famBC = Internal.getNodesFromType(t, "Family_t")
+    if famBC is not None:
+        Internal._addChild(newz, famBC)
+
+    # Restore fields
+    # --------------
+    # 1/ Compute new elt size and varname list
+    i        = 0
+    new_size = 0
+    varnames = []
+    for z in zones:
+        size_z   = numpy.count_nonzero(z_phnids[i] != -1) # new connectivity size
+        new_size = new_size + size_z
+
+        cont     = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
+
+        if cont is not None:
+            flds     = Internal.getNodesFromType1(cont, 'DataArray_t')
+
+            for fld in flds:
+                if fld[0] not in varnames:
+                    varnames.append(fld[0])
+
+        i        = i+1
+
+    for varname in varnames:
+        # a. concatenate all old data for varname variable
+        varglob = None 
+        for z in zones:
+            ncells  = C.getNCells(z)
+            cont    = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
+
+            if cont is not None: 
+
+                varnode = Internal.getNodeFromName(cont, varname)
+                # Put zero if variable does not exist 
+                if varnode is None:
+                    varnode = numpy.zeros(ncells, numpy.float64)
+                else:
+                    varnode = varnode[1]             
+
+            else: # no FlowSolution in z
+                varnode = numpy.zeros(ncells, numpy.float64)
+
+            if varglob is None:
+                varglob = varnode.ravel('k')
+            else:
+                varglob = numpy.concatenate((varglob,varnode)) 
+
+
+
+        # b. Create new variable
+        C._initVars(newz, 'centers:'+varname, 0)
+
+        # c. Extract and replace new data array
+        varnew = numpy.zeros(new_size, numpy.float64)
+        i      = 0
+        ik     = 0
+        for z in zones:
+            nelt = len(z_phnids[i])
+            for k in range(nelt):
+                if (z_phnids[i][k] != -1):
+                    varnew[ik] = varglob[z_phnids[i][k]]
+                    ik         = ik + 1
+            i = i+1 
+
+        contnew    = Internal.getNodeFromName(newz, Internal.__FlowSolutionCenters__)
+        varnode    = Internal.getNodeFromName(contnew, varname)
+        varnode[1] = varnew
+
+    return newz
 
 def drawOrientation(t):
     zones = Internal.getZones(t)
@@ -4245,7 +4245,7 @@ def drawOrientation(t):
         d=XOR.drawOrientation(m)
         zo.append(C.convertArrays2ZoneNode('z_'+str(i), [d]))
     return zo
-  
+
 #
 def volume(t, fieldname=None):
 
@@ -4261,7 +4261,7 @@ def volume(t, fieldname=None):
         xcelln = None
         if fldname is not None: xcelln = C.getField(fldname, z)
         if xcelln is not None: xcelln = xcelln[0]
-        
+
         z = C.convertArray2NGon(z); z = G.close(z)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         v += XOR.volume(m, xcelln)
@@ -4281,10 +4281,10 @@ def syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
                               rotationAngle=[0.,0.,0.],
                               translation=[0.,0.,0.], tol=-0.01,
                               unitAngle=None, reorient=True):
-  tp = Internal.copyRef(t)
-  _syncMacthPeriodicFaces(tp, rotationCenter, rotationAngle, translation, tol, unitAngle, reorient)
-  return tp
-  
+    tp = Internal.copyRef(t)
+    _syncMacthPeriodicFaces(tp, rotationCenter, rotationAngle, translation, tol, unitAngle, reorient)
+    return tp
+
 def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
                               rotationAngle=[0.,0.,0.],
                               translation=[0.,0.,0.], tol=-0.01,
@@ -4292,50 +4292,50 @@ def _syncMacthPeriodicFaces(t, rotationCenter=[0.,0.,0.],
 
 # WARNING : currently implemented by applying it individually by zone
 
-  if unitAngle in ['Radian', None]: rotationAngleR=rotationAngle
-  elif unitAngle == 'Degree': rotationAngleR=[v*Internal.__DEG2RAD__ for v in rotationAngle]
-  else: raise ValueError('syncMacthPeriodicFaces: value for unitAngle is not valid.')
+    if unitAngle in ['Radian', None]: rotationAngleR=rotationAngle
+    elif unitAngle == 'Degree': rotationAngleR=[v*Internal.__DEG2RAD__ for v in rotationAngle]
+    else: raise ValueError('syncMacthPeriodicFaces: value for unitAngle is not valid.')
 
-  zs = Internal.getZones(t)
-  for z in zs :
-    if reorient == True : _reorient(z)
-    m = C.getFields(Internal.__GridCoordinates__, z)[0]
-    res = XOR.syncMacthPeriodicFaces(m, rotationCenter, rotationAngleR,
-                                      translation, tol)
-    msh = res[0]
-    #print(msh)
-    C.setFields([msh], z, 'nodes')
+    zs = Internal.getZones(t)
+    for z in zs :
+        if reorient == True : _reorient(z)
+        m = C.getFields(Internal.__GridCoordinates__, z)[0]
+        res = XOR.syncMacthPeriodicFaces(m, rotationCenter, rotationAngleR,
+                                          translation, tol)
+        msh = res[0]
+        #print(msh)
+        C.setFields([msh], z, 'nodes')
 
 
 
 #~ def conservativeTransfer(a1, a2, tol=0., reconstruction_type=0):
-    #~ 
-    #~ s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    #~ flowsol1 = C.getFields(Internal.__FlowSolutionCenters__, a1)[0]
-    #~ s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
+        #~ 
+        #~ s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
+        #~ flowsol1 = C.getFields(Internal.__FlowSolutionCenters__, a1)[0]
+        #~ s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
 #~ 
-    #~ flowsol2 = XOR.conservativeTransfer(s1, flowsol1, s2, tol, reconstruction_type)
-    #~ 
-    #~ C._deleteFlowSolutions__(a2)
-    #~ return C.setFields([flowsol2], a2, 'centers')
-    #~ 
+        #~ flowsol2 = XOR.conservativeTransfer(s1, flowsol1, s2, tol, reconstruction_type)
+        #~ 
+        #~ C._deleteFlowSolutions__(a2)
+        #~ return C.setFields([flowsol2], a2, 'centers')
+        #~ 
 #~ def totalMass(a1):
 #~ 
-    #~ s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    #~ flowsol1 = C.getFields(Internal.__FlowSolutionCenters__, a1)[0]
-    #~ 
-    #~ return XOR.totalMass(s1, flowsol1)
-    #~ 
+        #~ s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
+        #~ flowsol1 = C.getFields(Internal.__FlowSolutionCenters__, a1)[0]
+        #~ 
+        #~ return XOR.totalMass(s1, flowsol1)
+        #~ 
 #~ 
 #~ def normL1(a1,a2):
-    #~ 
-    #~ s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    #~ flowsol1 = C.getFields(Internal.__FlowSolutionCenters__, a1)[0]
-    #~ 
-    #~ s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    #~ flowsol2= C.getFields(Internal.__FlowSolutionCenters__, a2)[0]
+        #~ 
+        #~ s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
+        #~ flowsol1 = C.getFields(Internal.__FlowSolutionCenters__, a1)[0]
+        #~ 
+        #~ s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
+        #~ flowsol2= C.getFields(Internal.__FlowSolutionCenters__, a2)[0]
 #~ 
-    #~ return generator.normL1(s1, flowsol1, s2, flowsol2)
+        #~ return generator.normL1(s1, flowsol1, s2, flowsol2)
 #~ 
 def testmain(t):
     m = C.getFields(Internal.__GridCoordinates__, t)[0]

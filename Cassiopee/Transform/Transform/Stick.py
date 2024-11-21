@@ -31,7 +31,7 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
         C._initVars(walls, '{hx} = 0.')
         C._initVars(walls, '{hy} = 0.')
         C._initVars(walls, '{hz} = 0.')
-    
+
         for w in walls:
             if nitSmooth == 0: wp = T.projectOrtho(w, surf)
             else: wp = T.projectOrthoSmooth(w, surf, niter=nitSmooth)
@@ -73,19 +73,19 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
     # Imposed boundaries
     for k in defo:
         defTree.setBndSurfTo(k, "imposed", defo[k])
-    
+
     # Free boundaries
     free = C.extractBCOfName(t, 'FamilySpecified:free', reorder=False)
     for f in free:
         name = f[0].replace('/', '#')
         defTree.setBndSurfTo(name, "free")
-    
+
     # Fixed boundaries
     fixed = C.extractBCOfName(t, 'FamilySpecified:fixed', reorder=False)
     for f in fixed:
         name = f[0].replace('/', '#')
         defTree.setBndSurfTo(name, "null")
-    
+
     # Sliding boundaries
     sliding = C.extractBCOfName(t, 'FamilySpecified:sliding', reorder=False)
     for f in sliding:
@@ -100,5 +100,5 @@ def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
     C._initVars(t, '{CoordinateY}={CoordinateY}+{DisplacementY}')
     C._initVars(t, '{CoordinateZ}={CoordinateZ}+{DisplacementZ}')
     Internal.__FlowSolutionNodes__ = 'FlowSolution'
-    
+
     return None

@@ -47,31 +47,31 @@ def modifyPoint(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if nzs == []:
-       CTK.TXT.insert('START', 'Selection is empty.\n')
-       CTK.TXT.insert('START', 'Error: ', 'Error'); return
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
     if len(nzs) > 1:
-       CTK.TXT.insert('START', 'Please, select only one zone.\n')
-       CTK.TXT.insert('START', 'Error: ', 'Error'); return
+        CTK.TXT.insert('START', 'Please, select only one zone.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
     point = CTK.varsFromWidget(VARS[0].get(), type=1)
     if len(point) != 3:
         CTK.TXT.insert('START', 'Point coords are incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-       
+
     nz = nzs[0]
     nob = CTK.Nb[nz]+1
     noz = CTK.Nz[nz]
     z = CTK.t[2][nob][2][noz]
     ind = CPlot.getActivePointIndex()
     if ind == []: # point in not selected in gfx window but
-       ind = [0]  # a point has only one point
+        ind = [0]  # a point has only one point
     ind = ind[0]
-    
+
     CTK.saveTree()
     zp = Internal.copyTree(z)
     C.setValue(zp, 'CoordinateX', ind, point[0])
     C.setValue(zp, 'CoordinateY', ind, point[1])
     C.setValue(zp, 'CoordinateZ', ind, point[2])
-    
+
     CPlot.replace(CTK.t, nob, noz, zp)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -94,7 +94,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=4)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -104,7 +104,7 @@ def createApp(win):
     # - VARS -
     # -0- point coordinates -
     V = TK.StringVar(win); V.set('0;0;0'); VARS.append(V)
-    
+
     # - Buttons -
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
     B.bind('<Return>', createPoint)
@@ -114,7 +114,7 @@ def createApp(win):
                    command=getPointCoordinates, padx=0)
     B.grid(row=0, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Get point coordinates from mouse.')
-    
+
     B = TTK.Button(Frame, text="Create", command=createPoint)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create a point.')
@@ -147,7 +147,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

@@ -46,10 +46,10 @@ def buildAllBodies__(t_case, distrib, motion=False):
             tb = h.loadAndSplit(NParts=max(1, Cmpi.size))
         #tb = Cmpi.convertFile2SkeletonTree(t_case)
     else: tb = t_case
-    
+
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)    
-        
+
     # tbchim : arbre des corps chimeres 
     tbchim = C.newPyTree()
     tbov = C.newPyTree()
@@ -134,20 +134,20 @@ def buildAllBodies__(t_case, distrib, motion=False):
     Internal._rmNodesFromName(tbov,'GridCoordinates#Init')
     Internal._rmNodesFromName(tbchim,'GridCoordinates#Init')
     Internal._rmNodesFromName(tb,'GridCoordinates#Init')
-    
+
     # for distance field at cell centers
     tball = C.newPyTree(['AllBodies'])
     tball[2][1][2] = Internal.getZones(tbchim) + Internal.getZones(tbibm)
     if dimPb == 2:
         ZMEAN = dz*0.5
         C._initVars(tball, 'CoordinateZ', ZMEAN)
-         
+
     if motion:
         RM._copyGrid2GridInit(tbov)
         RM._copyGrid2GridInit(tbchim)     
-              
+
     return [tb, tbov, tbchim, tbibm, tball, baseNamesChim]
-    
+
 def createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=3, motion=False):
     # Construction de l'arbre des maillages chimeres
     t2 = C.newPyTree()
@@ -175,7 +175,7 @@ def createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=3, motion=False)
         T._addkplane(t2)
         T._contract(t2, (0,0,0), (1,0,0), (0,1,0), dz)
         T._makeDirect(t2)
-        
+
     # Distances a la paroi sur les grilles curvilignes chimere
     if motion:
         DTW._distance2Walls(t2, tbchim, loc='centers', type='ortho')
@@ -200,16 +200,16 @@ def createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=3, motion=False)
                              storage='inverse', sameName=1, dim=dimPb, itype='abutting')
             Cmpi._rmXZones(tc2[2][nob])
             Cmpi._rmXZones(t2[2][nob])
-               
+
     graphMatch={}
     test.printMem(">>> Abutting data [after free]")
     test.printMem(">>> Abutting data [end]")
 
     # C.convertPyTree2File(t2,'t_chim_%d.cgns'%rank)
     # C.convertPyTree2File(tc2,'tc_chim_%d.cgns'%rank)
-        
+
     return t2, tc2
-        
+
 def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=10.,
             tbox=None, snearsf=None, yplus=100., Lref=1.,  
             vmin=21, check=False, NP=0, format='single',   
@@ -227,7 +227,7 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
     IBCType = 1
 
     [tb, tbov, tbchim, tbibm, tball, baseNamesChim] = buildAllBodies__(t_case, distrib, motion)
-    
+
     # dimension du pb
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)   
@@ -239,7 +239,7 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
     if model is None: raise ValueError('GoverningEquations is missing in input tree.')
     model = Internal.getValue(model)
-    
+
     # Construction de l'arbre des maillages chimeres
     t2,tc2 = createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=dimPb, motion=motion)
     # construction de l'arbre des corps pour l'octree : tbibm
@@ -259,7 +259,7 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
                         check2Donly=check2Donly,
                         dict_Nz=dict_Nz,isCartesianExtrude=isCartesianExtrude,isExtrudeByZone=isExtrudeByZone,
                         directory_tmp_files=directory_tmp_files)
- 
+
     # merge trees
     tp1 = Internal.copyRef(t)
     tp2 = Internal.copyRef(t2)
@@ -294,15 +294,15 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
         if len(zname)==2: Internal.setName(zone,zname[1])
     for zone in Internal.getZones(tpc[2][2]):
         Internal._rmNodesFromName(zone,'RANSLES')
-    
+
     if motion: RM._copyGrid2GridInit(tpc)
-    
+
     Internal._rmNodesFromName(tpc,'ZoneRind')
     if isinstance(tc_out, str): 
         #import Compressor.PyTree as Compressor
         #Compressor._compressCartesian(tpc[2][1])
         Cmpi.convertPyTree2File(tpc, tc_out, ignoreProcNodes=True)
-    
+
     # Initialization
     if tinit is None: I._initConst(tp, loc='centers')
     else: 
@@ -371,7 +371,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         if isinstance(tblank,str):
             tbblank = C.convertFile2PyTree(tblank)
         else: tbblank = tblank
-    
+
     if isinstance(t_case, str): 
         h = Filter.Handle(t_case)
         if distrib:
@@ -595,7 +595,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     # Calcul du cellNChim sur CART
     C._initVars(t, 'centers:cellNChim', 1.)
     X._applyBCOverlaps(t, depth=DEPTH, loc='centers', val=2, cellNName='cellNChim')
-        
+
     # Calcul du cellN sur bases Chimere
     C._initVars(t2, 'centers:cellNChim', 1.)
     X._applyBCOverlaps(t2, depth=4, val=2, cellNName='cellNChim')
@@ -660,7 +660,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                                       Internal.__GridCoordinates__,
                                       Internal.__FlowSolutionNodes__,
                                       Internal.__FlowSolutionCenters__)
-        
+
     # setInterpData - Chimere
     C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})')# vaut -3, 0, 1, 2 initialement
 
@@ -679,7 +679,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
     Cmpi._addXZones(tpc, graph, variables=['cellN'], cartesian=False)
     test.printMem(">>> Interpdata [after addXZones]")
-    
+
     procDict = Cmpi.getProcDict(tpc)
     datas = {}
 
@@ -700,7 +700,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
 
             isCartBaseR=False
             if basername == 'CARTESIAN':
-               isCartBaseR=True
+                isCartBaseR=True
 
             # 2nd step : Chimera
             for zrcv in Internal.getZones(basercv):
@@ -814,7 +814,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     C._initVars(tp_cart,'{centers:cellNIBC}={centers:cellNIBC}*({centers:cellNIBC}<2.5)')    
     C._cpVars(tp_cart,'centers:cellNIBC',tp_cart,'centers:cellN')
     C._cpVars(tp_cart,'centers:cellN',tpc_cart,'cellN')
-    
+
     # Transfert du cellNFront
     C._cpVars(tp_cart,'centers:cellNFront',tpc_cart,'cellNFront')
     # propager cellNFront
@@ -826,11 +826,11 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
 
     print('Minimum distance: %f.'%C.getMinValue(tp[2][1],'centers:TurbulentDistance'))
     P._computeGrad2(tp_cart, 'centers:TurbulentDistance', withCellN=False)
-    
+
     test.printMem(">>> Building IBM front [start]")
     front = TIBM.getIBMFront(tpc_cart, 'cellNFront', dim=dimPb, frontType=frontType)
     front = TIBM.gatherFront(front)
-    
+
     if check and rank == 0: C.convertPyTree2File(front, 'front.cgns')
 
     zonesRIBC = []
@@ -931,7 +931,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                     for zd in dnrZones:       
                         zdname = zd[0]
                         destProc = procDict[zdname]
-                        
+
                         #allIDs = Internal.getNodesFromName(zd, 'IBCD*')
                         #IDs = [] 
                         #for zsr in allIDs:
@@ -1043,7 +1043,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         import Compressor.PyTree as Compressor
         Compressor._compressCartesian(tpc[2][1])
         Cmpi.convertPyTree2File(tpc, tc_out, ignoreProcNodes=True)
-    
+
     # Initialisation
     if tinit is None: I._initConst(tp, loc='centers')
     else: 
@@ -1095,7 +1095,7 @@ class IBMO(Common):
         self.__version__ = "0.0"
         self.authors = ["stephanie@onera.fr", "ash@onera.fr"]
         self.cartesian = False
-        
+
     # Prepare 
     def prepare(self, t_case, t_out, tc_out, distrib=False,
                 vmin=21, check=False, frontType=1, NP=None, expand=3, dfarDir=0):

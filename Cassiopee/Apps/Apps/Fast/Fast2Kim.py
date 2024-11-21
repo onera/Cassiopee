@@ -33,7 +33,7 @@ DEFAULT_REPRISE = 1
 
 #=======================================
 class KIM:
-                                   
+
     def __init__(self, config):
         '''Object constructor'''
         # Data input
@@ -41,7 +41,7 @@ class KIM:
         self.kimDir = './KIM'
         self.kimEntreeDir = self.kimDir+os.sep+'ENTREES'         
         self.kimAeroDir = self.kimEntreeDir+os.sep+'AERO' 
-        
+
         # Automatically executed functions
         self.createDirs()
         self.update_config_w_default_values()
@@ -74,7 +74,7 @@ class KIM:
             self.config["omega"] = DEFAULT_OMEGA
         if "it_reprise" not in self.config:
             self.config["it_reprise"] = DEFAULT_REPRISE
-            
+
     def createDirs(self):
         '''Create the KIM directories'''
         try: os.makedirs(self.kimDir)
@@ -367,7 +367,7 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
         # Lit le fichier des probes
         t = Cmpi.convertFile2SkeletonTree(self.config['filename'])
         zones = Internal.getZones(t)
-        
+
         # write dim dom entetes des domaines
         if self.config['it_reprise']==1:
             dimdom = open(self.kimEntreeDir+os.sep+'dimdom.in','a')
@@ -388,7 +388,7 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
                 dimdom.write(str(indom)+' '+str(indom)+' '+str(dim[0])+' '+str(dim[1])+' '+str(dim[2])+'  1  '+ str(dim[0])+'  1  '+str(dim[1])+' 1  1 '+str(nuikim)+' '+str(invnorm)+'\n')
             dimdom.close()
 
-        
+
         # Pour chaque domaine, load tous les instants
         checkZones = [] # Pour verification
         for iDom, zone in enumerate(zones):
@@ -403,7 +403,7 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
             for nc in range(ncont):
                 paths = ['CGNSTree/Base/%s/GridCoordinates#%d'%(zone[0],nc)]
                 paths += ['CGNSTree/Base/%s/FlowSolution#Centers#%d'%(zone[0],nc)]
-                
+
                 nodes2 = Distributed.readNodesFromPaths(self.config['filename'], paths)
                 px = Internal.getNodeFromName(nodes2[0], 'CoordinateX')[1]
                 nrec = px.shape[0]-1 # 50
@@ -425,7 +425,7 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
                     op = Internal.newDataArray('Pressure', value=p, parent=fs)
                     cz = C.center2Node(cz, 'FlowSolution#Centers')
                     cz = Internal.rmNodesByName(cz, 'FlowSolution#Centers')
-                    
+
                     if self.config['form_file']=='bin': 
                         #fich = FortranFile(kimAeroFile, 'w')
                         #fich.write_record(px)
@@ -494,6 +494,6 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
                     else:
                         C.convertPyTree2File(cz, kimAeroFile, 'fmt_tp')
                     itglob += 1
-                    
+
         #Internal.printTree(checkZones)
         #C.convertPyTree2File(checkZones, 'out%d.cgns'%nc)

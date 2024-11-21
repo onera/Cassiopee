@@ -40,7 +40,7 @@ def checkModuleImport(moduleName, raiseOnError=True):
         else:
             print("FAILED: %s"%inst)
             print("FAILED: %s badly installed."%moduleName)
-        
+
 #==============================================================================
 # Return informations on the current operating system
 # Return: Unix, Windows, Darwin, Java, mingw + bits of the system ('32', '64')
@@ -74,8 +74,8 @@ def getSystem():
 # Return '' if name is not in environ
 #==============================================================================
 def getenv(name):
-     if name in os.environ: return os.environ[name]
-     else: return ''
+    if name in os.environ: return os.environ[name]
+    else: return ''
 
 #==============================================================================
 # Get name of the Data folder
@@ -202,7 +202,7 @@ def getInstallPath(prefix):
     #Site = pythonLib[-1]
     #Lib = pythonLib[-3]    
     #installPath = '%s/%s/%s/%s'%(prefix, Lib, pythonVersion, Site)
-    
+
     # Based on distutils (to be su)
     if os.environ['ELSAPROD'][0:6] == 'msys64' or os.environ['ELSAPROD'] == 'win64':
         pythonLib = distutils.sysconfig.get_python_lib()
@@ -238,7 +238,7 @@ def getInstallPath(prefix):
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
     return installPath
-    
+
 #==============================================================================
 # Functions returning the names of the remote repo & branch and the commit hash
 #==============================================================================    
@@ -302,9 +302,9 @@ def writeInstallPath():
         if re.compile('--prefix=').search(i) is not None: prefix = i[9:] # setup
         elif re.compile('prefix=').search(i) is not None: prefix = i[7:] # setup
         elif re.compile('--prefix').search(i) is not None: prefix = a[c+1] # pip
-        
+
     installPath = getInstallPath(prefix)
-    
+
     p = open('installPath.py', 'w')
     if p is None:
         raise SystemError("Error: can not open file installPath.py for writing.")
@@ -313,9 +313,9 @@ def writeInstallPath():
     if mySystem == 'Windows' or mySystem == 'mingw': Lib = 'Lib'
     elif mySystem == 'Darwin': Lib = 'lib'
     else:
-         pythonLib = distutils.sysconfig.get_python_lib()
-         pythonLib = pythonLib.split('/')
-         Lib = pythonLib[-3]
+        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = pythonLib.split('/')
+        Lib = pythonLib[-3]
     if os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
         p.write('libPath = \'%s/local/%s\'\n'%(prefix,Lib))
     else:
@@ -329,7 +329,7 @@ def writeInstallPath():
     p.write('gitBranch = \'%s\'\n'%(gitBranch))
     p.write('gitHash = \'%s\'\n'%(gitHash))
     p.close()
-    
+
 #==============================================================================
 # Write env files
 # Directement dans le repertoire d'installation
@@ -507,35 +507,35 @@ def getDistUtilsCompilers():
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('clang', 'clang++')
         elif Cppcompiler == 'clang++':
             vars[0] = Cppcompiler.replace('clang++', 'clang'); vars[1] = Cppcompiler
-        
+
         elif Cppcompiler == 'pgcc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('pgcc', 'pgc++')
         elif Cppcompiler == 'pgc++':
             vars[0] = Cppcompiler.replace('pgc++', 'pgcc'); vars[1] = Cppcompiler
-            
+
         elif Cppcompiler == 'craycc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('craycc', 'craycxx')
         elif Cppcompiler == 'craycxx':
             vars[0] = Cppcompiler.replace('craycxx', 'craycc'); vars[1] = Cppcompiler
-            
+
         elif Cppcompiler == 'cc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler
-            
+
         elif Cppcompiler == 'nvc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('nvc', 'nvc++')
         elif Cppcompiler == 'nvc++':
             vars[0] = Cppcompiler.replace('nvc++', 'nvc'); vars[1] = Cppcompiler
-            
+
         elif Cppcompiler.find('g++') != -1: # g++-version + mingw-g++-version
             vars[0] = Cppcompiler.replace('g++', 'gcc'); vars[1] = Cppcompiler
         elif Cppcompiler.find('gcc') != -1:
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('gcc', 'g++')
-            
+
         elif Cppcompiler == 'icpc':
             vars[0] = Cppcompiler.replace('icpc', 'icc'); vars[1] = Cppcompiler
         elif Cppcompiler == 'icc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icc', 'icpc')
-            
+
         elif Cppcompiler == 'icpx':
             vars[0] = Cppcompiler.replace('icpx', 'icx'); vars[1] = Cppcompiler
         elif Cppcompiler == 'icx':
@@ -875,19 +875,19 @@ def getCArgs():
         if DEBUG:
             options += ['-g', '-O0', '-wd47', '-wd1224', '-fp-trap=divzero,overflow,invalid']
         else: options += ['-DNDEBUG', '-O2', '-wd47', '-wd1224']
-         
+
         # hack pour intel 19
         if v[0] == 19:
             for c, o in enumerate(options):
                 if o == '-O2': options[c] = '-O1'
-             
+
         if v[0] < 15:
-           options += ['-fp-speculation=strict']
+            options += ['-fp-speculation=strict']
         else:
-           options += ['-fp-model=precise'] # modif 2.6
+            options += ['-fp-model=precise'] # modif 2.6
         if useOMP() == 1:
-           if v[0] < 15: options += ['-openmp']
-           else: options += ['-qopenmp']
+            if v[0] < 15: options += ['-openmp']
+            else: options += ['-qopenmp']
         if useStatic() == 1: options += ['-static']
         else: options += ['-fPIC']
         options += getSimdOptions()
@@ -902,8 +902,8 @@ def getCArgs():
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
         else: options += ['-fPIC']
         if mySystem[0] == 'mingw' and mySystem[1] == '32':
-             options.remove('-fPIC')
-             options += ['-large-address-aware']
+            options.remove('-fPIC')
+            options += ['-large-address-aware']
         options += getSimdOptions()
         return options
     elif Cppcompiler == "icl.exe":
@@ -1112,30 +1112,30 @@ def getLinkArgs():
     if Cppcompiler == 'gcc' or Cppcompiler == 'g++':
         if useStatic() == 1: out += ['--static']
     elif Cppcompiler == 'icc' or Cppcompiler == 'icpc':
-         if useStatic() == 1: out += ['-static']
+        if useStatic() == 1: out += ['-static']
     elif Cppcompiler == 'icx' or Cppcompiler == 'icpx':
-         if useStatic() == 1: out += ['-static']
-         else: out += ['-shared']
+        if useStatic() == 1: out += ['-static']
+        else: out += ['-shared']
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
-         if useStatic() == 1: out += ['--static']
+        if useStatic() == 1: out += ['--static']
     elif Cppcompiler == 'pgcc' or Cppcompiler == 'pgc++':
-         if useStatic() == 1: out += ['-static']
-         else: out += ['-shared']
-         if useOMP() == 1: out += ['-mp=multicore']
-         if useCuda() == 1: out += ['-acc=gpu', '-Minfo:accel']
+        if useStatic() == 1: out += ['-static']
+        else: out += ['-shared']
+        if useOMP() == 1: out += ['-mp=multicore']
+        if useCuda() == 1: out += ['-acc=gpu', '-Minfo:accel']
     elif Cppcompiler == 'nvc' or Cppcompiler == 'nvc++':
-         if useStatic() == 1: out += ['-static']
-         else: out += ['-shared']
-         if useOMP() == 1: out += ['-mp=multicore']
-         if useCuda() == 1: out += ['-acc=gpu', '-Minfo:accel']
+        if useStatic() == 1: out += ['-static']
+        else: out += ['-shared']
+        if useOMP() == 1: out += ['-mp=multicore']
+        if useCuda() == 1: out += ['-acc=gpu', '-Minfo:accel']
     elif Cppcompiler == 'craycc' or Cppcompiler == 'craycxx':
-         if useStatic() == 1: out += ['-static']
-         else: out += ['-shared']
-         if useOMP() == 1: out += ['-fopenmp']
+        if useStatic() == 1: out += ['-static']
+        else: out += ['-shared']
+        if useOMP() == 1: out += ['-fopenmp']
     elif Cppcompiler == 'cc':
-         if useStatic() == 1: out += ['-static']
-         else: out += ['-shared']
-         if useOMP() == 1: out += ['-fopenmp']
+        if useStatic() == 1: out += ['-static']
+        else: out += ['-shared']
+        if useOMP() == 1: out += ['-fopenmp']
     mySystem = getSystem()[0]
     if mySystem == 'Darwin':
         if useStatic() == 0: out += ['-dynamiclib']
@@ -1170,9 +1170,9 @@ def checkLdLibraryPath():
     if a is None and b is None:
         print("Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
     else:
-         if a is not None: ret = a
-         else: ret = b
-         if re.compile(libPath).search(ret) is None:
+        if a is not None: ret = a
+        else: ret = b
+        if re.compile(libPath).search(ret) is None:
             print("Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
 
 #=============================================================================
@@ -1504,7 +1504,7 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
     if l is None:
         l = checkLibFile__('osmesa.dll.a', additionalLibPaths)
         if l is not None: libname = 'osmesa'
-        
+
     i = checkIncFile__('GL/osmesa.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: libOSmesa detected at %s.'%l)
@@ -1815,7 +1815,7 @@ def checkParadigma(additionalLibPaths=[], additionalIncludePaths=[]):
     else:
         #print('Info: libpdm or pdm.h was not found on your system. No paradigma support.')
         return (False, i, l)
-    
+
 #=============================================================================
 # Check for BLAS
 # additionalPaths: chemins d'installation non standards: ['/home/toto',...]
@@ -1906,7 +1906,7 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
         if l is None:
             l = checkLibFile__(libPrefix+'lapacke*.a', additionalLibPaths)
         if l is not None: libnames.append(libname); foundLapacke = l
-    
+
         l = None
         if foundLapack is not None: l = foundLapack
         elif foundLapacke is not None: l = foundLapacke
@@ -2070,7 +2070,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             l = checkLibFile__('libnvf.a', additionalLibPaths)
         if l is not None:
             libs += ['nvf', 'rt']; paths += [l]
-        
+
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
             if l is None:
@@ -2086,7 +2086,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             l = checkLibFile__('libnvf.a', additionalLibPaths)
         if l is not None:
             libs += ['nvf', 'rt']; paths += [l]
-        
+
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
             if l is None:
@@ -2094,7 +2094,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             if l is not None:
                 libs += ['nvomp']; paths += [l]
             else: ret = False
-            
+
     # crayftn
     if f77compiler == 'crayftn':
         l = checkLibFile__('libf.so*', additionalLibPaths)
@@ -2102,7 +2102,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             l = checkLibFile__('libf.a', additionalLibPaths)
         if l is not None:
             libs += ['f', 'rt']; paths += [l]
-        
+
         #if useOMP:
         #    l = checkLibFile__('libomp.so*', additionalLibPaths)
         #    if l is None:
@@ -2159,7 +2159,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             if l is None:
                 l = checkLibFile__('libasan.a', additionalLibPaths)
             if l is not None: libs += ["asan"]
-            
+
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)
             if l is None:
@@ -2179,7 +2179,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         #    l = checkLibFile__('libchkpwrap.a', additionalLibPaths)
         #    if l is not None:
         #        libs += ['chkpwrap', 'chkp']; paths += [l]
-               
+
         if useOMP:
             l = checkLibFile__('libguide.so*', additionalLibPaths)
             if l is None:
@@ -2208,7 +2208,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             l = checkLibFile__('libstdc++.a', additionalLibPaths)
         if l is not None:
             libs += ['stdc++']; paths += [l]
-               
+
         if useOMP:
             l = checkLibFile__('libguide.so*', additionalLibPaths)
             if l is None:
@@ -2299,7 +2299,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         #        libs += ['omp']; paths += [l]
         #    else: ret = False
         # craycc
-        
+
     if Cppcompiler == 'cc':
         os.environ['CC'] = 'cc' # forced to overide setup.cfg
         os.environ['CXX'] = 'cc'
@@ -2313,7 +2313,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             l = checkLibFile__('libsci_cray.a', additionalLibPaths)
         if l is not None:
             libs += ['sci_cray']; paths += [l]
-    
+
     return (ret, libs, paths)
 
 #==============================================================================
@@ -2457,7 +2457,7 @@ def writeBuildInfo():
 def writeInstallBase(dict):
     p = open("installBase.py", 'w')
     if p is None:
-       raise SystemError("Error: can not open file installBase.py for writing.")
+        raise SystemError("Error: can not open file installBase.py for writing.")
 
     # Write doc
     p.write("# This is the dictionary keeping track of installation.\n# The key is the machine name or ELSAPROD name. For each key a list is stored.\n# [description, \n# f77compiler, libfortdir, libfort, f90compiler, libf90dir, libf90, \n# Cppcompiler, libCpp, useOMP, \n# pngPath, mpegPath, adfPath, hdfPath].\n# Path are list of strings. useOMP, static are booleans. \n# Others are strings.\n")
@@ -2655,7 +2655,7 @@ def findAllDeps(filename, deps={}, cache=None):
         allIncludes.update(nestedDeps)
     cache[filename] = allIncludes
     return sorted(allIncludes) # sorting is important, recompiles all otherwise
-    
+
 # Ajoute les dependances au Fortran builder
 def envFortranWithDeps(env, filename, deps={}):
     if filename.endswith('90'): target = filename
@@ -2848,7 +2848,7 @@ def createCythonFiles(env, srcs):
         base = os.path.dirname(str(i))
         deps += env.Install('../../'+base, i)
     return deps
-    
+
 #==============================================================================
 # Create static library and copy built files to installPath
 #==============================================================================
@@ -2890,4 +2890,4 @@ def copyBuiltFiles(env, staticLib, moduleName, installPath):
 
 #==============================================================================
 if __name__ == "__main__":
-   checkAll()
+    checkAll()

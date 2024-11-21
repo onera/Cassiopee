@@ -37,7 +37,7 @@ def updateVarNameList2__(no):
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
         vars = C.getVarNames(CTK.t[2][nob][2][noz])
-    
+
     allvars = []
     if len(vars) > 0:
         for v in vars[0]: allvars.append(v)
@@ -74,12 +74,12 @@ def compute():
         if len(center) != 3:
             CTK.TXT.insert('START', 'Center for moment integration is incorrect.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     res1 = 0.; res2 = 0.; res3 = 0.
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -102,7 +102,7 @@ def compute():
         res = [res1,res2,res3]
     else: res = res1
     CTK.TXT.insert('START', 'Res='+str(res)+'.\n')
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -121,7 +121,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -156,7 +156,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Compute", command=compute)
     B.grid(row=0, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Compute integration on contour/surface.')
-    
+
     # - Menu des variables -
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
@@ -204,13 +204,13 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 3 (v3).')
         WIDGETS['variable3'] = B
     else:
-         B = ttk.Combobox(F, textvariable=VARS[4], 
-                          values=[], state='readonly', width=10)
-         B.grid(sticky=TK.EW)
-         F.bind('<Enter>', updateVarNameList3_2)
-         F.grid(row=1, column=2, sticky=TK.EW)
-         BB = CTK.infoBulle(parent=B, text='Variable 3 (v3).')
-         WIDGETS['variable3'] = B
+        B = ttk.Combobox(F, textvariable=VARS[4], 
+                         values=[], state='readonly', width=10)
+        B.grid(sticky=TK.EW)
+        F.bind('<Enter>', updateVarNameList3_2)
+        F.grid(row=1, column=2, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Variable 3 (v3).')
+        WIDGETS['variable3'] = B
 
 #==============================================================================
 # Called to display widgets
@@ -236,7 +236,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

@@ -61,7 +61,7 @@ def stretch1D(h):
     ind = CPlot.getActivePointIndex()
     if ind == []: return True # Fail
     ind = ind[0]
-    
+
     zp = D.getCurvilinearAbscissa(z)
     l = D.getLength(a)
     a = D.getCurvilinearAbscissa(a)
@@ -72,7 +72,7 @@ def stretch1D(h):
 
     N = dims[1]
     val = C.getValue(zp, 's', ind)
-    
+
     Xc = CPlot.getActivePoint()
     valf = val
     Pind = C.getValue(z, 'GridCoordinates', ind)
@@ -92,7 +92,7 @@ def stretch1D(h):
             val2 = C.getValue(zp, 's', ind-1)
             alpha = Vector.norm(v2)/Vector.norm(v1)
             valf = val+alpha*(val2-val)
-    
+
     if h < 0: # enforce point
         distrib = G.enforcePoint(distrib, valf)
     else: # enforce h
@@ -172,9 +172,9 @@ def setEnforceMode(event=None):
         TTK.raiseButton(W)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(W)
-       CPlot.setState(cursor=0)
+        CTK.__BUSY__ = False
+        TTK.raiseButton(W)
+        CPlot.setState(cursor=0)
 
 def enforceH(event=None):
     v = CTK.varsFromWidget(VARS[10].get(), 1)
@@ -203,7 +203,7 @@ def enforceH(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.TXT.insert('START', 'Spacings enforced.\n')
-        
+
     # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
@@ -550,7 +550,7 @@ def forceIJK(i,j,k,ni,nj,nk):
         se.sort()
         for s in se:
             if s[0] != 0: bcf = s[1]; break
-        
+
         if bcf == 'i1': i = 1
         elif bcf == 'i2': i = ni
         elif bcf == 'j1': j = 1
@@ -630,7 +630,7 @@ def getEdges3D(zone, factor):
     f4 = T.subzone(zone, (1,nj,1), (ni,nj,nk))
     f5 = T.subzone(zone, (1,1,1), (1,nj,nk))
     f6 = T.subzone(zone, (ni,1,1), (ni,nj,nk))
-    
+
     ue = [e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12] # unmodified edges
     uf = [f1,f2,f3,f4,f5,f6] # unmodified faces
 
@@ -719,7 +719,7 @@ def getEdges3D(zone, factor):
     for i in m+r: ue.remove(i)
     for i in f: uf.remove(i)
     return m, r, f, ue, uf, ind
-        
+
 #==============================================================================
 def uniformize(event=None):
     if CTK.t == []: return
@@ -790,12 +790,12 @@ def uniformize(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
     # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
     CTK.setCursor(0, WIDGETS['frame'])
-    
+
 #==============================================================================
 def enforce(event=None):
     if CTK.t == []: return
@@ -947,7 +947,7 @@ def smooth(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
     # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
@@ -1019,7 +1019,7 @@ def copyDistrib():
     noz = CTK.Nz[nz]
     zone = CTK.t[2][nob][2][noz]
     dim = Internal.getZoneDim(zone)
-    
+
     # subzone de source eventuellement
     if dimSource[4] == 2: # source est 2D
         ind = CPlot.getActivePointIndex()
@@ -1051,7 +1051,7 @@ def copyDistrib():
     C._initVars(source, 'CoordinateY', 0)
     C._initVars(source, 'CoordinateZ', 0)
     source = C.rmVars(source, 's')
-    
+
     # Traitement
     if dim[0] == 'Structured':
         if dim[2] != 1 and dim[3] != 1: 
@@ -1070,7 +1070,7 @@ def copyDistrib():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
     # CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
@@ -1136,12 +1136,12 @@ def enforceLocal(event=None):
 
     CTK.saveTree()
     CPlot.setState(cursor=1)
-    
+
     # split zone of width
     ind = CPlot.getActivePointIndex()
     if ind == []: return
     ind = ind[0]
-    
+
     P0 = C.getValue(z, 'GridCoordinates', ind)
     if ind == npts-1: P1 = C.getValue(z, 'GridCoordinates', ind-1)
     else: P1 = C.getValue(z, 'GridCoordinates', ind+1)
@@ -1153,7 +1153,7 @@ def enforceLocal(event=None):
     delta = int(width*npts)+1
     imin = ind+1-delta
     imax = ind+1+delta
-    
+
     CAD = Internal.getNodeFromName1(z, 'CAD')
     render = Internal.getNodeFromName1(z, '.RenderInfo')
 
@@ -1188,7 +1188,7 @@ def enforceLocal(event=None):
 
     if zp1 is None: h1 = h2
     if zp2 is None: h2 = h1
-    
+
     #if z0 is None: h1 = (h1+h)*0.5
     #if z1 is None: h2 = (h2+h)*0.5
 
@@ -1251,7 +1251,7 @@ def createApp(win):
     Frame.columnconfigure(2, weight=2)
     Frame.columnconfigure(3, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -1338,7 +1338,7 @@ def createApp(win):
     B.grid(row=3, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of smoother iterations.')
     B.bind('<Return>', smooth)
-    
+
     # - Enforce -
     #B = TTK.Button(Frame, text="Set", command=setEnforce)
     #B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
@@ -1379,7 +1379,7 @@ def createApp(win):
                   showvalue=0, borderwidth=1, value=50)
     WIDGETS['widthScale'] = B
     B.grid(row=6, column=3, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -1407,7 +1407,7 @@ def saveApp():
     CTK.PREFS['tkMapEdgeSmoothIt'] = VARS[6].get()
     CTK.PREFS['tkMapEdgeSmoothEps'] = VARS[7].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[1].set('1.e-6')
@@ -1421,7 +1421,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

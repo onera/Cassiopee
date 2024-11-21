@@ -156,10 +156,10 @@ def refine():
         if dim[3] == 'TRI': # raffinement TRI
             niter = int(round(power / 2.,0))
             for i in range(niter):
-                 #z = C.initVars(z, 'centers:__indic__', 1)
-                 #z = P.refine(z, 'centers:__indic__')
-                 P._refine(z, w=1./16.) # butterfly
-                 #z = C.rmVars(z, 'centers:__indic__')
+                #z = C.initVars(z, 'centers:__indic__', 1)
+                #z = P.refine(z, 'centers:__indic__')
+                P._refine(z, w=1./16.) # butterfly
+                #z = C.rmVars(z, 'centers:__indic__')
             CTK.replace(CTK.t, nob, noz, z)
 
         elif dim[3] == 'BAR' or dim[0] == 'Structured':
@@ -363,7 +363,7 @@ def createApp(win):
     WIDGETS['slider'] = B
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
-    
+
     # - Direction -
     B = TTK.OptionMenu(Frame, VARS[1], 'i-indices', 'j-indices', 'k-indices',
                        'i-j-k indices')
@@ -446,7 +446,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

@@ -42,7 +42,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
                    loc='centers', signed=0, dim=3, isIBM_F1=False, dTarget=1000.):
     """Compute distance to walls.
        Usage: distance2Walls(zones, bodies, cellnbodies, type, loc, signed, dim)"""
-      
+
     # firewalls
     if len(zones) == 0: return
     if bodies == []:

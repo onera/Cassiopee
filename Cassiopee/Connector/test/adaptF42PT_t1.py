@@ -29,7 +29,7 @@ def _initYplusTargetPoints(tc):
                     ZPC = Internal.getNodeFromName(zsr, 'CoordinateZ_PC')[1]
 
                     distCW = numpy.sqrt( (XPW-XPC)*(XPW-XPC) + (YPW-YPC)*(YPW-YPC) + (ZPW-ZPC)*(ZPW-ZPC))
-                   
+
                     Internal.getNodeFromName(zsr, 'yplus')[1] = distCW*(4000/hmod)
     return None
 

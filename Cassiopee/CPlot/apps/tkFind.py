@@ -158,14 +158,14 @@ def createApp(win):
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkFind')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- type (node/elements/coordinates) -
     V = TK.StringVar(win); V.set('Node index'); VARS.append(V)
     if 'tkFindDataType' in CTK.PREFS: V.set(CTK.PREFS['tkFindDataType'])
     # -1- value -
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    
+
     # - Value -
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White')
     B.bind('<Return>', find)
@@ -195,7 +195,7 @@ def showApp():
     try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkFind')
     except: pass
     CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
@@ -218,11 +218,11 @@ def resetApp():
     VARS[0].set('Node index')
     CTK.PREFS['tkFindDataType'] = VARS[0].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

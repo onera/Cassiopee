@@ -23,7 +23,7 @@ def F(x,y,z):
         print('Error : unknown degree of polynomials')
         import sys
         sys.exit()
-        
+
 # Maillage en noeuds
 ni = 101; nj = 101; nk = 11
 m = G.cylinder((0,0,0), 1., 10.,45., 145., 1., (ni,nj,nk))

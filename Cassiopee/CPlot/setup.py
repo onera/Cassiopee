@@ -43,7 +43,7 @@ if MPEG:
         libraries += ["avcodec", "avutil"]
         libraryDirs += [mpegLib]
         includeDirs += [mpegIncDir]
-    
+
 libraryDirs += [kcoreLibDir]
 libraries += ["kcore"]
 

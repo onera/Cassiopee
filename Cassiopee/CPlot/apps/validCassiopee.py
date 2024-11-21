@@ -78,7 +78,7 @@ class NoDisplayListbox:
     def config(self, *args, **kwargs): pass
     def update(self, *args, **kwargs): pass
     def yview(self, *args, **kwargs): pass
-    
+
     def insert(self, pos, entry):
         if isinstance(pos, int):
             self._data.insert(pos, entry)
@@ -86,7 +86,7 @@ class NoDisplayListbox:
         else:
             self._data.append(entry)
             self._active.append(False)
-    
+
     def delete(self, pos, posEnd=None):
         if not self._data: return
         pos = int(pos)
@@ -106,7 +106,7 @@ class NoDisplayListbox:
         delIds = list(range(pos, posEnd))
         self._data = [self._data[i] for i in range(ndata) if i not in delIds]
         self._active = [self._active[i] for i in range(ndata) if i not in delIds]
-    
+
     def selection_set(self, pos, posEnd=None):
         pos = int(pos)
         ndata = len(self._data)
@@ -121,37 +121,37 @@ class NoDisplayListbox:
             # A range of new active entries
             posEnd = min(int(posEnd), ndata)
         for i in range(pos, posEnd): self._active[i] = True
-    
+
     def curselection(self):
         return [i for i, state in enumerate(self._active) if state]
     def get(self, pos): return self._data[pos]
-    
+
 class NoDisplayIntVar:
     def __init__(self, value, *args, **kwargs): self._value = int(value)
     def set(self, value): self._value = int(value)
     def get(self): return self._value
-        
+
 class NoDisplayStringVar:
     def __init__(self, *args, **kwargs): self._filters = ""
     def set(self, filters): self._filters = str(filters)
     def get(self): return self._filters
-        
+
 class NoDisplayLabel:
     def __init__(self, *args, **kwargs): pass
     def grid(self, *args, **kwargs): pass
     def config(self, *args, **kwargs): pass
     def update(self, *args, **kwargs): pass
-    
+
 class NoDisplayButton:
     def __init__(self, *args, **kwargs): pass
     def configure(self, *args, **kwargs): pass
-    
+
 class NoDisplayEntry:
     def __init__(self, *args, **kwargs): pass
     def grid(self, *args, **kwargs): pass
     def bind(self, *args, **kwargs): pass
     def update(self, *args, **kwargs): pass
-    
+
 class NoDisplayScrollbar:
     def __init__(self, *args, **kwargs): pass
     def grid(self, *args, **kwargs): pass
@@ -163,36 +163,36 @@ class NoDisplayScrollbar:
 # Get installation paths of Cassiopee, Fast and all PModules
 #==============================================================================
 def getInstallPaths():
-  try:
-      # Check installPath
-      import KCore.installPath
-      cassiopeeIncDir = KCore.installPath.includePath
-      cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
-  except ImportError:
-      raise SystemError("Error: KCore module is required to use this script.")
-  try:
-      import FastC.installPath
-      fastIncDir = FastC.installPath.includePath
-      fastIncDir = os.path.dirname(fastIncDir)
-  except: 
-      fastIncDir = None
-  pmodulesDir = os.path.join(os.path.dirname(os.path.dirname(cassiopeeIncDir)),
-                             'PModules')
-  if not os.path.isdir(pmodulesDir): pmodulesDir = None
-  
-  return cassiopeeIncDir, fastIncDir, pmodulesDir
-                        
+    try:
+        # Check installPath
+        import KCore.installPath
+        cassiopeeIncDir = KCore.installPath.includePath
+        cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
+    except ImportError:
+        raise SystemError("Error: KCore module is required to use this script.")
+    try:
+        import FastC.installPath
+        fastIncDir = FastC.installPath.includePath
+        fastIncDir = os.path.dirname(fastIncDir)
+    except: 
+        fastIncDir = None
+    pmodulesDir = os.path.join(os.path.dirname(os.path.dirname(cassiopeeIncDir)),
+                               'PModules')
+    if not os.path.isdir(pmodulesDir): pmodulesDir = None
+
+    return cassiopeeIncDir, fastIncDir, pmodulesDir
+
 def checkEnvironment():
-  # Check environment
-  cassiopee = os.getenv('CASSIOPEE')
-  if cassiopee is None or cassiopee == '':
-    print('Error: CASSIOPEE must be present in your environment.')
-    sys.exit()
-  
-  # Cannot work because of symbolic links to prods on juno
-  #if os.path.join(cassiopee, "Cassiopee") != getInstallPaths()[0]:
-  #    print("Error: Path mismatch between $CASSIOPEE and KCore/installPath")
-  #    sys.exit()
+    # Check environment
+    cassiopee = os.getenv('CASSIOPEE')
+    if cassiopee is None or cassiopee == '':
+        print('Error: CASSIOPEE must be present in your environment.')
+        sys.exit()
+
+    # Cannot work because of symbolic links to prods on juno
+    #if os.path.join(cassiopee, "Cassiopee") != getInstallPaths()[0]:
+    #    print("Error: Path mismatch between $CASSIOPEE and KCore/installPath")
+    #    sys.exit()
 
 #==============================================================================
 # Simulate check_output since it doesn't exist for early version of python
@@ -206,7 +206,7 @@ def check_output(cmd, shell, stderr):
     mode = 4
 
     #if (version0 == 2 and version1 >= 7) or (version0 == 3 and version1 >= 2) or version0 > 3:
-    
+
     if mode == 0: # avec check_output
         out = subprocess.check_output(cmd, shell=shell, stderr=stderr)
         return out
@@ -217,7 +217,7 @@ def check_output(cmd, shell, stderr):
     elif mode == 2: # avec Popen + python 2.7
         import shlex
         cmd = shlex.split(cmd)
-        
+
         wdir = '.'
         # modifie cd en working dir
         if cmd[0] == 'cd': wdir = cmd[1]; cmd = cmd[3:]
@@ -242,7 +242,7 @@ def check_output(cmd, shell, stderr):
             ti += 's'
             out += ti
         return out
-        
+
     elif mode == 3: # avec Popen + python 3
         cmd = cmd.split(' ')
         wdir = '.'
@@ -280,12 +280,12 @@ def check_output(cmd, shell, stderr):
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir,
                                    shell=shell, preexec_fn=ossid)
-        
+
         # max accepted time is between 2 to 6 minutes
         nthreads = float(KCore.kcore.getOmpMaxThreads())
         timeout = (100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
         stdout, stderr = PROCESS.communicate(None, timeout=timeout)
-        
+
         if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
         return stdout+stderr
@@ -388,7 +388,7 @@ def setPaths():
                         continue
                     a = os.access(os.path.join(path, i, 'test'), os.F_OK)
                     if a: MODULESDIR[loc][i] = path
-        
+
         print('Info: getting {} module names in: {}.'.format(
             loc.lower(), cassiopeeIncDir))
         try: mods = os.listdir(cassiopeeIncDir)
@@ -398,22 +398,22 @@ def setPaths():
                 a = os.access(os.path.join(cassiopeeIncDir, i, 'test'), os.F_OK)
                 if a: 
                     MODULESDIR[loc][i] = cassiopeeIncDir
-        
+
         # Validation CFD
         MODULESDIR[loc]['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
-    
+
     global VALIDDIR
     # Module paths when the local base is used
     cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
     _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='LOCAL')
-    
+
     # Local valid paths
     VALIDDIR['LOCAL'] = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee',
                                      'Valid{}'.format(DATA))
     if not os.access(VALIDDIR['LOCAL'], os.W_OK):
         VALIDDIR['LOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
         if not os.path.isdir(VALIDDIR['LOCAL']): os.mkdir(VALIDDIR['LOCAL'])
-    
+
     # Module paths when the global base is used
     parentDirname = os.path.join('/stck', 'cassiope', 'git')
     if os.access(parentDirname, os.R_OK):
@@ -423,7 +423,7 @@ def setPaths():
         pmodulesIncDir = os.path.join(parentDirname, 'PModules')
         if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
         _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='GLOBAL')
-    
+
         # Global valid paths
         VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
                                           'Cassiopee', 'Valid{}'.format(DATA))
@@ -528,7 +528,7 @@ def readStar(fileStar):
             star = f.readline().rstrip('\n')
     except: pass
     return star
-    
+
 def writeStar(fileStar, star):
     try:
         with open(fileStar, 'w') as f:
@@ -649,13 +649,13 @@ def runSingleUnitaryTest(no, module, test):
             if sys.version_info[0] == 3: output1 = output1.decode()
         output = check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         if sys.version_info[0] == 3: output = output.decode()
-        
+
         if mySystem == 'mingw' or mySystem == 'windows':
             output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
             if sys.version_info[0] == 3: output2 = output2.decode()
-        
+
         print(output)
-        
+
         # Recupere success/failed
         success = 0
         if regLeakError.search(output) is not None: success = 2 # always check first
@@ -699,7 +699,7 @@ def runSingleUnitaryTest(no, module, test):
     fileTime = '%s/%s/%s/%s/%s.time'%(MODULESDIR['LOCAL'][module], module, 'test', DATA, testr[0])
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
-        
+
     # Recupere le tag local
     pathStar = os.path.join(MODULESDIR['LOCAL'][module], module, 'test')
     fileStar = os.path.join(pathStar, DATA, testr[0]+'.star')
@@ -763,7 +763,7 @@ def runSingleCFDTest(no, module, test):
         if mySystem == 'mingw' or mySystem == 'windows':
             output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
             if sys.version_info[0] == 3: output2 = output2.decode()
-        
+
         print(output)
 
         # Recupere success/failed
@@ -802,7 +802,7 @@ def runSingleCFDTest(no, module, test):
     fileTime = '%s/%s/%s.time'%(path, DATA, test)
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
-        
+
     # Recupere le tag local
     pathStar = os.path.join(MODULESDIR[BASE4COMPARE][module], module, 'test')
     fileStar = os.path.join(pathStar, DATA, test+'.star')
@@ -851,7 +851,7 @@ def runTests():
     current = 0
     (total, remaining) = getTestsTime()
     elapsed = 0.
-    
+
     for s in selection:
         no = int(s)
         t = Listbox.get(s)
@@ -868,7 +868,7 @@ def runTests():
     displayStatus(0)
     THREAD=None
     writeSessionLog()
-    
+
 def runTestsInThread():
     global THREAD, STOP
     if THREAD is not None: return
@@ -956,7 +956,7 @@ def buildTestList(loadSession=False, modules=[]):
         arr = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
                        dtype=object)
         arr = arr.reshape(-1, ncolumns)
-        
+
         # Read sessionLog and combine with lastSession. Priority given to
         # data from current session
         ncolumns = 8
@@ -973,10 +973,10 @@ def buildTestList(loadSession=False, modules=[]):
             arr2 = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
                             dtype=object)
             arr2 = arr2.reshape(-1, ncolumns)
-            
+
             testDict = {}
             for t in arr2: testDict[tuple(t[:2])] = t[2:]
-            
+
             for t in arr:
                 key = tuple(t[:2])
                 if (key not in testDict) or ('...' in testDict[key]):
@@ -985,7 +985,7 @@ def buildTestList(loadSession=False, modules=[]):
     else:
         # Build an empty array
         arr = np.array([], dtype=object)
-        
+
     for m in modules:
         tests = getTests(m)
         for t in tests:
@@ -1024,7 +1024,7 @@ def filterTestList(event=None):
             if not any(str1 != str2 and str1 in str2 for str2 in filters):
                 outFilters.add(str1)
         return outFilters
-        
+
     def _substituteCustomFilters(filters):
         """Substitute custom keyworded filters comprised between angle brackets
         by their regular expression"""
@@ -1051,14 +1051,14 @@ def filterTestList(event=None):
                     elif tmpFiltr == 'UNTAG': outFilters.add(r'@^(?![\*,r,g,b])')
             else: outFilters.add(filtr)
         return outFilters
-        
+
     filters = Filter.get()
     filters = _rmSubstrings(filters.split(' '))
     filters = _substituteCustomFilters(filters)
     if filters and all(filtr[0] == '&' for filtr in filters):
         filtr0 = filters.pop()
         if len(filtr0) > 1: filters.add(filtr0[1:])
-    
+
     # Apply filters with an OR gate and append strings to set
     filteredTests = set()
     for filtr in filters:
@@ -1074,13 +1074,13 @@ def filterTestList(event=None):
             strg = s.split(separator)[pos].strip()
             if endidx != 0: strg = strg[:endidx]
             try:
-              if filtr[shift] == '!':
-                  if re.search(filtr[1+shift:], strg) is None:
-                      filteredTests.add(s)
-              elif re.search(filtr[shift:], strg) is not None:
-                  filteredTests.add(s)
+                if filtr[shift] == '!':
+                    if re.search(filtr[1+shift:], strg) is None:
+                        filteredTests.add(s)
+                elif re.search(filtr[shift:], strg) is not None:
+                    filteredTests.add(s)
             except re.error: pass
-    
+
     # Apply filters with an AND gate to remove strings from set
     insertedTests = filteredTests.copy()
     for filtr in filters:
@@ -1096,13 +1096,13 @@ def filterTestList(event=None):
                 if endidx != 0: strg = strg[:endidx]
                 if len(filtr) < 3: continue
                 try:
-                  if filtr[1+shift] == '!':
-                      if len(filtr) > 3 and re.search(filtr[2+shift:], strg) is not None:
-                          insertedTests.discard(s)
-                  elif re.search(filtr[1+shift:], strg) is None:
-                      insertedTests.discard(s)
+                    if filtr[1+shift] == '!':
+                        if len(filtr) > 3 and re.search(filtr[2+shift:], strg) is not None:
+                            insertedTests.discard(s)
+                    elif re.search(filtr[1+shift:], strg) is None:
+                        insertedTests.discard(s)
                 except re.error: pass
-        
+
     Listbox.delete(0, 'end')
     if filters:
         for s in sorted(insertedTests): Listbox.insert('end', s)
@@ -1339,7 +1339,7 @@ def stopTests():
             os.kill(PROCESS.pid, signal.SIGTERM)
             os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
             os.kill(PROCESS.pid, signal.SIGKILL)
-            
+
         PROCESS = None
         displayStatus(0)
 
@@ -1370,7 +1370,7 @@ def displayProgress(current, total, remaining, elapsed):
     Progress.set("%3d/%3d [%s/%s]"%
                  (current,total,time2String(remaining),time2String(elapsed)))
     ProgressLabel.update()
-        
+
 #==============================================================================
 # Modifie le nbre de threads utilises pour la valid
 #==============================================================================
@@ -1410,7 +1410,7 @@ def createEmptySessionLog():
     # Create an empty session log
     with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f:
         f.write("")
-    
+
 def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
@@ -1418,7 +1418,7 @@ def writeSessionLog():
     gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
     gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
         gitOrigin, gitBranch, gitHash)
-    
+
     messageText = "Base from {}\n{}\n".format(cassiopeeIncDir, gitInfo)
     for t in TESTS: messageText += t+'\n'
 
@@ -1440,7 +1440,7 @@ def notifyValidOK():
 
     messageText = "Base from {}\n{}\n".format(cassiopeeIncDir, gitInfo)
     for t in TESTS: messageText += t+'\n'
-    
+
     try:
         from KCore.notify import notify
         notify(recipients=['christophe.benoit@onera.fr'],
@@ -1449,7 +1449,7 @@ def notifyValidOK():
     except ImportError:
         print("Error: KCore is required to import notify.")
         sys.exit()
-    
+
 #==============================================================================
 def Quit(event=None):
     import os
@@ -1546,12 +1546,12 @@ def setupLocal(**kwargs):
         os.makedirs(casValidFolder, exist_ok=True)
     else:
         os.environ['VALIDLOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
-    
+
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
     createEmptySessionLog()
     buildTestList(**kwargs)
     updateDBLabel()
-    
+
 def setupGlobal(**kwargs):
     global BASE4COMPARE
     if VALIDDIR['GLOBAL'] is None: return
@@ -1559,7 +1559,7 @@ def setupGlobal(**kwargs):
     print('Info: comparing to global database.')
     BASE4COMPARE = 'GLOBAL'
     os.environ['VALIDLOCAL'] = VALIDDIR['LOCAL']
-    
+
     # No update on global ref
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.DISABLED)
     # Change to match the numthreads of global ref
@@ -1572,7 +1572,7 @@ def setupGlobal(**kwargs):
     createEmptySessionLog()
     buildTestList(**kwargs)
     updateDBLabel()
-   
+
 def getDBInfo():    
     dbInfo = ''
     if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK):
@@ -1583,7 +1583,7 @@ def getDBInfo():
                 dbInfo = '[{} - {} - {} threads]'.format(*dbInfo[0:3])
         except: pass
     return dbInfo
-    
+
 def updateDBLabel():    
     if not INTERACTIVE: return
     dbInfo = getDBInfo()
@@ -1636,7 +1636,7 @@ def parseArgs():
 
     # Parse arguments
     return parser.parse_args()
-    
+
 # Purge session logs by date down to the last n most recent
 def purgeSessionLogs(n):
     lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], 'session-*.log')))
@@ -1651,13 +1651,13 @@ def toggleASAN():
     global USE_ASAN
     USE_ASAN[0] = not USE_ASAN[0]
     updateASANLabel(3)
-    
+
 def toggleLSAN():
     global USE_ASAN
     USE_ASAN[1] = not USE_ASAN[1]
     updateASANLabel(4)
     updateASANOptions()
-    
+
 def updateASANOptions():
     # Update ASAN_OPTIONS according to USE_ASAN
     asan_opt = os.getenv("ASAN_OPTIONS", "")
@@ -1690,7 +1690,7 @@ if __name__ == '__main__':
     DATA = Dist.getDataFolderName()
     # Set MODULESDIR and VALIDDIR paths once, both locally and globally
     setPaths()
-    
+
     if INTERACTIVE:
         # --- Use GUI ---
         try: import Tkinter as TK
@@ -1754,7 +1754,7 @@ if __name__ == '__main__':
 
         toolsTab.add_command(label='Tag selection', command=tagSelection)
         toolsTab.add_command(label='Untag selection', command=untagSelection)
-        
+
         dbInfo = getDBInfo()
         if dbInfo:
             # Show this button if the global database can be interrogated
@@ -1773,37 +1773,37 @@ if __name__ == '__main__':
         Master.bind_all("<Control-q>", Quit)
         Master.protocol("WM_DELETE_WINDOW", Quit)
         Master.bind_all("<Control-a>", selectAll)
-    
+
         # Main frame
         Frame = TK.Frame(Master)
         Frame.columnconfigure(0, weight=1)
         Frame.rowconfigure(0, weight=1)
         Frame.columnconfigure(1, weight=1)
         Frame.grid(row=0, column=0, sticky=TK.EW)
-    
+
         Listbox = TK.Listbox(Frame, selectmode=TK.EXTENDED, width=120,
                              height=39, background='White')
         Listbox.grid(row=0, column=0, columnspan=11, sticky=TK.NSEW)
-    
+
         Scrollbar = TK.Scrollbar(Frame, orient=TK.VERTICAL)
         Scrollbar.grid(row=0, column=11, sticky=TK.NSEW)
-    
+
         Status = TK.StringVar(Master)
         StatusLabel = TK.Label(Frame, textvariable=Status)
         Status.set('Stopped'); StatusLabel.config(bg='red')
         StatusLabel.grid(row=1, column=0, sticky=TK.EW)
-        
+
         Progress = TK.StringVar(Master)
         ProgressLabel = TK.Label(Frame, textvariable=Progress)
         Progress.set('  0/  0 [0h 0m 0s/0h 0m 0s]')
         ProgressLabel.grid(row=1, column=1, sticky=TK.EW)
-        
+
         Filter = TK.StringVar(Master)
         TextFilter = TK.Entry(Frame, textvariable=Filter, background='White',
                               width=50)
         TextFilter.bind('<KeyRelease>', filterTestList)
         TextFilter.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
-        
+
         filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
           '1) White-spaced: ^cylinder ^sphere\n'\
           '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
@@ -1817,7 +1817,7 @@ if __name__ == '__main__':
         RunButton = TK.Button(Frame, text='Run', command=runTestsInThread,
                               fg='blue')
         RunButton.grid(row=1, column=5, sticky=TK.EW)
-        
+
         Button = TK.Button(Frame, text='Stop', command=stopTests, fg='red')
         Button.grid(row=1, column=6, sticky=TK.EW)
         UpdateButton = TK.Button(Frame, text='Update',
@@ -1836,7 +1836,7 @@ if __name__ == '__main__':
         getThreads()
 
         Frame.grid(sticky=TK.NSEW)
-        
+
         CTK.infoBulle(parent=TextFilter, text=filterInfoBulle)
         CTK.infoBulle(parent=RunButton, text='Run selected tests.')
         CTK.infoBulle(parent=UpdateButton,
@@ -1847,7 +1847,7 @@ if __name__ == '__main__':
     else:
         # --- Command line execution ---
         vcargs = parseArgs()
-        
+
         generalFontFixed = 1
         Listbox = NoDisplayListbox()
         Scrollbar = NoDisplayScrollbar()

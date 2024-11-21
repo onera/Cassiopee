@@ -39,7 +39,7 @@ def selectCells(event=None):
     CTK.TXT.insert('START', 'Cells selected.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Suppress cells
 #==============================================================================
@@ -80,9 +80,9 @@ def suppressCells():
         TTK.raiseButton(W)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(W)
-       CPlot.setState(cursor=0)
+        CTK.__BUSY__ = False
+        TTK.raiseButton(W)
+        CPlot.setState(cursor=0)
 
 #==============================================================================
 # Refine cells
@@ -124,10 +124,10 @@ def refineCells():
         TTK.raiseButton(W)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(W)
-       CPlot.setState(cursor=0)
-       
+        CTK.__BUSY__ = False
+        TTK.raiseButton(W)
+        CPlot.setState(cursor=0)
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -144,7 +144,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=4)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -156,7 +156,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -1- strict -
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    
+
     # - Cells suppress/refine -
     B = TTK.Button(Frame, text="Suppress cell mode", command=suppressCells)
     B.grid(row=0, column=0, columnspan=3, sticky=TK.EW)
@@ -178,7 +178,7 @@ def createApp(win):
     B = TTK.Checkbutton(Frame, text='', variable=VARS[1])
     BB = CTK.infoBulle(parent=B, text='Strict/not strict selection.')
     B.grid(row=2, column=2, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -203,7 +203,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

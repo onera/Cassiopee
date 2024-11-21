@@ -20,7 +20,7 @@ def point(P):
     a[0,0] = P[0]; a[1,0] = P[1]; a[2,0] = P[2]
     c = numpy.ones((1, 0), numpy.int32)
     return ['x,y,z', a, c, 'NODE']
-    
+
 def cloud(arr):
     """Create a point cloud. 
     Usage: a = cloud([(x1,x2,...,xn),(y1,y2,...,yn),(z1,z2,...,zn)])"""
@@ -53,7 +53,7 @@ def naca(e, N=101, sharpte=True):
     if not sharpte: sharpte = 0
     else: sharpte = 1
     return geom.naca(e, N, im, ip, it, ith, iq, sharpte)    
-    
+
 def line(P1, P2, N=100):
     """Create a line of N points. 
     Usage: a = line((x1,y1,z1), (x2,y2,z2), N)"""
@@ -218,21 +218,21 @@ def triangle(P0, P1, P2, N=0, ntype='TRI'):
     C = (1./3.*(P0[0]+P1[0]+P2[0]),
          1./3.*(P0[1]+P1[1]+P2[1]),
          1./3.*(P0[2]+P1[2]+P2[2]))
-    
+
     l1 = line(P0, C01, N)
     l2 = line(C01, C, N)
     l3 = line(C, C02, N)
     l4 = line(C02, P0, N)
     m1 = G.TFI([l1, l2, l3, l4])
     m1 = T.reorder(m1, (-1,2,3))
-    
+
     l1 = line(C01, P1, N)
     l2 = line(P1, C12, N)
     l3 = line(C12, C, N)
     l4 = line(C, C01, N)
     m2 = G.TFI([l1, l2, l3, l4])
     m2 = T.reorder(m2, (-1,2,3))
-    
+
     l1 = line(C, C12, N)
     l2 = line(C12, P2, N)
     l3 = line(P2, C02, N)
@@ -340,7 +340,7 @@ def surface_(f, N):
     a = Converter.initVars(a, f)
     a = Converter.extractVars(a, ['x','y','z'])
     return a
-    
+
 # Surface parametree a partir d'une fonction
 def surface__(f, N):
     a = numpy.zeros((3, N*N), dtype=numpy.float64)
@@ -408,7 +408,7 @@ def getCurvatureRadius(a):
         return b
     else:
         return geom.getCurvatureRadius(a)
-    
+
 def getCurvatureAngle(a):
     """Return the curvature angle for each point.
     Usage: getCurvatureAngle(a)"""
@@ -419,7 +419,7 @@ def getCurvatureAngle(a):
         return b
     else:
         return geom.getCurvatureAngle(a)
-    
+
 def getCurvatureHeight(a):
     """Return the curvature height for each node in a 2D or 1D mesh.
     Usage: getCurvatureHeight(a)"""
@@ -439,7 +439,7 @@ def getSharpestAngle(a):
         for i in a: out.append(geom.getSharpestAngle(i))
         return out
     else: return geom.getSharpestAngle(a)
-    
+
 def getCurvilinearAbscissa(a):
     """Return the curvilinear abscissa for each point.
     Usage: getCurvilinearAbscissa(a)"""
@@ -449,7 +449,7 @@ def getCurvilinearAbscissa(a):
         return b
     else:
         return geom.getCurvilinearAbscissa(a)
-        
+
 def getDistribution(a):
     """Return the curvilinear abscissa for each point as X coordinate.
     Usage: getDistribution(a)"""
@@ -466,7 +466,7 @@ def getDistribution(a):
         c = line((0,0,0),(1,0,0),a[2])
         c[1][0] = geom.getCurvilinearAbscissa(a)[1]   
         return c       
-        
+
 def getTangent(a):
     """Return the unit tangent vector of a 1D curve as coordinates. 
     The input argument shall be an array. Each node of the output represents the unitary tangent 
@@ -556,10 +556,10 @@ def orthoDrive(a, d, mode=0):
         U = Vector.mul(alpha, S)
         U = Vector.add(U, [0,1,0])
     V = Vector.cross(U, S)
-    
+
     n = d[2]
     all = []
-    
+
     e2p = None
     P0 = [coord[0,0],coord[1,0],coord[2,0]]
     for i in range(n):
@@ -647,7 +647,7 @@ def volumeFromCrossSections(contours):
             c[z] = C.convertArray2Tetra(d)
 
     sort = sorted(c.items())
-    
+
     # Delaunay constrained
     DT = []; CT = []
     for i in sort:
@@ -789,7 +789,7 @@ def text1D(string, font='vera', smooth=0, offset=0.5):
         for i in retour:
             b = Generator.densify(i, hdensify) 
             retour[c] = Generator.map(b, d); c += 1
-            
+
     return retour
 
 def text2D(string, font='vera', smooth=0, offset=0.5):
@@ -821,7 +821,7 @@ def text3D(string, font='vera', smooth=0, offset=0.5, thickness=8.):
     a = lineDrive(a, l)
     a = Converter.convertArray2Tetra(a)
     b = Transform.join(a)
-    
+
     a = text2D(string, font, smooth, offset)
     a = Transform.translate(a, (0,0,-0.0001))
     c = Transform.translate(a, (0,0,thickness+.0002))

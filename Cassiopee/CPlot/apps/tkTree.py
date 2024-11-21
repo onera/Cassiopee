@@ -26,7 +26,7 @@ def strFormat(v):
     if isinstance(v, int): return "%ld"%v
     elif isinstance(v, float): return "%g"%v
     else: return "%s"%v
-    
+
 #==============================================================================
 def report_callback_exception():
     """report exception on sys.stderr."""
@@ -34,7 +34,7 @@ def report_callback_exception():
     import sys
     sys.stderr.write("Exception in Tree control callback.\n")
     traceback.print_exc()
-    
+
 #------------------------------------------------------------------------------
 class Struct:
     """Helper object for add_node() method"""
@@ -63,7 +63,7 @@ class Node:
 
     Please note that methods prefixed PVT_* are not meant to be used by
     client programs."""
-    
+
     def __init__(self, parent_node, id, collapsed_icon, x, y,
                  parent_widget=None, expanded_icon=None, label=None,
                  expandable_flag=0):
@@ -153,7 +153,7 @@ class Node:
             return self.parent_node.child_nodes[i]
         else:
             return None
-        
+
     def next_visible(self):
         """Return next lower visible node"""
         n = self
@@ -169,7 +169,7 @@ class Node:
             n = n.parent_node
         # we're at bottom
         return self
-    
+
     def prev_visible(self):
         """Return next higher visible node"""
         n = self
@@ -182,7 +182,7 @@ class Node:
                 return j.PVT_last()
         else:
             return n
-                
+
     def children(self):
         """Return list of node's children"""
         return self.child_nodes[:]
@@ -202,7 +202,7 @@ class Node:
     def expandable(self):
         """Returns true if node can be expanded (i.e. if it's a folder)"""
         return self.expandable_flag
-    
+
     def full_id(self):
         """Return list of IDs of all parents and node ID"""
         if self.parent_node:
@@ -212,7 +212,7 @@ class Node:
     def expand(self):
         """Expand node if possible"""
         if not self.expanded_flag: self.PVT_set_state(1)
-        
+
     def collapse(self):
         """Collapse node if possible"""
         if self.expanded_flag:
@@ -256,29 +256,29 @@ class Node:
         node's add_node() function to generate the list of nodes."""
         i = self.parent_node.child_nodes.index(self)
         self.parent_node.PVT_insert(nodes, i, self.prev_visible())
-    
+
     def insert_after(self, nodes):
         """Insert list of nodes as siblings after this node.  Call parent
         node's add_node() function to generate the list of nodes."""
         i=self.parent_node.child_nodes.index(self)+1
         self.parent_node.PVT_insert(nodes, i, self.PVT_last())
-        
+
     def insert_children(self, nodes):
         """Insert list of nodes as children of this node.  Call node's
         add_node() function to generate the list of nodes."""
         self.PVT_insert(nodes, 0, self)
-        
+
     def toggle_state(self):
         """Toggle node's state between expanded and collapsed, if possible"""
         if self.expandable_flag:
             if self.expanded_flag: self.PVT_set_state(0)
             else: self.PVT_set_state(1)
-                
+
     # ----- functions for drag'n'drop support -----
     def PVT_enter(self, event):
         """detect mouse hover for drag'n'drop"""
         self.widget.target = self
-        
+
     def dnd_end(self, target, event):
         """Notification that dnd processing has been ended. It DOES NOT imply
         that we've been dropped somewhere useful, we could have just been
@@ -298,7 +298,7 @@ class Node:
         while n.child_nodes:
             n = n.child_nodes[-1]
         return n
-    
+
     def PVT_find(self, search):
         """Used by searching functions"""
         if self.id != search[0]:
@@ -356,7 +356,7 @@ class Node:
             self.PVT_cleanup_lines()
             self.PVT_update_scrollregion()
             sw.move_cursor(sw.pos)
-        
+
     def PVT_set_state(self, state):
         """Common code forexpanding/collapsing folders. It's not re-entrant,
         and there are certain cases in which we can be called again before
@@ -424,7 +424,7 @@ class Node:
             sw.move_cursor(self)
         # now subnodes will be properly garbage collected
         self.child_nodes = []
-        
+
     def PVT_unbind_all(self):
         """Unbind callbacks so node gets garbage-collected. This wasn't easy
         to figure out the proper way to do this.  See also tag_bind() for the
@@ -450,7 +450,7 @@ class Node:
         self.widget.dtag(self.label, 'move')
         # now do the move of all the tagged objects
         self.widget.move('move', 0, dist)
-    
+
     def PVT_click(self, event):
         """Handle mouse clicks by kicking off possible drag'n'drop
         processing"""
@@ -508,7 +508,7 @@ class Node:
             #sw.coords(sw.cursor_box, x1-1, y1-1, x2+1, y2+1)
             x1, y1, x2, y2 = sw.bbox(self.label)
             sw.coords(sw.cursor_box, x1, y1, x2, y2)
-            
+
             if pid[3] == 'Zone_t':
                 if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
                 bases = CTK.t[2][1:]
@@ -523,7 +523,7 @@ class Node:
                                 active.append((i, zoneName))
                 CPlot.setZoneNames(active)
                 (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
-                
+
             elif pid[3] == 'CGNSBase_t':
                 if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
                 zones = Internal.getNodesFromType1(pid, 'Zone_t')
@@ -543,7 +543,7 @@ class Node:
         elif event.keysym == "Left":
             sw.icursor(item, insert-1)
             sw.select_clear()
-            
+
     def PVT_clickEdit(self, event):
         self.widget.move_cursor(self)
         if self.widget.type(TK.CURRENT) != "text": return
@@ -553,13 +553,13 @@ class Node:
         self.widget.focus(TK.CURRENT) # set focus to text item
         self.widget.select_from(TK.CURRENT, 0)
         self.widget.select_to(TK.CURRENT, TK.END)
-        
+
     def PVT_clickRight(self, event):
         if CTK.t == []: return
         self.widget.focus('')
         self.widget.select_clear()
         self.widget.delete("highlight")
-         
+
         self.widget.move_cursor(self)
         # Toggle activate status of a zone
         pid = self.id
@@ -657,7 +657,7 @@ class Node:
         self.widget.delete("highlight")
         self.widget.move_cursor(self)
         self.PVT_displayNode(True)
-            
+
     def PVT_displayNode(self, clear=False):
         pid = self.id
         try: tkNodeEdit.updateNode(pid)
@@ -668,7 +668,7 @@ class Node:
             if isinstance(v, float): v = strFormat(v)
             if isinstance(v, numpy.ndarray): v = str(v[0])
             CTK.TXT.insert('START', v+'\n')
-            
+
         elif pid[3] == 'ZoneType_t':
             v = Internal.getValue(pid)
             CTK.TXT.insert('START', v+'\n')
@@ -693,11 +693,11 @@ class Node:
             if clear: CPlot.unselectAllZones(); s = 1 # force select
             selected = []
             for no in range(len(nodes)): selected.append((no, s))
-            
+
             CPlot.setSelectedZones(selected)
             if s == 1: CTK.TXT.insert('START', 'Tree selected.\n')
             else: CTK.TXT.insert('START', 'Tree unselected.\n')
-                
+
         elif pid[3] == 'CGNSBase_t':
             if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
             baseName = pid[0]
@@ -721,7 +721,7 @@ class Node:
                 CTK.TXT.insert('START', 'Base '+baseName+' selected.\n')
             else:
                 CTK.TXT.insert('START', 'Base '+baseName+' unselected.\n')
-                
+
         elif pid[3] == 'IndexRange_t':
             if pid[1].shape == (3,2):
                 win = Internal.range2Window(pid[1])
@@ -746,7 +746,7 @@ class Node:
         elif pid[3] == 'GridConnectivity_t':
             v = Internal.getValue(pid)
             CTK.TXT.insert('START', v+'\n')
-            
+
         elif pid[3] == 'Zone_t':
             if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
             ret = Internal.getParentOfNode(CTK.t, pid)
@@ -833,7 +833,7 @@ class Node:
         elif pid[3] == 'GridConnectivity_t':
             v = Internal.getValue(pid)
             CTK.TXT.insert('START', 'Cnx with %s\n'%v)
-            
+
         elif pid[3] == 'IndexArray_t':
             v = pid[1]
             txt = ''
@@ -929,7 +929,7 @@ class Node:
         else:
             v = 'Node type: %s'%pid[3]
             CTK.TXT.insert('START', v+'\n')
-            
+
 #------------------------------------------------------------------------------
 class Tree(TK.Canvas):
     def __init__(self, master, root_id, root_label='',
@@ -1019,7 +1019,7 @@ R0lGODlhDwANAMIEAAAAAMRPT4CAgOa0tP///////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1Q
 ACH5BAEAAAQALAAAAAAPAA0AAAMySCTM+lCMMIeAT9Jtm5NDKI4WoFXcJphhipanq7Kvu8b1dLc5
 tcuom2foARAAyKRSmQAAOw==
 """)
-        
+
         self.expanded_user = TK.PhotoImage(data="""
 R0lGODlhEAANAMIEAAAAAICAgP/Gwf/l4////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1Q
 ACH5BAEAAAQALAAAAAAQAA0AAAM6SBrM+pCEQWmIbw6xbXNSx3GVBYRiygXA534Cq5UlO8jUqLYs
@@ -1094,7 +1094,7 @@ tcuom2foARAAyKRSmQAAOw==
         # Erase node
         CTK.saveTree()
         id = self.pos.id
-        
+
         if id[3] == 'CGNSTree_t': # efface tout l'arbre
             del id[2]
             CTK.t = [id[0], None, [], 'CGNSTree_t']
@@ -1125,7 +1125,7 @@ tcuom2foARAAyKRSmQAAOw==
         sav = self.pos.prev_visible()
         self.pos.delete()
         self.move_cursor(sav)
-        
+
     # ----- PUBLIC METHODS -----
     def tag_bind(self, tag, seq, *args, **kw_args):
         """Keep track of callback bindings so we can delete them later. I
@@ -1185,15 +1185,15 @@ tcuom2foARAAyKRSmQAAOw==
     def find_full_id(self, search):
         """Search for a node"""
         return self.root.PVT_find(search)
-    
+
     def cursor_node(self):
         """Return node under cursor"""
         return self.pos
-        
+
     def see(self, *items):
         """Scroll (in a series of nudges) so items are visible"""
         x1, y1, x2, y2 = self.bbox(*items)
-        
+
         while x2 > self.canvasx(0)+self.winfo_width():
             old = self.canvasx(0)
             self.xview('scroll', 1, 'units')
@@ -1214,7 +1214,7 @@ tcuom2foARAAyKRSmQAAOw==
             old = self.canvasy(0)
             self.yview('scroll', -1, 'units')
             if old == self.canvasy(0): break
-            
+
     def move_cursor(self, node):
         """Move cursor to node"""
         self.pos = node
@@ -1223,7 +1223,7 @@ tcuom2foARAAyKRSmQAAOw==
         x1, y1, x2, y2 = self.bbox(node.label)
         self.coords(self.cursor_box, x1, y1, x2, y2)
         self.see(node.symbol, node.label)
-    
+
     def toggle(self, event=None):
         """Expand/collapse subtree"""
         self.pos.toggle_state()
@@ -1231,7 +1231,7 @@ tcuom2foARAAyKRSmQAAOw==
     def next(self, event=None):
         """Move to next lower visible node"""
         self.move_cursor(self.pos.next_visible())
-            
+
     def prev(self, event=None):
         """Move to next higher visible node"""
         self.move_cursor(self.pos.prev_visible())
@@ -1295,7 +1295,7 @@ tcuom2foARAAyKRSmQAAOw==
         aw = max(int(self.cget("width"))-10,230) # 230
         ah = max(int(self.cget("height"))-10,210) # 210
         self.config(width=aw, height=ah)
-        
+
     # ----- functions for drag'n'drop support -----
     def where(self, event):
         """Determine drag location in canvas coordinates. event.x & event.y
@@ -1308,7 +1308,7 @@ tcuom2foARAAyKRSmQAAOw==
         x = self.canvasx(event.x_root-x_org)
         y = self.canvasy(event.y_root-y_org)
         return x, y
-    
+
     def dnd_accept(self, source, event):
         """Accept dnd messages, i.e. we're a legit drop target, and we do
         implement d&d functions."""
@@ -1455,7 +1455,7 @@ def createApp(win):
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - Frame sunken -
     Frame2 = TK.Frame(Frame, border=1, relief=TK.SUNKEN)
     Frame2.columnconfigure(0, weight=1)
@@ -1506,7 +1506,7 @@ def onCopy(event):
     global BUFFER
     node = getCurrentSelectedNode()
     BUFFER = node
-    
+
 #==============================================================================
 def onCut(event):
     CTK.saveTree()
@@ -1534,7 +1534,7 @@ def onPaste(event):
     sw = WIDGETS['tree'].cursor_node()
     for n in sw.children():
         if n.id[0] == nodep[0]: n.widget.move_cursor(n)
-    
+
 #==============================================================================
 def showApp():
     WIDGETS['frame'].grid(sticky=TK.NSEW, column=1); updateApp()
@@ -1625,7 +1625,7 @@ def saveApp():
     CTK.PREFS['tkTreeWidth'] = WIDGETS['tree'].cget("width")
     CTK.PREFS['tkTreeHeight'] = WIDGETS['tree'].cget("height")
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     w = 230; h = 210
@@ -1637,7 +1637,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 # Renvoit le noeud selectionne dans le tktree
 # Retourne le noeud sous forme de l'arbre CGNS
@@ -1646,7 +1646,7 @@ def getCurrentSelectedNode():
     tree = WIDGETS['tree']
     node = tree.cursor_node()
     return node.id
-    
+
 #==============================================================================
 # Appele pour savoir ce qu'il y a dans un noeud de l'arbre widget
 #==============================================================================

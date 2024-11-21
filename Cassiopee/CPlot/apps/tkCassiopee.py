@@ -103,23 +103,23 @@ def run(t=None):
     if t is not None:
         if Internal.isTopTree(t): CTK.t = t
         else: CTK.t, ntype = Internal.node2PyTree(t)
-        
+
     if CTK.t != []:
         # upgrade tree
         CTK.t = CTK.upgradeTree(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         fileName = os.path.split(CTK.FILE)
         CPlot.setWindowTitle(fileName[1], fileName[0])
-        
+
     # - Verifie l'arbre -
     errors = []
     if CTK.t != []:
         errors = Internal.checkPyTree(CTK.t, level=5)
         if errors == []: CTK.display(CTK.t)
-        
+
     # Load and set prefs for interface
     CTK.loadPrefFile(); CTK.setPrefs()
-    
+
     # Modules a ouvrir automatiquement
     auto = {}
     for app in ALLAPPS:
@@ -136,7 +136,7 @@ def run(t=None):
     # Main window
     (win, frames, menu, menus, file, tools) = CTK.minimal2('Cassiopee '+C.__version__,
                                                            show=False)
-    
+
     fileName = os.path.split(CTK.FILE)
     CTK.changeWindowTitle(fileName[1], fileName[0])
 
@@ -174,7 +174,7 @@ def run(t=None):
         module = CTK.getModule('tkPlotXY')
         if module is not None: CTK.TKPLOTXY = module
     except: pass
-    
+
     # - Personal apps  -
     tools.add_command(label='Add a personal app',
                       command=addPersonalApp)
@@ -210,12 +210,12 @@ def run(t=None):
         Panels.displayErrors(errors, header='Checking pyTree')
         CTK.t = Internal.correctPyTree(CTK.t, level=5)
         CTK.display(CTK.t)
-    
+
     # - Update apps -    
     CTK.TKTREE.updateApp()
     if CTK.TKMODULES['tkContainers'] is not None: CTK.TKMODULES['tkContainers'].updateApp()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
-        
+
     # - open load panel if partial load -
     if CTK.t != []:
         zones = Internal.getZones(CTK.t)

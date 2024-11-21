@@ -41,7 +41,7 @@ def checkDepend(file, dic):
             i = i.replace("<","")
             i = i.replace(">","")
             if i not in dic: dic[i] = 0 # add include file
-            
+
             c = i.replace("hxx", "cxx")
             if c not in dic: dic[c] = 0 # add cxx file
             d = i.replace("hxx", "dxx")
@@ -70,7 +70,7 @@ def rebuild(dic):
         if (base != '.'):
             shutil.copyfile(n, target);
             print('copy %s -> %s'%(n, target))
-    
+
 #==============================================================================
 # Ecrit les sources (.cxx) par modules
 #============================================================================== 

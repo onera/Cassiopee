@@ -17,7 +17,7 @@ def setNormalDeviation(event=None):
 #==============================================================================
 def generateUVMap():
     if CTK.t == []: return
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []: 
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -54,7 +54,7 @@ def createApp(win):
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -74,13 +74,13 @@ def createApp(win):
     WIDGETS['deviation'].set(20.)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[1])
-    
+
     # - Generate UV map -
     B = TTK.Button(Frame, text='Generate UV map', command=generateUVMap)
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     WIDGETS['generate'] = B
     BB = CTK.infoBulle(parent=B, text='Generate UV map for selection.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -105,7 +105,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

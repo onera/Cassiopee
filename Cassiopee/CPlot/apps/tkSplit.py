@@ -29,13 +29,13 @@ def zip():
         CTK.TXT.insert('START', 'Zip tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     eps = eps[0]
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
-    
+
     fail = False
     zones = []; errors = []
     for nz in nzs:
@@ -46,7 +46,7 @@ def zip():
     try: zones = G.zip(zones, eps)
     except Exception as e:
         fail = True; errors += [0,str(e)]
-        
+
     if not fail:
         c = 0
         for nz in nzs:
@@ -79,7 +79,7 @@ def join():
         CTK.TXT.insert('START', 'Join tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     eps = eps[0]
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -103,7 +103,7 @@ def join():
         Panels.displayErrors([0,str(e)], header='Error: join')
         CTK.TXT.insert('START', 'Join failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-        
+
     #C._fillMissingVariables(CTK.t)     
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -166,10 +166,10 @@ def merge():
             Panels.displayErrors([0,str(e)], header='Error: merge')
             CTK.TXT.insert('START', 'Merge failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
-                
+
         CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
         CTK.t[2][nob0][2] += js
-        
+
     else:
         try:
             j = T.merge(Z, dir=dircons, tol=eps)
@@ -185,7 +185,7 @@ def merge():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 def split():
     if CTK.t == []: return
@@ -199,7 +199,7 @@ def split():
 
     stype = VARS[1].get()
     CTK.saveTree()
-    
+
     # View split
     if stype == 'X-view':
         import KCore.Vector as Vector
@@ -222,7 +222,7 @@ def split():
             gc1 = Internal.getNodeFromName(zp, Internal.__GridCoordinates__)
             gc2 = Internal.getNodeFromName(z, Internal.__GridCoordinates__)
             gc1[2][:] = gc2[2][:]
-            
+
             z1 = P.selectCells2(zp, 'centers:__tag__')
             z1[0] = C.getZoneName(z[0]+'1')
             C._initVars(zp, '{centers:__tag__} = 1.-{centers:__tag__}')
@@ -234,7 +234,7 @@ def split():
         CTK.TKTREE.updateApp()
         CPlot.render()
         return
-        
+
     # Coordinate Split
     if stype == 'X-coords' or stype == 'Y-coords' or stype == 'Z-coords':
         point = CPlot.getActivePoint()
@@ -263,7 +263,7 @@ def split():
     # Indice splits
     ind = CPlot.getActivePointIndex()
     i1 = ind[2]; j1 = ind[3]; k1 = ind[4]
-    
+
     fail = False; errors = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -302,7 +302,7 @@ def split():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-        
+
 #==============================================================================
 # splitSize
 # IN: t, cplot.selectedZones, N : taille max au-dessus de laquelle on split
@@ -313,14 +313,14 @@ def splitSize(event=None):
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     nzs = CPlot.getSelectedZones()
     try: size = int(VARS[0].get())
     except:
         CTK.TXT.insert('START', 'splitSize: invalid specified size.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     level = int(VARS[2].get())
-    
+
     CTK.saveTree()
     fail = False; errors = []
     if nzs == []:
@@ -362,14 +362,14 @@ def splitNParts(event=None):
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     nzs = CPlot.getSelectedZones()
     try: NParts = int(VARS[7].get())
     except:
         CTK.TXT.insert('START', 'splitNParts: invalid specified number.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     level = int(VARS[2].get())
-    
+
     CTK.saveTree()
     fail = False; errors = []
     if nzs == []:
@@ -378,7 +378,7 @@ def splitNParts(event=None):
             CTK.display(CTK.t)
         except Exception as e:
             fail = True; errors += [0,str(e)]
-            
+
     else:
         sel = []; nobs = {}; pname = {}
         # change le nom des zones dans la selection
@@ -420,7 +420,7 @@ def splitNParts(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-        
+
 #==============================================================================
 # splitMultiplePoints: decoupe les blocs au niveau des raccords triples
 # IN: t
@@ -436,7 +436,7 @@ def splitMultiplePoints():
     else:
         CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning'); ndim = 3
-        
+
     CTK.saveTree()
     try:
         CTK.t = T.splitMultiplePts(CTK.t, dim=ndim)
@@ -591,7 +591,7 @@ def splitSharpAngles():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -608,7 +608,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -660,7 +660,7 @@ def createApp(win):
                        'X-coords', 'Y-coords', 'Z-coords',
                        'X-view')
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
-    
+
     # - splitSize -
     B = TTK.Button(Frame, text="SplitSize", command=splitSize)
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -734,7 +734,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[6], '0', '1', '2', '3', 'Names')
     B.grid(row=6, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Favorite merging direction.\n0: possibly merge in all directions,\n1: favor merging in i direction, ...')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -766,7 +766,7 @@ def saveApp():
     CTK.PREFS['tkSplitNParts'] = VARS[7].get()
     CTK.PREFS['tkSplitNPartsMultigrid'] = VARS[8].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('1000')
@@ -788,7 +788,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys
