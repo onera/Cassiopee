@@ -2338,6 +2338,7 @@ def sortByName(t, recursive=True):
     return tp
 
 def _sortByName(t, recursive=True):
+    """Sort nodes by their names (alphabetical order)."""
     names = [n[0] for n in t[2]]
     nodes = t[2]
     zipped = zip(names, nodes)
@@ -2348,6 +2349,31 @@ def _sortByName(t, recursive=True):
     if recursive:
         for node in ret:
             _sortByName(node, recursive)
+    return None
+
+# -- Copy node order between trees (Zones and Bases only)
+def copySort(t1, t2, recursive=True):
+    """Copy node order between trees (Zones and Bases only)."""
+    tp = copyRef(t2)
+    _copySort(t1, tp, recursive)
+    return tp
+
+def _copySort(t1, t2, recursive=True):
+    """Copy node order between trees (Zones and Bases only)."""
+    order = {n[0]:i for i,n in enumerate(t1[2])}
+    names = [n[0] for n in t2[2]]
+    for n in names:
+        if n not in order: order[n] = -1 # t1 and t2 might not be perfectly identical
+    nodes = t2[2]
+    zipped = zip(names, nodes)
+    zipped = sorted(zipped, key=lambda x: order[x[0]])
+    ret = []
+    for i in zip(*zipped): ret = i
+    t2[2] = list(ret)
+    if recursive:
+        for node1, node2 in zip(t1[2], ret):
+            if getType(node2) == 'CGNSBase_t': # only sort CGNSBase_t and Zone_t
+                _copySort(node1, node2, recursive)
     return None
 
 # -- Rename node ou nodes
