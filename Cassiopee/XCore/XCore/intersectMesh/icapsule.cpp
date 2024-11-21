@@ -410,7 +410,7 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
 
     for (size_t i = 0; i < Ss.size(); i++) {
         
-        printf("Intersecting slave %d\n", i);
+        printf("Intersecting slave %lu\n", i);
 
         Mf.make_bbox();
         Mf.hash_faces();
@@ -438,7 +438,7 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
 
         Dcel D = Dcel::intersect(Mf, Sf, plocs);
 
-        E_Int nf_before_intersect = Sf.nf;
+        //E_Int nf_before_intersect = Sf.nf;
 
         D.reconstruct(Mf, Dcel::RED);
         //Mf.write_ngon("Mf_after_intersect.im");

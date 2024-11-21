@@ -705,7 +705,6 @@ void Dcel::triangulate(const Smesh &Mf, const Smesh &Sf)
     std::vector<E_Int> non_convex_faces;
 
     for (size_t fid = 0; fid < F.size(); fid++) {
-        Face *f = F[fid];
         // TODO(Imad): skip single color faces
         
         const auto &vertices = Fv[fid];
@@ -767,7 +766,7 @@ void Dcel::triangulate(const Smesh &Mf, const Smesh &Sf)
             E_Int vid = 0;
             do {
                 Vertex *v = current->v;
-                char fname[16] = {0};
+                char fname[128] = {0};
                 sprintf(fname, "vertex%d.im", vid);
                 point_write(fname, v->x, v->y, v->z);
                 current = current->next;

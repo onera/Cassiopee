@@ -35,6 +35,8 @@ Point2D project_to_2D(Point3D point, const E_Float *N)
     return projected;
 }
 
+#define MAX_PTS 100
+
 bool Smesh::is_point_in_3D_polygon(E_Float x, E_Float y, E_Float z, E_Int fid) const
 {
     const auto &pn = Fc[fid];
@@ -44,8 +46,9 @@ bool Smesh::is_point_in_3D_polygon(E_Float x, E_Float y, E_Float z, E_Int fid) c
     E_Float dp = fabs(K_MATH::dot(ap, fN, 3));
     if (dp > TOL) return false;
 
-    Point2D projected_polygon[pn.size()];
-    for (int i = 0; i < pn.size(); i++) {
+    assert(pn.size() <= MAX_PTS);
+    Point2D projected_polygon[MAX_PTS];
+    for (size_t i = 0; i < pn.size(); i++) {
         Point3D p = {X[pn[i]], Y[pn[i]], Z[pn[i]]};
         projected_polygon[i] = project_to_2D(p, fN); 
     }
