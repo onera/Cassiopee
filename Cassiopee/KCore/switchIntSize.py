@@ -80,7 +80,7 @@ def check_elsaprod(intSize):
       print("Remove '_i8' suffix from $ELSAPROD: {}".format(
           elsaprod.replace('_i8', '')))
     elif intSize == 8 and "_i8" not in elsaprod:
-      if elsaprod.endswith('_DBG'):
+      if '_DBG' in elsaprod:
         print("Add '_i8_DBG' suffix to $ELSAPROD: {}_i8_DBG".format(
             elsaprod[:-4]))
       else:

@@ -35,27 +35,26 @@ namespace K_POST
             hexaedre     ,
             number_of_element_types
         };
-
+        
         static constexpr const std::array<unsigned char,number_of_element_types> number_of_vertices_per_element = {
-            4, 5, 6, 8
+           {4, 5, 6, 8}
         };
 
         static constexpr const std::array<unsigned char,number_of_element_types> number_of_vertices_for_polyhedron = {
-            4, 6, 9, 14
+            {4, 6, 9, 14}
         };
 
         static constexpr const std::array<unsigned char,number_of_element_types> number_of_faces_per_element = {
-            4, 5, 5, 6
+            {4, 5, 5, 6}
         };
 
         static constexpr const std::array<unsigned char,number_of_element_types> total_nb_of_vertices_for_faces_per_element = {
-            12, 16, 18, 24
+            {12, 16, 18, 24}
         };
 
         static constexpr const std::array<unsigned char,number_of_element_types> number_of_triangles_per_element = {
-            4, 8, 14, 24
+            {4, 8, 14, 24}
         };
-
 
         static const std::array<std::vector<unsigned char>,number_of_element_types> number_of_vertices_per_face_per_element;
 

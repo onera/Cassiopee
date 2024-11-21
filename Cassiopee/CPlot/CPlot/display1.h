@@ -19,7 +19,8 @@
   int bgColor, shadow, dof, offscreen, stereo, frameBuffer, panorama;
   E_Float lightOffsetX, lightOffsetY;
   E_Float dofPower, gamma; int toneMapping;
-  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iddiidissOOii",
+  PyObject* posCamList; PyObject* posEyeList; PyObject* dirCamList; // only for ODS
+  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iddiidissOOiiOOO",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
@@ -28,7 +29,8 @@
                         &vectorShowSurface, &vectorShape, &vectorProjection, 
                         &colormap, &colormapC1, &colormapC2, &colormapC3, &colormapC,
                         &niso, &isoEdges, &isoScales,
-                        &winx, &winy, &xcam, &ycam, &zcam,
+                        &winx, &winy, 
+                        &xcam, &ycam, &zcam,
                         &xeye, &yeye, &zeye,
                         &dirx, &diry, &dirz, &viewAngle, 
                         &bgColor, &backgroundFile,
@@ -37,7 +39,8 @@
                         &stereo, &stereoDist, &panorama,
                         &exportFile, &exportResolution, 
                         &zoneNamesObject, &renderTagsObject,
-                        &frameBuffer, &offscreen))
+                        &frameBuffer, &offscreen,
+                        &posCamList, &posEyeList, &dirCamList))
   {
     return NULL;
   }

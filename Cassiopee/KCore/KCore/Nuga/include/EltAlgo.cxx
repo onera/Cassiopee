@@ -381,7 +381,6 @@ template<typename T>
 inline bool
 NUGA::EltAlgo<ElementType>::coloring_one_connex_homogeneous (const ngon_unit& neighbors, std::vector<T>& colors, size_t Kseed, T UNSET_COL, T color, T FRONT_COL)
 {
-  bool good_dom = true;
   E_Int nb_front_col{ 0 };
   
   int_vector_type cpool;

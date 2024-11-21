@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// CAD split for parallel
+// CAD sewing
 #include "occ.h"
 
 #include "TopoDS.hxx"
@@ -56,35 +56,44 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
   //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
-  // try on top shape
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
   const Standard_Real tolerance = tol;
   BRepBuilderAPI_Sewing sewer(tolerance);
   
-  TopoDS_Shape shc;
+  TopoDS_Shape* newshp = NULL;
   E_Int nfaces = PyList_Size(listFaces); 
-  nfaces = 0; // force car le code par subfaces semble ne pas marcher
+  //nfaces = 0; // force car le code par subfaces semble ne pas marcher
   if (nfaces == 0)
   {
     // top shape
+    TopoDS_Shape shc;
     printf("Info: sewing top shape.\n");
     sewer.Add(*shp);
     sewer.Perform();
     shc = sewer.SewedShape();
+    newshp = new TopoDS_Shape(shc);
   }
   else
   {
-    // ce code ne fonctionne pas, on utilise tout le temps la topshape
+    // Build remaining faces list
+    std::list<E_Int> pl;
+    E_Int nf = surfaces.Extent();
+    printf("Info: sewing %d / %d faces.\n", nfaces, nf);
+    for (E_Int i = 1; i <= nf; i++) pl.push_back(i);
+
     for (E_Int no = 0; no < PyList_Size(listFaces); no++)
     {
       PyObject* noFaceO = PyList_GetItem(listFaces, no);
       E_Int noFace = PyInt_AsLong(noFaceO);
+      auto it = std::find(pl.begin(), pl.end(), noFace);
+      if (it != pl.end()) pl.erase(it);
       const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
       sewer.Add(F);
     } 
     sewer.Perform();
     TopoDS_Shape shs = sewer.SewedShape();
 
+    /*
     ShapeBuild_ReShape reshaper;
     TopTools_IndexedMapOfShape faces;
     TopExp::MapShapes(shs, TopAbs_FACE, faces);
@@ -99,11 +108,30 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
       reshaper.Replace(F, F2);
     }
     shc = reshaper.Apply(*shp);
+    */
+
+    BRep_Builder builder;
+    TopoDS_Compound shc;
+    builder.MakeCompound(shc);
+    for (auto& i : pl)
+    {
+      TopoDS_Face F = TopoDS::Face(surfaces(i));
+      builder.Add(shc, F);
+    }
+
+    TopExp_Explorer expl1(shs, TopAbs_FACE);
+    while (expl1.More())
+    {
+      TopoDS_Shape shape = expl1.Current();
+      TopoDS_Face face = TopoDS::Face(shape);
+      builder.Add(shc, face);
+      expl1.Next();
+    }
+    newshp = new TopoDS_Shape(shc);
   }
 
   // export
   delete shp;
-  TopoDS_Shape* newshp = new TopoDS_Shape(shc);
   packet[0] = newshp;
   // Extract surfaces
   TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];

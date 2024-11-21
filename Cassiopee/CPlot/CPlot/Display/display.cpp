@@ -258,7 +258,7 @@ void Data::display()
             _view.xeye, _view.yeye, _view.zeye, 
             _view.dirx, _view.diry, _view.dirz);
   computeFrustumPlanes(_view);
-
+  
   glEnable(GL_MULTISAMPLE);
   
   // Display following mode

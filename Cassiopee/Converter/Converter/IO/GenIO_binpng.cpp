@@ -140,7 +140,7 @@ E_Int K_IO::GenIO::pngread(
   // Stockage du champ
   E_Int nil = width;
   E_Int njl = height;
-  FldArrayF* f;
+  FldArrayF* f = NULL;
   if (components == 1) // greyscale
   {
     strcpy(varString, "x,y,z,r");
@@ -160,6 +160,10 @@ E_Int K_IO::GenIO::pngread(
   {
     strcpy(varString, "x,y,z,r,g,b,a");
     f = new FldArrayF(nil*njl, 7);
+  }
+  else
+  {
+    printf("Warning: bin_png: unkown number of components.\n");
   }
  
   f->setAllValuesAtNull();
@@ -355,7 +359,8 @@ E_Int K_IO::GenIO::pngwrite(
   row_pointers = new png_bytep [height];
   for (int y = 0; y < height; y++)
   {
-    row_pointers[y] = (png_bytep)buffer + (height-1-y)*width*stride;
+    //row_pointers[y] = (png_bytep)buffer + (height-1-y)*width*stride;
+    row_pointers[y] = (png_bytep)buffer + y*width*stride;
   }
 
   png_write_image(png_ptr, row_pointers);
@@ -363,6 +368,7 @@ E_Int K_IO::GenIO::pngwrite(
   if (setjmp(png_jmpbuf(png_ptr))) {delete[] row_pointers; return 1;}
 
   png_write_end(png_ptr, NULL);
+  png_destroy_write_struct(&png_ptr, &info_ptr);
 
   /* cleanup allocations */
   delete [] row_pointers;

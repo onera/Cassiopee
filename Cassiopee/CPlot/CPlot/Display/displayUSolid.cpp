@@ -47,7 +47,7 @@ void DataDL::displayUSolid()
         // if zone is active and in frustum
         if ((zonep->active == 1 ||
                (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1)) &&
-             isInFrustum( zonep, _view ) == 1 )
+             isInFrustum(zonep, _view) == 1)
         {
             if (ptrState->mode == RENDER && zonep->meshOverlay == 1)
             {

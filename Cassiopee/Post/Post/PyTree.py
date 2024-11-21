@@ -2381,7 +2381,7 @@ def checkOccupancyCellN(lowerLimit, t):
 
         list_zones.append(z[0])
         list_occupancy.append(occupancy_rate)
-        if occupancy_rate < lowerLimit: list_zones_below.append(z[0])
+        if occupancy_rate < lowerLimit and cells_zone>0: list_zones_below.append(z[0])
         
     with open('CellN_occupancy_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
         for i in range(len(list_zones)):
@@ -2404,13 +2404,14 @@ def checkOccupancyCellN(lowerLimit, t):
 
     return list_zones,list_occupancy,list_zones_below
 
-def printMinMaxAndErrors(t, listVars=[]):
+def printMinMaxAndErrors(t, printErrors=False, listVars=[]):
     """Check min/max of given fields"""
-    errors = Internal.checkPyTree(t)
-    print("Printing Errors")
-    print(errors)
+    if printErrors:
+        errors = Internal.checkPyTree(t)
+        print("Printing Errors")
+        print(errors)
     
-    if listVars == []:
+    if listVars:
         for z in Internal.getZones(t):
             print("______________________")
             #check max & min values of each zone

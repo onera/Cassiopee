@@ -529,8 +529,10 @@ def extractSlices(teff, bladeName, psi, radii,
             tag = Internal.getNodeFromName2(z, 'tag')
             tag[1] = tag[1].ravel('k')
             tag[1][:] = (xc[1][:] < rad+delta) & (xc[1][:] > rad-delta)
-            sel = P.selectCells2(z, 'tag')
-            # sel = P.selectCells2(z, 'tag', strict=1)
+            if sliceNature == 'curved':
+                sel = P.selectCells2(z, 'tag', strict=1)
+            else:
+                sel = P.selectCells2(z, 'tag')
             Internal._rmNodesFromName(sel, 'GridCoordinates#Init')
             Internal._rmNodesFromName(sel, '.Solver#ownData')
             Internal._rmNodesFromName(sel, 'tag')

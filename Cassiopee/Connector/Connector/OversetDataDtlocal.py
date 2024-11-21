@@ -6,9 +6,6 @@ from . import OversetData
 import numpy
 __version__ = Connector.__version__
 
-try: range = xrange
-except: pass
-
 try:
     import Converter.Internal as Internal
     import Converter.PyTree as C
@@ -21,10 +18,10 @@ except:
 #============================================================================================================
 #============================================================================================================
 
-def setInterpData2(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
-                  method='lagrangian', loc='nodes', storage='direct',
-                  hook=None,
-                  topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
+def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
+                   method='lagrangian', loc='nodes', storage='direct',
+                   hook=None,
+                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
  
     locR = loc
     aR = Internal.copyRef(tR)

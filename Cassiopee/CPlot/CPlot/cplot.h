@@ -77,6 +77,7 @@ PyObject* display1D(PyObject* self, PyObject* args);
 PyObject* configure(PyObject* self, PyObject* args);
 PyObject* panorama(PyObject* self, PyObject* args);
 PyObject* panoramaODS(PyObject* self, PyObject* args);
+PyObject* blur(PyObject* self, PyObject* args);
 }
 
 E_Int getMode(PyObject* modeObject);

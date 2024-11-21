@@ -520,8 +520,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
       E_Int nd = ipt_omp[ pttask ];
       impli_local[nd]=1;
     }
-  //printf("setInterpTrans %d %d %d \n", nidomR, cpt, nstep);
-  
 
   E_Int size_autorisation = nrac_steady+1;
   size_autorisation = K_FUNC::E_max(  size_autorisation , nrac_inst+1);
@@ -532,10 +530,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
   // 2eme pass_inst: les raccord instationnaire
   E_Int nbRcvPts_mx = 0;
   E_Int ibcTypeMax  = 0;
+
   E_Int count_rac   = 0;
-
-
-
   for  (E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
     {
       E_Int irac_deb = 0;
@@ -601,13 +597,11 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 	    else {continue;}
 
 	  }
-	// Sinon, on autorise les transferts entre ttes les zones a ttes les ss-ite
+	// Sinon, on autorise les transferts si zone donneuse modifier a l'iteration courante
 	else {
-	  //E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
-	  //if (impli_local[NoD]==1) autorisation_transferts[pass_inst][irac_auto]=1;
-	  // en implicit local, on faitle transfert meme si zone donneuse non modifier, mais on reduit la taille du pointlist
-	  // et on change le nom de la varaible a Nada  pour eviter le remplissage des ghost au niveau du proc receveur
-	  autorisation_transferts[pass_inst][irac_auto]=1;
+	  E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
+	  if (impli_local[NoD]==1) {autorisation_transferts[pass_inst][irac_auto]=1;}
+          else {continue;}
 	}
 
 	// QUOI????? - CBX
@@ -629,113 +623,102 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
         if (nvars_loc == -5) {solver_D =4; nvars_loc = 5;}
 
 
-	E_Int nbRcvPts_loc = nbRcvPts;
-	if(impli_local[NoD]==0)
-	  {
-	    strcpy( varStringOut, "Nada" );
-	    nbRcvPts_loc =1;
-	    nvars_loc    =1;
-	  }
-	else
+        E_Int nbRcvPts_loc = nbRcvPts;
+        if ( nvars_loc == 5 ) 
           {
-            if ( nvars_loc == 5 ) 
+           if ( strcmp( varname, "Density" ) == 0 )
+             {
+	      if (isWireModel==0){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
+              else               { strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM" ); }
+             }
+           else if ( strcmp( varname, "Density_P1" ) == 0 )
+             {
+              if (isWireModel==0){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
+              else{                strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM" ); }
+             }
+           else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
+          }
+        else if ( nvars_loc == 6 ) 
+          {
+           if ( strcmp( varname, "Density" ) == 0 )
+             {
+              if (isWireModel==0){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature,TurbulentSANuTilde" ); }
+              else{                strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM,TurbulentSANuTilde_WM" ); }
+             }
+           else if ( strcmp( varname, "Density_P1" ) == 0 )
+             {
+              if (isWireModel==0){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1,TurbulentSANuTilde_P1" );}
+              else{                strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM,TurbulentSANuTilde_WM" ); }
+             }
+           else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
+          }
+        else if ( nvars_loc == 19 ||  nvars_loc == 24 ) 
+          { 
+            if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
+            else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
+            else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
+
+            if ( varname1 != NULL ) // Raccords LBM
               {
-               if ( strcmp( varname, "Density" ) == 0 )
-                 {
-	 	  if (isWireModel==0){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
-	 	  else               { strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM" ); }
-                 }
-               else if ( strcmp( varname, "Density_P1" ) == 0 )
-                 {
-	 	  if (isWireModel==0){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
-	 	  else{                strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM" ); }
-                 }
-               else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
+                if      ( strcmp( varname1, "Q1")    == 0 ){ strcpy( varStringOut1, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19" );}
+                else if ( strcmp( varname1, "Q1_M1") == 0 ){ strcpy( varStringOut1, "Q1_M1,Q2_M1,Q3_M1,Q4_M1,Q5_M1,Q6_M1,Q7_M1,Q8_M1,Q9_M1,Q10_M1,Q11_M1,Q12_M1,Q13_M1,Q14_M1,Q15_M1,Q16_M1,Q17_M1,Q18_M1,Q19_M1" );}
+                else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
               }
-            else if ( nvars_loc == 6 ) 
+          } 
+        else if ( nvars_loc == 27 ||  nvars_loc == 32 ) 
+          { 
+            if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
+            else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
+            else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
+
+            if ( varname1 != NULL ) // Raccords LBM
               {
-               if ( strcmp( varname, "Density" ) == 0 )
-                 {
-	 	  if (isWireModel==0){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature,TurbulentSANuTilde" ); }
-	 	  else{                strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM,TurbulentSANuTilde_WM" ); }
-                 }
-               else if ( strcmp( varname, "Density_P1" ) == 0 )
-                 {
-	 	  if (isWireModel==0){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1,TurbulentSANuTilde_P1" );}
-	 	  else{                strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM,TurbulentSANuTilde_WM" ); }
-                 }
-               else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
-              }
-            else if ( nvars_loc == 19 ||  nvars_loc == 24 ) 
-              { 
-                if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
-                else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
+                if      ( strcmp( varname1, "Q1")    == 0 ){ strcpy( varStringOut1, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24,Q25,Q26,Q27" );}
+                else if ( strcmp( varname1, "Q1_M1") == 0 ){ strcpy( varStringOut1, "Q1_M1,Q2_M1,Q3_M1,Q4_M1,Q5_M1,Q6_M1,Q7_M1,Q8_M1,Q9_M1,Q10_M1,Q11_M1,Q12_M1,Q13_M1,Q14_M1,Q15_M1,Q16_M1,Q17_M1,Q18_M1,Q19_M1,Q20_M1,Q21_M1,Q22_M1,Q23_M1,Q24_M1,Q25_M1,Q26_M1,Q27_M1" );}
                 else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
-
-                if ( varname1 != NULL ) // Raccords LBM
-                  {
-                    if      ( strcmp( varname1, "Q1")    == 0 ){ strcpy( varStringOut1, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19" );}
-                    else if ( strcmp( varname1, "Q1_M1") == 0 ){ strcpy( varStringOut1, "Q1_M1,Q2_M1,Q3_M1,Q4_M1,Q5_M1,Q6_M1,Q7_M1,Q8_M1,Q9_M1,Q10_M1,Q11_M1,Q12_M1,Q13_M1,Q14_M1,Q15_M1,Q16_M1,Q17_M1,Q18_M1,Q19_M1" );}
-                    else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
-                  }
-              } 
-            else if ( nvars_loc == 27 ||  nvars_loc == 32 ) 
-              { 
-                if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
-                else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
-                else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
-
-                if ( varname1 != NULL ) // Raccords LBM
-                  {
-                    if      ( strcmp( varname1, "Q1")    == 0 ){ strcpy( varStringOut1, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24,Q25,Q26,Q27" );}
-                    else if ( strcmp( varname1, "Q1_M1") == 0 ){ strcpy( varStringOut1, "Q1_M1,Q2_M1,Q3_M1,Q4_M1,Q5_M1,Q6_M1,Q7_M1,Q8_M1,Q9_M1,Q10_M1,Q11_M1,Q12_M1,Q13_M1,Q14_M1,Q15_M1,Q16_M1,Q17_M1,Q18_M1,Q19_M1,Q20_M1,Q21_M1,Q22_M1,Q23_M1,Q24_M1,Q25_M1,Q26_M1,Q27_M1" );}
-                    else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
-                  }
               }
-            else if ( nvars_loc == 11 ) 
-              { 
-                if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
-                else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
-                else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
+          }
+        else if ( nvars_loc == 11 ) 
+          { 
+            if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
+            else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
+            else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
 
-                if ( varname2 != NULL ) // Raccords LBM
-                  {
-                    strcpy( varStringOut2, "Sxx,Sxy,Sxz,Syy,Syz,Szz");
-                  }
-              }
-            else{ printf("souci aiguillage setinterpTransferD " SF_D_ " \n", nvars_loc); }
+            if ( varname2 != NULL ) // Raccords LBM
+              { strcpy( varStringOut2, "Sxx,Sxy,Sxz,Syy,Syz,Szz"); }
+          }
+        else{ printf("souci aiguillage setinterpTransferD " SF_D_ " \n", nvars_loc); }
+
+        if ( nvars_loc == 5 || nvars_loc == 6 )
+          {
+            list_tpl[count_rac]  = K_ARRAY::buildArray( nvars_loc, varStringOut, nbRcvPts_loc, 1, 1 );
+            frp[count_rac]       = K_ARRAY::getFieldPtr( list_tpl[count_rac] );
+	    if(impli_local[NoD]==0) { frp[count_rac][0] =0.;}
+          }
+        else if ( nvars_loc == 19 || nvars_loc == 24 )
+          {
+            // TABLEAU QUI VA CONTENIR LES MACROS DONC DE TAILLE 5 (ou 6 si turb)
+            list_tpl[count_rac]  = K_ARRAY::buildArray( 5, varStringOut, nbRcvPts_loc, 1, 1 );
+            frp[count_rac]       = K_ARRAY::getFieldPtr( list_tpl[count_rac] );
+	    if(impli_local[NoD]==0) { frp[count_rac][0] =0.;}
+            // TABLEAU QUI VA CONTENIR LES Q DONC DE TAILLE 19
+            list_tpl1[count_rac] = K_ARRAY::buildArray( 19, varStringOut1, nbRcvPts_loc, 1, 1 );
+            frp1[count_rac]      = K_ARRAY::getFieldPtr( list_tpl1[count_rac] );
+	    if(impli_local[NoD]==0) { frp1[count_rac][0] =0.;}
+          }
+        else if ( nvars_loc == 11 )
+          {
+            // TABLEAU QUI VA CONTENIR LES MACROS DONC DE TAILLE 5 (ou 6 si turb)
+            list_tpl[count_rac]  = K_ARRAY::buildArray( 5, varStringOut, nbRcvPts_loc, 1, 1 );
+            frp[count_rac]       = K_ARRAY::getFieldPtr( list_tpl[count_rac] );
+	    if(impli_local[NoD]==0) { frp[count_rac][0] =0.;}
+            // TABLEAU QUI VA CONTENIR LES GRADIENTS DONC DE TAILLE 6
+            list_tpl2[count_rac] = K_ARRAY::buildArray( 6, varStringOut2, nbRcvPts_loc, 1, 1 );
+            frp2[count_rac]      = K_ARRAY::getFieldPtr( list_tpl2[count_rac] );
+	    if(impli_local[NoD]==0) { frp2[count_rac][0] =0.;}
           }
 
-          if ( nvars_loc == 5 || nvars_loc == 6  || nvars_loc == 1)
-            {
-              list_tpl[count_rac]  = K_ARRAY::buildArray( nvars_loc, varStringOut, nbRcvPts, 1, 1 );
-              frp[count_rac]       = K_ARRAY::getFieldPtr( list_tpl[count_rac] );
-	      if(impli_local[NoD]==0) { frp[count_rac][0] =0.;}
-            }
-          else if ( nvars_loc == 19 || nvars_loc == 24 )
-            {
-              // TABLEAU QUI VA CONTENIR LES MACROS DONC DE TAILLE 5 (ou 6 si turb)
-              list_tpl[count_rac]  = K_ARRAY::buildArray( 5, varStringOut, nbRcvPts, 1, 1 );
-              frp[count_rac]       = K_ARRAY::getFieldPtr( list_tpl[count_rac] );
-	      if(impli_local[NoD]==0) { frp[count_rac][0] =0.;}
-              // TABLEAU QUI VA CONTENIR LES Q DONC DE TAILLE 19
-              list_tpl1[count_rac] = K_ARRAY::buildArray( 19, varStringOut1, nbRcvPts, 1, 1 );
-              frp1[count_rac]      = K_ARRAY::getFieldPtr( list_tpl1[count_rac] );
-	      if(impli_local[NoD]==0) { frp1[count_rac][0] =0.;}
-            }
-          else if ( nvars_loc == 11 )
-            {
-              // TABLEAU QUI VA CONTENIR LES MACROS DONC DE TAILLE 5 (ou 6 si turb)
-              list_tpl[count_rac]  = K_ARRAY::buildArray( 5, varStringOut, nbRcvPts, 1, 1 );
-              frp[count_rac]       = K_ARRAY::getFieldPtr( list_tpl[count_rac] );
-	      if(impli_local[NoD]==0) { frp[count_rac][0] =0.;}
-              // TABLEAU QUI VA CONTENIR LES GRADIENTS DONC DE TAILLE 6
-              list_tpl2[count_rac] = K_ARRAY::buildArray( 6, varStringOut2, nbRcvPts, 1, 1 );
-              frp2[count_rac]      = K_ARRAY::getFieldPtr( list_tpl2[count_rac] );
-	      if(impli_local[NoD]==0) { frp2[count_rac][0] =0.;}
-            }
-
-	count_rac += 1;
+        count_rac += 1;
 
 
       }  // racs
@@ -756,6 +739,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
   FldArrayI rcvPtsI( nbRcvPts_mx );
   E_Int*    rcvPts = rcvPtsI.begin();
 
+  E_Float** RcvFields = new E_Float*[ nvars*threadmax_sdm];
+  E_Float** DnrFields = new E_Float*[ nvars*threadmax_sdm];
 
 
   //# pragma omp parallel default(shared)  num_threads(1)
@@ -772,22 +757,20 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     E_Int type;
     E_Int indD0, indD, i, j, k, ncfLoc, indCoef, noi, sizecoefs, imd, jmd, imdjmd;
 
-    vector< E_Float* > vectOfRcvFields( nvars );
-    vector< E_Float* > vectOfDnrFields( nvars );
-
-
+    E_Float** vectOfRcvFields = RcvFields + nvars*(ithread-1);
+    E_Float** vectOfDnrFields = DnrFields + nvars*(ithread-1);
 
     // 1ere pass: IBC
     // 2eme pass: transfert
     //
     for ( E_Int ipass_typ = pass_deb; ipass_typ < pass_fin; ipass_typ++ )
-      {
-	// 1ere pass_inst: les raccord fixe
-	// 2eme pass_inst: les raccord instationnaire
-	E_Int count_rac = 0;
+    {
+      // 1ere pass_inst: les raccord fixe
+      // 2eme pass_inst: les raccord instationnaire
+	    E_Int count_rac = 0;
 
-	for ( E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
-	  {
+      for ( E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
+	    {
 	    E_Int irac_deb = 0;
 	    E_Int irac_fin = nrac_steady;
 	    if ( pass_inst == 1 )
@@ -804,7 +787,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
                 //printf("verif %d %d irac/nrac= %d %d  past_int=%d , pastType= %d \n", autorisation_transferts[pass_inst][irac_auto] , impli_local[NoD], irac, irac_fin, pass_inst, ipass_typ );
 
-		if (autorisation_transferts[pass_inst][irac_auto]==1 and impli_local[NoD]==1)
+		if (autorisation_transferts[pass_inst][irac_auto]==1)
 		  {
            
                     //on skippe les racc IBC  si passe ID  et viceversa: IM
@@ -1046,7 +1029,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 						     xPC + nbRcvPts, xPC + nbRcvPts * 2, xPW, xPW + nbRcvPts,
 						     xPW + nbRcvPts * 2, xPI, xPI + nbRcvPts, xPI + nbRcvPts * 2,
 						     densPtr, 
-						     ipt_tmp, size,ipt_param_realD[NoD], 
+						     ipt_tmp, size, nvars, ipt_param_realD[NoD], 
 						     vectOfDnrFields, vectOfRcvFields ); 
 
                          if (solver_R==4)
@@ -1062,14 +1045,15 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 		      shiftDonor = shiftDonor + ntype[1 + ndtyp];            // shift donor entre 2 types successif
                     }                                                            // type
 
-
-#pragma omp barrier
-		  } // autorisation transfert
                 count_rac += 1;
+//#pragma omp barrier
+// barriere inutile en MPI: le receveur est local a chaque raccord
+//
+		  } // autorisation transfert
 	      }  // irac
 	  }      // pass_inst
 #pragma omp barrier
-      }  // pass
+      }  // pass typ (id/ibc)
   }      // omp
 
   PyObject* infos = PyList_New( 0 );
@@ -1079,23 +1063,22 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
     {
       E_Int irac_deb = 0;
       E_Int irac_fin = nrac_steady;
-      if ( pass_inst == 1 ) {
-	irac_deb = ipt_param_int[ech + 4 + it_target];
-	irac_fin = ipt_param_int[ech + 4 + it_target + timelevel]; }
+      if ( pass_inst == 1 ) 
+        { irac_deb = ipt_param_int[ech + 4 + it_target];
+     	  irac_fin = ipt_param_int[ech + 4 + it_target + timelevel];
+        }
 
       for ( E_Int irac = irac_deb; irac < irac_fin; irac++ )
-	{
+        {
 
 	  E_Int irac_auto= irac-irac_deb;
 	  if (autorisation_transferts[pass_inst][irac_auto]==1)
-	    {
+            {
 	      E_Int shift_rac = ech + 4 + timelevel * 2 + irac;
 	      E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 + 1];
 
 	      E_Int nbRcvPts_loc = nbRcvPts;
 	      E_Int NoD          = ipt_param_int[ shift_rac + nrac*5 ];
-	      if(impli_local[NoD]==0) { nbRcvPts_loc =1; }
-
 
 	      E_Int ibcType = ipt_param_int[shift_rac + nrac * 3];
 	      E_Int ibc = 1; 
@@ -1134,7 +1117,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                    Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac * 11 + 1] );
                    E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac * 12 + 1];
                    E_Int*    ipt_listRcv = ipt_param_int + PtlistDonor;
-                   PyObject* listRcv     = K_NUMPY::buildNumpyArray( ipt_listRcv, nbRcvPts, 1, 1 );
+                   PyObject* listRcv     = K_NUMPY::buildNumpyArray( ipt_listRcv, nbRcvPts_loc, 1, 1 );
 
                    // 1. Premier jeu de variables : MACROS
                      PyObject* info = PyList_New( 0 );
@@ -1162,7 +1145,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                    Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac * 11 + 1] );
                    E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac * 12 + 1];
                    E_Int*    ipt_listRcv = ipt_param_int + PtlistDonor;
-                   PyObject* listRcv     = K_NUMPY::buildNumpyArray( ipt_listRcv, nbRcvPts, 1, 1 );
+                   PyObject* listRcv     = K_NUMPY::buildNumpyArray( ipt_listRcv, nbRcvPts_loc, 1, 1 );
 
                    // 1. Premier jeu de variables : MACROS
                      PyObject* info = PyList_New( 0 );
@@ -1183,8 +1166,6 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
                    Py_DECREF( listRcv );  // ListReceveur
               }
-
-
 	      count_rac += 1;
 	    }//autorisation transfert
 	}// irac
@@ -1192,8 +1173,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
  
   delete[] ipt_param_intD; delete[] ipt_param_realD;
-  delete[] list_tpl;
+  delete [] RcvFields;  delete [] DnrFields;
   delete[] frp;
+  delete[] frp1;
+  delete[] frp2;
+  delete[] list_tpl;
+  delete[] list_tpl1;
+  delete[] list_tpl2;
   delete[] ipt_ndimdxD;
   delete[] ipt_roD;
   delete[] ipt_cnd;

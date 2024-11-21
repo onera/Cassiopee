@@ -22,7 +22,7 @@
 
 #define M_PI 3.1415926535897932384626433832795
 
-// in texture interpolation
+// interpolation when using images
 void interp(E_Int ind,
             E_Float* final1, E_Float* final2, E_Float* final3, E_Float* final4,
             E_Float* im1, E_Float* im2, E_Float* im3, E_Float* im4, 
@@ -47,57 +47,65 @@ void interp(E_Int ind,
   final4[ind] = bx*by*im4[ind1]+ax*by*im4[ind2]+bx*ay*im4[ind3]+ax*ay*im4[ind4];
 }
 
-
-// Create 1D half gaussian kernel coefficients
-// IN: sigma: in pixels
-// IN: n: half size of kernel
-// OUT: c: half kernel coefficients
-void createGaussFilter(E_Float sigma, E_Int n, E_Float* c)
+// interpolation when using slit buffers
+void interp2(E_Int ind,
+             char* final, char* im, 
+             E_Float px, E_Float py, E_Int ni1, E_Int nj1)
 {
-  E_Float sigma2 = (sigma*sigma);
-  for (E_Int i = 0; i <= n; i++)
-  {
-    c[i] = exp( -(i*i) / (2.*sigma2)) / (sigma*sqrt(2.)*M_PI);
-  }
-  printf("gaussian coefficients: ");
-  for (E_Int i = 0; i <= n; i++) printf("%g ", c[i]);
-  printf("\n");
+  E_Int i1 = E_Int(px*ni1);
+  E_Int i1p1 = std::min(i1+1, ni1);
+  E_Int j1 = E_Int(py*nj1);
+  E_Int j1p1 = std::min(j1+1, nj1);
 
-}
+  E_Int ind1 = i1+j1*(ni1+1);
+  E_Int ind2 = i1p1+j1*(ni1+1);
+  E_Int ind3 = i1+j1p1*(ni1+1);
+  E_Int ind4 = i1p1+j1p1*(ni1+1);
+  
+  E_Float ax = px*ni1-i1;
+  E_Float bx = 1.-ax;
+  E_Float ay = py*nj1-j1;
+  E_Float by = 1.-ay;
 
-// Apply gaussian blur to in
-// IN: in: color array
-// IN: ni,nj: image size
-// IN: c: kernel coef
-// IN: n: kernel half size
-// OUT: out: color array (already allocated)
-void gaussianBlur(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float* out)
-{
-  // filter en i
-  for (E_Int j = 0; j < nj; j++)
-  for (E_Int i = n; i < ni-n; i++)
-  {
-    out[i+j*ni] = in[i+j*ni]*c[0];
+  ax = 0.5; bx = 0.5;
+  ay = 0.5; by = 0.5;
+  
+  //printf("%g %g // %g %d\n", ax, ay, py, nj1);
+  //printf("%g %g\n", ax, bx);
 
-    for (E_Int k = 1; k < n; k++)
-    {
-      out[i+j*ni] += in[i-k+j*ni]*c[k];
-      out[i+j*ni] += in[i+k+j*ni]*c[k];
-    }
-  }
+  E_Float a1, a2, a3, a4;
+  uint8_t ret;
 
-  // filter en j
-  for (E_Int j = n; j < nj-n; j++)
-  for (E_Int i = 0; i < ni; i++)
-  {
-    in[i+j*ni] = out[i+j*ni]*c[0];
+  //char c = (uint8_t)im[3*ind1];
+  //ret = (int)c;
 
-    for (E_Int k = 1; k < n; k++)
-    {
-      in[i+j*ni] += out[i+(j-k)*ni]*c[k];
-      in[i+j*ni] += out[i+(j+k)*ni]*c[k];
-    }
-  }
+  a1 = bx*by*(uint8_t)im[3*ind1];
+  a2 = ax*by*(uint8_t)im[3*ind2];
+  a3 = bx*ay*(uint8_t)im[3*ind3];
+  a4 = ax*ay*(uint8_t)im[3*ind4];
+  ret = std::round(a1 + a2 + a3 + a4);
+  //printf("ret=%d // %d %d\n", ret, im[3*ind1], im[3*ind2]);
+  final[3*ind] = (char)ret;
+  a1 = bx*by*(uint8_t)im[3*ind1+1];
+  a2 = ax*by*(uint8_t)im[3*ind2+1];
+  a3 = bx*ay*(uint8_t)im[3*ind3+1];
+  a4 = ax*ay*(uint8_t)im[3*ind4+1];
+  ret = std::round(a1 + a2 + a3 + a4);
+  final[3*ind+1] = (char)(ret);
+  a1 = bx*by*(uint8_t)im[3*ind1+2];
+  a2 = ax*by*(uint8_t)im[3*ind2+2];
+  a3 = bx*ay*(uint8_t)im[3*ind3+2];
+  a4 = ax*ay*(uint8_t)im[3*ind4+2];
+  ret = std::round(a1 + a2 + a3 + a4);
+  final[3*ind+2] = (char)(ret);
+
+  //final[3*ind] = E_Int(im[3*ind4]);
+  //final[3*ind+1] = E_Int(im[3*ind4+1]);
+  //final[3*ind+2] = E_Int(im[3*ind4+2]);
+  
+  //final[3*ind]   = bx*by*im[3*ind1]  +ax*by*im[3*ind2]  +bx*ay*im[3*ind3]  +ax*ay*im[3*ind4];
+  //final[3*ind+1] = bx*by*im[3*ind1+1]+ax*by*im[3*ind2+1]+bx*ay*im[3*ind3+1]+ax*ay*im[3*ind4+1];
+  //final[3*ind+2] = bx*by*im[3*ind1+2]+ax*by*im[3*ind2+2]+bx*ay*im[3*ind3+2]+ax*ay*im[3*ind4+2];
 }
 
 // perform the stitching (identical to panorama.frag but on the cpu)
@@ -240,8 +248,8 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
   // fov of each image
-  E_Float fov = 90.;
-  printf("fov=%g\n", fov);
+  //E_Float fov = 90.;
+  //printf("fov=%g\n", fov);
   
   #pragma omp parallel
   {
@@ -331,37 +339,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
     }
   }
 
-  // gaussian blur needed for headsets
-  E_Float blurSigma = -1.;
-  if (blurSigma > 0.)
-  {
-    E_Int n = 3; // half kernel size
-    E_Float* c = new E_Float [n+1]; // kernel coeff
-    createGaussFilter(blurSigma, n, c);
-    FldArrayF out(nil*njl, 3);
-    E_Float* out1 = out.begin(1);
-    E_Float* out2 = out.begin(2);
-    E_Float* out3 = out.begin(3);
-
-    gaussianBlur(final1, nil, njl, c, n, out1);
-    gaussianBlur(final2, nil, njl, c, n, out2);
-    gaussianBlur(final3, nil, njl, c, n, out3);
-    
-    /*
-    #pragma omp parallel
-    {
-      #pragma omp for
-      for (E_Int ind = 0; ind < nil*njl; ind++) 
-      {  
-        final1[ind] = out1[ind];
-        final2[ind] = out2[ind];
-        final3[ind] = out3[ind];
-      }
-    }
-    */
-    delete [] c;
-  }
-
   RELEASESHAREDS(frontArray, front);
   RELEASESHAREDS(backArray, back);
   RELEASESHAREDS(leftArray, left);
@@ -393,7 +370,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
 
   char* varString;
   E_Int ni, nj, nk, res;
-  FldArrayF* array; FldArrayI* cn; char* eltType;
+  FldArrayI* cn; char* eltType;
   std::vector<FldArrayF*> frontImages(nangles);
   for (E_Int i = 0; i < nangles; i++)
   {
@@ -481,7 +458,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
     imb4[i] = botImages[i]->begin(7);
   }
 
-
   // final image pointers
   E_Float* final1 = final->begin(4); // r,g,b,a
   E_Float* final2 = final->begin(5);
@@ -489,24 +465,17 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   E_Float* final4 = final->begin(7);
 
   E_Float tinf, tsup;
-
   if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
   else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
-  // fov of each cube image
-  E_Float fov = 90.;
-
-  E_Int nijl = nil*njl; // final image
-  E_Int nil1 = nil-1;
-  E_Int njl1 = njl-1;
   E_Int ni1 = ni-1; // cube image
   E_Int nj1 = nj-1;
-  printf("ni=%d, nj=%d\n", ni, nj);
-
+  
   E_Int ind;
-  E_Int mid = ni/2;
   
   // direct sliting
+  /*
+  E_Int mid = ni/2;
   for (E_Int i = 0; i < nangles; i++)
   {
     for (E_Int j = 0; j < njl; j++)
@@ -518,11 +487,11 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
       final4[ind] = imb4[i][mid+j*ni];
     }
   }
+  */
   //return Py_None;
 
   // transformation
-  E_Float theta = 0.;
-  E_Float x, y, z, scale, py, phi, ty;
+  E_Float y, z, scale, py, phi, ty;
 
   for (E_Int i = 0; i < nangles; i++)
   {
@@ -534,7 +503,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   
       ind = i + j*nil;
       
-      x = 0.;
       y = sin(phi); // entre -1 et 1
       z = cos(phi); // entre 0 et 0
 
@@ -547,7 +515,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
               imf1[i], imf2[i], imf3[i], imf4[i],
               0.5, py, ni1, nj1);
       }
-      else if (phi > M_PI/4.) // bottom
+      else if (phi >= M_PI/4.) // bottom
       {
         scale = -1.0 / y;
         py = ( z*scale + 1.0) / 2.0;
@@ -555,12 +523,8 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
         interp(ind, final1, final2, final3, final4,
               imb1[i], imb2[i], imb3[i], imb4[i],
               0.5, py, ni1, nj1);
-        //final1[ind] = 0.;
-        //final2[ind] = 0.;
-        //final3[ind] = 0.;
-        //final4[ind] = 255.;
       }
-      else if (phi < -M_PI/4.) // top
+      else if (phi <= -M_PI/4.) // top
       {
         scale = -1.0 / y;
         py = ( z*scale + 1.0) / 2.0;
@@ -568,10 +532,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
         interp(ind, final1, final2, final3, final4,
               imt1[i], imt2[i], imt3[i], imt4[i],
               0.5, py, ni1, nj1);
-        //final1[ind] = 255.;
-        //final2[ind] = 0.;
-        //final3[ind] = 0.;
-        //final4[ind] = 255.;
       }
     }
   }
@@ -586,4 +546,50 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   RELEASESHAREDS(finalArray, final);
   
   return Py_None;
+}
+
+// acumulate one slit in image at place i
+void accumulateSlit(E_Int ni, E_Int nj, char* imf, char* imt, char* imb, 
+                    E_Int i, E_Int nil, E_Int njl, char* imOut)
+{
+  E_Int ni1 = ni-1; // slit image
+  E_Int nj1 = nj-1;
+  
+  {
+    E_Int ind;
+    E_Float scale, ty, py, phi, y, z;
+
+    // 1D interpolation
+    for (E_Int j = 0; j < njl; j++)
+    {
+      ty = (1.*j)/nj1;
+      phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
+      ind = i + (njl-j-1)*nil;
+
+      y = sin(phi); // entre -1 et 1
+      z = cos(phi); // entre 0 et 0
+
+      if (phi > -M_PI/4. && phi < M_PI/4.)
+      {
+        scale = 1.0 / z;
+        py = ( y*scale + 1.0) / 2.0;
+        interp2(ind, imOut, imf,
+                0.5, py, ni1, nj1);
+      }
+      else if (phi >= M_PI/4.) // top
+      {
+        scale = -1.0 / y;
+        py = ( z*scale + 1.0) / 2.0;
+        interp2(ind, imOut, imt,
+                0.5, py, ni1, nj1);
+      }
+      else if (phi <= -M_PI/4.) // bottom
+      {
+        scale = -1.0 / y;
+        py = ( z*scale + 1.0) / 2.0;
+        interp2(ind, imOut, imb,
+                0.5, py, ni1, nj1);
+      }
+    }
+  } 
 }

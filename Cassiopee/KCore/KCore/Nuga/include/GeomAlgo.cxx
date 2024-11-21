@@ -105,7 +105,8 @@ NUGA::GeomAlgo<ElementType>::neighboring
 
   // Merge
   K_FLD::ArrayAccessor<K_FLD::FloatArray> cab(barys);
-  E_Int nmerges = ::merge(cab, EPSILON, new_IDs);
+  //E_Int nmerges =
+  ::merge(cab, EPSILON, new_IDs);
 
   // Build Neighbour matrix
   std::vector<std::vector<E_Int> > ngh_tmp(ELTS);

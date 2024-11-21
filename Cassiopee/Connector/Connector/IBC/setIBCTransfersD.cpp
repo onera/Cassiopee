@@ -199,8 +199,13 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   // Types valides: 2, 3, 4, 5
 
 
-  vector<E_Float*> vectOfRcvFields(nvars);
-  vector<E_Float*> vectOfDnrFields(nvars);
+  //vector<E_Float*> vectOfRcvFields(nvars);
+  //vector<E_Float*> vectOfDnrFields(nvars);
+  E_Float** RcvFields = new E_Float*[ nvars];
+  E_Float** DnrFields = new E_Float*[ nvars];
+  E_Float** vectOfRcvFields = RcvFields;
+  E_Float** vectOfDnrFields = DnrFields;
+
   for (E_Int eq = 0; eq < nvars; eq++)
    {
     vectOfRcvFields[eq] = fieldROut.begin(eq+1);
@@ -262,7 +267,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
    if (varType == 2 ||varType == 21) 
       setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
 			                          xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-                                density, ipt_tmp, size,
+                                density, ipt_tmp, size, nvars,
                                 param_real, 
                                 vectOfDnrFields, vectOfRcvFields);
     else 
@@ -272,6 +277,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
 
  }//fin omp
 
+  delete [] RcvFields;  delete [] DnrFields;
   // sortie
   RELEASESHAREDB(resd, arrayD, fd, cnd);
   BLOCKRELEASEMEMD;
@@ -395,8 +401,12 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   //
   fieldROut.setAllValuesAtNull();
 
-  vector<E_Float*> vectOfRcvFields(nvars);
-  vector<E_Float*> vectOfDnrFields(nvars);
+  //vector<E_Float*> vectOfRcvFields(nvars);
+  //vector<E_Float*> vectOfDnrFields(nvars);
+  E_Float** RcvFields = new E_Float*[ nvars];
+  E_Float** DnrFields = new E_Float*[ nvars];
+  E_Float** vectOfRcvFields = RcvFields;
+  E_Float** vectOfDnrFields = DnrFields;
 
   if (compact==0)
   {
@@ -471,7 +481,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
      setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
 			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, 
-            ipt_tmp, size,
+            ipt_tmp, size, nvars,
             param_real,
             vectOfDnrFields, vectOfRcvFields);
   else { printf("_setIBCTransfersD: varType must be 2 or 21 \n");}
@@ -480,6 +490,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
 
   // sortie
   delete [] varStringOut;
+  delete [] RcvFields;  delete [] DnrFields;
   RELEASESHAREDZ(hook, varStringD, eltTypeD);
   BLOCKRELEASEMEMD;
   BLOCKRELEASEMEM2;

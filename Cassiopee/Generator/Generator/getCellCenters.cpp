@@ -38,7 +38,8 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  if (ret == 1) {
+  if (ret == 1)
+  {
     PyErr_SetString(PyExc_TypeError, "Only for NGons.");
     RELEASESHAREDS(ARR, f);
     return NULL;
@@ -70,20 +71,27 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
 
   // Parent elements
   E_Int *owner, *neigh;
-  if (OWN != Py_None && NEI != Py_None) {
+  if (OWN != Py_None && NEI != Py_None)
+  {
     ret = K_NUMPY::getFromNumpyArray(OWN, owner, size, nfld, true);
     assert(ret == 1 && size == nfaces && nfld == 1);
     ret = K_NUMPY::getFromNumpyArray(NEI, neigh, size, nfld, true);
     assert(ret == 1 && size == nfaces && nfld == 1);
-  } else if (OWN == Py_None && NEI == Py_None) {
+  }
+  else if (OWN == Py_None && NEI == Py_None)
+  {
     K_CONNECT::orient_boundary_ngon(x, y, z, *cn);
     owner = (E_Int *)malloc(nfaces * sizeof(E_Int));
     assert(owner);
     neigh = (E_Int *)malloc(nfaces * sizeof(E_Int));
     assert(neigh);
     K_CONNECT::build_parent_elements_ngon(*cn, &owner[0], &neigh[0]);
-  } else {
-    assert(0);
+  }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError, "getCellCenters: wrong arguments.");
+    RELEASESHAREDS(ARR, f);
+    return NULL;
   }
   
   // Cell centers
@@ -106,7 +114,8 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
   Py_DECREF(Cy);
   Py_DECREF(Cz);
 
-  if (OWN == Py_None && NEI == Py_None) {
+  if (OWN == Py_None && NEI == Py_None)
+  {
     free(owner);
     free(neigh);
   }

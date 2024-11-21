@@ -1038,18 +1038,18 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
 
     return graphIBCDPost, ts
 
-def computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[]):
+def computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], isPreProjectOrtho=False):
     """Computes the surface flow solution at the wall."""
     tp = Internal.copyRef(ts)
-    _computeSkinVariables(tp, tc, graphIBCDPost, dimPb, ibctypes)
+    _computeSkinVariables(tp, tc, graphIBCDPost, dimPb, ibctypes, isPreProjectOrtho=isPreProjectOrtho)
     return tp
 
-def _computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[]):
+def _computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], isPreProjectOrtho=False):
     """Computes the surface flow solution at the wall."""
     tl = createCloudIBM__(tc, ibctypes)
     tl = setIBCTransfersPost__(graphIBCDPost, tl)
     tl = T.join(tl)
-    P._projectCloudSolution(tl, ts, dim=dimPb, ibm=True)
+    P._projectCloudSolution(tl, ts, dim=dimPb, ibm=True, isPreProjectOrtho=isPreProjectOrtho)
     Cmpi.barrier()
     return None
 

@@ -393,10 +393,18 @@ def loadSlot():
         VARS[4].set(n.tobytes().decode())
     setColormapLight()
     displayField()
-    pos = Internal.getNodesFromName1(slot, 'isoScales*')
+    pos = Internal.getNodesFromName(slot, 'isoScales*')
     if pos != []:
         updateIsoWidgets(); updateIsoPyTree()
-
+    scales = []
+    for p in pos:
+        name = p[0]
+        name = name.replace('isoScales[', '')
+        name = name[0:-2]
+        out = [name]+p[1].tolist()
+        scales.append(out)
+        if scales != []: CPlot.setState(isoScales=scales)
+    
     pos = Internal.getNodeFromName1(slot, 'mode')
     if pos is not None:
         n = pos[1]
@@ -843,7 +851,7 @@ def updateIsoWidgets():
     pos = Internal.getNodeFromName(sl, 'isoScales')
     if pos is not None and pos[1] is not None:
         n = pos[1].copy(); l = n.shape[0]
-        list = []; c = 0
+        c = 0
         while c < l:
             if n[c] == VARNO:
                 VARS[2].set(str(int(n[c+1])))

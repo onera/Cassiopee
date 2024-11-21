@@ -53,7 +53,7 @@ namespace NUGA
   };
 
   template <typename ELT_t, NUGA::eDIR dir, short ORDER>
-  struct splitting_t;
+  class splitting_t;
 
   ///
   template <typename arr_t>

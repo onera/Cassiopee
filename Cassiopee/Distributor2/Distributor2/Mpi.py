@@ -50,7 +50,7 @@ def _redispatch(t, graph=None, verbose=0):
     if verbose > 0:
         nzones = len(Internal.getZones(t))
         Cmpi.barrier()
-        print("Info: _redispatch: proc {} has {} zones (max #zones during operation {} (+{:2.2f}%))".format(Cmpi.rank, nzones, nzonesMax, (nzonesMax-nzones)/float(nzones)*100.), flush=True)
+        print("Info: _redispatch: proc {} has {} zones (max #zones during operation {} (+{:2.2f}%))".format(Cmpi.rank, nzones, nzonesMax, (nzonesMax-nzones)/float(nzones)*100.))
         Cmpi.barrier()
 
     return None

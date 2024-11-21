@@ -1,0 +1,24 @@
+#! /bin/sh
+
+if ([ $# -eq 0 ])
+then
+    echo 'locateSymbol usage :'
+    echo 'locateSymbol dirlibs symbol'
+    echo 'Locate symbol in all .so'
+    exit
+fi
+# locate a symbol in a directory of .so
+for f in "$1"/*.so
+do
+    ret=`nm $f 2> /dev/null | grep $2`
+    if [[ "$ret" != "" ]]; then
+        echo $(basename $f) ':' $ret
+    fi
+done
+for f in "$1"/*.a
+do
+    ret=`nm $f 2> /dev/null | grep $2`
+    if [[ "$ret" != "" ]]; then
+        echo $(basename $f) ':' $ret
+    fi
+done

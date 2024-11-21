@@ -26,6 +26,6 @@ using namespace K_FLD;
 PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
 {
   PyErr_SetString(PyExc_TypeError,
-                    "tetgen: Generator was not installed with tetgen.");
+		  "tetgen: Generator was not installed with tetgen.");
   return NULL;
 }

@@ -65,19 +65,46 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
+//=============================================================================
+void computeVelocity__(E_Int npts, 
+  const E_Float* ro, const E_Float* rou, const E_Float* rov, const E_Float* row,
+  E_Float* vx, E_Float* vy, E_Float* vz)
 {
-  void k6computevelocity_(const E_Int& npts, const E_Int& neq,
-			  const E_Int& posro,
-			  const E_Int& posrou, const E_Int& posrov,
-			  const E_Int& posrow,
-			  const E_Float* field, 
-			  E_Float* velo);
+  #pragma omp parallel
+  {
+    E_Float roi;
+    #pragma omp for
+    for (E_Int i = 0; i < npts; i++)
+    {
+      roi = 1. / ro[i];
+      vx[i] = rou[i] * roi;
+      vy[i] = rov[i] * roi;
+      vz[i] = row[i] * roi;
+    }
+  }
+}
 
-  void k6computepressure_(const E_Int& cellt,const E_Float& gamma, 
-                          const E_Float* velo, 
-                          const E_Float* ro, const E_Float* roe,
-                          E_Float* p);
+//=============================================================================
+void computePressure__(E_Int npts, E_Float gamma, 
+                       const E_Float* vx, const E_Float* vy, const E_Float* vz, 
+                       const E_Float* ro, const E_Float* roe,
+                       E_Float* p)
+{
+  E_Float gam1 = gamma - 1.;
+  E_Float ONEHALF = 0.5;
+
+  #pragma omp parallel
+  {
+    E_Float vx2, vy2, vz2;
+    #pragma omp for
+    for (E_Int i = 0; i < npts; i++)
+    {
+      vx2 = vx[i] * vx[i];
+      vy2 = vy[i] * vy[i];
+      vz2 = vz[i] * vz[i];
+      p[i] = gam1 * (roe[i]-ONEHALF*ro[i]*(vx2 + vy2 + vz2));
+    }
+  }
 }
 
 //=============================================================================
@@ -693,7 +720,7 @@ E_Int K_POST::computeCompVariables2(const FldArrayF& f, const E_Int posro,
       GAM6;
 #pragma omp parallel
       {
-        E_Float ro, vx, vy, vz, p, t, h;
+        E_Float ro, p, t, vx, vy, vz, h;
 #pragma omp for
         for (E_Int i = 0; i < npts; i++)
         {
@@ -803,12 +830,10 @@ void K_POST::computeVelocity(const FldArrayF& f,
 {
   if (velo.getSize() != 0) return; // deja calcule
   E_Int npts = f.getSize();
-  E_Int nfld = f.getNfld();
 
   velo.malloc(npts, 3);
-  k6computevelocity_(npts, nfld,
-  		     posro, posrou, posrov, posrow,
-  		     f.begin(), velo.begin());
+  computeVelocity__(npts, f.begin(posro), f.begin(posrou), f.begin(posrov), f.begin(posrow),
+    velo.begin(1), velo.begin(2), velo.begin(3));
 }
 
 //=============================================================================
@@ -832,9 +857,8 @@ void K_POST::computePressure(const FldArrayF& f,
   computeVelocity(f, posro, posrou, posrov, posrow, velo);
   
   // calcul de p = gam1 * roe, e energie interne
-  k6computepressure_(npts, gamma, velo.begin(),
-		     f.begin(posro), f.begin(posroe), 
-		     press.begin());
+  computePressure__(npts, gamma, velo.begin(1), velo.begin(2), velo.begin(3),
+    f.begin(posro), f.begin(posroe), press.begin());
 }
 
 //=============================================================================

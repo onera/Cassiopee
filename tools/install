@@ -16,3 +16,5 @@ cp tarballAll "$INSTALLPATH"
 cp tarex "$INSTALLPATH"
 echo 'Installing propre'
 cp propre "$INSTALLPATH"
+echo 'Installing locateSymbol'
+cp locateSymbol "$INSTALLPATH"

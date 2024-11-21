@@ -1223,7 +1223,6 @@ E_Int NGON_BOOLEAN_CLASS::volume_coefficients
   ngon_type ng_don = _cNGON1;
   ngon_type ng_rec = _cNGON2;
   
-  const K_FLD::FloatArray & crd_don = _aCoords1.array();
   const K_FLD::FloatArray & crd_rec = _crd2;
   
   std::map<E_Int, std::vector<E_Int> > recId_to_bitIds;
@@ -1247,6 +1246,7 @@ E_Int NGON_BOOLEAN_CLASS::volume_coefficients
   }
   
 #ifdef DEBUG_BOOLEAN
+  const K_FLD::FloatArray & crd_don = _aCoords1.array();
   E_Int PHi=0;
   E_Int rid = _ngoper->PHs._ancEs(1, PHi);
   E_Int did = _ngoper->PHs._ancEs(0, PHi);
@@ -1365,7 +1365,6 @@ E_Int NGON_BOOLEAN_CLASS::volume_and_centroid_coefficients
   ng_rec.PGs.updateFacets();
   ng_rec.PHs.updateFacets();
 
-  const K_FLD::FloatArray & crd_don = (rec_op==0) ? _crd2 : _aCoords1.array();
   const K_FLD::FloatArray & crd_rec = (rec_op==0) ? _aCoords1.array() : _crd2;
 
   std::map<E_Int, std::vector<E_Int> > recId_to_bitIds;
@@ -1398,6 +1397,7 @@ E_Int NGON_BOOLEAN_CLASS::volume_and_centroid_coefficients
   }
 
 #ifdef DEBUG_BOOLEAN
+  //const K_FLD::FloatArray & crd_don = (rec_op==0) ? _crd2 : _aCoords1.array();
   //E_Int PHi=0;
   //E_Int rid = 609;//_ngoper->anc_PH(rec_op, PHi);
   //E_Int did = _ngoper->anc_PH(don_op, PHi);
@@ -1525,7 +1525,7 @@ E_Int NGON_BOOLEAN_CLASS::conservative_transfer
   ngon_type ngd = (rec_op==0) ? _cNGON2 : _cNGON1; //donnor ngon
   ngon_type ngr = (rec_op==0) ? _cNGON1 : _cNGON2; //receptor ngon
   const K_FLD::FloatArray & dcrd = (rec_op==0) ? _crd2 : _aCoords1.array(); // donnor coords
-  const K_FLD::FloatArray & rcrd = (rec_op==0) ? _aCoords1.array() : _crd2; //receptor coords
+  //const K_FLD::FloatArray & rcrd = (rec_op==0) ? _aCoords1.array() : _crd2; //receptor coords
   
   DELAUNAY::Triangulator dt;
 

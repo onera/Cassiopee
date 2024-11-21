@@ -500,7 +500,7 @@ namespace NUGA
   std::cout << "transfer " << nb_sols << " PWL fields on " << nb_rphs << " elements..." << std::endl;
 #endif
   
-  E_Float GcGcp[3];
+  //E_Float GcGcp[3];
   
   // Now tranfer
   for (E_Int i=0; i < rids.size(); ++i)

@@ -23,6 +23,12 @@ sudo apt-get install mesa-common-dev
 sudo apt-get install libosmesa6-dev
 sudo apt-get install xorg-dev
 
+sudo apt-get install libocct-foundation-dev
+sudo apt-get install libocct-modeling-algorithms-dev
+sudo apt-get install libocct-data-exchange-dev
+sudo apt-get install libocct-modeling-data-dev
+sudo apt-get install libocct-draw-dev
+
 ```
 
 ## Install Cassiopee

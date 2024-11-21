@@ -52,9 +52,10 @@ def display(t,
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
             stereo=-1, stereoDist=-1., panorama=0,
             export="None", exportResolution="None",
-            location='unchanged',
+            location="unchanged",
             frameBuffer=-1,
-            offscreen=0):
+            offscreen=0,
+            posCamList=None, posEyeList=None, dirCamList=None):
     """Display pyTrees.
     Usage: display(t)"""
     global __LOCATION__
@@ -78,7 +79,8 @@ def display(t,
                   shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
                   stereo, stereoDist, panorama,
                   export, exportResolution, 
-                  zoneNames, renderTags, frameBuffer, offscreen)
+                  zoneNames, renderTags, frameBuffer, offscreen,
+                  posCamList, posEyeList, dirCamList)
     
 # CB: temporaire. Raw data direct display.
 def displayRaw(t,
@@ -111,7 +113,7 @@ def displayRaw(t,
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
             stereo=-1, stereoDist=-1., panorama=0,
             export="None", exportResolution="None",
-            location='unchanged',
+            location="unchanged",
             frameBuffer=-1,
             offscreen=0):
     zoneNames = C.getZoneNames(t)
@@ -139,11 +141,11 @@ def render():
     CPlot.render()
 
 #==============================================================================
+# This function doesnt remove zone from t
 def delete(zlist):
-    """Delete zones from plotter.
-    Usage: delete([i1,i2,...])"""
-    CPlot.delete(zlist)
-    
+    """Delete zones from plotter."""
+    CPlot.delete(zlist)    
+
 #==============================================================================
 def add(t, nob, noz, zone):
     """Add/insert a zone to plotter.
@@ -433,11 +435,11 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     """Move camera.
     Usage: moveCamera(checkPoints, moveEye, N, speed, pos)."""
     if isinstance(posCams[0], str): # zone
-        posCams = C.getAllFields(posCams, 'nodes')
+        posCams = C.getAllFields(posCams, 'nodes')[0]
     if posEyes is not None and isinstance(posEyes[0], str): # zone
-        posEyes = C.getAllFields(posEyes, 'nodes')
+        posEyes = C.getAllFields(posEyes, 'nodes')[0]
     if dirCams is not None and isinstance(dirCams[0], str): # zone
-        dirCams = C.getAllFields(dirCams, 'nodes')
+        dirCams = C.getAllFields(dirCams, 'nodes')[0]
     ret = CPlot.moveCamera(posCams, posEyes, dirCams, moveEye, N, speed, pos)
     return ret
 
@@ -949,7 +951,7 @@ def style2Colormap(style):
     return colormap, light
     
 #==============================================================================
-# loadView form slot
+# loadView from slot
 #==============================================================================
 def loadView(t, slot=0):
     """Load a view stored in slot."""
@@ -1018,7 +1020,7 @@ def loadView(t, slot=0):
     if legend == 1: CPlot.setState(displayIsoLegend=legend)
 
     CPlot.setState(colormap=style)
-    pos = Internal.getNodesFromName1(slot, 'isoScales*')
+    pos = Internal.getNodesFromName(slot, 'isoScales*')
     scales = []
     for p in pos:
       name = p[0]
@@ -1074,6 +1076,7 @@ def loadImageFiles(t, offscreen=0):
 
 #==============================================================================
 # subfunction of display 360. Display 6 views rotating over posCam.
+#==============================================================================
 def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     import KCore.Vector as Vector
     
@@ -1188,7 +1191,7 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     # Compute all front view vectors
     v1 = Vector.sub(posEye, posCam) # view vector
     vz = Vector.normalize(dirCam) # third view vector
-    v2 = Vector.cross(vz, v1) # second view vector
+    v2 = Vector.cross(v1, vz) # second view vector
     v2 = Vector.normalize(v2)
 
     import Geom.PyTree as D
@@ -1219,10 +1222,10 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
 
     # top image
     point = D.point(v1p)
-    point = T.rotate(point, (0,0,0), v2p, -90)
+    point = T.rotate(point, (0,0,0), v2p, +90)
     v1z = C.getValue(point, 'GridCoordinates', 0)
     point = D.point(dirCam)
-    point = T.rotate(point, (0,0,0), v2p, -90)
+    point = T.rotate(point, (0,0,0), v2p, +90)
     v2z = C.getValue(point, 'GridCoordinates', 0)
         
     posEye0 = Vector.add(v1z, posCam)
@@ -1239,10 +1242,10 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
 
     # bottom image
     point = D.point(v1p)
-    point = T.rotate(point, (0,0,0), v2p, 90)
+    point = T.rotate(point, (0,0,0), v2p, -90)
     v1z = C.getValue(point, 'GridCoordinates', 0)
     point = D.point(dirCam)
-    point = T.rotate(point, (0,0,0), v2p, 90)
+    point = T.rotate(point, (0,0,0), v2p, -90)
     v2z = C.getValue(point, 'GridCoordinates', 0)
         
     posEye0 = Vector.add(v1z, posCam)
@@ -1326,7 +1329,6 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     display(t, **lkwargs)
     finalizeExport(offscreen)
 
-    print("done", flush=True)
     return None
 
 # subfunction of display 360. Display the n views with rotating posCam
@@ -1341,7 +1343,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     nangles = int(nangles)
     # fov of each image
     fov = 90.
-
+    
     # locrez of each image
     locRez = exportRez.split('x')[1]
     locRez1 = 2
@@ -1351,7 +1353,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     # Compute all front view vectors
     v1 = Vector.sub(posEye, posCam) # view vector
     vz = Vector.normalize(dirCam) # third view vector
-    v2 = Vector.cross(vz, v1) # second view vector
+    v2 = Vector.cross(v1, vz) # second view vector
     v2 = Vector.normalize(v2)
 
     import Geom.PyTree as D
@@ -1363,7 +1365,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
         # simple parallel hack  
         #if i%Cmpi.size != Cmpi.rank: continue
         
-        theta = i*360./nangles-180.
+        theta = 180. - i*360./nangles
 
         point = D.point(v1)
         point = T.rotate(point, (0,0,0), vz, theta)
@@ -1390,10 +1392,10 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
 
         # top image
         point = D.point(v1p)
-        point = T.rotate(point, (0,0,0), v2p, -90)
+        point = T.rotate(point, (0,0,0), v2p, +90)
         v1z = C.getValue(point, 'GridCoordinates', 0)
         point = D.point(dirCam)
-        point = T.rotate(point, (0,0,0), v2p, -90)
+        point = T.rotate(point, (0,0,0), v2p, +90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
         
         posEye0 = Vector.add(v1z, posCam)
@@ -1411,10 +1413,10 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
 
         # bottom image
         point = D.point(v1p)
-        point = T.rotate(point, (0,0,0), v2p, 90)
+        point = T.rotate(point, (0,0,0), v2p, -90)
         v1z = C.getValue(point, 'GridCoordinates', 0)
         point = D.point(dirCam)
-        point = T.rotate(point, (0,0,0), v2p, 90)
+        point = T.rotate(point, (0,0,0), v2p, -90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
         
         posEye0 = Vector.add(v1z, posCam)
@@ -1430,15 +1432,110 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
         display(t, **lkwargs)
         finalizeExport(offscreen)
 
-    print("done", flush=True)
     Cmpi.barrier() # wait for completion
+    return None
+
+# subfunction of display 360. Display the n views with rotating posCam
+# tentative only for osmesa
+def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift, kwargs):
+
+    import KCore.Vector as Vector
+    lkwargs = kwargs.copy()
+
+    posCamList = []; posEyeList = []; dirCamList = []
+    
+    # number of images, 1 per pixel
+    nangles = exportRez.split('x')[0]
+    nangles = int(nangles)
+    # fov of each image
+    fov = 90.
+    
+    # locrez of each image
+    locRez = exportRez.split('x')[1]
+    locRez1 = 2
+    locRez2 = int(locRez)
+    locRez = "%dx%d"%(locRez1, locRez2)
+
+    lkwargs['viewAngle'] = fov
+    lkwargs['exportResolution'] = locRez
+
+    # Compute all front view vectors
+    v1 = Vector.sub(posEye, posCam) # view vector
+    vz = Vector.normalize(dirCam) # third view vector
+    v2 = Vector.cross(v1, vz) # second view vector
+    v2 = Vector.normalize(v2)
+
+    import Geom.PyTree as D
+    import Transform.PyTree as T
+
+    # start from -pi to pi and rotate left
+    for i in range(nangles):
+                
+        theta = 180. - i*360./nangles
+
+        point = D.point(v1)
+        point = T.rotate(point, (0,0,0), vz, theta)
+        v1p = C.getValue(point, 'GridCoordinates', 0)
+        point = D.point(v2)
+        point = T.rotate(point, (0,0,0), vz, theta)
+        v2p = C.getValue(point, 'GridCoordinates', 0)
+        dv = Vector.mul(stereoShift, v2p)
+
+        # front image
+        posCam0 = Vector.add(posCam, dv)
+        posEye0 = Vector.add(v1p, posCam)
+        dirCam0 = dirCam
+        #print('front %d / %d'%(i,nangles))
+
+        posCamList += posCam0
+        posEyeList += posEye0
+        dirCamList += dirCam0
+        
+        # top image
+        point = D.point(v1p)
+        point = T.rotate(point, (0,0,0), v2p, +90)
+        v1z = C.getValue(point, 'GridCoordinates', 0)
+        point = D.point(dirCam)
+        point = T.rotate(point, (0,0,0), v2p, +90)
+        v2z = C.getValue(point, 'GridCoordinates', 0)
+        
+        posEye0 = Vector.add(v1z, posCam)
+        dirCam0 = v2z
+        #print('top %d / %d'%(i,nangles))
+
+        posCamList += posCam0
+        posEyeList += posEye0
+        dirCamList += dirCam0
+        
+        # bottom image
+        point = D.point(v1p)
+        point = T.rotate(point, (0,0,0), v2p, -90)
+        v1z = C.getValue(point, 'GridCoordinates', 0)
+        point = D.point(dirCam)
+        point = T.rotate(point, (0,0,0), v2p, -90)
+        v2z = C.getValue(point, 'GridCoordinates', 0)
+        
+        posEye0 = Vector.add(v1z, posCam)
+        dirCam0 = v2z
+        #print('bot %d / %d'%(i,nangles))
+
+        posCamList += posCam0
+        posEyeList += posEye0
+        dirCamList += dirCam0
+        
+        lkwargs['posCamList'] = posCamList
+        lkwargs['posEyeList'] = posEyeList
+        lkwargs['dirCamList'] = dirCamList
+        
+    display(t, **lkwargs)
+
     return None
 
 #==============================================================================
 # display360 (offscreen=1, 2 or 7)
 # type360=0 (360 degres), =1 (180 degres)
 #==============================================================================
-def display360(t, type360=0, **kwargs):
+def display360(t, type360=0, blurSigma=-1., **kwargs):
     """Display for 360 images."""
     import KCore.Vector as Vector
     import Converter.Mpi as Cmpi
@@ -1452,7 +1549,7 @@ def display360(t, type360=0, **kwargs):
     offscreen = kwargs.get("offscreen", 1)
     stereo = kwargs.get("stereo", 0)
     stereoDist = kwargs.get("stereoDist", 0.07) # stereoDist is in real world distance
-    if stereo == 1: kwargs['stereo'] = 0
+    kwargs['stereo'] = 0 # force no anaglyph
 
     # orthogonalisation de v1 et dirCam si ils ne sont pas orthos
     v1 = Vector.sub(posEye, posCam) # view vector
@@ -1467,10 +1564,12 @@ def display360(t, type360=0, **kwargs):
         display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs)
         # Create the 360 image from cube images
         if Cmpi.rank == 0:
-            panorama(export, exportRez, type360=type360)
+            panorama(export, exportRez, type360=type360, blurSigma=blurSigma)
         Cmpi.barrier() # wait for completion
 
-    elif stereo == 1: # stereo (ODS)
+    elif stereo == 1: # stereo ODS internal (only offscreen=1 or 7)
+
+        if offscreen != 1 and offscreen != 7: raise ValueError("display360: stereo=1 only for osmesa."); return None
 
         export1 = export.rsplit('.', 1)
         if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
@@ -1481,23 +1580,19 @@ def display360(t, type360=0, **kwargs):
 
         # right eye
         #stereoDist = 0. # forced to 0 for debug
-        display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
-        if Cmpi.rank == 0:
-            panoramaODS(export1, exportRez, type360=type360)
-        Cmpi.barrier() # wait for completion
+        kwargs['export'] = export1
+        display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
 
         # left eye
-        display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
-        if Cmpi.rank == 0:
-            panoramaODS(export2, exportRez, type360=type360)
-        Cmpi.barrier() # wait for completion
-
+        kwargs['export'] = export2
+        display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
+        
         # stitch
         if Cmpi.rank == 0:
             panoramaStereo(export, export1, export2, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
 
-    else: # stereo = 2
+    elif stereo == 2: # stereo = 2 (wrong stereo)
         export1 = export.rsplit('.', 1)
         if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
         else: export1 = export+'_1'
@@ -1506,14 +1601,12 @@ def display360(t, type360=0, **kwargs):
         else: export2 = export+'_2'
 
         # right eye
-        #stereoDist = 0. # forced to 0 for debug
         display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
         if Cmpi.rank == 0:
             panorama(export1, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
         
         # left eye
-        #stereoDist = 0. # forced to 0 for debug
         display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
         if Cmpi.rank == 0:
             panorama(export2, exportRez, type360=type360)
@@ -1524,11 +1617,73 @@ def display360(t, type360=0, **kwargs):
             panoramaStereo(export, export1, export2, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
 
+    elif stereo == 3: # stereo = 3 (wrong stereo 2)
+        export1 = export.rsplit('.', 1)
+        if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
+        else: export1 = export+'_1'
+        export2 = export.rsplit('.', 1)
+        if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
+        else: export2 = export+'_2'
+
+        v1 = Vector.sub(posEye, posCam) # view vector
+        vz = Vector.normalize(dirCam) # third view vector
+        v2 = Vector.cross(v1, vz) # second view vector
+        v2 = Vector.normalize(v2)
+        dv = Vector.mul(stereoDist/2, v2)
+
+        # right eye
+        posCam0 = Vector.add(posCam, dv)
+        display360__(t, posCam0, posEye, dirCam, offscreen, exportRez, kwargs)
+        if Cmpi.rank == 0:
+            panorama(export1, exportRez, type360=type360, blueSigma=blurSigma)
+        Cmpi.barrier() # wait for completion
+        
+        # left eye
+        posCam0 = Vector.sub(posCam, dv)
+        display360__(t, posCam0, posEye, dirCam, offscreen, exportRez, kwargs)
+        if Cmpi.rank == 0:
+            panorama(export2, exportRez, type360=type360, blueSigma=blurSigma)
+        Cmpi.barrier() # wait for completion
+
+        # stitch
+        if Cmpi.rank == 0:
+            panoramaStereo(export, export1, export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+    elif stereo == 4: # stereo ODS external
+
+        export1 = export.rsplit('.', 1)
+        if len(export1) == 2: export1 = export1[0]+'_1.'+export1[1]
+        else: export1 = export+'_1'
+        export2 = export.rsplit('.', 1)
+        if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
+        else: export2 = export+'_2'
+
+        # right eye
+        #stereoDist = 0. # forced to 0 for debug
+        kwargs['export'] = export1
+        display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoDist/2., kwargs)
+        if Cmpi.rank == 0:
+            panoramaODS(export1, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
+        # left eye
+        kwargs['export'] = export2
+        display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
+        if Cmpi.rank == 0:
+            panoramaODS(export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+        
+        # stitch
+        if Cmpi.rank == 0:
+            panoramaStereo(export, export1, export2, exportRez, type360=type360)
+        Cmpi.barrier() # wait for completion
+
     return None
 
 # assemble 6 cube images en une image panoramique
 # type360=0 -> 360, type360=1 -> 180
-def panorama(export, exportRez, type360=0):
+def panorama(export, exportRez, type360=0, blurSigma=-1.):
     res = exportRez.split('x')
     if type360 == 0: resx = int(res[0]); resy = int(res[1])
     else: resx = int(res[1]); resy = int(res[1])
@@ -1550,10 +1705,12 @@ def panorama(export, exportRez, type360=0):
     C._addVars(a7, ['r','g','b','a'])
     a7f = C.getFields('nodes', a7, api=3)[0]
     CPlot.cplot.panorama(a1, a2, a3, a4, a5, a6, a7f, type360)
+    CPlot.cplot.blur(a7f, blurSigma)
     C.convertPyTree2File(a7, export)
     return a7
 
 # assemble 2 images panoramiques en une image panoramique stereo
+# export1: right, export2: left
 def panoramaStereo(export, export1, export2, exportRez, type360=0):
     import Generator.PyTree as G
     # assemble 2 panoramic images in a single stereo image
@@ -1611,7 +1768,7 @@ def panoramaODS(export, exportRez, type360=0):
     nangles = exportRez.split('x')[0]
     nangles = int(nangles)
 
-    front = []; top = []; bottom = []   
+    front = []; top = []; bottom = []
     for i in range(nangles):
         a1 = C.convertFile2PyTree('run/front_%05d.png'%i)
         a1 = C.getFields('nodes', a1, api=3)[0]
@@ -1629,3 +1786,9 @@ def panoramaODS(export, exportRez, type360=0):
     CPlot.cplot.panoramaODS(front, top, bottom, a7f, type360)
     C.convertPyTree2File(a7, export)
     
+# blur an image
+def _blur(t, blurSigma=0.8):
+    """Blur an image."""
+    arrays = C.getAllFields(t, 'nodes', api=3)
+    CPlot.blur(arrays, blurSigma)
+    return None

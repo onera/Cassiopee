@@ -85,7 +85,8 @@ Kernel<T>::~Kernel(void)
 template <typename T>
 template <typename ConstraintType>
 E_Int
-Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy){
+Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy)
+{
 #ifdef E_TIME
   chrono c;
   c.start();
@@ -102,7 +103,7 @@ Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy){
   c.start();
 #endif
 
- //
+  //
   ret = __remeshCavity (N, _data->connectM, _data->neighbors, _data->ancestors, _cavity, _cboundary);
   if (ret)
     return ret;

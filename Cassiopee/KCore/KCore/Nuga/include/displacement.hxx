@@ -506,7 +506,6 @@ namespace NUGA
     std::vector<bool> targeted(crd.cols(), false);
     for (E_Int i = 0; i < m.crd.cols(); ++i)
     {
-      double d2;
       int N = tree.getClosest(m.crd.col(i), ZERO_M*ZERO_M, d2);
 
       if (N == IDX_NONE) continue;

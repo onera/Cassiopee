@@ -564,9 +564,9 @@ False, # useCuda
 ],
 ##############################################################################
 'visung': [ 'Machine de post gfx (Onera)',
-'gfortran', # f77compiler
-'gfortran', # f90compiler
-'gcc', # Cppcompiler
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
 [], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
@@ -713,6 +713,36 @@ True, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'adastra_cpu': [ 'Machine CINES Cray',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[]  # NvccAdditionalOptions
+],
+###############################################################################
+'adastra_gpu': [ 'Machine CINES Cray',
+'ftn', # f77compiler
+'ftn', # f90compiler
+'cc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[]  # NvccAdditionalOptions
+],   
+###############################################################################
 'ubuntu': [ 'Linux ubuntu 24.04',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
@@ -728,7 +758,7 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'azure': [ 'Linux ubuntu 24.04 - Github Actions',
+'azure': [ 'Linux Centos7 - Github Actions',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler

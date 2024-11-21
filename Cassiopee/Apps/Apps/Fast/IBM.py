@@ -1,5 +1,4 @@
 # Class for FastS "IBM" prepare and compute
-import FastC.PyTree as FastC
 import FastS.ToolboxChimera as TBX
 import Converter.PyTree as C
 import Geom.PyTree as D
@@ -7,6 +6,7 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import Post.PyTree as P
 import Converter.Internal as Internal
+import Converter.GhostCells as Ghost
 import Connector.PyTree as X
 import Dist2Walls.PyTree as DTW
 import Distributor2.PyTree as D2
@@ -28,15 +28,13 @@ import numpy
 
 from Geom.IBM import setSnear, _setSnear, setDfar, _setDfar, snearFactor, _snearFactor, \
 setFluidInside, _setFluidInside, setIBCType, _setIBCType, changeIBCType, \
-initOutflow, initInj, _initOutflow, _initInj, transformTc2
+initOutflow, initInj, _initOutflow, _initInj, transformTc2, _addOneOverLocally
 
 import Post.IBM as P_IBM
 import Connector.IBM as X_IBM
 import Generator.IBM as G_IBM
 import Generator.IBMmodelHeight as G_IBM_Height
 
-try: range = xrange
-except: pass
 KCOMM = Cmpi.KCOMM
 
 RENAMEIBCNODES=False # renommage des ibcd*
@@ -543,6 +541,8 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
         if c==1: break
         c += 1
         ng = 0
+        #Modif Ivan 11/10/24
+        #ng = 2
         for z in Internal.getZones(tree):    
             zdim = Internal.getValue(z)
              
@@ -628,140 +628,582 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             
     return t, tb
 
+#================================================================================
+# Chimere: modif ghost planSym pour interp chimere 
+# IN: t
+# IN: depth= nombre de couche
+# IN: plan= plan cible de la symmetrie ('X': x=cte= plan sym, ...)
+#================================================================================
+def _modifGhostSymmetryPlan(t, depth=2,dim=3,Plan='Y'):
+
+   for z in Internal.getZones(t):
+      bc = Internal.getNodeFromName1(z,'ZoneBC')
+      bcs=[]
+      if bc is not None: bcs = Internal.getNodesFromType(bc,'BC_t')
+      for bc in bcs:
+        bctyp = Internal.getValue(bc)
+        if bctyp=='BCSymmetryPlane': 
+           ptrg = Internal.getNodeFromName1(bc,'PointRange')
+           dimZ = Internal.getZoneDim(z)
+           #print(z[0], dimZ,'range', ptrg[1])
+
+           idir = Ghost.getDirection__(dim, [ptrg])
+
+           #print('idir=',idir)
+           var = 'Coordinate'+Plan
+           coord= Internal.getNodeFromName2(z,var)[1]
+
+           if idir==0: 
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+2
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+2
+              for k in range(kmin,kmax):
+               for j in range(jmin,jmax):
+                 for d in range(depth):
+                   coord[depth-1-d,j,k]=  2*coord[depth-d,j,k]-coord[depth+1-d,j,k]
+           if idir==1: 
+              i1 = ptrg[1][0,1]-depth-1
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+2
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+2
+              for k in range(kmin,kmax):
+               for j in range(jmin,jmax):
+                 for d in range(depth):
+                   coord[i1+1+d,j,k]=   2.*coord[i1+d  ,j,k]-coord[i1-1+d,j,k]
+           if idir==2: 
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+2
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+2
+              for k in range(kmin,kmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   coord[i,depth-1-d,k]=  2*coord[i,depth-d,k]-coord[i,depth+1-d,k]
+           if idir==3: 
+              js = ptrg[1][1,1]-depth-1
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+2
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+2
+              for k in range(kmin,kmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   coord[i,js+1+d,k]=   2.*coord[i,js+d,k]-coord[i,js-1+d,k]
+           if idir==4: 
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+2
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+2
+              for j in range(jmin,jmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   coord[i,j,depth-1-d]=  2*coord[i,j,depth-d]-coord[i,j,depth+1-d]
+
+           if idir==5: 
+              ks = ptrg[1][2,1]-depth-1
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+2
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+2
+              for j in range(jmin,jmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   coord[i,j,ks+1+d]=   2.*coord[i,j,ks+d]-coord[i,j,ks-1+d]
+   return None
+
+#================================================================================
+# Chimere: modif cellN planSym pour interp chimere 
+# IN: t
+# IN: depth= nombre de couche
+# IN: plan= plan cible de la symmetrie ('X': x=cte= plan sym, ...)
+#================================================================================
+def _modifcellNSymmetryPlan(t, depth=2,dim=3):
+
+   for z in Internal.getZones(t):
+      bc = Internal.getNodeFromName1(z,'ZoneBC')
+      bcs=[]
+      if bc is not None: bcs = Internal.getNodesFromType(bc,'BC_t')
+      for bc in bcs:
+        bctyp = Internal.getValue(bc)
+        if bctyp=='BCSymmetryPlane': 
+           ptrg = Internal.getNodeFromName1(bc,'PointRange')
+           dimZ = Internal.getZoneDim(z)
+           #print(z[0], dimZ,'range', ptrg[1])
+
+           idir = Ghost.getDirection__(dim, [ptrg])
+
+           #print('idir=',idir)
+           cellN= Internal.getNodeFromName2(z,'cellN')[1]
+
+           if idir==0: 
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+              for k in range(kmin,kmax):
+               for j in range(jmin,jmax):
+                 for d in range(depth):
+                   if cellN[depth-1-d,j,k]>=1.99 : cellN[depth-1-d,j,k]=1
+           if idir==1: 
+              i1 = ptrg[1][0,1]-depth-1
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+              for k in range(kmin,kmax):
+               for j in range(jmin,jmax):
+                 for d in range(depth):
+                   if cellN[i1+d,j,k]>=1.99: cellN[i1+d,j,k]=1
+           if idir==2: 
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+              #print(z[0],'range', imin, imax,kmin,kmax,depth-1)
+              for k in range(kmin,kmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                  if  cellN[i,depth-1-d,k]>=1.99: cellN[i,depth-1-d,k]= 1
+           if idir==3: 
+              js = ptrg[1][1,1]-depth-1
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+              kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+              for k in range(kmin,kmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   if cellN[i,js+d,k]>=1.99: cellN[i,js+d,k]= 1.
+           if idir==4: 
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+              for j in range(jmin,jmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   if cellN[i,j,depth-1-d]>=1.99: cellN[i,j,depth-1-d]= 1.
+
+           if idir==5: 
+              ks = ptrg[1][2,1]-depth-1
+              imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+              jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+              for j in range(jmin,jmax):
+               for i in range(imin,imax):
+                 for d in range(depth):
+                   if cellN[i,j,ks+d]>=1.99: cellN[i,j,ks+d]= 1.
+   return None
 
 #================================================================================
 # IBM prepare hybride cart + curvi
-# IN: t_3d arbre cartesien   (from prepare1)
-# IN: tc_3d arbre cartesien connectivite   (from prepare1)
+# IN: t_octree arbre cartesien   (from prepare1)
+# IN: tc_octree arbre cartesien connectivite   (from prepare1)
 # IN: t_curvi arbre curviligne   (with bc and connectivity but without ghost)
 #================================================================================
-def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1):
+def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, blankingBodies=None, extrusion=None, interpDataType=1, order=2, verbose=2, filter_zone=None):
     overlap = '14'
-    InterpOrder = 2
-    root_racHybride = 'joinIBC'
-    
+    InterpOrder = order
+    Nproc =Cmpi.size
+    rank =Cmpi.rank
+
+    dim = 3
+    node = Internal.getNodeFromName(t_curvi, 'EquationDimension')
+    if node is not None: dim = Internal.getValue(node)
+
+    Model='NSTurbulent'
+    node= Internal.getNodeFromName(t_curvi, 'GoverningEquation')
+    if node is not None: Model = Internal.getValue(node)
+
+    Cmpi.barrier()
     #ajout 2 ghost maillag curvi
-    Internal._addGhostCells(t_curvi, t_curvi, 2, adaptBCs=1, fillCorner=0)
+    if Nproc !=1:
+       C._deleteGridConnectivity__(t_curvi, type='BCMatch')
+       bases_1=[];bases_2=[]; bases_3=[];bases_4=[]
+       for b in Internal.getBases(t_curvi):
+          #if b[0]=='ROTOR' or b[0]=='STATOR': bases_1.append(b)
+          if   b[0]=='Rx': bases_1.append(b)
+          elif b[0]=='Fuselage' or b[0]=='Aile': bases_2.append(b)
+          elif b[0]=='Stator' or 'STATOR' in b[0]: bases_3.append(b)
+          elif b[0]=='Rotor'  or 'ROTOR'  in b[0]: bases_4.append(b)
+          #else: bases_4.append(b)
+          #if 'I1' in b[0] or 'I2' in b[0] or 'I3' in b[0] or 'I4' in b[0] or 'I5' in b[0]: bases_3.append(b)
+          #if 'Proche' in b[0] or 'Far' in b[0]: bases_3.append(b)
+ 
+       bout=[]
+       c= 0
+       #ATTENTION: ordre des bases doit respecter l'ordre employe pour creer la matrice BM, sinon blanking foireux
+       #for b in [bases_3, bases_1, bases_2]:
+       for b in [ bases_1, bases_2, bases_3, bases_4]:
+          #print('traitement base:', b[0][0], flush=True)
+          ##Cmpi._addGhostCells(tmp, tmp, 2, adaptBCs=1, fillCorner=0, modified=None)
+          #Cmpi._addGhostCells(b, b, 2, adaptBCs=1, fillCorner=0, modified=None)
+          ##Cmpi._addGhostCells(b, b, 2, adaptBCs=1, fillCorner=0, modified=[['centers:TurbulentDistance']])
+          tmp = C.newPyTree(b)
+          Cmpi._addBXZones(tmp, depth=3, NoVar=True)
+          Cmpi.barrier()
+          tmp = X.connectMatch(tmp, dim=dim)
+          Internal._addGhostCells(tmp, tmp, 2, adaptBCs=1, fillCorner=0)
+          Cmpi.barrier()
+          Cmpi._rmBXZones(tmp)
+          baseLoc = Internal.getBases(tmp)
+          '''
+          baseLoc = Internal.getBases(b)
+          '''
+          if len(baseLoc)!=0: bout= bout + baseLoc
+
+       t_curvi = C.newPyTree(bout)
+
+    else: Internal._addGhostCells(t_curvi, t_curvi, 2, adaptBCs=1, fillCorner=0)
+
+
+    #print(" addGhost OK", rank, flush=True)
+    Cmpi.barrier()
+
+    #Ajout 1 plan k pour cas bidim
+    if dim==2:
+      t_curvi = T.addkplane(t_curvi)
+      t_curvi = T.contract(t_curvi, (0,0,0), (1,0,0), (0,1,0), 0.01)
+      t_curvi = T.makeDirect(t_curvi)
+
+    #creation "vraie" cellule ghost pour BC plansymetry pour faciliter interp Chimere
+    _modifGhostSymmetryPlan(t_curvi, depth=2, dim=dim)
+
+    #calcul distance paroi si necessaire
+    ret = C.isNamePresent(t_curvi, 'centers:TurbulentDistance')
+    #print(" avt Dist: rank=", rank, 'ret=', ret, Model, flush=True)
+    Cmpi.barrier()
+    #for z in Internal.getZones(t_curvi):
+    #   sol= Internal.getNodeFromName(z,'FlowSolution#Centers')
+    #   dist = Internal.getNodeFromName(sol,'TurbulentDistance')
+
+    #ret=1
+    #if Model == 'NSTurbulent' and ret != 1: # Wall distance not present
+    if Model == 'NSTurbulent':
+        import Dist2Walls.PyTree as DTW
+        walls = C.extractBCOfType(t_curvi, 'BCWall')
+        wall_gather = Cmpi.allgather(walls)
+        #print(" apr wall gather: rank=", rank, flush=True)
+        if rank==0: C.convertPyTree2File(walls,'wall.cgns')
+        Cmpi.barrier()
+        walls = []
+        for i in wall_gather: walls += i
+        if ret != 1:
+          #print(" Calcul Dist pourquoi: rank=", rank, 'ret=', ret, Model, flush=True)
+          if walls != []: # Wall distance not present:
+            DTW._distance2Walls(t_curvi, walls, loc='centers', type='ortho')
+          else:
+            C._initVars(t_curvi, 'centers:TurbulentDistance', 1000000.)
+
+    #print('apr Dist', flush=True)
+    Cmpi.barrier()
+
+    #init cellN pour interp chimere sur grille curvi
     C._initVars(t_curvi,"centers:cellN",1.)
     t_curvi = TBX.modifyBCOverlapsForGhostMesh(t_curvi,2)
     
-    dimPb = Internal.getValue(Internal.getNodeFromName(t_3d, 'EquationDimension'))
-    
     for z in Internal.getZones(t_curvi):
-        if root_racHybride in z[0]:
-            C._fillEmptyBCWith(z,'inactive','BCExtrapolated',dim=dimPb)
+        apply=False
+        if  filter_zone is None: apply=True
+        elif filter_zone in z[0]: apply=True
+        if apply:
+            C._fillEmptyBCWith(z,'inactive','BCExtrapolated',dim=dim)
             C._rmBCOfType(z,'BCOverlap')
-            C._fillEmptyBCWith(z,'trou','BCOverlap',dim=dimPb)
-            X._applyBCOverlaps(z,loc='centers',depth=2, val=0)
+            C._fillEmptyBCWith(z,'trou','BCOverlap',dim=dim)
             X._applyBCOverlaps(z,loc='centers',depth=4, val=2)
-    
+            X._applyBCOverlaps(z,loc='centers',depth=2, val=0)
+ 
+    # blanking des zones curvi si necessaire 
+    if blankingMatrix is not None:
+        if dim==2: 
+           print('revoir blanking en 2d')
+           import sys; sys.exit()
+
+        bases = Internal.getBases(t_curvi); nbases  = len(bases)
+
+        for base in bases: print("verif base order", base[0])
+
+        X._blankCells(t_final, blankingBodies, blankingMatrix, cellNName='cellN', XRaydim1=300, XRaydim2=300, dim=3, delta=0.)
+        '''
+        BM = numpy.zeros((nbases, 1),dtype=numpy.int32)
+        c=0
+        for body in blankingBodies:           
+          for b in range(numpy.shape(blankingMatrix)[0]): BM[b,0]= blankingMatrix[b,c]
+          #X._blankCellsTri(t_curvi, [body], blankingMatrix, cellNName='cellN', blankingType='center_in')
+          print('bm', BM[:,0], c)
+          X._blankCellsTri(t_curvi, [body], BM, cellNName='cellN', blankingType='cell_intersect')
+          c+=1
+        '''
+        #print('apres blanking',flush=True)
+       
+        X._setHoleInterpolatedPoints(t_curvi, depth=2, loc='centers', addGC=False, cellNName='cellN', dir=2)
+
+        #print('apres HoleInterpolated',flush=True)
+        _modifcellNSymmetryPlan(t_curvi, depth=2, dim=dim)
+        X._modifcellNBC(t_curvi, ['BCWall'], depth=2, dim=dim)
+
+    #print('apr planSym', flush=True)
+    Cmpi.barrier()
+
+    #Passage en coordonne cylindrique si necessaire a l'interp
     if extrusion == 'cyl':
-        T._cart2Cyl(t_3d , (0,0,0),(1,0,0))
-        T._cart2Cyl(tc_3d, (0,0,0),(1,0,0))
+        T._cart2Cyl(t_octree , (0,0,0),(1,0,0))
+        T._cart2Cyl(tc_octree, (0,0,0),(1,0,0))
         T._cart2Cyl(t_curvi   , (0,0,0),(1,0,0))
     
-    tBB2 = G.BB(t_curvi)
-    tBB  = G.BB(t_3d)
     
-    tc2 = C.node2Center(t_curvi)
+    #calcul raccord match sur zone curvi
+    tc_curvi = C.node2Center(t_curvi)
+    if Internal.getNodeFromType(t_curvi, "GridConnectivity1to1_t") is not None:
+       if Nproc !=1:
+          Xmpi._setInterpData(t_curvi, tc_curvi, nature=1, loc='centers', storage='inverse', sameName=1, dim=dim, itype='abutting')
+       else:
+             X._setInterpData(t_curvi, tc_curvi, nature=1, loc='centers', storage='inverse', sameName=1, dim=dim, itype='abutting')
     
-    X._setInterpData(t_curvi, tc2, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting')
+    #print('apr abbuting', flush=True)
+    Cmpi.barrier()
+    #sauvegarde cellN
+    C._initVars(t_octree,"{centers:cellN#Init}={centers:cellN}")
+    C._initVars(t_curvi ,"{centers:cellN#Init}={centers:cellN}")
     
-    C._initVars(t_3d,"{centers:cellN#Init}={centers:cellN}")
-    
+    #
+    #tag les points interpoles cartesion de type wall et overlap a l'aide du pointListD du tc cartesian
+    #
     for var in ['wall','racChimer']:
-        C._initVars(t_3d,"centers:cellN",1.)
+        for z in Internal.getZones(t_octree):
+           sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
+           cellN          = Internal.getNodeFromName(sol,'cellN')[1]
+           sh             = numpy.shape(cellN)
+        
+           for k in range(sh[2]):
+             for j in range(sh[1]):
+               for i in range(sh[0]):
+                     if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
+
         if var == 'wall': itype ="3"
         else: itype = overlap
-        for zc in Internal.getZones(tc_3d):
+        #creation nouveau tc pour garder que les raccords cibles (overlap, wall,...)
+        tc_filtre = Internal.copyRef(tc_octree)
+        for zc in Internal.getZones(tc_filtre):
             for zsr in Internal.getNodesFromType(zc, "ZoneSubRegion_t"):
                zsrname = Internal.getName(zsr)
                zsrname = zsrname.split('_')
-               if zsrname[0]=='IBCD' and zsrname[1] == itype: 
-                    zrname = Internal.getValue(zsr)
-                    ptlistD= Internal.getNodeFromName(zsr,'PointListDonor')[1]
-                    zloc   = Internal.getNodeFromName(t_3d,zrname)
-                    sol    = Internal.getNodeFromName(zloc,'FlowSolution#Centers')
-                    cellN  = Internal.getNodeFromName(sol,'cellN')[1]
-                    sh     = numpy.shape(cellN)
-                    ni= sh[0]; ninj = sh[0]*sh[1]
-                    for l0 in range(numpy.size(ptlistD)):
-                        l = ptlistD[ l0]
-                        k = l//ninj
-                        j = (l-k*ninj)//ni
-                        i =  l-k*ninj - j*ni
-                        cellN[ i,j,k ]=2
-        
-        if var == 'wall': C._initVars(t_3d,"{centers:cellN#wall}={centers:cellN}")
-        else:             C._initVars(t_3d,"{centers:cellN#racChim}={centers:cellN}")
+               if zsrname[0]!='IBCD' or zsrname[1] != itype:
+                   Internal._rmNodesFromName(zc,zsr[0])
+
+        #construction arbre skeleton global (tcs) pour calcul graph          
+        tcs_local = Cmpi.convert2SkeletonTree(tc_filtre)
+        tcs       = Cmpi.allgatherTree(tcs_local)
+        graph     = Cmpi.computeGraph(tcs, type='IBCD', reduction=True)
+        procDict  = Cmpi.getProcDict(tcs)
+
+        #construction list pour envoie pointListD  zone distante ou modif direct cellN si zone local
+        datas = {}
+        for zc in Internal.getZones(tc_filtre):
+          for zsr in Internal.getNodesFromType(zc, "ZoneSubRegion_t"):
+            zrname = Internal.getValue(zsr)
+            ptlistD= Internal.getNodeFromName(zsr,'PointListDonor')[1]
+            proc   = procDict[zrname]
+            if proc == rank:
+              zloc   = Internal.getNodeFromName(t_octree,zrname)
+              sol    = Internal.getNodeFromName(zloc,'FlowSolution#Centers')
+              #print("shape", zrname, zloc[0], numpy.shape(ptlistD),  numpy.size(ptlistD), ptlistD[0], flush=True)
+              cellN  = Internal.getNodeFromName(sol,'cellN')[1]
+              sh     = numpy.shape(cellN)
+              ni= sh[0]; ninj = sh[0]*sh[1]
+              for l0 in range(numpy.size(ptlistD)):
+                l = ptlistD[ l0]
+                k = l//ninj
+                j = (l-k*ninj)//ni
+                i =  l-k*ninj - j*ni
+                cellN[ i,j,k ]=2
+            else:
+                #print("shapeD", numpy.shape(ptlistD),  numpy.size(ptlistD),flush=True)
+                if proc not in datas: datas[proc] = [[zrname, ptlistD]]
+                else: datas[proc] += [[zrname, ptlistD]]
+                #print ("dataS", proc,  datas, flush=True)
+        # Envoie des numpys suivant le graph
+        rcvDatas = Cmpi.sendRecv(datas, graph)
+
+        # Remise des champs interpoles dans l'arbre receveur
+        for i in rcvDatas:
+          #print(rank, 'recoit de',i, '->', len(rcvDatas[i]), flush=True)
+          for n in rcvDatas[i]:
+            rcvName = n[0]
+            #print('reception', Cmpi.rank, rcvName, flush=True)
+            ptlistD = n[1]
+            zloc    = Internal.getNodeFromName(t_octree,rcvName)
+            #if zloc is not None: print('la zone', zloc[0],'est OK, size PtlistD=', numpy.size(ptlistD) , flush=True)
+            #else: print('aille', flush=True)
+     
+            sol    = Internal.getNodeFromName(zloc,'FlowSolution#Centers')
+            cellN  = Internal.getNodeFromName(sol,'cellN')[1]
+            sh     = numpy.shape(cellN)
+            ni= sh[0]; ninj = sh[0]*sh[1]
+            for l0 in range(numpy.size(ptlistD)):
+              l = ptlistD[ l0]
+              k = l//ninj
+              j = (l-k*ninj)//ni
+              i =  l-k*ninj - j*ni
+              cellN[ i,j,k ]=2
+
+        if var == 'wall': C._initVars(t_octree,"{centers:cellN#wall}={centers:cellN}")
+        else:             C._initVars(t_octree,"{centers:cellN#racChim}={centers:cellN}")
+    #
+    # fin Flag cellN=2 pour les points interpoles cartesien associes a la condition overlap
+    #
     
-    Internal._rmNodesFromName(tc_3d,'IBCD_'+overlap+'_*')
+    #on purge le tc cartesien des raccord overlap IBCD. SEra pris en compte par raccord ID plus loin
+    Internal._rmNodesFromName(tc_octree,'IBCD_'+overlap+'_*')
+    #Recopie cellN dans tc  octree en vue interp chimere
+    for z in Internal.getZones(t_octree):
+       zc = Internal.getNodeFromName(tc_octree, z[0])
+       C._cpVars( z, 'centers:cellN', zc, 'cellN')
+
+    #print('apr manip cellN', flush=True)
+    Cmpi.barrier()
+
+    # 
+    # double wall operation
+    # 
+    # tag for double wall static
+    for n in ['Rotor', 'Stator']:
+      base = Internal.getNodeFromName1(t_curvi, n)
+      for z in Internal.getNodesFromName(base, '*contact*'):
+          bcs = Internal.getNodesFromType(z, 'BC_t')
+          for bc in bcs:
+             bcname=Internal.getValue(bc)
+             if bcname != 'BCExtrapolated': C._tagWithFamily(bc, 'WALL_{}'.format(n))
+
+    X._doubleWall(t_curvi,tc_curvi,'WALL_Rotor','WALL_ROTORBLADE',ghostCells=True,check=False)
+    #Internal._rmNodesByName(t_curvi,'*inactive*')
+    Cmpi.barrier()
+    #if rank == 0: print("DB : {} -> {}".format('ROTORBLADES', 'ROTOR'), flush=True)
+    Cmpi.barrier()
+
+    base1 = Internal.getNodeFromName1(t_curvi, 'Rotor')
+    base1c = Internal.getNodeFromName1(tc_curvi, 'Rotor')
+    for i in range(14):
+       base2 = Internal.getNodeFromName1(t_curvi, 'ROTOR%d'%(i+1))
+       base2c = Internal.getNodeFromName1(tc_curvi, 'ROTOR%d'%(i+1))
+       tp = C.newPyTree([base1, base2])
+       tpc = C.newPyTree([base1c, base2c])
+       #if rank == 0: 
+       #   C.convertPyTree2File(tp,'bug'+str(rank)+'.cgns')
+       #   C.convertPyTree2File(tpc,'bugC'+str(rank)+'.cgns')
+       Cmpi.barrier()
+       X._doubleWall(tp,tpc,'WALL_ROTORBLADE','WALL_Rotor',ghostCells=True,check=False) #Souci 
+       #Internal._rmNodesByName(tp,'*inactive*')
+       Cmpi.barrier()
+       #if rank == 0: print("DB : {} -> {}".format('ROTOR', 'ROTORBLADE%d'%(i+1)), flush=True)
+       Cmpi.barrier()
+
+    X._doubleWall(t_curvi,tc_curvi,'WALL_Stator','WALL_STATORBLADE',ghostCells=True,check=False)
+    #Internal._rmNodesByName(t_curvi,'*inactive*')
+    Cmpi.barrier()
+    #if rank == 0: print("DB : {} -> {}".format('STATORBLADES', 'STATOR'), flush=True)
+    Cmpi.barrier()
+
+    base1 = Internal.getNodeFromName1(t_curvi, 'Stator')
+    base1c = Internal.getNodeFromName1(tc_curvi, 'Stator')
+    for i in range(12):
+       base2 = Internal.getNodeFromName1(t_curvi, 'STATOR%d'%(i+1))
+       base2c = Internal.getNodeFromName1(tc_curvi, 'STATOR%d'%(i+1))
+       tp = C.newPyTree([base1, base2])
+       tpc = C.newPyTree([base1c, base2c])
+       X._doubleWall(tp,tpc,'WALL_STATORBLADE','WALL_Stator',ghostCells=True,check=False)
+       #Internal._rmNodesByName(tp,'*inactive*')
+       Cmpi.barrier()
+       #if rank == 0: print("DB : {} -> {}".format('STATOR', 'STATORBLADE%d'%(i+1)), flush=True)
+       Cmpi.barrier()
+
+    # tag for double wall dynamic
+    for n in ['Rotor', 'Stator']:
+       base = Internal.getNodeFromName1(t_curvi, n)
+       for z in Internal.getNodesFromName(base, '*contactR*' if n == 'Stator' else '*contactS*'):
+           bcs = Internal.getNodesFromType(z, 'BC_t')
+           for bc in bcs:
+               C._tagWithFamily(bc, 'WALL_{}_DYNAMIC'.format(n))
+
+    #C.convertPyTree2File(t_curvi, 'CHECK/t_test3_'+str(rank)+'.cgns')
+
+
+
+    if Nproc==1:
+       tBB2 = G.BB(t_curvi)
+       tBB  = G.BB(t_octree)
+       interDict = X.getIntersectingDomains(tBB, t2=tBB2, method='AABB', taabb=tBB, taabb2=tBB2)
+       zonelist=[]
+       for z in Internal.getZones(t_octree):
+          if C.getMaxValue(z,'centers:cellN')==2:
+              dnrZones = []    
+              for zdname in interDict[z[0]]:
+                  zd = Internal.getNodeFromName(tc_curvi,zdname)
+                  dnrZones.append(zd)
+              X._setInterpData(z,dnrZones, nature=0,penalty=1,loc='centers',storage='inverse',sameName=1,\
+                               interpDataType=interpDataType, itype='chimera', order=InterpOrder,verbose=verbose)
+              z = X.getOversetInfo(z, dnrZones, loc='center',type='extrapolated')
+              zonelist.append(z)
     
-    for z in Internal.getZones(t_3d):
-        sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
-        cellNRac       = Internal.getNodeFromName(sol,'cellN#racChim')[1]
-        cellN          = Internal.getNodeFromName(sol,'cellN')[1]
-        C._initVars(z,"{centers:cellN}={centers:cellN#racChim}")
-        sh             = numpy.shape(cellN)
-        
-        if sh[2]> 1:
-            for k in [0,1, sh[2]-2, sh[2]-1]:
-                for j in range(sh[1]):
-                    for i in range(sh[0]):
-                        if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
-    
-    interDict = X.getIntersectingDomains(tBB, t2=tBB2, method='AABB', taabb=tBB, taabb2=tBB2)
-    print(" Interp Cartesian from curvilinear")
-    zonelist=[]
-    for z in Internal.getZones(t_3d):
-        if C.getMaxValue(z,'centers:cellN')==2:
-            dnrZones = []    
-            for zdname in interDict[z[0]]:
-                zd = Internal.getNodeFromName(tc2,zdname)
-                dnrZones.append(zd)
-            X._setInterpData(z,dnrZones, nature=0,penalty=1,loc='centers',storage='inverse',sameName=1,\
-                             interpDataType=interpDataType, itype='chimera', order=InterpOrder)
-            z = X.getOversetInfo(z, dnrZones, loc='center',type='extrapolated')
-            zonelist.append(z)
-    
-    interDict_curvi = X.getIntersectingDomains(tBB2, t2=tBB, method='AABB', taabb=tBB2, taabb2=tBB)
-    print(" Interp curvi from Cartesian")
-    for z in Internal.getZones(t_curvi):
-        if C.getMaxValue(z,'centers:cellN')==2:
-        #if 'join' in z[0]:
-            dnrZones = []    
-            for zdname in interDict_curvi[z[0]]:
-                zd = Internal.getNodeFromName(tc_3d,zdname)
-                dnrZones.append(zd)
+       interDict_curvi = X.getIntersectingDomains(tBB2, t2=tBB, method='AABB', taabb=tBB2, taabb2=tBB)
+       print(" Interp curvi from Cartesian")
+       for z in Internal.getZones(t_curvi):
+          if C.getMaxValue(z,'centers:cellN')==2:
+              dnrZones = []    
+              for zdname in interDict_curvi[z[0]]:
+                  zd = Internal.getNodeFromName(tc_octree,zdname)
+                  dnrZones.append(zd)
             
-            X._setInterpData(z,dnrZones,nature=0,penalty=1,loc='centers',storage='inverse',sameName=1,\
-                             interpDataType=interpDataType, itype='chimera', order=InterpOrder)
+              X._setInterpData(z,dnrZones,nature=0,penalty=1,loc='centers',storage='inverse',sameName=1,\
+                               interpDataType=interpDataType, itype='chimera', order=InterpOrder,verbose=verbose)
             
-            # to check orphans
-            #z = X.getOversetInfo(z, dnrZones, loc='center',type='extrapolated')
-            #z = X.getOversetInfo(z, dnrZones, loc='center',type='orphan')
-            #zonelist.append(z)
-            #C.convertPyTree2File(z,"rcv2.cgns")
+              # to check orphans
+              #z=X.getOversetInfo(z, dnrZones, loc='centers',type='extrapolated')
+              #z = X.getOversetInfo(z, dnrZones, loc='centers',type='extrapolated')
+              #z = X.getOversetInfo(z, dnrZones, loc='centers',type='orphan')
+              #zonelist.append(z)
+              #C.convertPyTree2File(z,"rcv2.cgns")
+
+       t  = C.mergeTrees(t_octree ,t_curvi )
+       tc = C.mergeTrees(tc_octree,tc_curvi)
+
+    else:
+       t  = C.mergeTrees(t_octree ,t_curvi )
+       tc = C.mergeTrees(tc_octree,tc_curvi)
+       
+       '''
+       #interp chimere curvi classique
+       C._initVars(t,"{centers:cellN}={centers:cellN#Init}")
+       for base in Internal.getBases(t):
+         if base[0]=='CARTESIAN':
+           for z in Internal.getZones(base):
+             sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
+             cellN          = Internal.getNodeFromName(sol,'cellN')[1]
+             sh             = numpy.shape(cellN)
+             for k in range(sh[2]):
+               for j in range(sh[1]):
+                 for i in range(sh[0]):
+                     if  cellN[i,j,k] == 2:  cellN[i,j,k] =0
+
+       #Recopie cellN dans tc  octree en vue interp chimere
+       for z in Internal.getZones(t):
+          zc = Internal.getNodeFromName(tc, z[0])
+          C._cpVars( z, 'centers:cellN', zc, 'cellN')
+       Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=0, dim=dim, itype='chimera', order=InterpOrder,verbose=verbose)
+       
+       for base in Internal.getBases(t):
+         if base[0]=='CARTESIAN':
+           C._initVars(base,"{centers:cellN}={centers:cellN#racChim}")
+         else:
+           for z in Internal.getZones(base):
+             sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
+             cellN          = Internal.getNodeFromName(sol,'cellN')[1]
+             sh             = numpy.shape(cellN)
+             for k in range(sh[2]):
+               for j in range(sh[1]):
+                 for i in range(sh[0]):
+                     if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
+       #Recopie cellN dans tc  octree en vue interp chimere
+       for z in Internal.getZones(t):
+          zc = Internal.getNodeFromName(tc, z[0])
+          C._cpVars( z, 'centers:cellN', zc, 'cellN')
+       #interp chimere cartIBM/curvi: on impose nature 0 pour eviter extrap couche limite
+       '''
+       Xmpi._setInterpData(t, tc, nature=0, loc='centers', storage='inverse', sameName=1, sameBase=0, dim=dim, itype='chimera', order=InterpOrder,verbose=verbose)
     
-    
-    C._initVars(t_3d, '{centers:cellN}={centers:cellN#Init}')
+
+    #reaffection du vrai cellN 
+    C._initVars(t, '{centers:cellN}={centers:cellN#Init}')
     
     if extrusion == 'cyl':
-        T._cyl2Cart(t_3d,   (0,0,0),(1,0,0))
-        T._cyl2Cart(t_curvi,  (0,0,0),(1,0,0))
-        T._cyl2Cart(tc_3d,  (0,0,0),(1,0,0))
-        T._cyl2Cart(tc2, (0,0,0),(1,0,0))
+        T._cyl2Cart(t,   (0,0,0),(1,0,0))
+        T._cyl2Cart(tc,  (0,0,0),(1,0,0))
     
-    for z in Internal.getZones(t_curvi):
+    for z in Internal.getZones(t):
         for bc in  Internal.getNodesFromType(z,'BC_t'):
             if 'inactive' in bc[0] and Internal.getValue(bc) == 'BCExtrapolated':
                 Internal._rmNodesByName(z, bc[0])
-    
-    t  = C.mergeTrees(t_3d ,t_curvi )
-    tc = C.mergeTrees(tc_3d,tc2)
-    
-    return t, tc
 
+    return t, tc
 
 #====================================================================================
 # Redistrib on NP processors
@@ -891,32 +1333,6 @@ def interpolateSolutionCoarse2Fine(tCoarse, tFine, NPprep, NPinterp):
     Internal._rmNodesByName(tFine,'FlowSolution')
     return tFine
     
-
-#====================================================================================
-#Add .Solver#Define with dirx,diry, & dirz to the base of the tboneover. tboneover is the
-#PyTree that defines the region in space wherein a one over n coarsening will be pursued
-#during the automatic cartesian grid generator of FastIBC.
-#IN: FileName: name of the file. tboneover is read in this function.
-#IN: oneOver: list of list of dirx,diry,dirz for each base in tboneover. E.g. oneOver=[[1,1,2],[1,2,1],[2,1,1]]
-#             for a tboneover with 3 bases where the 1st base has dirx=1, diry=1, & dirz=2
-#                                                    2nd base has dirx=1, diry=2, & dirz=1
-#                                                    3rd base has dirx=2, diry=1, & dirz=1
-#OUT: Nothing. Rewrite tboneover with the same FileName as that original used
-##NOTE # 1: To be run SEQUENTIALLY ONLY. This is ok as we are dealing with a surface geometry which tend to be
-##          relatively small.
-##NOTE # 2: Generation of tboneover is similar to that used for tbox.
-def _addOneOverLocally(FileName,oneOver):
-    count   = 0
-    t_local = C.convertFile2PyTree(FileName)
-    for b in Internal.getBases(t_local):
-        Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
-        n = Internal.getNodeFromName1(b, '.Solver#define')
-        Internal._createUniqueChild(n, 'dirx', 'DataArray_t', value=oneOver[count][0])
-        Internal._createUniqueChild(n, 'diry', 'DataArray_t', value=oneOver[count][1])
-        Internal._createUniqueChild(n, 'dirz', 'DataArray_t', value=oneOver[count][2])
-        count+=1
-    C.convertPyTree2File(t_local,FileName)
-    return None
 
 
 # IN: maillage surfacique + reference State + snears
@@ -1561,18 +1977,18 @@ class IBM(Common):
         localDistrib = 0
         if not Internal.getZones(t):
             localDistrib=1
-            print("Proc %d  has 0 zones"%Cmpi.rank,flush=True)
+            print("Proc %d  has 0 zones"%Cmpi.rank)
 
         localDistrib = Cmpi.allreduce(localDistrib  ,op=Cmpi.SUM)
         if localDistrib>0 or (self.input_var.tbOneOver and Cmpi.size>1):
             import Distributor2.Mpi as D2mpi
-            if Cmpi.rank==0 and localDistrib>0:print('>>> Distribute (atleast one Proc has 0 Zones [start])',flush=True)
+            if Cmpi.rank==0 and localDistrib>0:print('>>> Distribute (atleast one Proc has 0 Zones [start])')
             tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(t))
             stats  = D2._distribute(tcs, self.NP, algorithm='graph')
             D2._copyDistribution(t , tcs)
             D2mpi._redispatch(t)
             del tcs
-            if Cmpi.rank==0 and localDistrib>0:print('>>> Distribute (atleast one Proc has 0 Zones [end])',flush=True)
+            if Cmpi.rank==0 and localDistrib>0:print('>>> Distribute (atleast one Proc has 0 Zones [end])')
             if self.input_var.tbOneOver and Cmpi.size>1: self.input_var.redistribute = True
             
         test.printMem(">>> Blanking [end]")
@@ -2275,11 +2691,11 @@ class IBM(Common):
 
 
     def _recomputeDistRANS__(self,t,tb):       
-        if 'outpress' in self.ibctypes or 'inj' in self.ibctypes or 'slip' in self.ibctypes or 'wallmodel' in self.ibctypes:
+        if 'outpress' in self.ibctypes or 'inj' in self.ibctypes or 'slip' in self.ibctypes or 'wallmodel' in self.ibctypes or 'overlap' in self.ibctypes:
             test.printMem(">>> wall distance for viscous wall only - RANS [start]")     
             for z in Internal.getZones(tb):
                 ibc = Internal.getNodeFromName(z,'ibctype')
-                if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip' or Internal.getValue(ibc)=='wallmodel':
+                if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip' or Internal.getValue(ibc)=='wallmodel' or Internal.getValue(ibc)=='overlap':
                     Internal._rmNode(tb,z)
         
             if self.dimPb == 2:
@@ -2544,11 +2960,11 @@ class IBM(Common):
         ## Need to understand why it was added before the recompute for RANS & was not included in the recompute of dist2wall for RANS.
         ## Left here for now. Not efficient but acceptable (for now).
         if self.model != 'Euler' and self.input_var.recomputeDist and (self.input_var.extrusion!='cyl' and self.input_var.extrusion !='cart'):
-            if 'outpress' in self.ibctypes or 'inj' in self.ibctypes or 'slip' in self.ibctypes or 'wallmodel' in self.ibctypes:
+            if 'outpress' in self.ibctypes or 'inj' in self.ibctypes or 'slip' in self.ibctypes or 'wallmodel' in self.ibctypes or 'overlap' in self.ibctypes:
                 test.printMem(">>> wall distance for viscous wall only [start]")
                 for z in Internal.getZones(tb):
                     ibc = Internal.getNodeFromName(z,'ibctype')
-                    if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip' or Internal.getValue(ibc)=='wallmodel':
+                    if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip' or Internal.getValue(ibc)=='wallmodel' or Internal.getValue(ibc)=='overlap':
                         Internal._rmNode(tb,z)
                 if self.dimPb == 2:
                     DTW._distance2Walls(t,self.tbsave,type='ortho', signed=0, dim=self.dimPb, loc='centers')

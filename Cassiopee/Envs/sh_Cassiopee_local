@@ -2,6 +2,7 @@
 # *Cassiopee* machine specific (local) variables
 
 # Preliminary checks
+unset ELSAPROD
 if [ "$CASSIOPEE" = "" ]; then
     echo "You must specify a CASSIOPEE variable in your environment."
     echo "This variable specifies the installation path of *Cassiopee*."
@@ -29,7 +30,7 @@ if echo "$KC" | grep -q 'ubuntu'; then export MAC="ubuntu"; fi
 if echo "$KC" | grep -q 'visio'; then export MAC="visio"; fi
 if echo "$KC" | grep -q 'austri'; then export MAC="austri"; fi
 if echo "$KC" | grep -q 'celeste'; then export MAC="visio"; fi
-if echo "$KC" | grep -q 'visung'; then export MAC="juno"; fi
+if echo "$KC" | grep -q 'visung'; then export MAC="visung"; fi
 if echo "$KC" | grep -q 'giulia'; then export MAC="giulia"; fi
 if echo "$KC" | grep -q 'sator'; then export MAC="sator_cas"; fi
 if echo "$KC" | grep -q 'jean-zay'; then export MAC="jean-zay"; fi
@@ -43,39 +44,40 @@ if echo "$KC" | grep -q 'Aryen'; then export MAC="aryen"; fi
 if echo "$KC" | grep -q 'WDAAA161Z'; then export MAC="WDAAA161Z"; fi
 
 # Detect MAC environement from MACHINE
-INTTYPE=""
-DBGMODE=""
-case $MACHINE in
-    *_DBG)
-        MACHINETMP=${MACHINE%"_DBG"}
+EXT=""
+if [ -n "$MACHINE" ]; then
+    INTTYPE=""
+    DBGMODE=""
+    BRANCHNAME=""
+    MACHINETMP=$MACHINE
+    if [ "${MACHINETMP#*_DBG*}" != "$MACHINETMP" ]; then
+        MACHINETMP="${MACHINETMP//_DBG/}"
         DBGMODE="_DBG"
-        ;;
-    DBG)
-        DBGMODE="_DBG"
-        ;;
-    *)
-        MACHINETMP=$MACHINE
-        ;;
-esac
-case $MACHINETMP in
-    *_i8*)
-        export MAC=${MACHINETMP%"_i8"}
+    fi
+
+    if [ "${MACHINETMP#*_i8*}" != "$MACHINETMP" ]; then
+        MACHINETMP="${MACHINETMP//_i8/}"
         INTTYPE="_i8"
-        ;;
-    i8*)
-        INTTYPE="_i8"
-        ;;
-    "")
-        if [ -z "$MAC" ]; then
-            echo 'Your machine is not known by uname. Try to set MACHINE.'
-        fi
-        ;;
-    *)
-        export MAC=$MACHINETMP
-        ;;
-esac
-unset MACHINETMP
-EXT=$INTTYPE$DBGMODE
+    fi
+    
+    if [ "${MACHINETMP#*_b-*}" != "$MACHINETMP" ]; then
+        BRANCHNAME=${MACHINETMP#*_b-$BRANCHNAME}
+        BRANCHNAME=${BRANCHNAME%_*}
+        MACHINETMP="${MACHINETMP//_b-$BRANCHNAME/}"
+        MACHINETMP=${MACHINETMP%_}
+        BRANCHNAME="_$BRANCHNAME"
+    fi
+    
+    export MAC=$MACHINETMP
+    EXT=$BRANCHNAME$INTTYPE$DBGMODE
+    unset MACHINETMP BRANCHNAME INTTYPE DBGMODE
+fi
+
+if [ -z "$MAC" ]; then
+    echo 'Your machine is not known by uname. Try to set MACHINE.'
+    return 1
+fi
+
 
 # ----------------------------- Prods ------------------------------------------
 if [ "$MAC" = "ld_eos8" ]; then
@@ -157,9 +159,12 @@ elif [ "$MAC" = "ubuntu" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export ASAN_OPTIONS=verify_asan_link_order=false
+    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
     
 elif [ "$MAC" = "azure" ]; then
-#------------------------ azure: ubuntu - github actions ----------------------
+#------------------------ azure: Centos7 - github actions ----------------------
     export ELSAPROD=azure
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=4
@@ -198,38 +203,37 @@ elif [ "$MAC" = "spiro_gcc" ]; then
     export OMP_PLACES=cores
     unset $(env | grep SLURM | cut -d'=' -f 1)
 
-elif [ "$MAC" = "visung" ]; then
-#----------------------------- visung -----------------------------------------
-    export ELSAPROD=visung_r8
+elif [ "$MAC" = "visung_gcc" ]; then
+#----------------------------- visung_gcc -------------------------------------
+    export ELSAPROD=visung_gcc
     export ELSAPROD=$ELSAPROD$EXT
-    # Nbre de threads
-    export OMP_NUM_THREADS=72
     . /etc/profile.d/modules-onera.sh
     module purge
-    module load subversion
-    module load occt/7.6.1-gnu831
-    module load python/3.8.14-gnu831
-    #module load intel/21.2.0
-    module load gcc/10.2.0
-    module load hdf5/1.10.5-gnu831-ompi405
     module load lapack/3.9.1-gnu831
-    export PRODMODE=1
+    module load occt/7.6.1-gnu831
+    module load socle-cfd/7.0-gnu850-ompi502
+    module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
     export PYTHONEXE=python3
+    export OMP_NUM_THREADS=72
+    export PRODMODE=1
 
-elif [ "$MAC" = "visung_el8" ]; then
+elif [ "$MAC" = "visung" ]; then
 #----------------------------- visung -----------------------------------------
-    export ELSAPROD=visung_el8
+    export ELSAPROD=visung
     export ELSAPROD=$ELSAPROD$EXT
     #. /etc/profile.d/modules-dri.sh
     module purge
-    module load subversion
-    module load python/3.7.4-intel2120
-    module load intel/21.2.0
-    module load hdf5/1.10.5-intel2120-impi
     module load occt/7.6.1-gnu831
+    module load emacs/27.2-gnu831
+    module load subversion/1.14.1-gnu831
+    module load socle-cfd/6.0-intel2220-impi
     export PYTHONEXE=python3
     export OMP_NUM_THREADS=72
-    #export PRODMODE=1
+    export PRODMODE=1
+    unset I_MPI_FABRICS_LIST
+    unset I_MPI_FABRICS
+    unset I_MPI_TCP_NETMASK
     unset I_MPI_PMI_LIBRARY
 
 elif [ "$MAC" = "austri" ]; then
@@ -539,21 +543,21 @@ elif [ "$MAC" = "spiro_pgi" ]; then
 
 elif [ "$MAC" = "spiro_gpu" ]; then
 #----------------------------- spiro gpu ------------------------------------
-        export ELSAPROD=spiro_gpu
-        export ELSAPROD=$ELSAPROD$EXT
-        source /opt/tools/Modules/init/bash
-        module purge
-        module load python/3.12.2-gnu850
-        module load nvhpc/23.7-gnu850-full
-        module load hdf5/1.10.5-gnu831-ompi405
-        # Set next two lines only if python is not python
-        export PYTHONEXE=python3
-        # Number of threads
-        export OMP_NUM_THREADS=48
-        export PRODMODE=1
-        export PIP_DISABLE_PIP_VERSION_CHECK=1
-        unset $(env | grep SLURM | cut -d'=' -f 1)
-        unset OMP_PLACES
+    export ELSAPROD=spiro_gpu
+    export ELSAPROD=$ELSAPROD$EXT
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load python/3.12.2-gnu850
+    module load nvhpc/23.7-gnu850-full
+    module load hdf5/1.10.5-gnu831-ompi405
+    # Set next two lines only if python is not python
+    export PYTHONEXE=python3
+    # Number of threads
+    export OMP_NUM_THREADS=48
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    unset OMP_PLACES
 
 elif [ "$MAC" = "juno" ]; then
 #----------------------------- juno -----------------------------------------
@@ -580,6 +584,7 @@ elif [ "$MAC" = "juno" ]; then
     unset I_MPI_FABRICS
     unset I_MPI_TCP_NETMASK
     unset I_MPI_PMI_LIBRARY
+    unset I_MPI_HYDRA_BOOTSTRAP_EXEC_EXTRA_ARGS I_MPI_HYDRA_BOOTSTRAP HYDRA_BOOTSTRAP
     unset $(env | grep SLURM | cut -d'=' -f 1)
     export OMP_PLACES=cores
 
@@ -611,21 +616,21 @@ elif [ "$MAC" = "juno_gcc" ]; then
 
 elif [ "$MAC" = "juno_gpu" ]; then
 #----------------------------- juno gpu ------------------------------------
-        export ELSAPROD=juno_gpu
-        export ELSAPROD=$ELSAPROD$EXT
-        source /opt/tools/Modules/init/bash
-        module purge
-        module load python/3.12.2-gnu850
-        module load nvhpc/23.7-gnu850-full
-        module load hdf5/1.10.5-gnu831-ompi405
-        # Set next two lines only if python is not python
-        export PYTHONEXE=python3
-        # Number of threads
-        export OMP_NUM_THREADS=48
-        export PRODMODE=1
-        export PIP_DISABLE_PIP_VERSION_CHECK=1
-        unset $(env | grep SLURM | cut -d'=' -f 1)
-        unset OMP_PLACES
+    export ELSAPROD=juno_gpu
+    export ELSAPROD=$ELSAPROD$EXT
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load python/3.12.2-gnu850
+    module load nvhpc/23.7-gnu850-full
+    module load hdf5/1.10.5-gnu831-ompi405
+    # Set next two lines only if python is not python
+    export PYTHONEXE=python3
+    # Number of threads
+    export OMP_NUM_THREADS=48
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    unset OMP_PLACES
 
 elif [ "$MAC" = "juno_coda" ]; then
 #----------------------------- juno -----------------------------------------
@@ -636,6 +641,7 @@ elif [ "$MAC" = "juno_coda" ]; then
     # modules
     module purge
     source /stck/rhea/dist/juno_v2024_02_python3108/source.sh --env coda_dev --compiler gcc@10 --mpi openmpi
+    module load occt/7.6.1-gnu831
     module load subversion/1.14.1-gnu831
     export PYTHONEXE=python3
     export PRODMODE=1
@@ -754,6 +760,60 @@ elif [ "$MAC" = "jean-zay" ]; then
     module load hdf5/1.12.0
     export PYTHONEXE=python3
 
+elif [ "$MAC" = "adastra_cpu" ]; then
+#----------------------------- adastra cpu  ---------------------------------------
+    export ELSAPROD=adastra_cpu
+    export ELSAPROD=$ELSAPROD$EXT
+    export OMP_NUM_THREADS=48
+    export OMP_PLACES=cores
+    export PRODMODE=1
+    module purge
+
+    # CPU craycc
+    #module load craype-x86-genoa
+    #module load PrgEnv-cray
+    #module load cray-mpich/8.1.28
+    #module load cray-libsci/23.05.1.4
+
+    #module load CCE-CPU-3.1.0
+
+    # CPU GCC
+    module load PrgEnv-gnu
+    export LD_LIBRARY_PATH="/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12":$LD_LIBRARY_PATH
+    
+    module load cray-python/3.11.5
+    module load cray-hdf5-parallel/1.12.2.5
+    export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
+
+    export PYTHONEXE=python3
+
+elif [ "$MAC" = "adastra_gpu" ]; then
+#----------------------------- adastra gpu  ---------------------------------------
+    export ELSAPROD=adastra_gpu
+    export ELSAPROD=$ELSAPROD$EXT
+    export OMP_NUM_THREADS=12
+    export OMP_PLACES=cores
+    export PRODMODE=1
+
+    #module purge
+    #module load CCE-GPU-3.1.0
+    #module load rocm
+    #module load cray-python/3.11.5
+    #module load cray-hdf5-parallel/1.12.2.5
+
+    module purge
+    module load cpe/23.12
+    module load craype-accel-amd-gfx90a craype-x86-trento
+    module load PrgEnv-cray
+    module load rocm
+    module load cray-python/3.11.5
+    module load cray-hdf5-parallel/1.12.2.5
+
+    #export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
+    export PYTHONEXE=python3
+    
 elif [ "$MAC" = "aryen" ]; then
 #----------------------------- Aryen msys2  ---------------------------------------
     export ELSAPROD=win64

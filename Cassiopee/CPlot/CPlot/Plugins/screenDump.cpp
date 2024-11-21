@@ -23,6 +23,9 @@
 // if 0: getDepth with OSMESA, if 1: getDepth with openGL
 #define GETDEPTH 1
 
+void accumulateSlit(E_Int ni, E_Int nj, char* imf, char* imt, char* imb, 
+                    E_Int i, E_Int nil, E_Int njl, char* imOut);
+
 //=============================================================================
 // Screen dump plugins
 //=============================================================================
@@ -68,26 +71,30 @@ void Data::exportFile()
 char* Data::export2Image(E_Int exportWidth, E_Int exportHeight) 
 {
   //printf("mode = %d\n", ptrState->offscreen);
-
+    
   // resolution
   GLuint fb, rb, db;
 #ifdef __SHADERS__
-  glGenFramebuffersEXT(1, &fb);
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
-  // Create and attach a color buffer
-  glGenRenderbuffersEXT(1, &rb);
-  // We must bind color_rb before we call glRenderbufferStorageEXT
-  glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, rb);
-  // The storage format is RGBA8
-  glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA8, 
-                           exportWidth, exportHeight);
-  // Attach color buffer to FBO
-  glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, 
-                               GL_RENDERBUFFER_EXT, rb);
+  if (ptrState->offscreen == 0 || ptrState->offscreen == 2 || ptrState->offscreen == 3 || ptrState->offscreen == 4) // openGL offscreen rendering
+  { 
+    glGenFramebuffersEXT(1, &fb);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
+    // Create and attach a color buffer
+    glGenRenderbuffersEXT(1, &rb);
+    // We must bind color_rb before we call glRenderbufferStorageEXT
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, rb);
+    // The storage format is RGBA8
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA8, 
+                             exportWidth, exportHeight);
+    // Attach color buffer to FBO
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, 
+                                 GL_RENDERBUFFER_EXT, rb);
   
-  glGenRenderbuffersEXT(1, &db);
-  glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, db);
-  if (ptrState->offscreen == 3 || ptrState->offscreen == 4)
+    glGenRenderbuffersEXT(1, &db);
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, db);
+  }
+
+  if (ptrState->offscreen == 3 || ptrState->offscreen == 4) // depth buffer for opengl compositing
   {
     //glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8, exportWidth, exportHeight);
     //glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, exportWidth, exportHeight);
@@ -95,34 +102,36 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
     // Attach depth buffer to FBO
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER_EXT, db);
   }
-  else if (ptrState->offscreen == 5 || ptrState->offscreen == 6 ||
-	   ptrState->offscreen == 7) // need float depth buffer for compositing
-  {
-    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, exportWidth, exportHeight);
-    // Attach depth buffer to FBO
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER_EXT, db);
-  }
-  else
+  //else if (ptrState->offscreen == 5 || ptrState->offscreen == 6 || ptrState->offscreen == 7) // float depth buffer for osmesa compositing
+  //{
+  //  glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, exportWidth, exportHeight);
+  //  // Attach depth buffer to FBO
+  //  glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER_EXT, db);
+  //}
+  else if (ptrState->offscreen == 0 || ptrState->offscreen == 2) // opengl offscreen
   {
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, exportWidth, exportHeight);
     // Attach depth buffer to FBO
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, db);
   }
 
-  int status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-  if (status == GL_FRAMEBUFFER_COMPLETE_EXT)
-  {
-    // SUCCESS
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
-  }
-  else 
-  { // FAIL
-    printf("Warning: CPlot: unable to get the correct frame buffer.\n");
-    exportWidth = _view.w; exportHeight = _view.h;
-    exportWidth = (exportWidth/2)*2; exportHeight = (exportHeight/2)*2;
-  }
+  if (ptrState->offscreen == 0 || ptrState->offscreen == 2 || ptrState->offscreen == 3 || ptrState->offscreen == 4) // opengl offscreen
+  { 
+    int status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+    if (status == GL_FRAMEBUFFER_COMPLETE_EXT)
+    {
+      // SUCCESS
+      glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
+    }
+    else 
+    { // FAIL
+      printf("Warning: CPlot: unable to get the correct frame buffer.\n");
+      exportWidth = _view.w; exportHeight = _view.h;
+      exportWidth = (exportWidth/2)*2; exportHeight = (exportHeight/2)*2;
+    }
+  } 
 #endif
-
+    
   E_Int s = exportWidth*exportHeight;
   unsigned szDepth = 4*s; // Nombre d'octets par pixel si DEPTH32F et STENCIL 8 : 4 bytes pour depth + 1 byte spare + 1 byte stencil
   char* buffer = (char*)malloc(s*3*sizeof(char));
@@ -242,8 +251,6 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
     OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
     assert(w == _view.w);
     assert(h == _view.h);
-    //printf("bpv=%d\n", bpv);
-    //printf("size %d %d\n", s, screenSize);
     if (bpv == 2)
     {
       unsigned short* d = (unsigned short*)depthl;
@@ -346,7 +353,6 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;
     OSMesaGetDepthBuffer(*ctx, &w, &h, &bpv, &depthl);
-    //printf("bpv=%d\n", bpv);
     if (bpv == 2)
     {
       unsigned short* d = (unsigned short*)depthl;
@@ -506,8 +512,8 @@ void Data::dumpWindow()
     { 
       exportWidth = (exportWidth/2)*2;
       exportHeight = (exportHeight/2)*2; // doit etre pair
-      antialiasing=1; // FBO rendering with no compositing
-    } 
+      antialiasing = 1; // FBO rendering with no compositing
+    }
     if (antialiasing == 1)
     {
       // get image X2
@@ -540,19 +546,61 @@ void Data::dumpWindow()
       for (E_Int i = 0; i < 3*exportWidth*exportHeight; i++) buffer[i] = buffer2[i];
       free(buffer2);
     }
-
+     
+    // For ODS accumulate in odsImage
+    if (ptrState->odsRun)
+    {
+      E_Int no = ptrState->odsSlit;
+      E_Int ni = 2;
+      E_Int nj = exportHeight;
+      E_Int nil = ptrState->odsNSlits;
+      E_Int njl = exportHeight;
+      E_Int i = no/3;
+        
+      if (no%3 == 2)
+      {
+        accumulateSlit(ni, nj, ptrState->odsFrontImage, ptrState->odsTopImage, buffer,
+                       i, nil, njl, ptrState->odsImage);
+      }
+      else if (no%3 == 1) 
+      { 
+        memcpy(ptrState->odsTopImage, buffer, ni*nj*3);
+      }
+      else 
+      { 
+        memcpy(ptrState->odsFrontImage, buffer, ni*nj*3);
+      }
+    }
+    
     // Dump the buffer to a file
-    if (ptrState->offscreen != 3 && ptrState->offscreen != 5 && ptrState->offscreen != 7)
-      _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
+    if (not ptrState->odsRun)
+    { 
+      if (ptrState->offscreen != 3 && ptrState->offscreen != 5 && ptrState->offscreen != 7)
+        _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
 
 #ifdef _MPI
-    if (ptrState->offscreen == 7)
-    {
-      int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank == 0)
-        _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
-    }
+      if (ptrState->offscreen == 7)
+      {
+        int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        if (rank == 0)
+          _pref.screenDump->f(this, fileName, buffer, exportWidth, exportHeight, 0);
+      }
 #endif
+    }
+    else if (ptrState->odsRun && ptrState->odsSlit == 3*(ptrState->odsNSlits)-1) 
+    { 
+      if (ptrState->offscreen != 3 && ptrState->offscreen != 5 && ptrState->offscreen != 7)
+        _pref.screenDump->f(this, fileName, ptrState->odsImage, ptrState->odsNSlits, exportHeight, 0);
+
+#ifdef _MPI
+      if (ptrState->offscreen == 7)
+      {
+        int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        if (rank == 0)
+          _pref.screenDump->f(this, fileName, ptrState->odsImage, ptrState->odsNSlits, exportHeight, 0);
+      }
+#endif
+    }
     
     free(buffer);
   }

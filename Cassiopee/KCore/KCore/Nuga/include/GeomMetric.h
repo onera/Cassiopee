@@ -283,12 +283,12 @@ namespace DELAUNAY
     E_Float hmin2 = parent_type::_hmin*parent_type::_hmin;
     
     // Ask the surface.
-    //_surface.DU1(u,v, dU1); // First base vector of the tangential plane.
-    //_surface.DU2(u,v, dU2);
-    //_surface.DV1(u,v, dV1); // Second base vector of the tangential plane.
-    //_surface.DV2(u,v, dV2);
-    //_surface.DUV(u,v, dUV);
-    _surface.DAUV2(u,v, dA);
+    //_surface.DU1(u, v, dU1); // First base vector of the tangential plane.
+    //_surface.DU2(u, v, dU2);
+    //_surface.DV1(u, v, dV1); // Second base vector of the tangential plane.
+    //_surface.DV2(u, v, dV2);
+    //_surface.DUV(u, v, dUV);
+    _surface.DAUV2(u, v, dA);
     
     NUGA::crossProduct<3> (dU1, dV1, n); // Normal to the tangential plane.
     E_Float ln = NUGA::normalize<3>(n);
@@ -576,8 +576,8 @@ namespace DELAUNAY
     
     E_Float h0 = ::sqrt(1./lambda0);
     E_Float h1 = ::sqrt(1./lambda1);
-    E_Float Pix = parent_type::_pos(0,Ni);
-    E_Float Piy = parent_type::_pos(1,Ni);
+    //E_Float Pix = parent_type::_pos(0,Ni);
+    //E_Float Piy = parent_type::_pos(1,Ni);
 
     // P0 = Pi +/- h0*v0
     NUGA::sum<3>(1., parent_type::_pos->col(Ni), h0, v0, P0);

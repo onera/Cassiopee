@@ -1,0 +1,111 @@
+name: publish PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+#    branches:
+#      - 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+        
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+           python-version: "3.8"
+          
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install twine
+          
+      - name: Pull manylinux2014 image
+        run: docker pull quay.io/pypa/manylinux2014_x86_64
+        
+      - name: Build Cassiopee in a Docker container
+        run: |
+          docker run --rm -v $GITHUB_WORKSPACE/..:/io quay.io/pypa/manylinux2014_x86_64:latest /bin/bash -c "
+              export PATH=/opt/python/cp312-cp312/bin:\$PATH
+              yum update && yum install -y \
+                  gcc \
+                  gcc-c++ \
+                  gcc-gfortran \
+                  openmpi \
+                  openmpi-devel \
+                  hdf5 \
+                  hdf5-devel \
+                  tk \
+                  mesa-libGL \
+                  mesa-libGL-devel \
+                  mesa-libGLU \
+                  mesa-libGLU-devel \
+                  mesa-libOSMesa \
+                  mesa-libOSMesa-devel \
+                  libX11-devel \
+                  libXext-devel \
+                  libXmu-devel \
+                  libXi-devel \
+                  libXrender-devel \
+                  libpng-devel \
+                  zlib-devel \
+                  xorg-x11-server-devel \
+                  OCE-devel \
+                  OCE-draw \
+                  OCE-foundation \
+                  OCE-modeling \
+                  OCE-ocaf \
+                  OCE-visualization
+              pip3 install \
+                  wheel \
+                  auditwheel \
+                  setuptools \
+                  scons \
+                  numpy
+              export PATH=/usr/lib64/openmpi/bin:\$PATH
+              export LD_LIBRARY_PATH=/usr/lib64/openmpi/lib:\$LD_LIBRARY_PATH
+              export CFLAGS="-std=c99"
+              pip3 install mpi4py
+              export CFLAGS="-std=c11"
+              python --version && python -m pip list
+              export CASSIOPEE=/io/Cassiopee
+              export MACHINE=azure
+              cd \$CASSIOPEE/Cassiopee
+              . \$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
+              sed -i "s/OCC//g" MODULES
+              ./install
+              cd \$CASSIOPEE/Dist/bin/\$ELSAPROD
+              find . -type f -name '*.whl' -exec mv {} \$CASSIOPEE \;
+              find /tmp/ -type f -name 'KCore*.whl' -exec mv {} \$CASSIOPEE \;
+              cd \$CASSIOPEE
+              for kwheel in \$(find . -name '*.whl'); do \
+                  wheel unpack "\$kwheel"; \
+                  rm "\$kwheel"; \
+              done
+              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do \
+                  mv \$dir \${dir%-4.0}; \
+              done
+              ls .
+              python3 -m build
+              cd \$CASSIOPEE/dist/
+              for kwheel in \$(find . -name '*.whl'); do \
+                  auditwheel repair \$kwheel; \
+              done
+              ls .
+              ls wheelhouse
+          "
+            
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          export CASSIOPEE=$GITHUB_WORKSPACE
+          for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do \
+              twine upload --verbose $kwheel; \
+          done

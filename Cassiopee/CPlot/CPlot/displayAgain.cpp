@@ -105,46 +105,88 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
 
   if (d->ptrState->ctx == NULL)
   {
-      //printf("recreating context\n");
-      OSMesaContext* ctx = new OSMesaContext();
-      (*ctx) = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
-      d->ptrState->ctx = ctx;
+    //printf("recreating context\n");
+    OSMesaContext* ctx = new OSMesaContext();
+    (*ctx) = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
+    d->ptrState->ctx = ctx;
 
-      if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
-        d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
+    if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
+      d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
         (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
-      OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
-                        GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
-      //d->createNodeTexture();
-      //d->createNoise3DTexture();
-      //d->createFrameBufferTexture();
-      //d->createPngTexture("windtunnel.png", _texEnviron1, width, height);
-      //d->createVoxelTexture();
-      d->_texColormap = 0; // textures may be lost when destroying context
-      d->setBgColor();
-      glShadeModel(GL_SMOOTH);
-      glEnable(GL_DEPTH_TEST);
-      d->_shaders.init(); // shader are attached to context
-      d->_shaders.load();
+    OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
+                      GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+    //d->createNodeTexture();
+    //d->createNoise3DTexture();
+    //d->createFrameBufferTexture();
+    //d->createPngTexture("windtunnel.png", _texEnviron1, width, height);
+    //d->createVoxelTexture();
+    d->_texColormap = 0; // textures may be lost when destroying context
+    d->setBgColor();
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_DEPTH_TEST);
+    d->_shaders.init(); // shader are attached to context
+    d->_shaders.load();
   }
   else
   {
-      OSMesaContext& ctx = *((OSMesaContext*)(d->ptrState->ctx));
-      if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
-        d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
-        (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
-      OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
-                        GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+    OSMesaContext& ctx = *((OSMesaContext*)(d->ptrState->ctx));
+    if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
+      d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
+      (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
+    OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
+                      GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
   }
 
   d->ptrState->farClip = 1;
   d->ptrState->render = 0; // 1 ou pas?
   d->ptrState->shootScreen = 0;
   gdisplay(); // build DL
-  if (d->ptrState->stereo == 0) d->display();
-  else d->displayAnaglyph();
-  d->exportFile();
-  //printf("done.\n");
+
+  if (posCamList == Py_None)
+  {
+    //if (d->ptrState->stereo == 0) d->display();
+    //else d->displayAnaglyph();
+    d->exportFile(); // performs display
+  }
+  else // list of posCams: ODS
+  {
+    d->ptrState->odsRun = true;
+    E_Int nslits = PyList_Size(posCamList)/9; // xyz+front/top/bot
+    d->ptrState->odsNSlits = nslits;
+    E_Int height = d->ptrState->exportHeight;
+    d->ptrState->odsImage = new char [nslits*height*3];
+    d->ptrState->odsFrontImage = new char [2*height*3];
+    d->ptrState->odsTopImage = new char [2*height*3];
+      
+    for (E_Int i = 0; i < 3*nslits; i++)
+    {
+      //printf("%d / %d\n", i, 3*nslits);  
+      d->ptrState->odsSlit = i;
+      PyObject* v = PyList_GetItem(posCamList, 3*i); 
+      d->_view.xcam = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posCamList, 3*i+1);
+      d->_view.ycam = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posCamList, 3*i+2); 
+      d->_view.zcam = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posEyeList, 3*i); 
+      d->_view.xeye = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posEyeList, 3*i+1); 
+      d->_view.yeye = PyFloat_AsDouble(v);
+      v = PyList_GetItem(posEyeList, 3*i+2); 
+      d->_view.zeye = PyFloat_AsDouble(v);
+      v = PyList_GetItem(dirCamList, 3*i); 
+      d->_view.dirx = PyFloat_AsDouble(v);
+      v = PyList_GetItem(dirCamList, 3*i+1); 
+      d->_view.diry = PyFloat_AsDouble(v);
+      v = PyList_GetItem(dirCamList, 3*i+2); 
+      d->_view.dirz = PyFloat_AsDouble(v);
+      //d->display(); // done in export file
+      d->exportFile(); // performs display
+    }
+    delete [] d->ptrState->odsImage;
+    delete [] d->ptrState->odsFrontImage;
+    delete [] d->ptrState->odsTopImage;
+  }
 #else
   printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif

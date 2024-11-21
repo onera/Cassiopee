@@ -704,7 +704,7 @@ struct mesh_t
 
   // to create a bound mesh from a "parent" mesh
   template <bool USTRIDE>
-  mesh_t(const mesh_t<eGEODIM(GEODIM+1), USTRIDE>& parent_mesh): 
+  mesh_t(const mesh_t<eGEODIM(GEODIM), USTRIDE>& parent_mesh): // modif here for compiling [CB]
     crd(crd), localiz(nullptr), neighbors(nullptr), oriented(parent_mesh.oriented)
   {
     parent_mesh.template get_boundary<FIXSTRIDE>(*this);

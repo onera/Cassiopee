@@ -348,14 +348,14 @@ def _unlinkCAD2Tree(t):
   return None
 
 # Get the first tree for structured CAD meshing
-def getTree(hook, N=11, hmax=-1, hausd=-1.):
+def getTree(hook, N=11, hmin=-1, hmax=-1, hausd=-1.):
   """Get a first TRI meshed tree linked to CAD."""
   
   t = C.newPyTree(['EDGES', 'FACES'])
 
   # Add CAD top container containing the CAD file name
   fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
-  _setCADcontainer(t, fileName, fileFmt, hmax, hausd)
+  _setCADcontainer(t, fileName, fileFmt, hmin, hmax, hausd)
 
   # Edges
   if hmax > 0.: edges = OCC.occ.meshGlobalEdges1(hook, hmax)
@@ -462,12 +462,14 @@ def getNo(e):
     return no
 
 # return the position of entities in base baseName by number
-def getPos(t, baseName):
+def getPos(t, baseName=None):
   pos = {}; posi = {}
-  b = Internal.getNodeFromName1(t, baseName)
+  if baseName is not None:
+    b = Internal.getNodeFromName1(t, baseName)
+  else: b = t # suppose t is already chosen base
   for c, e in enumerate(b[2]):
     cad = Internal.getNodeFromName1(e, 'CAD')
-    if cad is not None: # this is a CAD edge
+    if cad is not None: # this is a CAD edge or face
       no = Internal.getNodeFromName1(cad, 'no')
       no = Internal.getValue(no)
       pos[no] = c
@@ -490,24 +492,24 @@ def getAllPos(t):
   return [pose, posf, posei, posfi]
 
 #==================================================
-# get the first tree from CAD - mesh TRI the CAD
+# mesh TRI the CAD
 # IN: hook: hook on CAD
 # IN: hmax: hmax
 # IN: hausd: hausd deflection
 # IN: faceList: si fourni, ne maille que ces faces
 # OUT: meshed CAD with CAD links
 #=================================================
-def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
+def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None):
   """Get a first TRI meshed tree linked to CAD."""
   
   t = C.newPyTree(['EDGES', 'FACES'])
 
   # Add CAD top container containing the CAD file name
   fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
-  _setCADcontainer(t, fileName, fileFmt, hmax, hausd)
+  _setCADcontainer(t, fileName, fileFmt, hmin, hmax, hausd)
 
   # - Edges -
-  edges = OCC.meshAllEdges(hook, hmax, hausd, -1)
+  edges = OCC.meshAllEdges(hook, hmin, hmax, hausd, -1)
 
   b = Internal.getNodeFromName1(t, 'EDGES')
   for c, e in enumerate(edges):
@@ -519,7 +521,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
     Internal._createChild(r, "type", "DataArray_t", value="edge")
-    Internal._createChild(r, "no", "Data_Array_t", value=(c+1))
+    Internal._createChild(r, "no", "DataArray_t", value=(c+1))
     #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
@@ -537,7 +539,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
   if hausd < 0:
     hList = [(hmax,hmax,hausd)]*len(faceList)
   else:
-    hList = [(hmax*0.8,hmax*1.2,hausd)]*len(faceList)
+    hList = [(hmin,hmax,hausd)]*len(faceList)
 
   faces = OCC.meshAllFacesTri(hook, edges, True, faceList, hList)
   
@@ -565,7 +567,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
   return t
 
 # the first version of parallel CAD split and TRI meshing
-def getFirstTreePara(hook, area, hmax=-1., hausd=-1.):
+def meshAllPara(hook, area, hmin=-1, hmax=-1., hausd=-1.):
   import Distributor2
   import Distributor2.PyTree as D2
 
@@ -593,7 +595,7 @@ def getFirstTreePara(hook, area, hmax=-1., hausd=-1.):
     if dis[i] == Cmpi.rank: faceList.append(i+1)
 
   #print(Cmpi.rank, faceList)
-  t = getFirstTree(hook, hmax, hausd, faceList=faceList)
+  t = meshAll(hook, hmin, hmax, hausd, faceList=faceList)
   D2._addProcNode(t, Cmpi.rank)
   return t
 
@@ -607,7 +609,6 @@ def _remeshTreeFromEdges(hook, t, edges):
   faceList = set()
   for edge in edges:
     cad = Internal.getNodeFromName1(edge, 'CAD')
-    #hook = Internal.getNodeFromName1(cad, 'hook')[1]
     facel = Internal.getNodeFromName1(cad, 'faceList')
     if facel is not None:
       facel = facel[1]
@@ -618,15 +619,16 @@ def _remeshTreeFromEdges(hook, t, edges):
   # build hList from CAD/hsize
   hList = []
   b = Internal.getNodeFromName1(t, 'FACES')
+  if b is None: faceList = [] # forced when no FACES
   be = Internal.getNodeFromName1(t, 'EDGES')
   for f in faceList:
     z = b[2][f-1]
-    CAD = Internal.getNodeFromName1(z, "CAD")
-    hsize = Internal.getNodeFromName1(CAD, "hsize")
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+    hsize = Internal.getNodeFromName1(CAD, 'hsize')
     hsize = hsize[1]
 
     # modify hmax/hmin from edge sizes
-    edgeList = Internal.getNodeFromName1(CAD, "edgeList")
+    edgeList = Internal.getNodeFromName1(CAD, 'edgeList')
     edgeList = edgeList[1]
     fedges = []
     for e in edgeList:
@@ -639,7 +641,7 @@ def _remeshTreeFromEdges(hook, t, edges):
     #print("hsize=",hmine,hmaxe,hausde)
     hsize = ( min(hmine, hsize[0]), max(hmaxe, hsize[1]), min(hausde, hsize[2]) )
     hList.append(hsize)
-  
+    
   # get dedges (all CAD edges - suppose CAD order)
   b = Internal.getNodeFromName1(t, 'EDGES')
   dedges = []
@@ -726,20 +728,25 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
   return None
 
 # add CAD container to tree (file and format from hook)
-def _setCADcontainer(t, fileName, fileFmt, hmax, hausd):
+def _setCADcontainer(t, fileName, fileFmt, hmin, hmax, hausd):
   CAD = Internal.getNodeFromName1(t, 'CAD')
   if CAD is None:
     CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
   if fileName is not None: Internal._createUniqueChild(CAD, 'file', 'DataArray_t', value=fileName)
   if fileFmt is not None: Internal._createUniqueChild(CAD, 'format', 'DataArray_t', value=fileFmt)
-  if hmax is not None: Internal._createUniqueChild(CAD, 'hsize', 'DataArray_t', value=hmax)
+  if hmax is not None: Internal._createUniqueChild(CAD, 'hmax', 'DataArray_t', value=hmax)
+  if hmin is not None: Internal._createUniqueChild(CAD, 'hmin', 'DataArray_t', value=hmax)
   if hausd is not None: Internal._createUniqueChild(CAD, 'hausd', 'DataArray_t', value=hausd)
   return None
 
 # mesh all edges
-def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1):
+def _meshAllEdges(hook, t, hmin=-1., hmax=-1, hausd=-1, N=-1, edgeList=None):
   
-  edges = OCC.meshAllEdges(hook, hmax, hausd, N)
+  if edgeList is None: 
+    nbEdges = occ.getNbEdges(hook)
+    edgeList = range(1, nbEdges+1)
+
+  edges = OCC.meshAllEdges(hook, hmin, hmax, hausd, N)
   b = Internal.getNodeFromName1(t, 'EDGES')
   if b is None: b = Internal.newCGNSBase('EDGES', parent=t)
 
@@ -752,22 +759,48 @@ def _meshAllEdges(hook, t, hmax=-1, hausd=-1, N=-1):
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
     Internal._createChild(r, "type", "DataArray_t", value="edge")
-    Internal._createChild(r, "no", "Data_Array_t", value=(c+1))
-    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
+    Internal._createChild(r, "no", "DataArray_t", value=(c+1))
     b[2].append(z)
 
-  _setCADcontainer(t, None, None, hmax, hausd)
+  _setCADcontainer(t, None, None, hmin, hmax, hausd)
   return None
 
+# remesh all CAD edges with odd number of points
+def _remeshAllEdgesOdd(hook, t):
+  """Remesh all edges to have an odd number of points."""
+  import Geom.PyTree as D
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for edge in Internal.getZones(b):
+    npts = C.getNPts(edge)
+    if npts//2-0.5*npts == 0:
+      factor = (npts*1.)/(npts-1.)
+      G._refine(edge, factor, 1)
+      D._getCurvilinearAbscissa(edge)
+      edgeno = getNo(edge)
+      aedge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
+      e = occ.meshOneEdge(hook, edgeno, -1, -1, -1, aedge)
+      cad = Internal.getNodeFromName1(edge, 'CAD')
+      render = Internal.getNodeFromName1(edge, '.RenderInfo')
+      z = Internal.createZoneNode('edge%03d'%(edgeno), e, [],
+                                  Internal.__GridCoordinates__,
+                                  Internal.__FlowSolutionNodes__,
+                                  Internal.__FlowSolutionCenters__)
+      z[2].append(cad)
+      if render is not None: z[2].append(render)
+      b[2][edgeno-1] = z
+  return None    
+
 def getCADcontainer(t):
-  hmax = None; hausd = None
+  hmin = None; hmax = None; hausd = None
   CAD = Internal.getNodeFromName1(t, 'CAD')
-  if CAD is None: return [hmax, hausd]
-  hmax = Internal.getNodeFromName1(CAD, 'hsize')
+  if CAD is None: return [hmin, hmax, hausd]
+  hmin = Internal.getNodeFromName1(CAD, 'hmin')
+  if hmin is not None: hmax = Internal.getValue(hmin)
+  hmax = Internal.getNodeFromName1(CAD, 'hmax')
   if hmax is not None: hmax = Internal.getValue(hmax)
   hausd = Internal.getNodeFromName1(CAD, 'hausd')
   if hausd is not None: hausd = Internal.getValue(hausd)
-  return [hmax, hausd]
+  return [hmin, hmax, hausd]
 
 # build or update edges:FaceList
 def _updateEdgesFaceList__(t):
@@ -799,13 +832,13 @@ def _updateEdgesFaceList__(t):
   return None
 
 # mesh all faces or a subset from edges U
-def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmax=-1, hausd=-1):
+def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmin=-1, hmax=-1, hausd=-1):
 
   b = Internal.getNodeFromName1(t, 'EDGES')
   dedges = []
   for z in Internal.getZones(b):
     pf = Internal.getNodeFromName2(z, 'u')
-    if pf is None: print("u field missing in edges.")
+    if pf is None: print("Error: meshAllFacesTri: u field missing in edges.")
     e = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, api=2)[0]
     dedges.append(e)
 
@@ -818,8 +851,9 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmax=-1, hau
     faceList = range(nstart+1, nend+1)
 
   if hList is None or hList == []:
-    if hausd < 0: hList = [(hmax,hmax,hausd)]*len(faceList)
-    else: hList = [(hmax*0.8,hmax*1.2,hausd)]*len(faceList)
+    if hausd < 0 and hmax > 0: hList = [(hmin,hmax,hausd)]*len(faceList)
+    elif hausd > 0 and hmax < 0: hList = [(1.e-5,10000.,hausd)]*len(faceList)
+    else: hList = [(hmin,hmax,hausd)]*len(faceList)
 
   faces = OCC.meshAllFacesTri(hook, dedges, metric, faceList, hList)
 
@@ -855,7 +889,7 @@ def _meshAllFacesStruct(hook, t, faceList=None):
   dedges = []
   for z in Internal.getZones(b):
     pf = Internal.getNodeFromName2(z, 'u')
-    if pf is None: print("U field missing in edges.")
+    if pf is None: print("Error: meshAllFaces: u field missing in edges.")
     e = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, api=2)[0]
     dedges.append(e)
 
@@ -915,6 +949,20 @@ def _setLonelyEdgesColor(t):
       else: # strange!!
         CPlot._addRender2Zone(ze, color='Red')
   return None
+
+# Return the number of lonely edges in t
+def getNbLonelyEdges(t):
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  if b is None: return 0
+  nb = 0
+  zones = Internal.getZones(b)
+  for ze in zones:
+    CAD = Internal.getNodeFromName1(ze, 'CAD')
+    faceList = Internal.getNodeFromName1(CAD, 'faceList')
+    if faceList is not None:
+      size = faceList[1].size
+      if size == 1: nb += 1
+  return nb
 
 #===========================================================================================
 # Build interpData with ghostcells from a CAD PyTree t and its
@@ -1129,18 +1177,196 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
 #=============================================================================
 # CAD fixing
 #=============================================================================
+
+# return ordered edgeList with possible negative number (meaning to be reversed)
+# edges: list of arrays
+# return edgeList: list of edge numbers in CAD
+def orderEdgeList(edges, tol=1.e-10):
+  """Order edges in a loop."""
+  import Transform.PyTree as T
+  import KCore.Vector as Vector
+  out = [] # ordered list of edges
+  pool = edges[:] # list copy
+  cur = pool[0]; pool.pop(0)
+  out.append(cur)
+  P1p = C.getValue(cur, 'GridCoordinates', -1)
+  while len(pool) > 0:
+    found = False
+    for c, p in enumerate(pool):
+      P0 = C.getValue(p, 'GridCoordinates', 0)
+      P1 = C.getValue(p, 'GridCoordinates', -1)
+      if Vector.squareDist(P1p,P0) < tol*tol:
+        cur = p; out.append(cur); P1p = P1; pool.pop(c); found=True; break
+      if Vector.squareDist(P1p,P1) < tol*tol:
+        cur = T.reorder(p,(-1,2,3))
+        CAD = Internal.getNodeFromName1(p, 'CAD')
+        no = Internal.getNodeFromName2(CAD, 'no')
+        nov = Internal.getValue(no)
+        Internal.setValue(no, -nov)
+        cur.append(CAD)
+        out.append(cur); P1p = P0; pool.pop(c); found=True; break
+    if not found: break
+  outno = []
+  for e in out:
+    CAD = Internal.getNodeFromName1(e, 'CAD')
+    no = Internal.getNodeFromName1(CAD, 'no')
+    no = Internal.getValue(no)
+    outno.append(no)
+  return outno
+
+# sew a set of faces
+# faces: face list numbers
 def _sewing(hook, faces, tol=1.e-6):
   OCC.occ.sewing(hook, faces, tol)
   return None
 
-def _addFillet(hook, edges, radius):
-  OCC.occ.addFillet(hook, edges, radius)
+# add fillet from edges with given radius
+def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
+  OCC.occ.addFillet(hook, edges, radius, new2OldEdgeMap, new2OldFaceMap)
   return None
 
-def _removeFaces(hook, faces):
-  OCC.occ.removeFaces(hook, faces)
+# edgeMap and faceMap are new2old maps
+def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+  OCC.occ.removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
   return None
 
-def _fillHole(hook, edges):
-  OCC.occ.fillHole(hook, edges)
-  return None  
+# fill hole from edges
+# edges: edge list numbers (must be ordered)
+def _fillHole(hook, edges, faces=[], continuity=0):
+  OCC.occ.fillHole(hook, edges, faces, continuity)
+  return None
+
+# trim two set of surfaces
+def _trimFaces(hook, faces1, faces2):
+  OCC.occ.trimFaces(hook, faces1, faces2)
+  return None
+
+# Return the number of edges in CAD hook
+def getNbEdges(hook):
+  """Return the number of edges in CAD hook."""
+  return OCC.occ.getNbEdges(hook)
+
+# Return the number of faces in CAD hook
+def getNbFaces(hook):
+  """Return the number of faces in CAD hook."""
+  return OCC.occ.getNbFaces(hook)
+
+# Return the file and format used to load CAD in hook
+def getFileAndFormat(hook):
+  return OCC.occ.getFileAndFormat(hook)
+  
+# IN: new2old: new2old map
+# IN: Nold: size of old entities 
+# OUT: odl2new array
+def getOld2NewMap(Nold, new2old):
+  old2new = numpy.zeros( (Nold), dtype=Internal.E_NpyInt)
+  old2new[:] = -1
+  Nnew = len(new2old)
+  for n in range(Nnew): 
+    v = new2old[n]
+    if v > 0: old2new[v-1] = n+1
+  return old2new
+ 
+# update numbering in persistent zones (common part)
+def _updateCADNumbering__(b, old2new, name):
+  zones = Internal.getZones(b)
+  for z in zones:
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+    if CAD is not None:
+      n = Internal.getNodeFromName1(CAD, 'name')
+      no = Internal.getValue(n)
+      no = no.replace(name, '')
+      no = int(no)
+      no = old2new[no-1]
+      Internal._setValue(n, name+'%03d'%no)
+      z[0] = name+'%03d'%no
+      n = Internal.getNodeFromName1(CAD, 'no')
+      no = Internal.getValue(n)
+      no = old2new[no-1]
+      Internal._setValue(n, no)
+  return None
+
+# update numbering in persistent zones (edge part)
+def _updateEdgesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  _updateCADNumbering__(b, old2NewEdgeMap, 'edge')
+  for z in Internal.getZones(b):
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+    if CAD is not None:
+      n = Internal.getNodeFromName1(CAD, 'faceList')
+      if n is not None:
+        pn = n[1]; index = []
+        for i in range(pn.size): 
+          pn[i] = old2NewFaceMap[pn[i]-1]
+          if pn[i] == -1: index.append(i)
+        n[1] = numpy.delete(pn, index)
+  return None
+
+# update numbering in persistent zones (faces part)
+def _updateFacesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
+  b = Internal.getNodeFromName1(t, 'FACES')
+  _updateCADNumbering__(b, old2NewFaceMap, 'face')
+  for z in Internal.getZones(b):
+    CAD = Internal.getNodeFromName1(z, 'CAD')
+    if CAD is not None:
+      n = Internal.getNodeFromName1(CAD, 'edgeList')
+      if n is not None:
+        pn = n[1]; index = []
+        for i in range(pn.size):
+          pn[i] = old2NewEdgeMap[pn[i]-1]
+          if pn[i] == -1: index.append(i)
+        n[1] = numpy.delete(pn, index)
+  return None
+
+# update numbering (edges and faces)
+def _updateNumbering(t, old2NewEdgeMap, old2NewFaceMap):
+  _updateEdgesNumbering__(t, old2NewEdgeMap, old2NewFaceMap)
+  _updateFacesNumbering__(t, old2NewEdgeMap, old2NewFaceMap)
+  return None
+
+# suppress edge or face depending on old2new
+def _suppressZones__(b, old2new):
+  rme = []
+  for i in range(old2new.size):
+    if old2new[i] == -1: rme.append(i+1)
+  pos, posi = getPos(b)
+  rme = list(reversed(rme))
+  for c, f in enumerate(rme):
+    cd = pos[f]
+    del b[2][cd]
+  return None
+
+# add zones depending on new2old
+def _addZones__(b, new2old):
+  addme = []
+  for i in range(new2old.size):
+    if new2old[i] == -1: addme.append(i+1)
+  # mesh and add zone...
+  return None
+
+# update tree when CAD hook is modified
+def _updateTree(t, oldNbEdges, oldNbFaces, new2OldEdgeMap, new2OldFaceMap):
+  """Update tree when CAD is mmodified."""
+  old2NewEdgeMap = getOld2NewMap(oldNbEdges, new2OldEdgeMap)
+  old2NewFaceMap = getOld2NewMap(oldNbFaces, new2OldFaceMap)
+  
+  # remove zones that are no longer in CAD
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  _suppressZones__(b, old2NewEdgeMap)
+  b = Internal.getNodeFromName1(t, 'FACES')
+  _suppressZones__(b, old2NewFaceMap)
+
+  # update numbering of persistent zones
+  _updateNumbering(t, old2NewEdgeMap, old2NewFaceMap)
+
+  # sort zone by names
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  Internal._sortByName(b, recursive=False)
+  b = Internal.getNodeFromName1(t, 'FACES')
+  Internal._sortByName(b, recursive=False)
+
+  # New edges and faces must be added manually after this function call
+
+  # recolor
+  _setLonelyEdgesColor(t)
+  return None

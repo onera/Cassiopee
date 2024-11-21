@@ -4,12 +4,11 @@ from . import Connector
 from . import connector
 import numpy
 
-try: range = xrange
-except: pass
-
-from .OversetData import *
-from .OversetDataDtlocal import *
-from .OversetData import _setInterpTransfers, __setInterpTransfers, _addCellN__, _setInterpData, _setInterpData2, _setIBCData, _setInterpTransfersD, _setIBCTransfersForPressureGradients, _setIBCTransfersDForPressureGradients, _setIBCTransfers4GradP, _setIBCTransfers4GradP2, _setIBCTransfers4GradP3,  _setIBCTransfers4FULLTBLE, _setIBCTransfers4FULLTBLE2
+from .OversetDataDtlocal import setInterpData3
+from .OversetData import setInterpTransfers, _setInterpTransfers, __setInterpTransfers, _addCellN__, setInterpData, _setInterpData, _setIBCData, setInterpTransfersD, \
+_setInterpTransfersD, _setIBCTransfersForPressureGradients, _setIBCTransfersDForPressureGradients, _setIBCTransfers4GradP, _setIBCTransfers4GradP2, \
+_setIBCTransfers4GradP3,  _setIBCTransfers4FULLTBLE, _setIBCTransfers4FULLTBLE2, _modifcellNBC, getIntersectingDomains, getCEBBTimeIntersectingDomains, \
+getCEBBIntersectingDomains, cellN2OversetHoles, extractChimeraInfo, getOversetInfo, setIBCData, transferFields, setInterpData2, _setInterpData2
 from .OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
 from .compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__
 

@@ -92,9 +92,9 @@ Mesh::Mesh()
 Mesh *Mesh_from_Karray(Karray *karray)
 {    
     E_Int np = karray->npoints();
-    E_Float *X = karray->X();
-    E_Float *Y = karray->Y();
-    E_Float *Z = karray->Z();
+    E_Float *X = karray->x;
+    E_Float *Y = karray->y;
+    E_Float *Z = karray->z;
 
     E_Int nf = karray->nfaces();
     
