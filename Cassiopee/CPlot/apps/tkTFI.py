@@ -66,7 +66,7 @@ def TFI():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
-    
+
     zones = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -100,7 +100,7 @@ def TFI():
 #==============================================================================
 def trimesh(a1, a2, a3):
     N1 = a1[2]; N2 = a2[2]; N3 = a3[2]
-    
+
     # Verif de N
     Nt = N3-N2+N1+1
     if Nt//2-Nt*0.5 != 0: return [0, 'N3-N2+N1 must be odd.', 0]
@@ -160,7 +160,7 @@ def OTFI():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
-    
+
     CTK.setCursor(2, WIDGETS['o'])
 
     zones = []
@@ -198,7 +198,7 @@ def OTFI():
     print('resulting weight=%g, offset=%g.'%(optWeight,optOffset))
     print('resulting score=%g.'%optScore)
     [m,m1,m2,m3,m4] = TFIs.TFIO__(coords, optWeight, optOffset)
-    
+
     m = C.convertArrays2ZoneNode('TFI1', [m])
     m1 = C.convertArrays2ZoneNode('TFI2', [m1])
     m2 = C.convertArrays2ZoneNode('TFI3', [m2])
@@ -220,7 +220,7 @@ def OTFI():
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in [m,m1,m2,m3,m4]: CTK.add(CTK.t, nob, -1, i)
     CTK.TXT.insert('START', 'O-TFI mesh created.\n')
-            
+
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -237,7 +237,7 @@ def HOTFI():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
-    
+
     zones = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -263,7 +263,7 @@ def HOTFI():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     CTK.setCursor(2, WIDGETS['ho'])
-    
+
     coords1 = C.getFields(Internal.__GridCoordinates__, zones[0])[0]
     coords2 = C.getFields(Internal.__GridCoordinates__, zones[1])[0]
 
@@ -279,7 +279,7 @@ def HOTFI():
             except: pass
     print('Resulting score=%g'%optScore)
     [m,m1,m2,m3] = TFIs.TFIHalfO__(coords1, coords2, optWeight, optOffset) 
-    
+
     m = C.convertArrays2ZoneNode('TFI1', [m])
     m1 = C.convertArrays2ZoneNode('TFI2', [m1])
     m2 = C.convertArrays2ZoneNode('TFI3', [m2])
@@ -293,18 +293,18 @@ def HOTFI():
 
     CTK.saveTree()   
     CTK.setCursor(0, WIDGETS['ho'])
-    
+
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
     bases = Internal.getNodesFromName1(CTK.t, 'MESHES')
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in [m,m1,m2,m3]: CTK.add(CTK.t, nob, -1, i)
     CTK.TXT.insert('START', 'HO-TFI mesh created.\n')
-            
+
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def TRITFI():
     if CTK.t == []: return
@@ -316,7 +316,7 @@ def TRITFI():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
-    
+
     zones = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -335,9 +335,9 @@ def TRITFI():
 
     [m1,m2,m3] = trimesh(coords1, coords2, coords3)
     if m1 == 0:
-         CTK.TXT.insert('START', m2+'\n')
-         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-         
+        CTK.TXT.insert('START', m2+'\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
     m1 = C.convertArrays2ZoneNode('TFI1', [m1])
     m2 = C.convertArrays2ZoneNode('TFI2', [m2])
     m3 = C.convertArrays2ZoneNode('TFI3', [m3])
@@ -353,7 +353,7 @@ def TRITFI():
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in [m1,m2,m3]: CTK.add(CTK.t, nob, -1, i)
     CTK.TXT.insert('START', 'TRI-TFI mesh created.\n')
-            
+
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -370,7 +370,7 @@ def MONO2TFI():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
-    
+
     zones = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -390,7 +390,7 @@ def MONO2TFI():
     if isinstance(m, str):
         CTK.TXT.insert('START', m+'\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     m = C.convertArrays2ZoneNode('TFI', [m])
     if surf != []: m = T.projectOrthoSmooth(m, surf)
 
@@ -400,12 +400,12 @@ def MONO2TFI():
     nob = C.getNobOfBase(bases[0], CTK.t)
     CTK.add(CTK.t, nob, -1, m)
     CTK.TXT.insert('START', 'HO-TFI mesh created.\n')
-            
+
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -422,7 +422,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=2)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -466,12 +466,12 @@ def createApp(win):
     B = TTK.Button(Frame, text="MONO2", command=MONO2TFI)
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Perform a TFI from two contours (longer contour is split).')
-    
+
     # - TFI des cotes -
     B = TTK.Button(Frame, text="TFI", command=TFI)
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Perform TFI from 4 edges (2D) or 6 faces (3D).')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -480,7 +480,7 @@ def showApp():
     try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkTFI')
     except: pass
     CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
@@ -496,7 +496,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

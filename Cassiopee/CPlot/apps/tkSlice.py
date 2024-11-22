@@ -40,7 +40,7 @@ def fitStep():
             z = CTK.t[2][nob][2][noz]
             sel.append(z)
         bb = G.bbox(sel)
-        
+
     xmin = bb[0]; ymin = bb[1]; zmin = bb[2]
     xmax = bb[3]; ymax = bb[4]; zmax = bb[5]
     #global XVALUE, YVALUE, ZVALUE
@@ -105,7 +105,7 @@ def moveMoins():
     pos -= delta
     VARS[1].set(str(pos))
     view()
-    
+
 #==============================================================================
 def unselect(event=None):
     CPlot.unselectAllZones()
@@ -139,7 +139,7 @@ def view(event=None):
             elif plane == 'Y': pos = point[1]; YVALUE = pos
             elif plane == 'Z': pos = point[2]; ZVALUE = pos
             VARS[1].set(str(pos))
-        
+
     if plane == 'Mesh': CTK.display(CTK.t); return
     try:
         if CTK.__MAINTREE__ == CTK.MAIN:
@@ -204,7 +204,7 @@ def view(event=None):
         CTK.TXT.insert('START', 'Slice failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return  
     CTK.setCursor(0, WIDGETS['view'], WIDGETS['plus'], WIDGETS['moins'])
-    
+
 #==============================================================================
 def extract(event=None):
     if CTK.t == []: return
@@ -228,7 +228,7 @@ def extract(event=None):
         elif plane == 'Y': pos = point[1]; YVALUE = pos
         elif plane == 'Z': pos = point[2]; ZVALUE = pos
         VARS[1].set(str(pos))
-         
+
     if plane == 'Mesh': return
     try:
         CTK.saveTree()
@@ -294,7 +294,7 @@ def extract(event=None):
         CTK.TXT.insert('START', 'Slice failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.setCursor(0, WIDGETS['extract'])
-    
+
 def changePlane(event=None):
     plane = VARS[0].get()
     if plane == 'X': VARS[1].set(str(XVALUE))
@@ -319,7 +319,7 @@ def createApp(win):
     Frame.columnconfigure(2, weight=4)
     Frame.columnconfigure(3, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -377,7 +377,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[5], 'Slice', 'Select+', 'Select-', 'Select=')
     BB = CTK.infoBulle(parent=B, text='Type of slice.')
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
-    
+
     # - Position / type -
     B = TTK.OptionMenu(Frame, VARS[0], 'Mesh', 'X', 'Y', 'Z', command=changePlane)
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
@@ -402,7 +402,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Clear", width=10, command=clear)
     B.grid(row=2, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Clear other planes.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -438,7 +438,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

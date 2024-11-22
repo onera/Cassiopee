@@ -9,7 +9,7 @@ def F(x,y):
 def celln(y):
     if ( y > 5. ): return True
     else: return False
-    
+
 #-------------------------------
 # 2D structure + raccords match
 #-------------------------------

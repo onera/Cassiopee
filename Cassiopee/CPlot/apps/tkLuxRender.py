@@ -18,7 +18,7 @@ WIDGETS = {}; VARS = []
 # Create Lxs file in rep
 #==============================================================================
 def createLxs(rep):
-    
+
     # File open
     name = VARS[1].get()
     file = open(rep+'/'+name+'.lxs', 'w')
@@ -95,7 +95,7 @@ def createLxs(rep):
 def createGeo(rep):
     file = open(rep+'/Geometry.lxo', 'w')
     file.write('# Lux Render geometries - written by Cassiopee -\n')
-    
+
     zones = Internal.getZones(CTK.t)
     c = 0
     for z in zones:
@@ -109,7 +109,7 @@ def createGeo(rep):
             sp = Internal.getNodesFromName1(ri[0], 'ShaderParameters')
             if sp != []: intensity = 50.*sp[0][1][0]
             else: intensity = 50.
-            
+
         if material == 'Light':
             file.write('AttributeBegin # light_'+str(c)+'\n')
             file.write('NamedMaterial "material'+str(c)+'"\n')
@@ -150,7 +150,7 @@ def createGeo(rep):
 def writeMatte0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'matte'
     if name not in dict: dict[name] = 0
-    
+
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')
     file.write('      "color Kd" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
     file.write('      "float sigma" [8.000000000000000]\n')
@@ -165,7 +165,7 @@ def writeMatte0(file, dict, c, colorR, colorG, colorB, scale):
 def writeGlass0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'glass'
     if name not in dict: dict[name] = 0
-    
+
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')
     file.write('      "bool architectural" ["false"]\n')
     file.write('      "float cauchyb" [0.000000000000000]\n')
@@ -187,7 +187,7 @@ def writeGlass0(file, dict, c, colorR, colorG, colorB, scale):
 def writeChrome0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'chrome'
     if name not in dict: dict[name] = 0
-    
+
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
     file.write('      "float film" [0.000000000000000]\n')
     file.write('      "float filmindex" [1.333299994468689]\n')
@@ -209,7 +209,7 @@ def writeChrome0(file, dict, c, colorR, colorG, colorB, scale):
 def writeMetal0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'metal'
     if name not in dict: dict[name] = 0
-    
+
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
     file.write('	"bool multibounce" ["false"]\n')
     file.write('        "color Kd" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
@@ -230,7 +230,7 @@ def writeMetal0(file, dict, c, colorR, colorG, colorB, scale):
 def writeMarble0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'marble'
     if name not in dict: dict[name] = 0
-    
+
     file.write('Texture "Texture" "float" "blender_marble"\n')
     file.write('      "float bright" [1.000000000000000]\n')
     file.write('      "float contrast" [3.435120105743408]\n')
@@ -254,7 +254,7 @@ def writeMarble0(file, dict, c, colorR, colorG, colorB, scale):
     #file.write('	"color tex2" [0.52770847 0.52770847 0.52770847]\n')
     file.write('    "color tex2" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
     file.write('\n')
-        
+
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
     file.write('      "bool multibounce" ["false"]\n')
     file.write('      "texture Kd" ["Texture.002"]\n')
@@ -265,7 +265,7 @@ def writeMarble0(file, dict, c, colorR, colorG, colorB, scale):
     file.write('      "float sigma" [0.0]\n')
     file.write('      "string type" ["glossy"]\n')
     file.write('\n')
-    
+
 #==============================================================================
 # write wood (alder) dans file
 # Update dict qui retient si les textures sont deja ecrites
@@ -314,7 +314,7 @@ def writeWood0(file, dict, c, colorR, colorG, colorB, scale):
     file.write('     "float tex1" [0.002000000094995]\n')
     file.write('     "texture tex2" ["wood alder mix"]\n')
     file.write('\n')
-        
+
     file.write('Texture "wood alder part 3" "float" "blender_clouds"\n')
     file.write('     "float bright" [0.009999999776483]\n')
     file.write('     "float contrast" [1.200000047683716]\n')
@@ -327,7 +327,7 @@ def writeWood0(file, dict, c, colorR, colorG, colorB, scale):
     file.write('     "vector rotate" [0.0 0.0 0.0]\n')
     file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')
     file.write('\n')
-        
+
     file.write('Texture "665d14f3da96af422fdff" "float" "scale"\n')
     file.write('     "float tex1" [1.000000000000000]\n')
     file.write('     "texture tex2" ["wood alder part 3"]\n')
@@ -337,7 +337,7 @@ def writeWood0(file, dict, c, colorR, colorG, colorB, scale):
     file.write('     "color tex1" [0.64313728 0.45594707 0.29407442]\n')
     file.write('     "color tex2" [0.36960801 0.25732201 0.16374999]\n')
     file.write('\n')
-        
+
     file.write('Texture "wood alder diffuse 2" "color" "mix"\n')
     file.write('     "texture amount" ["665d14f3da96af422fdff"]\n')
     file.write('     "texture tex1" ["wood alder diffuse 1"]\n')
@@ -359,7 +359,7 @@ def writeWood0(file, dict, c, colorR, colorG, colorB, scale):
 #==============================================================================
 def writeCassiopeeLamps(file):
     type = VARS[2].get()
-    
+
     eye = CPlot.getState('posEye')
     cam = CPlot.getState('posCam')
     dir = CPlot.getState('dirCam')
@@ -402,14 +402,14 @@ def writeCassiopeeLamps(file):
         file.write('      "float gain" [0.005]\n')
         file.write('AttributeEnd\n')
 
-    
+
 #==============================================================================
 # Create material file
 #==============================================================================
 def createMat(rep):
     # already created materials
     dict = {}
-    
+
     file = open(rep+'/Materials.lxm', 'w')
     file.write('# Lux Render materials - written by Cassiopee -\n')
 
@@ -457,7 +457,7 @@ def createMat(rep):
             vref = C.getVarNames(z)[0]
             for pos in range(len(vref)):
                 if vref[pos] == s[1]: break
-            
+
             if pos == len(vref): color = 'White'; mode = 0
             else: color = 'Iso'; mode = pos+1; material = 'Iso'
         # traduction color
@@ -482,7 +482,7 @@ def createMat(rep):
         bb = G.bbox(z)
         rx = bb[3]-bb[0]; ry = bb[4]-bb[1]; rz = bb[5]-bb[2]
         scale = 0.5 * min(rx, ry, rz)
-            
+
         if material == 'Solid':
             writeMatte0(file, dict, c, colorR, colorG, colorB, scale)
         elif material == 'Glass':
@@ -528,7 +528,7 @@ def createStl(rep):
     c = 0
     for z in zones:
         z = C.convertArray2Tetra(z)
-        
+
         # Get Material/Color
         material = 'Solid'; color = 'White'; mode = 0  # default
         ri = Internal.getNodesFromName1(z, '.RenderInfo')
@@ -542,16 +542,16 @@ def createStl(rep):
             vref = C.getVarNames(z)[0]
             for pos in range(len(vref)):
                 if vref[pos] == s[1]: break
-            
+
             if pos == len(vref): color = 'White'; mode = 0
             else: color = 'Iso'; mode = pos+1; material = 'Iso'
 
         # write file
         C.convertPyTree2File(z, rep+'/mesh_'+str(c)+'.stl')
         c += 1
-    
+
     return
-    
+
 #==============================================================================
 # Create all Lux Render files
 #==============================================================================
@@ -571,7 +571,7 @@ def createFiles():
     createVol(sceneRep)
     createLxs(rep)
     CTK.TXT.insert('START', 'Luxrender files written.\n')
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -587,7 +587,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -630,7 +630,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Export", command=createFiles)
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create all lux render files.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -672,7 +672,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

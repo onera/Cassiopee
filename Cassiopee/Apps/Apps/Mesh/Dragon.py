@@ -29,7 +29,7 @@ def remeshLevelSet(z, X=0, dir=1):
         COORD = '{CoordinateZ}'
     formula = '({centers:tag}>%g)'%X
     formulaopp = '({centers:tag}<%g)'%X
-   
+
     C._initVars(z,'{tag}=%s'%COORD)
     z = C.node2Center(z,["tag"])
     if dir >0:
@@ -56,17 +56,17 @@ def remeshLevelSet(z, X=0, dir=1):
     z = G.mmgs(z, ridgeAngle=60, hmin=hmin, hmax=hmax, hausd=0.01, grow=1.1, 
                anisotropy=1, optim=0, fixedConstraints=[], sizeConstraints=[edges3])
     if SCALED:
-            T._homothety(z, (0.,0.,0.), 1.e-3)
+        T._homothety(z, (0.,0.,0.), 1.e-3)
     z[0]=zname
     return z
 
 def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='./'):
     if 'sym_plane_axis' in dictOfParams: sym = dictOfParams['sym_plane_axis'] # symmetry plane at x,y,z constant
     else: sym = None
-    
+
     if 'sym_plane_values' in dictOfParams: Locsyms= dictOfParams['sym_plane_values']
     else: Locsyms = []
-    
+
     if 'NParts' in dictOfParams: NParts = dictOfParams['NParts']
     else: NParts = 0
 
@@ -80,10 +80,10 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
 
     if 'h_factor' in dictOfParams: height_factor = dictOfParams['h_factor']
     else: height_factor = 4
-    
+
     if 'niter' not in dictOfParams: smoothIter = 100
     else: smoothIter = dictOfParams["niter"]
-    
+
     if "q" in dictOfParams: raison = dictOfParams["q"]
     else: raison = 1.2
 
@@ -92,10 +92,10 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
 
     if 'h_ext' in dictOfParams:  snear = dictOfParams["h_ext"] # -1 pour calcul auto
     else: snear = -1
-    
+
     if 'dfar' in dictOfParams: dfar = dictOfParams["dfar"] # -1 pour calcul auto
     else: dfar = -1
-    
+
     if 'h_ext_factor' in dictOfParams: snearFactor = dictOfParams["h_ext_factor"]
     else: snearFactor = 1
 
@@ -109,7 +109,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
         elif nbsyms == 1: print('Configuration with one symmetry plane.')
     else: print('Configuration in free air.')
 
-    
+
     # pour un seul plan de symetrie, on symetrise la geometrie pour assurer que l octree se decoupe sur ce plan
     if nbsyms == 1:
         if sym == 'X': syms = T.symetrize(body, (Locsyms[0],0.,0.), (0,1,0), (0,0,1))
@@ -142,7 +142,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
         # snear.append(2.*(vmin-1)*meanarea**(1/2.))
         snear = snearFactor*meanarea**(1./2.); print('snear=', snear)
         if (dfar < 0): dfar = 10.*sizemax ; print('dfar=', dfar)
- 
+
     # Hauteur evidement, peut etre modulee avec le param holeFactor
     delta = holeFactor*snear
     print('delta=',delta)
@@ -182,7 +182,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     print('Generating octree...')
     surfaces = [s] ; snears = [snear]
     o = G.octree(surfaces, snears, dfar=dfar, balancing=1)
-    
+
     bbox = G.bbox(o)
     expand = int(delta/snear)+2
     print('Expanding layers %d...'%expand)
@@ -269,7 +269,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
         for e in ext2:
             meansize = C.getMeanValue(e,'centers:vol')**0.5
             if abs(meansize-minsize) < eps: ext[2][1][2].append(e)
-        
+
         ext = T.join(ext)
     else:
         ext2 = C.newPyTree(['Base'])
@@ -291,9 +291,9 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
 
     # pour un seul plan de symetrie, on selectionne la partie du maillage qui interesse
     if nbsyms == 1:
-       ext = P.selectCells(ext, '{Coordinate%s}>%f'%(sym,Locsyms[0]), strict=0)
-       s = P.selectCells(s, '{Coordinate%s}>%f'%(sym,Locsyms[0]-0.0001), strict=1)
-       lay = P.selectCells(lay, '{Coordinate%s}>%f'%(sym,Locsyms[0]-0.0001), strict=1)
+        ext = P.selectCells(ext, '{Coordinate%s}>%f'%(sym,Locsyms[0]), strict=0)
+        s = P.selectCells(s, '{Coordinate%s}>%f'%(sym,Locsyms[0]-0.0001), strict=1)
+        lay = P.selectCells(lay, '{Coordinate%s}>%f'%(sym,Locsyms[0]-0.0001), strict=1)
 
     # Remplit l'espace entre l'exterieur faces, la surface et le remplissage tri sur le(s) plan(s) de symetrie
     print('Tetra filling...')
@@ -319,7 +319,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
             slineloc = C.getMeanValue(slines[i],'Coordinate%s'%sym)
             if abs(slineloc - locmin)<eps: surfsmin.append(slines[i])
             if abs(slineloc - locmax)<eps: surfsmax.append(slines[i])
-        
+
         surfsym1 = G.tetraMesher(surfsmin, grading=0.2, maxh=0.5*snear, algo=1)
         s_in += [surfsym1]
         if nbsyms == 2:
@@ -337,7 +337,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     m = T.join(m, lay)
     print('Final closing...')
     if nbsyms == 1:
-       t = P.selectCells(t, '{Coordinate%s}>%f'%(sym,Locsyms[0]), strict=0)
+        t = P.selectCells(t, '{Coordinate%s}>%f'%(sym,Locsyms[0]), strict=0)
 
     Internal._rmNodesByName(t,'FlowSolution*')
     if check: C.convertPyTree2File(t,directory_tmp_files+'tmp.cgns')
@@ -406,8 +406,8 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     # Decoupage en NBlocs
 
     if NParts > 0:
-       print('Decoupage en ',NParts,' blocs')
-       tp = T.splitNParts(tp,NParts)    
+        print('Decoupage en ',NParts,' blocs')
+        tp = T.splitNParts(tp,NParts)    
 
     return tp
 
@@ -424,7 +424,7 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
     if len(bases) != 3 :
         raise("ValueError: createDragonMesh: 3 zones must be defined: HUB/SHROUD/BLADE")
         return None
-    
+
     surf_hub = Internal.getNodeFromName(ts,"HUB")
     if surf_hub is None or surf_hub==[]:
         raise("ValueError: no base/zone of name HUB found.")
@@ -444,18 +444,18 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
         remeshBorders = dictOfParams['remesh_input']
         # SP : preferer le remaillage de l aube en externe
         #remesh_aube = dictOfParams['remesh_input']
-    
+
     if 'niter' not in dictOfParams: smoothIter = 100
     else: smoothIter = dictOfParams["niter"]
-    
+
     if 'hWall' not in dictOfParams:
         hWall = 1e-6
         print('Warning: createDragonMesh: hmin not defined. Set to %g.'%hWall)
     else: hWall = dictOfParams['hWall'] # hauteur de la premiere maille (si prismes)
-    
+
     if "q" in dictOfParams: raison = dictOfParams["q"]
     else: raison = 1.2
-    
+
     if 'nlayers' in dictOfParams: nlayer = dictOfParams['nlayers'] 
     else:
         nlayer = 10 # auto
@@ -536,14 +536,14 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
             C.setValue(surf_aube, 'CoordinateX', inds-1, xp[0])
             C.setValue(surf_aube, 'CoordinateY', inds-1, xp[1])
             C.setValue(surf_aube, 'CoordinateZ', inds-1, xp[2])  
-                 
+
     C.freeHook(hook) 
-   
+
     # Creation of channel borders - HUB   
     lines_hub = extractExternalLines__(surf_hub, surf_aube, BA2BF)
     lines_perios_hub = lines_hub[:2]
     line_in_h = lines_hub[2];  line_out_h = lines_hub[3]
-    
+
     line_periom_h = lines_perios_hub[0]
     line_periop_h = lines_perios_hub[1]
     if typePerio==1:
@@ -568,7 +568,7 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
         periomdup = T.translate(line_periom_s,(translx, transly, translz))
     else:
         periomdup = T.rotate(line_periom_s, centre, axis, THETA)   
-             
+
     periomdup = C.diffArrays(line_periop_s,periomdup)
     C._initVars(periomdup,'{dist}=sqrt({DCoordinateX}**2+{DCoordinateY}**2+{DCoordinateZ}**2)')
     if C.getMaxValue(periomdup,'dist')<tol_match_perio:pass
@@ -664,7 +664,7 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
         extBorders = [surf_inlet, surf_outlet, surf_periom, surf_periop]
         surfs_wall += extBorders
         surfs = C.convertArray2Tetra(surfs_wall,split='withBarycenters')
-        
+
         surfs = T.join(surfs); surfs = T.reorderAll(surfs)
         mesh_final = G.tetraMesher(surfs)
         npts = Internal.getZoneDim(mesh_final)[1]
@@ -682,14 +682,14 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
         for bc in bcc:
             zdim = Internal.getZoneDim(bc)
             if zdim[3]=='QUAD': ext_QUAD.append(bc)
-            
+
         ext_QUAD = T.join(ext_QUAD)    
         hook = C.createHook(lay, function='nodes')
         surf_inlet[0] = 'INLET'; surf_outlet[0]='OUTLET'
         surf_periom[0]='PERIOM'; surf_periop[0]= 'PERIOP'
         extBorders = [surf_inlet, surf_outlet, surf_periom, surf_periop]
         extBorders = C.convertArray2Tetra(extBorders)
-    
+
         ext_QUAD = T.splitConnexity(ext_QUAD) # hub and shroud parts
         for ext_QUAD0 in ext_QUAD:
             ext_QUAD0 = T.splitSharpEdges(ext_QUAD0,30.)
@@ -719,7 +719,7 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
                 ext_QUADPERP=T.translate(projsurf,(translx, transly, translz))
             else:
                 ext_QUADPERP=T.rotate(projsurf,centre, axis, THETA)
-                
+
             nodes = allnodes[noperp]
             for ind in nodes:
                 coord = tuple(C.getValue(lay, 'GridCoordinates', ind-1))
@@ -728,7 +728,7 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
                 C.setValue(lay, 'CoordinateX', ind-1, coordproj[0])
                 C.setValue(lay, 'CoordinateY', ind-1, coordproj[1])
                 C.setValue(lay, 'CoordinateZ', ind-1, coordproj[2])
-                
+
             nodes = allnodes[noperm]
             for ind in nodes:
                 coord = tuple(C.getValue(lay, 'GridCoordinates', ind-1))
@@ -737,13 +737,13 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
                 C.setValue(lay, 'CoordinateX', ind-1, coordproj[0])
                 C.setValue(lay, 'CoordinateY', ind-1, coordproj[1])
                 C.setValue(lay, 'CoordinateZ', ind-1, coordproj[2])          
-                
+
         C.freeHook(hook)           
         #---------------------------------------
         # on cherche la frontiere ext TRI sur le maillage reprojete
         bcc = P.exteriorFaces(lay)
         bcc = T.breakElements(bcc)
- 
+
         ext_TRI = []
         for bc in bcc:
             zdim = Internal.getZoneDim(bc)
@@ -760,7 +760,7 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
         tetMesh = createInternalTetraMesh__(ext_TRI, ts, hext)            
         tetMesh = C.convertArray2NGon(tetMesh)      
         mesh_final = T.join(tetMesh,lay)
-        
+
     G._close(mesh_final, toldist)
     G._getVolumeMap(mesh_final) 
     volmin = C.getMinValue(mesh_final,'centers:vol')
@@ -771,7 +771,7 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
     C._addBC2Zone(mesh_final, 'HUB', 'FamilySpecified:HUB', subzone=mesh_hub)
     C._addBC2Zone(mesh_final, 'SHROUD', 'FamilySpecified:SHROUD', subzone=mesh_shroud)
     C._addBC2Zone(mesh_final, 'BLADE', 'FamilySpecified:BLADE', subzone=surf_aube)
-    
+
     extFaces = P.exteriorFaces(mesh_final); extFaces = T.splitSharpEdges(extFaces, 60)
     extBCs=['INLET','OUTLET','PERIOP','PERIOM']
     ZBC={}
@@ -821,7 +821,7 @@ def createInternalTetraMesh__(ext_TRI, ts, hext):
         e1 = P.selectCells(e,'{TurbulentDistance}>%g'%toldistrel,strict=0)
         e1 = T.splitConnexity(e1) # on doit en avoir 2
         DTW._distance2Walls(e1, mesh_amont, loc='nodes')
-        
+
         if C.getMinValue(e1[0],'TurbulentDistance')<C.getMinValue(e1[1],'TurbulentDistance'):
             lines_amont.append(e1[0])
             lines_aval.append(e1[1])
@@ -915,7 +915,7 @@ def createInternalTetraMesh__(ext_TRI, ts, hext):
 
     TFIPERM = G.TFI(sides[0])
     TFIPERP = G.TFI(sides[1])    
-    
+
     # remap
     ZONES = [AMONT,AVAL,TFIPERM,TFIPERP]
     ZONES = T.join(ZONES)
@@ -965,16 +965,16 @@ def extractExternalLines__(surf, surf_aube, BA2BF=1):
 
     if distl0 < distl1: line_ext = lines_ext[1]
     else: line_ext = lines_ext[0]
-    
+
     lines_ext = []; nsplit = 0; alp0 = 80.
     while nsplit < 4: 
         zsplit = T.splitSharpEdges(line_ext, alp0)
         alp0 = alp0-5.
         nsplit = len(zsplit)        
         if nsplit >= 4:
-           lines_ext = zsplit
-           break
-    
+            lines_ext = zsplit
+            break
+
     no_inflow=-1; no_outflow = -1
     dmin = 1e10; dmax = 1e10
     bb_all = G.bbox(lines_ext)
@@ -1039,7 +1039,7 @@ def orderExteriorEdges__(surf, lineb):
     else: 
         line_in = lines_ext[0]
     return [line_in,line_ext]   
-   
+
 def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False):
     extFaces0 = P.exteriorFaces(surfp)
     extFaces = T.splitConnexity(extFaces0)
@@ -1051,7 +1051,7 @@ def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False
             lmax = lenloc
             npts = C.getNPts(ef)
             h0 = lmax/npts
-            
+
     [line_in,line_ext] = orderExteriorEdges__(surfp, lineb)
 
     D0 = DTW.distance2Walls(line_ext, line_in, loc='nodes', type='ortho')
@@ -1063,7 +1063,7 @@ def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False
                         alphaRef=180., check=0, toldist=1.e-6)
     tri_in = C.convertArray2Tetra(tri_in); tri_in = G.close(tri_in)
     [line_in,line_ext0] = orderExteriorEdges__(tri_in, lineb)
-    
+
     Internal._rmNodesFromName(line_ext, 'FlowSol*')
     Internal._rmNodesFromName(line_ext0, 'FlowSol*')
 
@@ -1078,7 +1078,7 @@ def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False
         line_ext0 = T.reorder(line_ext0,(-1,))
         #line_ext = T.reorder(line_ext,(-1,))
         Internal._rmNodesFromName(line_ext, 'FlowSol*')
-        
+
         contour = T.join([line_ext0,line_ext])
         tri_ext = G.tetraMesher(contour)
 
@@ -1097,7 +1097,7 @@ def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False
                 lmax = lenloc
                 npts = C.getNPts(ef)
                 density = lmax/npts
-              
+
         tri_ext = G.mmgs(tri_ext,ridgeAngle=45., 
                           hmin=0., hmax=density, hausd=0.01,
                           optim=0, fixedConstraints=extFaces0,
@@ -1126,13 +1126,13 @@ def getMatchingPoint__(line_in_h, line_periom_h):
     # INFLOW HUB 
     pt11 = C.getValue(line_in_h,'GridCoordinates',0)
     pt12 = C.getValue(line_in_h,'GridCoordinates',nptsi-1)
-    
+
     pt21 = C.getValue(line_periom_h,'GridCoordinates',0)
     pt22 = C.getValue(line_periom_h,'GridCoordinates',npts-1) 
 
     dist11_21 = math.sqrt((pt11[0]-pt21[0])**2+(pt11[1]-pt21[1])**2+(pt11[2]-pt21[2])**2)
     dist11_22 = math.sqrt((pt11[0]-pt22[0])**2+(pt11[1]-pt22[1])**2+(pt11[2]-pt22[2])**2)
-    
+
     if dist11_21<toldist or dist11_22<toldist: ptA = pt11
     else:
         dist21_21 = math.sqrt((pt21[0]-pt21[0])**2+(pt21[1]-pt21[1])**2+(pt21[2]-pt21[2])**2)
@@ -1161,7 +1161,7 @@ def createDragonMeshWithSymPlanes(s, dictOfParams={}, check=False, directory_tmp
     if nbSymPlanes==2: 
         doMirror=False
         if locmin <- SYM_PLANE_TOL: doMirror=True
-  
+
         if doMirror:
             print('Working on mirror geometry') 
             _mirror(s,dictOfParams['sym_plane_axis'],0.)
@@ -1172,7 +1172,7 @@ def createDragonMeshWithSymPlanes(s, dictOfParams={}, check=False, directory_tmp
 
     if nbSymPlanes==1: dictOfParams['sym_plane_values']=[locmin]
     elif nbSymPlanes==2: dictOfParams['sym_plane_values']=[locmin,locmax]
-    
+
     t = createDragonMesh0(s,dictOfParams,check=check,directory_tmp_files=directory_tmp_files)
 
     if nbSymPlanes==2:

@@ -20,7 +20,7 @@ import numpy, os
 def _interpolate(tR, tD, interpTree, graph, procDict, typeTransfer=0):
     FSC_SAV = Internal.__FlowSolutionCenters__
     FSN_SAV = Internal.__FlowSolutionNodes__
- 
+
     ZSR = Internal.getNodeFromType(interpTree,"ZoneSubRegion_t")
     if ZSR is None: return None
     GL = Internal.getNodeFromType(ZSR,'GridLocation_t')
@@ -51,7 +51,7 @@ def _interpolate(tR, tD, interpTree, graph, procDict, typeTransfer=0):
                     fname = Internal.getName(fnode)
                     varsI.append(fname)
                 dictOfFSC[fsname] = varsI
-                    
+
             else:
                 fsname = Internal.getName(fs)
                 for fnode in Internal.getNodesFromType(fs,'DataArray_t'):
@@ -75,11 +75,11 @@ def _interpolate(tR, tD, interpTree, graph, procDict, typeTransfer=0):
             C._initVars(tR,'%s'%varl,0)
         _setInterpTransfers(tR, interpTree, variables=varsI, cellNVariable='cellN',
                             graph=graph, procDict=procDict, type='ID', typeTransfer=typeTransfer)  
-        
+
     Internal.__FlowSolutionCenters__ = FSC_SAV
     Internal.__FlowSolutionNodes__ = FSN_SAV
     return None
-    
+
 def prepareInterpData(tR, tD, order=2, loc='CellCenter', cartesian=False, cleanID=True, typeTransfer=0):
     if loc=='CellCenter':
         locR = 'centers'
@@ -87,7 +87,7 @@ def prepareInterpData(tR, tD, order=2, loc='CellCenter', cartesian=False, cleanI
     else:
         locR = 'nodes'
         tc = Internal.copyRef(tD)
-    
+
     [graphR, procDictR]=_setInterpData2__(tR, tc, order=2, loc=locR, cartesian=cartesian, cleanID=cleanID,
                                           typeTransfer=typeTransfer)
     Internal._rmNodesFromType(tc,'FlowSolution_t')
@@ -97,16 +97,16 @@ def prepareInterpData(tR, tD, order=2, loc='CellCenter', cartesian=False, cleanI
 def _setInterpData2__(tR, tD, order=2, loc='centers', cartesian=False, cleanID=True, typeTransfer=0):
     if loc == 'nodes': varcelln = 'cellN'
     else: varcelln = 'centers:cellN'    
-  
+
     # Clean previous IDs if necessary
     if cleanID:
         Internal._rmNodesFromType(tD, 'ZoneSubRegion_t')
         Internal._rmNodesFromName(tD, 'GridCoordinates#Init')
-        
+
     if cartesian: interpDataType = 0 # 0 if tc is cartesian
     else: interpDataType = 1
     locR = loc
-    
+
     # Compute BBoxTrees
     tRBB = Cmpi.createBBoxTree(tR)
     procDictR = Cmpi.getProcDict(tRBB)
@@ -114,7 +114,7 @@ def _setInterpData2__(tR, tD, order=2, loc='centers', cartesian=False, cleanID=T
     procDictD = Cmpi.getProcDict(tDBB)
     interDictR2D = X.getIntersectingDomains(tRBB, tDBB)
     interDictD2R = X.getIntersectingDomains(tDBB, tRBB)
-    
+
     graphR = Cmpi.computeGraph(tDBB, type='bbox3', intersectionsDict=interDictD2R,
                                procDict=procDictD, procDict2=procDictR, t2=tRBB, reduction=True)
     graphD = Cmpi.computeGraph(tRBB, type='bbox3', intersectionsDict=interDictR2D,
@@ -142,13 +142,13 @@ def _setInterpData2__(tR, tD, order=2, loc='centers', cartesian=False, cleanID=T
                     X._setInterpData(zs, zd, nature=1, penalty=1, order=order, loc=loc, 
                                      storage='inverse', extrap=0, verbose=0,
                                      sameName=0, interpDataType=interpDataType, itype='chimera')
-      
+
         if cellNPresent == -1:
             C._rmVars(zs, [varcelln])
         for zd in dnrZones:
             zdname = zd[0]
             destProc = procDictD[zdname]
-    
+
             IDs = []
             for i in zd[2]:
                 if i[0][0:2] == 'ID':
@@ -163,7 +163,7 @@ def _setInterpData2__(tR, tD, order=2, loc='centers', cartesian=False, cleanID=T
                     else: datas[destProc].append([zdname,IDs])
             else:
                 if destProc not in datas: datas[destProc] = []
-    
+
     Cmpi._rmXZones(tD)
     destDatas = Cmpi.sendRecv(datas, graphD)
     for i in destDatas:

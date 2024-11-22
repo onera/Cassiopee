@@ -50,7 +50,7 @@ tb = C.convertFile2PyTree(filename_tcase)
 for base in Internal.getBases(tb):
     fl = Internal.newFlowEquationSet(parent=base)
     gov = Internal.newGoverningEquations(value='NSTurbulent', parent=fl)
- 
+
 for node in Internal.getNodesByName(tb,'FlowEquationSet'):
     Internal._createUniqueChild(node, 'EquationDimension', '"int"', value=2, children=[])
     Internal._createUniqueChild(node,'TurbulenceModel', 'TurbulenceModel_t', value='OneEquation_SpalartAllmaras', children=[])

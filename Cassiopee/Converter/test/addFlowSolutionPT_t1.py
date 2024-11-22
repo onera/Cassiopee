@@ -62,4 +62,4 @@ for protocol in ['end','iteration','after']:
     tp = elsAProfile.addFlowSolution(t,protocol=protocol,variables=[])
     test.testT(tp, notest)
     notest += 1
-                                            
+

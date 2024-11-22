@@ -38,7 +38,7 @@ test.testA(A, 22)
 C.convertArrays2File([cart1], LOCAL+'/out.v3d', 'bin_v3d')
 A = C.convertFile2Arrays(LOCAL+'/out.v3d', 'bin_v3d')
 test.testA(A, 3)
-   
+
 # fmt_v3d
 #C.convertArrays2File([cart1], LOCAL+'/out.dat', 'fmt_v3d')
 #A = C.convertFile2Arrays(LOCAL+'/out.dat', 'fmt_v3d')
@@ -48,7 +48,7 @@ test.testA(A, 3)
 #C.convertArrays2File([cart1], LOCAL+'/out.dat', 'bin_plot3d')
 #A = C.convertFile2Arrays(LOCAL+'/out.dat', 'bin_plot3d')
 #test.testA(A, 5)
-  
+
 # fmt_pov
 C.convertArrays2File([cart3], LOCAL+'/out.pov', 'fmt_pov')
 A = C.convertFile2Arrays(LOCAL+'/out.pov', 'fmt_pov')
@@ -63,7 +63,7 @@ test.testA(A, 7)
 C.convertArrays2File([cart3], LOCAL+'/out.su2', 'fmt_su2')
 A = C.convertFile2Arrays(LOCAL+'/out.su2', 'fmt_su2')
 test.testA(A, 71)
- 
+
 # bin_stl
 C.convertArrays2File([cart3], LOCAL+'/out.stl', 'bin_stl')
 A = C.convertFile2Arrays(LOCAL+'/out.stl', 'bin_stl')

@@ -133,13 +133,13 @@ def integMomentNorm(t, center=(0.,0.,0.), var=''):
 def streamLine2(t, X0, vector, N=2000, eps=1.e-2, maxCompt=20):
     """Compute a streamline starting from (x0,y0,z0) given
     a list of arrays containing 'vector' information."""
-    
+
     out = []; compt = 0
 
     while len(X0) > 0 and compt < maxCompt:
         ret = P.streamLine2(t, X0, vector, N=N, dir=1, eps=eps)
         for z in ret: z[0] = z[0]+'_%d'%Cmpi.rank
-        
+
         # Get new pool (supprime les streamlines degenerees)
         X0 = []; ret2 = []
         for z in ret:
@@ -153,14 +153,14 @@ def streamLine2(t, X0, vector, N=2000, eps=1.e-2, maxCompt=20):
                 ret2.append(z)
         #print('>> New pool', X0)
         out += ret2
-    
+
         # Communicate and merge pool
         b = Cmpi.allgather(X0)
         X0 = []
         for i in b: X0 += i
         #print('>> New pool after com', X0)
         print('it=%d pool length=%d'%(compt,len(X0)))
-        
+
         compt += 1
 
     return out

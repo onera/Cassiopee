@@ -50,7 +50,7 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isI
         if Internal.getZoneType(z)==1: orderedZones.append(i)
     for i, z in enumerate(zones):
         if Internal.getZoneType(z)==2: orderedZones.append(i) 
-    
+
     coords = C.getFields(Internal.__GridCoordinates__,zones)
     if loc == 'centers': flag = C.getField('centers:flag',zones)
     else: flag = C.getField('flag',zones)
@@ -58,7 +58,7 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isI
     distances = Dist2Walls.distance2Walls(
         coords, bodiesa, flags=flag, cellnbodies=cellnba, type=type,
         loc=loc, signed=signed, dim=dim, isIBM_F1=isIBM_F1, dTarget=dTarget)
-    
+
     for nz in range(len(distances)):
         nozorig = orderedZones[nz]
         zorig = zones[nozorig]
@@ -159,7 +159,7 @@ def _eikonalForZone(z,loc='nodes',algo=fim_old):
     Usage: _eikonalForZone(z,loc='nodes')"""
     locNode = False
     if loc == 'nodes': locNode = True
-    
+
     nodes = C.getFields(Internal.__GridCoordinates__, z)[0]
     if locNode: 
         phi = C.getField('Phi',z)[0]
@@ -214,7 +214,7 @@ def transferCellN__(t,tc,DEPTH,loc):
     # POINTS INTERIEURS
     if loc == 'nodes': C._initVars(t,'{cellN}=minimum(1.,{cellN})')
     else: C._initVars(t,'{centers:cellN}=minimum(1.,{centers:cellN})')
-        
+
     t = X.setHoleInterpolatedPoints(t,depth=-DEPTH,loc=loc)
     # transfert du cellN aux raccords
     if tc is not None:
@@ -238,7 +238,7 @@ def transferCellN__(t,tc,DEPTH,loc):
         C._initVars(t,'{centers:cellN}=maximum({centers:cellN},{centers:cellN2})')
         C._rmVars(t,['centers:cellN2'])
     return t
-    
+
 #=============================================================================
 # Distance field computation using FIM method
 # IN: err: relative error on distance at convergence
@@ -293,7 +293,7 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
             C._initVars(z,'{centers:Phi}={centers:TurbulentDistance}*({centers:flag}>0.)+%g*({centers:flag}<1.)'%PHIMAX)
         #end5 = time.time()
         #print("Temps passe init var turbulentDistance : {} secondes".format(end5-beg5))
-            
+
         if type == 0: 
             ni = dims[1]; nj = dims[2]; nk = dims[3]
             i = max(1,ni//2); j = max(1,nj//2); k = max(1,nk//2)
@@ -301,7 +301,7 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
             ind2 = ind1+1
             dh = C.getValue(z,'CoordinateX',ind2)-C.getValue(z,'CoordinateX',ind1)
             C._initVars(z,loc+':speed',1./dh)
-             
+
         else: C._initVars(z,loc+':speed',1.)
     #end2 =time.time()
     #print("Temps initialisation au front : {} secondes".format(end2-beg2))

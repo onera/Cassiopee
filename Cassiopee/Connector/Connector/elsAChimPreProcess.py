@@ -83,7 +83,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                     if donorIndices.shape[0] != 0: # avoid interpolation regions with only orphan points
                         coefs = Internal.getNodeFromName1(interp, InterpolantsDonor)[1][:,0:7]
                         rcvIndices = Internal.getNodeFromName1(interp, ListDonor)[1]; rcvIndices = rcvIndices.reshape((rcvIndices.shape[0]))
-                        
+
                         periodicity =  Internal.getNodeFromName1(interp, InterpolantsType)[1]; periodicity= periodicity.reshape((periodicity.shape[0]))
                         if FaceDirection is not None:
                             faceDir = Internal.getNodeFromName1(interp, FaceDirection)[1]; faceDir= faceDir.reshape((faceDir.shape[0]))
@@ -121,7 +121,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                                 for rcvIndex in rcvIndices:
                                     interpData[rcvId][(int)(rcvIndex)]=[flag,(int)(donorIndices[i]),(int)(periodicity[i])]+[(float)(c) for c in coefs[i]]; i = i+1
                             else: # face
-                               for rcvIndex in rcvIndices:
+                                for rcvIndex in rcvIndices:
                                     interpData[rcvId][(int)(rcvIndex)]=[flag,(int)(donorIndices[i]),(int)(periodicity[i])]+[(float)(c) for c in coefs[i]]+[(int)(faceDir[i])]; i = i+1                                
                         # delta storage
                         else: 
@@ -249,7 +249,7 @@ def convertIndices2File__(iteration,indices,nbTotalIterations,fileName,format):
     else:
         tt = numpy.empty( (1,), dtype=Internal.E_NpyInt)
         f = open(fileName, "w") # open file for writing
-        
+
         tt[0] = iteration # write first iteration of reading
         tt.tofile(f, sep=" ", format='%d') ; f.write('\n')
         # write indices

@@ -59,7 +59,7 @@ def extract(event=None):
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     BCtype = VARS[0].get()
     if BCtype not in Internal.KNOWNBCS: BCtype = 'FamilySpecified:'+BCtype
 
@@ -73,7 +73,7 @@ def extract(event=None):
         for nz in nzs:
             nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
             zones.append(CTK.t[2][nob][2][noz])
-    
+
     if BCtype != 'FamilySpecified:-All BC-':
         Z = C.extractBCOfType(zones, BCtype, topTree=CTK.t)
         for i in Z: Internal._createChild(i, 'BCType', 'UserDefined_t', BCtype)
@@ -93,7 +93,7 @@ def extract(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
-    
+
 #==============================================================================
 # Recover the BCs on zones
 #==============================================================================
@@ -160,7 +160,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=2)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -228,7 +228,7 @@ def hideApp(event=None):
 def saveApp():
     CTK.PREFS['tkExtractBCType'] = VARS[0].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('-All BC-')
@@ -238,7 +238,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

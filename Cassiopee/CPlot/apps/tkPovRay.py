@@ -39,7 +39,7 @@ def savePovFile():
         scale = min(rx, ry, rz)
         scales.append(scale)
         centers.append([bb[0]+0.5*rx, bb[1]+0.5*ry, bb[2]+0.5*rz])
-        
+
         # Material/Color/Blending
         material = 'Solid'; color = 'White'; mode = 0;
         blending = 1; shader1 = 1.
@@ -63,7 +63,7 @@ def savePovFile():
             vref = C.getVarNames(z)[0]
             for pos in range(len(vref)):
                 if vref[pos] == s[1]: break
-            
+
             if pos == len(vref): color = 'White'; mode = 0
             else: color = 'Iso'; mode = pos+1
         # traduction color si #FFFFFF
@@ -75,7 +75,7 @@ def savePovFile():
             color = 'rgbf<'+str(colorR)+','+str(colorG)+','+str(colorB)+'>'
         colors.append(color); materials.append(material)
         blendings.append(blending); shader1s.append(shader1)
-        
+
         nt = C.newPyTree(['Base'])
         nt[2][1][2].append(z)
         try:
@@ -103,7 +103,7 @@ def savePovFile():
     file.write('#include "textures.inc"\n')
     file.write('#include "woods.inc"\n')
     file.write('#include "stones.inc"\n')
-    
+
     # Brushed metal texture
     file.write('#declare Brushed_Depth = 10; // Bump size\n')
     file.write('#declare Brushed_Pigment = pigment {colour rgb 0.73} \n')
@@ -124,7 +124,7 @@ def savePovFile():
     #file.write('count 50 \n')
     #file.write('error_bound 0.5 \n')
     #file.write('recursion_limit 1 } } \n')
-    
+
     # - Camera -
     file.write('#declare Cam0 = camera {angle 50 \n')
     file.write('#location  <'+str(cam[0])+' , '+str(cam[1])+' , '+
@@ -154,7 +154,7 @@ def savePovFile():
 
     dir = Vector.mul(0.1, dir)
     pos = Vector.add(cam, dir)
-    
+
     c = 0; light = 0
     for f in files:
         material = materials[c]
@@ -169,7 +169,7 @@ def savePovFile():
     if light == 0: # pas de lumiere dans l'arbre, on met celle par defaut
         file.write('light_source{<'+str(pos[0])+' , '+str(pos[1])+' , '+
                    str(pos[2])+'> color White*4}\n')
-        
+
     # - Background -
     bckgrd = VARS[0].get()
     if bckgrd == 'Blue sky':
@@ -198,14 +198,14 @@ def savePovFile():
         #file.write("object{ O_Cloud1 rotate 90*x}\n")
         #file.write("sphere { <0,0,0>, 100 \n")
         #file.write("texture {T_Cloud3} scale 100 }\n")
-        
+
     elif (bckgrd == 'Starfield'):
         file.write('#include "stars.inc"\n')
         file.write('sphere { <0,0,0>, 1\n')
         file.write('texture { Starfield1 }\n')
         file.write('scale 10000\n')
         file.write('  } //end of sphere\n')
-        
+
     elif (bckgrd == 'White'):
         file.write('sky_sphere { pigment { White } }\n')
 
@@ -214,7 +214,7 @@ def savePovFile():
     for f in files:
         color = colors[c]; material = materials[c]
         blend = str(1.-blendings[c])
-        
+
         if (material == 'Solid' or material == 'None'): # OK
             file.write('#include "'+f+'"\n')
             file.write('object {mesh_'+str(c)+'\n')
@@ -244,8 +244,8 @@ def savePovFile():
                 file.write('texture{pigment{color '+color+' filter '+
                            str(-0.1*blendings[c] +1.)+' }\n')
             else:
-                 file.write('texture{pigment{filter '+
-                            str(-0.1*blendings[c] +1.)+' }\n')
+                file.write('texture{pigment{filter '+
+                           str(-0.1*blendings[c] +1.)+' }\n')
             file.write('finish {reflection 0.2 phong 0.7 }}\n')
             file.write('interior { ior 1.3 }\n')
             file.write('}\n')
@@ -362,7 +362,7 @@ def savePovFile():
 
     file.close()
     os.chdir('..')
-    
+
 #==============================================================================
 # Render scene using PovRay
 #==============================================================================
@@ -393,7 +393,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -437,7 +437,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Render scene", command=render)
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Render pov scene.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -479,7 +479,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

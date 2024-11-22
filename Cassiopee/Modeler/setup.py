@@ -34,7 +34,7 @@ libraries = ["kcore"]
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-    
+
 # setup ======================================================================
 setup(
     name="Modeler",

@@ -127,7 +127,7 @@ def exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2']):
     C._addVars(z, vars)
     qx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
     qr = Internal.getNodeFromName2(z, 'radius')[1]
-        
+
     for r, rad in enumerate(radii):
         acu = accumulator[(psi,rad)]
         qx[r] = rad
@@ -154,7 +154,7 @@ def exportAccumulatorPerRadius(accumulator, rad=0., vars=['F1','F2']):
     C._addVars(z, vars)
     qx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
     qp = Internal.getNodeFromName2(z, 'psi')[1]
-        
+
     for p, psi in enumerate(psis):
         acu = accumulator[(psi,rad)]
         qx[p] = psi
@@ -194,12 +194,12 @@ def exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz']):
     if len(psis) == 1:
         psirad = psis[0]*math.pi/180.
         for r, rad in enumerate(radii):
-                acu = accumulator[(psis[0],rad)]
-                qx[r] = rad * math.cos(psirad)
-                qy[r] = rad * math.sin(psirad)
-                for c, v in enumerate(vars):
-                    q = Internal.getNodeFromName2(z, v)[1]
-                    q[r] = acu[c]
+            acu = accumulator[(psis[0],rad)]
+            qx[r] = rad * math.cos(psirad)
+            qy[r] = rad * math.sin(psirad)
+            for c, v in enumerate(vars):
+                q = Internal.getNodeFromName2(z, v)[1]
+                q[r] = acu[c]
     elif len(radii) == 1:
         for p, psi in enumerate(psis):
             psirad = psi*math.pi/180.
@@ -308,7 +308,7 @@ def extractRadius(teff, axis_pnt, axis_vct, loc='node'):
         ay = (x-cx)*uz - (z-cz)*ux
         az = (x-cx)*uy - (y-cy)*ux
         return math.sqrt(ax**2 + ay**2 + az**2)/math.sqrt(ux**2 + uy**2 + uz**2)
-    
+
     if loc == 'center':
         teff = C.initVars(teff, 'centers:Radius', function, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
     else:
@@ -329,7 +329,7 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
         det += m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1])
         det -= m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0])
         det += m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0])
-        
+
         return det
 
     def comatrix(m):
@@ -383,19 +383,19 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
         a,b,c = vec
         norm = math.sqrt(a*a + b*b + c*c)
         base.append((a/norm, b/norm, c/norm))
-    
+
     # matrice de passage de R dans base
     P = [[base[0][0], base[1][0], base[2][0]],
          [base[0][1], base[1][1], base[2][1]],
          [base[0][2], base[1][2], base[2][2]]]
-    
+
     # inverse de P
     invP = inverse(P)
 
     # C (canonical base) -> Cprime (new base) using
     # C = P.Cprime <=> Cprime = invP.C
     # C = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
-    
+
     Cprime = [axis_pnt[0]*invP[0][0] + axis_pnt[1]*invP[0][1] + axis_pnt[2]*invP[0][2],
               axis_pnt[0]*invP[1][0] + axis_pnt[1]*invP[1][1] + axis_pnt[2]*invP[1][2],
               axis_pnt[0]*invP[2][0] + axis_pnt[1]*invP[2][1] + axis_pnt[2]*invP[2][2]]
@@ -408,9 +408,9 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
 
         theta = numpy.arctan2(-dist2,dist3)
         if theta < 0: theta += 2*numpy.pi
-        
+
         return theta
-    
+
     if loc == 'center':
         teff = C.initVars(teff, 'centers:Theta', function, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
     else:
@@ -451,7 +451,7 @@ def extractSlices(teff, bladeName, psi, radii,
     """Extract slices on blade and compute Kp,Cf,CnM2,CmM2."""
     if coordDir == coordSlice:
         raise ValueError('extractSlices: coordDir and coordSlice are identical.')
-    
+
     if sliceNature not in ['curved', 'straight']:
         print('Warning: extractSlices: invalid sliceNature name. Default value is used')
         sliceNature = 'straight'
@@ -541,7 +541,7 @@ def extractSlices(teff, bladeName, psi, radii,
         allbandes[rad] = Cmpi.gatherZones(bandes, root=proc)
         proc += 1
         proc = proc%Cmpi.size
-    
+
     # Chaque proc a sa ou ses bandelettes (liste de zones)
     #print(Cmpi.rank, allbandes.keys())
     #for rad in allbandes:
@@ -549,7 +549,7 @@ def extractSlices(teff, bladeName, psi, radii,
     #    if b != []:
     #        print('Proc ',Cmpi.rank, 'writes bandes ',rad)
     #        C.convertPyTree2File(allbandes[rad], 'bandes%f.cgns'%rad)
-    
+
     slices = {}
     for rad in allbandes:
         #Internal.printTree(allbandes[rad])
@@ -571,7 +571,7 @@ def extractSlices(teff, bladeName, psi, radii,
     CnM2All = []; CmM2All = []
     for rad in slices:
         if rad not in slices: continue
-        
+
         iso = slices[rad]
 
         #no = radius.index(rad) # position du rayon de la slice actuelle dans la liste complete des rayons
@@ -587,8 +587,8 @@ def extractSlices(teff, bladeName, psi, radii,
             C._initVars(iso, '{xc}= 1.-({CoordinateY}-%20.16g)/(%20.16g-%20.16g)'%(xmin,xmax,xmin))
         else:
             C._initVars(iso, '{xc}= 1.-({CoordinateZ}-%20.16g)/(%20.16g-%20.16g)'%(xmin,xmax,xmin))
-        
-        
+
+
         # Kp
         if adimKp == 0: adimKp_loc = 0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR + MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
         else: adimKp_loc = adimKp
@@ -628,7 +628,7 @@ def extractSlices(teff, bladeName, psi, radii,
         CmM2z = CmM2z/adimCmM2_loc
         Cm = (CmM2x, CmM2y, CmM2z)
         if localFrame: Cm = numpy.dot(Glob2Loc, Cm)
-        
+
         if accumulatorCmM2 is not None: accumulatorCmM2[(psi,rad)] = [Cm[0],Cm[1],Cm[2]]
         CmM2All.append([Cm[0],Cm[1],Cm[2]])
 
@@ -660,7 +660,7 @@ def extractSlices(teff, bladeName, psi, radii,
 def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
     b = Internal.getNodeFromName1(teff, bladeName)
     bp = Internal.copyRef(b)
-    
+
     # extrait le maillage de reference 
     R._switchGridAndGridInit(bp)
     for c, z in enumerate(Internal.getZones(bp)):
@@ -674,7 +674,7 @@ def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
         z = C.extractVars(z, ['centers:Pressure'], keepOldNodes=False)
         P._renameVars(z, ['centers:Pressure'], ['centers:p'])
         C.convertPyTree2File(z, 'SURFACES/ExtBlade%04dpsta_%04d.tp%04d'%(nblade,c+1,it), 'bin_tp')
-        
+
     # sortie friction vector
     bp = Internal.copyRef(b)
     PE._extractShearStress(bp)

@@ -50,7 +50,7 @@ Re   = RoInf*Vtip*diam/1.85e-05
 ##CREATING GEOMETRY
 densityOfPts = 200
 a = D.circle((0.,0.,0.), diam*0.5, N=densityOfPts)
-  
+
 C._initVars(a, '{CoordinateZ}=0')
 tb           = C.newPyTree(["CYLINDER"]); tb[2][1][2] = Internal.getZones(a)
 snear        = 5.0e-5
@@ -59,7 +59,7 @@ D_IBM._setSnear(tb, snear)
 D_IBM._setDfar(tb, dfar_ext)
 D_IBM._setIBCType(tb,"noslip")
 C._addState(tb, adim='dim1', UInf=UInf, TInf=TInf, PInf=PInf, LInf=diam,EquationDimension=dimPb, GoverningEquations=ModelTmp)
-    
+
 ##CREATING OVERSET IBM MESH AROUND GEOMETRY
 dfars=[]
 for z in Internal.getZones(tb): dfars.append(dfar_nb)
@@ -108,7 +108,7 @@ cartesian=True
 if Internal.getNodeFromType(t_off, "GridConnectivity1to1_t") is not None:
     Xmpi._setInterpData(t_off, tc_off, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
 Xmpi._setInterpData(t_off, tc_off, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
-    
+
 
 # ASSEMBLY
 for a in [t_off, tc_off, t_ibm, tc_ibm]:
@@ -168,7 +168,7 @@ for b in Internal.getBases(t):
         if node is not None:
             val = float(node[1][0])
             C._initVars(b, 'centers:'+v, val)
-            
+
 R._copyGrid2GridInit(t)
 C.convertPyTree2File(t, LOCAL+'/t.cgns')
 R._copyGrid2GridInit(tc)

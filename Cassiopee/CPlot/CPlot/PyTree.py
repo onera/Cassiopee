@@ -81,7 +81,7 @@ def display(t,
                   export, exportResolution, 
                   zoneNames, renderTags, frameBuffer, offscreen,
                   posCamList, posEyeList, dirCamList)
-    
+
 # CB: temporaire. Raw data direct display.
 def displayRaw(t,
             dim=-1,
@@ -162,7 +162,7 @@ def add(t, nob, noz, zone):
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=3)[0]
-    
+
     from . import cplot
     cplot.add(array, (nzs, nzu), zoneName, renderTag)
 
@@ -176,14 +176,14 @@ def replace(t, nob, noz, zone):
     t[2][nob][2][noz] = zone
     if CPlot.__slot__ is None: display(t); return
     (nzs, nzu) = getNzs(t, zone)
-    
+
     if __LOCATION__ == 'nodes': # ajouter le toptree
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=3)[0]
     from . import cplot
     cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
-    
+
 #==============================================================================
 def display1D(t, slot=0, gridPos=(0,0), gridSize=(-1,-1),
               bgBlend=1., var1='', var2='',
@@ -353,7 +353,7 @@ def setState(dim=-1,
                    cursor, gridSize, timer, selectionStyle,
                    activateShortCuts, billBoards, billBoardSize, 
                    materials, bumpMaps, frameBuffer, offscreen)
-    
+
 def setMode(mode):
     """Set CPlot display mode.
     Usage: setMode(0)"""
@@ -383,7 +383,7 @@ def setDim(dim):
     """Set CPlot display dim 3, 2 or 1.
     Usage: setDim(2)"""
     CPlot.setDim(dim)
-    
+
 def setActivePoint(x,y,z):
     """Set the active (clicked) point in plotter.
     Usage: setActivePoint(x,y,z)"""
@@ -430,7 +430,7 @@ def hide():
 def show():
     """Show window if it has been hidden with flush."""
     CPlot.show()
-    
+
 def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=1., pos=-1):
     """Move camera.
     Usage: moveCamera(checkPoints, moveEye, N, speed, pos)."""
@@ -549,7 +549,7 @@ def getCPlotNumber(t, baseName, zoneName):
     z = Internal.getChildFromName(base, zoneName) # must be unique
     type = Internal.getZoneType(z)
     bases = Internal.getBases(t)
-   
+
     if type == 1: # zoneName is structured
         nstr = 0
         for b in bases:
@@ -599,7 +599,7 @@ def getNzs(t, zone):
         if type == 1: nzs += 1
         else: nzu += 1
     return (nzs, nzu)
-    
+
 #==============================================================================
 # Delete la selection (CPlot) dans t
 # IN: t: pyTree
@@ -717,39 +717,39 @@ def getRenderTags__(z, renderTags):
 # -- addRender2Zone
 def addRender2Zone(t, material=None, color=None, blending=None,
                    meshOverlay=None, shaderParameters=None):
-  """Add a renderInfo node to a zone node.
-  Usage: addRender2Zone(zone, renderInfo)"""
-  tp = Internal.copyRef(t)
-  _addRender2Zone(tp, material, color, blending,
-                  meshOverlay, shaderParameters)
-  return tp
+    """Add a renderInfo node to a zone node.
+    Usage: addRender2Zone(zone, renderInfo)"""
+    tp = Internal.copyRef(t)
+    _addRender2Zone(tp, material, color, blending,
+                    meshOverlay, shaderParameters)
+    return tp
 
 def _addRender2Zone(a, material=None, color=None, blending=None,
                     meshOverlay=None, shaderParameters=None):
-  """Add a renderInfo node to a zone node.
-  Usage: addRender2Zone(zone, renderInfo)"""
-  if material is None and color is None and blending is None and meshOverlay is None and shaderParameters is None: return None
-  
-  zones = Internal.getZones(a)
-  for z in zones:
+    """Add a renderInfo node to a zone node.
+    Usage: addRender2Zone(zone, renderInfo)"""
+    if material is None and color is None and blending is None and meshOverlay is None and shaderParameters is None: return None
 
-    ri = Internal.createUniqueChild(z, '.RenderInfo', 'UserDefinedData_t')
+    zones = Internal.getZones(a)
+    for z in zones:
 
-    if material is not None:
-      Internal._createUniqueChild(ri, 'Material', 'DataArray_t', value=material)
+        ri = Internal.createUniqueChild(z, '.RenderInfo', 'UserDefinedData_t')
 
-    if color is not None:
-      Internal._createUniqueChild(ri, 'Color', 'DataArray_t', value=color)
+        if material is not None:
+            Internal._createUniqueChild(ri, 'Material', 'DataArray_t', value=material)
 
-    if blending is not None:
-      Internal._createUniqueChild(ri, 'Blending', 'DataArray_t', value=blending)
+        if color is not None:
+            Internal._createUniqueChild(ri, 'Color', 'DataArray_t', value=color)
 
-    if meshOverlay is not None:
-      Internal._createUniqueChild(ri, 'MeshOverlay', 'DataArray_t', value=meshOverlay)
+        if blending is not None:
+            Internal._createUniqueChild(ri, 'Blending', 'DataArray_t', value=blending)
 
-    if shaderParameters is not None:
-      Internal._createUniqueChild(ri, 'ShaderParameters', 'DataArray_t', value=shaderParameters)
-  return None
+        if meshOverlay is not None:
+            Internal._createUniqueChild(ri, 'MeshOverlay', 'DataArray_t', value=meshOverlay)
+
+        if shaderParameters is not None:
+            Internal._createUniqueChild(ri, 'ShaderParameters', 'DataArray_t', value=shaderParameters)
+    return None
 
 # -- addRender2PyTree
 def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
@@ -760,18 +760,18 @@ def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
                      shadow=None, lightOffsetX=None, lightOffsetY=None,
                      dof=None, tone=None, gamma=None, dofPower=None,
                      sharpenPower=None, ssaoPower=None):
-  """Add a renderInfo node to a tree.
-  Usage: addRender2PyTree(t, slot, renderInfo)"""
-  a = Internal.copyRef(t)
-  _addRender2PyTree(a, slot, posCam, posEye, dirCam,
-                    mode, scalarField, niso, isoScales,
-                    isoEdges, isoLight, isoLegend,
-                    colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                    materials, bumpMaps, billBoards,
-                    shadow, lightOffsetX, lightOffsetY,
-                    dof, tone, gamma, dofPower,
-                    sharpenPower, ssaoPower)
-  return a
+    """Add a renderInfo node to a tree.
+    Usage: addRender2PyTree(t, slot, renderInfo)"""
+    a = Internal.copyRef(t)
+    _addRender2PyTree(a, slot, posCam, posEye, dirCam,
+                      mode, scalarField, niso, isoScales,
+                      isoEdges, isoLight, isoLegend,
+                      colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                      materials, bumpMaps, billBoards,
+                      shadow, lightOffsetX, lightOffsetY,
+                      dof, tone, gamma, dofPower,
+                      sharpenPower, ssaoPower)
+    return a
 
 def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
                      mode=None, scalarField=None, niso=None, isoScales=None,
@@ -781,131 +781,131 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
                      shadow=None, lightOffsetX=None, lightOffsetY=None,
                      dof=None, tone=None, gamma=None, dofPower=None,
                      sharpenPower=None, ssaoPower=None):
-  """Add a renderInfo node to a tree.
-  Usage: addRender2PyTree(t, renderInfo)"""
-  if a[3] != 'CGNSTree_t': return None
-  exist = 0
-  for i in a[2]:
-    if i[0] == '.RenderInfo': break
-    exist += 1
-  if exist < len(a[2]): ri = a[2][exist]
-  else: ri = Internal.createChild(a, '.RenderInfo', 'UserDefinedData_t')
-    
-  # find slot
-  sl = Internal.getNodeFromName1(ri, 'Slot%d'%slot)
-  if sl is None:
-    sl = Internal.createChild(ri, 'Slot%d'%slot, 'UserDefinedData_t')
+    """Add a renderInfo node to a tree.
+    Usage: addRender2PyTree(t, renderInfo)"""
+    if a[3] != 'CGNSTree_t': return None
+    exist = 0
+    for i in a[2]:
+        if i[0] == '.RenderInfo': break
+        exist += 1
+    if exist < len(a[2]): ri = a[2][exist]
+    else: ri = Internal.createChild(a, '.RenderInfo', 'UserDefinedData_t')
 
-  if posCam is not None:
-    rt = Internal.createUniqueChild(sl, 'posCam', 'DataArray_t', value=posCam)
+    # find slot
+    sl = Internal.getNodeFromName1(ri, 'Slot%d'%slot)
+    if sl is None:
+        sl = Internal.createChild(ri, 'Slot%d'%slot, 'UserDefinedData_t')
 
-  if posEye is not None:
-    rt = Internal.createUniqueChild(sl, 'posEye', 'DataArray_t', value=posEye)
+    if posCam is not None:
+        rt = Internal.createUniqueChild(sl, 'posCam', 'DataArray_t', value=posCam)
 
-  if dirCam is not None:
-    rt = Internal.createUniqueChild(sl, 'dirCam', 'DataArray_t', value=dirCam)
+    if posEye is not None:
+        rt = Internal.createUniqueChild(sl, 'posEye', 'DataArray_t', value=posEye)
 
-  if mode is not None:
-    rt = Internal.createUniqueChild(sl, 'mode', 'DataArray_t', value=mode)
+    if dirCam is not None:
+        rt = Internal.createUniqueChild(sl, 'dirCam', 'DataArray_t', value=dirCam)
 
-  if scalarField is not None:
-    rt = Internal.createUniqueChild(sl, 'scalarField', 'DataArray_t', value=scalarField)
+    if mode is not None:
+        rt = Internal.createUniqueChild(sl, 'mode', 'DataArray_t', value=mode)
 
-  if niso is not None:
-    rt = Internal.createUniqueChild(sl, 'niso', 'DataArray_t', value=niso)
+    if scalarField is not None:
+        rt = Internal.createUniqueChild(sl, 'scalarField', 'DataArray_t', value=scalarField)
 
-  if isoScales is not None: # must be a list or a list of list
-    if len(isoScales) > 0 and isinstance(isoScales[0], list): # list of list
-      for iso in isoScales:
-        n = len(iso)-1
-        v = numpy.empty(n, numpy.float64)
-        for i in range(n): v[i] = float(iso[i+1])
-        Internal.createUniqueChild(sl, 'isoScales[%s]'%str(iso[0]), 'DataArray_t', value=v)
-    else:
-      n = len(isoScales)-1
-      v = numpy.empty(n, numpy.float64)
-      for i in range(n): v[i] = float(isoScales[i+1])
-      Internal.createUniqueChild(sl, 'isoScales[%s]'%str(isoScales[0]), 'DataArray_t', value=v)
-      
-  if isoEdges is not None:
-    rt = Internal.createUniqueChild(sl, 'isoEdges', 'DataArray_t', value=isoEdges)
+    if niso is not None:
+        rt = Internal.createUniqueChild(sl, 'niso', 'DataArray_t', value=niso)
 
-  if isoLight is not None:
-    rt = Internal.createUniqueChild(sl, 'isoLight', 'DataArray_t', value=isoLight)
+    if isoScales is not None: # must be a list or a list of list
+        if len(isoScales) > 0 and isinstance(isoScales[0], list): # list of list
+            for iso in isoScales:
+                n = len(iso)-1
+                v = numpy.empty(n, numpy.float64)
+                for i in range(n): v[i] = float(iso[i+1])
+                Internal.createUniqueChild(sl, 'isoScales[%s]'%str(iso[0]), 'DataArray_t', value=v)
+        else:
+            n = len(isoScales)-1
+            v = numpy.empty(n, numpy.float64)
+            for i in range(n): v[i] = float(isoScales[i+1])
+            Internal.createUniqueChild(sl, 'isoScales[%s]'%str(isoScales[0]), 'DataArray_t', value=v)
 
-  if isoLegend is not None:
-    rt = Internal.createUniqueChild(sl, 'isoLegend', 'DataArray_t', value=isoLegend)
+    if isoEdges is not None:
+        rt = Internal.createUniqueChild(sl, 'isoEdges', 'DataArray_t', value=isoEdges)
 
-  if colormap is not None:
-    rt = Internal.createUniqueChild(sl, 'colormap', 'DataArray_t', value=colormap)
-  if colormapC1 is not None:
-    rt = Internal.createUniqueChild(sl, 'colormapC1', 'DataArray_t', value=colormapC1)
-  if colormapC2 is not None:
-    rt = Internal.createUniqueChild(sl, 'colormapC2', 'DataArray_t', value=colormapC2)
-  if colormapC3 is not None:
-    rt = Internal.createUniqueChild(sl, 'colormapC3', 'DataArray_t', value=colormapC3)
-  if colormapC is not None:
-    rt = Internal.createUniqueChild(sl, 'colormapC', 'DataArray_t', value=colormapC)
+    if isoLight is not None:
+        rt = Internal.createUniqueChild(sl, 'isoLight', 'DataArray_t', value=isoLight)
 
-  # Under .RenderInfo
-  if materials is not None:
-    rt = Internal.createUniqueChild(ri, 'materials', 'UserDefinedData_t')
-    prevValues = [Internal.getValue(i) for i in rt[2]]
-    cnt = len(prevValues)
-    li = prevValues
-    for i in materials:
-      if i not in prevValues: li.append(i)
-    for c, f in enumerate(li):
-        Internal._createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
+    if isoLegend is not None:
+        rt = Internal.createUniqueChild(sl, 'isoLegend', 'DataArray_t', value=isoLegend)
 
-  if bumpMaps is not None:
-    rt = Internal.createUniqueChild(ri, 'bumpMaps', 'UserDefinedData_t')
-    prevValues = [Internal.getValue(i) for i in rt[2]]
-    cnt = len(prevValues)
-    li = prevValues
-    for i in bumpMaps:
-      if i not in prevValues: li.append(i)
-    for c, f in enumerate(li):
-        Internal._createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
+    if colormap is not None:
+        rt = Internal.createUniqueChild(sl, 'colormap', 'DataArray_t', value=colormap)
+    if colormapC1 is not None:
+        rt = Internal.createUniqueChild(sl, 'colormapC1', 'DataArray_t', value=colormapC1)
+    if colormapC2 is not None:
+        rt = Internal.createUniqueChild(sl, 'colormapC2', 'DataArray_t', value=colormapC2)
+    if colormapC3 is not None:
+        rt = Internal.createUniqueChild(sl, 'colormapC3', 'DataArray_t', value=colormapC3)
+    if colormapC is not None:
+        rt = Internal.createUniqueChild(sl, 'colormapC', 'DataArray_t', value=colormapC)
 
-  if billBoards is not None:
-    rt = Internal.createUniqueChild(ri, 'billBoards', 'UserDefinedData_t')
-    prevValues = [Internal.getValue(i) for i in rt[2]]
-    cnt = len(prevValues)
-    li = prevValues
-    for i in billBoards:
-      if i not in prevValues: li.append(i)
-    for c, f in enumerate(li):
-        Internal._createUniqueChild(rt, 'file%d'%(c+cnt), 'DataArray_t', value=f)
+    # Under .RenderInfo
+    if materials is not None:
+        rt = Internal.createUniqueChild(ri, 'materials', 'UserDefinedData_t')
+        prevValues = [Internal.getValue(i) for i in rt[2]]
+        cnt = len(prevValues)
+        li = prevValues
+        for i in materials:
+            if i not in prevValues: li.append(i)
+        for c, f in enumerate(li):
+            Internal._createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
 
-  if shadow is not None:
-    rt = Internal.createUniqueChild(sl, 'shadow', 'UserDefinedData_t', value=int(shadow))
-    
-  if lightOffsetX is not None:
-    rt = Internal.createUniqueChild(sl, 'lightOffsetX', 'UserDefinedData_t', value=lightOffsetX)
+    if bumpMaps is not None:
+        rt = Internal.createUniqueChild(ri, 'bumpMaps', 'UserDefinedData_t')
+        prevValues = [Internal.getValue(i) for i in rt[2]]
+        cnt = len(prevValues)
+        li = prevValues
+        for i in bumpMaps:
+            if i not in prevValues: li.append(i)
+        for c, f in enumerate(li):
+            Internal._createUniqueChild(rt, 'file%d'%c, 'DataArray_t', value=f)
 
-  if lightOffsetY is not None:
-    rt = Internal.createUniqueChild(sl, 'lightOffsetY', 'UserDefinedData_t', value=lightOffsetY)
-    
-  if dof is not None: # dof activate general post-processing of frame buffer
-    rt = Internal.createUniqueChild(sl, 'dof', 'UserDefinedData_t', value=dof)
-  
-  if tone is not None:
-    rt = Internal.createUniqueChild(sl, 'tone', 'UserDefinedData_t', value=tone)
-    
-  if gamma is not None:
-    rt = Internal.createUniqueChild(sl, 'gamma', 'UserDefinedData_t', value=gamma)
+    if billBoards is not None:
+        rt = Internal.createUniqueChild(ri, 'billBoards', 'UserDefinedData_t')
+        prevValues = [Internal.getValue(i) for i in rt[2]]
+        cnt = len(prevValues)
+        li = prevValues
+        for i in billBoards:
+            if i not in prevValues: li.append(i)
+        for c, f in enumerate(li):
+            Internal._createUniqueChild(rt, 'file%d'%(c+cnt), 'DataArray_t', value=f)
 
-  if dofPower is not None:
-    rt = Internal.createUniqueChild(sl, 'dofPower', 'UserDefinedData_t', value=dofPower)
+    if shadow is not None:
+        rt = Internal.createUniqueChild(sl, 'shadow', 'UserDefinedData_t', value=int(shadow))
 
-  if sharpenPower is not None:
-    rt = Internal.createUniqueChild(sl, 'sharpenPower', 'UserDefinedData_t', value=sharpenPower)
+    if lightOffsetX is not None:
+        rt = Internal.createUniqueChild(sl, 'lightOffsetX', 'UserDefinedData_t', value=lightOffsetX)
 
-  if ssaoPower is not None:
-    rt = Internal.createUniqueChild(sl, 'ssaoPower', 'UserDefinedData_t', value=ssaoPower)
+    if lightOffsetY is not None:
+        rt = Internal.createUniqueChild(sl, 'lightOffsetY', 'UserDefinedData_t', value=lightOffsetY)
 
-  return None
+    if dof is not None: # dof activate general post-processing of frame buffer
+        rt = Internal.createUniqueChild(sl, 'dof', 'UserDefinedData_t', value=dof)
+
+    if tone is not None:
+        rt = Internal.createUniqueChild(sl, 'tone', 'UserDefinedData_t', value=tone)
+
+    if gamma is not None:
+        rt = Internal.createUniqueChild(sl, 'gamma', 'UserDefinedData_t', value=gamma)
+
+    if dofPower is not None:
+        rt = Internal.createUniqueChild(sl, 'dofPower', 'UserDefinedData_t', value=dofPower)
+
+    if sharpenPower is not None:
+        rt = Internal.createUniqueChild(sl, 'sharpenPower', 'UserDefinedData_t', value=sharpenPower)
+
+    if ssaoPower is not None:
+        rt = Internal.createUniqueChild(sl, 'ssaoPower', 'UserDefinedData_t', value=ssaoPower)
+
+    return None
 
 #==============================================================================
 # IN: nom de la colormap
@@ -949,7 +949,7 @@ def style2Colormap(style):
     elif style == 28 or style == 29: colormap = 'NiceBlue'
     elif style == 30 or style == 31: colormap = 'Greens'
     return colormap, light
-    
+
 #==============================================================================
 # loadView from slot
 #==============================================================================
@@ -1023,15 +1023,15 @@ def loadView(t, slot=0):
     pos = Internal.getNodesFromName(slot, 'isoScales*')
     scales = []
     for p in pos:
-      name = p[0]
-      name = name.replace('isoScales[', '')
-      name = name[0:-2]
-      #try: name = int(name)
-      #except: pass
-      out = [name]+p[1].tolist()
-      scales.append(out)
+        name = p[0]
+        name = name.replace('isoScales[', '')
+        name = name[0:-2]
+        #try: name = int(name)
+        #except: pass
+        out = [name]+p[1].tolist()
+        scales.append(out)
     if scales != []: CPlot.setState(isoScales=scales)
-        
+
     # RenderInfo
     pos = Internal.getNodeFromName1(renderInfo, 'materials')
     if pos is not None:
@@ -1079,7 +1079,7 @@ def loadImageFiles(t, offscreen=0):
 #==============================================================================
 def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     import KCore.Vector as Vector
-    
+
     # resolution for the square view images
     locRez = exportRez.split('x')[1]
     locRez = int(locRez)//2
@@ -1096,7 +1096,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
 
     lkwargs = kwargs.copy()
     fov = 90.
-    
+
     # right
     posCam0 = posCam
     posEye0 = Vector.sub(posCam, v2)
@@ -1210,7 +1210,7 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     posCam0 = Vector.add(posCam, dv)
     posEye0 = Vector.add(v1p, posCam)
     dirCam0 = dirCam
-    
+
     lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1227,10 +1227,10 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     point = D.point(dirCam)
     point = T.rotate(point, (0,0,0), v2p, +90)
     v2z = C.getValue(point, 'GridCoordinates', 0)
-        
+
     posEye0 = Vector.add(v1z, posCam)
     dirCam0 = v2z
-    
+
     lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1247,7 +1247,7 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     point = D.point(dirCam)
     point = T.rotate(point, (0,0,0), v2p, -90)
     v2z = C.getValue(point, 'GridCoordinates', 0)
-        
+
     posEye0 = Vector.add(v1z, posCam)
     dirCam0 = v2z
 
@@ -1273,7 +1273,7 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     posCam0 = Vector.add(posCam, dv)
     posEye0 = Vector.add(v1p, posCam)
     dirCam0 = dirCam
-    
+
     lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1296,7 +1296,7 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     posCam0 = Vector.add(posCam, dv)
     posEye0 = Vector.add(v1p, posCam)
     dirCam0 = dirCam
-    
+
     lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1319,7 +1319,7 @@ def display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift,
     posCam0 = Vector.add(posCam, dv)
     posEye0 = Vector.add(v1p, posCam)
     dirCam0 = dirCam
-    
+
     lkwargs['posCam'] = posCam0
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1343,7 +1343,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     nangles = int(nangles)
     # fov of each image
     fov = 90.
-    
+
     # locrez of each image
     locRez = exportRez.split('x')[1]
     locRez1 = 2
@@ -1361,10 +1361,10 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
 
     # start from -pi to pi and rotate left
     for i in range(nangles):
-        
+
         # simple parallel hack  
         #if i%Cmpi.size != Cmpi.rank: continue
-        
+
         theta = 180. - i*360./nangles
 
         point = D.point(v1)
@@ -1397,7 +1397,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
         point = D.point(dirCam)
         point = T.rotate(point, (0,0,0), v2p, +90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
-        
+
         posEye0 = Vector.add(v1z, posCam)
         dirCam0 = v2z
         print('top %d / %d'%(i,nangles))
@@ -1418,7 +1418,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
         point = D.point(dirCam)
         point = T.rotate(point, (0,0,0), v2p, -90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
-        
+
         posEye0 = Vector.add(v1z, posCam)
         dirCam0 = v2z
         print('bot %d / %d'%(i,nangles))
@@ -1443,13 +1443,13 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
     lkwargs = kwargs.copy()
 
     posCamList = []; posEyeList = []; dirCamList = []
-    
+
     # number of images, 1 per pixel
     nangles = exportRez.split('x')[0]
     nangles = int(nangles)
     # fov of each image
     fov = 90.
-    
+
     # locrez of each image
     locRez = exportRez.split('x')[1]
     locRez1 = 2
@@ -1470,7 +1470,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
 
     # start from -pi to pi and rotate left
     for i in range(nangles):
-                
+
         theta = 180. - i*360./nangles
 
         point = D.point(v1)
@@ -1490,7 +1490,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
         posCamList += posCam0
         posEyeList += posEye0
         dirCamList += dirCam0
-        
+
         # top image
         point = D.point(v1p)
         point = T.rotate(point, (0,0,0), v2p, +90)
@@ -1498,7 +1498,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
         point = D.point(dirCam)
         point = T.rotate(point, (0,0,0), v2p, +90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
-        
+
         posEye0 = Vector.add(v1z, posCam)
         dirCam0 = v2z
         #print('top %d / %d'%(i,nangles))
@@ -1506,7 +1506,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
         posCamList += posCam0
         posEyeList += posEye0
         dirCamList += dirCam0
-        
+
         # bottom image
         point = D.point(v1p)
         point = T.rotate(point, (0,0,0), v2p, -90)
@@ -1514,7 +1514,7 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
         point = D.point(dirCam)
         point = T.rotate(point, (0,0,0), v2p, -90)
         v2z = C.getValue(point, 'GridCoordinates', 0)
-        
+
         posEye0 = Vector.add(v1z, posCam)
         dirCam0 = v2z
         #print('bot %d / %d'%(i,nangles))
@@ -1522,11 +1522,11 @@ def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShif
         posCamList += posCam0
         posEyeList += posEye0
         dirCamList += dirCam0
-        
+
         lkwargs['posCamList'] = posCamList
         lkwargs['posEyeList'] = posEyeList
         lkwargs['dirCamList'] = dirCamList
-        
+
     display(t, **lkwargs)
 
     return None
@@ -1586,7 +1586,7 @@ def display360(t, type360=0, blurSigma=-1., **kwargs):
         # left eye
         kwargs['export'] = export2
         display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
-        
+
         # stitch
         if Cmpi.rank == 0:
             panoramaStereo(export, export1, export2, exportRez, type360=type360)
@@ -1605,7 +1605,7 @@ def display360(t, type360=0, blurSigma=-1., **kwargs):
         if Cmpi.rank == 0:
             panorama(export1, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
-        
+
         # left eye
         display360WS__(t, posCam, posEye, dirCam, offscreen, exportRez, -stereoDist/2., kwargs)
         if Cmpi.rank == 0:
@@ -1637,7 +1637,7 @@ def display360(t, type360=0, blurSigma=-1., **kwargs):
         if Cmpi.rank == 0:
             panorama(export1, exportRez, type360=type360, blueSigma=blurSigma)
         Cmpi.barrier() # wait for completion
-        
+
         # left eye
         posCam0 = Vector.sub(posCam, dv)
         display360__(t, posCam0, posEye, dirCam, offscreen, exportRez, kwargs)
@@ -1673,7 +1673,7 @@ def display360(t, type360=0, blurSigma=-1., **kwargs):
         if Cmpi.rank == 0:
             panoramaODS(export2, exportRez, type360=type360)
         Cmpi.barrier() # wait for completion
-        
+
         # stitch
         if Cmpi.rank == 0:
             panoramaStereo(export, export1, export2, exportRez, type360=type360)
@@ -1764,7 +1764,7 @@ def panoramaODS(export, exportRez, type360=0):
     else: resx = int(res[1]); resy = int(res[1])
     import Generator.PyTree as G
     import CPlot.cplot
-    
+
     nangles = exportRez.split('x')[0]
     nangles = int(nangles)
 
@@ -1779,13 +1779,13 @@ def panoramaODS(export, exportRez, type360=0):
         a1 = C.convertFile2PyTree('run/bottom_%05d.png'%i)
         a1 = C.getFields('nodes', a1, api=3)[0]
         bottom.append(a1)
-        
+
     a7 = G.cart((0,0,0), (1,1,1), (resx, resy,1))
     C._addVars(a7, ['r','g','b','a'])
     a7f = C.getFields('nodes', a7, api=3)[0]
     CPlot.cplot.panoramaODS(front, top, bottom, a7f, type360)
     C.convertPyTree2File(a7, export)
-    
+
 # blur an image
 def _blur(t, blurSigma=0.8):
     """Blur an image."""

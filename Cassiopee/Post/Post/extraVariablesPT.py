@@ -72,7 +72,7 @@ def computeQCriterion(t):
 #==============================================================================
 def computeShearStress(t, gamma=1.4, rgp=287.053,
                        Cs=110.4, mus=1.76e-5, Ts=273.15):
-    
+
     vars1 = ['centers:gradxVelocityX', 'centers:gradyVelocityX', 'centers:gradzVelocityX',
              'centers:gradxVelocityY', 'centers:gradyVelocityY', 'centers:gradzVelocityY',
              'centers:gradxVelocityZ', 'centers:gradyVelocityZ', 'centers:gradzVelocityZ']
@@ -125,7 +125,7 @@ def computeShearStress(t, gamma=1.4, rgp=287.053,
     if presmuc==-1: t2 = C.rmVars(t2, ['centers:ViscosityMolecular'])
     if presgx ==-1: t2 = C.rmVars(t2,vars1)
     return t2
-    
+
 
 #-------------------------------------------------------------------------------
 # INPUT: t: tree of skin/wall borders (velocity gradients must be defined yet)
@@ -148,7 +148,7 @@ def _computeWallShearStress(t):
         presgx = C.isNamePresent(t, 'centers:'+vars1[0])
         if presgx == 1: loc = 'centers'
         else:
-           raise ValueError('gradxVelocity is required in tree.')
+            raise ValueError('gradxVelocity is required in tree.')
         for nov in range(len(vars1)): 
             vars1[nov]='centers:'+vars1[nov]
 
@@ -186,7 +186,7 @@ def _computeWallShearStress(t):
             C._initVars(t, '{centers:ShearStressXY}={centers:ViscosityMolecular}*({centers:gradyVelocityX}+{centers:gradxVelocityY})')
 
         if presgx == -1: varsRM+=vars1
-            
+
     else:
         varsRM = ['dummy']
         presmuc = C.isNamePresent(t,'ViscosityMolecular')
@@ -303,7 +303,7 @@ def computeSkinFriction(t, centers=0, tangent=0):
                 t2 = C.initVars(t2, '{SkinFrictionX}={ShearStressXX}*{sx}+{ShearStressXY}*{sy}+{ShearStressXZ}*{sz}')
                 t2 = C.initVars(t2, '{SkinFrictionY}={ShearStressXY}*{sx}+{ShearStressYY}*{sy}+{ShearStressYZ}*{sz}')
                 t2 = C.initVars(t2, '{SkinFrictionZ}={ShearStressXZ}*{sx}+{ShearStressYZ}*{sy}+{ShearStressZZ}*{sz}')
-        
+
         if tangent == 1:
             t2 = C.initVars(t2, '{SkinFrictionTangentialX}={SkinFrictionX} - {sx}*({SkinFrictionX}*{sx}+{SkinFrictionY}*{sy}+{SkinFrictionZ}*{sz})')
             t2 = C.initVars(t2, '{SkinFrictionTangentialY}={SkinFrictionY} - {sy}*({SkinFrictionX}*{sx}+{SkinFrictionY}*{sy}+{SkinFrictionZ}*{sz})')

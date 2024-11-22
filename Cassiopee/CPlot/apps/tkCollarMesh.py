@@ -50,7 +50,7 @@ def setConstraintContour2():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[9].set(selected)
-   
+
 #==============================================================================
 def setSurface1():
     if CTK.t == []: return
@@ -69,7 +69,7 @@ def setSurface1():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[0].set(selected)
-    
+
 #==============================================================================
 def setSurface2():
     if CTK.t == []: return
@@ -107,7 +107,7 @@ def unionCollarMesh():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if (z[0] == sname[1]): surface1.append(z)
-                
+
     # - surfaces2 - 
     name = VARS[1].get()
     names = name.split(';')
@@ -146,7 +146,7 @@ def unionCollarMesh():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if z[0] == sname[1]: constraints2.append(z)
-                
+
     # - Hauteur de chaque maille en j -
     dhj = CTK.varsFromWidget(VARS[2].get(), type=1); dhj = dhj[0]
     Nj = CTK.varsFromWidget(VARS[3].get(), type=2); Nj = Nj[0]
@@ -186,7 +186,7 @@ def unionCollarMesh():
                              type='union', constraints1=constraints1, 
                              constraints2=constraints2)
         zlist += zones
-        
+
     CTK.saveTree()
     CTK.t = C.addBase2PyTree(CTK.t, 'COLLAR')
     bases = Internal.getNodesFromName1(CTK.t, 'COLLAR')
@@ -197,7 +197,7 @@ def unionCollarMesh():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def differenceCollarMesh():
     if CTK.t == []: return
@@ -216,7 +216,7 @@ def differenceCollarMesh():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if z[0] == sname[1]: surface1.append(z)
-                
+
     # surfaces2
     name = VARS[1].get()
     names = name.split(';')
@@ -254,7 +254,7 @@ def differenceCollarMesh():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if z[0] == sname[1]: constraints2.append(z)
-    
+
     # - Hauteur de chaque maille en j -
     dhj = CTK.varsFromWidget(VARS[2].get(), type=1); dhj = dhj[0]
     Nj = CTK.varsFromWidget(VARS[3].get(), type=2); Nj = Nj[0]
@@ -304,7 +304,7 @@ def differenceCollarMesh():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -322,7 +322,7 @@ def createApp(win):
     Frame.columnconfigure(2, weight=1)
     Frame.columnconfigure(3, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -358,7 +358,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -9- Constraints for surface2
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-    
+
     # - Surface1 -
     B = TTK.Button(Frame, text="Surf1", command=setSurface1,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
@@ -366,7 +366,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Set collar surfaces 1.')
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White')
     B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
-   
+
     # - Surface2 -
     B = TTK.Button(Frame, text="Surf2", command=setSurface2,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
@@ -374,7 +374,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Set collar surfaces 2.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White')
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
-    
+
     # - Constraints1 -
     B = TTK.Button(Frame, text="Constr.1", command=setConstraintContour1,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
@@ -382,7 +382,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Set constraint contours for Surf1.')
     B = TTK.Entry(Frame, textvariable=VARS[8], background='White')
     B.grid(row=2, column=0,  columnspan=2, sticky=TK.EW)
-    
+
     # - Constraints2 -
     B = TTK.Button(Frame, text="Constr.2", command=setConstraintContour2,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
@@ -390,7 +390,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Set constraint contours for Surf2.')
     B = TTK.Entry(Frame, textvariable=VARS[9], background='White')
     B.grid(row=3, column=0,  columnspan=2, sticky=TK.EW)
-    
+
     # - Walk in j -
     B = TTK.Label(Frame, text="j-dir", width=2)
     B.grid(row=4, column=0, sticky=TK.EW)
@@ -405,7 +405,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[4], background='White', width=5)
     B.grid(row=4, column=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of j-smoothing iterations.')
-    
+
     # - Walk in k -
     B = TTK.Label(Frame, text="k-dir", width=2)
     B.grid(row=5, column=0, sticky=TK.EW)
@@ -420,7 +420,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[7], background='White', width=5)
     B.grid(row=5, column=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of k-smoothing iterations.')
-    
+
     # - Union -
     B = TTK.Button(Frame, text="Union", command=unionCollarMesh)
     B.grid(row=6, column=0, columnspan=2,sticky=TK.EW)
@@ -461,7 +461,7 @@ def saveApp():
     CTK.PREFS['tkCollarMeshNk'] = VARS[6].get()
     CTK.PREFS['tkCollarMeshSk'] = VARS[7].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[2].set('1.e-1')
@@ -481,7 +481,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

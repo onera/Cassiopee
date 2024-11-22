@@ -48,7 +48,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
             for z in Internal.getZones(t): bboxDict[z[0]] = G.bbox(z) 
             return bboxDict
         #print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
- 
+
 else: # try import (may fail - core or hang)
     try: from .Mpi4py import *
     except:
@@ -232,7 +232,7 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fi
             s = f.readlines()
             f.close()
         except: s = []
-        
+
         tot = 0.
         found = False
         for ts in s:
@@ -290,7 +290,7 @@ def createBBoxTree(t, method='AABB', weighting=0, tol=0.):
                 # Clean up (zoneSubRegion)
                 Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
                 zb.append(zbb)
-        
+
     # Echanges des zones locales de bounding box
     # (allgather serialise automatiquement les donnees)
     zones = allgather(zb)

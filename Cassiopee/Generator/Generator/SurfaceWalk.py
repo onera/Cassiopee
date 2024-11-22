@@ -64,7 +64,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
     tolsurf = (0.1*toldist)**2
     vn = ['sx','sy','sz'] # normales a la surface
     veta = ['etax','etay','etaz'] # tangente a la surface
-    
+
     if len(distrib) != 5: distrib = C.convertBAR2Struct(distrib)
     c0 = G.close(c, tol=toldist)
     if len(c) == 4: c0 = C.convertBAR2Struct(c0) 
@@ -94,7 +94,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
             cons = constraints[noc]
             if len(cons) == 4: cons = C.convertBAR2Struct(cons)
             nodesc = C.identifyNodes(hook, cons, tol=toldist)
-            
+
             indc = -1
             if nodesc[0] != -1: indc = nodesc[0]
             elif nodesc[-1] != -1: indc = nodesc[-1]; cons = T.reorder(cons,(-1,2,3))
@@ -106,7 +106,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
                 if ds[2] > 1: constraints2.append(G.map(cons, ds))
                 else: constraints2.append(cons)
                 constrainedPts.append(int(indc-1))# demarre a 1
-        
+
         # Free hook
         C.freeHook(hook)
 
@@ -181,9 +181,9 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
             coords[1][2,nim:nip2] = c2[1][2,0:imax]
             j1 += 1
             jmaxout = j1
-   
+
     C.freeHook(hook)
-   
+
     # Retourne les coordonnees de la surface creee
     j1prev = 1
     volmin = -1.e6

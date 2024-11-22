@@ -103,8 +103,8 @@ class World:
                 elif l[i] == 'Z' or l[i] == 'z': # rocket spring
                     self.map[i,j] = 5
             j += 1
-       
-    
+
+
     # Create objects from map
     def build(self):
         # Create square

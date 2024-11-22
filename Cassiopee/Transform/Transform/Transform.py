@@ -59,7 +59,7 @@ def mergeCartByRefinementLevel(A, sizeMax):
             res = mergeCart(res, sizeMax)
             out += res
         if count == nzones: ok = 1
-        
+
         dhmin = 2.*dhmin
         level += 1
     return out
@@ -191,7 +191,7 @@ def collapse(a):
         return b
     else:
         return transform.collapse(a)
-    
+
 def translate(a, transvect):
     """Translate a grid.
     Usage: translate(a, (v1,v2,v3))"""
@@ -390,7 +390,7 @@ def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
                                                fixedConstraint, projConstraint,
                                                delta, point, radius))
             return coords
-        
+
     elif len(a) == 5: # array structure    
         b = Converter.convertArray2Hexa(a); b = G.close(b)
         c = transform.smooth(b, eps, niter, type, fixedConstraint, 
@@ -463,7 +463,7 @@ def projectOrthoSmooth(surfaces, arrays, niter=1):
         a[i][0] = a[i][0].replace('CoordinateX','nx')
         a[i][0] = a[i][0].replace('CoordinateY','ny')
         a[i][0] = a[i][0].replace('CoordinateZ','nz')
-   
+
     # Lissage du vecteur
     n = a; vect = ['nx','ny','nz']
     for i in range(niter):
@@ -478,7 +478,7 @@ def projectOrthoSmooth(surfaces, arrays, niter=1):
 
     for i in range(len(surfs)):
         surfs[i] = Converter.addVars([surfs[i], n[i]])
-    
+
     # Projection
     a = projectAllDirs(surfs, arrays, vect)
     a = Converter.rmVars(a, vect)
@@ -526,7 +526,7 @@ def deform(a, vector=['dx','dy','dz']):
         for i in a: out+=[transform.deform(i, vector)]
         return out
     else: return transform.deform(a, vector)
-    
+
 def deformNormals(array, alpha, niter=1):
     """Deform a a surface of alpha times the surface normals.
     Usage: deformNormals(array, alpha, niter)"""
@@ -549,7 +549,7 @@ def deformNormals(array, alpha, niter=1):
             b.append(aloc)
             noi += 1
         return b
-    
+
     elif not isinstance(array[0], list) and not isinstance(alpha[0], list):
         if array[1].shape[1] != alpha[1].shape[1]: raise ValueError("deformNormals: array and alpha must be of same length.")
         npts = array[1].shape[1]
@@ -562,7 +562,7 @@ def deformNormals(array, alpha, niter=1):
             aloc = deform(aloc,['sx','sy','sz'])
             aloc = Converter.rmVars(aloc,['sx','sy','sz'])            
         return aloc
-    
+
     else: raise ValueError("deformNormals: array and alpha must be both an array or a list of arrays.")
 
 def deformPoint(a, xyz, dxdydz, depth, width):
@@ -605,7 +605,7 @@ def deformMeshStruct1__(arrayi, surfDelta, beta):
     ni = array[2]; nj = array[3]; nk = array[4]
     if ((ni == 1) and (nj == 1)) or ((ni == 1) and (nk == 1)) or ((nj == 1) and (nk == 1)):
         raise TypeError("deformMesh: not for 1D-arrays.")
-        
+
     borders = []
     dim = 3
     if ni == 1 or nj == 1 or nk == 1: dim = 2
@@ -641,7 +641,7 @@ def deformMeshStruct2__(arrayi, surfDelta, beta):
     ni = array[2]; nj = array[3]; nk = array[4]
     if (ni==1 and nj==1) or (ni==1 and nk==1) or (nj==1 and nk==1):
         raise TypeError("deformMesh: not for 1D-arrays.")
-    
+
     res = transform.deformMeshStruct(array, surfDelta, beta)
     res = Converter.addVars([array,res])
 
@@ -689,7 +689,7 @@ def join(array, array2=[], arrayc=[], arrayc2=[], tol=1.e-10):
     else:
         if array2 == []: return joingb__(array, arrayc, tol)
         else: return joinsb__(array, array2, arrayc, arrayc2, tol)
-            
+
 def joing__(arrays, tol):
     if len(arrays) > 1: a = arrays[0]
     elif len(arrays) == 1: return arrays[0]
@@ -735,7 +735,7 @@ def joingb__(arrays, arraysc, tol):
 def joinsb__(array1, array2, arrayc1, arrayc2, tol):
     if len(array1) == 5 and len(array2) == 5:
         return transform.joinBoth( array1, array2, arrayc1, arrayc2, tol)
-    
+
     elif len(array1) == 4 and len(array2) == 5:
         if array1[3] == "NGON":
             a = Converter.convertArray2NGon(array2)
@@ -762,7 +762,7 @@ def joinsb__(array1, array2, arrayc1, arrayc2, tol):
             ac = Converter.convertArray2NGon(arrayc2)
             cn = a[2]; ac = [ac[0], ac[1], cn, ac[3]+'*']# la conversion d un array structure en centres en non structure ne donne pas un array de type elt*
             return transform.joinBoth(array1, a, arrayc1, ac, tol)
-      
+
         elif array1[3] != "NGON" and array2[3] == "NGON":
             a = Converter.convertArray2NGon(array1)
             ac = Converter.convertArray2NGon(arrayc1)
@@ -861,7 +861,7 @@ def split(a, dir, index):
         a1 = subzone(a, (1,1,1), (ni,nj,index))
         a2 = subzone(a, (1,1,index), (ni,nj,nk))
     return a1, a2
-    
+
 def reorder(a, order):
     """Reorder the numerotation of mesh.
     Usage: reorder(a, (2,1,-3))"""
@@ -881,7 +881,7 @@ def reorder(a, order):
             b = transform.reorder(b, (-1,2,3))
             return Converter.convertArray2Hexa(b)
         else: return transform.reorder(a, order)
-        
+
 
 def reorderAll(arrays, dir=1):
     """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
@@ -892,10 +892,10 @@ def reorderAll(arrays, dir=1):
     if isinstance(arrays[0], list): arrs = arrays
     else: arrs.append(arrays)
     arrays = arrs
-    
+
     for i in arrays:
-      if btype == 0: btype = len(i)
-      elif btype != len(i): raise TypeError("reorderAll: mixed blocks (structured or unstructured) is not supported.")
+        if btype == 0: btype = len(i)
+        elif btype != len(i): raise TypeError("reorderAll: mixed blocks (structured or unstructured) is not supported.")
 
     if btype == 5: return transform.reorderAll(arrays, dir)
     elif btype == 4: return transform.reorderAllUnstr(arrays, dir)
@@ -982,7 +982,7 @@ def makeDirect(a):
         return b
     else:
         return makeDirect__(a)     
-  
+
 def makeDirect__(a):
     import KCore
     import KCore.Vector as Vector
@@ -1023,7 +1023,7 @@ def addkplane(a, N=1):
         return b
     else:
         return addkplane__(a, N)
- 
+
 # IN: a: surface array
 def addkplane__(a, N):
     if len(a) == 5: # structure
@@ -1190,7 +1190,7 @@ def splitSizeUp__(a, N, multigrid, dirs):
             l2 = splitSizeUp__(a2, N, multigrid, dirs)
             return l1+l2
         else: return [a]
-    
+
 # Split size decentre avec ressources
 def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
     # Cree le pool
@@ -1201,7 +1201,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
     if N == 0: N = Nl*1. / R
     #print('average cells ', N)
     from operator import itemgetter
-    
+
     # Init le vecteur des ressources
     Rs = [0]*R
     mins = minPtsPerDir-1 # nbre de cellules mini des blocs
@@ -1354,7 +1354,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 if j == N-1: b2 = ni
                 out.append((b1,b2,1,nj,1,nk))
                 b1 = b2
-  
+
         elif dirs[0] == 2: 
             ns = kround(njg*1./N); ns = int(ns)
             r = (nj-N*ns*plev)//plev
@@ -1377,7 +1377,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 if j == N-1: b2 = nk
                 out.append((1,ni,1,nj,b1,b2))
                 b1 = b2
-                
+
     elif ldir == 2:
         if dirs[0] == 1: ns1 = ni; bs1 = ni; ng1 = (ni-1)//plev+1 
         elif dirs[0] == 2: ns1 = nj; bs1 = nj; ng1 = (nj-1)//plev+1 
@@ -1435,7 +1435,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 out.append( (i1,i2,j1,j2,k1,k2) )
                 c1 = c2
             b1 = b2
-            
+
     else: # ldir == 3
         ns1 = ni; bs1 = ni; ng1 = (ni-1)//plev+1
         ns2 = nj; bs2 = nj; ng2 = (nj-1)//plev+1
@@ -1624,7 +1624,7 @@ def splitCurvatureRadius__(array, Rs):
             return out
         except: return out
     else: return out
-    
+
 def splitCurvatureRadius(a, Rs=100.):
     """Return the indices of the array where the curvature radius is low.
     Usage: splitCurvatureRadius(a, Rs)"""
@@ -1634,7 +1634,7 @@ def splitCurvatureRadius(a, Rs=100.):
             out += splitCurvatureRadius__(i, Rs)
         return out
     else: return splitCurvatureRadius__(a, Rs)
-    
+
 def splitConnexity(a):
     """Split array into connex zones.
     Usage: splitConnexity(a)"""
@@ -1670,14 +1670,14 @@ def dual(array, extraPoints=1):
         a = G.close(a)
     except: # NODE forcement
         return array
-    
+
     if isinstance(array[0], list):
         out = []
         for i in array:
             out.append(transform.dualNGon(i, extraPoints))
         return out
     else: return transform.dualNGon(a, extraPoints)
-    
+
 def splitSharpEdges(array, alphaRef=30.):
     """Split array into smooth zones (angles between elements are less than
     alphaRef).
@@ -1746,7 +1746,7 @@ def splitMultiplePts2D__(A):
                 del A[noz]; A+= [z1,z2]
                 restart = 1
                 return A, restart
-             
+
         # fenetre i = ni
         for j in range(1,nj-1): 
             if taga[1][0,ni-1+j*ni] > 1.:
@@ -1756,7 +1756,7 @@ def splitMultiplePts2D__(A):
                 del A[noz]; A+= [z1,z2]
                 restart = 1
                 return A, restart
-                
+
         # fenetre j = 1
         for i in range(1,ni-1): 
             if taga[1][0,i] > 1.:
@@ -1766,7 +1766,7 @@ def splitMultiplePts2D__(A):
                 del A[noz]; A+= [z1,z2]
                 restart = 1
                 return A, restart
-            
+
         # fenetre j = nj
         for i in range(1,ni-1): 
             if taga[1][0,i+(nj-1)*ni] > 1.:
@@ -1812,7 +1812,7 @@ def splitMultiplePts3D__(A):
                             z2 = subzone(z,(1,jsplit,1),(ni,nj,nk))
                             del A[noz]; A+=[z1,z2]; restart = 1
                             return A,restart
-     
+
         # fenetre j = 1
         for j in [1,nj]:
             for k in range(1,nk1):
@@ -1886,7 +1886,7 @@ def splitMultiplePts__(A,dim=3):
         for ind in range(A[noz1][1].shape[1]):
             if res[ind] != -1: 
                 indg = res[ind]-1; tagG[indg]+=1
-                    
+
     for noz1 in range(nzones):
         tag1 = tags[noz1]
         res = Converter.identifyNodes(hook,A[noz1])
@@ -1935,12 +1935,12 @@ def splitTBranches(array, tol=1.e-13):
         res = transform.splitTBranches(array, tol)
         if not isinstance(res[0], list): res = [res] 
         return res
-    
+
 def splitTRI(array, idxList):
     """Split a TRI into several TRIs delimited by the input poly line defined by the lists of indices idxList.
     Usage: splitTRI(array, idxList)"""
     return transform.splitTRI(array, idxList)
-    
+
 def splitManifold(array):
     """Split an unstructured mesh (only TRI or BAR currently) into several manifold pieces.
     Usage: splitManifold(array)"""

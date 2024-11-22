@@ -29,7 +29,7 @@ def updateVarNameList(event=None):
     if len(vars) == 0: return
     for i in vars[0]:
         m.add_command(label=i, command=lambda v=VARS[0],l=i:v.set(l))
-        
+
 #==============================================================================
 def updateVarNameList2(event=None):
     if CTK.t == []: return
@@ -57,7 +57,7 @@ def drawIsoLines():
     try: nlevels = int(nlevels)
     except: levels = 30
     if nlevels < 2: nlevels = 2
-    
+
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
 
@@ -75,7 +75,7 @@ def drawIsoLines():
             nob = CTK.Nb[nz]+1
             noz = CTK.Nz[nz]
             z.append(CTK.t[2][nob][2][noz])
-    
+
     isos = []
     nlevels += 1 # pour etre coeherent avec les niveaux d'iso solides
     fail = False; errors = []
@@ -87,7 +87,7 @@ def drawIsoLines():
                 isos.append(i)
             except Exception as e:
                 fail = True; errors += [0,str(e)]
-                
+
     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
     bases = Internal.getNodesFromName1(CTK.t, 'CONTOURS')
     nob = C.getNobOfBase(bases[0], CTK.t)
@@ -103,7 +103,7 @@ def drawIsoLines():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def extractIsoLine():
     if CTK.t == []: return
@@ -116,10 +116,10 @@ def extractIsoLine():
 
     try: value = float(value)
     except: value = 1.
-    
+
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
-        
+
     if nzs == []:
         z = Internal.getZones(CTK.t)
     else:
@@ -128,7 +128,7 @@ def extractIsoLine():
             nob = CTK.Nb[nz]+1
             noz = CTK.Nz[nz]
             z.append(CTK.t[2][nob][2][noz])
-        
+
     isos = []
     fail = False; errors = []
     for zone in z:
@@ -137,7 +137,7 @@ def extractIsoLine():
             isos.append(i)
         except Exception as e:
             fail = True; errors += [0,str(e)]
-            
+
     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
     bases = Internal.getNodesFromName1(CTK.t, 'CONTOURS')
     nob = C.getNobOfBase(bases[0], CTK.t)
@@ -151,7 +151,7 @@ def extractIsoLine():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -170,7 +170,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -214,19 +214,19 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Extracted field.')
         WIDGETS['field'] = B
     else:
-         B = ttk.Combobox(F, textvariable=VARS[0], 
-                          values=[], state='readonly')
-         B.grid(sticky=TK.EW)
-         F.bind('<Enter>', updateVarNameList2)
-         F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
-         BB = CTK.infoBulle(parent=B, text='Extracted field.')
-         WIDGETS['field'] = B
+        B = ttk.Combobox(F, textvariable=VARS[0], 
+                         values=[], state='readonly')
+        B.grid(sticky=TK.EW)
+        F.bind('<Enter>', updateVarNameList2)
+        F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Extracted field.')
+        WIDGETS['field'] = B
 
     if CTK.t != []:
         vars = C.getVarNames(CTK.t)
         if len(vars) > 0:
             if (len(vars[0])>0): VARS[0].set(vars[0][0])
-         
+
     # - nlevels -
     #B = TK.Label(Frame, text="Nlevels:")
     #B.grid(row=1, column=0, sticky=TK.EW)
@@ -255,7 +255,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Extract isoline", command=extractIsoLine)
     B.grid(row=4, column=0, columnspan=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract one isoline to CONTOURS.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -300,7 +300,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

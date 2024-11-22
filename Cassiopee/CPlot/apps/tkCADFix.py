@@ -10,7 +10,7 @@ import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
-    
+
 #==============================================================================
 def readCAD(event=None):
     import OCC.PyTree as OCC
@@ -69,10 +69,10 @@ def sewCAD(event=None):
             no = Internal.getNodeFromName1(CAD, 'no')
             no = Internal.getValue(no)
             faces.append(no)
-    
+
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['sewingButton'])
-    
+
     OCC._sewing(hook, faces, tol)
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
@@ -81,10 +81,10 @@ def sewCAD(event=None):
     faces[2] = []
     OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
-    
+
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['sewingButton'])
-    
+
     NL = OCC.getNbLonelyEdges(CTK.t)
     VARS[4].set('Lonely edges: %d'%NL)
 
@@ -117,10 +117,10 @@ def filletCAD(event=None):
     if edges == []: 
         CTK.TXT.insert('START', 'No valid edges in selection.\n')
         return
-    
+
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['filletButton'])
-    
+
     OCC._addFillet(hook, edges, radius)
 
     # remesh CAD and redisplay
@@ -161,10 +161,10 @@ def removeFaces(event=None):
     if faces == []: 
         CTK.TXT.insert('START', 'No valid faces in selection.\n')
         return
-    
+
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['removeFacesButton'])
-    
+
     # old style (full remesh)
     #edgeMap = []; faceMap = []
     #OCC._removeFaces(hook, faces, edgeMap, faceMap)
@@ -181,7 +181,7 @@ def removeFaces(event=None):
     new2OldEdgeMap = []; new2OldFaceMap = []
     OCC._removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
     OCC._updateTree(CTK.t, nbEdges, nbFaces, new2OldEdgeMap, new2OldFaceMap)
-    
+
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['removeFacesButton'])
     NL = OCC.getNbLonelyEdges(CTK.t)
@@ -190,7 +190,7 @@ def removeFaces(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
     CTK.TXT.insert('START', 'Faces removed from CAD.\n')
 
 #==============================================================================
@@ -213,7 +213,7 @@ def fillHole(event=None):
     if edges == []:
         CTK.TXT.insert('START', 'No valid edges in selection.\n')
         return
-    
+
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['fillHoleButton'])
 
@@ -236,7 +236,7 @@ def fillHole(event=None):
     OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['fillHoleButton'])
-    
+
     NL = OCC.getNbLonelyEdges(CTK.t)
     VARS[4].set('Lonely edges: %d'%NL)
 
@@ -293,7 +293,7 @@ def trimFaces(event=None):
     if faces1 == []: 
         CTK.TXT.insert('START', 'No valid faces in selection.\n')
         return
-    
+
     faces2 = []
     st = VARS[5].get()
     st = st.split(' ')
@@ -308,7 +308,7 @@ def trimFaces(event=None):
 
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['trimFacesButton'])
-    
+
     OCC.occ.trimFaces(hook, faces1, faces2)
 
     # remesh CAD and redisplay
@@ -327,7 +327,7 @@ def trimFaces(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
     CTK.TXT.insert('START', 'Faces trimmed in CAD.\n')
 
 #==============================================================================
@@ -351,7 +351,7 @@ def checkWatertight(event=None):
         CPlot.delete(zones)
         gnob = C.getNobOfBase(p, CTK.t)
         del CTK.t[2][gnob]
-    
+
     CTK.t = C.addBase2PyTree(CTK.t, 'LEAKS', 1)
     p = Internal.getNodesFromName1(CTK.t, 'LEAKS')
     gnob = C.getNobOfBase(p, CTK.t)
@@ -360,7 +360,7 @@ def checkWatertight(event=None):
     f = T.join(f, tol=1.e-6)
     ef = T.splitConnexity(f)
     VARS[6].set('Components: %d'%(len(ef)))
-    
+
     isWatertight = False
     try:
         ext = P.exteriorFaces(f)
@@ -378,7 +378,7 @@ def checkWatertight(event=None):
 
     if  isWatertight: TTK.setButtonGreen(WIDGETS['checkWatertight'])
     else: TTK.setButtonRed(WIDGETS['checkWatertight'])    
-    
+
     if isWatertight: CTK.TXT.insert('START', 'CAD is watertight.\n')
     else: CTK.TXT.insert('START', 'CAD is not watertight.\n')
 
@@ -398,7 +398,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -412,7 +412,7 @@ def createApp(win):
         CAD = Internal.getNodeFromName1(CTK.t, 'CAD')
         if CAD is not None: NL = OCC.getNbLonelyEdges(CTK.t)
     else: fileName = ''; fileFmt = 'fmt_step'; NL = 0
-    
+
     # -0- CAD file name -
     V = TK.StringVar(win); V.set(fileName); VARS.append(V)
     # -1- CAD file format -
@@ -427,7 +427,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -6- Number of components
     V = TK.StringVar(win); V.set('Components: 0'); VARS.append(V)
- 
+
     # CAD file name
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -513,7 +513,7 @@ def showApp():
     try: CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkCADFix')
     except: pass
     CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================

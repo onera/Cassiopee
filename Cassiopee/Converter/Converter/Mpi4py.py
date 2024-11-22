@@ -42,7 +42,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
     """Write zones in parallel."""
     seq(Distributed.writeZones, t, fileName, format, proc, zoneNames, links)
     return None
-        
+
 #==============================================================================
 # Change de communicateur
 #==============================================================================
@@ -125,7 +125,7 @@ def Allreduce(dataIn, dataOut, op=MPI.SUM):
 def sendRecv(datas, graph):
     if graph == {}: return {}
     reqs = []
-    
+
     if rank in graph:
         g = graph[rank] # graph du proc courant
         for oppNode in g:
@@ -154,7 +154,7 @@ def sendRecv(datas, graph):
 def sendRecvC(datas, graph):
     if graph == {}: return {}
     reqs = []
-    
+
     if rank in graph:
         g = graph[rank] # graph du proc courant
         for oppNode in g:
@@ -193,7 +193,7 @@ def createBBTree(t):
         zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
         minBBoxes.append([numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)])
         maxBBoxes.append([numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)])
-    
+
     return converter.createBBTree(minBBoxes, maxBBoxes)
 
 #==============================================================================
@@ -226,7 +226,7 @@ def intersect2(t, BBTree):
         inBB[6*c+5] = zCoords[0,0,1]
 
     return converter.intersect2(inBB, BBTree)
-    
+
 #==============================================================================
 # Recherche des zones fixes non intersectees et ajout dans le dict
 # IN : liste des zones fixes, dict des intersects
@@ -338,16 +338,16 @@ def bcastZone(z, root=0, coord=True, variables=[]):
             sx = None; sy = None; sz = None
 
         sx, sy, sz = KCOMM.bcast((sx, sy, sz), root)
-            
+
         if rank != root:
             px = numpy.empty(sx, dtype=numpy.float64, order='F')
             py = numpy.empty(sy, dtype=numpy.float64, order='F')
             pz = numpy.empty(sz, dtype=numpy.float64, order='F')
-        
+
         KCOMM.Bcast([px,MPI.DOUBLE], root)
         KCOMM.Bcast([py,MPI.DOUBLE], root)
         KCOMM.Bcast([pz,MPI.DOUBLE], root)
-        
+
         if rank != root:
             # Reconstruction de la zone
             Internal._createUniqueChild(zp, Internal.__GridCoordinates__, 'GridCoordinates_t')
@@ -367,12 +367,12 @@ def bcastZone(z, root=0, coord=True, variables=[]):
             sv = None
 
         sv = KCOMM.bcast((sv), root)
-            
+
         if rank != root:
             pv = numpy.empty(sv, dtype=numpy.float64, order='F')
-        
+
         KCOMM.Bcast([pv,MPI.DOUBLE], root)
-        
+
         if rank != root:
             # Reconstruction de la zone
             flowSol = Internal.__FlowSolutionNodes__ if loc == 'nodes' else Internal.__FlowSolutionCenters__
@@ -421,7 +421,7 @@ def allgatherZones(zones, coord=True, variables=[]):
             #if rank == i: zp = zones[cz]
             #else: zp = None
             #zp = bcastZone(zp, root=i, coord=coord, variables=variables)
-            
+
             allZones.append(zp)
     return allZones
 
@@ -484,7 +484,7 @@ def _merge__(t):
             if ret is not None:
                 tp = Internal.merge([tp, ret])
         return tp
-    
+
 #==============================================================================
 # Ecriture sequentielle
 # Avec recuperation de toutes les zones
@@ -500,7 +500,7 @@ def convertPyTree2File(t, fileName, format=None, links=[],
     tp = C.deleteEmptyZones(tp)
     Internal._adaptZoneNamesForSlash(tp)
     if merge: tp = _merge__(tp)
-        
+
     nzones = len(Internal.getZones(tp))
     if rank == 0:
         if nzones > 0:
@@ -517,7 +517,7 @@ def convertPyTree2File(t, fileName, format=None, links=[],
                 C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1
         if rank < size-1: KCOMM.send(go, dest=rank+1)
     barrier()
-    
+
 #==============================================================================
 # Execute sequentiellement F sur tous les procs
 #==============================================================================
@@ -530,7 +530,7 @@ def seq(F, *args):
         F(*args)
         if rank < size-1: KCOMM.send(rank+1, dest=rank+1)
     barrier()
-        
+
 #==============================================================================
 # Print uniquement du proc 0
 #==============================================================================
@@ -600,10 +600,10 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
 # Calcule l'intersection de deux bbox
 #=============================================================================
 def GetIntersectionBbox(bbox1, bbox2):
-   Ibbox = numpy.zeros(6, dtype=numpy.float64)
-   Ibbox[0:3] = [max(bbox1[i],bbox2[i]) for i in range(3)]
-   Ibbox[3:6] = [min(bbox1[i],bbox2[i]) for i in range(3,6)]
-   return Ibbox
+    Ibbox = numpy.zeros(6, dtype=numpy.float64)
+    Ibbox[0:3] = [max(bbox1[i],bbox2[i]) for i in range(3)]
+    Ibbox[3:6] = [min(bbox1[i],bbox2[i]) for i in range(3,6)]
+    return Ibbox
 
 #==============================================================================
 # Recupere les zones specifiees dans le graph, les ajoute a l'arbre local t
@@ -677,7 +677,7 @@ def _addXZones(t, graph, variables=None, noCoordinates=False,
                     import Compressor.PyTree as Compressor
                     Compressor._uncompressCartesian(z)
                 Internal.createChild(z, 'XZone', 'UserDefinedData_t') 
-                
+
                 ret = z[0].split('/',1)
                 if len(ret) == 2:
                     baseName = ret[0]; zoneName = ret[1]
@@ -698,7 +698,7 @@ def _addXZones(t, graph, variables=None, noCoordinates=False,
                     else: # append to first base
                         bases = Internal.getBases(t)
                         bases[0][2].append(z)
-                 
+
     MPI.Request.Waitall(reqs)
     return t
 
@@ -830,7 +830,7 @@ def getMatchSubZones__(z, procDict, oppNode, depth):
                 gcXZone = Internal.createNode('ZoneGridConnectivity_t', 'ZoneGridConnectivity_t')
                 Internal._addChild(gcXZone, n)
                 Internal._addChild(oppZone, gcXZone)
-                
+
                 Internal.createChild(oppZone, 'XZone', 'UserDefinedData_t')
                 Internal._setLoc2Glob(oppZone, z[0], win=[imin,imax,jmin,jmax,kmin,kmax], sourceDim=[dim[1],dim[2],dim[3]])
                 out.append(oppZone)
@@ -851,7 +851,7 @@ def _updateGridConnectivity(a):
             for n in nodes:
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
-                
+
                 # suffix
                 prange = Internal.getNodeFromName1(n, 'PointRangeDonor')
                 prange = Internal.getValue(prange)
@@ -865,15 +865,15 @@ def _updateGridConnectivity(a):
                 elif jmin == jmax: suffix = 'jmax'+str(imin)+str(kmin)
                 elif kmin == kmax and kmin == 1: suffix = 'kmin'+str(imin)+str(jmin)
                 elif kmin == kmax: suffix = 'kmax'+str(imin)+str(jmin)
-                
+
                 zopp = Internal.getNodeFromName(a, oppName+'_MX_'+z[0]+'-'+suffix)
 
                 if zopp is not None:
-                    
+
                     Internal.setValue(n, zopp[0]) # renommage
-                
+
                     src, loc2glob = Internal.getLoc2Glob(zopp)
-                    
+
                     # Update current zone
                     prd    = Internal.getNodeFromName1(n, 'PointRangeDonor')
                     p      = Internal.range2Window(prd[1])
@@ -884,10 +884,10 @@ def _updateGridConnectivity(a):
                     # Update XZone 
                     gcopp  = Internal.getNodesFromType1(zopp, 'ZoneGridConnectivity_t')
                     match  = Internal.getNodesFromType1(gcopp, 'GridConnectivity1to1_t')[0] # 1 seul match dans les XZone
-                
+
                     pr     = Internal.getNodeFromName1(match, 'PointRange')
                     Internal.setValue(pr, p) 
-                                  
+
     return None
 
 def _revertMXGridConnectivity(a):
@@ -905,14 +905,14 @@ def _revertMXGridConnectivity(a):
             for n in nodes:
                 # Recherche le nom de la bandelette en raccord 
                 oppName = Internal.getValue(n)
-                
+
                 zopp    = Internal.getNodeFromName(a, oppName)
                 xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
 
                 if xzopp is not None:
                     newName = oppName.split('_MX_')[0]
                     Internal.setValue(n, newName)
-      
+
                     src, loc2glob = Internal.getLoc2Glob(zopp)
 
                     # Update current zone
@@ -921,7 +921,7 @@ def _revertMXGridConnectivity(a):
                     p      = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
                     p      = Internal.window2Range(p)
                     Internal.setValue(prd, p)
-                                  
+
     return None
 
 def _revertBXGridConnectivity(a):
@@ -982,7 +982,7 @@ def _revertBXGridConnectivity(a):
                             Internal.setValue(n, newName)
 
     return None
-    
+
 # Ajoute des sous-zones correspondant aux raccords sur un arbre distribue
 def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=True):
 
@@ -1040,7 +1040,7 @@ def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=Tr
     _updateGridConnectivity(a)
 
     return None
-    
+
 # IN: bb0 et bb1: [xmin,ymin,zmin,xmax,ymax,zmax]
 # Retourne true si les bbox s'intersectent
 def inters(bb0, bb1, tol=0.):
@@ -1060,7 +1060,7 @@ def subzone(a, indMin, indMax, supp):
     Internal.createChild(ap, 'XZone', 'UserDefinedData_t')
     Internal._setLoc2Glob(ap, a[0], win=[imin,imax,jmin,jmax,kmin,kmax], sourceDim=[dim[1],dim[2],dim[3]])
     return ap
-    
+
 # Ajoute les bandelettes des autres procs sur le procs locaux
 # si allB=True, les 6 bandelettes de chaque zone voisine sont ramenees (necessaire pour connectMatchPeriodic).
 # IN: variables: None (all vars), ['Density'], []                    
@@ -1089,13 +1089,13 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
             rj2 = max(nj-depth+1,1)
             rk1 = min(depth,nk)
             rk2 = max(nk-depth+1,1)
-            
+
             if ri2 - ri1 < 2: rip1 = int(ni/2)-1; rip2 = int(ni/2)+1
             else: rip1 = ri1; rip2 = ri2
-            
+
             if rj2 - rj1 < 2: rjp1 = int(nj/2)-1; rjp2 = int(nj/2)+1
             else: rjp1 = rj1; rjp2 = rj2
-            
+
             # Bandelettes non recouvrantes
             b1 = subzone(z, (1,1,1), (ri1,nj,nk), 'S1')
             b2 = subzone(z, (ri2,1,1), (ni,nj,nk), 'S2')
@@ -1111,7 +1111,7 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
                 b4 = C.extractVars(b4, vars=variables, keepOldNodes=False)
                 b5 = C.extractVars(b5, vars=variables, keepOldNodes=False)
                 b6 = C.extractVars(b6, vars=variables, keepOldNodes=False)
-                            
+
             sz[b1[0]] = b1
             sz[b2[0]] = b2
             sz[b3[0]] = b3
@@ -1131,7 +1131,7 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
             b4[0] = b[0]+'/'+b4[0]
             b5[0] = b[0]+'/'+b5[0]
             b6[0] = b[0]+'/'+b6[0]
-            
+
     # allgather des bbox des bandelettes
     bboxes = KCOMM.allgather(bbz)
 
@@ -1151,7 +1151,7 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
                             zname = k[:len(k)-2] 
                             if zname not in zone_i:
                                 zone_i.append(zname) 
-                                
+
             if allB:                    
                 for z in zone_i:
                     data_i[z+'S1'] = sz[z+'S1']
@@ -1160,7 +1160,7 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
                     data_i[z+'S4'] = sz[z+'S4']
                     data_i[z+'S5'] = sz[z+'S5']
                     data_i[z+'S6'] = sz[z+'S6']
-           
+
         data.append(data_i)
 
     datar = COMM_WORLD.alltoall(data)
@@ -1173,7 +1173,7 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
             if b is None: b = Internal.newCGNSBase(baseName, parent=a)
             z[0] = zoneName
             b[2].append(z)
-    
+
     return None
 
 #==============================================================================

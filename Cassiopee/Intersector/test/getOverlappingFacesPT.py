@@ -18,7 +18,7 @@ res = XOR.getOverlappingFaces(t1, t2, RTOL = 0.05, amax = 0.1)
 nb_zones = len(res)
 t1zones_pgids = []
 for i in range(nb_zones):
-  t1zones_pgids.append(res[i][0])
+    t1zones_pgids.append(res[i][0])
 
 t = XOR.agglomerateCellsWithSpecifiedFaces(t1, t1zones_pgids)
 
@@ -33,7 +33,7 @@ res = XOR.getOverlappingFaces(t1, t2, RTOL = 0.05, amax = 0.1)
 
 t1zones_pgids = []
 for i in range(nb_zones):
-  t1zones_pgids.append(res[i][0])
+    t1zones_pgids.append(res[i][0])
 
 t = XOR.agglomerateCellsWithSpecifiedFaces(t1, t1zones_pgids)
 

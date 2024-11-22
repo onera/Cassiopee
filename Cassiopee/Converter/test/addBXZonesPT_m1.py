@@ -13,7 +13,7 @@ if Cmpi.rank == 0:
     ni = 50 ; nj = 50 ; nk = 50
     a = G.cart(( 0,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
     b = G.cart((10,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
-    
+
     b = T.reorder(b,(-3,2,1))
 
     t = C.newPyTree(['Base',a,b])

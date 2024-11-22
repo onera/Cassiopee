@@ -32,7 +32,7 @@ def setPriority(event=None):
         b = CTK.t[2][nob]
         C._addChimera2Base(b, 'Priority', priority)
     CTK.TXT.insert('START', 'Prioriy set to %d.\n'%priority)
-    
+
 #==============================================================================
 def setSurface():
     if CTK.t == []: return
@@ -77,7 +77,7 @@ def initCellN():
     CTK.TXT.insert('START', 'cellN variable init to 1.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 # Applique les BC overlaps pour tout l'arbre
 #==============================================================================
@@ -90,7 +90,7 @@ def applyOverlap():
     CTK.TXT.insert('START', 'cellN variable modified near overlap BCs.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 # Applique setHoleInterpolatedPoints pour tout l'arbre
 #==============================================================================
@@ -173,7 +173,7 @@ def blank():
     CTK.TXT.insert('START', 'Blanking done.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 # Optimize Overlap
 #==============================================================================
@@ -186,13 +186,13 @@ def optimize():
     if VARS[0].get() == 'inactive': dw = 0
 
     depth = VARS[7].get(); depth = int(depth)
-    
+
     # Creation de l'arbre temporaire
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     # copie du premier niveau sans les enfants
     t = ['tree', None, [], 'CGNSTree_t']
     for i in CTK.t[2]: t[2].append([i[0], i[1], [], i[3]])
@@ -223,7 +223,7 @@ def optimize():
         noz = CTK.Nz[nz]
         CTK.t[2][nob][2][noz] = t[2][nob][2][c[nob-1]]
         c[nob-1] += 1
-        
+
     CTK.TXT.insert('START', 'Overlapping optimized.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -237,7 +237,7 @@ def createOversetHoles():
     CTK.TXT.insert('START', 'OversetHoles nodes created.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -255,7 +255,7 @@ def createApp(win):
     Frame.columnconfigure(2, weight=1)
     Frame.columnconfigure(3, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -283,7 +283,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('cell_intersect'); VARS.append(V)
     # -9- Priorite
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    
+
     r = 0 # row
     # - Number of layers (depth) -
     B = TTK.Label(Frame, text="Depth")
@@ -299,19 +299,19 @@ def createApp(win):
     B.grid(row=r, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Blanking type.')
     r += 1
-    
+
     # - initCellN -
     B = TTK.Button(Frame, text="Init cellN", command=initCellN)
     B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                       text='Init the cellN to 1. in the tree or selection.')
     r += 1
-    
+
     # - applyBCOverlap -
     B = TTK.Button(Frame, text="ApplyBCOverlaps", command=applyOverlap)
     B.grid(row=r, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Modify the cellN (=2) near BCOverlaps and doubly defined BCs.')
-    
+
     # - setHoleInterpolatedPoints -
     B = TTK.Button(Frame, text="SetHoleInterpPoints", command=setHoleInterpolatedPoints)
     B.grid(row=r, column=2, columnspan=2, sticky=TK.EW)
@@ -343,7 +343,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Blanking surfaces.')
     B.grid(row=r, column=0, columnspan=3, sticky=TK.EW)
     r += 1
-    
+
     # - blanking -
     B = TTK.Button(Frame, text="Blank cells", command=blank)
     B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
@@ -369,14 +369,14 @@ def createApp(win):
     B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Optimize the overlapping')
     r += 1
-    
+
     # - createOversetHoles -
     B = TTK.Button(Frame, text="Create OversetHoles nodes",
                    command= createOversetHoles)
     B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create the nodes OversetHoles in pyTree.')
     r += 1
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -402,7 +402,7 @@ def updateApp(event=None): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-   
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

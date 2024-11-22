@@ -379,7 +379,7 @@ def buildDistribWallLaw(t, block, dir, h1, h2, N):
         ll = D.line(P0, P1, N=2) 
         l = T.join(l2, ll)
     C.convertPyTree2File(l, 'linelet.cgns')
-    
+
     # Converti en abscisse curviligne
     l = D.getCurvilinearAbscissa(l)
     C._initVars(l, '{CoordinateX}={s}')
@@ -417,7 +417,7 @@ if __name__ == "__main__":
     # N: number of points after remeshing
 
     CASE = 'asf2WL'
-    
+
     # Remesh case1.cgns - OK
     if CASE == 'case1BL':
         FILE = 'case1.cgns'
@@ -453,7 +453,7 @@ if __name__ == "__main__":
         h1 = 0.001
         h2 = 0.0287
         N = 100
-    
+
     # Remesh case7.cgns - OK
     elif CASE == 'case7BL':
         FILE = 'case7.cgns'
@@ -489,7 +489,7 @@ if __name__ == "__main__":
         h1 = 0.01
         h2 = 1.
         N = 60
-        
+
     # Remesh case12.cgns - OK
     elif CASE == 'case12BL':
         FILE = 'case12.cgns'
@@ -498,7 +498,7 @@ if __name__ == "__main__":
         h1 = 0.01
         h2 = 1.
         N = 60
-        
+
     # Remesh naca.cgns - OK
     if CASE == 'nacaBL':
         FILE = 'naca.cgns'
@@ -525,7 +525,7 @@ if __name__ == "__main__":
         h1 = 0.02
         h2 = 0.001
         N = 50
-    
+
     # Remesh cylinder - OK
     elif CASE == 'cylBL':
         FILE = 'cyl.cgns'
@@ -543,7 +543,7 @@ if __name__ == "__main__":
         h1 = 0.01
         h2 = 0.1
         N = 32
-    
+
     # Remesh cylinder2 with wall law - OK
     elif CASE == 'cyl2WL':
         FILE = 'cyl2.cgns'
@@ -579,7 +579,7 @@ if __name__ == "__main__":
         h1 = -0.1
         h2 = 1.
         N = 13
-        
+
     t = C.convertFile2PyTree(FILE)
 
     # Break les conditions aux limites matchs
@@ -625,6 +625,6 @@ if __name__ == "__main__":
 
     # Adapte les donneurs a la fin
     _adaptDonorRanges(t)
-    
+
     #Internal.printTree(t)
     C.convertPyTree2File(t, 'out.cgns')

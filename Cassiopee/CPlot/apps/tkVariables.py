@@ -108,7 +108,7 @@ def updateVarNameList3_2(event=None):
         noz = CTK.Nz[0]
         varsl = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True,
                               loc='centers')
-   
+
     zvars = ['FlowSolutionCenters']
     if len(varsl) != 0: zvars += varsl[0]
 
@@ -133,7 +133,7 @@ def updateVarNameList4(event=None):
     if len(varsl) != 0: zvars += varsl[0]
     for i in zvars:
         m.add_command(label=i, command=lambda v=VARS[9],l=i:v.set(l))
-   
+
 # Pour node2Center - seult les variables en noeuds (combobox)
 def updateVarNameList4_2(event=None):
     if CTK.t == []: return
@@ -232,7 +232,7 @@ def node2CenterVar():
     CTK.TXT.insert('START', 'Variable %s put to centers in all tree.\n'%var)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 def chooseImportFile(event=None):
     try: import tkFileDialog
@@ -315,21 +315,21 @@ def computeVariables():
     if state is None:
         CTK.TXT.insert('START', 'ReferenceState is missing (tkState).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     # If gamma exists -> suppose full RefState, we take all from it
     gamma = Internal.getNodeFromName(state, 'Gamma')
     fail = False
     if gamma is not None: gamma = Internal.getValue(gamma)
     else: fail = True
-    
+
     Cv = Internal.getNodeFromName(state, 'Cv')
     if Cv is not None: Cv = Internal.getValue(Cv)
     else: fail = True
-            
+
     TInf = Internal.getNodeFromName(state, 'Temperature')
     if TInf is not None: TInf = Internal.getValue(TInf)
     else: fail = True 
-        
+
     Ts = Internal.getNodeFromName(state, 'Ts')
     if Ts is not None: Ts = Internal.getValue(Ts)
     else: fail = True
@@ -337,7 +337,7 @@ def computeVariables():
     Cs = Internal.getNodeFromName(state, 'Cs')
     if Cs is not None: Cs = Internal.getValue(Cs)
     else: fail = True
-    
+
     Mus = Internal.getNodeFromName(state, 'Mus')
     if Mus is not None: Mus = Internal.getValue(Mus)
     else: fail = True
@@ -363,7 +363,7 @@ def computeVariables():
                 Panels.displayErrors([0,str(e)], header='Error: computeExtraVariables')
                 CTK.TXT.insert('START', 'Computation of variable %s failed.\n'%varloc)
                 CTK.TXT.insert('START', 'Error: ', 'Error')
-            
+
         else:
             fail = False; errors = []
             for nz in nzs:
@@ -439,7 +439,7 @@ def addVar(event=None):
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
-            
+
 #==============================================================================
 def computeGrad():
     if CTK.t == []: return
@@ -503,7 +503,7 @@ def computeCurl():
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
-    
+
 #==============================================================================
 # Fill missing variables
 #==============================================================================
@@ -514,7 +514,7 @@ def fillMissingVariables():
     CTK.TXT.insert('START', 'Missing variables filled.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -629,7 +629,7 @@ def createApp(win):
         F.grid(row=norow, column=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Removed variable.')
         WIDGETS['var1'] = B
-    
+
     # - renameVar - 
     #norow+= 1
     #F = TTK.Frame(Frame, borderwidth=0)
@@ -656,7 +656,7 @@ def createApp(win):
     #B = TK.Button(Frame, text="Rename variable", command=renameVar)
     #B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW)
     #BB = CTK.infoBulle(parent=B, text='Rename variable from pyTree.') 
-    
+
     # - center2Node var -
     norow += 1
     B = TTK.Button(Frame, text="Center2Node", command=center2NodeVar)
@@ -686,7 +686,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Node2Center", command=node2CenterVar)
     B.grid(row=norow, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Put a node variable to centers in pyTree.')
-    
+
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
 
@@ -705,7 +705,7 @@ def createApp(win):
         F.grid(row=norow, column=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Node variable to be set in centers.')
         WIDGETS['var4'] = B
-            
+
     # - computeGrad -
     norow+=1
     F = TTK.Frame(Frame, borderwidth=0)
@@ -752,7 +752,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White')
     BB = CTK.infoBulle(parent=B, text='Variables for curl.')
     B.grid(row=norow, column=1, sticky=TK.EW)
-    
+
     # - computeVariables -
     norow += 1
     #B = TTK.OptionMenu(Frame, VARS[7], 'Adim1 (ro,a,T)', 'Adim2 (ro,u,T)', 'dim')
@@ -761,7 +761,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[6], 'nodes', 'centers')
     B.grid(row=norow, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Computed variable will be localized here.')
-    
+
     norow += 1
     B = TTK.Button(Frame, text="Compute variable", command=computeVariables)
     B.grid(row=norow, column=0, sticky=TK.EW)
@@ -780,7 +780,7 @@ def createApp(win):
                    command=fillMissingVariables)
     B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='All zones will have the same variables.')
-       
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -825,7 +825,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

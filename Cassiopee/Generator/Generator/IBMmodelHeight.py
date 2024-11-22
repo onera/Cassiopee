@@ -21,7 +21,7 @@ def compute_Cf(Re, Cf_law='ANSYS'):
         return 0.079*Re**(-0.25)
     elif Cf_law == 'Laminar':
         return 1.328*Re**(-0.5)
-    
+
 
 #=============================================================================
 # Compute the corresponding yplus of a given modeling height

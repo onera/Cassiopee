@@ -101,7 +101,7 @@ def getData(event=None):
         out = []
         for i in pos[2]: out.append(Internal.getValue(i)) #; out += [1,1]
         CPlot.setState(billBoards=out, billBoardSize=0.8)
-        
+
     pos = Internal.getNodeFromName1(slot, 'dof')
     if pos is not None:
         dof = Internal.getValue(pos)
@@ -151,7 +151,7 @@ def getData(event=None):
     if pos is not None:
         sharpenPower = Internal.getValue(pos)
         WIDGETS['sharpenPower'].set(100./2.*sharpenPower)
-        
+
         CPlot.setState(sharpenPower=sharpenPower)
 
     CTK.TXT.insert('START', 'Effects data loaded.\n')
@@ -172,7 +172,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -204,7 +204,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
     # -8- Sharpen info bulle
     V = TK.StringVar(win); V.set('Sharpen power.'); VARS.append(V)
-    
+
     # - Camera angle -
     B = TTK.Button(Frame, text="Cam angle", command=setViewAngle)
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
@@ -219,21 +219,21 @@ def createApp(win):
                         command=setShadow)
     BB = CTK.infoBulle(parent=B, text='Toggle shadows.')
     B.grid(row=1, column=0, sticky=TK.EW)
-    
+
     # - Light offset X -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setLightOffsetX, value=50)
     WIDGETS['lightOffsetX'] = B
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[3])
-    
+
     # - Light offset Y -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setLightOffsetY, value=0)
     WIDGETS['lightOffsetY'] = B
     B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[4])
-    
+
     # - Post -
     B = TTK.Checkbutton(Frame, text='Post', variable=VARS[2], command=setDOF)
     BB = CTK.infoBulle(parent=B, text='Toggle image post processing (depth of field blur/gamma correction/tone mapping).')
@@ -249,12 +249,12 @@ def createApp(win):
     WIDGETS['gammaCorrection'] = B
     B.grid(row=2, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
-    
+
     # - DOF -
     B = TTK.Label(Frame, text='DOF')
     BB = CTK.infoBulle(parent=B, text='Depth of field blur (around cliked point).')
     B.grid(row=3, column=0, sticky=TK.EW)
-        
+
     # - DOF power -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setDofPower, value=0)
@@ -266,7 +266,7 @@ def createApp(win):
     B = TTK.Label(Frame, text='Sharp')
     BB = CTK.infoBulle(parent=B, text='Sharpen image.')
     B.grid(row=4, column=0, sticky=TK.EW)
-        
+
     # - Sharpen power -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, command=setSharpenPower, value=0)
@@ -279,7 +279,7 @@ def createApp(win):
                    image=iconics.PHOTO[8], padx=0, pady=0)
     BB = CTK.infoBulle(parent=B, text='Get data from tree.')
     B.grid(row=4, column=2, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -321,7 +321,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

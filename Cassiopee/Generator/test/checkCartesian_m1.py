@@ -15,7 +15,7 @@ if Cmpi.rank==0:
     a = G.cart((0.,0.,0.), (0.1,0.1,1), (40,40,40))
     t = C.newPyTree(['CARTESIAN', a])
     C._addState(t, 'EquationDimension', 3)
-    
+
     t       = T.splitNParts(t, 10)
     t,stats = D2.distribute(t, 2)
     C.convertPyTree2File(t,LOCAL+'/t_TMP.cgns')

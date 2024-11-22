@@ -42,7 +42,7 @@ def addCom__(comd, c, d, NBlocs, vol):
     key = c+d*NBlocs
     if key in comd: comd[key] += vol
     else: comd[key] = vol
-    
+
 #==============================================================================
 # Distribute t (pyTree) over NProc processors
 # IN: NProc: number of processors
@@ -74,7 +74,7 @@ def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='matc
                 algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
     Usage: _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
-    
+
     (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, prescribed, weight, useCom, mode, tbb)
 
     # Equilibrage
@@ -137,7 +137,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
 
     Nb = len(nbPts)
     com = None; comd = {}
-    
+
     if useCom == 'match' or useCom == 'all':
         # Formation des coms - raccords coincidents
         tpp, typen = Internal.node2PyTree(t)
@@ -148,7 +148,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
             mdict = {}
             pc = 0
             for z in zones: mdict[z[0]] = pc; pc += 1
-            
+
             for z in zones:
                 match = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t') # forcement structure
                 for m in match:
@@ -294,47 +294,47 @@ def getProcList(t, NProc=None, sort=False):
         for z in zones:
             proc = Internal.getNodeFromName2(z, 'proc')
             if proc is not None:
-               proc = Internal.getValue(proc)
-               NProc = max(NProc, proc+1)
+                proc = Internal.getValue(proc)
+                NProc = max(NProc, proc+1)
     procList = []
     for s in range(NProc): procList.append([])
 
     if not sort: # pas de tri
         for z in zones: 
-           proc = Internal.getNodeFromName2(z, 'proc') 
-           if proc is not None:
-            procList[Internal.getValue(proc)].append(z[0])
+            proc = Internal.getNodeFromName2(z, 'proc') 
+            if proc is not None:
+                procList[Internal.getValue(proc)].append(z[0])
 
     else:
         # On trie les zones par taille decroissant pour chaque base pour etre conforme avec 
         # mode openmp (see reorder dans Fast.Internal)
         bases = Internal.getNodesFromType1(t,'CGNSBase_t')
         for base in bases: 
-           zones = Internal.getNodesFromType1(base,'Zone_t')
-           # calcul taille de la zone
-           size_zone =[]
-           for z in zones:
-              dim = Internal.getZoneDim(z)
-              if dim[0] == 'Structured':
-                if dim[3] == 1: kfic = 0
-                else          : kfic = 2
-                ndimdx = (dim[1]-4)*(dim[2]-4)*(dim[3]-kfic) 
-              else: ndimdx = dim[2]
-              size_zone.append(ndimdx)
+            zones = Internal.getNodesFromType1(base,'Zone_t')
+            # calcul taille de la zone
+            size_zone =[]
+            for z in zones:
+                dim = Internal.getZoneDim(z)
+                if dim[0] == 'Structured':
+                    if dim[3] == 1: kfic = 0
+                    else          : kfic = 2
+                    ndimdx = (dim[1]-4)*(dim[2]-4)*(dim[3]-kfic) 
+                else: ndimdx = dim[2]
+                size_zone.append(ndimdx)
 
-           # Tri les zone par taille decroissante
-           new_zones = []
-           for z in range(len(size_zone)):
-             vmax    = max(size_zone)
-             pos_max = size_zone.index(vmax)
-             new_zones.append(zones[pos_max])
-             size_zone.pop(pos_max)
-             zones.pop(pos_max)
+            # Tri les zone par taille decroissante
+            new_zones = []
+            for z in range(len(size_zone)):
+                vmax    = max(size_zone)
+                pos_max = size_zone.index(vmax)
+                new_zones.append(zones[pos_max])
+                size_zone.pop(pos_max)
+                zones.pop(pos_max)
 
-           for z in new_zones:
-             proc = Internal.getNodeFromName2(z, 'proc')
-             if proc is not None: 
-                procList[Internal.getValue(proc)].append(z[0])
+            for z in new_zones:
+                proc = Internal.getNodeFromName2(z, 'proc')
+                if proc is not None: 
+                    procList[Internal.getValue(proc)].append(z[0])
 
     return procList
 
@@ -426,7 +426,7 @@ def printProcStats(t, stats=None, NProc=None):
                 if dim[0] == 'Structured': npts += dim[1]*dim[2]*dim[3]
                 else: npts += dim[1] 
             print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
-                
+
     else: # no dist
         d = getProcList(t)
         if NProc is None: NProc = len(d)
@@ -493,7 +493,7 @@ def stats(t, useCom='match', mode='nodes'):
         for i, k in enumerate(allkeys):
             volComd[2*i] = k
             volComd[2*i+1] = comd[k]
-    
+
         volTot = 0.; nptsCom = 0.
         for v in range(size):
             v1 = volComd[2*v]; volcom = volComd[2*v+1];
@@ -505,7 +505,7 @@ def stats(t, useCom='match', mode='nodes'):
             if proci != prock: nptsCom += volcom
 
     volRatio = nptsCom / volTot
-    
+
     return (varMin, varMax, varRMS, volRatio, empty)
 
 #==================================================================================

@@ -19,18 +19,18 @@ if file_path.exists():
             file_list_lib.append(file_tmp)
             print('lib: ',file_tmp)
     del onlyfiles
-    
-   
+
+
     file_list_include=['png.h',
                        'pngconf.h',
                        'pnglibconf.h']
     list_folders     =['GL','X11']
 
-    
+
     ##Copy lib
     for file_tmp in file_list_lib:
         shutil.copyfile(directory_cbenoit+'/lib/'+file_tmp,directory_local+'/lib/'+file_tmp)
-    
+
     ##Copy include
     file2include  = directory_local+'/include/'
     file_path_tmp = pathlib.Path(file2include)
@@ -42,7 +42,7 @@ if file_path.exists():
             if pathlib.Path(directory_cbenoit+'/include/'+f_tmp).exists():
                 print('include:',f_tmp)
                 shutil.copytree(directory_cbenoit+'/include/'+f_tmp ,file2include+f_tmp)
-        
+
         for file_tmp in file_list_include:
             if os.path.exists(directory_cbenoit+'/include/'+file_tmp):
                 print('include:',file_tmp)

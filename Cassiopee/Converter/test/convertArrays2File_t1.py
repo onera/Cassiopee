@@ -39,11 +39,11 @@ test.testF(LOCAL+'/outbe.v3d', 3)
 # bin_v3d little endian
 C.convertArrays2File([cart1], LOCAL+'/outle.v3d', 'bin_v3d', endian='little')
 test.testF(LOCAL+'/outle.v3d', 31)
-    
+
 # fmt_v3d
 C.convertArrays2File([cart1], LOCAL+'/out.dat', 'fmt_v3d', dataFormat='%16.9e')
 test.testF(LOCAL+'/out.dat', 4)
-    
+
 # bin_plot3d big endian
 C.convertArrays2File([cart1], LOCAL+'/outbe.dat', 'bin_plot3d')
 test.testF(LOCAL+'/outbe.dat.gbin', 5)
@@ -55,7 +55,7 @@ test.testF(LOCAL+'/outle.dat.gbin', 51)
 # fmt_pov
 C.convertArrays2File([cart3], LOCAL+'/out.pov', 'fmt_pov', dataFormat='%f ')
 #test.testF(LOCAL+'/out.pov', 6)
-    
+
 # fmt_mesh
 C.convertArrays2File([cart3], LOCAL+'/out.mesh', 'fmt_mesh', dataFormat='%.9e ')
 test.testF(LOCAL+'/out.mesh', 7)

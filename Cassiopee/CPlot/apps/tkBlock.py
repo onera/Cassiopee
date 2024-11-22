@@ -25,7 +25,7 @@ def rmBlock():
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -82,7 +82,7 @@ def cpBlock():
                 newFamilyZoneNames.add(newFamilyZoneName)
         CTK.TXT.insert('START', CTK.t[2][nob][0]+'/'+CTK.t[2][nob][2][noz][0]
                        +' duplicated.\n')
-    
+
     # Create new Family_t node for each Tag Zone
     for f in newFamilyZoneNames:
         Internal.newFamily(name=f, parent=base)
@@ -90,7 +90,7 @@ def cpBlock():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Converti un bloc ou tous les blocs en tetra
 # IN: t, cplot.selectedZones
@@ -191,13 +191,13 @@ def convert2Node():
         noz = CTK.Nz[nz]        
         a = C.convertArray2Node(CTK.t[2][nob][2][noz])
         CTK.replace(CTK.t, nob, noz, a)
-        
+
     CTK.TXT.insert('START', 'Zones converted to node.\n')
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Exterior faces : recupere les faces externes
 # IN: t, cplot.selectedZones
@@ -240,7 +240,7 @@ def exteriorFaces():
         CTK.TXT.insert('START', 'Exterior faces fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
     CPlot.render()
-    
+
 #=========================================================================
 # oneovern: 1 point sur n
 # IN: t, cplot.selectedZones
@@ -299,7 +299,7 @@ def close():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
-    
+
     fail = False
     zones = []; errors = []
     for nz in nzs:
@@ -310,7 +310,7 @@ def close():
     try: zones = G.close(zones, eps)
     except Exception as e:
         fail = True; errors += [0,str(e)]
-        
+
     if not fail:
         c = 0
         for nz in nzs:
@@ -402,7 +402,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White')
     BB = CTK.infoBulle(parent=B, text='Steps in each direction.')
     B.grid(row=4, column=1, sticky=TK.EW)
-    
+
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
@@ -414,7 +414,7 @@ def showApp():
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['BlockNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 def updateApp(): return
 
@@ -423,7 +423,7 @@ def saveApp():
     CTK.PREFS['tkBlockOneovern'] = VARS[0].get()
     CTK.PREFS['tkBlockClose'] = VARS[1].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('2;2;2')

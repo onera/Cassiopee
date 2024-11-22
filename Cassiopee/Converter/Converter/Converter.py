@@ -435,7 +435,7 @@ def _initVarByConst__(a, var, val):
             _addVars(a, var)
             posvar = KCore.isNamePresent(a, v)
         posvars.append(posvar)
-    
+
     if not isinstance(a[1], list): # array1
         for posvar in posvars: a[1][posvar,:] = val
     else:
@@ -446,7 +446,7 @@ def _initVarByFunction__(a, var, F, fargs=[], isVectorized=False):
     # Init one or several vars with a function F.
     isResMultivars = lambda res: isinstance(res, tuple)
     isResSinglevar = lambda res: not isResMultivars(res)
-    
+
     errorMsgVar = "The number of arguments returned by the function ({}) is "\
                   "different from the number of variables to initialise ({})."
     errorMsgName = "_initVarByFunction__: can't find variables {} in array."
@@ -549,7 +549,7 @@ def _initVarByFunction__(a, var, F, fargs=[], isVectorized=False):
                     res = F()
                     isResValid(res, ninitvars, errorMsgVar)
                     varFlatten[:] = res
-            
+
             else:
                 if len(fargs):
                     # Case E2a
@@ -920,7 +920,7 @@ def diffArrayGeom(array1, array2, tol=1.e-10):
         return ret
     else:
         return diffArrayGeom__(array1, array2, tol)
-    
+
 def diffArrayGeom__(array1, array2, tol=1.e-10):
     hook = createHook(array1, 'nodes')
     ids = identifyNodes(hook, array2, tol=tol)
@@ -942,7 +942,7 @@ def diffArrayGeom__(array1, array2, tol=1.e-10):
     else: # array1
         pt2 = numpy.copy(pt, order='K')
         pt2[:,:] = pt[:,ids[:]]
-        
+
     array1[1] = pt2
     ret2 = diffArrays([array1], [array2])
     freeHook(hook)
@@ -1779,7 +1779,7 @@ def mergeConnectivity(a1, a2):
     if a1[0] != a2[0]: raise ValueError('mergeConnectivity: only for same fields.')
     if len(a1) != 4 or len(a2) != 4: raise ValueError('mergeConnectivity: only for unstructured arrays.')
     if a1[3] == 'NGON' or a2[3] == 'NGON': raise ValueError('mergeConnectivity: only for element arrays.')
-    
+
     # fields
     f1 = a1[1]; f2 = a2[1]
     fo = []
@@ -1791,7 +1791,7 @@ def mergeConnectivity(a1, a2):
     for cp in c2: cp[:] = cp[:]+npts 
     co = c1+c2
     return [a1[0], fo, co, a1[3]+','+a2[3]]
-    
+
 
 # Retourne -1: la variable n'est presente dans aucun array
 # Retourne 0: la variable est presente dans au moins un array
@@ -1812,32 +1812,32 @@ def isNamePresent(a, varname):
         else: return 1
 
 def _signNGonFaces(a):
-  """Return a consistently oriented pyTree with signed faces.
-  Usage: _signNGonFaces(a)"""
-  if isinstance(a[0], list):
-      for i in a: converter.signNGonFaces(i)
-  else: converter.signNGonFaces(a)
-  return None
-  
+    """Return a consistently oriented pyTree with signed faces.
+    Usage: _signNGonFaces(a)"""
+    if isinstance(a[0], list):
+        for i in a: converter.signNGonFaces(i)
+    else: converter.signNGonFaces(a)
+    return None
+
 def _unsignNGonFaces(a):
-  """Unsign NFACE connectivity"""
-  if isinstance(a[0], list):
-      isSigned = 1
-      for i in a:
-        if isSigned == 1: isSigned = converter.unsignNGonFaces(i)
-        else: break # stop if unsigned
-  else:
-      isSigned = converter.unsignNGonFaces(a)
-  return isSigned
+    """Unsign NFACE connectivity"""
+    if isinstance(a[0], list):
+        isSigned = 1
+        for i in a:
+            if isSigned == 1: isSigned = converter.unsignNGonFaces(i)
+            else: break # stop if unsigned
+    else:
+        isSigned = converter.unsignNGonFaces(a)
+    return isSigned
 
 def makeParentElements(a):
-  PEs = []
-  if isinstance(a[0], list):
-      for i in a:
-          PEs.append(converter.makeParentElements(i))
-  else:
-      PEs.append(converter.makeParentElements(a))
-  return PEs
+    PEs = []
+    if isinstance(a[0], list):
+        for i in a:
+            PEs.append(converter.makeParentElements(i))
+    else:
+        PEs.append(converter.makeParentElements(a))
+    return PEs
 
 
 # convert to low order mesh

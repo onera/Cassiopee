@@ -10,7 +10,7 @@ from KCore.config import *
 # Fichiers C++
 #==============================================================================
 cpp_srcs = ["Intersector/conformUnstr.cpp",
-            
+
             "Intersector/booleanOperations.cpp",
             "Intersector/xcelln.cpp",
             "Intersector/selfX.cpp",

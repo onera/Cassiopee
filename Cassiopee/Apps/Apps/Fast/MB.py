@@ -30,7 +30,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
 
     if isinstance(t_case, str): t = C.convertFile2PyTree(t_case)
     else: t = t_case 
-    
+
     if NP > 0: import Distributor2.PyTree as D2
 
     # Get dim
@@ -288,13 +288,13 @@ class MB(Common):
         Common.__init__(self, format, numb, numz)
         self.__version__ = "0.0"
         self.authors = ["ash@onera.fr"]
-        
+
     # Prepare
     def prepare(self, t_case, t_out, tc_out, NP):
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for a computation on %d processors.'%NP)
         return prepare(t_case, t_out, tc_out, NP, self.data['format'])
-        
+
     # post-processing: extrait la solution aux neouds + le champs sur les surfaces
     def post(self, t_in, t_out, wall_out):
         return post(t_in, t_out, wall_out, self.data['format'])
@@ -318,7 +318,7 @@ def calc_cp_cf(t,h,listzones,isRANS=False,wallType='BCWall',mode=None):
      Mus, Cs, Ts, Pr] = C.getState(t)
 
     RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
-    
+
     w=FastC.get_wall_values(t,isRANS=isRANS,wallType=wallType,mode=mode)
     w=FastC.get_skin_friction(w,RoInf,PInf,RoUInf2I)
 

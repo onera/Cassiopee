@@ -112,7 +112,7 @@ def container__(flag, newPos, indDonor, periodicity, coefs, faceDir):
 def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
     """Write interpolation coefficients for unsteady computations."""
     Compressor.writeUnsteadyCoefs(iteration, indices, filename, loc, format)
-    
+
 # Remplace les coordonnees d'une grille cartesienne par un noeud CartesianData
 #
 # if layers not None, only communicate the desired number of layers
@@ -165,7 +165,7 @@ def _compressCartesian__(z, ztype, gc, tol=1.e-10):
         if abs(xp[5] - xp[4] - hi) > tol: cartesian = False
         if abs(yp[4] - y0) > tol: cartesian = False
         if abs(zp[4] - z0) > tol: cartesian = False
-    
+
     if nj > 3: hj = yp[3*ni]-yp[2*ni]
     elif nj > 2: hj = yp[2*ni]-yp[ni]
     elif nj > 1: hj = yp[ni]-y0
@@ -226,7 +226,7 @@ def _compressCartesian__(z, ztype, gc, tol=1.e-10):
         Internal.createChild(pz, 'ZData', 'DataArray_t', value=[6., z0, hk, float(ni), float(nj), float(nk)])
         cd = Internal.createChild(gc, 'CartesianData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk])
         Internal.createChild(cd, 'ZData', 'DataArray_t', value=[x0,y0,z0,hi,hj,hk]) # to avoid recompression of CartesianData
-        
+
     return cartesian
 
 # Si la zone est cartesienne :
@@ -316,7 +316,7 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
         if gc is not None: _compressCartesian__(z, ztype, gc, tol)
 
     return None
-    
+
 # uncompress Cartesian
 def uncompressCartesian(t):
     """For Cartesian grids, recreate Grid Coordinates from compressed zones."""
@@ -543,7 +543,7 @@ def _compressElements(t):
                 n = Internal.getNodeFromName1(e, 'ElementConnectivity')
                 _packNode(n, net, 3)
     return None
-    
+
 def compressElements(t):
     """Compress lossless Element connectivity.""" 
     tp = Internal.copyRef(t)

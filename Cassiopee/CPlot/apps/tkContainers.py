@@ -188,21 +188,21 @@ def showApp():
     try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkContainers')
     except: pass
     CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
 def updateApp():
-   VARS[0].set(Internal.__GridCoordinates__)
-   VARS[1].set(Internal.__FlowSolutionNodes__)
-   VARS[2].set(Internal.__FlowSolutionCenters__)
+    VARS[0].set(Internal.__GridCoordinates__)
+    VARS[1].set(Internal.__FlowSolutionNodes__)
+    VARS[2].set(Internal.__FlowSolutionCenters__)
 
 #==============================================================================
 def saveApp():
@@ -225,7 +225,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

@@ -91,7 +91,7 @@ def setBgColor(event=None):
         CPlot.setState(backgroundFile=files[0])
         CTK.PREFS['backgroundFile'] = files[0]
         va = 13
-        
+
     CPlot.setState(bgColor=va)
     CTK.PREFS['bgColor'] = str(va)
 
@@ -172,7 +172,7 @@ def getClassicApps():
 #==============================================================================
 def createApp(win):
     ttk = CTK.importTtk()
-    
+
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkPrefs  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
@@ -184,7 +184,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=2)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -242,20 +242,20 @@ def createApp(win):
             elif k1 == '11': VARS[3].set('Clouds')
             elif k1 == '12': VARS[3].set('Blueprint')
             elif k1 == '13': VARS[3].set('Custom')
-        
+
         elif i == 'auto': VARS[4].set(k1)
         elif i == 'envmap': VARS[6].set(k1)
         elif i == 'selectionStyle': VARS[7].set(k1)
         elif i == 'simplifyOnDrag': VARS[10].set(k1)
         elif i == 'exportResolution': VARS[8].set(k1)
         elif i == 'guitheme': VARS[9].set(k1)
-        
+
     r = 0
     # - gui theme -
     B = TTK.Label(Frame, text="GUI Theme")
     B.grid(row=r, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Style for GUI (buttons,...).')
-    
+
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
     if ttk is None:
@@ -351,19 +351,19 @@ def createApp(win):
     #BB = CTK.infoBulle(parent=B, text='Apps opened for next restart (tkTree;tkBC;...)')
     #B.grid(row=r, column=1, sticky=TK.EW)
     #r += 1
-    
+
     # - Set prefs -
     #B = TK.Button(Frame, text="Set prefs", command=setPrefs)
     #B.grid(row=r, column=0, columnspan=2, sticky=TK.EW)
     #BB = CTK.infoBulle(parent=B, text='Set prefs in Cassiopee.')
     #WIDGETS.append(B); r += 1
-    
+
     # - Save prefs -
     B = TTK.Button(Frame, text="Save prefs", command=savePrefs)
     B.grid(row=r, column=0, columnspan=2, sticky=TK.EW)
     B = CTK.infoBulle(parent=B, text='Save pref file (.cassiopee).')
     r += 1
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

@@ -24,34 +24,34 @@ def addNormalLayers(t, tc, distrib, niter=0, eps=0.4):
     strand = Internal.copyRef(t)
     coords = {} # all coordinates of planes
     for z in Internal.getZones(strand):
-            zx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
-            zy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
-            zz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
-            coords[z[0]] = []
-            coords[z[0]].append((zx,zy,zz))
-    
+        zx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
+        zy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
+        zz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
+        coords[z[0]] = []
+        coords[z[0]].append((zx,zy,zz))
+
     # advancing surfaces
     surf = Internal.copyRef(t)
 
     for k1 in range(kmax-1):
-            
+
         print("Generating layer %d"%k1)
-        
+
         hloc = C.getValue(distrib, 'CoordinateX', k1+1) - C.getValue(distrib, 'CoordinateX', k1)
-        
+
         # Keep pure normal in sx0
         surf = getSmoothNormalMap(surf, tc, niter=0, eps=eps)
         surf = modifyNormalWithMetric(surf, tc)
         C._initVars(surf, '{sx0} = {sx}')
         C._initVars(surf, '{sy0} = {sy}')
         C._initVars(surf, '{sz0} = {sz}')
-        
+
         # Get smooth normal map
         surf = getSmoothNormalMap(surf, tc, niter=niter, eps=eps)
 
         # Modifiy sx with ht
         surf = modifyNormalWithMetric(surf, tc)
-                
+
         # Mix sx0 and sx depending on height
         if kmax == 2: beta0 = 0.1
         else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
@@ -81,7 +81,7 @@ def addNormalLayers(t, tc, distrib, niter=0, eps=0.4):
             zy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
             zz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
             coords[z[0]].append((zx,zy,zz))
-    
+
     # build strand mesh
     for z in Internal.getZones(strand):
         coord = coords[z[0]]
@@ -127,35 +127,35 @@ def addNormalLayers2(t, tc, distrib, niter=0, eps=0.4):
     strand = Internal.copyRef(t)
     coords = {} # all coordinates of planes
     for z in Internal.getZones(strand):
-            zx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
-            zy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
-            zz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
-            coords[z[0]] = []
-            coords[z[0]].append((zx,zy,zz))
-    
+        zx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
+        zy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
+        zz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
+        coords[z[0]] = []
+        coords[z[0]].append((zx,zy,zz))
+
     # advancing surfaces
     surf = Internal.copyRef(t)
     #C._initVars(surf, 'cellN', 1.)
 
     for k1 in range(kmax-1):
-        
+
         print("Generating layer %d"%k1)
-        
+
         hloc = C.getValue(distrib, 'CoordinateX', k1+1) - C.getValue(distrib, 'CoordinateX', k1)
-        
+
         # Keep pure normal in sx0
         surf = getSmoothNormalMap(surf, tc, niter=0, eps=eps)
         surf = modifyNormalWithMetric(surf, tc)
         C._initVars(surf, '{sx0} = {sx}')
         C._initVars(surf, '{sy0} = {sy}')
         C._initVars(surf, '{sz0} = {sz}')
-        
+
         # Get smooth normal map
         surf = getSmoothNormalMap(surf, tc, niter=niter, eps=eps)
 
         # Modifiy sx with ht
         surf = modifyNormalWithMetric(surf, tc)
-                
+
         # Mix sx0 and sx depending on height
         #if kmax == 2: beta0 = 0.1
         #else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
@@ -188,7 +188,7 @@ def addNormalLayers2(t, tc, distrib, niter=0, eps=0.4):
             zy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
             zz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
             coords[z[0]].append((zx,zy,zz))
-    
+
     # build strand mesh
     for z in Internal.getZones(strand):
         coord = coords[z[0]]
@@ -229,7 +229,7 @@ def getSmoothNormalMap(surf, tc, niter=2, eps=0.4):
     surf = C.center2Node(surf, 'centers:sz')
     C._normalize(surf, ['sx','sy','sz'])
     #Xmpi._setInterpTransfers(surf, tc, variables=['sx','sy','sz'], storage=1, compact=0))
-    
+
     while it < niter:
         surf = C.node2Center(surf, 'sx')
         surf = C.node2Center(surf, 'sy')
@@ -257,7 +257,7 @@ def modifyNormalWithMetric(surf, tc):
 # get the local step factor
 #===========================
 def getLocalStepFactor(surf, tc):
-    
+
     for z in Internal.getZones(surf):
         s = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         sn = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
@@ -334,20 +334,20 @@ def subzonePlane(t, k):
     for z in Internal.getZones(tp):
         _subzonePlane__(z, k)
     return tp
-        
+
 def _subzonePlane__(a, k):
     dim = Internal.getZoneDim(a)
     cn = Internal.getNodeFromName2(a, 'ElementConnectivity')
     np = numpy.max(cn[1])
     nk = dim[1]//np
-    
+
     x1 = Internal.getNodeFromName2(a, 'CoordinateX')[1]
     y1 = Internal.getNodeFromName2(a, 'CoordinateY')[1]
     z1 = Internal.getNodeFromName2(a, 'CoordinateZ')[1]
     x2 = x1[np*k: np*(k+1)]
     y2 = y1[np*k: np*(k+1)]
     z2 = z1[np*k: np*(k+1)]
-    
+
     x1 = Internal.getNodeFromName2(a, 'CoordinateX')
     y1 = Internal.getNodeFromName2(a, 'CoordinateY')
     z1 = Internal.getNodeFromName2(a, 'CoordinateZ')

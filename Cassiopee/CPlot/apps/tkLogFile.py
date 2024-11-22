@@ -26,14 +26,14 @@ def record():
 def pause():
     Log.pause()
     CTK.TXT.insert('START', 'Recording session paused.\n')
-    
+
 #==============================================================================
 # Stop recording session
 #==============================================================================
 def stop():
     Log.closeLogFile()
     CTK.TXT.insert('START', 'Recording session ended.\n')
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -51,7 +51,7 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkLogFile')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- File name -
     V = TK.StringVar(win); V.set('SessionLog.py'); VARS.append(V)
@@ -60,7 +60,7 @@ def createApp(win):
     B = TK.Entry(Frame, textvariable=VARS[0], background='White')
     BB = CTK.infoBulle(parent=B, text='Log file name.')
     B.grid(row=0, column=0, columnspan=3, sticky=TK.EW)
-    
+
     # - Record -
     B = TK.Button(Frame, text="Record", command=record)
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -71,7 +71,7 @@ def createApp(win):
     B = TK.Button(Frame, text="Stop", command=stop)
     B.grid(row=1, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Stop recording session.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

@@ -12,7 +12,7 @@ GAMMA       = 1.4
 
 def tauFunction__(mach, gamma=GAMMA):
     """Return :math:`1 + \\frac{\\gamma - 1}{2} M^2`
-    
+
     Parameters
     ----------
     mach : array_like
@@ -21,11 +21,11 @@ def tauFunction__(mach, gamma=GAMMA):
         Specific heat ratio :math:`\\gamma`
     """
     return 1. + 0.5*(gamma - 1.)*mach**2
-    
+
 
 def sigmaFunction__(mach, gamma=GAMMA):
     """Return :math:`\\Sigma(M)`
-    
+
     Parameters
     ----------
     mach : array_like
@@ -34,11 +34,11 @@ def sigmaFunction__(mach, gamma=GAMMA):
         Specific heat ratio :math:`\\gamma`
     """
     return ( 2./(gamma + 1.) + (gamma - 1.)/(gamma + 1.) * mach**2 )**(0.5*(gamma + 1.)/(gamma - 1.)) / mach
-    
+
 
 def sigmaFunctionDerivate__(mach, gamma=GAMMA):
     """Return :math:`\\Sigma'(M)`, first derivative of :math:`\\Sigma(M)`
-    
+
     Parameters
     ----------
     mach : array_like
@@ -67,7 +67,7 @@ def _scalarSigmaFunctionInv__(s, gamma=GAMMA, range='subsonic'):
 def sigmaFunctionInv__(s, gamma=1.4, range='subsonic'):
     # This method vectorizes _scalarSigmaFunctionInv__
     """Return the inverse of the function :math:`\\Sigma(M)`
-    
+
     Parameters
     ----------
     s : array_like
@@ -83,7 +83,7 @@ def sigmaFunctionInv__(s, gamma=1.4, range='subsonic'):
         for x, y in it:
             y[...] = _scalarSigmaFunctionInv__(s, gamma=gamma)
         return it.operands[1]
-        
+
 
 
 ## ∆p_(2n) = G∆M-(1n) + D[∆M_(1n) − ∆M_(n−ncontrol) ]
@@ -122,7 +122,7 @@ def getInfo(tcase,familyName):
         exit()
 
 
-    
+
     ## Calculated Values
     _tau        = tauFunction__(m1)                                   # Eqn. (10) || τ(M)= 1 + (γ-1)/2 M²
     m2is        = sigmaFunctionInv__(A2/A1 * sigmaFunction__(m1))     # Eqn. (11) || M_2,is=Σ⁻¹(A_2 /A_1 Σ(M_1))
@@ -131,11 +131,11 @@ def getInfo(tcase,familyName):
     # coefficient de perte de charge entre l'entrée et la sortie du domaine,
     # ici uniquement du au support, et calculé à partir d'une estimation de la traînée du support
     if lbda <0: lbda = cxSupport * sSupport/A1
-    
+
     p0          = pi1 / _tau **(GAMMA/(GAMMA - 1.))                  # Pa - static pressure for m1
     q0          = 0.5*p0*GAMMA*m1**2                                 # Pa - dynamic pressure for m1
     p2          = p2is - q0*lbda                                     # Eqn. (13) || Pa - outlet static pressure || λ = (p_2,is-p_2)/q_1
-    
+
     values4gain  =[p2,
                    m1,
                    p2is*GAMMA*m2is,
@@ -145,7 +145,7 @@ def getInfo(tcase,familyName):
                    sigmaFunctionDerivate__(m2is),
                    0,
                    0]        
-    
+
     return values4gain,controlProbeName,itExtrctPrb
 
 
@@ -170,17 +170,17 @@ def getPointsFromTree(tree):
         dct_points[name] = point
     return dct_points
 
-        
+
 def setupMachProbe(t,buffer_size,isRestart,DIRECTORY_PROBES):
     Post._computeVariables(t, ['centers:Mach'])  
 
     dct_probe_point       = {}  
     dct_points_for_probes = getPointsFromTree(C.convertFile2PyTree(os.path.join(DIRECTORY_PROBES, "probes.cgns")))
-    
+
     for name, point in dct_points_for_probes.items():
         probe = Probe.Probe(os.path.join(DIRECTORY_PROBES, "probe_{:s}.cgns".format(name)), t, X=point, fields=['centers:Mach'], bufferSize=buffer_size, append=isRestart) 
         dct_probe_point[name] = probe
-        
+
     C._rmVars(t, ['centers:Mach'])
     return dct_points_for_probes,dct_probe_point
 
@@ -196,7 +196,7 @@ def _controlOutletPressureMachProbe(tc,dctProbes,controlProbeName,DIRECTORY_PROB
     for name, probe in dctProbes.items():
         probe.flush() 
     Cmpi.barrier()
-    
+
     if Cmpi.rank == 0:
         print("   iteration {:06d}: adjusting back pressure...".format(it), end='')
         probe_tmp = C.convertFile2PyTree(os.path.join(DIRECTORY_PROBES, "probe_{:s}.cgns".format(controlProbeName))) 
@@ -210,7 +210,7 @@ def _controlOutletPressureMachProbe(tc,dctProbes,controlProbeName,DIRECTORY_PROB
         index_previous = -2 #-1 - (itValues4gain[1] // itExtractProbe) 
         current_it     = time[index_current]
         current_mach   = mach[index_current]
-        
+
         previous_it    = time[index_previous] 
         previous_mach  = mach[index_previous]
         #print(current_it, previous_it, current_mach, previous_mach,flush=True)

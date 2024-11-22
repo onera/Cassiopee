@@ -647,9 +647,9 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
 
     if not SpanPositions: SpanPositions = numpy.linspace(0,1,Ns)
     elif numpy.max(SpanPositions) > 1 or numpy.min(SpanPositions) < 0:
-            print ('Aero sweepSections warning: SpanPositions badly imposed, \
+        print ('Aero sweepSections warning: SpanPositions badly imposed, \
             it shall be defined between [0,1]. Switching to uniform spacing.')
-            SpanPositions = numpy.linspace(0,1,Ns)
+        SpanPositions = numpy.linspace(0,1,Ns)
 
     if not rotation:
         rotation = numpy.zeros(Ns)

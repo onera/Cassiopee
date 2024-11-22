@@ -28,18 +28,18 @@ def fixGap():
 
     # get bump factor
     factor = 2*WIDGETS['bump'].get() / 100.
-    
+
     # Contours
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     contours = []
     for nz in nzs:
-      nob = CTK.Nb[nz]+1
-      noz = CTK.Nz[nz]
-      contours.append(CTK.t[2][nob][2][noz])
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        contours.append(CTK.t[2][nob][2][noz])
 
     contours = C.convertArray2Tetra(contours)
     contours = T.join(contours)
@@ -49,25 +49,25 @@ def fixGap():
     fail = False; out = []
     for contour in contours:
         try:
-          p = G.fittingPlaster(contour, bumpFactor=factor)
-          b = G.gapfixer(contour, p)
-          out.append(b)
+            p = G.fittingPlaster(contour, bumpFactor=factor)
+            b = G.gapfixer(contour, p)
+            out.append(b)
         except Exception as e:
-          fail = True
-          Panels.displayErrors([0,str(e)], header='Error: gapfixer on %s.'%contour[0])
-  
+            fail = True
+            Panels.displayErrors([0,str(e)], header='Error: gapfixer on %s.'%contour[0])
+
     CTK.saveTree()
     CTK.t = C.addBase2PyTree(CTK.t, 'FIXED', 2)
     base = Internal.getNodesFromName1(CTK.t, 'FIXED')[0]
     nob = C.getNobOfBase(base, CTK.t)
     for b in out:
-       CTK.add(CTK.t, nob, -1, b)
-       #CTK.add(CTK.t, nob, -1, p)
+        CTK.add(CTK.t, nob, -1, b)
+        #CTK.add(CTK.t, nob, -1, p)
     if not fail:
-       CTK.TXT.insert('START', 'Gap fixed.\n')
+        CTK.TXT.insert('START', 'Gap fixed.\n')
     else:
-      CTK.TXT.insert('START', 'Gap fixing fails.\n')
-      CTK.TXT.insert('START', 'Warning: ', 'Warning')
+        CTK.TXT.insert('START', 'Gap fixing fails.\n')
+        CTK.TXT.insert('START', 'Warning: ', 'Warning')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -80,14 +80,14 @@ def fixGaps():
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     # get mode
     modeString = VARS[0].get()
     mode = 2; coplanar = 0 # unknown
     if modeString == 'Centers': mode = 1; coplanar = 0
     elif modeString == 'Nodes': mode = 0; coplanar = 0
     elif modeString == 'Slice': mode = 0; coplanar = 1
-    
+
     # Patches
     nzs = CPlot.getSelectedZones()
     if nzs == []:
@@ -106,7 +106,7 @@ def fixGaps():
     b = G.gapsmanager(patches, mode=mode, coplanar=coplanar)
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CTK.t[2][nob0][2] += b
-    
+
     #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Gaps fixed.\n')    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -119,7 +119,7 @@ def conformUnstr():
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -200,7 +200,7 @@ def conformUnstr():
                 z = CTK.t[2][nob][2][noz]
                 z = XOR.conformUnstr(z, tol=tol, itermax=1)
                 CTK.replace(CTK.t, nob, noz, z)
-    
+
     CTK.TXT.insert('START', 'Surface conformized.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -213,7 +213,7 @@ def forceMatch():
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -245,7 +245,7 @@ def forceMatch():
         noz2 = CTK.Nz[nz]
         z2 = CTK.t[2][nob2][2][noz2]
     else: z2 = None
-    
+
     #z1 = []
     #name = VARS[6].get()
     #names = name.split(';')
@@ -259,7 +259,7 @@ def forceMatch():
     #            if z[0] == sname[1]: z1.append(z)
     #if len(z1) > 0: z1 = z1[0]
     #else: z1 = None
-    
+
     c1 = []
     name = VARS[7].get()
     names = name.split(';')
@@ -272,7 +272,7 @@ def forceMatch():
             for z in nodes:
                 if z[0] == sname[1]: c1.append(z)
     if c1 != []: c1 = T.join(c1)
-    
+
     #z2 = []
     #name = VARS[8].get()
     #names = name.split(';')
@@ -286,7 +286,7 @@ def forceMatch():
     #            if z[0] == sname[1]: z2.append(z)
     #if len(z2) > 0: z2 = z2[0]
     #else: z2 = None
-    
+
     c2 = []
     name = VARS[9].get()
     names = name.split(';')
@@ -299,7 +299,7 @@ def forceMatch():
             for z in nodes:
                 if z[0] == sname[1]: c2.append(z)
     if c2 != []: c2 = T.join(c2)
-    
+
     if c1 == [] and c2 == []: 
         G._close(z1, tol)
         if z2 is not None: G._close(z2, tol)
@@ -307,26 +307,26 @@ def forceMatch():
         G._forceMatch(z1, z2, C1=c1, C2=c2)
     else: 
         G._forceMatch(z1, z2, tol=tol)
-    
+
     # Try merge
     if z2 is not None: z = T.join(z1, z2)
     else: z = z1
     z = G.close(z)
-    
+
     z = T.reorder(z, (1,))
     CTK.replace(CTK.t, nob1, noz1, z)
     if z2 is not None:
         CPlot.delete([CTK.t[2][nob2][0]+Internal.SEP1+z2[0]])
         del CTK.t[2][nob2][2][noz2]
-    
+
     if VARS[10].get() == '1': displayFix()
-    
+
     CTK.TXT.insert('START', 'Surfaces match.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.setCursor(0, WIDGETS['forceMatch'])
-    
+
 #==============================================================================
 def setPointCoordinates(V):
     if CTK.t == []: return
@@ -357,7 +357,7 @@ def setSel(V, W):
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     V.set(selected); W.xview(len(selected)-1)
-    
+
 # Cree une base avec les courbes a fixer
 # a partir de toutes les zones TRI de t
 def getFix(t):
@@ -372,7 +372,7 @@ def getFix(t):
         ext = T.splitManifold(ext)
         #ext = T.splitSharpEdges(ext)
     return ext
-    
+
 def displayFix(event=None):
     if CTK.t == []: return
     # Find base
@@ -389,12 +389,12 @@ def displayFix(event=None):
     ext = getFix(CTK.t)
     nob = C.getNobOfBase(b, CTK.t)
     for z in ext: CTK.add(CTK.t, nob, -1, z)
-    
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
     return None
-    
+
 def removeFix(event=None):
     # Find base
     b = Internal.getNodeFromName1(CTK.t, 'TOFIX')
@@ -410,11 +410,11 @@ def removeFix(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     return None
-    
+
 def toggleFix(event=None):
     if VARS[10].get() == '0': removeFix()
     else: displayFix()
-     
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -432,7 +432,7 @@ def createApp(win):
     Frame.columnconfigure(2, weight=1)
     Frame.columnconfigure(3, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -462,14 +462,14 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -10- fix mode : display curves to be fixed
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    
+
     # - Slider -
     B = TTK.Scale(Frame, from_=-50, to=50, orient=TK.HORIZONTAL, showvalue=0,
                   borderwidth=1, value=0)
     WIDGETS['bump'] = B
     B.grid(row=0, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Bump.')
-    
+
     # - Fix gap in contour -
     B = TTK.Button(Frame, text="Fix gap in contour", command=fixGap)
     B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
@@ -481,7 +481,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Fix gaps in patches (even with overlap).')
     B = TTK.OptionMenu(Frame, VARS[0], 'Nodes', 'Centers', 'Unknown', 'Slice')
     B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
-    
+
     # - conformUnstr -
     B = TTK.Button(Frame, text="conformUnstr", command=conformUnstr)
     WIDGETS['conformUnstr'] = B
@@ -493,7 +493,7 @@ def createApp(win):
     B = TTK.Checkbutton(Frame, text='', variable=VARS[2])
     B.grid(row=2, column=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Split while conformizing.')
-    
+
     # - forceMatch -
     #B = TTK.Entry(Frame, textvariable=VARS[6], background='White', width=15)
     #B.grid(row=3, column=0, columnspan=1, sticky=TK.EW)
@@ -508,7 +508,7 @@ def createApp(win):
     B = TTK.Button(Frame, image=iconics.PHOTO[8],
                    command=lambda x=VARS[7], y=WIDGETS['courbe1'] : setSel(x, y), padx=0)
     B.grid(row=3, column=1, sticky=TK.EW)
-    
+
     #B = TTK.Entry(Frame, textvariable=VARS[8], background='White', width=15)
     #B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
     #BB = CTK.infoBulle(parent=B, text='Source1.')
@@ -522,7 +522,7 @@ def createApp(win):
     B = TTK.Button(Frame, image=iconics.PHOTO[8],
                    command=lambda x=VARS[9],y=WIDGETS['courbe2'] : setSel(x,y), padx=0)
     B.grid(row=3, column=3, sticky=TK.EW)
-    
+
     B = TTK.Button(Frame, text="forceMatch", command=forceMatch)
     WIDGETS['forceMatch'] = B
     B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
@@ -558,7 +558,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

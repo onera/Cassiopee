@@ -40,28 +40,28 @@ extensions = [
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs())]
 if srcs.SZ:
-  mySystem = Dist.getSystem()
-  if mySystem[0] == 'mingw':
-    additionalLibs += ["z"] # sometimes zlib1
-  else: additionalLibs += ["z"]
+    mySystem = Dist.getSystem()
+    if mySystem[0] == 'mingw':
+        additionalLibs += ["z"] # sometimes zlib1
+    else: additionalLibs += ["z"]
 
-  extensions += [
-    Extension('Compressor.sz.csz',
-               sources=["Compressor/sz/compressor.cpp"],
-               include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-               library_dirs=additionalLibPaths+libraryDirs,
-               libraries=libraries+["ksz", "kzstd"]+additionalLibs,
-               extra_compile_args=Dist.getCppArgs(),
-               extra_link_args=Dist.getLinkArgs())]
+    extensions += [
+      Extension('Compressor.sz.csz',
+                 sources=["Compressor/sz/compressor.cpp"],
+                 include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+                 library_dirs=additionalLibPaths+libraryDirs,
+                 libraries=libraries+["ksz", "kzstd"]+additionalLibs,
+                 extra_compile_args=Dist.getCppArgs(),
+                 extra_link_args=Dist.getLinkArgs())]
 if srcs.ZFP:
-  extensions += [
-    Extension('Compressor.zfp.czfp',
-              sources=["Compressor/zfp/compressor.cpp"],
-              include_dirs=["Compressor", "Compressor/zfp/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+["kzfp"]+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs())]
+    extensions += [
+      Extension('Compressor.zfp.czfp',
+                sources=["Compressor/zfp/compressor.cpp"],
+                include_dirs=["Compressor", "Compressor/zfp/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+                library_dirs=additionalLibPaths+libraryDirs,
+                libraries=libraries+["kzfp"]+additionalLibs,
+                extra_compile_args=Dist.getCppArgs(),
+                extra_link_args=Dist.getLinkArgs())]
 
 # Setup ======================================================================
 setup(

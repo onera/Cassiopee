@@ -62,7 +62,7 @@ def sculpt():
 
     TOOLS = createTools()
     #CTK.display(TOOLS)
- 
+
     bbox = G.bbox(CTK.t)
     size = max(bbox[3]-bbox[0], bbox[4]-bbox[1], bbox[5]-bbox[2])
     CPlot.unselectAllZones()
@@ -126,10 +126,10 @@ def sculpt():
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(w)
-       CPlot.setState(cursor=0)
-       
+        CTK.__BUSY__ = False
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
+
 #==============================================================================
 def setDepth(event=None):
     depth = 0.5*WIDGETS['depth'].get()/100.
@@ -154,7 +154,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -191,7 +191,7 @@ def createApp(win):
     WIDGETS['width'] = B
     B.grid(row=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[5])
-    
+
     # - Brush -
     B = TTK.OptionMenu(Frame, VARS[2], 'Deform', 'Sphere')
     B.grid(row=2, column=0, sticky=TK.EW)
@@ -201,7 +201,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Enter sculpt mode.')
     B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
     WIDGETS['sculpt'] = B
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -226,7 +226,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

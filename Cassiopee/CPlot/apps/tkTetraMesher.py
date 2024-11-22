@@ -75,7 +75,7 @@ def createApp(win):
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkTetraMesher')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Mesher type -
     V = TK.StringVar(win); V.set('tetgen'); VARS.append(V)
@@ -90,7 +90,7 @@ def createApp(win):
     B.grid(row=0, column=0, sticky=TK.EW)
     WIDGETS['tetraMesher'] = B
     BB = CTK.infoBulle(parent=B, text='Mesh with TETRAs or TRIs.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -116,7 +116,7 @@ def updateApp(): return
 def saveApp():
     CTK.PREFS['tkTetraMesherType'] = VARS[0].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('netgen')
@@ -126,7 +126,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

@@ -105,7 +105,7 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkGhostCells')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- number of layers of ghost cells -
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
@@ -116,7 +116,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=5)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of ghost cell layers.')
-    
+
     # - methode pour les coins -
     B = TTK.OptionMenu(Frame, VARS[1], 'None')
     B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
@@ -125,7 +125,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Add", command=addGhostCells)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Add layers of ghost cells.')
-    
+
     # - rm ghost cells -
     B = TTK.Button(Frame, text="Rm", command=rmGhostCells)
     B.grid(row=1, column=1, sticky=TK.EW)
@@ -155,7 +155,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

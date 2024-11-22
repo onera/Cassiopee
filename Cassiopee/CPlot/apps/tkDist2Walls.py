@@ -31,7 +31,7 @@ def setSurfaces():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[1].set(selected)
-    
+
 #==============================================================================
 def compute():
     if CTK.t == []: return
@@ -59,14 +59,14 @@ def compute():
         walls = C.extractBCOfType(CTK.t, 'BCWall')
         walls += C.extractBCOfType(CTK.t, 'BCWallViscous')
         walls += C.extractBCOfType(CTK.t, 'BCWallInviscid')
-    
+
     tp = C.newPyTree(['Base'])
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         tp[2][1][2].append(z)
-        
+
     try:
         if VARS[2].get() == 'absolute': signed = 0
         else: signed = 1
@@ -86,7 +86,7 @@ def compute():
         Panels.displayErrors([0,str(e)], header='Error: dist2Walls')
         CTK.TXT.insert('START', 'Distance to walls failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-        
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -102,7 +102,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=4)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -146,7 +146,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[3], 'nodes', 'centers')
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Compute the wall distance.\nTree is modified.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -185,7 +185,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

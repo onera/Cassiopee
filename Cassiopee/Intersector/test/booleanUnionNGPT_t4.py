@@ -36,7 +36,7 @@ ids  = C.identifyElements(hook, subz)
 h2   = C.addBC2Zone(h2, 'sym', 'BCSymmetryPlane', faceList=ids)
 
 h2   = C.fillEmptyBCWith(h2, 'far2','BCFarfield')
- 
+
 h1 = C.fillEmptyBCWith(h1, 'wall','BCWall')
 h2 = C.fillEmptyBCWith(h2, 'nref','BCFarfield')
 

@@ -13,7 +13,7 @@ import numpy
 # if ext=0, match and nearmatch joins are not computed
 def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, tbox=None, snearsf=None, 
                      ext=2, dimPb=3, sizeMax=1000000, expand=0):
-    
+
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -39,8 +39,8 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     # addRefinementZones
     if tbox is not None:
         o = addRefinementZones(o, tbox, snearsf, vmin=vmin, dim=dimPb)
-  
-  
+
+
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox, 
@@ -68,7 +68,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     Cmpi._setProc(t, rank)
     C._addState(t, 'EquationDimension', dimPb)
     test.printMem(">>> Octree struct [end]")
-    
+
     # Add xzones for ext
     if ext>0:
         test.printMem(">>> extended cart grids [start]")
@@ -87,7 +87,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
         Cmpi._rmXZones(t)
         coords = None; zones = None
         test.printMem(">>> extended cart grids (after rmXZones) [end]")
-    
+
         TIBM._addBCOverlaps(t, bbox=bb)
         TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
 

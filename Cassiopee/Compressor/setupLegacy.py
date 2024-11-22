@@ -26,7 +26,7 @@ from KCore.config import *
 libraryDirs += paths; libraries += libs
 
 includeDirs = [numpyIncDir, kcoreIncDir]
-    
+
 # Extensions =================================================================
 import srcs
 extensions = [

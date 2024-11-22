@@ -49,11 +49,11 @@ def uniformize__(a, N, h, factor, density, sharpAngle):
     elif factor > 0: N = int(factor*(C.getNPts(a)-1))+1
     elif h > 0: N = int(L/h)+1
     N = max(N, 2)
-    
+
     # I can add splitConnexity if needed
     b = T.splitSharpEdges(a, alphaRef=sharpAngle) # b is BAR closed
     if ntype == 1: b = T.splitTBranches(b)
-    
+
     out = []; Nt = 0; rest = 0
     for ct, i in enumerate(b):
         if C.getNPts(i) >= 2: # avoid degenerated cases 
@@ -123,14 +123,14 @@ def refine__(a, N, factor, sharpAngle):
 # IN: 'imin', 'jmin', ...
 # OUT: [imin,imax,jmin,jmax,kmin,kmax]
 def convertStringRange2Range__(wrange, a):
-  ni = a[2]; nj = a[3]; nk = a[4]
-  if wrange == 'imin': wrange = [1,1,1,nj,1,nk]
-  elif wrange == 'imax': wrange = [ni,ni,1,nj,1,nk]
-  elif wrange == 'jmin': wrange = [1,ni,1,1,1,nk]
-  elif wrange == 'jmax': wrange = [1,ni,nj,nj,1,nk]
-  elif wrange == 'kmin': wrange = [1,ni,1,nj,1,1]
-  else: wrange = [1,ni,1,nj,nk,nk]
-  return wrange
+    ni = a[2]; nj = a[3]; nk = a[4]
+    if wrange == 'imin': wrange = [1,1,1,nj,1,nk]
+    elif wrange == 'imax': wrange = [ni,ni,1,nj,1,nk]
+    elif wrange == 'jmin': wrange = [1,ni,1,1,1,nk]
+    elif wrange == 'jmax': wrange = [1,ni,nj,nj,1,nk]
+    elif wrange == 'kmin': wrange = [1,ni,1,nj,1,1]
+    else: wrange = [1,ni,1,nj,nk,nk]
+    return wrange
 
 # set h step in place
 # ind : indice ou [imin,imax,jmin,jmax,kmin,kmax] ou 'imin'
@@ -180,11 +180,11 @@ def setF(a, ind, f):
         b[kmin:kmax,jmin:jmax,imin:imax] = f
     else: # suppose range
         if len(ind) == 2:
-           [imin,imax] = ind
-           jmin = 1; jmax = 1; kmin = 1; kmax = 1
+            [imin,imax] = ind
+            jmin = 1; jmax = 1; kmin = 1; kmax = 1
         elif len(ind) == 4:
-           [imin,imax,jmin,jmax] = ind
-           kmin = 1; kmax = 1
+            [imin,imax,jmin,jmax] = ind
+            kmin = 1; kmax = 1
         else: [imin,imax,jmin,jmax,kmin,kmax] = ind
         b = a[1][pos]
         b = b.reshape((a[4],a[3],a[2]))
@@ -313,7 +313,7 @@ def enforceh__(a, N, h):
     # Calcul h1s, h2s, i1s, i2s
     h1s=[]; h2s=[]; Ps=[]; i1s=[]; i2s=[]
     h1 = -1; h2 = -1; i1 = -1; i2 = -1
-    
+
     # compute h
     vol = G.getVolumeMap(a)
     vol = C.center2Node(vol)
@@ -349,7 +349,7 @@ def enforceh__(a, N, h):
         if hi == 0. and i == npts-1:
             hi = h1 # extrapolation
             hi = vol[npts-1]
-        
+
         if hi > 1.e-12:
             #if i1 == -1: i1 = 0; i2 = i; h1 = hi; h2 = hi # propagate hi from inside if not set on borders
             # keep border h if not set
@@ -497,7 +497,7 @@ def mapCurvature(a, N, factor=1., sharpAngle=30.):
         #radius0 = rad[i]
         if alpha0 > 30.: split.append(i)
     split.append(npts-1)
-    
+
     nsplit = len(split)
     for x in range(nsplit):
         isp = split[x]

@@ -217,44 +217,44 @@ fileTypes=[('converter', '*.plt'),
 # Retourne le module si il est loade, le load et cree l'App sinon
 #==============================================================================
 def getModule(app):
-  global TKMODULES
-  if app not in TKMODULES: return None
-  if TKMODULES[app] is None:
-      #try:
-      module = __import__(app)
-      TKMODULES[app] = module
-      frame = TKMODULEFRAMES[app]
-      module.createApp(frame)
-      #except: print('Warning: module %s can not be loaded.'%app)
-  return TKMODULES[app]
+    global TKMODULES
+    if app not in TKMODULES: return None
+    if TKMODULES[app] is None:
+        #try:
+        module = __import__(app)
+        TKMODULES[app] = module
+        frame = TKMODULEFRAMES[app]
+        module.createApp(frame)
+        #except: print('Warning: module %s can not be loaded.'%app)
+    return TKMODULES[app]
 
 def openApp(app):
-  module = getModule(app)
-  if module is not None: module.showApp()
+    module = getModule(app)
+    if module is not None: module.showApp()
 
 # 0: None, 2: watch, 3: cross
 def setCursor(cursor, B=None, C=None, D=None):
-  win = WIDGETS['masterWin']
-  if cursor == 2: win.config(cursor="watch")
-  elif cursor == 1: win.config(cursor="cross")
-  elif cursor == 0: win.config(cursor="")
-  win.update()
-  if B is not None:
-    if cursor == 2: B.config(cursor="watch")
-    elif cursor == 1: B.config(cursor="cross")
-    elif cursor == 0: B.config(cursor="")
-    B.update()
-  if C is not None:
-    if cursor == 2: C.config(cursor="watch")
-    elif cursor == 1: C.config(cursor="cross")
-    elif cursor == 0: C.config(cursor="")
-    C.update()
-  if D is not None:
-    if cursor == 2: D.config(cursor="watch")
-    elif cursor == 1: D.config(cursor="cross")
-    elif cursor == 0: D.config(cursor="")
-    D.update()
-    
+    win = WIDGETS['masterWin']
+    if cursor == 2: win.config(cursor="watch")
+    elif cursor == 1: win.config(cursor="cross")
+    elif cursor == 0: win.config(cursor="")
+    win.update()
+    if B is not None:
+        if cursor == 2: B.config(cursor="watch")
+        elif cursor == 1: B.config(cursor="cross")
+        elif cursor == 0: B.config(cursor="")
+        B.update()
+    if C is not None:
+        if cursor == 2: C.config(cursor="watch")
+        elif cursor == 1: C.config(cursor="cross")
+        elif cursor == 0: C.config(cursor="")
+        C.update()
+    if D is not None:
+        if cursor == 2: D.config(cursor="watch")
+        elif cursor == 1: D.config(cursor="cross")
+        elif cursor == 0: D.config(cursor="")
+        D.update()
+
 #==============================================================================
 # Extrait des arrays de a pour les envoyer au plotter
 # - transforme la solution en centres en noeuds
@@ -493,9 +493,9 @@ def upgradeTree(t):
     #t = Internal.correctPyTree(t, level=9) # connectivity
     if FIREWALL: Internal._fixNGon(t) # suppressed in v4
     try:
-      if C.isNamePresent(t, 'CoordinateX') <= 0: C._addVars(t, 'CoordinateX')
-      if C.isNamePresent(t, 'CoordinateY') <= 0: C._addVars(t, 'CoordinateY')
-      if C.isNamePresent(t, 'CoordinateZ') <= 0: C._addVars(t, 'CoordinateZ')
+        if C.isNamePresent(t, 'CoordinateX') <= 0: C._addVars(t, 'CoordinateX')
+        if C.isNamePresent(t, 'CoordinateY') <= 0: C._addVars(t, 'CoordinateY')
+        if C.isNamePresent(t, 'CoordinateZ') <= 0: C._addVars(t, 'CoordinateZ')
     except: pass
     return t
 
@@ -509,8 +509,8 @@ def upgradeTree(t):
 #==============================================================================
 def fixFileString__(files, initFile=None):
     try:
-      import platform
-      system = platform.uname()[0]
+        import platform
+        system = platform.uname()[0]
     except: system = 'unix'
 
     if version_info[0] == 2 and isinstance(files, unicode): # windows old bug (single unicode)
@@ -536,17 +536,17 @@ def fixFileString__(files, initFile=None):
             if s != ' ' and s != '': out.append(s)
     elif system == 'Windows': # doesnt return initfile
         if initFile != '' and initFile is not None:
-          if len(files) == 0: out = [initFile]
-          else: out = files
+            if len(files) == 0: out = [initFile]
+            else: out = files
         else: out = files
     else: # unix
         # unix retourne aussi initFile en premier
         if initFile != '' and initFile is not None:
-          if len(files) == 0: out = [initFile]
-          else: out = files[1:]
+            if len(files) == 0: out = [initFile]
+            else: out = files[1:]
         else: out = files
     if version_info[0] == 2:
-      out = [o.encode('utf-8') for o in out] # Force utf-8
+        out = [o.encode('utf-8') for o in out] # Force utf-8
     return out
 
 #==============================================================================
@@ -562,7 +562,7 @@ def fixFileString2__(file):
     #else: return file
     if version_info[0] == 2: return file.encode('utf-8')
     else: return file
-    
+
 #==============================================================================
 # Load a file par un dialog
 # OUT: FILE: nom du fichier choisi
@@ -689,43 +689,43 @@ def quickSaveFile(event=None):
 # Quick reload file
 #==============================================================================
 def quickReloadFile(event=None):
-  global t; global Nb; global Nz; global __FIELD__
-  try:
-    t = C.convertFile2PyTree(FILE, density=1.)
-    t = upgradeTree(t)
-    (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
-    if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
-    if TKPLOTXY is not None: TKPLOTXY.updateApp()
-    Panels.updateRenderPanel()
-    fileName = os.path.split(FILE)[1]
-    filePath = os.path.split(FILE)[0]
-    TXT.insert('START', 'File %s reloaded.\n'%fileName)
-    changeWindowTitle(fileName, filePath)
-    errors = Internal.checkPyTree(t, level=5)
-    if errors == []: display(t)
-    else:
-        t = Internal.correctPyTree(t, level=5)
-        display(t); Panels.displayErrors(errors, header='Checking pyTree')
-  except:
-      TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
+    global t; global Nb; global Nz; global __FIELD__
+    try:
+        t = C.convertFile2PyTree(FILE, density=1.)
+        t = upgradeTree(t)
+        (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
+        if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
+        if TKPLOTXY is not None: TKPLOTXY.updateApp()
+        Panels.updateRenderPanel()
+        fileName = os.path.split(FILE)[1]
+        filePath = os.path.split(FILE)[0]
+        TXT.insert('START', 'File %s reloaded.\n'%fileName)
+        changeWindowTitle(fileName, filePath)
+        errors = Internal.checkPyTree(t, level=5)
+        if errors == []: display(t)
+        else:
+            t = Internal.correctPyTree(t, level=5)
+            display(t); Panels.displayErrors(errors, header='Checking pyTree')
+    except:
+        TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
 
 #==============================================================================
 # Quick reload skeleton from file
 #==============================================================================
 def quickReloadSkeleton(event=None):
-  global t; global HANDLE
-  try:
-    import Converter.Filter as Filter
-    h = Filter.Handle(FILE)
-    t = h.loadSkeleton(maxDepth=-1)
-    HANDLE = h
-    TKTREE.updateApp()
-    fileName = os.path.split(FILE)[1]
-    filePath = os.path.split(FILE)[0]
-    TXT.insert('START', 'File %s reloaded.\n'%fileName)
-    changeWindowTitle(fileName, filePath)
-  except:
-    TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
+    global t; global HANDLE
+    try:
+        import Converter.Filter as Filter
+        h = Filter.Handle(FILE)
+        t = h.loadSkeleton(maxDepth=-1)
+        HANDLE = h
+        TKTREE.updateApp()
+        fileName = os.path.split(FILE)[1]
+        filePath = os.path.split(FILE)[0]
+        TXT.insert('START', 'File %s reloaded.\n'%fileName)
+        changeWindowTitle(fileName, filePath)
+    except:
+        TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
 
 #==============================================================================
 # Load skeleton from file
@@ -848,8 +848,8 @@ def loadPrefFile():
     isdir = os.path.isdir(kdir)
     if not isdir: file = open(homePath+'/.cassiopee', 'r')
     else:
-      try: file = open(homePath+'/.cassiopee/config', 'r')
-      except: savePrefFile(); return []
+        try: file = open(homePath+'/.cassiopee/config', 'r')
+        except: savePrefFile(); return []
     plist = file.read()
     file.close()
     plist = plist.split('\n')
@@ -868,8 +868,8 @@ def loadPrefFile():
 def importTtk():
     try: import tkinter.ttk as ttk
     except ImportError:
-      try: import ttk
-      except ImportError: ttk = None
+        try: import ttk
+        except ImportError: ttk = None
     return ttk
 
 #==============================================================================
@@ -935,8 +935,8 @@ def setPrefs():
             val = int(val)
             CPlot.setState(displayIsoLegend=val)
         elif i == 'tkViewDim':
-             if val == '2D': CPlot.setDim(2)
-             elif val == '3D': CPlot.setDim(3)
+            if val == '2D': CPlot.setDim(2)
+            elif val == '3D': CPlot.setDim(3)
         elif i == 'tkViewEdgeA':
             if val == '1': CPlot.setState(edgifyActivatedZones=1)
             else: CPlot.setState(edgifyActivatedZones=0)
@@ -1014,17 +1014,17 @@ def savePrefFile():
     kdir = homePath+'/.cassiopee'
     exist = os.path.exists(kdir)
     if not exist: 
-      os.makedirs(kdir)
-      file = open(homePath+'/.cassiopee/config', 'w')
-    else: 
-      isdir = os.path.isdir(kdir) # ok
-      if not isdir:
-        file = open(homePath+'/.cassiopee', 'w')
-        #os.rename(kdir, homePath+'/.cassiopee_save')
-        #os.makedirs(kdir)
-        #os.rename(homePath+'/.cassiopee_save', homePath+'/.cassiopee/config')
-      else:
+        os.makedirs(kdir)
         file = open(homePath+'/.cassiopee/config', 'w')
+    else: 
+        isdir = os.path.isdir(kdir) # ok
+        if not isdir:
+            file = open(homePath+'/.cassiopee', 'w')
+            #os.rename(kdir, homePath+'/.cassiopee_save')
+            #os.makedirs(kdir)
+            #os.rename(homePath+'/.cassiopee_save', homePath+'/.cassiopee/config')
+        else:
+            file = open(homePath+'/.cassiopee/config', 'w')
     for i in PREFS: file.write(i+':'+PREFS[i]+'\n')
     file.close()
 
@@ -1244,13 +1244,13 @@ def toggleSelectAll():
 #==============================================================================
 # Inverse les zones activee et desactivees
 def revertActivated():
-  if t == []: return  
-  nz = len(Internal.getZones(t))  
-  nzs = CPlot.getActiveZones()
-  active = [(i,1) for i in range(nz)]
-  for n in nzs: active[n] = (n,0) 
-  CPlot.setActiveZones(active)
-  
+    if t == []: return  
+    nz = len(Internal.getZones(t))  
+    nzs = CPlot.getActiveZones()
+    active = [(i,1) for i in range(nz)]
+    for n in nzs: active[n] = (n,0) 
+    CPlot.setActiveZones(active)
+
 #==============================================================================
 class infoBulle(TK.Toplevel):
     # IN: text: text to be displayed
@@ -1306,14 +1306,14 @@ class infoBulle(TK.Toplevel):
         else:
             posX = self.parent.winfo_rootx()+self.parent.winfo_width()
             posY = self.parent.winfo_rooty()+self.parent.winfo_height()
-        
+
         if posX > self.winfo_screenwidth():
             posX = self.winfo_screenwidth() - self.tipwidth
         elif posX + self.tipwidth > self.winfo_screenwidth():
             posX -= self.winfo_width()
         if posY + self.tipheight > self.winfo_screenheight():
             posY -= self.parent.winfo_height() + self.winfo_height()
-            
+
         self.geometry('+%d+%d'%(posX,posY))
         self.deiconify()
     def efface(self, event):
@@ -1321,24 +1321,24 @@ class infoBulle(TK.Toplevel):
         self.parent.after_cancel(self.action)
 
 def stt__(s, mode=0):
-  s = s.replace(' ', '')
-  if mode == 0:
-    s = s.replace('(', '')
-    s = s.replace(')', '')
-    s = s.replace(',', ';')
-  s = s.replace('|', ';')
-  c = 0; out = ''; o = 0
-  for i in s:
-    if i == ';':
-      o += 1
-      if o == 1: out += i
-    else:
-      o = 0
-      out += i
-    c += 1
-  s = out.split(';')
-  #s = [i for i in s if i]
-  return s
+    s = s.replace(' ', '')
+    if mode == 0:
+        s = s.replace('(', '')
+        s = s.replace(')', '')
+        s = s.replace(',', ';')
+    s = s.replace('|', ';')
+    c = 0; out = ''; o = 0
+    for i in s:
+        if i == ';':
+            o += 1
+            if o == 1: out += i
+        else:
+            o = 0
+            out += i
+        c += 1
+    s = out.split(';')
+    #s = [i for i in s if i]
+    return s
 
 #==============================================================================
 # Extrait les variables de chaines recuperes des widgets
@@ -1372,26 +1372,26 @@ def varsFromWidget(varString, type=0):
         for i in s:
             try: val = int(i)
             except:
-              try: val = int(float(i))
-              except: val = -1
+                try: val = int(float(i))
+                except: val = -1
             ret.append(val)
         return ret
     elif type == 3: # indices
         s = stt__(varString, mode=1)
         ret = []
-        
+
         #from ast import literal_eval
         #for i in s:
         #    try: val = literal_eval(i); ret.append(val)
         #    except: ret.append(0)
-        
+
         for i in s:
             try: 
-              val = eval(i)
-              if isinstance(val, list): ret += val
-              else: ret.append(val)
+                val = eval(i)
+                if isinstance(val, list): ret += val
+                else: ret.append(val)
             except: ret.append(0)
-            
+
         return ret
     return []
 
@@ -1529,7 +1529,7 @@ def toolBar(win, mode=0):
 # IN: mode: 0 (Cassiopee), 1 (kcgnsview)
 #==============================================================================
 def minimal(title, show=True, mode=0):
-    
+
     global TXT, TKTREE
     win = TK.Tk()
     WIDGETS['masterWin'] = win
@@ -1582,7 +1582,7 @@ def minimal(title, show=True, mode=0):
         file.add_command(label='Open', accelerator='Ctrl+o', command=loadFileSkeleton)
         file.add_separator()
         file.add_command(label='Quit', command=Quit)
-        
+
     # menu CPlot
     if mode == 0:
         cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
@@ -1602,7 +1602,7 @@ def minimal(title, show=True, mode=0):
         cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
         WIDGETS['cplotMenu'] = cplot
         menu.add_cascade(label='CPlot', menu=cplot)
-                     
+
     # Menu specific tools
     if mode == 0:
         tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
@@ -1613,7 +1613,7 @@ def minimal(title, show=True, mode=0):
     else:
         tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
         menu.add_cascade(label='Tools', menu=tools)
-        
+
     # Menu Help
     help = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     menu.add_cascade(label='Help', menu=help)
@@ -1651,7 +1651,7 @@ def minimal(title, show=True, mode=0):
 
     try: TKTREE = __import__('tkTree'); TKTREE.createApp(win)
     except: TKTREE = None 
-    
+
     return (win, menu, file, tools)
 
 #==============================================================================
@@ -1663,7 +1663,7 @@ def minimal(title, show=True, mode=0):
 def minimal2(title, show=True, mode=0):
     global TKTREE
     (win, menu, file, tools) = minimal(title, show, mode)
-    
+
     # Frame container
     F = TTK.Frame(win)
     F.grid(columnspan=2, sticky=TK.NSEW)
@@ -1673,11 +1673,11 @@ def minimal2(title, show=True, mode=0):
     F.rowconfigure(1, weight=0)
     F.rowconfigure(2, weight=1)
     F.rowconfigure(3, weight=0)
-    
+
     # Cree le TkTree (colonne1)
     TKTREE = __import__('tkTree')
     TKTREE.createApp(F); TKTREE.showApp()
-    
+
     # Cree le notebook avec boutons
     nb = noteBook(F, TK.LEFT, menu)
     frames = []; menus = []; buttons = []
@@ -1889,7 +1889,7 @@ class noteBook:
             if self.menu is not None and menu_fr is not None:
                 if UPDATEAPPSMENU:
                     self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
-                
+
         self.count += 1
 
         # returns a reference to the newly created
@@ -1907,7 +1907,7 @@ class noteBook:
                 self.menu.delete(3)
                 self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
                 #self.menu.entryconfigure(3, menu=menu_fr)
-            
+
     # Display the gleize little menu
     def displayMenu(self, event, fr, menu_fr, b):
         menu_fr.tk_popup(event.x_root+50, event.y_root, 0)
@@ -2008,7 +2008,7 @@ def GIF(Function, functionName='myFunction', *args):
     if nzs == []:
         TXT.insert('START', 'Selection is empty.\n')
         TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     # Sauve l'arbre
     saveTree()
     # Applique la fonction zone a zone
@@ -2032,35 +2032,35 @@ def GIF(Function, functionName='myFunction', *args):
     # Log 
     import Log
     if Log.LOGGING:
-      sel = Log.getSelectedZones()
-      if sel is not None:
-        Log.LOG += sel
-      Log.displayLog()
+        sel = Log.getSelectedZones()
+        if sel is not None:
+            Log.LOG += sel
+        Log.displayLog()
 
 #===============================================================================
 # Mail current image to friends
 #===============================================================================
 def mail2Friends():
-  # Open panel for 'mail'+'message'
-  Panels.openMailWindow()
-  #Panels.mailData['mailWindow'].master.wait_window(Panels.mailData['mailWindow'])
-  
+    # Open panel for 'mail'+'message'
+    Panels.openMailWindow()
+    #Panels.mailData['mailWindow'].master.wait_window(Panels.mailData['mailWindow'])
+
 #===============================================================================
 # Save image to document (odt)
 #===============================================================================
 def save2Doc():
-  # Open panel for doc
-  Panels.openDocWindow()
-  #Panels.docData['docWindow'].master.wait_window(Panels.docData['docWindow'])
+    # Open panel for doc
+    Panels.openDocWindow()
+    #Panels.docData['docWindow'].master.wait_window(Panels.docData['docWindow'])
 
 #==============================================================================
 # Change title : change le titre dans la fenetre CPlot (if top window) + Tk 
 #==============================================================================
 def changeWindowTitle(fileName, filePath="."):
-  if fileName == '': return
-  CPlot.setWindowTitle(fileName, filePath)
-  win = WIDGETS['masterWin']
-  win.title('Cassiopee'+C.__version__+' - '+fileName)
+    if fileName == '': return
+    CPlot.setWindowTitle(fileName, filePath)
+    win = WIDGETS['masterWin']
+    win.title('Cassiopee'+C.__version__+' - '+fileName)
 
 # Fonction pour matcher un filter dans une chaine
 def matchString(filter, myString):
@@ -2079,47 +2079,47 @@ def matchString(filter, myString):
 # Cette fonction ne fait pas upgrade et updateApps
 #==============================================================================
 def tkLoadFile(files, mode='full'):
-  global FILE; global HANDLE; global t
-  if mode == 'auto':
-    try:
-      size = 0
-      for f in files: size += os.path.getsize(f) # en octets
-    except: 
-      print('Error: convertFile2PyTree: fail to read file %s.'%files[0])
-      return
-    if size > 1000000000: print('INFO: size: %f Gb'%(size/1000000000))
-    elif size > 1000000: print('INFO: size: %f Mb'%(size/1000000))
-    else: print('INFO: size: %f kb'%(size/1000))
-    maxSize = PREFS.get('maxFileSizeForLoad', 6.) # en Gb
-    maxSize = maxSize * 100000000
-    if size > maxSize: mode = 'partial'
-    else: mode = 'full'
+    global FILE; global HANDLE; global t
+    if mode == 'auto':
+        try:
+            size = 0
+            for f in files: size += os.path.getsize(f) # en octets
+        except: 
+            print('Error: convertFile2PyTree: fail to read file %s.'%files[0])
+            return
+        if size > 1000000000: print('INFO: size: %f Gb'%(size/1000000000))
+        elif size > 1000000: print('INFO: size: %f Mb'%(size/1000000))
+        else: print('INFO: size: %f kb'%(size/1000))
+        maxSize = PREFS.get('maxFileSizeForLoad', 6.) # en Gb
+        maxSize = maxSize * 100000000
+        if size > maxSize: mode = 'partial'
+        else: mode = 'full'
 
-  if mode == 'partial':
-    fileName = files[0]
-    try: format = Converter.checkFileType(fileName)
-    except:
-      print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
-      return
-    if format != 'bin_adf' and format != 'bin_hdf': mode = 'full' 
+    if mode == 'partial':
+        fileName = files[0]
+        try: format = Converter.checkFileType(fileName)
+        except:
+            print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
+            return
+        if format != 'bin_adf' and format != 'bin_hdf': mode = 'full' 
 
-  if mode == 'partial': # partial load
-    import Converter.Filter as Filter
-    HANDLE = Filter.Handle(files[0])
-    t = HANDLE.loadSkeleton()
-    HANDLE._loadTreeExtras(t)
-    Filter._convert2PartialTree(t)
-    HANDLE.getVariables()
-    
-  if mode == 'full': # full load of multiple files
-    t = []
-    for file in files:
-      try:
-        t2 = C.convertFile2PyTree(file, density=1.)
-        if t == []: t = t2
-        else: t = C.mergeTrees(t, t2)
-      except:
-        print('Error: convertFile2PyTree: fail to read file %s.'%file)
+    if mode == 'partial': # partial load
+        import Converter.Filter as Filter
+        HANDLE = Filter.Handle(files[0])
+        t = HANDLE.loadSkeleton()
+        HANDLE._loadTreeExtras(t)
+        Filter._convert2PartialTree(t)
+        HANDLE.getVariables()
 
-  # common part
-  FILE = files[0]
+    if mode == 'full': # full load of multiple files
+        t = []
+        for file in files:
+            try:
+                t2 = C.convertFile2PyTree(file, density=1.)
+                if t == []: t = t2
+                else: t = C.mergeTrees(t, t2)
+            except:
+                print('Error: convertFile2PyTree: fail to read file %s.'%file)
+
+    # common part
+    FILE = files[0]

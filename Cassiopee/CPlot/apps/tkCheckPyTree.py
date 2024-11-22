@@ -11,7 +11,7 @@ import Converter.Internal as Internal
 
 # local widgets list
 WIDGETS = {}; VARS = []
-    
+
 #==============================================================================
 def runCheckPyTree():
     if CTK.t == []: return
@@ -43,7 +43,7 @@ def runCheckPyTree():
         errors += Internal.checkPyTree(CTK.t, level=12)
     if v == 'Zones of homogeneous cellDim in bases':
         errors += Internal.checkPyTree(CTK.t, level=13)
-        
+
     if v == 'Multigrid compatibility':
         MGlevel = CTK.varsFromWidget(VARS[2].get(), type=2)
         minBlk = CTK.varsFromWidget(VARS[0].get(), type=2)
@@ -55,7 +55,7 @@ def runCheckPyTree():
         minBlk = CTK.varsFromWidget(VARS[0].get(), type=2)
         if len(minBlk)>0:
             errors = Internal.checkSize(CTK.t, sizeMax=minBlk[0])
-        
+
     if len(errors) == 0: 
         TTK.setButtonGreen(WIDGETS['CheckPyTree'])
         errors = [0, 'No error found.']
@@ -66,7 +66,7 @@ def runCheckPyTree():
         CTK.TXT.insert('START', 'Errors found in pyTree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error');
     WIDGETS['CheckPyTree'].update()
-    
+
 #==============================================================================
 def correctPyTree():
     if CTK.t == []: return
@@ -77,7 +77,7 @@ def correctPyTree():
     if v == 'Maximum number of nodes':
         CTK.TXT.insert('START', 'Can not correct for maximum number of nodes.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     if v == 'All conformity' or v == ' > Node conformity':
         Internal._correctPyTree(CTK.t, level=1)
     if v == 'All conformity' or v == ' > Unique base name':
@@ -104,7 +104,7 @@ def correctPyTree():
         Internal._correctPyTree(CTK.t, level=12)
     if v == 'Zones of homogeneous cellDim in bases':
         Internal._correctPyTree(CTK.t, level=13)
-        
+
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -138,7 +138,7 @@ def createApp(win):
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkCheckPyTree')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- MinPtsPerCoarseGrid -
     V = TK.StringVar(win); V.set('5'); VARS.append(V)
@@ -167,7 +167,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=5)
     BB = CTK.infoBulle(parent=B, text='Checked multigrid level,\nwhen Multigrid compatibility is selected.')
     B.grid(row=0, column=4, columnspan=2, sticky=TK.EW)
-    
+
     # Option menu
     B = TTK.OptionMenu(Frame, VARS[3], 'All conformity', ' > Node conformity', ' > Unique base name', ' > Unique zone name', ' > Unique BC name', 
                        ' > Valid BC ranges', ' > Valid BC match', ' > Referenced families', ' > Valid CGNS types', ' > Valid element nodes',
@@ -183,7 +183,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Correct", command=correctPyTree)
     B.grid(row=2, column=4, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Attemp to correct pyTree.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -192,7 +192,7 @@ def showApp():
     try: CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkCheckPyTree')
     except: pass
     CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
@@ -225,7 +225,7 @@ def saveApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

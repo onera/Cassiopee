@@ -4,7 +4,7 @@ import Generator.PyTree as G
 import Geom.PyTree as D
 
 P0 = (0,0,0); P1 = (5,0,0); P2 = (0,7,0); P3 = (5,7,0)
-    
+
 # Geometry
 d1 = D.line(P0,P1); d2 = D.line(P2,P3)
 d3 = D.line(P0,P2); d4 = D.line(P1,P3)

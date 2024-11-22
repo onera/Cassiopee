@@ -32,7 +32,7 @@ for z in a:
     App._setSnear(z, 0.1)
     App._setDfar(z, 10.)
     App._setIBCType(z, 'Musker')
-    
+
 tb = C.newPyTree(['Body',a])
 for base in Internal.getBases(tb):
     fl = Internal.newFlowEquationSet(parent=base)
@@ -42,9 +42,9 @@ turbmod = Internal.createNode('TurbulenceModel', 'TurbulenceModel_t', value='One
 for node in Internal.getNodesByName(tb,'FlowEquationSet'):
     Internal.addChild(node, eqdim)
     Internal.addChild(node, turbmod)
-    
+
 C._addState(tb, adim='adim1', MInf=0.1, alphaZ=0., alphaY=0., ReInf=40000., MutSMuInf=0.1, TurbLevelInf=1.e-4)
-    
+
 if Cmpi.rank == 0: C.convertPyTree2File(tb, FILEB)
 Cmpi.barrier()
 

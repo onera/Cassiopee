@@ -22,7 +22,7 @@ def _applyGaussianAL(t, listOfLoads, listOfALPositions, listOfRotMat,
         Initiator._applyGaussianAL(fa, listOfLoads, listOfALPositions, listOfRotMat,
                     localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVarLoads, TruncVarVelos)
     return None
-    
+
 def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, 
               loc='nodes'):
     """Init the pyTree by the reference state if it is defined in t, else by input parameters.
@@ -81,7 +81,7 @@ def _initDist(t, adim='adim1', loc='nodes'):
             C._initVars(t, loc+':'+v, val)
     maxd = C.getMaxValue(t, '%s:TurbulentDistance'%loc)
     mind = C.getMinValue(t, '%s:TurbulentDistance'%loc)
-    
+
     C._initVars(t, '{%s:MomentumX}={%s:MomentumX}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))
     C._initVars(t, '{%s:MomentumY}={%s:MomentumY}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))
     C._initVars(t, '{%s:MomentumZ}={%s:MomentumZ}*{%s:TurbulentDistance}/%g'%(loc,loc,loc,maxd))

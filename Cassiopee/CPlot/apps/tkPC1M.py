@@ -21,7 +21,7 @@ def generatePC1M():
     if len(nzs) == 0:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     hf = CTK.varsFromWidget(VARS[1].get(), type=1)
     if len(hf) != 1:
         CTK.TXT.insert('START', 'First cell height is incorrect.\n')
@@ -42,7 +42,7 @@ def generatePC1M():
         CTK.TXT.insert('START', 'Split radius is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     splitCrit = splitCrit[0]
-    
+
     try:
         CTK.saveTree()
         CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
@@ -62,7 +62,7 @@ def generatePC1M():
         Panels.displayErrors([0,str(e)], header='Error: PC1M')
         CTK.TXT.insert('START', 'PC1M mesh failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-        
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -80,7 +80,7 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkPC1M')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- height of mesh -
     V = TK.StringVar(win); V.set('50.'); VARS.append(V)
@@ -110,12 +110,12 @@ def createApp(win):
     B = TK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Curvature radius triggering split.')
-    
+
     # - Generate -
     B = TK.Button(Frame, text="Generate", command=generatePC1M)
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Generate PC1M grid.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

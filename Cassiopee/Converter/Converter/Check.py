@@ -53,7 +53,7 @@ CGNSTypes = {
     'Family_t':21,
     'FamilyBC_t':22,
     'FamilyBCDataSet_t':23,
-        
+
     'GeometryReference_t':27,
     'GeometryEntity_t':28,
     'GeometryFile_t':29,
@@ -78,11 +78,11 @@ CGNSTypes = {
     'ReferenceState_t':46,
     'SimulationType_t':47,
     'EquationDimension_t':78, # not SIDS (tolerate)
-  
+
     'ArbitraryGridMotion_t':49,
     'RigidGridMotion_t':55,
     'TimeRigidMotion_t':77, # non standard
-    
+
     'ZoneBC_t':56,
     'BC_t':57,
     'BCData_t':24,
@@ -189,7 +189,7 @@ def _correctPyTree(t, level=-20):
         _correctVersionNode(t)
     # Supprime les noeuds non conformes
     if level <= -1 or level == 1:
-       _correctNodes(t)
+        _correctNodes(t)
     # Renomme les bases
     if level <= -2 or level == 2:
         _correctNames(t, 'CGNSBase_t')
@@ -303,22 +303,22 @@ def checkNode__(node, parent, errors):
                 if isinstance(val, str):
                     val = val.strip()
                     Internal.setValue(node, val)
-            
+
             # node[0] (nom) est une string ou None
             if not isinstance(node[0], str) and node[0] is None:
                 errors += [node, parent, "Node[0] of node %s must be a string designing node name."%node[0]]
-                
+
             # node[2] (liste des fils) doit etre une liste
             if not isinstance(node[2], list):
                 errors += [node, parent, "Node[2] of node %s must be a list of sons."%node[0]]
             else: sons = node[2]
-            
+
             # node[3] doit etre une string se terminant par _t ...
             if not isinstance(node[3], str):
                 errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
             #if node[3][-2:] != '_t' and node[3] != "int[IndexDimension]":
             #    errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
-                   
+
         else: errors += [node, parent, "Node %s has a length != 4."%node[0]]
     else: errors += [node, parent, "Node is not a list."]
 
@@ -482,11 +482,11 @@ def _correctNames(t, ntype):
             nameServer[name] = c
             if n[3] == 'Zone_t': zoneDonors.append((n[0], name2))
             n[0] = name2
-            
+
     # Modifie les zoneDonors
     _correctDonors(t, 'GridConnectivity1to1_t', zoneDonors)
     _correctDonors(t, 'GridConnectivity_t', zoneDonors)
-    
+
     # Modifie les attachs
     return None
 
@@ -546,7 +546,7 @@ def checkBCRanges(t, ntype):
                         if win[4] < 0 or win[4] > dim[3]: error = 1
                         # kmax out of bounds
                         if win[5] < 0 or win[5] > dim[3]: error = 1
-                    
+
                     if error == 1:
                         errors += [n, bc, "Range of BC %s is invalid for zone %s."%(n[0],z[0])]
     return errors
@@ -615,7 +615,7 @@ def checkDonorRanges(t, ntype):
 
                             if error == 1:
                                 errors += [n, bc, "Range of donor BC %s is invalid for zone %s."%(n[0],z[0])]
-        
+
                     elif all([Internal.getType(d) == 'Family_t' for d in donors]):
                         if not all([Internal.getName(d) == donorName for d in donors]):
                             errors += [n, bc, "Type donor %s %s is invalid for zone %s."%(ntype,n[0],z[0])]
@@ -804,7 +804,7 @@ def checkOppositRanges(t, ntype):
 
                                         elif dimZone == 1:
                                             if delta[0] != deltaopp[abs(transform[0])-1]:
-                                                    errors += [n, bc, "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])]
+                                                errors += [n, bc, "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])]
     return errors
 
 #==============================================================================
@@ -951,7 +951,7 @@ def _correctBaseZonesDim(t, splitBases=False):
             cellDim, baseName, zones = b
             base = Internal.newCGNSBase(baseName, cellDim=cellDim, physDim=3, parent=t)
             base[2] += Internal.getZones(zones)
-                
+
     return None
 
 #===============================================================================
@@ -1125,8 +1125,8 @@ def checkElementNodes(t):
                 if ctype == 22: iNGon = i
                 elif ctype == 23: iNFace = i
                 else:
-                   if iBE == -1: iBE = i # first
-                   else: iBEMultiple = 1
+                    if iBE == -1: iBE = i # first
+                    else: iBEMultiple = 1
                 i += 1
 
             if iBE != -1:
@@ -1183,7 +1183,7 @@ def _correctElementNodes(t):
 def _correctBCElementNodes(t):
     _cleanBEConnect(t)
     #_correctBC_PL2ER(t)
-    
+
     zones = Internal.getZones(t)
     for z in zones:
         GEl = Internal.getNodesFromType1(z, 'Elements_t')

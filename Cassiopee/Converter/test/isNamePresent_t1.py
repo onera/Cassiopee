@@ -8,7 +8,7 @@ C._initVars(a, 'F', 1.)
 
 b = G.cart((0,0,0), (1,1,1), (50,50,50))
 C._initVars(b, 'centers:G', 2.)
- 
+
 r0 = C.isNamePresent(a, 'F')
 r1 = C.isNamePresent([a, b], 'F')
 r2 = C.isNamePresent([a, b], 'K')

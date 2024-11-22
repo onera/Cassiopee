@@ -30,7 +30,7 @@ def setConstraint():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[3].set(selected)
-    
+
 #==============================================================================
 def mapSurf(z, density, smoothIter, eltType, constraints, strength):
     import Generator as G
@@ -40,7 +40,7 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
     import Transform as T
 
     a = C.getFields(Internal.__GridCoordinates__, z)[0]
-    
+
     # Grille cartesienne (reguliere)
     BB = G.bbox([a])
     xmin = BB[0]; ymin = BB[1]; zmin = BB[2]
@@ -72,7 +72,7 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
     f = bexts[1]; f = Converter.initVars(f, 'cellN', 1)
     f = T.reorder(f, (-1,))
     #Converter.convertArrays2File([f], 'front.plt')
-    
+
     # Lissage du front
     f = T.smooth(f, eps=0.5, niter=10) # lissage du front quad
 
@@ -118,12 +118,12 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
                          delta=strength)
             print('Projection iteration %d...'%smooth)
             r = T.projectOrtho(r, [a])
-        
+
         ret = []
         for z in r:
             ret.append(C.convertArrays2ZoneNode('remaped', [z]))
         return ret
-    
+
 #==============================================================================
 def remap(event=None):
     if CTK.t == []: return
@@ -154,7 +154,7 @@ def remap(event=None):
         CTK.TXT.insert('START', 'Density is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     density = density[0]
-    
+
     # smooth
     smooth = CTK.varsFromWidget(VARS[1].get(), type=2)
     if len(smooth) != 1:
@@ -184,7 +184,7 @@ def remap(event=None):
                     coord = C.getFields(Internal.__GridCoordinates__, z)[0]
                     constraints.append(coord)
     CTK.saveTree()
-    
+
     nob = CTK.Nb[nzs[0]]+1
     noz = CTK.Nz[nzs[0]]
     z = CTK.t[2][nob][2][noz]
@@ -201,7 +201,7 @@ def remap(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -217,7 +217,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -276,7 +276,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=8)
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Constraint curve for smoother.')
-    
+
     # - Remap -
     B = TTK.Button(Frame, text="Remap", command=remap)
     BB = CTK.infoBulle(parent=B, text='Remap a surface.')
@@ -284,7 +284,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[2], 'QUAD', 'TRI', 'STRUCT')
     BB = CTK.infoBulle(parent=B, text='Elements in remap surface.')
     B.grid(row=4, column=1, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -313,7 +313,7 @@ def saveApp():
     CTK.PREFS['tkCartWrapElts'] = VARS[2].get()
     CTK.PREFS['tkCartWrapConsStrength'] = VARS[4].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('1.')

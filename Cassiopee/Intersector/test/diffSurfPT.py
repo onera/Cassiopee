@@ -24,7 +24,7 @@ s = XOR.convertNGON2DToNGON3D(s)
 
 # Boolean operation
 x = XOR.diffSurf(t, s, tol = 0., preserve_right=1, agg_mode=2) # agg_mode=2 : full mode aggregation
- 
+
 t = C.newPyTree(['Base',2]); t[2][1][2].append(x)
 C.convertPyTree2File(t, 'diffs.cgns')
 

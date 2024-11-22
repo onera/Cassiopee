@@ -25,6 +25,6 @@ x = XOR.diffSurf(t, s, tol = 0., preserve_right=1, agg_mode=2) # agg_mode=2 : fu
 
 #C.convertPyTree2File(s, 's.cgns')
 #C.convertPyTree2File(t, 'o.cgns')
- 
+
 t = C.newPyTree(['Base',2,x])
 test.testT(t,1)

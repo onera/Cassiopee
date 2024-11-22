@@ -19,7 +19,7 @@ WIDGETS = {}; VARS = []
 def F1(v):
     if v <= 0: return 1
     else: return 0
-    
+
 #==============================================================================
 # La variable var existe t'elle dans la premiere zone de l'arbre?
 # Retourne 0: non
@@ -78,7 +78,7 @@ def viewQual(event=None):
     elif qtype == 'Mesh':
         CTK.display(CTK.t)
     CTK.setCursor(0, WIDGETS['frame'])
-                
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -94,7 +94,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -106,7 +106,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Volume map'); VARS.append(V)
     # -0- Filter for view -
     V = TK.StringVar(win); V.set('Mesh'); VARS.append(V)
-    
+
     # - Compute -
     B = TTK.Button(Frame, text="Compute", command=computeQual)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -120,7 +120,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='View this filter.')
     B = TTK.OptionMenu(Frame, VARS[1], 'Mesh', 'Neg. volume cells', command=viewQual)
     B.grid(row=1, column=1, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -145,7 +145,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

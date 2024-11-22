@@ -27,7 +27,7 @@ test.testO(intersect,2)
 at1 = C.convertArray2Hexa(a1)
 intersect = G.bboxIntersection(a1, a2)
 test.testO(intersect,3)
-    
+
 # 2D STRUCTURE
 ni = 11; nj = 3; nk = 1
 a1 = G.cart((0.,0.,0.), (0.1,0.1,1.),(ni, nj,nk))

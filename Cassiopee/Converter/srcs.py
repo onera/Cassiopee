@@ -1,12 +1,12 @@
 EXPRESSION = True
 
 try:
-  import KCore.Dist as Dist
-  from KCore.config import *
-  (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
-                                                       additionalIncludePaths)
+    import KCore.Dist as Dist
+    from KCore.config import *
+    (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                         additionalIncludePaths)
 except ModuleNotFoundError:
-  hdf = True
+    hdf = True
 
 #==============================================================================
 # Fichiers c++
@@ -147,14 +147,14 @@ cpp_srcs =  ['Converter/Converter1.cpp',
 cpp_srcs += ['Converter/IO/GenIO_adfcgns.cpp']
 
 if EXPRESSION:
-   cpp_srcs += ['Converter/Expression/ast.cpp',
-                'Converter/Expression/function.cpp',
-                'Converter/Expression/lexer.cpp',
-                'Converter/Expression/math_function.cpp',
-                'Converter/Expression/parser.cpp',
-                'Converter/Expression/symbol_table.cpp',
-                'Converter/Expression/simd_vector_wrapper.cpp'
-               ]
+    cpp_srcs += ['Converter/Expression/ast.cpp',
+                 'Converter/Expression/function.cpp',
+                 'Converter/Expression/lexer.cpp',
+                 'Converter/Expression/math_function.cpp',
+                 'Converter/Expression/parser.cpp',
+                 'Converter/Expression/symbol_table.cpp',
+                 'Converter/Expression/simd_vector_wrapper.cpp'
+                ]
 
 if hdf:
     cpp_srcs += ['Converter/IO/GenIO_hdfcgns.cpp']

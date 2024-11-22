@@ -26,7 +26,7 @@ Dist.writeSetupCfg()
                                                      additionalIncludePaths)
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
                                                         additionalIncludePaths)
-    
+
 # Compilation des fortrans ===================================================
 from KCore.config import *
 if f77compiler == "None":

@@ -39,7 +39,7 @@ def setDefaultVars():
 
     VuseOMP.set(1)
     VuseStatic.set(0)
-    
+
     VadditionalIncludePaths.set("[]")
     VadditionalLibs.set("[]")
     VadditionalLibPaths.set("[]")
@@ -55,15 +55,15 @@ def setVars(v):
 
     VuseOMP.set(v[6])
     VuseStatic.set(v[7])
-    
+
     VadditionalIncludePaths.set(v[9])
     VadditionalLibs.set(v[10])
     VadditionalLibPaths.set(v[11])
-    
+
 #==============================================================================
 def saveConfigFile(event=None):
     machine = Vmachine.get()
-    
+
     try: additionalIncludePaths = eval(VadditionalIncludePaths.get())
     except: additionalIncludePaths = []
 
@@ -96,7 +96,7 @@ def setMachineName(name):
 #==============================================================================
 def changeMachineName(event=None):
     machine = Vmachine.get()
-    
+
     # Reset color
     if WIDGETS != {}:
         for name in ['Cppcompiler', 'f77compiler',
@@ -106,7 +106,7 @@ def changeMachineName(event=None):
             entry = WIDGETS[name]
             entry.config(background=entry.master.cget('bg'))
             entry.config(foreground=entry.master.cget('fg'))
-    
+
     key = ''
     for i in dict:
         if re.compile(i).search(machine) is not None:
@@ -151,7 +151,7 @@ def check__(name):
             [], additionalLibPaths, Vf90compiler.get(), VuseOMP.get())
         if ok: out = ['f90: OK']
         else: out = ['f90: Fail']   
-    
+
     elif name == 'png':
         additionalLibPaths = eval(VadditionalLibPaths.get())
         additionalIncludePaths = eval(VadditionalIncludePaths.get())
@@ -167,7 +167,7 @@ def check__(name):
                                                  additionalIncludePaths)
         if ok: out = ['mpeg: OK']
         else: out = ['mpeg: missing']
-        
+
     elif name == 'hdf':
         additionalLibPaths = eval(VadditionalLibPaths.get())
         additionalIncludePaths = eval(VadditionalIncludePaths.get())
@@ -330,7 +330,7 @@ def instructions():
     winl.geometry("%+d%+d" % (xpos+40, ypos)) 
     scrollbar = TK.Scrollbar(winl, orient=TK.VERTICAL, width=10)
     scrollbar.grid(sticky=TK.NSEW, row=0, column=1)
-    
+
     textWidget = TK.Text(winl, yscrollcommand=scrollbar.set,
                          width=45, height=20, background='White')
     textWidget.tag_config('title', justify=TK.CENTER, foreground='blue')
@@ -364,7 +364,7 @@ def printCheck():
     winl.geometry("%+d%+d" % (xpos+40, ypos)) 
     scrollbar = TK.Scrollbar(winl, orient=TK.VERTICAL, width=10)
     scrollbar.grid(sticky=TK.NSEW, row=0, column=1)
-    
+
     textWidget = TK.Text(winl, yscrollcommand=scrollbar.set,
                          width=45, height=20, background='White')
     textWidget.tag_config('title', justify=TK.CENTER, foreground='blue')

@@ -10,7 +10,7 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     zones = I.getZones(t)
     z = zones[0]
     array = C.getFields(I.__GridCoordinates__, z, api=3)[0]
-  
+
     bcs = []
     zonebc = I.getNodeFromType(z, 'ZoneBC_t')
     if zonebc is not None:
@@ -54,7 +54,7 @@ def AdaptMesh_ExtractMesh(AM, conformize=1):
             cont = I.createUniqueChild(zone, 'ZoneGridConnectivity', 'ZoneGridConnectivity_t')
             Name = 'Match_'+str(data[0])
             I.newGridConnectivity1to1(name=Name, donorName=str(data[0]), pointList=data[1], parent=cont)
-    
+
     # add BCs
     if bcs is not None:
         for i in range(len(bcs)):
@@ -65,12 +65,12 @@ def AdaptMesh_ExtractMesh(AM, conformize=1):
                 tag = bc[1]
                 bcname = bc[2]
                 bctype = bc[3]
-    
+
                 if bctype not in BCType_l:
                     bc = I.newBC(name=bcname, pointList=ptlist, family=bctype, parent=cont)
                 else:
                     bc = I.newBC(name=bcname, pointList=ptlist, btype=bctype, parent=cont)
-                
+
                 I.newUserDefinedData(name='Tag', value=tag, parent=bc)
 
     t = C.newPyTree([name, zone])
@@ -165,43 +165,43 @@ def exchangeFields(t, fldNames):
     return rfields
 
 def loadAndSplitElt(fileName):
-  dt = Filter2.loadAsChunks(fileName)
-  zones = I.getZones(dt)
-  
-  if len(zones) > 1:
-    raise TypeError("loadAndSplitElt: one zone only.")
+    dt = Filter2.loadAsChunks(fileName)
+    zones = I.getZones(dt)
 
-  z = zones[0]
+    if len(zones) > 1:
+        raise TypeError("loadAndSplitElt: one zone only.")
 
-  cx = I.getNodeFromName2(z, 'CoordinateX')[1]
-  cy = I.getNodeFromName2(z, 'CoordinateY')[1]
-  cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
+    z = zones[0]
 
-  XYZ = []
-  XYZ.append(cx); XYZ.append(cy); XYZ.append(cz)
+    cx = I.getNodeFromName2(z, 'CoordinateX')[1]
+    cy = I.getNodeFromName2(z, 'CoordinateY')[1]
+    cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
 
-  cns = I.getNodesFromType(z, 'Elements_t')
+    XYZ = []
+    XYZ.append(cx); XYZ.append(cy); XYZ.append(cz)
 
-  chunks = []
+    cns = I.getNodesFromType(z, 'Elements_t')
 
-  for cn in cns:
-    name, stride = I.eltNo2EltName(cn[1][0])
-    arr = I.getNodeFromName1(cn, 'ElementConnectivity')[1]
-    chunks.append([name, stride, arr])
+    chunks = []
 
-  parts = xcore.chunk2partElt(XYZ, chunks)
+    for cn in cns:
+        name, stride = I.eltNo2EltName(cn[1][0])
+        arr = I.getNodeFromName1(cn, 'ElementConnectivity')[1]
+        chunks.append([name, stride, arr])
 
-  zones = []
+    parts = xcore.chunk2partElt(XYZ, chunks)
 
-  for i, p in enumerate(parts):
-    z = I.createZoneNode('Zone' + '%d'%Cmpi.rank + '_%d'%i, p)
-    zones.append(z)
+    zones = []
 
-  t = C.newPyTree(['Base', zones])
+    for i, p in enumerate(parts):
+        z = I.createZoneNode('Zone' + '%d'%Cmpi.rank + '_%d'%i, p)
+        zones.append(z)
 
-  Cmpi._setProc(t, Cmpi.rank)
+    t = C.newPyTree(['Base', zones])
 
-  return t
+    Cmpi._setProc(t, Cmpi.rank)
+
+    return t
 
 def loadAndSplitNGon(fileName):
     dt = Filter2.loadAsChunks(fileName)
@@ -276,7 +276,7 @@ def loadAndSplitNGon(fileName):
     for data in comm_data:
         Name = 'Match_'+str(data[0])
         I.newGridConnectivity1to1(name=Name, donorName=str(data[0]), pointList=data[1], parent=ZGC)
-    
+
     I.newUserDefinedData(name='CellLoc2Glob', value=RES[5], parent=ZGC)
     I.newUserDefinedData(name='FaceLoc2Glob', value=RES[6], parent=ZGC)
     I.newUserDefinedData(name='PointLoc2Glob', value=RES[7], parent=ZGC)
@@ -285,7 +285,7 @@ def loadAndSplitNGon(fileName):
     for n, name in enumerate(solNames):
         cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
         I.newDataArray(name, value=sol[n], parent=cont)
-    
+
     for n, name in enumerate(solcNames):
         cont = I.createUniqueChild(zo, I.__FlowSolutionCenters__, 'FlowSolution_t')
         I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
@@ -306,13 +306,13 @@ def loadAndSplitNGon(fileName):
 
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
-  
+
     # copy families
     base = I.getNodeFromName1(t, 'Base')
     families = I.getNodesFromType2(dt, 'Family_t')
     for fam in families:
         I.duptree__(fam, base)
-  
+
     I._correctPyTree(t, level=7)
 
     return t, RES
@@ -348,7 +348,7 @@ def removeIntersectingKPlanes(IM, slave_struct):
 
     import Generator.PyTree as G
     import Transform.PyTree as T
-    
+
     ts = I.newCGNSTree()
 
     for slave_base in slave_bases:
@@ -379,7 +379,7 @@ def removeIntersectingKPlanes(IM, slave_struct):
             C._convertArray2NGon(zo)
             G._close(zo)
             zones.append(zo)
-        
+
         merged = T.merge(zones)
         merged = G.close(merged)
         I.addChild(new_base, merged)
@@ -394,7 +394,7 @@ def prepareMeshesForIntersection(IM, slave):
     zs = I.getZones(slave)[0]
 
     s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
-  
+
     tag = I.getNodeFromName2(zs, "tag")
     if tag is None:
         raise ValueError("Tag field not found in slave mesh.")
@@ -440,7 +440,7 @@ def intersectMesh(master, slave):
 
     zmo = I.createZoneNode("mi", marr)
     zso = I.createZoneNode("si", sarr)
-    
+
     mi = C.newPyTree(["mi", zmo])
     si = C.newPyTree(["si", zso])
 
@@ -485,7 +485,7 @@ def extractFacesFromPointTag(t, tag_name):
 def icapsule_init(mp, sp):
     zm = I.getZones(mp)[0]
     marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
-    
+
     sarrs = []
     tags = []
     bases = I.getBases(sp)

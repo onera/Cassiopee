@@ -129,7 +129,7 @@ t = C.setFields(ncadid, t, 'nodes')
 # interpolateHMeshNodalField
 #-------------------------------------------
 t = XOR.interpolateHMeshNodalField(t, hmsh, ['u', 'v'])
-        
+
 
 #-------------------------------------------
 # getNodalParameters

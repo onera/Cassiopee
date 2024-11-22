@@ -115,7 +115,7 @@ def constrainedDelaunay(cont0, tol=1.e-10, keepBB=0):
         cont = generator.checkDelaunay(cont0, tri)
         cnt += 1
     return tri
-    
+
 def check(array):
     """Check a mesh for regularity, orthogonality...
     Usage: check(array)"""
@@ -154,7 +154,7 @@ def bbox(arrays):
                 raise ValueError("bbox: z-coordinate not found.")
             else: varz = 'z'
         else: varz = 'CoordinateZ'  
-            
+
         xmin0 = C.getMinValue(a, varx) 
         ymin0 = C.getMinValue(a, vary)
         zmin0 = C.getMinValue(a, varz)
@@ -213,7 +213,7 @@ def BB(array, method='AABB', weighting=0, tol=0.):
             print('BB: Warning, method=%s not implemented, making an OBB.'%method)
             ar = generator.obbox(array, weighting)
         return ar       
-     
+
 def barycenter(array, weight=None):
     """Get the barycenter of an array.
     Usage: barycenter(a, w)"""
@@ -224,7 +224,7 @@ def barycenter(array, weight=None):
                 X = generator.barycenter(a, weight[i])
             else: X = generator.barycenter(a, None)
             if isinstance(a[1], list): # array2/3
-               n = a[1][0].size
+                n = a[1][0].size
             else: n = a[1].shape[1]
             xb += X[0]*n
             yb += X[1]*n
@@ -234,7 +234,7 @@ def barycenter(array, weight=None):
         return [xb, yb, zb]
     else:
         return generator.barycenter(array, weight)
-    
+
 def CEBBIntersection(array1, array2, tol=1.e-10):
     """Get the Cartesian Elements bounding box intersection of 2 arrays."""
     return generator.CEBBIntersection(array1, array2, tol)
@@ -266,7 +266,7 @@ def enforceX(array, x0, enforcedh, N, add=0, verbose=True):
         return generator.enforceX(array, x0, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforceX", x0, enforcedh, N, add)
-    
+
 def enforceY(array, y0, enforcedh, N, add=0, verbose=True):
     """Enforce a j line in a distribution defined by an array.
     Usage: enforceY(array, y0, enforcedh, supp, add) -or-
@@ -275,12 +275,12 @@ def enforceY(array, y0, enforcedh, N, add=0, verbose=True):
         return generator.enforceY(array, y0, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforceY", y0, enforcedh, N, add)
-    
+
 def enforceZ(array, z0, enforcedh, N, add=0):
     """Enforce a k line in a distribution defined by an array.
     Usage: enforceZ(array, z0, enforcedh, supp, add)"""
     return generator.enforce(array, "enforceZ", z0, enforcedh, N, add)
-    
+
 def enforcePlusX(array, enforcedh, N, add=0, verbose=True):
     """Enforce the first X-line in a distribution defined by an array.
     (one sided distribution, right).
@@ -290,7 +290,7 @@ def enforcePlusX(array, enforcedh, N, add=0, verbose=True):
         return generator.enforcePlusX(array, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforcePlusX", 0., enforcedh, N, add)
-    
+
 def enforcePlusY(array, enforcedh, N, add=0, verbose=True):
     """Enforce a j line in a distribution  defined by an array.
     (one sided distribution, top).
@@ -306,7 +306,7 @@ def enforcePlusZ(array, enforcedh, N, add=0):
     (one sided distribution, top).
     Usage: enforcePlusZ(array, enforcedh, supp, add)"""
     return generator.enforce(array, "enforcePlusZ", 0., enforcedh, N, add)
-    
+
 def enforceMoinsX(array, enforcedh, N, add=0, verbose=True):
     """Enforce the last X-line in a distribution (one sided, left).
     Usage: enforceMoinsX(array, enforcedh, supp, add) -or-
@@ -315,7 +315,7 @@ def enforceMoinsX(array, enforcedh, N, add=0, verbose=True):
         return generator.enforceMoinsX(array, enforcedh, N, verbose)
     else:
         return generator.enforce(array, "enforceMoinsX", 0., enforcedh, N, add)
-    
+
 def enforceMoinsY(array, enforcedh, N, add=0, verbose=True):
     """Enforce a j line in a distribution (one sided distribution, bottom).
     Usage: enforceMoinsY(array, enforcedh, supp, add) -or-
@@ -334,7 +334,7 @@ def enforceLine(array, arrayline, enforcedh, N):
     """Enforce a line in a distribution.
     Usage: enforceLine(array, arrayline, enforcedh, (supp,add))"""
     return generator.enforceLine(array, arrayline, enforcedh, N)
-    
+
 def getTanhDist__(Nx,dy1,dy2,ityp):
     """Private function. Wrapper around k6stretch function of StretchF.for.
     Returns an array of a 1D line between x=0.0 and x=1.0 of Nx points, with a
@@ -360,7 +360,7 @@ def enforceCurvature(arrayD, arrayC, power=0.5):
 def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     try: import Geom as D; import math; import KCore
     except: raise ImportError("enforceCurvature2: requires Converter and Geom modules.")
-    
+
     tol = 1.e-12 # tolerance sur les pts confondues(=close)
     loop = 0 # le contour est il une boucle
 
@@ -382,10 +382,10 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
         posz = KCore.isNamePresent(arrayC, 'CoordinateZ')
         if posz != -1: zt = C.extractVars(arrayC, ['CoordinateZ'])[1]
         else: raise ValueError("enforceCurvature2: coordinates must be present in array.")
-    
+
     nmax = xt.shape[1]-1
     if abs(xt[0,0]-xt[0,nmax])<tol and abs(yt[0,0]-yt[0,nmax])<tol and abs(zt[0,0]-zt[0,nmax])<tol: loop = 1
-    
+
     rc = D.getCurvatureRadius(arrayC)
     ni = rc[1].shape[1]
     rcmin = C.getMinValue(rc,'radius'); rcmax = 1.
@@ -400,7 +400,7 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     minima = []; dht = dh[1]
     dhmax = C.getMaxValue(dh, 'dhloc'); dhmin = C.getMinValue(dh, 'dhloc')
     if abs(dhmax-dhmin) < 1.e-10: return arrayD
-    
+
     # premier point
     if loop == 0:
         if dht[0,0] < dht[0,1]: minima.append(0)
@@ -470,7 +470,7 @@ def map(array, d, dir=0, h1=None, h2=None, isAvg=False, nAvg=2):
     elif len(d) == 5 and dir != 0:
         return map1dpl(array, d, dir, h1, h2, isAvg, nAvg)
     else: return map1d(array, d)
-    
+
 # map sur une courbe
 def map1d(array, d):
     """Map on a curve."""
@@ -489,7 +489,7 @@ def map1dpl(array, d, dir, h1, h2, isAvg, pnts):
         import Geom as D
         import Geom.MapEdge as MapE
         N = len(d[1][0])
-    
+
     if dir == 2: m = T.reorder(array, (2,1,3))
     elif dir == 3: m = T.reorder(array, (3,2,1))
     elif dir == 1: m = array
@@ -551,7 +551,7 @@ def d_local(m,j,k,ni,h1,h2,N):
                                       (l[1][1][ni-1]-l[1][1][ni-2])**2+
                                       (l[1][2][ni-1]-l[1][2][ni-2])**2)
     length_local = D.getLength(l)                
-    
+
     d = MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
     return d
 
@@ -652,7 +652,7 @@ def refinePerDir__(a, power, dir):
     array = C.copy(a)
     if dir == 2: array = T.reorder(array,(2,1,3))
     elif dir == 3: array = T.reorder(array,(3,2,1))
-    
+
     ni = array[2]; nj = array[3]; nk = array[4]
     NI = int(round(factor*(ni-1)+1))
 
@@ -689,7 +689,7 @@ def refinePerDir__(a, power, dir):
 
     distribI = P.extractMesh([coord], distribI, order=2)
     distribI = C.extractVars(distribI, ['s','y','z']); distribI[0] = 'x,y,z'
-    
+
     aout = C.array('x,y,z', NI, nj, nk)
     for k in range(nk):
         for j in range(nj):
@@ -699,7 +699,7 @@ def refinePerDir__(a, power, dir):
             ind = j*NI+k*NINJ
             a1 = aout[1]; am1 = am[1]
             a1[:,ind:NI+ind] = am1[:,0:NI]
-    
+
     if dir == 2: return T.reorder(aout, (2,1,3))
     elif dir == 3: return T.reorder(aout, (3,2,1))
     else: return aout
@@ -808,7 +808,7 @@ def hyper2D3(array, arrayd, type, alpha1, alpha2):
     """Generate an hyperbolic mesh with boundary alpha angles.
     Usage: hyper2D3(array, arrayd, type, alpha1, alpha2)"""
     return generator.hyper2D3( array, arrayd, type, alpha1, alpha2)
-    
+
 def hyper2D4(array, arrayd, type):
     """Generate an hyperbolic mesh.
     Usage: hyper2D4(array, arrayd, type)"""
@@ -829,7 +829,7 @@ def closeLegacy(array, tol=1.e-12, suppressDegeneratedNGons=False):
         return out
     else:
         return generator.closeMeshLegacy(array, tol, suppressDegeneratedNGons)
-        
+
 def close(array, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
           rmDuplicatedFaces=True, rmDuplicatedElts=True,
           rmDegeneratedFaces=True, rmDegeneratedElts=True,
@@ -903,7 +903,7 @@ def plaster(contours, surfaces, side=0):
 
     c = C.convertArray2Tetra(contours); c = T.join(c)
     s = C.convertArray2Tetra(surfaces); s = T.join(s)
-   
+
     bb = bbox(contours)
     bb[0] = bb[0] - 1.e-2; bb[1] = bb[1] - 1.e-2; bb[2] = bb[2] - 1.e-2
     bb[3] = bb[3] + 1.e-2; bb[4] = bb[4] + 1.e-2; bb[5] = bb[5] + 1.e-2
@@ -929,7 +929,7 @@ def plaster(contours, surfaces, side=0):
         dir = (1,0,0)
     p = T.projectDir(p, surfaces, dir, smooth=1)
     return p
-    
+
 def selectInsideElts(array, curvesList):
     """Select elements whose center is in the surface delimited by curves.
     Usage: selectInsideElts(array, curvesList)"""
@@ -1004,7 +1004,7 @@ def getNormalMap(array):
         return b
     else:
         return generator.getNormalMap(array)
-  
+
 # IN: niter: nbre d'iterations de lissage
 # IN: eps: possible float ou numpy de taille des vertex: eps lissage
 # IN: cellN: si present, extrapole en cas de cellN=0
@@ -1024,11 +1024,11 @@ def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
 
     n = C.center2Node(n)
     n = C.normalize(n, ['sx','sy','sz'])
-    
+
     while it < niter:
         np = C.node2Center(n)
         np = C.normalize(np, ['sx','sy','sz'])
-        
+
         if cellN is not None: 
             fake = ['cellN',cellN[1],n[2],n[3]]
             np = C.addVars([np, fake])
@@ -1122,7 +1122,7 @@ def surfaceWalk(surfaces, c, distrib, constraints=[], niter=0,
     res = SurfaceWalk.surfaceWalk__(surfaces, c, distrib, constraints, niter,
                                     alphaRef, check, toldist)
     return res
-    
+
 #==============================================================================
 # builds an extension starting from a contour c using the normals to surfaces
 # and a point distribution dh
@@ -1152,7 +1152,7 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
             ht = C.center2Node(ht)
             it += 1
         #ht = Transform.smoothField(ht, eps=0.25, niter=niter, varNames=['ht'])
-            
+
     else:
         # Nouvelle version
         ht = generator.getLocalStepFactor2(s, sc, kappaType, kappaS[0], kappaS[1])
@@ -1169,7 +1169,7 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
             hl = C.center2Node(hl)
             it += 1
         #hl = Transform.smoothField(hl, eps=0.25, niter=nitLocal, varNames=['hl'])
-        
+
         if smoothType == 2: hl[1] = hl[1]*dif
 
         ht[1][1,:] = hl[1][0,:]
@@ -1256,7 +1256,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
         ni = b[2]; nj = b[3]; nk = b[4]
         if ni < 2 or nj < 2 or nk < 2:
             raise ValueError("gencartmb: arrays must be 3D.")
-        
+
     # Cree un bloc
     # IN: pmin: indices min sur la grille composite
     # IN: pmax: indices max sur la grille composite
@@ -1291,27 +1291,27 @@ def gencartmb(bodies, h, Dfar, nlvl):
         out.append(createBlock(pmin, pmax, level, ref))
 
         ref = T.subzone(ref, (1,1,nb), (ref[2],ref[3],ref[4]))
-        
+
         pmin = (1,1,ref[4]-nb+1)
         pmax = (ref[2], ref[3], ref[4])
         out.append(createBlock(pmin, pmax, level, ref))
         ref = T.subzone(ref, (1,1,1), (ref[2], ref[3], ref[4]-nb+1))
-        
+
         pmin = (1,1,1)
         pmax = (nb, ref[3], ref[4])
         out.append(createBlock(pmin,pmax,level,ref))
         ref = T.subzone(ref, (nb,1,1), (ref[2], ref[3], ref[4]))
-        
+
         pmin = (ref[2]-nb+1,1,1)
         pmax = (ref[2], ref[3], ref[4])
         out.append(createBlock(pmin,pmax,level,ref))
         ref = T.subzone(ref, (1,1,1), (ref[2]-nb+1, ref[3], ref[4]))
-        
+
         pmin = (1,1,1)
         pmax = (ref[2], nb, ref[4])
         out.append(createBlock(pmin,pmax,level,ref))
         ref = T.subzone(ref, (1,nb,1), (ref[2], ref[3], ref[4]))
-        
+
         pmin = (1,ref[3]-nb+1,1)
         pmax = (ref[2], ref[3], ref[4])
         out.append(createBlock(pmin,pmax,level,ref))
@@ -1326,7 +1326,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
     xmax = bb[3] + Dfar
     ymax = bb[4] + Dfar
     zmax = bb[5] + Dfar
-    
+
     # Grille composite
     nc = 2**len(nlvl)
     Href = h * nc
@@ -1334,7 +1334,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
     Nj = (ymax - ymin)/Href; Nj = nc*(int(Nj/nc)+1)+1
     Nk = (zmax - zmin)/Href; Nk = nc*(int(Nk/nc)+1)+1
     ref = cart((xmin,ymin,zmin), (Href,Href,Href), (Ni,Nj,Nk))
-    
+
     # Niveaux
     out = []
     c = 1
@@ -1432,10 +1432,10 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
     L = numpy.zeros((len(a)), dtype='float64')
     ltinv = 1./lt
     L[0] = D.getLength(a[0]) * ltinv
-   
+
     for i in range(1,len(a)):
         L[i] = L[i-1] + D.getLength(a[i]) * ltinv
-     
+
     # Find indices in dist which correspond to "split points"
     indsplit_previous = 0
     for i in range(len(L)):
@@ -1553,7 +1553,7 @@ def front2Hexa(a, surf, h, hf, hext, density=50):
 
     # projection de a sur la surface ortho
     b = T.projectOrtho(a, [surf]) # projection sur la surface: quad surf
-    
+
     # Distribution dans la direction k
     npts = a[1][0].shape[0]; h0 = 0.
     a1 = a[1]; b1 = b[1]
@@ -1643,12 +1643,12 @@ def refinedSharpEdges__(surfaces, step, angle):
     # dimension de surfaces: 1D ou 2D
     dim = 2
     if b[3] == 'BAR': dim = 1
-    
+
     if dim == 2:
         # get contours and corners from 2D-surfaces
         try: contours = P.sharpEdges(b, angle)
         except: contours = []; corners = []
-           
+
         if contours != []:
             contours = T.splitConnexity(contours)
             # split les contours par rapport aux angles
@@ -1697,7 +1697,7 @@ def refinedSharpEdges__(surfaces, step, angle):
         contours = G.close(contours)
     if corners != []: corners = T.join(corners)
     return [b, contours, corners]
-    
+
 def fillWithStruct(a, Vmin):
     """Generates struct grids in quad mesh."""  
     return generator.fillWithStruct(a, Vmin)
@@ -1784,7 +1784,7 @@ def conformOctree3(octree):
     """Conformize an octree3.
     Usage: conformOctree3(octree)"""
     return generator.conformOctree3(octree)
-    
+
 def balanceOctree__(octree, ratio=2, corners=0):
     return generator.balanceOctree(octree, ratio, corners)
 
@@ -1831,7 +1831,7 @@ def forceMatch(a1, a2, tol=1.):
     b1 = C.copy(a1)
     _forceMatch(b1, a2, tol)
     return b1
-    
+
 # find the best of two numpys
 def findBest(diff, bary):
     ind1 = numpy.argmin(diff)
@@ -1846,7 +1846,7 @@ def findBest(diff, bary):
     ind2 = numpy.argmin(bary)
     if ind1 == ind2: return ind1
     return ind1
-    
+
 # force near boundary (<tol) of a1 to match with a2
 # in place on a1 (TRI surfaces)
 # if P0 and P1: point of ext of a1, used to find the
@@ -1856,10 +1856,10 @@ def findBest(diff, bary):
 # inferieure a tol
 def _forceMatch1(a1, a2, tol):
     import Post; import KCore; import Geom; import Transform; import Generator
-        
+
     # exterior of a1
     ext1 = Post.exteriorFaces(a1)
-    
+
     # exterior of a2
     ext2 = Post.exteriorFaces(a2)
 
@@ -1870,20 +1870,20 @@ def _forceMatch1(a1, a2, tol):
     posx2 = KCore.isCoordinateXPresent(a2)
     posy2 = KCore.isCoordinateYPresent(a2)
     posz2 = KCore.isCoordinateZPresent(a2)
-    
+
     vol1 = getVolumeMap(ext1)
     vol1 = C.center2Node(vol1)[1]
     vol2 = getVolumeMap(ext2)
     vol2 = C.center2Node(vol2)[1]
-    
+
     # identifie ext1 sur a1
     hook = C.createHook(a1, function='nodes')
     indices1 = C.identifyNodes(hook, ext1)
-    
+
     # identifie ext2 sur a2
     hook = C.createHook(a2, function='nodes')        
     indices2 = C.identifyNodes(hook, ext2)
-    
+
     # match ext1 sur ext2
     hook = C.createHook(ext2, function='nodes')
     nodes,dist = C.nearestNodes(hook, ext1)
@@ -1898,7 +1898,7 @@ def _forceMatch1(a1, a2, tol):
             a1[1][posx1,ind1] = ext2[1][posx2,ind2]
             a1[1][posy1,ind1] = ext2[1][posy2,ind2]
             a1[1][posz1,ind1] = ext2[1][posz2,ind2]        
-        
+
     # match ext2 sur ext1
     hook = C.createHook(ext1, function='nodes')
     nodes,dist = C.nearestNodes(hook, ext2)
@@ -1915,13 +1915,13 @@ def _forceMatch1(a1, a2, tol):
 # Force match sur la bande delimitee par P1-P2
 def _forceMatch2(a1, a2, P1, P2):
     import Post; import KCore; import Geom; import Transform; import Generator
-    
+
     # exterior of a1
     ext1 = Post.exteriorFaces(a1)
-    
+
     # exterior of a2
     ext2 = Post.exteriorFaces(a2)
-    
+
     # Find split index of P1 and P2
     hook = C.createHook(ext1, function='nodes')
     nodes,dist = C.nearestNodes(hook, Geom.point(P1))
@@ -1949,7 +1949,7 @@ def _forceMatch2(a1, a2, P1, P2):
             bj = Generator.barycenter(e2)
             diff[i+n1*j] = abs(di-dj)
             bary[i+n1*j] = (bi[0]-bj[0])**2+(bi[1]-bj[1])**2+(bi[2]-bj[2])**2            
-    
+
     ind = findBest(diff, bary)
     j = ind//n1; i = ind-j*n1
     ext1 = ext1[i]; ext2 = ext2[j]
@@ -1960,7 +1960,7 @@ def _forceMatch2(a1, a2, P1, P2):
 # force match avec deux courbes en entree
 def _forceMatch3(a1, a2, ext1, ext2):
     import Post; import KCore; import Geom; import Transform; import Generator
-                
+
     # Get pos
     posx1 = KCore.isCoordinateXPresent(a1)
     posy1 = KCore.isCoordinateYPresent(a1)
@@ -1968,33 +1968,33 @@ def _forceMatch3(a1, a2, ext1, ext2):
     posx2 = KCore.isCoordinateXPresent(a2)
     posy2 = KCore.isCoordinateYPresent(a2)
     posz2 = KCore.isCoordinateZPresent(a2)
-    
+
     # identifie ext1 sur a1
     hook = C.createHook(a1, function='nodes')
     indices1 = C.identifyNodes(hook, ext1)
-    
+
     # identifie ext2 sur a2
     hook = C.createHook(a2, function='nodes')        
     indices2 = C.identifyNodes(hook, ext2)
-    
+
     # match ext1 sur ext2
     hook = C.createHook(ext2, function='nodes')
     nodes,dist = C.nearestNodes(hook, ext1)
-        
+
     ext1[1][posx1,:] = ext2[1][posx2,nodes[:]-1]
     ext1[1][posy1,:] = ext2[1][posy2,nodes[:]-1]
     ext1[1][posz1,:] = ext2[1][posz2,nodes[:]-1]
     a1[1][posx1,indices1[:]-1] = ext2[1][posx2,nodes[:]-1]
     a1[1][posy1,indices1[:]-1] = ext2[1][posy2,nodes[:]-1]
     a1[1][posz1,indices1[:]-1] = ext2[1][posz2,nodes[:]-1]
-    
+
     # match ext2 sur new ext1
     hook = C.createHook(ext1, function='nodes')
     nodes,dist = C.nearestNodes(hook, ext2)
     a2[1][posx2,indices2[:]-1] = ext1[1][posx1,nodes[:]-1]
     a2[1][posy2,indices2[:]-1] = ext1[1][posy1,nodes[:]-1]
     a2[1][posz2,indices2[:]-1] = ext1[1][posz1,nodes[:]-1]
-        
+
     return None
 
 # Pour contour interne a a
@@ -2012,7 +2012,7 @@ def _forceMatch(a1, a2=None, P1=None, P2=None, C1=None, C2=None, tol=-1):
     elif a2 is not None: 
         _forceMatch1(a1, a2, tol)
     return None
-    
+
 # addnormalLayers pour une liste d'arrays structures
 def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, niterK=[], 
                             smoothType=0, eps=0.4, nitLocal=3, 
@@ -2035,7 +2035,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
     surfu = T.join(surfu); surfu = close(surfu)
     surfu = T.reorder(surfu, (1,))
     listOfIndices = KCore.indiceStruct2Unstr2(surfaces, surfu, 1.e-14)
-    
+
     listOfCoords = []
     for surfs in surfaces:
         npts = surfs[1].shape[1]
@@ -2162,7 +2162,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
             n[1][0,:] = n[1][0,:] * hsize[1][0,:]
             n[1][1,:] = n[1][1,:] * hsize[1][0,:]
             n[1][2,:] = n[1][2,:] * hsize[1][0,:]
-    
+
         surfu = C.addVars([surfu,n])
         surfu = T.deform(surfu, ['sx','sy','sz'])
         surfu = C.rmVars(surfu, ['sx','sy','sz'])
@@ -2299,7 +2299,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
             if niter == 0:
                 n = getNormalMap(surf)
                 n = C.normalize(n, vect)
-                
+
                 # Add cellN to n
                 if cellN is not None and blanking:
                     fake = ['cellN',cellN[1],n[2],n[3]]
@@ -2365,7 +2365,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
             generator.blankSelf(a, cellN)
             generator.blankSelf(a, cellN)
             generator.blankSelf(a, cellN)
-            
+
         n[0] = 'sx0,sy0,sz0'
         surf = C.addVars([surf,n])
         vectn2 = ['sx0','sy0','sz0']
@@ -2374,7 +2374,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
 
         if k1 == 0: m = a
         else: m = T.join(m, a)
-        
+
         if blanking:
             if k1 == 0: cellNs.append(cellN) 
             else:
@@ -2383,7 +2383,7 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
                 cellNs[0] = op
                 #C.convertArrays2File([a,m], 'check.plt')
                 #generator.blankPrev(a, cellN, m, op)
-                
+
     return m
 
 # Fonction retournant la carte d'orthogonalite d'une grille
@@ -2420,7 +2420,7 @@ def getAngleRegularityMap(array):
         return b
     else:
         return generator.getAngleRegularityMap(array)
-        
+
 # Fonction retournant la carte de qualite d'une maillage TRI 
 # (0. pour un triangle degenere. pour un triangle equilateral)
 def getTriQualityMap(array):
@@ -2433,7 +2433,7 @@ def getTriQualityMap(array):
         return b
     else:
         return generator.getTriQualityMap(array)
-        
+
 # Fonction retournant les qualites min, max et mean d'un maillage TRI 
 # (0. pour un triangle degenere, 1. pour un triangle equilateral)
 def getTriQualityStat(array):
@@ -2449,9 +2449,9 @@ def getTriQualityStat(array):
 # Genere des pyramides ayant pour base les QUAD d'une surface donnee
 #------------------------------------------------------------------------------
 def quad2Pyra(array, hratio = 1.):
-     """Create a set of pyramids from a set of quads.
-     Usage: quad2Pyra(array, hratio)"""
-     return generator.quad2Pyra(array, hratio)
+    """Create a set of pyramids from a set of quads.
+    Usage: quad2Pyra(array, hratio)"""
+    return generator.quad2Pyra(array, hratio)
 
 def getMeshFieldInfo(array, field, critValue, verbose):
     fmin  = 1.e32

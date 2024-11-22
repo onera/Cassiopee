@@ -30,16 +30,16 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkPersonalSample')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Zone filter regexp -
     #V = TK.StringVar(win); V.set(''); VARS.append(V)
-    
+
     # - Buttons -
     #B = TTK.Button(Frame, text="MyButton", command=setButton)
     #B.grid(row=0, column=0, sticky=TK.EW)
     #BB = CTK.infoBulle(parent=B, text='Explain what the function does.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

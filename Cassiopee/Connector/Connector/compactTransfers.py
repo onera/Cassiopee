@@ -36,10 +36,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         graphID   = graph['graphID']
         graphIBCD = graph['graphIBCD']
         if 'graphID_Unsteady' in graph:
-           graphID_U = graph['graphID_Unsteady']
-           graphID_S = graph['graphID_Steady']
+            graphID_U = graph['graphID_Unsteady']
+            graphID_S = graph['graphID_Steady']
         else: 
-           graphID_U = None; graphID_S = None
+            graphID_U = None; graphID_S = None
     elif graph is not None and graphliste==True:
         procDict  = graph[0]['procDict']
         procList  = graph[0]['procList']
@@ -52,7 +52,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     # if Cmpi is not None and rank == 0:
     #    print("GRAPH IBC IS : ",graph['graphIBCD'])
     #    print("graphID IS :",graph['graphID'])
-    
+
     # print("procDict is : ",procDict)    
     size_int  = 0
     size_real = 0
@@ -77,209 +77,209 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     c     = 0
     for base in bases:
 
-      model    = 'NSLaminar'
-      a        = Internal.getNodeFromName2(base, 'GoverningEquations')
-      if a is not None: model = Internal.getValue(a)
-      if model=="NSLaminar" or model=="Euler": neq_base=5
-      elif model=="NSTurbulent": neq_base=6
-      elif model=='LBMLaminar':
-           neq_base = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][NEQ_LBM]
+        model    = 'NSLaminar'
+        a        = Internal.getNodeFromName2(base, 'GoverningEquations')
+        if a is not None: model = Internal.getValue(a)
+        if model=="NSLaminar" or model=="Euler": neq_base=5
+        elif model=="NSTurbulent": neq_base=6
+        elif model=='LBMLaminar':
+            neq_base = Internal.getNodeFromName2(zones[0] , 'Parameter_int')[1][NEQ_LBM]
 
-      zones_tc = Internal.getZones(base)
-      for z in zones_tc:
+        zones_tc = Internal.getZones(base)
+        for z in zones_tc:
 
-        model_z = None
-        a = Internal.getNodeFromName2(z, 'GoverningEquations')
-        if a is not None:
-           model_z = Internal.getValue(a)
-           if model_z=="NSLaminar" or model_z=="Euler": neq_trans=5
-           elif model_z=="NSTurbulent": neq_trans=6
-           elif model_z=='LBMLaminar':
-                neq_trans = Internal.getNodeFromName2(zones[c] , 'Parameter_int')[1][NEQ_LBM]
+            model_z = None
+            a = Internal.getNodeFromName2(z, 'GoverningEquations')
+            if a is not None:
+                model_z = Internal.getValue(a)
+                if model_z=="NSLaminar" or model_z=="Euler": neq_trans=5
+                elif model_z=="NSTurbulent": neq_trans=6
+                elif model_z=='LBMLaminar':
+                    neq_trans = Internal.getNodeFromName2(zones[c] , 'Parameter_int')[1][NEQ_LBM]
 
-        else: neq_trans = neq_base
+            else: neq_trans = neq_base
 
-        #print(z[0])
-        subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
-        meshtype   = 1
-        zonetype   = Internal.getNodeFromType1(z, 'ZoneType_t')
-        tmp        = Internal.getValue(zonetype)
-        #dimPb      = Internal.getZoneDim(z)[4]
-        if tmp != "Structured": meshtype = 2
-        for s in subRegions:
-           zRname = Internal.getValue(s)
-           proc = 0
-           if procDict is not None: proc = procDict[zRname]
+            #print(z[0])
+            subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+            meshtype   = 1
+            zonetype   = Internal.getNodeFromType1(z, 'ZoneType_t')
+            tmp        = Internal.getValue(zonetype)
+            #dimPb      = Internal.getZoneDim(z)[4]
+            if tmp != "Structured": meshtype = 2
+            for s in subRegions:
+                zRname = Internal.getValue(s)
+                proc = 0
+                if procDict is not None: proc = procDict[zRname]
 
-           #tri des pas de temps instationnaire
-           #  1) les stationnaires
-           #  2) les instationnaires regroupes par pas de temps
-           if '#' not in s[0]:
-                ordered_subRegions.append(s)
-                neq_subRegions.append(neq_trans)
-                No_zoneD.append(c)
-                MeshTypeD.append(meshtype)
-                #print('RANk=',rank, 'NODonneuse=', c, s[0], z[0])
-           else:
-              numero_iter = int( s[0].split('#')[1].split('_')[0] )
-              if numero_iter < numero_min : numero_min = numero_iter
-              if numero_iter > numero_max : numero_max = numero_iter
+                #tri des pas de temps instationnaire
+                #  1) les stationnaires
+                #  2) les instationnaires regroupes par pas de temps
+                if '#' not in s[0]:
+                    ordered_subRegions.append(s)
+                    neq_subRegions.append(neq_trans)
+                    No_zoneD.append(c)
+                    MeshTypeD.append(meshtype)
+                    #print('RANk=',rank, 'NODonneuse=', c, s[0], z[0])
+                else:
+                    numero_iter = int( s[0].split('#')[1].split('_')[0] )
+                    if numero_iter < numero_min : numero_min = numero_iter
+                    if numero_iter > numero_max : numero_max = numero_iter
 
-              if numero_iter in inst:
-                  sub = inst[ numero_iter ][0]
-                  sub = sub + [s]
-                  Noz = inst[ numero_iter ][1]
-                  Noz = Noz + [c]
-                  mesh= inst[ numero_iter ][2]
-                  mesh= mesh+ [meshtype]
-                  dest= inst[ numero_iter ][3]
-                  dest= dest+ [proc]
-                  neqtrans= inst[ numero_iter ][4]
-                  neqtrans= neqtrans+ [neq_trans]
-                  inst[ numero_iter ]=  [ sub , Noz , mesh, dest, neqtrans ]
-              else:
-                  inst[ numero_iter ]= [ [s],[c],[meshtype], [proc], [neq_trans] ]
+                    if numero_iter in inst:
+                        sub = inst[ numero_iter ][0]
+                        sub = sub + [s]
+                        Noz = inst[ numero_iter ][1]
+                        Noz = Noz + [c]
+                        mesh= inst[ numero_iter ][2]
+                        mesh= mesh+ [meshtype]
+                        dest= inst[ numero_iter ][3]
+                        dest= dest+ [proc]
+                        neqtrans= inst[ numero_iter ][4]
+                        neqtrans= neqtrans+ [neq_trans]
+                        inst[ numero_iter ]=  [ sub , Noz , mesh, dest, neqtrans ]
+                    else:
+                        inst[ numero_iter ]= [ [s],[c],[meshtype], [proc], [neq_trans] ]
 
-           TimeLevelNumber = len(inst)
+                TimeLevelNumber = len(inst)
 
-           if TimeLevelNumber != 1+numero_max-numero_min and len(inst)!= 0: 
-              raise ValueError("miseAPlatDonorTree__: missing timestep in tc : %d %d %d")%(numero_max,numero_min, TimeLevelNumber)
+                if TimeLevelNumber != 1+numero_max-numero_min and len(inst)!= 0: 
+                    raise ValueError("miseAPlatDonorTree__: missing timestep in tc : %d %d %d")%(numero_max,numero_min, TimeLevelNumber)
 
 
-           count_ID  = 0
-           count_IBC = 0
-           # alloc memoire
-           pointlist     =  Internal.getNodeFromName1(s, 'PointList')
-           pointlistD    =  Internal.getNodeFromName1(s, 'PointListDonor')
-           InterpD       =  Internal.getNodeFromName1(s, 'InterpolantsDonor')
-           Interptype    =  Internal.getNodeFromName1(s, 'InterpolantsType')
-           RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
-           RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
-           prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
-           pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local 
-           direction     =  Internal.getNodeFromName1(s, 'DirReceveur')       # Besoin des directions pour l'explicite local
-           directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local 
-           transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local
-           pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
-           profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch) 
-           ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
-           levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
-           leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
-           
-           Nbpts         =  numpy.shape(pointlist[ 1])[0]
-           Nbpts_D       =  numpy.shape(pointlistD[1])[0]
-           Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
+                count_ID  = 0
+                count_IBC = 0
+                # alloc memoire
+                pointlist     =  Internal.getNodeFromName1(s, 'PointList')
+                pointlistD    =  Internal.getNodeFromName1(s, 'PointListDonor')
+                InterpD       =  Internal.getNodeFromName1(s, 'InterpolantsDonor')
+                Interptype    =  Internal.getNodeFromName1(s, 'InterpolantsType')
+                RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
+                RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
+                prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
+                pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local 
+                direction     =  Internal.getNodeFromName1(s, 'DirReceveur')       # Besoin des directions pour l'explicite local
+                directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local 
+                transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local
+                pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
+                profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch) 
+                ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
+                levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
+                leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
 
-           sname        = s[0][0:2]
-           utau         = Internal.getNodeFromName1(s, 'utau')
-           temp_local   = Internal.getNodeFromName1(s, 'Temperature')
-           wmodel_local = Internal.getNodeFromName1(s, 'Density_WM')
-           gradxP       = Internal.getNodeFromName1(s, 'gradxPressure')
-           gradxU       = Internal.getNodeFromName1(s, 'gradxVelocityX')
-           xcInit       = Internal.getNodeFromName1(s, 'CoordinateX_PC#Init')
-           motion_type  = Internal.getNodeFromName1(s, 'MotionType')
-           kcurv        = Internal.getNodeFromName1(s, XOD.__KCURV__)
-           sd1          = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
-           yline        = Internal.getNodeFromName1(s, 'CoordinateN_ODE')           
-           
+                Nbpts         =  numpy.shape(pointlist[ 1])[0]
+                Nbpts_D       =  numpy.shape(pointlistD[1])[0]
+                Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
 
-           # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
-           if sname == 'IB':
-            vx = Internal.getNodeFromName1(s, 'VelocityX')
-            if vx is None:
-              density = Internal.getNodeFromName1(s, 'Density')
-              nIBC    = density[1].shape[0]
-              vxNP = numpy.zeros((nIBC),numpy.float64)
-              vyNP = numpy.zeros((nIBC),numpy.float64)
-              vzNP = numpy.zeros((nIBC),numpy.float64)
-              s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
-              s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
-              s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
-            if model == "LBMLaminar":
-                 density = Internal.getNodeFromName1(s, 'Density')
-                 nIBC    = density[1].shape[0]
-                 
-                 qloc_1  = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))
-                 if qloc_1 is None:
-                     for f_i in range (1,neq_trans+1):
-                         s[2].append([ibm_lbm_variables_1 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
-                 qloc_1  = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))        
-                         
-                 qloc_2 = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
-                 if qloc_2 is None:
-                     for f_i in range (1,neq_trans+1):
-                         s[2].append([ibm_lbm_variables_2 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
-                 qloc_2 = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
-                 
-                 qloc_3 = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
-                 if qloc_3 is None:
-                     for f_i in range (1,neq_trans+1):
-                         s[2].append([ibm_lbm_variables_3 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
-                 qloc_3 = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
-           # DBX: supp utau en euler
-           #if utau is None:
-           #   utauNP  = numpy.zeros((Nbpts_D),numpy.float64)
-           #   yplusNP = numpy.zeros((Nbpts_D),numpy.float64)
-           #   Internal.createUniqueChild(s, 'utau'  , 'DataArray_t', utauNP )
-           #   Internal.createUniqueChild(s, 'yplus' , 'DataArray_t', yplusNP )
-           #   utau =  Internal.getNodeFromName1(s, 'utau')
+                sname        = s[0][0:2]
+                utau         = Internal.getNodeFromName1(s, 'utau')
+                temp_local   = Internal.getNodeFromName1(s, 'Temperature')
+                wmodel_local = Internal.getNodeFromName1(s, 'Density_WM')
+                gradxP       = Internal.getNodeFromName1(s, 'gradxPressure')
+                gradxU       = Internal.getNodeFromName1(s, 'gradxVelocityX')
+                xcInit       = Internal.getNodeFromName1(s, 'CoordinateX_PC#Init')
+                motion_type  = Internal.getNodeFromName1(s, 'MotionType')
+                kcurv        = Internal.getNodeFromName1(s, XOD.__KCURV__)
+                sd1          = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
+                yline        = Internal.getNodeFromName1(s, 'CoordinateN_ODE')           
 
-           # on recupere le nombre de type different
-           #typecell = Interptype[1][0]
-           #Nbtype = [ typecell ]
-           #for i in range(Nbpts_D):
-           #  if Interptype[1][i] not in Nbtype: Nbtype.append(Interptype[1][i])
-           #print('nb type',  len(Nbtype), s[0],z[0], Nbtype)
-           nbType = numpy.unique(Interptype[1])
-           nbTypeSize = nbType.size
-           
-           size_IBC =  0
-           ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
-           if utau is not None: ntab_IBC += 2
-           if temp_local is not None: ntab_IBC += 2
-           if wmodel_local is not None: ntab_IBC += 6
-           if gradxP is not None: ntab_IBC += 3
-           if gradxU is not None: ntab_IBC += 9
-           if xcInit is not None: ntab_IBC += 9 # 3 for each type IBM point - 3 wall points, 3 target points, & 3 image points
-           if motion_type is not None: ntab_IBC += 11 #MotionType,transl_speed(x3),axis_pnt(x3),axis_vct(x3),omega
-           if kcurv is not None: ntab_IBC += 1
-           if sd1 is not None: ntab_IBC += 5           
-           if yline is not None: ntab_IBC += (7*nbpts_linelets+2)
-           if sname == 'IB' and model == "LBMLaminar":
-               if qloc_1 is not None: ntab_IBC += neq_trans
-               if qloc_2 is not None: ntab_IBC += neq_trans	
-               if qloc_3 is not None: ntab_IBC += neq_trans
-           if sname == 'IB': 
-              size_IBC   = Nbpts_D*ntab_IBC
-              count_IBC += 1	      	
-           else: 
-              count_ID  += 1
 
-           # periodicite azimutale
-           rotation = 0
-           if RotationAngle is not None: rotation +=3 
-           if RotationCenter is not None: rotation +=3 
+                # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
+                if sname == 'IB':
+                    vx = Internal.getNodeFromName1(s, 'VelocityX')
+                    if vx is None:
+                        density = Internal.getNodeFromName1(s, 'Density')
+                        nIBC    = density[1].shape[0]
+                        vxNP = numpy.zeros((nIBC),numpy.float64)
+                        vyNP = numpy.zeros((nIBC),numpy.float64)
+                        vzNP = numpy.zeros((nIBC),numpy.float64)
+                        s[2].append(['VelocityX' , vxNP , [], 'DataArray_t'])
+                        s[2].append(['VelocityY' , vyNP , [], 'DataArray_t'])
+                        s[2].append(['VelocityZ' , vzNP , [], 'DataArray_t'])
+                    if model == "LBMLaminar":
+                        density = Internal.getNodeFromName1(s, 'Density')
+                        nIBC    = density[1].shape[0]
 
-           nrac  =  nrac + 1
-           if proc not in listproc:
-                  listproc.append(proc)
-                  rac.append(1)
-                  if '#' in s[0]: rac_inst.append(1)
-                  else          : rac_inst.append(0)
-                  sizeI.append(    Nbpts_D*2     + Nbpts   + nbTypeSize+1 )
-                  sizeR.append(    Nbpts_InterpD + size_IBC + rotation    )
-                  sizeNbD.append(  Nbpts_D                                )
-                  sizeType.append( Nbpts_D                 + nbTypeSize+1 )
-           else:
-                  pos           = listproc.index(proc)
-                  rac[pos]      = rac[pos] + 1
-                  if '#' in s[0]: rac_inst[pos]= rac_inst[pos] + 1
-                  sizeI[pos]    = sizeI[pos]     + Nbpts_D*2     + Nbpts   + nbTypeSize+1
-                  sizeR[pos]    = sizeR[pos]     + Nbpts_InterpD + size_IBC + rotation
-                  sizeNbD[pos]  = sizeNbD[pos]   + Nbpts_D
-                  sizeType[pos] = sizeType[pos]  + Nbpts_D                 + nbTypeSize+1
+                        qloc_1  = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))
+                        if qloc_1 is None:
+                            for f_i in range (1,neq_trans+1):
+                                s[2].append([ibm_lbm_variables_1 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
+                        qloc_1  = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))        
 
-        c += 1
+                        qloc_2 = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
+                        if qloc_2 is None:
+                            for f_i in range (1,neq_trans+1):
+                                s[2].append([ibm_lbm_variables_2 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
+                        qloc_2 = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
+
+                        qloc_3 = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
+                        if qloc_3 is None:
+                            for f_i in range (1,neq_trans+1):
+                                s[2].append([ibm_lbm_variables_3 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
+                        qloc_3 = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
+                # DBX: supp utau en euler
+                #if utau is None:
+                #   utauNP  = numpy.zeros((Nbpts_D),numpy.float64)
+                #   yplusNP = numpy.zeros((Nbpts_D),numpy.float64)
+                #   Internal.createUniqueChild(s, 'utau'  , 'DataArray_t', utauNP )
+                #   Internal.createUniqueChild(s, 'yplus' , 'DataArray_t', yplusNP )
+                #   utau =  Internal.getNodeFromName1(s, 'utau')
+
+                # on recupere le nombre de type different
+                #typecell = Interptype[1][0]
+                #Nbtype = [ typecell ]
+                #for i in range(Nbpts_D):
+                #  if Interptype[1][i] not in Nbtype: Nbtype.append(Interptype[1][i])
+                #print('nb type',  len(Nbtype), s[0],z[0], Nbtype)
+                nbType = numpy.unique(Interptype[1])
+                nbTypeSize = nbType.size
+
+                size_IBC =  0
+                ntab_IBC = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour faciliter le post
+                if utau is not None: ntab_IBC += 2
+                if temp_local is not None: ntab_IBC += 2
+                if wmodel_local is not None: ntab_IBC += 6
+                if gradxP is not None: ntab_IBC += 3
+                if gradxU is not None: ntab_IBC += 9
+                if xcInit is not None: ntab_IBC += 9 # 3 for each type IBM point - 3 wall points, 3 target points, & 3 image points
+                if motion_type is not None: ntab_IBC += 11 #MotionType,transl_speed(x3),axis_pnt(x3),axis_vct(x3),omega
+                if kcurv is not None: ntab_IBC += 1
+                if sd1 is not None: ntab_IBC += 5           
+                if yline is not None: ntab_IBC += (7*nbpts_linelets+2)
+                if sname == 'IB' and model == "LBMLaminar":
+                    if qloc_1 is not None: ntab_IBC += neq_trans
+                    if qloc_2 is not None: ntab_IBC += neq_trans	
+                    if qloc_3 is not None: ntab_IBC += neq_trans
+                if sname == 'IB': 
+                    size_IBC   = Nbpts_D*ntab_IBC
+                    count_IBC += 1	      	
+                else: 
+                    count_ID  += 1
+
+                # periodicite azimutale
+                rotation = 0
+                if RotationAngle is not None: rotation +=3 
+                if RotationCenter is not None: rotation +=3 
+
+                nrac  =  nrac + 1
+                if proc not in listproc:
+                    listproc.append(proc)
+                    rac.append(1)
+                    if '#' in s[0]: rac_inst.append(1)
+                    else          : rac_inst.append(0)
+                    sizeI.append(    Nbpts_D*2     + Nbpts   + nbTypeSize+1 )
+                    sizeR.append(    Nbpts_InterpD + size_IBC + rotation    )
+                    sizeNbD.append(  Nbpts_D                                )
+                    sizeType.append( Nbpts_D                 + nbTypeSize+1 )
+                else:
+                    pos           = listproc.index(proc)
+                    rac[pos]      = rac[pos] + 1
+                    if '#' in s[0]: rac_inst[pos]= rac_inst[pos] + 1
+                    sizeI[pos]    = sizeI[pos]     + Nbpts_D*2     + Nbpts   + nbTypeSize+1
+                    sizeR[pos]    = sizeR[pos]     + Nbpts_InterpD + size_IBC + rotation
+                    sizeNbD[pos]  = sizeNbD[pos]   + Nbpts_D
+                    sizeType[pos] = sizeType[pos]  + Nbpts_D                 + nbTypeSize+1
+
+            c += 1
 
     #for pos in range(len(rac)):
     #   print('RAC=', rac[pos], 'racInst', rac_inst[pos], pos,'rank=', rank, 'dest=',listproc[pos])
@@ -295,7 +295,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
     if nrac != 0:
         if prange is not None:
-             ntab_int = ntab_int + 27
+            ntab_int = ntab_int + 27
 
 
     for i in range(NbP2P): sizeproc.append(5 + TimeLevelNumber*2 + ntab_int*rac[i] + sizeI[i])
@@ -303,12 +303,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     size_int  =  2 + NbP2P + sum(sizeproc)
     size_real =  sum(sizeR)
 
-    
+
     if not graphliste: # Si le graph n est pas une liste, on n'est pas en explicite local
                        #on determine la liste des processus pour lequel rank  est Receveur
         graphIBCrcv=[];graphIDrcv=[]
         if graphIBCD is not None:
-            #on recupere les infos Steady 
+                    #on recupere les infos Steady 
             graphIBCrcv_=[]; pos_IBC=[]; S_IBC= 1; graphloc=[]
             S_IBC = _procSource(rank, S_IBC,  pos_IBC, graphIBCD, graphloc, graphIBCrcv_) 
 
@@ -320,18 +320,18 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             S_ID = _procSource(rank, S_ID, pos_ID, graphID_S, graphrcv_S, graphIDrcv_) 
             #on ajoute les infos UNsteady 
             for nstep in range(numero_min,numero_max+1): 
-               graphloc=[]
-               S_ID = _procSource(rank, S_ID, pos_ID, graphID_U[nstep], graphloc, graphIDrcv_, filterGraph= graphrcv_S) 
+                graphloc=[]
+                S_ID = _procSource(rank, S_ID, pos_ID, graphID_U[nstep], graphloc, graphIDrcv_, filterGraph= graphrcv_S) 
 
             graphIDrcv   = pos_ID  + graphIDrcv_
 
         else:
-          #on recupere les infos ID Steady 
-          graphIDrcv_=[];graphloc=[]; pos_ID=[]; S_ID=1
-          if graphID is not None:
-            S_ID = _procSource(rank, S_ID, pos_ID, graphID, graphloc, graphIDrcv_) 
-           
-            graphIDrcv = pos_ID + graphIDrcv_
+            #on recupere les infos ID Steady 
+            graphIDrcv_=[];graphloc=[]; pos_ID=[]; S_ID=1
+            if graphID is not None:
+                S_ID = _procSource(rank, S_ID, pos_ID, graphID, graphloc, graphIDrcv_) 
+
+                graphIDrcv = pos_ID + graphIDrcv_
 
     else:  # le graph est une liste, on est en explicite local, 1 graphe par ss ite
 
@@ -361,7 +361,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         Internal.createUniqueChild(tc, 'Parameter_real', 'DataArray_t', param_real)
 
     if len(graphIBCrcv) == 0:
-         _graphIBC = numpy.zeros(1, dtype=Internal.E_NpyInt)
+        _graphIBC = numpy.zeros(1, dtype=Internal.E_NpyInt)
     else:
         _graphIBC  = numpy.asarray([len(graphIBCrcv)]+graphIBCrcv, dtype=Internal.E_NpyInt)
 
@@ -369,7 +369,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
     param_int[2                 :3+len(graphIBCrcv)                ] = _graphIBC
     param_int[3+len(graphIBCrcv):4+len(graphIBCrcv)+len(graphIDrcv)] = _graphID    
-  
+
     # print("param_int is ",param_int[0:2+len(graphIBCrcv)+len(graphIDrcv)+1])
     # Dictionnaire pour optimisation
     znd = []
@@ -392,16 +392,16 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     shift_coef  =0
     shift       = shift_graph # le shift prend en compte la postion des graphs (ID+IBC) entre la address contenant NbP2P et
     for i in range(NbP2P):
-       adr_coef.append(shift_coef)                    #adresse echange dans param_real
-       shift_coef = shift_coef + sizeR[i]
+        adr_coef.append(shift_coef)                    #adresse echange dans param_real
+        shift_coef = shift_coef + sizeR[i]
 
-       param_int[i+shift_graph] = NbP2P + shift              #adresse echange
-       shift          =  shift  + sizeproc[i]
-       size_ptlist.append(0)
-       size_ptlistD.append(0)
-       size_ptType.append(0)
-       size_coef.append(0)
-       nb_rac.append(0)
+        param_int[i+shift_graph] = NbP2P + shift              #adresse echange
+        shift          =  shift  + sizeproc[i]
+        size_ptlist.append(0)
+        size_ptlistD.append(0)
+        size_ptType.append(0)
+        size_coef.append(0)
+        nb_rac.append(0)
 
     for iter in range(numero_min,numero_max+1):
         ordered_subRegions =  ordered_subRegions + inst[ iter ][0]
@@ -415,48 +415,48 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     S = 0
     for s in ordered_subRegions:
 
-       NozoneD  = No_zoneD[c]
-       meshtype = MeshTypeD[c]
-       neq_loc  = neq_subRegions[c]
+        NozoneD  = No_zoneD[c]
+        meshtype = MeshTypeD[c]
+        neq_loc  = neq_subRegions[c]
 
-       zRname = Internal.getValue(s)
-       proc = 0
-       if procDict is not None: proc = procDict[zRname]
-       pos  = listproc.index(proc)
-       pt_ech = param_int[ pos + shift_graph]                 # adresse debut raccord pour l'echange pos
-       pt_coef= adr_coef[pos] + size_coef[pos]     # adresse debut coef
+        zRname = Internal.getValue(s)
+        proc = 0
+        if procDict is not None: proc = procDict[zRname]
+        pos  = listproc.index(proc)
+        pt_ech = param_int[ pos + shift_graph]                 # adresse debut raccord pour l'echange pos
+        pt_coef= adr_coef[pos] + size_coef[pos]     # adresse debut coef
 
-       pointlist     =  Internal.getNodeFromName1(s, 'PointList')
-       pointlistD    =  Internal.getNodeFromName1(s, 'PointListDonor')
-       Interptype    =  Internal.getNodeFromName1(s, 'InterpolantsType')
-       InterpD       =  Internal.getNodeFromName1(s, 'InterpolantsDonor')
-       RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
-       RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
-       prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
-       pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local
-       direction     =  Internal.getNodeFromName1(s, 'DirReceveur')      # Besoin des directions pour l'explicite local
-       directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local
-       transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local(conservativite)
-       pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
-       profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch)
-       ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
-       levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
-       leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
+        pointlist     =  Internal.getNodeFromName1(s, 'PointList')
+        pointlistD    =  Internal.getNodeFromName1(s, 'PointListDonor')
+        Interptype    =  Internal.getNodeFromName1(s, 'InterpolantsType')
+        InterpD       =  Internal.getNodeFromName1(s, 'InterpolantsDonor')
+        RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
+        RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
+        prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
+        pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local
+        direction     =  Internal.getNodeFromName1(s, 'DirReceveur')      # Besoin des directions pour l'explicite local
+        directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local
+        transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local(conservativite)
+        pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
+        profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch)
+        ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
+        levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
+        leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
 
-       #print(zRname, nb_rac[pos])
+        #print(zRname, nb_rac[pos])
 
-       Nbpts         =  numpy.shape(pointlist[ 1])[0]
-       Nbpts_D       =  numpy.shape(pointlistD[1])[0]
-       Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
+        Nbpts         =  numpy.shape(pointlist[ 1])[0]
+        Nbpts_D       =  numpy.shape(pointlistD[1])[0]
+        Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
 
-       param_int[ pt_ech    ] = proc
-       param_int[ pt_ech +1 ] = rac[pos]
-       param_int[ pt_ech +2 ] = rac_inst[pos]
-       nrac_steady            = rac[pos] - rac_inst[pos]
+        param_int[ pt_ech    ] = proc
+        param_int[ pt_ech +1 ] = rac[pos]
+        param_int[ pt_ech +2 ] = rac_inst[pos]
+        nrac_steady            = rac[pos] - rac_inst[pos]
 
-       param_int[ pt_ech +3 ] = TimeLevelNumber
-       nrac_inst_deb  =  nrac_steady
-       for i in range(TimeLevelNumber):
+        param_int[ pt_ech +3 ] = TimeLevelNumber
+        nrac_inst_deb  =  nrac_steady
+        for i in range(TimeLevelNumber):
 
             # len(inst[i][3])  = list destination du rac pour le temps i
             NracInsta=0
@@ -473,94 +473,94 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
             nrac_inst_deb  = nrac_inst_fin
 
-       iadr = pt_ech + 4 + TimeLevelNumber*2 + nb_rac[pos]   # ptr echange + dest + nrac + norac
-       iadr2= pt_ech + 4 + TimeLevelNumber*2 + 1
+        iadr = pt_ech + 4 + TimeLevelNumber*2 + nb_rac[pos]   # ptr echange + dest + nrac + norac
+        iadr2= pt_ech + 4 + TimeLevelNumber*2 + 1
 
-       param_int[ iadr            ] = Nbpts
-       param_int[ iadr + rac[pos] ] = Nbpts_InterpD
+        param_int[ iadr            ] = Nbpts
+        param_int[ iadr + rac[pos] ] = Nbpts_InterpD
 
-       #on recupere le nombre de type different
-       typecell = Interptype[1][0]
-       Nbtype= [ typecell ]
-       for i in range(Nbpts_D):
-          if Interptype[1][i] not in Nbtype: Nbtype.append(Interptype[1][i])
+        #on recupere le nombre de type different
+        typecell = Interptype[1][0]
+        Nbtype= [ typecell ]
+        for i in range(Nbpts_D):
+            if Interptype[1][i] not in Nbtype: Nbtype.append(Interptype[1][i])
 
-       #Si le type zero existe, on le place a la fin: sinon adressage openmp=boom dans donorPts
-       if 0 in Nbtype: Nbtype += [Nbtype.pop( Nbtype.index( 0 ) )]
+        #Si le type zero existe, on le place a la fin: sinon adressage openmp=boom dans donorPts
+        if 0 in Nbtype: Nbtype += [Nbtype.pop( Nbtype.index( 0 ) )]
 
-       param_int[ iadr+rac[pos]*2 ] = len(Nbtype)
+        param_int[ iadr+rac[pos]*2 ] = len(Nbtype)
 
-       param_int[ iadr+rac[pos]*3 ] = -1
-       size_IBC = 0
+        param_int[ iadr+rac[pos]*3 ] = -1
+        size_IBC = 0
 
-       zsrname = s[0]
-       sname = zsrname[0:2]
-       xc=None;yc=None;zc=None; xi=None;yi=None;zi=None; xw=None;yw=None;zw=None;density=None;pressure=None
-       vx=None; vy=None; vz=None
-       utau=None;yplus=None;kcurv=None
-       ptxc=0;ptyc=0;ptzc=0;ptxi=0;ptyi=0;ptzi=0;ptxw=0;ptyw=0;ptzw=0;ptdensity=0;ptpressure=0
-       ptvx=0;ptvy=0;ptvz=0
-       ptutau=0;ptyplus=0;ptkcurv=None
-       yline=None; uline=None; nutildeline=None; psiline=None; matmline=None; matline=None; matpline=None
-       alphasbetaline=None; indexline=None
-       ptyline=0; ptuline=0; ptnutildeline=0; ptpsiline=0; ptmatmline=0; ptmatline=0; ptmatpline=0
-       ptalphasbetaline=0; ptindexline=0
+        zsrname = s[0]
+        sname = zsrname[0:2]
+        xc=None;yc=None;zc=None; xi=None;yi=None;zi=None; xw=None;yw=None;zw=None;density=None;pressure=None
+        vx=None; vy=None; vz=None
+        utau=None;yplus=None;kcurv=None
+        ptxc=0;ptyc=0;ptzc=0;ptxi=0;ptyi=0;ptzi=0;ptxw=0;ptyw=0;ptzw=0;ptdensity=0;ptpressure=0
+        ptvx=0;ptvy=0;ptvz=0
+        ptutau=0;ptyplus=0;ptkcurv=None
+        yline=None; uline=None; nutildeline=None; psiline=None; matmline=None; matline=None; matpline=None
+        alphasbetaline=None; indexline=None
+        ptyline=0; ptuline=0; ptnutildeline=0; ptpsiline=0; ptmatmline=0; ptmatline=0; ptmatpline=0
+        ptalphasbetaline=0; ptindexline=0
 
-       temp_local=None;pttemp_local=0;
-       temp_extra_local =None;pttemp_extra_local =0;
-       temp_extra2_local=None;pttemp_extra2_local=0;
+        temp_local=None;pttemp_local=0;
+        temp_extra_local =None;pttemp_extra_local =0;
+        temp_extra2_local=None;pttemp_extra2_local=0;
 
-       wmodel_local_dens=None;wmodel_local_velx=None;wmodel_local_vely=None;
-       wmodel_local_velz=None;wmodel_local_temp=None;wmodel_local_sanu=None;       
-       pt_dens_wm_local=0;pt_velx_wm_local=0;pt_vely_wm_local=0;
-       pt_velz_wm_local=0;pt_temp_wm_local=0;pt_sanu_wm_local=0;   
+        wmodel_local_dens=None;wmodel_local_velx=None;wmodel_local_vely=None;
+        wmodel_local_velz=None;wmodel_local_temp=None;wmodel_local_sanu=None;       
+        pt_dens_wm_local=0;pt_velx_wm_local=0;pt_vely_wm_local=0;
+        pt_velz_wm_local=0;pt_temp_wm_local=0;pt_sanu_wm_local=0;   
 
-       gradxP=None;gradyP=None;gradzP=None;
-       ptgradxP=0;ptgradyP=0;ptgradzP=0;
+        gradxP=None;gradyP=None;gradzP=None;
+        ptgradxP=0;ptgradyP=0;ptgradzP=0;
 
-       gradxU=None;gradyU=None;gradzU=None;
-       ptgradxU=0;ptgradyU=0;ptgradzU=0;
+        gradxU=None;gradyU=None;gradzU=None;
+        ptgradxU=0;ptgradyU=0;ptgradzU=0;
 
-       gradxV=None;gradyV=None;gradzV=None;
-       ptgradxV=0;ptgradyV=0;ptgradzV=0;
+        gradxV=None;gradyV=None;gradzV=None;
+        ptgradxV=0;ptgradyV=0;ptgradzV=0;
 
-       gradxW=None;gradyW=None;gradzW=None;
-       ptgradxW=0;ptgradyW=0;ptgradzW=0;
+        gradxW=None;gradyW=None;gradzW=None;
+        ptgradxW=0;ptgradyW=0;ptgradzW=0;
 
-       xcInit=None;ycInit=None;zcInit=None;
-       xiInit=None;yiInit=None;ziInit=None;
-       xwInit=None;ywInit=None;zwInit=None;
-       ptxcInit=0;ptycInit=0;ptzcInit=0;
-       ptxiInit=0;ptyiInit=0;ptziInit=0;
-       ptxwInit=0;ptywInit=0;ptzwInit=0;
+        xcInit=None;ycInit=None;zcInit=None;
+        xiInit=None;yiInit=None;ziInit=None;
+        xwInit=None;ywInit=None;zwInit=None;
+        ptxcInit=0;ptycInit=0;ptzcInit=0;
+        ptxiInit=0;ptyiInit=0;ptziInit=0;
+        ptxwInit=0;ptywInit=0;ptzwInit=0;
 
-       motion_type=None;
-       transl_speedX=None;transl_speedY=None;transl_speedZ=None;
-       axis_pntX=None;axis_pntY=None;axis_pntZ=None;
-       axis_vctX=None;axis_vctY=None;axis_vctZ=None;
-       omega=None;
-       ptmotion_type=0;
-       pttransl_speedX=0;pttransl_speedY=0;pttransl_speedZ=0;
-       ptaxis_pntX=0;ptaxis_pntY=0;ptaxis_pntZ=0;
-       ptaxis_vctX=0;ptaxis_vctY=0;ptaxis_vctZ=0;
-       ptomega=0;
+        motion_type=None;
+        transl_speedX=None;transl_speedY=None;transl_speedZ=None;
+        axis_pntX=None;axis_pntY=None;axis_pntZ=None;
+        axis_vctX=None;axis_vctY=None;axis_vctZ=None;
+        omega=None;
+        ptmotion_type=0;
+        pttransl_speedX=0;pttransl_speedY=0;pttransl_speedZ=0;
+        ptaxis_pntX=0;ptaxis_pntY=0;ptaxis_pntZ=0;
+        ptaxis_vctX=0;ptaxis_vctY=0;ptaxis_vctZ=0;
+        ptomega=0;
 
-       sd1=None;sd2=None;sd3=None;sd4=None;sd5=None
-       ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
-       
-       qloc_1=[None]*(neq_loc)
-       ptqloc_1=[0]*(neq_loc)
-       
-       qloc_2=[None]*(neq_loc)
-       ptqloc_2=[0]*(neq_loc)
+        sd1=None;sd2=None;sd3=None;sd4=None;sd5=None
+        ptd1=0;ptd2=0;ptd3=0;ptd4=0;ptd5=0
 
-       qloc_3=[None]*(neq_loc)
-       ptqloc_3=[0]*(neq_loc)
+        qloc_1=[None]*(neq_loc)
+        ptqloc_1=[0]*(neq_loc)
 
-       if sname == 'IB': 
-           zsrname = zsrname.split('_')
-           if len(zsrname) < 3:
-               #print('Warning: miseAPlatDonorTree: non consistent with the version of IBM preprocessing.')
+        qloc_2=[None]*(neq_loc)
+        ptqloc_2=[0]*(neq_loc)
+
+        qloc_3=[None]*(neq_loc)
+        ptqloc_3=[0]*(neq_loc)
+
+        if sname == 'IB': 
+            zsrname = zsrname.split('_')
+            if len(zsrname) < 3:
+                #print('Warning: miseAPlatDonorTree: non consistent with the version of IBM preprocessing.')
                 if model=='Euler':
                     print('Assuming IBC type is wallslip.')
                     param_int[iadr+rac[pos]*3]  = 0
@@ -570,324 +570,280 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 else: 
                     print('Assuming IBC type is Musker wall model.')
                     param_int[iadr+rac[pos]*3]  = 3
-           else:
-             if "Mobile" in  zsrname[2]:
-                 param_int[iadr+rac[pos]*3]  = 7  # musker paroi en rotation
-             else:
-                 param_int[iadr+rac[pos]*3]  = int(zsrname[1]) # 'IBCD_type_zonename'
-           
-           IBCType = param_int[iadr+rac[pos]*3]
-           #print('len zsrname', len(zsrname),param_int[iadr+rac[pos]*3] )
+            else:
+                if "Mobile" in  zsrname[2]:
+                    param_int[iadr+rac[pos]*3]  = 7  # musker paroi en rotation
+                else:
+                    param_int[iadr+rac[pos]*3]  = int(zsrname[1]) # 'IBCD_type_zonename'
+
+            IBCType = param_int[iadr+rac[pos]*3]
+            #print('len zsrname', len(zsrname),param_int[iadr+rac[pos]*3] )
 
 #           print('IBCType = ', IBCType)
-           xc        = Internal.getNodeFromName1(s , 'CoordinateX_PC')
-           yc        = Internal.getNodeFromName1(s , 'CoordinateY_PC')
-           zc        = Internal.getNodeFromName1(s , 'CoordinateZ_PC')
-           xi        = Internal.getNodeFromName1(s , 'CoordinateX_PI')
-           yi        = Internal.getNodeFromName1(s , 'CoordinateY_PI')
-           zi        = Internal.getNodeFromName1(s , 'CoordinateZ_PI')
-           xw        = Internal.getNodeFromName1(s , 'CoordinateX_PW')
-           yw        = Internal.getNodeFromName1(s , 'CoordinateY_PW')
-           zw        = Internal.getNodeFromName1(s , 'CoordinateZ_PW')
-           
-           density   = Internal.getNodeFromName1(s , 'Density')
-           pressure  = Internal.getNodeFromName1(s , 'Pressure')
+            xc        = Internal.getNodeFromName1(s , 'CoordinateX_PC')
+            yc        = Internal.getNodeFromName1(s , 'CoordinateY_PC')
+            zc        = Internal.getNodeFromName1(s , 'CoordinateZ_PC')
+            xi        = Internal.getNodeFromName1(s , 'CoordinateX_PI')
+            yi        = Internal.getNodeFromName1(s , 'CoordinateY_PI')
+            zi        = Internal.getNodeFromName1(s , 'CoordinateZ_PI')
+            xw        = Internal.getNodeFromName1(s , 'CoordinateX_PW')
+            yw        = Internal.getNodeFromName1(s , 'CoordinateY_PW')
+            zw        = Internal.getNodeFromName1(s , 'CoordinateZ_PW')
 
-           ptxc      = pt_coef + Nbpts_InterpD
-           ptyc      = pt_coef + Nbpts_InterpD + Nbpts_D
-           ptzc      = pt_coef + Nbpts_InterpD + Nbpts_D*2
-           ptxi      = pt_coef + Nbpts_InterpD + Nbpts_D*3
-           ptyi      = pt_coef + Nbpts_InterpD + Nbpts_D*4
-           ptzi      = pt_coef + Nbpts_InterpD + Nbpts_D*5
-           ptxw      = pt_coef + Nbpts_InterpD + Nbpts_D*6
-           ptyw      = pt_coef + Nbpts_InterpD + Nbpts_D*7
-           ptzw      = pt_coef + Nbpts_InterpD + Nbpts_D*8
-           ptdensity = pt_coef + Nbpts_InterpD + Nbpts_D*9
-           ptpressure= pt_coef + Nbpts_InterpD + Nbpts_D*10
+            density   = Internal.getNodeFromName1(s , 'Density')
+            pressure  = Internal.getNodeFromName1(s , 'Pressure')
 
-           size_IBC  = 11*Nbpts_D
-           inc = 11
+            ptxc      = pt_coef + Nbpts_InterpD
+            ptyc      = pt_coef + Nbpts_InterpD + Nbpts_D
+            ptzc      = pt_coef + Nbpts_InterpD + Nbpts_D*2
+            ptxi      = pt_coef + Nbpts_InterpD + Nbpts_D*3
+            ptyi      = pt_coef + Nbpts_InterpD + Nbpts_D*4
+            ptzi      = pt_coef + Nbpts_InterpD + Nbpts_D*5
+            ptxw      = pt_coef + Nbpts_InterpD + Nbpts_D*6
+            ptyw      = pt_coef + Nbpts_InterpD + Nbpts_D*7
+            ptzw      = pt_coef + Nbpts_InterpD + Nbpts_D*8
+            ptdensity = pt_coef + Nbpts_InterpD + Nbpts_D*9
+            ptpressure= pt_coef + Nbpts_InterpD + Nbpts_D*10
 
-           vx = Internal.getNodeFromName1(s, 'VelocityX')
-           vy = Internal.getNodeFromName1(s, 'VelocityY')
-           vz = Internal.getNodeFromName1(s, 'VelocityZ')
-           ptvx = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-           ptvy = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-           ptvz = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-           size_IBC +=3*Nbpts_D; inc += 3
-           
-           utau = Internal.getNodeFromName1(s, 'utau')
-           yplus = Internal.getNodeFromName1(s, 'yplus')
-           if utau is not None:
-               ptutau    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               ptyplus   = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               size_IBC += 2*Nbpts_D; inc += 2
+            size_IBC  = 11*Nbpts_D
+            inc = 11
 
-           kcurv = Internal.getNodeFromName1(s, XOD.__KCURV__)
-           if kcurv is not None:
-               ptkcurv = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC  += Nbpts_D; inc += 1
+            vx = Internal.getNodeFromName1(s, 'VelocityX')
+            vy = Internal.getNodeFromName1(s, 'VelocityY')
+            vz = Internal.getNodeFromName1(s, 'VelocityZ')
+            ptvx = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+            ptvy = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+            ptvz = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+            size_IBC +=3*Nbpts_D; inc += 3
 
-           temp_local      = Internal.getNodeFromName1(s, 'Temperature')
-           if temp_local is not None:
-               pttemp_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC   += Nbpts_D; inc += 1
+            utau = Internal.getNodeFromName1(s, 'utau')
+            yplus = Internal.getNodeFromName1(s, 'yplus')
+            if utau is not None:
+                ptutau    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                ptyplus   = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                size_IBC += 2*Nbpts_D; inc += 2
 
-           temp_extra_local = Internal.getNodeFromName1(s, 'TemperatureWall')
-           if temp_extra_local is not None:
-               pttemp_extra_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC   += Nbpts_D; inc += 1
+            kcurv = Internal.getNodeFromName1(s, XOD.__KCURV__)
+            if kcurv is not None:
+                ptkcurv = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC  += Nbpts_D; inc += 1
 
-           temp_extra2_local = Internal.getNodeFromName1(s, 'WallHeatFlux')
-           if temp_extra2_local is not None:
-               pttemp_extra2_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC   += Nbpts_D; inc += 1
+            temp_local      = Internal.getNodeFromName1(s, 'Temperature')
+            if temp_local is not None:
+                pttemp_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC   += Nbpts_D; inc += 1
 
-           wmodel_local_dens = Internal.getNodeFromName1(s, 'Density_WM')
-           wmodel_local_velx = Internal.getNodeFromName1(s, 'VelocityX_WM')
-           wmodel_local_vely = Internal.getNodeFromName1(s, 'VelocityY_WM')
-           wmodel_local_velz = Internal.getNodeFromName1(s, 'VelocityZ_WM')
-           wmodel_local_temp = Internal.getNodeFromName1(s, 'Temperature_WM')
-           wmodel_local_sanu = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_WM')
-           if wmodel_local_dens is not None:
-               pt_dens_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               pt_velx_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               pt_vely_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-               pt_velz_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3)
-               pt_temp_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
-               pt_sanu_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
-               size_IBC   += 6*Nbpts_D; inc += 6 
+            temp_extra_local = Internal.getNodeFromName1(s, 'TemperatureWall')
+            if temp_extra_local is not None:
+                pttemp_extra_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC   += Nbpts_D; inc += 1
 
+            temp_extra2_local = Internal.getNodeFromName1(s, 'WallHeatFlux')
+            if temp_extra2_local is not None:
+                pttemp_extra2_local = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC   += Nbpts_D; inc += 1
 
-           gradxP = Internal.getNodeFromName1(s, 'gradxPressure')
-           gradyP = Internal.getNodeFromName1(s, 'gradyPressure')
-           gradzP = Internal.getNodeFromName1(s, 'gradzPressure')
-           if gradxP is not None:
-               ptgradxP = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               ptgradyP = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               ptgradzP = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-               size_IBC   += 3*Nbpts_D; inc += 3
-
-           gradxU = Internal.getNodeFromName1(s, 'gradxVelocityX')
-           gradyU = Internal.getNodeFromName1(s, 'gradyVelocityX')
-           gradzU = Internal.getNodeFromName1(s, 'gradzVelocityX')
-           if gradxU is not None:
-               ptgradxU = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               ptgradyU = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               ptgradzU = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-               size_IBC   += 3*Nbpts_D; inc += 3
-
-           gradxV = Internal.getNodeFromName1(s, 'gradxVelocityY')
-           gradyV = Internal.getNodeFromName1(s, 'gradyVelocityY')
-           gradzV = Internal.getNodeFromName1(s, 'gradzVelocityY')
-           if gradxV is not None:
-               ptgradxV = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               ptgradyV = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               ptgradzV = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-               size_IBC   += 3*Nbpts_D; inc += 3
-
-           gradxW = Internal.getNodeFromName1(s, 'gradxVelocityZ')
-           gradyW = Internal.getNodeFromName1(s, 'gradyVelocityZ')
-           gradzW = Internal.getNodeFromName1(s, 'gradzVelocityZ')
-           if gradxW is not None:
-               ptgradxW = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               ptgradyW = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               ptgradzW = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-               size_IBC   += 3*Nbpts_D; inc += 3
+            wmodel_local_dens = Internal.getNodeFromName1(s, 'Density_WM')
+            wmodel_local_velx = Internal.getNodeFromName1(s, 'VelocityX_WM')
+            wmodel_local_vely = Internal.getNodeFromName1(s, 'VelocityY_WM')
+            wmodel_local_velz = Internal.getNodeFromName1(s, 'VelocityZ_WM')
+            wmodel_local_temp = Internal.getNodeFromName1(s, 'Temperature_WM')
+            wmodel_local_sanu = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_WM')
+            if wmodel_local_dens is not None:
+                pt_dens_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                pt_velx_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                pt_vely_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+                pt_velz_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3)
+                pt_temp_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
+                pt_sanu_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
+                size_IBC   += 6*Nbpts_D; inc += 6 
 
 
-           xcInit    = Internal.getNodeFromName1(s , 'CoordinateX_PC#Init')
-           ycInit    = Internal.getNodeFromName1(s , 'CoordinateY_PC#Init')
-           zcInit    = Internal.getNodeFromName1(s , 'CoordinateZ_PC#Init')
-           xiInit    = Internal.getNodeFromName1(s , 'CoordinateX_PI#Init')
-           yiInit    = Internal.getNodeFromName1(s , 'CoordinateY_PI#Init')
-           ziInit    = Internal.getNodeFromName1(s , 'CoordinateZ_PI#Init')
-           xwInit    = Internal.getNodeFromName1(s , 'CoordinateX_PW#Init')
-           ywInit    = Internal.getNodeFromName1(s , 'CoordinateY_PW#Init')
-           zwInit    = Internal.getNodeFromName1(s , 'CoordinateZ_PW#Init')
-           if xcInit is not None:
-               ptxcInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+0)
-               ptycInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               ptzcInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-               
-               ptxiInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3)
-               ptyiInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
-               ptziInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
+            gradxP = Internal.getNodeFromName1(s, 'gradxPressure')
+            gradyP = Internal.getNodeFromName1(s, 'gradyPressure')
+            gradzP = Internal.getNodeFromName1(s, 'gradzPressure')
+            if gradxP is not None:
+                ptgradxP = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                ptgradyP = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                ptgradzP = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+                size_IBC   += 3*Nbpts_D; inc += 3
 
-               ptxwInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+6)
-               ptywInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+7)
-               ptzwInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+8)
-               size_IBC   += 9*Nbpts_D; inc += 9
+            gradxU = Internal.getNodeFromName1(s, 'gradxVelocityX')
+            gradyU = Internal.getNodeFromName1(s, 'gradyVelocityX')
+            gradzU = Internal.getNodeFromName1(s, 'gradzVelocityX')
+            if gradxU is not None:
+                ptgradxU = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                ptgradyU = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                ptgradzU = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+                size_IBC   += 3*Nbpts_D; inc += 3
 
-           motion_type  = Internal.getNodeFromName1(s , 'MotionType')
-           transl_speedX = Internal.getNodeFromName1(s , 'transl_speedX')
-           transl_speedY = Internal.getNodeFromName1(s , 'transl_speedY')
-           transl_speedZ = Internal.getNodeFromName1(s , 'transl_speedZ')
-           axis_pntX     = Internal.getNodeFromName1(s , 'axis_pntX')
-           axis_pntY     = Internal.getNodeFromName1(s , 'axis_pntY')
-           axis_pntZ     = Internal.getNodeFromName1(s , 'axis_pntZ')
-           axis_vctX     = Internal.getNodeFromName1(s , 'axis_vctX')
-           axis_vctY     = Internal.getNodeFromName1(s , 'axis_vctY')
-           axis_vctZ     = Internal.getNodeFromName1(s , 'axis_vctZ')
-           omega        = Internal.getNodeFromName1(s , 'omega')
-           if motion_type is not None:
-               ptmotion_type   = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+0)
-               pttransl_speedX = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               pttransl_speedY = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-               pttransl_speedZ = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3) 
-               ptaxis_pntX     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
-               ptaxis_pntY     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
-               ptaxis_pntZ     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+6) 
-               ptaxis_vctX     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+7)
-               ptaxis_vctY     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+8)
-               ptaxis_vctZ     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+9) 
-               ptomega         = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+10)
-               size_IBC   += 11*Nbpts_D; inc += 11
+            gradxV = Internal.getNodeFromName1(s, 'gradxVelocityY')
+            gradyV = Internal.getNodeFromName1(s, 'gradyVelocityY')
+            gradzV = Internal.getNodeFromName1(s, 'gradzVelocityY')
+            if gradxV is not None:
+                ptgradxV = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                ptgradyV = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                ptgradzV = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+                size_IBC   += 3*Nbpts_D; inc += 3
 
-           sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
-           if sd1 is not None:
-               ptd1    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
-           sd2 = Internal.getNodeFromName1(s, 'StagnationPressure')
-           if sd2 is not None:
-               ptd2    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
-           sd3 = Internal.getNodeFromName1(s, 'dirx')
-           if sd3 is not None:
-               ptd3    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
-           sd4 = Internal.getNodeFromName1(s, 'diry')
-           if sd4 is not None:
-               ptd4    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
-           sd5 = Internal.getNodeFromName1(s, 'dirz')
-           if sd5 is not None:
-               ptd5    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               size_IBC += Nbpts_D; inc += 1
+            gradxW = Internal.getNodeFromName1(s, 'gradxVelocityZ')
+            gradyW = Internal.getNodeFromName1(s, 'gradyVelocityZ')
+            gradzW = Internal.getNodeFromName1(s, 'gradzVelocityZ')
+            if gradxW is not None:
+                ptgradxW = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                ptgradyW = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                ptgradzW = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+                size_IBC   += 3*Nbpts_D; inc += 3
 
-           if model=="LBMLaminar":
-               qloc_1[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))
-               if qloc_1[0] is not None:
-                   ptqloc_1[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-                   size_IBC += Nbpts_D; inc += 1
-                   for f_i in range(1,neq_loc):
-                       qloc_1[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(f_i+1))
-                       ptqloc_1[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-                       size_IBC += Nbpts_D; inc += 1
-                   
-               qloc_2[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
-               if qloc_2[0] is not None:
-                   ptqloc_2[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-                   size_IBC += Nbpts_D; inc += 1
-                   for f_i in range(1,neq_loc):
-                       qloc_2[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(f_i+1))
-                       ptqloc_2[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-                       size_IBC += Nbpts_D; inc += 1
-                       
-               qloc_3[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
-               if qloc_3[0] is not None:
-                   ptqloc_3[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-                   size_IBC += Nbpts_D; inc += 1
-                   for f_i in range(1,neq_loc):
-                       qloc_3[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(f_i+1))
-                       ptqloc_3[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-                       size_IBC += Nbpts_D; inc += 1
-		       
-           yline          = Internal.getNodeFromName1(s, 'CoordinateN_ODE')
-           uline          = Internal.getNodeFromName1(s, 'VelocityT_ODE')
-           nutildeline    = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_ODE')
-           psiline        = Internal.getNodeFromName1(s, 'Psi_ODE')
-           matmline       = Internal.getNodeFromName1(s, 'Matm_ODE')
-           matline        = Internal.getNodeFromName1(s, 'Mat_ODE')
-           matpline       = Internal.getNodeFromName1(s, 'Matp_ODE')
-           alphasbetaline = Internal.getNodeFromName1(s, 'alphasbeta_ODE')
-           indexline      = Internal.getNodeFromName1(s, 'index_ODE')
-           if yline is not None:
-               ptyline          = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
-               ptuline          = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
-               ptnutildeline    = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
-               ptpsiline        = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
-               ptmatmline       = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
-               ptmatline        = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
-               ptmatpline       = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
-               size_IBC += 7*nbpts_linelets*Nbpts_D;
-               ptalphasbetaline = pt_coef + Nbpts_InterpD + Nbpts_D*inc
-               ptindexline      = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
-               size_IBC += 2*Nbpts_D; inc += 2
 
-           
-               
+            xcInit    = Internal.getNodeFromName1(s , 'CoordinateX_PC#Init')
+            ycInit    = Internal.getNodeFromName1(s , 'CoordinateY_PC#Init')
+            zcInit    = Internal.getNodeFromName1(s , 'CoordinateZ_PC#Init')
+            xiInit    = Internal.getNodeFromName1(s , 'CoordinateX_PI#Init')
+            yiInit    = Internal.getNodeFromName1(s , 'CoordinateY_PI#Init')
+            ziInit    = Internal.getNodeFromName1(s , 'CoordinateZ_PI#Init')
+            xwInit    = Internal.getNodeFromName1(s , 'CoordinateX_PW#Init')
+            ywInit    = Internal.getNodeFromName1(s , 'CoordinateY_PW#Init')
+            zwInit    = Internal.getNodeFromName1(s , 'CoordinateZ_PW#Init')
+            if xcInit is not None:
+                ptxcInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+0)
+                ptycInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                ptzcInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
 
-       tmp = Internal.getNodeFromName1(s, 'ZoneRole')
-       if tmp[1][0] == b'D': param_int[ iadr +rac[pos]*4 ] = 0   # role= Donor
-       else                : param_int[ iadr +rac[pos]*4 ] = 1   # role= Receiver
+                ptxiInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3)
+                ptyiInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
+                ptziInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
 
-       param_int[ iadr +rac[pos]*5 ] = NozoneD                    # No zone donneuse
+                ptxwInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+6)
+                ptywInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+7)
+                ptzwInit = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+8)
+                size_IBC   += 9*Nbpts_D; inc += 9
 
-       lst                              = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + sizeNbD[pos] + sizeType[pos] + size_ptlist[pos]
-       param_int[ iadr +rac[pos]*6    ] = lst                                                                      # PointlistAdr
-       ptTy                             = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + sizeNbD[pos] + size_ptType[pos]
-       param_int[ iadr +rac[pos]*7    ] = ptTy                                                                     # TypAdr
-       lstD                             = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + size_ptlistD[pos]
-       param_int[ iadr +rac[pos]*12 +1] = lstD                                                                     # PointlistDAdr
+            motion_type  = Internal.getNodeFromName1(s , 'MotionType')
+            transl_speedX = Internal.getNodeFromName1(s , 'transl_speedX')
+            transl_speedY = Internal.getNodeFromName1(s , 'transl_speedY')
+            transl_speedZ = Internal.getNodeFromName1(s , 'transl_speedZ')
+            axis_pntX     = Internal.getNodeFromName1(s , 'axis_pntX')
+            axis_pntY     = Internal.getNodeFromName1(s , 'axis_pntY')
+            axis_pntZ     = Internal.getNodeFromName1(s , 'axis_pntZ')
+            axis_vctX     = Internal.getNodeFromName1(s , 'axis_vctX')
+            axis_vctY     = Internal.getNodeFromName1(s , 'axis_vctY')
+            axis_vctZ     = Internal.getNodeFromName1(s , 'axis_vctZ')
+            omega        = Internal.getNodeFromName1(s , 'omega')
+            if motion_type is not None:
+                ptmotion_type   = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+0)
+                pttransl_speedX = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                pttransl_speedY = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
+                pttransl_speedZ = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3) 
+                ptaxis_pntX     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
+                ptaxis_pntY     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
+                ptaxis_pntZ     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+6) 
+                ptaxis_vctX     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+7)
+                ptaxis_vctY     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+8)
+                ptaxis_vctZ     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+9) 
+                ptomega         = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+10)
+                size_IBC   += 11*Nbpts_D; inc += 11
 
-       Nbtot += Nbpts
+            sd1 = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
+            if sd1 is not None:
+                ptd1    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+            sd2 = Internal.getNodeFromName1(s, 'StagnationPressure')
+            if sd2 is not None:
+                ptd2    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+            sd3 = Internal.getNodeFromName1(s, 'dirx')
+            if sd3 is not None:
+                ptd3    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+            sd4 = Internal.getNodeFromName1(s, 'diry')
+            if sd4 is not None:
+                ptd4    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
+            sd5 = Internal.getNodeFromName1(s, 'dirz')
+            if sd5 is not None:
+                ptd5    = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                size_IBC += Nbpts_D; inc += 1
 
-       param_int[ ptTy  ] = len(Nbtype)
-       noi       = 0
-       nocoef    = 0
-       sizecoef  = 0
-       shift_typ = 1 + len(Nbtype)
-       ctyp      = 0
-       l0        = 0
+            if model=="LBMLaminar":
+                qloc_1[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))
+                if qloc_1[0] is not None:
+                    ptqloc_1[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                    size_IBC += Nbpts_D; inc += 1
+                    for f_i in range(1,neq_loc):
+                        qloc_1[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(f_i+1))
+                        ptqloc_1[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                        size_IBC += Nbpts_D; inc += 1
 
-       #recopie dans tableau a plat + tri par type
-       if len(Nbtype) == 1:
-           triMonoType(Nbpts_D, Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
-                       Interptype, pointlist, pointlistD, param_int,
-                       ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
-                       ptdensity,ptpressure, ptkcurv,
-                       ptvx, ptvy, ptvz,
-                       ptutau,ptyplus,
-                       pttemp_local, pttemp_extra_local,pttemp_extra2_local,
-                       pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
-                       pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,                       
-                       ptgradxP, ptgradyP, ptgradzP,
-                       ptgradxU, ptgradyU, ptgradzU,
-                       ptgradxV, ptgradyV, ptgradzV,
-                       ptgradxW, ptgradyW, ptgradzW,
-                       ptxcInit,ptycInit,ptzcInit,ptxiInit,ptyiInit,ptziInit,ptxwInit,ptywInit,ptzwInit,
-                       ptmotion_type,
-                       pttransl_speedX,pttransl_speedY,pttransl_speedZ,
-                       ptaxis_pntX,ptaxis_pntY,ptaxis_pntZ,
-                       ptaxis_vctX,ptaxis_vctY,ptaxis_vctZ,
-                       ptomega,
-                       ptd1,ptd2,ptd3,ptd4,ptd5,
-                       ptyline,ptuline,ptnutildeline,ptpsiline,ptmatmline,ptmatline,ptmatpline,
-                       ptalphasbetaline,ptindexline,
-                       xc,yc,zc,xi,yi,zi,xw,yw,zw,
-                       density,pressure, kcurv,
-                       vx, vy, vz,
-                       utau,yplus,
-                       temp_local, temp_extra_local,temp_extra2_local,
-                       wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
-                       wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
-                       gradxP, gradyP, gradzP,
-                       gradxU, gradyU, gradzU,
-                       gradxV, gradyV, gradzV,
-                       gradxW, gradyW, gradzW,
-                       xcInit,ycInit,zcInit,xiInit,yiInit,ziInit,xwInit,ywInit,zwInit,
-                       motion_type,
-                       transl_speedX,transl_speedY,transl_speedZ,
-                       axis_pntX,axis_pntY,axis_pntZ,
-                       axis_vctX,axis_vctY,axis_vctZ,
-                       omega,
-                       sd1,sd2,sd3,sd4,sd5,
-                       yline,uline,nutildeline,psiline,matmline,matline,matpline,
-                       alphasbetaline,indexline,
-                       InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model,nbpts_linelets)
-       else:
-           triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
+                qloc_2[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
+                if qloc_2[0] is not None:
+                    ptqloc_2[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                    size_IBC += Nbpts_D; inc += 1
+                    for f_i in range(1,neq_loc):
+                        qloc_2[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(f_i+1))
+                        ptqloc_2[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                        size_IBC += Nbpts_D; inc += 1
+
+                qloc_3[0] = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(1))
+                if qloc_3[0] is not None:
+                    ptqloc_3[0] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                    size_IBC += Nbpts_D; inc += 1
+                    for f_i in range(1,neq_loc):
+                        qloc_3[f_i]   = Internal.getNodeFromName1(s, ibm_lbm_variables_3 + str(f_i+1))
+                        ptqloc_3[f_i] = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                        size_IBC += Nbpts_D; inc += 1
+
+            yline          = Internal.getNodeFromName1(s, 'CoordinateN_ODE')
+            uline          = Internal.getNodeFromName1(s, 'VelocityT_ODE')
+            nutildeline    = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_ODE')
+            psiline        = Internal.getNodeFromName1(s, 'Psi_ODE')
+            matmline       = Internal.getNodeFromName1(s, 'Matm_ODE')
+            matline        = Internal.getNodeFromName1(s, 'Mat_ODE')
+            matpline       = Internal.getNodeFromName1(s, 'Matp_ODE')
+            alphasbetaline = Internal.getNodeFromName1(s, 'alphasbeta_ODE')
+            indexline      = Internal.getNodeFromName1(s, 'index_ODE')
+            if yline is not None:
+                ptyline          = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
+                ptuline          = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
+                ptnutildeline    = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
+                ptpsiline        = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
+                ptmatmline       = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
+                ptmatline        = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
+                ptmatpline       = pt_coef + Nbpts_InterpD + Nbpts_D*inc; inc += nbpts_linelets
+                size_IBC += 7*nbpts_linelets*Nbpts_D;
+                ptalphasbetaline = pt_coef + Nbpts_InterpD + Nbpts_D*inc
+                ptindexline      = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
+                size_IBC += 2*Nbpts_D; inc += 2
+
+
+
+
+        tmp = Internal.getNodeFromName1(s, 'ZoneRole')
+        if tmp[1][0] == b'D': param_int[ iadr +rac[pos]*4 ] = 0   # role= Donor
+        else                : param_int[ iadr +rac[pos]*4 ] = 1   # role= Receiver
+
+        param_int[ iadr +rac[pos]*5 ] = NozoneD                    # No zone donneuse
+
+        lst                              = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + sizeNbD[pos] + sizeType[pos] + size_ptlist[pos]
+        param_int[ iadr +rac[pos]*6    ] = lst                                                                      # PointlistAdr
+        ptTy                             = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + sizeNbD[pos] + size_ptType[pos]
+        param_int[ iadr +rac[pos]*7    ] = ptTy                                                                     # TypAdr
+        lstD                             = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + size_ptlistD[pos]
+        param_int[ iadr +rac[pos]*12 +1] = lstD                                                                     # PointlistDAdr
+
+        Nbtot += Nbpts
+
+        param_int[ ptTy  ] = len(Nbtype)
+        noi       = 0
+        nocoef    = 0
+        sizecoef  = 0
+        shift_typ = 1 + len(Nbtype)
+        ctyp      = 0
+        l0        = 0
+
+        #recopie dans tableau a plat + tri par type
+        if len(Nbtype) == 1:
+            triMonoType(Nbpts_D, Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                         Interptype, pointlist, pointlistD, param_int,
                         ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
                         ptdensity,ptpressure, ptkcurv,
@@ -895,7 +851,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         ptutau,ptyplus,
                         pttemp_local, pttemp_extra_local,pttemp_extra2_local,
                         pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
-                        pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,   
+                        pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,                       
                         ptgradxP, ptgradyP, ptgradzP,
                         ptgradxU, ptgradyU, ptgradzU,
                         ptgradxV, ptgradyV, ptgradzV,
@@ -913,7 +869,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         density,pressure, kcurv,
                         vx, vy, vz,
                         utau,yplus,
-                        temp_local, temp_extra_local, temp_extra2_local,
+                        temp_local, temp_extra_local,temp_extra2_local,
                         wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
                         wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
                         gradxP, gradyP, gradzP,
@@ -929,16 +885,60 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         sd1,sd2,sd3,sd4,sd5,
                         yline,uline,nutildeline,psiline,matmline,matline,matpline,
                         alphasbetaline,indexline,
-                        InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model)
+                        InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model,nbpts_linelets)
+        else:
+            triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
+                         Interptype, pointlist, pointlistD, param_int,
+                         ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
+                         ptdensity,ptpressure, ptkcurv,
+                         ptvx, ptvy, ptvz,
+                         ptutau,ptyplus,
+                         pttemp_local, pttemp_extra_local,pttemp_extra2_local,
+                         pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
+                         pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,   
+                         ptgradxP, ptgradyP, ptgradzP,
+                         ptgradxU, ptgradyU, ptgradzU,
+                         ptgradxV, ptgradyV, ptgradzV,
+                         ptgradxW, ptgradyW, ptgradzW,
+                         ptxcInit,ptycInit,ptzcInit,ptxiInit,ptyiInit,ptziInit,ptxwInit,ptywInit,ptzwInit,
+                         ptmotion_type,
+                         pttransl_speedX,pttransl_speedY,pttransl_speedZ,
+                         ptaxis_pntX,ptaxis_pntY,ptaxis_pntZ,
+                         ptaxis_vctX,ptaxis_vctY,ptaxis_vctZ,
+                         ptomega,
+                         ptd1,ptd2,ptd3,ptd4,ptd5,
+                         ptyline,ptuline,ptnutildeline,ptpsiline,ptmatmline,ptmatline,ptmatpline,
+                         ptalphasbetaline,ptindexline,
+                         xc,yc,zc,xi,yi,zi,xw,yw,zw,
+                         density,pressure, kcurv,
+                         vx, vy, vz,
+                         utau,yplus,
+                         temp_local, temp_extra_local, temp_extra2_local,
+                         wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
+                         wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
+                         gradxP, gradyP, gradzP,
+                         gradxU, gradyU, gradzU,
+                         gradxV, gradyV, gradzV,
+                         gradxW, gradyW, gradzW,
+                         xcInit,ycInit,zcInit,xiInit,yiInit,ziInit,xwInit,ywInit,zwInit,
+                         motion_type,
+                         transl_speedX,transl_speedY,transl_speedZ,
+                         axis_pntX,axis_pntY,axis_pntZ,
+                         axis_vctX,axis_vctY,axis_vctZ,
+                         omega,
+                         sd1,sd2,sd3,sd4,sd5,
+                         yline,uline,nutildeline,psiline,matmline,matline,matpline,
+                         alphasbetaline,indexline,
+                         InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model)
 
-       pointlist[ 1] = param_int[ lst             : lst              + Nbpts         ]    # supression numpy initial pointlist
-       Interptype[1] = param_int[ ptTy + shift_typ: ptTy + shift_typ + Nbpts_D       ]    # supression numpy initial interpolantType
-       pointlistD[1] = param_int[ lstD            : lstD             + Nbpts_D       ]    # supression numpy initial pointlistDonor
-       InterpD[   1] = param_real[ pt_coef        : pt_coef          + Nbpts_InterpD ]    # supression numpy initial interpDonor
+        pointlist[ 1] = param_int[ lst             : lst              + Nbpts         ]    # supression numpy initial pointlist
+        Interptype[1] = param_int[ ptTy + shift_typ: ptTy + shift_typ + Nbpts_D       ]    # supression numpy initial interpolantType
+        pointlistD[1] = param_int[ lstD            : lstD             + Nbpts_D       ]    # supression numpy initial pointlistDonor
+        InterpD[   1] = param_real[ pt_coef        : pt_coef          + Nbpts_InterpD ]    # supression numpy initial interpDonor
 
-       #if s[0] == 'ID_cart3' and z[0]=='cart1': print('verif',  InterpD[   1][0], pt_coef,numpy.shape(InterpD[ 1  ]))
+        #if s[0] == 'ID_cart3' and z[0]=='cart1': print('verif',  InterpD[   1][0], pt_coef,numpy.shape(InterpD[ 1  ]))
 
-       if sname == 'IB':
+        if sname == 'IB':
             xc[1]       = param_real[ ptxc: ptxc+ Nbpts_D ]
             yc[1]       = param_real[ ptyc: ptyc+ Nbpts_D ]
             zc[1]       = param_real[ ptzc: ptzc+ Nbpts_D ]
@@ -956,15 +956,15 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             vz[1]       = param_real[ ptvz: ptvz+ Nbpts_D ]
 
             if utau is not None:
-              utau[1]  = param_real[ ptutau : ptutau + Nbpts_D ]
-              yplus[1] = param_real[ ptyplus: ptyplus + Nbpts_D ]
+                utau[1]  = param_real[ ptutau : ptutau + Nbpts_D ]
+                yplus[1] = param_real[ ptyplus: ptyplus + Nbpts_D ]
 
             if temp_local is not None:
-              temp_local[1]       = param_real[ pttemp_local       : pttemp_local       + Nbpts_D ]
+                temp_local[1]       = param_real[ pttemp_local       : pttemp_local       + Nbpts_D ]
             if temp_extra_local is not None:
-              temp_extra_local[1] = param_real[ pttemp_extra_local : pttemp_extra_local + Nbpts_D ]
+                temp_extra_local[1] = param_real[ pttemp_extra_local : pttemp_extra_local + Nbpts_D ]
             if temp_extra2_local is not None:
-              temp_extra2_local[1] = param_real[ pttemp_extra2_local: pttemp_extra2_local + Nbpts_D ]
+                temp_extra2_local[1] = param_real[ pttemp_extra2_local: pttemp_extra2_local + Nbpts_D ]
 
             if wmodel_local_dens is not None:
                 wmodel_local_dens[1]       = param_real[ pt_dens_wm_local    : pt_dens_wm_local    + Nbpts_D ]
@@ -976,57 +976,57 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
 
             if gradxP is not None:
-              gradxP[1] = param_real[ ptgradxP : ptgradxP + Nbpts_D ]
-              gradyP[1] = param_real[ ptgradyP : ptgradyP + Nbpts_D ]
-              gradzP[1] = param_real[ ptgradzP : ptgradzP + Nbpts_D ]
+                gradxP[1] = param_real[ ptgradxP : ptgradxP + Nbpts_D ]
+                gradyP[1] = param_real[ ptgradyP : ptgradyP + Nbpts_D ]
+                gradzP[1] = param_real[ ptgradzP : ptgradzP + Nbpts_D ]
 
             if gradxU is not None:
-              gradxU[1] = param_real[ ptgradxU : ptgradxU + Nbpts_D ]
-              gradyU[1] = param_real[ ptgradyU : ptgradyU + Nbpts_D ]
-              gradzU[1] = param_real[ ptgradzU : ptgradzU + Nbpts_D ]
+                gradxU[1] = param_real[ ptgradxU : ptgradxU + Nbpts_D ]
+                gradyU[1] = param_real[ ptgradyU : ptgradyU + Nbpts_D ]
+                gradzU[1] = param_real[ ptgradzU : ptgradzU + Nbpts_D ]
 
             if gradxV is not None:
-              gradxV[1] = param_real[ ptgradxV : ptgradxV + Nbpts_D ]
-              gradyV[1] = param_real[ ptgradyV : ptgradyV + Nbpts_D ]
-              gradzV[1] = param_real[ ptgradzV : ptgradzV + Nbpts_D ]
+                gradxV[1] = param_real[ ptgradxV : ptgradxV + Nbpts_D ]
+                gradyV[1] = param_real[ ptgradyV : ptgradyV + Nbpts_D ]
+                gradzV[1] = param_real[ ptgradzV : ptgradzV + Nbpts_D ]
 
             if gradxW is not None:
-              gradxW[1] = param_real[ ptgradxW : ptgradxW + Nbpts_D ]
-              gradyW[1] = param_real[ ptgradyW : ptgradyW + Nbpts_D ]
-              gradzW[1] = param_real[ ptgradzW : ptgradzW + Nbpts_D ]
+                gradxW[1] = param_real[ ptgradxW : ptgradxW + Nbpts_D ]
+                gradyW[1] = param_real[ ptgradyW : ptgradyW + Nbpts_D ]
+                gradzW[1] = param_real[ ptgradzW : ptgradzW + Nbpts_D ]
 
             if xcInit is not None:
-               xcInit = param_real[ ptxcInit : ptxcInit + Nbpts_D ]
-               ycInit = param_real[ ptycInit : ptycInit + Nbpts_D ]
-               zcInit = param_real[ ptzcInit : ptzcInit + Nbpts_D ]
-               
-               xiInit = param_real[ ptxiInit : ptxiInit + Nbpts_D ]
-               yiInit = param_real[ ptyiInit : ptyiInit + Nbpts_D ]
-               ziInit = param_real[ ptziInit : ptziInit + Nbpts_D ]
+                xcInit = param_real[ ptxcInit : ptxcInit + Nbpts_D ]
+                ycInit = param_real[ ptycInit : ptycInit + Nbpts_D ]
+                zcInit = param_real[ ptzcInit : ptzcInit + Nbpts_D ]
 
-               xwInit = param_real[ ptxwInit : ptxwInit + Nbpts_D ]
-               ywInit = param_real[ ptywInit : ptywInit + Nbpts_D ]
-               zwInit = param_real[ ptzwInit : ptzwInit + Nbpts_D ]
-               
+                xiInit = param_real[ ptxiInit : ptxiInit + Nbpts_D ]
+                yiInit = param_real[ ptyiInit : ptyiInit + Nbpts_D ]
+                ziInit = param_real[ ptziInit : ptziInit + Nbpts_D ]
+
+                xwInit = param_real[ ptxwInit : ptxwInit + Nbpts_D ]
+                ywInit = param_real[ ptywInit : ptywInit + Nbpts_D ]
+                zwInit = param_real[ ptzwInit : ptzwInit + Nbpts_D ]
+
             if motion_type is not None:
-               motion_type  = param_real[ ptmotion_type : ptmotion_type + Nbpts_D ]
-               
-               transl_speedX = param_real[ pttransl_speedX : pttransl_speedX + Nbpts_D ]
-               transl_speedY = param_real[ pttransl_speedY : pttransl_speedY + Nbpts_D ]
-               transl_speedZ = param_real[ pttransl_speedZ : pttransl_speedZ + Nbpts_D ]
+                motion_type  = param_real[ ptmotion_type : ptmotion_type + Nbpts_D ]
 
-               axis_pntX     = param_real[ ptaxis_pntX : ptaxis_pntX + Nbpts_D ]
-               axis_pntY     = param_real[ ptaxis_pntY : ptaxis_pntY + Nbpts_D ]
-               axis_pntZ     = param_real[ ptaxis_pntZ : ptaxis_pntZ + Nbpts_D ]
-               
-               axis_vctX     = param_real[ ptaxis_vctX : ptaxis_vctX + Nbpts_D ]
-               axis_vctY     = param_real[ ptaxis_vctY : ptaxis_vctY + Nbpts_D ]
-               axis_vctZ     = param_real[ ptaxis_vctZ : ptaxis_vctZ + Nbpts_D ]
-               
-               omega        = param_real[ ptomega : ptomega + Nbpts_D ]
+                transl_speedX = param_real[ pttransl_speedX : pttransl_speedX + Nbpts_D ]
+                transl_speedY = param_real[ pttransl_speedY : pttransl_speedY + Nbpts_D ]
+                transl_speedZ = param_real[ pttransl_speedZ : pttransl_speedZ + Nbpts_D ]
+
+                axis_pntX     = param_real[ ptaxis_pntX : ptaxis_pntX + Nbpts_D ]
+                axis_pntY     = param_real[ ptaxis_pntY : ptaxis_pntY + Nbpts_D ]
+                axis_pntZ     = param_real[ ptaxis_pntZ : ptaxis_pntZ + Nbpts_D ]
+
+                axis_vctX     = param_real[ ptaxis_vctX : ptaxis_vctX + Nbpts_D ]
+                axis_vctY     = param_real[ ptaxis_vctY : ptaxis_vctY + Nbpts_D ]
+                axis_vctZ     = param_real[ ptaxis_vctZ : ptaxis_vctZ + Nbpts_D ]
+
+                omega        = param_real[ ptomega : ptomega + Nbpts_D ]
 
             if kcurv is not None:
-              kcurv[1]  = param_real[ ptkcurv : ptkcurv + Nbpts_D ]
+                kcurv[1]  = param_real[ ptkcurv : ptkcurv + Nbpts_D ]
 
             if sd1 is not None: sd1[1]  = param_real[ ptd1 : ptd1 + Nbpts_D ]
             if sd2 is not None: sd2[1]  = param_real[ ptd2 : ptd2 + Nbpts_D ]
@@ -1034,114 +1034,114 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             if sd4 is not None: sd4[1]  = param_real[ ptd4 : ptd4 + Nbpts_D ]
             if sd5 is not None: sd5[1]  = param_real[ ptd5 : ptd5 + Nbpts_D ]
 
-              
+
             if yline is not None:
-              yline[1]          = param_real[ ptyline : ptyline + Nbpts_D*nbpts_linelets ]
-              uline[1]          = param_real[ ptuline : ptuline + Nbpts_D*nbpts_linelets ]
-              nutildeline[1]    = param_real[ ptnutildeline : ptnutildeline + Nbpts_D*nbpts_linelets ]
-              psiline[1]        = param_real[ ptpsiline : ptpsiline + Nbpts_D*nbpts_linelets ]
-              matmline[1]       = param_real[ ptmatmline : ptmatmline + Nbpts_D*nbpts_linelets ]
-              matline[1]        = param_real[ ptmatline : ptmatline + Nbpts_D*nbpts_linelets ]
-              matpline[1]       = param_real[ ptmatpline : ptmatpline + Nbpts_D*nbpts_linelets ]
-              alphasbetaline[1] = param_real[ ptalphasbetaline : ptalphasbetaline + Nbpts_D ]
-              indexline[1]      = param_real[ ptindexline : ptindexline + Nbpts_D ]
+                yline[1]          = param_real[ ptyline : ptyline + Nbpts_D*nbpts_linelets ]
+                uline[1]          = param_real[ ptuline : ptuline + Nbpts_D*nbpts_linelets ]
+                nutildeline[1]    = param_real[ ptnutildeline : ptnutildeline + Nbpts_D*nbpts_linelets ]
+                psiline[1]        = param_real[ ptpsiline : ptpsiline + Nbpts_D*nbpts_linelets ]
+                matmline[1]       = param_real[ ptmatmline : ptmatmline + Nbpts_D*nbpts_linelets ]
+                matline[1]        = param_real[ ptmatline : ptmatline + Nbpts_D*nbpts_linelets ]
+                matpline[1]       = param_real[ ptmatpline : ptmatpline + Nbpts_D*nbpts_linelets ]
+                alphasbetaline[1] = param_real[ ptalphasbetaline : ptalphasbetaline + Nbpts_D ]
+                indexline[1]      = param_real[ ptindexline : ptindexline + Nbpts_D ]
 
             if model=="LBMLaminar":
-              if qloc_1[0] is not None:
-                  for f_i in range(0,neq_loc):
-                      qloc_1[f_i][1]   = param_real[ ptqloc_1[f_i] : ptqloc_1[f_i] + Nbpts_D ]
-              if qloc_2[0] is not None:
-                  for f_i in range(0,neq_loc):
-                      qloc_2[f_i][1]   = param_real[ ptqloc_2[f_i] : ptqloc_2[f_i] + Nbpts_D ]
-              if qloc_3[0] is not None:
-                  for f_i in range(0,neq_loc):
-                      qloc_3[f_i][1]   = param_real[ ptqloc_3[f_i] : ptqloc_3[f_i] + Nbpts_D ]      
+                if qloc_1[0] is not None:
+                    for f_i in range(0,neq_loc):
+                        qloc_1[f_i][1]   = param_real[ ptqloc_1[f_i] : ptqloc_1[f_i] + Nbpts_D ]
+                if qloc_2[0] is not None:
+                    for f_i in range(0,neq_loc):
+                        qloc_2[f_i][1]   = param_real[ ptqloc_2[f_i] : ptqloc_2[f_i] + Nbpts_D ]
+                if qloc_3[0] is not None:
+                    for f_i in range(0,neq_loc):
+                        qloc_3[f_i][1]   = param_real[ ptqloc_3[f_i] : ptqloc_3[f_i] + Nbpts_D ]      
 
-       param_int[ iadr +rac[pos]*8 ] = adr_coef[pos] + size_coef[pos]          # PtcoefAdr
+        param_int[ iadr +rac[pos]*8 ] = adr_coef[pos] + size_coef[pos]          # PtcoefAdr
 
-       iadr = iadr +1
-       param_int[ iadr +rac[pos]*8 ] = rac[pos]                  # nrac pour mpi
+        iadr = iadr +1
+        param_int[ iadr +rac[pos]*8 ] = rac[pos]                  # nrac pour mpi
 
 
-       tmp = Internal.getNodeFromName1(s , 'GridLocation')
-       if tmp[1][4] == b'C': param_int[ iadr +rac[pos]*9 ] = 1   # location= CellCenter
-       else                : param_int[ iadr +rac[pos]*9 ] = 0   # location= Vertex
+        tmp = Internal.getNodeFromName1(s , 'GridLocation')
+        if tmp[1][4] == b'C': param_int[ iadr +rac[pos]*9 ] = 1   # location= CellCenter
+        else                : param_int[ iadr +rac[pos]*9 ] = 0   # location= Vertex
 
-       param_int[ iadr +rac[pos]*10 ] = Nbpts_D
+        param_int[ iadr +rac[pos]*10 ] = Nbpts_D
 
-       #chercher No zone receveuse grace a tc ou dico (si mpi)
-       if procDict is None:
-         param_int[ iadr +rac[pos]*11 ] = znd.index( zRname )         # No zone receveuse
-       else:
-         param_int[ iadr +rac[pos]*11  ]= procList[proc].index( zRname )  # No zone raccord
+        #chercher No zone receveuse grace a tc ou dico (si mpi)
+        if procDict is None:
+            param_int[ iadr +rac[pos]*11 ] = znd.index( zRname )         # No zone receveuse
+        else:
+            param_int[ iadr +rac[pos]*11  ]= procList[proc].index( zRname )  # No zone raccord
 
-       #print( 'rac', s[0], 'zoneR=', zRname, 'NoR=', param_int[ iadr +rac[pos]*11 ],  'adr=',iadr +rac[pos]*11, 'NoD=',  param_int[ iadr-1 +rac[pos]*5 ], 'adr=',iadr-1 +rac[pos]*5,'rank=', rank, 'dest=', proc)
+        #print( 'rac', s[0], 'zoneR=', zRname, 'NoR=', param_int[ iadr +rac[pos]*11 ],  'adr=',iadr +rac[pos]*11, 'NoD=',  param_int[ iadr-1 +rac[pos]*5 ], 'adr=',iadr-1 +rac[pos]*5,'rank=', rank, 'dest=', proc)
 
-       #print 'model=',model,'zoneR',zones_tc[param_int[ iadr +rac[pos]*11  ]][0], 'NoR=', param_int[ iadr +rac[pos]*11  ], 'NoD=', c
-       tmp =  Internal.getNodeFromName1(s , 'RANSLES')
-       if tmp is not None: param_int[ iadr +rac[pos]*13  ] = min (5, neq_loc)   # RANSLES
-       else:               param_int[ iadr +rac[pos]*13  ] = neq_loc
+        #print 'model=',model,'zoneR',zones_tc[param_int[ iadr +rac[pos]*11  ]][0], 'NoR=', param_int[ iadr +rac[pos]*11  ], 'NoD=', c
+        tmp =  Internal.getNodeFromName1(s , 'RANSLES')
+        if tmp is not None: param_int[ iadr +rac[pos]*13  ] = min (5, neq_loc)   # RANSLES
+        else:               param_int[ iadr +rac[pos]*13  ] = neq_loc
 
-       tmp =  Internal.getNodeFromName1(s , 'NSLBM')
-       if tmp is not None: 
-           if neq_loc==5: param_int[ iadr +rac[pos]*13  ] = 11  # NS vers LBM
-           else:          param_int[ iadr +rac[pos]*13  ] = -5  # LBM vers NS
+        tmp =  Internal.getNodeFromName1(s , 'NSLBM')
+        if tmp is not None: 
+            if neq_loc==5: param_int[ iadr +rac[pos]*13  ] = 11  # NS vers LBM
+            else:          param_int[ iadr +rac[pos]*13  ] = -5  # LBM vers NS
 
-       #print('raccord',s[0], 'neq=',neq_loc, param_int[ iadr +rac[pos]*13  ] , 'NoDR=',NozoneD, param_int[ iadr +rac[pos]*11  ])
+        #print('raccord',s[0], 'neq=',neq_loc, param_int[ iadr +rac[pos]*13  ] , 'NoDR=',NozoneD, param_int[ iadr +rac[pos]*11  ])
 
-       # raccord periodique avec rotation
-       if RotationAngle is not None:
-             param_int[ iadr +rac[pos]*14  ] = 1
-             shiftRotation                   = 6
-             ptdeb =   pt_coef + Nbpts_InterpD
-             param_real[ ptdeb   : ptdeb+3 ] = RotationAngle[1][0:3]
-             param_real[ ptdeb+3 : ptdeb+6 ] = RotationCenter[1][0:3]
-             RotationAngle[1]  =    param_real[ ptdeb   : ptdeb+3]
-             RotationCenter[1] =    param_real[ ptdeb+3 : ptdeb+6]
+        # raccord periodique avec rotation
+        if RotationAngle is not None:
+            param_int[ iadr +rac[pos]*14  ] = 1
+            shiftRotation                   = 6
+            ptdeb =   pt_coef + Nbpts_InterpD
+            param_real[ ptdeb   : ptdeb+3 ] = RotationAngle[1][0:3]
+            param_real[ ptdeb+3 : ptdeb+6 ] = RotationCenter[1][0:3]
+            RotationAngle[1]  =    param_real[ ptdeb   : ptdeb+3]
+            RotationCenter[1] =    param_real[ ptdeb+3 : ptdeb+6]
 
-       else:
-             param_int[ iadr +rac[pos]*14  ] = 0
-             shiftRotation                   = 0
+        else:
+            param_int[ iadr +rac[pos]*14  ] = 0
+            shiftRotation                   = 0
 
-       #print('rac*14= ',iadr +rac[pos]*14)
+        #print('rac*14= ',iadr +rac[pos]*14)
 
-       # raccord instationnaire
-       param_int[ iadr +rac[pos]*15  ] =-1
-       if '#' in s[0]:
-           numero_iter = int( s[0].split('#')[1].split('_')[0] )
-           param_int[ iadr +rac[pos]*15  ] = numero_iter
+        # raccord instationnaire
+        param_int[ iadr +rac[pos]*15  ] =-1
+        if '#' in s[0]:
+            numero_iter = int( s[0].split('#')[1].split('_')[0] )
+            param_int[ iadr +rac[pos]*15  ] = numero_iter
 
-       if nrac != 0:
+        if nrac != 0:
 
-         if pranged is not None and prange is not None : #Si on est en explicite local, on rajoute des choses dans param_int
+            if pranged is not None and prange is not None : #Si on est en explicite local, on rajoute des choses dans param_int
 
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] : iadr2 + rac[pos]*16 + 27*nb_rac[pos]+6 ] = prange[1]
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos]  + 6] = direction[1]
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 7 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13 ] = pranged[1]
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13] = directiond[1]
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 14 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 17 ] = transfo[1]
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 17 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 20 ] = pt_pivot[1]
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 20 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 21 ] = profondeur[1]
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 21 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 24 ] = ratio[1]
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 24] = int(levelrcv[1])
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 25] = int(leveldnr[1])
-           param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 26] = S
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] : iadr2 + rac[pos]*16 + 27*nb_rac[pos]+6 ] = prange[1]
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos]  + 6] = direction[1]
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 7 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13 ] = pranged[1]
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13] = directiond[1]
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 14 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 17 ] = transfo[1]
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 17 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 20 ] = pt_pivot[1]
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 20 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 21 ] = profondeur[1]
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 21 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 24 ] = ratio[1]
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 24] = int(levelrcv[1])
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 25] = int(leveldnr[1])
+                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 26] = S
 
-           if int(levelrcv[1]) != int(leveldnr[1]):
-               S=S + 3*5*(pranged[1][1]-pranged[1][0]+1)*(pranged[1][3]-pranged[1][2]+1)*(pranged[1][5]-pranged[1][4]+1)*(profondeur[1][0]+1)
-           #print [int(levelrcv[1])], [int(leveldnr[1])],'--'
-           #print int([1]
-       #print('model=', model, 'tmp=', tmp, 'neq_loc=', neq_loc)
+                if int(levelrcv[1]) != int(leveldnr[1]):
+                    S=S + 3*5*(pranged[1][1]-pranged[1][0]+1)*(pranged[1][3]-pranged[1][2]+1)*(pranged[1][5]-pranged[1][4]+1)*(profondeur[1][0]+1)
+                #print [int(levelrcv[1])], [int(leveldnr[1])],'--'
+                #print int([1]
+        #print('model=', model, 'tmp=', tmp, 'neq_loc=', neq_loc)
 
-       ### Verifier position et choix entre Nbpts et NbptsD 
-       size_ptlistD[pos] = size_ptlistD[pos] + Nbpts_D
-       size_ptlist[pos]  = size_ptlist[pos]  + Nbpts
-       size_ptType[pos]  = size_ptType[pos]  + Nbpts_D + len(Nbtype)+1
+        ### Verifier position et choix entre Nbpts et NbptsD 
+        size_ptlistD[pos] = size_ptlistD[pos] + Nbpts_D
+        size_ptlist[pos]  = size_ptlist[pos]  + Nbpts
+        size_ptType[pos]  = size_ptType[pos]  + Nbpts_D + len(Nbtype)+1
 
-       size_coef[pos] = size_coef[pos] + Nbpts_InterpD + size_IBC + shiftRotation
-       nb_rac[pos]    = nb_rac[pos] + 1
+        size_coef[pos] = size_coef[pos] + Nbpts_InterpD + size_IBC + shiftRotation
+        nb_rac[pos]    = nb_rac[pos] + 1
 
-       c += 1
+        c += 1
 
     return None
 
@@ -1191,183 +1191,183 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  yline,uline,nutildeline,psiline,matmline,matline,matpline,
                  alphasbetaline,indexline,
                  InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model):
-  for ntype in Nbtype:
-    noi_old   = 0
-    nocoef_old= 0
-    l         = 0
-    for i in range(Nbpts_D):
-       ltype = Interptype[1][i]
-       if meshtype == 1:
-         if ltype == 1: sizecoef=1
-         elif ltype == 2: sizecoef=8
-         elif ltype == 3: sizecoef=9
-         elif ltype == 4: sizecoef=8
-         elif ltype == 5: sizecoef=15
-         elif ltype == 22: sizecoef=4
-       else:
-         if ltype == 1: sizecoef=1
-         elif ltype == 4: sizecoef=4
+    for ntype in Nbtype:
+        noi_old   = 0
+        nocoef_old= 0
+        l         = 0
+        for i in range(Nbpts_D):
+            ltype = Interptype[1][i]
+            if meshtype == 1:
+                if ltype == 1: sizecoef=1
+                elif ltype == 2: sizecoef=8
+                elif ltype == 3: sizecoef=9
+                elif ltype == 4: sizecoef=8
+                elif ltype == 5: sizecoef=15
+                elif ltype == 22: sizecoef=4
+            else:
+                if ltype == 1: sizecoef=1
+                elif ltype == 4: sizecoef=4
 
-       if ltype == ntype:
+            if ltype == ntype:
             # recopie interpolantType
-            param_int[ ptTy + shift_typ + l + l0 ] = ltype
+                param_int[ ptTy + shift_typ + l + l0 ] = ltype
 
-            # recopie pointlist
-            if ntype != 0:
-              param_int[  lst + noi] = pointlist[ 1][ noi_old ]
-              noi     = noi     + 1
-              noi_old = noi_old + 1
+                # recopie pointlist
+                if ntype != 0:
+                    param_int[  lst + noi] = pointlist[ 1][ noi_old ]
+                    noi     = noi     + 1
+                    noi_old = noi_old + 1
+                else:
+                    ncfLoc   = pointlist[ 1][ noi_old ]
+                    sizecoef = ncfLoc
+                    param_int[  lst + noi] = ncfLoc
+                    param_int[ lst+noi+1: lst+noi+1+ncfLoc] = pointlist[1][ noi_old+1: noi_old+1+ncfLoc]
+                    noi     = noi     + 1 + ncfLoc
+                    noi_old = noi_old + 1 + ncfLoc
+
+                # recopie pointListDonor
+                param_int[ lstD +  l + l0] = pointlistD[1][i]
+                # recopie Maillage IBC
+                if sname == 'IB':
+                    param_real[ ptxc      + l + l0 ]= xc[1][i]
+                    param_real[ ptyc      + l + l0 ]= yc[1][i]
+                    param_real[ ptzc      + l + l0 ]= zc[1][i]
+                    param_real[ ptxi      + l + l0 ]= xi[1][i]
+                    param_real[ ptyi      + l + l0 ]= yi[1][i]
+                    param_real[ ptzi      + l + l0 ]= zi[1][i]
+                    param_real[ ptxw      + l + l0 ]= xw[1][i]
+                    param_real[ ptyw      + l + l0 ]= yw[1][i]
+                    param_real[ ptzw      + l + l0 ]= zw[1][i]
+                    param_real[ ptdensity + l + l0 ]= density[1][i]
+                    param_real[ ptpressure+ l + l0 ]= pressure[1][i]
+
+                    param_real[ ptvx      + l + l0 ]= vx[1][i]
+                    param_real[ ptvy      + l + l0 ]= vy[1][i]
+                    param_real[ ptvz      + l + l0 ]= vz[1][i]
+
+                    if utau is not None:
+                        param_real[ ptutau    + l + l0 ]= utau[1][i]
+                        param_real[ ptyplus   + l + l0 ]= yplus[1][i]
+
+                    if temp_local is not None:
+                        param_real[ pttemp_local       + l + l0 ]= temp_local[1][i]
+                    if temp_extra_local is not None: 
+                        param_real[ pttemp_extra_local + l + l0 ]= temp_extra_local[1][i]
+                    if temp_extra2_local is not None: 
+                        param_real[ pttemp_extra2_local + l + l0 ]= temp_extra2_local[1][i]
+
+                    if wmodel_local_dens is not None:
+                        param_real[ pt_dens_wm_local       + l + l0 ]= wmodel_local_dens[1][i]
+                        param_real[ pt_velx_wm_local       + l + l0 ]= wmodel_local_velx[1][i]
+                        param_real[ pt_vely_wm_local       + l + l0 ]= wmodel_local_vely[1][i]
+                        param_real[ pt_velz_wm_local       + l + l0 ]= wmodel_local_velz[1][i]
+                        param_real[ pt_temp_wm_local       + l + l0 ]= wmodel_local_temp[1][i]
+                        param_real[ pt_sanu_wm_local       + l + l0 ]= wmodel_local_sanu[1][i]
+
+                    if gradxP is not None:
+                        param_real[ ptgradxP + l + l0 ]= gradxP[1][i]
+                        param_real[ ptgradyP + l + l0 ]= gradyP[1][i]
+                        param_real[ ptgradzP + l + l0 ]= gradzP[1][i]
+
+                    if gradxU is not None:
+                        param_real[ ptgradxU + l + l0 ]= gradxU[1][i]
+                        param_real[ ptgradyU + l + l0 ]= gradyU[1][i]
+                        param_real[ ptgradzU + l + l0 ]= gradzU[1][i]
+
+                    if gradxV is not None:
+                        param_real[ ptgradxV + l + l0 ]= gradxV[1][i]
+                        param_real[ ptgradyV + l + l0 ]= gradyV[1][i]
+                        param_real[ ptgradzV + l + l0 ]= gradzV[1][i]
+
+                    if gradxW is not None:
+                        param_real[ ptgradxW + l + l0 ]= gradxW[1][i]
+                        param_real[ ptgradyW + l + l0 ]= gradyW[1][i]
+                        param_real[ ptgradzW + l + l0 ]= gradzW[1][i]
+
+                    if xcInit is not None:
+                        param_real[ ptxcInit + l + l0 ]= xcInit[1][i]
+                        param_real[ ptycInit + l + l0 ]= ycInit[1][i]
+                        param_real[ ptzcInit + l + l0 ]= zcInit[1][i]
+
+                        param_real[ ptxiInit + l + l0 ]= xiInit[1][i]
+                        param_real[ ptyiInit + l + l0 ]= yiInit[1][i]
+                        param_real[ ptziInit + l + l0 ]= ziInit[1][i]
+
+                        param_real[ ptxwInit + l + l0 ]= xwInit[1][i]
+                        param_real[ ptywInit + l + l0 ]= ywInit[1][i]
+                        param_real[ ptzwInit + l + l0 ]= zwInit[1][i]
+
+                    if motion_type is not None:
+                        param_real[ ptmotion_type  + l + l0 ] = motion_type[1][i]
+
+                        param_real[ pttransl_speedX + l + l0 ] = transl_speedX[1][i]
+                        param_real[ pttransl_speedY + l + l0 ] = transl_speedY[1][i]
+                        param_real[ pttransl_speedZ + l + l0 ] = transl_speedZ[1][i]
+
+                        param_real[ ptaxis_pntX     + l + l0 ] = axis_pntX[1][i]
+                        param_real[ ptaxis_pntY     + l + l0 ] = axis_pntY[1][i]
+                        param_real[ ptaxis_pntZ     + l + l0 ] = axis_pntZ[1][i]
+
+                        param_real[ ptaxis_vctX     + l + l0 ] = axis_vctX[1][i]
+                        param_real[ ptaxis_vctY     + l + l0 ] = axis_vctY[1][i]
+                        param_real[ ptaxis_vctZ     + l + l0 ] = axis_vctZ[1][i]
+
+                        param_real[ ptomega        + l + l0 ] = omega[1][i]
+
+
+                    if kcurv is not None:
+                        param_real[ ptkcurv + l + l0 ]= kcurv[1][i]
+
+                    if sd1 is not None:
+                        param_real[ ptd1   + l + l0 ]= sd1[1][i]
+                        param_real[ ptd2   + l + l0 ]= sd2[1][i]
+                        param_real[ ptd3   + l + l0 ]= sd3[1][i]
+                        param_real[ ptd4   + l + l0 ]= sd4[1][i]
+                        param_real[ ptd5   + l + l0 ]= sd5[1][i]
+
+                    if yline is not None:
+                        param_real[ ptyline          + l + l0 ]= yline[1][i]
+                        param_real[ ptuline          + l + l0 ]= uline[1][i]
+                        param_real[ ptnutildeline    + l + l0 ]= nutildeline[1][i]
+                        param_real[ ptpsiline        + l + l0 ]= psiline[1][i]
+                        param_real[ ptmatmline       + l + l0 ]= matmline[1][i]
+                        param_real[ ptmatline        + l + l0 ]= matline[1][i]
+                        param_real[ ptmatpline       + l + l0 ]= matpline[1][i]
+                        param_real[ ptalphasbetaline + l + l0 ]= alphasbetaline[1][i]
+                        param_real[ ptindexline      + l + l0 ]= indexline[1][i]
+
+                    if model == 'LBMLaminar':    
+                        if qloc_1[0] is not None:
+                            for f_i in range (0, neq_loc):
+                                param_real[ ptqloc_1[f_i]   + l + l0 ]= qloc_1[f_i][1][i]
+                        if qloc_2[0] is not None:
+                            for f_i in range (0, neq_loc):
+                                param_real[ ptqloc_2[f_i]   + l + l0 ]= qloc_2[f_i][1][i]
+                        if qloc_3[0] is not None:
+                            for f_i in range (0, neq_loc):
+                                param_real[ ptqloc_3[f_i]   + l + l0 ]= qloc_3[f_i][1][i]     
+                #recopie  InterpD
+                param_real[ pt_coef + nocoef: pt_coef + nocoef+sizecoef] = InterpD[1][ nocoef_old: nocoef_old+sizecoef]
+                nocoef     = nocoef     + sizecoef
+                nocoef_old = nocoef_old + sizecoef
+                l += 1
+
             else:
-              ncfLoc   = pointlist[ 1][ noi_old ]
-              sizecoef = ncfLoc
-              param_int[  lst + noi] = ncfLoc
-              param_int[ lst+noi+1: lst+noi+1+ncfLoc] = pointlist[1][ noi_old+1: noi_old+1+ncfLoc]
-              noi     = noi     + 1 + ncfLoc
-              noi_old = noi_old + 1 + ncfLoc
+                if ntype != 0:
+                    noi_old = noi_old + 1
+                else:
+                    ncfLoc  = pointlist[1][ noi_old ]
+                    noi_old = noi_old + 1 + ncfLoc
 
-            # recopie pointListDonor
-            param_int[ lstD +  l + l0] = pointlistD[1][i]
-            # recopie Maillage IBC
-            if sname == 'IB':
-               param_real[ ptxc      + l + l0 ]= xc[1][i]
-               param_real[ ptyc      + l + l0 ]= yc[1][i]
-               param_real[ ptzc      + l + l0 ]= zc[1][i]
-               param_real[ ptxi      + l + l0 ]= xi[1][i]
-               param_real[ ptyi      + l + l0 ]= yi[1][i]
-               param_real[ ptzi      + l + l0 ]= zi[1][i]
-               param_real[ ptxw      + l + l0 ]= xw[1][i]
-               param_real[ ptyw      + l + l0 ]= yw[1][i]
-               param_real[ ptzw      + l + l0 ]= zw[1][i]
-               param_real[ ptdensity + l + l0 ]= density[1][i]
-               param_real[ ptpressure+ l + l0 ]= pressure[1][i]
+                nocoef_old += sizecoef
 
-               param_real[ ptvx      + l + l0 ]= vx[1][i]
-               param_real[ ptvy      + l + l0 ]= vy[1][i]
-               param_real[ ptvz      + l + l0 ]= vz[1][i]
+        l0 = l0 + l
 
-               if utau is not None:
-                   param_real[ ptutau    + l + l0 ]= utau[1][i]
-                   param_real[ ptyplus   + l + l0 ]= yplus[1][i]
-
-               if temp_local is not None:
-                   param_real[ pttemp_local       + l + l0 ]= temp_local[1][i]
-               if temp_extra_local is not None: 
-                   param_real[ pttemp_extra_local + l + l0 ]= temp_extra_local[1][i]
-               if temp_extra2_local is not None: 
-                   param_real[ pttemp_extra2_local + l + l0 ]= temp_extra2_local[1][i]
-
-               if wmodel_local_dens is not None:
-                   param_real[ pt_dens_wm_local       + l + l0 ]= wmodel_local_dens[1][i]
-                   param_real[ pt_velx_wm_local       + l + l0 ]= wmodel_local_velx[1][i]
-                   param_real[ pt_vely_wm_local       + l + l0 ]= wmodel_local_vely[1][i]
-                   param_real[ pt_velz_wm_local       + l + l0 ]= wmodel_local_velz[1][i]
-                   param_real[ pt_temp_wm_local       + l + l0 ]= wmodel_local_temp[1][i]
-                   param_real[ pt_sanu_wm_local       + l + l0 ]= wmodel_local_sanu[1][i]
-
-               if gradxP is not None:
-                   param_real[ ptgradxP + l + l0 ]= gradxP[1][i]
-                   param_real[ ptgradyP + l + l0 ]= gradyP[1][i]
-                   param_real[ ptgradzP + l + l0 ]= gradzP[1][i]
-
-               if gradxU is not None:
-                   param_real[ ptgradxU + l + l0 ]= gradxU[1][i]
-                   param_real[ ptgradyU + l + l0 ]= gradyU[1][i]
-                   param_real[ ptgradzU + l + l0 ]= gradzU[1][i]
-
-               if gradxV is not None:
-                   param_real[ ptgradxV + l + l0 ]= gradxV[1][i]
-                   param_real[ ptgradyV + l + l0 ]= gradyV[1][i]
-                   param_real[ ptgradzV + l + l0 ]= gradzV[1][i]
-
-               if gradxW is not None:
-                   param_real[ ptgradxW + l + l0 ]= gradxW[1][i]
-                   param_real[ ptgradyW + l + l0 ]= gradyW[1][i]
-                   param_real[ ptgradzW + l + l0 ]= gradzW[1][i]
-
-               if xcInit is not None:
-                   param_real[ ptxcInit + l + l0 ]= xcInit[1][i]
-                   param_real[ ptycInit + l + l0 ]= ycInit[1][i]
-                   param_real[ ptzcInit + l + l0 ]= zcInit[1][i]
-
-                   param_real[ ptxiInit + l + l0 ]= xiInit[1][i]
-                   param_real[ ptyiInit + l + l0 ]= yiInit[1][i]
-                   param_real[ ptziInit + l + l0 ]= ziInit[1][i]
-
-                   param_real[ ptxwInit + l + l0 ]= xwInit[1][i]
-                   param_real[ ptywInit + l + l0 ]= ywInit[1][i]
-                   param_real[ ptzwInit + l + l0 ]= zwInit[1][i]
-
-               if motion_type is not None:
-                   param_real[ ptmotion_type  + l + l0 ] = motion_type[1][i]
-
-                   param_real[ pttransl_speedX + l + l0 ] = transl_speedX[1][i]
-                   param_real[ pttransl_speedY + l + l0 ] = transl_speedY[1][i]
-                   param_real[ pttransl_speedZ + l + l0 ] = transl_speedZ[1][i]
-
-                   param_real[ ptaxis_pntX     + l + l0 ] = axis_pntX[1][i]
-                   param_real[ ptaxis_pntY     + l + l0 ] = axis_pntY[1][i]
-                   param_real[ ptaxis_pntZ     + l + l0 ] = axis_pntZ[1][i]
-
-                   param_real[ ptaxis_vctX     + l + l0 ] = axis_vctX[1][i]
-                   param_real[ ptaxis_vctY     + l + l0 ] = axis_vctY[1][i]
-                   param_real[ ptaxis_vctZ     + l + l0 ] = axis_vctZ[1][i]
-
-                   param_real[ ptomega        + l + l0 ] = omega[1][i]
-                   
-
-               if kcurv is not None:
-                   param_real[ ptkcurv + l + l0 ]= kcurv[1][i]
-
-               if sd1 is not None:
-                   param_real[ ptd1   + l + l0 ]= sd1[1][i]
-                   param_real[ ptd2   + l + l0 ]= sd2[1][i]
-                   param_real[ ptd3   + l + l0 ]= sd3[1][i]
-                   param_real[ ptd4   + l + l0 ]= sd4[1][i]
-                   param_real[ ptd5   + l + l0 ]= sd5[1][i]
-
-               if yline is not None:
-                   param_real[ ptyline          + l + l0 ]= yline[1][i]
-                   param_real[ ptuline          + l + l0 ]= uline[1][i]
-                   param_real[ ptnutildeline    + l + l0 ]= nutildeline[1][i]
-                   param_real[ ptpsiline        + l + l0 ]= psiline[1][i]
-                   param_real[ ptmatmline       + l + l0 ]= matmline[1][i]
-                   param_real[ ptmatline        + l + l0 ]= matline[1][i]
-                   param_real[ ptmatpline       + l + l0 ]= matpline[1][i]
-                   param_real[ ptalphasbetaline + l + l0 ]= alphasbetaline[1][i]
-                   param_real[ ptindexline      + l + l0 ]= indexline[1][i]
-
-               if model == 'LBMLaminar':    
-                   if qloc_1[0] is not None:
-                       for f_i in range (0, neq_loc):
-                           param_real[ ptqloc_1[f_i]   + l + l0 ]= qloc_1[f_i][1][i]
-                   if qloc_2[0] is not None:
-                       for f_i in range (0, neq_loc):
-                           param_real[ ptqloc_2[f_i]   + l + l0 ]= qloc_2[f_i][1][i]
-                   if qloc_3[0] is not None:
-                       for f_i in range (0, neq_loc):
-                           param_real[ ptqloc_3[f_i]   + l + l0 ]= qloc_3[f_i][1][i]     
-            #recopie  InterpD
-            param_real[ pt_coef + nocoef: pt_coef + nocoef+sizecoef] = InterpD[1][ nocoef_old: nocoef_old+sizecoef]
-            nocoef     = nocoef     + sizecoef
-            nocoef_old = nocoef_old + sizecoef
-            l += 1
-
-       else:
-            if ntype != 0:
-                   noi_old = noi_old + 1
-            else:
-                   ncfLoc  = pointlist[1][ noi_old ]
-                   noi_old = noi_old + 1 + ncfLoc
-
-            nocoef_old += sizecoef
-
-    l0 = l0 + l
-
-    param_int[ ptTy + ctyp +1 ] = l
-    ctyp                        = ctyp +1
+        param_int[ ptTy + ctyp +1 ] = l
+        ctyp                        = ctyp +1
 
 
-  return None
+    return None
 #==============================================================================
 # tri monotype
 #==============================================================================
@@ -1415,153 +1415,153 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
                 alphasbetaline,indexline,
                 InterpD, param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model,nbpts_linelets):
 
-  ntype     = Nbtype[0]
-  noi_old   = 0
-  nocoef_old= 0
-  l         = 0
-  ltype     = Interptype[1][0]
+    ntype     = Nbtype[0]
+    noi_old   = 0
+    nocoef_old= 0
+    l         = 0
+    ltype     = Interptype[1][0]
 
-  #recopieinterpolantType
-  ideb =  ptTy + shift_typ
-  val = float(ltype)
-  connector.initNuma(None, param_int, ideb, Nbpts_D, 1, val)
+    #recopieinterpolantType
+    ideb =  ptTy + shift_typ
+    val = float(ltype)
+    connector.initNuma(None, param_int, ideb, Nbpts_D, 1, val)
 
-  # recopie pointlist
-  ideb = lst
-  connector.initNuma(pointlist[1], param_int, ideb, Nbpts, 1, val)
-  #recopie pointListDonor
-  ideb = lstD
-  connector.initNuma(pointlistD[1], param_int, ideb, Nbpts_D, 1, val)
-  #recopie Maillage IBC
-  if sname == 'IB':
-       connector.initNuma(xc[1], param_real, ptxc, Nbpts_D , 0, val)
-       connector.initNuma(yc[1], param_real, ptyc, Nbpts_D , 0, val)
-       connector.initNuma(zc[1], param_real, ptzc, Nbpts_D , 0, val)
-       connector.initNuma(xi[1], param_real, ptxi, Nbpts_D , 0, val)
-       connector.initNuma(yi[1], param_real, ptyi, Nbpts_D , 0, val)
-       connector.initNuma(zi[1], param_real, ptzi, Nbpts_D , 0, val)
-       connector.initNuma(xw[1], param_real, ptxw, Nbpts_D , 0, val)
-       connector.initNuma(yw[1], param_real, ptyw, Nbpts_D , 0, val)
-       connector.initNuma(zw[1], param_real, ptzw, Nbpts_D , 0, val)
+    # recopie pointlist
+    ideb = lst
+    connector.initNuma(pointlist[1], param_int, ideb, Nbpts, 1, val)
+    #recopie pointListDonor
+    ideb = lstD
+    connector.initNuma(pointlistD[1], param_int, ideb, Nbpts_D, 1, val)
+    #recopie Maillage IBC
+    if sname == 'IB':
+        connector.initNuma(xc[1], param_real, ptxc, Nbpts_D , 0, val)
+        connector.initNuma(yc[1], param_real, ptyc, Nbpts_D , 0, val)
+        connector.initNuma(zc[1], param_real, ptzc, Nbpts_D , 0, val)
+        connector.initNuma(xi[1], param_real, ptxi, Nbpts_D , 0, val)
+        connector.initNuma(yi[1], param_real, ptyi, Nbpts_D , 0, val)
+        connector.initNuma(zi[1], param_real, ptzi, Nbpts_D , 0, val)
+        connector.initNuma(xw[1], param_real, ptxw, Nbpts_D , 0, val)
+        connector.initNuma(yw[1], param_real, ptyw, Nbpts_D , 0, val)
+        connector.initNuma(zw[1], param_real, ptzw, Nbpts_D , 0, val)
 
-       connector.initNuma(density[1], param_real, ptdensity , Nbpts_D , 0, val)
-       connector.initNuma(pressure[1], param_real, ptpressure, Nbpts_D , 0, val)
+        connector.initNuma(density[1], param_real, ptdensity , Nbpts_D , 0, val)
+        connector.initNuma(pressure[1], param_real, ptpressure, Nbpts_D , 0, val)
 
-       connector.initNuma(vx[1], param_real, ptvx, Nbpts_D , 0, val)
-       connector.initNuma(vy[1], param_real, ptvy, Nbpts_D , 0, val)
-       connector.initNuma(vz[1], param_real, ptvz, Nbpts_D , 0, val)
+        connector.initNuma(vx[1], param_real, ptvx, Nbpts_D , 0, val)
+        connector.initNuma(vy[1], param_real, ptvy, Nbpts_D , 0, val)
+        connector.initNuma(vz[1], param_real, ptvz, Nbpts_D , 0, val)
 
-       if utau is not None:
-           connector.initNuma(utau[1], param_real, ptutau, Nbpts_D, 0, val)
-           connector.initNuma(yplus[1], param_real, ptyplus, Nbpts_D , 0, val)
+        if utau is not None:
+            connector.initNuma(utau[1], param_real, ptutau, Nbpts_D, 0, val)
+            connector.initNuma(yplus[1], param_real, ptyplus, Nbpts_D , 0, val)
 
-       if temp_local is not None:
-           connector.initNuma(temp_local[1]      , param_real, pttemp_local       , Nbpts_D , 0, val)
-       if temp_extra_local is not None:    
-           connector.initNuma(temp_extra_local[1], param_real, pttemp_extra_local , Nbpts_D , 0, val)
-       if temp_extra2_local is not None:    
-           connector.initNuma(temp_extra2_local[1], param_real, pttemp_extra2_local , Nbpts_D , 0, val)
+        if temp_local is not None:
+            connector.initNuma(temp_local[1]      , param_real, pttemp_local       , Nbpts_D , 0, val)
+        if temp_extra_local is not None:    
+            connector.initNuma(temp_extra_local[1], param_real, pttemp_extra_local , Nbpts_D , 0, val)
+        if temp_extra2_local is not None:    
+            connector.initNuma(temp_extra2_local[1], param_real, pttemp_extra2_local , Nbpts_D , 0, val)
 
-       if wmodel_local_dens is not None:
-           connector.initNuma(wmodel_local_dens[1]      , param_real, pt_dens_wm_local       , Nbpts_D , 0, val)
-           connector.initNuma(wmodel_local_velx[1]      , param_real, pt_velx_wm_local       , Nbpts_D , 0, val)
-           connector.initNuma(wmodel_local_vely[1]      , param_real, pt_vely_wm_local       , Nbpts_D , 0, val)
-           connector.initNuma(wmodel_local_velz[1]      , param_real, pt_velz_wm_local       , Nbpts_D , 0, val)
-           connector.initNuma(wmodel_local_temp[1]      , param_real, pt_temp_wm_local       , Nbpts_D , 0, val)
-           connector.initNuma(wmodel_local_sanu[1]      , param_real, pt_sanu_wm_local       , Nbpts_D , 0, val)
-           
+        if wmodel_local_dens is not None:
+            connector.initNuma(wmodel_local_dens[1]      , param_real, pt_dens_wm_local       , Nbpts_D , 0, val)
+            connector.initNuma(wmodel_local_velx[1]      , param_real, pt_velx_wm_local       , Nbpts_D , 0, val)
+            connector.initNuma(wmodel_local_vely[1]      , param_real, pt_vely_wm_local       , Nbpts_D , 0, val)
+            connector.initNuma(wmodel_local_velz[1]      , param_real, pt_velz_wm_local       , Nbpts_D , 0, val)
+            connector.initNuma(wmodel_local_temp[1]      , param_real, pt_temp_wm_local       , Nbpts_D , 0, val)
+            connector.initNuma(wmodel_local_sanu[1]      , param_real, pt_sanu_wm_local       , Nbpts_D , 0, val)
 
-       if gradxP is not None:
-           connector.initNuma(gradxP[1] , param_real, ptgradxP , Nbpts_D , 0, val)
-           connector.initNuma(gradyP[1] , param_real, ptgradyP , Nbpts_D , 0, val)
-           connector.initNuma(gradzP[1] , param_real, ptgradzP , Nbpts_D , 0, val)
 
-       if gradxU is not None:
-           connector.initNuma(gradxU[1] , param_real, ptgradxU , Nbpts_D , 0, val)
-           connector.initNuma(gradyU[1] , param_real, ptgradyU , Nbpts_D , 0, val)
-           connector.initNuma(gradzU[1] , param_real, ptgradzU , Nbpts_D , 0, val)
+        if gradxP is not None:
+            connector.initNuma(gradxP[1] , param_real, ptgradxP , Nbpts_D , 0, val)
+            connector.initNuma(gradyP[1] , param_real, ptgradyP , Nbpts_D , 0, val)
+            connector.initNuma(gradzP[1] , param_real, ptgradzP , Nbpts_D , 0, val)
 
-       if gradxV is not None:
-           connector.initNuma(gradxV[1] , param_real, ptgradxV , Nbpts_D , 0, val)
-           connector.initNuma(gradyV[1] , param_real, ptgradyV , Nbpts_D , 0, val)
-           connector.initNuma(gradzV[1] , param_real, ptgradzV , Nbpts_D , 0, val)
+        if gradxU is not None:
+            connector.initNuma(gradxU[1] , param_real, ptgradxU , Nbpts_D , 0, val)
+            connector.initNuma(gradyU[1] , param_real, ptgradyU , Nbpts_D , 0, val)
+            connector.initNuma(gradzU[1] , param_real, ptgradzU , Nbpts_D , 0, val)
 
-       if gradxW is not None:
-           connector.initNuma(gradxW[1] , param_real, ptgradxW , Nbpts_D , 0, val)
-           connector.initNuma(gradyW[1] , param_real, ptgradyW , Nbpts_D , 0, val)
-           connector.initNuma(gradzW[1] , param_real, ptgradzW , Nbpts_D , 0, val)
+        if gradxV is not None:
+            connector.initNuma(gradxV[1] , param_real, ptgradxV , Nbpts_D , 0, val)
+            connector.initNuma(gradyV[1] , param_real, ptgradyV , Nbpts_D , 0, val)
+            connector.initNuma(gradzV[1] , param_real, ptgradzV , Nbpts_D , 0, val)
 
-       if xcInit is not None:
-           connector.initNuma(xcInit[1] , param_real, ptxcInit , Nbpts_D , 0, val)
-           connector.initNuma(ycInit[1] , param_real, ptycInit , Nbpts_D , 0, val)
-           connector.initNuma(zcInit[1] , param_real, ptzcInit , Nbpts_D , 0, val)
+        if gradxW is not None:
+            connector.initNuma(gradxW[1] , param_real, ptgradxW , Nbpts_D , 0, val)
+            connector.initNuma(gradyW[1] , param_real, ptgradyW , Nbpts_D , 0, val)
+            connector.initNuma(gradzW[1] , param_real, ptgradzW , Nbpts_D , 0, val)
 
-           connector.initNuma(xiInit[1] , param_real, ptxiInit , Nbpts_D , 0, val)
-           connector.initNuma(yiInit[1] , param_real, ptyiInit , Nbpts_D , 0, val)
-           connector.initNuma(ziInit[1] , param_real, ptziInit , Nbpts_D , 0, val)
+        if xcInit is not None:
+            connector.initNuma(xcInit[1] , param_real, ptxcInit , Nbpts_D , 0, val)
+            connector.initNuma(ycInit[1] , param_real, ptycInit , Nbpts_D , 0, val)
+            connector.initNuma(zcInit[1] , param_real, ptzcInit , Nbpts_D , 0, val)
 
-           connector.initNuma(xwInit[1] , param_real, ptxwInit , Nbpts_D , 0, val)
-           connector.initNuma(ywInit[1] , param_real, ptywInit , Nbpts_D , 0, val)
-           connector.initNuma(zwInit[1] , param_real, ptzwInit , Nbpts_D , 0, val)
+            connector.initNuma(xiInit[1] , param_real, ptxiInit , Nbpts_D , 0, val)
+            connector.initNuma(yiInit[1] , param_real, ptyiInit , Nbpts_D , 0, val)
+            connector.initNuma(ziInit[1] , param_real, ptziInit , Nbpts_D , 0, val)
 
-       if motion_type is not None:
-           connector.initNuma(motion_type[1]  , param_real, ptmotion_type  , Nbpts_D , 0, val)
+            connector.initNuma(xwInit[1] , param_real, ptxwInit , Nbpts_D , 0, val)
+            connector.initNuma(ywInit[1] , param_real, ptywInit , Nbpts_D , 0, val)
+            connector.initNuma(zwInit[1] , param_real, ptzwInit , Nbpts_D , 0, val)
 
-           connector.initNuma(transl_speedX[1] , param_real, pttransl_speedX , Nbpts_D , 0, val)
-           connector.initNuma(transl_speedY[1] , param_real, pttransl_speedY , Nbpts_D , 0, val)
-           connector.initNuma(transl_speedZ[1] , param_real, pttransl_speedZ , Nbpts_D , 0, val)
+        if motion_type is not None:
+            connector.initNuma(motion_type[1]  , param_real, ptmotion_type  , Nbpts_D , 0, val)
 
-           connector.initNuma(axis_pntX[1]     , param_real, ptaxis_pntX     , Nbpts_D , 0, val)
-           connector.initNuma(axis_pntY[1]     , param_real, ptaxis_pntY     , Nbpts_D , 0, val)
-           connector.initNuma(axis_pntZ[1]     , param_real, ptaxis_pntZ     , Nbpts_D , 0, val)
+            connector.initNuma(transl_speedX[1] , param_real, pttransl_speedX , Nbpts_D , 0, val)
+            connector.initNuma(transl_speedY[1] , param_real, pttransl_speedY , Nbpts_D , 0, val)
+            connector.initNuma(transl_speedZ[1] , param_real, pttransl_speedZ , Nbpts_D , 0, val)
 
-           connector.initNuma(axis_vctX[1]     , param_real, ptaxis_vctX     , Nbpts_D , 0, val)
-           connector.initNuma(axis_vctY[1]     , param_real, ptaxis_vctY     , Nbpts_D , 0, val)
-           connector.initNuma(axis_vctZ[1]     , param_real, ptaxis_vctZ     , Nbpts_D , 0, val)
+            connector.initNuma(axis_pntX[1]     , param_real, ptaxis_pntX     , Nbpts_D , 0, val)
+            connector.initNuma(axis_pntY[1]     , param_real, ptaxis_pntY     , Nbpts_D , 0, val)
+            connector.initNuma(axis_pntZ[1]     , param_real, ptaxis_pntZ     , Nbpts_D , 0, val)
 
-           connector.initNuma(omega[1]        , param_real, ptomega        , Nbpts_D , 0, val)
-           
-       if kcurv is not None:
-           connector.initNuma(kcurv[1] , param_real, ptkcurv , Nbpts_D , 0, val)
+            connector.initNuma(axis_vctX[1]     , param_real, ptaxis_vctX     , Nbpts_D , 0, val)
+            connector.initNuma(axis_vctY[1]     , param_real, ptaxis_vctY     , Nbpts_D , 0, val)
+            connector.initNuma(axis_vctZ[1]     , param_real, ptaxis_vctZ     , Nbpts_D , 0, val)
 
-       if sd1 is not None:
-           connector.initNuma(sd1[1], param_real, ptd1 , Nbpts_D , 0, val)
-       if sd2 is not None:
-           connector.initNuma(sd2[1], param_real, ptd2 , Nbpts_D , 0, val)
-       if sd3 is not None:
-           connector.initNuma(sd3[1] , param_real, ptd3 , Nbpts_D , 0, val)
-       if sd4 is not None:
-           connector.initNuma(sd4[1] , param_real, ptd4 , Nbpts_D , 0, val)
-       if sd5 is not None:
-           connector.initNuma(sd5[1] , param_real, ptd5 , Nbpts_D , 0, val)
+            connector.initNuma(omega[1]        , param_real, ptomega        , Nbpts_D , 0, val)
 
-       if yline is not None:
-           connector.initNuma(yline[1]          , param_real, ptyline, Nbpts_D*nbpts_linelets, 0, val)
-           connector.initNuma(uline[1]          , param_real, ptuline, Nbpts_D*nbpts_linelets, 0, val)
-           connector.initNuma(nutildeline[1]    , param_real, ptnutildeline, Nbpts_D*nbpts_linelets, 0, val)
-           connector.initNuma(psiline[1]        , param_real, ptpsiline, Nbpts_D*nbpts_linelets, 0, val)
-           connector.initNuma(matmline[1]       , param_real, ptmatmline, Nbpts_D*nbpts_linelets, 0, val)
-           connector.initNuma(matline[1]        , param_real, ptmatline, Nbpts_D*nbpts_linelets, 0, val)
-           connector.initNuma(matpline[1]       , param_real, ptmatpline, Nbpts_D*nbpts_linelets, 0, val)
-           connector.initNuma(alphasbetaline[1] , param_real, ptalphasbetaline, Nbpts_D, 0, val)
-           connector.initNuma(indexline[1]      , param_real, ptindexline, Nbpts_D, 0, val)
-    
-       if model=='LBMLaminar':
-           if qloc_1[0] is not None:
-               for f_i in range (0,neq_loc):
-                   connector.initNuma(qloc_1[f_i][1] , param_real, ptqloc_1[f_i] , Nbpts_D , 0, val)
-           if qloc_2[0] is not None:
-               for f_i in range (0,neq_loc):
-                   connector.initNuma(qloc_2[f_i][1] , param_real, ptqloc_2[f_i] , Nbpts_D , 0, val)
-           if qloc_3[0] is not None:
-               for f_i in range (0,neq_loc):
-                   connector.initNuma(qloc_3[f_i][1] , param_real, ptqloc_3[f_i] , Nbpts_D , 0, val)    
-  # recopie  InterpD
-  connector.initNuma(InterpD[1] , param_real, pt_coef , Nbpts_InterpD , 0, val)
+        if kcurv is not None:
+            connector.initNuma(kcurv[1] , param_real, ptkcurv , Nbpts_D , 0, val)
 
-  param_int[ ptTy + ctyp +1 ] = Nbpts_D
+        if sd1 is not None:
+            connector.initNuma(sd1[1], param_real, ptd1 , Nbpts_D , 0, val)
+        if sd2 is not None:
+            connector.initNuma(sd2[1], param_real, ptd2 , Nbpts_D , 0, val)
+        if sd3 is not None:
+            connector.initNuma(sd3[1] , param_real, ptd3 , Nbpts_D , 0, val)
+        if sd4 is not None:
+            connector.initNuma(sd4[1] , param_real, ptd4 , Nbpts_D , 0, val)
+        if sd5 is not None:
+            connector.initNuma(sd5[1] , param_real, ptd5 , Nbpts_D , 0, val)
 
-  return None
+        if yline is not None:
+            connector.initNuma(yline[1]          , param_real, ptyline, Nbpts_D*nbpts_linelets, 0, val)
+            connector.initNuma(uline[1]          , param_real, ptuline, Nbpts_D*nbpts_linelets, 0, val)
+            connector.initNuma(nutildeline[1]    , param_real, ptnutildeline, Nbpts_D*nbpts_linelets, 0, val)
+            connector.initNuma(psiline[1]        , param_real, ptpsiline, Nbpts_D*nbpts_linelets, 0, val)
+            connector.initNuma(matmline[1]       , param_real, ptmatmline, Nbpts_D*nbpts_linelets, 0, val)
+            connector.initNuma(matline[1]        , param_real, ptmatline, Nbpts_D*nbpts_linelets, 0, val)
+            connector.initNuma(matpline[1]       , param_real, ptmatpline, Nbpts_D*nbpts_linelets, 0, val)
+            connector.initNuma(alphasbetaline[1] , param_real, ptalphasbetaline, Nbpts_D, 0, val)
+            connector.initNuma(indexline[1]      , param_real, ptindexline, Nbpts_D, 0, val)
+
+        if model=='LBMLaminar':
+            if qloc_1[0] is not None:
+                for f_i in range (0,neq_loc):
+                    connector.initNuma(qloc_1[f_i][1] , param_real, ptqloc_1[f_i] , Nbpts_D , 0, val)
+            if qloc_2[0] is not None:
+                for f_i in range (0,neq_loc):
+                    connector.initNuma(qloc_2[f_i][1] , param_real, ptqloc_2[f_i] , Nbpts_D , 0, val)
+            if qloc_3[0] is not None:
+                for f_i in range (0,neq_loc):
+                    connector.initNuma(qloc_3[f_i][1] , param_real, ptqloc_3[f_i] , Nbpts_D , 0, val)    
+    # recopie  InterpD
+    connector.initNuma(InterpD[1] , param_real, pt_coef , Nbpts_InterpD , 0, val)
+
+    param_int[ ptTy + ctyp +1 ] = Nbpts_D
+
+    return None
 
 #==============================================================================
 # Mise a plat (compactage) arbre donneur au niveau de la zone donneuse
@@ -1603,7 +1603,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             sd1          =  Internal.getNodeFromName1(rac, 'StagnationEnthalpy')
             yline        =  Internal.getNodeFromName1(rac, 'CoordinateN_ODE')
             qloc_1       =  Internal.getNodeFromName1(rac, ibm_lbm_variables_1 + str(1))
-	    
+
             ntab_IBC   = 11+3 #On ajoute dorenavant les vitesses dans l'arbre tc pour le post
             if utau is not None: ntab_IBC += 2
             if temp_local is not None: ntab_IBC += 2
@@ -1625,10 +1625,10 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             size_real  =  size_real+   Nbpts_InterpD
             sname = rac[0][0:2]
             if sname == 'IB':
-               size_real = size_real +Nbpts_D*ntab_IBC
-               count_IBC = count_IBC +1
+                size_real = size_real +Nbpts_D*ntab_IBC
+                count_IBC = count_IBC +1
             else:
-               count_ID  = count_ID  +1
+                count_ID  = count_ID  +1
             #print('nbpt, nbpt_donor', sname,Nbpts,Nbpts_InterpD)
 
         size_int = size_int + 2 + (count_IBC + count_ID)*2  # 2: nbr rac ID et IBC, stockage adresse debut raccord et coef
@@ -1636,7 +1636,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
         param_real = numpy.empty(size_real, dtype=numpy.float64)
         Internal.createUniqueChild(z, 'Parameter_int' , 'DataArray_t', param_int )
         if size_real !=0 :
-           Internal.createUniqueChild(z, 'Parameter_real', 'DataArray_t', param_real)# recopie pointlis
+            Internal.createUniqueChild(z, 'Parameter_real', 'DataArray_t', param_real)# recopie pointlis
 
         #print('size int et real', size_int, size_real)
         #print('ID et IBC', count_ID, count_IBC)
@@ -1682,8 +1682,8 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             zrcvname = Internal.getValue(rac)
             no_zone = 0
             for z0 in zones:
-               if z0[0] == zrcvname: param_int[ pt_rac +6 ]= no_zone  # No zone raccord                    
-               no_zone += 1
+                if z0[0] == zrcvname: param_int[ pt_rac +6 ]= no_zone  # No zone raccord                    
+                no_zone += 1
 
             ideb =  pt_rac +7
             param_int[ ideb:ideb + Nbpts   ] = pointlist[ 1][0:Nbpts  ]           # recopie pointlist
@@ -1770,9 +1770,9 @@ def miseAPlatDonorZone__(zones, tc, procDict):
                         var_ibc.append('alphasbeta_ODE')
                         var_ibc.append('index_ODE')
                 else:
-                   var_ibc=['CoordinateX_PC','CoordinateY_PC','CoordinateZ_PC','CoordinateX_PI','CoordinateY_PI','CoordinateZ_PI','CoordinateX_PW','CoordinateY_PW','CoordinateZ_PW', 'Density','Pressure','VelocityX','VelocityY','VelocityZ']
+                    var_ibc=['CoordinateX_PC','CoordinateY_PC','CoordinateZ_PC','CoordinateX_PI','CoordinateY_PI','CoordinateZ_PI','CoordinateX_PW','CoordinateY_PW','CoordinateZ_PW', 'Density','Pressure','VelocityX','VelocityY','VelocityZ']
 
-                   if xcInit is not None:
+                    if xcInit is not None:
                         var_ibc.append('CoordinateX_PC#Init')
                         var_ibc.append('CoordinateY_PC#Init')
                         var_ibc.append('CoordinateZ_PC#Init')
@@ -1784,8 +1784,8 @@ def miseAPlatDonorZone__(zones, tc, procDict):
                         var_ibc.append('CoordinateX_PW#Init')
                         var_ibc.append('CoordinateY_PW#Init')
                         var_ibc.append('CoordinateZ_PW#Init')
-                        
-                   if motion_type is not None:
+
+                    if motion_type is not None:
                         var_ibc.append('MotionType')
 
                         var_ibc.append('transl_speedX')
@@ -1805,11 +1805,11 @@ def miseAPlatDonorZone__(zones, tc, procDict):
                 count_ibc = 0
                 ideb      = pt_coef + Nbpts_InterpD
                 for v_ibc in var_ibc:
-                   tmp                            = Internal.getNodeFromName1(rac, v_ibc)
-                   param_real[ ideb:ideb+ Nbpts_D]= tmp[1][0:Nbpts_D]
-                   tmp[1]                         = param_real[ ideb:ideb+ Nbpts_D ]
-                   ideb                           = ideb + Nbpts_D
-                   count_ibc += 1
+                    tmp                            = Internal.getNodeFromName1(rac, v_ibc)
+                    param_real[ ideb:ideb+ Nbpts_D]= tmp[1][0:Nbpts_D]
+                    tmp[1]                         = param_real[ ideb:ideb+ Nbpts_D ]
+                    ideb                           = ideb + Nbpts_D
+                    count_ibc += 1
 
                 size_coef = size_coef + count_ibc*Nbpts_D
 
@@ -1867,14 +1867,14 @@ def _procSource(rank, S_pos, pos_list, graph, graphloc, graphrcv_, filterGraph=N
     pos_list.append(S_pos)
     k_pos= 0
     for proc in graph.keys():
-      for n in graph[proc].keys():
-         if n == rank:
-           if filterGraph is None:
-             graphloc.append(proc)
-             k_pos  +=1
-           elif proc not in filterGraph:
-             graphloc.append(proc)
-             k_pos  +=1
+        for n in graph[proc].keys():
+            if n == rank:
+                if filterGraph is None:
+                    graphloc.append(proc)
+                    k_pos  +=1
+                elif proc not in filterGraph:
+                    graphloc.append(proc)
+                    k_pos  +=1
 
     graphrcv_.append(k_pos)
     S_pos += k_pos +1

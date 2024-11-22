@@ -31,7 +31,7 @@ def computeVorticityMagnitude(array):
         a = C.addVars([array, ret])
         rot = P.computeCurl(a, ['VelocityX', 'VelocityY', 'VelocityZ'])
     else: rot = P.computeCurl(array, ['VelocityX', 'VelocityY', 'VelocityZ'])
-        
+
     if isinstance(rot[0], list):
         for r in rot:
             r[0] = 'VorticityX,VorticityY,VorticityZ'
@@ -60,7 +60,7 @@ def computeQCriterion(array):
         gradW = P.computeGrad(a, 'VelocityZ')
         grads = C.addVars([gradU, gradV, gradW])
     else: grads = C.extractVars(a,vars0)
-    
+
     grads = C.initVars(grads, '{QCriterion}=-0.5*({gradxVelocityX}*{gradxVelocityX}+{gradyVelocityY}*{gradyVelocityY}+{gradzVelocityZ}*{gradzVelocityZ}+2*{gradyVelocityX}*{gradxVelocityY}+2*{gradzVelocityX}*{gradxVelocityZ}+2*{gradzVelocityY}*{gradyVelocityZ})')
     ret = C.extractVars(grads, ['QCriterion'])
     return ret
@@ -84,7 +84,7 @@ def computeShearStress(array, gamma=1.4, rgp=287.053,
     if presmu == -1: mu = P.computeVariables(array, ['ViscosityMolecular'],
                                              gamma=gamma, rgp=rgp, Cs=Cs, mus=mus, Ts=Ts)
     mu = C.node2Center(mu)
-    
+
     presgx = KCore.isNamePresent(a,'gradxVelocityX')
     if presgx == -1:
         gradU = P.computeGrad(a, 'VelocityX')

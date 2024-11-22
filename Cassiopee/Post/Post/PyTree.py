@@ -22,7 +22,7 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
                  constraint=40., tol=1.e-6, hook=None, mode='robust'):
     """Extract the solution in one point.
     Usage: extractPoint(t, (x,y,z), order, tol, hook, mode)"""
-        
+
     if not isinstance(Pts, list):
         a = Converter.array('CoordinateX,CoordinateY,CoordinateZ',1,1,1)
         a[1][0,0] = Pts[0]; a[1][1,0] = Pts[1]; a[1][2,0] = Pts[2]
@@ -99,7 +99,7 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, isPreProje
     ##old means we are reverting back to predominant extrapolations for the projectCloudSolution.
     ##When a more stable & robust solution is obtained for these test cases this argument will be removed.
     ##See Antoine J. @ DAAA/DEFI for more questions. - error appears at 90 edges of the wind tunnels.
-    
+
     ##This orthogonal projection does a projection of the cloud solution onto the surface.
     ##Provides better results and is needed when the surface mesh for post processing is different than
     ##that used for the preprocessing (automatic grid generation).
@@ -111,7 +111,7 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, isPreProje
         import Transform.PyTree as T
         cloud = T.projectOrtho(cloud, surf);
 
-        
+
     fc = C.getAllFields(cloud, 'nodes')[0]
     zones = Internal.getZones(surf)
     for noz in range(len(zones)):
@@ -159,7 +159,7 @@ def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
         Internal._createChild(zones[noz], 'POST_MLS', 'UserDefinedData_t', value=None, children=children)
 
     return None
-    
+
 # hook is a list of pointers on ADT for donor zones of t - created by C.createHook(a,'extractMesh')
 def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                 constraint=40., tol=1.e-6, hook=None, mode='robust'):
@@ -359,11 +359,11 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
     if varStrings == []: # formula
         ret = checkVariables__(F)
     else: ret = checkVariables__(varStrings)
-    
+
     if ret == 0: # nodes
         C._deleteZoneBC__(tp)
         C._deleteGridConnectivity__(tp)
-        
+
         zones = Internal.getZones(tp)
         for z in zones:
 
@@ -383,56 +383,56 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
 
             if fc != [] and fa != []:
                 ft = Converter.addVars([fc, fa])
-                
+
                 if fb != []:
                     if PE is not None:
                         (PE2,fp,fq) = Post.selectCells(ft, F, fb, varStrings, strict, PE[1], cleanConnectivity)
                     else:
                         (fp,fq) = Post.selectCells(ft, F, fb, varStrings, strict, None, cleanConnectivity)
-                        
+
                     C._deleteFlowSolutions__(z, 'centers')
                     C.setFields([fq], z, 'centers')
-                    
+
                 else:
                     if PE is not None:
                         (PE2,fp) = Post.selectCells(ft, F, fb, varStrings, strict, PE[1], cleanConnectivity)
                     else:
                         fp = Post.selectCells(ft, F, fb, varStrings, strict, None, cleanConnectivity)
-                        
+
                     C._deleteFlowSolutions__(z, 'centers')
 
                 C.setFields([fp], z, 'nodes')                  
-                
+
             elif fa != []:
                 if fb != []:
                     if PE is not None:
                         (PE2,fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict, PE[1], cleanConnectivity)
                     else:
                         (fp,fq) = Post.selectCells(fa, F, fb, varStrings, strict, None, cleanConnectivity) 
-                        
+
                     C.setFields([fq], z, 'centers')
                 else:
                     if PE is not None:
                         (PE2,fp) = Post.selectCells(fa, F, fb, varStrings, strict, PE[1], cleanConnectivity) 
                     else:
                         fp = Post.selectCells(fa, F, fb, varStrings, strict, None, cleanConnectivity)      
-                        
+
                 C.setFields([fp], z, 'nodes')
-                
+
             elif fc != []:
                 if fb != []:
                     if PE is not None:
                         (PE2,fp,fq) = Post.selectCells(fc, F, fb, varStrings, strict, PE[1], cleanConnectivity)
                     else:
                         (fp,fq) = Post.selectCells(fc, F, fb, varStrings, strict, None, cleanConnectivity)
-                    
+
                     C.setFields([fq], z, 'centers')
                 else:
                     if PE is not None:
                         (PE2, fp) = Post.selectCells(fc, F, fb, varStrings, strict, PE[1], cleanConnectivity)
                     else:
                         fp = Post.selectCells(fc, F, fb, varStrings, strict, None, cleanConnectivity) 
-                        
+
                 C.setFields([fp], z, 'nodes')
 
             # Set ParentElement 
@@ -443,10 +443,10 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
                     if c[1][0] == 22: found = True; break
                     NGON += 1
                 if found: Internal.createUniqueChild(GEl[NGON], 'ParentElements', 'DataArray_t', value=PE2)
-                    
+
         if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
         return tp
-    
+
     elif ret == 1: # centers
         C._deleteZoneBC__(tp)
         C._deleteGridConnectivity__(tp)
@@ -464,7 +464,7 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
                 tags.append(tag)
         C.setFields(tags, tp, 'centers', False)
         tp = selectCells2(tp, 'centers:__tag__')
-        
+
         C._rmVars(tp, 'centers:__tag__')
         if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
         return tp
@@ -482,7 +482,7 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
     res = tagName.split(':')
     if len(res) == 2 and res[0] == 'centers': loc = 1
     else: loc = 0
-    
+
     zones = Internal.getZones(tp)
     for z in zones:
 
@@ -496,7 +496,7 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
         if found:
             node = GEl[NGON]
             PE = Internal.getNodeFromName1(node, 'ParentElements')
-        
+
         if loc == 0: # noeuds
             fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0] 
             taga = C.getFields(Internal.__FlowSolutionNodes__, z)
@@ -504,15 +504,15 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
         else:
             fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
             taga = Converter.extractVars(fb, [res[1]])
-            
+
         fc = C.getFields(Internal.__GridCoordinates__, z)[0]
         fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        
+
         if loc != 0: # centres
             if KCore.isNamePresent(fb,res[1]) > -1:
                 if fb[1].shape[0] == 1: fb = None
                 else: fb = Converter.rmVars(fb, res[1])
-        
+
         if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
 
@@ -521,16 +521,16 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
                     (PE2, fp,fq) = Post.selectCells2(f, taga, fb, strict, loc, PE[1], cleanConnectivity)
                 else:
                     (fp,fq) = Post.selectCells2(f, taga, fb, strict, loc, None, cleanConnectivity)
-                    
+
                 C._deleteFlowSolutions__(z, 'centers')
                 C.setFields([fq], z, 'centers')
-                
+
             else:  # pas de champ en centres 
                 if PE is not None:
                     (PE2, fp) = Post.selectCells2(f, taga, [], strict, loc, PE[1], cleanConnectivity)
                 else:
                     fp = Post.selectCells2(f, taga, [], strict, loc, None, cleanConnectivity)
-                    
+
                 Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
 
             C.setFields([fp], z, 'nodes')
@@ -556,10 +556,10 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
                     (PE2, fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc, PE[1], cleanConnectivity)
                 else:
                     (fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc, None, cleanConnectivity)
-                
+
                 C.setFields([fq], z, 'centers')
             else:        # pas de champ en centres
-                
+
                 if PE is not None: 
                     (PE2, fp) = Post.selectCells2(fc, taga, [], strict, loc, PE[1], cleanConnectivity)
                 else:
@@ -575,7 +575,7 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
                 if c[1][0] == 22: found = True; break
                 NGON += 1
             if found: Internal.createUniqueChild(GEl[NGON], 'ParentElements', 'DataArray_t', value=PE2)
-                   
+
     if Internal.isTopTree(tp): C._deleteEmptyZones(tp)
 
     return tp
@@ -693,7 +693,7 @@ def _exteriorEltsStructured(t, depth=1):
     C._TZA2(t, 'nodes', 'nodes', True, Post.exteriorEltsStructured, depth)
     C._TZA2(t, 'centers', 'centers', False, Post.exteriorEltsStructured, depth)
     return None
-    
+
 def computeVariables(t, varList,
                      gamma=-1., rgp=-1., s0=0., betas=-1.,
                      Cs=-1., mus=-1., Ts=-1.):
@@ -876,25 +876,25 @@ def _computeVariablesBC(t, varList, gamma=1.4, rgp=287.053, s0=0.,
             datas = Internal.getBCDataSet(z, b)
             fields = []; connects = []
             for d in datas: # build array
-              np = d[1].size; ne = np-1
-              dim = ['Unstructured', np, ne, 'NODE', 1]
-              f = Internal.convertDataNode2Array(d, dim, connects)
-              fields.append(f[1])
+                np = d[1].size; ne = np-1
+                dim = ['Unstructured', np, ne, 'NODE', 1]
+                f = Internal.convertDataNode2Array(d, dim, connects)
+                fields.append(f[1])
             if fields != []:
-              fields = Converter.addVars(fields)
-              fn = Post.computeVariables(fields, varList, gamma, rgp, s0, betas, Cs, mus, Ts)
-              nofld = fn[1].shape[0]-1
-              for varName in varList:
-                varName = varName.split('=')[0]
-                varName = varName.replace('{', '')
-                varName = varName.replace('}', '')
-                varName = varName.replace('centers:', '')
-                varName = varName.replace('nodes:', '')
-                varName = varName.replace(' ', '')
-                f = Converter.extractVars(fn, [varName])
-                fieldFaceNode = Internal.createDataNode(varName, f, 0, cellDim=1)
-                cont, c = Internal.getParentOfNode(z, datas[0])
-                Internal._createUniqueChild(cont, varName, 'DataArray_t', value=fieldFaceNode[1])
+                fields = Converter.addVars(fields)
+                fn = Post.computeVariables(fields, varList, gamma, rgp, s0, betas, Cs, mus, Ts)
+                nofld = fn[1].shape[0]-1
+                for varName in varList:
+                    varName = varName.split('=')[0]
+                    varName = varName.replace('{', '')
+                    varName = varName.replace('}', '')
+                    varName = varName.replace('centers:', '')
+                    varName = varName.replace('nodes:', '')
+                    varName = varName.replace(' ', '')
+                    f = Converter.extractVars(fn, [varName])
+                    fieldFaceNode = Internal.createDataNode(varName, f, 0, cellDim=1)
+                    cont, c = Internal.getParentOfNode(z, datas[0])
+                    Internal._createUniqueChild(cont, varName, 'DataArray_t', value=fieldFaceNode[1])
     return None
 
 #===============================================================================
@@ -1460,7 +1460,7 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
 
     for i in range(len(zones)):
         zone = zones[i]
-        
+
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
         if arr == None: continue
 
@@ -1489,7 +1489,7 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
             cz = Internal.getNodeFromName1(fsolc, 'CCz')[1]
             Grads = post.computeGradLSQ(arr, flds, pe, cx, cy, cz, fcenters[0],
                 ptlists, rflds)
-        
+
         for j in range(len(fldNames)-3):
             Grad = Grads[j]
             Internal.createNode('grad' + fldNames[j] + 'x', 'DataArray_t',
@@ -1498,7 +1498,7 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
                 Grad[1], None, fsolc)
             Internal.createNode('grad' + fldNames[j] + 'z', 'DataArray_t',
                 Grad[2], None, fsolc)
-    
+
     return None
 
 def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
@@ -1511,7 +1511,7 @@ def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
 def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t, var)"""
-    
+
     if type(var) == list:
         raise ValueError("computeGrad2: not available for lists of variables.")
     vare = var.split(':')
@@ -1535,7 +1535,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
 
     zones = Internal.getZones(t)
     for z in zones:
-        
+
         # Test if vol present
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         if cont is not None:
@@ -1548,12 +1548,12 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
                 cellN  = Internal.getNodeFromName1(cont, 'cellN')
                 if cellN is not None: cellN = cellN[1]
         else: cellN = None
-        
+
         f = C.getField(var, z)[0]
         x = C.getFields(Internal.__GridCoordinates__, z)[0]
         # Get BCDataSet if any
         indices=None; BCField=None
-        
+
         isghost = Internal.getNodeFromType1(z, 'Rind_t')
         if isghost is None or not ghostCells: # not a ghost cells zone : add BCDataSet
             zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
@@ -1573,7 +1573,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
                             else: indices = numpy.concatenate((indices, indsp))
                             if BCField is None: BCField = bcfp
                             else: BCField = numpy.concatenate((BCField, bcfp))
-        
+
         # compute field on BCMatch for current zone
         if allMatch != {}:
             indFace, fldFace = C.computeBCMatchField(z, allMatch, vare)
@@ -1683,7 +1683,7 @@ def computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
 
 def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
     """Compute the divergence at the cell centers of a series of variables."""
-    
+
     if not isinstance(var, list): var = [var]
     nvars = len(var)
     vare = [v.split(':')[-1] for v in var]
@@ -1692,7 +1692,7 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
     ndims = Internal.getZoneDim(zones[0])[-1]
     if ndims == 1:
         raise ValueError("computeDiv2: not available for 1-dimensional elements.")
-    
+
     sdirlist = ['X', 'Y', 'Z'] # The order is important!
     varList  = ' '.join('{0}X {0}Y {0}Z'.format(v) for v in vare).split()
 
@@ -1709,19 +1709,19 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         vol  = Internal.getNodeFromName1(cont, 'vol')
         if vol is not None: vol = vol[1]
-        
+
         cellN  = Internal.getNodeFromName1(cont, 'cellN')
         if cellN is not None: cellN = cellN[1]
-        
+
         flist, f = [], []
         for v in var:
             for sdir in sdirlist:
                 flist.append(C.getField('%s%s' % (v,sdir), z)[0])
         flist = [x for x in flist if x]
-        
+
         if flist and len(flist)%ndims == 0:
             f = [Converter.addVars(flist[i:i+ndims]) for i in range(0, len(flist), ndims)]
-        
+
         x = C.getFields(Internal.__GridCoordinates__, z)[0]
         # Get BCDataSet if any
         indices  = None
@@ -1749,7 +1749,7 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                                     elif k == 1: bcfpy[j] = i[1].ravel(order='K')
                                     else: bcfpz[j] = i[1].ravel(order='K')
                                     break
-                        
+
                         if not (isArrayEmpty(bcfpx) and isArrayEmpty(bcfpy)):
                             indsp = inds[1].ravel(order='K')
                             if indices is None: indices = indsp
@@ -2178,20 +2178,20 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
     Usage: isoSurfMC(t, var, value, vars, split)"""
     rmvar = False
     if vars is  None:
-      target_var = Internal.__FlowSolutionCenters__
+        target_var = Internal.__FlowSolutionCenters__
     else:
-      target_var=[]; vc = []; vn = ['CoordinateX','CoordinateY','CoordinateZ'];
-      if var not in vars:
-          vars.append(var)
-          rmvar = True
-      for v in vars:
-         vs = v.split(':')
-         if len(vs) == 2 and vs[0] == 'centers':
-             vc.append(vs[1])
-             target_var.append(v)
-         elif len(vs) == 2 and vs[0] == 'nodes': vn.append(vs[1])
-         else: vn.append(v)
-    
+        target_var=[]; vc = []; vn = ['CoordinateX','CoordinateY','CoordinateZ'];
+        if var not in vars:
+            vars.append(var)
+            rmvar = True
+        for v in vars:
+            vs = v.split(':')
+            if len(vs) == 2 and vs[0] == 'centers':
+                vc.append(vs[1])
+                target_var.append(v)
+            elif len(vs) == 2 and vs[0] == 'nodes': vn.append(vs[1])
+            else: vn.append(v)
+
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
@@ -2201,9 +2201,9 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
         if vars is  None or vc != []:
             z = C.center2Node(z, target_var )
         if vars is None: 
-              array = C.getAllFields(z, 'nodes')[0]
+            array = C.getAllFields(z, 'nodes')[0]
         else: 
-              array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vars=vn+vc)[0]
+            array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vars=vn+vc)[0]
         try:
             a = Post.isoSurfMC(array, var, value, split)
             if purge: Internal._rmNodesByName1(z, Internal.__FlowSolutionNodes__)
@@ -2214,10 +2214,10 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
                 if rmvar:
                     node = Internal.getNodeFromName1(zp, Internal.__FlowSolutionNodes__)
                     Internal._rmNodesByName(node, var)
-                
+
                 ret.append(zp)
         except: raise
-        
+
     return ret
 
 def computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
@@ -2357,11 +2357,11 @@ def checkOccupancyCellN(lowerLimit, t):
     """Check cellN occupancy"""
     import Converter.Mpi as Cmpi
     total_cells        = 0
-    
+
     list_zones         =[]
     list_occupancy     =[]
     list_zones_below   =[]
-    
+
     t=Internal.rmGhostCells(t,t,2,adaptBCs=1) #want "real" cells
 
     for z in Internal.getZones(t):
@@ -2382,13 +2382,13 @@ def checkOccupancyCellN(lowerLimit, t):
         list_zones.append(z[0])
         list_occupancy.append(occupancy_rate)
         if occupancy_rate < lowerLimit and cells_zone>0: list_zones_below.append(z[0])
-        
+
     with open('CellN_occupancy_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
         for i in range(len(list_zones)):
             string2write=list_zones[i]          + '   ' + \
                           str(list_occupancy[i])+ ' \n'
             f.write(string2write)
-        
+
         string2write='..........Below Threshold.......... \n'
         f.write(string2write)
         string2write='Total numberof zones ::'+str(len(list_zones_below))+ ' \n'
@@ -2410,7 +2410,7 @@ def printMinMaxAndErrors(t, printErrors=False, listVars=[]):
         errors = Internal.checkPyTree(t)
         print("Printing Errors")
         print(errors)
-    
+
     if listVars:
         for z in Internal.getZones(t):
             print("______________________")
@@ -2429,7 +2429,7 @@ def printSizeZones(t, withGhost=False, isNCells=False, printFinal=False):
     import Converter.Mpi as Cmpi
     list_save_zones  =[]
     list_save_ncells =[]
-    
+
     if not withGhost: Internal._rmGhostCells(t, t, 2, adaptBCs=0)
 
     total_cells = 0
@@ -2441,13 +2441,13 @@ def printSizeZones(t, withGhost=False, isNCells=False, printFinal=False):
         dict_cell_zone[z[0]] = var_loc
         list_save_zones.append(z[0])
         list_save_ncells.append(var_loc/1.e06)
-    
+
     with open('Ncells_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
         for i in range(len(list_save_zones)):
             string2write=list_save_zones[i]       + '   ' + \
                           str(list_save_ncells[i])+ ' \n'
             f.write(string2write)
-        
+
         if printFinal:
             string2write='Ncells Total='+str(total_cells/1.e06)
             f.write(string2write)
@@ -2469,7 +2469,7 @@ def probeLocations(tprobe, tcase):
         xnode=Internal.getNodeFromName(p,'CoordinateX')
         ynode=Internal.getNodeFromName(p,'CoordinateY')
         znode=Internal.getNodeFromName(p,'CoordinateZ')
-        
+
         x_loc=Internal.getValue(xnode)
         y_loc=Internal.getValue(ynode)
         z_loc=Internal.getValue(znode)
@@ -2478,12 +2478,12 @@ def probeLocations(tprobe, tcase):
         jsave = 0
         ksave = 0
         z=interDict[p[0]]
-        
+
         if z:
             z2=Internal.getNodeFromName(tcase, z[0])            
             C._initVars(z2,'dist=sqrt(({CoordinateX}-%g)**2+({CoordinateY}-%g)**2+({CoordinateZ}-%g)**2)'%(x_loc,y_loc,z_loc))
             dist_array = Internal.getNodeByName(z2,'dist')[1]
-            
+
             dim   = Internal.getZoneDim(z2)
             ni    = dim[1]
             nj    = dim[2]
@@ -2494,7 +2494,7 @@ def probeLocations(tprobe, tcase):
             list_save_i.append(pnt[0][0])
             list_save_j.append(pnt[1][0])
             list_save_k.append(pnt[2][0])
-                
+
     with open('probes_locations_ijk_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
         for i in range(len(list_save_zones)):
             string2write=list_save_zones[i]  + '  '+ \
@@ -2502,7 +2502,7 @@ def probeLocations(tprobe, tcase):
                           str(list_save_j[i])+ '  '+ \
                           str(list_save_k[i])+ '\n'
             f.write(string2write)
-    
+
     return None
 
 
@@ -2516,13 +2516,13 @@ def cgns2tecplot(t,isRmGhost=False,isSet2Zero=False):
             varNames   = C.getVarNames(z)[0]
             for namem in listNameRemove:
                 varNames.remove(namem)
-                
+
             dist2walls = Internal.getNodeFromName(sol,'TurbulentDistance')[1]
             sh         = numpy.shape(dist2walls)
             for namem in varNames:
                 if 'P1' in namem or 'M1' in namem:continue
                 var       = Internal.getNodeFromName(sol,namem)[1]
-                
+
                 if len(sh) ==2:
                     for j in range(sh[1]):
                         for i in range(sh[0]):

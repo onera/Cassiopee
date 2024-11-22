@@ -54,7 +54,7 @@ def initCanvas(event=None):
             elif zdir == 'XZ': YC = point[1]
             elif zdir == 'XY': ZC = point[2]
             else: XC = point[0]; YC = point[1]; ZC = point[2]
-    
+
     if zdir == 'None':
         deleteCanvasBase()
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -73,11 +73,11 @@ def initCanvas(event=None):
         if dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.:
             dirCam = (0,0,1)
         DIRX = dirCam[0]; DIRY = dirCam[1]; DIRZ = dirCam[2]
-    
+
         UX = dirCam[1]*LZ - dirCam[2]*LY
         UY = dirCam[2]*LX - dirCam[0]*LZ
         UZ = dirCam[0]*LY - dirCam[1]*LX
-    
+
     elif zdir == 'YZ':
         DIRX = 1; DIRY = 0; DIRZ = 0
         UX = 0; UY = 1; UZ = 0
@@ -105,14 +105,14 @@ def deleteCanvasBase():
     CPlot.delete(dels)
     ret = Internal.getParentOfNode(CTK.t, canvas)
     del ret[0][2][ret[1]]
-    
+
 #==============================================================================
 def setCanvas(event=None):
     zdir = VARS[0].get()
     CTK.saveTree()
     deleteCanvasBase()
     CTK.t = C.addBase2PyTree(CTK.t, 'CANVAS', 2)
-    
+
     size = CANVASSIZE
     if zdir == 'View':
         a = G.cart( (-size, 0, -size), (2*size, 2*size, 2*size), (2,1,2) )
@@ -139,12 +139,12 @@ def setCanvas(event=None):
     if CP.__slot__ is None:
         CTK.t[2][nob][2].append(a); CTK.display(CTK.t)
     else: CTK.add(CTK.t, nob, -1, a)
-    
+
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def moveUp():
     if CTK.t == []: return
@@ -152,7 +152,7 @@ def moveUp():
     step = VARS[2].get()
     try: step = float(step)
     except: step = 1.
-    
+
     global XC, YC, ZC
     if zdir == 'View':
         XC = XC + step*LX
@@ -166,7 +166,7 @@ def moveUp():
         ZC = ZC + step
     CTK.TXT.insert('START', 'Move canvas up.\n')
     setCanvas()
-    
+
 #==============================================================================
 def moveDown():
     if CTK.t == []: return
@@ -174,7 +174,7 @@ def moveDown():
     step = VARS[2].get()
     try: step = float(step)
     except: step = 1.
-    
+
     global XC, YC, ZC
     if zdir == 'View':
         XC = XC - step*LX
@@ -188,7 +188,7 @@ def moveDown():
         ZC = ZC - step
     CTK.TXT.insert('START', 'Move canvas down.\n')
     setCanvas()
-    
+
 #==============================================================================
 def enlarge():
     global CANVASSIZE
@@ -231,7 +231,7 @@ def setCanvasPos(event=None):
             elif zdir == 'XZ': YC = res[0]
             else: ZC = res[0]
     setCanvas()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -248,7 +248,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=4)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -277,7 +277,7 @@ def createApp(win):
                        command=initCanvas)
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create a canvas.')
-    
+
     # - Refresh -
     B = TTK.Button(Frame, text="", command=initCanvas,
                    image=iconics.PHOTO[8], padx=0, pady=2)
@@ -300,7 +300,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=7)
     B.grid(row=1, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Canvas move step.')
-    
+
     # - Enlarge / reduce -
     B = TTK.Button(Frame, text="Enlarge", command=enlarge)
     B.grid(row=2, column=0, sticky=TK.EW)
@@ -311,7 +311,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=7)
     B.grid(row=2, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Canvas enlarge step.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -338,7 +338,7 @@ def saveApp():
     CTK.PREFS['tkCanvasDirStep'] = VARS[2].get()
     CTK.PREFS['tkCanvasEnlargeStep'] = VARS[3].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[2].set('0.1')
@@ -350,7 +350,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

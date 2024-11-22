@@ -42,7 +42,7 @@ D_IBM._setSnear(tb, snear)
 D_IBM._setDfar(tb, dfar)
 D_IBM._setIBCType(tb,"noslip")
 C._addState(tb, adim='dim1', UInf=UInf, TInf=TInf, PInf=PInf, LInf=diam,EquationDimension=dimPb, GoverningEquations=ModelTmp)
-    
+
 ##CREATING TB RECTILINEAR REGION
 Lx    = dfar*3
 hlocal= Lx/10

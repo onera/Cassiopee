@@ -30,7 +30,7 @@ def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
     allWins = []; dimsI = []; dimsJ = []; dimsK = []; typeOfWins=[]; indirBlkOfWins=[]
     dimsI.append(a1[2]); dimsJ.append(a1[3]); dimsK.append(a1[4])
     dimsI.append(a2[2]); dimsJ.append(a2[3]); dimsK.append(a2[4])
-            
+
     for win1 in range(1, nwins):
         imin1 = 1; jmin1 = 1; kmin1 = 1; imax1 = a1[2]; jmax1 = a1[3]; kmax1 = a1[4]
         if win1 == 1: imax1 = 1
@@ -60,7 +60,7 @@ def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
             allWins.append(win)
             indirBlkOfWins.append(1)
             typeOfWins.append(win2)
-    
+
     allWins = C.extractVars(allWins, ['x','y','z'])
     allTags = C.node2Center(allWins)
     allTags = C.initVars(allTags, 'tag1', -1.) # defines the opposite window
@@ -140,7 +140,7 @@ def optimizeOverlap(nodes1, centers1, nodes2, centers2, prio1=0, prio2=0, isDW=0
         try: import Generator as G
         except: raise ImportError("optimizeOverlap requires Converter and Generator modules.")
         vol2 = G.getVolumeMap(nodes2); centers2 = C.addVars([centers2,vol2])
-    
+
     extCenters1 = C.node2ExtCenter(nodes1)
     extCenters2 = C.node2ExtCenter(nodes2)
     hook1 = C.createHook([extCenters1],'extractMesh')
@@ -177,7 +177,7 @@ def _setHoleInterpolatedPoints(cellN, depth=2, dir=0, cellNName='cellN'):
     loc = 'nodes'
     if len(cellN) == 4:
         if cellN[3][-1]=='*': loc = 'centers'
-    
+
     if loc == 'nodes':
         if depth < 0:
             Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
@@ -304,19 +304,19 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol = 1.e-12, c
     maskSkin = P.exteriorFaces(meshT4)
     maskSkin = T.reorderAll(maskSkin, 1) #orient outward
     maskSkin = T.join(maskSkin)
-    
+
     mask = connector.createTetraMask(meshT4, maskSkin, tol)  
-    
+
     for i in range(len(coords)):
-      #print 'coords : %d / %d' %(i+1, len(coords))
-      bt = blankingType
-      if blankingType == 2: # center_in: simplement un node_in sur les centres
-        coords[i] = C.node2Center(coords[i])
-        bt = 0
-      cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
+        #print 'coords : %d / %d' %(i+1, len(coords))
+        bt = blankingType
+        if blankingType == 2: # center_in: simplement un node_in sur les centres
+            coords[i] = C.node2Center(coords[i])
+            bt = 0
+        cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
     connector.deleteTetraMask(mask)
     return cellnt
-    
+
 #==============================================================================
 # blankCellsTri
 # IN: coords: 3D structured or unstructured mesh
@@ -332,20 +332,20 @@ def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol=1.e-12,
     Usage: blankCellsTri(coords, cellnfields, meshT3, connectT4, blankingType, tol, cellnval, overwrite)"""
     try: import Converter as C; import Transform as T
     except: raise ImportError("blankCellsTetra: requires Converter module.")
-    
+
     cellnt = []
     meshT3 = T.reorderAll(meshT3, 1) # orient outward
     meshT3 = T.join(meshT3)
-    
+
     mask = connector.createTriMask(meshT3, tol)
-    
+
     for i in range(len(coords)):
-      #print('coords : %d / %d' %(i+1, len(coords)))
-      bt = blankingType
-      if blankingType == 2: # center_in: simplement un node_in sur les centres
-        coords[i] = C.node2Center(coords[i])
-        bt = 0
-      cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
+        #print('coords : %d / %d' %(i+1, len(coords)))
+        bt = blankingType
+        if blankingType == 2: # center_in: simplement un node_in sur les centres
+            coords[i] = C.node2Center(coords[i])
+            bt = 0
+        cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
     connector.deleteTriMask(mask)
     return cellnt
 
@@ -604,7 +604,7 @@ def getInterpolatedPoints__(a):
         return b
     else:
         return connector.getInterpolatedPoints(a)
-    
+
 #------------------------------------------------------------------------------
 # Nouvel algo de changeWall, sans tolerance double wall
 # IN: z: maillage a projeter

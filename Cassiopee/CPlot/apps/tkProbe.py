@@ -57,18 +57,18 @@ def getVariableValue(event=None):
     nob = CTK.Nb[0]+1
     noz = CTK.Nz[0]
     zvars = C.getVarNames(CTK.t[2][nob][2][noz])[0]
-    
+
     index = CPlot.getActivePointIndex()
     if index != []:
         indv = index[0] # vertex
         inde = index[1] # element
-    
+
     point = CPlot.getActivePoint()
     field = CPlot.getActivePointF()
     if point == []:
-       CTK.TXT.insert('START', 'Please, select only a point.\n')
-       CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+        CTK.TXT.insert('START', 'Please, select only a point.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
     cvar = VARS[0].get()
     if cvar == 'CoordinateX': 
         VARS[1].set(str(point[0]))
@@ -82,7 +82,7 @@ def getVariableValue(event=None):
             if v == cvar: break
             if v[0:10] != 'Coordinate': ivar += 1
         VARS[1].set(str(field[ivar]))
-    
+
 #==============================================================================
 # Set variable in tree
 #==============================================================================
@@ -90,23 +90,23 @@ def setVariableValue(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if nzs == []:
-       CTK.TXT.insert('START', 'Selection is empty.\n')
-       CTK.TXT.insert('START', 'Error: ', 'Error'); return
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
     if len(nzs) > 1:
-       CTK.TXT.insert('START', 'Please, select only one zone.\n')
-       CTK.TXT.insert('START', 'Error: ', 'Error'); return
+        CTK.TXT.insert('START', 'Please, select only one zone.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
     val = CTK.varsFromWidget(VARS[1].get(), type=1)
-       
+
     nz = nzs[0]
     nob = CTK.Nb[nz]+1
     noz = CTK.Nz[nz]
     z = CTK.t[2][nob][2][noz]
     ind = CPlot.getActivePointIndex()
     if ind == []:
-       CTK.TXT.insert('START', 'No selected point.\n')    
-       CTK.TXT.insert('START', 'Error: ', 'Error'); return
+        CTK.TXT.insert('START', 'No selected point.\n')    
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
     indv = ind[0]; inde = ind[1]
-    
+
     CTK.saveTree()
     zp = Internal.copyTree(z)
     cvar = VARS[0].get()
@@ -118,7 +118,7 @@ def setVariableValue(event=None):
     CPlot.replace(CTK.t, nob, noz, zp)
     CTK.TXT.insert('START', 'Point modified.\n')
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -136,7 +136,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=3)
     Frame.columnconfigure(1, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -168,18 +168,18 @@ def createApp(win):
         F.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Selected var name.')
         WIDGETS['variable'] = B
-    
+
     B = TTK.Button(Frame, image=iconics.PHOTO[8],
                    command=getVariableValue, padx=0)
     B.grid(row=0, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Get variable value from mouse.')
-    
+
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White',
                   width=10)
     B.bind('<Return>', setVariableValue)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Variable value.')
-    
+
     B = TTK.Button(Frame, text="Set", command=setVariableValue)
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Modify value.')
@@ -192,7 +192,7 @@ def showApp():
     try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkProbe')
     except: pass
     CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================

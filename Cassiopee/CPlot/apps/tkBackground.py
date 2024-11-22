@@ -35,13 +35,13 @@ def createBox(half=0, zpos=0):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     if zpos == 1: az = 0 # force zmin
-    
+
     posCam = CPlot.getState('posCam')
     posEye = CPlot.getState('posEye')
     LX = posEye[0]-posCam[0]
     LY = posEye[1]-posCam[1]
     LZ = posEye[2]-posCam[2]
-    
+
     try: box = G.bbox(CTK.t)
     except: box = [0,0,0,1,1,1]
     hx = box[3]-box[0]
@@ -81,8 +81,8 @@ def createBox(half=0, zpos=0):
         b3 = G.cart( (box[0]-ax*hx, box[1]-ay*hy, box[2]-az*hz),
                      (hx,hy,hz), (ni,nj,1) )
     else:
-         b3 = G.cart( (box[0]-ax*hx, box[1]-ay*hy, box[5]+bz*hz),
-                      (hx,hy,hz), (ni,nj,1) )
+        b3 = G.cart( (box[0]-ax*hx, box[1]-ay*hy, box[5]+bz*hz),
+                     (hx,hy,hz), (ni,nj,1) )
     D._getUVFromIJ(b3)
     b3 = CPlot.addRender2Zone(b3, material='Solid',
                               color='White', meshOverlay=1)
@@ -97,7 +97,7 @@ def createBox(half=0, zpos=0):
         # plan xmax
         b4 = G.cart( (box[3]+bx*hx, box[1]-ay*hy, box[2]-az*hz),
                      (hx,hy,hz), (1,nj,nk) )
-    
+
     D._getUVFromIJ(b4)
     b4 = CPlot.addRender2Zone(b4, material='Solid',
                               color='White', meshOverlay=1)
@@ -149,7 +149,7 @@ def createZEllipse():
     hy = box[4]-box[1] 
     if hx < 1.e-10: hx = 0.1
     if hy < 1.e-10: hy = 0.1
-  
+
     hx = hx * 0.7 * ax; hy = hy * 0.7 * ay
     cx = 0.5*(box[0]+box[3])
     cy = 0.5*(box[1]+box[4])
@@ -182,14 +182,14 @@ def createZPlane():
     else:
         CTK.TXT.insert('START', 'Borders factor incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     try: box = G.bbox(CTK.t)
     except: box = [0,0,0,1,1,1]
     hx = box[3]-box[0]
     hy = box[4]-box[1] 
     if hx < 1.e-10: hx = 0.1
     if hy < 1.e-10: hy = 0.1
-  
+
     hx = hx * 0.5; hy = hy * 0.5
     b = G.cart((box[0]-ax*hx, box[1]-ay*hy, box[2]), (hx,hy,1), (ax+bx+3,ay+by+3,1))
     D._getUVFromIJ(b)
@@ -213,7 +213,7 @@ def createGround():
     else:
         CTK.TXT.insert('START', 'Borders factor incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     try: box = G.bbox(CTK.t)
     except: box = [0,0,0,1,1,1]
     hx = box[3]-box[0]
@@ -233,7 +233,7 @@ def createGround():
                              color='White', meshOverlay=1)
     # plafond (optionel)
     c = G.cart((box[0]-ax*hx-deltax, box[1]-ay*hy-deltay, box[2]+(ax+bx+2)*hx-hz), (hx,hy,hz), (ax+bx+3,ay+by+3,1))
-    
+
     return [b, c]
 
 def createSkySphere():
@@ -244,7 +244,7 @@ def createSkySphere():
     else:
         CTK.TXT.insert('START', 'Borders factor incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     try: box = G.bbox(CTK.t)
     except: box = [0,0,0,1,1,1]
     hx = box[3]-box[0]
@@ -254,11 +254,11 @@ def createSkySphere():
     if hy < 1.e-10: hy = 0.1
     if hz < 1.e-10: hz = 0.001
     h = max(hx, hy)
-    
+
     xc = 0.5*(box[0]+box[3])
     yc = 0.5*(box[1]+box[4])
     zc = 0.5*(box[2]+box[5])
-    
+
     a = Models.skySphere((xc,yc,zc), 0.5*ax*h)
     return [a]
 
@@ -270,7 +270,7 @@ def createHalfSkySphere():
     else:
         CTK.TXT.insert('START', 'Borders factor incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     try: box = G.bbox(CTK.t)
     except: box = [0,0,0,1,1,1]
     hx = box[3]-box[0]
@@ -280,11 +280,11 @@ def createHalfSkySphere():
     if hy < 1.e-10: hy = 0.1
     if hz < 1.e-10: hz = 0.001
     h = max(hx, hy)
-    
+
     xc = 0.5*(box[0]+box[3])
     yc = 0.5*(box[1]+box[4])
     zc = box[2]
-    
+
     a = Models.halfSkySphere((xc,yc,zc), 0.5*ax*h)
     return a
 
@@ -321,7 +321,7 @@ def setBackground(event=None):
     else:
         RIS = deleteBackgroundBase()
         CTK.t = C.addBase2PyTree(CTK.t, 'BACKGROUND', 2)
-        
+
         if btype == 'Half-Box': B = createBox(1)
         elif btype == 'Box': B = createBox(0)
         elif btype == 'Z-Half-Box': B = createBox(1, 1)
@@ -335,16 +335,16 @@ def setBackground(event=None):
         # replace .RenderInfo if exists
         if len(RIS) == len(B):
             for c, z in enumerate(B): Internal._createUniqueChild(z, '.RenderInfo', 'UserDefinedData_t', children=RIS[c][2])
-            
+
         base = Internal.getNodesFromName1(CTK.t, 'BACKGROUND')[0]
         nob = C.getNobOfBase(base, CTK.t)
         for b in B: CTK.add(CTK.t, nob, -1, b)
         #C._fillMissingVariables(CTK.t)
-        
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -361,7 +361,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=2)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -392,11 +392,11 @@ def createApp(win):
     B.grid(row=0, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Borders N or (Ni;Nj;Nk) or (Ni-;Nj-;Nk-;Ni+;Nj+;Nk+).')
     B.bind('<Return>', setBackground)
-    
+
     B = TTK.Button(Frame, text="Set", command=setBackground)
     B.grid(row=0, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set or reset the background.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -412,7 +412,7 @@ def showApp():
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['VisuNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================

@@ -58,7 +58,7 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     import Distributor2.PyTree as D2
     t = Filter.convertFile2SkeletonTree(t_in, maxDepth=3, maxFloatSize=6)
     tc = Filter.convertFile2SkeletonTree(tc_in, maxDepth=3, maxFloatSize=6)
-    
+
     nbpts=0.; maxipts=0.
     for zone in Internal.getZones(t):
         ncells = C.getNCells(zone)
@@ -80,10 +80,10 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     NP = MinNbProcs
     for nbproc in range(MinNbProcs,MaxNbProcs+1):
         if nbproc%corePerNode==0:
-         print('Distribution sur %s procs.')
-         stats = D2._distribute(tc, nbproc, algorithm='graph', useCom='ID')
-         listequ.append([nbproc,stats['varMax']])
-         if stats['varMax']<varmax: varmax = stats['varMax']; NP=nbproc
+            print('Distribution sur %s procs.')
+            stats = D2._distribute(tc, nbproc, algorithm='graph', useCom='ID')
+            listequ.append([nbproc,stats['varMax']])
+            if stats['varMax']<varmax: varmax = stats['varMax']; NP=nbproc
 
     stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
     print('Best distribution found on %d procs.'%NP)
@@ -99,7 +99,7 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     for n in nodes:
         p = Internal.getPath(tc, n)
         Filter.writeNodesFromPaths(tc_in, p, n)
-    
+
     return NP
 
 #================================================================================
@@ -174,7 +174,7 @@ def compute(t_in, tc_in,
     if first is not None: time0 = Internal.getValue(first)
     time_step = Internal.getNodeFromName(t, 'time_step')
     time_step = Internal.getValue(time_step)
-    
+
     if 'modulo_verif' in numb: moduloVerif = numb['modulo_verif']
     else: moduloVerif = 200
 

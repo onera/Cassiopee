@@ -62,7 +62,7 @@ if UseOSMesa:
         libraryDirs += [OSMesaLib]
         includeDirs += [OSMesaIncDir]
 else: OSMesa = False
-    
+
 # Extensions =================================================================
 import srcs
 

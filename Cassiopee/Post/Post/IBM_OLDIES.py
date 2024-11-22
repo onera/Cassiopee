@@ -45,7 +45,7 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     beta   = math.radians(beta)
     calpha = math.cos(alpha); cbeta = math.cos(beta)
     salpha = math.sin(alpha); sbeta = math.sin(beta)
-    
+
     #===========================
     # Compute pressure forces
     #===========================
@@ -71,7 +71,7 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
         print("Normalized pressure drag = %g and lift = %g"%(cd, cl))
         print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P)=(",res[0],res[1],res[2],")")
     cd_press = cd ; cl_press = cl
-    
+
     #======================================
     # Compute viscous forces
     #======================================
@@ -171,7 +171,7 @@ def unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
     Usage: unsteadyLoads(tb, Sref, Pref, Qref, alpha, beta)"""
     tp = Internal.copyRef(tb)
     return _unsteadyLoads(tp, Sref=Sref, Pref=Pref, Qref=Qref, alpha=alpha, beta=beta)
- 
+
 def _unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
     """Computes the viscous and pressure forces on the IB during the computation of the solution. 
     Usage: _unsteadyLoads(tb, Sref, Pref, Qref, alpha, beta, dimPb)"""
@@ -229,9 +229,9 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
                             location = Internal.getValue(location)
                             if location == 'CellCenter': loc = 'centers'
                             else: loc = 'nodes'
-    
+
                         else: loc = 'nodes'
-    
+
                         Coefs     = idn[1]
                         DonorType = Internal.getNodeFromName1(zsr,'InterpolantsType')[1]
                         ListDonor = Internal.getNodeFromName1(zsr,'PointList')[1]

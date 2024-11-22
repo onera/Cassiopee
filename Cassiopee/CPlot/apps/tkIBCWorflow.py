@@ -25,7 +25,7 @@ WIDGETS = {}; VARS = []
 def getIBCFrontForZone__(a):
     f0 =  P.selectCells(a, '{centers:cellN} == 2.')
     f0 = T.join(f0); f0 = G.close(f0)
-    
+
     # recuperation des champs en centres perdus par selectCells
     a2 = C.initVars(a, 'centers:cellN', 1.)
     ta = C.newPyTree(['Base', a2])
@@ -90,7 +90,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
             else: dyloc = abs(yt[0,index]-yt[0,index+nigc])
             if indk == nkgc-1: dzloc = abs(zt[0,index]-zt[0,index-nigcnjgc])
             else: dzloc = abs(zt[0,index]-zt[0,index+nigcnjgc])
-            
+
             if dxloc < toldist: dxloc = 1.e10
             if dyloc < toldist: dyloc = 1.e10
             if dzloc < toldist: dzloc = 1.e10            
@@ -103,7 +103,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
     varny = 'gradyTurbulentDistance'
     varnz = 'gradzTurbulentDistance'
     fc1 = C.normalize(fc1, [varnx, varny, varnz])
-    
+
     if listPts == []:
         C._initVars(fc1,'delta',0.)
         deltaa = C.getField('delta',fc1)[0]
@@ -129,7 +129,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
         deltaa = C.getField('delta',fc1)[0]
         for ind in listPts: deltaa[1][0,ind] += eps
         C.setFields([deltaa], fc1, loc='nodes')
-    
+
     C._initVars(fc1, '{nx} = {gradxTurbulentDistance} * {delta}')
     C._initVars(fc1, '{ny} = {gradyTurbulentDistance} * {delta}')
     C._initVars(fc1, '{nz} = {gradzTurbulentDistance} * {delta}')
@@ -220,7 +220,7 @@ def blank():
         z = t[2][1][2][noz]
         valmax = C.getMaxValue(z, 'centers:cellN')
         if valmax == 2.: tp[2][1][2].append(z); donorNoz.append(noz)
-    
+
     tp = DTW.distance2Walls(tp, surfaces, type='ortho', loc='centers', signed=1,dim=dimPb)
     tp = Internal.correctPyTree(tp, level= 6) 
     tp = C.center2Node(tp,'centers:TurbulentDistance')
@@ -376,7 +376,7 @@ def createApp(win):
     B.grid(row=r, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Blanking type.')
     r += 1
-    
+
     # - XRay delta  -
     B = TTK.Label(Frame, text="XRay delta")
     B.grid(row=r, column=0, sticky=TK.EW)
@@ -393,7 +393,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
     B.grid(row=r, column=1, sticky=TK.EW)
     r += 1
-    
+
     # - Surface -
     B = TTK.Button(Frame, text="Bodies", command=setSurface)
     B.grid(row=r, column=0, sticky=TK.EW)
@@ -453,7 +453,7 @@ def createApp(win):
     B.grid(row=r, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Interpolation type of IBC points.')
     r += 1
-   
+
 
     # - create IBC front - 
     B = TTK.Button(Frame, text="Create IBC front", command=getIBCFront)
