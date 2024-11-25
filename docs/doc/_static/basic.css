@@ -73,19 +73,21 @@ div.related li.right {
 /* -- sidebar --------------------------------------------------------------- */
 
 div.sphinxsidebarwrapper {
-    padding: 10px 5px 0 10px;
+    padding: 70px 5px 50px 10px;
 }
 
 div.sphinxsidebar {
     float: left;
     width: 230px;
-    margin-left: 40px;
-    padding-right: 45px;
-    padding-bottom: 50px;
-    padding-top: 250px;
+    height: 90vh;
+    padding-left: 35px;
+    padding-right: 35px;
+    top: 5vh;
+    bottom: 0;
+    left: 0;
+    right: 0;
     font-size: 90%;
-    word-wrap: break-word;
-    overflow-wrap : break-word;
+    overflow:scroll;
     position: fixed;
     border-right: var(--border);
 }
@@ -269,17 +271,10 @@ table.modindextable td {
 
 /* -- general body styles --------------------------------------------------- */
 
-div.body {
+/* div.body {
     min-width: 1%;
-    /* max-width: 100%; */
-    width: 80%;
-}
-
-div.bodywrapper {
-    min-width: 1%;
-    /* max-width: 100%; */
-    width: 80%;
-}
+    width: 100%;
+} */
 
 div.body p, div.body dd, div.body li, div.body blockquote {
     -moz-hyphens: auto;
@@ -564,7 +559,7 @@ table.hlist td {
 
 .sig {
 	font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
-    font-size: 1.2vw;
+    font-size: clamp(1.2vw, 0.8em, 1.2em);
 }
 
 .sig-name, code.descname {
@@ -573,11 +568,7 @@ table.hlist td {
 }
 
 .sig-name {
-    font-size: 1.5vw;
-}
-
-code.descname {
-    font-size: 1.2vw;
+    font-size: clamp(1.5vw, 1.2em, 1.5em);
 }
 
 .sig-prename, code.descclassname {
@@ -585,11 +576,11 @@ code.descname {
 }
 
 .optional {
-    font-size: 1.5vw;
+    font-size: clamp(1.2vw, 0.8em, 1.2em);
 }
 
 .sig-paren {
-    font-size: 1.5vw;
+    font-size: clamp(1.2vw, 0.8em, 1.2em);
 }
 
 .sig-param.n {

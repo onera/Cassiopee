@@ -46,14 +46,12 @@ div.documentwrapper {
 
 div.bodywrapper {
     margin: 0 0 0 230px;
-    padding-right: 70px;
 }
 
 div.body {
     background-color: var(--background-color);
     color: var(--font-color);
-    padding: 0 20px 30px 20px;
-    margin: 0 0 0 135px;
+    padding-right: 100px;
 }
 
 div.footer {
@@ -69,13 +67,6 @@ div.related {
     line-height: 30px;
     color: var(--font-color);
 }
-
-/* div.sphinxsidebar {
-    position: fixed;
-    top: 40px;
-    bottom: 40px;
-    border-right: var(--border);
-} */
 
 div.sphinxsidebar h3 {
     font-family: 'Trebuchet MS', sans-serif;

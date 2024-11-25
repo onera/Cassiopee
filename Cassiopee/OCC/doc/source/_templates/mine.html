@@ -1,4 +1,4 @@
-<a  href="Transform.pdf" target="_self">Download pdf version</a>
+<a  href="OCC.pdf" target="_self">Download pdf version</a>
 <p></p>
 <head>
 <style>
@@ -20,22 +20,6 @@
   background-color: rgb(26,85,85);
 }
 
-#myImg {
-  position: fixed;
-  top: 50px;
-  left: 50px;
-  z-index: 99;
-  padding: 15px;
-  width: 200px;
-}
-
-#myImg img {
-  height: auto;
-  width: 90%;
-  border: none;
-  border-radius: 0px;
-}
-
 #myImg:hover {
   opacity: 50%;
 }
@@ -45,10 +29,25 @@
 
 <button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
 
-<a href="../index.html" id="myImg"><img src="../Images/CassiopeeLogo.png"></a>
-
-
 <script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
 
 // When the user scrolls down 20px from the top of the document, show the button
 window.onscroll = scrollFunction;
@@ -76,10 +75,12 @@ function resizeFunction() {
         document.getElementById("myBtn").style.visibility = "visible";
         document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
         document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
     } else {
         document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
         document.getElementsByClassName("body")[0].style.marginLeft = "130px";
         document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
     }
 }
 
