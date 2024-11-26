@@ -54,9 +54,9 @@ App._distribute(tFile, tcFile, NP=Cmpi.size)
 t       = Fast.loadTree(os.path.basename(tFile), directory=LOCAL, split='single',  mpirun=True)
 tc,graph= Fast.loadFile(tcFile, split='single',  mpirun=True, graph=True)
 
-#if Cmpi.rank == 0:
-#    test.testT(t , 1)
-#    test.testT(tc, 2)
+if Cmpi.rank == 0:
+    test.testT(t , 1)
+    test.testT(tc, 2)
 
 ##COMPUTE
 NIT                        = 25   # number of iterations 
@@ -107,18 +107,18 @@ for it in range(NIT):
 ##TO VISUALIZE
 #Cmpi.convertPyTree2File(t,LOCAL+'/t_restart_WMM_checkMPI.cgns')
 
-#if Cmpi.rank == 0:
-#    Internal._rmNodesFromType(t, 'Rind_t')
-#    Internal._rmNodesByName(t, '.Solver#Param')
-#    Internal._rmNodesByName(t, '.Solver#ownData')
-#    Internal._rmNodesByName(t, '.Solver#dtloc')
-#    Internal._rmNodesFromType(tc, 'Rind_t')
-#    Internal._rmNodesByName(tc, '.Solver#Param')
-#    Internal._rmNodesByName(tc, '.Solver#ownData')
-#    Internal._rmNodesByName(tc, '.Solver#dtloc')
-#
-#    test.testT(t , 3)
-#    test.testT(tc, 4)
-#
-#    os.remove(tFile)
-#    os.remove(tcFile)
+if Cmpi.rank == 0:
+    Internal._rmNodesFromType(t, 'Rind_t')
+    Internal._rmNodesByName(t, '.Solver#Param')
+    Internal._rmNodesByName(t, '.Solver#ownData')
+    Internal._rmNodesByName(t, '.Solver#dtloc')
+    Internal._rmNodesFromType(tc, 'Rind_t')
+    Internal._rmNodesByName(tc, '.Solver#Param')
+    Internal._rmNodesByName(tc, '.Solver#ownData')
+    Internal._rmNodesByName(tc, '.Solver#dtloc')
+
+    test.testT(t , 3)
+    test.testT(tc, 4)
+
+    os.remove(tFile)
+    os.remove(tcFile)
