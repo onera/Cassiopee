@@ -52,6 +52,7 @@ div.body {
     background-color: var(--background-color);
     color: var(--font-color);
     padding-right: 100px;
+    margin: 0 0 0 135px;
 }
 
 div.footer {
