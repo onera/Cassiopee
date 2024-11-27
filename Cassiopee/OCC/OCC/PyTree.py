@@ -652,7 +652,7 @@ def _remeshTreeFromEdges(hook, t, edges):
     for edge in edges:
         edgeno = getNo(edge)
         aedge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
-        e = occ.meshOneEdge(hook, edgeno, -1, -1, -1, aedge)
+        e = occ.meshOneEdge(hook, edgeno, -1, -1, -1, -1, aedge)
         dedges[edgeno-1] = e
         cad = Internal.getNodeFromName1(edge, 'CAD')
         render = Internal.getNodeFromName1(edge, '.RenderInfo')
@@ -778,7 +778,7 @@ def _remeshAllEdgesOdd(hook, t):
             D._getCurvilinearAbscissa(edge)
             edgeno = getNo(edge)
             aedge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
-            e = occ.meshOneEdge(hook, edgeno, -1, -1, -1, aedge)
+            e = occ.meshOneEdge(hook, edgeno, -1, -1, -1, -1, aedge)
             cad = Internal.getNodeFromName1(edge, 'CAD')
             render = Internal.getNodeFromName1(edge, '.RenderInfo')
             z = Internal.createZoneNode('edge%03d'%(edgeno), e, [],
@@ -795,7 +795,7 @@ def getCADcontainer(t):
     CAD = Internal.getNodeFromName1(t, 'CAD')
     if CAD is None: return [hmin, hmax, hausd]
     hmin = Internal.getNodeFromName1(CAD, 'hmin')
-    if hmin is not None: hmax = Internal.getValue(hmin)
+    if hmin is not None: hmin = Internal.getValue(hmin)
     hmax = Internal.getNodeFromName1(CAD, 'hmax')
     if hmax is not None: hmax = Internal.getValue(hmax)
     hausd = Internal.getNodeFromName1(CAD, 'hausd')

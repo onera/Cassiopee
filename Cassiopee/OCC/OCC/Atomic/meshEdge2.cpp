@@ -19,6 +19,7 @@
 
 #include "occ.h"
 
+#include "Nuga/include/DelaunayMath.h"
 #include "TopoDS.hxx"
 #include "BRep_Tool.hxx"
 #include "TopoDS_Wire.hxx"
@@ -35,6 +36,12 @@
 #include "BRepBuilderAPI_MakeFace.hxx"
 #include "BRepGProp.hxx"
 #include "GProp_GProps.hxx"
+#include "TopTools_IndexedDataMapOfShapeListOfShape.hxx"
+#include "TopTools_ListIteratorOfListOfShape.hxx"
+#include "Geom_Surface.hxx"
+#include "TopExp.hxx"
+#include "GeomLProp_SLProps.hxx"
+#include <Precision.hxx>
 
 // ultimate (best) functions
 
@@ -217,7 +224,7 @@ void geom3(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& u
 void geom4(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& ue)
 {
   E_Float r = (u1-u0+h1-h0)/(u1-u0);
-  printf("r=%f\n", r);
+  //printf("r=%f\n", r);
   E_Float a = log(r);
   if (a > 1.e-12) // r!=1
   {
@@ -238,7 +245,7 @@ void geom4(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& u
   }
   //for (E_Int i = 1; i < N; i++) ue[i] = ue[i-1] + h0*pow(r, i-1);  
   //ue[N-1] = u1; // force
-  for (E_Int i = 0; i < N; i++) printf("%d %f\n", i, ue[i]);
+  //for (E_Int i = 0; i < N; i++) printf("%d %f\n", i, ue[i]);
   printf("h0/r=%f real=%f\n", h0/r, ue[1]-ue[0]);
   printf("h1=%f real=%f\n", h1, ue[N-1]-ue[N-2]);
 }
@@ -410,9 +417,16 @@ E_Int __getParamHminHmaxHausd(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, 
   GeomAdaptor_Curve geomAdap(C0.Curve());
   Standard_Real u0 = geomAdap.FirstParameter();
   Standard_Real u1 = geomAdap.LastParameter();
+  if (BRep_Tool::Degenerated(E))
+  { 
+    nbPoints = 2;
+    ue = new E_Float [nbPoints];
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
+    return 1; 
+  }
   E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
   L = K_FUNC::E_max(L, 1.e-12);
-
+  
   // Compute local h
   Handle(Geom_Curve) curve;
   Standard_Real first, last;
@@ -421,10 +435,8 @@ E_Int __getParamHminHmaxHausd(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, 
   gp_Vec dE, d2E;
   E_Float U, dE1, dE2, dE3, d2E1, d2E2, d2E3;
   E_Float t1, t2, t3, a, b, rho;
-  // Compute the first derivative
-  //curve->D1(U, point, dE);
 
-  E_Int npts = 3;
+  E_Int npts = 2;
   std::vector<E_Float> Us(npts);
   for (E_Int i = 0; i < npts; i++) Us[i] = u0+(i/(npts-1.))*(u1-u0);
   std::vector<E_Float> h(npts);
@@ -454,10 +466,10 @@ E_Int __getParamHminHmaxHausd(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, 
     else rho = 1.e12;
 
     // Compute local h
-    h[i] = std::sqrt(8.*hausd*rho);
+    h[i] = std::sqrt(1.*hausd*rho);
     h[i] = K_FUNC::E_min(h[i], hmax);
     h[i] = K_FUNC::E_max(h[i], hmin);
-    printf("rho=%g h=%g, h=%g\n", rho, std::sqrt(8.*hausd*rho), h[i]);
+    //printf("rho=%g h=%g, h=%g\n", rho, std::sqrt(8.*hausd*rho), h[i]);
     h[i] = h[i]*(u1-u0)/L;
   }
 
@@ -487,10 +499,16 @@ E_Int __getParamHminHmaxHausd(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, 
     N += Np[i]-1;
   }
   ue[N+1] = u1;
-
-  //printf("final: %g %g - ", u0, u1);
+  
+  //printf("final: %g %g \n", u0, u1);
   //for (E_Int i = 0; i < Ntot; i++) printf("%g ", ue[i]);
   //printf("\n");
+
+  // verifie que la suite est bien croissante
+  for (E_Int i = 0; i < Ntot-1; i++) 
+  {
+    if (ue[i+1] < ue[i]) printf("warning: %g ", ue[i]);
+  }
 
   for (E_Int i = 0; i < npts; i++)
   {
@@ -499,6 +517,256 @@ E_Int __getParamHminHmaxHausd(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, 
   return 1;
 }
 
+// ===============================================================================
+// Return the nbPoints and ue for meshing E with hmin/hmax/hausd with max of faces
+// ===============================================================================
+E_Int __getParamHminHmaxHausd2(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, E_Float hausd, E_Int& nbPoints, E_Float*& ue,
+  TopoDS_Shape* shape)
+{
+  TopTools_IndexedDataMapOfShapeListOfShape edgeFaceMap;
+  TopExp::MapShapesAndAncestors(*shape, TopAbs_EDGE, TopAbs_FACE, edgeFaceMap);
+
+  BRepAdaptor_Curve C0(E);
+  GeomAdaptor_Curve geomAdap(C0.Curve());
+  Standard_Real u0 = geomAdap.FirstParameter();
+  Standard_Real u1 = geomAdap.LastParameter();
+  //printf("===============edge =========================\n");
+  //printf("u0=%g u1=%g\n", u0, u1);
+  if (BRep_Tool::Degenerated(E))
+  { 
+    nbPoints = 2;
+    ue = new E_Float [nbPoints];
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
+    return 1; 
+  }
+  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
+  L = K_FUNC::E_max(L, 1.e-12);
+
+  gp_Pnt2d Puv;
+  E_Float u,v;
+  E_Float ues; 
+  Standard_Real aFirst = C0.FirstParameter(), aEnd=C0.LastParameter();
+  //printf("afirst=%g aend=%g\n", aFirst, aEnd);
+  Standard_Real pFirst = aFirst, pEnd=aEnd;
+  
+  gp_Pnt point;
+  gp_Vec DU1, DV1, DU2, DV2, DUV;
+  E_Float nx, ny, nz, n2;
+  E_Float G11, G12, G21, G22, detG;
+  E_Float M11, M12, M21, M22, detM;
+  E_Float rho, hh, K1, K2;
+  E_Float det, S11, S12, S21, S22, Mi11, Mi21, Mi12, Mi22, detS;
+
+  E_Int npts = 2;
+  std::vector<E_Float> Us(npts);
+  for (E_Int i = 0; i < npts; i++) Us[i] = i/(npts-1.);
+  
+  //Us[0] = Us[0]+0.001*(Us[1]-Us[0]);
+  //Us[npts-1] = Us[npts-1]-0.001*(Us[npts-1]-Us[npts-2]);
+  
+  std::vector<E_Float> h(npts);
+  for (E_Int i = 0; i < npts; i++) h[i] = K_CONST::E_MAX_FLOAT;
+  
+  // Find faces of E
+  const TopTools_ListOfShape& connectedFaces = edgeFaceMap.FindFromKey(E);
+  for (TopTools_ListIteratorOfListOfShape it(connectedFaces); it.More(); it.Next()) 
+  {
+    const TopoDS_Face& F = TopoDS::Face(it.Value());
+    Handle(Geom_Surface) surface = BRep_Tool::Surface(F);
+    
+    Standard_Real BU1, BU2, BV1, BV2; surface->Bounds(BU1, BU2, BV1, BV2);
+    //printf("face bound = %g %g and %g %g\n", BU1, BU2, BV1, BV2);
+
+    // p curve on F
+    Handle(Geom2d_Curve) pCurve = BRep_Tool::CurveOnSurface(E, F, pFirst, pEnd);
+    //printf("pfirst=%g pend=%g\n", pFirst, pEnd);
+    //printf("pCurve = %p\n", (void*)pCurve);
+    // estimate at some points
+    for (E_Int i = 0; i < npts; i++)
+    {
+      ues = Us[i]*(pEnd-pFirst)+pFirst;
+
+// must be MINE (0) or OCC (1)
+#define CURVATURE 1
+#if CURVATURE == 0
+      pCurve->D0(ues, Puv);
+      u = Puv.X(); v = Puv.Y(); // u,v edge on surface
+      if (u <= BU1) u = BU1+1.e-1;
+      if (u >= BU2) u = BU2-1.e-1;
+      if (v <= BV1) v = BV1+1.e-1;
+      if (v >= BV2) v = BV2-1.e-1;
+      
+      //printf("surf: u=%g, v=%g\n", u, v);
+      // estimer les derivees sur la surface
+      surface->D2(u, v, point, DU1, DV1, DU2, DV2, DUV);
+      //printf("point=%g %g %g\n", point.X(), point.Y(), point.Z());
+      //printf("dU1=%g %g %g\n", DU1.X(), DU1.Y(), DU1.Z());
+      //printf("dV1=%g %g %g\n", DV1.X(), DV1.Y(), DV1.Z());
+      
+      // get normal
+      nx = DU1.Y()*DV1.Z()-DU1.Z()*DV1.Y();
+      ny = DU1.Z()*DV1.X()-DU1.X()*DV1.Z();
+      nz = DU1.X()*DV1.Y()-DU1.Y()*DV1.X();
+      n2 = nx*nx+ny*ny+nz*nz;
+      n2 = std::sqrt(n2);
+      if (n2 < 1.e-24) n2 = 1.e12;
+      else n2 = 1./n2;
+      nx = nx*n2;
+      ny = ny*n2;
+      nz = nz*n2;
+      //printf("normale= %g %g %g norm=%g\n", nx, ny, nz, nx*nx+ny*ny+nz*nz);
+
+      // Metric
+      M11 = DU1.X()*DU1.X()+DU1.Y()*DU1.Y()+DU1.Z()*DU1.Z();
+      M22 = DV1.X()*DV1.X()+DV1.Y()*DV1.Y()+DV1.Z()*DV1.Z();
+      M12 = M21 = DU1.X()*DV1.X()+DU1.Y()*DV1.Y()+DU1.Z()*DV1.Z();
+      //printf("matrice M:\n");
+      //printf("  %g %g\n", M11, M12);
+      //printf("  %g %g\n", M21, M22);
+
+      detM = M11*M22-M12*M21;
+      if (std::abs(detM) < 1.e-12) det = 1.e12; // invalid metric
+      else det = 1./detM;
+      Mi11 = det*M22;
+      Mi21 = -det*M21;
+      Mi12 = -det*M12;
+      Mi22 = det*M11;
+      detM = std::abs(detM);
+      //printf("detM=%g\n", detM);
+
+      // matrice de courbure
+      G11 = DU2.X()*nx+DU2.Y()*ny+DU2.Z()*nz;
+      G22 = DV2.X()*nx+DV2.Y()*ny+DV2.Z()*nz;
+      G12 = G21 = DUV.X()*nx+DUV.Y()*ny+DUV.Z()*nz;
+      detG = G11*G22-G12*G21;
+      detG = std::abs(detG);
+      
+      S11 = G11*Mi11 + G12*Mi21;
+      S12 = G11*Mi12 + G12*Mi22;
+      S21 = G21*Mi11 + G22*Mi21;
+      S22 = G21*Mi12 + G22*Mi22;
+      
+      detS = S11*S22-S12*S21;
+      //printf("dU2=%g %g %g\n", DU2.X(), DU2.Y(), DU2.Z());
+      //printf("dV2=%g %g %g\n", DV2.X(), DV2.Y(), DV2.Z());
+      //printf("dUV=%g %g %g\n", DUV.X(), DUV.Y(), DUV.Z());
+      //printf("detG=%g\n", detG);
+
+      // courbure de gauss - rayon K1*K2
+      //if (detS > 1.e-12) rho = 1./detS;
+      //else rho = 1.e12;
+      //printf("gauss=%g ou bien %g\n", detG/detM, detS);
+
+      // K1 et K2
+      //printf("matrice G:\n");
+      //printf("  %g %g\n", G11, G12);
+      //printf("  %g %g\n", G21, G22);
+      
+      K_LINEAR::DelaunayMath sl;
+      sl.eigen_values(S11, S22, S12, K2, K1);
+      //printf("K1=%g K2=%g K1K2=%g\n", K1, K2, K1*K2);
+      //printf("mean=%g\n", 0.5*(S11+S22));
+
+      rho = K_FUNC::E_max(std::abs(K1), std::abs(K2));
+      if (rho > 1.e-12) rho = 1./rho;
+      else rho = 1.e12;
+
+#else
+      // with open cascade
+      GeomLProp_SLProps props(surface, u, v, 2, Precision::Confusion());
+
+      if (props.IsCurvatureDefined()) 
+      {
+        Standard_Real gaussianCurvature = props.GaussianCurvature();
+        Standard_Real meanCurvature = props.MeanCurvature();
+
+        //std::cout << "OCC: gauss: " << gaussianCurvature << std::endl;
+        //std::cout << "OCC: mean: " << meanCurvature << std::endl;
+
+        // Principal curvatures
+        K1 = meanCurvature + sqrt(meanCurvature * meanCurvature - gaussianCurvature);
+        K2 = meanCurvature - sqrt(meanCurvature * meanCurvature - gaussianCurvature);
+        //std::cout << "OCC: k1: " << K1 << " k2: " <<K2 << std::endl;
+        rho = K_FUNC::E_max(std::abs(K1), std::abs(K2));
+        if (rho > 1.e-12) rho = 1./rho;
+        else rho = 1.e12;
+      } 
+      else 
+      {
+        rho = 1.e12;
+        //std::cout << "OCC: Curvature is not defined at the given parameters." << std::endl;
+      }
+#endif
+
+      hh = std::sqrt(8.*hausd*rho);
+      hh = K_FUNC::E_min(hh, hmax);
+      hh = K_FUNC::E_max(hh, hmin);
+      //printf("rho=%g h=%g, h=%g\n", rho, std::sqrt(1.*hausd*rho), hh);
+      h[i] = K_FUNC::E_min(h[i], hh);
+    }
+  }
+
+  //printf("hi: ");
+  //for (E_Int i = 0; i < npts; i++) 
+  //{
+  //  printf("%g ", h[i]);
+  //}
+  //printf("\n");
+
+  for (E_Int i = 0; i < npts; i++)
+  {
+    // passage en parametres
+    h[i] = h[i]*(u1-u0)/L;
+  }
+
+  E_Int N;
+  std::vector<E_Float*> uel(npts);
+  std::vector<E_Int> Np(npts);
+
+  E_Int Ntot = 0;
+  for (E_Int i = 0; i < npts-1; i++)
+  {
+    // geom2
+    geom2(Us[i]*(aEnd-aFirst)+aFirst, Us[i+1]*(aEnd-aFirst)+aFirst, h[i], h[i+1], N, uel[i]);
+    Np[i] = N;
+    Ntot += N-1;
+  }
+  Ntot += 1;
+  geom1(Us[npts-2]*(aEnd-aFirst)+aFirst, Us[npts-1]*(aEnd-aFirst)+aFirst, h[npts-2], h[npts-1], N, uel[npts-1]);
+
+  // reassemble
+  ue = new E_Float [Ntot];
+  nbPoints = Ntot;
+  N = 0;
+  for (E_Int i = 0; i < npts; i++)
+  {
+    E_Float* uep = uel[i];
+    for (E_Int j = 0; j < Np[i]-1; j++) ue[j+N] = uep[j];
+    N += Np[i]-1;
+  }
+  ue[N+1] = u1;
+
+  // verifie que la suite est bien croissante
+  for (E_Int i = 0; i < Ntot-1; i++) 
+  {
+    if (ue[i+1] < ue[i]) printf("warning: %g ", ue[i]);
+  }
+
+  //printf("final: ");
+  //for (E_Int i = 0; i < Ntot; i++) 
+  //{
+  //  printf("%g ", ue[i]);
+  //}
+  //printf("\n");
+
+  for (E_Int i = 0; i < npts; i++)
+  {
+    delete [] uel[i];
+  }
+
+  return 1;
+
+}
 // ============================================================================
 // Return ue for meshing with given param in [0,1]
 // ============================================================================
@@ -627,7 +895,8 @@ E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
 PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Int i;
-  E_Float hmin; E_Float hmax; E_Float hausd; E_Int N; PyObject* externalEdge;
+  E_Float hmin; E_Float hmax; E_Float hausd; 
+  E_Int N; PyObject* externalEdge;
   if (!PYPARSETUPLE_(args, O_ I_ RRR_ I_ O_, &hook, &i, &hmin, &hmax, &hausd, &N, &externalEdge)) return NULL;
     
   void** packet = NULL;
@@ -641,6 +910,10 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   const TopoDS_Edge& E = TopoDS::Edge(edges(i));
   
+  // use neighbouring faces to evaluate curvature of edge
+  bool useFaces = true;
+  TopoDS_Shape* shape = (TopoDS_Shape*)packet[0];
+
   E_Int nbPoints = 0; // nbre of points of discretized edge
   E_Float* ue; // edge param
 
@@ -655,7 +928,9 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
     RELEASESHAREDS(o, f);
     return o;
   }
-  else if (hmax > 0 && hausd < 0 && externalEdge == Py_None) // pure hmax
+  else if ( ((hausd > 0 && std::abs(hmax-hmin) < 1.e-12 && hmax > 0) ||
+            (hausd < 0 && hmax > 0)) &&
+            externalEdge == Py_None ) // pure hmax
   {
     __getParamHmax(E, hmax, nbPoints, ue);
     PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
@@ -675,10 +950,9 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
     RELEASESHAREDS(o, f);
     return o;
   }
-  else if (hmax > 0 && hausd > 0 && externalEdge == Py_None) // mix hmax + hausd
+  else if (not useFaces && hmax > 0 && hausd > 0 && externalEdge == Py_None) // mix hmax + hausd
   {
-    // pour l'instant on retourne hmax comme pour les mailleurs precedents
-    //__getParamHmax(E, hmax, nbPoints, ue);
+    // courbure uniquement sur edge
     __getParamHminHmaxHausd(E, hmin, hmax, hausd, nbPoints, ue);
     PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
     FldArrayF* f; K_ARRAY::getFromArray2(o, f);
@@ -687,6 +961,18 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
     RELEASESHAREDS(o, f);
     return o;
   }
+  else if (useFaces && hmax > 0 && hausd > 0 && externalEdge == Py_None) // mix hmax + hausd
+  {
+    // courbure sur le max des faces
+    __getParamHminHmaxHausd2(E, hmin, hmax, hausd, nbPoints, ue, shape);
+    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    __meshEdge(E, nbPoints, ue, *f, false);
+    delete [] ue;
+    RELEASESHAREDS(o, f);
+    return o;
+  }
+
   else if (externalEdge != Py_None) // external parametrization
   {
     E_Int ni, nj, nk;

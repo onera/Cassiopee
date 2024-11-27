@@ -64,7 +64,7 @@ namespace DELAUNAY{
 
     VarMetric(K_FLD::FloatArray& pos, E_Float hmin, E_Float hmax, eInterpType interp_type = LINEAR);
 
-    virtual ~VarMetric(void){if (_interpol){delete _interpol; _interpol = 0;} }
+    virtual ~VarMetric(void){if (_interpol) {delete _interpol; _interpol=0;} }
 
     VarMetric& operator=(const  VarMetric& rhs) { _hmin = _hmax = -1; _field = rhs._field; _pos = rhs._pos; _interpol = nullptr; return *this; }
 
@@ -810,10 +810,10 @@ namespace DELAUNAY{
     assert (isValidMetric(mj));
 #endif
 
-    E_Float v[2]; E_Float vi[2]; E_Float vj[2];
-    //E_Float* v = _pta2;
-    //E_Float* vi = _ptb2;
-    //E_Float* vj = _ptc2;
+    E_Float v[3]; E_Float vi[3]; E_Float vj[3];
+    //E_Float* v = _pta3;
+    //E_Float* vi = _ptb3;
+    //E_Float* vj = _ptc3;
 
     NUGA::diff<3> (_pos->col(Nj), _pos->col(Ni), v);
 

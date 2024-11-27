@@ -68,12 +68,12 @@ PyObject* K_OCC::analyseEdges(PyObject* self, PyObject* args)
   }
   E_Float emean = ltot / edges.Extent();
 
-  // calcul hmax, hausd : 30 pts par edges moyen
-  E_Float hmax = emean / 30.;
+  // calcul hmax, hausd : 20 pts par edges moyen
+  E_Float hmax = emean / 20.;
   // calcul du nbre de points sur la longueur totale
   E_Int Np = ltot / hmax;
   if (Np > 20000) hmax = ltot / 20000.;
-  E_Float hmin = emin / 30.;
+  E_Float hmin = emin / 20.;
   E_Float hausd = hmax / 10.;
   printf("INFO: suggested hmin=%g hmax=%g hausd=%g\n", hmin, hmax, hausd);
   return Py_BuildValue("ddd", hmin, hmax, hausd);

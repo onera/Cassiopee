@@ -26,15 +26,15 @@ def readCAD(event=None):
         faces[2] = []
     hook = OCC.readCAD(fileName, fileFmt)
     # Previous hmax, hausd?
-    [hmax, hausd] = OCC.getCADcontainer(CTK.t)
+    [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     if hmax is None or (hmax < 0 and hausd < 0):
         (hmax,hmin,hausd) = OCC.occ.analyseEdges(hook)
     OCC._setCADcontainer(CTK.t, fileName, fileFmt, hmax, hausd)
     CTK.CADHOOK = hook
     # remesh and redisplay
     CTK.setCursor(2, WIDGETS['frame'])
-    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd)
-    OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
+    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.display(CTK.t)
     CTK.TXT.insert('START', 'CAD loaded from %s.\n'%fileName)
@@ -55,7 +55,7 @@ def sewCAD(event=None):
     if CTK.CADHOOK is None: return
     tol = CTK.varsFromWidget(VARS[2].get(), 1)[0]
     hook = CTK.CADHOOK
-    [hmax, hausd] = OCC.getCADcontainer(CTK.t)
+    [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     faces = []
     nzs = CPlot.getSelectedZones()
     for nz in nzs:
@@ -79,8 +79,8 @@ def sewCAD(event=None):
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing
-    OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
+    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing
+    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
 
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['sewingButton'])
@@ -99,7 +99,7 @@ def filletCAD(event=None):
     if CTK.CADHOOK is None: return
     radius = CTK.varsFromWidget(VARS[3].get(), 1)[0]
     hook = CTK.CADHOOK
-    [hmax, hausd] = OCC.getCADcontainer(CTK.t)
+    [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected edges
     nzs = CPlot.getSelectedZones()
     edges = []
@@ -128,8 +128,8 @@ def filletCAD(event=None):
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
-    OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
+    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
+    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['filletButton'])
 
@@ -143,7 +143,7 @@ def removeFaces(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
     hook = CTK.CADHOOK
-    [hmax, hausd] = OCC.getCADcontainer(CTK.t)
+    [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected faces
     nzs = CPlot.getSelectedZones()
     faces = []
@@ -198,7 +198,7 @@ def fillHole(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
     hook = CTK.CADHOOK
-    [hmax, hausd] = OCC.getCADcontainer(CTK.t)
+    [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected edges
     nzs = CPlot.getSelectedZones()
     edges = []
@@ -232,8 +232,8 @@ def fillHole(event=None):
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
-    OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
+    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
+    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['fillHoleButton'])
 
@@ -267,7 +267,7 @@ def setTrimFace1():
             no = Internal.getNodeFromName1(CAD, 'no')
             no = Internal.getValue(no)
             selected += str(no)+' '
-    print(selected, flush=True)
+    #print(selected, flush=True)
     VARS[5].set(selected)
 
 #==============================================================================
@@ -275,7 +275,7 @@ def trimFaces(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
     hook = CTK.CADHOOK
-    [hmax, hausd] = OCC.getCADcontainer(CTK.t)
+    [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected faces
     nzs = CPlot.getSelectedZones()
     faces1 = []
@@ -316,8 +316,8 @@ def trimFaces(event=None):
     edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd) # loose manual remeshing...
-    OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
+    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
+    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
 
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['trimFacesButton'])

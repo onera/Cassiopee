@@ -792,7 +792,7 @@ PyObject *K_XCORE::AdaptMesh_AdaptGeom(PyObject *self, PyObject *args)
 
         // We need the skin connectivity graph
         S.make_tri_graph();
-        printf("Skin: %lu faces\n", S.tri_graph.nf);
+        printf("Skin: %zu faces\n", S.tri_graph.nf);
 
         // BVH the skin
         skin_fc = (Vec3f *)XCALLOC(S.tri_graph.nf, sizeof(Vec3f));

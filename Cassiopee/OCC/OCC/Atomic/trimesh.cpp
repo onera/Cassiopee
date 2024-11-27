@@ -104,7 +104,8 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
 
   E_Int aniso = false;
 
-  if (hausd < 0 && hmax > 0 && hmin > 0)
+  if ( (hausd < 0 && hmax > 0) ||
+       (hausd > 0 && std::abs(hmax-hmin) < 1.e-12) ) // iso hmax
   {
     // mode pure hmax
     E_Float dx = (hmax-hmin)/hmax;
@@ -119,7 +120,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     if (dx > 0.2) mode.growth_ratio = 1.1;
     //printf("trimesh uniform hmin=" SF_F_ " hmax=" SF_F_ " grading=" SF_F_ "\n", mode.hmin, mode.hmax, mode.growth_ratio);      
   }
-  else if (hausd > 0 && hmax > 0 && hmin > 0 && aniso == true)
+  else if (hausd > 0 && hmax > 0 && hmin >= 0 && aniso == true) // aniso mix
   {
     // mode pure hausd
     mode.metric_mode = mode.ANISO; //ISO_RHO impose la courbure minimum dans les deux directions
@@ -130,7 +131,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     mode.nb_smooth_iter = 2; // iter de lissage pour assurer le grading
     mode.symmetrize = true;
   }
-  else if (hausd > 0 && hmax > 0 && hmin > 0 && aniso == false)
+  else if (hausd > 0 && hmax > 0 && hmin >= 0 && aniso == false) // iso rho mix
   {
     // mode mix hmin/hmax/hausd
     mode.metric_mode = mode.ISO_RHO; //ISO_RHO impose la courbure minimum dans les deux directions;
@@ -149,7 +150,10 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  printf("trimesh hmin=%g hmax=%g hausd=%g sym=%d grading=%g  smooth=" SF_D_ "\n", 
+  if (mode.metric_mode == mode.ISO_CST) printf("trimesh mode=ISO_CST ");
+  else if (mode.metric_mode == mode.ISO_RHO) printf("trimesh mode=ISO_RHO ");
+  else printf("trimesh mode=ANISO ");
+  printf("hmin=%g hmax=%g hausd=%g sym=%d grading=%g  smooth=" SF_D_ "\n", 
           mode.hmin, mode.hmax, mode.chordal_error, 
           mode.symmetrize, mode.growth_ratio, mode.nb_smooth_iter);
 
