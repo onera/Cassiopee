@@ -2700,7 +2700,6 @@ def fortranScan(node, env, path, arg=None):
     names = set(names)
     # remove false dep (+in KCore?)
     names = [n for n in names if not 'omp_lib.h' in n]
-    names = [n for n in names if not 'parallelF.h' in n]
     return env.File(list(names))
 
 # Cree le scanner Fortran dans env
