@@ -213,7 +213,7 @@ def filterLonelyEdges(event=None):
         if len(zones) > 0:
             noz = CPlot.getCPlotNumber(CTK.t, 'FACES', zones[0][0])
             activeMode = CPlot.getActiveStatus(noz)
-            
+
         if activeMode == 0: # previously deactivated
             for z in zones:
                 noz = CPlot.getCPlotNumber(CTK.t, 'FACES', z[0])
@@ -240,7 +240,7 @@ def filterLonelyEdges(event=None):
             noz = CPlot.getCPlotNumber(CTK.t, 'EDGES', z[0])
             #CPlot.setActiveZones([(noz,1)])
             activeList.append((noz,1))
-    
+
     CPlot.setActiveZones(activeList)
 
     CTK.TXT.insert('START', 'Lonely edges displayed.\n')
