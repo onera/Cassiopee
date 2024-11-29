@@ -27,6 +27,7 @@
 #include "ShapeBuild_ReShape.hxx"
 #include "BRep_Builder.hxx"
 #include "BRepFilletAPI_MakeFillet.hxx"
+#include "StdFail_NotDone.hxx"
 
 void getEdgeMap(TopTools_IndexedMapOfShape& oldFaces, TopTools_IndexedMapOfShape& newFaces, PyObject*& faceMap);
 void getFaceMap(TopTools_IndexedMapOfShape& oldFaces, TopTools_IndexedMapOfShape& newFaces, PyObject*& faceMap);
@@ -54,15 +55,32 @@ PyObject* K_OCC::addFillet(PyObject* self, PyObject* args)
 
   // get edges 
   BRepFilletAPI_MakeFillet mkFillet(*shp);
+  bool fail = false;
   for (E_Int no = 0; no < PyList_Size(listEdges); no++)
   {
     PyObject* noEdgeO = PyList_GetItem(listEdges, no);
     E_Int noEdge = PyInt_AsLong(noEdgeO);
     const TopoDS_Edge& E = TopoDS::Edge(edges(noEdge));
-    mkFillet.Add(radius, E);
+    try {
+      mkFillet.Add(radius, E);
+    } catch (StdFail_NotDone& e) { fail = true; }
   }
-  TopoDS_Shape shc = mkFillet.Shape();
+  if (fail) 
+  {
+    PyErr_SetString(PyExc_TypeError, "addFillet: failed.");  
+    return NULL;
+  }
 
+  TopoDS_Shape shc;
+  try {
+    shc = mkFillet.Shape();
+  } catch (StdFail_NotDone& e) { fail = true; }
+  if (fail) 
+  {
+    PyErr_SetString(PyExc_TypeError, "addFillet: failed.");  
+    return NULL;
+  }
+  
   // export
   TopoDS_Shape* newshp = new TopoDS_Shape(shc);
   TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
@@ -79,8 +97,8 @@ PyObject* K_OCC::addFillet(PyObject* self, PyObject* args)
   packet[0] = newshp;  
   packet[1] = sf;
   packet[2] = se;
-  printf("INFO: after removeFaces: Nb edges=%d\n", se->Extent());
-  printf("INFO: after removeFaces: Nb faces=%d\n", sf->Extent());
+  printf("INFO: after addFillet: Nb edges=%d\n", se->Extent());
+  printf("INFO: after addFillet: Nb faces=%d\n", sf->Extent());
 
   Py_INCREF(Py_None);
   return Py_None;

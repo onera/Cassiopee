@@ -26,7 +26,7 @@
 #include "BRep_Builder.hxx"
 
 //=====================================================================
-// Add a sphere to hook
+// Add a sphere to CAD hook
 //=====================================================================
 PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
 {
