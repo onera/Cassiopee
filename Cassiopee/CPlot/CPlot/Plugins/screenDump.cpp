@@ -409,12 +409,12 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
           offscreenD[ind]    = depth[ind];
         }
       }
-      }
     }
-    // export dans buffer
-    char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
-    for (E_Int i = 0; i < screenSize*3; i++) buffer[i] = offscreen[i];
-    free(depth);
+  }
+  // export dans buffer
+  char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
+  for (E_Int i = 0; i < screenSize*3; i++) buffer[i] = offscreen[i];
+  free(depth);
 #else
   printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif
@@ -428,6 +428,9 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
   glDeleteFramebuffersEXT(1, &fb);
 #endif
+
+  // software postprocessing on final buffer (just before screen dump)
+  
 
   return buffer;
 }

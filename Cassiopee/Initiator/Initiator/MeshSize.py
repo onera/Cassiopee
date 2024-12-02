@@ -51,6 +51,12 @@ def meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1., algo='Turbulent'):
     else:
         raise ValueError('meshSize: unknown algo.')
 
+def boundaryLayerHeight(ReInf, algo='Turbulent'):
+    if algo == 'Laminar':
+        delta = 0.75*5*ReInf**(-0.5) 
+    elif algo == 'Turbulent':
+        delta = 0.75*0.37*ReInf**(-1./5.)
+    return delta
 
 if __name__ == '__main__':
     print(meshSize1(1., 1.225, 0.000017894, 1.0))

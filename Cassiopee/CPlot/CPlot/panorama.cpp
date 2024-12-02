@@ -266,7 +266,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
       ty = (1.*jj) / njl1;
 
       theta = tinf + tx * tsup; // between -pi and pi
-      phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
+      phi = -M_PI/2. + ty * M_PI; // between pi/2 and -pi/2
 
       x = cos(phi) * sin(theta);
       y = sin(phi);
@@ -499,7 +499,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
     for (E_Int j = 0; j < njl; j++)
     {
       ty = (1.*j)/nj1;
-      phi = M_PI/2. - ty * M_PI; // between pi/2 and -pi/2
+      phi = - M_PI/2. + ty * M_PI; // between pi/2 and -pi/2
   
       ind = i + j*nil;
       

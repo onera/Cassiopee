@@ -25,17 +25,38 @@
 #include <TopExp_Explorer.hxx>
 #include <TopAbs.hxx>
 
-// Assuming you have a document and a shape
-Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(myDocument->Main());
-TopoDS_Shape myShape = ...; // Your shape
-
-// Iterate over faces
-for (TopExp_Explorer exp(myShape, TopAbs_FACE); exp.More(); exp.Next()) 
+//=====================================================================
+// Add label to shape
+//=====================================================================
+PyObject* K_OCC::addLabel(PyObject* self, PyObject* args)
 {
-  TopoDS_Shape face = exp.Current();
-  TDF_Label label;
-  if (shapeTool->FindShape(face, label)) 
+  PyObject* hook; 
+  if (!PYPARSETUPLE_(args, O, &hook)) return NULL;
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+
+  TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
+
+  // Assuming you have a document and a shape
+  Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(myDocument->Main());
+  TopoDS_Shape myShape = ...; // Your shape
+
+  // Iterate over faces
+  for (TopExp_Explorer exp(myShape, TopAbs_FACE); exp.More(); exp.Next()) 
   {
-    // Do something with the label
+    TopoDS_Shape face = exp.Current();
+    TDF_Label label;
+    if (shapeTool->FindShape(face, label)) 
+    {
+      // Do something with the label
+    }
   }
 }

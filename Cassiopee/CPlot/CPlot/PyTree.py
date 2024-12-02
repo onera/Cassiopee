@@ -1436,7 +1436,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     return None
 
 # subfunction of display 360. Display the n views with rotating posCam
-# tentative only for osmesa
+# only for osmesa
 def display360ODS2__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift, kwargs):
 
     import KCore.Vector as Vector
@@ -1730,8 +1730,6 @@ def panoramaStereo(export, export1, export2, exportRez, type360=0):
             pr2 = Internal.getNodeFromName2(a2, v)
             if pr1 is not None and pr2 is not None:
                 pr1 = pr1[1]; pr2 = pr2[1]
-                pr1 = pr1[:,::-1]
-                pr2 = pr2[:,::-1]
                 pr[0:ni,0:nj] = pr1[0:ni, 0:nj]
                 pr[0:ni,nj:2*nj] = pr2[0:ni, 0:nj]
             else:
