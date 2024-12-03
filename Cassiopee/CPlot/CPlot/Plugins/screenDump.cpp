@@ -26,6 +26,8 @@
 void accumulateSlit(E_Int ni, E_Int nj, char* imf, char* imt, char* imb, 
                     E_Int i, E_Int nil, E_Int njl, char* imOut);
 
+void specPostProcess(char* in, E_Int ni, E_Int nj, float* depth, char* out);
+
 //=============================================================================
 // Screen dump plugins
 //=============================================================================
@@ -332,8 +334,16 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
       }
       free(localBuf); free(localDepth);
   }
-  free(depth);
 
+  // software postprocessing on final buffer (just before screen dump)
+  if (rank == 0)
+  {
+    char* bfl = new char [_view.w * _view.h];
+    for (E_Int i = 0; i < 3*_view.w*_view.h; i++) bfl[i] = buffer[i];
+    specPostProcess(bfl, _view.w, _view.h, depth, buffer);
+    delete [] bfl;
+  }
+  free(depth);
   MPI_Barrier(MPI_COMM_WORLD); // seems needed
 
 #else
@@ -428,9 +438,6 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
   glDeleteFramebuffersEXT(1, &fb);
 #endif
-
-  // software postprocessing on final buffer (just before screen dump)
-  
 
   return buffer;
 }

@@ -94,8 +94,8 @@ void gaussianBlur2(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float
   }
 }
 
-// identical but applied to interlaced color buffer (3), return out
-void gaussianBlur3(char* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, float* depth, char* out)
+// specific post-processing applied to interlaced color buffer (3), return out
+void specPostProcess(char* in, E_Int ni, E_Int nj, float* depth, char* out)
 {
   float dmin, dmax;
   // compute min/max of depth
