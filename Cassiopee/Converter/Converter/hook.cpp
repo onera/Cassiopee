@@ -87,7 +87,9 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
     E_Float* cy = centers->begin(2);
     E_Float* cz = centers->begin(3);
     E_Float inv0 = E_Float(0.25);
+    #ifdef QUADDOUBLE
     quad_double qinv0 = quad_double(0.25);
+    #endif
 
     #pragma omp parallel default(shared)
     {
@@ -398,7 +400,9 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
     {
       FldArrayI& cm = *(cnl->getConnect(ic));
       E_Float inv = E_Float(1./nof[ic]);
+      #ifdef QUADDOUBLE
       quad_double qinv = quad_double(nof[ic]);
+      #endif
 
       #pragma omp parallel default(shared)
       {
@@ -768,8 +772,10 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
     E_Float* cy = centers->begin(2);
     E_Float* cz = centers->begin(3);
     E_Float inv = E_Float(0.125);
+    #ifdef QUADDOUBLE
     quad_double qinv = quad_double(8.);
-
+    #endif
+    
     #pragma omp parallel
     {
       E_Int ip, jp, kp, indcell, indv;
