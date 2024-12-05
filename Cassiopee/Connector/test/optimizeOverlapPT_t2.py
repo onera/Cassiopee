@@ -21,6 +21,6 @@ test.testT(t2)
 
 # Same as first test, but now using an intersection dictionnary
 interDict = X.getIntersectingDomains(t, method='hybrid')
-t2 = X.optimizeOverlap(t, double_wall=1,priorities=['Base2',0,'Base',1], 
+t2 = X.optimizeOverlap(t, double_wall=1,priorities=['Base2',0,'Base',1],
                        intersectionsDict=interDict)
 test.testT(t2,2)

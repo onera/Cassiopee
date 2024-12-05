@@ -35,7 +35,7 @@ densityOfPts = 200
 a = D.circle((0.,0.,0.), diam*0.5, N=densityOfPts)
 
 C._initVars(a, '{CoordinateZ}=0')
-tb           = C.newPyTree(["CYLINDER"]); tb[2][1][2] = Internal.getZones(a) 
+tb           = C.newPyTree(["CYLINDER"]); tb[2][1][2] = Internal.getZones(a)
 snear        = 1.0e-2
 ModelTmp     = Model
 D_IBM._setSnear(tb, snear)
@@ -48,7 +48,7 @@ Lx    = dfar*3
 hlocal= Lx/10
 tbOneOver  = G.cart((-dfar*1.5,-dfar*1.5,0.), (hlocal,hlocal,0.1), (10,10,1))
 tbOneOver2 = P.exteriorFaces(tbOneOver)
-tbOneOver  = C.newPyTree(["Base_OneOver"]); tbOneOver[2][1][2] = Internal.getZones(tbOneOver2) 
+tbOneOver  = C.newPyTree(["Base_OneOver"]); tbOneOver[2][1][2] = Internal.getZones(tbOneOver2)
 C.convertPyTree2File(tbOneOver, LOCAL+'/tbOneOver.cgns')
 
 ##ADD DIRECTION OF ONE OVER IN TB RECTILINEAR REGION
@@ -73,7 +73,3 @@ test.testT(tc, 2)
 
 #C.convertPyTree2File(t ,LOCAL+'/t_check.cgns')
 #C.convertPyTree2File(tc,LOCAL+'/tc_check.cgns')
-
-
-
-

@@ -45,7 +45,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def createBboxDict(t):
             import Generator.PyTree as G
             bboxDict = {}
-            for z in Internal.getZones(t): bboxDict[z[0]] = G.bbox(z) 
+            for z in Internal.getZones(t): bboxDict[z[0]] = G.bbox(z)
             return bboxDict
         #print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
 
@@ -86,7 +86,7 @@ else: # try import (may fail - core or hang)
         def createBboxDict(t):
             import Generator.PyTree as G
             bboxDict = {}
-            for z in Internal.getZones(t): bboxDict[z[0]] = G.bbox(z) 
+            for z in Internal.getZones(t): bboxDict[z[0]] = G.bbox(z)
             return bboxDict
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
@@ -97,7 +97,7 @@ PREVFULLTIME = None # full
 # IN: t: full/loaded skel/partial
 #==============================================================================
 def center2Node(t, var=None, cellNType=0, graph=None):
-    allstructured = 1 
+    allstructured = 1
     for z in Internal.getZones(t):
         type = Internal.getZoneType(z)
         if type != 1: allstructured = 0; break
@@ -151,7 +151,7 @@ def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
     elif modified is None: variables = []; modified = []
     else: variables = modified
 
-    _addMXZones(t, depth=2, variables=variables, noCoordinates=False, 
+    _addMXZones(t, depth=2, variables=variables, noCoordinates=False,
                 keepOldNodes=False)
     #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), C.getNPts(t)*1./1.e6), flush=True)
     Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
@@ -159,7 +159,7 @@ def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
 
     # ancienne version utilisant addXZones
     #graph = computeGraph(t, type='match', reduction=True)
-    #_addXZones(t, graph, variables=variable, noCoordinates=False, 
+    #_addXZones(t, graph, variables=variable, noCoordinates=False,
     #           zoneGC=False, keepOldNodes=False)
     #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), C.getNPts(t)*1./1.e6), flush=True)
     #Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
@@ -227,7 +227,7 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fi
         msg += ' [%g secs]'%dt
     if mem:
         pid = os.getpid()
-        try: 
+        try:
             f = open("/proc/%s/smaps"%(pid))
             s = f.readlines()
             f.close()
@@ -250,7 +250,7 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fi
         fileName = "stdout"
 
     if fileName == "stdout":
-        print('%d: %s'%(rank, msg)) 
+        print('%d: %s'%(rank, msg))
         sys.stdout.flush()
     else: # dans des fichiers par processes
         fileName = fileName.split('.')
@@ -269,7 +269,7 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fi
 # Construit un arbre de BBox a partir d'un arbre squelette charge
 # ou d'un arbre partiel
 # L'arbre des BBox final est identique sur tous les processeurs
-# Nota Bene: Si method='OBB' et weighting=1, les zones de t doivent etre 
+# Nota Bene: Si method='OBB' et weighting=1, les zones de t doivent etre
 # formees par des triangles. Pour cela, appliquer au prealable (par exemple):
 # createBBoxTree(C.convertArray2Tetra(P.exteriorFaces(t)),isOBB=1,weighting=1)
 #==============================================================================

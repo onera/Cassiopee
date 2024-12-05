@@ -5,7 +5,7 @@ import Geom as D
 import KCore.test as test
 
 # test: several variables
-# Donor mesh structure 
+# Donor mesh structure
 ni = 21; nj = 21; nk = 21
 m = G.cart((0,0,0), (1./(ni-1),1./(nj-1),1./(nk-1)), (ni,nj,nk))
 hook = C.createGlobalHook([m],function='nodes')

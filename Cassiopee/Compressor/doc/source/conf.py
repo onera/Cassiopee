@@ -202,15 +202,15 @@ htmlhelp_basename = 'Compressordoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-'pointsize': '12pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    'pointsize': '12pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
-'preamble': r'''
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
+    'preamble': r'''
         \usepackage{charter}
         \usepackage[defaultsans]{lato}
         \usepackage{inconsolata}
@@ -221,8 +221,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('Compressor', 'Compressor.tex', u'Compressor Documentation',
-   u'/ELSA/MU-14010/V'+__version__, 'manual'),
+    ('Compressor', 'Compressor.tex', u'Compressor Documentation',
+     u'/ELSA/MU-14010/V'+__version__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -265,9 +265,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Compressor', u'Compressor Documentation',
-   u'ONERA', 'Compressor', 'One line description of project.',
-   'Miscellaneous'),
+    ('index', 'Compressor', u'Compressor Documentation',
+     u'ONERA', 'Compressor', 'One line description of project.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

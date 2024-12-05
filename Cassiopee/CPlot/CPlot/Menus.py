@@ -22,11 +22,11 @@ def submenu(items):
     CPlot.setState(activateShortCuts=0)
     current = 0
     go = True; l = ''
-    while go:  
+    while go:
         while l == '':
             l = CPlot.getKeyboard(); time.sleep(dt)
         v = ord(l[0]); print(v)
-        if v == 1: # up 
+        if v == 1: # up
             b = CPlot.addRender2Zone(out[current], color='White')
             CPlot.replace(t, 1, current, b)
             current -= 1
@@ -58,8 +58,8 @@ def submenu(items):
             b = CPlot.addRender2Zone(out[current], color='Red')
             CPlot.replace(t, 1, current, b)
             CPlot.render()
-        elif v == 13: 
+        elif v == 13:
             print('returning %s.'%str(current))
-            return current, items[current]   
+            return current, items[current]
         time.sleep(dt)
         l = ''; v = -1; CPlot.resetKeyboard()

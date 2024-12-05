@@ -10,4 +10,4 @@ n = Internal.newPeriodic(rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.], tr
 
 # Attach it to a parent node
 d = Internal.newGridConnectivityProperty()
-Internal.newPeriodic(rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.], translation=[0.,0.,0.], parent=d) 
+Internal.newPeriodic(rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.], translation=[0.,0.,0.], parent=d)

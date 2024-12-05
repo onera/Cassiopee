@@ -32,7 +32,7 @@ def copyDistrib1D(source):
         try:
             zp = G.map(z, source, 1)
             cad = Internal.getNodeFromName1(z, 'CAD')
-            if cad is not None: zp[2].append(cad) 
+            if cad is not None: zp[2].append(cad)
             CTK.replace(CTK.t, nob, noz, zp)
         except Exception as e:
             fail = True; errors += [0,str(e)]
@@ -193,7 +193,7 @@ def enforceH(event=None):
         zones.append(z)
     npts = C.getNPts(zones)
     if VARS[9].get() == 'NFactor': N = v*npts
-    else: N = v 
+    else: N = v
     D._enforceh(zones, N=N)
     for c, nz in enumerate(nzs):
         nob = CTK.Nb[nz]+1
@@ -357,7 +357,7 @@ def apply2D(density, h, npts, factor, ntype=0):
         C._initVars(distrib, 'CoordinateZ', 0.)
         distrib = C.rmVars(distrib, 's')
         bornes = P.exteriorFaces(distrib)
-        distrib = T.smooth(distrib, eps=eps, niter=niter, 
+        distrib = T.smooth(distrib, eps=eps, niter=niter,
                            fixedConstraints=[bornes])
         b = G.map(i, distrib, 1)
     dimb = Internal.getZoneDim(b)
@@ -479,7 +479,7 @@ def apply3D(density, h, npts, factor, ntype):
         C._initVars(distrib, 'CoordinateZ', 0.)
         distrib = C.rmVars(distrib, 's')
         bornes = P.exteriorFaces(distrib)
-        distrib = T.smooth(distrib, eps=eps, niter=niter, 
+        distrib = T.smooth(distrib, eps=eps, niter=niter,
                            fixedConstraints=[bornes])
         b = G.map(i, distrib, 1)
     dimb = Internal.getZoneDim(b)
@@ -652,7 +652,7 @@ def getEdges3D(zone, factor):
         ind = k-1
         m = [e10]
         f = [f6,f3]
-        if factor != 1.: 
+        if factor != 1.:
             r = [e9,e11,e12]
             f += [f5,f4]
 
@@ -774,9 +774,9 @@ def uniformize(event=None):
     zone = CTK.t[2][nob][2][noz]
     dim = Internal.getZoneDim(zone)
     if dim[0] == 'Structured':
-        if dim[2] != 1 and dim[3] != 1: 
+        if dim[2] != 1 and dim[3] != 1:
             fail = apply3D(density, h, npts, factor, ntype=0)
-        elif dim[2] != 1 and dim[3] == 1: 
+        elif dim[2] != 1 and dim[3] == 1:
             fail = apply2D(density, h, npts, factor, ntype=0)
         else: fail = uniformize1D(density, h, npts, gnpts, factor)
     else: fail = uniformize1D(density, h, npts, gnpts, factor) # all zones
@@ -823,9 +823,9 @@ def enforce(event=None):
     zone = CTK.t[2][nob][2][noz]
     dim = Internal.getZoneDim(zone)
     if dim[0] == 'Structured':
-        if dim[2] != 1 and dim[3] != 1: 
+        if dim[2] != 1 and dim[3] != 1:
             fail = apply3D(1., -1, 1, h, ntype=2)
-        elif dim[2] != 1 and dim[3] == 1: 
+        elif dim[2] != 1 and dim[3] == 1:
             fail = apply2D(1., -1, 1, h, ntype=2)
         else: fail = stretch1D(h)
     else: fail = stretch1D(h)
@@ -877,9 +877,9 @@ def refine(event=None):
     zone = CTK.t[2][nob][2][noz]
     dim = Internal.getZoneDim(zone)
     if dim[0] == 'Structured':
-        if dim[2] != 1 and dim[3] != 1: 
+        if dim[2] != 1 and dim[3] != 1:
             fail = apply3D(1., -1, npts, factor, ntype=1)
-        elif dim[2] != 1 and dim[3] == 1: 
+        elif dim[2] != 1 and dim[3] == 1:
             fail = apply2D(1., -1, npts, factor, ntype=1)
         else: fail = refine1D(1., npts, factor) # all zones
     else: fail = refine1D(1., npts, factor) # all zones
@@ -931,9 +931,9 @@ def smooth(event=None):
     zone = CTK.t[2][nob][2][noz]
     dim = Internal.getZoneDim(zone)
     if dim[0] == 'Structured':
-        if dim[2] != 1 and dim[3] != 1: 
+        if dim[2] != 1 and dim[3] != 1:
             fail = apply3D(1., -1, niter, eps, ntype=4)
-        elif dim[2] != 1 and dim[3] == 1: 
+        elif dim[2] != 1 and dim[3] == 1:
             fail = apply2D(1., -1, niter, eps, ntype=4)
         else: fail = smooth1D(niter, eps)
     else: fail = smooth1D(niter, eps) # all zones
@@ -1054,9 +1054,9 @@ def copyDistrib():
 
     # Traitement
     if dim[0] == 'Structured':
-        if dim[2] != 1 and dim[3] != 1: 
+        if dim[2] != 1 and dim[3] != 1:
             fail = apply3D(1., -1, 1, source, ntype=3)
-        elif dim[2] != 1 and dim[3] == 1: 
+        elif dim[2] != 1 and dim[3] == 1:
             fail = apply2D(1., -1, 1, source, ntype=3)
         else: fail = copyDistrib1D(source)
     else: fail = copyDistrib1D(source) # all zones
@@ -1128,7 +1128,7 @@ def enforceLocal(event=None):
     noz = CTK.Nz[nz]
     z = CTK.t[2][nob][2][noz]
     dim = Internal.getZoneDim(z)
-    if dim[4] != 1: 
+    if dim[4] != 1:
         CTK.TXT.insert('START', 'Zone must be an edge.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
         return
@@ -1199,7 +1199,7 @@ def enforceLocal(event=None):
     # elif factor < 1.:
     #     N = npts + (1./factor)/100.*npts
     #     N = int(N)+1
-    # else: 
+    # else:
     #     N = npts - (1./factor)/100.*npts
     #     N = int(N)+1
     # print("nbre de points=", N)
@@ -1273,7 +1273,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -4- Option for refine
     V = TK.StringVar(win); V.set('NFactor'); VARS.append(V)
-    # -5-  Number of points/factor for refine 
+    # -5-  Number of points/factor for refine
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -6- Smoothing iterations
     V = TK.StringVar(win); V.set('5'); VARS.append(V)
@@ -1292,7 +1292,7 @@ def createApp(win):
     # -11- Type of local enforce
     V = TK.StringVar(win); V.set('HFactor'); VARS.append(V)
     # -12- Factor for local enforce
-    V = TK.StringVar(win); V.set('1.'); VARS.append(V)    
+    V = TK.StringVar(win); V.set('1.'); VARS.append(V)
 
     # - Uniformize -
     B = TTK.Button(Frame, text="Uniformize", command=uniformize)
@@ -1375,7 +1375,7 @@ def createApp(win):
     B.grid(row=6, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Enforced variable.')
     B.bind('<Return>', enforceLocal)
-    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, 
+    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL,
                   showvalue=0, borderwidth=1, value=50)
     WIDGETS['widthScale'] = B
     B.grid(row=6, column=3, sticky=TK.EW)

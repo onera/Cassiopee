@@ -39,4 +39,3 @@ a2 = G.close(a2)
 a2 = C.initVars(a2, 'F', 3.)
 a = T.join(a1, a2)
 test.testA([a], 3)
-

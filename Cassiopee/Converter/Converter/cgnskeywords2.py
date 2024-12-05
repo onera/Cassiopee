@@ -1,9 +1,9 @@
 #  ---------------------------------------------------------------------------
-#  Taken from pyCGNS - Python package for CFD General Notation System - 
+#  Taken from pyCGNS - Python package for CFD General Notation System -
 #  See license.txt file in the root directory of this Python module source
-#  Written by M. Poinot  
+#  Written by M. Poinot
 #  ---------------------------------------------------------------------------
-#  
+#
 """
  TYPES, ENUMERATES, CONSTANTS, NAMES from CGNS/MLL
 
@@ -72,18 +72,18 @@ EquationDimension_ts2 = '"int"'
 InwardNormalIndex_ts2 = '"int[IndexDimension]"'
 
 weirdSIDStypes={
-  Transform_ts2:         IntIndexDimension_ts,
-  DiffusionModel_ts2:    DiffusionModel_ts,
-  EquationDimension_ts2: EquationDimension_ts,
-  InwardNormalIndex_ts2: IntIndexDimension_ts,
-  }
+    Transform_ts2:         IntIndexDimension_ts,
+    DiffusionModel_ts2:    DiffusionModel_ts,
+    EquationDimension_ts2: EquationDimension_ts,
+    InwardNormalIndex_ts2: IntIndexDimension_ts,
+}
 
 weirdSIDStypes_={
-  Transform_ts:         Transform_ts2,
-  DiffusionModel_ts:    DiffusionModel_ts2,
-  EquationDimension_ts: EquationDimension_ts2,
-  InwardNormalIndex_ts: InwardNormalIndex_ts2,
-  }
+    Transform_ts:         Transform_ts2,
+    DiffusionModel_ts:    DiffusionModel_ts2,
+    EquationDimension_ts: EquationDimension_ts2,
+    InwardNormalIndex_ts: InwardNormalIndex_ts2,
+}
 
 # -------------------------------------------------- (SIDS)
 # SIDS
@@ -184,7 +184,7 @@ Candela_s = "Candela"
 Candle_s  = "Candle"
 Carcel_s  = "Carcel"
 Hefner_s  = "Hefner"
-Violle_s  = "Violle"     
+Violle_s  = "Violle"
 LuminousIntensityUnits_l = [Null_s,UserDefined_s,
                             Candela_s,Candle_s,Carcel_s,Hefner_s,Violle_s]
 
@@ -200,9 +200,9 @@ AdditionalUnits_s     = "AdditionalUnits"
 AdditionalExponents_s = "AdditionalExponents"
 
 AllDimensionalUnits_l = TimeUnits_l+MassUnits_l+LengthUnits_l\
-                        +TemperatureUnits_l+AngleUnits_l
+    +TemperatureUnits_l+AngleUnits_l
 AllAdditionalUnits_l  = LuminousIntensityUnits_l+SubstanceAmountUnits_l\
-                        +ElectricCurrentUnits_l
+    +ElectricCurrentUnits_l
 AllUnits_l            = AllDimensionalUnits_l+AllAdditionalUnits_l
 
 # --------------------------------------------------
@@ -889,15 +889,15 @@ BCWallViscousHeatFlux_s    = "BCWallViscousHeatFlux"
 BCWallViscousIsothermal_s  = "BCWallViscousIsothermal"
 
 BCType_l = [Null_s,UserDefined_s,
-           BCAxisymmetricWedge_s,BCDegenerateLine_s,BCDegeneratePoint_s,
-           BCDirichlet_s,BCExtrapolate_s,BCFarfield_s,
-           BCGeneral_s,BCInflow_s,BCInflowSubsonic_s,BCInflowSupersonic_s,
-           BCNeumann_s,BCOutflow_s,BCOutflowSubsonic_s,BCOutflowSupersonic_s,
-           BCSymmetryPlane_s,BCSymmetryPolar_s,
-           BCTunnelInflow_s,BCTunnelOutflow_s,
-           BCWall_s,BCWallInviscid_s,BCWallViscous_s,
-           BCWallViscousHeatFlux_s,BCWallViscousIsothermal_s,
-           FamilySpecified_s]
+            BCAxisymmetricWedge_s,BCDegenerateLine_s,BCDegeneratePoint_s,
+            BCDirichlet_s,BCExtrapolate_s,BCFarfield_s,
+            BCGeneral_s,BCInflow_s,BCInflowSubsonic_s,BCInflowSupersonic_s,
+            BCNeumann_s,BCOutflow_s,BCOutflowSubsonic_s,BCOutflowSupersonic_s,
+            BCSymmetryPlane_s,BCSymmetryPolar_s,
+            BCTunnelInflow_s,BCTunnelOutflow_s,
+            BCWall_s,BCWallInviscid_s,BCWallViscous_s,
+            BCWallViscousHeatFlux_s,BCWallViscousIsothermal_s,
+            FamilySpecified_s]
 BCType   = stringAsKeyDict(BCType_l)
 BCType_  = enumAsKeyDict(BCType_l)
 (Null,UserDefined,
@@ -1176,24 +1176,24 @@ ElementType_ts = "ElementType_t"
 ElementType_s  = "ElementType"
 Elements_s     = "Elements"
 ElementType_l  = [Null_s, UserDefined_s, NODE_s, BAR_2_s, BAR_3_s,
-                 TRI_3_s, TRI_6_s, QUAD_4_s, QUAD_8_s, QUAD_9_s,
-                 TETRA_4_s, TETRA_10_s, PYRA_5_s, PYRA_14_s,
-                 PENTA_6_s, PENTA_15_s, PENTA_18_s,
-                 HEXA_8_s, HEXA_20_s, HEXA_27_s, MIXED_s, PYRA_13_s,
-                 NGON_n_s, NFACE_n_s, BAR_4_s, TRI_9_s, TRI_10_s, QUAD_12_s,
-                 QUAD_16_s, TETRA_16_s, TETRA_20_s, PYRA_21_s, PYRA_29_s,
-                 PYRA_30_s, PENTA_24_s, PENTA_38_s, PENTA_40_s, HEXA_32_s,
-                 HEXA_56_s, HEXA_64_s ]
+                  TRI_3_s, TRI_6_s, QUAD_4_s, QUAD_8_s, QUAD_9_s,
+                  TETRA_4_s, TETRA_10_s, PYRA_5_s, PYRA_14_s,
+                  PENTA_6_s, PENTA_15_s, PENTA_18_s,
+                  HEXA_8_s, HEXA_20_s, HEXA_27_s, MIXED_s, PYRA_13_s,
+                  NGON_n_s, NFACE_n_s, BAR_4_s, TRI_9_s, TRI_10_s, QUAD_12_s,
+                  QUAD_16_s, TETRA_16_s, TETRA_20_s, PYRA_21_s, PYRA_29_s,
+                  PYRA_30_s, PENTA_24_s, PENTA_38_s, PENTA_40_s, HEXA_32_s,
+                  HEXA_56_s, HEXA_64_s ]
 ElementTypeNPE_l = [Null_npe, UserDefined_npe, NODE_npe, BAR_2_npe, BAR_3_npe,
-                   TRI_3_npe, TRI_6_npe, QUAD_4_npe, QUAD_8_npe, QUAD_9_npe,
-                   TETRA_4_npe, TETRA_10_npe, PYRA_5_npe, PYRA_14_npe,
-                   PENTA_6_npe, PENTA_15_npe, PENTA_18_npe,
-                   HEXA_8_npe, HEXA_20_npe, HEXA_27_npe, MIXED_npe, 
-                   PYRA_13_npe, NGON_n_npe, NFACE_n_npe, BAR_4_npe, TRI_9_npe,
-                   TRI_10_npe, QUAD_12_npe, QUAD_16_npe, TETRA_16_npe,
-                   TETRA_20_npe, PYRA_21_npe, PYRA_29_npe,
-                   PYRA_30_npe, PENTA_24_npe, PENTA_38_npe, PENTA_40_npe,
-                   HEXA_32_npe, HEXA_56_npe, HEXA_64_npe]
+                    TRI_3_npe, TRI_6_npe, QUAD_4_npe, QUAD_8_npe, QUAD_9_npe,
+                    TETRA_4_npe, TETRA_10_npe, PYRA_5_npe, PYRA_14_npe,
+                    PENTA_6_npe, PENTA_15_npe, PENTA_18_npe,
+                    HEXA_8_npe, HEXA_20_npe, HEXA_27_npe, MIXED_npe,
+                    PYRA_13_npe, NGON_n_npe, NFACE_n_npe, BAR_4_npe, TRI_9_npe,
+                    TRI_10_npe, QUAD_12_npe, QUAD_16_npe, TETRA_16_npe,
+                    TETRA_20_npe, PYRA_21_npe, PYRA_29_npe,
+                    PYRA_30_npe, PENTA_24_npe, PENTA_38_npe, PENTA_40_npe,
+                    HEXA_32_npe, HEXA_56_npe, HEXA_64_npe]
 ElementType    = stringAsKeyDict(ElementType_l)
 ElementType_   = enumAsKeyDict(ElementType_l)
 ElementTypeNPE = dict(zip(ElementType_l,ElementTypeNPE_l))
@@ -1267,4 +1267,3 @@ DiscreteData_t=DiscreteData_ts
 RigidGridMotion_t=RigidGridMotion_ts
 #
 # --- last line
-

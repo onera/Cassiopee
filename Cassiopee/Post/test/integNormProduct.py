@@ -5,7 +5,7 @@ import Post as P
 
 # Maillage et champs non structure, en noeuds
 m = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
-c = C.array('vx,vy,vz', m[1].shape[1], m[2].shape[1], 'TRI') 
+c = C.array('vx,vy,vz', m[1].shape[1], m[2].shape[1], 'TRI')
 c = C.initVars(c, 'vx,vy,vz', 1.)
 res = P.integNormProduct([m], [c], []); print(res)
 

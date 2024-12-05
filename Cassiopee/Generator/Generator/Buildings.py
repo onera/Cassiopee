@@ -153,7 +153,7 @@ def domain(base, height, h, hp):
     C._addBC2Zone(vol, 'far', 'BCFarfield', 'jmin')
     C._addBC2Zone(vol, 'far', 'BCFarfield', 'jmax')
     C._addBC2Zone(vol, 'far', 'BCFarfield', 'imax')
-    C._addBC2Zone(vol, 'in', 'BCInflow', 'imin')    
+    C._addBC2Zone(vol, 'in', 'BCInflow', 'imin')
 
     return [vol]
 

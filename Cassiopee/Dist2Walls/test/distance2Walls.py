@@ -7,7 +7,7 @@ import Geom as D
 # Bloc dont on cherche la distance a la paroi
 a = G.cart((0.,0.,0.),(0.1,0.1,0.1),(10,10,10))
 
-# Paroi 
+# Paroi
 sphere = D.sphere((1.2,0.,0.), 0.2, 30)
 cellN = C.initVars(sphere,'cellN',1.)
 # Calcul de la distance a la paroi

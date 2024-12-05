@@ -19,14 +19,14 @@ def switch(node1, node2):
     node2[1] = temp
     return node1, node2
 
-def ProdVect(U,V):  
+def ProdVect(U,V):
     Wx = U[1]*V[2]-U[2]*V[1]
     Wy = U[2]*V[0]-U[0]*V[2]
     Wz = U[0]*V[1]-U[1]*V[0]
     return Wx,Wy,Wz
 
 #=========================================================================
-# Detection des bords de fuite, attaque et quart de corde 
+# Detection des bords de fuite, attaque et quart de corde
 # Creation du repere local et calcul de la matrice de passage
 # IN: a: slice
 #     r: rayon de la slice
@@ -44,7 +44,7 @@ def detectBA_BF_QC(a, r):
     iLE = numpy.argmin(xcp)
     iTE = numpy.argmax(xcp)
 
-    # Replace la pale avec son mouvement 
+    # Replace la pale avec son mouvement
     gridx = Internal.getNodeFromName2(a, 'CoordinateX')
     gridy = Internal.getNodeFromName2(a, 'CoordinateY')
     gridz = Internal.getNodeFromName2(a, 'CoordinateZ')
@@ -78,10 +78,10 @@ def detectBA_BF_QC(a, r):
     norme = numpy.sqrt(sxmean**2+symean**2+szmean**2)
     Vy = (sxmean/norme, symean/norme, szmean/norme)
 
-    # Vz pointe vers le haut 
+    # Vz pointe vers le haut
     Vz = ProdVect(Vx, Vy)
 
-    #===== Matrices de passage 
+    #===== Matrices de passage
     MatPass = numpy.array([[Vx[i],Vy[i],Vz[i]] for i in range(3)]).real
     #print(MatPass)
     Glob2Loc = numpy.linalg.inv(MatPass)
@@ -232,7 +232,7 @@ def exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz']):
 # IN: relativeShaft: si le repere du maillage n'est pas le repere vent
 # OUT: rotor traction
 #========================================================================
-def computeZb(teff, psi, RoInf, ASOUND, Mtip, AR, SIGMA, 
+def computeZb(teff, psi, RoInf, ASOUND, Mtip, AR, SIGMA,
               relativeShaft=0., accumulatorZb=None):
     """Compute Zb."""
     PE._extractShearStress(teff)
@@ -289,7 +289,7 @@ def frictionLines(teff):
     for i in range(20):
         Pt = C.getValue(z, 'GridCoordinates', (i,35,1))
         Pt = (Pt[0]+1.e-6,Pt[1],Pt[2])
-        points.append(Pt)    
+        points.append(Pt)
     s1 = P.streamLine2(b, points, vector=['centers:frictionX','centers:frictionY','centers:frictionZ'])
     return s1
 
@@ -301,7 +301,7 @@ def frictionLines(teff):
 #========================================================================
 def extractRadius(teff, axis_pnt, axis_vct, loc='node'):
     """Extract the radius field, using the rotation axis and center."""
-    def function(x,y,z): 
+    def function(x,y,z):
         ux,uy,uz = axis_vct
         cx,cy,cz = axis_pnt
         ax = (y-cy)*uz - (z-cz)*uy
@@ -400,7 +400,7 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
               axis_pnt[0]*invP[1][0] + axis_pnt[1]*invP[1][1] + axis_pnt[2]*invP[1][2],
               axis_pnt[0]*invP[2][0] + axis_pnt[1]*invP[2][1] + axis_pnt[2]*invP[2][2]]
 
-    def function(x,y,z): 
+    def function(x,y,z):
         # X' = invP*X
         # first direction is the rotation axis
         dist2 = x*invP[1][0] + y*invP[1][1] + z*invP[1][2] - Cprime[1]
@@ -418,7 +418,7 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
     return teff
 
 #========================================================================
-# extrait les slices en parallele et calcule les variables de post traitement 
+# extrait les slices en parallele et calcule les variables de post traitement
 # IN: teff
 # IN: bladeName: name of base of blade
 # IN: psi: current angle of rotation, used as key in all accumulator dict
@@ -441,12 +441,12 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
 # OUT: dictionnaire des slices, slices[rad] est une zone
 # OUT: accumule les valeurs de CnM2 dans un dictionnaire (psi,rad)
 #========================================================================
-def extractSlices(teff, bladeName, psi, radii, 
+def extractSlices(teff, bladeName, psi, radii,
                   RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU,
                   accumulatorSlices=None,
                   accumulatorCnM2=None, accumulatorCmM2=None,
                   adimCnM2=0, adimCmM2=0, adimKp=0,
-                  relativeShaft=0., localFrame=True, delta=0.05, rotationCenter=[0.,0.,0.], 
+                  relativeShaft=0., localFrame=True, delta=0.05, rotationCenter=[0.,0.,0.],
                   coordDir='CoordinateZ', coordSlice='CoordinateX', sliceNature='straight'):
     """Extract slices on blade and compute Kp,Cf,CnM2,CmM2."""
     if coordDir == coordSlice:
@@ -488,7 +488,7 @@ def extractSlices(teff, bladeName, psi, radii,
         G._getNormalMap(b)
         C._normalize(b, ['centers:sx','centers:sy','centers:sz'])
         if relativeShaft != 0.:
-            b = T.rotate(b, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ'],['centers:Fx','centers:Fy','centers:Fz']]) 
+            b = T.rotate(b, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ'],['centers:Fx','centers:Fy','centers:Fz']])
 
         # switch GridInit and GridCoordinates and save GridCoordinates in field
         bp = Internal.copyRef(b)
@@ -650,7 +650,7 @@ def extractSlices(teff, bladeName, psi, radii,
 
 #============================================================
 # extract the files for H2T RotorLoads
-# IN: teff: stress tree 
+# IN: teff: stress tree
 # IN: bladeName: nom de la base blade a extraire
 # IN: nblade: numero de la pale a extraire (pour les noms de fichiers de sortie)
 # IN: it: iteration correspondant a l'extraction de teff (pour les noms de fichiers de sortie)
@@ -661,7 +661,7 @@ def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
     b = Internal.getNodeFromName1(teff, bladeName)
     bp = Internal.copyRef(b)
 
-    # extrait le maillage de reference 
+    # extrait le maillage de reference
     R._switchGridAndGridInit(bp)
     for c, z in enumerate(Internal.getZones(bp)):
         Internal._rmNodesFromName(z, 'FlowSolution#Centers')
@@ -683,7 +683,7 @@ def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
     G._getNormalMap(bp)
 
     # Pour retrouver le repere absolu
-    T._rotate(bp, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ']]) 
+    T._rotate(bp, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ']])
 
     for c, z in enumerate(Internal.getZones(bp)):
         z = C.extractVars(z, ['centers:sx', 'centers:sy', 'centers:sz', 'centers:frictionX','centers:frictionY','centers:frictionZ','centers:frictionMagnitude'], keepOldNodes=False)
@@ -714,7 +714,7 @@ def cleanStress(teff, cpt):
     Internal._rmNodesByName(tclean, '.Solver#ownData')
     Internal._rmNodesByName(tclean, 'ReferenceState')
     Internal._rmNodesByName(tclean, 'FlowEquationSet')
-    Internal._rmNodesByName(tclean, 'TimeMotion')           
+    Internal._rmNodesByName(tclean, 'TimeMotion')
     Internal._rmNodesByName(tclean, Internal.__GridCoordinates__+"#Init")
 
     Internal._renameNode(tclean, Internal.__GridCoordinates__, Internal.__GridCoordinates__+"#%d"%cpt)

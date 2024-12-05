@@ -62,7 +62,7 @@ NzLoc=np.empty(int(Nlevels), np.int32)
 
 for l in range( int(Nlevels) ):
     NzLoc[l] = Nz_max
-Nlevels_tg = math.log( Nz_max/Nz_min, 2 ) +1 
+Nlevels_tg = math.log( Nz_max/Nz_min, 2 ) +1
 
 for z in Internal.getZones(t_2d):
 

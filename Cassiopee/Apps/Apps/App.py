@@ -1,5 +1,5 @@
 # General class of Cassiopee App
-# Data oriented 
+# Data oriented
 # One method: run
 
 __version__ = '3.1'

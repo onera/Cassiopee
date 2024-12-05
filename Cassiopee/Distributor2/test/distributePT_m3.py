@@ -22,7 +22,7 @@ t = X.connectMatch(t)
 if Cmpi.rank == 0: C.convertPyTree2File(t, LOCAL+'/in.cgns')
 Cmpi.barrier()
 
-# arbre complet 
+# arbre complet
 t, stats = D2.distribute(t, NProc=Cmpi.size, algorithm='gradient', useCom='overlap')
 
 if Cmpi.rank == 0:

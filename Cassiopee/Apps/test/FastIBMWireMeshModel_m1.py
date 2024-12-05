@@ -1,4 +1,4 @@
-## test case - Wire Mesh Model 
+## test case - Wire Mesh Model
 import Connector.IBM as X_IBM
 import Apps.Fast.IBM as App
 import Converter.PyTree as C
@@ -47,8 +47,8 @@ dfars     = 5
 snears    = 1
 vmin      = 11
 
-X_IBM.prepareIBMData(tb               , tFile        , tcFile   , tbox=tboffset,      
-                     snears=snears    , dfars=dfars  , vmin=vmin, 
+X_IBM.prepareIBMData(tb               , tFile        , tcFile   , tbox=tboffset,
+                     snears=snears    , dfars=dfars  , vmin=vmin,
                      check=False       , frontType=1  , cartesian=False)
 App._distribute(tFile, tcFile, NP=Cmpi.size)
 t       = Fast.loadTree(os.path.basename(tFile), directory=LOCAL, split='single',  mpirun=True)
@@ -59,14 +59,14 @@ if Cmpi.rank == 0:
     test.testT(tc, 2)
 
 ##COMPUTE
-NIT                        = 25   # number of iterations 
+NIT                        = 25   # number of iterations
 display_probe_freq         = 5    # iteration frequency to display modulo_verif
 numb = {}
 numb["temporal_scheme"]    = "implicit"
 numb["ss_iteration"]       = 30
 numb["modulo_verif"]       = display_probe_freq
 numz = {}
-numz["time_step"]          = 5.0e-5 
+numz["time_step"]          = 5.0e-5
 numz["time_step_nature"]   = "global"
 numz["epsi_newton"]        = 0.1
 Red                        = 360

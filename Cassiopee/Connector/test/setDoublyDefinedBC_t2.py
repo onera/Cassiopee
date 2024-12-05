@@ -14,7 +14,7 @@ cellna = C.initVars(cellna, 'cellN', 1)
 range = [1,a[2],1,a[3],1,1]
 range = [1,1,1,a[3],1,a[4]]
 
-celln = X.setDoublyDefinedBC(b, celln, [a], [cellna], range, depth = 2)
+celln = X.setDoublyDefinedBC(b, celln, [a], [cellna], range, depth=2)
 bc = C.node2Center(b)
 bc = C.addVars([bc,celln])
 

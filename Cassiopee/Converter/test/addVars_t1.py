@@ -37,7 +37,7 @@ d = [C.array('cell', a[2], a[3], a[4]),C.array('cell', b[2], b[3], b[4])]
 f = C.addVars([c,d])
 test.testA(f, 3)
 
-# NGON 
+# NGON
 a = G.cartNGon((0,0,0),(1,1,1),(11,11,11))
 b = C.addVars(a, 'F')
 test.testA([b], 4)
@@ -45,4 +45,3 @@ test.testA([b], 4)
 f = ['f',a[1][0:1,:],a[2],a[3]]
 b = C.addVars([a,f])
 test.testA([b], 5)
-

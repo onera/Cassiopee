@@ -60,7 +60,7 @@ def extendSurf():
         noz = CTK.Nz[nz]
         CTK.t[2][nob][2][noz] = zlist[c]; c += 1
 
-    CTK.TXT.insert('START', 'Surface extension done.\n')    
+    CTK.TXT.insert('START', 'Surface extension done.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -98,7 +98,7 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - VARS -
-    # -0- Surface to extend - 
+    # -0- Surface to extend -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -1- Hauteur de chaque maille -
     V = TK.StringVar(win); V.set('1.e-1'); VARS.append(V)

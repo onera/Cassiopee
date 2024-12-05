@@ -78,7 +78,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                 rcvId = hook[9][rcvName]
                 # cells
                 if Internal.getNodeFromName1(interp, ListExtC) is not None:
-                    donorIndices = Internal.getNodeFromName1(interp, ListExtC)[1]; 
+                    donorIndices = Internal.getNodeFromName1(interp, ListExtC)[1];
                     donorIndices = donorIndices.reshape((donorIndices.shape[0]))
                     if donorIndices.shape[0] != 0: # avoid interpolation regions with only orphan points
                         coefs = Internal.getNodeFromName1(interp, InterpolantsDonor)[1][:,0:7]
@@ -89,7 +89,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                             faceDir = Internal.getNodeFromName1(interp, FaceDirection)[1]; faceDir= faceDir.reshape((faceDir.shape[0]))
                         # cell index => faceIndex
                         if FaceDirection is not None:
-                            zRcv = Internal.getNodeFromName2(tp,rcvName) 
+                            zRcv = Internal.getNodeFromName2(tp,rcvName)
                             dimrcv = Internal.getZoneDim(zRcv)
                             imr = dimrcv[1];jmr = dimrcv[2];kmr = dimrcv[3]
                             imrg = imr-1 + 2*nGhostCells
@@ -114,7 +114,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                                 elif faceDir[i] == 5: # kmin
                                     rcvIndices[i] = (rk-1 + nGhostCells)*imrg*jmrg+(rj-1 + nGhostCells)*imrg+ ri-1 + nGhostCells + 2*nbintByDir
                         # First iteration of storage: full storage
-                        if ite == 0 or listInterpData[donorName] == [] or rcvId not in listInterpData[donorName][-1].keys(): 
+                        if ite == 0 or listInterpData[donorName] == [] or rcvId not in listInterpData[donorName][-1].keys():
                             interpData[rcvId]={}
                             flag=0; i=0
                             if FaceDirection is None: # cell
@@ -122,9 +122,9 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
                                     interpData[rcvId][(int)(rcvIndex)]=[flag,(int)(donorIndices[i]),(int)(periodicity[i])]+[(float)(c) for c in coefs[i]]; i = i+1
                             else: # face
                                 for rcvIndex in rcvIndices:
-                                    interpData[rcvId][(int)(rcvIndex)]=[flag,(int)(donorIndices[i]),(int)(periodicity[i])]+[(float)(c) for c in coefs[i]]+[(int)(faceDir[i])]; i = i+1                                
+                                    interpData[rcvId][(int)(rcvIndex)]=[flag,(int)(donorIndices[i]),(int)(periodicity[i])]+[(float)(c) for c in coefs[i]]+[(int)(faceDir[i])]; i = i+1
                         # delta storage
-                        else: 
+                        else:
                             if FaceDirection is None: data=[rcvIndices,donorIndices,periodicity,coefs]
                             else: data=[rcvIndices,donorIndices,periodicity,coefs,faceDir]
                             delta = Co.deltaInterpolations(data, ref[donorName][rcvId],loc)
@@ -136,9 +136,9 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
             for rcvId in ref[donorName]:
                 if rcvId not in interpData:
                     if FaceDirection is None:
-                        data=[numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= numpy.float64)]
+                        data=[numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=numpy.float64)]
                     else:
-                        data=[numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= numpy.float64), numpy.array([], dtype= Internal.E_NpyInt)]
+                        data=[numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=numpy.float64), numpy.array([], dtype=Internal.E_NpyInt)]
                     delta = Co.deltaInterpolations(data, ref[donorName][rcvId],loc)
                     interpData[rcvId]=delta
                     ref[donorName][rcvId] = data
@@ -147,9 +147,9 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
         elif donorName in listInterpData:
             for rcvId in ref[donorName]:
                 if FaceDirection is None:
-                    data=[numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= numpy.float64)]
+                    data=[numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=numpy.float64)]
                 else:
-                    data=[numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= numpy.float64), numpy.array([], dtype= Internal.E_NpyInt)]
+                    data=[numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=Internal.E_NpyInt), numpy.array([], dtype=numpy.float64), numpy.array([], dtype=Internal.E_NpyInt)]
                 delta = Co.deltaInterpolations(data, ref[donorName][rcvId],loc)
                 interpData[rcvId]=delta
                 ref[donorName][rcvId] = data

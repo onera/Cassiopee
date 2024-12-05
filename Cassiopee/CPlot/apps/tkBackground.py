@@ -146,7 +146,7 @@ def createZEllipse():
     try: box = G.bbox(CTK.t)
     except: box = [0,0,0,1,1,1]
     hx = box[3]-box[0]
-    hy = box[4]-box[1] 
+    hy = box[4]-box[1]
     if hx < 1.e-10: hx = 0.1
     if hy < 1.e-10: hy = 0.1
 
@@ -154,10 +154,10 @@ def createZEllipse():
     cx = 0.5*(box[0]+box[3])
     cy = 0.5*(box[1]+box[4])
     if hx < hy:
-        s = D.circle( (cx,cy,box[2]), hx, N=50)  
-        s = T.contract(s, (cx,cy,box[2]), (1,0,0), (0,0,1), hy/hx ) 
+        s = D.circle( (cx,cy,box[2]), hx, N=50)
+        s = T.contract(s, (cx,cy,box[2]), (1,0,0), (0,0,1), hy/hx )
     else:
-        s = D.circle( (cx,cy,box[2]), hy, N=50)  
+        s = D.circle( (cx,cy,box[2]), hy, N=50)
         s = T.contract(s, (cx,cy,box[2]), (0,1,0), (0,0,1), hx/hy )
 
     s = C.convertArray2Tetra(s); s = G.close(s, 1.e-6)
@@ -186,7 +186,7 @@ def createZPlane():
     try: box = G.bbox(CTK.t)
     except: box = [0,0,0,1,1,1]
     hx = box[3]-box[0]
-    hy = box[4]-box[1] 
+    hy = box[4]-box[1]
     if hx < 1.e-10: hx = 0.1
     if hy < 1.e-10: hy = 0.1
 
@@ -373,11 +373,11 @@ def createApp(win):
     # - VARS -
     # -0- Type de background -
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
-    if 'tkBackgroundType' in CTK.PREFS: 
+    if 'tkBackgroundType' in CTK.PREFS:
         V.set(CTK.PREFS['tkBackgroundType'])
     # -1- Border
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
-    if 'tkBackgroundBorder' in CTK.PREFS: 
+    if 'tkBackgroundBorder' in CTK.PREFS:
         V.set(CTK.PREFS['tkBackgroundBorder'])
 
     # - Type de background -

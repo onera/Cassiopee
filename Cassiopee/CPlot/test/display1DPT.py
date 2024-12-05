@@ -19,5 +19,3 @@ import numpy
 x = numpy.linspace(0, 2*numpy.pi)
 y = numpy.sin(x)
 CPlot.display1D([x,y], slot=1, var1='x', var2='y', gridPos=(0,1), bgBlend=0.8)
-
-

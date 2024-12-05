@@ -12,7 +12,7 @@ def parseArgs():
     # Create argument parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--email", action="store_true",
-                          help="Email results. Default: print in terminal")
+                        help="Email results. Default: print in terminal")
     parser.add_argument("-r", "--recipients", type=str, default='',
                         help="Single-quoted space-separated list of recipients")
     # Parse arguments
@@ -49,11 +49,11 @@ if __name__ == '__main__':
     gitBranch = Dist.getGitBranch(cassiopeeIncDir)
     gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
     gitInfo = "Git origin: {}\nGit branch: {}\nCommit hash: {}".format(
-      gitOrigin, gitBranch, gitHash)
+        gitOrigin, gitBranch, gitHash)
 
     messageSubject = "[Checkout Cassiopee] State: FAILED"
     messageText = "Pulling updates for Cassiopee, Fast and all "\
-      "PModules:\n{}\n\n{}\n\n".format(52*'-', gitInfo)
+        "PModules:\n{}\n\n{}\n\n".format(52*'-', gitInfo)
     messageText += '{:^20} | {:^15} | {:^30} | {:^10}\n{}\n'.format(
         "PROD.", "PCKG.", "DATE", "STATUS", 85*'-')
     for log_machine in log_entries:
@@ -63,11 +63,11 @@ if __name__ == '__main__':
         date = strftime("%d/%m/%y at %T", date)
         status = log_machine[3]
         messageText += '{:^20} | {:^15} | {:^30} | {:^10}\n'.format(
-          prod, pckg, date, status)
+            prod, pckg, date, status)
 
     messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
-      'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
-      'vincent.casseau@onera.fr'
+        'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
+        'vincent.casseau@onera.fr'
 
     if script_args.email:
         notify(recipients=recipients,

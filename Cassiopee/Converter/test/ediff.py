@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # ediff file1 file2
 
-import Converter as C   
+import Converter as C
 
 def ediff__(file1, file2):
     a1 = C.convertFile2Arrays(file1)

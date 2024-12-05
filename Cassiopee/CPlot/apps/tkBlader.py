@@ -48,7 +48,7 @@ def trimesh(a1, a2, a3):
     P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
     P01 = (a2[1][0,N2-1], a2[1][1,N2-1], a2[1][2,N2-1])
     if (abs(P0[0]-P00[0]) + abs(P0[1]-P00[1]) + abs(P0[2]-P00[2]) > 1.e-6
-        and abs(P0[0]-P01[0]) + abs(P0[1]-P01[1]) + abs(P0[2]-P01[2]) > 1.e-6):
+            and abs(P0[0]-P01[0]) + abs(P0[1]-P01[1]) + abs(P0[2]-P01[2]) > 1.e-6):
         t = a2; a2 = a3; a3 = t
         N2 = a2[2]; N3 = a3[2]
         P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
@@ -151,7 +151,7 @@ def step1():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         dim = Internal.getZoneDim(z)
-        if dim[0] == 'Unstructured': 
+        if dim[0] == 'Unstructured':
             try: z = C.convertBAR2Struct(z)
             except Exception as e:
                 #print('Error: blader: %s'%str(e))
@@ -173,7 +173,7 @@ def step1():
     if culot == 1:
         ac = C.getAllFields(zones[1], 'nodes')[0]
         bb1 = G.bbox(a); bb2 = G.bbox(ac)
-        if bb1[0] > bb2[0]: temp = a; a = ac; ac = temp 
+        if bb1[0] > bb2[0]: temp = a; a = ac; ac = temp
 
     # taille de maille trailing edge et culot
     h = float(VARS[1].get())
@@ -262,7 +262,7 @@ def step1():
 
     median = G.map(median, s)
     median = G.refine(median, 0.9, 1)
-    N1 = c1[2]; N2 = median[2]; d = N1-N2    
+    N1 = c1[2]; N2 = median[2]; d = N1-N2
     if d/2 != d*0.5:
         factor = (N2+2.)/N2
         median = G.refine(median, factor, 1)
@@ -272,7 +272,7 @@ def step1():
     if culot == 0:
         #Converter.convertArrays2File([b1,b2,delta], 'bout1.plt')
         m3 = trimesh(b1, b2, delta)
-        if m3[0] == 0: raise ValueError(m3[1]) 
+        if m3[0] == 0: raise ValueError(m3[1])
         #Converter.convertArrays2File([b1,b2,delta]+m3, 'bout1.plt')
     else:
         # Dans le cas avec culot, on remaille le culot comme delta
@@ -310,7 +310,7 @@ def step1():
 
     P1 = Converter.getValue(a1,0)
     P2 = Converter.getValue(a1,1)
-    P3 = (P1[0]+Dfar,P1[1],P1[2]) 
+    P3 = (P1[0]+Dfar,P1[1],P1[2])
     line2 = D.line(P1, P3, N=50)
 
     N = 50
@@ -354,7 +354,7 @@ def step1():
     vol = G.getVolumeMap(m4[0])
     nk = vol[4]; ni = vol[2]
     for k in range(nk-1):
-        sub = T.subzone(vol, (1,1,k+1), (ni,1,k+2)) 
+        sub = T.subzone(vol, (1,1,k+1), (ni,1,k+2))
         volmin = Converter.getMinValue(sub, 'vol')
         if volmin < 0.:
             if k > 10: kc = k-4
@@ -435,7 +435,7 @@ def step2():
         M1 = []
         for z in zones[0:l-2]:
             M1.append(C.getAllFields(z, 'nodes')[0])
-    else: 
+    else:
         # 3 zones exterieures, le reste interieur
         M2 = [C.getAllFields(zones[l-2], 'nodes')[0],
               C.getAllFields(zones[l-1], 'nodes')[0],
@@ -495,7 +495,7 @@ def step2():
 
     CTK.t = C.addBase2PyTree(CTK.t, 'STEP2', 3)
     base = Internal.getNodesFromName1(CTK.t, 'STEP2')[0]
-    (p, c) = Internal.getParentOfNode(CTK.t, base) 
+    (p, c) = Internal.getParentOfNode(CTK.t, base)
     base[2] += zones
 
     # Add BCs
@@ -558,7 +558,7 @@ def step2():
             base[2][3+i] = z
 
     base = C.fillEmptyBCWith(base, 'wall', 'BCWall')
-    CTK.t[2][c] = base            
+    CTK.t[2][c] = base
 
     CTK.TXT.insert('START', 'Step2 performed.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -592,29 +592,29 @@ def createApp(win):
     # - VARS -
     # -0- front split % -
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if 'tkBladerFrontSplit' in CTK.PREFS: 
+    if 'tkBladerFrontSplit' in CTK.PREFS:
         V.set(CTK.PREFS['tkBladerFrontSplit'])
     # -1- front step -
     V = TK.StringVar(win); V.set('0.001'); VARS.append(V)
-    if 'tkBladerFrontStep' in CTK.PREFS: 
+    if 'tkBladerFrontStep' in CTK.PREFS:
         V.set(CTK.PREFS['tkBladerFrontStep'])
     # -2- other step -
     V = TK.StringVar(win); V.set('0.01'); VARS.append(V)
-    if 'tkBladerStep' in CTK.PREFS: 
+    if 'tkBladerStep' in CTK.PREFS:
         V.set(CTK.PREFS['tkBladerStep'])
     # -3- delta line index -
     V = TK.StringVar(win); V.set('15'); VARS.append(V)
     # -4- Dfar. Mesh height -
     V = TK.StringVar(win); V.set('0.3'); VARS.append(V)
-    if 'tkBladerHeight' in CTK.PREFS: 
+    if 'tkBladerHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkBladerHeight'])
     # -5- hp: step en envergure -
     V = TK.StringVar(win); V.set('0.02'); VARS.append(V)
-    if 'tkBladerSpanStep' in CTK.PREFS: 
+    if 'tkBladerSpanStep' in CTK.PREFS:
         V.set(CTK.PREFS['tkBladerSpanStep'])
     # -6- span: longeur de l'envergure -
     V = TK.StringVar(win); V.set('5.'); VARS.append(V)
-    if 'tkBladerSpan' in CTK.PREFS: 
+    if 'tkBladerSpan' in CTK.PREFS:
         V.set(CTK.PREFS['tkBladerSpan'])
 
     # - Step1 -

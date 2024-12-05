@@ -8,8 +8,8 @@ import KCore
 # Vorticite en centres
 #==============================================================================
 def computeVorticity(array):
-    presvx = KCore.isNamePresent(array, 'VelocityX') 
-    if presvx == -1: 
+    presvx = KCore.isNamePresent(array, 'VelocityX')
+    if presvx == -1:
         ret = P.computeVariables(array, ['VelocityX', 'VelocityY', 'VelocityZ'])
         a = C.addVars([array, ret])
         rot = P.computeCurl(a, ['VelocityX', 'VelocityY', 'VelocityZ'])
@@ -25,7 +25,7 @@ def computeVorticity(array):
 # Norme de la vorticite en centres
 #==============================================================================
 def computeVorticityMagnitude(array):
-    presvx = KCore.isNamePresent(array, 'centers:VorticityX') 
+    presvx = KCore.isNamePresent(array, 'centers:VorticityX')
     if presvx == -1:
         ret = P.computeVariables(array, ['VelocityX', 'VelocityY', 'VelocityZ'])
         a = C.addVars([array, ret])
@@ -47,8 +47,8 @@ def computeQCriterion(array):
              'gradxVelocityY', 'gradyVelocityY', 'gradzVelocityY',
              'gradxVelocityZ', 'gradyVelocityZ', 'gradzVelocityZ']
     # Compute velocity
-    presvx = KCore.isNamePresent(array, 'VelocityX') 
-    if presvx==-1: 
+    presvx = KCore.isNamePresent(array, 'VelocityX')
+    if presvx==-1:
         ret = P.computeVariables(array, ['VelocityX', 'VelocityY', 'VelocityZ'])
         a = C.addVars([array, ret])
     else: a = array
@@ -75,7 +75,7 @@ def computeShearStress(array, gamma=1.4, rgp=287.053,
              'gradxVelocityZ', 'gradyVelocityZ', 'gradzVelocityZ']
     vars1 = ['ViscosityMolecular']+vars0
     presvx = KCore.isNamePresent(array, 'VelocityX')
-    if presvx == -1: 
+    if presvx == -1:
         ret = P.computeVariables(array, ['VelocityX', 'VelocityY', 'VelocityZ'])
         a = C.addVars([array, ret])
     else: a = array
@@ -91,7 +91,7 @@ def computeShearStress(array, gamma=1.4, rgp=287.053,
         gradV = P.computeGrad(a, 'VelocityY')
         gradW = P.computeGrad(a, 'VelocityZ')
         tau = C.addVars([gradU, gradV, gradW, mu])
-    else: 
+    else:
         grads =  C.extractVars(a,vars0)
         tau = C.addVars([grads, mu])
 
@@ -115,7 +115,7 @@ def computeShearStress(array, gamma=1.4, rgp=287.053,
 #==============================================================================
 def computeSkinFriction(array, tangent=0):
     pres1 = KCore.isNamePresent(array, 'sx')
-    if pres1 == -1: 
+    if pres1 == -1:
         try: import Generator as G
         except: raise ImportError("computeExtraVariable: skinFriction requires Generator module.")
         n = G.getNormalMap(array)

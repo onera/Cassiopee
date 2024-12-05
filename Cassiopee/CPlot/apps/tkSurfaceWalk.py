@@ -238,19 +238,19 @@ def createApp(win):
     # - VARS -
     # -0- Constraint contour -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-    # -1- Projection surface - 
+    # -1- Projection surface -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Hauteur de chaque maille -
     V = TK.StringVar(win); V.set('1.e-1'); VARS.append(V)
-    if 'tkSurfaceWalkHeight' in CTK.PREFS: 
+    if 'tkSurfaceWalkHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkSurfaceWalkHeight'])
     # -3- Nombre de layers a ajouter
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
-    if 'tkSurfaceWalkNLayers' in CTK.PREFS: 
+    if 'tkSurfaceWalkNLayers' in CTK.PREFS:
         V.set(CTK.PREFS['tkSurfaceWalkNLayers'])
     # -4- Nombre d'iterations de lissage
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if 'tkSurfaceWalkSmooth' in CTK.PREFS: 
+    if 'tkSurfaceWalkSmooth' in CTK.PREFS:
         V.set(CTK.PREFS['tkSurfaceWalkSmooth'])
 
     # - Surface -
@@ -262,7 +262,7 @@ def createApp(win):
     B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Projection surfaces.')
 
-    # - Contours - 
+    # - Contours -
     B = TTK.Button(Frame, text="Constraints", command=setConstraintContour,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     B.grid(row=1, column=2, sticky=TK.EW)

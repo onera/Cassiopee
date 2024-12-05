@@ -218,7 +218,7 @@ def run():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkCassiopeeSolver  [ + ]  ', font=CTK.FRAMEFONT, 
+                           text='tkCassiopeeSolver  [ + ]  ', font=CTK.FRAMEFONT,
                            takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Export to Cassiopee \nCartesian solver.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
@@ -250,7 +250,7 @@ def createApp(win):
     # -5- double wall tolerance -
     V = TK.StringVar(win); V.set('10.'); VARS.append(V)
     # -6- delta XRay -
-    V = TK.StringVar(win); V.set('1.e-10'); VARS.append(V)    
+    V = TK.StringVar(win); V.set('1.e-10'); VARS.append(V)
     # -7- tolerance XRay -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
     # -8- Cartesian option -

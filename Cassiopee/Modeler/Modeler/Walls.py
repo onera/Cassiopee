@@ -29,7 +29,7 @@ def wall(line,Bx,By,Bz,nlayers=1,chamfer=-1., shrink=1.):
             [x,y,z] = C.getValue(line, i)
             [xp,yp,zp] = C.getValue(line, i+1)
 
-            if n%2 == 0: 
+            if n%2 == 0:
                 xi = 0.5*(x+xp); yi = 0.5*(y+yp)
                 bx2 = T.translate(bx, (xi,yi,posZ))
                 if xp-x>1.e-16: alpha = math.atan((yp-y)/(xp-x))

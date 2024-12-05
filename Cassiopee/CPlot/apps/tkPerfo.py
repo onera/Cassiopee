@@ -89,7 +89,7 @@ def getThreads():
 
 #==============================================================================
 def getMaxProcs():
-    try: 
+    try:
         import multiprocessing
         return str(multiprocessing.cpu_count())
     except: return '?'
@@ -160,8 +160,8 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Display only certain fields.')
         WIDGETS['fields'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[0], 
-                         values=['All fields', 'No field'], 
+        B = ttk.Combobox(F, textvariable=VARS[0],
+                         values=['All fields', 'No field'],
                          state='readonly', width=10)
         B.grid(sticky=TK.EW)
         B.bind('<<ComboboxSelected>>', setViewMode2)

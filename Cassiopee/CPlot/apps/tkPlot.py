@@ -111,7 +111,7 @@ def display1D(event=None):
         selected = CTK.t[2][nob][0]+'/'+z[0]
         index = CPlot.getActivePointIndex()
         points = (selected,index)
-    else: # les coupes -> recupere les coord du pt 
+    else: # les coupes -> recupere les coord du pt
         point = CPlot.getActivePoint()
         if point == []: point = (0.,0.,0.)
 
@@ -124,9 +124,9 @@ def display1D(event=None):
     # Recupere les zones actives
     actives = []
     zones = Internal.getZones(CTK.t)
-    if CTK.__MAINTREE__ == 1: 
+    if CTK.__MAINTREE__ == 1:
         nzs = CPlot.getActiveZones()
-        for nz in nzs: actives.append(zones[nz]) 
+        for nz in nzs: actives.append(zones[nz])
     else: actives = zones
     if actives == []: return
 
@@ -258,8 +258,8 @@ def display1D(event=None):
     maxv2 = C.getMaxValue(p, var2)
 
     # display
-    CPlot.display1D(p, slot=slot, bgBlend=0., gridPos=gridPos, 
-                    var1=var1, var2=var2, 
+    CPlot.display1D(p, slot=slot, bgBlend=0., gridPos=gridPos,
+                    var1=var1, var2=var2,
                     r1=(r1min,r1max), r2=(minv2,maxv2))
     CTK.TXT.insert('START', 'Plot displayed.\n')
 
@@ -338,7 +338,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 1 (abcsiss).')
         WIDGETS['var1'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[3], 
+        B = ttk.Combobox(F, textvariable=VARS[3],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVar1NameList2)
@@ -358,7 +358,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 2 (ordinates).')
         WIDGETS['var2'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[4], 
+        B = ttk.Combobox(F, textvariable=VARS[4],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVar2NameList2)

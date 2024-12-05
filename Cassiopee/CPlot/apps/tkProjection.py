@@ -108,7 +108,7 @@ def dirProject():
 
     eye = CPlot.getState('posEye')
     cam = CPlot.getState('posCam')
-    dir = (eye[0]-cam[0], eye[1]-cam[1], eye[2]-cam[2]) 
+    dir = (eye[0]-cam[0], eye[1]-cam[1], eye[2]-cam[2])
     CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
@@ -153,7 +153,7 @@ def createApp(win):
     WIDGETS['frameMenu'] = FrameMenu
 
     # - VARS -
-    # -0- Projection surface - 
+    # -0- Projection surface -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
 
     # - Surface -

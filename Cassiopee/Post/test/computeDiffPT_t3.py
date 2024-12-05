@@ -27,4 +27,3 @@ b = C.addBC2Zone(b, 'match2', 'BCMatch', 'imin', a, 'imax',
 t = C.newPyTree(['Base']); t[2][1][2] += [a,b]
 t = P.computeDiff(t, 'Density')
 test.testT(t,1)
-

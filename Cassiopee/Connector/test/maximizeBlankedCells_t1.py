@@ -18,4 +18,3 @@ test.testA([a1], 1)
 
 a2 = X.maximizeBlankedCells(a, 1,dir=0)
 test.testA([a2], 2)
-

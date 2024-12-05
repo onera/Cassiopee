@@ -35,7 +35,7 @@ print(r)
 # Basic test case 3
 #=============================================================================
 m = G.cart((10,0,0), (10.*sqrt(2)/(ni-1),10.*sqrt(2)/(nj-1),1), (ni,nj,1))
-mp = T.rotate(m, (10,0,0), (0,0,1), 45.); del m 
+mp = T.rotate(m, (10,0,0), (0,0,1), 45.); del m
 m3 = C.addVar(mp, 'ro'); del mp
 
 c = C.array('cellN', ni-1, nj-1, 1)
@@ -52,6 +52,5 @@ m5 = T.addkplane(m3); del m3
 c1 = P.node2Center(m4)
 c2 = P.node2Center(m5)
 res1 = C.addVars([c1, r[0]])
-res2 = C.addVars([c2, r[1]])           
+res2 = C.addVars([c2, r[1]])
 C.convertArrays2File([res1,res2], "centers.plt", "bin_tp")
-

@@ -226,14 +226,14 @@ def loadAndSplitNGon(fileName):
     if fsolc is not None:
         for f in fsolc[2]:
             if f[3] == 'DataArray_t':
-                solc.append(f[1]); solcNames.append(f[0]) 
+                solc.append(f[1]); solcNames.append(f[0])
 
     fsol = I.getNodeFromName2(z, I.__FlowSolutionNodes__)
     soln = []; solNames = []
     if fsol is not None:
         for f in fsol[2]:
-            if f[3] == 'DataArray_t': 
-                soln.append(f[1]); solNames.append(f[0]) 
+            if f[3] == 'DataArray_t':
+                soln.append(f[1]); solNames.append(f[0])
 
     zonebc = I.getNodeFromType(z, 'ZoneBC_t')
     bcs = []
@@ -509,7 +509,7 @@ def icapsule_adapt(IC):
         zs = I.createZoneNode("sa"+str(i), sarrs[i])
         cont = I.createUniqueChild(zs, 'ZoneBC', 'ZoneBC_t')
         bc = I.newBC(name="IntersectionFaces", pointList=stags[i],
-            family="IntersectionFaces", parent=cont)
+                     family="IntersectionFaces", parent=cont)
         slave_zones.append(zs)
     tm = C.newPyTree(['Base', zm])
     ts = C.newPyTree(['Base', slave_zones])
@@ -539,7 +539,7 @@ def icapsule_intersect(ma, sa):
         zs = I.createZoneNode("si"+str(i), slist_i[i])
         cont = I.createUniqueChild(zs, 'ZoneBC', 'ZoneBC_t')
         bc = I.newBC(name="IntersectionFaces", pointList=stags_i[i],
-            family="IntersectionFaces", parent=cont)
+                     family="IntersectionFaces", parent=cont)
         slave_zones.append(zs)
     tm = C.newPyTree(['Base', zm])
     ts = C.newPyTree(['Base', slave_zones])

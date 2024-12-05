@@ -62,7 +62,7 @@ def createApp(win):
     # - VARS -
     # -0- file name for export -
     V = TK.StringVar(win); V.set('elsA.cgns'); VARS.append(V)
-    if 'tkElsaSolverFile' in CTK.PREFS: 
+    if 'tkElsaSolverFile' in CTK.PREFS:
         V.set(CTK.PREFS['tkElsaSolverFile'])
     # -1- Method for createElsaHybrid
     V = TK.IntVar(win); V.set(0); VARS.append(V)
@@ -75,12 +75,12 @@ def createApp(win):
     B.grid(row=0, column=1, sticky=TK.EW)
     B.bind('<Return>', export)
 
-    # - Adapt in memory tree - 
+    # - Adapt in memory tree -
     B = TTK.Button(Frame, text="Adapt current tree", command=adapt)
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Adapt in memory tree to make it suitable for elsA.CGNS.')
 
-    # - Create elsA Hybrid node - 
+    # - Create elsA Hybrid node -
     B = TTK.Button(Frame, text="Create elsA Hybrid Node", command=elsAHybridNode)
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create elsAHybrid node for unstructured mesh')

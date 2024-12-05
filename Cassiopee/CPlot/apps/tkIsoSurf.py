@@ -152,7 +152,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
     # -1- value -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if 'tkIsoSurfValue' in CTK.PREFS: 
+    if 'tkIsoSurfValue' in CTK.PREFS:
         V.set(CTK.PREFS['tkIsoSurfValue'])
 
     # - field name -
@@ -167,7 +167,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Extracted field.')
         WIDGETS['field'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[0], 
+        B = ttk.Combobox(F, textvariable=VARS[0],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2)

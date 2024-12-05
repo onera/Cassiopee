@@ -24,7 +24,7 @@ Dist.writeSetupCfg()
 (generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
 
 # Test if open-cascade is already installed ==================================
-(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
+(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths,
                                                    additionalIncludePaths)
 
 if not OCEPresent: os._exit(0)
@@ -71,7 +71,7 @@ setup(
                            extra_compile_args=Dist.getCppArgs(),
                            extra_link_args=Dist.getLinkArgs()
                            )]
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

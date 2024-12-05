@@ -19,7 +19,7 @@ t = CP.initVars(t, '{centers:M}={centers:CoordinateX}')
 t = X.connectMatch(t, dim=3)
 t = CP.fillEmptyBCWith(t, "wall", 'BCWall')
 
-dico = CP.extractAllBCMatch(t, varL) 
+dico = CP.extractAllBCMatch(t, varL)
 it   = 0
 
 for z in Internal.getZones(t):

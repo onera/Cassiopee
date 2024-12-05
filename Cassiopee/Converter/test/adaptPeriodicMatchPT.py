@@ -5,7 +5,7 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import Converter.elsAProfile as elsAProfile
 
-a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., 5., (11,11,11)) 
+a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., 5., (11,11,11))
 t = C.newPyTree(['Base',a])
 t = X.connectMatchPeriodic(t, rotationCenter=[0.,0.,0.],
                            translation=[0.,0.,5.])

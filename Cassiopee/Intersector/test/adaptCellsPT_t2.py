@@ -47,7 +47,7 @@ test.testT(m,3)
 
 ## dynamic adaptation
 hmsh = XOR.createHMesh(a)
-m = XOR.adaptCells(a, b, hmesh = hmsh, sensor_type=0)
+m = XOR.adaptCells(a, b, hmesh=hmsh, sensor_type=0)
 m = XOR.conformizeHMesh(m, hmsh)
 m = XOR.closeCells(m)
 XOR.deleteHMesh(hmsh);
@@ -59,7 +59,7 @@ test.testT(m,4)
 #C.convertPyTree2File(m, 'PT_t2_4.cgns')
 
 hmsh = XOR.createHMesh(a)
-m = XOR.adaptCells(a, b, hmesh = hmsh, sensor_type=0, smoothing_type=1)
+m = XOR.adaptCells(a, b, hmesh=hmsh, sensor_type=0, smoothing_type=1)
 
 cm = XOR.conformizeHMesh(m, hmsh)
 cm = XOR.closeCells(cm)
@@ -70,7 +70,7 @@ I._rmNodesByName(cm, 'rid')
 test.testT(cm,5)
 #C.convertPyTree2File(cm, 'PT_t2_5.cgns')
 
-m = XOR.adaptCells(m, b, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
+m = XOR.adaptCells(m, b, hmesh=hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
 
 cm = XOR.conformizeHMesh(cm, hmsh)
 cm = XOR.closeCells(cm)
@@ -82,4 +82,3 @@ I._rmNodesByName(cm, 'rid')
 
 test.testT(cm,6)
 #C.convertPyTree2File(cm, 'PT_t2_6.cgns')
-

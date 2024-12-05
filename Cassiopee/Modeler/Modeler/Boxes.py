@@ -109,7 +109,7 @@ def box2D(Pmin, Pmax, r=0., fill=True, uv=False):
     """2D Box with round chamfer."""
     xmin = Pmin[0]; ymin = Pmin[1]
     xmax = Pmax[0]; ymax = Pmax[1]
-    dx = r*(xmax-xmin); dy = r*(ymax-ymin) 
+    dx = r*(xmax-xmin); dy = r*(ymax-ymin)
     P0 = (xmin,ymin,0)
     P1 = (xmin,ymin+dy,0)
     P2 = (xmin,ymax-dy,0)

@@ -211,7 +211,7 @@ def createApp(win):
         F.bind('<Enter>', updateBaseNameList)
     else:
         VARS[0].set('newBase')
-        B = ttk.Combobox(F, textvariable=VARS[0], 
+        B = ttk.Combobox(F, textvariable=VARS[0],
                          values=[], state='normal')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateBaseNameList2)

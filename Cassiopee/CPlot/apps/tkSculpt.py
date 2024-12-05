@@ -187,7 +187,7 @@ def createApp(win):
 
     # - Width -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-                 command=setWidth, borderwidth=1, value=50)
+                  command=setWidth, borderwidth=1, value=50)
     WIDGETS['width'] = B
     B.grid(row=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[5])

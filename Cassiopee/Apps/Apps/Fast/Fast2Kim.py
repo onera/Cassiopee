@@ -39,8 +39,8 @@ class KIM:
         # Data input
         self.config = config
         self.kimDir = './KIM'
-        self.kimEntreeDir = self.kimDir+os.sep+'ENTREES'         
-        self.kimAeroDir = self.kimEntreeDir+os.sep+'AERO' 
+        self.kimEntreeDir = self.kimDir+os.sep+'ENTREES'
+        self.kimAeroDir = self.kimEntreeDir+os.sep+'AERO'
 
         # Automatically executed functions
         self.createDirs()
@@ -61,15 +61,15 @@ class KIM:
         if "number_mic" not in self.config:
             self.config["number_mic"] = DEFAULT_NBMIC
         if "form"  not in self.config:
-            self.config["form"] = DEFAULT_FORM 
+            self.config["form"] = DEFAULT_FORM
         if "corflux" not in self.config:
             self.config["corflux"] = DEFAULT_CORFLUX
         if "title" not in self.config:
-            self.config["title"] = DEFAULT_TITLE 
+            self.config["title"] = DEFAULT_TITLE
         if "dom_id" not in self.config:
             self.config["dom_id"] = DEFAULT_ID
         if "overn" not in self.config:
-            self.config["overn"] = DEFAULT_OVERN            
+            self.config["overn"] = DEFAULT_OVERN
         if "omega" not in self.config:
             self.config["omega"] = DEFAULT_OMEGA
         if "it_reprise" not in self.config:
@@ -113,7 +113,7 @@ class KIM:
             donnD['fwh_mobi']   = '.False.'
         else:
             donnD['fwh_soli']   = '.False.'
-            donnD['fwh_mobi']   = '.True.'          
+            donnD['fwh_mobi']   = '.True.'
         donnD['integrat']   = 0
         donnD['reflexion']  = '.False.'
         donnD['mail_def']   = '.True.'
@@ -130,7 +130,7 @@ class KIM:
         if self.config['form'] == 'porous':
             donnD['nvar']   = 5
         else:
-            donnD['nvar']   = 1        
+            donnD['nvar']   = 1
         donnD['ntemiss']    = self.config['number_dt']
         donnD['ntrecep']    = 2*self.config['number_dt']
         donnD['nper']       = 3
@@ -141,7 +141,7 @@ class KIM:
         else:
             donnD['form_mail']  = '"formatted"'
             donnD['form_cham']  = '"formatted"'
-        donnD['litendian']  = '.True.'    
+        donnD['litendian']  = '.True.'
         donnD['krepmaill']  = 1
         donnD['krepvites']  = 1
         donnD['ndupang']    = 1
@@ -188,7 +188,7 @@ class KIM:
         donnD['harfin']     = 498
         donnD['nivdba']     = '.True.'
         donnD['mapdb']      = '.True.'
-        donnD['mapdba']     = '.True.'    
+        donnD['mapdba']     = '.True.'
         donnD['mapcomplex'] = '.False.'
 
         # Creation of donn.in lines
@@ -302,7 +302,7 @@ g_mapcomplex =  %(mapcomplex)s
         dimdomD = {}
         dimdomD['Version']    = 6
         dimdomD['Strucaero']  = 317
-        dimdomD['NbDecimal']  = 8  
+        dimdomD['NbDecimal']  = 8
         dimdomD['Ndom']       = self.config['number_dom']
         if self.config['form'] == 'porous':
             dimdomD['Nvar']   = 8 # x,y,z,ro,rou,rov,row,p
@@ -420,13 +420,13 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
                     gc = Internal.newGridCoordinates(parent=cz)
                     ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
                     oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
-                    oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
+                    oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)
                     fs = Internal.newFlowSolution('FlowSolution#Centers', 'CellCenter', parent=cz)
                     op = Internal.newDataArray('Pressure', value=p, parent=fs)
                     cz = C.center2Node(cz, 'FlowSolution#Centers')
                     cz = Internal.rmNodesByName(cz, 'FlowSolution#Centers')
 
-                    if self.config['form_file']=='bin': 
+                    if self.config['form_file']=='bin':
                         #fich = FortranFile(kimAeroFile, 'w')
                         #fich.write_record(px)
                         #fich.write_record(py)
@@ -470,12 +470,12 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
                     gc = Internal.newGridCoordinates(parent=cz)
                     ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
                     oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
-                    oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
+                    oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)
                     fs = Internal.newFlowSolution('FlowSolution#Centers', 'CellCenter', parent=cz)
                     op = Internal.newDataArray('Pressure', value=p, parent=fs)
                     cz = C.center2Node(cz, 'FlowSolution#Centers')
-                    cz = Internal.rmNodesByName(cz, 'FlowSolution#Centers')                        
-                    if self.config['form_file']=='bin': 
+                    cz = Internal.rmNodesByName(cz, 'FlowSolution#Centers')
+                    if self.config['form_file']=='bin':
                         #fich = FortranFile(kimAeroFile, 'w')
                         #fich.write_record(px)
                         #fich.write_record(py)
@@ -484,7 +484,7 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
                         x=Internal.getByName(cz, 'CoordinateX')
                         y=Internal.getByName(cz, 'CoordinateY')
                         z=Internal.getByName(cz, 'CoordinateZ')
-                        pressure=Internal.getByName(cz, 'Pressure')                            
+                        pressure=Internal.getByName(cz, 'Pressure')
                         fich = open(kimAeroFile, 'wb')
                         self.write_fortran_block(fich, x[2][0][1].reshape(x[2][0][1].shape[0]*x[2][0][1].shape[1]), DOUBLE_SIZE) #X
                         self.write_fortran_block(fich, y[2][0][1].reshape(y[2][0][1].shape[0]*y[2][0][1].shape[1]), DOUBLE_SIZE) #Y

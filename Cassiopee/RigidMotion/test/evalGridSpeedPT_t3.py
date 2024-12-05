@@ -1,4 +1,4 @@
-# - evalGridSpeed (pyTree) - 
+# - evalGridSpeed (pyTree) -
 import RigidMotion.PyTree as R
 import KCore.test as test
 def F(a):

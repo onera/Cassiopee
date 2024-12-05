@@ -28,4 +28,3 @@ if Cmpi.rank == 0: test.testO(graph, 1)
 # Through match
 graph = Cmpi.computeGraph(t, type='match')
 if Cmpi.rank == 0: test.testO(graph, 2)
-

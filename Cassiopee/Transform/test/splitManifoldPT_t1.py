@@ -30,7 +30,3 @@ c = C.initVars(c,'F',1.); c = C.initVars(c,'centers:G',2.)
 res = T.splitManifold(c)
 t = C.newPyTree(['Base', 1]); t[2][1][2] += res
 test.testT(t,2)
-
-
-
-

@@ -171,7 +171,7 @@ def createApp(win):
     # -2- Transformation de k -
     V = TK.StringVar(win); V.set('K -> K'); VARS.append(V)
 
-    # - Index switch for structured grids 
+    # - Index switch for structured grids
     B = TTK.OptionMenu(Frame, VARS[0], 'I -> I', 'I -> -I', 'I -> J', 'I -> -J', 'I -> K', 'I -> -K')
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Transformation of i index.')

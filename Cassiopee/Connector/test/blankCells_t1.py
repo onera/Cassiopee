@@ -25,11 +25,11 @@ for delta in deltas:
             elif masknot == 1 and delta > 0: c+= 1
             else:
                 celln = X.blankCells([a], [ca], [surf], type,
-                                         delta, dim, masknot)
+                                     delta, dim, masknot)
 
                 test.testA(celln, c)
                 ca2 = C.initVars(ca, 'cellN', 1.)
                 X._blankCells([a], [ca2], [surf], type,
-                              delta, dim, masknot)                    
+                              delta, dim, masknot)
                 test.testA([ca2], c)
                 c += 1

@@ -10,7 +10,7 @@ import KCore.test as test
 import numpy as N
 
 a = G.cart((-1,-1,-1),(0.1,0.1,1),(21,21,3))
-s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (31,31,5)) 
+s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (31,31,5))
 s = C.convertArray2Tetra(s); s = T.join(s); s = P.exteriorFaces(s)
 t = C.newPyTree(['Base', a])
 tb = C.newPyTree(['Base', s])
@@ -55,7 +55,7 @@ bodies = [[s]]
 BM = N.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t,bodies,BM,blankingType='center_in')
 t = X.setHoleInterpolatedPoints(t,depth=-1)
-t = X.setHoleInterpolatedPoints(t,depth= 2)
+t = X.setHoleInterpolatedPoints(t,depth=2)
 # Dist2Walls
 DTW._distance2Walls(t,[s],type='ortho',loc='centers',signed=1)
 t = C.center2Node(t,'centers:TurbulentDistance')

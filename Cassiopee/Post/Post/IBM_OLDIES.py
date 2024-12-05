@@ -121,7 +121,7 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
     # Calc coefficient of friction
     C._initVars(ts, '{centers:Cf}=(sqrt({centers:Fricx}**2+{centers:Fricy}**2+{centers:Fricz}**2))/%g'%q)
 
-    # Update of pressure gradients 
+    # Update of pressure gradients
     if isGradP:
         C._initVars(ts, '{centers:gradnP}={centers:gradxPressure}*{centers:sx}+{centers:gradyPressure}*{centers:sy}+{centers:gradzPressure}*{centers:sz}')
         C._initVars(ts, '{centers:gradtP}={centers:gradxPressure}*{centers:tx}+{centers:gradyPressure}*{centers:ty}+{centers:gradzPressure}*{centers:tz}')
@@ -159,7 +159,7 @@ def loads0(ts, Sref=None, alpha=0., beta=0., dimPb=3, verbose=False):
 
     return ts
 #=============================================================================
-# Post forces 
+# Post forces
 # IN: tb: geometry file with solution projected onto it
 # IN: Sref: Reference surface area
 # OUT: wall_out ou None: fichier pour sortie des efforts sur la paroi aux centres
@@ -179,7 +179,7 @@ def _unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
 
 
 # reconstruit les champs parietaux a partir des infos stockees dans tw et les champs de tc
-def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None, 
+def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, graph=None,
                                variables=['Pressure','Density','utau','yplus']):
     if procDictR is None:
         procDictR={}
@@ -188,7 +188,7 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
         procDictD={}
         for z in Internal.getZones(tcw): procDictD[z[0]]=0
 
-    if graph is None: 
+    if graph is None:
         graph = Cmpi.computeGraph(tcw, type='POST',procDict=procDictD, procDict2=procDictR, t2=tw)
 
     cellNVariable=''; varType=1; compact=0
@@ -206,7 +206,7 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
             FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
                                            gridLocation='Vertex', parent=zc_w)
 
-        # put the fields in corresponding zcw zone 
+        # put the fields in corresponding zcw zone
         zc_orig = Internal.getNodeFromName2(tc,zc_orig_name)
         zsr_orig = Internal.getNodeFromName2(zc_orig,zsrname)
         for varname in variables:
@@ -225,7 +225,7 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
                     if zoneRole == 'Donor':
                         location = Internal.getNodeFromName1(zsr, 'GridLocation') # localisation des donnees des receveurs
 
-                        if location is not None: 
+                        if location is not None:
                             location = Internal.getValue(location)
                             if location == 'CellCenter': loc = 'centers'
                             else: loc = 'nodes'
@@ -237,11 +237,11 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
                         ListDonor = Internal.getNodeFromName1(zsr,'PointList')[1]
                         ListRcv   = Internal.getNodeFromName1(zsr,'PointListDonor')[1]
 
-                        arrayT = connector._setInterpTransfersD(zc_w, variables, ListDonor, DonorType, Coefs, varType, compact,                                                                
+                        arrayT = connector._setInterpTransfersD(zc_w, variables, ListDonor, DonorType, Coefs, varType, compact,
                                                                 cellNVariable,
-                                                                Internal.__GridCoordinates__, 
-                                                                Internal.__FlowSolutionNodes__, 
-                                                                Internal.__FlowSolutionCenters__)   
+                                                                Internal.__GridCoordinates__,
+                                                                Internal.__FlowSolutionNodes__,
+                                                                Internal.__FlowSolutionCenters__)
                         infos.append([dname,arrayT,ListRcv,loc])
         for n in infos:
             rcvName = n[0]
@@ -250,12 +250,12 @@ def _computeWallReconstruction(tw, tcw, tc, procDictR=None, procDictD=None, grap
                 fields = n[1]
                 if fields != []:
                     listIndices = n[2]
-                    zr = Internal.getNodeFromName2(tw,rcvName)     
+                    zr = Internal.getNodeFromName2(tw,rcvName)
                     C._updatePartialFields(zr, [fields], [listIndices], loc=n[3])
             else:
                 rcvNode = procDictR[rcvName]
                 if rcvNode not in datas: datas[rcvNode] = [n]
-                else: datas[rcvNode] += [n] 
+                else: datas[rcvNode] += [n]
 
     #send numpys using graph
     rcvDatas = Cmpi.sendRecv(datas, graph)
@@ -293,8 +293,8 @@ def prepareWallReconstruction(tw, tc):
     dimPb = Internal.getValue(dimPb)
 
     if dimPb ==2: C._initVars(tcw,"CoordinateZ",0.0)
-    # 
-    # Create the bbtree 
+    #
+    # Create the bbtree
     tcw_bb = C.newPyTree(["Base"])
     zonesl = []
     for base in Internal.getBases(tcw):
@@ -317,7 +317,7 @@ def prepareWallReconstruction(tw, tc):
                 C.setValue(zbb,'CoordinateZ',0, valxm)
                 C.setValue(zbb,'CoordinateZ',1, valxp)
             Cmpi._setProc(zbb,rank)
-            zonesl.append(zbb)    
+            zonesl.append(zbb)
 
     zonesBB = Cmpi.allgatherZones(zonesl)
     tcw_bb[2][1][2] += zonesBB
@@ -338,7 +338,7 @@ def prepareWallReconstruction(tw, tc):
             for j in i[k]:
                 if not j in graph[k]: graph[k][j] = []
                 graph[k][j] += i[k][j]
-                graph[k][j] = list(set(graph[k][j])) 
+                graph[k][j] = list(set(graph[k][j]))
 
     Cmpi._addXZones(tcw, graph, subr=False)
     interDict = X.getIntersectingDomains(tw,tcw_bb)
@@ -360,8 +360,8 @@ def prepareWallReconstruction(tw, tc):
             for j in i[k]:
                 if not j in graphX[k]: graphX[k][j] = []
                 graphX[k][j] += i[k][j]
-                graphX[k][j] = list(set(graphX[k][j])) 
-    del tcw_bb 
+                graphX[k][j] = list(set(graphX[k][j]))
+    del tcw_bb
 
     EXTRAP = numpy.array([],numpy.int32)
     VOL = numpy.array([],numpy.float64)
@@ -373,12 +373,12 @@ def prepareWallReconstruction(tw, tc):
         dnrZones=[]
         dnrZoneNames=[]
         for zdname in interDict[zwname]:
-            zd = Internal.getNodeFromName2(tcw,zdname)     
+            zd = Internal.getNodeFromName2(tcw,zdname)
             dnrZones.append(zd)
             dnrZoneNames.append(zdname)
 
         coordsD = C.getFields(Internal.__GridCoordinates__, dnrZones, api=1)
-        coordsR = C.getFields(Internal.__GridCoordinates__, zw, api=1)[0]        
+        coordsR = C.getFields(Internal.__GridCoordinates__, zw, api=1)[0]
         if coordsR[1].shape[1]>0:
             coordsD = Converter.convertArray2Node(coordsD)
             ret = connector.setInterpData_IBMWall(coordsD, coordsR, dimPb, LSorder)

@@ -108,7 +108,7 @@ def fixGaps():
     CTK.t[2][nob0][2] += b
 
     #C._fillMissingVariables(CTK.t)
-    CTK.TXT.insert('START', 'Gaps fixed.\n')    
+    CTK.TXT.insert('START', 'Gaps fixed.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -127,7 +127,7 @@ def conformUnstr():
 
     tol = CTK.varsFromWidget(VARS[1].get(), type=1)
     if len(tol) != 1:
-        CTK.TXT.insert('START', 'Tolerance is incorrect.\n') 
+        CTK.TXT.insert('START', 'Tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 
@@ -221,15 +221,15 @@ def forceMatch():
 
     tol = CTK.varsFromWidget(VARS[3].get(), type=1)
     if len(tol) != 1:
-        CTK.TXT.insert('START', 'Tolerance is incorrect.\n') 
+        CTK.TXT.insert('START', 'Tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 
     #P1 = CTK.varsFromWidget(VARS[4].get(), type=1)
     #P2 = CTK.varsFromWidget(VARS[5].get(), type=1)
 
-    #if len(nzs) != 2: 
-    #    CTK.TXT.insert('START', 'Need two patches.\n') 
+    #if len(nzs) != 2:
+    #    CTK.TXT.insert('START', 'Need two patches.\n')
     #    CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     CTK.setCursor(2, WIDGETS['forceMatch'])
@@ -300,12 +300,12 @@ def forceMatch():
                 if z[0] == sname[1]: c2.append(z)
     if c2 != []: c2 = T.join(c2)
 
-    if c1 == [] and c2 == []: 
+    if c1 == [] and c2 == []:
         G._close(z1, tol)
         if z2 is not None: G._close(z2, tol)
     elif c1 != [] and c2 != []:
         G._forceMatch(z1, z2, C1=c1, C2=c2)
-    else: 
+    else:
         G._forceMatch(z1, z2, tol=tol)
 
     # Try merge
@@ -368,7 +368,7 @@ def getFix(t):
         if dim[3] == 'TRI': zonesF.append(z)
     try: ext = P.exteriorFaces(zonesF)
     except: ext = []
-    if ext != []: 
+    if ext != []:
         ext = T.splitManifold(ext)
         #ext = T.splitSharpEdges(ext)
     return ext
@@ -441,7 +441,7 @@ def createApp(win):
 
     # - VARS -
     # -0- mode pour gapsmanager -
-    V = TK.StringVar(win); V.set('Nodes'); VARS.append(V)    
+    V = TK.StringVar(win); V.set('Nodes'); VARS.append(V)
     # -1- tol pour conformUnstr -
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     # -2- checkbox if split in conformization
@@ -532,7 +532,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Tolerance used in forceMatch operations.')
     B = TTK.Checkbutton(Frame, text='', variable=VARS[10], command=toggleFix)
     BB = CTK.infoBulle(parent=B, text='Show curves to fix.')
-    B.grid(row=4, column=3, sticky=TK.EW)    
+    B.grid(row=4, column=3, sticky=TK.EW)
 
 #==============================================================================
 # Called to display widgets

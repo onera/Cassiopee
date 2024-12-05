@@ -7,7 +7,7 @@ from . import compressor
 import numpy
 import Converter.Internal as Internal
 try: import cPickle as pickle # best for now
-except: import pickle 
+except: import pickle
 
 #==============================================================================
 # deltaIndex
@@ -54,5 +54,3 @@ def unpack(a, method=0):
         return pickle.loads(zlib.decompress(a))
     else:
         return pickle.loads(a)
-
-

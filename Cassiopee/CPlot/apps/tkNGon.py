@@ -86,13 +86,13 @@ def breakElts():
         Panels.displayErrors(errors, header='Error: breakElts')
         CTK.TXT.insert('START', 'Break elts fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    #C._fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
 
 #==============================================================================
-# Calcul le dual des zones 
+# Calcul le dual des zones
 # IN: t, cplot.selectedZones
 # OUT: t avec zones remplacees et affiche
 #==============================================================================
@@ -125,13 +125,13 @@ def dual():
         Panels.displayErrors(errors, header='Error: dual')
         CTK.TXT.insert('START', 'Dual fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    #C._fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
 
 #==============================================================================
-# Conformise un NGON topologique (hanging nodes) 
+# Conformise un NGON topologique (hanging nodes)
 # IN: t, cplot.selectedZones
 # OUT: t avec zones remplacees et affiche
 #==============================================================================
@@ -164,7 +164,7 @@ def conformize():
         Panels.displayErrors(errors, header='Error: conformize')
         CTK.TXT.insert('START', 'Conformize fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    #C._fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -172,7 +172,7 @@ def conformize():
 #==============================================================================
 def createApp(win):
     # - Frame -
-    Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE, 
+    Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkNGon  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Manage Polyhedral (NGON) meshes.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)

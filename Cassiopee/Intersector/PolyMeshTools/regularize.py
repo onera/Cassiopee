@@ -34,7 +34,7 @@ def aglomerate(t, vr, vm):
     nb_cells0 = nb_cells(t)
     carry_on=1
     i=0
-    while (carry_on == 1):  
+    while (carry_on == 1):
         print("iter %s"%i)
         t=XOR.agglomerateSmallCells(t, vmin=vm, vratio=vr)
         nb_cells1 = nb_cells(t)
@@ -50,7 +50,7 @@ def aglomerateNonStar(t):
     nb_cells0 = nb_cells(t)
     carry_on=1
     i=0
-    while (carry_on == 1):  
+    while (carry_on == 1):
         print(" ")
         print("iter %s"%i)
         t=XOR.agglomerateNonStarCells(t)
@@ -59,7 +59,7 @@ def aglomerateNonStar(t):
         nb_cells1 = nb_cells(t)
         if (nb_cells1 == nb_cells0): carry_on=0
         if (carry_on == 0): print("no cell found.")
-        if (nb_cells1 != nb_cells0) : 
+        if (nb_cells1 != nb_cells0) :
             print("%d cells have been aglomerated"%(nb_cells0-nb_cells1))
             #C.convertPyTree2File(t, "nonstar_iter_%s.cgns"%i)
         nb_cells0 = nb_cells1
@@ -99,7 +99,7 @@ for i in range(5):
     print(" 2.1. prepareCellsSplit by convexifying any concave PH...")
     set = 1 # 0 for concave cells or 1 for non-centroid-star_shaped cells
     policy = 0 #0 : convexify concave pgs on PH set. 1 : starify concave pgs on PH set. 2 : starify any pgs at concave-chains ends
-    t = XOR.prepareCellsSplit(t, PH_set = set, split_policy = policy, PH_conc_threshold = 0.01, PH_cvx_threshold = 0.05, PG_cvx_threshold = 1.e-8)
+    t = XOR.prepareCellsSplit(t, PH_set=set, split_policy=policy, PH_conc_threshold=0.01, PH_cvx_threshold=0.05, PG_cvx_threshold=1.e-8)
     print(" 2.2 splitNonStarCells...")
     t = XOR.splitNonStarCells(t)
     print(" 2.3 : simplify cells")

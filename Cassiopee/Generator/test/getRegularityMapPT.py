@@ -1,4 +1,4 @@
-# - getRegularityMapPT (pyTree) - 
+# - getRegularityMapPT (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 

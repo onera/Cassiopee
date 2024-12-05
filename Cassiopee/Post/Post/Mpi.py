@@ -99,7 +99,7 @@ def integNormProduct(t, vector=[]):
     if t is not None:
         ret = P.integNormProduct(t, vector)
     else:
-        ret = 0.    
+        ret = 0.
     ret = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)
@@ -110,7 +110,7 @@ def integMoment(t, center=(0.,0.,0.), vector=[]):
     if t is not None:
         ret = P.integMoment(t, center, vector)
     else:
-        ret = 0.    
+        ret = 0.
     ret = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)
@@ -121,7 +121,7 @@ def integMomentNorm(t, center=(0.,0.,0.), var=''):
     if t is not None:
         ret = P.integMomentNorm(t, center, var)
     else:
-        ret = 0.    
+        ret = 0.
     ret = numpy.array(ret, dtype=numpy.float64)
     ret1 = numpy.empty(ret.shape, dtype=numpy.float64)
     Cmpi.Allreduce(ret, ret1, Cmpi.SUM)

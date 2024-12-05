@@ -14,4 +14,3 @@ test.testO(res, 1)
 a2 = T.translate(a2, (-0.1,-0.1,0))
 res = G.CEBBIntersection(a1, a2)
 test.testO(res, 2)
-

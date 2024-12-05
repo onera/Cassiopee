@@ -19,4 +19,3 @@ m = XOR.adaptCells(a,b, sensor_type=1)
 m = XOR.closeCells(m[0])
 test.testA(m,2)
 #C.convertArrays2File([m], 't1_2.plt')
-

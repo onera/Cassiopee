@@ -38,7 +38,7 @@ def readGitInfo(filename):
                 info = line.strip().split(' ')
                 gitInfo['Git branch'] = info[2][:-1]
                 gitInfo['Commit hash'] = info[-1]
-            if all(v is not None for v in gitInfo.values()):  
+            if all(v is not None for v in gitInfo.values()):
                 break
     return gitInfo
 
@@ -65,7 +65,7 @@ def readLog(filename):
     session = []
     with open (filename, 'r') as f:
         for line in f:
-            if ' :' in line: 
+            if ' :' in line:
                 test = line.strip().split(':')
                 session.append([e.strip() for e in test])
     return session
@@ -98,7 +98,7 @@ def diffTest(test, ref, new):
     else:
         return ''
 
-# Return test execution time of the Base, the reference log and the new log  
+# Return test execution time of the Base, the reference log and the new log
 def getExecTime(test, ref, new):
     def _testStr2Time(t):
         t = t[:-1].split('m')
@@ -138,7 +138,7 @@ if __name__ == '__main__':
         script_args.logs = findLogs(script_args.prod)
         if not(isinstance(script_args.logs, list) and len(script_args.logs) == 2):
             raise Exception("Two session logs were not found for prod. {}".format(
-                              script_args.prod))
+                script_args.prod))
     else:
         script_args.logs = script_args.logs.split(' ')
         if len(script_args.logs) != 2:
@@ -252,7 +252,7 @@ if __name__ == '__main__':
                 import shutil
                 os.remove(script_args.logs[0])
                 newRef = os.path.join(os.path.dirname(script_args.logs[1]),
-                    'REF-' + os.path.basename(script_args.logs[1]))
+                                      'REF-' + os.path.basename(script_args.logs[1]))
                 shutil.copyfile(script_args.logs[1], newRef)
             else: exitStatus = 2
 

@@ -30,7 +30,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     alphaMax = 360.-alpha0
 
     # Split curve
-    curve = G.close(curve)    
+    curve = G.close(curve)
     curves = T.splitCurvatureRadius(curve, splitCrit)
     #C.convertArrays2File(curves, 'split.plt')
 
@@ -247,7 +247,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
         elif (ext[c,0] == 2 and ext[c,1] == 2):
             if ne == 1: # une seule courbe
                 nghb[c,0] = 0; nghb[c,1] = 0
-                nghbind[c,0] = curves[c][2]; nghbind[c,1] = 1 
+                nghbind[c,0] = curves[c][2]; nghbind[c,1] = 1
             m = generateExtExtMatch(c, curves, density, extension, delta,
                                     nghb[c,0], nghb[c,1],
                                     nghbind[c,0], nghbind[c,1])
@@ -494,7 +494,7 @@ def generateOtherCases(curve, curves,
         pz3 = z1 + n[1][2,0] * h
         d3 = D.line((x1,y1,z1), (px3,py3,pz3),ext)
 
-        if (ext2 == 0):# TFI paroi            
+        if (ext2 == 0):# TFI paroi
             if (nghbind2 == 1):
                 h0 = h / math.sin( angle2 * math.pi / 180. )
                 h0 = min(h0, 2*h)
@@ -532,7 +532,7 @@ def generateOtherCases(curve, curves,
             pz3 = pz1 + n[1][2,p-1] * h
             d4 = D.line((px1,py1,pz1), (px3,py3,pz3),ext)
 
-        d2 = buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2) 
+        d2 = buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2)
         r02 = G.cart((0,0,0), (1./(d1[2]-1),1,1), (d1[2],1,1))
         d2 = G.map(d2,r02)
 
@@ -548,7 +548,7 @@ def generateOtherCases(curve, curves,
         px2 = x1 - ext*(x3-x1)*hmv1/norm
         py2 = y1 - ext*(y3-y1)*hmv1/norm
         pz2 = z1 - ext*(z3-z1)*hmv1/norm
-        line1 = D.line((x1,y1,z1), (0.5*(px1+px2),0.5*(py1+py2),0.5*(pz1+pz2)),ext)        
+        line1 = D.line((x1,y1,z1), (0.5*(px1+px2),0.5*(py1+py2),0.5*(pz1+pz2)),ext)
         line1 = T.reorder(line1,(-1,2,3))
         # ajout du nouveau d3 pres de l'extension coincidente
         line4 = d3
@@ -733,7 +733,7 @@ def generateOtherCases(curve, curves,
     m = G.TFI([r3, r4, r1, r2])
     m = T.reorder(m, (-1,2,3))
 
-    #m = G.TTM(m, 20)   
+    #m = G.TTM(m, 20)
     curve[0] = vars
     return m
 
@@ -830,7 +830,7 @@ def buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2):
     ind13 = D.getDistantIndex(d1, 1, s1*l)
     ind23 = D.getDistantIndex(d1, 1, s2*l)
     #print ext1,ext2,s1,s2, ind13, ind23, d1[2]
-    #print d1[1][0,0], d1[1][1,0] 
+    #print d1[1][0,0], d1[1][1,0]
     #print ind13, ind23, l, 1./3.*l
 
     d1p = d1[1]; d3p = d3[1]; d4p = d4[1]
@@ -863,7 +863,7 @@ def buildd2(d1, d3, d4, h, ext1, ext2, angle1, angle2):
         sl = (sp[0,i]-s2)/(1. -s2)
         vect[1][0,i] = sl*h2x + (1.-sl)*h*np[0,ind23]
         vect[1][1,i] = sl*h2y + (1.-sl)*h*np[1,ind23]
-        vect[1][2,i] = sl*h2z + (1.-sl)*h*np[2,ind23]  
+        vect[1][2,i] = sl*h2z + (1.-sl)*h*np[2,ind23]
     d2 = T.deform(d1, vect)
     return d2
 
@@ -884,7 +884,7 @@ def buildBC(m, walls,  ext1, ext2, extension):
     elif ext1 <= 0 and ext2 > 0:
         i2 = m[2];  i1 = extension
     else:
-        i2 = m[2]-extension+1; i1 = 1  
+        i2 = m[2]-extension+1; i1 = 1
 
     wrange = [i1,i2,1,1,1,m[4]]
     wl.append(wrange)

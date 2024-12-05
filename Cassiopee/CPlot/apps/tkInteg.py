@@ -168,7 +168,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 1 (v1).')
         WIDGETS['variable1'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[2], 
+        B = ttk.Combobox(F, textvariable=VARS[2],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList1_2)
@@ -186,7 +186,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 2 (v2).')
         WIDGETS['variable2'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[3], 
+        B = ttk.Combobox(F, textvariable=VARS[3],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2_2)
@@ -204,7 +204,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 3 (v3).')
         WIDGETS['variable3'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[4], 
+        B = ttk.Combobox(F, textvariable=VARS[4],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList3_2)

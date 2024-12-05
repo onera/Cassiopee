@@ -13,7 +13,7 @@ CPlot.finalizeExport(2) # wait for end of file write
 for i in range(5):
     a = T.rotate(a, (0,0,0), (0,0,1), 1.)
     CPlot.display(a, offscreen=2, bgColor=1, mode=0, meshStyle=2,
-              solidStyle=1, posCam=(0,6,0), export='one%d.png'%i)
+                  solidStyle=1, posCam=(0,6,0), export='one%d.png'%i)
     CPlot.finalizeExport(2) # wait for end of file write
 import os; os._exit(0)
 

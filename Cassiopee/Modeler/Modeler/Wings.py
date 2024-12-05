@@ -448,7 +448,7 @@ def splinelaw(polyLine, N=100, Distribution=None, SplineDegree=3):
 
 
 def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
-        dihedral=[0.], distribution=[{'points':10}],sectionShapeLaw='linear'):
+         dihedral=[0.], distribution=[{'points':10}],sectionShapeLaw='linear'):
     '''
     This function builds an airplane's wing section by section, using typical
     aerodynamic parameters. The result is a structured surface.
@@ -540,7 +540,7 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
     k0 = 0
     PreviousSpan = 0. # and this is its corresponding spanwise position
     for w in range(WingElts):
-#        print 'k0:',k0,'PreviousSpan',PreviousSpan,'k0+Ne[w]:',k0+Ne[w]
+        #        print 'k0:',k0,'PreviousSpan',PreviousSpan,'k0+Ne[w]:',k0+Ne[w]
         disI = 0 if len(distribution) != WingElts else w
         Interpolation = 'linear' if not 'kind' in distribution[disI] else distribution[disI]['kind']
         if Interpolation == 'linear':
@@ -575,15 +575,15 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
 
     # Old version, makes
     interpX = scipy.interpolate.interp1d( SectionsSpanPositions, InterpXmatrix, axis=0,
-        kind=sectionShapeLaw, bounds_error=False, fill_value=InterpXmatrix[0,:])
+                                          kind=sectionShapeLaw, bounds_error=False, fill_value=InterpXmatrix[0,:])
     interpY = scipy.interpolate.interp1d( SectionsSpanPositions, InterpYmatrix, axis=0,
-        kind=sectionShapeLaw, bounds_error=False, fill_value=InterpYmatrix[0,:])
+                                          kind=sectionShapeLaw, bounds_error=False, fill_value=InterpYmatrix[0,:])
 
     # Constructs the wing section by section
     for k in range(Ntot):
         # X and Y coords are based upon the interpolating functions
-#        print 'shape interpX(ElementSpanPositions[k]):',interpX(ElementSpanPositions[k]).shape
-#        print 'shape Wing[1][0][:,:,k]',Wing[1][0][:,:,k].shape
+        #        print 'shape interpX(ElementSpanPositions[k]):',interpX(ElementSpanPositions[k]).shape
+        #        print 'shape Wing[1][0][:,:,k]',Wing[1][0][:,:,k].shape
         Wing[1][0][:,:,k] = interpX(ElementSpanPositions[k])[numpy.newaxis].T#numpy.reshape(interpX(ElementSpanPositions[k]).flatten(),(W4dims[1],W4dims[2]),order='F')
         Wing[1][1][:,:,k] = interpY(ElementSpanPositions[k])[numpy.newaxis].T#numpy.reshape(interpY(ElementSpanPositions[k]).flatten(),(W4dims[1],W4dims[2]),order='F')
         # Z coords:
@@ -681,11 +681,11 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
 
     # Makes the interpolation functions
     interpX = scipy.interpolate.interp1d( SpanPositions, InterpXmatrix, axis=0,
-        kind=sectionShapeLaw, bounds_error=False, fill_value=InterpXmatrix[0,:])
+                                          kind=sectionShapeLaw, bounds_error=False, fill_value=InterpXmatrix[0,:])
     interpY = scipy.interpolate.interp1d( SpanPositions, InterpYmatrix, axis=0,
-        kind=sectionShapeLaw, bounds_error=False, fill_value=InterpYmatrix[0,:])
+                                          kind=sectionShapeLaw, bounds_error=False, fill_value=InterpYmatrix[0,:])
     interpR = scipy.interpolate.interp1d( SpanPositions, rotation, axis=0,
-        kind=rotationLaw, bounds_error=False, fill_value=rotation[0])
+                                          kind=rotationLaw, bounds_error=False, fill_value=rotation[0])
 
     # Constructs the surface plane by plane
     InterpolatedProfiles = [sections[0]]
@@ -696,18 +696,18 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
         # Z coords results of a imposed twist + 3D rotation + translation
         # imposed twist
         InterpolatedProfiles[k] = T.rotate(InterpolatedProfiles[k],(0,0,0),
-                                    (0.,0.,interpR(UnitCurvAbscissa[k])))
+                                           (0.,0.,interpR(UnitCurvAbscissa[k])))
         # 3D rotation: We look for the local reference frame e1 e2 e3
         e3 = Tang[1][:,k].flatten()
         e2 = numpy.cross(e3,NormalDirection)
         e2 /= numpy.linalg.norm(e2) # normalization
         e1 = numpy.cross(e2,e3)
         InterpolatedProfiles[k] = T.rotate(InterpolatedProfiles[k],(0.,0.,0.),
-                                                 ((1.,0.,0.),(0,1,0),(0,0,1)),(e1, e2, e3) )
+                                           ((1.,0.,0.),(0,1,0),(0,0,1)),(e1, e2, e3) )
 
         # translation
         InterpolatedProfiles[k] = T.translate(InterpolatedProfiles[k],
-                                (spine[1][0][k],spine[1][1][k],spine[1][2][k]))
+                                              (spine[1][0][k],spine[1][1][k],spine[1][2][k]))
         # The interpolated profile at this point is done, we save it in our mesh
         # First we translate it into Arrays3D format
         InterpolatedProfiles[k] = Converter.Array3D.convertArrays2Arrays3D([InterpolatedProfiles[k]])[0]
@@ -719,4 +719,3 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
         InterpolatedProfiles.append(sections[0])
 
     return Converter.Array3D.convertArrays3D2Arrays([Surf])[0]
-

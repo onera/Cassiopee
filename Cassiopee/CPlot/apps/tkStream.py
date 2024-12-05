@@ -178,7 +178,7 @@ def streamRibbon():
             source[2].append(b)
 
     try:
-        stream = P.streamRibbon(source, (l[0], l[1], l[2]), (0,0,0.01), 
+        stream = P.streamRibbon(source, (l[0], l[1], l[2]), (0,0,0.01),
                                 [v1, v2, v3], N=npts)
         CTK.add(CTK.t, nob, -1, stream)
         CTK.TXT.insert('START', 'Stream ribbon created.\n')
@@ -221,14 +221,14 @@ def createApp(win):
     # - VARS -
     # -0- nptsmax -
     V = TK.StringVar(win); V.set('2000'); VARS.append(V)
-    if 'tkStreamNpts' in CTK.PREFS: 
+    if 'tkStreamNpts' in CTK.PREFS:
         V.set(CTK.PREFS['tkStreamNpts'])
     # -1- Var0 for vector -
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
     # -2- Var1 for vector -
     V = TK.StringVar(win); V.set('CoordinateY'); VARS.append(V)
     # -3- Var2 for vector -
-    V = TK.StringVar(win); V.set('CoordinateZ'); VARS.append(V)    
+    V = TK.StringVar(win); V.set('CoordinateZ'); VARS.append(V)
 
     # - Menu des variables -
     F = TTK.Frame(Frame, borderwidth=0)
@@ -241,7 +241,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 1.')
         WIDGETS['variable1'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[1], 
+        B = ttk.Combobox(F, textvariable=VARS[1],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList1_2)
@@ -259,7 +259,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 2.')
         WIDGETS['variable2'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[2], 
+        B = ttk.Combobox(F, textvariable=VARS[2],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2_2)
@@ -277,7 +277,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable 3.')
         WIDGETS['variable3'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[3], 
+        B = ttk.Combobox(F, textvariable=VARS[3],
                          values=[], state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList3_2)

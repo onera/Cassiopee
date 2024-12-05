@@ -22,7 +22,7 @@ x[1] = 3.; y[ 1 ] = 2.; z[ 1 ] = 0.
 x[2] = 2.; y[ 2 ] = 3.; z[ 2 ] = 0.
 x[3] = 6.; y[ 3 ] = 5.; z[ 3 ] = 0.
 x[4] = 5.; y[ 4 ] = 7.; z[ 4 ] = 0.
-b2 = D.bezier( pts ) 
+b2 = D.bezier( pts )
 C.convertArrays2File([d1, d2, b1, b2], 'geom.plt')
 
 # Regular discretision of each line

@@ -22,4 +22,3 @@ eps = numpy.empty((C.getNPts(a)), dtype=numpy.float64)
 eps[:] = 0.1
 T._smoothField(a, eps, niter, type, ['Density'])
 test.testT(a, 3)
-

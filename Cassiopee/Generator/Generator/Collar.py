@@ -27,10 +27,10 @@ except:
 # Return the list of created collar grids and the list of BCWall ranges as
 # [[z1,range11,range12,...],[z2,range21,...],...]
 # =============================================================================
-def createCollarMesh__(s1, s2, distribj, distribk, niterj, niterk, ext, 
-                       alphaRef, btype, contour, constraints1, constraints2, 
+def createCollarMesh__(s1, s2, distribj, distribk, niterj, niterk, ext,
+                       alphaRef, btype, contour, constraints1, constraints2,
                        toldist):
-    hjmin = distribj[1][0,1] 
+    hjmin = distribj[1][0,1]
     remap = 1 # 1: remap l'edge ...
     vars0 = 'x,y,z'
     if contour != []: contour[0] = vars0; remap = 0
@@ -55,7 +55,7 @@ def createCollarMesh__(s1, s2, distribj, distribk, niterj, niterk, ext,
     compCons1 = 0; compCons2 = 0
 
     for noe in range(len(edges)):
-        edge = edges[noe]              
+        edge = edges[noe]
         # Remap l'edge si construit automatiquement par booleanSurfaceEdges
         if remap == 1: edge = remapIntersectionEdge__(edge,s1,s2,hjmin,constraints1+constraints2,alphaRef,toldist)
         # Creation de la collar mesh
@@ -94,9 +94,9 @@ def getSplitZones__(a, constraints,toldist):
         pool.append(T.subzone(a,(indices[i],1,1),(indices[i+1],nj,nk)))
         i += 1
     # fin
-    if indices[i] != ni: 
+    if indices[i] != ni:
         if firstsplit == 1: pool = [z0]+pool; pool += [T.subzone(a,(indices[i],1,1),(ni,nj,nk))]
-        else: 
+        else:
             pool += [T.join([z0,T.subzone(a,(indices[i],1,1),(ni,nj,nk))])]
     else:
         pool = [z0]+pool
@@ -106,7 +106,7 @@ def getSplitZones__(a, constraints,toldist):
 # cas ou le contour initial est obtenu par intersection geometrique entre les
 # deux surfaces s1 et s2
 # IN : constraints : liste des lignes contraintes a respecter
-# IN : hjmin : hauteur de la 1ere maille en j a comparer avec la longueur des mailles des edges 
+# IN : hjmin : hauteur de la 1ere maille en j a comparer avec la longueur des mailles des edges
 #-----------------------------------------------------------------------------
 def remapIntersectionEdge__(edge, s1, s2, hjmin, constraints, alphaRef, toldist):
     if constraints == []:
@@ -128,7 +128,7 @@ def remapIntersectionEdge__(edge, s1, s2, hjmin, constraints, alphaRef, toldist)
                 db = G.cart((0,0,0), (1./(net-1.),1,1), (net,1,1) )
                 e = G.map(e, db)
                 edges[noe] = e
-        edge = T.join(edges)        
+        edge = T.join(edges)
         return edge
 
 #-----------------------------------------------------------------------------
@@ -136,10 +136,10 @@ def remapIntersectionEdge__(edge, s1, s2, hjmin, constraints, alphaRef, toldist)
 #-----------------------------------------------------------------------------
 def getExtremaAnglesAtJunction__(edge, s1,s2):
     ni = s1[2]; nj = s1[3]
-    s = T.join([s1,s2]); s = C.convertArray2Tetra(s) 
+    s = T.join([s1,s2]); s = C.convertArray2Tetra(s)
 
     alp = D.getSharpestAngle(s); #alp = C.addVars([s, alp])
-    alp0 = alp[1][0]    
+    alp0 = alp[1][0]
     alpha = C.initVars(edge,'alpha',0.); alpha = C.extractVars(alpha,['alpha']); alpt = alpha[1][0]
     xt = C.extractVars(edge,['x'])[1][0]
     yt = C.extractVars(edge,['y'])[1][0]
@@ -159,7 +159,7 @@ def getExtremaAnglesAtJunction__(edge, s1,s2):
 # as [[z1,win1,win2,...],[z2,win1,win2]]
 # nremapPts: nb de pts de remap de l edge initial
 #-----------------------------------------------------------------------------
-def buildDifferenceCollarMesh__(edge, s0, s1, s2, distribj, distribk, constraints1, constraints2, 
+def buildDifferenceCollarMesh__(edge, s0, s1, s2, distribj, distribk, constraints1, constraints2,
                                 niterj, niterk, ext, alphaRef, toldist):
     check = 1
     s2 = T.reorder(s2,(-1,))
@@ -192,15 +192,15 @@ def buildDifferenceCollarMesh__(edge, s0, s1, s2, distribj, distribk, constraint
     #===================================================
     walkin1 = SW.surfaceWalk__([s1], edge1, distribj, constraints1, niterj, alphaRef, check, toldist)
     walkin2 = SW.surfaceWalk__([s2], edge1opp, distribj, constraints2, niterj, alphaRef, check, toldist)
-    ni1 = walkin1[2]; nj1 = walkin1[3]; nj2 = walkin2[3]   
-    if nj1 == 1: raise ValueError("collarMesh: surfaceWalk failed on 1st surface.")      
+    ni1 = walkin1[2]; nj1 = walkin1[3]; nj2 = walkin2[3]
+    if nj1 == 1: raise ValueError("collarMesh: surfaceWalk failed on 1st surface.")
     if nj2 == 1: raise ValueError("collarMesh: surfaceWalk failed on 2nd surface.")
     if ext > 1:
         walkout1 = SW.surfaceWalk__([s1], edge1opp, distribj, constraints1, niterj, alphaRef, check, toldist)
         walkout2 = SW.surfaceWalk__([s2], edge1, distribj, constraints2, niterj, alphaRef, check, toldist)
         njo1 = walkout1[3]; njo2 = walkout2[3]
-        if njo1 == 1: raise ValueError("collarMesh: surfaceWalk for extension failed on 1st surface.")      
-        if njo2 == 1: raise ValueError("collarMesh: surfaceWalk for extension failed on 2nd surface.") 
+        if njo1 == 1: raise ValueError("collarMesh: surfaceWalk for extension failed on 1st surface.")
+        if njo2 == 1: raise ValueError("collarMesh: surfaceWalk for extension failed on 2nd surface.")
         #
         # Extrusion en k
         [walkin1,walkout1] = G.addNormalLayers([walkin1,walkout1],distribk,niter=niterk,check=1)
@@ -209,17 +209,17 @@ def buildDifferenceCollarMesh__(edge, s0, s1, s2, distribj, distribk, constraint
         # Remap walkin1 et walkin2
         nk1 = walkout1[4]; nk2 = walkout2[4]
         walkin1 = G.map(walkin1,sourcej,dir=2); walkin2 = G.map(walkin2,sourcej,dir=2)
-        walkout1 = G.map(walkout1,sourcej,dir=2); walkout1 = T.subzone(walkout1,(1,1,1),(ni1,ext+1,nk1))  
+        walkout1 = G.map(walkout1,sourcej,dir=2); walkout1 = T.subzone(walkout1,(1,1,1),(ni1,ext+1,nk1))
         walkout2 = G.map(walkout2,sourcej,dir=2); walkout2 = T.subzone(walkout2,(1,1,1),(ni1,ext+1,nk2))
         #
         # Join
         z1 = T.join(walkin1,walkout1); z2 = T.join(walkin2,walkout2)
         z1 = T.reorder(z1,(2,-1,3)); z2 = T.reorder(z2,(2,-1,3))
-        #        
-        # determination des parois       
+        #
+        # determination des parois
         imin1 = walkin1[2]; jmin1 = walkin1[3]; imin2 = walkin2[2]; jmin2 = walkin2[3]
-        krange1 = [1,imin1,1,jmin1,1,1]; krange2 = [1,imin2,1,jmin2,1,1]        
-        return [[z1,krange1],[z2,krange2]] 
+        krange1 = [1,imin1,1,jmin1,1,1]; krange2 = [1,imin2,1,jmin2,1,1]
+        return [[z1,krange1],[z2,krange2]]
     else:
         [walkin1,walkin2] = G.addNormalLayers([walkin1,walkin2],distribk,niter=niterk,check=1)
         # Remap walkin1 et walkin2
@@ -228,14 +228,14 @@ def buildDifferenceCollarMesh__(edge, s0, s1, s2, distribj, distribk, constraint
         # Map en k
         z = G.map(z,sourcek,3)
         imin1 = z[2]; jmin1 = z[3]; krange = [1,imin1,1,jmin1,1,1]
-        return [[z,krange]] 
+        return [[z,krange]]
 
 #------------------------------------------------------------------------------
 # builds the collar mesh in case of union
 # return the list of zones as [[z1,win1,win2,...],[z2,win1,win2]]
 #------------------------------------------------------------------------------
 def buildUnionCollarMesh__(edge, s0, s1, s2, distribj, distribk,
-                           constraints1, constraints2, 
+                           constraints1, constraints2,
                            niterj, niterk, alphaRef, toldist):
     check = 1
     #===================================================
@@ -266,17 +266,17 @@ def buildUnionCollarMesh__(edge, s0, s1, s2, distribj, distribk,
     else: edge1opp = edge0; edge1 = T.reorder(edge0,(-1,2,3))
     walkin2 = SW.surfaceWalk__([s2], edge1opp, distribj, constraints2, niterj, alphaRef, check, toldist)
     nj2 = walkin2[3]
-    if nj2 == 1: raise ValueError("collarMesh: surfaceWalk failed on 2nd surface.")     
+    if nj2 == 1: raise ValueError("collarMesh: surfaceWalk failed on 2nd surface.")
     #
-    walkin1 = SW.surfaceWalk__([s1], edge1, distribj, constraints1, niterj, alphaRef, check, toldist)        
+    walkin1 = SW.surfaceWalk__([s1], edge1, distribj, constraints1, niterj, alphaRef, check, toldist)
     nj1 = walkin1[3]
-    if nj1 == 1: raise ValueError("collarMesh: surfaceWalk failed on 1st surface.")     
+    if nj1 == 1: raise ValueError("collarMesh: surfaceWalk failed on 1st surface.")
     #
-    # determine the angle at the junction located at edge between s1 and s2    
+    # determine the angle at the junction located at edge between s1 and s2
     alpha,alphamin,alphamax = getExtremaAnglesAtJunction__(edge1,walkin1,T.reorder(walkin2,(-1,2,3)))
     ldk = D.getLength(distribk)
     # Remap walkin1 et walkin2
-    if alphamin < 120.  : # TFI si 180-60 deg 
+    if alphamin < 120.  : # TFI si 180-60 deg
         if alphamax < 120.: z1 = generateCollarVolumeMesh0__(walkin1,walkin2,sourcej,toldist)
         else: z1 = generateCollarVolumeMesh1__(walkin2,walkin1,sourcej,alpha,toldist)
         return [[z1,[1,1,1,z1[3],1,z1[4]],[1,z1[2],1,z1[3],1,1]]]
@@ -289,7 +289,7 @@ def buildUnionCollarMesh__(edge, s0, s1, s2, distribj, distribk,
             for z0 in z:
                 z0 = G.map(z0,sourcek,dir=3)
                 info.append([z0,[1,z0[2],1,z0[3],1,1]])
-        else: 
+        else:
             z = G.map(z,sourcek,dir=3)
             info.append([z,[1,z[2],1,z[3],1,1]])
         return info
@@ -322,11 +322,11 @@ def booleanSurface__(s1,s2,btype,toldist):
         extEdges2 = []
         try:
             extEdges2 = P.exteriorFaces(s2)
-            extEdges2 = T.splitConnexity(extEdges2)        
+            extEdges2 = T.splitConnexity(extEdges2)
             for noe in range(len(extEdges2)):
                 p = G.fittingPlaster(extEdges2[noe], bumpFactor=0.)
                 b = G.gapfixer(extEdges2[noe], p)
-                surfs2.append(b)           
+                surfs2.append(b)
         except: pass
         surf1 = T.join([s1]+surfs1); surf2 = T.join([s2]+surfs2)
         surf1 = T.reorder(surf1,(1,)); surf2 = T.reorder(surf2,(1,))
@@ -377,7 +377,7 @@ def joinTBranches__(edges,toldist):
 def booleanSurfaceEdges__(s1,s2, toldist):
     err = 0
     edge = XOR.intersection(s1,s2)
-    edge = G.close(edge,toldist)    
+    edge = G.close(edge,toldist)
     edges = T.splitConnexity(edge)
     for noe in range(len(edges)):
         edges0 = T.splitTBranches(edges[noe])
@@ -414,7 +414,7 @@ def getSurfaceConstraints__(iniSurf, boolSurf, edge, toldist, alphaRef=30.):
     if alphaMax-180. < alphaRef and 180-alphaMin < alphaRef: return []# pas de singularite dans le contour booleen
     # determination des contraintes : tri des edges candidats
     e0 = C.convertBAR2Struct(edgens)
-    edges10 = P.sharpEdges(boolSurf,alphaRef=alphaRef)    
+    edges10 = P.sharpEdges(boolSurf,alphaRef=alphaRef)
     edges10 = T.splitSharpEdges(edges10,alphaRef=alphaRef)
     edges10 = T.splitTBranches(edges10)
     # ne prendre que les contraintes issues de la surface courante iniSurf
@@ -458,7 +458,7 @@ def getSurfaceConstraints__(iniSurf, boolSurf, edge, toldist, alphaRef=30.):
 
     xt0 = C.extractVars(e0,['x'])[1][0,:]
     yt0 = C.extractVars(e0,['y'])[1][0,:]
-    zt0 = C.extractVars(e0,['z'])[1][0,:]                        
+    zt0 = C.extractVars(e0,['z'])[1][0,:]
     for noe1 in range(len(edges1)):
         e1 = edges1[noe1]
         dist1 = DTW.distance2Walls([e1],[e0], type='ortho',loc='nodes')[0]
@@ -478,7 +478,7 @@ def getSurfaceConstraints__(iniSurf, boolSurf, edge, toldist, alphaRef=30.):
                 else: ind1p = ind1-1
                 if ind2 < len(xt1)-1: ind2p = ind2+1
                 else: ind2p = ind2-1
-                xB = xt0[ind1p]; yB = yt0[ind1p]; zB = zt0[ind1p] 
+                xB = xt0[ind1p]; yB = yt0[ind1p]; zB = zt0[ind1p]
                 xC = xt1[ind2p]; yC = yt1[ind2p]; zC = zt1[ind2p]
                 # calcul de l angle entre les deux contours au pt d intersection
                 xAB = xB-xA; yAB = yB-yA; zAB = zB-zA
@@ -507,7 +507,7 @@ def createBFExtension(c, surfaces, projSurf, dhj, toldist, niter=0):
     vars = c0[0]
     d0 = DTW.distance2Walls([c0],projSurf, type='ortho',loc='centers')[0]; d0 = C.center2Node(d0)
     ind0 = SW.getMinDistIndex__(d0)
-    if ind0 != 0 : c0 = T.reorder(c0,(-1,2,3)) 
+    if ind0 != 0 : c0 = T.reorder(c0,(-1,2,3))
 
     c2 = T.projectOrtho(c0,surfaces); c2 = G.close(c2,tol=toldist)
     imax = c2[1].shape[1]; jmax = dhj[1].shape[1]
@@ -615,7 +615,7 @@ def generateCollarVolumeMesh0__(surf1, surf2, sourcej, toldist):
     # boucle : couper en 2 les 2 surfaces
     xmin1 = surf1[1][0,0]; ymin1 = surf1[1][1,0]; zmin1 = surf1[1][2,0]
     xmax1 = surf1[1][0,ni1-1]; ymax1 = surf1[1][1,ni1-1]; zmax1 = surf1[1][2,ni1-1]
-    cas1 = 0 
+    cas1 = 0
     mesh = []
     if abs(xmin1-xmax1) < toldist and abs(ymin1-ymax1)< toldist and abs(zmin1-zmax1)< toldist:
         surf1o = []; surf2o = []
@@ -660,7 +660,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
     xmin1 = surf1[1][0,0]; ymin1 = surf1[1][1,0]; zmin1 = surf1[1][2,0]
     xmax1 = surf1[1][0,ni1-1]; ymax1 = surf1[1][1,ni1-1]; zmax1 = surf1[1][2,ni1-1]
     isloop = 0
-    if abs(xmin1-xmax1) < toldist and abs(ymin1-ymax1)< toldist and abs(zmin1-zmax1)< toldist: 
+    if abs(xmin1-xmax1) < toldist and abs(ymin1-ymax1)< toldist and abs(zmin1-zmax1)< toldist:
         isloop = 1
         # verifier que ds le meme ordre
         x1 = surf1[1][0,1]; y1 = surf1[1][1,1]; z1 = surf1[1][2,1]
@@ -671,10 +671,10 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
     #================================================
     # 1er vecteur : tangente a surf1
     #================================================
-    n1 = C.array('sx,sy,sz',ni1,1,1); vect1 = n1[1]  
+    n1 = C.array('sx,sy,sz',ni1,1,1); vect1 = n1[1]
     coords1 = surf1[1]
     for i1 in range(ni1):
-        istart = i1; iend = i1+ni1#(nj1-1)*ni1 
+        istart = i1; iend = i1+ni1#(nj1-1)*ni1
         dx = coords1[0,iend]-coords1[0,istart]
         dy = coords1[1,iend]-coords1[1,istart]
         dz = coords1[2,iend]-coords1[2,istart]
@@ -690,7 +690,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
     surfu = C.convertArray2Hexa(surfLoc); surfu = G.close(surfu)
     surfu = T.reorder(surfu, (1,))
     indicesU = KCore.indiceStruct2Unstr2([surf2], surfu, 1.e-14)[0]
-    nu = G.getSmoothNormalMap(surfu)  
+    nu = G.getSmoothNormalMap(surfu)
     c2 = T.subzone(surfLoc,(1,1,1),(ni2,1,1))
     n2 = C.array('sx,sy,sz',ni2,1,1)
     for ind in range(ni2):
@@ -703,14 +703,14 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
     alp1 = C.extractVars(calpha,['alpha'])[1]
     n = C.array('sx,sy,sz',ni1,1,1);
     vn = n[1]; vn1 = n1[1]; vn2 = n2[1]
-    dh1 = T.subzone(surf1,(1,1,1),(1,surf1[3],1))  
+    dh1 = T.subzone(surf1,(1,1,1),(1,surf1[3],1))
     dh1 = T.reorder(dh1,(-2,1,3))
     l1 = D.getLength(dh1)
     alphamax = 90.
     for i in range(ni1):
         alp0 = alp1[0,i]
-        if alp0 < alphamax: 
-            for j in range(3): vn[j,i]=l1*vn1[j,i]       
+        if alp0 < alphamax:
+            for j in range(3): vn[j,i]=l1*vn1[j,i]
         else:
             for j in range(3): vn[j,i]=l1*vn2[j,i]
     # Petit lissage ...
@@ -728,7 +728,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
 
     c2p = T.deform(c2,n)
     c2p = C.extractVars(c2p,['x','y','z'])
-    #=============================================            
+    #=============================================
     # Construction de surf1opp
     #=============================================
     surf1opp = C.array('x,y,z',ni1,2,1)
@@ -739,8 +739,8 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
         indo = ind-ni1
         surf1opp[1][:,ind]= c2p[1][:,indo]
 
-    dh1 = T.subzone(surf1,(1,1,1),(1,nj1,1))   
-    dh1 = T.reorder(dh1,(-2,1,3)) 
+    dh1 = T.subzone(surf1,(1,1,1),(1,nj1,1))
+    dh1 = T.reorder(dh1,(-2,1,3))
     sourcej = D.getCurvilinearAbscissa(dh1)
     sourcej = C.initVars(sourcej, '{CoordinateX}={s}')
     sourcej = C.initVars(sourcej, '{CoordinateY}=0')
@@ -756,8 +756,8 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
         ind1 = i + (nj1-1)*ni1
         surf2opp[1][:,i] = surf1[1][:,ind1]
         surf2opp[1][:,i+ni1] = surf1opp[1][:,ind1]
-    dh2 = T.subzone(surf2,(1,1,1),(1,surf2[3],1))   
-    dh2 = T.reorder(dh2,(-2,1,3)) 
+    dh2 = T.subzone(surf2,(1,1,1),(1,surf2[3],1))
+    dh2 = T.reorder(dh2,(-2,1,3))
     sourcej2 = D.getCurvilinearAbscissa(dh2)
     sourcej2 = C.initVars(sourcej2,'{CoordinateX}={s}')
     sourcej2 = C.initVars(sourcej2,'{CoordinateY}=0')
@@ -787,7 +787,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
         surf2o = [surf2_1,surf2_2]; surf2oppo=[surf2opp_1,surf2opp_2]
     else:
         surf1o = [surf1]; surf1oppo = [surf1opp]
-        surf2o = [surf2]; surf2oppo = [surf2opp]        
+        surf2o = [surf2]; surf2oppo = [surf2opp]
     #
     #=============================================
     # creation des fenetres i = 1 et i = imax
@@ -796,7 +796,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
         r1 = surf1o[nos1]; r1opp = surf1oppo[nos1]
         r2 = surf2o[nos1]; r2opp = surf2oppo[nos1]
 
-        # Calcul de r5 
+        # Calcul de r5
         a11 = T.subzone(r1,(1,1,1),(1,r1[3],r1[4]))
         a21 = T.subzone(r1opp,(1,1,1),(1,r1opp[3],r1opp[4]))
         a31 = T.subzone(r2,(1,1,1),(1,r2[3],r2[4]))
@@ -811,7 +811,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
         a41 = T.subzone(r2opp,(r2opp[2],1,1),(r2opp[2],r2opp[3],r2opp[4]))
         A = [a11,a21,a31,a41]; A = T.reorder(A,(3,1,2))
         r6 = G.TFI(A)
-        out = [r1,r1opp,r2,r2opp,r5,r6]       
+        out = [r1,r1opp,r2,r2opp,r5,r6]
         m = G.TFI(out)
         mesh.append(m)
     mesh = T.join(mesh)
@@ -829,7 +829,7 @@ def buildTFIMeshType0__(r1,r2):
     # translation de r1 par rapport a r2 -> r1opp1
     # idem pour r2
     #=============================================
-    vect = C.array('sx,sy,sz',ni1,nj1,1); vect1 = vect[1]  
+    vect = C.array('sx,sy,sz',ni1,nj1,1); vect1 = vect[1]
     coords2 = r2[1]; r1opp = C.copy(r1)
 
     for j2 in range(nj2-1):
@@ -841,10 +841,10 @@ def buildTFIMeshType0__(r1,r2):
             for j1 in range(nj1):
                 vect1[0,i2+j1*ni1] = dx
                 vect1[1,i2+j1*ni1] = dy
-                vect1[2,i2+j1*ni1] = dz        
+                vect1[2,i2+j1*ni1] = dz
         r1opp = T.deform(r1opp,vect)
 
-    vect = C.array('sx,sy,sz',ni2,nj2,1); vect2 = vect[1]  
+    vect = C.array('sx,sy,sz',ni2,nj2,1); vect2 = vect[1]
     coords1 = r1[1]; r2opp = C.copy(r2)
     for j1 in range(nj1-1):
         for i1 in range(ni1):
@@ -860,7 +860,7 @@ def buildTFIMeshType0__(r1,r2):
 
     #=============================================
     # creation des fenetres i = 1 et i = imax
-    # calcul de r4 : 
+    # calcul de r4 :
     #=============================================
     r1opp = C.extractVars(r1opp,['x','y','z'])
     r2opp = C.extractVars(r2opp,['x','y','z'])
@@ -922,7 +922,7 @@ def orderContourForUnionSurface__(edge, s1, s2):
     etax1 = n1y*ksiz-n1z*ksiy; etay1 = n1z*ksix-n1x*ksiz; etaz1 = n1x*ksiy-n1y*ksix
     normeta1 = max(1.e-12,math.sqrt(etax1*etax1+etay1*etay1+etaz1*etaz1)); normeta1 = 1./(normeta1)
     etax1 = etax1*normeta1; etay1 = etay1*normeta1; etaz1 = etaz1*normeta1
-    #    
+    #
     n2 = G.getSmoothNormalMap(s2,niter=0); n2 = C.normalize(n2, ['sx','sy','sz'])
     pt2 = T.projectOrtho(ptA,[s2])
     x2 = pt2[1][0,0]; y2 = pt2[1][1,0]; z2 = pt2[1][2,0]

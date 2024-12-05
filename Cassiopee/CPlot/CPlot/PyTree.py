@@ -49,7 +49,7 @@ def display(t,
             bgColor=-1,
             backgroundFile="None",
             shadow=-1, lightOffset=(-999,-999),
-            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
+            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
             export="None", exportResolution="None",
             location="unchanged",
@@ -69,69 +69,69 @@ def display(t,
     CPlot.display(arrays, dim, mode, scalarField, vectorField1,
                   vectorField2, vectorField3, displayBB, displayInfo,
                   displayIsoLegend, meshStyle,
-                  solidStyle, scalarStyle, vectorStyle, 
+                  solidStyle, scalarStyle, vectorStyle,
                   vectorScale, vectorDensity, vectorNormalize,
                   vectorShowSurface, vectorShape, vectorProjection,
                   colormap, colormapC1, colormapC2, colormapC3, colormapC,
                   niso, isoEdges, isoScales, win,
                   posCam, posEye, dirCam, viewAngle,
-                  bgColor, backgroundFile, 
-                  shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                  bgColor, backgroundFile,
+                  shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                   stereo, stereoDist, panorama,
-                  export, exportResolution, 
+                  export, exportResolution,
                   zoneNames, renderTags, frameBuffer, offscreen,
                   posCamList, posEyeList, dirCamList)
 
 # CB: temporaire. Raw data direct display.
 def displayRaw(t,
-            dim=-1,
-            mode=-1,
-            scalarField=-1,
-            vectorField1=-1, vectorField2=-1, vectorField3=-1,
-            displayBB=-1,
-            displayInfo=-1,
-            displayIsoLegend=-1,
-            meshStyle=-1,
-            solidStyle=-1,
-            scalarStyle=-1,
-            vectorStyle=-1,
-            vectorScale=-1., vectorDensity=-1., vectorNormalize=-1,
-            vectorShowSurface=-1, vectorShape=-1, vectorProjection=-1,
-            colormap=-1,
-            colormapC1="", colormapC2="", colormapC3="", colormapC=None,
-            niso=25,
-            isoEdges=-0.5,
-            isoScales=[],
-            win=(-1,-1),
-            posCam=(-999,-999,-999),
-            posEye=(-999,-999,-999),
-            dirCam=(-999,-999,-999),
-            viewAngle=-1.,
-            bgColor=-1,
-            backgroundFile="None",
-            shadow=-1, lightOffset=(-999,-999),
-            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
-            stereo=-1, stereoDist=-1., panorama=0,
-            export="None", exportResolution="None",
-            location="unchanged",
-            frameBuffer=-1,
-            offscreen=0):
+               dim=-1,
+               mode=-1,
+               scalarField=-1,
+               vectorField1=-1, vectorField2=-1, vectorField3=-1,
+               displayBB=-1,
+               displayInfo=-1,
+               displayIsoLegend=-1,
+               meshStyle=-1,
+               solidStyle=-1,
+               scalarStyle=-1,
+               vectorStyle=-1,
+               vectorScale=-1., vectorDensity=-1., vectorNormalize=-1,
+               vectorShowSurface=-1, vectorShape=-1, vectorProjection=-1,
+               colormap=-1,
+               colormapC1="", colormapC2="", colormapC3="", colormapC=None,
+               niso=25,
+               isoEdges=-0.5,
+               isoScales=[],
+               win=(-1,-1),
+               posCam=(-999,-999,-999),
+               posEye=(-999,-999,-999),
+               dirCam=(-999,-999,-999),
+               viewAngle=-1.,
+               bgColor=-1,
+               backgroundFile="None",
+               shadow=-1, lightOffset=(-999,-999),
+               dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
+               stereo=-1, stereoDist=-1., panorama=0,
+               export="None", exportResolution="None",
+               location="unchanged",
+               frameBuffer=-1,
+               offscreen=0):
     zoneNames = C.getZoneNames(t)
     renderTags = getRenderTags(t)
     arrays = C.getAllFields(t, 'nodes', api=3)
     CPlot.display(arrays, dim, mode, scalarField, vectorField1,
                   vectorField2, vectorField3, displayBB, displayInfo,
                   displayIsoLegend, meshStyle,
-                  solidStyle, scalarStyle, vectorStyle, 
+                  solidStyle, scalarStyle, vectorStyle,
                   vectorScale, vectorDensity, vectorNormalize,
                   vectorShowSurface, vectorShape, vectorProjection,
                   colormap, colormapC1, colormapC2, colormapC3, colormapC,
                   niso, isoEdges, isoScales, win,
                   posCam, posEye, dirCam, viewAngle,
-                  bgColor, backgroundFile, 
-                  shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                  bgColor, backgroundFile,
+                  shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                   stereo, stereoDist, panorama,
-                  export, exportResolution, 
+                  export, exportResolution,
                   zoneNames, renderTags, frameBuffer, offscreen)
 
 #==============================================================================
@@ -144,7 +144,7 @@ def render():
 # This function doesnt remove zone from t
 def delete(zlist):
     """Delete zones from plotter."""
-    CPlot.delete(zlist)    
+    CPlot.delete(zlist)
 
 #==============================================================================
 def add(t, nob, noz, zone):
@@ -202,7 +202,7 @@ def display1D(t, slot=0, gridPos=(0,0), gridSize=(-1,-1),
         arrays = [array]
     else:
         arrays = C.getAllFields(t, 'nodes') # as pyZone
-    CPlot.display1D(arrays, slot, gridPos, gridSize, bgBlend, 
+    CPlot.display1D(arrays, slot, gridPos, gridSize, bgBlend,
                     var1, var2, r1, r2)
 
 #==============================================================================
@@ -337,13 +337,13 @@ def setState(dim=-1,
     CPlot.setState(dim, mode, scalarField, vectorField1, vectorField2,
                    vectorField3, displayBB, displayInfo, displayIsoLegend,
                    meshStyle, solidStyle, scalarStyle,
-                   vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                   vectorShowSurface, vectorShape, vectorProjection, 
+                   vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                   vectorShowSurface, vectorShape, vectorProjection,
                    colormap, colormapC1, colormapC2, colormapC3, colormapC,
                    niso, isoEdges, isoScales, win,
                    posCam, posEye, dirCam, viewAngle, lightOffset,
-                   bgColor, backgroundFile, 
-                   shadow, dof, dofPower, gamma, toneMapping, 
+                   bgColor, backgroundFile,
+                   shadow, dof, dofPower, gamma, toneMapping,
                    sobelThreshold, sharpenPower, ssaoPower,
                    ghostifyDeactivatedZones, edgifyActivatedZones,
                    edgifyDeactivatedZones, simplifyOnDrag,
@@ -351,7 +351,7 @@ def setState(dim=-1,
                    envmap, message,
                    stereo, stereoDist,
                    cursor, gridSize, timer, selectionStyle,
-                   activateShortCuts, billBoards, billBoardSize, 
+                   activateShortCuts, billBoards, billBoardSize,
                    materials, bumpMaps, frameBuffer, offscreen)
 
 def setMode(mode):
@@ -710,7 +710,7 @@ def getRenderTags__(z, renderTags):
                 for i in range(lgt):
                     shaderParameters += str(v[i])
                     if i < lgt-1: shaderParameters += ':'
-            else: shaderParameters = 'None:None' 
+            else: shaderParameters = 'None:None'
         renderTags.append(color+':'+material+':'+blending+':'+meshOverlay+':'+shaderParameters)
     return renderTags
 
@@ -774,13 +774,13 @@ def addRender2PyTree(t, slot=0, posCam=None, posEye=None, dirCam=None,
     return a
 
 def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
-                     mode=None, scalarField=None, niso=None, isoScales=None,
-                     isoEdges=None, isoLight=None, isoLegend=None,
-                     colormap=None, colormapC1=None, colormapC2=None, colormapC3=None, colormapC=None,
-                     materials=None, bumpMaps=None, billBoards=None,
-                     shadow=None, lightOffsetX=None, lightOffsetY=None,
-                     dof=None, tone=None, gamma=None, dofPower=None,
-                     sharpenPower=None, ssaoPower=None):
+                      mode=None, scalarField=None, niso=None, isoScales=None,
+                      isoEdges=None, isoLight=None, isoLegend=None,
+                      colormap=None, colormapC1=None, colormapC2=None, colormapC3=None, colormapC=None,
+                      materials=None, bumpMaps=None, billBoards=None,
+                      shadow=None, lightOffsetX=None, lightOffsetY=None,
+                      dof=None, tone=None, gamma=None, dofPower=None,
+                      sharpenPower=None, ssaoPower=None):
     """Add a renderInfo node to a tree.
     Usage: addRender2PyTree(t, renderInfo)"""
     if a[3] != 'CGNSTree_t': return None
@@ -1015,7 +1015,7 @@ def loadView(t, slot=0):
     pos = Internal.getNodeFromName1(slot, 'colormapC')
     if pos is not None: colormapC = Internal.getValue(pos)
     else: colormapC = []
-    style = colormap2Style(colormap, light) 
+    style = colormap2Style(colormap, light)
 
     if legend == 1: CPlot.setState(displayIsoLegend=legend)
 
@@ -1111,7 +1111,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     finalizeExport(offscreen)
 
     # left
-    posCam0 = posCam 
+    posCam0 = posCam
     posEye0 = Vector.add(posCam, v2)
     dirCam0 = dirCam
     lkwargs['posCam'] = posCam0
@@ -1121,7 +1121,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     lkwargs['exportResolution'] = locRez
     lkwargs['export'] = 'run/cube_left.png'
     display(t, **lkwargs)
-    finalizeExport(offscreen)   
+    finalizeExport(offscreen)
 
     # front
     posCam0 = posCam
@@ -1134,7 +1134,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     lkwargs['exportResolution'] = locRez
     lkwargs['export'] = 'run/cube_front.png'
     display(t, **lkwargs)
-    finalizeExport(offscreen)    
+    finalizeExport(offscreen)
 
     # back
     posCam0 = posCam
@@ -1362,7 +1362,7 @@ def display360ODS__(t, posCam, posEye, dirCam, offscreen, exportRez, stereoShift
     # start from -pi to pi and rotate left
     for i in range(nangles):
 
-        # simple parallel hack  
+        # simple parallel hack
         #if i%Cmpi.size != Cmpi.rank: continue
 
         theta = 180. - i*360./nangles
@@ -1560,7 +1560,7 @@ def display360(t, type360=0, **kwargs):
 
     # display
     if stereo == 0:
-        # display 6 views 
+        # display 6 views
         display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs)
         # Create the 360 image from cube images
         if Cmpi.rank == 0:
@@ -1732,7 +1732,7 @@ def panoramaStereo(export, export1, export2, exportRez, type360=0):
                 pr[0:ni,0:nj] = pr1[0:ni, 0:nj]
                 pr[0:ni,nj:2*nj] = pr2[0:ni, 0:nj]
             else:
-                if v == 'a': pr[0:ni, 0:2*nj] = 255 
+                if v == 'a': pr[0:ni, 0:2*nj] = 255
                 else: pr[0:ni, 0:2*nj] = 0
     else: # 180
         ni = int(locRez[1]); nj = int(locRez[1])

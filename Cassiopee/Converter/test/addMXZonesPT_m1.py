@@ -1,7 +1,7 @@
 # - addMXZones (pyTree) -
 import Converter.PyTree as CP
 import Generator.PyTree as GP
-import Transform.PyTree as TP 
+import Transform.PyTree as TP
 import Converter.Filter as Filter
 import Converter.Mpi    as Cmpi
 import KCore.test       as test
@@ -19,12 +19,12 @@ if Cmpi.rank == 0:
     CP.convertPyTree2File(t, LOCAL+'/case.cgns')
 Cmpi.barrier()
 
-# Load 
+# Load
 h = Filter.Handle(LOCAL+'/case.cgns')
 a = h.loadAndDistribute()
 
-# # Ajout XZones 
+# # Ajout XZones
 Cmpi._addMXZones(a)
 
-# Test 
+# Test
 if Cmpi.rank == 0: test.testT(a, 1)

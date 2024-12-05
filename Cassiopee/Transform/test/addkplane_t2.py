@@ -14,4 +14,3 @@ T._contract(t, (0,0,0), (1,0,0), (0,1,0), 0.1)
 test.testT(t ,1)
 
 #C.convertPyTree2File(t,'t_check.cgns')
-

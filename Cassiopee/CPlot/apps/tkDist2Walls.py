@@ -114,17 +114,17 @@ def createApp(win):
     # - VARS -
     # -0- Type de distance -
     V = TK.StringVar(win); V.set('ortho'); VARS.append(V)
-    if 'tkDist2WallsType' in CTK.PREFS: 
+    if 'tkDist2WallsType' in CTK.PREFS:
         V.set(CTK.PREFS['tkDist2WallsType'])
     # -1- Surfaces -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Signed ou absolute -
     V = TK.StringVar(win); V.set('absolute'); VARS.append(V)
-    if 'tkDist2WallsSigned' in CTK.PREFS: 
+    if 'tkDist2WallsSigned' in CTK.PREFS:
         V.set(CTK.PREFS['tkDist2WallsSigned'])
     # -3- Vars location -
     V = TK.StringVar(win); V.set('nodes'); VARS.append(V)
-    if 'tkVariablesLoc' in CTK.PREFS: 
+    if 'tkVariablesLoc' in CTK.PREFS:
         V.set(CTK.PREFS['tkVariablesLoc'])
 
     # - Surfaces -

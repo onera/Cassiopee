@@ -106,7 +106,7 @@ def reloadPrevStep(event=None):
         CTK.TXT.insert('START', 'Revert to previous solution step.\n')
         VARS[10].set('Main')
         NITRUN -= 1
-    except: 
+    except:
         CTK.TXT.insert('START', 'restart file not found.\n')
         VARS[10].set('Body')
 
@@ -244,7 +244,7 @@ def run(event=None):
             prepare() # save t, tc
             CTK.TXT.insert('START', 'Prepare OK.\n')
         except:
-            CTK.setCursor(0, WIDGETS['compute'])    
+            CTK.setCursor(0, WIDGETS['compute'])
             CTK.TXT.insert('START', 'Prepare failed.\n')
             return
 
@@ -308,7 +308,7 @@ def prepare(tinit=None):
     if dim is not None:
         dim = Internal.getNodeFromName1(dim, 'EquationDimension')
         dim = Internal.getValue(dim)
-        if dim == 2: 
+        if dim == 2:
             # in 2D, the case must be in XY plane
             C._initVars(CTK.t, 'CoordinateZ', 0.)
 
@@ -330,7 +330,7 @@ def prepare(tinit=None):
     CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns')
 
     # Preparation pour le front 42
-    #CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, 
+    #CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21,
     #                          tbox=tbox, check=False, tinit=tinit, frontType=42, yplus=150.)
 
     return None
@@ -365,17 +365,17 @@ def compute(nrun):
 
     myApp = App.IBM(format='single')
     myApp.set(numb={
-    "temporal_scheme": temporal_scheme,
-    "ss_iteration": ss_iteration,
-    "omp_mode": 1,
-    "modulo_verif": 50
+        "temporal_scheme": temporal_scheme,
+        "ss_iteration": ss_iteration,
+        "omp_mode": 1,
+        "modulo_verif": 50
     })
 
     myApp.set(numz={
-    "time_step": val,
-    "scheme": scheme,
-    "time_step_nature": time_step_nature,
-    "cfl": val
+        "time_step": val,
+        "scheme": scheme,
+        "time_step_nature": time_step_nature,
+        "cfl": val
     })
 
     nit = VARS[9].get() # nbre d'iterations a faire
@@ -428,7 +428,7 @@ def compute(nrun):
     C.convertPyTree2File(tc, 'tc_restart.cgns')
 
     # optional plots
-    if CTK.TKPLOTXY is not None: 
+    if CTK.TKPLOTXY is not None:
         updateWallPlot(WALL)
         updateLoadPlot(CL, CD, NITRUN, nit)
     return None
@@ -465,7 +465,7 @@ def updateWallPlot(walls):
     wallsz = Internal.getZones(walls)
     for c, b in enumerate(Internal.getBases(BODY)):
         zones = Internal.getZones(b)
-        if zones: 
+        if zones:
             n = Internal.getNodeFromPath(zones[0], '.Solver#define/extractWalls')
             if n is not None:
                 v = Internal.getValue(n)
@@ -507,7 +507,7 @@ def updateLoadPlot(CL, CD, nitrun, nit):
     outCL = []; outCD = []
     for c, b in enumerate(Internal.getBases(BODY)):
         zones = Internal.getZones(b)
-        if zones: 
+        if zones:
             n = Internal.getNodeFromPath(zones[0], '.Solver#define/extractLoads')
             if n is not None:
                 v = Internal.getValue(n)
@@ -701,7 +701,7 @@ def displaySlices():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkFastSolver  [ + ]  ', font=CTK.FRAMEFONT, 
+                           text='tkFastSolver  [ + ]  ', font=CTK.FRAMEFONT,
                            takefocus=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)

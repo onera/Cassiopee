@@ -28,7 +28,7 @@ def F(time):
 a = C.array('Time, Pressure', N, 1, 1)
 
 # Time
-for i in range(N): a[1][0,i] = Deltat*i 
+for i in range(N): a[1][0,i] = Deltat*i
 
 # Pressure
 a = C.initVars(a, 'Pressure', F, ['Time'])

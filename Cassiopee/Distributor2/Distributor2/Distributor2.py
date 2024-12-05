@@ -80,7 +80,7 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
             volComd = numpy.empty((2*size), dtype=E_NpyInt)
             for i, k in enumerate(allkeys):
                 volComd[2*i] = k
-                volComd[2*i+1] = comd[k]   
+                volComd[2*i+1] = comd[k]
         else: volComd = comd
 
     # Si algo=graph et pas de com, force algo=fast

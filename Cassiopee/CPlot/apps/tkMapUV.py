@@ -19,7 +19,7 @@ def generateUVMap():
     if CTK.t == []: return
 
     nzs = CPlot.getSelectedZones()
-    if nzs == []: 
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -68,7 +68,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Normal deviation.'); VARS.append(V)
 
     # - set Normal deviation -
-    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, 
+    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL,
                   command=setNormalDeviation, showvalue=0, borderwidth=1, value=100)
     WIDGETS['deviation'] = B
     WIDGETS['deviation'].set(20.)

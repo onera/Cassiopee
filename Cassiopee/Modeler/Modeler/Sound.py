@@ -3,7 +3,7 @@
 # If you add a function, dont forget to add it also to SoundLess.py
 
 try: import pyaudio
-except ImportError: 
+except ImportError:
     def initSound(): return None
     def closeSound(): return None
     def playMusic(fileName): return None
@@ -46,10 +46,10 @@ def playMusic(fileName):
     musicFileHandle = wave.open(fileName, 'rb')
     if audioHandle is None: initSound()
     stream = audioHandle.open(format=audioHandle.get_format_from_width(musicFileHandle.getsampwidth()),
-                    channels=musicFileHandle.getnchannels(),
-                    rate=musicFileHandle.getframerate(),
-                    output=True,
-                    stream_callback=musicCallback__)
+                              channels=musicFileHandle.getnchannels(),
+                              rate=musicFileHandle.getframerate(),
+                              output=True,
+                              stream_callback=musicCallback__)
     stream.start_stream()
     return stream
 
@@ -130,8 +130,8 @@ def playSound(soundHandle, poolNo=[]):
     elif i == 2: callback = soundCallback2__
     elif i == 3: callback = soundCallback3__
     else: callback = soundCallback0__
-    soundPool[i] = [None, 0, soundHandle[2], soundHandle[3], soundHandle[4], 
-    soundHandle[5], soundHandle[6]]
+    soundPool[i] = [None, 0, soundHandle[2], soundHandle[3], soundHandle[4],
+                    soundHandle[5], soundHandle[6]]
     try:
         stream = audioHandle.open(format=audioHandle.get_format_from_width(soundHandle[3]),
                                   channels=soundHandle[2],
@@ -154,7 +154,7 @@ def closeAllSounds():
         #print('Checking pool=',i)
         if h is not None:
             s = h[0]
-            if not s.is_active(): 
+            if not s.is_active():
                 s.close()
                 soundPool[i] = None
                 #print("closing pool=%d"%i)

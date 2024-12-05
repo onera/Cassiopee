@@ -82,7 +82,7 @@ def createColormap(type='Blue2Red'):
 def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.3f', discrete=True,
                    fontSize=20, color="black", location="right", pad=0.):
     """Create a color bar."""
-    if cmap is None: 
+    if cmap is None:
         cmap = CPlot.getState('colormap')
         if cmap == 0 or cmap == 1: # primaire
             cmap = createColormap('Blue2Red')
@@ -121,7 +121,7 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
         cset = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     fontdict = {'fontsize':fontSize}
-    from mpl_toolkits.axes_grid1 import make_axes_locatable    
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
     divider = make_axes_locatable(ax)
     cax = divider.append_axes(location, size="2%", pad=pad)
     if location == "top" or location == "bottom": orientation = "horizontal"
@@ -136,7 +136,7 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
     if title is not None:
         cbar.ax.set_title(title, fontdict=fontdict, color=color, pad=0.15*dpi)
 
-    fig.subplots_adjust(wspace=0.)    
+    fig.subplots_adjust(wspace=0.)
     return cbar
 
 #==========================================================
@@ -149,7 +149,7 @@ def getImage(fileName):
 #==========================================================
 # Create subplot with image in it
 # IN: img: image or image file name
-# OUT: fig, ax: figure and axes 
+# OUT: fig, ax: figure and axes
 #==========================================================
 def createSubPlot(img='.decorator.png', title=None, box=False):
     """Create a sub plot figure."""
@@ -166,7 +166,7 @@ def createSubPlot(img='.decorator.png', title=None, box=False):
     return fig, ax
 
 #==========================================================
-# Create a text 
+# Create a text
 #==========================================================
 def createText(ax, posx=0, posy=0, text='', size=20, color="black",
                box=False, boxColor="black", boxBackColor="white", **kwargs):

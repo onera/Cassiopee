@@ -19,6 +19,6 @@ test.testT(x,2)
 
 #~ x = XOR.booleanUnion(M1, M2, tol, preserve_right=1, solid_right=0)
 #~ test.testT(x,3)
-#~ 
+#~
 #~ x = XOR.booleanUnion(M1, M2, tol, preserve_right=0, solid_right=0)
 #~ test.testT(x,4)

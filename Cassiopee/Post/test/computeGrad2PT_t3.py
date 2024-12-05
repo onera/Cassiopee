@@ -7,7 +7,7 @@ import Transform.PyTree   as T
 import Connector.PyTree   as X
 import KCore.test         as test
 
-# Cas 3D avec raccord match  
+# Cas 3D avec raccord match
 # =========================
 ni = 30
 nj = 30
@@ -36,4 +36,3 @@ t = C.fillEmptyBCWith(t,"wall",'BCWall')
 P._computeGrad2(t, 'centers:F')
 
 test.testT(t,1)
-

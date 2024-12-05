@@ -1,5 +1,5 @@
 # - adapts a cells with respect to b points (PyTree) -
-# 
+#
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.PyTree as C
@@ -58,7 +58,7 @@ test.testT(m2,3)
 
 ## dynamic adaptation
 hmsh = XOR.createHMesh(mesh)
-m3 = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0)
+m3 = XOR.adaptCells(mesh, source, hmesh=hmsh, sensor_type=0)
 m3 = XOR.conformizeHMesh(m3, hmsh)
 m3 = XOR.closeCells(m3)
 
@@ -70,7 +70,7 @@ test.testT(m3,4)
 #C.convertPyTree2File(m3, 'PT_t3_4.cgns')
 
 hmsh = XOR.createHMesh(mesh)
-m4 = XOR.adaptCells(mesh, source, hmesh = hmsh, sensor_type=0, smoothing_type=1)
+m4 = XOR.adaptCells(mesh, source, hmesh=hmsh, sensor_type=0, smoothing_type=1)
 
 m4 = XOR.conformizeHMesh(m4, hmsh)
 m4 = XOR.closeCells(m4)
@@ -81,7 +81,7 @@ I._rmNodesByName(m4, 'rid')
 test.testT(m4,5)
 #C.convertPyTree2File(m4, 'PT_t3_5.cgns')
 
-m5 = XOR.adaptCells(m4, source, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
+m5 = XOR.adaptCells(m4, source, hmesh=hmsh, sensor_type=0) # applied to existing hmesh with the basic sensor
 
 m5 = XOR.conformizeHMesh(m4, hmsh)
 m5 = XOR.closeCells(m5)

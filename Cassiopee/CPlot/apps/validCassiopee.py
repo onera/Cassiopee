@@ -1,7 +1,7 @@
 # *Cassiopee* GUI for validation and tests
 import os, sys, re, glob, signal, platform
 import numpy as np
-import subprocess 
+import subprocess
 import threading
 import time
 import KCore
@@ -15,7 +15,7 @@ import socket
 machine = socket.gethostname()
 
 # Support MPI?
-try: 
+try:
     import mpi4py
     isMpi = True
 except: isMpi = False
@@ -67,8 +67,8 @@ WIDGETS = {}
 
 
 #==============================================================================
-# Classes used to by-pass tkinter in the absence of a display environment or 
-# for command-line execution 
+# Classes used to by-pass tkinter in the absence of a display environment or
+# for command-line execution
 #==============================================================================
 class NoDisplayListbox:
     def __init__(self, *args, **kwargs):
@@ -174,7 +174,7 @@ def getInstallPaths():
         import FastC.installPath
         fastIncDir = FastC.installPath.includePath
         fastIncDir = os.path.dirname(fastIncDir)
-    except: 
+    except:
         fastIncDir = None
     pmodulesDir = os.path.join(os.path.dirname(os.path.dirname(cassiopeeIncDir)),
                                'PModules')
@@ -396,7 +396,7 @@ def setPaths():
         for i in mods:
             if i not in MODULESDIR[loc]:
                 a = os.access(os.path.join(cassiopeeIncDir, i, 'test'), os.F_OK)
-                if a: 
+                if a:
                     MODULESDIR[loc][i] = cassiopeeIncDir
 
         # Validation CFD
@@ -501,7 +501,7 @@ def writeTime(fileTime, CPUtime, coverage):
     except: pass
 
 #==============================================================================
-# Ecrit un fichier contenant date, machine, nbre de threads, git info 
+# Ecrit un fichier contenant date, machine, nbre de threads, git info
 # et logTxt
 #==============================================================================
 def writeFinal(filename, gitInfo="", logTxt=None, append=False):
@@ -602,7 +602,7 @@ def extractCPUTimeUnix(output):
             tf += dt[i]*float(output[i])
         hf = tf//3600
         tf = tf%3600
-        output = [int(hf), int(tf//60), float(tf%60)]    
+        output = [int(hf), int(tf//60), float(tf%60)]
         if hf > 0.: CPUtime = '{:d}h{:d}m{:.2f}'.format(*output)
         elif output[1] > 0.: CPUtime = '{:d}m{:.2f}'.format(*output[1:])
         else: CPUtime = '0m{:.2f}'.format(output[-1])
@@ -947,11 +947,11 @@ def buildTestList(loadSession=False, modules=[]):
             sessionLog = [line.rstrip().split(':') for line in g.readlines()]
         # Remove header from logfile
         sessionLog = [testLog for testLog in sessionLog
-            if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+                      if (isinstance(testLog, list) and len(testLog) == ncolumns)]
         if not sessionLog:
             ncolumns = 7
             sessionLog = [testLog for testLog in sessionLog
-                if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+                          if (isinstance(testLog, list) and len(testLog) == ncolumns)]
         # Create array and remove leading and trailing white spaces
         arr = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
                        dtype=object)
@@ -965,11 +965,11 @@ def buildTestList(loadSession=False, modules=[]):
             with open(logname, "r") as g:
                 sessionLog = [line.rstrip().split(':') for line in g.readlines()]
             sessionLog = [testLog for testLog in sessionLog
-                if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+                          if (isinstance(testLog, list) and len(testLog) == ncolumns)]
             if not sessionLog:
                 ncolumns = 7
                 sessionLog = [testLog for testLog in sessionLog
-                    if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+                              if (isinstance(testLog, list) and len(testLog) == ncolumns)]
             arr2 = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
                             dtype=object)
             arr2 = arr2.reshape(-1, ncolumns)
@@ -1225,7 +1225,7 @@ def showPartialCovered():
     Listbox.delete(0, 'end')
     for s in TESTS:
         if (re.search(filter1, s) is None and re.search(filter2, s) is None
-            and re.search(filter3, s) is None):
+                and re.search(filter3, s) is None):
             Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
@@ -1330,7 +1330,7 @@ def stopTests():
     global STOP, THREAD, PROCESS
     STOP = 1
 
-    if PROCESS is not None: 
+    if PROCESS is not None:
         if mySystem == 'mingw' or mySystem == 'windows':
             subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
         else: # unix
@@ -1396,7 +1396,7 @@ def getThreads():
 #==============================================================================
 def export2Text():
     try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog 
+    except: import tkinter.filedialog as tkFileDialog
     ret = tkFileDialog.asksaveasfilename()
     if ret == '' or ret is None or ret == (): # user cancel
         return
@@ -1428,8 +1428,8 @@ def writeSessionLog():
     writeFinal(os.path.join(VALIDDIR['LOCAL'], 'session.log'), logTxt=messageText)
 
 #==============================================================================
-# Notify "Commit ready" 
-#============================================================================== 
+# Notify "Commit ready"
+#==============================================================================
 def notifyValidOK():
     cassiopeeIncDir = getInstallPaths()[0]
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
@@ -1573,7 +1573,7 @@ def setupGlobal(**kwargs):
     buildTestList(**kwargs)
     updateDBLabel()
 
-def getDBInfo():    
+def getDBInfo():
     dbInfo = ''
     if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK):
         filename = '/stck/cassiope/git/Cassiopee/Cassiopee/Valid{}/base.time'
@@ -1584,7 +1584,7 @@ def getDBInfo():
         except: pass
     return dbInfo
 
-def updateDBLabel():    
+def updateDBLabel():
     if not INTERACTIVE: return
     dbInfo = getDBInfo()
     if not dbInfo: return
@@ -1671,7 +1671,7 @@ def updateASANOptions():
     print("Info: ASAN_OPTIONS = " + os.getenv("ASAN_OPTIONS", ""))
     print("      LSAN_OPTIONS = " + os.getenv("LSAN_OPTIONS", ""))
 
-def updateASANLabel(entry_index):    
+def updateASANLabel(entry_index):
     if not INTERACTIVE: return
     if getDBInfo(): entry_index += 2
     label = toolsTab.entrycget(entry_index, "label")
@@ -1805,14 +1805,14 @@ if __name__ == '__main__':
         TextFilter.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
 
         filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
-          '1) White-spaced: ^cylinder ^sphere\n'\
-          '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
-          '3) Status filter using /: /FAILED /MEMLEAK   or simply   /F\n'\
-          '4) Coverage filter using %: %100\n'\
-          '5) Tag symbol filter using @: @r   to catch red-coloured cases\n'\
-          '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
-          '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
-          '8) Negated using !: #Fast &#!FastC (innermost symbol)'
+            '1) White-spaced: ^cylinder ^sphere\n'\
+            '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
+            '3) Status filter using /: /FAILED /MEMLEAK   or simply   /F\n'\
+            '4) Coverage filter using %: %100\n'\
+            '5) Tag symbol filter using @: @r   to catch red-coloured cases\n'\
+            '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
+            '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
+            '8) Negated using !: #Fast &#!FastC (innermost symbol)'
 
         RunButton = TK.Button(Frame, text='Run', command=runTestsInThread,
                               fg='blue')

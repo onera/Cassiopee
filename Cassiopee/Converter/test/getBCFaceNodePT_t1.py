@@ -10,4 +10,3 @@ a = C.addBC2Zone(a, 'wall', 'BCWall', 'imin')
 b = Internal.getNodeFromName(a, 'wall')
 ind = Internal.getBCFaceNode(a, b)
 test.testO(ind, 1)
-

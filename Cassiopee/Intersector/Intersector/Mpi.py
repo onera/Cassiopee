@@ -42,7 +42,7 @@ def getZonesRanks(zidDict, procDict):
 # IN: sensor : sensor hook
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, sensor_metric_policy = 0, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD, procDict=None, zidDict=None):
+def adaptCells(t, sensdata=None, sensor_type=0, smoothing_type=0, itermax=-1, sensor_metric_policy=0, subdiv_type=0, hmesh=None, sensor=None, com=MPI.COMM_WORLD, procDict=None, zidDict=None):
     """Adapts an unstructured mesh a with respect to a sensor.
     Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
     tp = Internal.copyRef(t)
@@ -90,7 +90,7 @@ def _adaptCells(t, sensdata=None, sensor_type=0, smoothing_type=0, itermax=-1, s
         owesHmesh=1
 
     owesSensor=0
-    if sensor is None: 
+    if sensor is None:
         #print("create sensor")
         sensor = XOR.createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
         owesSensor=1
@@ -124,9 +124,9 @@ def _adaptCells(t, sensdata=None, sensor_type=0, smoothing_type=0, itermax=-1, s
         _conformizeHMesh(t, hmesh, zidDict, procDict, rid_to_zones, zonerank, zone_to_rid_to_list_owned, com)
 
     if owesHmesh == 1:
-    #   #print('delete owned hmesh')
+        #   #print('delete owned hmesh')
         XOR.deleteHMesh(hmesh)
-    if owesSensor == 1: 
+    if owesSensor == 1:
         #print('delete owned sensor')
         XOR.deleteSensor(sensor)
 
@@ -135,7 +135,7 @@ def _adaptCells(t, sensdata=None, sensor_type=0, smoothing_type=0, itermax=-1, s
 #                   Each hiearchcial zone is referring to a zone in the original mesh t. So the mesh is replaced in the tree and the BCs/Joins/Fields are transferred.
 # IN: t : PyTree before adaptation
 # IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
-# OUT: Nothing 
+# OUT: Nothing
 #==============================================================================
 def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones=None, zonerank=None, zone_to_rid_to_list_owned=None, com=MPI.COMM_WORLD):
     """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
@@ -246,7 +246,7 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones=None, zonerank=No
             for f in fieldz:
                 C.setFields([f], z, 'nodes', False)
 
-        ## face fields 
+        ## face fields
         fieldz = [res[5]]
         #print(fieldz)
         if fieldz != [None]:
@@ -257,9 +257,9 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones=None, zonerank=No
 
 
 #------------------------------------------------------------------------------
-# 
+#
 #------------------------------------------------------------------------------
-def _exchangePointLists(t, hooks, zidDict, procDict, rid_to_zones = None, zonerank=None, zone_to_bcptlists=None, zone_to_rid_to_list_owned=None, com = MPI.COMM_WORLD):
+def _exchangePointLists(t, hooks, zidDict, procDict, rid_to_zones=None, zonerank=None, zone_to_bcptlists=None, zone_to_rid_to_list_owned=None, com=MPI.COMM_WORLD):
 
     nb_hooks = len(hooks)
     zones = Internal.getZones(t)
@@ -298,14 +298,14 @@ def _exchangePointLists(t, hooks, zidDict, procDict, rid_to_zones = None, zonera
 #------------------------------------------------------------------------------
 # closeCells MPI
 #------------------------------------------------------------------------------
-def closeCells(t, procDict, zidDict, com = MPI.COMM_WORLD):
+def closeCells(t, procDict, zidDict, com=MPI.COMM_WORLD):
     """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
     Usage: closeCells(t, com, procDict, zidDict)"""
     tp = Internal.copyRef(t)
     _closeCells(tp, procDict, zidDict, com)
     return tp
 
-def _closeCells(t, procDict, zidDict, com = MPI.COMM_WORLD):
+def _closeCells(t, procDict, zidDict, com=MPI.COMM_WORLD):
     """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
     Usage: closeCells(t, com, procDict, zidDict)"""
     if procDict is {}:
@@ -342,7 +342,7 @@ def _closeCells(t, procDict, zidDict, com = MPI.COMM_WORLD):
         m = meshes[i]
         zid_to_m[zid] = m
 
-    for z in zs : 
+    for z in zs :
         zid = CD.getProperty(z, 'zid')
         m = zid_to_m[zid]
         # MAJ du maillage de la zone

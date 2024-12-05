@@ -12,7 +12,7 @@ import Dist2Walls.PyTree as DTW
 # IN: loc='centers', 'nodes': localisation du champ de distance
 #==============================================================================
 def _compDistance__(b, a, loc):
-    try: 
+    try:
         DTW._distance2Walls(b, a, type='ortho', loc=loc, signed=1)
         fail = False
     except: fail = True
@@ -42,8 +42,8 @@ def withCart__(a, offset, pointsPerUnitLength, dim=3):
     if nj < 2: nj = 2
     if nk < 2: nk = 2
     hi = (xmax-xmin)/(ni-1); hj = (ymax-ymin)/(nj-1); hk = (zmax-zmin)/(nk-1)
-    h = min(hi, hj); 
-    if dim == 3: h = min(h, hk); 
+    h = min(hi, hj);
+    if dim == 3: h = min(h, hk);
     h = max(h, 1.e-6)
     ni = int((xmax-xmin)/h)+7; nj = int((ymax-ymin)/h)+7
     nk = int((zmax-zmin)/h)+7
@@ -75,7 +75,7 @@ def withOctree__(a, offset, pointsPerUnitLength, dim=3):
     for z in Internal.getZones(a):
         bb = G.bbox(z)
         rx = bb[3]-bb[0]; ry = bb[4]-bb[1]; rz = bb[5]-bb[2]
-        snear = min(rx, ry); 
+        snear = min(rx, ry);
         if dim==3: snear = min(snear, rz)
         snear = 0.1*snear
         sec = max(sec, snear)

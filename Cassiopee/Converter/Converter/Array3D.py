@@ -53,4 +53,3 @@ def convertArray3D2Array(var, Var):
         V[n,:] = VV[:]
     CArray = [v, V, Shape0[0], Shape0[1], Shape0[2]]
     return CArray
-

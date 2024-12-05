@@ -10,4 +10,3 @@ a = G.close(a)
 b = G.fittingPlaster(a, bumpFactor=0.5)
 t = C.newPyTree(['Base',2]); t[2][1][2].append(b)
 test.testT(t)
-

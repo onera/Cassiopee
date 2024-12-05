@@ -1,4 +1,4 @@
- # - bezier -
+# - bezier -
 import Geom as D
 import Converter as C
 import Generator as G

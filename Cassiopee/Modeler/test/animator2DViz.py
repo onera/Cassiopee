@@ -37,7 +37,7 @@ dep = 0.05
 while 1 != 2:
     l = ''
     while l == '':
-        time.sleep(0.01); l = CPlot.getKeyboard(); 
+        time.sleep(0.01); l = CPlot.getKeyboard();
     CPlot.resetKeyboard()
     v = ord(l[0])
     if v == 3: # droite
@@ -70,4 +70,3 @@ while 1 != 2:
             posCam = (posCam[0],posCam[1],posCam[2]+delta*0.1)
             posEye = (posEye[0],posEye[1],posEye[2])
             CPlot.setState(posCam=posCam, posEye=posEye)
-

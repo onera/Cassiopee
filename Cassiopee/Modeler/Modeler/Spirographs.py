@@ -6,7 +6,7 @@ import Geom as D
 # IN: 0<=k<=1 ; 0<=l<=1
 # IN: Ns: nbre de courbes
 # IN: N: nbre de pts sur une courbe
-#============================================================================= 
+#=============================================================================
 def spirograph(k, l, Ns=1, N=100):
     out = []; s = 0.
     for i in range(Ns):
@@ -15,4 +15,4 @@ def spirograph(k, l, Ns=1, N=100):
         #if s*(1.-k)/k > 1.: go = False
         s += 1.
         out.append(a)
-    return out 
+    return out

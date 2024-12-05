@@ -27,4 +27,3 @@ test.testT(t2,5)
 t3 = XOR.XcellN(t, [(1,0)], output_type=2)
 test.testT(t3,6)
 #C.convertPyTree2File(t3, "Sph612_0.cgns")
-

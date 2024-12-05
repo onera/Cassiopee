@@ -9,12 +9,12 @@ from .MeshSize import meshSize
 from .Adim import adim1, adim2, adim3, dim1, dim2, dim3, dim4
 
 def _applyGaussianAL(a, listOfLoads, listOfALPositions, listOfRotMat,
-                    localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
-                    TruncVarLoads, TruncVarVelos):
+                     localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
+                     TruncVarLoads, TruncVarVelos):
     if isinstance(a[0], list):
         initiator.applyGaussianAL(a,
-                listOfLoads,listOfALPositions,listOfRotMat,
-                localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVarLoads, TruncVarVelos)
+                                  listOfLoads,listOfALPositions,listOfRotMat,
+                                  localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVarLoads, TruncVarVelos)
     else:
         initiator.applyGaussianAL(
             [a],listOfLoads,listOfALPositions,listOfRotMat,

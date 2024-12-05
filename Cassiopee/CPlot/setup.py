@@ -66,7 +66,7 @@ elif mySystem[0] == 'mingw' and mySystem[1] == '64':
     libGL = ['opengl32', 'glu32']
 elif mySystem[0] == 'Darwin':
     libraries += ["X11", "Xmu"]
-    libGL = ['GL', 'GLU'] 
+    libGL = ['GL', 'GLU']
 else:
     libraries += ["Xi", "Xmu", "rt"]
     libGL = ['GL', 'GLU']
@@ -87,24 +87,24 @@ EXTRA += Dist.getCppArgs()
 extensions = []
 if isGL:
     extensions += [
-    Extension('CPlot.cplot',
-              sources=['CPlot/cplot.cpp'],
-              include_dirs=["CPlot", "CPlot/Shaders"]+additionalIncludePaths+includeDirs,
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=['cplot', 'cplot1', 'cplot', 'cplot1']+libGL+libraries+additionalLibs,
-              extra_compile_args=EXTRA,
-              extra_link_args=Dist.getLinkArgs())            
+        Extension('CPlot.cplot',
+                  sources=['CPlot/cplot.cpp'],
+                  include_dirs=["CPlot", "CPlot/Shaders"]+additionalIncludePaths+includeDirs,
+                  library_dirs=additionalLibPaths+libraryDirs,
+                  libraries=['cplot', 'cplot1', 'cplot', 'cplot1']+libGL+libraries+additionalLibs,
+                  extra_compile_args=EXTRA,
+                  extra_link_args=Dist.getLinkArgs())
     ]
 
 if OSMesa:
     extensions += [
-    Extension('CPlot.cplotOSMesa',
-              sources=['CPlot/cplotOSMesa.cpp'],
-              include_dirs=["CPlot", "CPlot/Shaders2.0"]+additionalIncludePaths+includeDirs+[OSMesaIncDir],
-              library_dirs=additionalLibPaths+libraryDirs+[OSMesaLibDir],
-              libraries=['cplot', 'cplot2', 'cplot', 'cplot2', OSMesaLibname]+libraries+additionalLibs+libGL,
-              extra_compile_args=EXTRA+['-D__MESA__'],
-              extra_link_args=Dist.getLinkArgs())              
+        Extension('CPlot.cplotOSMesa',
+                  sources=['CPlot/cplotOSMesa.cpp'],
+                  include_dirs=["CPlot", "CPlot/Shaders2.0"]+additionalIncludePaths+includeDirs+[OSMesaIncDir],
+                  library_dirs=additionalLibPaths+libraryDirs+[OSMesaLibDir],
+                  libraries=['cplot', 'cplot2', 'cplot', 'cplot2', OSMesaLibname]+libraries+additionalLibs+libGL,
+                  extra_compile_args=EXTRA+['-D__MESA__'],
+                  extra_link_args=Dist.getLinkArgs())
     ]
 
 
@@ -118,7 +118,7 @@ setup(
     packages=['CPlot'],
     package_dir={"":"."},
     ext_modules=extensions
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

@@ -88,7 +88,7 @@ def show(event=None):
     if CTK.__MAINTREE__ == CTK.MAIN:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
     active = []
-    tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False, 
+    tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False,
                                           separator=Internal.SEP1)
     for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
@@ -121,7 +121,7 @@ def show(event=None):
                 #zp = P.sharpEdges(zp)
                 zp = []
                 exts += zp
-    CTK.dt[2][2][2] += exts    
+    CTK.dt[2][2][2] += exts
 
     # deactivate les zones exts
     lenZ = len(CTK.dt[2][1][2]); lenExts = len(CTK.dt[2][2][2])
@@ -155,7 +155,7 @@ def extract(event=None):
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
     active = []
-    tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False, 
+    tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False,
                                           separator=Internal.SEP1)
     for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
@@ -198,7 +198,7 @@ def viewIJK(event=None):
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return  
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
     sel = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -279,7 +279,7 @@ def createApp(win):
 
     # - Subzone indices -
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
-                        text='I', font=CTK.FRAMEFONT, takefocus=1)
+                       text='I', font=CTK.FRAMEFONT, takefocus=1)
     F.columnconfigure(0, weight=1)
     F.columnconfigure(1, weight=1)
     F.columnconfigure(2, weight=0)
@@ -331,7 +331,7 @@ def createApp(win):
     B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
 
     F = TTK.LabelFrame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE,
-                        text='K', font=CTK.FRAMEFONT, takefocus=1)
+                       text='K', font=CTK.FRAMEFONT, takefocus=1)
     F.columnconfigure(0, weight=1)
     F.columnconfigure(1, weight=1)
     F.columnconfigure(2, weight=0)

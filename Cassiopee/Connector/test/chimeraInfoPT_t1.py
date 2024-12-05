@@ -23,7 +23,7 @@ t1 = X.chimeraInfo(t1,type='orphan')
 t1 = X.chimeraInfo(t1,type='cellRatio')
 t2 = X.chimeraInfo(t1,type='donorAspect')
 test.testT(t2,1)
-# in place 
+# in place
 X._chimeraInfo(t1,type='donorAspect')
 test.testT(t1,1)
 

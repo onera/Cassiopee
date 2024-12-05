@@ -11,4 +11,3 @@ m = XOR.adaptBox(a, box_ratio=10.)
 m = XOR.closeCells(m) # optional : to close the polyhedral cells
 
 C.convertArrays2File([m], 'out.plt')
-

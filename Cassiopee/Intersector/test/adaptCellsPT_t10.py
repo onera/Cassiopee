@@ -1,7 +1,7 @@
 # - adapts a cells with respect to b points (array) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
-import Converter.Internal as I 
+import Converter.Internal as I
 import Generator.PyTree as G
 import Converter.Internal as I
 import Transform.PyTree as T
@@ -44,11 +44,3 @@ I._rmNodesByName(ta, 'rid')
 
 test.testT(ta,1)
 #C.convertPyTree2File(ta, 'PT_t10_1.cgns')
-
-
-
-
-
-
-
-

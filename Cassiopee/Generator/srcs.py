@@ -86,35 +86,35 @@ cpp_srcs = ["Generator/cart.cpp",
 cpp_srcs2 = []
 # netgen
 if NETGEN:
-    srcs1 = ["adfront2.cpp", "adfront3.cpp", "bisect.cpp", "boundarylayer.cpp", 
-             "clusters.cpp", "curvedelems.cpp", "delaunay.cpp", 
-             "delaunay2d.cpp", "geomsearch.cpp", "global.cpp", 
+    srcs1 = ["adfront2.cpp", "adfront3.cpp", "bisect.cpp", "boundarylayer.cpp",
+             "clusters.cpp", "curvedelems.cpp", "delaunay.cpp",
+             "delaunay2d.cpp", "geomsearch.cpp", "global.cpp",
              "hprefinement.cpp", "improve2.cpp",
-             "improve2gen.cpp", "improve3.cpp", "localh.cpp", "meshclass.cpp",  
-             "meshfunc.cpp", "meshfunc2d.cpp", "meshing2.cpp", "meshing3.cpp",  
-             "meshtool.cpp", "meshtype.cpp", "msghandler.cpp", "netrule2.cpp",  
-             "netrule3.cpp", "parser2.cpp", "parser3.cpp", "prism2rls.cpp",  
-             "pyramid2rls.cpp", "pyramidrls.cpp", "quadrls.cpp", "refine.cpp", 
-             "ruler2.cpp", "ruler3.cpp", "secondorder.cpp", 
-             "smoothing2.5.cpp",  
-             "smoothing2.cpp", "smoothing3.cpp", "specials.cpp", 
-             "tetrarls.cpp",  
-             "topology.cpp", "triarls.cpp", "validate.cpp", "zrefine.cpp", 
+             "improve2gen.cpp", "improve3.cpp", "localh.cpp", "meshclass.cpp",
+             "meshfunc.cpp", "meshfunc2d.cpp", "meshing2.cpp", "meshing3.cpp",
+             "meshtool.cpp", "meshtype.cpp", "msghandler.cpp", "netrule2.cpp",
+             "netrule3.cpp", "parser2.cpp", "parser3.cpp", "prism2rls.cpp",
+             "pyramid2rls.cpp", "pyramidrls.cpp", "quadrls.cpp", "refine.cpp",
+             "ruler2.cpp", "ruler3.cpp", "secondorder.cpp",
+             "smoothing2.5.cpp",
+             "smoothing2.cpp", "smoothing3.cpp", "specials.cpp",
+             "tetrarls.cpp",
+             "topology.cpp", "triarls.cpp", "validate.cpp", "zrefine.cpp",
              "bcfunctions.cpp",
              "parallelmesh.cpp", "paralleltop.cpp",
              "basegeom.cpp"]
     for i in srcs1: cpp_srcs2 += ["Generator/Netgen/meshing/"+i]
     srcs1 = ["array.cpp", "bitarray.cpp", "dynamicmem.cpp", "flags.cpp",
              "hashtabl.cpp", "mystring.cpp", "ngexception.cpp", "optmem.cpp",
-             "parthreads.cpp", "profiler.cpp", "seti.cpp", "sort.cpp", 
+             "parthreads.cpp", "profiler.cpp", "seti.cpp", "sort.cpp",
              "spbita2d.cpp", "symbolta.cpp", "table.cpp",
              "mpi_interface.cpp"]
     for i in srcs1: cpp_srcs2 += ["Generator/Netgen/general/"+i]
-    srcs1 = ["densemat.cpp", "polynomial.cpp",  "bfgs.cpp", 
+    srcs1 = ["densemat.cpp", "polynomial.cpp",  "bfgs.cpp",
              "linopt.cpp", "linsearch.cpp"]
     for i in srcs1: cpp_srcs2 += ["Generator/Netgen/linalg/"+i]
     srcs1 = ["adtree.cpp", "geom2d.cpp", "geom3d.cpp", "geomfuncs.cpp",
-             "geomtest3d.cpp", "transform3d.cpp", "spline.cpp", 
+             "geomtest3d.cpp", "transform3d.cpp", "spline.cpp",
              "splinegeometry.cpp"]
     for i in srcs1: cpp_srcs2 += ["Generator/Netgen/gprim/"+i]
     srcs1 = ["genmesh2d.cpp", "geom2dmesh.cpp", "geometry2d.cpp"]
@@ -147,7 +147,7 @@ else:
 # mmg
 if MMGS:
     cpp_srcs2 += ["Generator/mmgs.cpp",
-                  "Generator/MMGS/mmg.c",    
+                  "Generator/MMGS/mmg.c",
                   "Generator/MMGS/mmgs1.c",
                   "Generator/MMGS/mmgs2.c",
                   "Generator/MMGS/analys_s.c",

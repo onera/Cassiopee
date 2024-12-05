@@ -6,7 +6,7 @@ import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import Geom.PyTree 
+import Geom.PyTree
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -62,7 +62,7 @@ def remap():
         CPlot.render()
     else:
         CTK.TXT.insert('START', 'Surface filter failed.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error')     
+        CTK.TXT.insert('START', 'Error: ', 'Error')
 
 #==============================================================================
 # Create app widgets
@@ -93,15 +93,15 @@ def createApp(win):
     # - VARS -
     # -0- Point density -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if 'tkOffsetDensity' in CTK.PREFS: 
+    if 'tkOffsetDensity' in CTK.PREFS:
         V.set(CTK.PREFS['tkOffsetDensity'])
     # -1- Offset -
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if 'tkOffsetOffset' in CTK.PREFS: 
+    if 'tkOffsetOffset' in CTK.PREFS:
         V.set(CTK.PREFS['tkOffsetOffset'])
     # -2- Algorithm cart/octree
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if 'tkOffsetType' in CTK.PREFS: 
+    if 'tkOffsetType' in CTK.PREFS:
         V.set(CTK.PREFS['tkOffsetType'])
 
     # - Point density -

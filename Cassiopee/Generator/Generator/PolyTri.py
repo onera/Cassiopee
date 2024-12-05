@@ -40,7 +40,7 @@ def polyTri2PolyQuad(polyTri):
     f = polyTri[1]; c = polyTri[2]; ne = c.shape[1]; n = f.shape[1]
     fq = numpy.zeros((3,n+4*ne),dtype=numpy.float64)
     for i in range(n):
-        fq[0,i] = f[0,i]; fq[1,i] = f[1,i]; fq[2,i] = f[2,i] 
+        fq[0,i] = f[0,i]; fq[1,i] = f[1,i]; fq[2,i] = f[2,i]
     cq = numpy.zeros((4,3*ne), dtype=E_NpyInt)
 
     for i in range(ne):

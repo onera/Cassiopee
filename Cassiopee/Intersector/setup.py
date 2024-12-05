@@ -73,7 +73,7 @@ setup(
                            extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
                            extra_link_args=Dist.getLinkArgs()
                            )]
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

@@ -43,7 +43,7 @@ def readCAD(event=None):
 #==============================================================================
 def writeCAD(event=None):
     import OCC.PyTree as OCC
-    if CTK.CADHOOK is None: return 
+    if CTK.CADHOOK is None: return
     hook = CTK.CADHOOK
     fileName = VARS[0].get()
     fileFmt = VARS[1].get()
@@ -115,7 +115,7 @@ def filletCAD(event=None):
             no = Internal.getNodeFromName1(CAD, 'no')
             no = Internal.getValue(no)
             edges.append(no)
-    if edges == []: 
+    if edges == []:
         CTK.TXT.insert('START', 'No valid edges in selection.\n')
         return
 
@@ -165,7 +165,7 @@ def removeFaces(event=None):
             no = Internal.getNodeFromName1(CAD, 'no')
             no = Internal.getValue(no)
             faces.append(no)
-    if faces == []: 
+    if faces == []:
         CTK.TXT.insert('START', 'No valid faces in selection.\n')
         return
 
@@ -273,7 +273,7 @@ def fillHole(event=None):
     #print('edgeList', edges, flush=True)
     try:
         OCC._fillHole(hook, edges)
-    except: 
+    except:
         CTK.setCursor(0, WIDGETS['frame'])
         CTK.setCursor(0, WIDGETS['fillHoleButton'])
         CTK.TXT.insert('START', 'Fill hole fails.\n')
@@ -342,7 +342,7 @@ def trimFaces(event=None):
             no = Internal.getNodeFromName1(CAD, 'no')
             no = Internal.getValue(no)
             faces1.append(no)
-    if faces1 == []: 
+    if faces1 == []:
         CTK.TXT.insert('START', 'No valid faces in selection.\n')
         return
 
@@ -350,13 +350,13 @@ def trimFaces(event=None):
     st = VARS[5].get()
     st = st.split(' ')
     for s in st:
-        try: 
-            val = int(s) 
+        try:
+            val = int(s)
             faces2.append(val)
         except: pass
-    if faces2 == []: 
+    if faces2 == []:
         CTK.TXT.insert('START', 'No valid faces in selection.\n')
-        return    
+        return
 
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['trimFacesButton'])
@@ -400,7 +400,7 @@ def checkWatertight(event=None):
     p = Internal.getNodeFromName1(CTK.t, 'LEAKS')
     if p is not None:
         zones = []
-        for z in Internal.getZones(p): zones.append('LEAKS'+Internal.SEP1+z[0]) 
+        for z in Internal.getZones(p): zones.append('LEAKS'+Internal.SEP1+z[0])
         CPlot.delete(zones)
         gnob = C.getNobOfBase(p, CTK.t)
         del CTK.t[2][gnob]
@@ -438,7 +438,7 @@ def checkWatertight(event=None):
     CTK.setCursor(0, WIDGETS['checkWatertight'])
 
     if  isWatertight: TTK.setButtonGreen(WIDGETS['checkWatertight'])
-    else: TTK.setButtonRed(WIDGETS['checkWatertight'])    
+    else: TTK.setButtonRed(WIDGETS['checkWatertight'])
 
     if isWatertight: CTK.TXT.insert('START', 'CAD is watertight with tol %g.\n'%tol)
     else: CTK.TXT.insert('START', 'CAD is not watertight with tol %g.\n'%tol)
@@ -472,11 +472,11 @@ def createApp(win):
         import OCC.PyTree as OCC
         fileName, fileFmt = OCC.getFileAndFormat(CTK.CADHOOK)
         CAD = Internal.getNodeFromName1(CTK.t, 'CAD')
-        if CAD is not None: 
+        if CAD is not None:
             NL = OCC.getNbLonelyEdges(CTK.t)
             tol = Internal.getNodeFromName1(CAD, 'hmax')
             tol = Internal.getValue(tol)
-            power = math.floor(math.log10(abs(tol))) 
+            power = math.floor(math.log10(abs(tol)))
             tol = round(tol, -power)
     else: fileName = ''; fileFmt = 'fmt_step'; NL = 0
 
@@ -504,7 +504,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[1], 'fmt_step', 'fmt_iges')
     B.grid(row=0, column=1, sticky=TK.EW)
 
-    # Read/write CAD file    
+    # Read/write CAD file
     B = TTK.Button(Frame, text="Read", command=readCAD)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Read CAD in tree.')

@@ -17,7 +17,7 @@ C.convertPyTree2File(z, LOCAL+'/out2.plt')
 test.testF(LOCAL+'/out2.plt', 2)
 
 # ME - output HEXA
-a = G.cartHexa((0,0,0), (1,1,1), (10,10,10)) 
+a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
 b = G.cartTetra((9,0,0), (1,1,1), (10,10,10))
 z = C.mergeConnectivity(a, b, boundary=0)
 C.convertPyTree2File(z, LOCAL+'/out3.plt')

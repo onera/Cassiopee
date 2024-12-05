@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Converter documentation build configuration file
-# 
+#
 import sys
 import os
 
@@ -192,15 +192,15 @@ htmlhelp_basename = 'Converter'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-'pointsize': '12pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    'pointsize': '12pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
-'preamble': r'''
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
+    'preamble': r'''
         \usepackage{charter}
         \usepackage[defaultsans]{lato}
         \usepackage{inconsolata}
@@ -211,16 +211,16 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('Converter', 'Converter.tex', u'Converter Documentation',
-   u'/ELSA/MU-09020/V'+__version__, 'manual'),
-  ('Internal', 'Internal.tex', u'Internal Documentation',
-   u'/ELSA/MU-09020/V'+__version__, 'manual'),
-  ('Filter', 'Filter.tex', u'Filter Documentation',
-   u'/ELSA/MU-09020/V'+__version__, 'manual'),
-  ('ConverterMpi', 'ConverterMpi.tex', u'Converter.Mpi Documentation',
-   u'/ELSA/MU-09020/V'+__version__, 'manual'),
-  ('elsAProfile', 'elsAProfile.tex', u'Converter.elsAProfile Documentation',
-   u'/ELSA/MU-09020/V'+__version__, 'manual'),
+    ('Converter', 'Converter.tex', u'Converter Documentation',
+     u'/ELSA/MU-09020/V'+__version__, 'manual'),
+    ('Internal', 'Internal.tex', u'Internal Documentation',
+        u'/ELSA/MU-09020/V'+__version__, 'manual'),
+    ('Filter', 'Filter.tex', u'Filter Documentation',
+        u'/ELSA/MU-09020/V'+__version__, 'manual'),
+    ('ConverterMpi', 'ConverterMpi.tex', u'Converter.Mpi Documentation',
+        u'/ELSA/MU-09020/V'+__version__, 'manual'),
+    ('elsAProfile', 'elsAProfile.tex', u'Converter.elsAProfile Documentation',
+        u'/ELSA/MU-09020/V'+__version__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -263,9 +263,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Converter', u'Converter Documentation',
-   u'ONERA', 'Converter', 'One line description of project.',
-   'Miscellaneous'),
+    ('index', 'Converter', u'Converter Documentation',
+     u'ONERA', 'Converter', 'One line description of project.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

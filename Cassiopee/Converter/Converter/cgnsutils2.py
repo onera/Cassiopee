@@ -1,6 +1,6 @@
 #  ---------------------------------------------------------------------------
-#  pyCGNS - Python package for CFD General Notation System - 
-#  See license.txt file in the root directory of this Python module source  
+#  pyCGNS - Python package for CFD General Notation System -
+#  See license.txt file in the root directory of this Python module source
 #  ---------------------------------------------------------------------------
 #
 from . import cgnskeywords as CK
@@ -167,7 +167,7 @@ def checkNodeName(node,dienow=False):
       - See also :py:func:`checkNodeCompliant`
 
     """
-    if (not checkNode(node)): 
+    if (not checkNode(node)):
         if (dienow): raise cgnsNameError(2)
         return False
     return checkName(node[0],dienow)
@@ -389,15 +389,15 @@ def checkType(parent,ltype,name,dienow=False):
         return True
     if ((type(ltype)==list) and (parent[3] in ltype)):
         return True
-    if (parent[3] == ltype): 
+    if (parent[3] == ltype):
         return True
     if ((ltype==[]) and (parent[3] not in CK.cgnstypes)):
         if (dienow): raise cgnsTypeError(40,(parent,parent[3]))
         return False
-    if (parent[3] != ltype): 
+    if (parent[3] != ltype):
         if (dienow): raise cgnsTypeError(103,(parent,ltype))
         return False
-    if ((type(ltype)==list) and (parent[3] not in ltype)): 
+    if ((type(ltype)==list) and (parent[3] not in ltype)):
         if (dienow): raise cgnsTypeError(104,(parent,ltype))
         return False
     return True
@@ -412,7 +412,7 @@ def checkParentType(parent,stype):
 # -----------------------------------------------------------------------------
 def checkTypeList(parent,ltype,name):
     if (parent == None): return None
-    if (parent[3] not in ltype): 
+    if (parent[3] not in ltype):
         raise cgnsException(104,(name,ltype))
     return None
 
@@ -507,9 +507,9 @@ def isRootNode(node,legacy=False,version=False,dienow=False):
     if ((not legacy) and (node[3] == CK.CGNSTree_ts)): start=node
     if (legacy): start=node
     for n in start[2]:
-        if (not checkNode(n,dienow)): return False 
+        if (not checkNode(n,dienow)): return False
         if (     (n[0] == CK.CGNSLibraryVersion_s)
-             and (n[3] == CK.CGNSLibraryVersion_ts) ):
+                 and (n[3] == CK.CGNSLibraryVersion_ts) ):
             if versionfound and dienow:
                 raise cgnsNodeError(99)
                 return False
@@ -657,9 +657,9 @@ def checkNodeCompliant(node,parent=None,dienow=False):
 
     """
     r=checkNode(node,dienow=dienow)\
-      and checkNodeName(node,dienow=dienow)\
-      and checkArray(node[1],dienow=dienow)\
-      and checkNodeType(node,dienow=dienow)
+        and checkNodeName(node,dienow=dienow)\
+        and checkArray(node[1],dienow=dienow)\
+        and checkNodeType(node,dienow=dienow)
     return r
 
 # -----------------------------------------------------------------------------
@@ -750,7 +750,7 @@ def setStringAsArray(a):
 
     """
     if ((type(a)==type(NPY.array((1))))
-        and (a.shape != ()) and (a.dtype.kind=='S')):
+            and (a.shape != ()) and (a.dtype.kind=='S')):
         return a
     if ((type(a) in [str, unicode]) or (type(a)==type(NPY.array((1))))):
         return NPY.array(tuple(a),dtype='|S',order='Fortran')
@@ -883,7 +883,7 @@ def hasFortranFlag(node):
     if (node[1]==[]):             return True
     if (type(node[1])==type('')): return True # link
     if (not node[1].shape):       return True
-    if (len(node[1].shape)==1):   return True  
+    if (len(node[1].shape)==1):   return True
     return node[1].flags.f_contiguous
 
 # --------------------------------------------------
@@ -1252,8 +1252,8 @@ def getNextChildSortByType(node,parent=None,criteria=None):
     if (type(criteria)==list):
         __criteria=criteria
     if (    (type(criteria)==dict)
-        and (parent is not None)
-        and (parent[3] in criteria)):
+            and (parent is not None)
+            and (parent[3] in criteria)):
         __criteria=criteria[parent[3]]
     r=[]
     for i in range(len(node[2])):
@@ -1385,8 +1385,8 @@ def nodeByPath(path,tree):
     if (not checkPath(path)): return None
     if (path[0]=='/'): path=path[1:]
     if (tree[3]==CK.CGNSTree_ts):
-#    path=string.join([CK.CGNSTree_s]+path.split('/')[1:],'/')
-#    path=string.join(path.split('/')[1:],'/')
+        #    path=string.join([CK.CGNSTree_s]+path.split('/')[1:],'/')
+        #    path=string.join(path.split('/')[1:],'/')
         n=getNodeFromPath(path.split('/'),tree)
     else:
         n=getNodeFromPath(path.split('/'),[None,None,[tree],None])
@@ -1718,7 +1718,7 @@ def getPaths(tree,path,plist):
             plist.append(path+'/'+c[0])
             getPaths(c,path+'/'+c[0],plist)
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getAllPaths(tree):
     plist=[]
     path=''
@@ -1733,11 +1733,11 @@ def wsort(a,b):
     if (a[1] > b[1]): return  1
     return 0
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathFullTree(tree,width=False):
     return getPathsFullTree(tree,width)
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathsFullTree(tree,width=False):
     """
     Returns the list of all possible node paths of a CGNS/Python tree::
@@ -1766,7 +1766,7 @@ def getPathsFullTree(tree,width=False):
             r.append(p[1])
     return r
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def checkPath(path,dienow=False):
     """
     Checks the compliance of a path, which is basically a UNIX-like
@@ -1784,7 +1784,7 @@ def checkPath(path,dienow=False):
         if (not checkName(p,dienow)): return False
     return True
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def hasSameRootPath(pathroot,pathtocompare):
     """
     Compares two paths::
@@ -1809,7 +1809,7 @@ def hasSameRootPath(pathroot,pathtocompare):
         if (l1[i]!=l2[i]): return False
     return True
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathListCommonAncestor(pathlist):
     """
     Finds the common ancestor for all paths in list::
@@ -1821,7 +1821,7 @@ def getPathListCommonAncestor(pathlist):
     :args list pathlist: list of path strings
     :return: The common root path (at least '/')
 
-    """ 
+    """
     if (len(pathlist)==0): return '/'
     if (len(pathlist)==1): return pathlist[0]
     lp=[]
@@ -1846,7 +1846,7 @@ def getPathListCommonAncestor(pathlist):
         c='/'
     return c
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathToList(path,nofirst=False,noroot=True):
     """
     Return the path as a list of node names::
@@ -1877,7 +1877,7 @@ def getPathToList(path,nofirst=False,noroot=True):
         if (path not in ['/','']): lp=path.split('/')
     return lp
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathAncestor(path,level=1,noroot=True):
     """
     Return the path of the node parent of the argument node path::
@@ -1903,7 +1903,7 @@ def getPathAncestor(path,level=1,noroot=True):
         ancestor=getPathAncestor(ancestor,level-1)
     return ancestor
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathLeaf(path):
     """
     Return the leaf node name of the path::
@@ -1922,7 +1922,7 @@ def getPathLeaf(path):
     if (len(lp)>0): leaf=lp[-1]
     return leaf
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathNoRoot(path):
     """
     Return the path without the implementation nodes 'HDF5 Mother node'
@@ -1949,7 +1949,7 @@ def getPathNoRoot(path):
     path='/'.join(lp)
     return path
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathAsTypes(tree,path,legacy=True):
     """Return the list of types corresponding to the argument path in the tree::
 
@@ -1978,7 +1978,7 @@ def getPathAsTypes(tree,path,legacy=True):
     ltypes.reverse()
     return ltypes
 
-# --------------------------------------------------   
+# --------------------------------------------------
 def getPathNormalize(path):
     """Return the same path as minimal string, removes `////` and `/./` and
     other simplifiable UNIX-like path elements::
@@ -2220,7 +2220,7 @@ def getBCFromFamily(tree,families,additional=True):
     if (additional): zlist+=getAllNodesByTypeOrNameList(tree,fpth2)
     r=[]
     for pth in zlist:
-        if (getValueByPath(tree,pth).tostring() in families): 
+        if (getValueByPath(tree,pth).tostring() in families):
             r+=[getPathAncestor(pth)]
     return r
 
@@ -2234,7 +2234,7 @@ def getZoneSubRegionFromFamily(tree,families):
     if (additional): zlist+=getAllNodesByTypeOrNameList(tree,fpth2)
     r=[]
     for pth in zlist:
-        if (getValueByPath(tree,pth).tostring() in families): 
+        if (getValueByPath(tree,pth).tostring() in families):
             r+=[getPathAncestor(pth)]
     return r
 
@@ -2371,7 +2371,7 @@ def stringNameMatches(node,reval):
 def stringValueMatches(node,reval):
     """True if the string matches the node value"""
     if (node is None):             return False
-    if (node[1] is None):          return False  
+    if (node[1] is None):          return False
     if (getNodeType(node)!=CK.C1): return False
     tn=type(node[1])
     if   (tn==type('')): vn=node[1]

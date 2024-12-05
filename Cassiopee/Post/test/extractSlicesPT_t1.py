@@ -11,11 +11,11 @@ RoInf = 1.225; PInf = 101325.; AINF = 340.1
 SIGMA = 4*CHORD / (math.pi*AR)
 teff = C.convertFile2PyTree('stress_419.cgns')
 
-accu1 = {}; accu2 = {} 
+accu1 = {}; accu2 = {}
 psi = 419.; radii = [1.2,1.3,2.]
 slices, CnM2, CmM2 = PR.extractSlices(teff, 'Blade7A_00', psi, radii,
                                       RoInf, PInf, AINF, Mtip, AR, CHORD, MU,
-                                      accumulatorCnM2=accu1, accumulatorCmM2=accu2, 
+                                      accumulatorCnM2=accu1, accumulatorCmM2=accu2,
                                       localFrame=True,
                                       relativeShaft=-12.12)
 test.testT(slices, 1)

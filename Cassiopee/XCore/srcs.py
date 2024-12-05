@@ -10,7 +10,7 @@ PARADIGMA=0
 #==============================================================================
 # Fichiers c++
 #==============================================================================
-cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp', 
+cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/CMP/src/send_buffer.cpp',
             'XCore/xmpi/context_mpi_impl.cpp',
             'XCore/xmpi/context_stub_impl.cpp',
@@ -78,13 +78,13 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/AdaptMesh/AdaptMesh_AdaptGeom.cpp',
 
             'XCore/AdaptMesh/MeshInit.cpp',
-            'XCore/AdaptMesh/MeshOrient.cpp', 
+            'XCore/AdaptMesh/MeshOrient.cpp',
             'XCore/AdaptMesh/MeshClean.cpp',
             'XCore/AdaptMesh/MeshTopo.cpp',
             'XCore/AdaptMesh/MeshIO.cpp',
             'XCore/AdaptMesh/MeshSmooth.cpp',
-            'XCore/AdaptMesh/MeshConnectivity.cpp', 
-            'XCore/AdaptMesh/MeshConformize.cpp', 
+            'XCore/AdaptMesh/MeshConnectivity.cpp',
+            'XCore/AdaptMesh/MeshConformize.cpp',
             'XCore/AdaptMesh/MeshRefine.cpp',
             'XCore/AdaptMesh/MeshIso.cpp',
             'XCore/AdaptMesh/MeshDir.cpp',
@@ -118,14 +118,14 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             ]
 if mpi: # source that requires mpi
     cpp_srcs += [
-            'XCore/SplitElement/splitter.cpp',
-            'XCore/exchangeFields.cpp',
-            'XCore/chunk2partNGon.cpp',
-            'XCore/chunk2partElt.cpp',
+        'XCore/SplitElement/splitter.cpp',
+        'XCore/exchangeFields.cpp',
+        'XCore/chunk2partNGon.cpp',
+        'XCore/chunk2partElt.cpp',
 
-            'XCore/AdaptMesh/AdaptMesh_LoadBalance.cpp',
-            'XCore/AdaptMesh/MeshComm.cpp',
-            ]
+        'XCore/AdaptMesh/AdaptMesh_LoadBalance.cpp',
+        'XCore/AdaptMesh/MeshComm.cpp',
+    ]
 else:
     cpp_srcs += [
         'XCore/SplitElement/splitter_stub.cpp',
@@ -133,4 +133,4 @@ else:
         'XCore/chunk2partNGon_stub.cpp',
         'XCore/chunk2partElt_stub.cpp',
         'XCore/AdaptMesh/stubs/AdaptMesh_LoadBalance_stub.cpp'
-        ]
+    ]

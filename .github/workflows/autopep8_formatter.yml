@@ -27,10 +27,9 @@ jobs:
       - name: Run autopep8
         run: |
           pythonFiles=`find Cassiopee/ -type f -not -path "*/build/*" -not -path "*/ThirdParty/*" -name "*.py" -not -name "Internal.py"`
-          autopep8 --in-place --indent-size=4 --select=E101 \
-            $pythonFiles
-          autopep8 --in-place --indent-size=2 --select=E101 \
-            Cassiopee/Converter/Converter/Internal.py
+          errorCodes="E101,E11,E121,E122,E123,E124,E125,E126,E127,E128,E129,E131,E133,E251,E252,E711,E713,E714,E721,E722,W291,W293,W391"
+          autopep8 --in-place --indent-size=4 --select=$errorCodes $pythonFiles
+          autopep8 --in-place --indent-size=2 --select=$errorCodes Cassiopee/Converter/Converter/Internal.py
 
       - name: Commit changes
         run: |

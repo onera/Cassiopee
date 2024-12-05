@@ -3,7 +3,7 @@ import KCore.test as test
 import Post.PyTree as P
 import Generator.PyTree as G
 
-# 1D 
+# 1D
 a = G.cart((0,0,0), (1,1,1), (10,1,1))
 b = P.exteriorFaces(a)
 test.testT(b,1)

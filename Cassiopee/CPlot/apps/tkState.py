@@ -87,7 +87,7 @@ def getState():
     # Reynolds
     node = Internal.getNodeFromName1(state, 'Reynolds')
     if node is not None:
-        reynolds = Internal.getValue(node) 
+        reynolds = Internal.getValue(node)
         VARS[3].set(str(reynolds))
     else: reynolds = None
 
@@ -109,19 +109,19 @@ def getState():
 
     # TInf
     node = Internal.getNodeFromName1(state, 'Temperature')
-    if node is not None: 
+    if node is not None:
         TInf = Internal.getValue(node)
         VARS[13].set(str(TInf))
 
     # PInf
     node = Internal.getNodeFromName1(state, 'Pressure')
-    if node is not None: 
+    if node is not None:
         PInf = Internal.getValue(node)
         VARS[14].set(str(PInf))
 
     # RoInf
     node = Internal.getNodeFromName1(state, 'Density')
-    if node is not None: 
+    if node is not None:
         RoInf = Internal.getValue(node)
         VARS[16].set(str(RoInf))
 
@@ -141,14 +141,14 @@ def getState():
     else: RokInf = None
 
     if (reynolds is not None and Density is not None and
-        RokInf is not None and Vit is not None and Vit > 1.e-10): 
+            RokInf is not None and Vit is not None and Vit > 1.e-10):
         TurbLevel = math.sqrt(2*RokInf/(3*Vit*Vit*Density))
         VARS[10].set(str(TurbLevel))
 
         MuInf = Density*Vit / max(reynolds,1.e-10) # L=1
 
         node = Internal.getNodeFromName(state, 'TurbulentSANuTildeDensity')
-        if node is not None: 
+        if node is not None:
             RoNuTilde = Internal.getValue(node)
             MutInf = RoNuTilde
             MutSMu = MutInf / max(MuInf, 1.e-12)
@@ -266,7 +266,7 @@ def setState(event=None):
                 C.addState2Node__(p[2][r],
                                   'TurbulenceModel',
                                   'TwoEquation_MenterSST')
-        C._addState(p[2][r], MInf=mach, alphaZ=alphaZ, alphaY=alphaY, 
+        C._addState(p[2][r], MInf=mach, alphaZ=alphaZ, alphaY=alphaY,
                     ReInf=Re, MutSMuInf=MutSMuInf, TurbLevelInf=TurbLevelInf,
                     UInf=UInf, TInf=TInf, LInf=LInf, RoInf=RoInf, PInf=PInf,
                     adim=adim)
@@ -283,53 +283,53 @@ def switchAdim(event=None):
     if adim == 'adim1(Ro,A,T)' or adim == 'adim2(Ro,U,T)':
         # switch UInf and Mach
         for w in WIDGETS['UInf']: w.grid_forget()
-        for c, w in enumerate(WIDGETS['Mach']): 
+        for c, w in enumerate(WIDGETS['Mach']):
             w.grid(row=2, column=c, sticky=TK.EW)
         # switch TInf or PInf to Reynolds
         for w in WIDGETS['TInf']: w.grid_forget()
         for w in WIDGETS['PInf']: w.grid_forget()
         for w in WIDGETS['RoInf']: w.grid_forget()
         for w in WIDGETS['LInf']: w.grid_forget()
-        for c, w in enumerate(WIDGETS['Reynolds']): 
+        for c, w in enumerate(WIDGETS['Reynolds']):
             w.grid(row=4, column=c, sticky=TK.EW)
     elif adim == 'dim1(real UInf,TInf,PInf)':
         # switch Mach and UInf
         for w in WIDGETS['Mach']: w.grid_forget()
-        for c, w in enumerate(WIDGETS['UInf']): 
+        for c, w in enumerate(WIDGETS['UInf']):
             w.grid(row=2, column=c, sticky=TK.EW)
         for w in WIDGETS['Reynolds']: w.grid_forget()
         for w in WIDGETS['RoInf']: w.grid_forget()
-        for c, w in enumerate(WIDGETS['TInf']): 
+        for c, w in enumerate(WIDGETS['TInf']):
             w.grid(row=4, column=c, sticky=TK.EW)
-        for c, w in enumerate(WIDGETS['PInf']): 
+        for c, w in enumerate(WIDGETS['PInf']):
             w.grid(row=4, column=c+2, sticky=TK.EW)
-        for c, w in enumerate(WIDGETS['LInf']): 
+        for c, w in enumerate(WIDGETS['LInf']):
             w.grid(row=5, column=c, sticky=TK.EW)
     elif adim == 'dim2(real UInf,TInf,RoInf)':
         # switch Mach and UInf
         for w in WIDGETS['Mach']: w.grid_forget()
-        for c, w in enumerate(WIDGETS['UInf']): 
+        for c, w in enumerate(WIDGETS['UInf']):
             w.grid(row=2, column=c, sticky=TK.EW)
         for w in WIDGETS['Reynolds']: w.grid_forget()
         for w in WIDGETS['PInf']: w.grid_forget()
-        for c, w in enumerate(WIDGETS['TInf']): 
+        for c, w in enumerate(WIDGETS['TInf']):
             w.grid(row=4, column=c, sticky=TK.EW)
-        for c, w in enumerate(WIDGETS['RoInf']): 
+        for c, w in enumerate(WIDGETS['RoInf']):
             w.grid(row=4, column=c+2, sticky=TK.EW)
         for c, w in enumerate(WIDGETS['LInf']):
             w.grid(row=5, column=c, sticky=TK.EW)
     elif adim == 'dim3(real UInf,PInf,RoInf)':
         # switch Mach and UInf
         for w in WIDGETS['Mach']: w.grid_forget()
-        for c, w in enumerate(WIDGETS['UInf']): 
+        for c, w in enumerate(WIDGETS['UInf']):
             w.grid(row=2, column=c, sticky=TK.EW)
         for w in WIDGETS['Reynolds']: w.grid_forget()
         for w in WIDGETS['TInf']: w.grid_forget()
-        for c, w in enumerate(WIDGETS['PInf']): 
+        for c, w in enumerate(WIDGETS['PInf']):
             w.grid(row=4, column=c, sticky=TK.EW)
-        for c, w in enumerate(WIDGETS['RoInf']): 
+        for c, w in enumerate(WIDGETS['RoInf']):
             w.grid(row=4, column=c+2, sticky=TK.EW)
-        for c, w in enumerate(WIDGETS['LInf']): 
+        for c, w in enumerate(WIDGETS['LInf']):
             w.grid(row=5, column=c, sticky=TK.EW)
 
 #==============================================================================
@@ -521,7 +521,7 @@ def createApp(win):
     B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of turbulence model.')
     B = TTK.OptionMenu(F, VARS[6], 'SpalartAllmaras', 'JonesLaunder(k-eps)',
-                      'Wilcox(k-w)', 'MenterSST(k-w)')
+                       'Wilcox(k-w)', 'MenterSST(k-w)')
     B.grid(row=6, column=1, columnspan=3, sticky=TK.EW)
 
     # - Valeurs des grandeurs turbulentes -
@@ -542,10 +542,10 @@ def createApp(win):
     B.grid(row=8, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of adimensionalization.')
     B = TTK.OptionMenu(F, VARS[11], 'adim1(Ro,A,T)','adim2(Ro,U,T)',
-                        'dim1(real UInf,TInf,PInf)', 
-                        'dim2(real UInf,TInf,RoInf)',
-                        'dim3(real UInf,PInf,RoInf)',
-                        command=switchAdim)
+                       'dim1(real UInf,TInf,PInf)',
+                       'dim2(real UInf,TInf,RoInf)',
+                       'dim3(real UInf,PInf,RoInf)',
+                       command=switchAdim)
     B.grid(row=8, column=1, columnspan=3, sticky=TK.EW)
 
     # - get state, inutile a mon avis -
