@@ -1,100 +1,10 @@
 #include <queue>
-
 #include "icapsule.h"
 #include "common/Karray.h"
 #include "point.h"
 #include "io.h"
 #include "primitives.h"
 #include "dcel.h"
-
-/*
-ICapsule ICapsule::do_it(const Karray &marray,
-    const std::vector<Karray> &sarrays, const std::vector<E_Float *> &ptags)
-{
-    ICapsule icap;
-    auto &M = icap.M;
-    auto &Ss = icap.Ss;
-
-    E_Float NEAR_VERTEX_TOL = 1e-3;
-    E_Float NEAR_EDGE_TOL = 1e-3;
-
-    puts("Creating mesh from karray");
-    M = IMesh(marray);
-    M.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
-    M.make_skin();
-    M.orient_skin(OUT);
-    M.triangulate_skin();
-    puts("Creating surface mesh");
-    Smesh Mf(M, M.skin, false);
-    puts("Making surface mesh data");
-    Mf.make_bbox();
-    Mf.hash_faces();
-    Mf.make_fcenters();
-    Mf.make_fnormals();
-    Mf.make_pnormals();
-
-    //Mf.write_ngon("Mf_raw.im");
-
-    Ss.reserve(sarrays.size());
-
-    // Adapt
-
-    //for (size_t i = 0; i < 4; i++) {
-    for (size_t i = 0; i < sarrays.size(); i++) {
-
-        printf("S%zu\n", i);
-
-        // Create IMesh S
-        IMesh S(sarrays[i]);
-        S.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
-        S.make_skin();
-        S.orient_skin(IN);
-        S.triangulate_skin();
-        S.make_edges();
-
-        // Create SMesh Sf
-        Smesh Sf = Smesh::Smesh_from_point_tags(S, ptags[i], true);
-
-        Sf.make_fcenters();
-        Sf.make_fnormals();
-        Sf.make_pnormals();
-        Sf.make_bbox();
-        Sf.hash_faces();
-        Sf.compute_min_distance_between_points();
-        printf("Min dist: %f\n", Sf.min_pdist);
-
-        //Sf.write_ngon("Sf_raw.im");
-
-        // Locate Sf points on Mf faces
-        auto plocs = Mf.locate(Sf);
-        std::vector<E_Int> spids(Sf.np);
-        for (int i = 0; i < Sf.np; i++) spids[i] = i;
-        Sf.replace_by_projections(spids, plocs);
-
-        // Extract the initial Mf faces that cover Sf
-        auto bfaces = Mf.extract_covering_faces(Sf, plocs);
-
-        // Refinement loop
-        refine(Mf, bfaces, Sf);
-
-        // Reconstruct S
-        Sf.reconstruct(S);
-
-        // TODO(Imad): Tag Sf faces
-        Sf.tag_faces(S);
-
-        // Append
-        Ss.push_back(S);
-
-        puts("");
-    }
-
-    Mf.reconstruct(M);
-
-    return icap;
-}
-*/
-
 
 PyObject *K_XCORE::icapsule_extract_master(PyObject *self, PyObject *args)
 {
@@ -179,17 +89,29 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     M.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
     M.make_skin();
     M.orient_skin(OUT);
-    M.triangulate_skin();
 
     Ss.reserve(sarrays.size());
     for (size_t i = 0; i < sarrays.size(); i++) {
-        Ss.push_back(sarrays[i]);
+        Ss.push_back(IMesh(sarrays[i]));
         Ss[i].set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
         Ss[i].make_skin();
         Ss[i].orient_skin(IN);
-        Ss[i].triangulate_skin();
         Ss[i].ptag.resize(Ss[i].np);
         memcpy(Ss[i].ptag.data(), ptags[i], Ss[i].np*sizeof(E_Float));
+        // Triangulate faces with tagged points
+        std::vector<E_Int> fids;
+        for (E_Int fid = 0; fid < Ss[i].nf; fid++) {
+            const auto &pn = Ss[i].F[fid];
+            bool triangulate = true;
+            for (auto p : pn) {
+                if (Ss[i].ptag[p] != 1.0) {
+                    triangulate = false;
+                    break;
+                }
+            }
+            if (triangulate) fids.push_back(fid);
+        }
+        Ss[i].triangulate(fids);
     }
 }
 
@@ -287,12 +209,11 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
     for (size_t i = 0; i < Ss.size(); i++) {
         printf("S%zu\n", i);
 
-        Mf.make_bbox();
-        Mf.hash_faces();
         Mf.make_fcenters();
         Mf.make_fnormals();
         Mf.make_pnormals();
         Mf.make_point_faces();
+        Mf.make_BVH();
 
         auto &S = Ss[i];
 
@@ -301,8 +222,6 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
         Sf.make_fcenters();
         Sf.make_fnormals();
         Sf.make_pnormals();
-        Sf.make_bbox();
-        Sf.hash_faces();
         Sf.compute_min_distance_between_points();
         printf("Min dist: %f\n", Sf.min_pdist);
 
@@ -412,12 +331,13 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         
         printf("Intersecting slave %zu\n", i);
 
-        Mf.make_bbox();
-        Mf.hash_faces();
+        //Mf.make_bbox();
+        //Mf.hash_faces();
         Mf.make_fcenters();
         Mf.make_fnormals();
         Mf.make_pnormals();
         Mf.make_point_faces();
+        Mf.make_BVH();
 
         //Mf.write_ngon("Mf_before_intersect.im");
 

@@ -34,6 +34,48 @@
 #include "io.h"
 #include "common/Karray.h"
 
+void IMesh::triangulate(const std::vector<E_Int> &fids)
+{
+    owner.clear();
+    neigh.clear();
+    owner.resize(nf + fids.size(), -1);
+    neigh.resize(nf + fids.size(), -1);
+    
+    for (E_Int cid = 0; cid < nc; cid++) {
+        const auto &pf = C[cid];
+        for (E_Int fid : pf) {
+            if (owner[fid] == -1) owner[fid] = cid;
+            else neigh[fid] = cid;
+        }
+    }
+
+    for (auto fid : fids) {
+        const auto &pn = F[fid];
+
+        assert(pn.size() == 4);
+
+        E_Int nodes[4] = {pn[0], pn[1], pn[2], pn[3]};
+
+        F.push_back({nodes[2], nodes[3], nodes[0]});
+        F[fid] = {nodes[0], nodes[1], nodes[2]};
+
+        E_Int own = owner[fid];
+        auto &pf = C[own];
+        pf.push_back(nf);
+
+        E_Int nei = neigh[fid];
+        if (nei != -1) {
+            auto &pf = C[nei];
+            pf.push_back(nf);
+        }
+
+        owner[nf] = own;
+        neigh[nf] = nei;
+
+        nf++;
+    }
+}
+
 void IMesh::triangulate_face_set(bool propagate)
 {
     make_skin();
@@ -178,7 +220,20 @@ void IMesh::make_edges()
     }
 }
 
-
+E_Float IMesh::get_min_edge_length() const
+{
+    E_Float ret = EFLOATMAX;
+    for (const auto &e : E) {
+        E_Int p = e.p;
+        E_Int q = e.q;
+        E_Float d = (X[p]-X[q])*(X[p]-X[q]) +
+                    (Y[p]-Y[q])*(Y[p]-Y[q]) +
+                    (Z[p]-Z[q])*(Z[p]-Z[q]);
+        d = sqrt(d);
+        if (d < ret) ret = d;
+    }
+    return ret;
+}
 
 IMesh::IMesh()
 {}

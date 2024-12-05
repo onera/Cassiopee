@@ -21,6 +21,8 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/common/common.cpp',
             'XCore/common/Karray.cpp',
 
+            'XCore/intersectMesh/write.cpp',
+
             'XCore/intersectMesh/icapsule.cpp',
             'XCore/intersectMesh/icapsule_refine.cpp',
 
@@ -51,11 +53,8 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/IntersectMesh_ExtractMesh.cpp',
             'XCore/intersectMesh/IntersectMesh_Exit.cpp',
             'XCore/intersectMesh/IntersectMesh_ExtractFaceSet.cpp',
-            'XCore/intersectMesh/IntersectMesh_Merge.cpp',
 
-            'XCore/intersectMesh/intersectMesh.cpp',
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
-            'XCore/intersectMesh/prepareMeshesForIntersection.cpp',
             'XCore/intersectMesh/mesh.cpp',
             'XCore/intersectMesh/meshRefine.cpp',
             'XCore/intersectMesh/meshTopo.cpp',

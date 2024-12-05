@@ -98,6 +98,8 @@ struct IMesh {
     std::vector<E_Int> ftag;
     std::vector<E_Float> ptag;
     std::vector<E_Float> ctag;
+
+    E_Float get_min_edge_length() const;
     
     void set_tolerances(E_Float near_vertex_tol, E_Float near_edge_tol)
     {
@@ -119,6 +121,8 @@ struct IMesh {
         E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
     
     void triangulate_face_set(bool propagate = true);
+
+    void triangulate(const std::vector<E_Int> &fids);
 
     std::vector<PyArrayObject *> triangulate_skin(const std::vector<Py_BC> &bcs_in,
         const std::unordered_map<E_Int, E_Int> &fid_to_bc);

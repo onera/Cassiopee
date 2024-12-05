@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "smesh.h"
 #include "mesh.h"
 #include "io.h"
@@ -159,55 +177,6 @@ void Smesh::reconstruct(IMesh &M)
             M.neigh[gleaf] = -1;
         }
     }
-
-    /*
-    {
-        if (M.nc > 24) {
-            auto pf = M.C[24];
-            std::map<E_Int, E_Int> local_map;
-            int npts = 0;
-            int i = 0;
-            for (E_Int fid : pf) {
-                const auto &pn = M.F[fid];
-                printf("face%d: ", i);
-                for (E_Int p : pn) {
-                    auto it = local_map.find(p);
-                    if (it == local_map.end()) {
-                        local_map[p] = npts;
-                        printf("%d ", npts);
-
-                        if (npts == 10) {
-                            point_write("10.im", M.X[p], M.Y[p], M.Z[p]);
-                        }
-
-                        if (npts == 11) {
-                            point_write("11.im", M.X[p], M.Y[p], M.Z[p]);
-                        }
-
-                        if (npts == 12) {
-                            point_write("12.im", M.X[p], M.Y[p], M.Z[p]);
-                        }
-
-                        if (npts == 13) {
-                            point_write("13.im", M.X[p], M.Y[p], M.Z[p]);
-                        }
-
-                        if (npts == 14) {
-                            point_write("14.im", M.X[p], M.Y[p], M.Z[p]);
-                        }
-
-                        npts++;
-                    } else {
-                        printf("%d ", it->second);
-                    }
-                }
-                puts("");
-                i++;
-            }
-
-        }
-    }
-    */
 
     M.np = NP;
     M.nf = NF;
