@@ -1,42 +1,25 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "smesh.h"
 #include "BVH.h"
 #include "ray.h"
 #include "primitives.h"
-
-/*
-AABB Smesh::make_AABB(E_Int start, E_Int end)
-{
-    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
-    xmin = ymin = zmin = EFLOATMAX;
-    xmax = ymax = zmax = EFLOATMIN;
-
-    for (E_Int i = start; i < end; i++) {
-        E_Int fid = bvh_fids[i];
-        const auto &pn = F[fid];
-        for (E_Int p : pn) {
-            if (X[p] < xmin) xmin = X[p];
-            if (Y[p] < ymin) ymin = Y[p];
-            if (Z[p] < zmin) zmin = Z[p];
-            if (X[p] > xmax) xmax = X[p];
-            if (Y[p] > ymax) ymax = Y[p];
-            if (Z[p] > zmax) zmax = Z[p]; 
-        }
-    }
-
-    E_Float dx = xmax - xmin;
-    E_Float dy = ymax - ymin;
-    E_Float dz = zmax - zmin;
-
-    xmin -= dx * 0.01;
-    ymin -= dy * 0.01;
-    zmin -= dz * 0.01;
-    xmax += dx * 0.01;
-    ymax += dy * 0.01;
-    zmax += dz * 0.01;
-
-    return {xmin, ymin, zmin, xmax, ymax, zmax};
-}
-*/
 
 void Smesh::make_BVH()
 {
@@ -188,18 +171,6 @@ bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
     }
 
     return true;
-
-    /*
-    E_Float tx1 = (box.xmin - ox) / dx, tx2 = (box.xmax - ox) / dx;
-    E_Float tmin = std::min(tx1, tx2), tmax = std::max(tx1, tx2);
-    E_Float ty1 = (box.ymin - oy) / dy, ty2 = (box.ymax - oy) / dy;
-    tmin = std::max(tmin, std::min(ty1, ty2));
-    tmax = std::min(tmax, std::max(ty1, ty2));
-    E_Float tz1 = (box.zmin - oz) / dz, tz2 = (box.zmax - oz) / dz;
-    tmin = std::max(tmin, std::min(tz1, tz2));
-    tmax = std::min(tmax, std::max(tz1, tz2));
-    return tmax >= tmin;
-    */
 }
 
 void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,

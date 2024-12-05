@@ -1,72 +1,23 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "dcel.h"
 #include "smesh.h"
-
-/*
-void Dcel::reconstruct(Smesh &Mf, int color, bool check_Euler) const
-{
-    Smesh ret;
-    ret.check_Euler = check_Euler;
-    auto &new_F = ret.F;
-    std::map<Vertex *, E_Int> new_pids;
-    ret.np = ret.nf = 0;
-
-    std::vector<Face *> fids;
-
-    for (size_t i = 0; i < F.size(); i++) {
-        Face *f = F[i];
-        Hedge *h = f->rep;
-        if (h->color != color) continue;
-        Hedge *w = h->next;
-        while (w != h) {
-            if (w->color != h->color) break;
-            w = w->next;
-        }
-        if (w == h) {
-            fids.push_back(f);
-        }
-    }
-
-    char fname[128] = {0};
-    sprintf(fname, "single_color_%d.im", color);
-    write_ngon(fname, fids);
-
-    for (Face *f : F) {
-        if (f->oids[color] == -1) continue;
-
-        std::vector<E_Int> pn;
-
-        std::vector<Vertex *> vertices = get_face_vertices(f);
-        for (Vertex *v : vertices) {
-            auto it = new_pids.find(v);
-            if (it == new_pids.end()) {
-                new_pids[v] = ret.np;
-                pn.push_back(ret.np);
-                ret.np++;
-            } else {
-                pn.push_back(it->second);
-            }
-        }
-
-        new_F.push_back(pn);
-        ret.nf++;
-    }
-
-    auto &new_X = ret.X;
-    auto &new_Y = ret.Y;
-    auto &new_Z = ret.Z;
-
-    new_X.resize(ret.np), new_Y.resize(ret.np), new_Z.resize(ret.np);
-    for (const auto &vdat : new_pids) {
-        new_X[vdat.second] = vdat.first->x;
-        new_Y[vdat.second] = vdat.first->y;
-        new_Z[vdat.second] = vdat.first->z;
-    }
-
-    ret.Fc = ret.F;
-
-    ret.make_edges();
-}
-*/
 
 Smesh Dcel::export_smesh(bool check_Euler) const
 {

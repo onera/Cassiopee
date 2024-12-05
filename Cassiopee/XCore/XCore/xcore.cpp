@@ -49,16 +49,13 @@ static PyMethodDef Pyxcore [] =
     {"AdaptMesh_AdaptGeom", K_XCORE::AdaptMesh_AdaptGeom, METH_VARARGS},
     {"AdaptMesh_ExtractTaggedFaces", K_XCORE::AdaptMesh_ExtractTaggedFaces, METH_VARARGS},
 
-    {"intersectMesh", K_XCORE::intersectMesh, METH_VARARGS},
     {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
-    {"prepareMeshesForIntersection", K_XCORE::prepareMeshesForIntersection, METH_VARARGS},
 
     {"IntersectMesh_Init", K_XCORE::IntersectMesh_Init, METH_VARARGS},
     {"IntersectMesh_TriangulateFaceSet", K_XCORE::IntersectMesh_TriangulateFaceSet, METH_VARARGS},
     {"IntersectMesh_ExtractMesh", K_XCORE::IntersectMesh_ExtractMesh, METH_VARARGS},
     {"IntersectMesh_Exit", K_XCORE::IntersectMesh_Exit, METH_VARARGS},
     {"IntersectMesh_ExtractFaceSet", K_XCORE::IntersectMesh_ExtractFaceSet, METH_VARARGS},
-    {"IntersectMesh_Merge", K_XCORE::IntersectMesh_Merge, METH_VARARGS},
     
     {"icapsule_init", K_XCORE::icapsule_init, METH_VARARGS},
     {"icapsule_adapt", K_XCORE::icapsule_adapt, METH_VARARGS},
