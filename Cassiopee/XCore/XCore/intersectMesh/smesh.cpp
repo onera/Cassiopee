@@ -103,17 +103,19 @@ Smesh Smesh::Smesh_from_point_tags(const IMesh &M, const E_Float *ptag,
     bool check_Euler)
 {
     std::vector<E_Int> fids;
-
-    for (E_Int fid : M.skin) {
+    for (E_Int fid = 0; fid < M.nf; fid++) {
         const auto &pn = M.F[fid];
         bool keep = true;
-        for (E_Int pid : pn) {
-            if (ptag[pid] != 1) {
+        for (auto p : pn) {
+            if (ptag[p] != 1.0) {
                 keep = false;
                 break;
             }
         }
-        if (keep) fids.push_back(fid);
+        if (keep) {
+            assert(pn.size() == 3);
+            fids.push_back(fid);
+        }
     }
 
     return Smesh(M, fids, check_Euler);

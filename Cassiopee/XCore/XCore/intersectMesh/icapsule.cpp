@@ -179,17 +179,29 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     M.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
     M.make_skin();
     M.orient_skin(OUT);
-    //M.triangulate_skin();
 
     Ss.reserve(sarrays.size());
     for (size_t i = 0; i < sarrays.size(); i++) {
-        Ss.push_back(sarrays[i]);
+        Ss.push_back(IMesh(sarrays[i]));
         Ss[i].set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
         Ss[i].make_skin();
         Ss[i].orient_skin(IN);
-        //Ss[i].triangulate_skin();
         Ss[i].ptag.resize(Ss[i].np);
         memcpy(Ss[i].ptag.data(), ptags[i], Ss[i].np*sizeof(E_Float));
+        // Triangulate faces with tagged points
+        std::vector<E_Int> fids;
+        for (E_Int fid = 0; fid < Ss[i].nf; fid++) {
+            const auto &pn = Ss[i].F[fid];
+            bool triangulate = true;
+            for (auto p : pn) {
+                if (Ss[i].ptag[p] != 1.0) {
+                    triangulate = false;
+                    break;
+                }
+            }
+            if (triangulate) fids.push_back(fid);
+        }
+        Ss[i].triangulate(fids);
     }
 }
 

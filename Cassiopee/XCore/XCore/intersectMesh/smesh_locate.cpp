@@ -126,7 +126,7 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
         E_Float y = Sf.Y[pid];
         E_Float z = Sf.Z[pid];
         std::vector<PointLoc> locs;
-        ray_intersect_BVH(x, y, z, 1, 0, 0, root_node_idx, locs);
+        ray_intersect_BVH(x, y, z, 0, 1, 0, root_node_idx, locs);
         if (locs.empty()) {
             fprintf(stderr, "Could not locate point %d\n", pid);
             point_write("lost.im", x, y, z);

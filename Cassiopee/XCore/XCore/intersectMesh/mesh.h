@@ -122,6 +122,8 @@ struct IMesh {
     
     void triangulate_face_set(bool propagate = true);
 
+    void triangulate(const std::vector<E_Int> &fids);
+
     std::vector<PyArrayObject *> triangulate_skin(const std::vector<Py_BC> &bcs_in,
         const std::unordered_map<E_Int, E_Int> &fid_to_bc);
 
