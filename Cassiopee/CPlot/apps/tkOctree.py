@@ -25,7 +25,7 @@ def setSurface():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     selected = ''
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -72,7 +72,7 @@ def expandLayer():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def octree2Struct():
     if CTK.t == []: return
@@ -84,7 +84,7 @@ def octree2Struct():
         CTK.TXT.insert('START', 'Invalid number of points per structured zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     else: vmin = vmin[0]
-    
+
     type = VARS[8].get()
     ext = 0; AMR = 0; optimized = 1; merged = 1
     if (type == 'Match'): ext = 0; AMR = 0
@@ -110,7 +110,7 @@ def octree2Struct():
                                     merged=merged, AMR=AMR)    
         except Exception as e: 
             fail = True; errors += [0,str(e)]
-            
+
     CTK.t = C.addBase2PyTree(CTK.t, 'CARTESIAN')
     bases = Internal.getNodesFromName1(CTK.t, 'CARTESIAN')
     nob = C.getNobOfBase(bases[0], CTK.t)
@@ -176,7 +176,7 @@ def bodyFit():
                       blankingType='node_in', dim=dim)
 
     CTK.saveTree()
-    
+
     # Back to tree
     c = 0
     for nz in nzs:
@@ -197,7 +197,7 @@ def bodyFit():
             CTK.t[2][nob][2][noz] = z
         except Exception as e:
             fail = True; errors += [0,str(e)]
-            
+
     #C._fillMissingVariables(CTK.t)
     if fail == False:
         CTK.TXT.insert('START', 'Snapped to body.\n')
@@ -207,7 +207,7 @@ def bodyFit():
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 def adaptInsideOctree():
     if CTK.t == []: return
@@ -235,7 +235,7 @@ def adaptInsideOctree():
 
         snearsarg = snearsarg.split(';')
         for s in snearsarg: snears.append(float(s))
- 
+
     # Octree meshes
     tp = C.newPyTree(['Base'])
     for nz in nzs:
@@ -276,7 +276,7 @@ def adaptInsideOctree():
         for noz in range(len(tp[2][1][2])):
             tp[2][1][2][noz] = G.adaptOctree(tp[2][1][2][noz],'centers:indicator', balancing=1)
         count += 1
-    
+
     # Back to tree
     c = 0
     for nz in nzs:
@@ -308,7 +308,7 @@ def hexaOctree():
     except:
         snearsarg = snearsarg.split(';')
         for s in snearsarg: snears.append(float(s))
- 
+
     dfar = VARS[1].get()
     try: dfar = float(dfar)
     except:
@@ -318,12 +318,12 @@ def hexaOctree():
     balancing = VARS[2].get()
     if balancing == 'Balanced': balancing = 1
     else: balancing = 0
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     surfs = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -338,7 +338,7 @@ def hexaOctree():
         CTK.TXT.insert('START', 'snear is invalid.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
         return
-    
+
     CTK.saveTree()
     CTK.t = C.addBase2PyTree(CTK.t, 'OCTREE')
     b = Internal.getNodesFromName1(CTK.t, 'OCTREE')[0]
@@ -375,7 +375,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -481,7 +481,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[5], 'Snap')
     B.grid(row=rown, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of body fitting.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -511,7 +511,7 @@ def saveApp():
     CTK.PREFS['tkOctreeVmin'] = VARS[3].get()
     CTK.PREFS['tkOctreeExpand'] = VARS[4].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('0.1')
@@ -529,7 +529,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

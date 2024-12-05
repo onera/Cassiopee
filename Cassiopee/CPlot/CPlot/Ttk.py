@@ -90,13 +90,13 @@ def setTheme(myTheme):
         available = ttk.Style().theme_names()
         if myTheme in available:
             ttk.Style().theme_use(myTheme); createStyles(); return
-        
+
 #=============================================================
 # Create specific styles
 #=============================================================
 def createStyles():
     if ttk is not None:
-        
+
         global BACKGROUNDCOLOR, FOREGROUNDCOLOR, ICONMODE
         style = ttk.Style()
         # Get theme colors
@@ -240,8 +240,8 @@ def Scale(*args, **kwargs):
     if ttk is None:
         val = -1
         if 'padx' in kwargs:
-           val = kwargs['value']
-           kwargs.pop('value', None)
+            val = kwargs['value']
+            kwargs.pop('value', None)
         s = TK.Scale(*args, **kwargs)
         if val > 0: s.set(val)
         return s
@@ -377,7 +377,7 @@ if ttk is not None:
                 ss = self._searchString
                 ss = ss.lower()
                 ls = len(ss)
-                
+
                 # Match first chars
                 #index = 0
                 #for i in values:
@@ -447,7 +447,7 @@ if ttk is not None:
                 ss = self._searchString
                 ss = ss.lower()
                 ls = len(ss)
-                
+
                 # Match first chars
                 #index = 0
                 #for i in values:

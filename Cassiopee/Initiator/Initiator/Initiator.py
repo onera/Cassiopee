@@ -20,7 +20,7 @@ def _applyGaussianAL(a, listOfLoads, listOfALPositions, listOfRotMat,
             [a],listOfLoads,listOfALPositions,listOfRotMat,
             localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVarLoads, TruncVarVelos)
     return None
-    
+
 def initConst(a, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8):
     """Init a by a constant field.
     Usage: initConst(a, MInf, alphaZ, alphaY, ReInf)"""

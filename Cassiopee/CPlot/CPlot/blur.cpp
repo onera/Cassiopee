@@ -33,6 +33,8 @@ void createGaussFilter(E_Float sigma, E_Int n, E_Float* c)
   {
     c[i] = exp( -(i*i) / (2.*sigma2)) / (sigma*sqrt(2.*M_PI));
   }
+
+  /*
   printf("gaussian coefficients: ");
   for (E_Int i = 0; i <= n; i++) printf("%g ", c[i]);
   printf("\n");
@@ -44,9 +46,10 @@ void createGaussFilter(E_Float sigma, E_Int n, E_Float* c)
     sum += c[i];
   }
   printf("sum=%g\n", sum);
+  */
 }
 
-// Apply gaussian blur to in
+// Apply gaussian blur to in (single scalar)
 // IN: in: color array
 // IN: ni,nj: image size
 // IN: c: kernel coef
@@ -54,16 +57,25 @@ void createGaussFilter(E_Float sigma, E_Int n, E_Float* c)
 // OUT: out: color array (already allocated)
 void gaussianBlur2(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float* out)
 {
+  E_Int ind;
+
+  // filter
+  for (E_Int j = 0; j < nj; j++)
+  for (E_Int i = 0; i < ni; i++)
+  {
+    ind = i+j*ni;
+    out[ind] = in[ind]*c[0];
+  }
+
   // filter en i
   for (E_Int j = 0; j < nj; j++)
   for (E_Int i = n; i < ni-n; i++)
   {
-    out[i+j*ni] = in[i+j*ni]*c[0];
-
+    ind = i+j*ni;
     for (E_Int k = 1; k <= n; k++)
     {
-      out[i+j*ni] += in[i-k+j*ni]*c[k]; // right
-      out[i+j*ni] += in[i+k+j*ni]*c[k]; // left
+      out[ind] += in[ind-k]*c[k]; // right
+      out[ind] += in[ind+k]*c[k]; // left
     }
   }
 
@@ -71,17 +83,82 @@ void gaussianBlur2(E_Float* in, E_Int ni, E_Int nj, E_Float* c, E_Int n, E_Float
   for (E_Int j = n; j < nj-n; j++)
   for (E_Int i = 0; i < ni; i++)
   {
-    in[i+j*ni] = out[i+j*ni]*c[0];
+    ind = i+j*ni;
+    in[ind] = out[ind]*c[0];
 
     for (E_Int k = 1; k <= n; k++)
     {
-      in[i+j*ni] += out[i+(j-k)*ni]*c[k];
-      in[i+j*ni] += out[i+(j+k)*ni]*c[k];
+      out[ind] += in[ind-k*ni]*c[k];
+      out[ind] += in[ind+k*ni]*c[k];
     }
   }
 }
 
-// bllur array
+// specific post-processing applied to interlaced color buffer (3), return out
+void specPostProcess(char* in, E_Int ni, E_Int nj, float* depth, char* out)
+{
+  float dmin, dmax;
+  // compute min/max of depth
+  dmin = 1.e30; dmax = -1.e30;
+  for (E_Int i = 0; i < ni*nj; i++)
+  {
+    dmin = std::min(dmin, depth[i]);
+    dmax = std::max(dmax, depth[i]);
+  }
+  // normalize depth
+  for (E_Int i = 0; i < ni*nj; i++)
+  {
+    depth[i] = (depth[i]-dmin)/(dmax-dmin);
+  }
+
+  // assombrit les pixels lointains
+  double percentage = 0.8;
+  for (E_Int i = 0; i < ni*nj; i++)
+  {
+    if (depth[i] > 0.5)
+    {
+      out[3*i] = in[3*i]*percentage;
+      out[3*i+1] = in[3*i+1]*percentage;
+      out[3*i+2] = in[3*i+2]*percentage;
+    }
+  }
+  
+  // dof
+  /*
+  // blur en i
+  for (E_Int j = 0; j < nj; j++)
+  for (E_Int i = n; i < ni-n; i++)
+  {
+    ind = i+j*ni;
+    out[3*ind] = in[3*ind]*c[0];
+    out[3*ind+1] = in[3*ind+1]*c[0];
+    out[3*ind+2] = in[3*ind+2]*c[0];
+    
+    for (E_Int k = 1; k <= n; k++)
+    {
+      out[ind] += in[i-k+j*ni]*c[k]; // right
+      out[ind] += in[i+k+j*ni]*c[k]; // left
+    }
+  }
+
+  // blur en j
+  for (E_Int j = n; j < nj-n; j++)
+  for (E_Int i = 0; i < ni; i++)
+  {
+    in[i+j*ni] = out[i+j*ni]*c[0];
+
+    for (E_Int k = 1; k <= n; k++)
+    {
+      out[i+j*ni] += in[i+(j-k)*ni]*c[k];
+      out[i+j*ni] += in[i+(j+k)*ni]*c[k];
+    }
+  }
+  */
+  // antialiasing
+
+}
+
+// blur array
 PyObject* K_CPLOT::blur(PyObject* self, PyObject* args)
 {
   // Get the 4 arrays of cube images (left, right, bottom, top, back, front)

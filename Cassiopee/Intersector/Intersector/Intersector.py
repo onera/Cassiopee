@@ -51,12 +51,12 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
     Usage for surfaces or bars: booleanIntersection(a1, a2, tol)
     Usage for volumes: booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode)"""
     if a1[3] != 'NGON' and a2[3] != 'NGON':
-      try:
-          import Converter
-          a1 = Converter.convertArray2Tetra(a1)
-          a2 = Converter.convertArray2Tetra(a2)
-          a1 = G.close(a1); a2 = G.close(a2)
-      except: pass
+        try:
+            import Converter
+            a1 = Converter.convertArray2Tetra(a1)
+            a2 = Converter.convertArray2Tetra(a2)
+            a1 = G.close(a1); a2 = G.close(a2)
+        except: pass
     c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True, itermax)# last is dummy (outward)
     return G.close(c)
 
@@ -65,39 +65,39 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
     if a1[3] != 'NGON' and a2[3] != 'NGON':
-      try:
-        import Converter
-        a1 = Converter.convertArray2Tetra(a1)
-        a2 = Converter.convertArray2Tetra(a2)
-        a1 = G.close(a1); a2 = G.close(a2)
-      except: pass
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0, itermax)
-      return G.close(c[0])
+        try:
+            import Converter
+            a1 = Converter.convertArray2Tetra(a1)
+            a2 = Converter.convertArray2Tetra(a2)
+            a1 = G.close(a1); a2 = G.close(a2)
+        except: pass
+        c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0, itermax)
+        return G.close(c[0])
     else: 
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode, itermax)
-      return c[0] #close is done inside
+        c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode, itermax)
+        return c[0] #close is done inside
 
 def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True, hard_mode=0, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
     if a1[3] != 'NGON' and a2[3] != 'NGON':
-      try:
-        import Converter
-        a1 = Converter.convertArray2Tetra(a1)
-        a2 = Converter.convertArray2Tetra(a2)
-        a1 = G.close(a1); a2 = G.close(a2)
-      except: pass
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0, itermax)
-      return G.close(c)
+        try:
+            import Converter
+            a1 = Converter.convertArray2Tetra(a1)
+            a2 = Converter.convertArray2Tetra(a2)
+            a1 = G.close(a1); a2 = G.close(a2)
+        except: pass
+        c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0, itermax)
+        return G.close(c)
     else: 
-      c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode, itermax)
-      return c #close is done inside
+        c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode, itermax)
+        return c #close is done inside
 
 
 
 
-  
+
 
 def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_qual=False, simplify_pgs = True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two volume meshes.
@@ -110,12 +110,12 @@ def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
     Usage for surfaces or bars: booleanMinus(a1, a2, tol)
     Usage for volumes: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
     if a1[3] != 'NGON' and a2[3] != 'NGON':
-      try:
-        import Converter
-        a1 = Converter.convertArray2Tetra(a1)
-        a2 = Converter.convertArray2Tetra(a2)
-        a1 = G.close(a1); a2 = G.close(a2)
-      except: pass
+        try:
+            import Converter
+            a1 = Converter.convertArray2Tetra(a1)
+            a2 = Converter.convertArray2Tetra(a2)
+            a1 = G.close(a1); a2 = G.close(a2)
+        except: pass
     c = intersector.booleanMinus(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True, itermax)# last is dummy (outward)
     return G.close(c)
 
@@ -124,13 +124,13 @@ def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1, improv
     Usage: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
     c = intersector.booleanModifiedSolid(a2, solid, tol, 1, preserve_solid, agg_mode, improve_qual, True, itermax)# last is dummy (outward)
     return G.close(c)
-    
+
 def diffSurf(a1, a2, tol=0., preserve_right=1, agg_mode=1, improve_qual=False, outward_surf=True, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the difference between a volume mesh and a surface mesh."""
     solid_right=1
     c = intersector.DiffSurf(a1, a2, tol, solid_right, preserve_right, agg_mode, improve_qual, outward_surf, itermax)
     return G.close(c)
-    
+
 #==============================================================================
 # XcellN
 # IN: t: 3D NGON SURFACE mesh
@@ -259,7 +259,7 @@ def reorientBC(a, pgs, dir):
     """Reorients outward (dir = 1) or inward (dir=-1) the specified polygons of a mesh.
     Usage: reorientExternalFaces(a)"""
     return intersector.reorientSpecifiedFaces(a, pgs, dir)
-    
+
 #==============================================================================
 # convexifyFaces
 # IN: coords: 3D NGON mesh
@@ -284,7 +284,7 @@ def prepareCellsSplit(a, PH_set = 1, split_policy = 0, PH_conc_threshold = 1./3.
     """Splits some prescribed polygons following a prescribed splitting policy.
     Usage: prepareCellsSplit(a, PH_set, split_policy, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold)"""
     return intersector.prepareCellsSplit(a, PH_set, split_policy, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold)
-   
+
 #==============================================================================
 # splitNonStarCells
 # IN : a                 : 3D NGON mesh
@@ -688,9 +688,9 @@ def getCollidingCells(a1, a2, RTOL = 1.e-12, only_externals = False):
 # OUT: attached cells.
 #==============================================================================
 def getFaceIdsWithCentroids(t1, cents):
-   """ Returns the faces in t1 having their centroids in cents.
-   Usage: getFacesWithCentroids(t1, cents)"""
-   return intersector.getFaceIdsWithCentroids(t1,cents)
+    """ Returns the faces in t1 having their centroids in cents.
+    Usage: getFacesWithCentroids(t1, cents)"""
+    return intersector.getFaceIdsWithCentroids(t1,cents)
 
 #==============================================================================
 # getFaceIdsCollidingVertices     : returns the cells in t1 attached to polygons in s2.
@@ -699,9 +699,9 @@ def getFaceIdsWithCentroids(t1, cents):
 # OUT: attached cells.
 #==============================================================================
 def getFaceIdsCollidingVertex(t1, vtx):
-   """ Returns the faces in t1 having their centroids in cents.
-   Usage: getFaceIdsCollidingVertex(t1, vtx)"""
-   return intersector.getFaceIdsCollidingVertex(t1, vtx)
+    """ Returns the faces in t1 having their centroids in cents.
+    Usage: getFaceIdsCollidingVertex(t1, vtx)"""
+    return intersector.getFaceIdsCollidingVertex(t1, vtx)
 
 #==============================================================================
 # getFaces              : returns the faces with ids in pgids.
@@ -710,9 +710,9 @@ def getFaceIdsCollidingVertex(t1, vtx):
 # OUT: attached cells.
 #==============================================================================
 def getFaces(t1, pgids):
-   """ Returns the faces with ids in pgids.
-   Usage: getFaces(t1, pgids)"""
-   return intersector.getFaces(t1, pgids)
+    """ Returns the faces with ids in pgids.
+    Usage: getFaces(t1, pgids)"""
+    return intersector.getFaces(t1, pgids)
 
 #==============================================================================
 # getCells              : returns the cells in t1 having specified faces or cell ids.
@@ -721,9 +721,9 @@ def getFaces(t1, pgids):
 # OUT: selected cells.
 #==============================================================================
 def getCells(t1, ids, are_face_ids = True):
-   """ Returns the cells in t1 having specified faces or cell ids.
-   Usage: getCells(t1, ids, are_face_ids)"""
-   return intersector.getCells(t1, ids, are_face_ids)
+    """ Returns the cells in t1 having specified faces or cell ids.
+    Usage: getCells(t1, ids, are_face_ids)"""
+    return intersector.getCells(t1, ids, are_face_ids)
 
 #==============================================================================
 # getNthNeighborhood     : returns the list of cells in the N-thneighborhood of t cells given in ids 
@@ -733,9 +733,9 @@ def getCells(t1, ids, are_face_ids = True):
 # OUT: Returns the list of cells in the N-th neighborhood.
 #==============================================================================
 def getNthNeighborhood(a, N, ids):
-   """ Returns the list of cells in the N-th neighborhood of cells given in ids.
-   Usage: getNthNeighborhood(t, N, ids)"""
-   return intersector.getNthNeighborhood(a, N, ids)
+    """ Returns the list of cells in the N-th neighborhood of cells given in ids.
+    Usage: getNthNeighborhood(t, N, ids)"""
+    return intersector.getNthNeighborhood(a, N, ids)
 
 #==============================================================================
 # estimateAdapReq     : estimates an cell-specified adaptation requirement from 
@@ -908,31 +908,31 @@ def statsUncomputableFaces(a):
 # statsSize : XXX
 #==============================================================================
 def statsSize(a, compute_metrics = 1):
-  return intersector.statsSize(a, compute_metrics)
+    return intersector.statsSize(a, compute_metrics)
 
 #==============================================================================
 # removeBaffles : XXX
 #==============================================================================
 def removeBaffles(a):
-  return intersector.removeBaffles(a)
+    return intersector.removeBaffles(a)
 
 #==============================================================================
 # convert2Polyhedron : XXX
 #==============================================================================
 def convert2Polyhedron(a):
-  return intersector.convert2Polyhedron(a)
+    return intersector.convert2Polyhedron(a)
 
 #==============================================================================
 # oneZonePerCell : XXX
 #==============================================================================
 def oneZonePerCell(a):
-  return intersector.oneZonePerCell(a)
+    return intersector.oneZonePerCell(a)
 
 #==============================================================================
 # oneZonePerFace : XXX
 #==============================================================================
 def oneZonePerFace(a):
-  return intersector.oneZonePerFace(a)
+    return intersector.oneZonePerFace(a)
 
 #==============================================================================
 # convertNGON2DToNGON3D : Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
@@ -940,9 +940,9 @@ def oneZonePerFace(a):
 # OUT: Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
 #==============================================================================
 def convertNGON2DToNGON3D(a):
-  """ Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
-    Usage: convertNGON2DToNGON3D(a)"""
-  return intersector.convertNGON2DToNGON3D(a)
+    """ Converts a Cassiopee NGON Format for polygons (Face/Edge) to a Face/Node Format.
+      Usage: convertNGON2DToNGON3D(a)"""
+    return intersector.convertNGON2DToNGON3D(a)
 
 #==============================================================================
 # convertBasic2NGONFaces : Converts a Basic (TRI,QUAD) surface to a NGON nuga Format.
@@ -950,9 +950,9 @@ def convertNGON2DToNGON3D(a):
 # OUT: Converts a Basic (TRI,QUAD) surface to a NGON nuga Format.
 #==============================================================================
 def convertBasic2NGONFaces(a):
-  """ Converts a Basic (TRI,QUAD) surface to a NGON nuga Format.
-    Usage: convertBasic2NGONFaces(a)"""
-  return intersector.convertBasic2NGONFaces(a)
+    """ Converts a Basic (TRI,QUAD) surface to a NGON nuga Format.
+      Usage: convertBasic2NGONFaces(a)"""
+    return intersector.convertBasic2NGONFaces(a)
 
 #==============================================================================
 # centroids : Computes cells centroids in a
@@ -1011,10 +1011,10 @@ def drawOrientation(a):
 def syncMacthPeriodicFaces(a, rotationCenter=[0.,0.,0.],
                               rotationAngle=[0.,0.,0.],
                               translation=[0.,0.,0.], tol=-0.01):
-  """ Force periodicity for faces that are supposed to be periodic.
-    Usage: syncMacthPeriodicFaces(a, rotationCenter, rotationAngle, translation, TOL)"""
-  return intersector.syncMacthPeriodicFaces(a, rotationCenter, rotationAngle,
-                                                translation, tol)
+    """ Force periodicity for faces that are supposed to be periodic.
+      Usage: syncMacthPeriodicFaces(a, rotationCenter, rotationAngle, translation, TOL)"""
+    return intersector.syncMacthPeriodicFaces(a, rotationCenter, rotationAngle,
+                                                  translation, tol)
 
 #~ def conservativeTransfer(a1, flowsol, a2, tol=0., reconstruction_type=0):
     #~ c = intersector.conservative_transfer(a1, flowsol, a2, tol, reconstruction_type)

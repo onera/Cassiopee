@@ -56,7 +56,7 @@ def updateVar2NameList2(event=None):
 #==============================================================================
 def display1D(event=None):
     if CTK.t == []: return
-    
+
     # Get slot
     try: slot = int(VARS[5].get())
     except: slot = 0
@@ -120,7 +120,7 @@ def display1D(event=None):
     var1 = var1.replace('centers:', '')
     var2 = VARS[4].get()
     var2 = var2.replace('centers:', '')
-    
+
     # Recupere les zones actives
     actives = []
     zones = Internal.getZones(CTK.t)
@@ -251,7 +251,7 @@ def display1D(event=None):
         f1 = minv1+0.5*(maxv1-minv1)
         r1min = 0.5*(maxv1-minv1)*zoom+minv1 +pos*(1.-zoom)*(maxv1-minv1)
         r1max = -0.5*(maxv1-minv1)*zoom+maxv1 +pos*(1.-zoom)*(maxv1-minv1)
-    
+
     # Fit second axis
     p = P.selectCells(elts, '({%s} < %20.16g) & ({%s} > %20.16g)'%(var1,r1max,var1,r1min))
     minv2 = C.getMinValue(p, var2)
@@ -289,7 +289,7 @@ def createApp(win):
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkPlot')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Direction -
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
@@ -325,7 +325,7 @@ def createApp(win):
     # - Element 1D -
     B = TTK.OptionMenu(Frame, VARS[0], 'None', 'X (Y)', 'Y (X)', 'Z (X)', 'X (Z)', 'Y (Z)', 'Z (Y)', 'I', 'J', 'K', 'Elements')
     B.grid(row=1, column=0, columnspan=3, sticky=TK.EW)
-    
+
     # Var1
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
@@ -377,7 +377,7 @@ def createApp(win):
     WIDGETS['rangeZoom'] = B
     B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Zoom range.')
-    
+
     # - Set in slot -
     B = TTK.Button(Frame, text="Set", command=display1D)
     B.grid(row=4, column=0, columnspan=3, sticky=TK.EW)
@@ -419,7 +419,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

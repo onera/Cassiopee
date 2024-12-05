@@ -19,7 +19,7 @@ def _extrapOnBCDataSet(t, variables):
     for z in Internal.getZones(t):
         for bc in Internal.getNodesFromType2(z, 'BC_t'):
             allbcdset = Internal.getNodesFromType1(bc, 'BCDataSet_t')
-            
+
             for bcdset in allbcdset:
                 for bcd in Internal.getNodesFromType1(bcdset, 'BCData_t'):
                     fields = Internal.getNodesFromType1(bcd, 'DataArray_t')
@@ -112,10 +112,10 @@ def _setBCDataSet__(z, bc, variables):
 def extract(t, bcType, compute):
     """Extract doubly defined boundaries."""
     if compute:
-       # Calculs des doubly defined -> cellN
-       C._initVars(t, 'centers:cellN', 1)
-       t = X.applyBCOverlaps(t)
-       t = X.setDoublyDefinedBC(t)
+        # Calculs des doubly defined -> cellN
+        C._initVars(t, 'centers:cellN', 1)
+        t = X.applyBCOverlaps(t)
+        t = X.setDoublyDefinedBC(t)
     _extrapOnBCDataSet(t, ['centers:cellN'])
     bcs = C.extractBCOfType(t, bcType)
     p = P.selectCells(bcs, '{centers:cellN}==1')

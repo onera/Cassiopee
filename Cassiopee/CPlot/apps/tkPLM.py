@@ -21,7 +21,7 @@ def generatePLM():
     if len(nzs) == 0:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     hf = CTK.varsFromWidget(VARS[1].get(), type=1)
     if len(hf) != 1:
         CTK.TXT.insert('START', 'First cell height is incorrect.\n'); return
@@ -34,7 +34,7 @@ def generatePLM():
     if len(density) != 1:
         CTK.TXT.insert('START', 'Grid point density is incorrect.\n'); return
     density = density[0]
-     
+
     try:
         CTK.saveTree()
         CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
@@ -54,7 +54,7 @@ def generatePLM():
         Panels.displayErrors([0,str(e)], header='Error: PLM')
         CTK.TXT.insert('START', 'PLM mesh failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-        
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -96,12 +96,12 @@ def createApp(win):
     B = TK.Entry(Frame, textvariable=VARS[2], background='White', width=5)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Grid point density.')
-    
+
     # - Generate -
     B = TK.Button(Frame, text="Generate", command=generatePLM)
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Generate PLM grid.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

@@ -42,7 +42,7 @@ def trimesh(a1, a2, a3):
     import Transform as T
     import Geom as D
     N1 = a1[2]; N2 = a2[2]; N3 = a3[2]
-    
+
     # Assure la continuite
     P0 = (a1[1][0,N1-1], a1[1][1,N1-1], a1[1][2,N1-1])
     P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
@@ -52,7 +52,7 @@ def trimesh(a1, a2, a3):
         t = a2; a2 = a3; a3 = t
         N2 = a2[2]; N3 = a3[2]
         P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
-        
+
     if abs(P0[0]-P00[0]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
     elif abs(P0[1]-P00[1]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
     elif abs(P0[2]-P00[2]) > 1.e-6: a2 = T.reorder(a2, (-1,2,3))
@@ -79,7 +79,7 @@ def trimesh(a1, a2, a3):
     w3 = C.array('weight', N3, 1, 1)
     w3 = C.initVars(w3, 'weight', 1)
     CC = G.barycenter([a1,a2,a3], [w1,w2,w3])
-    
+
     # Subzones
     s1 = T.subzone(a1, (1,1,1), (N1-N+1,1,1))
     s2 = T.subzone(a1, (N1-N+1,1,1), (N1,1,1))
@@ -259,7 +259,7 @@ def step1():
     s = D.getCurvilinearAbscissa(c1); s[0] = 'x'
     s = Converter.initVars(s, 'y', 0.)
     s = Converter.initVars(s, 'z', 0.)
-    
+
     median = G.map(median, s)
     median = G.refine(median, 0.9, 1)
     N1 = c1[2]; N2 = median[2]; d = N1-N2    
@@ -304,7 +304,7 @@ def step1():
 
     m1 = G.TFI([d1,e1,delta1,median])
     m2 = G.TFI([d2,e2,delta2,median])
-    
+
     #===========================================================================
     # Ajout de la ligne arriere
 
@@ -394,7 +394,7 @@ def step1():
     if base != []:
         (p, c) = Internal.getParentOfNode(CTK.t, base[0])
         del p[2][c]
-    
+
     CTK.t = C.addBase2PyTree(CTK.t, 'STEP1', 3)
     base = Internal.getNodesFromName1(CTK.t, 'STEP1')[0]
     base[2] += zones
@@ -408,7 +408,7 @@ def step1():
 # Deuxieme etape: passage au maillage volumique
 #==============================================================================
 def step2():
-    
+
     import Transform as T
     import Generator as G
 
@@ -482,7 +482,7 @@ def step2():
     distrib = G.cart( (0,0,0), (1./(N-1),1,1), (N,1,1) )
     for i in range(len(I)):
         I[i] = G.map(I[i], distrib, 3)
-    
+
     # Back to zones
     zones = []
     for b in B1+B2+I:
@@ -559,7 +559,7 @@ def step2():
 
     base = C.fillEmptyBCWith(base, 'wall', 'BCWall')
     CTK.t[2][c] = base            
-    
+
     CTK.TXT.insert('START', 'Step2 performed.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -580,7 +580,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -624,7 +624,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=5)
     B.grid(row=0, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Index for front split.')
-    
+
     B = TTK.Label(Frame, text='Front step:')
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Front step.')
@@ -638,14 +638,14 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=5)
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Step on profile.')
-    
+
     B = TTK.Label(Frame, text='Delta line index:')
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Index for delta line.')
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
     B.grid(row=3, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Index for delta line.')
-    
+
     B = TTK.Label(Frame, text='Mesh height:')
     B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Mesh height.')
@@ -690,7 +690,7 @@ def showApp():
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -705,7 +705,7 @@ def saveApp():
     CTK.PREFS['tkBladerSpanStep'] = VARS[5].get()
     CTK.PREFS['tkBladerSpan'] = VARS[6].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('0.5')
@@ -725,7 +725,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

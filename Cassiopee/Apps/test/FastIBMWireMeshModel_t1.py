@@ -88,7 +88,7 @@ time_step   = Internal.getValue(time_step)
 for it in range(NIT):
     FastS._compute(t, metrics, it, tc, graph, layer="Python")
     time0 += time_step
-        
+
     if it%modulo_verif == 0:
         print('- %d / %d - %f'%(it+it0, NIT+it0, time0))
         FastS.display_temporal_criteria(t, metrics, it)

@@ -31,7 +31,7 @@ def convertMesh2Arrays(dim=2, tag=-1):
     # transforme elements en connectivite par elements pour Cassiopee
     out = []
     for c, ctype in enumerate(elementTypes):
-    
+
         print('elt type=', ctype)
         prop = model.mesh.getElementProperties(elementType=ctype)
         eltName = prop[0]
@@ -54,7 +54,7 @@ def convertMesh2Arrays(dim=2, tag=-1):
         for n in range(nof): # bottleneck
             for i in range(ne): 
                 kelts[n,i] = inverse.get(nodeEltTags[nof*i+n], 1)
-    
+
         a = ['x,y,z', crds, kelts, eltType]
         out.append(a)
     return out

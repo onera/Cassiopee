@@ -1,0 +1,45 @@
+name: autopep8 formatter
+
+on:
+  push:
+    branches:
+      - main
+#  pull_request:
+#    branches:
+#      - main
+
+jobs:
+  autopep8:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install autopep8
+        run: pip install autopep8
+
+      - name: Run autopep8
+        run: |
+          pythonFiles=`find Cassiopee/ -type f -not -path "*/build/*" -not -path "*/ThirdParty/*" -name "*.py" -not -name "Internal.py"`
+          autopep8 --in-place --indent-size=4 --select=E101 \
+            $pythonFiles
+          autopep8 --in-place --indent-size=2 --select=E101 \
+            Cassiopee/Converter/Converter/Internal.py
+
+      - name: Commit changes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Apply autopep8 formatting" || true
+
+      - name: Push changes
+        run: git push origin ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

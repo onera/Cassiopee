@@ -30,17 +30,17 @@
 void evalFace__(E_Int npts, E_Float* u, E_Float* v, const TopoDS_Face& F,
                 E_Float* x, E_Float* y, E_Float* z)
 {
-    Handle(Geom_Surface) face = BRep_Tool::Surface(F);
+  Handle(Geom_Surface) face = BRep_Tool::Surface(F);
 #pragma omp parallel
-{
+  {
     gp_Pnt Pt;
 #pragma omp for 
     for (E_Int i = 0; i < npts; i++)
     {
-        face->D0(u[i], v[i], Pt);
-        x[i] = Pt.X(); y[i] = Pt.Y(); z[i] = Pt.Z();
+      face->D0(u[i], v[i], Pt);
+      x[i] = Pt.X(); y[i] = Pt.Y(); z[i] = Pt.Z();
     }
-}
+  }
 }
 
 // evalFace

@@ -50,7 +50,7 @@ class perso:
         if s is not None:
             Sound.closeAllSounds()
             Sound.playSound(s)
-            
+
     # Positionne perso init
     def place(self, world, i=None, j=None):
         m = world.map
@@ -71,7 +71,7 @@ class perso:
             self.vy = 0.
         else:
             print ('>>init pb')
-        
+
     # Build the model (sphere)
     def build(self, world):
         a = D.sphere((0,0,0),0.5,N=8)
@@ -97,14 +97,14 @@ class perso:
         elif self.x < 0: self.x = world.nx
         if self.y > world.ny: self.y = 0.
         elif self.y < 0: self.y = world.ny
-            
+
     # Checking collision with world
     def checkCollision(self, world):
         # Check buffs
         if self.timeBuff > 0 and world.time - self.timeBuff > 100:
             self.timeBuff = 0
             self.speed = self.baseSpeed
-            
+
         # Check collision
         m = world.map
         x = self.x; y = self.y

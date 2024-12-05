@@ -23,7 +23,7 @@ for z in Internal.getZones(a):
         zsr[2].append(['VelocityX', Nlength, [], 'DataArray_t'])
         zsr[2].append(['VelocityY', Nlength, [], 'DataArray_t'])
         zsr[2].append(['VelocityZ', Nlength, [], 'DataArray_t'])
-        
+
 a=D_IBM.transformTc2(a)
 
 C.convertPyTree2File(a, 'out.cgns')

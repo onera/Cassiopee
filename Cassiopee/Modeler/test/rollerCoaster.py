@@ -109,7 +109,7 @@ CPlot.display(all, bgColor=1, displayInfo=0, mode='solid')
 #    p = int(i/2000)
 #    pos = i -p*2000
 #    CPlot.moveCamera(Pts, N=2000, pos=pos, moveEye=True)
-    
+
 # MoveCamera avec array path
 N = path[2]
 for i in range(N*3):

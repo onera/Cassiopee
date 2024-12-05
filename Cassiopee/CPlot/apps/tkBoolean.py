@@ -43,7 +43,7 @@ def union():
         deletedZoneNames.append(CTK.t[2][nob][0]+Internal.SEP1+CTK.t[2][nob][2][noz][0])
         z = CTK.t[2][nob][2][noz]
         zlist.append(z)
-    
+
     try: 
         j = XOR.booleanUnion(zlist[0], zlist[1], tol=tol)
     except Exception as e:
@@ -63,13 +63,13 @@ def union():
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(deletedZoneNames)
     CTK.add(CTK.t, CTK.Nb[0]+1, -1, j)
-    
+
     CTK.TXT.insert('START', 'Union performed.\n')
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def difference():
     if CTK.t == []: return
@@ -114,7 +114,7 @@ def difference():
         CTK.TXT.insert('START', 'Difference failed.\n')
     #C._fillMissingVariables(CTK.t)
     CTK.setCursor(0, WIDGETS['difference'])
-    
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -167,7 +167,7 @@ def difference2():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def intersection():
     if CTK.t == []: return
@@ -210,7 +210,7 @@ def intersection():
             CTK.setCursor(0, WIDGETS['intersection'])
             Panels.displayErrors([0,str(e)], header='Error: intersection')
             CTK.TXT.insert('START', 'Intersection failed.\n'); return
-        
+
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(deletedZoneNames)
     CTK.setCursor(0, WIDGETS['intersection'])
@@ -220,7 +220,7 @@ def intersection():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -236,13 +236,13 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=2)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkBoolean')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- tolerance -
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
@@ -277,7 +277,7 @@ def createApp(win):
     WIDGETS['revdiff'] = B
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Reversed difference of two surfaces.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -293,7 +293,7 @@ def showApp():
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -302,7 +302,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

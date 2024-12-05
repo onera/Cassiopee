@@ -182,7 +182,7 @@ def launchAndSurvey(cmd, no, info):
         #line = proc.stdout.readline() # bloquant
         try: line = q.get_nowait() # non bloquant
         except: line = ''
-       
+
         if line != '':
             ret = analyse(line, int(nit))
             if (ret[0] > -0.5):
@@ -205,7 +205,7 @@ def launchAndSurvey(cmd, no, info):
             if (ret[0] > -0.5): iterf = ret[1]
             elif (ret[0] == -2.): status = 1
             elif (ret[0] == -3.): CPU = ret[1]
-    
+
     if status == 1:
         iterf = iterf.split('/')[1]
         info[4] = 'DONE - ['+iterf+'] - '+CPU

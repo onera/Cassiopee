@@ -33,7 +33,7 @@ def walkIn():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if (z[0] == sname[1]): constraints.append(z)
-                
+
     # surfaces
     name = VARS[1].get()
     names = name.split(';')
@@ -46,7 +46,7 @@ def walkIn():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if z[0] == sname[1]: surfaces.append(z)
-                    
+
     # - Hauteur de chaque maille -
     dhloc = CTK.varsFromWidget(VARS[2].get(), type=1); dhloc = dhloc[0]
     N = CTK.varsFromWidget(VARS[3].get(), type=2); N = N[0]
@@ -77,7 +77,7 @@ def walkIn():
             zlist.append(z)
         except Exception as e:
             fail = True; errors += [0,str(e)]
-            
+
     # Ajout dans la base SURFACES
     CTK.t = C.addBase2PyTree(CTK.t, 'SURFACES')
     bases = Internal.getNodesFromName1(CTK.t, 'SURFACES')
@@ -92,7 +92,7 @@ def walkIn():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 def walkOut():
     if CTK.t == []: return
@@ -111,7 +111,7 @@ def walkOut():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if (z[0] == sname[1]): constraints.append(z)
-                
+
     # surfaces
     name = VARS[1].get()
     names = name.split(';')
@@ -124,7 +124,7 @@ def walkOut():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if (z[0] == sname[1]): surfaces.append(z)
-                    
+
     # - Hauteur de chaque maille -
     dhloc = CTK.varsFromWidget(VARS[2].get(), type=1); dhloc = dhloc[0]
     N = CTK.varsFromWidget(VARS[3].get(), type=2); N = N[0]
@@ -156,7 +156,7 @@ def walkOut():
             zlist.append(z)
         except Exception as e:
             fail = True; errors += [0,str(e)]
-            
+
     # Ajout dans la base SURFACES
     CTK.t = C.addBase2PyTree(CTK.t, 'SURFACES')
     bases = Internal.getNodesFromName1(CTK.t, 'SURFACES')
@@ -171,7 +171,7 @@ def walkOut():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 def setConstraintContour():
     if CTK.t == []: return
@@ -190,7 +190,7 @@ def setConstraintContour():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[0].set(selected)
-    
+
 #==============================================================================
 def setSurface():
     if CTK.t == []: return
@@ -209,7 +209,7 @@ def setSurface():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[1].set(selected)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -283,15 +283,15 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[4], background='White', width=5)
     B.grid(row=2, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of smoothing iterations.')
-    
+
     B = TTK.Button(Frame, text="Walk in", command=walkIn)
     B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Walk in.')
-    
+
     B = TTK.Button(Frame, text="Walk out", command=walkOut)
     B.grid(row=3, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Walk out.')
-        
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -320,7 +320,7 @@ def saveApp():
     CTK.PREFS['tkSurfaceWalkNLayers'] = VARS[3].get()
     CTK.PREFS['tkSurfaceWalkSmooth'] = VARS[4].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[2].set('1.e-1')
@@ -334,7 +334,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

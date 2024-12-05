@@ -129,7 +129,7 @@ def display(arrays,
                        export, exportResolution,
                        zoneNames, renderTags, frameBuffer, offscreen,
                        posCamList, posEyeList, dirCamList)
-    
+
 #==============================================================================
 def render():
     """Force render.
@@ -334,7 +334,7 @@ def filterColormap(values):
         colormapC = ColorMaps.Greens
         if colormap == 30: colormap = 10
         elif colormap == 31: colormap = 11    
-        
+
     return [colormap, colormapC1, colormapC2, colormapC3, colormapC]
 
 def setState(dim=-1,
@@ -533,88 +533,88 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     # Set d, array of posCams and N nbre of points
     import Geom
     if len(posCams) == 5 and isinstance(posCams[0], str): # input struct array
-      N = posCams[2]
-      d = posCams
-      pinc = KCore.isNamePresent(posCams, 'incEye')
-      if pinc >= 0: pinc = posCams[1][pinc]
-      else: pinc = None
+        N = posCams[2]
+        d = posCams
+        pinc = KCore.isNamePresent(posCams, 'incEye')
+        if pinc >= 0: pinc = posCams[1][pinc]
+        else: pinc = None
     else: # list
-      N = max(N, 3)
-      Np = len(posCams)
-      pOut = []
-      P0 = posCams[0]
-      pOut.append(P0)
-      for i in range(1,Np):
-        P1 = posCams[i]
-        sub = Vector.sub(P1,P0)
-        if Vector.norm(sub)>1.e-10: pOut.append(P1)
-        P0 = P1
-      if len(pOut) == 1:
-        d = Geom.polyline(pOut*N)
-      elif len(pOut) == 2:
-        p = Geom.polyline(pOut)
-        d = Geom.spline(p, 2, N)
-      else:
-        p = Geom.polyline(pOut) 
-        d = Geom.spline(p, 3, N)
-      pinc = None
-
-    # Set e, array of posEye of N pts
-    if posEyes is not None:
-      if len(posEyes) == 5 and isinstance(posEyes[0], str): # input struct array
-        Neye = posEyes[2]
-        if Neye != N:
-          import Generator
-          dis = Geom.getDistribution(d)
-          posEyes = Generator.map(posEyes, dis, 1)
-        e = posEyes
-      else: # list
-        Np = len(posEyes)
+        N = max(N, 3)
+        Np = len(posCams)
         pOut = []
-        P0 = posEyes[0]
+        P0 = posCams[0]
         pOut.append(P0)
         for i in range(1,Np):
-            P1 = posEyes[i]
+            P1 = posCams[i]
             sub = Vector.sub(P1,P0)
             if Vector.norm(sub)>1.e-10: pOut.append(P1)
             P0 = P1
         if len(pOut) == 1:
-            e = Geom.polyline(pOut*N)
+            d = Geom.polyline(pOut*N)
         elif len(pOut) == 2:
             p = Geom.polyline(pOut)
-            e = Geom.spline(p, 2, N)
+            d = Geom.spline(p, 2, N)
         else:
-            p = Geom.polyline(pOut)
-            e = Geom.spline(p, 3, N)
+            p = Geom.polyline(pOut) 
+            d = Geom.spline(p, 3, N)
+        pinc = None
+
+    # Set e, array of posEye of N pts
+    if posEyes is not None:
+        if len(posEyes) == 5 and isinstance(posEyes[0], str): # input struct array
+            Neye = posEyes[2]
+            if Neye != N:
+                import Generator
+                dis = Geom.getDistribution(d)
+                posEyes = Generator.map(posEyes, dis, 1)
+            e = posEyes
+        else: # list
+            Np = len(posEyes)
+            pOut = []
+            P0 = posEyes[0]
+            pOut.append(P0)
+            for i in range(1,Np):
+                P1 = posEyes[i]
+                sub = Vector.sub(P1,P0)
+                if Vector.norm(sub)>1.e-10: pOut.append(P1)
+                P0 = P1
+            if len(pOut) == 1:
+                e = Geom.polyline(pOut*N)
+            elif len(pOut) == 2:
+                p = Geom.polyline(pOut)
+                e = Geom.spline(p, 2, N)
+            else:
+                p = Geom.polyline(pOut)
+                e = Geom.spline(p, 3, N)
     else: e = None
 
     # Set dc, array of dirCams of N pts
     if dirCams is not None:
-      if len(dirCams) == 5 and isinstance(dirCams[0], str): # input struct array
-        Ndc = dirCams[2]
-        if Ndc != N:
-          import Generator
-          dis = Geom.getDistribution(d)
-          dirCams = Generator.map(dirCams, dis, 1)
-        dc = dirCams
-      else: # list
-        Np = len(dirCams)
-        pOut = []
-        P0 = dirCams[0]
-        pOut.append(P0)
-        for i in range(1,Np):
-            P1 = dirCams[i]
-            sub = Vector.sub(P1,P0)
-            if Vector.norm(sub)>1.e-10: pOut.append(P1)
-            P0 = P1
-        if len(pOut) == 1:
-            dc = Geom.polyline(pOut*N)
-        elif len(pOut) == 2:
-            p = Geom.polyline(pOut)
-            dc = Geom.spline(p, 2, N)
-        else:
-            p = Geom.polyline(pOut)
-            dc = Geom.spline(p, 3, N)
+        if len(dirCams) == 5 and isinstance(dirCams[0], str): # input struct array
+            Ndc = dirCams[2]
+            if Ndc != N:
+                import Generator
+                dis = Geom.getDistribution(d)
+                dirCams = Generator.map(dirCams, dis, 1)
+            dc = dirCams
+        else: # list
+            Np = len(dirCams)
+            pOut = []
+            P0 = dirCams[0]
+            pOut.append(P0)
+            for i in range(1,Np):
+                P1 = dirCams[i]
+                sub = Vector.sub(P1,P0)
+                if Vector.norm(sub)>1.e-10: pOut.append(P1)
+                P0 = P1
+            if len(pOut) == 1:
+                dc = Geom.polyline(pOut*N)
+            elif len(pOut) == 2:
+                p = Geom.polyline(pOut)
+                dc = Geom.spline(p, 2, N)
+            else:
+                p = Geom.polyline(pOut)
+                dc = Geom.spline(p, 3, N)
     else: dc = None
 
     posCam = getState('posCam')
@@ -622,42 +622,42 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     dirCam = getState('dirCam')
 
     if pos == -1:
-      i = 0
-      while i < N-1:
-        time.sleep(__timeStep__*speed*0.06)
-        if i > N-11: inc = N-i-1
+        i = 0
+        while i < N-1:
+            time.sleep(__timeStep__*speed*0.06)
+            if i > N-11: inc = N-i-1
+            else: inc = 10
+            posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
+            if e is not None:
+                posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
+                if dc is not None:
+                    dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
+                    setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
+                else:
+                    setState(posCam=posCam, posEye=posEye)
+            elif moveEye:
+                posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
+                setState(posCam=posCam, posEye=posEye)
+            else: setState(posCam=posCam)
+            i += 1
+    else:
+        i = pos; i = min(pos, N-1)
+        if pinc is not None: inc = int(pinc[i])
         else: inc = 10
+        inc = min(inc, N-i-1)
         posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
         if e is not None:
-          posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
-          if dc is not None:
-            dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
-            setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
-          else:
-            setState(posCam=posCam, posEye=posEye)
+            posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
+            if dc is not None:
+                dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
+                setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
+            else:
+                setState(posCam=posCam, posEye=posEye)
         elif moveEye:
-          posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
-          setState(posCam=posCam, posEye=posEye)
-        else: setState(posCam=posCam)
-        i += 1
-    else:
-      i = pos; i = min(pos, N-1)
-      if pinc is not None: inc = int(pinc[i])
-      else: inc = 10
-      inc = min(inc, N-i-1)
-      posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
-      if e is not None:
-          posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
-          if dc is not None:
-            dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
-            setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
-          else:
+            posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
             setState(posCam=posCam, posEye=posEye)
-      elif moveEye:
-        posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
-        setState(posCam=posCam, posEye=posEye)
-      else: setState(posCam=posCam)
-    
+        else: setState(posCam=posCam)
+
     return posCam, posEye, dirCam
 
 def travelRight(xr=0.1, N=100):

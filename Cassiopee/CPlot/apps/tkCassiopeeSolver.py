@@ -15,7 +15,7 @@ WIDGETS = {}; VARS = []
 #==============================================================================
 def writeSetupFile():
     if CTK.t == []: return
-    
+
     # EquationDimension
     nodes = Internal.getNodesFromName(CTK.t, 'EquationDimension')
     if nodes != []:
@@ -49,7 +49,7 @@ def writeSetupFile():
                 CTK.TXT.insert('START', 'This turbulence model is not accepted by Cassiopee solver.\n')
                 CTK.TXT.insert('START', 'Error: ', 'Error')
                 return
-    
+
     # ReferenceState
     nodes = Internal.getNodesFromName(CTK.t, 'ReferenceState')
     if (nodes == []):
@@ -65,7 +65,7 @@ def writeSetupFile():
         CTK.TXT.insert('START', 'Mach is missing (tkState).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
         return
-    
+
     # Reynolds
     nodes = Internal.getNodesFromName(state, 'Reynolds')
     if (nodes != []): Reynolds = Internal.getValue(nodes[0])
@@ -75,7 +75,7 @@ def writeSetupFile():
         return
     else: Reynolds = 1.
     if (Reynolds <= 0.): Reynolds = 1.
-    
+
     # Incidences
     nodes = Internal.getNodesFromName(state, 'VelocityX')
     if (nodes != []): UInf = Internal.getValue(nodes[0])
@@ -93,9 +93,9 @@ def writeSetupFile():
         aly = 0.; alz = 0.
     alphaZ = alz*180./math.pi
     alphaY = aly*180./math.pi
-    
+
     treeFile = os.path.splitext(CTK.FILE)[0]+'.cgns'
-    
+
     f = open('dump.py', 'w')
     st =  'from Cassiopee import dump\n'
     st += 'import Converter.PyTree as C\n'
@@ -104,7 +104,7 @@ def writeSetupFile():
     st += 'dump(t, FILE)\n'
     f.write(st)
     f.close()
-    
+
     f = open('setup.py', 'w')
     st =  'import Cassiopee as K\n'
     st += 'import elsA_user as E\n'
@@ -228,7 +228,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -257,7 +257,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('No Cartesian generation'); VARS.append(V)
     # -9- Dfar -
     V = TK.StringVar(win); V.set('10.'); VARS.append(V)
-    
+
     # - Integ -
     B = TTK.Label(Frame, text="Integ")
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -317,7 +317,7 @@ def createApp(win):
     # - Write setup file -
     B = TTK.Button(Frame, text="Write setup", command=writeSetupFile)
     B.grid(row=8, column=1, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -338,7 +338,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

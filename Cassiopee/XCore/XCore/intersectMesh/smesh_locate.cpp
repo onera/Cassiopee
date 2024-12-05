@@ -217,8 +217,8 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
         assert(found);
     }
 
-    printf("on vertex: %lu\n", on_vertex);
-    printf("on edge: %lu\n", on_edge);
+    printf("on vertex: %zu\n", on_vertex);
+    printf("on edge: %zu\n", on_edge);
 
     //point_write("oedge.im", oedge);
     //point_write("dedge.im", dedge);

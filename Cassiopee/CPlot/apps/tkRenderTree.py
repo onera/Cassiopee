@@ -22,7 +22,7 @@ def addBillboardFile(event=None):
         if i != '': vo.append(i) 
     CPlot._addRender2PyTree(CTK.t, billBoards=vo)
     CTK.TKTREE.updateApp()
-    
+
     renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
     pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
     out = []
@@ -41,7 +41,7 @@ def addBumpMapFile(event=None):
         if i != '': vo.append(i) 
     CPlot._addRender2PyTree(CTK.t, bumpMaps=vo)
     CTK.TKTREE.updateApp()
-    
+
     renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
     pos = Internal.getNodeFromName1(renderInfo, 'bumpMaps')
     out = []
@@ -77,7 +77,7 @@ def addTextureFile(event=None):
     # Add new materials 
     CPlot._addRender2PyTree(CTK.t, materials=vo)
     CTK.TKTREE.updateApp()
-    
+
     # Update CPlot textures
     renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
     pos = Internal.getNodeFromName1(renderInfo, 'materials')
@@ -128,11 +128,11 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkRenderTree')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Name of file to add -
     V = TK.StringVar(win); V.set('file.png'); VARS.append(V)
-    
+
     # - Buttons -
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
@@ -144,7 +144,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Select an image file (png).')
     B.grid(row=0, column=1, sticky=TK.EW)
     F.grid(row=0, column=0, sticky=TK.EW)
-    
+
     B = TTK.Button(Frame, text="Add Base Color textures", command=addTextureFile)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
@@ -157,7 +157,7 @@ def createApp(win):
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='Add file names as image billboard file to be referenced\n in Sphere material of tkRenderSet.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

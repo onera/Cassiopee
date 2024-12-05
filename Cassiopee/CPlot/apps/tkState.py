@@ -44,21 +44,21 @@ def getState():
         for n in A[2]:
             if n[0] == 'ReferenceState': referenceState = n; break
     else:
-         nob = CTK.Nb[nzs[0]]+1
-         noz = CTK.Nz[nzs[0]]
-         A = CTK.t[2][nob][2][noz]
-         for n in A[2]:
-             if n[0] == 'FlowEquationSet': flowEquationSet = n; break
-         if flowEquationSet == []:
-             B, r = Internal.getParentOfNode(CTK.t, A)
-             for n in B[2]:
-                 if (n[0] == 'FlowEquationSet'): flowEquationSet = n; break
-         for n in A[2]:
-             if n[0] == 'ReferenceState': referenceState = n; break
-         if referenceState == []:
-             B, r = Internal.getParentOfNode(CTK.t, A)
-             for n in B[2]:
-                 if n[0] == 'ReferenceState': referenceState = n; break
+        nob = CTK.Nb[nzs[0]]+1
+        noz = CTK.Nz[nzs[0]]
+        A = CTK.t[2][nob][2][noz]
+        for n in A[2]:
+            if n[0] == 'FlowEquationSet': flowEquationSet = n; break
+        if flowEquationSet == []:
+            B, r = Internal.getParentOfNode(CTK.t, A)
+            for n in B[2]:
+                if (n[0] == 'FlowEquationSet'): flowEquationSet = n; break
+        for n in A[2]:
+            if n[0] == 'ReferenceState': referenceState = n; break
+        if referenceState == []:
+            B, r = Internal.getParentOfNode(CTK.t, A)
+            for n in B[2]:
+                if n[0] == 'ReferenceState': referenceState = n; break
 
     if flowEquationSet != []:
         # EquationDimension
@@ -83,7 +83,7 @@ def getState():
     if node is not None:
         mach = Internal.getValue(node)
         VARS[2].set(str(mach))
-    
+
     # Reynolds
     node = Internal.getNodeFromName1(state, 'Reynolds')
     if node is not None:
@@ -146,14 +146,14 @@ def getState():
         VARS[10].set(str(TurbLevel))
 
         MuInf = Density*Vit / max(reynolds,1.e-10) # L=1
-    
+
         node = Internal.getNodeFromName(state, 'TurbulentSANuTildeDensity')
         if node is not None: 
             RoNuTilde = Internal.getValue(node)
             MutInf = RoNuTilde
             MutSMu = MutInf / max(MuInf, 1.e-12)
             VARS[9].set(str(MutSMu))
-    
+
     CTK.TXT.insert('START', 'State displayed.\n')
 
 #==============================================================================
@@ -185,12 +185,12 @@ def setState(event=None):
     mach = VARS[2].get()
     try: mach = float(mach)
     except: mach = 0.
-    
+
     # Reynolds
     Re = VARS[3].get()
     try: Re = float(Re)
     except: Re = 1.e6
-    
+
     # Incidences
     alphaZ = VARS[4].get()
     try: alphaZ = float(alphaZ)
@@ -215,7 +215,7 @@ def setState(event=None):
     LInf = VARS[15].get()
     try: LInf = float(LInf)
     except: LInf = 1.
-    
+
     # Grandeurs turb
     MutSMuInf = VARS[9].get()
     try: MutSMuInf = float(MutSMuInf)
@@ -223,7 +223,7 @@ def setState(event=None):
     TurbLevelInf = VARS[10].get()
     try: TurbLevelInf = float(TurbLevelInf)
     except: TurbLevelInf = 1.e-4
-    
+
     adim = ''; ADIM = VARS[11].get()
     if ADIM == 'adim1(Ro,A,T)': adim = 'adim1'
     elif ADIM == 'adim2(Ro,U,T)': adim = 'adim2'
@@ -245,7 +245,7 @@ def setState(event=None):
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]
                 nodes.append(CTK.t[2][nob][2][noz])
-    
+
     for b in nodes:
         p, r = Internal.getParentOfNode(CTK.t, b)
         C.addState2Node__(p[2][r], 'GoverningEquations', VARS[1].get())
@@ -276,7 +276,7 @@ def setState(event=None):
     if nzs == []: CTK.TXT.insert('START', 'State set in all bases.\n')
     elif fullBase > 0: CTK.TXT.insert('START', 'State set in selected base.\n')
     else: CTK.TXT.insert('START', 'State set in selected zones.\n')
-    
+
 # Called when adim is switched -> change buttons
 def switchAdim(event=None):
     adim = VARS[11].get()
@@ -346,7 +346,7 @@ def createApp(win):
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -395,7 +395,7 @@ def createApp(win):
     F = TTK.Frame(Frame, borderwidth=2, relief=CTK.FRAMESTYLE)
     F.columnconfigure(0, weight=1)
     F.columnconfigure(1, weight=2)
-    
+
     B = TTK.Label(F, text="Pb dim")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Dimension of the problem.')
@@ -435,7 +435,7 @@ def createApp(win):
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Reference (infinite) mach number.')
     WIDGETS['Mach'] += [B]
-    
+
     # - MachTip -
     B = TTK.Label(F, text="MachTip")
     B.grid(row=2, column=2, sticky=TK.EW)
@@ -499,7 +499,7 @@ def createApp(win):
     B = TTK.Entry(F, textvariable=VARS[14], background='White', width=6)
     BB = CTK.infoBulle(parent=B, text='Reference (infinite) pressure (Pa).')
     WIDGETS['PInf'] += [B]
-    
+
     # - LInf -
     B = TTK.Label(F, text="LInf (m)")
     BB = CTK.infoBulle(parent=B, text='Reference length (m).')
@@ -536,7 +536,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Level of turbulence.')
     B = TTK.Entry(F, textvariable=VARS[10], background='White', width=5)
     B.grid(row=7, column=3, sticky=TK.EW)
-    
+
     # - Adim -
     B = TTK.Label(F, text="Adim")
     B.grid(row=8, column=0, sticky=TK.EW)
@@ -547,7 +547,7 @@ def createApp(win):
                         'dim3(real UInf,PInf,RoInf)',
                         command=switchAdim)
     B.grid(row=8, column=1, columnspan=3, sticky=TK.EW)
-    
+
     # - get state, inutile a mon avis -
     B = TTK.Button(F, text="Get state", command=getState)
     B.grid(row=9, column=0, columnspan=2, sticky=TK.EW)
@@ -586,7 +586,7 @@ def updateApp(event=None):
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

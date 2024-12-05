@@ -11,7 +11,7 @@ import KCore.Dist as Dist
 
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
-    
+
 # setup ======================================================================
 setup(
     name="Apps",

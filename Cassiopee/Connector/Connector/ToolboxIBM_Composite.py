@@ -77,7 +77,7 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
                 blankingBoxL = G.cart((xminb,yminb,0.),(xmaxb-xminb,ymaxb-yminb,1.),(2,2,1))
             blankingBoxL = P.exteriorFaces(blankingBoxL)
             tblank[2][nob][2]=[blankingBoxL]
-    
+
     tcart = generateIBMMesh_legacy(tov, vmin, snearsExt, dfar, DEPTH=DEPTH, NP=NP, tbox=tbox, 
                             snearsf=snearsf, check=check, merged=1, sizeMax=sizeMax, 
                             symmetry=symmetry, externalBCType='BCFarfield', to=None, mergeByParents=True)
@@ -133,12 +133,12 @@ def prepareCompositeChimeraData(t,tc,tblank,noBaseOff, DEPTH=2,loc='centers',
     t,tc=prepareSteadyOffBodyChimeraData(t,tc,tblank, noBaseOff, tBB=tBB,DEPTH=2,loc='centers', NIT=NIT, 
                                          RotationCenter=RotationCenter, RotationAngle=RotationAngle, Translation=Translation,
                                          listOfSteadyOffBodyZones=listOfSteadyOffBodyZones)
-    
+
     t,tc=prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=tBB,DEPTH=2,loc='centers', NIT=NIT, 
                                   RotationCenter=RotationCenter, RotationAngle=RotationAngle, Translation=Translation,
                                   listOfSteadyOffBodyZones=listOfSteadyOffBodyZones,
                                   listOfOffBodyIntersectingNBZones=listOfOffBodyIntersectingNBZones)
-    
+
     Internal._rmNodesByName(tc,Internal.__FlowSolutionNodes__)
     Internal._rmNodesByName(tc,Internal.__GridCoordinates__)    
     return t,tc
@@ -152,7 +152,7 @@ def prepareCompositeChimeraData(t,tc,tblank,noBaseOff, DEPTH=2,loc='centers',
 # in : tblank : surface de masquage pour masquer le maillage de fond
 #-------------------------------------------------------------------------------------------------------------------
 def getListOfSteadyOffBodyZones(t, noBaseOff, listOfOffBodyIntersectingNBZones):
-    
+
     listOfSteadyOffBodyZones=[]
     for z in Internal.getZones(t[2][noBaseOff]):
         if z[0] not in listOfOffBodyIntersectingNBZones: listOfSteadyOffBodyZones.append(z[0])
@@ -324,7 +324,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
             for ID in IDatas: 
                 name=ID[0].split('_')
                 ID[0]='IDSteady_%s'%(name[1])
-    
+
     tloc = C.newPyTree(['OffMotion'])
     for zr in t[2][noBaseOff][2]:
         if Internal.getType(zr)=='Zone_t':
@@ -334,7 +334,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
                 tloc[2][1][2].append(zr)
             else: tloc[2][1][2].append(zr)
         tBBloc=G.BB(tloc)
-    
+
 
     # a remonter dans l interface
     intersectionsDictOffOff = X.getIntersectingDomains(tBB[2][noBaseOff], method='AABB', taabb=tBB[2][noBaseOff])
@@ -463,7 +463,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
                         dictOfMotionADT[znamed]=hook0
                     hooks.append(dictOfMotionADT[znamed])
                     donorZones.append(zd)
-         
+
                 # print 'Off-body motion zone %s'%znamer
                 donorZones = X.setInterpData(zr,donorZones,nature=1,penalty=1,loc='centers',storage='inverse',sameName=1,\
                                              hook=hooks, itype='chimera')

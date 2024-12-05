@@ -27,21 +27,21 @@ def meshTri(P0, P1, P2, N):
     C = (1./3.*(P0[0]+P1[0]+P2[0]),
          1./3.*(P0[1]+P1[1]+P2[1]),
          1./3.*(P0[2]+P1[2]+P2[2]))
-    
+
     l1 = D.line(P0, C01, N)
     l2 = D.line(C01, C, N)
     l3 = D.line(C, C02, N)
     l4 = D.line(C02, P0, N)
     m1 = G.TFI([l1, l2, l3, l4])
     m1 = T.reorder(m1, (-1,2,3))
-    
+
     l1 = D.line(C01, P1, N)
     l2 = D.line(P1, C12, N)
     l3 = D.line(C12, C, N)
     l4 = D.line(C, C01, N)
     m2 = G.TFI([l1, l2, l3, l4])
     m2 = T.reorder(m2, (-1,2,3))
-    
+
     l1 = D.line(C, C12, N)
     l2 = D.line(C12, P2, N)
     l3 = D.line(P2, C02, N)
@@ -157,14 +157,14 @@ def generate(event=None):
             s = D.surface(base[surfType], N)
         (xc, yc, zc) = G.barycenter(s)
         s = [s]
-        
+
     if eltType == 'TRI':
         s = C.convertArray2Tetra(s)
         s = T.join(s); s = G.close(s)
     elif eltType == 'QUAD':
         s = C.convertArray2Hexa(s)
         s = T.join(s); s = G.close(s)
-        
+
     posCam = CPlot.getState('posCam')
     posEye = CPlot.getState('posEye')
     dirCam = CPlot.getState('dirCam')
@@ -198,13 +198,13 @@ def generate(event=None):
             CTK.t[2][nob][2] += s; CTK.display(CTK.t)
         else:
             for i in s: CTK.add(CTK.t, nob, -1, i)
-        
+
     CTK.TXT.insert('START', 'Surface created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.setCursor(0, WIDGETS['generate'], WIDGETS['Npts'])
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -222,7 +222,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -267,14 +267,14 @@ def createApp(win):
     else:
         B = TTK.Combobox(Frame, textvariable=VARS[2], values=SURFTYPES, 
                          state='readonly', width=10)
-        
+
     B.grid(row=1, column=0, sticky=TK.EW)
     #BB = CTK.infoBulle(parent=B, text='Type of generated surface.')
     B = TTK.Button(Frame, text="Generate", command=generate)
     WIDGETS['generate'] = B
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Generate surface.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -302,7 +302,7 @@ def saveApp():
     CTK.PREFS['tkBasicSurfsElts'] = VARS[1].get()
     CTK.PREFS['tkBasicSurfsType'] = VARS[2].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('10')
@@ -316,7 +316,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

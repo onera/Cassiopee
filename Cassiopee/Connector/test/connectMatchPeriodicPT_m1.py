@@ -19,7 +19,7 @@ if Cmpi.rank == 0:
     C._addState(t[2][1], 'EquationDimension', 3)
     t = T.splitNParts(t, 4, multigrid=0, dirs=[1,2,3])
     C.convertPyTree2File(t, LOCAL+'/in.cgns')
-    
+
 Cmpi.barrier()
 
 h  = Filter.Handle(LOCAL+'/in.cgns')

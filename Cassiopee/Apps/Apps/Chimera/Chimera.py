@@ -70,7 +70,7 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
             varc = '{'+cellNName2+'}'
             res = P.selectCells(t,"%s>0.2"%varc)
             res = P.isoSurfMC(res, 'CoordinateZ',ThetaMean)
-    
+
     Internal._rmNodesFromType(res,"FlowSolution_t")
     T._cyl2Cart(res,XC,AXIS)
     res = C.convertArray2Tetra(res)
@@ -167,7 +167,7 @@ def extractIJSurface(t_sol, t_pts, XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers'
     C._initVars(intersectedZones,'{tag}=logical_and({CoordinateX}>%g,{CoordinateX}<%g)'%(XMin,XMax))
     C._initVars(intersectedZones,'{tag}={tag}*logical_and({CoordinateY}>%g,{CoordinateY}<%g)'%(RMin,RMax))
     intersectedZones = P.selectCells2(intersectedZones,'tag')
-    
+
     ThetaMax = C.getMaxValue(intersectedZones,'CoordinateZ')
     ThetaMin = C.getMinValue(intersectedZones,'CoordinateZ')
     del intersectedZones

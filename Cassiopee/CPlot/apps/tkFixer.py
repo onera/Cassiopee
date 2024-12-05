@@ -30,7 +30,7 @@ def setContour():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[0].set(selected)
-    
+
 #==============================================================================
 def setSurface():
     if CTK.t == []: return
@@ -49,14 +49,14 @@ def setSurface():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[1].set(selected)
-    
+
 #==============================================================================
 def fixGap():
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     # Contours
     name = VARS[0].get()
     names = name.split(';')
@@ -94,7 +94,7 @@ def fixGap():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -107,13 +107,13 @@ def createApp(win):
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - VARS -
     # -0- Contour to fix -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -1- Surface of contour to fix
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-    
+
     # - Contour -
     B = TK.Button(Frame, text="Contour", command=setContour)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -132,7 +132,7 @@ def createApp(win):
     B = TK.Button(Frame, text="Fix gap", command=fixGap)
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Fix gap.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

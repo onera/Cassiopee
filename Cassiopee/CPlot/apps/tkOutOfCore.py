@@ -32,14 +32,14 @@ def inCore():
             name = '.'+base[0]+'#'+z[0]+'.cgns'
             t = C.convertFile2PyTree(name)
             CTK.replace(CTK.t, nob, noz, t[2][1][2][0])
-    
+
     CTK.saveTree() # il est apres pour forcer le flush
     CTK.TXT.insert('START', 'Selected zones in core.\n')
     CTK.t = C.fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def outCore():
     if (CTK.t == []): return
@@ -74,7 +74,7 @@ def outCore():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
- 
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -92,7 +92,7 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkOutOfCore')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - IN/OUT -
     B = TK.Button(Frame, text="IN Core", command=inCore)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -100,7 +100,7 @@ def createApp(win):
     B = TK.Button(Frame, text="OUT of Core", command=outCore)
     B.grid(row=0, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Get the selection out of core memory.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

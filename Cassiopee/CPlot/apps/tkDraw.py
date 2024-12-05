@@ -135,9 +135,9 @@ def drawLine(npts):
         TTK.raiseButton(WIDGETS['draw'])
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(WIDGETS['draw'])
-       CPlot.setState(cursor=0)
+        CTK.__BUSY__ = False
+        TTK.raiseButton(WIDGETS['draw'])
+        CPlot.setState(cursor=0)
     return
 
 #==============================================================================
@@ -181,7 +181,7 @@ def drawCircle(npts):
                     c2 = xc*xc + yc*yc + zc*zc
                     A = 2*b2*c2 + 2*c2*a2 + 2*a2*b2 - a2*a2 - b2*b2 - c2*c2
                     R = math.sqrt( a2*b2*c2 / A )
-                    
+
                     nx = ya*zb - za*yb
                     ny = za*xb - xa*zb
                     nz = xa*yb - ya*xb
@@ -238,9 +238,9 @@ def drawCircle(npts):
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(w)
-       CPlot.setState(cursor=0)
+        CTK.__BUSY__ = False
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
 
 #==============================================================================
 def drawArc(npts):
@@ -311,7 +311,7 @@ def drawArc(npts):
                         center[2] = 0.5*(z1+z2) - alpha*tz
                         dx3 = center[0]-x3; dy3 = center[1]-y3; dz3 = center[2]-z3
                         l = dx3*dx3 + dy3*dy3 + dz3*dz3
-                    
+
                     e1 = [x1-center[0], y1-center[1], z1-center[2]]
                     e2 = [x2-center[0], y2-center[1], z2-center[2]]
                     e3 = Vector.cross(e1, e2)
@@ -345,7 +345,7 @@ def drawArc(npts):
                     xp3 = C.getValue(pt3, 'CoordinateX', 0)
                     yp3 = C.getValue(pt3, 'CoordinateY', 0)
                     zp3 = C.getValue(pt3, 'CoordinateZ', 0)
-                    
+
                     dx1 = (xp1-center[0])/R; dy1 = (yp1-center[1])/R
                     if dx1 > 1.: dx1 = 1.
                     if dx1 < -1.: dx1 = -1.
@@ -393,9 +393,9 @@ def drawArc(npts):
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(w)
-       CPlot.setState(cursor=0)
+        CTK.__BUSY__ = False
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
 
 #==============================================================================
 def drawRectangle(npts):
@@ -460,16 +460,16 @@ def drawRectangle(npts):
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(w)
-       CPlot.setState(cursor=0)
+        CTK.__BUSY__ = False
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
 
 #==============================================================================
 def drawPolyline():
     global CURRENTZONE; global CURRENTPOLYLINE
     if CTK.t == []: return
     w = WIDGETS['draw']
-    
+
     if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.saveTree()
@@ -506,22 +506,22 @@ def drawPolyline():
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       surfaces = getSurfaces()
-       if surfaces != []:
-           ret = Internal.getParentOfNode(CTK.t, CURRENTZONE)
-           nob = C.getNobOfBase(ret[0], CTK.t)
-           a = T.projectOrthoSmooth(CURRENTZONE, surfaces)
-           noz = ret[1]
-           CTK.replace(CTK.t, nob, noz, a)
-       (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
-       CTK.TKTREE.updateApp()
-       CPlot.render()
-       CURRENTZONE = None
-       CURRENTPOLYLINE = []
-       TTK.raiseButton(w)
-       CPlot.setState(cursor=0)
-       
+        CTK.__BUSY__ = False
+        surfaces = getSurfaces()
+        if surfaces != []:
+            ret = Internal.getParentOfNode(CTK.t, CURRENTZONE)
+            nob = C.getNobOfBase(ret[0], CTK.t)
+            a = T.projectOrthoSmooth(CURRENTZONE, surfaces)
+            noz = ret[1]
+            CTK.replace(CTK.t, nob, noz, a)
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CPlot.render()
+        CURRENTZONE = None
+        CURRENTPOLYLINE = []
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
+
 #==============================================================================
 def drawCubic(npts):
     global CURRENTZONE; global CURRENTPOLYLINE
@@ -563,23 +563,23 @@ def drawCubic(npts):
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       ret = Internal.getParentOfNode(CTK.t, CURRENTZONE)
-       a = D.polyline(CURRENTPOLYLINE)
-       d = G.cart( (0,0,0), (1./(npts-1),1,1), (npts,1,1) )
-       a = G.map(a, d)
-       surfaces = getSurfaces()
-       if surfaces != []: a = T.projectOrthoSmooth(a, surfaces)
-       nob = C.getNobOfBase(ret[0], CTK.t)
-       CTK.replace(CTK.t, nob, ret[1], a)
-       (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
-       CTK.TKTREE.updateApp()
-       CPlot.render()
-       CURRENTZONE = None
-       CURRENTPOLYLINE = []
-       TTK.raiseButton(w)
-       CPlot.setState(cursor=0)
-    
+        CTK.__BUSY__ = False
+        ret = Internal.getParentOfNode(CTK.t, CURRENTZONE)
+        a = D.polyline(CURRENTPOLYLINE)
+        d = G.cart( (0,0,0), (1./(npts-1),1,1), (npts,1,1) )
+        a = G.map(a, d)
+        surfaces = getSurfaces()
+        if surfaces != []: a = T.projectOrthoSmooth(a, surfaces)
+        nob = C.getNobOfBase(ret[0], CTK.t)
+        CTK.replace(CTK.t, nob, ret[1], a)
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CPlot.render()
+        CURRENTZONE = None
+        CURRENTPOLYLINE = []
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
+
 #==============================================================================
 def drawFreeHand():
     global CURRENTZONE; global CURRENTPOLYLINE; global ALLZONES
@@ -613,7 +613,7 @@ def drawFreeHand():
                     time.sleep(CPlot.__timeStep__)
                     w.update()
                     if not CTK.__BUSY__: break
-                    
+
             prev = l
             CPlot.unselectAllZones()
             if buttonState == 5: # button released
@@ -621,7 +621,7 @@ def drawFreeHand():
                 CURRENTZONE = None; prev = []; first = []
                 CURRENTPOLYLINE = []
                 CTK.TKTREE.updateApp()
-                
+
             if (CTK.__BUSY__ == True and buttonState != 5):
                 CURRENTPOLYLINE.append((l[0],l[1],l[2]))
                 if CURRENTZONE is None:
@@ -644,23 +644,23 @@ def drawFreeHand():
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
     else:
-       CTK.__BUSY__ = False
-       surfaces = getSurfaces()
-       if surfaces != []:
-           if CURRENTZONE is not None: ALLZONES += [CURRENTZONE]
-           for s in ALLZONES:
-               ret = Internal.getParentOfNode(CTK.t, s)
-               nob = C.getNobOfBase(ret[0], CTK.t)
-               a = T.projectOrthoSmooth(s, surfaces)
-               noz = ret[1]
-               CTK.replace(CTK.t, nob, noz, a)
-       (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
-       CTK.TKTREE.updateApp()
-       CPlot.render()
-       CURRENTZONE = None; ALLZONES = []
-       CURRENTPOLYLINE = []
-       TTK.raiseButton(w)
-       CPlot.setState(cursor=0)
+        CTK.__BUSY__ = False
+        surfaces = getSurfaces()
+        if surfaces != []:
+            if CURRENTZONE is not None: ALLZONES += [CURRENTZONE]
+            for s in ALLZONES:
+                ret = Internal.getParentOfNode(CTK.t, s)
+                nob = C.getNobOfBase(ret[0], CTK.t)
+                a = T.projectOrthoSmooth(s, surfaces)
+                noz = ret[1]
+                CTK.replace(CTK.t, nob, noz, a)
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CPlot.render()
+        CURRENTZONE = None; ALLZONES = []
+        CURRENTPOLYLINE = []
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
 
 #==============================================================================
 # Create app widgets
@@ -679,7 +679,7 @@ def createApp(win):
     Frame.columnconfigure(2, weight=1)
 
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -706,7 +706,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White')
     B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Underlaying model surfaces.')
-    
+
     # - Figure type -
     B = TTK.OptionMenu(Frame, VARS[0], 'Line', 'Circle', 'Circular arc', 
                        'Rectangle', 'Polyline', 'Cubic', 'Free hand')
@@ -717,13 +717,13 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of points.')
-    
+
     # - Draw -
     B = TTK.Button(Frame, text="Draw", command=draw)
     B.grid(row=1, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Click to start to draw. Click again to end.')
     WIDGETS['draw'] = B
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -750,7 +750,7 @@ def saveApp():
     CTK.PREFS['tkDrawType'] = VARS[0].get()
     CTK.PREFS['tkDrawNpts'] = VARS[1].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('Line')
@@ -762,7 +762,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-   
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

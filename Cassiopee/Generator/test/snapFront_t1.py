@@ -45,7 +45,7 @@ test.testA([f], 2)
 # Adapte le front de la grille a la surface avec optimisation du front
 f = G.snapFront(b, [s], optimized = 1)
 test.testA([f], 21)
- 
+
 s = D.polyline([(0.02,0,0),(1,1,0),(2,1,0),(0.02,0,0)])
 s1 = T.addkplane(s)
 contours = P.exteriorFaces(s1)
@@ -56,7 +56,7 @@ for c in contours:
         p = G.fittingPlaster(c)
         b = G.gapfixer(c, p)    
         lc.append(b)
-       
+
 lc = C.convertArray2Tetra(lc)
 s2 = T.join(lc)
 s2 = G.close(s2)

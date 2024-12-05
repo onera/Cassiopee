@@ -51,7 +51,7 @@ def reorder():
     if abs(i1)+abs(j1)+abs(k1) != 6:
         CTK.TXT.insert('START', 'Reordering settings is invalid.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     CTK.saveTree()
 
     fail = False; errors = []
@@ -73,7 +73,7 @@ def reorder():
             CTK.replace(CTK.t, nob, noz, z)
         except Exception as e:
             fail = True; errors += [0,str(e)]
-            
+
     if not fail:
         CTK.TXT.insert('START', 'Zones reordered.\n')
     else:
@@ -106,7 +106,7 @@ def reorderAll():
         Panels.displayErrors([0,str(e)], header='Error: reorderAll')
         CTK.TXT.insert('START', 'Reorder all fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-        
+
 #==============================================================================
 # Fait un makeDirect sur la selection
 # IN: t, cplot.selectedZone
@@ -121,7 +121,7 @@ def makeDirect():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     CTK.saveTree()
 
     fail = False; errors = []
@@ -134,7 +134,7 @@ def makeDirect():
             CTK.replace(CTK.t, nob, noz, a)
         except Exception as e:
             fail = True; errors += [0,str(e)]
-            
+
     if not fail:
         CTK.TXT.insert('START', 'Zones made direct.\n')
     else:
@@ -157,7 +157,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -215,7 +215,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys
@@ -231,6 +231,6 @@ if __name__ == "__main__":
     (win, menu, file, tools) = CTK.minimal('tkReorder'+C.__version__)
 
     createApp(win); showApp()
-    
+
     # - Main loop -
     win.mainloop()

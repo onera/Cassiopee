@@ -24,7 +24,7 @@ def openLogFile(file):
     global LOGFILE
     if LOGFILE is not None: # deja ouvert
         LOGFILE.close()
-        
+
     LOGFILE = open(file, 'w')
     # Entete
     l = ['import Converter.PyTree as C',
@@ -104,54 +104,54 @@ def readToEnd(ptf, ret):
 # Retourne None si pas de zone a traiter
 #===============================================================================
 def getSelectedZones():
-  import CPlot
-  nzs = CPlot.getSelectedZones()
-  if nzs == []: return None
-  if len(nzs) == len(Internal.getZones(CTK.t)): return ['zones = Internal.getZones(t)']
-  nobu = -1
-  for nz in nzs:
+    import CPlot
+    nzs = CPlot.getSelectedZones()
+    if nzs == []: return None
+    if len(nzs) == len(Internal.getZones(CTK.t)): return ['zones = Internal.getZones(t)']
+    nobu = -1
+    for nz in nzs:
         nob = CTK.Nb[nz]+1
         if nobu == -1: nobu = nob
         elif nobu != nob: nobu = -2; break
-  
-  if nobu > 0:
-    base = Internal.getBases(CTK.t)[nobu-1]
-    if len(nzs) == len(Internal.getZones(base)):
-        return ['base = Internal.getBases(t)[%d]'%(nobu-1), 
-        'zones = Internal.getZones(base)']
-  ret = ['zones = []']
-  for nz in nzs:
+
+    if nobu > 0:
+        base = Internal.getBases(CTK.t)[nobu-1]
+        if len(nzs) == len(Internal.getZones(base)):
+            return ['base = Internal.getBases(t)[%d]'%(nobu-1), 
+            'zones = Internal.getZones(base)']
+    ret = ['zones = []']
+    for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
         ret.append('zones.append(t[2][%d][2][%d])'%(nob,noz))
-  return ret
+    return ret
 
 # Idem mais retourne le chemin des zones selectionnees (zonesPath)
 def getSelectedZones2():
-  import CPlot
-  nzs = CPlot.getSelectedZones()
-  if nzs == []: return None
-  if len(nzs) == len(Internal.getZones(CTK.t)):
-    bases = Internal.getBases(CTK.t)
-    ret = ['zonesPath = []']
-    for b in bases:
-        path = Internal.getPath(b)
-        ret.append('zonesPath.append(%s)'%path)
-    return ret
-  nobu = -1
-  for nz in nzs:
+    import CPlot
+    nzs = CPlot.getSelectedZones()
+    if nzs == []: return None
+    if len(nzs) == len(Internal.getZones(CTK.t)):
+        bases = Internal.getBases(CTK.t)
+        ret = ['zonesPath = []']
+        for b in bases:
+            path = Internal.getPath(b)
+            ret.append('zonesPath.append(%s)'%path)
+        return ret
+    nobu = -1
+    for nz in nzs:
         nob = CTK.Nb[nz]+1
         if nobu == -1: nobu = nob
         elif nobu != nob: nobu = -2; break
-  if nobu > 0:
-    path = Internal.getPath(t[2][nobu])     
-    return ['zonesPath = [%s]'%path]
+    if nobu > 0:
+        path = Internal.getPath(t[2][nobu])     
+        return ['zonesPath = [%s]'%path]
 
-  ret = ['zonesPath = []']
-  for nz in nzs:
+    ret = ['zonesPath = []']
+    for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
         path = Internal.getPath(CTK.t, CTK.t[2][nob][2][noz])
         ret.append('zonesPath.append(%s)'%(path))
-  return ret
+    return ret
 
 #================================================================================
 # Init LOG

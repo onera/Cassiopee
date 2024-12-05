@@ -56,7 +56,7 @@ def extractExternalContours():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
-    
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
@@ -66,7 +66,7 @@ def extractExternalContours():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #=========================================================================
 def stitchedHat():
     if CTK.t == []: return
@@ -77,7 +77,7 @@ def stitchedHat():
     args = VARS[1].get(); args = args.split(';')
     if len(args) != 2: return
     eps = float(args[0]); eps2 = float(args[1])
-    
+
     args = VARS[2].get(); args = args.split(';')
     if len(args) != 3: return
     offx = float(args[0]); offy = float(args[1]); offz = float(args[2])
@@ -91,7 +91,7 @@ def stitchedHat():
             CTK.t[2][nob][2][noz] = G.stitchedHat(CTK.t[2][nob][2][noz],
                                                   (offx,offy,offz), \
                                                   eps, eps2)
-        
+
     CTK.TXT.insert('START', 'Stitched hat created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -117,7 +117,7 @@ def pointedHat():
             nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
             CTK.t[2][nob][2][noz] = G.pointedHat(CTK.t[2][nob][2][noz],
                                                  (x0,y0,z0))
-        
+
     CTK.TXT.insert('START', 'Pointed hat created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -148,7 +148,7 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkBody')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- close bodies -
     V = TK.StringVar(win); V.set('stitchedHat'); VARS.append(V)
@@ -158,7 +158,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.;0.;0.'); VARS.append(V)
     # -3- pointedHat : x,y,z 
     V = TK.StringVar(win); V.set('0.;0.;0.'); VARS.append(V)
-    
+
     # - extractBodies -
     B = TK.Button(Frame, text="Extract BCWall", command=extractBodies)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -169,26 +169,26 @@ def createApp(win):
                   command=extractExternalContours)
     B.grid(row=0, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract external contours of body.')
-    
+
     # - closeBodies
     B = TK.Button(Frame, text="Close body", command=closeBody)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Close selected contour with hat.')
     B = TK.OptionMenu(Frame, VARS[0], 'stitchedHat', 'pointedHat')
     B.grid(row=1, column=1, sticky=TK.EW)
-    
+
     B = TK.Label(Frame, text="eps;eps2")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Tolerances for stitchedHat.')
     B = TK.Entry(Frame, textvariable=VARS[1])
     B.grid(row=2, column=1, sticky=TK.EW)
-    
+
     B = TK.Label(Frame, text="offx;offy;offz")
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Offsets for stitchedHat.')
     B = TK.Entry(Frame, textvariable=VARS[2])
     B.grid(row=3, column=1, sticky=TK.EW)
-    
+
     B = TK.Label(Frame, text="x0;y0;z0")
     B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Coordinates of top of pointed hat.')

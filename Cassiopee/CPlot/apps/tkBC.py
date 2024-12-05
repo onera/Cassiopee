@@ -48,27 +48,27 @@ def getAllDefinedBC(t):
             if i is not None: natives.add('BCMatch')
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
         for i in nodes:
-          r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
-          if r is not None:
-            if Internal.getValue(r) == 'Abutting1to1': natives.add('BCMatch')
+            r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
+            if r is not None:
+                if Internal.getValue(r) == 'Abutting1to1': natives.add('BCMatch')
 
         # BCNearMatch
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
         for i in nodes:
-          r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
-          if r is not None:
-            if Internal.getValue(r) == 'Abutting':
-                f = Internal.getNodeFromType1(i, 'FamilyName_t')
-                if f is not None and Internal.getValue(f).startswith('BCStage'):
-                    natives.add(Internal.getValue(f))
-                else: natives.add('BCNearMatch')
+            r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
+            if r is not None:
+                if Internal.getValue(r) == 'Abutting':
+                    f = Internal.getNodeFromType1(i, 'FamilyName_t')
+                    if f is not None and Internal.getValue(f).startswith('BCStage'):
+                        natives.add(Internal.getValue(f))
+                    else: natives.add('BCNearMatch')
 
         # BCOverlap
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
         for i in nodes:
-          r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
-          if r is not None:
-            if Internal.getValue(r) == 'Overset': natives.add('BCOverlap')
+            r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
+            if r is not None:
+                if Internal.getValue(r) == 'Overset': natives.add('BCOverlap')
 
     natives = list(natives)
     natives.sort(key=str.lower)
@@ -135,14 +135,14 @@ def updateFamilyBCNameList3(event=None):
     if len(varsl) != 0: varsp += varsl
     for i in varsp:
         m.add_command(label=i, command=lambda v=VARS[6],l=i:v.set(l))
-        
+
 def updateFamilyBCNameList3_2(event=None):
     if CTK.t == []: return
     varsl = C.getFamilyBCNamesOfType(CTK.t)
     varsp = Internal.KNOWNBCS[:]
     if len(varsl) != 0:
-       varsl.sort(key=str.lower)
-       varsp += varsl
+        varsl.sort(key=str.lower)
+        varsp += varsl
     if 'BCs2' in WIDGETS: WIDGETS['BCs2']['values'] = varsp
 #==============================================================================
 # Pour fillEmptyBC
@@ -155,7 +155,7 @@ def updateFamilyBCNameList4(event=None):
     if len(varsl) != 0: varsp += varsl
     for i in varsp:
         m.add_command(label=i, command=lambda v=VARS[6],l=i:v.set(l))
-        
+
 def updateFamilyBCNameList4_2(event=None):
     if CTK.t == []: return
     varsl = C.getFamilyBCNamesOfType(CTK.t)
@@ -256,18 +256,18 @@ def view(event=None):
 #==============================================================================
 def check():
     if CTK.t == []: return
-    
+
     node = Internal.getNodeFromName(CTK.t, 'EquationDimension')
     if node is not None: ndim = Internal.getValue(node)
     else:
         CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning'); ndim = 3
-        
+
     # Varie de 0 a 180 degres
     global __SPLITFACTOR__
     splitFactor = 180.-WIDGETS['splitFactor'].get()*180./100.
     __SPLITFACTOR__ = splitFactor
-    
+
     wins = C.getEmptyBC(CTK.t, ndim, splitFactor)
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
@@ -311,7 +311,7 @@ def check():
                 exts += zp
         CTK.dt[2][2][2] += exts
         #C._fillMissingVariables(CTK.dt) # bug exteriorFacesStruct
-        
+
         # Activate
         lenZ = len(CTK.dt[2][1][2]); lenExts = len(exts)
         active = [(i,1) for i in range(lenZ+lenExts)]
@@ -350,7 +350,7 @@ def setDegeneratedBC():
     else:
         CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning'); ndim = 3
-        
+
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
@@ -397,7 +397,7 @@ def connectMatch():
     else:
         CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning'); ndim = 3
-        
+
     mode = VARS[9].get()
     translation = [0.,0.,0.]; rotationCenter = [0.,0.,0.]; rotationAngle = [0.,0.,0.]
     if mode == 'Translation': 
@@ -449,7 +449,7 @@ def connectMatch():
             CTK.TXT.insert('START', 'Error: ', 'Error')  
     check()
     CTK.setCursor(0, WIDGETS['connectMatch'])
-    
+
 #==============================================================================
 # Construit les BC NearMatch dans t pour les zones selectionnees
 # IN: t
@@ -461,18 +461,18 @@ def connectNearMatch():
     eps = VARS[2].get(); eps = float(eps)
     ratio = VARS[3].get()
     ratio = CTK.varsFromWidget(ratio, type=2)
-    
+
     if len(ratio) != 1 and len(ratio) != 3:
         CTK.TXT.insert('START', 'Invalid ratio for nearmatch.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     if len(ratio) == 1: ratio = ratio[0]
-    
+
     node = Internal.getNodeFromName(CTK.t, 'EquationDimension')    
     if node is not None: ndim = Internal.getValue(node)
     else:
         CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning'); ndim = 3
-    
+
     CTK.setCursor(2, WIDGETS['connectNearMatch'])    
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
@@ -505,7 +505,7 @@ def connectNearMatch():
             CTK.TXT.insert('START', 'Error: ', 'Error')  
     check()
     CTK.setCursor(0, WIDGETS['connectNearMatch'])
-        
+
 #==============================================================================
 # Remplit les BC vide de t avec le type demande
 # IN: t
@@ -518,13 +518,13 @@ def fillEmptyBCWith():
     if typeBC not in Internal.KNOWNBCS:
         nameBC = typeBC; typeBC = 'FamilySpecified:'+typeBC
     else: nameBC = typeBC
-    
+
     node = Internal.getNodeFromName(CTK.t, 'EquationDimension')
     if node is not None: ndim = Internal.getValue(node)
     else:
         CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning'); ndim = 3
-        
+
     CTK.saveTree()
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
@@ -573,7 +573,7 @@ def rmBCOfType():
         CTK.TXT.insert('START', 'BCs of type %s have been removed.\n'%BCTypes[0])
     CTK.TKTREE.updateApp()
     check()
-    
+
 #==============================================================================
 # set BC avec le type demande
 # IN: t, BC selectionnee dans dt undef
@@ -585,14 +585,14 @@ def setBCWith():
     if CTK.__MAINTREE__ != CTK.UNDEFINEDBC:
         CTK.TXT.insert('START', 'Fail on a this tree (view undefined BC before).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []: return
     typeBC = VARS[6].get()
     if typeBC not in Internal.KNOWNBCS:
         nameBC = typeBC; typeBC = 'FamilySpecified:'+typeBC
     else: nameBC = typeBC
-    
+
     node = Internal.getNodeFromName(CTK.t, 'EquationDimension')
     if node is not None: ndim = Internal.getValue(node)
     else:
@@ -607,9 +607,9 @@ def setBCWith():
 
     CTK.saveTree()
     CTK.setCursor(2, WIDGETS['setBCWith'])  
-    
+
     wins = C.getEmptyBC(CTK.t, ndim, splitFactor)
-    
+
     # calcul nzr : le nz dans la numerotation des fenetres emptys
     nzr = {}
     c = 0; cs = 0
@@ -654,13 +654,13 @@ def setBCWith():
     CTK.TKTREE.updateApp()
     check()
     CTK.setCursor(0, WIDGETS['setBCWith'])  
-    
+
 #==============================================================================
 def setSplitFactor(event=None):
     # Seulement pour l'info bulle
     val = WIDGETS['splitFactor'].get()
     VARS[8].set('Split more or less undefined BCs [%.2f deg.]. \nUsefull only for unstructured grids.'%(180.-val*180./100.))
-    
+
 #==============================================================================
 def createBCFamily(event=None):
     if CTK.t == []: return
@@ -699,7 +699,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=4)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -793,7 +793,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="rm BC", command=rmBCOfType)
     B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Remove the BCs of given type from tree.')
-    
+
     # - setBCWith -
     B = TTK.Button(Frame, text="setBCWith", command=setBCWith)
     WIDGETS['setBCWith'] = B
@@ -843,7 +843,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='BC family name to be created.')
     B.grid(row=7, column=1, sticky=TK.EW)
     B.bind('<Return>', createBCFamily)
-    
+
     if ttk is None:
         B = TK.OptionMenu(Frame, VARS[12], *(Internal.KNOWNBCS))
         BB = CTK.infoBulle(parent=B, text='BC family type to be created.')
@@ -902,7 +902,7 @@ def saveApp():
     CTK.PREFS['tkBCMatchPer'] = VARS[10].get()
     CTK.PREFS['tkBCEdges'] = VARS[7].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[2].set('1.e-6')
@@ -916,7 +916,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

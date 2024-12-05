@@ -24,7 +24,7 @@ stack = [(block, zdir)]
 # Run
 treated = []
 Mirabelle._propagate(t, g, stack, treated, linelet)
-      
+
 t = C.rmBCOfType(t, 'BC*') # rm Wall BCs
 t = C.rmBCOfType(t, 'BCMatch') # rm Wall BCs
 t = C.rmBCOfType(t, 'BCOverlap') # rm Wall BCs

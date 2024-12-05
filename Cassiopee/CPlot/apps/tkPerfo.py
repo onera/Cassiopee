@@ -20,7 +20,7 @@ def oneovern(event=None):
     elif type == 'Exclusive': CTK.__ONEOVERN__ = 0
     if CTK.t == []: return
     else: CTK.display(CTK.t)
-    
+
 #==============================================================================
 def setViewMode(v, l):
     v.set(l)
@@ -34,7 +34,7 @@ def setViewMode(v, l):
     else:
         CTK.__FIELD__ = type
         if CTK.t != []: CTK.display(CTK.t)
-            
+
 def setViewMode2(event=None):
     type = VARS[0].get()
     if type == 'All fields':
@@ -126,7 +126,7 @@ def createApp(win):
     Frame.columnconfigure(2, weight=1)
 
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -143,7 +143,7 @@ def createApp(win):
     if 'tkPerfoPoints' in CTK.PREFS: V.set(CTK.PREFS['tkPerfoPoints'])
     # -2- Threads
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
-    
+
     # - Field transmission -
     B = TTK.Label(Frame, text="Display")
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -151,7 +151,7 @@ def createApp(win):
 
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
-    
+
     if ttk is None:
         B = TK.OptionMenu(F, VARS[0], 'All fields', 'No field')
         B.grid(sticky=TK.EW)
@@ -194,7 +194,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Set", command=setThreads)
     B.grid(row=1, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set the number of threads.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -221,7 +221,7 @@ def updateApp(): return
 def saveApp():
     CTK.PREFS['tkPerfoPoints'] = VARS[1].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[1].set('All points')
@@ -232,7 +232,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

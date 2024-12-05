@@ -51,7 +51,7 @@ def _addSymPlane(tb, snear_sym, dir_sym=2):
         if snearl is not None:
             snearl = Internal.getValue(snearl)
             snearList.append(snearl*snearFactor)
-        
+
         dfarl = Internal.getNodeFromName1(sdd,"dfar")
         if dfarl is not None:
             dfarl = Internal.getValue(dfarl)
@@ -262,7 +262,7 @@ def _setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutP
         Internal._createUniqueChild(n, 'cxSupport'   , 'DataArray_t', cxSupport)
         Internal._createUniqueChild(n, 'sSupport'    , 'DataArray_t', sSupport)
         Internal._createUniqueChild(n, 'itExtrctPrb' , 'DataArray_t', itExtrctPrb)
-        
+
     return None
 #==============================================================================
 # Set the IBC type outpress for zones in familyName
@@ -371,7 +371,7 @@ def initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, P
     tc2 = Internal.copyRef(tc)
     _initInj(tc2, familyName, PTot, HTot, injDir, InterpolPlane=InterpolPlane, PressureVar=PressureVar, EnthalpyVar=EnthalpyVar)
     return tc2
-                 
+
 
 def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, PressureVar=0, EnthalpyVar=0):
     """Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.
@@ -389,7 +389,7 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, 
 
                     node_temp = Internal.getNodeFromName(zsr, 'yplus')
                     if node_temp is not None: Internal._rmNode(zsr, node_temp)
-                    
+
                     stagPNode = Internal.getNodeFromName(zsr, 'StagnationPressure')
                     stagHNode = Internal.getNodeFromName(zsr, 'StagnationEnthalpy')
                     dirxNode  = Internal.getNodeFromName(zsr, 'dirx')
@@ -417,7 +417,7 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, 
                     dirxNode[1][:] = injDir[0]
                     diryNode[1][:] = injDir[1]
                     dirzNode[1][:] = injDir[2]
-                    
+
     return None
 
 #==============================================================================
@@ -445,18 +445,18 @@ def _addVariablesTcIbc(zsr, ibctype, nIBC):
             zsr[2].append(['gradxVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradyVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradzVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
-            
+
             zsr[2].append(['gradxVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradyVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradzVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
-            
+
             zsr[2].append(['gradxVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradyVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradzVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
-        
+
     elif ibctype == 100:
         zsr[2].append(["KCurv" , copy.copy(Nlength) , [], 'DataArray_t'])
-        
+
     return None
 
 #==============================================================================
@@ -486,7 +486,7 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
 
                     for var_local in varsDeleteIBM:
                         Internal._rmNodesByName(zsr, var_local)
-                    
+
                     _addVariablesTcIbc(zsr, newIBCType, nIBC)
 
     return None
@@ -513,7 +513,7 @@ def _transformTc2(tc2):
 
                 pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
                 nIBC = pressure.shape[0]
-                
+
                 vars_delete = ['Density','VelocityX','VelocityY','VelocityZ']+varsDeleteIBM
                 for var_local in vars_delete:
                     Internal._rmNodesByName(zsr, var_local)
@@ -524,7 +524,7 @@ def _transformTc2(tc2):
                 zsr[2].append(['VelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
                 zsr[2].append(['VelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
                 _addVariablesTcIbc(zsr,ibctype,nIBC)
-                
+
     return None
 
 #==============================================================================
@@ -617,7 +617,7 @@ def determineClosedSolidFilament__(tb):
     ## or tb only has a filament
     filamentBases = []
     isFilamentOnly= False
-    
+
     for b in Internal.getBases(tb):
         if "IBCFil" in b[0]:filamentBases.append(b[0])
 
@@ -626,7 +626,7 @@ def determineClosedSolidFilament__(tb):
 
     ## assume isFilamentOnly=True
     tbFilament = Internal.copyTree(tb)
-    
+
     ## if tb has 1) no filaments or 2) filaments & closed bodies
     if not isFilamentOnly:
         if len(filamentBases)==0:
@@ -641,14 +641,14 @@ def determineClosedSolidFilament__(tb):
                 Internal._rmNode(tb,node_local)     
                 isOrthoProjectFirst = True
             tbFilament = C.newPyTree(tbFilament);
-                                    
+
     return tb, tbFilament
 
 
 def localWMMFlags__(tb,tbFilament):
     isFilamentOnly=False
     isWireModel   =False
-    
+
     if tbFilament:
         if len(Internal.getBases(tbFilament))==len(Internal.getBases(tb)):
             isFilamentOnly=True

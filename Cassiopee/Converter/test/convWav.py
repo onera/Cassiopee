@@ -24,7 +24,7 @@ def F(time):
         return math.cos(2*math.pi*f2*time)
     else:
         return math.cos(2*math.pi*f3*time)
-    
+
 a = C.array('Time, Pressure', N, 1, 1)
 
 # Time

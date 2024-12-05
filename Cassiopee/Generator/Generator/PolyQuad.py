@@ -17,20 +17,20 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
     Usage:
     polyQuadMesher(polyQuad, h, hf, density, next)"""
     import Converter as C
-    
+
     polyQuad = G.close(polyQuad)
-    
+
     addFactor = 0.2
     if len(polyQuad) != 4:
         raise TypeError("polyQuadMesher: requires a QUAD array.")
     else:
         if polyQuad[3] != 'QUAD':
             raise TypeError("polyQuadMesher: requires a QUAD array.")
-    
+
     f = polyQuad[1]; c = polyQuad[2]; ne = c.shape[1]
 
     deuxPiSur3 = 2.*math.pi/3.
-    
+
     # Calcul des longueurs minimum et maximum des arretes
     lmin = 1.e6
     lmax = 0.
@@ -91,7 +91,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
     for i in range(nk):
         delta[1][0,i] = h*( distribk[1][0,i+1] - distribk[1][0,i])
     mesh = []; walls = []
-    
+
     # Generation des maillages
     for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1 ; ind3 = c[2,i]-1; ind4 = c[3,i]-1
@@ -99,7 +99,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
         x3 = f[0,ind3]; y3 = f[1,ind3]; z3 = f[2,ind3]
         x4 = f[0,ind4]; y4 = f[1,ind4]; z4 = f[2,ind4]
-        
+
         # ext = 1 ; extension chimere
         # ext = 0 ; TFI paroi
         # ext = -1; TFI MD + TTM
@@ -158,7 +158,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         ni = n + (lext2+lext4)*next
         nj = n + (lext1+lext3)*next
         nextsn1 = next/(n-1.)
-        
+
         # p1
         q0x = x4 + lext4*(x4-x3)*nextsn1
         q0y = y4 + lext4*(y4-y3)*nextsn1
@@ -172,7 +172,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         r1x = x1 + lext1*(x1-x4)*nextsn1
         r1y = y1 + lext1*(y1-y4)*nextsn1
         r1z = z1 + lext1*(z1-z4)*nextsn1
-        
+
         ux = q1x - q0x
         uy = q1y - q0y
         uz = q1z - q0z
@@ -187,7 +187,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         p1x = q0x + s*(q1x-q0x)
         p1y = q0y + s*(q1y-q0y)
         p1z = q0z + s*(q1z-q0z)
-        
+
         # p2
         q0x = x1 + lext1*(x1-x4)*nextsn1
         q0y = y1 + lext1*(y1-y4)*nextsn1
@@ -201,7 +201,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         r1x = x2 + lext2*(x2-x1)*nextsn1
         r1y = y2 + lext2*(y2-y1)*nextsn1
         r1z = z2 + lext2*(z2-z1)*nextsn1
-        
+
         ux = q1x - q0x
         uy = q1y - q0y
         uz = q1z - q0z
@@ -216,7 +216,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         p2x = q0x + s*(q1x-q0x)
         p2y = q0y + s*(q1y-q0y)
         p2z = q0z + s*(q1z-q0z)
-      
+
         # p3
         q0x = x2 + lext2*(x2-x1)*nextsn1
         q0y = y2 + lext2*(y2-y1)*nextsn1
@@ -230,7 +230,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         r1x = x3 + lext3*(x3-x2)*nextsn1
         r1y = y3 + lext3*(y3-y2)*nextsn1
         r1z = z3 + lext3*(z3-z2)*nextsn1
-        
+
         ux = q1x - q0x
         uy = q1y - q0y
         uz = q1z - q0z
@@ -245,7 +245,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         p3x = q0x + s*(q1x-q0x)
         p3y = q0y + s*(q1y-q0y)
         p3z = q0z + s*(q1z-q0z)
-      
+
         # p4
         q0x = x3 + lext3*(x3-x2)*nextsn1
         q0y = y3 + lext3*(y3-y2)*nextsn1
@@ -259,7 +259,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         r1x = x4 + lext4*(x4-x3)*nextsn1
         r1y = y4 + lext4*(y4-y3)*nextsn1
         r1z = z4 + lext4*(z4-z3)*nextsn1
-        
+
         ux = q1x - q0x
         uy = q1y - q0y
         uz = q1z - q0z
@@ -274,7 +274,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         p4x = q0x + s*(q1x-q0x)
         p4y = q0y + s*(q1y-q0y)
         p4z = q0z + s*(q1z-q0z)
-        
+
         if ext1 == 1:
             n1x = ny*(p2z - p1z) - nz*(p2y - p1y)
             n1y = nz*(p2x - p1x) - nx*(p2z - p1z)
@@ -326,7 +326,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             n4x = rx/norme
             n4y = ry/norme
             n4z = rz/norme
-        
+
         dh = nx*(x1 + h*nx) + ny*(y1 + h*ny) + nz*(z1 + h*nz)
         d1 = n1x*p1x + n1y*p1y + n1z*p1z
         d2 = n2x*p2x + n2y*p2y + n2z*p2z
@@ -402,7 +402,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             j2 = m[3]-next
         wrange = [i1,i2, j1, j2, 1, 1]
         rangesw.append(wrange)
-        
+
         if ext1 == 0:
             if ext4 == 1:
                 if ext2 == 1:
@@ -415,7 +415,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
                 else:
                     wrange = [1, m[2], 1, 1, 1, m[4]]
             rangesw.append(wrange)
-            
+
         if ext2 == 0:
             if ext1 == 1:
                 if ext3 == 1:
@@ -441,7 +441,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
                 else:
                     wrange = [1, m[2], m[3], m[3], 1, m[4]]
             rangesw.append(wrange)
-        
+
         if ext4 == 0:
             if ext1 == 1:
                 if ext3 == 1:
@@ -456,9 +456,9 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             rangesw.append(wrange)
 
         walls.append(rangesw)
-            
+
     return [mesh, walls, h, density]
-    
+
 #=============================================================================
 # Mesh a quad
 #def meshQuad(P1, P2, P3, P4, ni, nj):
@@ -513,12 +513,12 @@ def normalVector(polyQuad,i):
     x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
     x3 = f[0,ind3]; y3 = f[1,ind3]; z3 = f[2,ind3]
     x4 = f[0,ind4]; y4 = f[1,ind4]; z4 = f[2,ind4]
-    
+
     nx = (y3 - y1)*(z4 - z2) - (z3 - z1)*(y4 - y2)
     ny = (z3 - z1)*(x4 - x2) - (x3 - x1)*(z4 - z2)
     nz = (x3 - x1)*(y4 - y2) - (y3 - y1)*(x4 - x2)
     norme = math.sqrt(nx*nx + ny*ny + nz*nz)
-    
+
     if norme == 0.:
         print(i)
         print(ind1, x1, y1, z1)
@@ -531,7 +531,7 @@ def normalVector(polyQuad,i):
         nx = nx*normi
         ny = ny*normi
         nz = nz*normi
-    
+
     return [nx,ny,nz]
 
 #=============================================================================
@@ -540,14 +540,14 @@ def tangentVector(polyQuad,i,iP1,iP2):
     f = polyQuad[1]
     x1 = f[0,iP1]; y1 = f[1,iP1]; z1 = f[2,iP1]
     x2 = f[0,iP2]; y2 = f[1,iP2]; z2 = f[2,iP2]
-    
+
     [nx,ny,nz] = normalVector(polyQuad,i)
-    
+
     tx = ny*(z2 - z1) - nz*(y2 - y1)
     ty = nz*(x2 - x1) - nx*(z2 - z1)
     tz = nx*(y2 - y1) - ny*(x2 - x1)
     norme = math.sqrt(tx*tx + ty*ty + tz*tz)
-    
+
     if norme == 0.:
         raise TypeError("Division par 0! (2)")
     else:
@@ -555,5 +555,5 @@ def tangentVector(polyQuad,i,iP1,iP2):
         tx = tx*normi
         ty = ty*normi
         tz = tz*normi
-    
+
     return [tx,ty,tz]

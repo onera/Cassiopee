@@ -42,4 +42,4 @@ for signed in [0,1]:
             dist = Dist2Walls.distance2Walls(a, [sphere], cellnbodies=[cellns], loc=loc, type=type, signed=signed, dim=3)
             test.testA([dist],c)
             c+=1
-            
+

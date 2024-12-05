@@ -38,7 +38,7 @@ def _evalPosition(array, time, F):
                 raise ValueError("evalPosition: f must be a 3D function.")
             d = f[0]; c = f[1]; r = f[2]
     else: d = F[0]; c = F[1]; r = F[2]
-    
+
     if len(d) != 3: raise ValueError("evalPosition: d must be a 3D vector.")
     if len(c) != 3: raise ValueError("evalPosition: c must be a 3D vector.")
     if len(r) != 3: raise ValueError("evalPosition: rotation matrix must be 3x3.")

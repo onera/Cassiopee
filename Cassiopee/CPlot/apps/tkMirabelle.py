@@ -67,11 +67,11 @@ def extractEdge(event=None):
     b = Internal.createUniqueChild(CTK.t, 'EXTRACTED', 'CGNSBase_t')
     nob = C.getNobOfBase(b, CTK.t)
     CTK.add(CTK.t, nob, -1, zt)
-    
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def propagateEdge(event=None):
 
@@ -120,11 +120,11 @@ def propagateEdge(event=None):
 
     # Adapte les donneurs a la fin
     Mirabelle._adaptDonorRanges(CTK.t)
-    
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.display(CTK.t)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -146,21 +146,21 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkMirabelle')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Zone filter regexp -
     #V = TK.StringVar(win); V.set(''); VARS.append(V)
-    
+
     # - Extract edge -
     B = TTK.Button(Frame, text="Extract edge", command=extractEdge)
     B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract mesh edge for remeshing.')
-    
+
     # - Propagate edge -
     B = TTK.Button(Frame, text="Propagate edge", command=propagateEdge)
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Propagate remeshed edge in structured mesh.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

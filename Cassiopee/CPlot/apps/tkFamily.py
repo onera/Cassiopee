@@ -21,7 +21,7 @@ def updateFamilyZoneNameList(event=None):
     m.delete(0, TK.END)
     for i in varsl:
         m.add_command(label=i, command=lambda v=VARS[2],l=i:v.set(l))
-        
+
 #==============================================================================
 # Cree une list des family zone names (combobox)
 #==============================================================================
@@ -44,7 +44,7 @@ def tagWithZoneFamily(event=None):
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     CTK.saveTree()
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -125,7 +125,7 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkFamily')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Nom de la FamilyZone (new) -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
@@ -135,7 +135,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -3- Type de BC pour createFamilyBC -
     V = TK.StringVar(win); V.set('UserDefined'); VARS.append(V)
-    
+
     # - Create zone family name -
     B = TTK.Button(Frame, text="NewZoneFamily", command=createZoneFamily)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -176,7 +176,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='BC family name to be created.')
     B.grid(row=2, column=1, sticky=TK.EW)
     B.bind('<Return>', createBCFamily)
-    
+
     if ttk is None:
         B = TK.OptionMenu(Frame, VARS[3], *(Internal.KNOWNBCS))
         B.grid(row=2, column=2, sticky=TK.EW)
@@ -209,7 +209,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

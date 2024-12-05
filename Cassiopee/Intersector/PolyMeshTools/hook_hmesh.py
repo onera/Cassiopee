@@ -21,17 +21,17 @@ z = C.fillEmptyBCWith(z, 'wall', 'BCWall')
 ########################## create the hook
 hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
 ######################################## 
-    
+
 for i in range(5): # simple loop to demonstrate the feature
-  
-  #nodal specification
-  n = C.getNPts(z)
-  nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
-  nodal_vals[:] = 1
-  #one nodal_vals and one hmesh per zone
-  z = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh)
-  # refine now with source mesh
-  z = XOR.adaptCells(z, s, itermax=-1, hmesh = hmsh)
+
+    #nodal specification
+    n = C.getNPts(z)
+    nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
+    nodal_vals[:] = 1
+    #one nodal_vals and one hmesh per zone
+    z = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh)
+    # refine now with source mesh
+    z = XOR.adaptCells(z, s, itermax=-1, hmesh = hmsh)
 
 #C.convertPyTree2File(z, "hmesh.cgns") # all the hierarchy is in !
 

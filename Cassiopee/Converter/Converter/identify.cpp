@@ -503,8 +503,9 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
       nelts = cm.getSize(); // Number of elements of this connectivity
       nvert = cm.getNfld(); // Nombre de points par elements de cette connectivite
       E_Float inv = 1./E_Float(nvert);
+#ifdef QUADDOUBLE
       quad_double qinv = quad_double(nvert);
-      
+#endif
       E_Float* xt = centers->begin(1);
       E_Float* yt = centers->begin(2);
       E_Float* zt = centers->begin(3);

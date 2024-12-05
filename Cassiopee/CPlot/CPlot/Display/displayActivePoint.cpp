@@ -268,21 +268,66 @@ void Data::displayActivePoint()
     Zone* zone = _zones[ptrState->selectedZone-1];
     if (ptrState->selectedZone-1 < _numberOfStructZones)
     {
-      /*
-      if (ptrState->mode == MESH) // xyz + ijk
+      if (ptrState->mode == MESH) // display h if 1D
       {
-        sprintf(msg, "%g, %g, %g", 
-                ptrState->activePointX, ptrState->activePointY, ptrState->activePointZ);
-        sprintf(msg2, "(i=%d, j=%d, k=%d)",
-                ptrState->activePointI, ptrState->activePointJ, abs(ptrState->activePointK));
-      }*/
-      if (ptrState->mode == SCALARFIELD)
+        StructZone* z = (StructZone*)zone;
+        E_Int pi = ptrState->activePointI;
+        E_Int pj = ptrState->activePointJ;
+        E_Int pk = abs(ptrState->activePointK);
+        E_Int ni = z->ni;
+        E_Int nj = z->nj;
+        E_Int nk = z->nk;
+        E_Int ind1, ind2, pi2, pj2, pk2;
+        double dx, dy, dz, h;
+        
+        // get h for 1D zone
+        if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
+        {
+          h = 0.;
+          if (nj*nk == 1)
+          {
+            if (pi == ni) pi2 = ni-1;
+            else pi2 = pi+1;
+            pj2 = pj; pk2 = pk;
+          }
+          else if (ni*nj == 1)
+          {
+            if (pk == nk) pk2 = nk-1;
+            else pk2 = pk+1;
+            pi2 = pi; pj2 = pj;
+          }
+          else if (ni*nk == 1)
+          {
+            if (pj == nj) pj2 = nj-1;
+            else pj2 = pj+1;
+            pi2 = pi; pk2 = pk;
+          }
+          ind1 = (pi-1) + (pj-1)*ni + (pk-1)*ni*nj;
+          ind2 = (pi2-1) + (pj2-1)*ni + (pk2-1)*ni*nj;
+          dx = z->x[ind2] - z->x[ind1];
+          h += dx*dx;
+          dy = z->y[ind2] - z->y[ind1];
+          h += dy*dy;
+          dz = z->z[ind2] - z->z[ind1];
+          h += dz*dz;
+          h = sqrt(h);
+          sprintf(msg, "h=%g", h);
+        }
+        else
+        {
+          sprintf(msg, "%s (STRUCT)", zone->zoneName);
+          //sprintf(msg2, "x=%g; y=%g; z=%g", 
+          //        ptrState->activePointX, ptrState->activePointY, ptrState->activePointZ);
+          //sprintf(msg2, "(i=%d, j=%d, k=%d)", pi, pj, pk);
+        }
+      }
+      else if (ptrState->mode == SCALARFIELD) // display var values
       {
         sprintf(msg, "%s=%g",
                 zone->varnames[ptrState->scalarField], 
                 ptrState->activePointF[ptrState->scalarField]);
       }
-      else if (ptrState->mode == VECTORFIELD)
+      else if (ptrState->mode == VECTORFIELD) // display vector field values
       {
         sprintf(msg, "%s=%g, %s=%g, %s=%g",
                 zone->varnames[ptrState->vectorField1], 
@@ -292,27 +337,114 @@ void Data::displayActivePoint()
                 zone->varnames[ptrState->vectorField3],
                 zone->f[ptrState->vectorField3][ptrState->activePointI]);
       }
-      else
+      else // mode SOLID, display zone name
         sprintf(msg,"%s (STRUCT)", zone->zoneName);
     }
     else
     {
       UnstructZone* zu = (UnstructZone*)zone;
-      /*
-      if (ptrState->mode == MESH) // xyz + np,ne
+      
+      if (ptrState->mode == MESH) // display h if 1d
       {
-        sprintf(msg, "%g, %g, %g", 
-        ptrState->activePointX, ptrState->activePointY, ptrState->activePointZ);
-        sprintf(msg2, "(np=%d, ne=%d, nf=%d)",
-                ptrState->activePointI, ptrState->activePointJ, abs(ptrState->activePointK));
-      }*/
-      if (ptrState->mode == SCALARFIELD)
+        UnstructZone* z = (UnstructZone*)zone;
+        //E_Int np = ptrState->activePointI;
+        E_Int ne = ptrState->activePointJ;
+        E_Int ncon = ptrState->activePointL;
+        E_Int* connect = z->connect[ncon];
+        E_Int net = z->nec[ncon];
+  
+        E_Int eltType = z->eltType[ncon];
+        E_Int ind1, ind2;
+        double dx, dy, dz, h;
+        bool is1D = false;
+        if (eltType == 1) is1D = true;
+        if (is1D)
+        {
+          h = 0.;
+          ind1 = connect[ne];
+          ind2 = connect[ne+net];
+          dx = z->x[ind2] - z->x[ind1];
+          h += dx*dx;
+          dy = z->y[ind2] - z->y[ind1];
+          h += dy*dy;
+          dz = z->z[ind2] - z->z[ind1];
+          h += dz*dz;
+          h = sqrt(h);
+          sprintf(msg, "h=%g", h);
+        }
+        else
+        {
+          E_Int eltSize = zu->eltSize[ncon]; 
+          switch (eltType)
+          {
+            case 0:
+              sprintf(msg,"%s (NODE)", zone->zoneName); break;
+            case 1:
+              if (zu->_is_high_order && eltSize == 3)
+                sprintf(msg,"%s (BAR_3)", zone->zoneName);
+              else
+                sprintf(msg,"%s (BAR)", zone->zoneName); 
+              break;
+            case 2:
+              if (zu->_is_high_order && eltSize == 6)
+                sprintf(msg,"%s (TRI_6)", zone->zoneName);
+              else
+                sprintf(msg,"%s (TRI)", zone->zoneName); 
+              break;
+            case 3:
+              if (zu->_is_high_order && eltSize == 8)
+                sprintf(msg,"%s (QUAD_8)", zone->zoneName);
+              else if (zu->_is_high_order && eltSize == 9)
+                sprintf(msg,"%s (QUAD_9)", zone->zoneName);
+              else
+                sprintf(msg,"%s (QUAD)", zone->zoneName);
+              break;
+            case 4:
+              if (zu->_is_high_order && eltSize == 10)
+                sprintf(msg,"%s (TETRA_10)", zone->zoneName);
+              else
+                sprintf(msg,"%s (TETRA)", zone->zoneName); 
+              break;
+            case 5:
+              if (zu->_is_high_order && eltSize == 15)
+                sprintf(msg,"%s (PENTA_15)", zone->zoneName);
+              else if (zu->_is_high_order && eltSize == 18)
+                sprintf(msg,"%s (PENTA_18)", zone->zoneName);
+              else 
+                sprintf(msg,"%s (PENTA)", zone->zoneName); 
+              break;
+            case 6:
+              if (zu->_is_high_order && eltSize == 14)
+                sprintf(msg,"%s (PYRA_14)", zone->zoneName);
+              else
+                sprintf(msg,"%s (PYRA)", zone->zoneName); 
+              break;
+            case 7:
+              if (zu->_is_high_order && eltSize == 20)
+                sprintf(msg,"%s (HEXA_20)", zone->zoneName);
+              else if (zu->_is_high_order && eltSize == 27)
+                sprintf(msg,"%s (HEXA_27)", zone->zoneName);
+              else
+                sprintf(msg,"%s (HEXA)", zone->zoneName); 
+              break;
+            case 10:
+              sprintf(msg,"%s (NGON)", zone->zoneName); break;
+            default:
+              sprintf(msg,"%s (UNKNOWN)", zone->zoneName); break;
+          } 
+        }
+        //sprintf(msg, "%g, %g, %g", 
+        //ptrState->activePointX, ptrState->activePointY, ptrState->activePointZ);
+        //sprintf(msg2, "(np=%d, ne=%d, nf=%d)",
+        //        ptrState->activePointI, ptrState->activePointJ, abs(ptrState->activePointK));
+      }
+      else if (ptrState->mode == SCALARFIELD) // display field value
       {
         sprintf(msg, "%s=%g",
                 zone->varnames[ptrState->scalarField], 
                 ptrState->activePointF[ptrState->scalarField]);
       }
-      else if (ptrState->mode == VECTORFIELD)
+      else if (ptrState->mode == VECTORFIELD) // display vector field values
       {
         sprintf(msg, "%s=%g, %s=%g, %s=%g",
                 zone->varnames[ptrState->vectorField1], 
@@ -322,7 +454,7 @@ void Data::displayActivePoint()
                 zone->varnames[ptrState->vectorField3],
                 zone->f[ptrState->vectorField3][ptrState->activePointI]);
       }
-      else
+      else // mode SOLID, display zone name and type
       {
         E_Int ncon = ptrState->activePointL;
         E_Int eltType = zu->eltType[ncon];

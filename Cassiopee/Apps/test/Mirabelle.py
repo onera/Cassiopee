@@ -41,6 +41,6 @@ Mirabelle._propagate(t, g, stack, treated, linelet)
 
 # Adapte les donneurs a la fin
 Mirabelle._adaptDonorRanges(t)
-    
+
 #Internal.printTree(t)
 C.convertPyTree2File(t, 'remesh.cgns')

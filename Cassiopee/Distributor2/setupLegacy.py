@@ -24,7 +24,7 @@ libraries = ["kcore"]
 from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-    
+
 # setup ======================================================================
 import srcs
 setup(

@@ -42,7 +42,7 @@ def getAngleRegularityMap(t, addGC=False):
     t = C.TZGC1(t, 'centers', True, Generator.getAngleRegularityMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
-    
+
 def _getAngleRegularityMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles)."""
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)

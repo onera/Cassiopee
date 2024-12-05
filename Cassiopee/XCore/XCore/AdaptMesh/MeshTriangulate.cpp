@@ -32,7 +32,7 @@ void Mesh_face_to_prism(Mesh *M, E_Int fid)
         std::swap(BOT[0], BOT[1]);
     }
 
-    E_Int top, lft, rgt, fro, bck;
+    E_Int top=-1, lft=-1, rgt=-1, fro=-1, bck=-1;
 
     for (E_Int i = 1; i < 6; i++) {
         E_Int f = cell[4*i];

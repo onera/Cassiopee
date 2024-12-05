@@ -69,7 +69,7 @@ def withCart__(a, offset, pointsPerUnitLength, dim=3):
 def withOctree__(a, offset, pointsPerUnitLength, dim=3):
     # step
     tol = 1./pointsPerUnitLength
-    
+
     # octree
     snears = []; sec = 0
     for z in Internal.getZones(a):
@@ -107,7 +107,7 @@ def withOctree__(a, offset, pointsPerUnitLength, dim=3):
         _compDistance__(o1, a, loc='nodes')
         o = o1
         nit += 1
-    
+
     C._rmVars(o, ['centers:TurbulentDistance','centers:vol','centers:indicator'])
     #C.convertPyTree2File(o, 'out.cgns')
 

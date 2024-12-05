@@ -120,7 +120,7 @@ def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None,
 # connectMatch between NGON zones
 #==============================================================================
 def _connectMatchHybrid__(a, tol, dim, glob):
-    
+
     # Tri des zones
     zones = []; indirZones = []
     noz = 0
@@ -893,21 +893,21 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                 if eq is not None: model_z2 = Internal.getValue( eq )
 
                 if model_z1 == 'NSTurbulent' and  model_z1 != model_z2:
-                   #creation flag pour tranfert rans/LES
-                   datap1 = numpy.ones(1, dtype=Internal.E_NpyInt)
-                   datap2 = numpy.ones(1, dtype=Internal.E_NpyInt)
-                   Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz1], name1) , 'RANSLES', 'DataArray_t', datap1)
-                   Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
-                   name1 = 'RANS_LES%d_%d'%(noz1,noz2)
-                   C._addBC2Zone(zones[noz1],name1,'BCExtrapolateRANS',rangenm1)
+                    #creation flag pour tranfert rans/LES
+                    datap1 = numpy.ones(1, dtype=Internal.E_NpyInt)
+                    datap2 = numpy.ones(1, dtype=Internal.E_NpyInt)
+                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz1], name1) , 'RANSLES', 'DataArray_t', datap1)
+                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
+                    name1 = 'RANS_LES%d_%d'%(noz1,noz2)
+                    C._addBC2Zone(zones[noz1],name1,'BCExtrapolateRANS',rangenm1)
 
                 if model_z2 =='NSTurbulent' and  model_z1 != model_z2:
-                   datap1 = numpy.ones(1, dtype=Internal.E_NpyInt)
-                   datap2 = numpy.ones(1, dtype=Internal.E_NpyInt)
-                   Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
-                   Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz1], name1) , 'RANSLES', 'DataArray_t', datap1)
-                   name2 = 'RANS_LES%d_%d'%(noz2,noz1)
-                   C._addBC2Zone(zones[noz2],name2,'BCExtrapolateRANS',range2  )
+                    datap1 = numpy.ones(1, dtype=Internal.E_NpyInt)
+                    datap2 = numpy.ones(1, dtype=Internal.E_NpyInt)
+                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
+                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz1], name1) , 'RANSLES', 'DataArray_t', datap1)
+                    name2 = 'RANS_LES%d_%d'%(noz2,noz1)
+                    C._addBC2Zone(zones[noz2],name2,'BCExtrapolateRANS',range2  )
 
                 parent1[2][d1] = zones[noz1]; parent2[2][d2] = zones[noz2]
 
@@ -1668,47 +1668,47 @@ def applyBCOverlapsUnstructured(z, depth, loc, val=2, cellNName='cellN',oversetF
     return None
 
 def applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN'):
-  a = Internal.copyRef(t)
-  # ajout du celln si n'existe pas pour une zone
-  _addCellN__(a, loc=loc, cellNName=cellNName)
+    a = Internal.copyRef(t)
+    # ajout du celln si n'existe pas pour une zone
+    _addCellN__(a, loc=loc, cellNName=cellNName)
 
-  # only non doubly defined
-  oversetFamNames=[]
-  for fam in Internal.getNodesFromType(a,'Family_t'):
-      OV = Internal.getNodeFromName1(fam,'.Solver#Overlap')
-      if OV is not None:
-          dd = Internal.getNodeFromName1(OV,'doubly_defined')
-          if dd is None:
-              oversetFamNames.append(Internal.getName(fam))
+    # only non doubly defined
+    oversetFamNames=[]
+    for fam in Internal.getNodesFromType(a,'Family_t'):
+        OV = Internal.getNodeFromName1(fam,'.Solver#Overlap')
+        if OV is not None:
+            dd = Internal.getNodeFromName1(OV,'doubly_defined')
+            if dd is None:
+                oversetFamNames.append(Internal.getName(fam))
 
-  zones = Internal.getZones(a)
-  for z in zones:
-      dimZ = Internal.getZoneDim(z)
-      if dimZ[0] == 'Structured': applyBCOverlapsStructured(z, depth, loc, val=val, cellNName=cellNName, oversetFamNames=oversetFamNames)
-      else:
-          if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val=val, cellNName=cellNName, oversetFamNames=oversetFamNames)
-          else:
-              print('Warning: applyBCOverlaps: only for NGON unstructured zones.')
-  return a
+    zones = Internal.getZones(a)
+    for z in zones:
+        dimZ = Internal.getZoneDim(z)
+        if dimZ[0] == 'Structured': applyBCOverlapsStructured(z, depth, loc, val=val, cellNName=cellNName, oversetFamNames=oversetFamNames)
+        else:
+            if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val=val, cellNName=cellNName, oversetFamNames=oversetFamNames)
+            else:
+                print('Warning: applyBCOverlaps: only for NGON unstructured zones.')
+    return a
 
 # VERSION getFromArray2 en structure
 def _applyBCOverlaps(a, depth=2, loc='centers', val=2, cellNName='cellN', checkCellN=True):
-  # ajout du celln si n'existe pas pour une zone
-  if checkCellN: _addCellN__(a, loc=loc, cellNName=cellNName)
-  oversetFamNames=[]
-  for fam in Internal.getNodesFromType(a,'Family_t'):
-      OV = Internal.getNodeFromName1(fam,'.Solver#Overlap')
-      if OV is not None:
-          oversetFamNames.append(Internal.getName(fam))
-  zones = Internal.getZones(a)
-  for z in zones:
-      dimZ = Internal.getZoneDim(z)
-      if dimZ[0] == 'Structured': _applyBCOverlapsStructured(z, depth, loc, val, cellNName=cellNName, oversetFamNames=oversetFamNames)
-      else:
-          if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val, cellNName=cellNName, oversetFamNames=oversetFamNames)
-          else:
-              print('Warning: applyBCOverlaps: only for NGON unstructured zones.')
-  return None
+    # ajout du celln si n'existe pas pour une zone
+    if checkCellN: _addCellN__(a, loc=loc, cellNName=cellNName)
+    oversetFamNames=[]
+    for fam in Internal.getNodesFromType(a,'Family_t'):
+        OV = Internal.getNodeFromName1(fam,'.Solver#Overlap')
+        if OV is not None:
+            oversetFamNames.append(Internal.getName(fam))
+    zones = Internal.getZones(a)
+    for z in zones:
+        dimZ = Internal.getZoneDim(z)
+        if dimZ[0] == 'Structured': _applyBCOverlapsStructured(z, depth, loc, val, cellNName=cellNName, oversetFamNames=oversetFamNames)
+        else:
+            if dimZ[3] == 'NGON': applyBCOverlapsUnstructured(z, depth, loc, val, cellNName=cellNName, oversetFamNames=oversetFamNames)
+            else:
+                print('Warning: applyBCOverlaps: only for NGON unstructured zones.')
+    return None
 
 #==============================================================================
 # IN: a: contains the cellN located at nodes or centers
@@ -1990,7 +1990,7 @@ def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False, surf
             for f2 in familyBC2:
                 wall2 = C.getFamilyBCs(z, f2)
                 for w in wall2: listOfMismatch2.append(b[0]+'/'+z[0]+'/'+w[0]) 
-    
+
     # project interpolated points (cellN=2) from listOfMismatch2 onto listOfMismatch1
     DoubleWall._changeWall2(t, tc, listOfMismatch1, listOfMismatch2, '_'.join(familyBC1), '_'.join(familyBC2), ghostCells, check, surfaceCenters1)
 

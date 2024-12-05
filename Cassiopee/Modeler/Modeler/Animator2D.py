@@ -66,7 +66,7 @@ class Animator2D:
             param = Internal.getNodeFromName(z, 'ShaderParameters')
             #print(z[0], self.getShaderNo(z[0]))
             param[1][1] = self.getShaderNo(z[0])
-            
+
     # display all t
     # you must register all images before display
     def openDisplay(self):
@@ -99,7 +99,7 @@ class Animator2D:
 
     def moveUp(self, key, xr=0.01, render=True):
         self.move(key, (0,xr,0), render)
-    
+
     def moveDown(self, key, xr=0.01, render=True):
         self.move(key, (0,-xr,0), render)
 
@@ -166,7 +166,7 @@ class Animator2D:
         a = []
         for i in pos: a.append(D.point(i))
         a =  T.join(a)
-          
+
         CPlot._addRender2Zone(a, material='Sphere', shaderParameters=[30.*scale,self.getShaderNo(imageKey)])
         a[0] = key
         C._initVars(a, 'TBB__', 0.)

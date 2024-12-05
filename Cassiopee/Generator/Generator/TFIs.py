@@ -8,7 +8,7 @@ except ImportError:
     raise ImportError("TFIs: requires Converter and Transform module.")
 import KCore.Vector as Vector
 import numpy
-    
+
 #==============================================================================
 # Evalue la qualite du maillage m
 # Plus le score est elevee, plus le maillage est mauvais
@@ -125,7 +125,7 @@ def mergeEdges4(iedges):
     #print("Ntot=", Ntot, "N2=", N2)
     #print(Ntot - (N2-1)*2+1)
     if Ntot - ((N2-1)*2+1) != 0: return None # can not be merged in 4
-    
+
     # Find the nearest 90 degrees junction
     #angles = computeJunctionAngles(edges)
     #c90 = 0
@@ -276,7 +276,7 @@ def TFITri(a1, a2, a3, tol=1.e-6):
     """Generate a transfinite interpolation mesh from 3 input curves."""
     import Geom as D
     N1 = a1[2]; N2 = a2[2]; N3 = a3[2]
-    
+
     # Verif de N
     Nt = N3-N2+N1+1
     if Nt//2-Nt*0.5 != 0: raise ValueError("TFITri: N3-N2+N1 must be odd.")
@@ -293,7 +293,7 @@ def TFITri(a1, a2, a3, tol=1.e-6):
         t = a2; a2 = a3; a3 = t
         N2 = a2[2]; N3 = a3[2]
         P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
-        
+
     if abs(P0[0]-P00[0]) > tol: a2 = T.reorder(a2, (-1,2,3))
     elif abs(P0[1]-P00[1]) > tol: a2 = T.reorder(a2, (-1,2,3))
     elif abs(P0[2]-P00[2]) > tol: a2 = T.reorder(a2, (-1,2,3))
@@ -312,7 +312,7 @@ def TFITri(a1, a2, a3, tol=1.e-6):
     w3 = C.array('weight', N3, 1, 1)
     w3 = C.initVars(w3, 'weight', 1)
     CC = G.barycenter([a1,a2,a3], [w1,w2,w3])
-    
+
     # Subzones
     s1 = T.subzone(a1, (1,1,1), (N1-N+1,1,1))
     s2 = T.subzone(a1, (N1-N+1,1,1), (N1,1,1))
@@ -346,7 +346,7 @@ def TFITri2(a1, a2, a3, tol=1.e-6):
     """Generate a transfinite interpolation mesh from 3 input curves."""
     import Geom as D
     Nt1 = a1[2]; Nt2 = a2[2]; Nt3 = a3[2]
-    
+
     # Constraint Npts
     ai = numpy.array([[0.5,0.5,-0.5],[0.5,-0.5,0.5],[-0.5,0.5,0.5]], dtype=numpy.float64)
     N1 = ai[0,0]*(Nt1+1) + ai[0,1]*(Nt2+1) + ai[0,2]*(Nt3+1)
@@ -375,7 +375,7 @@ def TFITri2(a1, a2, a3, tol=1.e-6):
         t = a2; a2 = a3; a3 = t
         Nt2 = a2[2]; Nt3 = a3[2]
         P00 = (a2[1][0,0], a2[1][1,0], a2[1][2,0])
-        
+
     if abs(P0[0]-P00[0]) > tol: a2 = T.reorder(a2, (-1,2,3))
     elif abs(P0[1]-P00[1]) > tol: a2 = T.reorder(a2, (-1,2,3))
     elif abs(P0[2]-P00[2]) > tol: a2 = T.reorder(a2, (-1,2,3))
@@ -393,7 +393,7 @@ def TFITri2(a1, a2, a3, tol=1.e-6):
     w3 = C.array('weight', Nt3, 1, 1)
     w3 = C.initVars(w3, 'weight', 1)
     CC = G.barycenter([a1,a2,a3], [w1,w2,w3])
-    
+
     # subzones
     s1 = T.subzone(a1, (1,1,1), (N1,1,1))
     s2 = T.subzone(a1, (N1,1,1), (Nt1,1,1))
@@ -429,9 +429,9 @@ def TFITri2(a1, a2, a3, tol=1.e-6):
 #==============================================================================
 def TFIO__(a, weight, offset=0):
     import Geom as D
-    
+
     Nt = a[2]
-    
+
     # Calcul des points P1, P2, P3, P4
     w = C.array('weight', Nt, 1, 1)
     w = C.initVars(w, 'weight', 1.); w[1][0,0:Nt//4+1] = weight
@@ -442,7 +442,7 @@ def TFIO__(a, weight, offset=0):
     P3 = G.barycenter(a, w)
     w = C.initVars(w, 'weight', 1.); w[1][0,3*Nt//4:Nt] = weight
     P4 = G.barycenter(a, w)
-    
+
     # Calcul de P'1: projete de P1 sur le cercle
     b = C.convertArray2Hexa(a); b = G.close(b)
     PP = C.array('x,y,z', 4,1,1)
@@ -453,31 +453,31 @@ def TFIO__(a, weight, offset=0):
 
     PPP = T.projectOrtho(PP, [b])
     PPP = PPP[1]
-    
+
     PP1 = (PPP[0,0], PPP[1,0], PPP[2,0])
     PP2 = (PPP[0,1], PPP[1,1], PPP[2,1])
-    
+
     indexPP1 = D.getNearestPointIndex(a, PP1)[0]+offset
     if indexPP1 < 0: indexPP1 = Nt+indexPP1-1
     if indexPP1 > Nt-1: indexPP1 = indexPP1-Nt-1
-    
+
     # Renumerote a a partir de PP1
     b = T.subzone(a, (1,1,1), (indexPP1+1,1,1) )
     c = T.subzone(a, (indexPP1+1,1,1), (Nt,1,1) )
     a = T.join(c, b)
     indexPP1 = 0
     PP1 = (a[1][0,indexPP1], a[1][1,indexPP1], a[1][2,indexPP1])
-    
+
     indexPP2 = D.getNearestPointIndex(a, PP2)[0]-offset
     PP2 = (a[1][0,indexPP2], a[1][1,indexPP2], a[1][2,indexPP2])
-    
+
     indexPP3 = indexPP1 + Nt//2
     PP3 = (a[1][0,indexPP3], a[1][1,indexPP3], a[1][2,indexPP3])
-    
+
     N1 = indexPP2-indexPP1+1; N2 = Nt//2-N1+2
     indexPP4 = indexPP3 + N1-1
     PP4 = (a[1][0,indexPP4], a[1][1,indexPP4], a[1][2,indexPP4])
-    
+
     # Lines
     l1 = D.line(P1, P2, N=N1)
     l2 = D.line(P2, P3, N=N2)
@@ -488,18 +488,18 @@ def TFIO__(a, weight, offset=0):
     p1 = D.line(P1, PP1, N=10)
     dist2 = D.getLength(p1)
     Np = int(dist2/dist1*N1)+1
-    
+
     p1 = D.line(P1, PP1, N=Np)
     p2 = D.line(P2, PP2, N=Np)
     p3 = D.line(P3, PP3, N=Np)
     p4 = D.line(P4, PP4, N=Np)
-    
+
     # subzones
     s1 = T.subzone(a, (indexPP1+1,1,1), (indexPP2+1,1,1))
     s2 = T.subzone(a, (indexPP2+1,1,1), (indexPP3+1,1,1))
     s3 = T.subzone(a, (indexPP3+1,1,1), (indexPP4+1,1,1))
     s4 = T.subzone(a, (indexPP4+1,1,1), (Nt,1,1))
-    
+
     # TFIs
     m = G.TFI([l1,l2,l3,l4])
     m1 = G.TFI([s1, p1, p2, l1])
@@ -563,7 +563,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
     if abs(P0[0]-P00[0]) > tol: a2 = T.reorder(a2, (-1,2,3))
     elif abs(P0[1]-P00[1]) > tol: a2 = T.reorder(a2, (-1,2,3))
     elif abs(P0[2]-P00[2]) > tol: a2 = T.reorder(a2, (-1,2,3))
-    
+
     # Round
     w1 = C.array('weight', Nt1, 1, 1); w1 = C.initVars(w1, 'weight', 1.)
     w = C.array('weight', Nt2, 1, 1)
@@ -582,7 +582,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
 
     PP3 = (PPP[0,0], PPP[1,0], PPP[2,0])
     PP4 = (PPP[0,1], PPP[1,1], PPP[2,1])
-    
+
     indexPP3 = D.getNearestPointIndex(a2, PP3)[0]+offset
     if ((Nt1-Nt2)//2-(Nt1-Nt2)*0.5 == 0 and
         (indexPP3+1)//2-(indexPP3+1)*0.5 != 0): indexPP3 += 1
@@ -598,7 +598,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
 
     # Straight
     N3 = (Nt1-N2+2)//2
-    
+
     ind = N3-1
     P1 = (a1[1][0,ind], a1[1][1,ind], a1[1][2,ind])
     P2 = (a1[1][0,Nt1-ind-1], a1[1][1,Nt1-ind-1], a1[1][2,Nt1-ind-1])
@@ -607,7 +607,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
     l1 = D.line(P1, P3, N=N1)
     l2 = D.line(P3, P4, N=N2)
     l3 = D.line(P4, P2, N=N1)
-    
+
     p1 = D.line(P3, PP3, N=N3)
     p2 = D.line(P4, PP4, N=N3)
 
@@ -615,7 +615,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
     s1 = T.subzone(a1, (1,1,1), (ind+1,1,1) )
     s2 = T.subzone(a1, (ind+1,1,1), (Nt1-ind,1,1) )
     s3 = T.subzone(a1, (Nt1-ind,1,1), (Nt1,1,1) )
-    
+
     s4 = T.subzone(a2, (1,1,1), (indexPP3+1,1,1) )
     s5 = T.subzone(a2, (indexPP3+1,1,1), (indexPP4+1,1,1) )
     s6 = T.subzone(a2, (indexPP4+1,1,1), (Nt2,1,1) )
@@ -744,7 +744,7 @@ def TFIStar2(edges):
     """Generate a transfinite interpolation mesh for a list of input curves."""
     import Geom as D
     orderEdges(edges, tol=1.e-6)
-    
+
     XG = G.barycenter(edges) # a optimiser
     out = []
     for c, e in enumerate(edges):
@@ -762,7 +762,7 @@ def TFIStar2(edges):
         ret = G.TFI([e1,e2,l1,l2])
         #ret = [e1,e2,l1,l2]
         out += [ret]
-    
+
     return out
 
 # Perform smoothing, return mesh only if improved
@@ -774,4 +774,3 @@ def qualitySmooth(meshes):
     print("qual 1=", q1)
     if q1 > q0: return meshes1
     return meshes
-    

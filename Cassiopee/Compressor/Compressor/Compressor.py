@@ -41,7 +41,7 @@ def pack(a, method=0):
         return zlib.compress(pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL), level=1)
     else:
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
-   
+
 #==============================================================================
 # Unserialize/decompress
 #==============================================================================
@@ -55,4 +55,4 @@ def unpack(a, method=0):
     else:
         return pickle.loads(a)
 
-    
+

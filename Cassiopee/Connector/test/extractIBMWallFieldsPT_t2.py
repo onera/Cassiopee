@@ -31,7 +31,7 @@ for base in Internal.getBases(tb):
         Internal._createChild(base,famName, 'Family_t',None)
         C._tagWithFamily(s,famName)
         i+=1
-        
+
 t = C.newPyTree(['Base', a])
 
 # Dist2Walls

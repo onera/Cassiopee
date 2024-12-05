@@ -33,7 +33,7 @@ libraries = ["transform", "kcore"]
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-    
+
 # Extensions ==================================================================
 listExtensions = []
 listExtensions.append(
@@ -45,7 +45,7 @@ listExtensions.append(
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs()
               ) )
-    
+
 # setup ======================================================================
 setup(
     name="Transform",

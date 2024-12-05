@@ -9,7 +9,7 @@ import Converter.Internal as Internal
 
 # local widgets list
 WIDGETS = {}; VARS = []
-    
+
 #==============================================================================
 # mesh cad edges
 #==============================================================================
@@ -26,19 +26,19 @@ def meshCADEdges(event=None):
     CTK.setCursor(2, WIDGETS['MeshEdgeButton'])
     CTK.setCursor(2, WIDGETS['HEntry'])
     CTK.setCursor(2, WIDGETS['DEntry'])
-    
+
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
     if edges is not None: edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     if faces is not None: faces[2] = []
     OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
-    
+
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['MeshEdgeButton'])
     CTK.setCursor(0, WIDGETS['HEntry'])
     CTK.setCursor(0, WIDGETS['DEntry'])
-    
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -59,7 +59,7 @@ def meshCADFaces(event=None):
 
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['MeshFaceButton'])
-    
+
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
     if faces is not None: faces[2] = []
     if mtype == 'TRI':
@@ -67,10 +67,10 @@ def meshCADFaces(event=None):
     elif mtype == 'STRUCT':
         OCC._remeshAllEdgesOdd(CTK.CADHOOK, CTK.t)
         OCC._meshAllFacesStruct(CTK.CADHOOK, CTK.t)
-    
+
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['MeshFaceButton'])
-    
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -80,7 +80,7 @@ def meshCADFaces(event=None):
 # Create app widgets
 #==============================================================================
 def createApp(win):
-    
+
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkCADMesh  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
@@ -93,7 +93,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -119,7 +119,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('TRI'); VARS.append(V)
     # -3- hmin -
     V = TK.StringVar(win); V.set('%g'%hmin); VARS.append(V)
-    
+
     # Hmin    
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -152,10 +152,10 @@ def createApp(win):
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Mesh the CAD faces from edges.')
     WIDGETS['MeshFaceButton'] = Frame
-    
+
     B = TTK.OptionMenu(Frame, VARS[2], 'TRI', 'STRUCT')
     B.grid(row=2, column=2, sticky=TK.EW)
-    
+
 
 #==============================================================================
 # Called to display widgets
@@ -164,7 +164,7 @@ def showApp():
     try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkCADMesh')
     except: pass
     CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Called to hide widgets
 #==============================================================================

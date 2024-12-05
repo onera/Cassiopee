@@ -15,7 +15,7 @@ WIDGETS = {}; VARS = []
 MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
              'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay',
              'Cloud', 'Gooch', 'Sphere', 'Texmat']
-             
+
 #==============================================================================
 # Appele quand une couleur est selectionnee (optionMenu)
 def setColorVar(l):
@@ -25,7 +25,7 @@ def setColorVar(l):
         ret = tkColorChooser.askcolor()
         l = ret[1]
     VARS[1].set(l)
-    
+
 #==============================================================================
 # Appele quand une couleur est selectionnee (combobox)
 def setColorVar2(event=None):
@@ -134,7 +134,7 @@ def setAll():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
-    
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -205,7 +205,7 @@ def setShaderParameter(event=None):
     shaderParameter1 = (WIDGETS['param1'].get()) / 50.
     VARS[4].set('Shader parameter 1 [%.2f].'%shaderParameter1)
     VARS[5].set('Shader parameter 2 [%.2f].'%shaderParameter2)
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -280,7 +280,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -309,7 +309,7 @@ def createApp(win):
     WIDGETS['blending'] = B
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
-    
+
     # - set mesh overlay -
     B = TTK.Checkbutton(Frame, text='Mesh', variable=VARS[3],
                         command=setMeshOverlay)

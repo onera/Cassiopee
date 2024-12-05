@@ -39,11 +39,11 @@ def updateVarNameList2(event=None):
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
         zvars = C.getVarNames(CTK.t[2][nob][2][noz])
-    
+
     if len(zvars) == 0: return
     if 'field' in WIDGETS:
         WIDGETS['field']['values'] = zvars[0]
-        
+
 #==============================================================================
 def extractIsoSurf(event=None):
     if CTK.t == []: return
@@ -56,7 +56,7 @@ def extractIsoSurf(event=None):
 
     try: value = float(value)
     except: value = 1.
-    
+
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
 
@@ -138,7 +138,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -180,7 +180,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Extracted field value.')
     B.bind('<Return>', extractIsoSurf)
     B.grid(row=0, column=1, sticky=TK.EW)
-    
+
     # - Get value from mouse -
     B = TTK.Button(Frame, image=iconics.PHOTO[8],
                    command=getValueFromMouse, padx=0)
@@ -191,7 +191,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Extract isosurf", command=extractIsoSurf)
     B.grid(row=1, column=0, columnspan=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract isosurf to SURFACES.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -227,7 +227,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

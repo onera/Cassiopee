@@ -25,7 +25,7 @@ def symetrize():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     sel = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -60,7 +60,7 @@ def symetrize():
         axe1 = (X[0]-Y[0], X[1]-Y[1], X[2]-Y[2])
         axe2 = CPlot.getState('dirCam')
     else: X=(0.,0.,0.); axe1 = (1.,0.,0.); axe2 = (0.,1.,0.)
-    
+
     CTK.saveTree()
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -94,12 +94,12 @@ def rotate(event=None):
     else: axe = (0.,0.,1.)
     try: angle = float(angle)
     except: angle = 0.
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     CTK.saveTree()
     if X is None:
         sel = []
@@ -118,7 +118,7 @@ def rotate(event=None):
     CTK.TXT.insert('START', 'Zones have been rotated.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def translate():
     if CTK.t == []: return
@@ -206,8 +206,8 @@ def translateClick():
         CTK.__BUSY__ = False
         TTK.raiseButton(w)
     else:
-       CTK.__BUSY__ = False
-       TTK.raiseButton(w)
+        CTK.__BUSY__ = False
+        TTK.raiseButton(w)
 
 #==============================================================================
 def scale():
@@ -224,14 +224,14 @@ def scale():
     if axis == 'along XYZ':
         axe1 = (1,0,0); axe2 = (0,1,0); axe3 = (0,0,1)
     else: # view
-         posCam = CPlot.getState('posCam')
-         posEye = CPlot.getState('posEye')
-         dirCam = CPlot.getState('dirCam')
-         axe1 = (posEye[0]-posCam[0], posEye[1]-posCam[1], posEye[2]-posCam[2])
-         axe2 = dirCam
-         axe3 = (axe1[1]*axe2[2]-axe1[2]*axe2[1],
-                 axe1[2]*axe2[0]-axe1[0]*axe2[2],
-                 axe1[0]*axe2[1]-axe1[1]*axe2[0])
+        posCam = CPlot.getState('posCam')
+        posEye = CPlot.getState('posEye')
+        dirCam = CPlot.getState('dirCam')
+        axe1 = (posEye[0]-posCam[0], posEye[1]-posCam[1], posEye[2]-posCam[2])
+        axe2 = dirCam
+        axe3 = (axe1[1]*axe2[2]-axe1[2]*axe2[1],
+                axe1[2]*axe2[0]-axe1[0]*axe2[2],
+                axe1[0]*axe2[1]-axe1[1]*axe2[0])
 
     nzs = CPlot.getSelectedZones()
     if nzs == []:
@@ -257,7 +257,7 @@ def scale():
         if dx >= dy and dx >= dz: v[0] = 1./dx
         if dy >= dx and dy >= dz: v[0] = 1./dy
         if dz >= dy and dz >= dx: v[0] = 1./dz
-    
+
     zlist = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -335,7 +335,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=4)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -410,7 +410,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[4], 'around XY-', 'around XY+', 'around YZ-',
                        'around YZ+', 'around XZ-', 'around XZ+', 'around view')
     B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
-    
+
     # - cart2Cyl and cyl2Cart -
     B = TTK.Button(Frame, text="Apply", command=changeFrame)
     B.grid(row=5, column=0, sticky=TK.EW)
@@ -446,7 +446,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

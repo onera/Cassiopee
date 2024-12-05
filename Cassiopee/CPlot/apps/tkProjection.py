@@ -23,7 +23,7 @@ def setSurface():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     selected = ''
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -32,7 +32,7 @@ def setSurface():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[0].set(selected)
-    
+
 #==============================================================================
 def orthoProject():
     if CTK.t == []: return
@@ -120,7 +120,7 @@ def dirProject():
             CTK.replace(CTK.t, nob, noz, a)
         except Exception as e:
             fail = True; errors += [0,str(e)]
-            
+
     if (fail == False):
         CTK.TXT.insert('START', 'Zones projected.\n')
     else:
@@ -129,7 +129,7 @@ def dirProject():
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
     CTK.TKTREE.updateApp()
     CPlot.render()
-       
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -145,7 +145,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=2)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -174,7 +174,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Dir project", command=dirProject)
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Project selection following eye direction on a surface.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -199,7 +199,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

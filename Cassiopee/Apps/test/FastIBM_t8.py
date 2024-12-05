@@ -31,8 +31,8 @@ test.testT(tc_2d, 1)
 #on renomme les zones
 i=0
 for z in Internal.getZones(t_2d):
-  z[0]= "Cart."+str(i)+"X0"
-  i += 1
+    z[0]= "Cart."+str(i)+"X0"
+    i += 1
 
 ## determine dx=dy for each zone & store per zone
 dict_ZEXT={}
@@ -61,11 +61,11 @@ Nz_max = 8
 NzLoc=np.empty(int(Nlevels), np.int32)
 
 for l in range( int(Nlevels) ):
-  NzLoc[l] = Nz_max
+    NzLoc[l] = Nz_max
 Nlevels_tg = math.log( Nz_max/Nz_min, 2 ) +1 
 
 for z in Internal.getZones(t_2d):
-   
+
     level = int( dict_ZEXT[ z[0] ] )
     print("Nz local",  z[0], level)
     dictNz[z[0]]=  NzLoc[level]

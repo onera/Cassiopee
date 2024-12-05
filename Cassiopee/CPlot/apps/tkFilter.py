@@ -42,7 +42,7 @@ def setFilter(event=None):
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
                     if CTK.matchString(rexp, zoneName): active.append((i,1))
                     else: active.append((i,0))
-                    
+
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':
             inactive = []
@@ -69,7 +69,7 @@ def setFilter(event=None):
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
                     if z[0] in listFmlySlct: active.append((i,1))
                     else: active.append((i,0))
-                    
+
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':
             inactive = []
@@ -127,7 +127,7 @@ def setFilter(event=None):
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
                     if np > size: active.append((i,1))
                     else: active.append((i,0))
-                    
+
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':
             inactive = []
@@ -157,7 +157,7 @@ def setFilter(event=None):
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
                     if np < size: active.append((i,1))
                     else: active.append((i,0))
-                    
+
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':
             inactive = []
@@ -232,7 +232,7 @@ def setFilter(event=None):
                             else: active.append((i,1))
                         else: active.append((i,0))
                     else: active.append((i,0))
-                    
+
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':
             inactive = []
@@ -314,7 +314,7 @@ def setFilter(event=None):
             CTK.TXT.insert('START', 'Filter value must be int.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
-        
+
         field = formula[b1+1:b2]; # print field
         try: # try an eval
             ff = formula.replace('{'+field+'}', '12.')
@@ -382,7 +382,7 @@ def createApp(win):
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkFilter')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- filter value -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
@@ -398,14 +398,14 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[2], 'Activate', 'Deactivate', 'Select')
     BB = CTK.infoBulle(parent=B, text='Action to be performed on filtered zones.')
     B.grid(row=0, column=0, sticky=TK.EW)
-    
+
     B = TTK.OptionMenu(Frame, VARS[1], 'By Zone name', 'By Zone family' ,'By size >',
                        'By size <', 'By MG lvl =', 'By MG lvl !=',
                        'By proc', 'By priority', 'By number', 
                        'By formula (or)', 'By formula (and)')
     BB = CTK.infoBulle(parent=B, text='Filter criteria.')
     B.grid(row=0, column=1, sticky=TK.EW)
-    
+
     # - Set filter -
     B = TTK.Button(Frame, text="Filter", command=setFilter)
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -447,7 +447,7 @@ def resetApp():
     CTK.PREFS['tkFilterName'] = VARS[1].get()
     CTK.PREFS['tkFilterAction'] = VARS[2].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)

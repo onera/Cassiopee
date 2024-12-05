@@ -108,7 +108,7 @@ def conformOctree3(o):
     a = C.getAllFields(o, 'nodes')[0]
     a2 = Generator.conformOctree3(a)
     return C.convertArrays2ZoneNode(o[0], [a2])
-    
+
 #------------------------------------------------------------------------------
 # Conformisation d'une soupe de TRI ou de BAR
 #------------------------------------------------------------------------------
@@ -171,7 +171,7 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
         except ImportError: 
             print('Warning: octree2Struct requires Connector module. No grid connectivity built.')
             return zones
-        
+
         if dimPb == 3: ratios = [[2,2,2],[4,4,4],[8,8,8],[16,16,16]]
         else: ratios = [[2,2,1],[4,4,1],[8,8,1],[16,16,1]]
         zones = X.connectMatch(zones, dim=dimPb)
@@ -423,7 +423,7 @@ def snapSharpEdges(t, surfs, step=None, angle=30.):
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
     return C.TZA1(t, 'nodes', 'nodes', True, Generator.snapSharpEdges, 
                   arrays, step, angle)
-    
+
 def _snapSharpEdges(t, surfs, step=None, angle=30.):
     """Adapt t to a given surface."""
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
@@ -481,7 +481,7 @@ def CEBBIntersection(a1, a2, tol=1.e-10):
     m1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     m2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
     return Generator.CEBBIntersection(m1, m2, tol)
-        
+
 def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       
     if Internal.typeOfNode(z1) != 1:
@@ -574,16 +574,16 @@ def getFaceCentersAndAreas(t):
     for zone in zones:
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
         if len(arr) != 4:
-          fcenters.append(None)
-          fareas.append(None)
-          continue
-        
+            fcenters.append(None)
+            fareas.append(None)
+            continue
+
         etype, stype = Internal.eltName2EltNo(arr[3])
 
         if etype != 22:
-          fcenters.append(None)
-          fareas.append(None)
-          continue
+            fcenters.append(None)
+            fareas.append(None)
+            continue
         [fc, fa] = Generator.getFaceCentersAndAreas(arr)
         fcenters.append(fc)
         fareas.append(fa)
@@ -599,14 +599,14 @@ def getCellCenters(t, fc, fa, own=None, nei=None):
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
 
         if len(arr) != 4:
-          centers.append(None)
-          continue
-        
+            centers.append(None)
+            continue
+
         etype, stype = Internal.eltName2EltNo(arr[3])
 
         if etype != 22:
-          centers.append(None)
-          continue
+            centers.append(None)
+            continue
 
         if own == None and nei == None:
             cx, cy, cz = Generator.getCellCenters(arr, fc[i], fa[i], None, None)
@@ -841,7 +841,7 @@ def _closeLegacy(t, tol=1.e-12, suppressDegeneratedNGons=False):
     fields = Generator.closeLegacy(fields, tol, suppressDegeneratedNGons)
     C.setFields(fields, t, 'nodes')
     return None
-    
+
 def close(a, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
           rmDuplicatedFaces=True, rmDuplicatedElts=True,
           rmDegeneratedFaces=True, rmDegeneratedElts=True,
@@ -1085,7 +1085,7 @@ def refineBCRanges__(r0, ni0, nj0, nk0, ni, nj, nk, dir, factor):
         if j2 == 1: j2N = 1
         elif j2 == nj0: j2N = nj
         else: j2N = alp2*j2-shift
-            
+
     elif dir == 3:
         if k1 == 1: k1N = 1
         elif k1 == nk0: k1N = nk
@@ -1394,7 +1394,7 @@ def collarMesh(s1, s2, distribj, distribk,
             C._addBC2Zone(z, 'match', 'BCMatch', 'imax', z, 'imin', trirac=[1,2,3]) 
         C._fillEmptyBCWith(z, 'overlap', 'BCOverlap')               
         zones += [z]
-        
+
     return zones
 
 #=============================================================================
@@ -1607,7 +1607,7 @@ def _getRegularityMap(t, addGC=False):
     C._TZGC1(t, 'centers', False, Generator.getRegularityMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
-    
+
 #------------------------------------------------------------------------------
 # Calcul de la regularite (angles entre mailles adjacentes) d'une grille
 # 1D: retourne un champ "reg"
@@ -1628,7 +1628,7 @@ def _getAngleRegularityMap(t, addGC=False):
     C._TZGC1(t, 'centers', False, Generator.getAngleRegularityMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
-    
+
 #------------------------------------------------------------------------------
 # Calcul la qualite pour un maillage TRI (0. triangle degenere, 1. equilateral)
 #------------------------------------------------------------------------------
@@ -1696,13 +1696,13 @@ def refine__(t, torig, refine, dim):
             gcarray_prange =gc[2][0][1] #PointRange
             gcarray_prangeD=gc[2][1][1] #PointRangeDonor
             for j in range(0, dim):
-                    for i in range(0,2):
+                for i in range(0,2):
                         ##Point Range
-                        if gcarray_prange[j][i] !=1:
-                            gcarray_prange[j][i]=(gcarray_prange[j][i]-1)*refine[j]+1
-                        ##Point Range Donor
-                        if gcarray_prangeD[j][i] !=1:
-                            gcarray_prangeD[j][i]=(gcarray_prangeD[j][i]-1)*refine[j]+1
+                    if gcarray_prange[j][i] !=1:
+                        gcarray_prange[j][i]=(gcarray_prange[j][i]-1)*refine[j]+1
+                    ##Point Range Donor
+                    if gcarray_prangeD[j][i] !=1:
+                        gcarray_prangeD[j][i]=(gcarray_prangeD[j][i]-1)*refine[j]+1
             Internal.addChild(zgc,gc,pos=-1)
     return t
 
@@ -1775,7 +1775,7 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     _getAngleRegularityMap(m, addGC)
     amin,amax,amean,acrit = getMeshFieldInfo(m, 'regularityAngle', critAngReg, verbose)
     Internal._rmNodesFromName(m, 'regularityAngle')
-    
+
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,
             'amin':amin,'amax':amax,'amean':amean,'acrit':acrit,

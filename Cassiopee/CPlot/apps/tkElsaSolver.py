@@ -17,7 +17,7 @@ def export(event=None):
     tp = Converter.elsAProfile.convert2elsAxdt(CTK.t)
     C.convertPyTree2File(tp, filename)
     CTK.TXT.insert('START', 'File '+filename+' exported.\n')
-    
+
 #==============================================================================
 def adapt(event=None):
     if CTK.t == []: return
@@ -26,7 +26,7 @@ def adapt(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.TXT.insert('START', 'Tree adapted for elsA.CGNS.\n')
-    
+
 #==============================================================================
 def elsAHybridNode(event=None):
     if CTK.t == []: return
@@ -50,7 +50,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=4)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -66,7 +66,7 @@ def createApp(win):
         V.set(CTK.PREFS['tkElsaSolverFile'])
     # -1- Method for createElsaHybrid
     V = TK.IntVar(win); V.set(0); VARS.append(V)
-    
+
     # - Export -
     B = TTK.Button(Frame, text="Export to", command=export)
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -79,7 +79,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Adapt current tree", command=adapt)
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Adapt in memory tree to make it suitable for elsA.CGNS.')
-    
+
     # - Create elsA Hybrid node - 
     B = TTK.Button(Frame, text="Create elsA Hybrid Node", command=elsAHybridNode)
     B.grid(row=2, column=0, sticky=TK.EW)
@@ -87,7 +87,7 @@ def createApp(win):
     B = TK.Entry(Frame, textvariable=VARS[1], background='White')
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Method: 0 (elsA < 3.8.01), 1 (elsA >= 3.8.1)')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -123,7 +123,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

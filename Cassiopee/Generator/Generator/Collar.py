@@ -62,7 +62,7 @@ def createCollarMesh__(s1, s2, distribj, distribk, niterj, niterk, ext,
         if btype == 'union': infos += buildUnionCollarMesh__(edge, s0, s1, s2, distribj, distribk,
                                                              constraints1, constraints2,
                                                              niterj, niterk, alphaRef, toldist)
-        
+
         else: infos += buildDifferenceCollarMesh__(edge, s0, s1, s2, distribj, distribk, constraints1, constraints2,
                                                    niterj, niterk, ext+1, alphaRef, toldist)
     return infos
@@ -168,7 +168,7 @@ def buildDifferenceCollarMesh__(edge, s0, s1, s2, distribj, distribk, constraint
     res1 = orderContourForDifferenceSurface__(edge0, s1, s2)
     if res1 == 0: edge1 = edge0; edge1opp = T.reorder(edge0,(-1,2,3))
     else: edge1opp = edge0; edge1 = T.reorder(edge0,(-1,2,3))
-    
+
     #===================================================
     # on uniformise la distribj en grossier
     # Extraction de la distribution en i
@@ -280,7 +280,7 @@ def buildUnionCollarMesh__(edge, s0, s1, s2, distribj, distribk,
         if alphamax < 120.: z1 = generateCollarVolumeMesh0__(walkin1,walkin2,sourcej,toldist)
         else: z1 = generateCollarVolumeMesh1__(walkin2,walkin1,sourcej,alpha,toldist)
         return [[z1,[1,1,1,z1[3],1,z1[4]],[1,z1[2],1,z1[3],1,1]]]
-        
+
     else: # angle > 120. : extrusion
         z = T.merge([walkin1,walkin2]); z = G.close(z)
         z = G.addNormalLayers(z,distribk,niter=niterk,check=1)
@@ -305,7 +305,7 @@ def booleanSurface__(s1,s2,btype,toldist):
         else: s0 = XOR.booleanMinus(s1,s2)
         s0 = G.close(s0,toldist)
         return s0
-    
+
     else:
         # fermeture des corps
         surfs1 = []; surfs2 = []
@@ -469,7 +469,7 @@ def getSurfaceConstraints__(iniSurf, boolSurf, edge, toldist, alphaRef=30.):
             xA = xp[noe1]; yA = yp[noe1]; zA = zp[noe1]
             ind1,d1 = D.getNearestPointIndex(e0, (xA,yA,zA))
             ind2,d2 = D.getNearestPointIndex(e1, (xA,yA,zA))
-            
+
             if d1 < toldist and d2 < toldist:
                 xt1 = C.extractVars(e1,['x'])[1][0,:]
                 yt1 = C.extractVars(e1,['y'])[1][0,:]
@@ -488,7 +488,7 @@ def getSurfaceConstraints__(iniSurf, boolSurf, edge, toldist, alphaRef=30.):
                 ps = (xAB*xAC+yAB*yAC+zAB*zAC)/(nAB*nAC) # cos de l angle
                 if abs(ps) < math.cos(alphaRef*math.pi/180.):  constraints.append(e1)
     return constraints
-    
+
 #=============================================================================
 # IN: c: contour a partir duquel etendre
 # IN: surfaces: liste des surfaces sur lesquelles on calcule la normale
@@ -516,7 +516,7 @@ def createBFExtension(c, surfaces, projSurf, dhj, toldist, niter=0):
     dy = c2[1][1,0]-c2[1][1,imax-1]
     dz = c2[1][2,0]-c2[1][2,imax-1]
     if ( abs(dx) < toldist and abs(dy) < toldist and abs(dz) <toldist ): loop = 1
-   
+
     # computes normals to s1
     normales = []
     for s1 in surfaces:
@@ -643,7 +643,7 @@ def generateCollarVolumeMesh0__(surf1, surf2, sourcej, toldist):
             surf2o = [T.reorder(surf2,(-1,-2,3))]# pour que les 2 coincident en i = 1
         else: surf2o = [surf2]
         m = buildTFIMeshType0__(surf1o[0],surf2o[0]); mesh.append(m)
-    
+
     mesh = T.join(mesh)
     if cas1 == 1: mesh = T.reorder(mesh,(2,-1,3))
     return mesh
@@ -696,7 +696,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
     for ind in range(ni2):
         indU  = indicesU[ind]
         n2[1][:,ind] = nu[1][:,indU]
-  
+
     #=============================================
     # Vecteur fonction de alpha
     #=============================================
@@ -738,7 +738,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
     for ind in range(ni1,2*ni1):
         indo = ind-ni1
         surf1opp[1][:,ind]= c2p[1][:,indo]
-        
+
     dh1 = T.subzone(surf1,(1,1,1),(1,nj1,1))   
     dh1 = T.reorder(dh1,(-2,1,3)) 
     sourcej = D.getCurvilinearAbscissa(dh1)
@@ -934,7 +934,7 @@ def orderContourForUnionSurface__(edge, s1, s2):
     #print(ps)
     if ps < -0.25: return 1 # reordonner pour s1
     else: return 0
-    
+
 #-----------------------------------------------------------------------------
 # order contour for walk on the difference surface
 # IN : edge to reorder

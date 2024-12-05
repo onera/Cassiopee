@@ -71,7 +71,7 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes', ghostCells=False):
     # Premiere passe : on ajoute dans z2 les bonnes valeurs de dir1,dir2,dir3
     for w in wallRanges:
         i1 = w[0]; i2 = w[1]; j1 = w[2]; j2 = w[3]; k1 = w[4]; k2 = w[5]
-        
+
         if i1 == i2:
             if i1 == 1: diri=1; ic = 0
             else: diri=-1; ic = i1-shift-1
@@ -79,7 +79,7 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes', ghostCells=False):
                 for j in range(j1-1-s2,j2-shift+s2):
                     ind = ic + j*ni + k*ninj
                     dirz[1][0,ind] = diri
-            
+
         elif j1 == j2:
             if j1 == 1: diri=1; jc = 0
             else: diri=-1; jc = j1-shift-1
@@ -87,7 +87,7 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes', ghostCells=False):
                 for i in range(i1-1-s2,i2-shift+s2):
                     ind = i + jc*ni + k*ninj
                     dirz[1][1,ind] = diri
-        
+
         else: # k1 == k2
             if k1 == 1: diri=1; kc = 0
             else: diri=-1; kc = k1-shift-1
@@ -104,7 +104,7 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes', ghostCells=False):
             if i1 == 1: diri=1; ic = 1
             else: diri=-1; ic = i1-shift            
             z2w = Transform.subzone(z,(ic,j1-s2,k1-s2),(ic,j2-shift+s2,k2-shift+s2))
-            
+
         elif j1 == j2:
             if j1 == 1: diri=1; jc = 1
             else: diri=-1; jc = j1-shift
@@ -267,7 +267,7 @@ def extractDoubleWallInfo__(t):
                 surfs = Converter.convertArray2Hexa(surfs)
                 surfs = Transform.join(surfs)
                 surfacesPerBase.append(surfs)                                
-            
+
             surfacesExt.append(surfs)
             noz += 1
         # Join des surfaces de la meme base pour assurer la continuite de hmax
@@ -326,7 +326,7 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
     if Cmpi.rank==0:
         print("Info: changeWall: listOfMismatch1 (%s)"%(listOfMismatch1))
         print("Info: changeWall: listOfMismatch2 (%s)"%(listOfMismatch2))
-    
+
     # STEP1 : gather proj surfaces of mismatch1 (surfaceCenters1)
     if surfaceCenters1 is None:
         walls1 = []
@@ -354,11 +354,11 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
         walls1 = C.convertArray2Tetra(walls1, split='withBarycenters')
         #walls1 = T.reorderAll(walls1)
         walls1 = T.reorder(walls1, (1,))
-        
+
         D._getCurvatureHeight(walls1)
         surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
         if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_%s_to_%s.plt'%(familyBC2, familyBC1))
-    
+
     # STEP2 : project surfaces of mismatch2 (a2c (domain) and firstWallCenters2 (wall))
     for w2 in listOfMismatch2:
         name = w2.rsplit('/', 1)
@@ -369,7 +369,7 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
                 wr = Internal.range2Window(pr[1])
                 firstWallCenters2 = getFirstPointsInfo__(z2, [wr], loc='centers', ghostCells=ghostCells)
                 if check: Converter.convertArrays2File(firstWallCenters2, 'firstWallCenters2_%s_to_%s_rank%d.plt'%(familyBC2, familyBC1, Cmpi.rank))
-        
+
                 z2c = Internal.getNodeFromPath(tc, name[0])
                 if z2c is not None:
                     a2c = C.getFields(Internal.__GridCoordinates__, z2c)[0]
@@ -381,7 +381,7 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
 
                     C.setFields([a2cp], z2c, 'nodes', False) # modify tc
                     if check: Converter.convertArrays2File(a2cp, 'surfaceCenters2p_%s_to_%s_rank%d.plt'%(familyBC2, familyBC1, Cmpi.rank))
-            
+
     return None
 
 #=========================================================================
@@ -390,7 +390,7 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
 def getProjSurfaceForDoubleWall(t, listOfMismatch1, familyBC1, check=False):
 
     listOfMismatch1 = Cmpi.allreduce(listOfMismatch1)
-    
+
     walls1 = []
     for w1 in listOfMismatch1:
         name = w1.rsplit('/', 1)
@@ -409,9 +409,9 @@ def getProjSurfaceForDoubleWall(t, listOfMismatch1, familyBC1, check=False):
     walls1 = C.node2Center(walls1)
     walls1 = C.convertArray2Tetra(walls1, split='withBarycenters')
     walls1 = T.reorder(walls1, (1,))
-    
+
     D._getCurvatureHeight(walls1)
     surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
     if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_%s.plt'%(familyBC1))
-                
+
     return surfaceCenters1

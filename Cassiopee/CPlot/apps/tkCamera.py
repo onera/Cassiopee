@@ -43,7 +43,7 @@ def setInfo(event=None):
 # Write CPlot command
 #==============================================================================
 def exportInfo(event=None):
-    com = 'display( '
+    com = 'CPlot.display( t, '
     posCam = CPlot.getState('posCam'); com += 'posCam=%s'%str(posCam)
     posEye = CPlot.getState('posEye'); com += ', posEye=%s'%str(posEye)
     dirCam = CPlot.getState('dirCam'); com += ', dirCam=%s'%str(dirCam)
@@ -71,7 +71,7 @@ def exportInfo(event=None):
         isoScale = CPlot.getState('isoScale'); 
         isoScale = [field]+isoScale
         com += ', isoScales=%s'%str(isoScale)
-        
+
     #bgColor = CPlot.getState('bgColor'); com += ', bgColor=%d'%bgColor
     com += ' )'
     # Ecriture a l'ecran
@@ -83,7 +83,7 @@ def exportInfo(event=None):
 # Create app widgets
 #==============================================================================
 def createApp(win):
-    
+
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkCamera  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
@@ -96,7 +96,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -110,7 +110,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('(0., 0., 0.)'); VARS.append(V)
     # -2- dirCam -
     V = TK.StringVar(win); V.set('(0., 0., 0.)'); VARS.append(V)
-    
+
     # - posCam -
     B = TTK.Label(Frame, text="posCam: ")
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
@@ -134,7 +134,7 @@ def createApp(win):
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
     B.bind('<Return>', setInfo)
     BB = CTK.infoBulle(parent=B, text='Camera direction.')
-    
+
     # - get -
     B = TTK.Button(Frame, text="Get", command=getInfo)
     B.grid(row=3, column=1, columnspan=1, sticky=TK.EW)
@@ -149,7 +149,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Export", command=exportInfo)
     B.grid(row=3, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Write display command line to terminal.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -165,7 +165,7 @@ def showApp():
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================

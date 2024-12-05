@@ -47,7 +47,7 @@ def testA(arrays, number=1):
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    
+
     if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
     else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
@@ -84,12 +84,12 @@ def testA(arrays, number=1):
                 vidx = varNames.index(v)
                 l0[vidx] = max(l0[vidx], C.normL0(i, v))
                 l2[vidx] = max(l2[vidx], C.normL2(i, v))
-        
+
         for vidx, v in enumerate(varNames):
             if l0[vidx] > TOLERANCE:
                 print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0[vidx], l2[vidx]))
                 isSuccessful = False
-        
+
         return isSuccessful
 
 # idem testA avec ecriture fichier
@@ -98,7 +98,7 @@ def outA(arrays, number=1):
     import Converter as C
     C.convertArrays2File(arrays, 'out%d.plt'%number)
     testA(arrays)
-    
+
 #=============================================================================
 # Verifie que le pyTree est egal au pyTree de reference stocke dans un fichier
 # number est le no du test dans le script
@@ -161,7 +161,7 @@ def testT(t, number=1):
         mvars = C.getVarNames(ret)
         if len(mvars) > 0: mvars = mvars[0]
         else: mvars = []
-        
+
         isSuccessful = True
         for v in mvars:
             l0 = C.normL0(ret, v)
@@ -176,7 +176,7 @@ def outT(t, number=1):
     import Converter.PyTree as C
     C.convertPyTree2File(t, 'out%d.cgns'%number)
     testT(t, number)
-    
+
 #=============================================================================
 # Verifie que le fichier est identique au fichier de reference
 # Diff byte to byte
@@ -196,7 +196,7 @@ def testF(infile, number=1):
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    
+
     if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
     else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
@@ -320,7 +320,7 @@ def testO(objet, number=1):
         print("Reading '"+reference+"'... done.")
         if isinstance(a, str) and a == 'Undumpable object': return True
         return checkObject_(objet, a, reference)
-        
+
 #=============================================================================
 # Verifie que les arbres t1 et t2 sont identiques
 # t1: courant; t2: reference
@@ -337,7 +337,7 @@ def checkTree(t1, t2):
     dict2 = {}
     buildDict__('.', dict2, t2)
     dict2.pop('./CGNSTree/CGNSLibraryVersion', None)
-    
+
     for k in dict2.keys():
         node2 = dict2[k]
         # cherche le noeud equivalent dans t1
@@ -460,7 +460,7 @@ def checkTree__(node1, node2):
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)
                 return 0
-            
+
         #     if (numpy.abs(val1 -val2)<1.e-6).all() == False:
         #         print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
         #         delta = numpy.max(numpy.abs(val1 -val2))
@@ -720,7 +720,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
     except TypeError:
         if output == 1: print('PENTA: uncovered.')
     except: print('%s: PENTA: fails.'%testName); raise
-    
+
     # 10- PYRA
     try:
         a = G.cartPyra( (0,0,0), (1,1,1), (10,10,10) )

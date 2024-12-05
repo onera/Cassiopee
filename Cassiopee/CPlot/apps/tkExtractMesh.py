@@ -52,13 +52,13 @@ def extractMesh():
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if (z[0] == sname[1]): sources.append(z)
-    
+
     # Maillage a interpoler
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     CTK.saveTree()
     meshes = []
     for nz in nzs:
@@ -87,7 +87,7 @@ def extractMesh():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t) 
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -103,7 +103,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=4)
     Frame.columnconfigure(1, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -122,12 +122,12 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White')
     BB = CTK.infoBulle(parent=B, text='Source meshes for interpolation.')
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
-    
+
     # - Extract mesh -
     B = TTK.Button(Frame, text="Extract mesh", command=extractMesh)
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract solution from given source meshes.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -152,7 +152,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

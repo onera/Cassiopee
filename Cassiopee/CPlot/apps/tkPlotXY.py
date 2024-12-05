@@ -21,7 +21,7 @@ try: import tkinter as TK
 except:
     try: import Tkinter as TK
     except: IMPORTOK = False
-    
+
 try: import tkinter.ttk as cttk
 except: 
     try: import ttk as cttk
@@ -45,13 +45,13 @@ try:
     matplotlib.use('TkAgg') # avec Tk
     #matplotlib.use('Agg') # sans serveur X
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-    
+
     try: from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
     except: from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg as NavigationToolbar2Tk
     import matplotlib.pyplot as plt
     # Will be imported in the right movie class:
     # import matplotlib.animation as animation
-    
+
     # subplot param a partir du rc
     #pltLeft = plt.rcParams.get('figure.subplot.left')
     #pltRight = plt.rcParams.get('figure.subplot.right')
@@ -376,7 +376,7 @@ default_values = {
             #'axis_y_label_format' : '{x:.2e}',
             'axis_x_label_format' : '{x:.5g}',
             'axis_y_label_format' : '{x:.5g}',
-            
+
         },
 'SubPlotParams':{
                     'left'    : pltLeft,
@@ -425,7 +425,7 @@ def createFonts():
     try: from contextlib import redirect_stderr
     except ImportError: redirect_stderr = None
     from matplotlib import font_manager
-    
+
     # voir: https://matplotlib.org/gallery/api/font_family_rc_sgskip.html
     if redirect_stderr:
         def createListOfFonts(font_type):
@@ -446,7 +446,7 @@ def createFonts():
                             l_font.append(font)
                         prev_pos = new_pos
             return l_font
-        
+
         init_rcparams = plt.rcParams['font.family']
         for font_type in ['serif','sans-serif','cursive','fantasy','monospace']:
             plt.rcParams['font.family']=['font.%s'%font_type]
@@ -1044,7 +1044,7 @@ class editTextWindow(TK.Toplevel):
         #
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
-        
+
         self.frame.use_texItem=[]
         #
         for ind in range(len(self.subGraph.texts)):
@@ -2548,7 +2548,7 @@ class editTextWindow(TK.Toplevel):
         self.updateButon(B,val)
     def updateButonWidth(self,B,val):
         self.updateButon(B,val)
-        
+
     # ----------------------------------------------------------------- bt_click
     def updateColor(self,color,B,extra_data):
         bt_list = extra_data[1]
@@ -2800,7 +2800,7 @@ class editTextWindow(TK.Toplevel):
             lblframe = action[0].winfo_parent() # Returns the name of the parent
             lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
             lblframe.grid_rowconfigure(len(self.subGraph.curves)+1,weight=1)
-        
+
         try: self.frameList[self.graph][self.zone] = self.frame
         except KeyError: self.frameList[self.graph] = {self.zone:self.frame}
 
@@ -6694,7 +6694,7 @@ class editAxisWindow(TK.Toplevel):
         B.treatmentId = 3
         B.grid(row=0,column=0,columnspan=1,sticky="nsew")
         self.labelItem.append(B)
-        
+
         ## --> Label size
         labelframe = TTK.LabelFrame(xlblframe, text="Label size")
         labelframe.grid(row=0,column=7,sticky='NESW')
@@ -7509,7 +7509,7 @@ class editLegendWindow(TK.Toplevel):
             self.input_dialog = inputFloat_dialogWindow()
             self.input_dialog.initialize(self,B)
         else: return
-            
+
 # ==============================================================================
 # ==============================================================================
 class editGraphWindow(TK.Toplevel):
@@ -8877,7 +8877,7 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
         items = map(int, self.unused_zones.curselection())
         zones = []
         for index in items: zones.append(self.unused_zones.get(index))
-        
+
         for zone in zones:
         # Find index in unused listbox
             try: index = self.unused_zones.list.index(zone)
@@ -9529,7 +9529,7 @@ class GraphTK(TK.Toplevel):
         self.canvas.get_tk_widget().grid_rowconfigure(0, weight=1)
         self.canvas.get_tk_widget().grid(row=0, column=0, sticky="NSEW")
         self.canvas.draw()
-        
+
         # interactive zoom/pan
         self._pressed_button = None  # To store active button
         self._axes = None  # To store x and y axes concerned by interaction
@@ -9557,7 +9557,7 @@ class GraphTK(TK.Toplevel):
 
     def __del__(self):
         for cid in self._cids: self.canvas.mpl_disconnect(cid)
-    
+
     # ------------------------------------------------------------------ getFig
     def getFig(self):
         return self.fig.getFig()
@@ -9687,7 +9687,7 @@ class GraphTK(TK.Toplevel):
 
         # draw
         self.canvas.draw()
-    
+
     @staticmethod
     def _zoomRange(begin, end, center, scale_factor, scale):
         if begin < end: min_, max_ = begin, end
@@ -9813,7 +9813,7 @@ class GraphTK(TK.Toplevel):
             self._patch.set_height(event.ydata - self._event.ydata)
 
         self._draw()
-            
+
     def _onMouseWheel(self, event):
         if event.step > 0: scale_factor = self.scale_factor
         else: scale_factor = 1. / self.scale_factor
@@ -9838,7 +9838,7 @@ class GraphTK(TK.Toplevel):
                                     ax.get_yscale())
             ax.set_ylim(ylim)
         if x_axes or y_axes: self._draw()
-        
+
     def _onMousePress(self, event):
         try:
             ax = event.inaxes
@@ -9854,7 +9854,7 @@ class GraphTK(TK.Toplevel):
 
                 if self._pressed_button == 1: self._pan(event)
                 elif self._pressed_button == 3: self._zoomArea(event)
-        
+
     def _onMouseRelease(self, event):
         if self._pressed_button == event.button:
             if self._pressed_button == 1: self._pan(event)
@@ -9865,7 +9865,7 @@ class GraphTK(TK.Toplevel):
     def _onMouseMotion(self, event):
         if self._pressed_button == 1: self._pan(event)
         elif self._pressed_button == 3: self._zoomArea(event)
-        
+
     def _onPick(self, event): # Pick sur un artist de la legende
         artist = event.artist
         # Quel est cet artiste?
@@ -9873,7 +9873,7 @@ class GraphTK(TK.Toplevel):
         # Il suffirait de desactiver la courbe, mais comment la reactiver ensuite?
 
     def _onKeyPress(self, event):
-        
+
         if event.key != '&' and event.key != '1' and event.key != 'é' and event.key != '2': return
 
         desktop = self.parent
@@ -9900,7 +9900,7 @@ class GraphTK(TK.Toplevel):
                 elif c.varx == 'CoordinateY': c.setValue('varx', 'CoordinateX')
                 elif c.varx == 'z': c.setValue('varx', 'y')
                 elif c.varx == 'CoordinateZ': c.setValue('varx', 'CoordinateY')
-         
+
         elif event.key == 'é': #y+1
             for c in curves:
                 zoneNames = c.zone # zone Name
@@ -9931,8 +9931,8 @@ class GraphTK(TK.Toplevel):
                         break        
 
         self.updateGraph(iCurSubGraph)
-            
-        
+
+
     # ------------------------------------------------------------ clickOnCanvas
     def clickOnCanvas(self, event):
         try:
@@ -9944,7 +9944,7 @@ class GraphTK(TK.Toplevel):
     # ------------------------------------------------------------ clickOnWindow
     def clickOnWindow(self, event):
         self.parent.selectGraphByName(self.name)
-        
+
     # ----------------------------------------------------------------- soleName
     def soleName(self, name):
         graphNameList = [g.name for g in self.parent.graphWdwL]
@@ -10045,7 +10045,7 @@ class Graph():
         self.subgraph_background_color = default_values['Graph']['subgraph_background_color']
         self.subgraph_background_alpha = default_values['Graph']['subgraph_background_alpha']
         self.applyViewSettings()
-        
+
     # --------------------------------------------------------------- initialize
     def initialize(self):
 
@@ -10116,7 +10116,7 @@ class Graph():
         else:
             # Deprecated in Matplotlib 3.4
             (self.getFig()).canvas.set_window_title(name)
-        
+
     # --------------------------------------------------------------- drawFigure
     def drawFigure(self):
         self.fig.drawFigure()
@@ -10245,7 +10245,7 @@ class editCurvesWindow(TK.Toplevel):
         except TypeError: # Exit if no graph & zone available
             self.cmd_close()
             return
-        
+
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
         #
@@ -11056,7 +11056,7 @@ class editCurvesWindow(TK.Toplevel):
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.curves)+1):
             lblframe.grid_rowconfigure(ind,weight=1)
-        
+
         lblframelvl1.append(lblframe)
         #
         self.frame.marker_sampling_endItem = []
@@ -12509,7 +12509,7 @@ class DesktopFrameTK(TK.Frame):
                 for zonename in old_zones:
                     if zonename not in self.data:
                         graph.removeCurvesZoneName(ax_name, zonename)
-        
+
         if self.editCurveWdw is not None: self.editCurveWdw.updateData()
         ##### Redraw all
         self.updateAllGraph()
@@ -12531,7 +12531,7 @@ class DesktopFrameTK(TK.Frame):
         for k in d: tmp[k] = d[k]
         # Order dict
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
-    
+
     # ---------------------------------------------------------- setDataWithTree
     def setDataWithTree(self, t):
         tmp = {}
@@ -13195,7 +13195,7 @@ class DesktopFrameTK(TK.Frame):
     def cmd_addGraph(self):
         if DESKTOP is not None:
             if DESKTOP.data is None: return
-        
+
         if self.entryResolution.get() == 'default': dpi = None
         else: dpi = int(self.entryResolution.get())
 
@@ -13643,7 +13643,7 @@ class Desktop():
                 for zonename in old_zones:
                     if zonename not in self.data:
                         graph.removeCurvesZoneName(ax_name, zonename)
-        
+
         if self.editCurveWdw is not None:
             self.editCurveWdw.updateData()
         ##### Redraw all
@@ -14031,7 +14031,7 @@ class MatplotlibFigure():
     def deleteZoneInCurve(self,iCurSubGraph,zoneName):
         for c in self.subGraph[iCurSubGraph].curves:
             if zoneName in c.zone: c.zone.remove(zoneName)
-            
+
     # ----------------------------------------------------- updateGroupCurvesZoneName
     '''
     Determine if all the old zones are used for a given curve, if it is so, then
@@ -14181,7 +14181,7 @@ class MatplotlibFigure():
             ## Set Ticks
             xmin,xmax = self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_xlim()
             ymin,ymax = self.subGraph[iCurSubGraph].axis[iCurrentAxis].get_ylim()
-            
+
             ntickMx = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_tick_number
             ntickMy = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_tick_number
             ntickmx = self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_number
@@ -14211,7 +14211,7 @@ class MatplotlibFigure():
             #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(minorx, minor=True)
             #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_yticks(majory)
             #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_yticks(minory, minor=True)
-            
+
             # Tick size
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x', labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_tick_size)
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].tick_params(axis='x',labelsize=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_tick_size, minor=True)
@@ -14555,7 +14555,7 @@ class DirAxis():
         elif variable == 'axis_offset': self.axis_offset = value
         elif variable == 'axis_label_fontsize': self.axis_label_fontsize = value
         elif variable == 'axis_label_format': self.axis_label_format = value
-        
+
 # ==============================================================================
 # ==============================================================================
 class Axis():
@@ -14598,7 +14598,7 @@ class Axis():
     def setValue(self, axis, variable, value):
         if axis == 'x': self.x.setValue(variable, value)
         else: self.y.setValue(variable, value)
-    
+
     def write(self, axisobj):
         lines =""
         if self.x.axis_logscale != default_values['Axis']['axis_x_logscale']    :
@@ -14645,7 +14645,7 @@ class Axis():
             lines +='''    %s.setValue('y','axis_label_fontsize','%s')\n'''%(axisobj,self.y.axis_label_fontsize)
         if float(self.y.axis_label_format) != default_values['Axis']['axis_y_label_format']    :
             lines +='''    %s.setValue('x','axis_label_format','%s')\n'''%(axisobj,self.y.axis_label_format)
-        
+
         return lines
 # ==============================================================================
 # ==============================================================================
@@ -15387,7 +15387,7 @@ class Movie(object):
     def exit(self):
         print("Finalize(exit) Movie %s."%self.filename)
         self.p.communicate()
-        
+
 # ==============================================================================
 # ==============================================================================
 # --------------------------------------------------
@@ -15418,7 +15418,7 @@ class Movie(object):
 # --------------------------------------------------
 class CustomToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent, graph):
-                
+
         if NAVIGATION == 0:
             self.toolitems = (('Home', 'Reset original view', 'home', 'home'),
                               ('Back', 'Back to  previous view', 'previous', 'back'),
@@ -15434,7 +15434,7 @@ class CustomToolbar(NavigationToolbar2Tk):
                               (None, None, None, None),
                               ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots_tkPlotXY'),
                               ('Save', 'Save the figure', 'filesave', 'save_figure'))
-        
+
         self.graph = graph
         self.button_dict = {}
         NavigationToolbar2Tk.__init__(self, canvas, parent)
@@ -15942,7 +15942,7 @@ def plot(a, varx='CoordinateX', vary='F',
         graph.close()
     else: # interactive
         win.mainloop()
-    
+
 #==============================================================================
 if __name__ == "__main__":
     if False:

@@ -64,12 +64,12 @@ def revolve():
     # - Extrait rmod si il y en a
     if len(curve) > 1: rmod = curve[1]
     else: rmod = None
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
@@ -91,7 +91,7 @@ def revolve():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def setAxis():
     if CTK.t == []: return
@@ -133,10 +133,10 @@ def setCurve():
 #=============================================================================
 def lineDrive():
     extrudeWCurve(mode=0)
-    
+
 def orthoDrive():
     extrudeWCurve(mode=1)
-    
+
 #=============================================================================
 def extrudeWCurve(mode=0):
     if CTK.t == []: return
@@ -163,7 +163,7 @@ def extrudeWCurve(mode=0):
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
@@ -231,9 +231,9 @@ def addLayers():
         zlist = G.addNormalLayers(zlist, d, niter=smooth)
     except Exception as e: 
         fail = True; errors += [0,str(e)]
-        
+
     for z in zlist: z[0] = C.getZoneName(z[0]) # unique name
-    
+
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
     base = Internal.getNodeFromName1(CTK.t, 'MESHES')
 
@@ -249,7 +249,7 @@ def addLayers():
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.setCursor(0, WIDGETS['addLayers'])
-    
+
 #==============================================================================
 def addkplanes():
     if CTK.t == []: return
@@ -298,7 +298,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -345,7 +345,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=5)
     B.grid(row=0, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of smoothing iterations.')
-    
+
     B = TTK.Button(Frame, text="Add layers", command=addLayers)
     WIDGETS['addLayers'] = B
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
@@ -363,11 +363,11 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White')
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Driving curve(s) for extrusion.')
-    
+
     B = TTK.Button(Frame, text="LineDrive", command=lineDrive)
     B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extrude following linearly curve(s).')
-    
+
     B = TTK.Button(Frame, text="OrthoDrive", command=orthoDrive)
     B.grid(row=3, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extrude following orthogonally curve(s).')
@@ -387,11 +387,11 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[6], background='White', width=5)
     B.grid(row=5, column=1,  columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of points in revolve.')
-    
+
     B = TTK.Button(Frame, text="Revolve", command=revolve)
     B.grid(row=5, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Revolve following axis.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -421,7 +421,7 @@ def saveApp():
     CTK.PREFS['tkExtrusionRevAngle'] = VARS[5].get()
     CTK.PREFS['tkExtrusionNpts'] = VARS[6].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('1.e-1')
@@ -439,7 +439,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

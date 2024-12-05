@@ -53,14 +53,14 @@ if mpi4py:
     includeDirs.append(mpi4pyIncDir)
 
 if hdf: 
-  for l in hdflibs: libraries.append(l)
+    for l in hdflibs: libraries.append(l)
 if mpi: libraries += mpiLibs
 
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs    
-    
+
 # Extensions ==================================================================
 listExtensions = []
 listExtensions.append(
@@ -74,14 +74,14 @@ listExtensions.append(
               ) )
 import srcs
 if srcs.EXPRESSION:
-  listExtensions.append(
-    Extension('Converter.expression',
-              sources=['Converter/Expression/Expression.cpp'],
-              include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-              extra_link_args=Dist.getLinkArgs() ) )
+    listExtensions.append(
+      Extension('Converter.expression',
+                sources=['Converter/Expression/Expression.cpp'],
+                include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
+                library_dirs=additionalLibPaths+libraryDirs,
+                libraries=libraries+additionalLibs,
+                extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+                extra_link_args=Dist.getLinkArgs() ) )
 
 # setup ======================================================================
 setup(

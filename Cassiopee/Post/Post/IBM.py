@@ -42,7 +42,7 @@ def _extractPressureGradients(t, tc, secondOrder=False, ibctypes=[]):
 
     t = PE.extractPressure(t)
     variables = ["Pressure"]
-    
+
     t = P.computeGrad2(t, 'centers:Pressure')
 
     for direction in ["x", "y", "z"]:
@@ -184,7 +184,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
                         yPW = Internal.getNodeFromName1(IBCD, "CoordinateY_PW")[1]
                         zPW = Internal.getNodeFromName1(IBCD, "CoordinateZ_PW")[1]
                     xwNP.append(xPW); ywNP.append(yPW); zwNP.append(zPW)
-                    
+
                 PW = Internal.getNodeFromName1(IBCD, XOD.__PRESSURE__)
                 if PW is not None: pressNP.append(PW[1])
                 RHOW = Internal.getNodeFromName1(IBCD, XOD.__DENSITY__)
@@ -224,7 +224,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
                 if CONV1PW is not None: conv1NP.append(CONV1PW[1])
                 CONV2PW = Internal.getNodeFromName1(IBCD, XOD.__CONV2__)
                 if CONV2PW is not None: conv2NP.append(CONV2PW[1])
-                
+
     if pressNP == []: return None
     else:
         pressNP = numpy.concatenate(pressNP)
@@ -239,7 +239,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
         if KCurvNP != []: KCurvNP = numpy.concatenate(KCurvNP)
 
         if temperatureNP != []: temperatureNP = numpy.concatenate(temperatureNP)
-        
+
         if gradxPressureNP != []: gradxPressureNP = numpy.concatenate(gradxPressureNP)
         if gradyPressureNP != []: gradyPressureNP = numpy.concatenate(gradyPressureNP)
         if gradzPressureNP != []: gradzPressureNP = numpy.concatenate(gradzPressureNP)
@@ -280,12 +280,12 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
                                    gridLocation='Vertex', parent=z)
     FSN[2].append([XOD.__PRESSURE__,pressNP, [],'DataArray_t'])
     FSN[2].append([XOD.__DENSITY__,densNP, [],'DataArray_t'])
-  
+
     if extractIBMInfo:
         FSN[2].append(["CoordinateX_PW",xwNP, [],'DataArray_t'])
         FSN[2].append(["CoordinateY_PW",ywNP, [],'DataArray_t'])
         FSN[2].append(["CoordinateZ_PW",zwNP, [],'DataArray_t'])
-        
+
         FSN[2].append(["CoordinateX_PI",xiNP, [],'DataArray_t'])
         FSN[2].append(["CoordinateY_PI",yiNP, [],'DataArray_t'])
         FSN[2].append(["CoordinateZ_PI",ziNP, [],'DataArray_t'])
@@ -293,7 +293,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
         FSN[2].append(["CoordinateX_PC",xcNP, [],'DataArray_t'])
         FSN[2].append(["CoordinateY_PC",ycNP, [],'DataArray_t'])
         FSN[2].append(["CoordinateZ_PC",zcNP, [],'DataArray_t'])
-    
+
     utauPresent = 0; yplusPresent = 0; yplusIPresent = 0
     if isinstance(utauNP, numpy.ndarray):
         utauPresent = 1
@@ -537,14 +537,14 @@ def _extractPressureHO1__(tc, extractDensity=False):
                     nx = nx/norm
                     ny = ny/norm
                     nz = nz/norm
-                    
+
                     nGradP = nx*gradxPressure[i] + ny*gradyPressure[i] + nz*gradzPressure[i]
-                    
+
                     bx   = CoordinateX_PI[i] - CoordinateX[i]
                     by   = CoordinateY_PI[i] - CoordinateY[i]
                     bz   = CoordinateZ_PI[i] - CoordinateZ[i]
                     beta = math.sqrt(bx*bx + by*by + bz*bz)
-                    
+
                     if extractDensity: Density[i]  = Density[i]/Pressure[i]*(Pressure[i] - nGradP*beta)
                     Pressure[i] = Pressure[i] - nGradP*beta
 
@@ -701,7 +701,7 @@ def _extractConvectiveTerms(tc):
                     ty = VelocityY[i] - uscaln*ny
                     tz = VelocityZ[i] - uscaln*nz
                     norm_t = math.sqrt(tx*tx + ty*ty + tz*tz)
-                                        
+
                     tx = tx/norm_t
                     ty = ty/norm_t
                     tz = tz/norm_t
@@ -737,7 +737,7 @@ def computeExtraVariables(ts, PInf, QInf,
     ts2 = Internal.copyRef(ts)
     _computeExtraVariables(ts2, PInf, QInf,variables=variables)
     return ts2
-                          
+
 def _computeExtraVariables(ts, PInf, QInf, 
                            variables=['Cp','Cf','frictionX','frictionY','frictionZ', 'frictionMagnitude','ShearStress']):
     """Computes additional variables required for the IBM post-processing."""
@@ -760,7 +760,7 @@ def _computeExtraVariables(ts, PInf, QInf,
 
     if any(var in ['frictionX', 'frictionMagnitude', 'Cf'] for var in variables):
         PE._extractFrictionMagnitude(ts)
-    
+
     if 'Cf' in variables: 
         PE._extractCf(ts, QInf)
 
@@ -965,7 +965,7 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
     ts = T.splitNParts(ts, Cmpi.size)
     stats = D2._distribute(ts, Cmpi.size)
     if dimPb == 2: C._initVars(ts, '{CoordinateZ}=0.005') # to match cloud of IBM points
-    
+
     # CREATE graphIBCDPost 
     graph = {i:{} for i in range(Cmpi.size)}
     listOfDeletedZones = []
@@ -1026,7 +1026,7 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
     C._initVars(ts,XOD.__GRADXPRESSURE__,0.)
     C._initVars(ts,XOD.__GRADYPRESSURE__,0.)
     C._initVars(ts,XOD.__GRADZPRESSURE__,0.)
-    
+
 
     # CREATE interpdata for MLS
     if prepareMLS:
@@ -1084,7 +1084,7 @@ def extractPressureFromFront2__(tw, tw2, extractDensity=False):
         Internal.getNodeFromName(szw, 'gradxPressure')[1] = Internal.getNodeFromName(szw2, 'gradxPressure')[1]
         Internal.getNodeFromName(szw, 'gradyPressure')[1] = Internal.getNodeFromName(szw2, 'gradyPressure')[1]
         Internal.getNodeFromName(szw, 'gradzPressure')[1] = Internal.getNodeFromName(szw2, 'gradzPressure')[1]
-    
+
     return tw
 
 def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, center=(0.,0.,0.), verbose=0):
@@ -1138,7 +1138,7 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
     if flowSolCenter is None:
         tw = C.node2Center(tw, 'FlowSolution')
         C._rmVars(tw, 'FlowSolution')
-    
+
     if Pref is None: 
         RefState = Internal.getNodeFromType(tw, 'ReferenceState_t')
         PInf = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
@@ -1147,9 +1147,9 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
     variables = ['Cp','Cf','frictionX','frictionY','frictionZ','frictionMagnitude','ShearStress']
 
     if Internal.getNodeFromName(tw, 'gradxPressure') is not None: variables += ['gradnP', 'gradtP']
-    
+
     _computeExtraVariables(tw, Pref, 1, variables=variables) #Cp & Cf are not normalized
-        
+
     #===================================
     # Compute aerodynamic forces (pressure & friction)
     # R = int(F.n ds) where n is outward-pointing & F = -(p-pinf) + tau
@@ -1179,7 +1179,7 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
 
         print("Vector of dimensionalized pressure moments in the body frame: (Mx_P,My_P,Mz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*momentPressure))
         print("Vector of dimensionalized friction moments in the body frame: (Mx_F,My_F,Mz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*momentFriction))
-    
+
     if dimPb == 2: # reextrait en 2D
         for b in Internal.getBases(tw):
             zones = Internal.getZones(b)
@@ -1245,7 +1245,7 @@ def computeAerodynamicCoefficients(ts, aeroLoads, dimPb=3, Sref=None, Lref=None,
 
     if Lref is None:
         Lref = 1.
-    
+
     # Normalize Cp & Cf
     if dimPb == 2:
         C._initVars(tw, '{Cp}={Cp}/%20.16g'%(Qref))
@@ -1348,7 +1348,7 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
         C._initVars(ts, '__ONE__',1.)
         Sref = P.integ(ts, '__ONE__')[0]
         C._rmVars(ts, ['__ONE__', 'centers:vol'])
-        
+
     RefState = Internal.getNodeFromType(ts,'ReferenceState_t')
     PInf     = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
     RoInf    = Internal.getValue(Internal.getNodeFromName(RefState,"Density"))
@@ -1357,21 +1357,21 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
     VzInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityZ"))
     VInf2    = VxInf*VxInf+VyInf*VyInf+VzInf*VzInf
     q        = 0.5*RoInf*VInf2
-    
+
     alpha  = math.radians(alpha)
     beta   = math.radians(beta)
     calpha = math.cos(alpha); cbeta = math.cos(beta)
     salpha = math.sin(alpha); sbeta = math.sin(beta)   
-    
+
     if Qref is None: Qref = q
     if Pref is None: Pref = PInf
 
     variables = ['Cp','Cf','frictionX','frictionY','frictionZ','frictionMagnitude','ShearStress']
 
     if Internal.getNodeFromName(ts, 'gradxPressure') is not None: variables += ['gradnP', 'gradtP']
-    
+
     _computeExtraVariables(ts, Pref, Qref, variables=variables)
-        
+
     #===================================
     # Compute pressure & friction forces
     #===================================
@@ -1382,7 +1382,7 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
 
     res    = [-i/Sref for i in res]
     res2   = [ i/Qadim for i in res2]
-    
+
     calpha = math.cos(alpha); cbeta = math.cos(beta)
     salpha = math.sin(alpha); sbeta = math.sin(beta)
 
@@ -1400,7 +1400,7 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
     if verbose and Cmpi.rank == 0:
         print("Normalized pressure drag = %.4e and lift = %.4e"%(cdp, clp))
         print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P) = (%.4e, %.4e, %.4e)"%(res[0],res[1],res[2]))
-    
+
         print("Normalized skin friction drag = %.4e and lift = %.4e"%(cdf, clf))
         print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f) = (%.4e,%.4e,%.4e)"%(res2[0], res2[1], res2[2]))
 
@@ -1430,7 +1430,7 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
         else: tc2 = None
     else: 
         tc = None; tc2 = None
-        
+
     if isinstance(tb_in, str): tb = C.convertFile2PyTree(tb_in)
     else: tb = tb_in
 
@@ -1469,7 +1469,7 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
                 b[2] = [zones]
     else:
         zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo, extractYplusAtImage=True, isClipInterpMLS=False)
-    
+
     #====================================
     # Extract pressure info from tc2 to tc
     #====================================
@@ -1623,7 +1623,7 @@ def _prepareSkinReconstruction_old(ts, tc,famZones=[]):
     for zbb in Internal.getZones(tlBB):
         if Internal.getNodeByName(zbb,'FlowSolution') is not None:
             G._BB(zbb)
- 
+
     hmin = -1e10
     for zbb in Internal.getZones(tlBB):    
         zc = Internal.getNodeFromName2(tl,zbb[0])
@@ -1661,7 +1661,7 @@ def _prepareSkinReconstruction_old(ts, tc,famZones=[]):
     interDictWPOST = X.getIntersectingDomains(tlBB, tBBs)
     graphWPOST = Cmpi.computeGraph(tlBB, type='bbox3',intersectionsDict=interDictWPOST,
                                    procDict=procDictWPOST, procDict2=procDictFUS, t2=tBBs)
- 
+
     C._initVars(ts,"Pressure",0.)
     C._initVars(ts,"Density",0.)
     C._initVars(ts,XOD.__UTAU__,0.)
@@ -1690,7 +1690,7 @@ def _computeSkinVariables_old(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVers
             znamepostw = 'IBW_Wall_%s_%s'%(zc[0],zname)
             zpostw = Internal.getNodeFromName(tl,znamepostw)
             FSP = Internal.getNodeFromType(zpostw,'FlowSolution_t')
-            
+
             PW     = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
             RHOW   = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
             UTAUW  = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
@@ -1698,8 +1698,8 @@ def _computeSkinVariables_old(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVers
             VXW    = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
             VYW    = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
             VZW    = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
-            
-            
+
+
             PW2     = Internal.getNodeFromName1(FSP,XOD.__PRESSURE__)
             RHOW2   = Internal.getNodeFromName1(FSP,XOD.__DENSITY__)
             UTAUW2  = Internal.getNodeFromName1(FSP,XOD.__UTAU__)
@@ -1707,7 +1707,7 @@ def _computeSkinVariables_old(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVers
             VXW2    = Internal.getNodeFromName1(FSP, XOD.__VELOCITYX__)
             VYW2    = Internal.getNodeFromName1(FSP, XOD.__VELOCITYY__)
             VZW2    = Internal.getNodeFromName1(FSP, XOD.__VELOCITYZ__)
-            
+
             PW2[1]  =PW[1]
             RHOW2[1]=RHOW[1]
             VXW2[1] =VXW[1]
@@ -1717,7 +1717,7 @@ def _computeSkinVariables_old(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVers
             if UTAUW2 is not None:
                 UTAUW2[1] =UTAUW[1]
                 YPLUSW2[1]=YPLUSW[1]
-            
+
     tdl = Cmpi.addXZones(tl, graphWPOST)
     tdl = Cmpi.convert2PartialTree(tdl)
     for nobs in range(len(ts[2])):
@@ -1730,9 +1730,9 @@ def _computeSkinVariables_old(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVers
                         if zl != [] and zl is not None:
                             zl = C.convertArray2Node(zl)
                             cloud.append(zl)
-    
+
                     if cloud != []:
                         cloud = T.join(cloud)
                         ts[2][nobs][2][nozs] = P.projectCloudSolution(cloud, zs, dim=3, oldVersion=ProjectOldVersion)
-                        
+
     return None

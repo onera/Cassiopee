@@ -11,7 +11,7 @@ def f1(x,y):
 
 def f2(x,y) :
     return 3*x*y + 4
-    
+
 # STRUCT 2D NODE / CENTER
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
 m2 = C.node2Center(m)

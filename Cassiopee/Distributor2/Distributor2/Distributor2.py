@@ -37,7 +37,7 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
     # mode: equilibre le nbre de pts ou de cellules suivant 'nodes','cells'
     nbPts = []
     if isinstance(arrays[0], int): # le nbre de pts est deja dans arrays
-       nbPts = arrays
+        nbPts = arrays
     else: # sinon, on calcule nbPts a partir des arrays
         for a in arrays:
             if mode == 'cells': c = Converter.getNCells(a)
@@ -48,7 +48,7 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
     if prescribed is None: # nothing set
         setArrays = [-1]*len(arrays)
     else: setArrays = prescribed
-    
+
     # Liste des alpha, beta, gamma pour chaque processeur
     if perfo is None:
         # Poids du solveur (par defaut)
@@ -82,7 +82,7 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
                 volComd[2*i] = k
                 volComd[2*i+1] = comd[k]   
         else: volComd = comd
-        
+
     # Si algo=graph et pas de com, force algo=fast
     if volCom is not None:
         if algorithm == 'graph' and numpy.amax(volCom) <= 0: algorithm = 'fast'

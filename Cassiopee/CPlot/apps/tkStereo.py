@@ -17,14 +17,14 @@ def setStereo(event=None):
     if mode == 'None': CPlot.setState(stereo=0)
     elif mode == 'Anaglyph (b&w)': CPlot.setState(stereo=1)
     elif mode == 'Anaglyph (color)': CPlot.setState(stereo=2)
-    
+
 #==============================================================================
 def setDist(event=None):
     if CTK.t == []: return
     dist = WIDGETS['dist'].get() / 100.
     VARS[1].set('Stereo distance [%.2f].'%dist)
     CPlot.setState(stereoDist=dist)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -40,7 +40,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -59,7 +59,7 @@ def createApp(win):
     # - Stereo mode -
     B = TTK.Label(Frame, text="Stereo")
     BB = CTK.infoBulle(parent=B, text='Choose a stereo mode.')
-    
+
     B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.OptionMenu(Frame, VARS[0], 'None', 'Anaglyph (b&w)',
                        'Anaglyph (color)', command=setStereo)
@@ -71,7 +71,7 @@ def createApp(win):
     WIDGETS['dist'] = B
     B.grid(row=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[1])
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -107,7 +107,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

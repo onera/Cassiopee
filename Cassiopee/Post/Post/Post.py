@@ -56,7 +56,7 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
         c = Generator.addNormalLayers(j, dplus)
         p = Transform.join(b, c); p = Generator.close(p)
         p = Converter.convertArray2Tetra(p)    
-        
+
     if p[3] == 'TRI': # une BAR au depart
         p = Transform.reorder(p, (1,))
         b = Generator.addNormalLayers(p, dplus)
@@ -73,12 +73,12 @@ def growOfEps__(arrays, eps, nlayers=1, planarity=True):
     modified = 0
     for i in arrays:
         if len(i) == 5: # structure
-           if i[2] == 1 or i[3] == 1 or i[4] == 1: # 2D : to be extruded
+            if i[2] == 1 or i[3] == 1 or i[4] == 1: # 2D : to be extruded
                 p = extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins)
                 modified += 1
                 inl.append(p)
-           else: # 3D OK for ADT
-               inl.append(i)
+            else: # 3D OK for ADT
+                inl.append(i)
         elif len(i) == 4: # non-structure
             if i[3] == 'TRI' or i[3] == 'QUAD':
                 p = extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins)
@@ -731,7 +731,7 @@ def buildTag1__(array, F, varStrings):
 def selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E, cleanConnectivity):
     if varStrings == []: tag = buildTag2__(arrayNodes, F)
     else: tag = buildTag1__(arrayNodes, F, varStrings)
-    
+
     if arrayCenters != []:
         return post.selectCellsBoth(arrayNodes, arrayCenters, tag, strict, F2E, cleanConnectivity)
     else:
@@ -744,7 +744,7 @@ def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=Non
         b = []
         if arrayCenters != []:
             if len(arrayNodes) != len(arrayCenters): raise ValueError("selectCells: Nodes and Centers arrays have different size.")
-            
+
         for i, an in enumerate(arrayNodes):
             if arrayCenters != []:
                 ret = selectCells__(an, F, arrayCenters[i], varStrings, strict, F2E)
@@ -803,7 +803,7 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None, cleanConnectivity=T
                 else: b.append((PE2,retn, retc))
 
         return b
-    
+
     else:
         sizetag = tag[1].shape[1]
         sizean  = an[1].shape[1]
