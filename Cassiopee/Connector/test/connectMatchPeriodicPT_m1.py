@@ -1,7 +1,7 @@
 # - connectMatchPeriodic 3D MPI (pyTree)-
 import Generator.PyTree    as G
 import Converter.PyTree    as C
-import Transform.PyTree    as T 
+import Transform.PyTree    as T
 import Converter.Mpi       as Cmpi
 import Connector.Mpi       as Xmpi
 import Distributor2.PyTree as Distributor2
@@ -11,7 +11,7 @@ LOCAL = test.getLocal()
 
 # Cree le fichier test
 if Cmpi.rank == 0:
-    a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., 5., (11,11,11)) 
+    a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., 5., (11,11,11))
     C._initVars(a,'F',1.); C._initVars(a,'centers:G',2.)
     C._addBC2Zone(a,'wall','BCWall','jmin')
     C._addBC2Zone(a,'overlap','BCOverlap','jmax')

@@ -37,8 +37,8 @@ def isZoneChimera(z):
     if Internal.getValue(n) == 'Overset': return True
     return False
 
-def buildAllBodies__(t_case, distrib, motion=False):        
-    if isinstance(t_case, str): 
+def buildAllBodies__(t_case, distrib, motion=False):
+    if isinstance(t_case, str):
         h = Filter.Handle(t_case)
         if distrib:
             tb = h.loadAndSplit(NParts=Cmpi.size)
@@ -48,34 +48,34 @@ def buildAllBodies__(t_case, distrib, motion=False):
     else: tb = t_case
 
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    dimPb = Internal.getValue(dimPb)    
+    dimPb = Internal.getValue(dimPb)
 
-    # tbchim : arbre des corps chimeres 
+    # tbchim : arbre des corps chimeres
     tbchim = C.newPyTree()
     tbov = C.newPyTree()
     tbblank = C.newPyTree()
     # tbibm : arbre des corps ibms en z = 0
-    tbibm = C.newPyTree()    
-    # chargement des zones Chimere par proc 
+    tbibm = C.newPyTree()
+    # chargement des zones Chimere par proc
     bases = Internal.getBases(tb)
     baseNamesChim=[]
 
     for b in bases:
         isChimera = False
         for z in Internal.getZones(b):
-            if isZoneChimera(z): 
+            if isZoneChimera(z):
                 isChimera = True
                 baseNamesChim.append(b[0])
                 break
 
         if isChimera:
             zoneChimNames=[]
-            for z in Internal.getZones(b): 
+            for z in Internal.getZones(b):
                 proc = Internal.getNodeFromName2(z,'proc')
                 proc = Internal.getValue(proc)
                 if proc == rank:
                     zoneChimNames.append(z[0])
-                else: 
+                else:
                     Internal._rmNodesFromName1(b,z[0])
             if zoneChimNames != []:
                 Cmpi._readZones(tb, t_case, rank=rank, zoneNames=zoneChimNames)
@@ -89,7 +89,7 @@ def buildAllBodies__(t_case, distrib, motion=False):
 
                     zwalls = C.extractBCOfType(z, 'BCWall')
                     now = 1
-                    for zw in zwalls: 
+                    for zw in zwalls:
                         zw[0] = b[0]+'_'+z[0]+'_W'+str(now)
                         if TM is not None: zw[2].append(TM)
                         if SD is not None: zw[2].append(SD)
@@ -99,7 +99,7 @@ def buildAllBodies__(t_case, distrib, motion=False):
 
                     zovs = C.extractBCOfType(z, 'BCOverlap')
                     nov = 1
-                    for zo in zovs: 
+                    for zo in zovs:
                         zo[0] = b[0]+'_'+z[0]+'_OV'+str(nov)
                         if TM is not None: zo[2].append(TM)
                         if SD is not None: zo[2].append(SD)
@@ -109,17 +109,17 @@ def buildAllBodies__(t_case, distrib, motion=False):
 
         else:
             zoneIBMNames = []
-            for z in Internal.getZones(b): 
+            for z in Internal.getZones(b):
                 proc = Internal.getNodeFromName2(z,'proc')
                 proc = Internal.getValue(proc)
                 if proc == rank:
                     zoneIBMNames.append(z[0])
-                else: 
+                else:
                     Internal._rmNodesFromName1(b,z[0])
 
             if zoneIBMNames!=[]:
                 Cmpi._readZones(tb, t_case, rank=rank, zoneNames=zoneIBMNames)
-                tbibm[2].append(b) 
+                tbibm[2].append(b)
 
     if dimPb == 2:
         C._initVars(tb, 'CoordinateZ', 0.)
@@ -127,7 +127,7 @@ def buildAllBodies__(t_case, distrib, motion=False):
         C._initVars(tbibm, 'CoordinateZ', 0.)
         C._initVars(tbov, 'CoordinateZ', 0.)
 
-    # allgather: everybody sees all the bodies and overlaps 
+    # allgather: everybody sees all the bodies and overlaps
     tbchim = Cmpi.allgatherTree(tbchim)
     tbibm  = Cmpi.allgatherTree(tbibm)
     tbov   = Cmpi.allgatherTree(tbov)
@@ -144,7 +144,7 @@ def buildAllBodies__(t_case, distrib, motion=False):
 
     if motion:
         RM._copyGrid2GridInit(tbov)
-        RM._copyGrid2GridInit(tbchim)     
+        RM._copyGrid2GridInit(tbchim)
 
     return [tb, tbov, tbchim, tbibm, tball, baseNamesChim]
 
@@ -163,15 +163,15 @@ def createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=3, motion=False)
         t2 = X.connectMatch(t2, tol=1.e-6, dim=dimPb)
     Internal._addGhostCells(t2, t2, DEPTH, adaptBCs=1, fillCorner=0)
 
-    # Suppression des XZones et correction des matchs 
+    # Suppression des XZones et correction des matchs
     if Cmpi.size > 1:Cmpi._rmBXZones(t2)
-    # Suppression des XZones et correction des matchs 
+    # Suppression des XZones et correction des matchs
     if Cmpi.size > 1:Cmpi._rmBXZones(t2)
 
-    # Fusion des fenetres des raccords 
+    # Fusion des fenetres des raccords
     if Cmpi.size > 1: t2 = Xmpi.mergeWindows(t2)
 
-    if dimPb == 2: 
+    if dimPb == 2:
         T._addkplane(t2)
         T._contract(t2, (0,0,0), (1,0,0), (0,1,0), dz)
         T._makeDirect(t2)
@@ -196,7 +196,7 @@ def createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=3, motion=False)
             Cmpi._addXZones(tc2[2][nob], graphMatch, noCoordinates=True, cartesian=False)
             Cmpi._addXZones(t2[2][nob], graphMatch, noCoordinates=True, cartesian=False)
             # on construit les donnees des raccords match
-            X._setInterpData(t2[2][nob], tc2[2][nob], nature=1, penalty=1, loc='centers', 
+            X._setInterpData(t2[2][nob], tc2[2][nob], nature=1, penalty=1, loc='centers',
                              storage='inverse', sameName=1, dim=dimPb, itype='abutting')
             Cmpi._rmXZones(tc2[2][nob])
             Cmpi._rmXZones(t2[2][nob])
@@ -211,14 +211,14 @@ def createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=3, motion=False)
     return t2, tc2
 
 def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=10.,
-            tbox=None, snearsf=None, yplus=100., Lref=1.,  
-            vmin=21, check=False, NP=0, format='single',   
-            frontType=1, extrusion=False, smoothing=False, balancing=False,
-            distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100.,
-            dfarDir=0,dz_in=0.01,span_in=0.25,NPas_in=10,height_in=0.1,
-            correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False,
-            redistribute=False,isDist2WallNearBodyOnly=False,isoverideheight=False,check2Donly=False,
-            dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./'):
+                  tbox=None, snearsf=None, yplus=100., Lref=1.,
+                  vmin=21, check=False, NP=0, format='single',
+                  frontType=1, extrusion=False, smoothing=False, balancing=False,
+                  distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100.,
+                  dfarDir=0,dz_in=0.01,span_in=0.25,NPas_in=10,height_in=0.1,
+                  correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False,
+                  redistribute=False,isDist2WallNearBodyOnly=False,isoverideheight=False,check2Donly=False,
+                  dict_Nz={},isCartesianExtrude=False,isExtrudeByZone=False,directory_tmp_files='./'):
     motion = True
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
@@ -230,7 +230,7 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
 
     # dimension du pb
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    dimPb = Internal.getValue(dimPb)   
+    dimPb = Internal.getValue(dimPb)
 
     # Reference state
     refstate = C.getState(tb)
@@ -246,19 +246,19 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
     # if bodies in motion taken into account
     # either by a tbox or  input octree to defined
     t,tc = AppIBM.prepare1(tbibm, None, None, t_in=None, to=to,
-                        snears=snears, dfars=dfars,
-                        tbox=tbox, snearsf=snearsf, yplus=yplus, Lref=Lref,
-                        vmin=vmin, check=check, NP=NP, format='single',
-                        frontType=1, extrusion=extrusion, smoothing=smoothing, balancing=balancing,
-                        distrib=distrib, expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=None, yplusAdapt=100.,
-                        dfarDir=dfarDir,dz_in=dz_in,span_in=span_in,NPas_in=NPas_in,height_in=height_in,
-                        correctionMultiCorpsF42=correctionMultiCorpsF42, blankingF42=blankingF42, twoFronts=twoFronts,
-                        redistribute=redistribute,
-                        isDist2WallNearBodyOnly=isDist2WallNearBodyOnly,
-                        isoverideheight=isoverideheight,
-                        check2Donly=check2Donly,
-                        dict_Nz=dict_Nz,isCartesianExtrude=isCartesianExtrude,isExtrudeByZone=isExtrudeByZone,
-                        directory_tmp_files=directory_tmp_files)
+                           snears=snears, dfars=dfars,
+                           tbox=tbox, snearsf=snearsf, yplus=yplus, Lref=Lref,
+                           vmin=vmin, check=check, NP=NP, format='single',
+                           frontType=1, extrusion=extrusion, smoothing=smoothing, balancing=balancing,
+                           distrib=distrib, expand=expand, tinit=tinit, initWithBBox=initWithBBox, wallAdapt=None, yplusAdapt=100.,
+                           dfarDir=dfarDir,dz_in=dz_in,span_in=span_in,NPas_in=NPas_in,height_in=height_in,
+                           correctionMultiCorpsF42=correctionMultiCorpsF42, blankingF42=blankingF42, twoFronts=twoFronts,
+                           redistribute=redistribute,
+                           isDist2WallNearBodyOnly=isDist2WallNearBodyOnly,
+                           isoverideheight=isoverideheight,
+                           check2Donly=check2Donly,
+                           dict_Nz=dict_Nz,isCartesianExtrude=isCartesianExtrude,isExtrudeByZone=isExtrudeByZone,
+                           directory_tmp_files=directory_tmp_files)
 
     # merge trees
     tp1 = Internal.copyRef(t)
@@ -298,14 +298,14 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
     if motion: RM._copyGrid2GridInit(tpc)
 
     Internal._rmNodesFromName(tpc,'ZoneRind')
-    if isinstance(tc_out, str): 
+    if isinstance(tc_out, str):
         #import Compressor.PyTree as Compressor
         #Compressor._compressCartesian(tpc[2][1])
         Cmpi.convertPyTree2File(tpc, tc_out, ignoreProcNodes=True)
 
     # Initialization
     if tinit is None: I._initConst(tp, loc='centers')
-    else: 
+    else:
         import Post.PyTree as Pmpi
         tp = Pmpi.extractMesh(tinit, tp, mode='accurate')
     if model != "Euler": C._initVars(tp, 'centers:ViscosityEddy', 0.)
@@ -322,7 +322,7 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
         T._scale(bodybb, factor=(initWithBBox,initWithBBox,initWithBBox))
         tbb = G.BB(tp)
         interDict = X.getIntersectingDomains(tbb,bodybb,taabb=tbb,taabb2=bodybb)
-        for zone in Internal.getZones(tp[2][1]): 
+        for zone in Internal.getZones(tp[2][1]):
             zname = Internal.getName(zone)
             if interDict[zname] != []:
                 C._initVars(zone, 'centers:MomentumX', 0.)
@@ -345,23 +345,23 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=
         #Compressor._compressCartesian(tp[2][1])
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
 
-    if Cmpi.size > 1: Cmpi.barrier()    
+    if Cmpi.size > 1: Cmpi.barrier()
     return tp, tpc
 #================================================================================
 # IBMO prepare
 #
 #================================================================================
-def prepare(t_case, t_out, tc_out, tblank=None, to=None,   
+def prepare(t_case, t_out, tc_out, tblank=None, to=None,
             vmin=21, check=False, NP=0,
             frontType=1,  tbox=None, snearsf=None,
-            expand=3, distrib=False, tinit=None, initWithBBox=-1., 
+            expand=3, distrib=False, tinit=None, initWithBBox=-1.,
             dfarDir=0):
     rank = Cmpi.rank
     comm = Cmpi.COMM_WORLD
     tolMatch = 1.e-6
     DEPTH = 2
     IBCType = 1
-    if frontType!=1: 
+    if frontType!=1:
         print("Warning: IBMO.prepare: currently implemented for frontType=1 algorithm only.")
         frontType=1
 
@@ -372,7 +372,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
             tbblank = C.convertFile2PyTree(tblank)
         else: tbblank = tblank
 
-    if isinstance(t_case, str): 
+    if isinstance(t_case, str):
         h = Filter.Handle(t_case)
         if distrib:
             tb = h.loadAndSplit(NParts=Cmpi.size)
@@ -398,31 +398,31 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     dimPb = Internal.getValue(dimPb)
 
-    # tbchim : arbre des corps chimeres 
+    # tbchim : arbre des corps chimeres
     tbchim = C.newPyTree()
     tbov = C.newPyTree()
     # tbibm : arbre des corps ibms en z = 0
-    tbibm = C.newPyTree()    
-    # chargement des zones Chimere par proc 
+    tbibm = C.newPyTree()
+    # chargement des zones Chimere par proc
     bases = Internal.getBases(tb)
     baseNamesChim=[]
 
     for b in bases:
         isChimera = False
         for z in Internal.getZones(b):
-            if isZoneChimera(z): 
+            if isZoneChimera(z):
                 isChimera = True
                 baseNamesChim.append(b[0])
                 break
 
         if isChimera:
             zoneChimNames=[]
-            for z in Internal.getZones(b): 
+            for z in Internal.getZones(b):
                 proc = Internal.getNodeFromName2(z,'proc')
                 proc = Internal.getValue(proc)
                 if proc == rank:
                     zoneChimNames.append(z[0])
-                else: 
+                else:
                     Internal._rmNodesFromName1(b,z[0])
             if zoneChimNames != []:
                 Cmpi._readZones(tb, t_case, rank=rank, zoneNames=zoneChimNames)
@@ -434,17 +434,17 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
 
         else:
             zoneIBMNames = []
-            for z in Internal.getZones(b): 
+            for z in Internal.getZones(b):
                 proc = Internal.getNodeFromName2(z,'proc')
                 proc = Internal.getValue(proc)
                 if proc == rank:
                     zoneIBMNames.append(z[0])
-                else: 
+                else:
                     Internal._rmNodesFromName1(b,z[0])
 
             if zoneIBMNames!=[]:
                 Cmpi._readZones(tb, t_case, rank=rank, zoneNames=zoneIBMNames)
-                tbibm[2].append(b) 
+                tbibm[2].append(b)
 
 
     if dimPb == 2:
@@ -453,7 +453,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         C._initVars(tbibm, 'CoordinateZ', 0.)
         C._initVars(tbov, 'CoordinateZ', 0.)
 
-    # allgather: everybody sees all the bodies and overlaps 
+    # allgather: everybody sees all the bodies and overlaps
     tbchim = Cmpi.allgatherTree(tbchim)
     tbibm  = Cmpi.allgatherTree(tbibm)
     tbov   = Cmpi.allgatherTree(tbov)
@@ -483,11 +483,11 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         # Extraction de la liste des dfars de tb
         zones = Internal.getZones(tbo)
         dfars = [10.]*len(zones)
-        for c, z in enumerate(zones): 
+        for c, z in enumerate(zones):
             n = Internal.getNodeFromName2(z, 'dfar')
             if n is not None: dfars[c] = Internal.getValue(n)*1.
 
-        o = TIBM.buildOctree(tbo, snearFactor=1., dfars=dfars, 
+        o = TIBM.buildOctree(tbo, snearFactor=1., dfars=dfars,
                              dimPb=dimPb, vmin=vmin,
                              expand=expand, dfarDir=dfarDir)
 
@@ -509,7 +509,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
     res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
-    del p 
+    del p
     if parento is not None:
         for po in parento: del po
     t = C.newPyTree(['CARTESIAN', res])
@@ -558,13 +558,13 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     t2 = X.connectMatch(t2, tol=tolMatch, dim=dimPb)
     Internal._addGhostCells(t2, t2, DEPTH, adaptBCs=1, fillCorner=0)
 
-    # Suppression des XZones et correction des matchs 
+    # Suppression des XZones et correction des matchs
     Cmpi._rmBXZones(t2)
 
-    # Fusion des fenetres des raccords 
+    # Fusion des fenetres des raccords
     t2 = Xmpi.mergeWindows(t2)
 
-    if dimPb == 2: 
+    if dimPb == 2:
         T._addkplane(t2)
         T._contract(t2, (0,0,0), (1,0,0), (0,1,0), dz)
         T._makeDirect(t2)
@@ -581,7 +581,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     DTW._distance2Walls(t2, tball, loc='centers', type='ortho')
     test.printMem(">>> Wall distance on Chimera grids [end]")
 
-    # ReferenceState 
+    # ReferenceState
     C._addState(t, state=refstate)
     C._addState(t, 'GoverningEquations', model)
     C._addState(t, 'EquationDimension', dimPb)
@@ -643,7 +643,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     if frontType < 2:
         X._setHoleInterpolatedPoints(t,depth=2,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)
     else:
-        X._setHoleInterpolatedPoints(t,depth=3,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)         
+        X._setHoleInterpolatedPoints(t,depth=3,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)
     TIBM._removeBlankedGrids(t, loc='centers')
     test.printMem(">>> Blanking [end]")
 
@@ -709,7 +709,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                 for zdname in interDict[zrname]:
                     zd = Internal.getNodeFromName2(tpc, zdname)
                     isDnrCart=False
-                    # base receveuse cartesienne : on prend les donneurs meme ds la meme base 
+                    # base receveuse cartesienne : on prend les donneurs meme ds la meme base
                     if isCartBaseR:
                         dnrZonesChim.append(zd)
                         prefix=zdname.split('.')
@@ -718,9 +718,9 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                             if prefix=='Cart': isDnrCart=True
                         if isDnrCart:
                             listOfInterpDataTypes.append(0)
-                        else: 
+                        else:
                             listOfInterpDataTypes.append(1)
-                    else:                        
+                    else:
                         if nobOfDnrBases[zdname]!=nob:
                             dnrZonesChim.append(zd)
                             prefix=zdname.split('.')
@@ -729,12 +729,12 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                                 if prefix=='Cart': isDnrCart=True
                             if isDnrCart:
                                 listOfInterpDataTypes.append(0)
-                            else: 
+                            else:
                                 listOfInterpDataTypes.append(1)
                 #3- A OPTIMISER : des cartesiens et des ADT
                 # for i in range(len(dnrZonesChim)):
                 #     print(dnrZonesChim[i][0],listOfInterpDataTypes[i])
-                X._setInterpData(zrcv, dnrZonesChim, nature=1, penalty=1, loc='centers', storage='inverse', 
+                X._setInterpData(zrcv, dnrZonesChim, nature=1, penalty=1, loc='centers', storage='inverse',
                                  sameName=1, interpDataType=listOfInterpDataTypes, itype='chimera')
 
                 for zd in dnrZonesChim:
@@ -747,7 +747,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                             if Internal.getValue(i)==zrname: IDs.append(i)
 
                     if IDs != []:
-                        if destProc == rank:                
+                        if destProc == rank:
                             zD = Internal.getNodeFromName2(tpc, zdname)
                             zD[2] += IDs
                         else:
@@ -790,7 +790,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                 Cmpi._addXZones(tpc[2][nob], graphMatch, noCoordinates=True, cartesian=False)
                 Cmpi._addXZones(tp[2][nob], graphMatch, noCoordinates=True, cartesian=False)
                 # on construit les donnees des raccords match
-                X._setInterpData(tp[2][nob], tpc[2][nob], nature=1, penalty=1, loc='centers', 
+                X._setInterpData(tp[2][nob], tpc[2][nob], nature=1, penalty=1, loc='centers',
                                  storage='inverse', sameName=1, dim=dimPb, itype='abutting')
                 Cmpi._rmXZones(tpc[2][nob])
                 Cmpi._rmXZones(tp[2][nob])
@@ -800,18 +800,18 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     test.printMem(">>> Abutting data [after free]")
     test.printMem(">>> Abutting data [end]")
 
-    # Traitement IBC : n est fait que sur le cartesien -> 
+    # Traitement IBC : n est fait que sur le cartesien ->
     tp_cart = C.newPyTree(); tp_cart[2].append(Internal.copyRef(tp[2][1]))
     tpc_cart = C.newPyTree(); tpc_cart[2].append(Internal.copyRef(tpc[2][1]))
     C._rmVars(tp,['centers:cellNFront','centers:cellNIBC'])
 
-    # suppression des noeuds ID_* non cartesiens pour ne pas planter les transferts  
+    # suppression des noeuds ID_* non cartesiens pour ne pas planter les transferts
     for ID in Internal.getNodesFromType3(tpc_cart,'ZoneSubRegion_t'):
         if ID[0][0:7]!='ID_Cart': Internal._rmNode(tpc_cart,ID)
 
     C._initVars(tp_cart,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
     C._initVars(tp_cart,'{centers:cellNIBC}=maximum(0.,{centers:cellNIBC})')# vaut -3, 0, 1, 2, 3 initialement
-    C._initVars(tp_cart,'{centers:cellNIBC}={centers:cellNIBC}*({centers:cellNIBC}<2.5)')    
+    C._initVars(tp_cart,'{centers:cellNIBC}={centers:cellNIBC}*({centers:cellNIBC}<2.5)')
     C._cpVars(tp_cart,'centers:cellNIBC',tp_cart,'centers:cellN')
     C._cpVars(tp_cart,'centers:cellN',tpc_cart,'cellN')
 
@@ -839,7 +839,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
             zrcvname = zrcv[0]; zonesRIBC.append(zrcv)
 
     nbZonesIBC = len(zonesRIBC)
-    if nbZonesIBC == 0: 
+    if nbZonesIBC == 0:
         res = [{},{},{}]
     else:
         res = TIBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tbibm, tfront=front, frontType=frontType,
@@ -855,10 +855,10 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
 
     # graphe d'intersection des pts images de ce proc et des zones de tbbc
     tbbc_cart = C.newPyTree(); tbbc_cart[2].append(tbbc[2][1])
-    zones = Internal.getZones(tbbc_cart)    
+    zones = Internal.getZones(tbbc_cart)
     allBBs = []
     dictOfCorrectedPtsByIBCType = res[0]
-    dictOfWallPtsByIBCType = res[1] 
+    dictOfWallPtsByIBCType = res[1]
     dictOfInterpPtsByIBCType = res[2]
     interDictIBM={}
     if dictOfCorrectedPtsByIBCType!={}:
@@ -877,7 +877,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                             popp = Cmpi.getProc(z)
                             Distributed.updateGraph__(graph, popp, rank, zname)
                             if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
-                            else: 
+                            else:
                                 if zname not in interDictIBM[zrname]: interDictIBM[zrname].append(zname)
     else: graph={}
     del tbbc_cart
@@ -928,12 +928,12 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                                              interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL,model=model)
 
                     nozr += 1
-                    for zd in dnrZones:       
+                    for zd in dnrZones:
                         zdname = zd[0]
                         destProc = procDict[zdname]
 
                         #allIDs = Internal.getNodesFromName(zd, 'IBCD*')
-                        #IDs = [] 
+                        #IDs = []
                         #for zsr in allIDs:
                         #    if Internal.getValue(zsr)==zrname: IDs.append(zsr)
 
@@ -943,7 +943,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                                 if Internal.getValue(i)==zrname: IDs.append(i)
 
                         if IDs != []:
-                            if destProc == rank:                
+                            if destProc == rank:
                                 zD = Internal.getNodeFromName2(tpc_cart,zdname)
                                 zD[2] += IDs
                             else:
@@ -1039,14 +1039,14 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         if len(zname)==2: Internal.setName(zone,zname[1])
     for zone in Internal.getZones(tpc[2][2]):
         Internal._rmNodesFromName(zone,'RANSLES')
-    if isinstance(tc_out, str): 
+    if isinstance(tc_out, str):
         import Compressor.PyTree as Compressor
         Compressor._compressCartesian(tpc[2][1])
         Cmpi.convertPyTree2File(tpc, tc_out, ignoreProcNodes=True)
 
     # Initialisation
     if tinit is None: I._initConst(tp, loc='centers')
-    else: 
+    else:
         import Post.PyTree as Pmpi
         tp = Pmpi.extractMesh(tinit, tp, mode='accurate')
     if model != "Euler": C._initVars(tp, 'centers:ViscosityEddy', 0.)
@@ -1063,7 +1063,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         T._scale(bodybb, factor=(initWithBBox,initWithBBox,initWithBBox))
         tbb = G.BB(tp)
         interDict = X.getIntersectingDomains(tbb,bodybb,taabb=tbb,taabb2=bodybb)
-        for zone in Internal.getZones(tp[2][1]): 
+        for zone in Internal.getZones(tp[2][1]):
             zname = Internal.getName(zone)
             if interDict[zname] != []:
                 C._initVars(zone, 'centers:MomentumX', 0.)
@@ -1084,7 +1084,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         #Compressor._compressCartesian(tp[2][1])
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
 
-    if Cmpi.size > 1: Cmpi.barrier()    
+    if Cmpi.size > 1: Cmpi.barrier()
     return tp, tpc
 
 #====================================================================================
@@ -1096,13 +1096,13 @@ class IBMO(Common):
         self.authors = ["stephanie@onera.fr", "ash@onera.fr"]
         self.cartesian = False
 
-    # Prepare 
+    # Prepare
     def prepare(self, t_case, t_out, tc_out, distrib=False,
                 vmin=21, check=False, frontType=1, NP=None, expand=3, dfarDir=0):
         if NP is None: NP = Cmpi.size
         if NP == 0: print('Preparing for a sequential computation.')
         else: print('Preparing for an IBMO computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, distrib=distrib,
-                      vmin=vmin, check=check, NP=NP,  
+                      vmin=vmin, check=check, NP=NP,
                       frontType=frontType, expand=expand, dfarDir=dfarDir)
         return ret

@@ -29,24 +29,23 @@ C.convertPyTree2File(m, 'out2.cgns')
 
 ## dynamic adaptation
 hmsh = XOR.createHMesh(a)
-m = XOR.adaptCells(a, b, hmesh = hmsh, sensor_type=0)
+m = XOR.adaptCells(a, b, hmesh=hmsh, sensor_type=0)
 cm = XOR.conformizeHMesh(m, hmsh)
 cm = XOR.closeCells(m)
 XOR.deleteHMesh(hmsh);
 C.convertPyTree2File(cm, 'out3.cgns')
 
 hmsh = XOR.createHMesh(a)
-m = XOR.adaptCells(a, b, hmesh = hmsh, sensor_type=0, smoothing_type=1)
+m = XOR.adaptCells(a, b, hmesh=hmsh, sensor_type=0, smoothing_type=1)
 
 cm = XOR.conformizeHMesh(m, hmsh)
 cm = XOR.closeCells(cm)
 C.convertPyTree2File(cm, 'out4.cgns')
 
-m = XOR.adaptCells(m, b, hmesh = hmsh, sensor_type=0) # applied to existing hmesh with the geometrical sensor
+m = XOR.adaptCells(m, b, hmesh=hmsh, sensor_type=0) # applied to existing hmesh with the geometrical sensor
 
 cm = XOR.conformizeHMesh(cm, hmsh)
 cm = XOR.closeCells(cm)
 
 XOR.deleteHMesh(hmsh);
 C.convertPyTree2File(cm, 'out5.cgns')
-

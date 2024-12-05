@@ -8,4 +8,3 @@ m = C.convertArray2NGon(m)
 
 m = XOR.closeCells(m)
 test.testT(m, 1)
-

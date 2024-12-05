@@ -56,7 +56,7 @@ def runCheckPyTree():
         if len(minBlk)>0:
             errors = Internal.checkSize(CTK.t, sizeMax=minBlk[0])
 
-    if len(errors) == 0: 
+    if len(errors) == 0:
         TTK.setButtonGreen(WIDGETS['CheckPyTree'])
         errors = [0, 'No error found.']
         CTK.TXT.insert('START', 'No error found in pyTree.\n')
@@ -169,7 +169,7 @@ def createApp(win):
     B.grid(row=0, column=4, columnspan=2, sticky=TK.EW)
 
     # Option menu
-    B = TTK.OptionMenu(Frame, VARS[3], 'All conformity', ' > Node conformity', ' > Unique base name', ' > Unique zone name', ' > Unique BC name', 
+    B = TTK.OptionMenu(Frame, VARS[3], 'All conformity', ' > Node conformity', ' > Unique base name', ' > Unique zone name', ' > Unique BC name',
                        ' > Valid BC ranges', ' > Valid BC match', ' > Referenced families', ' > Valid CGNS types', ' > Valid element nodes',
                        ' > Valid CGNS flowfield name',  ' > NAN in fields',
                        'Node name length < 32', 'Zones of homogeneous cellDim in bases', 'Multigrid compatibility', 'Maximum number of nodes')

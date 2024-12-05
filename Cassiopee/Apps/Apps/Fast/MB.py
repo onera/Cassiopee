@@ -1,7 +1,7 @@
 # Class for FastS "Multiblock" prepare and compute
 
 # IN: maillage volumique + BCs + raccords + reference State
-# optionel: solution initiale 
+# optionel: solution initiale
 # Si 2D, maillage 1 seul plan (XY)
 
 import FastC.PyTree as FastC
@@ -14,7 +14,7 @@ from Apps.Fast.Common import Common
 #================================================================================
 # Multibloc prepare (avec split)
 # NP is the target number of processors
-#================================================================================ 
+#================================================================================
 def prepare(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
@@ -29,7 +29,7 @@ def prepare(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
 def prepare0(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
 
     if isinstance(t_case, str): t = C.convertFile2PyTree(t_case)
-    else: t = t_case 
+    else: t = t_case
 
     if NP > 0: import Distributor2.PyTree as D2
 
@@ -44,14 +44,14 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
         t = T.splitSize(t, R=NP, type=2, minPtsPerDir=9)
         t = X.connectMatch(t, dim=dim)
         for p in perioInfo:
-            if p[0] != []: 
+            if p[0] != []:
                 [xc,yc,zc,vx,vy,vz,angle] = p[0]
                 t = X.connectMatchPeriodic(t, rotationCenter=[xc,yc,zc], rotationAngle=[vx*angle,vy*angle,vz*angle], tol=1.e-6, dim=dim)
             if p[1] != []:
                 [tx,ty,tz] = p[1]
                 t = X.connectMatchPeriodic(t, translation=[tx,ty,tz], tol=1.e-6, dim=dim)
         stats = D2._distribute(t, NP, useCom='match')
-    else: 
+    else:
         Internal._rmNodesByName(t, 'proc')
 
     # Solution initiale
@@ -65,7 +65,7 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
         if state is None:
             raise ValueError('Reference state is missing in input cgns.')
         vars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
-        'EnergyStagnationDensity']
+                'EnergyStagnationDensity']
         for v in vars:
             node = Internal.getNodeFromName(state, v)
             if node is not None:
@@ -93,14 +93,14 @@ def prepare0(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
     # Ajout des ghost-cells
     C.addState2Node__(t, 'EquationDimension', dim)
     Internal._addGhostCells(t, t, 2, adaptBCs=1, fillCorner=0)
-    if dim == 2: 
+    if dim == 2:
         T._addkplane(t)
         T._contract(t, (0,0,0), (1,0,0), (0,1,0), 0.01)
         T._makeDirect(t)
 
     # Raccords
     tc = C.node2Center(t)
-    tc = X.setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
+    tc = X.setInterpData(t, tc, nature=1, loc='centers', storage='inverse',
                          sameName=1, dim=dim)
     C._rmVars(tc, 'FlowSolution')
     if removeGC: C._rmVars(tc, 'GridCoordinates')
@@ -151,11 +151,11 @@ def prepare1(t_case, t_out, tc_out, NP=0, format='single', removeGC=True):
     #interDict = X.getIntersectingDomains(tbb)
     #graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
     #del tbb
-    graph = Cmpi.computeGraph(t, type='match', reduction=True) 
+    graph = Cmpi.computeGraph(t, type='match', reduction=True)
 
     Cmpi._addXZones(t, graph, variables=[], noCoordinates=True)
     Cmpi._addXZones(tc, graph, variables=[], noCoordinates=True)
-    X._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
+    X._setInterpData(t, tc, nature=1, loc='centers', storage='inverse',
                      sameName=1, dim=dim, itype='abutting')
     Cmpi._rmXZones(t)
     Cmpi._rmXZones(tc)
@@ -228,7 +228,7 @@ def post0(t_in, t_out, wall_out, format='single'):
 
     # Use filter load here!
     if isinstance(t_in, str): a = FastC.loadFile(t_in)
-    else: a = t_in 
+    else: a = t_in
 
     #=============================
     # Supprime les champs inutiles
@@ -263,8 +263,8 @@ def post0(t_in, t_out, wall_out, format='single'):
     # Extraction Kp sur les surfaces
     #=================================
     [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
-    ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
-    Mus, Cs, Ts, Pr] = C.getState(a)
+     ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+     Mus, Cs, Ts, Pr] = C.getState(a)
     gam1cv = (Gamma-1.)*cvInf
     RoUInf2I = 1./(RouInf*RouInf+RovInf*RovInf+RowInf*RowInf)
     C._initVars(a,'{Pressure}={Density}*{Temperature}*%f'%gam1cv)

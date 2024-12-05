@@ -442,7 +442,7 @@ class Node:
         bbox1=self.widget.bbox(self.widget.root.symbol, self.label)
         bbox2=self.widget.bbox('all')
         self.widget.dtag('move')
-        self.widget.addtag('move', 'overlapping', 
+        self.widget.addtag('move', 'overlapping',
                            bbox2[0], bbox1[3], bbox2[2], bbox2[3])
         # untag cursor & node so they don't get moved too
         self.widget.dtag(self.widget.cursor_box, 'move')
@@ -858,7 +858,7 @@ class Node:
             CTK.TXT.insert('START', 'Displaying '+pid[0]+'\n')
             contName = pid[0]
             CPlot.setMode(3)
-            gp = Internal.getNodeFromType1(pid, 'GridLocation_t') 
+            gp = Internal.getNodeFromType1(pid, 'GridLocation_t')
             if gp is not None:
                 if Internal.getValue(gp) == 'CellCenter' and Internal.__FlowSolutionCenters__ != contName:
                     Internal.__FlowSolutionCenters__ = contName
@@ -933,8 +933,8 @@ class Node:
 #------------------------------------------------------------------------------
 class Tree(TK.Canvas):
     def __init__(self, master, root_id, root_label='',
-                 get_contents_callback=None, dist_x=8+CTK.FONTSIZE, 
-                 dist_y=8+CTK.FONTSIZE, text_offset=12, 
+                 get_contents_callback=None, dist_x=8+CTK.FONTSIZE,
+                 dist_y=8+CTK.FONTSIZE, text_offset=12,
                  line_flag=1, expanded_icon=None,
                  collapsed_icon=None, regular_icon=None, plus_icon=None,
                  minus_icon=None, node_class=Node, drop_callback=None,
@@ -1051,12 +1051,12 @@ tcuom2foARAAyKRSmQAAOw==
                                expanded_icon=self.expanded_icon,
                                x=dist_x, y=dist_y, parent_widget=self)
         # configure for scrollbar(s)
-        x1, y1, x2, y2 = self.bbox('all') 
+        x1, y1, x2, y2 = self.bbox('all')
         self.configure(scrollregion=(x1, y1, x2+5, y2+5))
         # add a cursor
         self.cursor_box = self.create_rectangle(0, 0, 0, 0,
                                                 outline='sky blue')
-                                                #fill='sky blue')
+        #fill='sky blue')
         self.move_cursor(self.root)
         # make it easy to point to control
         self.bind('<Enter>', self.PVT_mousefocus)
@@ -1167,7 +1167,7 @@ tcuom2foARAAyKRSmQAAOw==
                  collapsed_icon=None):
         """Add a node during get_contents_callback()"""
         if id is not None and len(id) >= 4:
-            if id[3] == 'Zone_t': 
+            if id[3] == 'Zone_t':
                 collapsed_icon = self.collapsed_zone
                 expanded_icon = self.expanded_zone
             elif id[3] == 'CGNSBase_t':
@@ -1330,7 +1330,7 @@ tcuom2foARAAyKRSmQAAOw==
         else:
             self.dnd_symbol = self.create_image(x, y,
                                                 image=source.collapsed_icon)
-        self.dnd_label = self.create_text(x+self.text_offset, y, 
+        self.dnd_label = self.create_text(x+self.text_offset, y,
                                           text=source.get_label(),
                                           justify='left',
                                           anchor='w',
@@ -1381,7 +1381,7 @@ tcuom2foARAAyKRSmQAAOw==
         for c in children: # bases
             if c.id[0] == baseName: baseNode = c; break
         if baseNode is None: return
-        if zoneName is None: 
+        if zoneName is None:
             baseNode.widget.move_cursor(baseNode)
             baseNode.PVT_highlight(TK.CURRENT)
             return
@@ -1396,7 +1396,7 @@ tcuom2foARAAyKRSmQAAOw==
             baseNode.widget.move_cursor(baseNode)
             baseNode.PVT_highlight(TK.CURRENT)
             return
-        if bcName is None: 
+        if bcName is None:
             zoneNode.widget.move_cursor(zoneNode)
             zoneNode.PVT_highlight(TK.CURRENT)
             return
@@ -1553,14 +1553,14 @@ def updateApp():
         OPENTREE = False
         OPENBASES = {} # Dict des noeuds ouverts (niv 0)
         OPENZONES = [] # Liste de dict des noeuds ouverts (niv 1)
-        OPENNODES = [] # Liste de liste de dict des noeuds ouverts (niv 2) 
+        OPENNODES = [] # Liste de liste de dict des noeuds ouverts (niv 2)
         SELECTED = None # nom du noeud selectionne
-        LEVSEL = -1 # niveau du noeud selectionne 
+        LEVSEL = -1 # niveau du noeud selectionne
         if len(oldChildren) > 0: OPENTREE = True
         for c in oldChildren:
             children = c.children()
             if len(children) > 0: OPENBASES[c.get_label()] = 1
-            if c.widget.pos == c: SELECTED = c.get_label(); LEVSEL = 0 
+            if c.widget.pos == c: SELECTED = c.get_label(); LEVSEL = 0
             ZONES = {}; NODES = []
             for d in children:
                 children2 = d.children()
@@ -1570,10 +1570,10 @@ def updateApp():
                 for e in children2:
                     children3 = e.children()
                     if len(children3) > 0: NODESL[e.get_label()] = 1
-                    if e.widget.pos == e: 
+                    if e.widget.pos == e:
                         SELECTED = e.get_label(); LEVSEL = 2
                     for f in children3:
-                        if f.widget.pos == f: 
+                        if f.widget.pos == f:
                             SELECTED = f.get_label(); LEVSEL = 3
                 if len(children2) > 0: NODES.append(NODESL)
             if len(children) > 0: OPENNODES.append(NODES)
@@ -1597,7 +1597,7 @@ def updateApp():
         bcount = 0
         for c in children: # Bases
             if c.get_label() in OPENBASES: c.expand()
-            if LEVSEL == 0 and c.get_label() == SELECTED: 
+            if LEVSEL == 0 and c.get_label() == SELECTED:
                 c.widget.move_cursor(c)
 
             children2 = c.children()
@@ -1609,13 +1609,13 @@ def updateApp():
                 children3 = d.children()
                 for e in children3:
                     elabel = e.get_label()
-                    if elabel in OPENNODES[bcount][zcount]: 
+                    if elabel in OPENNODES[bcount][zcount]:
                         e.expand()
-                    if LEVSEL == 2 and elabel == SELECTED: 
+                    if LEVSEL == 2 and elabel == SELECTED:
                         e.widget.move_cursor(e)
                     children4 = e.children()
                     for f in children4:
-                        if LEVSEL == 3 and f.get_label() == SELECTED: 
+                        if LEVSEL == 3 and f.get_label() == SELECTED:
                             f.widget.move_cursor(f)
                 if len(children3) > 0: zcount += 1
             if len(children2) > 0: bcount += 1
@@ -1660,10 +1660,10 @@ def get_contents(node):
         node.widget.add_node(name=i[0], id=i, flag=folder)
 
 #==============================================================================
-def expandCanvas(): 
+def expandCanvas():
     WIDGETS['tree'].expandCanvas()
 
-def shrinkCanvas(): 
+def shrinkCanvas():
     WIDGETS['tree'].shrinkCanvas()
 
 #==============================================================================

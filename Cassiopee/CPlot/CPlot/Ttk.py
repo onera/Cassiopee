@@ -1,11 +1,11 @@
 try: import tkinter as TK
 except: import Tkinter as TK
-try: import Tk as CTK 
+try: import Tk as CTK
 except: from . import Tk as CTK
 
 ttk = None
 try: import tkinter.ttk as ttk
-except: 
+except:
     try: import ttk
     except: ttk = None
 #Uncomment that for a pure Tk interface
@@ -210,7 +210,7 @@ def OptionMenu(*args, **kwargs):
     if ttk is None: return TK.OptionMenu(*args, **kwargs)
     else:
         # add default arg
-        largs = (args[0],args[1],None)+args[2:] 
+        largs = (args[0],args[1],None)+args[2:]
         o = ttk.OptionMenu(*largs, **kwargs)
         o["menu"].config(bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
         return o
@@ -222,15 +222,15 @@ def Combobox(*args, **kwargs):
     else:
         return ComboboxAuto(*args, **kwargs)
 
-def superOptionMenu(F, var, itemList, command, 
+def superOptionMenu(F, var, itemList, command,
                     updateCommand1, updateCommand2):
     if ttk is None:
         B = TK.OptionMenu(F, var, *itemList,
                           command=command)
         F.bind('<Enter>', updateCommand1)
     else:
-        B = ttk.Combobox(F, textvariable=var, 
-                         values=itemList, 
+        B = ttk.Combobox(F, textvariable=var,
+                         values=itemList,
                          state='readonly', width=10)
         B.bind('<<ComboboxSelected>>', command)
         F.bind('<Enter>', updateCommand2)
@@ -265,23 +265,23 @@ def Entry(*args, **kwargs):
 
 # Pas de menu specifique en ttk
 def Menu(*args, **kwargs):
-    if ttk is None: return TK.Menu(*args, **kwargs) 
-    else: 
+    if ttk is None: return TK.Menu(*args, **kwargs)
+    else:
         M = TK.Menu(*args, **kwargs)
         M.config(bg=BACKGROUNDCOLOR, fg=FOREGROUNDCOLOR)
         return M
 
 def Menubutton(*args, **kwargs):
-    if ttk is None: return TK.Menubutton(*args, **kwargs) 
-    else: return ttk.Menubutton(*args, **kwargs)    
+    if ttk is None: return TK.Menubutton(*args, **kwargs)
+    else: return ttk.Menubutton(*args, **kwargs)
 
 # Pas de texte specifique en ttk
 def Text(*args, **kwargs):
-    if ttk is None: return TK.Text(*args, **kwargs) 
+    if ttk is None: return TK.Text(*args, **kwargs)
     else: return TK.Text(*args, **kwargs)
 
 def Radiobutton(*args, **kwargs):
-    if ttk is None: TK.Radiobutton(*args, **kwargs) 
+    if ttk is None: TK.Radiobutton(*args, **kwargs)
     else:
         if 'offrelief' in kwargs: kwargs.pop('offrelief')
         if 'selectcolor' in kwargs: kwargs.pop('selectcolor')
@@ -307,7 +307,7 @@ def Scrollbar(*args, **kwargs):
     else:
         width = 0
         if 'width' in kwargs:
-            width = kwargs.get('width', 10)         
+            width = kwargs.get('width', 10)
             kwargs.pop('width')
         b = ttk.Scrollbar(*args, **kwargs)
         #if width != 0: b.configure(style='TKTREE.TScrollbar')
@@ -338,15 +338,15 @@ def raiseButton(B):
 
 def sunkButton(B):
     if ttk is None: B.config(relief=TK.SUNKEN)
-    else: B.configure(style='SUNKEN.TButton')   
+    else: B.configure(style='SUNKEN.TButton')
 
 def setButtonRed(B):
     if ttk is None: B.config(bg='red')
-    else: B.configure(style='RED.TButton')   
+    else: B.configure(style='RED.TButton')
 
 def setButtonGreen(B):
     if ttk is None: B.config(bg='green')
-    else: B.configure(style='GREEN.TButton')   
+    else: B.configure(style='GREEN.TButton')
 
 if ttk is not None:
     # Combobox avec accelerateur clavier

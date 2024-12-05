@@ -21,7 +21,7 @@ def chimeraInfo():
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     typename = VARS[1].get()
-    CTK.saveTree()    
+    CTK.saveTree()
     X._chimeraInfo(CTK.t,typename)
     CTK.TXT.insert('START', 'Field %s added.\n'%typename)
     CTK.TKTREE.updateApp()
@@ -155,7 +155,7 @@ def selectWithFormula(zones, formula):
         formula = formula.replace('cellN', 'centers:cellN')
 
     if res == 1: # cellN en noeuds
-        Z = P.selectCells(zones, formula)        
+        Z = P.selectCells(zones, formula)
     else: # cellN en centres
         Z = P.selectCells(zones, formula)
     for z in Z: z[0] = C.getZoneName(z[0])
@@ -196,7 +196,7 @@ def extract():
         Z = X.extractChimeraInfo(zones,type='orphan',loc='centers')
         if Z == []: Z = None
     elif type == 'cf>1':
-        Z = X.extractChimeraInfo(zones,type='cf>1',loc='centers')        
+        Z = X.extractChimeraInfo(zones,type='cf>1',loc='centers')
         if Z == []: Z = None
 
     if Z is not None:
@@ -247,7 +247,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[0], 'Mesh', 'cellN=0', 'cellN=-99999',
                        'cellN=2', 'cellN<0', '0<cellN<1', 'cellN=1', 'cf>1', 'Orphan points',
                        'Extrapolated points','Interpolated points')
-    B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW) 
+    B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW)
 
     # - View cellN -
     norow += 1
@@ -270,7 +270,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Chimera info", command=chimeraInfo)
     B.grid(row=norow, column=0, sticky=TK.EW)
     B = TTK.OptionMenu(Frame, VARS[1], 'interpolated', 'extrapolated', 'orphan',
-                      'cellRatio','donorAspect')
+                       'cellRatio','donorAspect')
     B.grid(row=norow, column=1, sticky=TK.EW)
 
 #==============================================================================

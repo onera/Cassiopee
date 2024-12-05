@@ -253,7 +253,7 @@ def HOTFI():
     weight = CTK.varsFromWidget(VARS[1].get(), type=1); weight = weight[0]
 
     # Nombre de pts (tous les 2 pairs ou tous les 2 impairs)
-    Nt1 = Internal.getZoneDim(zones[0])[1]  
+    Nt1 = Internal.getZoneDim(zones[0])[1]
     Nt2 = Internal.getZoneDim(zones[1])[1]
     if Nt1//2 - Nt1*0.5 == 0 and Nt2//2 - Nt2*0.5 != 0:
         CTK.TXT.insert('START', 'Number of points of countours must be all odd or all even.\n')
@@ -278,7 +278,7 @@ def HOTFI():
                     optWeight = i; optScore = score; optOffset = j
             except: pass
     print('Resulting score=%g'%optScore)
-    [m,m1,m2,m3] = TFIs.TFIHalfO__(coords1, coords2, optWeight, optOffset) 
+    [m,m1,m2,m3] = TFIs.TFIHalfO__(coords1, coords2, optWeight, optOffset)
 
     m = C.convertArrays2ZoneNode('TFI1', [m])
     m1 = C.convertArrays2ZoneNode('TFI2', [m1])
@@ -291,7 +291,7 @@ def HOTFI():
         m2 = T.projectOrthoSmooth(m2, surf)
         m3 = T.projectOrthoSmooth(m3, surf)
 
-    CTK.saveTree()   
+    CTK.saveTree()
     CTK.setCursor(0, WIDGETS['ho'])
 
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
@@ -347,7 +347,7 @@ def TRITFI():
         m2 = T.projectOrthoSmooth(m2, surf)
         m3 = T.projectOrthoSmooth(m3, surf)
 
-    CTK.saveTree()   
+    CTK.saveTree()
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
     bases = Internal.getNodesFromName1(CTK.t, 'MESHES')
     nob = C.getNobOfBase(bases[0], CTK.t)

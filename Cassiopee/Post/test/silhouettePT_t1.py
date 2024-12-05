@@ -1,4 +1,4 @@
-# - silhouette (array) - 
+# - silhouette (array) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Post.PyTree as P
@@ -17,7 +17,7 @@ test.testT(res,1)
 vector=[1.,0.,0.]
 
 # 2D
-a1 = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,1,30)) 
+a1 = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,1,30))
 a1 = C.addBC2Zone(a1,'wall','BCWall','jmin')
 a1 = C.addBC2Zone(a1,'overlap','BCOverlap','jmax')
 a2 = T.rotate(a1,(0.,0.,0.),(0.,1.,0.),120.); a2[0] = 'cart2'

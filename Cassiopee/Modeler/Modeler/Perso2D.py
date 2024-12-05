@@ -38,7 +38,7 @@ class perso:
 
     # register sounds
     def registerSounds(self):
-        self.gob = Sound.registerSound("gob2.wav")  
+        self.gob = Sound.registerSound("gob2.wav")
         self.faster = Sound.registerSound("gettin' faster.wav")
 
     # register images
@@ -119,7 +119,7 @@ class perso:
         i = max(i,0); i = min(i,world.nx-1)
         j = max(j,0); j = min(j,world.ny-1)
         #print i,j,m[i,j]
-        if m[i,j] == 1: # wall 
+        if m[i,j] == 1: # wall
             self.playSound(self.gob)
             self.x -= self.vx
             self.y -= self.vy
@@ -190,7 +190,7 @@ class perso:
             self.animate(1./16.,4./16.)
         if self.vx < 0:
             self.animate(9./16.,12./16.)
-        if self.vy < 0: 
+        if self.vy < 0:
             self.animate(13./16.,16./16.)
         b = T.translate(self.piece, (self.x, self.y, 0.001))
         zones = Internal.getZones(world.all[2][3])
@@ -240,4 +240,4 @@ class perso:
         elif self.count < 17: pass
         elif self.count < 19: self.moveUp()
         self.count += 1
-        if self.count == 19: self.count = 0 
+        if self.count == 19: self.count = 0

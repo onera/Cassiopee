@@ -99,7 +99,7 @@ CGNSTypes = {
 # IN: level: check level 0 (version node), 1 (node conformity),
 # 2 (unique base name), 3 (unique zone name), 4 (unique BC name),
 # 5 (BC ranges), 6 (BCMatch/NearMatch), 7 (FamilyZone et FamilyBCs),
-# 8 (invalid CGNS Types), 9 (invalid connectivity), 
+# 8 (invalid CGNS Types), 9 (invalid connectivity),
 # 10 (invalid field names), 11 NAN in fields, 12 name length
 # if level=-n, perform check from 0 to n
 # OUT: error = [noeud posant probleme, message]
@@ -272,7 +272,7 @@ def _correctVersionNode(t):
                 if n[3] == 'CGNSLibraryVersion_t' and id(n) == id(node):
                     del t[2][c]; break
                 c += 1
-            if added == 0: t[2].insert(0, node); added = 1 
+            if added == 0: t[2].insert(0, node); added = 1
     return None
 
 #==============================================================================
@@ -339,7 +339,7 @@ def _correctNodes(t):
     return None
 
 #==============================================================================
-# Check name length 
+# Check name length
 # Check if node[0] has less than 32 chars (legacy constraint for cgnsview)
 #==============================================================================
 def checkNameLength(node):
@@ -354,7 +354,7 @@ def checkNameLength(node):
 #==============================================================================
 def checkNameLength__(node, parent, errors):
     sons = []
-    if len(node[0]) > 32:               
+    if len(node[0]) > 32:
         errors += [node, parent, "Node name %s has a length > 32."%node[0]]
     for n in sons: checkNameLength__(n, node, errors)
 
@@ -369,19 +369,19 @@ def _correctNameLength(t):
         node = errors[3*e]
         parent = errors[3*e+1]
         name = node[0]
-        if node[3] == 'Zone_t': 
+        if node[3] == 'Zone_t':
             newName = name[0:31]
             newName = C.getZoneName(newName)
             if len(newName) > 32: newName = newName[0:32]
             node[0] = newName
             Internal._renameNode(t, name, newName)
-        elif node[3] == 'BC_t': 
+        elif node[3] == 'BC_t':
             newName = name[0:31]
             newName = C.getBCName(newName)
             if len(newName) > 32: newName = newName[0:32]
             node[0] = newName
             Internal._renameNode(t, name, newName)
-        elif node[3] == 'CGNSBase_t': 
+        elif node[3] == 'CGNSBase_t':
             newName = name[0:31]
             newName = C.getBaseName(newName)
             if len(newName) > 32: newName = newName[0:32]
@@ -737,7 +737,7 @@ def checkOppositRanges(t, ntype):
                         dim = Internal.getZoneDim(zdonor)
                         error = 1
                         for nopp in nodesopp:
-                            if n is not nopp:  
+                            if n is not nopp:
                                 prangeopp = Internal.getNodesFromName1(nopp, 'PointRange')
                                 prangedonoropp = Internal.getNodesFromName2(nopp, 'PointRangeDonor') # NearMatch: necessaire d'aller au niveau 2
                                 mtypeopp = Internal.getNodeFromName1(nopp, 'GridConnectivityType')
@@ -746,11 +746,11 @@ def checkOppositRanges(t, ntype):
                                 zoppdonorname = Internal.getValue(nopp)
                                 if zoppdonorname == zname and mtype == mtypeopp:
                                     # current zone
-                                    rangez = Internal.range2Window(prange[0][1]) 
+                                    rangez = Internal.range2Window(prange[0][1])
                                     rangezd = Internal.range2Window(prangedonor[0][1])
                                     # donor zone
-                                    rangezopp = Internal.range2Window(prangeopp[0][1]) 
-                                    rangezoppd = Internal.range2Window(prangedonoropp[0][1]) 
+                                    rangezopp = Internal.range2Window(prangeopp[0][1])
+                                    rangezoppd = Internal.range2Window(prangedonoropp[0][1])
                                     if rangez == rangezoppd and rangezd == rangezopp: error = 0
                         if error == 1:
                             errors += [n, bc, "Opposite window from zone %s of BC %s (zone %s) does not exist."%(zdonorname,n[0],zname)]
@@ -793,13 +793,13 @@ def checkOppositRanges(t, ntype):
                                         if dimZone > 1: deltaopp[1] = abs(winopp[3] - winopp[2]) # delta j for winopp
                                         if dimZone == 3: deltaopp[2] = abs(winopp[5] - winopp[4]) # delta k for winopp
                                         if dimZone == 3:
-                                            if ((delta[0] != deltaopp[abs(transform[0])-1]) or 
+                                            if ((delta[0] != deltaopp[abs(transform[0])-1]) or
                                                 (delta[1] != deltaopp[abs(transform[1])-1]) or
-                                                (delta[2] != deltaopp[abs(transform[2])-1])):
+                                                    (delta[2] != deltaopp[abs(transform[2])-1])):
                                                 errors += [n, bc, "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])]
                                         elif dimZone == 2:
-                                            if ((delta[0] != deltaopp[abs(transform[0])-1]) or 
-                                                (delta[1] != deltaopp[abs(transform[1])-1])):
+                                            if ((delta[0] != deltaopp[abs(transform[0])-1]) or
+                                                    (delta[1] != deltaopp[abs(transform[1])-1])):
                                                 errors += [n, bc, "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])]
 
                                         elif dimZone == 1:
@@ -808,7 +808,7 @@ def checkOppositRanges(t, ntype):
     return errors
 
 #==============================================================================
-# Efface les GCs qui n'ont pas de donneur existant 
+# Efface les GCs qui n'ont pas de donneur existant
 #                qui ont des ranges non coherents
 #                dont le donneur n'a pas le noeud reciproque
 #==============================================================================
@@ -905,12 +905,12 @@ def checkBaseZonesDim(t):
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
             dim = Internal.getZoneDim(z)
-            if dim[4] != dimBase: errors += [b, b, "Zone %s cellDim (%d) is inconsistent with base %s cellDim (%d)."%(z[0],dim[4],b[0],dimBase)] 
+            if dim[4] != dimBase: errors += [b, b, "Zone %s cellDim (%d) is inconsistent with base %s cellDim (%d)."%(z[0],dim[4],b[0],dimBase)]
     return errors
 
 #==============================================================================
 # Update all bases with the max dim found in their zones
-# if splitBases: enforce bases to have homogenous cellDims by splitting base 
+# if splitBases: enforce bases to have homogenous cellDims by splitting base
 #==============================================================================
 def _correctBaseZonesDim(t, splitBases=False):
     bases = Internal.getBases(t)
@@ -940,7 +940,7 @@ def _correctBaseZonesDim(t, splitBases=False):
                 listOfAddBases.append([1, b[0]+'.1', z1])
             if lz2 != 0:
                 listOfAddBases.append([2, b[0]+'.2', z2])
-            if lz3 != 0: 
+            if lz3 != 0:
                 listOfAddBases.append([3, b[0]+'.3', z3])
 
     if splitBases:
@@ -955,7 +955,7 @@ def _correctBaseZonesDim(t, splitBases=False):
     return None
 
 #===============================================================================
-# check if the PointRanges for a zone z (ZoneBC ou ZoneGridConnectivity) are 
+# check if the PointRanges for a zone z (ZoneBC ou ZoneGridConnectivity) are
 # compatible with multigrid
 #===============================================================================
 def checkMGForBCRanges(z, ntype, multigrid, sizemin):
@@ -987,7 +987,7 @@ def checkMGForBCRanges(z, ntype, multigrid, sizemin):
     return errors
 
 #===============================================================================
-# check if the PointRangeDonor for a zone z (ZoneBC ou ZoneGridConnectivity) 
+# check if the PointRangeDonor for a zone z (ZoneBC ou ZoneGridConnectivity)
 # are compatible with multigrid
 #===============================================================================
 def checkMGForDonorBCRanges(z, ntype, multigrid, sizemin):
@@ -1001,14 +1001,14 @@ def checkMGForDonorBCRanges(z, ntype, multigrid, sizemin):
             if imin != imax:
                 di = (imax-imin)
                 res = (di+1)/puiss
-                if di%puiss != 0: 
+                if di%puiss != 0:
                     errors+=[n,"PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction i."%(n[0],z[0],multigrid)]
                 elif res < sizemin:
                     errors+=[n,"PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])]
             if jmin != jmax:
                 dj = (jmax-jmin)
                 res = (dj+1)/puiss
-                if dj%puiss != 0: 
+                if dj%puiss != 0:
                     errors+=[n,"PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction j."%(n[0],z[0],multigrid)]
                 elif res < sizemin:
                     errors+=[n,"PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction j."%(n[0],z[0])]
@@ -1036,7 +1036,7 @@ def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
         if dims[0] == 'Structured':
             ni = dims[1]; nj = dims[2]; nk = dims[3]
             res = (ni-1)/puiss
-            if (ni-1)%puiss != 0: 
+            if (ni-1)%puiss != 0:
                 errors+=[z,"Zone %s is not multigrid of level %d in direction i."%(z[0],level)]
             elif res < nbMinCoarseB:
                 errors+=[z,"Zone %s: not enough points on coarse grid for level %d in direction i."%(z[0],level)]
@@ -1052,10 +1052,10 @@ def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
             # check BC ranges (receptors)
             errors += checkMGForBCRanges(z,'BC_t',level,nbMinCoarseW)
             errors += checkMGForBCRanges(z,'GridConnectivity1to1_t',level,nbMinCoarseW)
-            errors += checkMGForBCRanges(z,'GridConnectivity_t',level,nbMinCoarseW)            
+            errors += checkMGForBCRanges(z,'GridConnectivity_t',level,nbMinCoarseW)
             # check BC ranges (donors)
             errors += checkMGForDonorBCRanges(z,'GridConnectivity1to1_t',level,nbMinCoarseW)
-            errors += checkMGForDonorBCRanges(z,'GridConnectivity_t',level,nbMinCoarseW)      
+            errors += checkMGForDonorBCRanges(z,'GridConnectivity_t',level,nbMinCoarseW)
     return errors
 
 #=============================================================================
@@ -1133,7 +1133,7 @@ def checkElementNodes(t):
                 c = Internal.getNodeFromName1(connects[iBE], 'ElementConnectivity')
                 if c[1] is None: print("CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
-                    minv = numpy.min(c[1]); maxv = numpy.max(c[1]) 
+                    minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
                         print(z[0], minv, maxv, npts)
@@ -1145,7 +1145,7 @@ def checkElementNodes(t):
                     minv = numpy.min(c[1])
                     if minv < 1: errors += [c, connects[iNFace], 'Negative NFace index']
             if iNGon != -1 and iNFace != -1: pass
-            elif iNGon != -1 and iNFace == -1: 
+            elif iNGon != -1 and iNFace == -1:
                 errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
             elif iBEMultiple == 1:
                 errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
@@ -1192,7 +1192,7 @@ def _correctBCElementNodes(t):
         for GE in GEl:
             itype = GE[1][0]
             ibc = GE[1][1]
-            if ibc == 0: 
+            if ibc == 0:
                 if itype >= 3 and itype == 4: maxDim = max(maxDim, 1); minDim = min(minDim, 1)
                 if itype >= 5 and itype <= 9: maxDim = max(maxDim, 2); minDim = min(minDim, 2)
                 if itype >= 10: maxDim = max(maxDim, 3); minDim = min(minDim, 3)
@@ -1255,7 +1255,7 @@ def _correctBC_PL2ER(t):
     return None
 
 #===============================================================================
-#  Dans un maillage NGON, enleve les connectivites BE 
+#  Dans un maillage NGON, enleve les connectivites BE
 #===============================================================================
 def _cleanBEConnect(t):
     for z in Internal.getZones(t):
@@ -1392,4 +1392,3 @@ def _correctNAN(t):
         node = errors[3*e]
         field = errors[3*e+1]
         C._setNANValuesAt(node, field, 0.)
-

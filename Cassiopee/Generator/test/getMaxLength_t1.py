@@ -1,4 +1,4 @@
-# - getMaxLength(array) - 
+# - getMaxLength(array) -
 import Generator as G
 import KCore.test as test
 
@@ -46,7 +46,7 @@ a = G.cartPyra((0,0,0),(0.1,1,1),(11,11,11))
 r = G.getMaxLength(a)
 test.testA([r],9)
 
-# NGON 
+# NGON
 a = G.cartNGon((0,0,0),(0.1,1,1),(11,11,11))
 r = G.getMaxLength(a)
 test.testA([r],10)

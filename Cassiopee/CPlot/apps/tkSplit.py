@@ -104,7 +104,7 @@ def join():
         CTK.TXT.insert('START', 'Join failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
 
-    #C._fillMissingVariables(CTK.t)     
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -136,7 +136,7 @@ def merge():
         Z.append(CTK.t[2][nob][2][noz])
     nob0 = CTK.Nb[nzs[0]]+1
 
-    if dircons == 'Names': # fait des paquets par noms homogenes 
+    if dircons == 'Names': # fait des paquets par noms homogenes
         zoneNames = {}
         zoneNames['__Pool__'] = []
         for z in Z:
@@ -145,7 +145,7 @@ def merge():
             if len(s) == 2:
                 try: no = int(s[1])
                 except: no = -1
-                if no > -1: 
+                if no > -1:
                     if s[0] in zoneNames: zoneNames[s[0]] += [n]
                     else: zoneNames[s[0]] = [n]
                 else: zoneNames['__Pool__'] += [n]
@@ -181,7 +181,7 @@ def merge():
             CTK.TXT.insert('START', 'Merge failed.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
 
-    #C._fillMissingVariables(CTK.t)     
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -324,7 +324,7 @@ def splitSize(event=None):
     CTK.saveTree()
     fail = False; errors = []
     if nzs == []:
-        try: 
+        try:
             CTK.t = T.splitSize(CTK.t, size, multigrid=level)
             CTK.display(CTK.t)
         except Exception as e:
@@ -354,7 +354,7 @@ def splitSize(event=None):
 
 #==============================================================================
 # splitNParts
-# IN: t, cplot.selectedZones, N: nb de parties 
+# IN: t, cplot.selectedZones, N: nb de parties
 # OUT: t modifie et affiche
 #==============================================================================
 def splitNParts(event=None):
@@ -373,7 +373,7 @@ def splitNParts(event=None):
     CTK.saveTree()
     fail = False; errors = []
     if nzs == []:
-        try: 
+        try:
             CTK.t = T.splitNParts(CTK.t, NParts, multigrid=level)
             CTK.display(CTK.t)
         except Exception as e:
@@ -625,28 +625,28 @@ def createApp(win):
     V = TK.StringVar(win); V.set('i-indices'); VARS.append(V)
     # -2- multigrid (niveau)
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if 'tkSplitSizeMultigrid' in CTK.PREFS: 
+    if 'tkSplitSizeMultigrid' in CTK.PREFS:
         V.set(CTK.PREFS['tkSplitSizeMultigrid'])
     # -3- splitSharpEdges angle -
     V = TK.StringVar(win); V.set('30.'); VARS.append(V)
-    if 'tkSplitSharpEdges' in CTK.PREFS: 
+    if 'tkSplitSharpEdges' in CTK.PREFS:
         V.set(CTK.PREFS['tkSplitSharpEdges'])
     # -4- tol for join -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
-    if 'tkSplitJoinTol' in CTK.PREFS: 
+    if 'tkSplitJoinTol' in CTK.PREFS:
         V.set(CTK.PREFS['tkSplitJoinTol'])
     # -5- tol for merge -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
-    if 'tkSplitMergeTol' in CTK.PREFS: 
+    if 'tkSplitMergeTol' in CTK.PREFS:
         V.set(CTK.PREFS['tkSplitMergeTol'])
     # -6- constraint direction for merge -
-    V = TK.StringVar(win); V.set('0'); VARS.append(V) 
+    V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -7- Nparts for splitNParts -
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
     if 'tkSplitNParts' in CTK.PREFS: V.set(CTK.PREFS['tkSplitNParts'])
     # -8- Multigrid level for splitNParts -
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if 'tkSplitNPartsMultigrid' in CTK.PREFS: 
+    if 'tkSplitNPartsMultigrid' in CTK.PREFS:
         V.set(CTK.PREFS['tkSplitNPartsMultigrid'])
     # -9- distance for splitSharpEdges
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)

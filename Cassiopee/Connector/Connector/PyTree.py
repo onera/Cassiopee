@@ -6,9 +6,9 @@ import numpy
 
 from .OversetDataDtlocal import setInterpData3
 from .OversetData import setInterpTransfers, _setInterpTransfers, __setInterpTransfers, _addCellN__, setInterpData, _setInterpData, _setIBCData, setInterpTransfersD, \
-_setInterpTransfersD, _setIBCTransfersForPressureGradients, _setIBCTransfersDForPressureGradients, _setIBCTransfers4GradP, _setIBCTransfers4GradP2, \
-_setIBCTransfers4GradP3,  _setIBCTransfers4FULLTBLE, _setIBCTransfers4FULLTBLE2, _modifcellNBC, getIntersectingDomains, getCEBBTimeIntersectingDomains, \
-getCEBBIntersectingDomains, cellN2OversetHoles, extractChimeraInfo, getOversetInfo, setIBCData, transferFields, setInterpData2, _setInterpData2
+    _setInterpTransfersD, _setIBCTransfersForPressureGradients, _setIBCTransfersDForPressureGradients, _setIBCTransfers4GradP, _setIBCTransfers4GradP2, \
+    _setIBCTransfers4GradP3,  _setIBCTransfers4FULLTBLE, _setIBCTransfers4FULLTBLE2, _modifcellNBC, getIntersectingDomains, getCEBBTimeIntersectingDomains, \
+    getCEBBIntersectingDomains, cellN2OversetHoles, extractChimeraInfo, getOversetInfo, setIBCData, transferFields, setInterpData2, _setInterpData2
 from .OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
 from .compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__
 
@@ -202,7 +202,7 @@ def _connectMatchStruct__(a, tol, dim, glob):
             zones.append(z)
             if dimPb == -1: dimPb=Internal.getZoneDim(z)[4]
             else:
-                if dimPb != Internal.getZoneDim(z)[4]: 
+                if dimPb != Internal.getZoneDim(z)[4]:
                     print('Warning: some structured zones in connectMatch are not of same dimension. Function might fail...')
     # extract empty windows
     structTags,structWins,structIndirBlkOfWins,typeOfWins,dimsI,dimsJ,dimsK = \
@@ -243,7 +243,7 @@ def _connectMatchStruct__(a, tol, dim, glob):
             # addBC2Zone...
             name1 = 'match%d_%d'%(noz1+1,glob); glob += 1
             name2 = 'match%d_%d'%(noz2+1,glob); glob += 1
-            C._addBC2Zone(zones[noz1],name1,'BCMatch',range1,zones[noz2],range2,topp0) 
+            C._addBC2Zone(zones[noz1],name1,'BCMatch',range1,zones[noz2],range2,topp0)
             C._addBC2Zone(zones[noz2],name2,'BCMatch',range2,zones[noz1],range1,topp)
 
             # couplage RANS/laminar ou euler
@@ -680,9 +680,9 @@ def duplicatePeriodicZones__(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,
         dupZones = [typePeriodic,zonesdupP,zonesdupM]
     elif typePeriodic == 2:
         zonesdupP = T.rotate(zones,(rotationCenter[0],rotationCenter[1],rotationCenter[2]),\
-                                 (rotationAngle[0],rotationAngle[1],rotationAngle[2]))
+                             (rotationAngle[0],rotationAngle[1],rotationAngle[2]))
         zonesdupM = T.rotate(zones,(rotationCenter[0],rotationCenter[1],rotationCenter[2]),\
-                                 (-rotationAngle[0],-rotationAngle[1],-rotationAngle[2]))
+                             (-rotationAngle[0],-rotationAngle[1],-rotationAngle[2]))
 
         dupZones = [typePeriodic,zonesdupP,zonesdupM]
 
@@ -943,9 +943,9 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
         depth = 2
 
     if blankingType != 'cell_intersect' and \
-        blankingType != 'cell_intersect_opt' and \
-        blankingType != 'center_in' and \
-        blankingType != 'node_in':
+            blankingType != 'cell_intersect_opt' and \
+            blankingType != 'center_in' and \
+            blankingType != 'node_in':
         print('Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
         print('Set to default (cell_intersect).')
         blankingType = 'cell_intersect'
@@ -1013,9 +1013,9 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
         blankingType='cell_intersect'
 
     if blankingType != 'cell_intersect' and \
-        blankingType != 'cell_intersect_opt' and \
-        blankingType != 'center_in' and \
-        blankingType != 'node_in':
+            blankingType != 'cell_intersect_opt' and \
+            blankingType != 'center_in' and \
+            blankingType != 'node_in':
         print('Warning: blankCells: blankingType must be cell_intersect, cell_intersect_opt, center_in or node_in.')
         print('Set to default (cell_intersect).')
         blankingType = 'cell_intersect'
@@ -1130,7 +1130,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
 # Masquage par Tri (surface Tri)
 #==============================================================================
 def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
-                    tol=1.e-12, cellnval=0, overwrite=0, cellNName='cellN'):
+                  tol=1.e-12, cellnval=0, overwrite=0, cellNName='cellN'):
     try: import Transform as T
     except: raise ImportError("blankCellsTri: requires Transform module.")
 
@@ -1185,7 +1185,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
     return a
 
 def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
-                    tol=1.e-12, cellnval=0, overwrite=0, cellNName='cellN'):
+                   tol=1.e-12, cellnval=0, overwrite=0, cellNName='cellN'):
     try: import Transform as T
     except: raise ImportError("blankCellsTri: requires Transform module.")
 
@@ -1414,7 +1414,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                             vol2 = C.getField('centers:vol',z2)[0]
                             ac2 = Converter.addVars([ac2,sol2,vol2])
                             res = Connector.optimizeOverlap__(ae1, ac1, ae2, ac2, prio1=prio1, prio2=prio2, \
-                                                                    isDW=isDW, hook1=adt1, hook2=adt2)
+                                                              isDW=isDW, hook1=adt1, hook2=adt2)
                             cellN1 = Converter.extractVars(res[0],['cellN'])
                             cellN2 = Converter.extractVars(res[1],['cellN'])
                             C.setFields([cellN1], z1, 'centers', False)
@@ -1481,7 +1481,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                                 acn1 = Converter.addVars([acn1,cellN1])
                                 acn2 = Converter.addVars([acn2,cellN2])
                                 res = Connector.optimizeOverlap__(ae1, acn1, ae2, acn2, prio1,prio2,isDW,\
-                                                                        hook1=adt1, hook2=adt2)
+                                                                  hook1=adt1, hook2=adt2)
                                 cellN1 = Converter.extractVars(res[0],['cellN'])
                                 cellN2 = Converter.extractVars(res[1],['cellN'])
                                 ac1 = Converter.rmVars(ac1,['cellN']); ac1 = Converter.addVars([ac1,cellN1])
@@ -1492,7 +1492,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                                 if isTempPeriodicZone2==0: parent2[2][d2] = z2
                             else:
                                 res = Connector.optimizeOverlap__(ae1, ac1, ae2, ac2, prio1,prio2,isDW,\
-                                                                        hook1=adt1, hook2=adt2)
+                                                                  hook1=adt1, hook2=adt2)
                                 cellN1 = Converter.extractVars(res[0],['cellN'])
                                 cellN2 = Converter.extractVars(res[1],['cellN'])
                                 ac1 = Converter.rmVars(ac1,['cellN']); ac1 = Converter.addVars([ac1,cellN1])
@@ -1986,10 +1986,10 @@ def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False, surf
         for z in Internal.getZones(b):
             for f1 in familyBC1:
                 wall1 = C.getFamilyBCs(z, f1)
-                for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0]) 
+                for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0])
             for f2 in familyBC2:
                 wall2 = C.getFamilyBCs(z, f2)
-                for w in wall2: listOfMismatch2.append(b[0]+'/'+z[0]+'/'+w[0]) 
+                for w in wall2: listOfMismatch2.append(b[0]+'/'+z[0]+'/'+w[0])
 
     # project interpolated points (cellN=2) from listOfMismatch2 onto listOfMismatch1
     DoubleWall._changeWall2(t, tc, listOfMismatch1, listOfMismatch2, '_'.join(familyBC1), '_'.join(familyBC2), ghostCells, check, surfaceCenters1)
@@ -2010,6 +2010,6 @@ def initDoubleWall(t, familyBC1, check=False):
         for z in Internal.getZones(b):
             for f1 in familyBC1:
                 wall1 = C.getFamilyBCs(z, f1)
-                for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0]) 
+                for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0])
 
     return DoubleWall.getProjSurfaceForDoubleWall(t, listOfMismatch1, '_'.join(familyBC1), check)

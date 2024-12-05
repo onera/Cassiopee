@@ -70,7 +70,7 @@ setup(
     package_dir={"":"."},
     packages=['XCore'],
     ext_modules=listExtensions
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

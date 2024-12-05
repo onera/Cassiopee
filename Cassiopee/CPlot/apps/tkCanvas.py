@@ -273,7 +273,7 @@ def createApp(win):
 
     # - Direction -
     B = TTK.OptionMenu(Frame, VARS[0],
-                       'None', 'View', 'XY', 'XZ', 'YZ', 
+                       'None', 'View', 'XY', 'XZ', 'YZ',
                        command=initCanvas)
     B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create a canvas.')

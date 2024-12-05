@@ -4,11 +4,11 @@ import Post.PyTree        as P
 import Generator.PyTree   as G
 import KCore.test         as test
 
-# Cas 3D NGon avec volume calcule 
+# Cas 3D NGon avec volume calcule
 # ===============================
-ni = 30 
-nj = 30 
-nk = 10 
+ni = 30
+nj = 30
+nk = 10
 lx = 1.
 ly = 1.
 lz = 0.25
@@ -26,4 +26,3 @@ t = C.initVars(t, '{centers:F}={centers:CoordinateX}*{centers:CoordinateY}*{cent
 P._computeGrad2(t, 'centers:F')
 
 test.testT(t,1)
-

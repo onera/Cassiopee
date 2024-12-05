@@ -84,14 +84,14 @@ def exteriorFaces():
                 ext = G.close(ext)
                 ext = T.splitConnexity(ext)
                 exts += ext
-            except Exception as e: 
+            except Exception as e:
                 fail = True; errors += [0,str(e)]
         else:
             ext = P.exteriorFacesStructured(z)
             exts += ext
 
     if fail:
-        Panels.displayErrors(errors, header='Error: exteriorFaces') 
+        Panels.displayErrors(errors, header='Error: exteriorFaces')
 
     if exts == []:
         CTK.TXT.insert('START', 'External edges set is empty.\n')
@@ -130,7 +130,7 @@ def silhouette():
     eye = CPlot.getState('posEye')
     vector = [cam[0]-eye[0], cam[1]-eye[1], cam[2]-eye[2]]
 
-    fail = False; exts = []; errors = []    
+    fail = False; exts = []; errors = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -142,7 +142,7 @@ def silhouette():
         except Exception as e:
             fail = True; errors += [0,str(e)]
 
-    if fail: 
+    if fail:
         Panels.displayErrors(errors, header='Error: silhouette')
     if exts == []:
         CTK.TXT.insert('START', 'Silhouette set is empty.\n')
@@ -195,7 +195,7 @@ def sharpEdges():
             ext = []; fail = True; errors += [0,str(e)]
         sharps += ext
 
-    if fail: 
+    if fail:
         Panels.displayErrors(errors, header='Error: sharpEdges')
 
     if sharps == []:
@@ -325,7 +325,7 @@ def convertBAR2Struct():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkExtractEdges  [ + ]  ', font=CTK.FRAMEFONT, 
+                           text='tkExtractEdges  [ + ]  ', font=CTK.FRAMEFONT,
                            takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Extract edges.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)

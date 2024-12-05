@@ -24,6 +24,3 @@ for x in list:
     an = I.overlayField(ac, a2, Mach)
     file = 'newL'+countName+'.plt'
     C.convertArrays2File([an],file,"bin_tp")
-
-
-

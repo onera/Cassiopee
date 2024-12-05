@@ -51,4 +51,3 @@ if NP>1:
             if res[0] != []:
                 dictOfHangingNodes[i]=res
 print("Hanging node on coarse mpi rank:", rank, ": ", dictOfHangingNodes)
-

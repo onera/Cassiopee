@@ -40,7 +40,7 @@ class Animator2D:
 
     # Register an image
     def registerImage(self, key, fileName, Ni=1, Nj=1, speed=0.1):
-        # nom du fichier image, Ni, Nj, no de l'image courante, 
+        # nom du fichier image, Ni, Nj, no de l'image courante,
         # vitesse de l'animation, ptr courant de l'animation
         self.images[key] = [fileName,Ni,Nj,self.nimages,speed,0.]
         self.line += [fileName,Ni,Nj]
@@ -71,7 +71,7 @@ class Animator2D:
     # you must register all images before display
     def openDisplay(self):
         self.prepare()
-        CPlot.display(self.t, mode='Render', bgColor=1, posCam=(0.,0,1), 
+        CPlot.display(self.t, mode='Render', bgColor=1, posCam=(0.,0,1),
                       posEye=(0.,0,0), dirCam=(0,1,0))
         CPlot.setState(activateShortCuts=0, displayInfo=0)
 
@@ -116,7 +116,7 @@ class Animator2D:
     # place a key in x,y
     def place(self, key, pos, render=True):
         if len(pos) == 2: v = (pos[0],pos[1],0.)
-        else: v = pos   
+        else: v = pos
         zones = Internal.getZones(self.t)
         noz = self.getNozOfKey(key, zones)
         z = Internal.getNodeFromName2(self.t, key)
@@ -176,7 +176,7 @@ class Animator2D:
         noz = self.getNozOfZPos(pos[0][2], zones)
         CPlot.add(self.t, 1, noz, a)
         if not self.firstFit: self.fitView()
-        if render: CPlot.render()        
+        if render: CPlot.render()
 
     # draw a particle system from a point
     def drawParticles(self, key, imageKey=None, pos=(0,0,0), Np=10, scale=1., render=True):
@@ -204,13 +204,13 @@ class Animator2D:
         noz = self.getNozOfZPos(pos[2], zones)
         CPlot.add(self.t, 1, noz, a)
         if not self.firstFit: self.fitView()
-        if render: CPlot.render()        
+        if render: CPlot.render()
 
     # draw a text
     def drawText(self, key, pos=(0,0,0), scale=1., text="youpi", color='Black',
                  h=0., render=True):
         if h == 0.: a = D.text2D(text, font='vera')
-        else: 
+        else:
             a = D.text3D(text, font='vera')
             T._contract(a, (0,0,0), (1,0,0), (0,1,0), h)
         T._homothety(a, (0,0,0), scale)
@@ -273,7 +273,7 @@ class Animator2D:
         if render: CPlot.render()
 
     # Positionne l'animation de l'image key sur une case (posi,posj)
-    # avec 0 < posi < Ni et 0 < posj < Nj 
+    # avec 0 < posi < Ni et 0 < posj < Nj
     def setAnimation(self, key, posi, posj, imageKey=None, render=True):
         if imageKey is None: imageKey = key
         a = self.getZone(key)
@@ -298,7 +298,7 @@ class Animator2D:
         a = T.deform(a, ['ux','uy','vz'])
         zones = Internal.getZones(self.t)
         noz = self.getNozOfKey(key, zones)
-        CPlot.replace(self.t, 1, noz, a)       
+        CPlot.replace(self.t, 1, noz, a)
         if render: CPlot.render()
 
     # Clone une key (jamais teste)
@@ -309,7 +309,7 @@ class Animator2D:
         self.images[newKey] = [im[0],im[1],im[2],self.nimages,im[4],im[5]]
         self.line += [im[0],im[1],im[2]]
         self.nimages += 1
-        CPlot.add(self.t, 1, -1, b)  
+        CPlot.add(self.t, 1, -1, b)
 
     # forcefitView
     # A appeler eventuellement si openDisplay est appele sans aucune image
@@ -349,4 +349,3 @@ class Animator2D:
             elif v == 8: state['right']=0
             elif v == 32: state['space']=1
             elif v == 27: state['escape']=1
-

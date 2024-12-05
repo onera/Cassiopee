@@ -12,9 +12,9 @@ desktop = tkPlotXY.Desktop()
 desktop.setData(a)
 
 graph0 = desktop.createGraph('graph', '1:1')
-curve0 = tkPlotXY.Curve(zone=['Base/cart'], varx='CoordinateX', 
-                        vary='F@FlowSolution', line_color='#7f00ff', 
-                        marker_face_color='#7f00ff', 
+curve0 = tkPlotXY.Curve(zone=['Base/cart'], varx='CoordinateX',
+                        vary='F@FlowSolution', line_color='#7f00ff',
+                        marker_face_color='#7f00ff',
                         marker_edge_color='#7f00ff')
 graph0.addCurve('1:1', curve0)
 

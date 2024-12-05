@@ -60,7 +60,7 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
 
     # Masquage
     xrayDim1 = 2000; xrayDim2 = 2000
-    cellno = X.blankCells([b], [celln], [a], blankingType=1, delta=h*0.05, 
+    cellno = X.blankCells([b], [celln], [a], blankingType=1, delta=h*0.05,
                           dim=3, XRaydim1=xrayDim1, XRaydim2=xrayDim2)
 
     # Selection du front
@@ -82,7 +82,7 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
             f = T.projectOrtho(f, [a])
         elif smoothIter == 0:
             f = T.projectOrtho(f, [a])
-            if constraints != []: 
+            if constraints != []:
                 f = Converter.initVars(f, 'indic', 0)
                 f = G.snapSharpEdges(f, constraints, step=0.3*h, angle=30.)
         else:
@@ -90,7 +90,7 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
             #if constraints != []:
             #    f = G.snapSharpEdges(f, constraints, step=0.3*h, angle=30.)
             for smooth in range(smoothIter):
-                f = T.smooth(f, eps=0.5, niter=2, 
+                f = T.smooth(f, eps=0.5, niter=2,
                              fixedConstraints=constraints,
                              #projConstraints=constraints,
                              delta=strength)
@@ -229,21 +229,21 @@ def createApp(win):
     # - VARS -
     # -0- Point density -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if 'tkCartWrapDensity' in CTK.PREFS: 
+    if 'tkCartWrapDensity' in CTK.PREFS:
         V.set(CTK.PREFS['tkCartWrapDensity'])
     # -1- Smoother power -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if 'tkCartWrapSmooth' in CTK.PREFS: 
+    if 'tkCartWrapSmooth' in CTK.PREFS:
         V.set(CTK.PREFS['tkCartWrapSmooth'])
     # -2- Elt type -
     V = TK.StringVar(win); V.set('QUAD'); VARS.append(V)
-    if 'tkCartWrapElts' in CTK.PREFS: 
+    if 'tkCartWrapElts' in CTK.PREFS:
         V.set(CTK.PREFS['tkCartWrapElts'])
     # -3- Constraint
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -4- Constraint strength
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if 'tkCartWrapConsStrength' in CTK.PREFS: 
+    if 'tkCartWrapConsStrength' in CTK.PREFS:
         V.set(CTK.PREFS['tkCartWrapConsStrength'])
 
     # - Point density -

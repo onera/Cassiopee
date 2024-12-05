@@ -180,7 +180,7 @@ def savePovFile():
         file.write('                   [0.65 rgb <0.1,0.2,0.8>]\n')
         file.write('                   [1.00 rgb <0.6,0.7,1.0>]\n')
         file.write('                 }\n')
-        file.write('       scale 2\n')     
+        file.write('       scale 2\n')
         file.write('     } // end of pigment\n')
         file.write('  } //end of skysphere\n')
     elif (bckgrd == 'Cloudy sky'): # on pourrait faire beaucoup mieux
@@ -328,7 +328,7 @@ def savePovFile():
             file.write('#include "'+f+'"\n')
             file.write('object {mesh_'+str(c)+'\n')
             file.write('texture{pigment{color '+color+' filter 1.}\n')
-            #file.write('texture{pigment { rgbt 1 }\n') 
+            #file.write('texture{pigment { rgbt 1 }\n')
             file.write('finish {ambient 0.1 diffuse 0.1  }}\n')
             file.write('hollow\n')
             file.write('interior{ //---------------------\n')
@@ -405,15 +405,15 @@ def createApp(win):
     # - VARS -
     # -0- background -
     V = TK.StringVar(win); V.set('Black'); VARS.append(V)
-    if 'tkPovRayBackground' in CTK.PREFS: 
+    if 'tkPovRayBackground' in CTK.PREFS:
         V.set(CTK.PREFS['tkPovRayBackground'])
     # -1- Image size
     V = TK.StringVar(win); V.set('800x600'); VARS.append(V)
-    if 'tkPovRaySize' in CTK.PREFS: 
+    if 'tkPovRaySize' in CTK.PREFS:
         V.set(CTK.PREFS['tkPovRaySize'])
     # -2- Dir name (file.pov et file.png)
-    V = TK.StringVar(win); V.set('PovRay'); VARS.append(V)    
-    if 'tkPovRayOutput' in CTK.PREFS: 
+    V = TK.StringVar(win); V.set('PovRay'); VARS.append(V)
+    if 'tkPovRayOutput' in CTK.PREFS:
         V.set(CTK.PREFS['tkPovRayOutput'])
 
     # - File -
@@ -422,7 +422,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Directory name for output (.pov and .png).')
 
     # - Background selection -
-    B = TTK.OptionMenu(Frame, VARS[0], 'Black', 'White', 'Blue sky', 
+    B = TTK.OptionMenu(Frame, VARS[0], 'Black', 'White', 'Blue sky',
                        'Cloudy sky', 'Starfield' )
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Output background.')

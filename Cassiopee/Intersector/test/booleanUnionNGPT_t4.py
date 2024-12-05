@@ -13,7 +13,7 @@ h2 = G.cartHexa((2.,1.,-0.5), (0.5,0.5,0.5), (23,17,33))
 h1 = C.convertArray2NGon(h1); h1 = G.close(h1)
 h2 = C.convertArray2NGon(h2); h2 = G.close(h2)
 
-# BCs 
+# BCs
 subz = G.cartNGon( (0,0,0), (1,1,1), (13,12,1) )
 hook = C.createHook(h1, function='faceCenters')
 ids  = C.identifyElements(hook, subz)
@@ -40,7 +40,7 @@ h2   = C.fillEmptyBCWith(h2, 'far2','BCFarfield')
 h1 = C.fillEmptyBCWith(h1, 'wall','BCWall')
 h2 = C.fillEmptyBCWith(h2, 'nref','BCFarfield')
 
-# Split 
+# Split
 h1 = T.splitNParts(h1, 5, multigrid=0, dirs=[1,2,3])
 h2 = T.splitNParts(h2, 4, multigrid=0, dirs=[1,2,3])
 

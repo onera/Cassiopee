@@ -7,7 +7,7 @@ import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import CPlot.CPlot as CP
-import Geom.PyTree as D 
+import Geom.PyTree as D
 import Transform.PyTree as T
 import Generator.PyTree as G
 import Converter.Internal as Internal
@@ -47,7 +47,7 @@ def meshTri(P0, P1, P2, N):
     l3 = D.line(P2, C02, N)
     l4 = D.line(C02, C, N)
     m3 = G.TFI([l1, l2, l3, l4])
-    m3 = T.reorder(m3, (-1,2,3))    
+    m3 = T.reorder(m3, (-1,2,3))
     return [m1, m2, m3]
 
 #==============================================================================
@@ -194,7 +194,7 @@ def generate(event=None):
         CTK.add(CTK.t, nob, -1, s)
     else:
         nob = C.getNobOfBase(b, CTK.t)
-        if CP.__slot__ is None: 
+        if CP.__slot__ is None:
             CTK.t[2][nob][2] += s; CTK.display(CTK.t)
         else:
             for i in s: CTK.add(CTK.t, nob, -1, i)
@@ -234,15 +234,15 @@ def createApp(win):
     # - VARS -
     # -0- NPts -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if 'tkBasicSurfsNpts' in CTK.PREFS: 
+    if 'tkBasicSurfsNpts' in CTK.PREFS:
         V.set(CTK.PREFS['tkBasicSurfsNpts'])
     # -1- Type d'elements
     V = TK.StringVar(win); V.set('TRI'); VARS.append(V)
-    if 'tkBasicSurfsElts' in CTK.PREFS: 
+    if 'tkBasicSurfsElts' in CTK.PREFS:
         V.set(CTK.PREFS['tkBasicSurfsElts'])
     # -2- Type de surface
     V = TK.StringVar(win); V.set('Sphere'); VARS.append(V)
-    if 'tkBasicSurfsType' in CTK.PREFS: 
+    if 'tkBasicSurfsType' in CTK.PREFS:
         V.set(CTK.PREFS['tkBasicSurfsType'])
 
     # - Npts -
@@ -265,7 +265,7 @@ def createApp(win):
     if ttk is None:
         B = TK.OptionMenu(Frame, VARS[2], *SURFTYPES)
     else:
-        B = TTK.Combobox(Frame, textvariable=VARS[2], values=SURFTYPES, 
+        B = TTK.Combobox(Frame, textvariable=VARS[2], values=SURFTYPES,
                          state='readonly', width=10)
 
     B.grid(row=1, column=0, sticky=TK.EW)

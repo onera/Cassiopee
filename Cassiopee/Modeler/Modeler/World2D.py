@@ -36,7 +36,7 @@ class World:
         # World map
         self.map = numpy.zeros( (0,0), dtype=numpy.int32 )
         # pyTree world
-        self.world = None 
+        self.world = None
         # pyTree all
         self.all = C.newPyTree(['World', 'Objects', 'Persos'])
         # object i,j-> no de la zone correspondante
@@ -144,8 +144,8 @@ class World:
     # Static first display of static world
     def render(self):
         CPlot.display(self.all, bgColor=1, shadow=0, mode='render',
-                      posCam=(self.nx*0.5, self.ny*0.5, 20.), 
-                      posEye=(self.nx*0.5,self.ny*0.5,0), 
+                      posCam=(self.nx*0.5, self.ny*0.5, 20.),
+                      posEye=(self.nx*0.5,self.ny*0.5,0),
                       dirCam=(0,1,0), meshStyle=3)
         CPlot.setState(activateShortCuts=0, displayInfo=0)
 

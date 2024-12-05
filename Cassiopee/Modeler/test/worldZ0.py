@@ -38,7 +38,7 @@ allObjects.append(box)
 
 # position du viewer (posCam, posEye, Height of viewer, deltaZ)
 pos = World.placeViewerAtCenter(zmap)
-CPlot.display(allObjects, displayInfo=0, bgColor=1, shadow=0, posCam=pos[0], 
+CPlot.display(allObjects, displayInfo=0, bgColor=1, shadow=0, posCam=pos[0],
               posEye=pos[1], meshStyle=3) #, stereo=2, stereoDist=0.3)
 
 World.simpleLoop(zmap, pos)

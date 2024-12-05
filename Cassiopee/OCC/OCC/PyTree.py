@@ -17,8 +17,8 @@ import numpy
 #==============================================================================
 # -- convertCAD2PyTree --
 #==============================================================================
-def convertCAD2PyTree(fileName, format=None, h=0., chordal_err=0., 
-  growth_ratio=0., merge_tol=-1, algo=1, join=True):
+def convertCAD2PyTree(fileName, format=None, h=0., chordal_err=0.,
+                      growth_ratio=0., merge_tol=-1, algo=1, join=True):
     """Convert a CAD (IGES or STEP) file to pyTree.
     Usage: convertCAD2PyTree(fileName, options)"""
     a = OCC.convertCAD2Arrays(fileName, format, h, chordal_err, growth_ratio, merge_tol, algo, join)
@@ -42,7 +42,7 @@ def convertCAD2PyTree(fileName, format=None, h=0., chordal_err=0.,
                 z = Internal.createZoneNode(C.getZoneName('Zone'), i, [],
                                             Internal.__GridCoordinates__,
                                             Internal.__FlowSolutionNodes__,
-                                            Internal.__FlowSolutionCenters__) 
+                                            Internal.__FlowSolutionCenters__)
                 t[2][base2][2].append(z)
             else:
                 if not base3:
@@ -86,7 +86,7 @@ def convertCAD2PyTree(fileName, format=None, h=0., chordal_err=0.,
 def meshSTRUCT(fileName, format="fmt_step", N=11):
     """Return a STRUCT discretisation of CAD."""
     hook = OCC.occ.readCAD(fileName, format)
-    return meshSTRUCT__(hook, N) 
+    return meshSTRUCT__(hook, N)
 
 def meshSTRUCT__(hook, N=11, faceSubset=None, linkFaceNo=None):
     """Return a STRUCT discretisation of CAD."""
@@ -106,7 +106,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, linkFaceNo=None):
 def meshTRI(fileName, format="fmt_step", N=11, hmax=-1., order=1):
     """Return a TRI discretisation of CAD."""
     hook = OCC.occ.readCAD(fileName, format)
-    return meshTRI__(hook, N, hmax, order) 
+    return meshTRI__(hook, N, hmax, order)
 
 def meshTRI__(hook, N=11, hmax=-1., order=1, faceSubset=None, linkFaceNo=None):
     """Return a TRI discretisation of CAD."""
@@ -218,7 +218,7 @@ class CAD:
         self.fileName = fileName
         self.format = format
         self.hook = None # hook on OCC tree
-        self.faces = [] # list of CAD faces (class) 
+        self.faces = [] # list of CAD faces (class)
         self.edges = [] # list of CAD edges (class)
 
         self.zones = [] # associated discretization (list of zones)
@@ -236,11 +236,11 @@ class CAD:
         """Evaluate face at given parameters."""
         if isinstance(face, int): no = face
         else: no = face.number
-        if isinstance(distribution, tuple): 
+        if isinstance(distribution, tuple):
             d = Converter.array('x,y,z', 1,1,1)
             d[1][0,0] = distribution[0]
             d[1][1,0] = distribution[1]
-            d[1][2,0] = 0.      
+            d[1][2,0] = 0.
         else:
             d = C.getFields(Internal.__GridCoordinates__, distribution, api=2)[0]
         m = OCC.occ.evalFace(self.hook, d, no)
@@ -742,7 +742,7 @@ def _setCADcontainer(t, fileName, fileFmt, hmin, hmax, hausd):
 # mesh all edges
 def _meshAllEdges(hook, t, hmin=-1., hmax=-1, hausd=-1, N=-1, edgeList=None):
 
-    if edgeList is None: 
+    if edgeList is None:
         nbEdges = occ.getNbEdges(hook)
         edgeList = range(1, nbEdges+1)
 
@@ -788,7 +788,7 @@ def _remeshAllEdgesOdd(hook, t):
             z[2].append(cad)
             if render is not None: z[2].append(render)
             b[2][edgeno-1] = z
-    return None    
+    return None
 
 def getCADcontainer(t):
     hmin = None; hmax = None; hausd = None
@@ -948,8 +948,8 @@ def _setLonelyEdgesColor(t):
             elif size == 1: # lonely: red
                 L = D.getLength(ze)
                 if L > 1.e-16: CPlot._addRender2Zone(ze, color='Red')
-                else: CPlot._addRender2Zone(ze, color='Green') 
-            else: # strange!!                
+                else: CPlot._addRender2Zone(ze, color='Green')
+            else: # strange!!
                 CPlot._addRender2Zone(ze, color='Green')
     return None
 
@@ -1263,13 +1263,13 @@ def getFileAndFormat(hook):
     return OCC.occ.getFileAndFormat(hook)
 
 # IN: new2old: new2old map
-# IN: Nold: size of old entities 
+# IN: Nold: size of old entities
 # OUT: odl2new array
 def getOld2NewMap(Nold, new2old):
     old2new = numpy.zeros( (Nold), dtype=Internal.E_NpyInt)
     old2new[:] = -1
     Nnew = len(new2old)
-    for n in range(Nnew): 
+    for n in range(Nnew):
         v = new2old[n]
         if v > 0: old2new[v-1] = n+1
     return old2new
@@ -1303,7 +1303,7 @@ def _updateEdgesNumbering__(t, old2NewEdgeMap, old2NewFaceMap):
             n = Internal.getNodeFromName1(CAD, 'faceList')
             if n is not None:
                 pn = n[1]; index = []
-                for i in range(pn.size): 
+                for i in range(pn.size):
                     pn[i] = old2NewFaceMap[pn[i]-1]
                     if pn[i] == -1: index.append(i)
                 n[1] = numpy.delete(pn, index)

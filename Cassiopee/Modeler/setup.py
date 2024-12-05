@@ -44,7 +44,7 @@ setup(
     url="https://cassiopee.onera.fr",
     packages=['Modeler'],
     package_dir={"":"."}
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

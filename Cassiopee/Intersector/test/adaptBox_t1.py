@@ -10,4 +10,3 @@ a = C.convertArray2NGon(a); a = G.close(a)
 m = XOR.adaptBox(a, box_ratio=10.)
 m = XOR.closeCells(m)
 test.testA(m,1)
-

@@ -20,6 +20,6 @@ a = G.close(a)
 b = D.sphere6((0,0,0), 1, N=15)
 b = b[0]
 b = C.convertArray2Tetra(b)
-b = T.rotate(b, (0,0,0), (0,0,1), 35.) 
+b = T.rotate(b, (0,0,0), (0,0,1), 35.)
 b = G.gapsmanager([a,b], mode=1)
 test.testA(b, 2)

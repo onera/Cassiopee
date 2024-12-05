@@ -15,4 +15,3 @@ a = G.cylinder((0,0,0), 1., 1.5, 360., 0., 1., (100,30,1))
 a = C.addVars(a,'centers:cellN'); a = C.addVars(a,'Density')
 surf = G.pointedHat(a,(0.,0.,1.))
 test.testT(surf,2)
-

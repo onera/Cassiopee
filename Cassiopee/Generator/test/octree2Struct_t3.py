@@ -37,4 +37,3 @@ res1 = G.octree2Struct(res, vmin=5, ext=2, merged=0)
 test.testA(res1, 11)
 res1 = G.octree2Struct(res, vmin=5, ext=2, merged=0, optimized=0)
 test.testA(res1, 12)
-

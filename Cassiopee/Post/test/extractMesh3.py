@@ -9,7 +9,7 @@ def F(x,y,z):
     deg = 1
     if deg == 0 :
         return 10.
-    elif deg == 1 : 
+    elif deg == 1 :
         return x + 2.*y + 3.*z
     elif deg == 2 :
         return x*x + 2.*y*y + 3*z

@@ -18,6 +18,6 @@ C.convertArrays2File([x], 'boolNGminus01.plt')
 
 #~ x = XOR.booleanMinus(M1, M2, tol, preserve_right=1, solid_right=0)
 #~ C.convertArrays2File([x], 'boolNGminus10.plt')
-#~ 
+#~
 #~ x = XOR.booleanMinus(M1, M2, tol, preserve_right=0, solid_right=0)
 #~ C.convertArrays2File([x], 'boolNGminus00.plt')

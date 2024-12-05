@@ -47,7 +47,7 @@ def initSolution():
     if eqs is not None: Model = Internal.getValue(eqs)
 
     zvars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
-            'EnergyStagnationDensity']
+             'EnergyStagnationDensity']
     for v in zvars:
         node = Internal.getNodeFromName(state, v)
         if node is not None:
@@ -59,7 +59,7 @@ def initSolution():
             return
     if Model == 'NSTurbulent':
         zvars = ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity',
-                'TurbulentDissipationDensity']
+                 'TurbulentDissipationDensity']
         for v in zvars:
             node = Internal.getNodeFromName(state, v)
             if node is not None:

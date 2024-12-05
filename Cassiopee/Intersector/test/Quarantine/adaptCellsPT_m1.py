@@ -59,7 +59,7 @@ for z in zs:
     cell_vals.append(cv)
 
 # add dummy BC and fields
-for z in zs: 
+for z in zs:
     C._fillEmptyBCWith(z, 'wall', 'BCWall')
     C._initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
     C._initVars(z, '{centers:Temperature} = {centers:CoordinateX} + {centers:CoordinateY}')

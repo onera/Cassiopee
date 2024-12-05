@@ -26,7 +26,7 @@ def _extrapOnBCDataSet(t, variables):
 
                     for var in variables:
                         v = var.split(':',1)
-                        if len(v) == 2: 
+                        if len(v) == 2:
                             if v[0] == 'centers' or v[0] == 'nodes': v = v[1]
                             else: v = var
                         else: v = var

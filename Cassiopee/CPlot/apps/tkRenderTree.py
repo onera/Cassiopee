@@ -19,7 +19,7 @@ def addBillboardFile(event=None):
     v = v.split(';')
     vo = []
     for i in v:
-        if i != '': vo.append(i) 
+        if i != '': vo.append(i)
     CPlot._addRender2PyTree(CTK.t, billBoards=vo)
     CTK.TKTREE.updateApp()
 
@@ -38,7 +38,7 @@ def addBumpMapFile(event=None):
     v = v.split(';')
     vo = []
     for i in v:
-        if i != '': vo.append(i) 
+        if i != '': vo.append(i)
     CPlot._addRender2PyTree(CTK.t, bumpMaps=vo)
     CTK.TKTREE.updateApp()
 
@@ -74,7 +74,7 @@ def addTextureFile(event=None):
                 params = Internal.getNodeFromName1(info, 'ShaderParameters')[1]
                 params[1] = params[1]*nprev/(nprev+len(vo))
 
-    # Add new materials 
+    # Add new materials
     CPlot._addRender2PyTree(CTK.t, materials=vo)
     CTK.TKTREE.updateApp()
 

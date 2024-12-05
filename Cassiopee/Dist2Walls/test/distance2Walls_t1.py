@@ -14,7 +14,7 @@ c = 1
 for signed in [0,1]:
     for loc in ['nodes','centers']:
         for type in ['mininterf','ortho']:
-            dist = Dist2Walls.distance2Walls(a, [sphere], cellnbodies =[cellns], loc=loc,type=type,signed=signed, dim=3)
+            dist = Dist2Walls.distance2Walls(a, [sphere], cellnbodies=[cellns], loc=loc,type=type,signed=signed, dim=3)
             test.testA([dist],c)
             c += 1
 # la moitie de la sphere est masquee
@@ -26,7 +26,7 @@ cellns = C.initVars(cellns,'cellN',cellN0__,['x'])
 for signed in [0,1]:
     for loc in ['nodes','centers']:
         for type in ['mininterf','ortho']:
-            dist = Dist2Walls.distance2Walls(a, [sphere], cellnbodies =[cellns], loc=loc,type=type,signed=signed, dim=3)
+            dist = Dist2Walls.distance2Walls(a, [sphere], cellnbodies=[cellns], loc=loc,type=type,signed=signed, dim=3)
             test.testA([dist],c)
             c+=1
 
@@ -42,4 +42,3 @@ for signed in [0,1]:
             dist = Dist2Walls.distance2Walls(a, [sphere], cellnbodies=[cellns], loc=loc, type=type, signed=signed, dim=3)
             test.testA([dist],c)
             c+=1
-

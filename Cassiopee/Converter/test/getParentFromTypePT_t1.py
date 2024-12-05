@@ -8,4 +8,3 @@ c = Internal.createChild(b, 'level2', 'DataArray_t', 2)
 
 p = Internal.getParentFromType(a, c, 'DataArray_t')
 test.testO(p[0],1)
-

@@ -38,7 +38,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         if 'graphID_Unsteady' in graph:
             graphID_U = graph['graphID_Unsteady']
             graphID_S = graph['graphID_Steady']
-        else: 
+        else:
             graphID_U = None; graphID_S = None
     elif graph is not None and graphliste==True:
         procDict  = graph[0]['procDict']
@@ -53,7 +53,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     #    print("GRAPH IBC IS : ",graph['graphIBCD'])
     #    print("graphID IS :",graph['graphID'])
 
-    # print("procDict is : ",procDict)    
+    # print("procDict is : ",procDict)
     size_int  = 0
     size_real = 0
     listproc  = []
@@ -142,7 +142,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
                 TimeLevelNumber = len(inst)
 
-                if TimeLevelNumber != 1+numero_max-numero_min and len(inst)!= 0: 
+                if TimeLevelNumber != 1+numero_max-numero_min and len(inst)!= 0:
                     raise ValueError("miseAPlatDonorTree__: missing timestep in tc : %d %d %d")%(numero_max,numero_min, TimeLevelNumber)
 
 
@@ -156,12 +156,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
                 RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
                 prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
-                pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local 
+                pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local
                 direction     =  Internal.getNodeFromName1(s, 'DirReceveur')       # Besoin des directions pour l'explicite local
-                directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local 
+                directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local
                 transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local
                 pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
-                profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch) 
+                profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch)
                 ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
                 levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
                 leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
@@ -180,7 +180,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 motion_type  = Internal.getNodeFromName1(s, 'MotionType')
                 kcurv        = Internal.getNodeFromName1(s, XOD.__KCURV__)
                 sd1          = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
-                yline        = Internal.getNodeFromName1(s, 'CoordinateN_ODE')           
+                yline        = Internal.getNodeFromName1(s, 'CoordinateN_ODE')
 
 
                 # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
@@ -203,7 +203,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         if qloc_1 is None:
                             for f_i in range (1,neq_trans+1):
                                 s[2].append([ibm_lbm_variables_1 + str(f_i) , numpy.zeros((nIBC),numpy.float64) , [], 'DataArray_t'])
-                        qloc_1  = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))        
+                        qloc_1  = Internal.getNodeFromName1(s, ibm_lbm_variables_1 + str(1))
 
                         qloc_2 = Internal.getNodeFromName1(s, ibm_lbm_variables_2 + str(1))
                         if qloc_2 is None:
@@ -243,22 +243,22 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 if xcInit is not None: ntab_IBC += 9 # 3 for each type IBM point - 3 wall points, 3 target points, & 3 image points
                 if motion_type is not None: ntab_IBC += 11 #MotionType,transl_speed(x3),axis_pnt(x3),axis_vct(x3),omega
                 if kcurv is not None: ntab_IBC += 1
-                if sd1 is not None: ntab_IBC += 5           
+                if sd1 is not None: ntab_IBC += 5
                 if yline is not None: ntab_IBC += (7*nbpts_linelets+2)
                 if sname == 'IB' and model == "LBMLaminar":
                     if qloc_1 is not None: ntab_IBC += neq_trans
-                    if qloc_2 is not None: ntab_IBC += neq_trans	
+                    if qloc_2 is not None: ntab_IBC += neq_trans
                     if qloc_3 is not None: ntab_IBC += neq_trans
-                if sname == 'IB': 
+                if sname == 'IB':
                     size_IBC   = Nbpts_D*ntab_IBC
-                    count_IBC += 1	      	
-                else: 
+                    count_IBC += 1
+                else:
                     count_ID  += 1
 
                 # periodicite azimutale
                 rotation = 0
-                if RotationAngle is not None: rotation +=3 
-                if RotationCenter is not None: rotation +=3 
+                if RotationAngle is not None: rotation +=3
+                if RotationCenter is not None: rotation +=3
 
                 nrac  =  nrac + 1
                 if proc not in listproc:
@@ -305,31 +305,31 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
 
     if not graphliste: # Si le graph n est pas une liste, on n'est pas en explicite local
-                       #on determine la liste des processus pour lequel rank  est Receveur
+        #on determine la liste des processus pour lequel rank  est Receveur
         graphIBCrcv=[];graphIDrcv=[]
         if graphIBCD is not None:
-                    #on recupere les infos Steady 
+            #on recupere les infos Steady
             graphIBCrcv_=[]; pos_IBC=[]; S_IBC= 1; graphloc=[]
-            S_IBC = _procSource(rank, S_IBC,  pos_IBC, graphIBCD, graphloc, graphIBCrcv_) 
+            S_IBC = _procSource(rank, S_IBC,  pos_IBC, graphIBCD, graphloc, graphIBCrcv_)
 
-            graphIBCrcv  = pos_IBC + graphIBCrcv_    
+            graphIBCrcv  = pos_IBC + graphIBCrcv_
 
         if graphID_U is not None:
-            #on recupere les infos Steady 
+            #on recupere les infos Steady
             graphIDrcv_=[];graphrcv_S=[]; pos_ID=[]; S_ID=TimeLevelNumber + 1
-            S_ID = _procSource(rank, S_ID, pos_ID, graphID_S, graphrcv_S, graphIDrcv_) 
-            #on ajoute les infos UNsteady 
-            for nstep in range(numero_min,numero_max+1): 
+            S_ID = _procSource(rank, S_ID, pos_ID, graphID_S, graphrcv_S, graphIDrcv_)
+            #on ajoute les infos UNsteady
+            for nstep in range(numero_min,numero_max+1):
                 graphloc=[]
-                S_ID = _procSource(rank, S_ID, pos_ID, graphID_U[nstep], graphloc, graphIDrcv_, filterGraph= graphrcv_S) 
+                S_ID = _procSource(rank, S_ID, pos_ID, graphID_U[nstep], graphloc, graphIDrcv_, filterGraph=graphrcv_S)
 
             graphIDrcv   = pos_ID  + graphIDrcv_
 
         else:
-            #on recupere les infos ID Steady 
+            #on recupere les infos ID Steady
             graphIDrcv_=[];graphloc=[]; pos_ID=[]; S_ID=1
             if graphID is not None:
-                S_ID = _procSource(rank, S_ID, pos_ID, graphID, graphloc, graphIDrcv_) 
+                S_ID = _procSource(rank, S_ID, pos_ID, graphID, graphloc, graphIDrcv_)
 
                 graphIDrcv = pos_ID + graphIDrcv_
 
@@ -340,11 +340,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
             graphIBCD_= graph[nstep]['graphIBCD']
             stokproc  =[]
-            S_IBC     = _procSource(rank, S_IBC, pos_IBC, graphIBCD_, stokproc, graphIBCrcv_) 
+            S_IBC     = _procSource(rank, S_IBC, pos_IBC, graphIBCD_, stokproc, graphIBCrcv_)
 
             graphID_  = graph[nstep]['graphID']
             stokproc  =[]
-            S_ID      = _procSource(rank, S_ID, pos_ID, graphID_, stokproc, graphIDrcv_) 
+            S_ID      = _procSource(rank, S_ID, pos_ID, graphID_, stokproc, graphIDrcv_)
 
         graphIBCrcv  = pos_IBC + graphIBCrcv_
         graphIDrcv   = pos_ID  + graphIDrcv_
@@ -368,7 +368,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     _graphID   = numpy.asarray([len(graphIDrcv)] +graphIDrcv, dtype=Internal.E_NpyInt)
 
     param_int[2                 :3+len(graphIBCrcv)                ] = _graphIBC
-    param_int[3+len(graphIBCrcv):4+len(graphIBCrcv)+len(graphIDrcv)] = _graphID    
+    param_int[3+len(graphIBCrcv):4+len(graphIBCrcv)+len(graphIDrcv)] = _graphID
 
     # print("param_int is ",param_int[0:2+len(graphIBCrcv)+len(graphIDrcv)+1])
     # Dictionnaire pour optimisation
@@ -387,7 +387,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     size_coef   = []
     adr_coef    = []   # pour cibler debut de echange dans param_real
 
-    shift_graph = len(graphIDrcv) + len(graphIBCrcv) + 4 
+    shift_graph = len(graphIDrcv) + len(graphIBCrcv) + 4
     # print("shift_graph is ",shift_graph)
     shift_coef  =0
     shift       = shift_graph # le shift prend en compte la postion des graphs (ID+IBC) entre la address contenant NbP2P et
@@ -511,9 +511,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         temp_extra2_local=None;pttemp_extra2_local=0;
 
         wmodel_local_dens=None;wmodel_local_velx=None;wmodel_local_vely=None;
-        wmodel_local_velz=None;wmodel_local_temp=None;wmodel_local_sanu=None;       
+        wmodel_local_velz=None;wmodel_local_temp=None;wmodel_local_sanu=None;
         pt_dens_wm_local=0;pt_velx_wm_local=0;pt_vely_wm_local=0;
-        pt_velz_wm_local=0;pt_temp_wm_local=0;pt_sanu_wm_local=0;   
+        pt_velz_wm_local=0;pt_temp_wm_local=0;pt_sanu_wm_local=0;
 
         gradxP=None;gradyP=None;gradzP=None;
         ptgradxP=0;ptgradyP=0;ptgradzP=0;
@@ -557,7 +557,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         qloc_3=[None]*(neq_loc)
         ptqloc_3=[0]*(neq_loc)
 
-        if sname == 'IB': 
+        if sname == 'IB':
             zsrname = zsrname.split('_')
             if len(zsrname) < 3:
                 #print('Warning: miseAPlatDonorTree: non consistent with the version of IBM preprocessing.')
@@ -567,7 +567,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 elif model=='LBMLaminar':
                     print('Assuming IBC type is no-slip.')
                     param_int[iadr+rac[pos]*3]  = 1
-                else: 
+                else:
                     print('Assuming IBC type is Musker wall model.')
                     param_int[iadr+rac[pos]*3]  = 3
             else:
@@ -656,7 +656,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 pt_velz_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3)
                 pt_temp_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
                 pt_sanu_wm_local    = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
-                size_IBC   += 6*Nbpts_D; inc += 6 
+                size_IBC   += 6*Nbpts_D; inc += 6
 
 
             gradxP = Internal.getNodeFromName1(s, 'gradxPressure')
@@ -734,13 +734,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 ptmotion_type   = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+0)
                 pttransl_speedX = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+1)
                 pttransl_speedY = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+2)
-                pttransl_speedZ = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3) 
+                pttransl_speedZ = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+3)
                 ptaxis_pntX     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+4)
                 ptaxis_pntY     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+5)
-                ptaxis_pntZ     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+6) 
+                ptaxis_pntZ     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+6)
                 ptaxis_vctX     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+7)
                 ptaxis_vctY     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+8)
-                ptaxis_vctZ     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+9) 
+                ptaxis_vctZ     = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+9)
                 ptomega         = pt_coef + Nbpts_InterpD + Nbpts_D*(inc+10)
                 size_IBC   += 11*Nbpts_D; inc += 11
 
@@ -851,7 +851,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         ptutau,ptyplus,
                         pttemp_local, pttemp_extra_local,pttemp_extra2_local,
                         pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
-                        pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,                       
+                        pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,
                         ptgradxP, ptgradyP, ptgradzP,
                         ptgradxU, ptgradyU, ptgradzU,
                         ptgradxV, ptgradyV, ptgradzV,
@@ -895,7 +895,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                          ptutau,ptyplus,
                          pttemp_local, pttemp_extra_local,pttemp_extra2_local,
                          pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
-                         pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,   
+                         pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,
                          ptgradxP, ptgradyP, ptgradzP,
                          ptgradxU, ptgradyU, ptgradzU,
                          ptgradxV, ptgradyV, ptgradzV,
@@ -1055,7 +1055,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         qloc_2[f_i][1]   = param_real[ ptqloc_2[f_i] : ptqloc_2[f_i] + Nbpts_D ]
                 if qloc_3[0] is not None:
                     for f_i in range(0,neq_loc):
-                        qloc_3[f_i][1]   = param_real[ ptqloc_3[f_i] : ptqloc_3[f_i] + Nbpts_D ]      
+                        qloc_3[f_i][1]   = param_real[ ptqloc_3[f_i] : ptqloc_3[f_i] + Nbpts_D ]
 
         param_int[ iadr +rac[pos]*8 ] = adr_coef[pos] + size_coef[pos]          # PtcoefAdr
 
@@ -1083,7 +1083,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         else:               param_int[ iadr +rac[pos]*13  ] = neq_loc
 
         tmp =  Internal.getNodeFromName1(s , 'NSLBM')
-        if tmp is not None: 
+        if tmp is not None:
             if neq_loc==5: param_int[ iadr +rac[pos]*13  ] = 11  # NS vers LBM
             else:          param_int[ iadr +rac[pos]*13  ] = -5  # LBM vers NS
 
@@ -1133,7 +1133,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 #print int([1]
         #print('model=', model, 'tmp=', tmp, 'neq_loc=', neq_loc)
 
-        ### Verifier position et choix entre Nbpts et NbptsD 
+        ### Verifier position et choix entre Nbpts et NbptsD
         size_ptlistD[pos] = size_ptlistD[pos] + Nbpts_D
         size_ptlist[pos]  = size_ptlist[pos]  + Nbpts
         size_ptType[pos]  = size_ptType[pos]  + Nbpts_D + len(Nbtype)+1
@@ -1156,7 +1156,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  ptutau,ptyplus,
                  pttemp_local, pttemp_extra_local, pttemp_extra2_local,
                  pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
-                 pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,   
+                 pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,
                  ptgradxP, ptgradyP, ptgradzP,
                  ptgradxU, ptgradyU, ptgradzU,
                  ptgradxV, ptgradyV, ptgradzV,
@@ -1209,7 +1209,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                 elif ltype == 4: sizecoef=4
 
             if ltype == ntype:
-            # recopie interpolantType
+                # recopie interpolantType
                 param_int[ ptTy + shift_typ + l + l0 ] = ltype
 
                 # recopie pointlist
@@ -1251,9 +1251,9 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
 
                     if temp_local is not None:
                         param_real[ pttemp_local       + l + l0 ]= temp_local[1][i]
-                    if temp_extra_local is not None: 
+                    if temp_extra_local is not None:
                         param_real[ pttemp_extra_local + l + l0 ]= temp_extra_local[1][i]
-                    if temp_extra2_local is not None: 
+                    if temp_extra2_local is not None:
                         param_real[ pttemp_extra2_local + l + l0 ]= temp_extra2_local[1][i]
 
                     if wmodel_local_dens is not None:
@@ -1336,7 +1336,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                         param_real[ ptalphasbetaline + l + l0 ]= alphasbetaline[1][i]
                         param_real[ ptindexline      + l + l0 ]= indexline[1][i]
 
-                    if model == 'LBMLaminar':    
+                    if model == 'LBMLaminar':
                         if qloc_1[0] is not None:
                             for f_i in range (0, neq_loc):
                                 param_real[ ptqloc_1[f_i]   + l + l0 ]= qloc_1[f_i][1][i]
@@ -1345,7 +1345,7 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                                 param_real[ ptqloc_2[f_i]   + l + l0 ]= qloc_2[f_i][1][i]
                         if qloc_3[0] is not None:
                             for f_i in range (0, neq_loc):
-                                param_real[ ptqloc_3[f_i]   + l + l0 ]= qloc_3[f_i][1][i]     
+                                param_real[ ptqloc_3[f_i]   + l + l0 ]= qloc_3[f_i][1][i]
                 #recopie  InterpD
                 param_real[ pt_coef + nocoef: pt_coef + nocoef+sizecoef] = InterpD[1][ nocoef_old: nocoef_old+sizecoef]
                 nocoef     = nocoef     + sizecoef
@@ -1457,9 +1457,9 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
 
         if temp_local is not None:
             connector.initNuma(temp_local[1]      , param_real, pttemp_local       , Nbpts_D , 0, val)
-        if temp_extra_local is not None:    
+        if temp_extra_local is not None:
             connector.initNuma(temp_extra_local[1], param_real, pttemp_extra_local , Nbpts_D , 0, val)
-        if temp_extra2_local is not None:    
+        if temp_extra2_local is not None:
             connector.initNuma(temp_extra2_local[1], param_real, pttemp_extra2_local , Nbpts_D , 0, val)
 
         if wmodel_local_dens is not None:
@@ -1555,7 +1555,7 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
                     connector.initNuma(qloc_2[f_i][1] , param_real, ptqloc_2[f_i] , Nbpts_D , 0, val)
             if qloc_3[0] is not None:
                 for f_i in range (0,neq_loc):
-                    connector.initNuma(qloc_3[f_i][1] , param_real, ptqloc_3[f_i] , Nbpts_D , 0, val)    
+                    connector.initNuma(qloc_3[f_i][1] , param_real, ptqloc_3[f_i] , Nbpts_D , 0, val)
     # recopie  InterpD
     connector.initNuma(InterpD[1] , param_real, pt_coef , Nbpts_InterpD , 0, val)
 
@@ -1682,7 +1682,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             zrcvname = Internal.getValue(rac)
             no_zone = 0
             for z0 in zones:
-                if z0[0] == zrcvname: param_int[ pt_rac +6 ]= no_zone  # No zone raccord                    
+                if z0[0] == zrcvname: param_int[ pt_rac +6 ]= no_zone  # No zone raccord
                 no_zone += 1
 
             ideb =  pt_rac +7
@@ -1740,7 +1740,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
 
                         var_ibc.append('CoordinateX_PW#Init')
                         var_ibc.append('CoordinateY_PW#Init')
-                        var_ibc.append('CoordinateZ_PW#Init')                        
+                        var_ibc.append('CoordinateZ_PW#Init')
                     if motion_type is not None:
                         var_ibc.append('MotionType')
 
@@ -1756,7 +1756,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
                         var_ibc.append('axis_vctY')
                         var_ibc.append('axis_vctZ')
 
-                        var_ibc.append('omega')                        
+                        var_ibc.append('omega')
                     if kcurv is not None:
                         var_ibc.append('KCurv')
                     if yline is not None:
@@ -1800,7 +1800,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
                         var_ibc.append('axis_vctY')
                         var_ibc.append('axis_vctZ')
 
-                        var_ibc.append('omega')  
+                        var_ibc.append('omega')
 
                 count_ibc = 0
                 ideb      = pt_coef + Nbpts_InterpD
@@ -1862,7 +1862,7 @@ def ___setInterpTransfers(aR, topTreeD,
 # calcul les processus source pour rank ( graphrcv_) et la position dans param_int (pos_list)
 # filterGraph:: pour les cas unsteady, permet de ne pas ajouter les sources fournies par raccord steady
 #
-def _procSource(rank, S_pos, pos_list, graph, graphloc, graphrcv_, filterGraph=None): 
+def _procSource(rank, S_pos, pos_list, graph, graphloc, graphrcv_, filterGraph=None):
 
     pos_list.append(S_pos)
     k_pos= 0
@@ -1882,4 +1882,3 @@ def _procSource(rank, S_pos, pos_list, graph, graphloc, graphrcv_, filterGraph=N
     #print("Spos=", S_pos,graphrcv_, filterGraph )
 
     return S_pos
-

@@ -105,7 +105,7 @@ def setHoleInterpolatedPoints():
 
 #==============================================================================
 # blanking
-# Blank la selection avec la surface fournie 
+# Blank la selection avec la surface fournie
 #==============================================================================
 def blank():
     if CTK.t == []: return
@@ -266,7 +266,7 @@ def createApp(win):
     # -0- double wall: active ? -
     V = TK.StringVar(win); V.set('inactive'); VARS.append(V)
     # -1- delta XRay -
-    V = TK.StringVar(win); V.set('1.e-10'); VARS.append(V)    
+    V = TK.StringVar(win); V.set('1.e-10'); VARS.append(V)
     # -2- tolerance XRay -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
     # -3- Base name 1
@@ -304,7 +304,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Init cellN", command=initCellN)
     B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                      text='Init the cellN to 1. in the tree or selection.')
+                       text='Init the cellN to 1. in the tree or selection.')
     r += 1
 
     # - applyBCOverlap -
@@ -365,14 +365,14 @@ def createApp(win):
     B.grid(row=r, column=3, sticky=TK.EW)
 
     # - optimizeOverlap -
-    B = TTK.Button(Frame, text="Optimize overlap", command= optimize)
+    B = TTK.Button(Frame, text="Optimize overlap", command=optimize)
     B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Optimize the overlapping')
     r += 1
 
     # - createOversetHoles -
     B = TTK.Button(Frame, text="Create OversetHoles nodes",
-                   command= createOversetHoles)
+                   command=createOversetHoles)
     B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create the nodes OversetHoles in pyTree.')
     r += 1

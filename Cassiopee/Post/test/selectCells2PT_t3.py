@@ -9,7 +9,7 @@ def F(x, y, z):
     if (x+2*y+z > 20.): return True
     else: return False
 
-# test sur une zone - tag aux noeuds - sans champ en centre 
+# test sur une zone - tag aux noeuds - sans champ en centre
 a = G.cart((0,0,0),(1,1,1),(11,11,11))
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'imin')
 a = C.addBC2Zone(a, 'overlap1', 'BCOverlap', 'jmin')

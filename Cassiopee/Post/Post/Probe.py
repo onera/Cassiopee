@@ -16,7 +16,7 @@ class Probe:
     """Probe for extracting data from fields during computations."""
     # defaullt initialization
     def init0(self):
-        # probe mode: 
+        # probe mode:
         # mode=0, probe XYZ, single point
         # mode=1, probe ind, single point
         # mode=2, zones donnees
@@ -67,12 +67,12 @@ class Probe:
         self._probeZones = None
 
     # init from position X/ind+blockName/None
-    def __init__(self, fileName, 
-                 t=None, 
-                 X=None, 
+    def __init__(self, fileName,
+                 t=None,
+                 X=None,
                  ind=None, blockName=None,
-                 tPermeable=None, 
-                 fields=None, append=False, 
+                 tPermeable=None,
+                 fields=None, append=False,
                  bufferSize=100, writeCoords=True, modeForce=0):
         """Create a probe."""
         self.init0()
@@ -109,7 +109,7 @@ class Probe:
             self._mode = 4
 
         # Empilement de zones
-        else: 
+        else:
             self._mode = 2
 
         if Cmpi.rank == 0: print('Info: probe is in mode ', self._mode)
@@ -121,7 +121,7 @@ class Probe:
 
             if self._proc is not None and self._probeZones is not None:
                 self.checkFile(append=self._append)
-            #if t is not None and fields is not None: 
+            #if t is not None and fields is not None:
             #    self.checkVariables(t, fields)
 
     # examine la localisation des champs
@@ -161,7 +161,7 @@ class Probe:
         ret = Cmpi.allgather(dist)
         dist = 1.e16; proc = 0
         for p, i in enumerate(ret):
-            if i is not None and i < dist: 
+            if i is not None and i < dist:
                 dist = i; proc = p
         if Cmpi.rank == 0: print('Info: probe found on proc: %d on block: %s.'%(proc,blockName))
 
@@ -184,7 +184,7 @@ class Probe:
         if p is not None and not Cmpi.isZoneSkeleton__(p):
             proc = Cmpi.rank
             if Cmpi.rank == 0: print('Info: probe found on proc: %d on block %s.'%(proc,blockName))
-        else: 
+        else:
             proc = -1
             #print('Warning: probe not found on block %s.'%blockName)
 
@@ -194,9 +194,9 @@ class Probe:
                 loc = self.getFieldLoc(self._fields)
                 dim = Internal.getZoneDim(b)
                 if dim[0] == 'Structured':
-                    if loc == 'nodes': 
+                    if loc == 'nodes':
                         ind = (ind[0]-1)+(ind[1]-1)*dim[1]+(ind[2]-1)*dim[2]
-                    else: 
+                    else:
                         ind = (ind[0]-1)+(ind[1]-1)*(dim[1]-1)+(ind[2]-1)*(dim[2]-1)
                 else: ind = ind[0]
             else: ind = -1
@@ -223,7 +223,7 @@ class Probe:
     def printInfo(self):
         """Print information on probe."""
         if Cmpi.rank == 0:
-            if self._mode == 0 or self._mode == 1: 
+            if self._mode == 0 or self._mode == 1:
                 print('Info: probe: position X: ', self._posX, self._posY, self._posZ)
                 print('Info: probe: on block:', self._blockName)
                 print('Info: probe: on block global index:', self._ind)
@@ -319,7 +319,7 @@ class Probe:
                     tl = Distributed.convertFile2SkeletonTree(self._fileName)
                 elif self._mode == 4:
                     tl = C.convertFile2PyTree(self._fileName)
-                else: 
+                else:
                     tl = Cmpi.convertFile2SkeletonTree(self._fileName)
 
                 zones = Internal.getZones(tl)
@@ -342,7 +342,7 @@ class Probe:
             self._filecur = 0
             return None
 
-        #if self._mode != 4:   
+        #if self._mode != 4:
         #  Nettoyage + ne conserve que les zones du proc
         to = C.newPyTree()
         bases = Internal.getBases(tl)
@@ -389,7 +389,7 @@ class Probe:
         for z in zones:
             if Internal.getNodeFromName1(z, 'FlowSolution#Centers') is not None:
                 paths += ['CGNSTree/Base/%s/FlowSolution#Centers'%z[0]]
-        if paths != []:    
+        if paths != []:
             nodes = Distributed.readNodesFromPaths(self._fileName, paths)
             for c, z in enumerate(self._probeZones):
                 cont = Internal.getNodeFromName2(z, 'FlowSolution#Centers')
@@ -397,7 +397,7 @@ class Probe:
 
         if len(self._probeZones) > 0:
             cont = Internal.getNodeFromName2(self._probeZones[0], 'FlowSolution')
-            if cont is not None: 
+            if cont is not None:
                 pt = Internal.getNodeFromName2(cont, 'time')[1]
                 if pt.ndim == 2: pt = pt[:,0]
                 elif pt.ndim == 3: pt = pt[:,0,0]
@@ -433,7 +433,7 @@ class Probe:
         for v in varList:
             vs = v.split(':')
             contName = Internal.__FlowSolutionNodes__
-            if len(vs) == 2 and vs[0] == 'centers': 
+            if len(vs) == 2 and vs[0] == 'centers':
                 contName = Internal.__FlowSolutionCenters__
                 v = vs[1]
             cont = Internal.getNodeFromName1(block, contName)
@@ -576,9 +576,9 @@ class Probe:
             self._procDicts = Cmpi.getProcDict(tsBB)
             if Cmpi.size == 1:
                 for i in self._procDicts:
-                    if self._procDicts[i] < 0: self._procDicts[i] = 0 
+                    if self._procDicts[i] < 0: self._procDicts[i] = 0
 
-        Cmpi.barrier()    
+        Cmpi.barrier()
         if self._graph is None:
             tcsBB = Cmpi.createBBoxTree(tcs)
             procDictc = Cmpi.getProcDict(tcsBB)
@@ -709,8 +709,8 @@ class Probe:
                 if fc is not None:
                     fc = Internal.copyNode(fc)
                     fc[0] = 'FlowSolution#%d'%self._filecur
-                    nodes += [fc] 
-                    paths += ['CGNSTree/Base/%s'%pzone[0]] 
+                    nodes += [fc]
+                    paths += ['CGNSTree/Base/%s'%pzone[0]]
                 fcc = Internal.getNodeFromName1(pzone, 'FlowSolution#Centers')
                 if fcc is not None:
                     fcc = Internal.copyNode(fcc)
@@ -794,11 +794,11 @@ class Probe:
                     pz = Internal.getNodeFromName1(nodes2[0], 'CoordinateZ')[1]
                     if nj > 1:
                         px = px[nr,:]; py = py[nr,:]; pz = pz[nr,:]
-                    else: 
+                    else:
                         px = px[nr]; py = py[nr]; pz = pz[nr]
                     ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
                     oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
-                    oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
+                    oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)
 
                 if isFS:
                     pos = 0
@@ -924,7 +924,7 @@ class Probe:
             ptx[start:start+size] = ptx2[0:size]
         elif ind is None: # take all
             if ptx2.ndim == 2: ptx[start:start+size,:] = ptx2[0:size,:]
-            else: raise ValueError('not implemented') 
+            else: raise ValueError('not implemented')
         elif len(ind) == 1:
             i = ind[0]
             if ptx2.ndim == 2: ptx[start:start+size] = ptx2[0:size,i]
@@ -941,12 +941,12 @@ class Probe:
                     ptx[start:start+size,c] = ptx2[0:size,ii,jj]
         return None
 
-    # mode 2: lit un container, retourne un numpy du champ pour 
+    # mode 2: lit un container, retourne un numpy du champ pour
     # chaque probe zone (ncells, ntime), concatene avec le precedent
     def readCont2(self, cont, field, pin):
         # field name
         spl = field.split(':')
-        if len(spl) == 2: 
+        if len(spl) == 2:
             fieldName = spl[1]
             if spl[0] == 'centers': fieldCont = 'FlowSolution#Centers'
             else: fcont = 'FlowSolution'

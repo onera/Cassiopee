@@ -66,7 +66,7 @@ def testA(arrays, number=1):
                           'identifyNodes failed, topological diff performed '
                           'instead.')
                     ret = C.diffArrays(arrays, old)
-            else: 
+            else:
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")
                 ret = C.diffArrays(arrays, old)
@@ -230,7 +230,7 @@ def checkObject_(objet, refObjet, reference):
     if isinstance(refObjet, bool):
         if refObjet != objet:
             print("DIFF: object value differs from %s (diff=%g,%g)."%(reference, objet, refObjet))
-            return False 
+            return False
     elif isinstance(refObjet, (int, numpy.int32, numpy.int64, numpy.intc)):
         diff = abs(refObjet-objet)
         if diff > 0:
@@ -465,7 +465,7 @@ def checkTree__(node1, node2):
         #         print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
         #         delta = numpy.max(numpy.abs(val1 -val2))
         #         print('DIFF: ', delta)
-        #         return 0  
+        #         return 0
     return 1
 
 #==============================================================================
@@ -509,7 +509,7 @@ def checkType__(a):
             if isinstance(b[0], str) and (len(b) == 4 or len(b) == 5):
                 return 1
             else: return 2
-    else: return 2  
+    else: return 2
 
 #==============================================================================
 # IN: output=1: ecrit les fichiers resultats
@@ -587,7 +587,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
         coverage += 1
     except TypeError:
         if output == 1: print('STRUCT3D: uncovered.')
-    except: print('%s: Structure 3D: fails.'%testName); raise 
+    except: print('%s: Structure 3D: fails.'%testName); raise
 
     # 4- BAR
     try:
@@ -866,7 +866,7 @@ def stdTestT__(output, F, *keywords):
         if res != -2: testT(b, 1)
         else: testO(b, 1)
         coverage += 1
-    except TypeError: pass # 
+    except TypeError: pass #
     except: print('%s: One zone: fails.'%testName); raise
 
     # 2- Une liste de zones

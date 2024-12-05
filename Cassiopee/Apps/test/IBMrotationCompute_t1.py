@@ -28,7 +28,7 @@ modulo_verif = 5
 
 rpm  = 100
 OMG  = rpm*2*math.pi/60
-time_step= 1/(OMG*180/math.pi)/600    
+time_step= 1/(OMG*180/math.pi)/600
 ## =======================
 ## =======================
 
@@ -37,7 +37,7 @@ numb={"temporal_scheme": "implicit_local",
       "omp_mode":0,
       "modulo_verif":modulo_verif}
 
-numz={"time_step": time_step, 
+numz={"time_step": time_step,
       "time_step_nature": "global",
       "epsi_newton": 0.1}
 
@@ -172,9 +172,9 @@ for it in range(it0,NIT+it0):
     C._initVars(t, "{centers:cellN#Motion}=({centers:cellN#Static}<2)*{centers:cellN#Motion}+({centers:cellN#Static}>1)*minimum(1,{centers:cellN#Motion})")
     C._initVars(t,"{centers:cellN}=minimum({centers:cellN#Motion}*{centers:cellN#Static},2.)")
     C._cpVars(t, 'centers:cellN',tc, 'cellN')
-    ucData = (graphX, intersectionDict, dictOfADT, 
+    ucData = (graphX, intersectionDict, dictOfADT,
               dictOfNobOfRcvZones, dictOfNozOfRcvZones,
-              dictOfNobOfDnrZones, dictOfNozOfDnrZones, 
+              dictOfNobOfDnrZones, dictOfNozOfDnrZones,
               dictOfNobOfRcvZonesC, dictOfNozOfRcvZonesC,
               timeiter, procDict, True, varType, 1, 2, 1)
 

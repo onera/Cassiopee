@@ -1,5 +1,5 @@
 import Converter.PyTree as C
-import Converter.Internal as I 
+import Converter.Internal as I
 import Generator.PyTree as G
 #import Post.PyTree as P
 import os, sys
@@ -18,8 +18,8 @@ z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 
 ########################## create the hook
 XOR._setZonesAndJoinsUId(z)
-hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
-######################################## 
+hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision
+########################################
 
 for i in range(3): # simple loop to demonstrate the feature sequencing adaptCells and adaptCellsNodal
 
@@ -28,9 +28,9 @@ for i in range(3): # simple loop to demonstrate the feature sequencing adaptCell
     nodal_vals = numpy.empty((n,), dtype=I.E_NpyInt)
     nodal_vals[:] = 1
     #one nodal_vals and one hmesh per zone
-    z = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh)
+    z = XOR.adaptCellsNodal(z, [nodal_vals], hmesh=hmsh)
     # refine now with source mesh
-    z = XOR.adaptCells(z, s, itermax=-1, hmesh = hmsh)
+    z = XOR.adaptCells(z, s, itermax=-1, hmesh=hmsh)
 
 z = XOR.conformizeHMesh(z, hmsh)     # each children faces replace its mother in any polyhedron
 
@@ -45,5 +45,3 @@ test.testT(z, 1)
 ########################## free the hook
 XOR.deleteHMesh(hmsh);
 #####################################
-
-

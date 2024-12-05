@@ -6,4 +6,3 @@ import Converter as C
 arrays = C.convertFile2Arrays("dauphin_skin.plt","bin_tp")
 array = P.zipper(arrays,['overlapTol',1.e-3])
 C.convertArrays2File([array], "new.plt","bin_tp")
-

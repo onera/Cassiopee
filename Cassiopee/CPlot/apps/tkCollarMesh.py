@@ -108,7 +108,7 @@ def unionCollarMesh():
             for z in nodes:
                 if (z[0] == sname[1]): surface1.append(z)
 
-    # - surfaces2 - 
+    # - surfaces2 -
     name = VARS[1].get()
     names = name.split(';')
     surface2 = []
@@ -122,7 +122,7 @@ def unionCollarMesh():
                 if z[0] == sname[1]: surface2.append(z)
 
     # - constraints1 -
-    constraints1 = [] 
+    constraints1 = []
     name = VARS[8].get()
     names = name.split(';')
     for v in names:
@@ -174,16 +174,16 @@ def unionCollarMesh():
     zlist = []
     if contours != []:
         for c in contours:
-            zones = G.collarMesh(surface1, surface2, distribj, distribk, 
+            zones = G.collarMesh(surface1, surface2, distribj, distribk,
                                  niterj=niterj, niterk=niterk, alphaRef=180.,
-                                 type='union', contour=c, 
-                                 constraints1=constraints1, 
+                                 type='union', contour=c,
+                                 constraints1=constraints1,
                                  constraints2=constraints2)
             zlist += zones
     else:
-        zones = G.collarMesh(surface1, surface2, distribj, distribk, 
+        zones = G.collarMesh(surface1, surface2, distribj, distribk,
                              niterj=niterj, niterk=niterk,
-                             type='union', constraints1=constraints1, 
+                             type='union', constraints1=constraints1,
                              constraints2=constraints2)
         zlist += zones
 
@@ -230,7 +230,7 @@ def differenceCollarMesh():
             for z in nodes:
                 if z[0] == sname[1]: surface2.append(z)
     # - constraints1 -
-    constraints1 = [] 
+    constraints1 = []
     name = VARS[8].get()
     names = name.split(';')
     for v in names:
@@ -282,16 +282,16 @@ def differenceCollarMesh():
     zlist = []
     if contours != []:
         for c in contours:
-            zones = G.collarMesh(surface1, surface2, distribj, distribk, 
+            zones = G.collarMesh(surface1, surface2, distribj, distribk,
                                  niterj=niterj, niterk=niterk, alphaRef=180.,
-                                 type='difference', contour=c, 
-                                 constraints1=constraints1, 
+                                 type='difference', contour=c,
+                                 constraints1=constraints1,
                                  constraints2=constraints2)
             zlist += zones
     else:
-        zones = G.collarMesh(surface1, surface2, distribj, distribk, 
+        zones = G.collarMesh(surface1, surface2, distribj, distribk,
                              niterj=niterj, niterk=niterk,
-                             type='difference', constraints1=constraints1, 
+                             type='difference', constraints1=constraints1,
                              constraints2=constraints2)
         zlist += zones
     CTK.saveTree()
@@ -332,9 +332,9 @@ def createApp(win):
     WIDGETS['frameMenu'] = FrameMenu
 
     # - VARS -
-    # -0- Surface1- 
+    # -0- Surface1-
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-    # -1- Surface2- 
+    # -1- Surface2-
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- hauteur de la maille dans la direction j
     V = TK.StringVar(win); V.set('1.e-1'); VARS.append(V)

@@ -32,34 +32,34 @@ SEP2 = '@'
 
 # other var names to CGNS var names
 name2CGNS = { \
-'x'              :'CoordinateX'                   , \
-'y'              :'CoordinateY'                   , \
-'z'              :'CoordinateZ'                   , \
-'x3d'            :'CoordinateX'                   , \
-'y3d'            :'CoordinateY'                   , \
-'z3d'            :'CoordinateZ'                   , \
-'X'              :'CoordinateX'                   , \
-'Y'              :'CoordinateY'                   , \
-'Z'              :'CoordinateZ'                   , \
-'ro'             :'Density'                       , \
-'rou'            :'MomentumX'                     , \
-'rov'            :'MomentumY'                     , \
-'row'            :'MomentumZ'                     , \
-'rovx'           :'MomentumX'                     , \
-'rovy'           :'MomentumY'                     , \
-'rovz'           :'MomentumZ'                     , \
-'roe'            :'EnergyStagnationDensity'       , \
-'roE'            :'EnergyStagnationDensity'       , \
-'rok'            :'TurbulentEnergyKineticDensity' , \
-'ronutilde'      :'TurbulentSANuTildeDensity'    , \
-'roeps'          :'TurbulentDissipationDensity'   , \
-'roomega'        :'TurbulentDissipationRateDensity', \
-'mach'           :'Mach'                          , \
-'psta'           :'Pressure'                      , \
-'tsta'           :'Temperature'                   , \
-'viscrapp'       :'Viscosity_EddyMolecularRatio'  , \
-'walldistance'   :'TurbulentDistance'             , \
-'wallglobalindex':'TurbulentDistanceIndex'        , \
+    'x'              :'CoordinateX'                   , \
+    'y'              :'CoordinateY'                   , \
+    'z'              :'CoordinateZ'                   , \
+    'x3d'            :'CoordinateX'                   , \
+    'y3d'            :'CoordinateY'                   , \
+    'z3d'            :'CoordinateZ'                   , \
+    'X'              :'CoordinateX'                   , \
+    'Y'              :'CoordinateY'                   , \
+    'Z'              :'CoordinateZ'                   , \
+    'ro'             :'Density'                       , \
+    'rou'            :'MomentumX'                     , \
+    'rov'            :'MomentumY'                     , \
+    'row'            :'MomentumZ'                     , \
+    'rovx'           :'MomentumX'                     , \
+    'rovy'           :'MomentumY'                     , \
+    'rovz'           :'MomentumZ'                     , \
+    'roe'            :'EnergyStagnationDensity'       , \
+    'roE'            :'EnergyStagnationDensity'       , \
+    'rok'            :'TurbulentEnergyKineticDensity' , \
+    'ronutilde'      :'TurbulentSANuTildeDensity'    , \
+    'roeps'          :'TurbulentDissipationDensity'   , \
+    'roomega'        :'TurbulentDissipationRateDensity', \
+    'mach'           :'Mach'                          , \
+    'psta'           :'Pressure'                      , \
+    'tsta'           :'Temperature'                   , \
+    'viscrapp'       :'Viscosity_EddyMolecularRatio'  , \
+    'walldistance'   :'TurbulentDistance'             , \
+    'wallglobalindex':'TurbulentDistanceIndex'        , \
 }
 
 # Known BCs
@@ -668,7 +668,7 @@ def newElements(name='Elements', etype='UserDefined',
   else: etp, nnodes = eltName2EltNo(etype)
   if parent is None:
     node = createNode(name, 'Elements_t', value=[etp,eboundary])
-  else: 
+  else:
     node = createUniqueChild(parent, name, 'Elements_t', value=[etp,eboundary])
   #node[1] = node[1].astype(numpy.int32) # force I4
   newDataArray('ElementConnectivity', econnectivity, parent=node)
@@ -1013,9 +1013,9 @@ def newThermalRelaxationModel(value='Null', parent=None):
 def newChemicalKineticsModel(value='Null', parent=None):
   """Create a new ChemicalKineticsModel node."""
   ChemicalKineticsModel_l = ['Null', 'UserDefined', 'Frozen',
-                              'ChemicalEquilibCurveFit',
-                              'ChemicalEquilibMinimization',
-                              'ChemicalNonequilib']
+                             'ChemicalEquilibCurveFit',
+                             'ChemicalEquilibMinimization',
+                             'ChemicalNonequilib']
   if value not in ChemicalKineticsModel_l:
     raise ValueError('newChemicalFineticsModel: value must be in %s.'%str(ChemicalKineticsModel_l))
   if parent is None:
@@ -1198,7 +1198,7 @@ def newArbitraryGridMotion(name='Motion', value='Null', parent=None):
     node = createNode(name, 'ArbitraryGridMotion_t')
   else: node = createUniqueChild(parent, name, 'ArbitraryGridMotion_t')
   createUniqueChild(node, 'ArbitraryGridMotion',
-		      'ArbitraryGridMotionType_t', value=value)
+                    'ArbitraryGridMotionType_t', value=value)
   return node
 
 # -- newUserDefinedData
@@ -2718,7 +2718,7 @@ def eltName2EltNo(name):
     elif nnodes == 6: eltno = 6
     elif nnodes == 9: eltno = 25   # D'apres l'enumeration CGNS
     elif nnodes == 10: eltno = 26  #
-                                   # Pour l'ordre 4, rien dans l'enumeration CGNS...
+    # Pour l'ordre 4, rien dans l'enumeration CGNS...
   elif name[0:4] == 'QUAD':
     if len(name) == 4: nnodes = 4
     else: nnodes = int(name[5:])
@@ -2726,8 +2726,8 @@ def eltName2EltNo(name):
     elif nnodes == 8:  eltno = 8
     elif nnodes == 9:  eltno = 9
     elif nnodes == 12: eltno = 27 # D'apres l'enumeration CGNS
-    elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait etre QUAD_P4_16... Que faire ? 
-                                  # Pour l'ordre 4,rien dans l'enumeration CGNS
+    elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait etre QUAD_P4_16... Que faire ?
+    # Pour l'ordre 4,rien dans l'enumeration CGNS
   elif name[0:5] == 'TETRA':
     if len(name) == 5: nnodes = 4
     else: nnodes = int(name[6:])
@@ -3650,7 +3650,7 @@ def getZoneDim(zone):
   # zone type
   info = zone[2]
   for i in info:
-  # Noeud zone type
+    # Noeud zone type
     if i[3] == 'ZoneType_t':
       cellDim = 3
       gtype = getValue(i)

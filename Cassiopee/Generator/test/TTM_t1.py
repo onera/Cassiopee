@@ -10,7 +10,7 @@ P2 = (0,7,0)
 P3 = (5,7,0)
 
 # Geometrie
-d1 = D.line(P0, P1) 
+d1 = D.line(P0, P1)
 d2 = D.line(P2, P3)
 pts = C.array('x,y,z', 5, 1, 1)
 x = pts[1][0]; y = pts[1][1]; z = pts[1][2]
@@ -29,7 +29,7 @@ x[2] = 2.; y[2] = 3.; z[2] = 0.
 x[3] = 6.; y[3] = 5.; z[3] = 0.
 x[4] = 5.; y[4] = 7.; z[4] = 0.
 
-b2 = D.bezier( pts ) 
+b2 = D.bezier( pts )
 
 # Discretisation reguliere de chaque ligne
 Ni = 20; Nj = 10

@@ -3,7 +3,7 @@ import Converter.PyTree as C
 import Generator.PyTree as G
 import KCore.test as test
 
-# CAS 1D 
+# CAS 1D
 def F(x,y): return 2*x+y
 
 a = G.cart((0,0,0), (1,1,1), (10,1,1))

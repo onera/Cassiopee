@@ -4,10 +4,10 @@ import Transform as T
 import KCore.test as test
 
 xo = 0.; yo = 0.; zo = 0.
-nx = 21; ny = 21; nz = 21 
+nx = 21; ny = 21; nz = 21
 hx = 1./(nx-1); hy = 1./(ny-1); hz = 1./(nz-1)
 
-# grilles z = cste 
+# grilles z = cste
 fzmin = G.cart((xo,yo,zo), (hx,hy,1.), (nx,ny,1))
 fzmax = T.translate(fzmin, (0.,0.,1.))
 

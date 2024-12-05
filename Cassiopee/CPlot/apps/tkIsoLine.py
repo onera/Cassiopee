@@ -184,20 +184,20 @@ def createApp(win):
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
     # -1- nlevels -
     V = TK.StringVar(win); V.set('25'); VARS.append(V)
-    if 'tkIsoLineLevels' in CTK.PREFS: 
+    if 'tkIsoLineLevels' in CTK.PREFS:
         V.set(CTK.PREFS['tkIsoLineLevels'])
     # -2- value -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if 'tkIsoLineValue' in CTK.PREFS: 
+    if 'tkIsoLineValue' in CTK.PREFS:
         V.set(CTK.PREFS['tkIsoLineValue'])
     # -3- min iso
     V = TK.StringVar(win); V.set('MIN'); VARS.append(V)
-    if 'tkIsoLineMin' in CTK.PREFS: 
+    if 'tkIsoLineMin' in CTK.PREFS:
         V.set(CTK.PREFS['tkIsoLineMin'])
     # -4- max iso
     V = TK.StringVar(win); V.set('MAX'); VARS.append(V)
     V = TK.StringVar(win); V.set('MIN'); VARS.append(V)
-    if 'tkIsoLineMax' in CTK.PREFS: 
+    if 'tkIsoLineMax' in CTK.PREFS:
         V.set(CTK.PREFS['tkIsoLineMax'])
 
     # - field name -
@@ -214,7 +214,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Extracted field.')
         WIDGETS['field'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[0], 
+        B = ttk.Combobox(F, textvariable=VARS[0],
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2)

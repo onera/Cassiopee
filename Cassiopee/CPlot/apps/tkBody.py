@@ -43,7 +43,7 @@ def extractBodies():
     CTK.TXT.insert('START', 'Walls extracted.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CTK.display(CTK.t)        
+    CTK.display(CTK.t)
 
 #=========================================================================
 def extractExternalContours():
@@ -95,7 +95,7 @@ def stitchedHat():
     CTK.TXT.insert('START', 'Stitched hat created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CTK.display(CTK.t)      
+    CTK.display(CTK.t)
     return
 
 #==============================================================================
@@ -121,7 +121,7 @@ def pointedHat():
     CTK.TXT.insert('START', 'Pointed hat created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CTK.display(CTK.t)      
+    CTK.display(CTK.t)
     return
 
 #==============================================================================
@@ -135,7 +135,7 @@ def closeBody():
 #==============================================================================
 def createApp(win):
     # - Frame -
-    Frame = TK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE, 
+    Frame = TK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                           text='tkBody  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Close surface meshes.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
@@ -156,7 +156,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1.e-5;1.e-5'); VARS.append(V)
     # -2- stitchedHat : offx,offy,offz
     V = TK.StringVar(win); V.set('0.;0.;0.'); VARS.append(V)
-    # -3- pointedHat : x,y,z 
+    # -3- pointedHat : x,y,z
     V = TK.StringVar(win); V.set('0.;0.;0.'); VARS.append(V)
 
     # - extractBodies -

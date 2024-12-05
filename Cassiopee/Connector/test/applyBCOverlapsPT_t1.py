@@ -23,7 +23,7 @@ test.testT(t, 1)
 
 
 # --- Apply on a zone
-a2 = X.applyBCOverlaps(a, depth = 1,loc='centers')
+a2 = X.applyBCOverlaps(a, depth=1,loc='centers')
 t2 = C.newPyTree(['Base',a2])
 test.testT(t2, 2)
 
@@ -41,6 +41,6 @@ t2 = C.newPyTree(['Base',a2])
 test.testT(t2,4)
 
 # Apply at nodes
-a2 = X.applyBCOverlaps(a, depth=2, loc ='nodes')
+a2 = X.applyBCOverlaps(a, depth=2, loc='nodes')
 t2 = C.newPyTree(['Base',a2])
 test.testT(t2,5)

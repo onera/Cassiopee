@@ -25,7 +25,7 @@ def compute_Cf(Re, Cf_law='ANSYS'):
 
 #=============================================================================
 # Compute the corresponding yplus of a given modeling height
-#=============================================================================    
+#=============================================================================
 def computeYplus(Re, Cf_law='ANSYS', height=0.1, L=1.):
     h0 = (L*numpy.sqrt(2))/(Re*numpy.sqrt(compute_Cf(Re,Cf_law)))
     return height/h0
@@ -56,7 +56,7 @@ def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
             else:
                 Re = Internal.getValue(Re)
         else: fail = 1
-    if fail: 
+    if fail:
         raise ValueError("computeYplusOpt: requires Reynolds number as a float or in tb.")
     fail = 0
     if snear is None:
@@ -87,7 +87,7 @@ def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
             if Re is None: fail=1
             else: Re = Internal.getValue(Re)
         else: fail = 1
-    if fail: 
+    if fail:
         raise ValueError("computeSnearOpt: requires Reynolds number as a float or in tb.")
 
 

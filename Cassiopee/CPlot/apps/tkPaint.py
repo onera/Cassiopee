@@ -60,7 +60,7 @@ def paint():
                 if len(varNames) > field+3:
                     var = varNames[field+3]
                     C.setValue(z, var, ind[0], value)
-                else: 
+                else:
                     CTK.TXT.insert('START', 'Field %d not found. Use scalar mode.\n'%field)
                     CTK.TXT.insert('START', 'Error: ', 'Error')
                 CTK.replace(CTK.t, nob, noz, z)

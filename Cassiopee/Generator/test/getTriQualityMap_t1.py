@@ -9,4 +9,3 @@ a = C.convertArray2Tetra(a)
 a = G.close(a)
 n = G.getTriQualityMap(a)
 test.testA([n],1)
-

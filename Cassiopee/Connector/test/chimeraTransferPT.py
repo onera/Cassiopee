@@ -15,7 +15,7 @@ t[2][1][2].append(a); t[2][2][2].append(b); t[2][3][2].append(c)
 t = X.connectMatch(t, dim=2)
 C._fillEmptyBCWith(t,'nref','BCFarfield', dim=3)
 X._applyBCOverlaps(t, depth=2)
-t = X.setInterpolations(t, storage = 'direct')
+t = X.setInterpolations(t, storage='direct')
 for i in range(len(t[2])):
     C._initVars(t[2][i], 'centers:Density', float(i+1))
     C._initVars(t[2][i], 'centers:MomentumX', float(i+1))

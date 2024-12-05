@@ -80,8 +80,8 @@ def rotate(event=None):
     axis = VARS[2].get()
     angle = CTK.varsFromWidget(VARS[3].get(), type=1)
     if len(angle) == 1: angle = angle[0]; X=None
-    elif len(angle) == 4: X=(angle[1],angle[2],angle[3]); angle = angle[0] 
-    else: 
+    elif len(angle) == 4: X=(angle[1],angle[2],angle[3]); angle = angle[0]
+    else:
         CTK.TXT.insert('START', 'Invalid angle or angle+rotation center.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     if axis == 'around X': axe = (1.,0.,0.)
@@ -249,7 +249,7 @@ def scale():
         X = [v[3],v[4],v[5]]
     else:
         X = G.barycenter(selection)
-    if len(v) == 1 and v[0] == 0.: # scale unitaire 
+    if len(v) == 1 and v[0] == 0.: # scale unitaire
         bbox = G.bbox(selection)
         dx = bbox[3]-bbox[0]
         dy = bbox[4]-bbox[1]

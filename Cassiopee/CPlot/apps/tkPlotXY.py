@@ -23,7 +23,7 @@ except:
     except: IMPORTOK = False
 
 try: import tkinter.ttk as cttk
-except: 
+except:
     try: import ttk as cttk
     except: IMPORTOK = False
 
@@ -194,204 +194,204 @@ shape_typelist = ['Circle','Rectangle','Ellipse','Arrow','Bracket','FancyBbox','
 t = np.arange(0., 5., 0.002)
 
 data = {
-        'Iteration':t,
-        'Residual':np.sin(t),
-        'Cf':np.sin(t/2),
-        'Debit':t*t
-        }
+    'Iteration':t,
+    'Residual':np.sin(t),
+    'Cf':np.sin(t/2),
+    'Debit':t*t
+}
 
 # ==============================================================================
 # ==============================================================================
 default_values = {
-'Shape':
-        {
-            'shape_type'                : 'Arrow',
-            'points'                    : [(0.17,0.17),(0.5,0.3)],
-            'arrowstyle'                : 'Curve',
-            'bracketstyle'              : 'BracketA',
-            'head_length'               : 0.4,
-            'head_width'                : 0.2,
-            'tail_width'                : 0.2,
-            'scale'                     : 100.,
-            'linewidth'                 : 1.,
-            'edgecolor'                 : '#000000',
-            'facecolor'                 : '#ffffff',
-            'hatch'                     : 'none',
-            'radius'                    : 0.1,
-            'linestyle'                 : 'solid',
-            'height'                    : 0.1,
-            'width'                     : 0.1,
-            'angle'                     : 0.,
-            'linecolor'                 : '#000000',
-            'alpha'                     : 1.,
-            'widthA'                    : 0.1,
-            'lengthA'                   : 0.1,
-            'angleA'                    : 0.,
-            'widthB'                    : 0.1,
-            'lengthB'                   : 0.1,
-            'angleB'                    : 0.,
-        },
-'Text':
-        {
-            'text'                : "",
-            'visibility'          : True,
-            'text_size'          : 11.,
-            'text_alpha'          : 1.,
-            'box_alpha'           : 1.,
-            'box_backgroundcolor' : '#FFFFFF',
-            'box_edgecolor'       : '#FFFFFF',
-            'box_linewidth'       : 3.,
-            'box_style'           : 'round4',
-            'active_background'   : True,
-            'text_color'          : '#000000',
-            'use_tex'             : False,
-            'rotation'            : 0.,
-            'posx'                : 0.,
-            'posy'                : 0.,
-            'ha'                  : 'center',
-            'va'                  : 'center',
-            'font_style'          : 'normal',
-            'font_weight'         : 'normal',
-            'font_type'           : 'serif'
-        },
-'Graph':
-        {
-            'image_background_color':'#FFFFFF', #White
-            'image_background_alpha':1.0,
-            'subgraph_background_color':'#FFFFFF', #White
-            'subgraph_background_alpha':1.0
-        },
-'Curve':{
-            'varx':'',
-            'vary':'',
-            'line_color':None,
-            'line_style':'solid',
-            'line_width':1.5,
-            'marker_style':'none',
-            'marker_size':6.5,
-            'marker_edge_width':0.5,
-            'marker_face_color':None,
-            'marker_edge_color':None,
-            'marker_sampling_start':'',
-            'marker_sampling_end':'',
-            'marker_sampling_step':1,
-            'legend_label':'',
-            'legend_display': True,
-            'ind_axis' : 0,
-            'visible':True
-        },
-'Grid':{
-            # Reglage initiaux de Matthieu
-            #'Mx_display' : True,
-            #'Mx_grid_color' : '#000000',
-            #'Mx_grid_style' : 'dashed',
-            #'Mx_grid_width' : 1.,
-            #'Mx_grid_tick_number':5,
-            #'Mx_grid_tick_size':10.,
-            #'My_display' : True,
-            #'My_grid_color' : '#000000',
-            #'My_grid_style' : 'dashed',
-            #'My_grid_width' : 1.,
-            #'My_grid_tick_number':5,
-            #'My_grid_tick_size':10.,
-            #'mx_display' : False,
-            #'mx_grid_color' : '#000000',
-            #'mx_grid_style' : 'dashed',
-            #'mx_grid_width' : 1.,
-            #'mx_grid_tick_number':5,
-            #'mx_grid_tick_size':10.,
-            #'my_display' : False,
-            #'my_grid_color' : '#000000',
-            #'my_grid_style' : 'dashed',
-            #'my_grid_width' : 1.,
-            #'my_grid_tick_number':5,
-            #'my_grid_tick_size':10.
-            # reglages de CB
-            'Mx_display' : True,
-            'Mx_grid_color' : '#95a5a6',
-            'Mx_grid_style' : 'solid',
-            'Mx_grid_width' : 1.,
-            'Mx_grid_tick_number':5,
-            'Mx_grid_tick_size':10.,
-            'My_display' : True,
-            'My_grid_color' : '#95a5a6',
-            'My_grid_style' : 'solid',
-            'My_grid_width' : 1.,
-            'My_grid_tick_number':5,
-            'My_grid_tick_size':10.,
-            'mx_display' : True,
-            'mx_grid_color' : '#bfc9ca',
-            'mx_grid_style' : 'solid',
-            'mx_grid_width' : 1.,
-            'mx_grid_tick_number':5,
-            'mx_grid_tick_size':10.,
-            'my_display' : True,
-            'my_grid_color' : '#bfc9ca',
-            'my_grid_style' : 'solid',
-            'my_grid_width' : 1.,
-            'my_grid_tick_number':5,
-            'my_grid_tick_size':10.
-        },
-'Legend':{
-            'legend_display' : True,
-            'legend_title' : '',
-            'legend_border_width' : 0.5,
-            'legend_border_color' : '#000000',
-            'vary':'',
-            'legend_background_color' :  '#ffffff',
-            'legend_background_color_active' : True,
-            'legend_position' : 'best',
-            'legend_ncol' : 1,
-            'legend_label_weight' : 'normal',
-            'legend_label_style' : 'normal',
-            'legend_label_size' : 10,
-            'legend_label_color' : '#000000',
-            'legend_title_weight' : 'normal',
-            'legend_title_style' : 'normal',
-            'legend_title_size' : 8,
-            'legend_title_color' : '#000000'
-        },
-'Axis':{
-            'axis_x_logscale' : False,
-            'axis_y_logscale' : False,
-            'axis_x_autoscale' : True,
-            'axis_y_autoscale' : True,
-            'axis_x_min' : 0.,
-            'axis_x_max' : 1.,
-            'axis_y_min' : 0.,
-            'axis_y_max' : 1.,
-            'axis_x_label' : '',
-            'axis_y_label' : '',
-            'axis_x_inverted' : False,
-            'axis_y_inverted' : False,
-            'axis_x_visible' : 1,
-            'axis_y_visible' : 1,
-            'axis_x_position' : 'both',
-            'axis_y_position' : 'both',
-            'axis_x_offset' : 0.,
-            'axis_y_offset' : 0.,
-            'axis_x_label_fontsize' : pltFontSize,
-            'axis_y_label_fontsize' : pltFontSize,
-            #'axis_x_label_format' : '{x:.2e}',
-            #'axis_y_label_format' : '{x:.2e}',
-            'axis_x_label_format' : '{x:.5g}',
-            'axis_y_label_format' : '{x:.5g}',
+    'Shape':
+    {
+        'shape_type'                : 'Arrow',
+        'points'                    : [(0.17,0.17),(0.5,0.3)],
+        'arrowstyle'                : 'Curve',
+        'bracketstyle'              : 'BracketA',
+        'head_length'               : 0.4,
+        'head_width'                : 0.2,
+        'tail_width'                : 0.2,
+        'scale'                     : 100.,
+        'linewidth'                 : 1.,
+        'edgecolor'                 : '#000000',
+        'facecolor'                 : '#ffffff',
+        'hatch'                     : 'none',
+        'radius'                    : 0.1,
+        'linestyle'                 : 'solid',
+        'height'                    : 0.1,
+        'width'                     : 0.1,
+        'angle'                     : 0.,
+        'linecolor'                 : '#000000',
+        'alpha'                     : 1.,
+        'widthA'                    : 0.1,
+        'lengthA'                   : 0.1,
+        'angleA'                    : 0.,
+        'widthB'                    : 0.1,
+        'lengthB'                   : 0.1,
+        'angleB'                    : 0.,
+    },
+    'Text':
+    {
+        'text'                : "",
+        'visibility'          : True,
+        'text_size'          : 11.,
+        'text_alpha'          : 1.,
+        'box_alpha'           : 1.,
+        'box_backgroundcolor' : '#FFFFFF',
+        'box_edgecolor'       : '#FFFFFF',
+        'box_linewidth'       : 3.,
+        'box_style'           : 'round4',
+        'active_background'   : True,
+        'text_color'          : '#000000',
+        'use_tex'             : False,
+        'rotation'            : 0.,
+        'posx'                : 0.,
+        'posy'                : 0.,
+        'ha'                  : 'center',
+        'va'                  : 'center',
+        'font_style'          : 'normal',
+        'font_weight'         : 'normal',
+        'font_type'           : 'serif'
+    },
+    'Graph':
+    {
+        'image_background_color':'#FFFFFF', #White
+        'image_background_alpha':1.0,
+        'subgraph_background_color':'#FFFFFF', #White
+        'subgraph_background_alpha':1.0
+    },
+    'Curve':{
+        'varx':'',
+        'vary':'',
+        'line_color':None,
+        'line_style':'solid',
+        'line_width':1.5,
+        'marker_style':'none',
+        'marker_size':6.5,
+        'marker_edge_width':0.5,
+        'marker_face_color':None,
+        'marker_edge_color':None,
+        'marker_sampling_start':'',
+        'marker_sampling_end':'',
+        'marker_sampling_step':1,
+        'legend_label':'',
+        'legend_display': True,
+        'ind_axis' : 0,
+        'visible':True
+    },
+    'Grid':{
+        # Reglage initiaux de Matthieu
+        #'Mx_display' : True,
+        #'Mx_grid_color' : '#000000',
+        #'Mx_grid_style' : 'dashed',
+        #'Mx_grid_width' : 1.,
+        #'Mx_grid_tick_number':5,
+        #'Mx_grid_tick_size':10.,
+        #'My_display' : True,
+        #'My_grid_color' : '#000000',
+        #'My_grid_style' : 'dashed',
+        #'My_grid_width' : 1.,
+        #'My_grid_tick_number':5,
+        #'My_grid_tick_size':10.,
+        #'mx_display' : False,
+        #'mx_grid_color' : '#000000',
+        #'mx_grid_style' : 'dashed',
+        #'mx_grid_width' : 1.,
+        #'mx_grid_tick_number':5,
+        #'mx_grid_tick_size':10.,
+        #'my_display' : False,
+        #'my_grid_color' : '#000000',
+        #'my_grid_style' : 'dashed',
+        #'my_grid_width' : 1.,
+        #'my_grid_tick_number':5,
+        #'my_grid_tick_size':10.
+        # reglages de CB
+        'Mx_display' : True,
+        'Mx_grid_color' : '#95a5a6',
+        'Mx_grid_style' : 'solid',
+        'Mx_grid_width' : 1.,
+        'Mx_grid_tick_number':5,
+        'Mx_grid_tick_size':10.,
+        'My_display' : True,
+        'My_grid_color' : '#95a5a6',
+        'My_grid_style' : 'solid',
+        'My_grid_width' : 1.,
+        'My_grid_tick_number':5,
+        'My_grid_tick_size':10.,
+        'mx_display' : True,
+        'mx_grid_color' : '#bfc9ca',
+        'mx_grid_style' : 'solid',
+        'mx_grid_width' : 1.,
+        'mx_grid_tick_number':5,
+        'mx_grid_tick_size':10.,
+        'my_display' : True,
+        'my_grid_color' : '#bfc9ca',
+        'my_grid_style' : 'solid',
+        'my_grid_width' : 1.,
+        'my_grid_tick_number':5,
+        'my_grid_tick_size':10.
+    },
+    'Legend':{
+        'legend_display' : True,
+        'legend_title' : '',
+        'legend_border_width' : 0.5,
+        'legend_border_color' : '#000000',
+        'vary':'',
+        'legend_background_color' :  '#ffffff',
+        'legend_background_color_active' : True,
+        'legend_position' : 'best',
+        'legend_ncol' : 1,
+        'legend_label_weight' : 'normal',
+        'legend_label_style' : 'normal',
+        'legend_label_size' : 10,
+        'legend_label_color' : '#000000',
+        'legend_title_weight' : 'normal',
+        'legend_title_style' : 'normal',
+        'legend_title_size' : 8,
+        'legend_title_color' : '#000000'
+    },
+    'Axis':{
+        'axis_x_logscale' : False,
+        'axis_y_logscale' : False,
+        'axis_x_autoscale' : True,
+        'axis_y_autoscale' : True,
+        'axis_x_min' : 0.,
+        'axis_x_max' : 1.,
+        'axis_y_min' : 0.,
+        'axis_y_max' : 1.,
+        'axis_x_label' : '',
+        'axis_y_label' : '',
+        'axis_x_inverted' : False,
+        'axis_y_inverted' : False,
+        'axis_x_visible' : 1,
+        'axis_y_visible' : 1,
+        'axis_x_position' : 'both',
+        'axis_y_position' : 'both',
+        'axis_x_offset' : 0.,
+        'axis_y_offset' : 0.,
+        'axis_x_label_fontsize' : pltFontSize,
+        'axis_y_label_fontsize' : pltFontSize,
+        #'axis_x_label_format' : '{x:.2e}',
+        #'axis_y_label_format' : '{x:.2e}',
+        'axis_x_label_format' : '{x:.5g}',
+        'axis_y_label_format' : '{x:.5g}',
 
-        },
-'SubPlotParams':{
-                    'left'    : pltLeft,
-                    'right'   : pltRight,
-                    'top'     : pltTop,
-                    'bottom'  : pltBottom,
-                    'wspace'  : pltWSpace,
-                    'hspace'  : pltHSpace,
-                    'isActive':True
-                },
-'TightLayout':{
-                    'pad'   : 1.08, # pad can not be None as default value !!!
-                    'hpad'  : None,
-                    'wpad'  : None
-                }
+    },
+    'SubPlotParams':{
+        'left'    : pltLeft,
+        'right'   : pltRight,
+        'top'     : pltTop,
+        'bottom'  : pltBottom,
+        'wspace'  : pltWSpace,
+        'hspace'  : pltHSpace,
+        'isActive':True
+    },
+    'TightLayout':{
+        'pad'   : 1.08, # pad can not be None as default value !!!
+        'hpad'  : None,
+        'wpad'  : None
+    }
 }
 
 #==========================================================
@@ -597,7 +597,7 @@ class editTextWindow(TK.Toplevel):
         ######################### Manip
         ####################
         ########################################################################
-        lblframeManip = TTK.LabelFrame(self.frame, text = "Manip.")
+        lblframeManip = TTK.LabelFrame(self.frame, text="Manip.")
         lblframeManip.grid(row=0,column=0,sticky='NSEW')
         lblframeManip.grid_rowconfigure(0,weight=1)
         lblframeManip.grid_columnconfigure(0,weight=1)
@@ -718,7 +718,7 @@ class editTextWindow(TK.Toplevel):
         ######################### Text
         ####################
         ########################################################################
-        lblframeText = TTK.LabelFrame(self.frame, text = "Text")
+        lblframeText = TTK.LabelFrame(self.frame, text="Text")
         lblframeText.grid(row=0,column=1,sticky='NSEW')
         lblframeText.grid_rowconfigure(0,weight=1)
         lblframeText.grid_columnconfigure(0,weight=1)
@@ -853,7 +853,7 @@ class editTextWindow(TK.Toplevel):
         ######################### Font
         ####################
         ########################################################################
-        lblframeFont = TTK.LabelFrame(self.frame, text = "Font")
+        lblframeFont = TTK.LabelFrame(self.frame, text="Font")
         lblframeFont.grid(row=0,column=2,sticky='NSEW')
         lblframeFont.grid_rowconfigure(0,weight=1)
         lblframeFont.grid_columnconfigure(0,weight=1)
@@ -1078,7 +1078,7 @@ class editTextWindow(TK.Toplevel):
         ######################### Position
         ####################
         ########################################################################
-        lblframePosition = TTK.LabelFrame(self.frame, text = "Position")
+        lblframePosition = TTK.LabelFrame(self.frame, text="Position")
         lblframePosition.grid(row=0,column=3,sticky='NSEW')
         lblframePosition.grid_rowconfigure(0,weight=1)
         lblframePosition.grid_columnconfigure(0,weight=1)
@@ -1297,7 +1297,7 @@ class editTextWindow(TK.Toplevel):
         ######################### Box
         ####################
         ########################################################################
-        lblframeBox = TTK.LabelFrame(self.frame, text = "Box")
+        lblframeBox = TTK.LabelFrame(self.frame, text="Box")
         lblframeBox.grid(row=0,column=4,sticky='NSEW')
         lblframeBox.grid_rowconfigure(0,weight=1)
         lblframeBox.grid_columnconfigure(0,weight=1)
@@ -2810,28 +2810,28 @@ class editTextWindow(TK.Toplevel):
         for ind, select in enumerate(self.frame.selectionItem):
             if select.val.get():
                 t= Text(
-                            zone                = self.zone,
-                            text                = self.frame.textItem[ind].val,
-                            visibility          = self.frame.visibilityItem[ind].val.get(),
-                            text_color          = self.frame.text_colorItem[ind].val,
-                            text_size           = self.frame.text_sizeItem[ind].val,
-                            font_type           = self.frame.font_typeItem[ind].val,
-                            police              = self.frame.policeItem[ind].val,
-                            font_style          = self.frame.font_styleItem[ind].val,
-                            font_weight         = self.frame.font_weightItem[ind].val,
-                            text_alpha          = self.frame.text_alphaItem[ind].val,
-                            ha                  = self.frame.haItem[ind].val,
-                            va                  = self.frame.vaItem[ind].val,
-                            posx                = self.frame.posxItem[ind].val,
-                            posy                = self.frame.posyItem[ind].val,
-                            rotation            = self.frame.rotationItem[ind].val,
-                            use_tex             = self.frame.use_texItem[ind].val.get(),
-                            box_backgroundcolor = self.frame.box_backgroundcolorItem[ind].val,
-                            box_edgecolor       = self.frame.box_edgecolorItem[ind].val,
-                            box_linewidth       = self.frame.box_linewidthItem[ind].val,
-                            box_style           = self.frame.box_styleItem[ind].val,
-                            active_background   = self.frame.active_backgroundItem[ind].val.get(),
-                            box_alpha           = self.frame.box_alphaItem[ind].val)
+                    zone=self.zone,
+                    text=self.frame.textItem[ind].val,
+                    visibility=self.frame.visibilityItem[ind].val.get(),
+                    text_color=self.frame.text_colorItem[ind].val,
+                    text_size=self.frame.text_sizeItem[ind].val,
+                    font_type=self.frame.font_typeItem[ind].val,
+                    police=self.frame.policeItem[ind].val,
+                    font_style=self.frame.font_styleItem[ind].val,
+                    font_weight=self.frame.font_weightItem[ind].val,
+                    text_alpha=self.frame.text_alphaItem[ind].val,
+                    ha=self.frame.haItem[ind].val,
+                    va=self.frame.vaItem[ind].val,
+                    posx=self.frame.posxItem[ind].val,
+                    posy=self.frame.posyItem[ind].val,
+                    rotation=self.frame.rotationItem[ind].val,
+                    use_tex=self.frame.use_texItem[ind].val.get(),
+                    box_backgroundcolor=self.frame.box_backgroundcolorItem[ind].val,
+                    box_edgecolor=self.frame.box_edgecolorItem[ind].val,
+                    box_linewidth=self.frame.box_linewidthItem[ind].val,
+                    box_style=self.frame.box_styleItem[ind].val,
+                    active_background=self.frame.active_backgroundItem[ind].val.get(),
+                    box_alpha=self.frame.box_alphaItem[ind].val)
                 # Add texts
                 self.subGraph.texts.append(t)
                 # self.frame.destroy()
@@ -2845,28 +2845,28 @@ class editTextWindow(TK.Toplevel):
         ind = len(self.subGraph.texts)
 
         t = Text(
-                    zone                = self.zone,
-                    text                = self.frame.textItem[ind].val,
-                    visibility          = self.frame.visibilityItem[ind].val.get(),
-                    text_color          = self.frame.text_colorItem[ind].val,
-                    text_size           = self.frame.text_sizeItem[ind].val,
-                    font_type           = self.frame.font_typeItem[ind].val,
-                    police              = self.frame.policeItem[ind].val,
-                    font_style          = self.frame.font_styleItem[ind].val,
-                    font_weight         = self.frame.font_weightItem[ind].val,
-                    text_alpha          = self.frame.text_alphaItem[ind].val,
-                    ha                  = self.frame.haItem[ind].val,
-                    va                  = self.frame.vaItem[ind].val,
-                    posx                = self.frame.posxItem[ind].val,
-                    posy                = self.frame.posyItem[ind].val,
-                    rotation            = self.frame.rotationItem[ind].val,
-                    use_tex             = self.frame.use_texItem[ind].val.get(),
-                    box_backgroundcolor = self.frame.box_backgroundcolorItem[ind].val,
-                    box_edgecolor       = self.frame.box_edgecolorItem[ind].val,
-                    box_linewidth       = self.frame.box_linewidthItem[ind].val,
-                    box_style           = self.frame.box_styleItem[ind].val,
-                    active_background   = self.frame.active_backgroundItem[ind].val.get(),
-                    box_alpha           = self.frame.box_alphaItem[ind].val)
+            zone=self.zone,
+            text=self.frame.textItem[ind].val,
+            visibility=self.frame.visibilityItem[ind].val.get(),
+            text_color=self.frame.text_colorItem[ind].val,
+            text_size=self.frame.text_sizeItem[ind].val,
+            font_type=self.frame.font_typeItem[ind].val,
+            police=self.frame.policeItem[ind].val,
+            font_style=self.frame.font_styleItem[ind].val,
+            font_weight=self.frame.font_weightItem[ind].val,
+            text_alpha=self.frame.text_alphaItem[ind].val,
+            ha=self.frame.haItem[ind].val,
+            va=self.frame.vaItem[ind].val,
+            posx=self.frame.posxItem[ind].val,
+            posy=self.frame.posyItem[ind].val,
+            rotation=self.frame.rotationItem[ind].val,
+            use_tex=self.frame.use_texItem[ind].val.get(),
+            box_backgroundcolor=self.frame.box_backgroundcolorItem[ind].val,
+            box_edgecolor=self.frame.box_edgecolorItem[ind].val,
+            box_linewidth=self.frame.box_linewidthItem[ind].val,
+            box_style=self.frame.box_styleItem[ind].val,
+            active_background=self.frame.active_backgroundItem[ind].val.get(),
+            box_alpha=self.frame.box_alphaItem[ind].val)
         # Add curves
         self.subGraph.texts.append(t)
         # self.frame.destroy()
@@ -3602,7 +3602,7 @@ class editShapeWindow(TK.Toplevel):
         #
         ########################################################################
         #################### -> Level 1
-        mainFrame = TTK.LabelFrame(self.frame, text = "Liste des shapes")
+        mainFrame = TTK.LabelFrame(self.frame, text="Liste des shapes")
         mainFrame.grid(row=0,column=0,sticky='NSEW')
         mainFrame.grid_rowconfigure(0,weight=1)
         #
@@ -4256,27 +4256,27 @@ class editShapeWindow(TK.Toplevel):
                     pass
 
                 s = Shape(
-                            zone                = self.zone,
-                            shape_type          = self.frame.shape_typeItem[ind].val,
-                            points              = points,
-                            arrowstyle          = arrowstyle,
-                            bracketstyle          = bracketstyle,
-                            head_length         = head_length,
-                            head_width          = head_width,
-                            tail_width          = tail_width,
-                            scale               = scale,
-                            linewidth           = linewidth,
-                            edgecolor           = edgecolor,
-                            facecolor           = facecolor,
-                            hatch               = hatch,
-                            radius              = radius,
-                            linestyle           = linestyle,
-                            height              = height,
-                            width               = width,
-                            angle               = angle,
-                            linecolor           = linecolor,
-                            alpha               = alpha,
-                            )
+                    zone=self.zone,
+                    shape_type=self.frame.shape_typeItem[ind].val,
+                    points=points,
+                    arrowstyle=arrowstyle,
+                    bracketstyle=bracketstyle,
+                    head_length=head_length,
+                    head_width=head_width,
+                    tail_width=tail_width,
+                    scale=scale,
+                    linewidth=linewidth,
+                    edgecolor=edgecolor,
+                    facecolor=facecolor,
+                    hatch=hatch,
+                    radius=radius,
+                    linestyle=linestyle,
+                    height=height,
+                    width=width,
+                    angle=angle,
+                    linecolor=linecolor,
+                    alpha=alpha,
+                )
                 # Add texts
                 self.subGraph.shapes.append(s)
                 # self.frame.destroy()
@@ -4384,27 +4384,27 @@ class editShapeWindow(TK.Toplevel):
             pass
 
         s = Shape(
-                    zone                = self.zone,
-                    shape_type          = self.frame.shape_typeItem[ind].val,
-                    points              = points,
-                    arrowstyle          = arrowstyle,
-                    bracketstyle          = bracketstyle,
-                    head_length         = head_length,
-                    head_width          = head_width,
-                    tail_width          = tail_width,
-                    scale               = scale,
-                    linewidth           = linewidth,
-                    edgecolor           = edgecolor,
-                    facecolor           = facecolor,
-                    hatch               = hatch,
-                    radius              = radius,
-                    linestyle           = linestyle,
-                    height              = height,
-                    width               = width,
-                    angle               = angle,
-                    linecolor           = linecolor,
-                    alpha               = alpha,
-                    )
+            zone=self.zone,
+            shape_type=self.frame.shape_typeItem[ind].val,
+            points=points,
+            arrowstyle=arrowstyle,
+            bracketstyle=bracketstyle,
+            head_length=head_length,
+            head_width=head_width,
+            tail_width=tail_width,
+            scale=scale,
+            linewidth=linewidth,
+            edgecolor=edgecolor,
+            facecolor=facecolor,
+            hatch=hatch,
+            radius=radius,
+            linestyle=linestyle,
+            height=height,
+            width=width,
+            angle=angle,
+            linecolor=linecolor,
+            alpha=alpha,
+        )
 
         # Add curves
         self.subGraph.shapes.append(s)
@@ -4578,15 +4578,15 @@ class editShapeWindow(TK.Toplevel):
     def Modify_CircleShape(self,s,parent,ind):
         framePosition = parent.childframe
         for (B,svar) in [
-                            (framePosition.positionItem,s.points),
-                            (framePosition.radiusItem,s.radius),
-                            (framePosition.linewidthItem,s.linewidth),
-                            (framePosition.linestyleItem,s.linestyle),
-                            (framePosition.edgecolorItem,s.edgecolor),
-                            (framePosition.facecolorItem,s.facecolor),
-                            (framePosition.hatchItem,s.hatch),
-                            (framePosition.alphaItem,s.alpha),
-                        ]:
+            (framePosition.positionItem,s.points),
+            (framePosition.radiusItem,s.radius),
+            (framePosition.linewidthItem,s.linewidth),
+            (framePosition.linestyleItem,s.linestyle),
+            (framePosition.edgecolorItem,s.edgecolor),
+            (framePosition.facecolorItem,s.facecolor),
+            (framePosition.hatchItem,s.hatch),
+            (framePosition.alphaItem,s.alpha),
+        ]:
             if B.var == 'points':
                 B.shape = s
                 B.list = s.points
@@ -4604,17 +4604,17 @@ class editShapeWindow(TK.Toplevel):
     def Modify_EllipseShape(self,s,parent,ind):
         framePosition = parent.childframe
         for (B,svar) in [
-                            (framePosition.positionItem,s.points),
-                            (framePosition.heightItem,s.height),
-                            (framePosition.widthItem,s.width),
-                            (framePosition.angleItem,s.angle),
-                            (framePosition.linewidthItem,s.linewidth),
-                            (framePosition.linestyleItem,s.linestyle),
-                            (framePosition.edgecolorItem,s.edgecolor),
-                            (framePosition.facecolorItem,s.facecolor),
-                            (framePosition.hatchItem,s.hatch),
-                            (framePosition.alphaItem,s.alpha),
-                        ]:
+            (framePosition.positionItem,s.points),
+            (framePosition.heightItem,s.height),
+            (framePosition.widthItem,s.width),
+            (framePosition.angleItem,s.angle),
+            (framePosition.linewidthItem,s.linewidth),
+            (framePosition.linestyleItem,s.linestyle),
+            (framePosition.edgecolorItem,s.edgecolor),
+            (framePosition.facecolorItem,s.facecolor),
+            (framePosition.hatchItem,s.hatch),
+            (framePosition.alphaItem,s.alpha),
+        ]:
             if B.var == 'points':
                 B.shape = s
                 B.list = s.points
@@ -4635,19 +4635,19 @@ class editShapeWindow(TK.Toplevel):
     def Modify_ArrowShape(self,s,parent,ind):
         framePosition = parent.childframe
         for (B,svar) in [
-                            (framePosition.positionItem,s.points),
-                            (framePosition.arrowstyleItem,s.arrowstyle),
-                            (framePosition.head_lengthItem,s.head_length),
-                            (framePosition.head_widthItem,s.head_width),
-                            (framePosition.tail_widthItem,s.tail_width),
-                            (framePosition.scaleItem,s.scale),
-                            (framePosition.linewidthItem,s.linewidth),
-                            (framePosition.linestyleItem,s.linestyle),
-                            (framePosition.edgecolorItem,s.edgecolor),
-                            (framePosition.facecolorItem,s.facecolor),
-                            (framePosition.hatchItem,s.hatch),
-                            (framePosition.alphaItem,s.alpha),
-                        ]:
+            (framePosition.positionItem,s.points),
+            (framePosition.arrowstyleItem,s.arrowstyle),
+            (framePosition.head_lengthItem,s.head_length),
+            (framePosition.head_widthItem,s.head_width),
+            (framePosition.tail_widthItem,s.tail_width),
+            (framePosition.scaleItem,s.scale),
+            (framePosition.linewidthItem,s.linewidth),
+            (framePosition.linestyleItem,s.linestyle),
+            (framePosition.edgecolorItem,s.edgecolor),
+            (framePosition.facecolorItem,s.facecolor),
+            (framePosition.hatchItem,s.hatch),
+            (framePosition.alphaItem,s.alpha),
+        ]:
             if B.var == 'points':
                 B.shape = s
                 B.list = s.points
@@ -4665,20 +4665,20 @@ class editShapeWindow(TK.Toplevel):
     def Modify_BracketShape(self,s,parent,ind):
         framePosition = parent.childframe
         for (B,svar) in [
-                            (framePosition.positionItem,s.points),
-                            (framePosition.bracketstyleItem,s.bracketstyle),
-                            (framePosition.lengthAItem,s.lengthA),
-                            (framePosition.lengthBItem,s.lengthB),
-                            (framePosition.widthAItem,s.widthA),
-                            (framePosition.widthBItem,s.widthB),
-                            (framePosition.angleAItem,s.angleA),
-                            (framePosition.angleBItem,s.angleB),
-                            (framePosition.scaleItem,s.scale),
-                            (framePosition.linewidthItem,s.linewidth),
-                            (framePosition.linestyleItem,s.linestyle),
-                            (framePosition.edgecolorItem,s.edgecolor),
-                            (framePosition.alphaItem,s.alpha),
-                        ]:
+            (framePosition.positionItem,s.points),
+            (framePosition.bracketstyleItem,s.bracketstyle),
+            (framePosition.lengthAItem,s.lengthA),
+            (framePosition.lengthBItem,s.lengthB),
+            (framePosition.widthAItem,s.widthA),
+            (framePosition.widthBItem,s.widthB),
+            (framePosition.angleAItem,s.angleA),
+            (framePosition.angleBItem,s.angleB),
+            (framePosition.scaleItem,s.scale),
+            (framePosition.linewidthItem,s.linewidth),
+            (framePosition.linestyleItem,s.linestyle),
+            (framePosition.edgecolorItem,s.edgecolor),
+            (framePosition.alphaItem,s.alpha),
+        ]:
             if B.var == 'points':
                 B.shape = s
                 B.list = s.points
@@ -4700,12 +4700,12 @@ class editShapeWindow(TK.Toplevel):
     def Modify_LineShape(self,s,parent,ind):
         framePosition = parent.childframe
         for (B,svar) in [
-                            (framePosition.positionItem,s.points),
-                            (framePosition.linewidthItem,s.linewidth),
-                            (framePosition.linestyleItem,s.linestyle),
-                            (framePosition.linecolorItem,s.linecolor),
-                            (framePosition.alphaItem,s.alpha),
-                        ]:
+            (framePosition.positionItem,s.points),
+            (framePosition.linewidthItem,s.linewidth),
+            (framePosition.linestyleItem,s.linestyle),
+            (framePosition.linecolorItem,s.linecolor),
+            (framePosition.alphaItem,s.alpha),
+        ]:
             if B.var == 'points':
                 B.shape = s
                 B.list = s.points
@@ -7376,7 +7376,7 @@ class editLegendWindow(TK.Toplevel):
         self.legend_position = ['best','upper left','upper center','upper right','center left','center','center right','lower left','lower center','lower right']
 
 
-        cbox = cttk.Combobox(posFrame,values = self.legend_position,state='readonly')
+        cbox = cttk.Combobox(posFrame,values=self.legend_position,state='readonly')
         cbox.val = self.subGraph.legend_property.legend_position
         cbox.set(cbox.val)
         cbox.bind("<<ComboboxSelected>>",self.cmd_positionChange)
@@ -7950,11 +7950,11 @@ class editGraphWindow(TK.Toplevel):
         # Nevertheless, the user, can change the size of the toplevel window (graphtk) with the mouse,
         # it will change the size of the figure in the mean time.
         # TODO : find a real a solution to this issue !!!
-#        tkwidget = self.graphInstance.canvas.get_tk_widget()
-#        figsizeStr = self.sizeItem['figsize'].val[1:-1]
-#        figsize = (int(figsizeStr.split(',')[0]),int(figsizeStr.split(',')[1]))
-#        self.fig.set_size_inches(figsize,forward=True)
-#        tkwidget = self.graphInstance.canvas.get_tk_widget()
+        #        tkwidget = self.graphInstance.canvas.get_tk_widget()
+        #        figsizeStr = self.sizeItem['figsize'].val[1:-1]
+        #        figsize = (int(figsizeStr.split(',')[0]),int(figsizeStr.split(',')[1]))
+        #        self.fig.set_size_inches(figsize,forward=True)
+        #        tkwidget = self.graphInstance.canvas.get_tk_widget()
         #
         dpi = int(self.sizeItem['dpi'].val)
         self.fig.set_dpi(dpi)
@@ -7975,8 +7975,8 @@ class editGraphWindow(TK.Toplevel):
             if isParamsOk:
                 self.graphInstance.updateSubPlotParams(params)
             else:
-#                self.lift()
-#                self.focus()
+                #                self.lift()
+                #                self.focus()
                 return
         else:
             params = {'pad':None,'hpad':None,'wpad':None,'isActive':True}
@@ -8022,7 +8022,7 @@ class editGraphWindow(TK.Toplevel):
                     # fig = self.parent.graphWdwL[self.graph].getFig()
                     # for axe in fig.get_axes():
                     #     axe.patch.set_facecolor(B.val)
-                        # axe.patch.set_alpha(1.0)
+                    # axe.patch.set_alpha(1.0)
                     # for axes in self.subGraph.axis :
                     #     # axes.patch.set_facecolor(B.val)
                     #     axes.set_axis_bgcolor(B.val)
@@ -8879,7 +8879,7 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
         for index in items: zones.append(self.unused_zones.get(index))
 
         for zone in zones:
-        # Find index in unused listbox
+            # Find index in unused listbox
             try: index = self.unused_zones.list.index(zone)
             except ValueError: continue
             self.used_zones.list.append(zone)
@@ -8892,7 +8892,7 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
     def cmd_removeAll(self):
         # Add all used to used list
         for zone in self.used_zones.get(0,TK.END):
-        # Find index in used listbox
+            # Find index in used listbox
             try: index = self.used_zones.list.index(zone)
             except ValueError: continue
             self.unused_zones.list.append(zone)
@@ -8907,7 +8907,7 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
         for index in items: zones.append(self.used_zones.get(index))
 
         for zone in zones:
-        # Find index in used listbox
+            # Find index in used listbox
             try: index = self.used_zones.list.index(zone)
             except ValueError: continue
             self.unused_zones.list.append(zone)
@@ -9179,7 +9179,7 @@ class inputPosition_dialogWindow(TK.Toplevel):
         for index in items: positions.append(self.pos_list.get(index))
 
         for pos in positions:
-        # Find index in used listbox
+            # Find index in used listbox
             try: index = self.pos_list.list.index(pos)
             except ValueError: continue
             del self.pos_list.list[index]
@@ -9834,8 +9834,8 @@ class GraphTK(TK.Toplevel):
         for ax in y_axes:
             ylim = ax.get_ylim()
             ylim = self._zoomRange(ylim[0], ylim[1],
-                                    ydata, scale_factor,
-                                    ax.get_yscale())
+                                   ydata, scale_factor,
+                                   ax.get_yscale())
             ax.set_ylim(ylim)
         if x_axes or y_axes: self._draw()
 
@@ -9843,8 +9843,8 @@ class GraphTK(TK.Toplevel):
         try:
             ax = event.inaxes
             self.parent.selectPositionByName(ax.name)
-        except: pass            
-        if self._pressed_button is not None: return  
+        except: pass
+        if self._pressed_button is not None: return
 
         if event.button in (1, 3):  # Start
             x_axes, y_axes = self._axesToUpdate(event)
@@ -9881,8 +9881,8 @@ class GraphTK(TK.Toplevel):
         iCurSubGraph = self.parent.position.val
         curves = self.fig.subGraph[iCurSubGraph].curves
 
-        varyExcludes = ['CoordinateX', 'CoordinateY', 'CoordinateZ', 'x', 'y', 'z', 'xsc', 'index', 'it', 
-        'xsc@FlowSolution', 'index@FlowSolution', 'it@FlowSolution']
+        varyExcludes = ['CoordinateX', 'CoordinateY', 'CoordinateZ', 'x', 'y', 'z', 'xsc', 'index', 'it',
+                        'xsc@FlowSolution', 'index@FlowSolution', 'it@FlowSolution']
 
         if event.key == '&': # x+1
             for c in curves:
@@ -9928,7 +9928,7 @@ class GraphTK(TK.Toplevel):
                     if c.vary == v:
                         if n > 1: c.setValue('vary', varlist[n-1])
                         else: c.setValue('vary', varlist[n-1])
-                        break        
+                        break
 
         self.updateGraph(iCurSubGraph)
 
@@ -10072,23 +10072,23 @@ class Graph():
     def applyViewSettings(self):
         if self.subPlotParams.isActive:
 
-# Was aimed to turn off eventually the tight_layout, but seems useless ... and not working !
-#            try:
-#                self.fig.instance.tight_layout(False)
-#                print('STOP TIGHT LAYOUT')
-#            except AttributeError:
-#                pass
+            # Was aimed to turn off eventually the tight_layout, but seems useless ... and not working !
+            #            try:
+            #                self.fig.instance.tight_layout(False)
+            #                print('STOP TIGHT LAYOUT')
+            #            except AttributeError:
+            #                pass
 
             self.fig.instance.subplots_adjust(left=self.subPlotParams.left,
-                                             right=self.subPlotParams.right,
-                                             top=self.subPlotParams.top,
-                                             bottom=self.subPlotParams.bottom,
-                                             hspace=self.subPlotParams.hspace,
-                                             wspace=self.subPlotParams.wspace)
+                                              right=self.subPlotParams.right,
+                                              top=self.subPlotParams.top,
+                                              bottom=self.subPlotParams.bottom,
+                                              hspace=self.subPlotParams.hspace,
+                                              wspace=self.subPlotParams.wspace)
         if self.tightLayout.isActive:
             self.fig.instance.tight_layout(pad=self.tightLayout.pad,
-                                  h_pad=self.tightLayout.hpad,
-                                  w_pad=self.tightLayout.wpad)
+                                           h_pad=self.tightLayout.hpad,
+                                           w_pad=self.tightLayout.wpad)
         self.drawFigure()
     # ------------------------------------------------------ updateSubPlotParams
     def updateSubPlotParams(self, params):
@@ -10348,7 +10348,7 @@ class editCurvesWindow(TK.Toplevel):
         #
         ########################################################################
         #################### -> Level 1
-        lblframeManip = TTK.LabelFrame(self.frame, text = "Manip.")
+        lblframeManip = TTK.LabelFrame(self.frame, text="Manip.")
         lblframeManip.grid(row=0,column=0,sticky='NSEW')
         lblframeManip.grid_columnconfigure(0,weight=1)
         lblframeManip.grid_rowconfigure(0,weight=1)
@@ -10505,7 +10505,7 @@ class editCurvesWindow(TK.Toplevel):
         CB.container = self.frame.visibilityItem
         self.frame.visibilityItem.append(CB)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        lblframeData = TTK.LabelFrame(self.frame, text = "Data")
+        lblframeData = TTK.LabelFrame(self.frame, text="Data")
         lblframeData.grid(row=0,column=1,sticky='NSEW')
         lblframeData.grid_columnconfigure(0,weight=1)
         lblframeData.grid_rowconfigure(0,weight=1)
@@ -10778,7 +10778,7 @@ class editCurvesWindow(TK.Toplevel):
         B.container = self.frame.line_styleItem
         self.frame.line_styleItem.append(B)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        lblframeSymbol = TTK.LabelFrame(self.frame, text = "Symbol")
+        lblframeSymbol = TTK.LabelFrame(self.frame, text="Symbol")
         lblframeSymbol.grid(row=0,column=3,sticky='NSEW')
         lblframeSymbol.grid_columnconfigure(0,weight=1)
         lblframeSymbol.grid_rowconfigure(0,weight=1)
@@ -10987,7 +10987,7 @@ class editCurvesWindow(TK.Toplevel):
         B.container = self.frame.marker_edge_widthItem
         self.frame.marker_edge_widthItem.append(B)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        lblframeSymbolSampling = TTK.LabelFrame(self.frame, text = "Symb. Sampling")
+        lblframeSymbolSampling = TTK.LabelFrame(self.frame, text="Symb. Sampling")
         lblframeSymbolSampling.grid(row=0,column=4,sticky='NSEW')
         lblframeSymbolSampling.grid_columnconfigure(0,weight=1)
         lblframeSymbolSampling.grid_rowconfigure(0,weight=1)
@@ -11256,12 +11256,12 @@ class editCurvesWindow(TK.Toplevel):
     # --------------------------------------------------------------- updatelblFrameSize
     def updatelblFrameSize(self):
         for action in [self.frame.selectionItem,self.frame.IdItem,self.frame.axisItem,
-                        self.frame.visibilityItem,self.frame.zoneItem,self.frame.varxItem,
-                        self.frame.varyItem,self.frame.line_colorItem,self.frame.line_widthItem,
-                        self.frame.line_styleItem,self.frame.marker_face_colorItem,self.frame.marker_sizeItem,
-                        self.frame.marker_styleItem,self.frame.marker_edge_colorItem,self.frame.marker_edge_widthItem,
-                        self.frame.marker_sampling_startItem,self.frame.marker_sampling_endItem,self.frame.marker_sampling_stepItem,
-                        self.frame.legend_labelItem,self.frame.legend_displayItem]:
+                       self.frame.visibilityItem,self.frame.zoneItem,self.frame.varxItem,
+                       self.frame.varyItem,self.frame.line_colorItem,self.frame.line_widthItem,
+                       self.frame.line_styleItem,self.frame.marker_face_colorItem,self.frame.marker_sizeItem,
+                       self.frame.marker_styleItem,self.frame.marker_edge_colorItem,self.frame.marker_edge_widthItem,
+                       self.frame.marker_sampling_startItem,self.frame.marker_sampling_endItem,self.frame.marker_sampling_stepItem,
+                       self.frame.legend_labelItem,self.frame.legend_displayItem]:
             ### get lblframe
             lblframe = action[0].winfo_parent() # Returns the name of the parent
             lblframe = self.frame.nametowidget(lblframe) # returns the instance of the parent # Returns the name of the parent
@@ -12156,14 +12156,14 @@ class editCurvesWindow(TK.Toplevel):
         #         del self.subGraph.curves[indRemove]
         #         self.popUpCurveLine(indRemove)
         #     ind += 1
-            #     print(' - ',ind)
-            #     indRemove = ind -nbDeletion
-            #     nbDeletion += 1
-            #     del self.subGraph.curves[indRemove]
-            #     self.popUpCurveLine(indRemove)
-            #     self.updatelblFrameSize()
-            # else:
-            #     print(' + ',ind)
+        #     print(' - ',ind)
+        #     indRemove = ind -nbDeletion
+        #     nbDeletion += 1
+        #     del self.subGraph.curves[indRemove]
+        #     self.popUpCurveLine(indRemove)
+        #     self.updatelblFrameSize()
+        # else:
+        #     print(' + ',ind)
         # self.reloadWindow()
         # Update Graph
         self.parent.graphWdwL[self.graph].updateGraph(self.zone)
@@ -12174,23 +12174,23 @@ class editCurvesWindow(TK.Toplevel):
         ind = len(self.subGraph.curves)
 
         c = Curve(
-        zone                   = self.frame.zoneItem[ind].val,
-        varx                   = self.frame.varxItem[ind].val,
-        vary                   = self.frame.varyItem[ind].val,
-        line_color             = self.frame.line_colorItem[ind].val,
-        line_style             = self.frame.line_styleItem[ind].val,
-        line_width             = self.frame.line_widthItem[ind].val,
-        marker_style           = self.frame.marker_styleItem[ind].val,
-        marker_size            = self.frame.marker_sizeItem[ind].val,
-        marker_edge_width      = self.frame.marker_edge_widthItem[ind].val,
-        marker_face_color      = self.frame.marker_face_colorItem[ind].val,
-        marker_edge_color      = self.frame.marker_edge_colorItem[ind].val,
-        marker_sampling_start  = self.frame.marker_sampling_startItem[ind].val,
-        marker_sampling_end    = self.frame.marker_sampling_endItem[ind].val,
-        marker_sampling_step   = self.frame.marker_sampling_stepItem[ind].val,
-        legend_label           = self.frame.legend_labelItem[ind].val,
-        legend_display         = True,
-        visible                = True)
+            zone=self.frame.zoneItem[ind].val,
+            varx=self.frame.varxItem[ind].val,
+            vary=self.frame.varyItem[ind].val,
+            line_color=self.frame.line_colorItem[ind].val,
+            line_style=self.frame.line_styleItem[ind].val,
+            line_width=self.frame.line_widthItem[ind].val,
+            marker_style=self.frame.marker_styleItem[ind].val,
+            marker_size=self.frame.marker_sizeItem[ind].val,
+            marker_edge_width=self.frame.marker_edge_widthItem[ind].val,
+            marker_face_color=self.frame.marker_face_colorItem[ind].val,
+            marker_edge_color=self.frame.marker_edge_colorItem[ind].val,
+            marker_sampling_start=self.frame.marker_sampling_startItem[ind].val,
+            marker_sampling_end=self.frame.marker_sampling_endItem[ind].val,
+            marker_sampling_step=self.frame.marker_sampling_stepItem[ind].val,
+            legend_label=self.frame.legend_labelItem[ind].val,
+            legend_display=True,
+            visible=True)
         # Add curves
         self.subGraph.curves.append(c)
         # self.frame.destroy()
@@ -12205,26 +12205,26 @@ class editCurvesWindow(TK.Toplevel):
         self.createFrame()
     # ------------------------------------------------------ cmd_duplicateCurves
     def cmd_duplicateCurves(self):
-        for ind, select in enumerate(self.frame.selectionItem):            
+        for ind, select in enumerate(self.frame.selectionItem):
             if select.val.get():
                 c = Curve(
-                zone                   = self.frame.zoneItem[ind].val,
-                varx                   = self.frame.varxItem[ind].val,
-                vary                   = self.frame.varyItem[ind].val,
-                line_color             = self.frame.line_colorItem[ind].val,
-                line_style             = self.frame.line_styleItem[ind].val,
-                line_width             = self.frame.line_widthItem[ind].val,
-                marker_style           = self.frame.marker_styleItem[ind].val,
-                marker_size            = self.frame.marker_sizeItem[ind].val,
-                marker_edge_width      = self.frame.marker_edge_widthItem[ind].val,
-                marker_face_color      = self.frame.marker_face_colorItem[ind].val,
-                marker_edge_color      = self.frame.marker_edge_colorItem[ind].val,
-                marker_sampling_start  = self.frame.marker_sampling_startItem[ind].val,
-                marker_sampling_end    = self.frame.marker_sampling_endItem[ind].val,
-                marker_sampling_step   = self.frame.marker_sampling_stepItem[ind].val,
-                legend_label           = self.frame.legend_labelItem[ind].val,
-                legend_display         = True,
-                visible                = True)
+                    zone=self.frame.zoneItem[ind].val,
+                    varx=self.frame.varxItem[ind].val,
+                    vary=self.frame.varyItem[ind].val,
+                    line_color=self.frame.line_colorItem[ind].val,
+                    line_style=self.frame.line_styleItem[ind].val,
+                    line_width=self.frame.line_widthItem[ind].val,
+                    marker_style=self.frame.marker_styleItem[ind].val,
+                    marker_size=self.frame.marker_sizeItem[ind].val,
+                    marker_edge_width=self.frame.marker_edge_widthItem[ind].val,
+                    marker_face_color=self.frame.marker_face_colorItem[ind].val,
+                    marker_edge_color=self.frame.marker_edge_colorItem[ind].val,
+                    marker_sampling_start=self.frame.marker_sampling_startItem[ind].val,
+                    marker_sampling_end=self.frame.marker_sampling_endItem[ind].val,
+                    marker_sampling_step=self.frame.marker_sampling_stepItem[ind].val,
+                    legend_label=self.frame.legend_labelItem[ind].val,
+                    legend_display=True,
+                    visible=True)
                 # Add curves
                 self.subGraph.curves.append(c)
                 # self.frame.destroy()
@@ -12720,7 +12720,7 @@ class DesktopFrameTK(TK.Frame):
         self.graphNameList = [g.name for g in self.graphWdwL]
         if len(self.graphNameList) == 0:
             self.graphNameList.append('')
-        self.activeGraph = cttk.Combobox(lblframe,values = self.graphNameList,state='readonly')
+        self.activeGraph = cttk.Combobox(lblframe,values=self.graphNameList,state='readonly')
         try:
             self.updateGraphName2Id()
             self.activeGraph.val = self.graphName2Id[self.graphNameList[0]]
@@ -12742,7 +12742,7 @@ class DesktopFrameTK(TK.Frame):
         try: self.positionList = list(self.graphWdwL[self.activeGraph.val].subGraph.keys())
         except IndexError: self.positionList = ['']
         except TypeError: self.positionList = ['']
-        self.position = cttk.Combobox(lblframe, values = self.positionList, state='readonly')
+        self.position = cttk.Combobox(lblframe, values=self.positionList, state='readonly')
         self.position.val = self.positionList[0]
         self.position.set(self.position.val)
         self.position.bind("<<ComboboxSelected>>",self.cmd_positionChange)
@@ -12956,14 +12956,14 @@ class DesktopFrameTK(TK.Frame):
                         # lines +='''    indAxis_%s_%s_%s = 0\n'''%(indgraph,indsubgraph,ind_axis)
                     elif f.type[0]=='twinx':
                         lines +='''    axis_%s_%s_%s = graph_%s.addAxis('%s',shared='x',axis=axis_%s_%s_%s)\n'''%(indgraph,indsubgraph,
-                                                                                                                    ind_axis,indgraph,subgraph.name,
-                                                                                                                    indgraph,indsubgraph,
-                                                                                                                    f.type[1])
+                                                                                                                  ind_axis,indgraph,subgraph.name,
+                                                                                                                  indgraph,indsubgraph,
+                                                                                                                  f.type[1])
                     elif f.type[0]=='twiny':
                         lines +='''    axis_%s_%s_%s = graph_%s.addAxis('%s',shared='y',axis=axis_%s_%s_%s)\n'''%(indgraph,indsubgraph,
-                                                                                                                    ind_axis,indgraph,subgraph.name,
-                                                                                                                    indgraph,indsubgraph,
-                                                                                                                    f.type[1])
+                                                                                                                  ind_axis,indgraph,subgraph.name,
+                                                                                                                  indgraph,indsubgraph,
+                                                                                                                  f.type[1])
                     elif f.type[0] == 'new':
                         lines +='''    axis_%s_%s_%s = graph_%s.addAxis('%s')\n'''%(indgraph,indsubgraph,
                                                                                     ind_axis,indgraph,subgraph.name)
@@ -13781,17 +13781,17 @@ class Desktop():
                         lines +='''    indAxis_%s_%s_%s = 0\n'''%(indgraph,indsubgraph,ind_axis)
                     elif subgraph.axis[ind_axis].type[0]=='twinx':
                         lines +='''    indAxis_%s_%s_%s = graph_%s.addAxis('%s',shared='x',axis=indAxis_%s_%s_%s)\n'''%(indgraph,indsubgraph,
-                                                                                                                    ind_axis,indgraph,subgraph.name,
-                                                                                                                    indgraph,indsubgraph,
-                                                                                                                    subgraph.axis[ind_axis].type[1])
+                                                                                                                        ind_axis,indgraph,subgraph.name,
+                                                                                                                        indgraph,indsubgraph,
+                                                                                                                        subgraph.axis[ind_axis].type[1])
                     elif subgraph.axis[ind_axis].type[0]=='twiny':
                         lines +='''    indAxis_%s_%s_%s = graph_%s.addAxis('%s',shared='y',axis=indAxis_%s_%s_%s)\n'''%(indgraph,indsubgraph,
-                                                                                                                    ind_axis,indgraph,subgraph.name,
-                                                                                                                    indgraph,indsubgraph,
-                                                                                                                    subgraph.axis[ind_axis].type[1])
+                                                                                                                        ind_axis,indgraph,subgraph.name,
+                                                                                                                        indgraph,indsubgraph,
+                                                                                                                        subgraph.axis[ind_axis].type[1])
                     elif subgraph.axis[ind_axis].type[0] == 'new':
                         lines +='''    indAxis_%s_%s_%s = graph_%s.addAxis('%s')\n'''%(indgraph,indsubgraph,
-                                                                                    ind_axis,indgraph,subgraph.name)
+                                                                                       ind_axis,indgraph,subgraph.name)
                 # Loop on curves
                 for curve in subgraph.curves:
                     lines += '''%s\n'''%(curve.write(indgraph,subgraph.name,indcurve))
@@ -14085,7 +14085,7 @@ class MatplotlibFigure():
                             for zone in c.zone:
                                 try:
                                     if self.parent.data[zone][c.varx].shape != self.parent.data[zone][c.vary].shape:
-                #                        print('''### Message : can not plot %s vs %s since their shape are different.'''%(c.varx,c.vary))
+                                        #                        print('''### Message : can not plot %s vs %s since their shape are different.'''%(c.varx,c.vary))
                                         continue
                                 except AttributeError:
                                     try:
@@ -14114,8 +14114,8 @@ class MatplotlibFigure():
                                     yaxis_label += c.vary.split('@')[0]+','
                                 # Create the plot of the curve
                                 thisPlot, = self.subGraph[iCurSubGraph].axis[iCurrentAxis].plot(sortedData[0],sortedData[1],color=c.line_color,linestyle=c.line_style,linewidth=c.line_width,
-                                                        marker=marker_dic[c.marker_style],markersize=c.marker_size,markerfacecolor=c.marker_face_color,
-                                                        markeredgecolor=c.marker_edge_color,markeredgewidth=c.marker_edge_width,markevery=markingSampling)
+                                                                                                marker=marker_dic[c.marker_style],markersize=c.marker_size,markerfacecolor=c.marker_face_color,
+                                                                                                markeredgecolor=c.marker_edge_color,markeredgewidth=c.marker_edge_width,markevery=markingSampling)
         #                        thisPlot, = plt.plot(sortedData[0],sortedData[1],color=c.line_color,linestyle=c.line_style,linewidth=c.line_width,
         #                                                marker=marker_dic[c.marker_style],markersize=c.marker_size,markerfacecolor=c.marker_face_color,
         #                                                markeredgecolor=c.marker_edge_color,markeredgewidth=c.marker_edge_width,markevery=markingSampling)
@@ -14142,15 +14142,15 @@ class MatplotlibFigure():
             except:
                 val = val.replace('x:', '%')
                 val = val.replace('{', '')
-                val = val.replace('}', '') 
+                val = val.replace('}', '')
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter (val))
             val = self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label_format
             try: self.subGraph[iCurSubGraph].axis[iCurrentAxis].yaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter(val))
-            except: 
+            except:
                 val = val.replace('x:', '%')
                 val = val.replace('{', '')
                 val = val.replace('}', '')
-                self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter (val)) 
+                self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter (val))
             ## logscale
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_logscale:
                 self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xscale("log")
@@ -14193,7 +14193,7 @@ class MatplotlibFigure():
             #dx = pround(dx)
             #xmin = (round(xmin/dx))*dx
             #xmax = xmin+ntickMx*dx
-            #iymin = ymin; iymax = ymax            
+            #iymin = ymin; iymax = ymax
             #dy = (ymax-ymin)/(float(ntickMy))
             #dy = pround(dy)
             #ymin = round(ymin/dy)*dy
@@ -14323,9 +14323,9 @@ class MatplotlibFigure():
             if self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label:
                 yaxis_label = self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xlabel(r'%s'%xaxis_label,
-                                                                        fontsize=self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label_fontsize)
+                                                                      fontsize=self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].x.axis_label_fontsize)
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_ylabel(r'%s'%yaxis_label,
-                                                                        fontsize=self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label_fontsize)
+                                                                      fontsize=self.subGraph[iCurSubGraph].axis_property[iCurrentAxis].y.axis_label_fontsize)
 
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color='r', linestyle='-', linewidth=2)
 
@@ -14333,37 +14333,37 @@ class MatplotlibFigure():
             ### major grid
             ### ---> X
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_color,
-                                                linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_style,
-                                                linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_width, which='major', axis='x')
+                                                                linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_style,
+                                                                linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.grid_width, which='major', axis='x')
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(TrueFalseDic[self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.display], which='major', axis='x')
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.x.display, which='major', axis='x')
             ### ---> Y
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_color,
-                                 linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_style,
-                                 linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_width, which='major', axis='y')
+                                                                linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_style,
+                                                                linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.grid_width, which='major', axis='y')
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(TrueFalseDic[self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.display], which='major', axis='y')
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].major.y.display, which='major', axis='y')
             ### minor grid
             ### ---> X
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_color,
-                                                 linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_style,
-                                                 linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_width, which='minor', axis='x')
+                                                                linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_style,
+                                                                linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.grid_width, which='minor', axis='x')
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(TrueFalseDic[self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.display], which='minor', axis='x')
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.x.display, which='minor', axis='x')
             ### ---> Y
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(color=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_color,
-                                                 linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_style,
-                                                 linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_width, which='minor', axis='y')
+                                                                linestyle=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_style,
+                                                                linewidth=self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.grid_width, which='minor', axis='y')
             # self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(TrueFalseDic[self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.display], which='minor', axis='y')
             self.subGraph[iCurSubGraph].axis[iCurrentAxis].grid(self.subGraph[iCurSubGraph].grid_property[iCurrentAxis].minor.y.display, which='minor', axis='y')
 
         #### LEGEND CONFIGURATION
         if self.subGraph[iCurSubGraph].legend_property.legend_display:
             legend_label_prop = {'weight':self.subGraph[iCurSubGraph].legend_property.legend_label_weight,'size':self.subGraph[iCurSubGraph].legend_property.legend_label_size,
-                                'style':self.subGraph[iCurSubGraph].legend_property.legend_label_style}
+                                 'style':self.subGraph[iCurSubGraph].legend_property.legend_label_style}
             legend = self.subGraph[iCurSubGraph].axis[iCurrentAxis].legend(legend_list,legend_text,loc=self.subGraph[iCurSubGraph].legend_property.legend_position,
-                                        ncol=self.subGraph[iCurSubGraph].legend_property.legend_ncol,
-                                        prop = legend_label_prop) # Can add the frameon=True option to activate/desactivate the frame (border + background) for legend        
+                                                                           ncol=self.subGraph[iCurSubGraph].legend_property.legend_ncol,
+                                                                           prop=legend_label_prop) # Can add the frameon=True option to activate/desactivate the frame (border + background) for legend
             # Interactive legend
             setPickerInLegend(legend)
 
@@ -14372,7 +14372,7 @@ class MatplotlibFigure():
                 text.set_color(self.subGraph[iCurSubGraph].legend_property.legend_label_color)
         #### LEGEND TITLE
             legend_title_prop = {'weight':self.subGraph[iCurSubGraph].legend_property.legend_title_weight,'size':self.subGraph[iCurSubGraph].legend_property.legend_title_size,
-                             'style':self.subGraph[iCurSubGraph].legend_property.legend_title_style}
+                                 'style':self.subGraph[iCurSubGraph].legend_property.legend_title_style}
             legend.set_title(self.subGraph[iCurSubGraph].legend_property.legend_title, prop=legend_title_prop)
             legend.get_title().set_color(self.subGraph[iCurSubGraph].legend_property.legend_title_color)
         #### LEGEND BORDER
@@ -14400,17 +14400,17 @@ class MatplotlibFigure():
                     #         family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
                     #         rotation=t.rotation,usetex=t.use_tex,alpha=t.text_alpha,backgroundcolor=background_color)
                     text = self.subGraph[iCurSubGraph].axis[iCurrentAxis].text(posx,posy,t.text,color=t.text_color,visible=t.visibility,
-                            family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
-                            rotation=t.rotation,alpha=t.text_alpha,fontsize=t.text_size,
-                            usetex=t.use_tex)
+                                                                               family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
+                                                                               rotation=t.rotation,alpha=t.text_alpha,fontsize=t.text_size,
+                                                                               usetex=t.use_tex)
                 except AttributeError:
                     print("usetex has been disabled => your version of matplotlib is to old")
                     # text = self.subGraph[iCurSubGraph].axis[iCurrentAxis].text(t.posx,t.posy,t.text,color=t.text_color,visible=t.visibility,
                     # family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
                     # rotation=t.rotation,alpha=t.text_alpha,backgroundcolor=background_color)
                     text = self.subGraph[iCurSubGraph].axis[iCurrentAxis].text(posx,posy,t.text,color=t.text_color,visible=t.visibility,
-                            family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
-                            rotation=t.rotation,alpha=t.text_alpha,fontsize=t.text_size)
+                                                                               family=t.font_type,fontweight=t.font_weight,horizontalalignment=t.ha,verticalalignment=t.va,
+                                                                               rotation=t.rotation,alpha=t.text_alpha,fontsize=t.text_size)
                 text.set_bbox(dict( facecolor=box_backgroundcolor,edgecolor=t.box_edgecolor,alpha=t.box_alpha,
                                     boxstyle=t.box_style,linewidth=t.box_linewidth))
 
@@ -14430,41 +14430,41 @@ class MatplotlibFigure():
                     hatch = s.hatch
                 if s.shape_type == 'Arrow':
                     dico_arrow = {
-                                    'Curve'         :mpatch.ArrowStyle.Curve(),
-                                    'CurveB'        :mpatch.ArrowStyle.CurveB(head_length=s.head_length,head_width=s.head_width),
-                                    'CurveFilledB'  :mpatch.ArrowStyle.CurveFilledB(head_length=s.head_length,head_width=s.head_width),
-                                    'CurveA'        :mpatch.ArrowStyle.CurveA(head_length=s.head_length,head_width=s.head_width),
-                                    'CurveAB'       :mpatch.ArrowStyle.CurveAB(head_length=s.head_length,head_width=s.head_width),
-                                    'CurveFilledA'  :mpatch.ArrowStyle.CurveFilledA(head_length=s.head_length,head_width=s.head_width),
-                                    'CurveFilledAB' :mpatch.ArrowStyle.CurveFilledAB(head_length=s.head_length,head_width=s.head_width),
-                                    'Fancy'         :mpatch.ArrowStyle.Fancy(head_length=s.head_length,head_width=s.head_width,tail_width=s.tail_width),
-                                    'Simple'        :mpatch.ArrowStyle.Simple(head_length=s.head_length,head_width=s.head_width,tail_width=s.tail_width)
-                                }
+                        'Curve'         :mpatch.ArrowStyle.Curve(),
+                        'CurveB'        :mpatch.ArrowStyle.CurveB(head_length=s.head_length,head_width=s.head_width),
+                        'CurveFilledB'  :mpatch.ArrowStyle.CurveFilledB(head_length=s.head_length,head_width=s.head_width),
+                        'CurveA'        :mpatch.ArrowStyle.CurveA(head_length=s.head_length,head_width=s.head_width),
+                        'CurveAB'       :mpatch.ArrowStyle.CurveAB(head_length=s.head_length,head_width=s.head_width),
+                        'CurveFilledA'  :mpatch.ArrowStyle.CurveFilledA(head_length=s.head_length,head_width=s.head_width),
+                        'CurveFilledAB' :mpatch.ArrowStyle.CurveFilledAB(head_length=s.head_length,head_width=s.head_width),
+                        'Fancy'         :mpatch.ArrowStyle.Fancy(head_length=s.head_length,head_width=s.head_width,tail_width=s.tail_width),
+                        'Simple'        :mpatch.ArrowStyle.Simple(head_length=s.head_length,head_width=s.head_width,tail_width=s.tail_width)
+                    }
 
                     if len(points)==2:
                         shape = mpatch.FancyArrowPatch(points[0],points[1],arrowstyle=dico_arrow[s.arrowstyle],
-                                                        mutation_scale=s.scale,linewidth=s.linewidth,
-                                                        hatch=hatch,
-                                                        edgecolor=s.edgecolor,
-                                                        facecolor=s.facecolor,
-                                                        linestyle=s.linestyle,
-                                                        alpha=s.alpha)
+                                                       mutation_scale=s.scale,linewidth=s.linewidth,
+                                                       hatch=hatch,
+                                                       edgecolor=s.edgecolor,
+                                                       facecolor=s.facecolor,
+                                                       linestyle=s.linestyle,
+                                                       alpha=s.alpha)
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
                     elif len(points)==3:
                         codes = [
-                                    Path.MOVETO,
-                                    Path.CURVE3,
-                                    Path.CURVE3,
-                                ]
+                            Path.MOVETO,
+                            Path.CURVE3,
+                            Path.CURVE3,
+                        ]
                         path = Path(points,codes)
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(mpatch.FancyArrowPatch(
-                                                            path=path,
-                                                            arrowstyle=dico_arrow[s.arrowstyle],
-                                                            mutation_scale=s.scale,
-                                                            linewidth=s.linewidth,
-                                                            hatch=hatch,
-                                                            edgecolor=s.edgecolor,
-                                                            facecolor=s.facecolor,linestyle=s.linestyle,alpha=s.alpha))
+                            path=path,
+                            arrowstyle=dico_arrow[s.arrowstyle],
+                            mutation_scale=s.scale,
+                            linewidth=s.linewidth,
+                            hatch=hatch,
+                            edgecolor=s.edgecolor,
+                            facecolor=s.facecolor,linestyle=s.linestyle,alpha=s.alpha))
 
                 elif s.shape_type == 'Circle':
                     shape = mpatch.Circle(  xy=[points[0][0],points[0][1]],radius=s.radius,clip_on=False,
@@ -14487,34 +14487,34 @@ class MatplotlibFigure():
                     self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_line(line)
                 elif s.shape_type == 'Bracket':
                     dico_bracket = {
-                                    'BracketA'          :mpatch.ArrowStyle.BracketA(widthA=s.widthA,lengthA=s.lengthA,angleA=s.angleA),
-                                    'BracketB'          :mpatch.ArrowStyle.BracketB(widthB=s.widthB,lengthB=s.lengthB,angleB=s.angleB),
-                                    'BracketAB'          :mpatch.ArrowStyle.BracketAB(widthA=s.widthA,lengthA=s.lengthA,angleA=s.angleA,
-                                                                                        widthB=s.widthB,lengthB=s.lengthB,angleB=s.angleB),
-                                }
+                        'BracketA'          :mpatch.ArrowStyle.BracketA(widthA=s.widthA,lengthA=s.lengthA,angleA=s.angleA),
+                        'BracketB'          :mpatch.ArrowStyle.BracketB(widthB=s.widthB,lengthB=s.lengthB,angleB=s.angleB),
+                        'BracketAB'          :mpatch.ArrowStyle.BracketAB(widthA=s.widthA,lengthA=s.lengthA,angleA=s.angleA,
+                                                                          widthB=s.widthB,lengthB=s.lengthB,angleB=s.angleB),
+                    }
                     if len(points)==2:
                         shape = mpatch.FancyArrowPatch(points[0],points[1],arrowstyle=dico_bracket[s.bracketstyle],
-                                                        mutation_scale=s.scale,linewidth=s.linewidth,
-                                                        edgecolor=s.edgecolor,
-                                                        facecolor=s.facecolor,
-                                                        linestyle=s.linestyle,
-                                                        alpha=s.alpha)
+                                                       mutation_scale=s.scale,linewidth=s.linewidth,
+                                                       edgecolor=s.edgecolor,
+                                                       facecolor=s.facecolor,
+                                                       linestyle=s.linestyle,
+                                                       alpha=s.alpha)
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
                     elif len(points)==3:
                         codes = [
-                                    Path.MOVETO,
-                                    Path.CURVE3,
-                                    Path.CURVE3,
-                                ]
+                            Path.MOVETO,
+                            Path.CURVE3,
+                            Path.CURVE3,
+                        ]
                         path = Path(points,codes)
 
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(mpatch.FancyArrowPatch(
-                                                            path=path,
-                                                            arrowstyle=dico_bracket[s.bracketstyle],
-                                                            mutation_scale=s.scale,
-                                                            linewidth=s.linewidth,
-                                                            edgecolor=s.edgecolor,
-                                                            facecolor=s.facecolor,linestyle=s.linestyle,alpha=s.alpha))
+                            path=path,
+                            arrowstyle=dico_bracket[s.bracketstyle],
+                            mutation_scale=s.scale,
+                            linewidth=s.linewidth,
+                            edgecolor=s.edgecolor,
+                            facecolor=s.facecolor,linestyle=s.linestyle,alpha=s.alpha))
 
 
 
@@ -14588,9 +14588,9 @@ class Axis():
         axis_y_label_format = kwargs.get('axis_y_label_format', default_values['Axis']['axis_y_label_format'])
 
         self.x = DirAxis(axis_x_logscale,axis_x_autoscale,axis_x_min,axis_x_max,axis_x_label,
-                        axis_x_inverted,axis_x_visible,axis_x_position,axis_x_offset,axis_x_label_fontsize,axis_x_label_format)
+                         axis_x_inverted,axis_x_visible,axis_x_position,axis_x_offset,axis_x_label_fontsize,axis_x_label_format)
         self.y = DirAxis(axis_y_logscale,axis_y_autoscale,axis_y_min,axis_y_max,axis_y_label,
-                        axis_y_inverted,axis_y_visible,axis_y_position,axis_y_offset,axis_x_label_fontsize,axis_y_label_format)
+                         axis_y_inverted,axis_y_visible,axis_y_position,axis_y_offset,axis_x_label_fontsize,axis_y_label_format)
 
     def getInd(self):
         return self.ind
@@ -15441,7 +15441,7 @@ class CustomToolbar(NavigationToolbar2Tk):
 
 
     # def _Button(self, text, file, command, extension='.ppm'):
-    # #def _Button(self, text, file, toggle, command): 
+    # #def _Button(self, text, file, toggle, command):
     #     fileimage = file
     #     im = TK.PhotoImage(data=IMAGE_DICT[fileimage])
     #     b = TK.Button(master=self, text=text, padx=2, pady=2, image=im, command=command)
@@ -15693,7 +15693,7 @@ def updateFromTree(event=None, t=None):
         global PREVTPZONES
         if PREVTPZONES == []: DESKTOP.setData(tp)
         else:
-            to = getPlotTree(tp) 
+            to = getPlotTree(tp)
             DESKTOP.replaceGroupZones(to, PREVTPZONES)
             PREVTPZONES = Internal.getZonePaths(to, 2)
 
@@ -15766,12 +15766,12 @@ def updateApp2(t=None):
 
 #==============================================================================
 def saveApp():
-# A completer ...
+    # A completer ...
     CTK.savePrefFile()
 
 #==============================================================================
 def resetApp():
-# A completer ...
+    # A completer ...
     CTK.savePrefFile()
 
 #==============================================================================
@@ -15781,15 +15781,15 @@ def displayFrameMenu(event=None):
 #==============================================================================
 # IMAGE RESSOURCES
 IMAGE_DICT = {
-'initial':'''R0lGODlhGAAYAOekAAAAAAsNDQ8RERIUFRQXGCgtLjc9P0lSVNd/MrePX9aJTNmLT8OXVNmRVNyRVN6RUtmSW5GiptyWXt2YVtGacOCYWsicfN2gcLyojdqjbOWhZdumfuipSaO2uuStad6uh5G/ya+5uOuva+uweeizZey1VpHFz961l9+3l5PI0u+7WpfJ3qHI0fS8VLDFyp3K0fO9VZ7K0u+6g6DK05/L06PK0qjJ0KTK0qHL1KTL0qTL06nK0KHM1aXL1KrK0KLM1KfL0/TAXqTM1KXM0qTM1fTAYaLN1anL1fXBYOLApajN1LTM1qTR16fQ2a3Q1PbFbarR2arR2vbGb7XP1qvS26zT2LnQ2KzU27fR27LT163U3bnR2a3V2bLU1/fJea7V27TU1/TIl/fKfLDW2/fLfrHX27HX3LXW3bfW2bfW2rHY2+LOvrrX27rX3LbY3/jOiMDX3L/X4PjPirrZ3uLQw7fa373Z3cHY4bjb4L7a3sLa37vc4fbRocDb38nY47/c4MnZ5cnZ5vnTl8Lc4crZ6fjToPnUmc3b6cbe4s7b6cbe4/LVwc/c6dDc6fnXouPZ0dDd6dHd6frYo9Ld6NTe587g8NXf6eXf29vh5+Xi3+Xj4uLk5+Xl5uTm5+bm5tro+Nvo99zp993p+N7q+P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gA9CRxIsKDBgwgTKlwocI2DBZkYGsx0QUMhESgkEkzyIIwhMkUQFNzUiJHJSJ0GPpIwwpEcKS1IKBjIKZGfHTlu9PARyJKnDxX4CBKDRMWEDZcEbiJ0RMufPnbYtKFixYIMSW+ewPAAgQ7NQyzcIFJENk+aLlFCZPASpESDE5oIQgJyRhEcAwICkC1TJgUGDgwSGNzk58ogRXoidNBLdg+TKRQWHWxkYw5Zsi4YK9qjhkgohIx0sLmsKDPpMjREga6BhrRpsnXKxBgF+gYY15oVlcFB++AkH2myXH69V0dvg5wAQXFCtsAAAAQO7L2jkNKWJmXwkN4LAtTCSUtMIBj5YmYMlyo/lFSSiGkFFiE8XswYEueTxvv48+vfjzAgADs=''',
-'move':'''R0lGODlhGAAYAOe1AA5efg9efw5ffg9ffxBgfxFgfxFggBNhgBRhgRRigRRighVigRdkghhlgxplhBxlhBpmhBtmhBxnhR1ohR5ohiJriCNriCRsiSVsiSRtiShuiylviylwjCtwjCxxjS1xjS1yjS9zjjV3kTl5kzp5kz17lUSAmEiDmkuEnE2GnVaMoVeMoViNolmNolqOo1uPpF+RpWOUp2SUqNd/MmaVqGiXqm2arG6brbePX9aJTHSer9mLT3WfsHmisnqissOXVNmRVNyRVN6RUtmSW9yWXt2YVuCYWsicfN2gcLyojZGwvdqjbOWhZZSyv9umfuipSZ24w+Stad6uh5G/ya+5uOuva+uweeizZaa9x+y1VpHFz6m/yd61l9+3l5PI0u+7WpfJ3rDEzKHI0fS8VPO9Ve+6g6TK0qHL1KTL0qTL06nK0KHM1aXL1KrK0KfL0/TAXqTM1PTAYaLN1anL1fXBYOLApbTM1qfQ2a3Q1PbFbarR2fbGb7fR27LT163U3bnR2ffJea7V27TU18TQ1fTIl/fKfPfLfrHX27HX3LfW2sjT2OLOvrrX27bY3/jOiMDX3PjPiuLQw73Z3cHY4bjb4L7a3s7X2/bRocDb38nY47/c4MnZ5fnTl8rZ6fjToPnUmc3b6cbe4s7b6cbe48/c6dDc6fnXouPZ0dDd6frYo9Ld6NTe5+Xf29vh5+Xi3+Xj4uLk5+Xl5ubm5tvo997q+P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gBlCRxIsKDBgwdfIFxYsAcHGQcXBdnhaiGWFQA+QCHoCgkTT1W6ILRUYwEAACUUCawjhNAnQ3FmFIRVihSICQUAGHBw4RQRK6Yg7RlzJcfAWKIyqUFjho0IABtkSTFyiVMhOl+KOGElEFanOX40YZLEiATUI2VSOcpDJsqQSEdBiWkUapTdSiagUlkC6E0WIFxeEUTlxlKFR3bt5t3gJcmTHzgyqBwIK5MSDAdsaNZsIQAFGzp8iEYQosnAUikYnFy9OgFr1g9YCIyhosHr1rdPFkABkVSYGyMIwBg+HIKACDZoED+gAUYYgaTMCArTIbHdpxsOnaEl0MMWgqraWCTqY/061ENpuB+MtUkPnvKjsB+axHDVnzuHKFnHPmUWQ1mq2KGFHIEg4oEEBgAwgAIX/CdLK2DwAccalriwmgmDOGgQFidktJGGBvGgAUQgHtRCiSgWFBAAOw==''',
-'move_active':'''R0lGODlhGAAYAOevAAtLZQxLZgtMZQxMZg1NZg5NZg9OZhBOZxBOaBFOZxJQaBNRaRVRahZRahVSahZSahdTahhTaxtWbRxWbR1Wbh5Wbh1XbiBYbyFZbyFacCJacCNacSRacSRbcSZccipfdC5hdjFidzZmejppezxqfT5rfkVwgUZwgUZxgkdxgkhygklyg0x0hE92hlB2hlJ3hqxmKFN5iFd7ilh8ipJyTKtuPV1+jK5vP15/jWGCjmKCjpx5Q650Q7B0Q7J0Qq51SbB4S7F6RbN6SKB9Y7GAWpaGca6CVnSNl7eBUXaOma+FZbqHOn6TnLaKVLKLbHSZoYyUk7yMVrqPUYWXn7yNYb2RRXSepoeZobKRebKSeXagqL+WSMOWQ3mhsoGgp42do8KXRL+VaYGiqoOiqIOiqYSiqoGjqoeipoaiqYOjqoiipoeiqsOaS4KkqsOaTsSaTbWahJCjq4amroqmqoinrsWeV8WeWZKnr5Snro6prIqqsYuqr8ahYZ2mqpCqrMOgecaiY8aiZY6sr5Krro6ssJWsr6CprbWlmJKtssalbZqssLWmnMambpeusZOvs5qttJiussWngaWsr5qvsqGttpmws6Gut8epecapgKKuuseqeqSvuqWvup6ytZ6ytqawusesgraup6axusitgqixuqqyubeyr6+0ube1srW2ube2tbe3uLi4uK+6xrK7xv///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gBZCRxIsKDBgwdXIFxYMEcGFwcP9biBauGUEwA4MCGIiggSTFGyIJQUIwEAACEMCYTj44+mQG5gFEz16VMHCAUAFGBAIRQQKqAY2eEipcbAVZwonRkzpswHABhYORES6RKgN1uCKDElMFWmNXoqTWpUCATUIWFGJaoDpsmPRUc3eUHUyZNdSCKgQjHCh00VHlhUERSFRpIERXbt5sWgpciSHTQsqByYitKRCgZkaNY8IUAEGTZ0iD7gIcnATyUUnFy9+gBr1g1QCGxhYsHr1rdPFiAB8dOXGSAIsBg+3IGABzJeEDdwgcUXgZ/G+PmiIbHdpxgEiXElcMMVgqTUVwzKY/06VEFkuB9cZYnOnPKesAt6xLAUHjmCHFnH/qQVQ1akxGFFG3sQssEDOQ2AAAX/sXJKF3ekYYYkKqwmQh8NGjTFCBltlKFBOFwA0YcHpUDiiQUFBAA7''',
-'zoom_to_rect':'''R0lGODlhGAAYAOfxADqInUKNoUSNo0aOpUeQo0yRqE6Up1OXqtd/MliarVicrFycsF6dsV2fr7ePX9aJTGKisdmLT2aktGSls2elt2mmtmintcOXVNmRVNyRVN6RUmypt9mSW26ruW+rudyWXt2YVtGacOCYWsicfHSvvHixvniyvHqzv92gcLyojdqjbOWhZYO5w9umfuipSXm+yIW8xIi8x4q9x37ByuStaY2/yt6uh4DDzJG/yYPDzYLEz6+5uOuva5LBzITFz+uweeizZey1VpHFz4rH0ZnExZbEzt61l5fF0IjJ1Y3I0d+3l5PI0ozK1IrL14/K1I3L1e+7WpfJ3qHI0fS8VJ3K0fO9VZ7K0u+6g5TN16DK05PO2J/L06PK0pTO2KjJ0KTK0qHL1KTL0qTL06nK0KHM1aXL1KrK0KLM1JfP2KfL0/TAXqTM1KXM0qTM1fTAYZbQ2qLN1anL1fXBYOLApZfR26jN1JnR25jS3LTM1qTR16fQ2a3Q1J3U3vbFbZ7U3qrR2arR2vbGb7XP1p/V4KvS26zT2LnQ2KzU27fR27LT163U3bnR2a3V2bLU1/fJea7V27TU1/TIl/fKfLDW2/fLfrHX27HX3LXW3bfW2bfW2rjW2rHY2+LOvrrX27rX3LbY3/jOiL/X4PjPirrZ3uLQw7fa373Z3cHY4bjb4L7a3rvc4fbRocDb38nY48Hb37/c4MnZ5cnZ5vnTl8Lc4crZ6fjToL7e4/nUmb7f47/f5M3b6cbe4s7b6cbe4/LVwcHg5c/c6dDc6cjf4/nXouPZ0dDd6dHd6frYo9Ld6MTi59Te58Xj587g8Mfj6NXf6cnl6uXf29vh58vm68zn687n7OXi3+Xj4uLk59Dp7tHp7uXl5tPq7+Tm5+bm5tro+Nvo99Tr8NXr8Nzp993p+N7q+Njt8tnu89vv9d7w9t/x9uL0+eP0+e3z+/D0+/L1+/n5/f78/v///////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gC7CRxIsKDBgwgTKlwokFOGCNUYGqyGYkUtHkokEpyjIdItSm4QFLwWDJhJY9wGEvvwY5ioQFOAPBiojVerMWG+lDETy1k3GyJWyZIkBwqIFtAEXqMVR9ErVqY6eSJkaMSVY6D6VKHBgRRNXVI+7RLWa1aqTI0A7VDhSE0QDEasESyW5tITPoP82NHCxMeNJSlcXHBApEsXJEpbHZqFBp26dOWyPfulKo+gEL7gaYZ3R2AwL6MYo1sHWTLlTW3EbdbcuRswMZ1cYTF3jkGBAQICADixZdxqzgKBccFkysm2cOCwSUtmq1QlK+R+twb2BZKmIdOoUViQ4IABAibAhkRf3RqZmUyJcixrdqRIjxoxWMAQM35za22w/uyZgSuXhwoSQNCAAjKc4o50AymziB4voIIKCR1sYMEEJeDwzW/ADYQMHkLA8YglkzBSyBl1MPMOhq0NFE0UiKxBBhVZsBGKNyeiaFAS7IgzDjk8toOhfQbp8MaQRA5Jx5FIHtmERkw2WVBAADs=''',
-'zoom_to_rect_active':'''R0lGODlhGAAYAOfnAC5tfjVxgTZxgjhyhDlzgj10hj52hkJ5iKxmKEZ7ikZ9ikp9jUt+jkp/jJJyTKtuPU6Cjq5vP1KDkFCEj1KEklSFklOGkZx5Q650Q7B0Q1aHkrJ0Qq51SViJlFmJlLB4S7F6Rad7WrN6SKB9Y12MlmCOlmCOmGKPmbGAWpaGca6CVreBUWmUnK+FZbqHOmGYoGqWnW2Wn26Xn2WaoraKVGaco7KLbHGZonSZoWmcpIyUk7yMVmidpnWao2qeprqPUbyNYb2RRW6fp3qdnnSepnidpbKReXGgp22hqnmeprKSeXagqG6irHCiqnGiqnKiqr+WSMOWQ3mhsoGgp8KXRH6ip7+VaX6iqHakrH+iqYCiqYGiqnalrYahpoKiqIOiqIOiqYSiqoGjqoKjqoeipoaiqYOjqoiipoSjqHimroeiqnmmrcOaS4KkqsOaTsSaTXmnr3qnr4akqrWahHqosJCjq4OnrIamroqmqoinrsWeV36qssWeWX+qs5Gmq4mor5SmrYqprZKnr5Snro6prIqqroqqr4qqsYuqr46qrMahYZCqrMOgeY2rr8aiY8aiZY6sr5KrrpGrsY6ssJOrro6tr5Wsr5WssLWlmJKtssalbZKuspmss7WmnMambpWuspeusZOvs5qttJiussWngZqvspawtKGttpmws5uwtKGut8epeaGuuMapgKKuuseqepiytpmytqSvuqWvusKqmp6ytZqzt56ytqCytqawusesgraup6axuqexusitgqixup21uaqyuaqyuqWzwJ62uZ+2uqG3u7eyr6+0uaK4vKO5vKW5vbe1srW2uaa6vre2tae6vre3uKm7v7a4ubi4uK66xqq8wK+6xrC6xrG6xrK7xq2+wq6+wq+/xLLAxbLBxbXDx7bDx77CycDDycLEycfHysvKy////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gCpCRxIsKDBgwgTKlwoEFOGCMwYGmSGYkWrHUokEpyzgdGrR24QFGyWq2SuXtMG7voARJcnPlF+PBgYbdYpMl++hDnDShg1GyJIrXL0BgqIFscENnOl5hCqUqAsXfoDaIQVX5r0UKHBoRNNWVMy1cJ1K9WoSIny6FChiE0QDEaeEeRVRpKTPX32xOHSxEeNJSlcXHAwhAsXJEpPGUq1xhu4b9ugGbNlyo6fELTMaTZHR2CuLp8YewsHWTLlSmawbdbcmVouMJZKYeHWjUGBAQICADiRJdtqzp69RAL1RJo1a86SAYO1CdIVbb9b5/qyiJIQZcsoLEhwwACBElugha9u/etMJEI5iBVLUqTHjRgsYIARv7l1NFV58MyAFctDBQkQNKCADKKQE91AwQxyxwuhhEJCBxpYMIEJOFzzG3AD/VIHEW0gMkkjhQQyhhzDlHNhawMhI4UgZohRhRZocFKNiScadIQ42GSjzY7jXFifQTykIeSQQsJh5JFGMqHRkkwWFBAAOw==''',
-'previous':'''R0lGODlhGAAYAOe4AAAAAAEBAQMDAwUGBgoMDA8REREUFBQWFxgbHCMoKDI4OTU8PT5FR1JcXlReYV1pa2x5fHeGiXiGidd/MoSUmLePX9aJTNmLT4ydocOXVNmRVNyRVN6RUtmSW9yWXt2YVtGacOCYWsicfJWnqpiqrt2gcLyojdqjbOWhZdumfuipSeStaaS4vN6uh5G/ya+5uOuva+uweeizZey1VpHFz961l9+3l5PI0u+7WpfJ3qHI0fS8VJ3K0fO9VZ7K0u+6g6DK05/L06PK0qjJ0KTK0rHHy6HL1KTL0qTL06nK0KHM1aXL1KrK0KLM1KfL0/TAXqTM1KXM0qTM1fTAYaLN1anL1fXBYOLApajN1LTM1rbM0aTR16fQ2bfN0q3Q1PbFbarR2arR2vbGb7XP1qvS26zT2LnQ1LnQ2KzU27fR27LT163U3bnR2a3V2bLU1/fJea7V27TU1/TIl/fKfLDW2/fLfrHX27HX3LXW3bfW2bfW2rHY2+LOvrrX27rX3LbY3/jOiL/X28DX3L/X4PjPirrZ3uLQw7fa373Z3cHY4bjb4L7a3sLa37vc4fbRocDb38nY47/c4MnZ5cnZ5vnTl8Lc4crZ6fjToMTc4fnUmcXd4s3b6cbe4s7b6cbe4/LVwc/c6dDc6fnXouPZ0dDd6dHd6frYo9Ld6NTe587g8NXf6eXf29vh5+Xi3+Xj4uLk5+Xl5uTm5+bm5tro+Nvo99zp993p+N7q+P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gBlCRxIsKDBgwgTKlwokM+GC60YGmxVAsUlGDYkErzCQU6mOlMmFHwVCpTJUrEGjvIQQxQhMTtkWBgIqxOkJEeILGEySZWsFiEcUZpjBceHFKsEvrJUZU2kR4j6+CFzRsQPU4C+9FjRwRDNTTr+cPJEdpEeN2FenHjzZIaGGq4IknKCx5Mgsp4YYbBj54YJFRkqGHwFCU0lsppINCgAwFOjLWNAfDoYakghTyweIABwwAEJx3uk1EIICkmfBAAMNBiBCa8nO0FskRaShwAABRG0uD5kx8ct0kTiBKLAYICABRK6kLVj5PfBU0z0qCFrRoKCAAKWI3FuEJYkMF5cOHsqAmF5IoWo2HCxo0j8axe0Fp7KQoMKnDt02pRpgiWVRFY5pAGFEjwAEcUgs2ik4IIMNuggQgEBADs=''',
-'next':'''R0lGODlhGAAYAOe5AAAAAAEBAQMDAwUGBgsNDQ8REREUFBMVFhgbHCMoKDI4OTU8PT5GSFFbXVJcXlReYV5qbGx5fHeGiXiGiXmHitd/MoSUmLePX9aJTNmLT4ydocOXVNmRVNyRVN6RUtmSW9yWXt2YVtGacOCYWsicfJWnqpiqrpirr92gcLyojdqjbOWhZdumfuipSeStaaS4vN6uh5G/ya+5uOuva+uweeizZey1VpHFz961l9+3l5PI0u+7WpfJ3qHI0fS8VJ3K0fO9VZ7K0u+6g6DK05/L06PK0qjJ0KTK0rHHy6HL1KTL0qTL06nK0KHM1aXL1KrK0KLM1KfL0/TAXqTM1KXM0qTM1fTAYaLN1anL1fXBYOLApajN1LTM1rbM0aTR16fQ2bfN0q3Q1PbFbarR2arR2vbGb7XP1qvS26zT2LnQ1LnQ2KzU27fR27LT163U3bnR2a3V2bLU1/fJea7V27TU1/TIl/fKfLDW27zT2PfLfrHX27HX3LXW3bfW2bfW2rHY2+LOvrrX27rX3LbY3/jOiL/X27/X4PjPirrZ3uLQw7fa373Z3cHY4bjb4L7a3rvc4fbRocDb38nY47/c4MnZ5cnZ5vnTl8Lc4crZ6fjToMTc4fnUmc3b6cbe4s7b6cbe4/LVwc/c6dDc6fnXouPZ0dDd6dHd6frYo9Ld6NTe587g8NXf6eXf29vh5+Xi3+Xj4uLk5+Xl5uTm5+bm5tro+Nvo99zp993p+N7q+P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gBnCRxIsKDBgwgTKlwoEFCHDK4YGnSFYkWmGTkkEtTioc6mPFYqFIQlKpRJU7IGkgJBY9ShMj5qYBgYy5MkJkqOOHlSadUsGCMgWbKTZUcIFqwEwsKExc2kSIsCCTqjhoSQU4TEAHHxIRFNTj0GdfpE1pGfOGRkqJAjxQYHHK8IlorCRwMesnj16NGRosWGCwZhSVpzCUABByfwfnrkxYwIUAdFGUH0ycSDAwAQQHix+E8VWwhDLQmEV1OJBgYAJPikh8it0EX6KO4iQQEAAor0BMEV+gidT2AmLBAwgIGFQqyT8D6I6omfNgICKKCQRrGeJcsNxqI0JkwEJIrzMzJSmOrNFz2NwrOOUWshKi43rszZcwcOGihbVElsxYPNlCY/DEGFIbRoZOCBCCaoIEIBAQA7''',
-'subplots':'''R0lGODlhGAAYAMZHAA5efg9efw5ffg9ffxBgfxFgfxFggBNhgBRhgRRigRRighVigRdkghhlgxplhBxlhBpmhBtmhBxnhR1ohR5ohiJriCNriCRsiSVsiSRtiShuiylviylwjCtwjCxxjS1xjS1yjS9zjjV3kTl5kzp5kz17lUSAmEiDmkuEnE2GnVaMoVeMoViNolmNolqOo1uPpF+RpWOUp2SUqGaVqGiXqm2arG6brXSer3WfsHmisnqispGwvZSyv524w6a9x6m/ybDEzMTQ1cjT2M7X29/i4+Lj5Obm5v///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAHsoBGgoOEhYaHhkUvRIiNhDkcMo6OPisAHz2Th0M0CwAAJUKahSATBQAGDhdFo4UiAButhySwsoYmtaNDFYW4sYQZooU7GAc1x8cWARQ1NzrPCCE8g0UpDJ/Y2AnZ2Q8sjDEqDdza5J8FKJJGQDYjBDDw8BACETUz8QcaMECFQB2uuQZ5+NHq1S9bgwwiJKRwoQcJBgAMULDK1hAX2EwEWejjxKVMC43g0KAuZJEWjELKCgQAOw==''',
-'filesave':'''R0lGODlhGAAYAOfWABgqQwNAYQVBYgBDaQdCYwBEagBFayU9VgBGbAtEZR5AWABHbSY+VwBIbg1FZh9BWQBJbwBKaw9GZxBGaAFLbBJHaQNMbRNIagBNcgBNcypDXCNFXSRGXh5IZQdObyVHXyZIYABRdwpPcABSeCdJYShJYgxQcQBTeSlKYw5RcipLZBBScwBXdjJKZCtMZQBYdxJTdCxNZh1RbRNUdQJZeDlLYS1OZwRZeTpMYhdVdzpNYwdaehhWeDVQYwlbewxcfA5dfSZYdBBefmhLOzJYditdeXlNN3JPR0dZb0xbbE5dbkxfdVFgcYNWRU5hdz5nf1Nic1BjeVVkdVJle1NmfFRnfVpoeltpe1Jtgjt0kUhxiUJ1jER2jUV3jlJ1iV51haBrPqFsP6JtQGN5ill8kKNuQWB7kKRvQaVwQqZxQ1x/k6dyRGh+j2CDl2uBknKFkGuGm6t9WHWIlKx+WXaJla1/Wm2Mm3eKlq6AW26NnLR/XGuOo6+BXLWAXXmMmGyPpLCCXXCPnraBXnqNmXuOmm6RpnKRoHOSoX2QnHSTon6RnXGUqXWUo3KVqnaVpICTn3eWpYGUoIKVoXyXoXmYqIOXonqZqXCcr4SYo3uaqoWZpHybq4aapYGcpn6drYmcp3+froqdqHaitnuisIueqYWgqnejt4yfqo2gq4eirI6hrYijrYmlr4qmsJGksIunsZKlsYyospSns4uqupWotJCrtZeqtpmsuJSvuZWwupuvupywu56yvpm0v5+zv6C0wKG1waS3w6W4xKa5xae6xqi7x6m8yKq+yau/y6zAzK7Czq/Dz7DE0LLG0rPH07jIzrbJ1rvL0r7P1dTZ29vg4/7//P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gCrCRxIsKBBgj8SKvTBsKHDhjRo/Kj2w0dEI2vSoNlYpmNHMWHCgBlCgcKLhE/MwGgiqI8eQHxi4qlDc86cOEdkwIFBw0ebaSJESYvmbJmxYsJ+7dJ1y5YsWFmIUCvSM0cQGKaiPWM2q9GiRIcK/dmTx04nLgMEOOg5A8YMUdCcKfMCAsSHuxw4bNighosBAxMijhhxwlRRY8OA7cJlixYsVqlOneIyAXDEFCJWjFp2zJiWB6BDKxhNpgsCyzREZDbVeVisTZYoOWJ06FCgPJNMoxaBYcSlXrlu1XrValUpUJ4yUYKUiMvpwDQsUMAgBEjCiNix83iRI8df6BQixVyosKDy3/Po00O/sKCC+fTw0QfmQf50/PvfafA47eAvgQAABiigAOgtQIN36GnwBRZTUHGFFVVMEYUTDBR4YHotGCMFAAD4QYsrqHxSSQ8WInheC8RAwaEcsKjyCSaP6FAihsIwweEbqoSiSSSI4DAjei74sgSHbpCyoyJ++HiegTSk58IuSnDIBieSKDIIHTWgB0FEMKDXwi1jIJGEHJUoQsgdb9SQwF9bTqRfdzl0YEMMLqiAQgkl2MXBASy88IJE1QQEADs='''
+    'initial':'''R0lGODlhGAAYAOekAAAAAAsNDQ8RERIUFRQXGCgtLjc9P0lSVNd/MrePX9aJTNmLT8OXVNmRVNyRVN6RUtmSW5GiptyWXt2YVtGacOCYWsicfN2gcLyojdqjbOWhZdumfuipSaO2uuStad6uh5G/ya+5uOuva+uweeizZey1VpHFz961l9+3l5PI0u+7WpfJ3qHI0fS8VLDFyp3K0fO9VZ7K0u+6g6DK05/L06PK0qjJ0KTK0qHL1KTL0qTL06nK0KHM1aXL1KrK0KLM1KfL0/TAXqTM1KXM0qTM1fTAYaLN1anL1fXBYOLApajN1LTM1qTR16fQ2a3Q1PbFbarR2arR2vbGb7XP1qvS26zT2LnQ2KzU27fR27LT163U3bnR2a3V2bLU1/fJea7V27TU1/TIl/fKfLDW2/fLfrHX27HX3LXW3bfW2bfW2rHY2+LOvrrX27rX3LbY3/jOiMDX3L/X4PjPirrZ3uLQw7fa373Z3cHY4bjb4L7a3sLa37vc4fbRocDb38nY47/c4MnZ5cnZ5vnTl8Lc4crZ6fjToPnUmc3b6cbe4s7b6cbe4/LVwc/c6dDc6fnXouPZ0dDd6dHd6frYo9Ld6NTe587g8NXf6eXf29vh5+Xi3+Xj4uLk5+Xl5uTm5+bm5tro+Nvo99zp993p+N7q+P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gA9CRxIsKDBgwgTKlwocI2DBZkYGsx0QUMhESgkEkzyIIwhMkUQFNzUiJHJSJ0GPpIwwpEcKS1IKBjIKZGfHTlu9PARyJKnDxX4CBKDRMWEDZcEbiJ0RMufPnbYtKFixYIMSW+ewPAAgQ7NQyzcIFJENk+aLlFCZPASpESDE5oIQgJyRhEcAwICkC1TJgUGDgwSGNzk58ogRXoidNBLdg+TKRQWHWxkYw5Zsi4YK9qjhkgohIx0sLmsKDPpMjREga6BhrRpsnXKxBgF+gYY15oVlcFB++AkH2myXH69V0dvg5wAQXFCtsAAAAQO7L2jkNKWJmXwkN4LAtTCSUtMIBj5YmYMlyo/lFSSiGkFFiE8XswYEueTxvv48+vfjzAgADs=''',
+    'move':'''R0lGODlhGAAYAOe1AA5efg9efw5ffg9ffxBgfxFgfxFggBNhgBRhgRRigRRighVigRdkghhlgxplhBxlhBpmhBtmhBxnhR1ohR5ohiJriCNriCRsiSVsiSRtiShuiylviylwjCtwjCxxjS1xjS1yjS9zjjV3kTl5kzp5kz17lUSAmEiDmkuEnE2GnVaMoVeMoViNolmNolqOo1uPpF+RpWOUp2SUqNd/MmaVqGiXqm2arG6brbePX9aJTHSer9mLT3WfsHmisnqissOXVNmRVNyRVN6RUtmSW9yWXt2YVuCYWsicfN2gcLyojZGwvdqjbOWhZZSyv9umfuipSZ24w+Stad6uh5G/ya+5uOuva+uweeizZaa9x+y1VpHFz6m/yd61l9+3l5PI0u+7WpfJ3rDEzKHI0fS8VPO9Ve+6g6TK0qHL1KTL0qTL06nK0KHM1aXL1KrK0KfL0/TAXqTM1PTAYaLN1anL1fXBYOLApbTM1qfQ2a3Q1PbFbarR2fbGb7fR27LT163U3bnR2ffJea7V27TU18TQ1fTIl/fKfPfLfrHX27HX3LfW2sjT2OLOvrrX27bY3/jOiMDX3PjPiuLQw73Z3cHY4bjb4L7a3s7X2/bRocDb38nY47/c4MnZ5fnTl8rZ6fjToPnUmc3b6cbe4s7b6cbe48/c6dDc6fnXouPZ0dDd6frYo9Ld6NTe5+Xf29vh5+Xi3+Xj4uLk5+Xl5ubm5tvo997q+P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gBlCRxIsKDBgwdfIFxYsAcHGQcXBdnhaiGWFQA+QCHoCgkTT1W6ILRUYwEAACUUCawjhNAnQ3FmFIRVihSICQUAGHBw4RQRK6Yg7RlzJcfAWKIyqUFjho0IABtkSTFyiVMhOl+KOGElEFanOX40YZLEiATUI2VSOcpDJsqQSEdBiWkUapTdSiagUlkC6E0WIFxeEUTlxlKFR3bt5t3gJcmTHzgyqBwIK5MSDAdsaNZsIQAFGzp8iEYQosnAUikYnFy9OgFr1g9YCIyhosHr1rdPFkABkVSYGyMIwBg+HIKACDZoED+gAUYYgaTMCArTIbHdpxsOnaEl0MMWgqraWCTqY/061ENpuB+MtUkPnvKjsB+axHDVnzuHKFnHPmUWQ1mq2KGFHIEg4oEEBgAwgAIX/CdLK2DwAccalriwmgmDOGgQFidktJGGBvGgAUQgHtRCiSgWFBAAOw==''',
+    'move_active':'''R0lGODlhGAAYAOevAAtLZQxLZgtMZQxMZg1NZg5NZg9OZhBOZxBOaBFOZxJQaBNRaRVRahZRahVSahZSahdTahhTaxtWbRxWbR1Wbh5Wbh1XbiBYbyFZbyFacCJacCNacSRacSRbcSZccipfdC5hdjFidzZmejppezxqfT5rfkVwgUZwgUZxgkdxgkhygklyg0x0hE92hlB2hlJ3hqxmKFN5iFd7ilh8ipJyTKtuPV1+jK5vP15/jWGCjmKCjpx5Q650Q7B0Q7J0Qq51SbB4S7F6RbN6SKB9Y7GAWpaGca6CVnSNl7eBUXaOma+FZbqHOn6TnLaKVLKLbHSZoYyUk7yMVrqPUYWXn7yNYb2RRXSepoeZobKRebKSeXagqL+WSMOWQ3mhsoGgp42do8KXRL+VaYGiqoOiqIOiqYSiqoGjqoeipoaiqYOjqoiipoeiqsOaS4KkqsOaTsSaTbWahJCjq4amroqmqoinrsWeV8WeWZKnr5Snro6prIqqsYuqr8ahYZ2mqpCqrMOgecaiY8aiZY6sr5Krro6ssJWsr6CprbWlmJKtssalbZqssLWmnMambpeusZOvs5qttJiussWngaWsr5qvsqGttpmws6Gut8epecapgKKuuseqeqSvuqWvup6ytZ6ytqawusesgraup6axusitgqixuqqyubeyr6+0ube1srW2ube2tbe3uLi4uK+6xrK7xv///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gBZCRxIsKDBgwdXIFxYMEcGFwcP9biBauGUEwA4MCGIiggSTFGyIJQUIwEAACEMCYTj44+mQG5gFEz16VMHCAUAFGBAIRQQKqAY2eEipcbAVZwonRkzpswHABhYORES6RKgN1uCKDElMFWmNXoqTWpUCATUIWFGJaoDpsmPRUc3eUHUyZNdSCKgQjHCh00VHlhUERSFRpIERXbt5sWgpciSHTQsqByYitKRCgZkaNY8IUAEGTZ0iD7gIcnATyUUnFy9+gBr1g1QCGxhYsHr1rdPFiAB8dOXGSAIsBg+3IGABzJeEDdwgcUXgZ/G+PmiIbHdpxgEiXElcMMVgqTUVwzKY/06VEFkuB9cZYnOnPKesAt6xLAUHjmCHFnH/qQVQ1akxGFFG3sQssEDOQ2AAAX/sXJKF3ekYYYkKqwmQh8NGjTFCBltlKFBOFwA0YcHpUDiiQUFBAA7''',
+    'zoom_to_rect':'''R0lGODlhGAAYAOfxADqInUKNoUSNo0aOpUeQo0yRqE6Up1OXqtd/MliarVicrFycsF6dsV2fr7ePX9aJTGKisdmLT2aktGSls2elt2mmtmintcOXVNmRVNyRVN6RUmypt9mSW26ruW+rudyWXt2YVtGacOCYWsicfHSvvHixvniyvHqzv92gcLyojdqjbOWhZYO5w9umfuipSXm+yIW8xIi8x4q9x37ByuStaY2/yt6uh4DDzJG/yYPDzYLEz6+5uOuva5LBzITFz+uweeizZey1VpHFz4rH0ZnExZbEzt61l5fF0IjJ1Y3I0d+3l5PI0ozK1IrL14/K1I3L1e+7WpfJ3qHI0fS8VJ3K0fO9VZ7K0u+6g5TN16DK05PO2J/L06PK0pTO2KjJ0KTK0qHL1KTL0qTL06nK0KHM1aXL1KrK0KLM1JfP2KfL0/TAXqTM1KXM0qTM1fTAYZbQ2qLN1anL1fXBYOLApZfR26jN1JnR25jS3LTM1qTR16fQ2a3Q1J3U3vbFbZ7U3qrR2arR2vbGb7XP1p/V4KvS26zT2LnQ2KzU27fR27LT163U3bnR2a3V2bLU1/fJea7V27TU1/TIl/fKfLDW2/fLfrHX27HX3LXW3bfW2bfW2rjW2rHY2+LOvrrX27rX3LbY3/jOiL/X4PjPirrZ3uLQw7fa373Z3cHY4bjb4L7a3rvc4fbRocDb38nY48Hb37/c4MnZ5cnZ5vnTl8Lc4crZ6fjToL7e4/nUmb7f47/f5M3b6cbe4s7b6cbe4/LVwcHg5c/c6dDc6cjf4/nXouPZ0dDd6dHd6frYo9Ld6MTi59Te58Xj587g8Mfj6NXf6cnl6uXf29vh58vm68zn687n7OXi3+Xj4uLk59Dp7tHp7uXl5tPq7+Tm5+bm5tro+Nvo99Tr8NXr8Nzp993p+N7q+Njt8tnu89vv9d7w9t/x9uL0+eP0+e3z+/D0+/L1+/n5/f78/v///////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gC7CRxIsKDBgwgTKlwokFOGCNUYGqyGYkUtHkokEpyjIdItSm4QFLwWDJhJY9wGEvvwY5ioQFOAPBiojVerMWG+lDETy1k3GyJWyZIkBwqIFtAEXqMVR9ErVqY6eSJkaMSVY6D6VKHBgRRNXVI+7RLWa1aqTI0A7VDhSE0QDEasESyW5tITPoP82NHCxMeNJSlcXHBApEsXJEpbHZqFBp26dOWyPfulKo+gEL7gaYZ3R2AwL6MYo1sHWTLlTW3EbdbcuRswMZ1cYTF3jkGBAQICADixZdxqzgKBccFkysm2cOCwSUtmq1QlK+R+twb2BZKmIdOoUViQ4IABAibAhkRf3RqZmUyJcixrdqRIjxoxWMAQM35za22w/uyZgSuXhwoSQNCAAjKc4o50AymziB4voIIKCR1sYMEEJeDwzW/ADYQMHkLA8YglkzBSyBl1MPMOhq0NFE0UiKxBBhVZsBGKNyeiaFAS7IgzDjk8toOhfQbp8MaQRA5Jx5FIHtmERkw2WVBAADs=''',
+    'zoom_to_rect_active':'''R0lGODlhGAAYAOfnAC5tfjVxgTZxgjhyhDlzgj10hj52hkJ5iKxmKEZ7ikZ9ikp9jUt+jkp/jJJyTKtuPU6Cjq5vP1KDkFCEj1KEklSFklOGkZx5Q650Q7B0Q1aHkrJ0Qq51SViJlFmJlLB4S7F6Rad7WrN6SKB9Y12MlmCOlmCOmGKPmbGAWpaGca6CVreBUWmUnK+FZbqHOmGYoGqWnW2Wn26Xn2WaoraKVGaco7KLbHGZonSZoWmcpIyUk7yMVmidpnWao2qeprqPUbyNYb2RRW6fp3qdnnSepnidpbKReXGgp22hqnmeprKSeXagqG6irHCiqnGiqnKiqr+WSMOWQ3mhsoGgp8KXRH6ip7+VaX6iqHakrH+iqYCiqYGiqnalrYahpoKiqIOiqIOiqYSiqoGjqoKjqoeipoaiqYOjqoiipoSjqHimroeiqnmmrcOaS4KkqsOaTsSaTXmnr3qnr4akqrWahHqosJCjq4OnrIamroqmqoinrsWeV36qssWeWX+qs5Gmq4mor5SmrYqprZKnr5Snro6prIqqroqqr4qqsYuqr46qrMahYZCqrMOgeY2rr8aiY8aiZY6sr5KrrpGrsY6ssJOrro6tr5Wsr5WssLWlmJKtssalbZKuspmss7WmnMambpWuspeusZOvs5qttJiussWngZqvspawtKGttpmws5uwtKGut8epeaGuuMapgKKuuseqepiytpmytqSvuqWvusKqmp6ytZqzt56ytqCytqawusesgraup6axuqexusitgqixup21uaqyuaqyuqWzwJ62uZ+2uqG3u7eyr6+0uaK4vKO5vKW5vbe1srW2uaa6vre2tae6vre3uKm7v7a4ubi4uK66xqq8wK+6xrC6xrG6xrK7xq2+wq6+wq+/xLLAxbLBxbXDx7bDx77CycDDycLEycfHysvKy////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gCpCRxIsKDBgwgTKlwoEFOGCMwYGmSGYkWrHUokEpyzgdGrR24QFGyWq2SuXtMG7voARJcnPlF+PBgYbdYpMl++hDnDShg1GyJIrXL0BgqIFscENnOl5hCqUqAsXfoDaIQVX5r0UKHBoRNNWVMy1cJ1K9WoSIny6FChiE0QDEaeEeRVRpKTPX32xOHSxEeNJSlcXHAwhAsXJEpPGUq1xhu4b9ugGbNlyo6fELTMaTZHR2CuLp8YewsHWTLlSmawbdbcmVouMJZKYeHWjUGBAQICADiRJdtqzp69RAL1RJo1a86SAYO1CdIVbb9b5/qyiJIQZcsoLEhwwACBElugha9u/etMJEI5iBVLUqTHjRgsYIARv7l1NFV58MyAFctDBQkQNKCADKKQE91AwQxyxwuhhEJCBxpYMIEJOFzzG3AD/VIHEW0gMkkjhQQyhhzDlHNhawMhI4UgZohRhRZocFKNiScadIQ42GSjzY7jXFifQTykIeSQQsJh5JFGMqHRkkwWFBAAOw==''',
+    'previous':'''R0lGODlhGAAYAOe4AAAAAAEBAQMDAwUGBgoMDA8REREUFBQWFxgbHCMoKDI4OTU8PT5FR1JcXlReYV1pa2x5fHeGiXiGidd/MoSUmLePX9aJTNmLT4ydocOXVNmRVNyRVN6RUtmSW9yWXt2YVtGacOCYWsicfJWnqpiqrt2gcLyojdqjbOWhZdumfuipSeStaaS4vN6uh5G/ya+5uOuva+uweeizZey1VpHFz961l9+3l5PI0u+7WpfJ3qHI0fS8VJ3K0fO9VZ7K0u+6g6DK05/L06PK0qjJ0KTK0rHHy6HL1KTL0qTL06nK0KHM1aXL1KrK0KLM1KfL0/TAXqTM1KXM0qTM1fTAYaLN1anL1fXBYOLApajN1LTM1rbM0aTR16fQ2bfN0q3Q1PbFbarR2arR2vbGb7XP1qvS26zT2LnQ1LnQ2KzU27fR27LT163U3bnR2a3V2bLU1/fJea7V27TU1/TIl/fKfLDW2/fLfrHX27HX3LXW3bfW2bfW2rHY2+LOvrrX27rX3LbY3/jOiL/X28DX3L/X4PjPirrZ3uLQw7fa373Z3cHY4bjb4L7a3sLa37vc4fbRocDb38nY47/c4MnZ5cnZ5vnTl8Lc4crZ6fjToMTc4fnUmcXd4s3b6cbe4s7b6cbe4/LVwc/c6dDc6fnXouPZ0dDd6dHd6frYo9Ld6NTe587g8NXf6eXf29vh5+Xi3+Xj4uLk5+Xl5uTm5+bm5tro+Nvo99zp993p+N7q+P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gBlCRxIsKDBgwgTKlwokM+GC60YGmxVAsUlGDYkErzCQU6mOlMmFHwVCpTJUrEGjvIQQxQhMTtkWBgIqxOkJEeILGEySZWsFiEcUZpjBceHFKsEvrJUZU2kR4j6+CFzRsQPU4C+9FjRwRDNTTr+cPJEdpEeN2FenHjzZIaGGq4IknKCx5Mgsp4YYbBj54YJFRkqGHwFCU0lsppINCgAwFOjLWNAfDoYakghTyweIABwwAEJx3uk1EIICkmfBAAMNBiBCa8nO0FskRaShwAABRG0uD5kx8ct0kTiBKLAYICABRK6kLVj5PfBU0z0qCFrRoKCAAKWI3FuEJYkMF5cOHsqAmF5IoWo2HCxo0j8axe0Fp7KQoMKnDt02pRpgiWVRFY5pAGFEjwAEcUgs2ik4IIMNuggQgEBADs=''',
+    'next':'''R0lGODlhGAAYAOe5AAAAAAEBAQMDAwUGBgsNDQ8REREUFBMVFhgbHCMoKDI4OTU8PT5GSFFbXVJcXlReYV5qbGx5fHeGiXiGiXmHitd/MoSUmLePX9aJTNmLT4ydocOXVNmRVNyRVN6RUtmSW9yWXt2YVtGacOCYWsicfJWnqpiqrpirr92gcLyojdqjbOWhZdumfuipSeStaaS4vN6uh5G/ya+5uOuva+uweeizZey1VpHFz961l9+3l5PI0u+7WpfJ3qHI0fS8VJ3K0fO9VZ7K0u+6g6DK05/L06PK0qjJ0KTK0rHHy6HL1KTL0qTL06nK0KHM1aXL1KrK0KLM1KfL0/TAXqTM1KXM0qTM1fTAYaLN1anL1fXBYOLApajN1LTM1rbM0aTR16fQ2bfN0q3Q1PbFbarR2arR2vbGb7XP1qvS26zT2LnQ1LnQ2KzU27fR27LT163U3bnR2a3V2bLU1/fJea7V27TU1/TIl/fKfLDW27zT2PfLfrHX27HX3LXW3bfW2bfW2rHY2+LOvrrX27rX3LbY3/jOiL/X27/X4PjPirrZ3uLQw7fa373Z3cHY4bjb4L7a3rvc4fbRocDb38nY47/c4MnZ5cnZ5vnTl8Lc4crZ6fjToMTc4fnUmc3b6cbe4s7b6cbe4/LVwc/c6dDc6fnXouPZ0dDd6dHd6frYo9Ld6NTe587g8NXf6eXf29vh5+Xi3+Xj4uLk5+Xl5uTm5+bm5tro+Nvo99zp993p+N7q+P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gBnCRxIsKDBgwgTKlwoEFCHDK4YGnSFYkWmGTkkEtTioc6mPFYqFIQlKpRJU7IGkgJBY9ShMj5qYBgYy5MkJkqOOHlSadUsGCMgWbKTZUcIFqwEwsKExc2kSIsCCTqjhoSQU4TEAHHxIRFNTj0GdfpE1pGfOGRkqJAjxQYHHK8IlorCRwMesnj16NGRosWGCwZhSVpzCUABByfwfnrkxYwIUAdFGUH0ycSDAwAQQHix+E8VWwhDLQmEV1OJBgYAJPikh8it0EX6KO4iQQEAAor0BMEV+gidT2AmLBAwgIGFQqyT8D6I6omfNgICKKCQRrGeJcsNxqI0JkwEJIrzMzJSmOrNFz2NwrOOUWshKi43rszZcwcOGihbVElsxYPNlCY/DEGFIbRoZOCBCCaoIEIBAQA7''',
+    'subplots':'''R0lGODlhGAAYAMZHAA5efg9efw5ffg9ffxBgfxFgfxFggBNhgBRhgRRigRRighVigRdkghhlgxplhBxlhBpmhBtmhBxnhR1ohR5ohiJriCNriCRsiSVsiSRtiShuiylviylwjCtwjCxxjS1xjS1yjS9zjjV3kTl5kzp5kz17lUSAmEiDmkuEnE2GnVaMoVeMoViNolmNolqOo1uPpF+RpWOUp2SUqGaVqGiXqm2arG6brXSer3WfsHmisnqispGwvZSyv524w6a9x6m/ybDEzMTQ1cjT2M7X29/i4+Lj5Obm5v///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAHsoBGgoOEhYaHhkUvRIiNhDkcMo6OPisAHz2Th0M0CwAAJUKahSATBQAGDhdFo4UiAButhySwsoYmtaNDFYW4sYQZooU7GAc1x8cWARQ1NzrPCCE8g0UpDJ/Y2AnZ2Q8sjDEqDdza5J8FKJJGQDYjBDDw8BACETUz8QcaMECFQB2uuQZ5+NHq1S9bgwwiJKRwoQcJBgAMULDK1hAX2EwEWejjxKVMC43g0KAuZJEWjELKCgQAOw==''',
+    'filesave':'''R0lGODlhGAAYAOfWABgqQwNAYQVBYgBDaQdCYwBEagBFayU9VgBGbAtEZR5AWABHbSY+VwBIbg1FZh9BWQBJbwBKaw9GZxBGaAFLbBJHaQNMbRNIagBNcgBNcypDXCNFXSRGXh5IZQdObyVHXyZIYABRdwpPcABSeCdJYShJYgxQcQBTeSlKYw5RcipLZBBScwBXdjJKZCtMZQBYdxJTdCxNZh1RbRNUdQJZeDlLYS1OZwRZeTpMYhdVdzpNYwdaehhWeDVQYwlbewxcfA5dfSZYdBBefmhLOzJYditdeXlNN3JPR0dZb0xbbE5dbkxfdVFgcYNWRU5hdz5nf1Nic1BjeVVkdVJle1NmfFRnfVpoeltpe1Jtgjt0kUhxiUJ1jER2jUV3jlJ1iV51haBrPqFsP6JtQGN5ill8kKNuQWB7kKRvQaVwQqZxQ1x/k6dyRGh+j2CDl2uBknKFkGuGm6t9WHWIlKx+WXaJla1/Wm2Mm3eKlq6AW26NnLR/XGuOo6+BXLWAXXmMmGyPpLCCXXCPnraBXnqNmXuOmm6RpnKRoHOSoX2QnHSTon6RnXGUqXWUo3KVqnaVpICTn3eWpYGUoIKVoXyXoXmYqIOXonqZqXCcr4SYo3uaqoWZpHybq4aapYGcpn6drYmcp3+froqdqHaitnuisIueqYWgqnejt4yfqo2gq4eirI6hrYijrYmlr4qmsJGksIunsZKlsYyospSns4uqupWotJCrtZeqtpmsuJSvuZWwupuvupywu56yvpm0v5+zv6C0wKG1waS3w6W4xKa5xae6xqi7x6m8yKq+yau/y6zAzK7Czq/Dz7DE0LLG0rPH07jIzrbJ1rvL0r7P1dTZ29vg4/7//P///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAGAAYAAAI/gCrCRxIsKBBgj8SKvTBsKHDhjRo/Kj2w0dEI2vSoNlYpmNHMWHCgBlCgcKLhE/MwGgiqI8eQHxi4qlDc86cOEdkwIFBw0ebaSJESYvmbJmxYsJ+7dJ1y5YsWFmIUCvSM0cQGKaiPWM2q9GiRIcK/dmTx04nLgMEOOg5A8YMUdCcKfMCAsSHuxw4bNighosBAxMijhhxwlRRY8OA7cJlixYsVqlOneIyAXDEFCJWjFp2zJiWB6BDKxhNpgsCyzREZDbVeVisTZYoOWJ06FCgPJNMoxaBYcSlXrlu1XrValUpUJ4yUYKUiMvpwDQsUMAgBEjCiNix83iRI8df6BQixVyosKDy3/Po00O/sKCC+fTw0QfmQf50/PvfafA47eAvgQAABiigAOgtQIN36GnwBRZTUHGFFVVMEYUTDBR4YHotGCMFAAD4QYsrqHxSSQ8WInheC8RAwaEcsKjyCSaP6FAihsIwweEbqoSiSSSI4DAjei74sgSHbpCyoyJ++HiegTSk58IuSnDIBieSKDIIHTWgB0FEMKDXwi1jIJGEHJUoQsgdb9SQwF9bTqRfdzl0YEMMLqiAQgkl2MXBASy88IJE1QQEADs='''
 }
 #IMAGE_DICT = {
 #'initial':'''UDYKIyBDUkVBVE9SOiBHSU1QIFBOTSBGaWx0ZXIgVmVyc2lvbiAxLjEKMjQgMjQKMjU1Cubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5uLOvtyRVNmLT+Xi3+bm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5uXi392gcOWhZfjToOuva9+3l+bm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5uLApd6RUvTIl/nUmffLfvTAYdd/Mubm5ubm5ubm5ubm5ubm5uLk59Dc6c/c6c/c6c/c6dHd6eTm5+bm5ubm5ubm5uPZ0dyWXuuwefnXovjPivbGb/S8VOizZdaJTObm5ubm5ubm5uXl5s7b6cnY46nK0KTL0qTK0qXL1KrK0MnZ5tXf6ebm5t6uh+CYWvbRofnTl/fKfPXBYO+7Wt2YVtumfuXf2+bm5ubm5uLk58rZ6anL1a3U3b/c4MDb373Z3brX27rX3KvS27nQ2MicfO+6g/rYo/jOiPbFbfO9VeStadmSW+LQw+bm5ubm5ubm5uXl5s3b6aHI0bbY38be4sbe48be48be477a3rfW2rLU16rR2q+5uNqjbPfJefTAXuy1VtmRVN61l+Xj4ubm5ubm5ubm5ubm5tDd6afL07XW3cbe48DX3Dc9Pw8REQsNDcbe48be47HX27HX25PI0ryojeipScOXVLePX+bm5ubm5ubm5ubm5ubm5ubm5uLk58nY46zU28Lc4cbe48La35GipqO2ugsNDcbe48be48be47vc4aTR17XP1tGacPLVwebm5ubm5ubm5ubm5ubm5ubm5ubm5tDc6ajJ0LrZ3sbe48be48be48be47DFygsNDcbe48be48be47vc4bHY26TM1dzp9+bm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5s/c6aTL07rX28be48be48be48be47DFygsNDcbe48be48be48be47HX25/L093p+Obm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5s/c6aPK0rfW2cbe48be48be48be47DFygsNDcbe48be48be47fa37HX257K0t7q+Obm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5s/c6aTK0rTU18be48be48be48be47DFygsNDcbe48be48be48be47HX26HL1N7q+Obm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5tLd6KrK0LfW2rLT18be48be48be47DFygsNDcbe48be48be48be47HX26TL097q+Obm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5uXl5snZ5arR2a3Q1Mbe48be4ygtLhIUFQAAABQXGElSVMbe48be47HX28HY4ebm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5tTe57nR2afQ2bHX27jb4Mbe48be48be48be48be48be47HX25G/ydvo9+bm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5tLd6LTM1pHFz6LN1a7V27HX3LDW263V2azT2KLM1KjN1M7g8Obm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5tvh55fJ3rfR26TM1KHM1Z3K0aDK06XM0r/X4Nro+Obm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5g==''',
@@ -15808,16 +15808,16 @@ IMAGE_DICT = {
 # plot toutes les zones 1d de a sur le meme graphe
 # si export != None: ecrit le fichier en mode batch
 #==============================================================================
-def plot(a, varx='CoordinateX', vary='F', 
-         export=None, 
-         rangex=None, rangey=None, 
+def plot(a, varx='CoordinateX', vary='F',
+         export=None,
+         rangex=None, rangey=None,
          xlabel=None, ylabel=None,
          xformat=None, yformat=None,
          xFontSize=None, yFontSize=None,
          legends=None,
          legendFontSize=10,
          lineWidth=1.5, lineColor=None,
-         markerStyle='none', markerSize=6.5, 
+         markerStyle='none', markerSize=6.5,
          markerFaceColor=None, markerEdgeColor=None):
 
     if export is not None: setBatch()
@@ -15836,7 +15836,7 @@ def plot(a, varx='CoordinateX', vary='F',
         for c, z in enumerate(zones): conc[c].append(z)
     a = []
     for zs in conc:
-        try: 
+        try:
             za = T.join(zs)
         except:
             zs = C.convertArray2Hexa(zs)
@@ -15904,7 +15904,7 @@ def plot(a, varx='CoordinateX', vary='F',
                       line_color=lineColors[c],
                       line_width=lineWidths[c],
                       marker_style=markerStyles[c],
-                      marker_face_color=markerFaceColors[c], 
+                      marker_face_color=markerFaceColors[c],
                       marker_edge_color=markerEdgeColor,
                       marker_size=markerSizes[c],
                       legend_label=legendLabels[c],
@@ -15933,11 +15933,11 @@ def plot(a, varx='CoordinateX', vary='F',
     if xFontSize is not None:
         axis.x.setValue('axis_label_fontsize', xFontSize)
     if yFontSize is not None:
-        axis.y.setValue('axis_label_fontsize', yFontSize)     
+        axis.y.setValue('axis_label_fontsize', yFontSize)
 
     graph.updateGraph('1:1')
 
-    if export is not None: # export in image 
+    if export is not None: # export in image
         graph.save(export)
         graph.close()
     else: # interactive

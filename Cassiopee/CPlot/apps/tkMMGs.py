@@ -133,8 +133,8 @@ def remesh():
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        zp = G.mmgs(z, ridgeAngle=ridgeAngle, hausd=hausd, 
-                    hmin=hmin, hmax=hmax, optim=optim, 
+        zp = G.mmgs(z, ridgeAngle=ridgeAngle, hausd=hausd,
+                    hmin=hmin, hmax=hmax, optim=optim,
                     fixedConstraints=fixedConstraints,
                     sizeConstraints=sizeConstraints)
         CTK.replace(CTK.t, nob, noz, zp)

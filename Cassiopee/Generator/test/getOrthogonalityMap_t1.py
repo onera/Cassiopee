@@ -1,4 +1,4 @@
-# - getOrthogonalityMap (array) - 
+# - getOrthogonalityMap (array) -
 import Generator as G
 import Converter as C
 import KCore.test as test
@@ -23,4 +23,3 @@ ac = C.node2Center(a)
 ortho = G.getOrthogonalityMap(a)
 ortho = C.addVars([ac,  ortho])
 test.testA([ortho], 3)
-

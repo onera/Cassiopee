@@ -64,7 +64,7 @@ __FIELD__ = '__all__'
 # Status de l'arbre (MAIN=1 ou <=0 - voir ci-dessous)
 __MAINTREE__ = 1
 # Les differents status pour l'arbre
-MAIN=1; DEFINEDBC=-1; TIME=-2; SLICE=-2; CELLN=-3; MESHQUAL=-4; 
+MAIN=1; DEFINEDBC=-1; TIME=-2; SLICE=-2; CELLN=-3; MESHQUAL=-4;
 UNDEFINEDBC=-5; IJK=-6; MONITOR=-7;UNDEFINEDIBC=-8;
 
 # Sauvegarde des zones actives de main (avant de basculer sur un arbre
@@ -337,7 +337,7 @@ def display(t, dim=-1,
             bgColor=-1,
             backgroundFile="None",
             shadow=-1, lightOffset=(-999,-999),
-            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
+            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
             export='None', exportResolution='None',
             location='unchanged',
@@ -358,7 +358,7 @@ def display(t, dim=-1,
                colormap, colormapC1, colormapC2, colormapC3, colormapC,
                niso, isoEdges, isoScales,
                win, posCam, posEye, dirCam, viewAngle,
-               bgColor, backgroundFile, 
+               bgColor, backgroundFile,
                shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                stereo, stereoDist, panorama,
                export, exportResolution,
@@ -626,7 +626,7 @@ def addFile():
             if t == []: t = t2
             else:
                 #t = C.mergeTrees(t, t2)
-                if Internal.getBases(t2) != []: # merge trees 
+                if Internal.getBases(t2) != []: # merge trees
                     t = C.mergeTrees(t, t2)
                 else: # ajoute le noeud sous la selection de tkTree
                     node = TKTREE.getCurrentSelectedNode()
@@ -808,7 +808,7 @@ def saveSelZones2File():
 def saveNode2File():
     if t == []: return
 
-    # Get selected node from tkTree    
+    # Get selected node from tkTree
     if TKTREE is None: return
 
     node = TKTREE.getCurrentSelectedNode()
@@ -1013,10 +1013,10 @@ def savePrefFile():
     if homePath is None: homePath = ''
     kdir = homePath+'/.cassiopee'
     exist = os.path.exists(kdir)
-    if not exist: 
+    if not exist:
         os.makedirs(kdir)
         file = open(homePath+'/.cassiopee/config', 'w')
-    else: 
+    else:
         isdir = os.path.isdir(kdir) # ok
         if not isdir:
             file = open(homePath+'/.cassiopee', 'w')
@@ -1244,11 +1244,11 @@ def toggleSelectAll():
 #==============================================================================
 # Inverse les zones activee et desactivees
 def revertActivated():
-    if t == []: return  
-    nz = len(Internal.getZones(t))  
+    if t == []: return
+    nz = len(Internal.getZones(t))
     nzs = CPlot.getActiveZones()
     active = [(i,1) for i in range(nz)]
-    for n in nzs: active[n] = (n,0) 
+    for n in nzs: active[n] = (n,0)
     CPlot.setActiveZones(active)
 
 #==============================================================================
@@ -1270,7 +1270,7 @@ class infoBulle(TK.Toplevel):
                 l = TK.Label(self, textvariable=textVariable, bg="white",
                              justify='right', takefocus=0)
             else:
-                l = TK.Label(self, text=text, bg="white", justify='right', 
+                l = TK.Label(self, text=text, bg="white", justify='right',
                              takefocus=0)
         else: # std label
             if textVariable is not None:
@@ -1345,7 +1345,7 @@ def stt__(s, mode=0):
 # ces chaines sont de la forme :
 # type0,1,2: 'var1; var2; var3' ou 'var1'
 # type3: 'ind;(ind);(i,j,k)'
-# On retourne une liste de variables. 
+# On retourne une liste de variables.
 # type0,1,2: [var1,var2,var3]
 # type3: [ind, ind, (i,j,k)]
 # Si la liste est vide, c'est que la conversion a echoue.
@@ -1386,7 +1386,7 @@ def varsFromWidget(varString, type=0):
         #    except: ret.append(0)
 
         for i in s:
-            try: 
+            try:
                 val = eval(i)
                 if isinstance(val, list): ret += val
                 else: ret.append(val)
@@ -1444,33 +1444,33 @@ def toolBar(win, mode=0):
     width, height = 30,30
 
     if mode == 0: # Cassiopee
-        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height, 
-                    image=iconics.PHOTO[0], borderwidth=0,
-                    command=quickSaveFile)
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                        image=iconics.PHOTO[0], borderwidth=0,
+                        command=quickSaveFile)
         BB = infoBulle(parent=B, text='Save.')
         B.grid(row=0, column=0)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[1], borderwidth=0,
-                    command=undo)
+                        image=iconics.PHOTO[1], borderwidth=0,
+                        command=undo)
         BB = infoBulle(parent=B, text='Undo.')
         B.grid(row=0, column=1)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[11], borderwidth=0,
-                    command=quickReloadFile)
+                        image=iconics.PHOTO[11], borderwidth=0,
+                        command=quickReloadFile)
         BB = infoBulle(parent=B, text='Reload current file.')
         B.grid(row=0, column=2)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-            image=iconics.PHOTO[3], borderwidth=0,
-            command=cplotExport)
+                        image=iconics.PHOTO[3], borderwidth=0,
+                        command=cplotExport)
         BB = infoBulle(parent=B, text='Export image.')
         B.grid(row=0, column=3)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[4], borderwidth=0,
-                    command=lookFor)
+                        image=iconics.PHOTO[4], borderwidth=0,
+                        command=lookFor)
         BB = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
         B.grid(row=0, column=4)
 
@@ -1480,43 +1480,43 @@ def toolBar(win, mode=0):
         # BB = infoBulle(parent=B, text='Select/unselect all zones.')
         # B.grid(row=0, column=5)
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[14], borderwidth=0,
-                    command=copyBlock)
+                        image=iconics.PHOTO[14], borderwidth=0,
+                        command=copyBlock)
         BB = infoBulle(parent=B, text='Duplicate selected zones.')
         B.grid(row=0, column=5)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[2], borderwidth=0,
-                    command=rmBlock)
+                        image=iconics.PHOTO[2], borderwidth=0,
+                        command=rmBlock)
         BB = infoBulle(parent=B, text='Remove selected zones.')
         B.grid(row=0, column=6)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[6], borderwidth=0, 
-                    command=viewDeactivatedZones)
+                        image=iconics.PHOTO[6], borderwidth=0,
+                        command=viewDeactivatedZones)
         BB = infoBulle(parent=B, text='View deactivated zones.')
         B.grid(row=0, column=7)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[12], borderwidth=0, 
-                    command=revertActivated)
+                        image=iconics.PHOTO[12], borderwidth=0,
+                        command=revertActivated)
         BB = infoBulle(parent=B, text='Switch active <-> inactive zones.')
         B.grid(row=0, column=8)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[7], borderwidth=0, 
-                    command=displayMainTree)
+                        image=iconics.PHOTO[7], borderwidth=0,
+                        command=displayMainTree)
         BB = infoBulle(parent=B, text='Display main tree.')
         B.grid(row=0, column=9)
     else: # kcgnsview
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[11], borderwidth=0,
-                    command=quickReloadSkeleton)
+                        image=iconics.PHOTO[11], borderwidth=0,
+                        command=quickReloadSkeleton)
         BB = infoBulle(parent=B, text='Reload current file.')
         B.grid(row=0, column=0)
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[1], borderwidth=0,
-                    command=undo)
+                        image=iconics.PHOTO[1], borderwidth=0,
+                        command=undo)
         BB = infoBulle(parent=B, text='Undo.')
         B.grid(row=0, column=1)
 
@@ -1644,13 +1644,13 @@ def minimal(title, show=True, mode=0):
     TXT.mark_set('START', TK.INSERT)
     TXT.mark_gravity('START', TK.LEFT)
     TXT.grid(sticky=TK.EW)
-    from . import tkSearchBar 
+    from . import tkSearchBar
     E = tkSearchBar.createSearchBar2(F)
     E.grid(row=1, sticky=TK.NSEW)
     F.grid(sticky=TK.NSEW, columnspan=2)
 
     try: TKTREE = __import__('tkTree'); TKTREE.createApp(win)
-    except: TKTREE = None 
+    except: TKTREE = None
 
     return (win, menu, file, tools)
 
@@ -1864,7 +1864,7 @@ class noteBook:
 
     # add a new frame (screen) to the (bottom/left of the) notebook
     def add_screen(self, fr, title, menu_fr=None):
-        if menu_fr is None: 
+        if menu_fr is None:
             b = TTK.Radiobutton(self.rb_fr, text=title,
                                 #image=image, compound=TK.TOP, pady=0, border=TK.ROUND,
                                 offrelief=TK.GROOVE,
@@ -2029,7 +2029,7 @@ def GIF(Function, functionName='myFunction', *args):
     TKTREE.updateApp()
     CPlot.render()
 
-    # Log 
+    # Log
     import Log
     if Log.LOGGING:
         sel = Log.getSelectedZones()
@@ -2054,7 +2054,7 @@ def save2Doc():
     #Panels.docData['docWindow'].master.wait_window(Panels.docData['docWindow'])
 
 #==============================================================================
-# Change title : change le titre dans la fenetre CPlot (if top window) + Tk 
+# Change title : change le titre dans la fenetre CPlot (if top window) + Tk
 #==============================================================================
 def changeWindowTitle(fileName, filePath="."):
     if fileName == '': return
@@ -2084,7 +2084,7 @@ def tkLoadFile(files, mode='full'):
         try:
             size = 0
             for f in files: size += os.path.getsize(f) # en octets
-        except: 
+        except:
             print('Error: convertFile2PyTree: fail to read file %s.'%files[0])
             return
         if size > 1000000000: print('INFO: size: %f Gb'%(size/1000000000))
@@ -2101,7 +2101,7 @@ def tkLoadFile(files, mode='full'):
         except:
             print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
             return
-        if format != 'bin_adf' and format != 'bin_hdf': mode = 'full' 
+        if format != 'bin_adf' and format != 'bin_hdf': mode = 'full'
 
     if mode == 'partial': # partial load
         import Converter.Filter as Filter

@@ -14,4 +14,3 @@ priorities.append((0,1))
 XOR._XcellN(t, priorities, output_type=2)
 
 C.convertPyTree2File(t, "out.cgns")
-

@@ -57,7 +57,7 @@ def getCases():
     reps = os.listdir(path)
     for i in reps:
         a = os.access(path+'/'+i+'/valid', os.F_OK)
-        if (a == True): 
+        if (a == True):
             CASES.append(i)
             a = os.access(path+'/'+i+'/Readme.txt', os.F_OK)
             if (a == True):
@@ -138,8 +138,8 @@ def buildString(info):
     gfx = info[3]
     status = info[4]
     string = case.ljust(20) + separatorl + nit.ljust(10) + separatorl + \
-    scale.ljust(5) + separatorl + gfx.ljust(2) + separatorl + \
-    status.ljust(10)
+        scale.ljust(5) + separatorl + gfx.ljust(2) + separatorl + \
+        status.ljust(10)
     return string
 
 #==============================================================================

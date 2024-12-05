@@ -1,7 +1,7 @@
 #  -------------------------------------------------------------------------
-#  Taken from pyCGNS - Python package for CFD General Notation System - 
+#  Taken from pyCGNS - Python package for CFD General Notation System -
 #  See license.txt file in the root directory of this Python module source
-#  Written by M. Poinot  
+#  Written by M. Poinot
 #  -------------------------------------------------------------------------
 #
 from . import cgnskeywords as CK
@@ -11,7 +11,7 @@ tlistA=[
     CK.UserDefinedData_ts,
     CK.DataClass_ts,
     CK.DimensionalUnits_ts,
-    ]
+]
 
 allDT=[CK.C1,CK.MT,CK.I4,CK.I8,CK.R4,CK.R8] # LK is default
 
@@ -646,7 +646,7 @@ cgt[t].addChild(CK.BCProperty_ts,CK.BCProperty_s)
 # --------------------------------------------------------
 t=CK.ArbitraryGridMotionType_ts
 cgt[t]=CGNStype(t,dtype=[CK.C1],
-                  names=[CK.ArbitraryGridMotionType_s])
+                names=[CK.ArbitraryGridMotionType_s])
 cgt[t].shape=(0,)
 
 # --------------------------------------------------------

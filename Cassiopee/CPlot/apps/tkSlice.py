@@ -145,7 +145,7 @@ def view(event=None):
         if CTK.__MAINTREE__ == CTK.MAIN:
             CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
         active = []
-        tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False, 
+        tp = Internal.appendBaseName2ZoneName(CTK.t, updateRef=False,
                                               separator=Internal.SEP1)
         for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
@@ -202,7 +202,7 @@ def view(event=None):
     except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: slice')
         CTK.TXT.insert('START', 'Slice failed.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return  
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.setCursor(0, WIDGETS['view'], WIDGETS['plus'], WIDGETS['moins'])
 
 #==============================================================================

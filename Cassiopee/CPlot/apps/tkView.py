@@ -1,4 +1,4 @@
-# - tkView - 
+# - tkView -
 """Set the view in plotter."""
 try: import tkinter as TK
 except ImportError: import Tkinter as TK
@@ -220,11 +220,11 @@ def displayField(event=None):
     if CTK.t == []: return
     global VARNO
     field = VARS[18].get()
-    if CTK.__MAINTREE__ == 1: 
+    if CTK.__MAINTREE__ == 1:
         zvars = C.getVarNames(CTK.t, mode=1)
         if zvars == []: return
         zvars = zvars[0]
-    else: 
+    else:
         zvars = C.getVarNames(CTK.dt, mode=1)
         if zvars == []: return
         zvars = zvars[0]
@@ -334,7 +334,7 @@ def saveSlot():
     else: legend = 0
     colormap = VARS[4].get()
     fmin = float(VARS[9].get())
-    fmax = float(VARS[10].get())    
+    fmax = float(VARS[10].get())
     isoScales = [field, niso, fmin, fmax]
     CPlot._addRender2PyTree(CTK.t, slot=int(slot), posCam=posCam,
                             posEye=posEye, dirCam=dirCam,
@@ -354,7 +354,7 @@ def loadSlot():
     if slot is None: return
     pos = Internal.getNodeFromName(slot, 'posCam')
     if pos is not None:
-        n = pos[1] 
+        n = pos[1]
         CPlot.setState(posCam=(n[0], n[1], n[2]))
     pos = Internal.getNodeFromName1(slot, 'posEye')
     if pos is not None:
@@ -420,7 +420,7 @@ def loadSlot():
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
-        CPlot.setState(bumpMaps=out)  
+        CPlot.setState(bumpMaps=out)
     pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
     if pos is not None:
         out = []
@@ -501,7 +501,7 @@ def setColormapLight(event=None):
         WIDGETS['colormapC1'].grid(row=7, column=0, sticky=TK.EW)
         WIDGETS['colormapC2'].grid(row=7, column=2, sticky=TK.EW)
         WIDGETS['colormapC3'].grid(row=7, column=1, sticky=TK.EW)
-    else: 
+    else:
         WIDGETS['colormapC1'].grid_forget()
         WIDGETS['colormapC2'].grid_forget()
         WIDGETS['colormapC3'].grid_forget()
@@ -655,17 +655,17 @@ def compMin():
     if CTK.t == []: return
     if VARNO < 0: return
     var = VARS[18].get()
-    if CTK.__MAINTREE__ == 1: 
+    if CTK.__MAINTREE__ == 1:
         VARMIN = C.getMinValue(CTK.t, var)
         isFinite = C.isFinite(CTK.t, var)
-        if not isFinite: 
+        if not isFinite:
             CTK.TXT.insert('START', 'NAN values detected.\n')
             CTK.TXT.insert('START', 'Warning: ', 'Warning')
             VARMIN = -1.e299
-    else: 
+    else:
         VARMIN = C.getMinValue(CTK.dt, var)
         isFinite = C.isFinite(CTK.dt, var)
-        if not isFinite: 
+        if not isFinite:
             CTK.TXT.insert('START', 'NAN values detected.\n')
             CTK.TXT.insert('START', 'Warning: ', 'Warning')
             VARMIN = -1.e299
@@ -674,7 +674,7 @@ def compMin():
 def compIsoMinFull(event=None):
     zones = CTK.getValidZones()
     if zones == []: compMin()
-    if len(zones) == len(Internal.getZones(CTK.t)): compMin() 
+    if len(zones) == len(Internal.getZones(CTK.t)): compMin()
     compIsoMin()
 
 #==============================================================================
@@ -684,7 +684,7 @@ def compIsoMin(event=None):
     var = VARS[18].get()
     zones = CTK.getValidZones()
     if zones == []:
-        if CTK.__MAINTREE__ == 1: 
+        if CTK.__MAINTREE__ == 1:
             zones = Internal.getZones(CTK.t)
         else: zones = Internal.getZones(CTK.dt)
     if zones == []: return
@@ -711,17 +711,17 @@ def compMax():
     if CTK.t == []: return
     if VARNO < 0: return
     var = VARS[18].get()
-    if CTK.__MAINTREE__ == 1: 
+    if CTK.__MAINTREE__ == 1:
         VARMAX = C.getMaxValue(CTK.t, var)
         isFinite = C.isFinite(CTK.t, var)
-        if not isFinite: 
+        if not isFinite:
             CTK.TXT.insert('START', 'NAN values detected.\n')
             CTK.TXT.insert('START', 'Warning: ', 'Warning')
             VARMAX = +1.e299
-    else: 
+    else:
         VARMAX = C.getMaxValue(CTK.dt, var)
         isFinite = C.isFinite(CTK.t, var)
-        if not isFinite: 
+        if not isFinite:
             CTK.TXT.insert('START', 'NAN values detected.\n')
             CTK.TXT.insert('START', 'Warning: ', 'Warning')
             VARMAX = +1.e299
@@ -730,7 +730,7 @@ def compMax():
 def compIsoMaxFull(event=None):
     zones = CTK.getValidZones()
     if zones == []: compMax()
-    if len(zones) == len(Internal.getZones(CTK.t)): compMax() 
+    if len(zones) == len(Internal.getZones(CTK.t)): compMax()
     compIsoMax()
 
 #==============================================================================
@@ -740,14 +740,14 @@ def compIsoMax(event=None):
     var = VARS[18].get()
     zones = CTK.getValidZones()
     if zones == []:
-        if CTK.__MAINTREE__ == 1: 
+        if CTK.__MAINTREE__ == 1:
             zones = Internal.getZones(CTK.t)
         else: zones = Internal.getZones(CTK.dt)
     if zones == []: return
     try:
         varmax = C.getMaxValue(zones, var)
         isFinite = C.isFinite(zones, var)
-        if not isFinite: 
+        if not isFinite:
             CTK.TXT.insert('START', 'NAN values detected.\n')
             CTK.TXT.insert('START', 'Warning: ', 'Warning')
             varmax = +1.e299
@@ -1033,17 +1033,17 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -16- Mesh style
     V = TK.StringVar(win); V.set('Multicolor wires+solid'); VARS.append(V)
-    if 'tkViewMeshStyle' in CTK.PREFS: 
+    if 'tkViewMeshStyle' in CTK.PREFS:
         V.set(CTK.PREFS['tkViewMeshStyle'])
     # -17- Solid style
     V = TK.StringVar(win); V.set('Monocolor/1-side'); VARS.append(V)
-    if 'tkViewSolidStyle' in CTK.PREFS: 
+    if 'tkViewSolidStyle' in CTK.PREFS:
         V.set(CTK.PREFS['tkViewSolidStyle'])
     # -18- scalar variable
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
     # -19- Scalar style
     V = TK.StringVar(win); V.set('Bands'); VARS.append(V)
-    if 'tkViewScalarStyle' in CTK.PREFS: 
+    if 'tkViewScalarStyle' in CTK.PREFS:
         V.set(CTK.PREFS['tkViewScalarStyle'])
     # -20- vector variable 1
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
@@ -1151,9 +1151,9 @@ def createApp(win):
         F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['scalarField'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[18], 
+        B = ttk.Combobox(F, textvariable=VARS[18],
                          values=[], state='readonly', width=10)
-        B.bind('<<ComboboxSelected>>', displayField) 
+        B.bind('<<ComboboxSelected>>', displayField)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList_2)
         F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
@@ -1161,7 +1161,7 @@ def createApp(win):
 
     B = TTK.Label(Scalar, text='Style:')
     B.grid(row=1, column=0, sticky=TK.EW)
-    B = TTK.OptionMenu(Scalar, VARS[19], 'Bands', 'Bands+mesh', 
+    B = TTK.OptionMenu(Scalar, VARS[19], 'Bands', 'Bands+mesh',
                        'Lines', 'Lines+mesh',
                        command=setScalarStyle)
     B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
@@ -1238,8 +1238,8 @@ def createApp(win):
     B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Display color legend.')
     B = TTK.OptionMenu(Scalar, VARS[4], 'Blue2Red',
-                       'Diverging', 
-                       'Viridis', 'Inferno', 'Magma', 
+                       'Diverging',
+                       'Viridis', 'Inferno', 'Magma',
                        'Plasma', 'Jet', 'Greys', 'NiceBlue', 'Greens',
                        'BiColorRGB', 'BiColorHSV',
                        'TriColorRGB', 'TriColorHSV',
@@ -1333,9 +1333,9 @@ def createApp(win):
         F.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['vectorField3'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[20], 
+        B = ttk.Combobox(F, textvariable=VARS[20],
                          values=[], state='readonly', width=15)
-        B.bind('<<ComboboxSelected>>', displayVector1) 
+        B.bind('<<ComboboxSelected>>', displayVector1)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList1_2)
         F.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
@@ -1344,9 +1344,9 @@ def createApp(win):
         B.grid(row=4, column=0, sticky=TK.EW)
         F = TTK.Frame(Vector, borderwidth=0)
         F.columnconfigure(0, weight=1)
-        B = ttk.Combobox(F, textvariable=VARS[21], 
+        B = ttk.Combobox(F, textvariable=VARS[21],
                          values=[], state='readonly', width=15)
-        B.bind('<<ComboboxSelected>>', displayVector) 
+        B.bind('<<ComboboxSelected>>', displayVector)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2_2)
         F.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
@@ -1355,9 +1355,9 @@ def createApp(win):
         B.grid(row=5, column=0, sticky=TK.EW)
         F = TTK.Frame(Vector, borderwidth=0)
         F.columnconfigure(0, weight=1)
-        B = ttk.Combobox(F, textvariable=VARS[22], 
+        B = ttk.Combobox(F, textvariable=VARS[22],
                          values=[], state='readonly', width=15)
-        B.bind('<<ComboboxSelected>>', displayVector) 
+        B.bind('<<ComboboxSelected>>', displayVector)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList3_2)
         F.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
@@ -1366,7 +1366,7 @@ def createApp(win):
     B = TTK.Checkbutton(Vector, text='Normalize', variable=VARS[26],
                         command=setNormalizeVector)
     BB = CTK.infoBulle(parent=B, text='Normalize all vectors before displaying.')
-    B.grid(row=6, column=1, sticky=TK.EW)    
+    B.grid(row=6, column=1, sticky=TK.EW)
 
     B = TTK.Checkbutton(Vector, text='Show Surface', variable=VARS[27],
                         command=setShowSurfaceVector)

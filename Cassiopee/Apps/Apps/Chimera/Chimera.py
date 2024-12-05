@@ -1,5 +1,5 @@
 import Converter.PyTree as C
-import Converter.Internal as Internal 
+import Converter.Internal as Internal
 import Post.PyTree as P
 import Transform.PyTree as T
 import Converter.Filter as Filter
@@ -9,7 +9,7 @@ import Generator.PyTree as G
 import Geom.PyTree as D
 
 IMETHOD = 'AABB'
-# Extraction de la solution sur une surface dans le plan (X,R) a partir d un maillage recouvrant 
+# Extraction de la solution sur une surface dans le plan (X,R) a partir d un maillage recouvrant
 # et d une courbe ou un nuage de points definis dans le plan(X,R)
 # t_sol et t_pts sont dans le systeme de coordonnees cartesiennes
 # t_sol et t_pts sont des fichiers
@@ -31,7 +31,7 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
         C.convertPyTree2File(PtsXR,"Pts_XR.cgns")
         DTheta=C.getMaxValue(PtsXR,"CoordinateZ")-C.getMinValue(PtsXR,"CoordinateZ")
 
-    if isinstance(t_sol,str): 
+    if isinstance(t_sol,str):
         h = Filter.Handle(t_sol)
         t = h.loadSkeleton()
         h._loadZonesWoVars(t)
@@ -79,10 +79,10 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
     # resBB = G.BB(res,method=IMETHOD)
     res = XOR.conformUnstr(res,tol=0.,itermax=1)
 
-    if isinstance(t_sol,str): 
+    if isinstance(t_sol,str):
         if len(variables)==0:# on interpole tout
             t = C.convertFile2PyTree(t_sol)
-        else:            
+        else:
             h = Filter.Handle(t_sol)
             t = h.loadSkeleton()
             h._loadZonesWoVars(t)
@@ -97,7 +97,7 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
         if G.bboxIntersection(resBB,zbbd,method=IMETHOD,isBB=True)==1:
             zd = Internal.getNodeFromName(t,zbbd[0])
             dnrZones.append(zd)
-    P._extractMesh(dnrZones,res,order=2,constraint=10.,mode=mode) 
+    P._extractMesh(dnrZones,res,order=2,constraint=10.,mode=mode)
     C._rmVars(res,[cellNName])
     return res
 
@@ -105,14 +105,14 @@ def extractIJSurface(t_sol, t_pts, XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers'
     # distrib en i (le long de la ligne) et j
     NI = 101; NJ = 201
     dhi = G.cart((0.,0.,0.),(1./(NI-1),1,1),(NI,1,1))
-    # on peut mettre un resserrement : 
+    # on peut mettre un resserrement :
     # dhi = G.enforcePlusX(dhi, ...
     dhj = G.cart((0.,0.,0.),(1./(NJ-1),1,1),(NJ,1,1))
 
     if loc == 'centers': cellNName2 = 'centers:'+cellNName
     else: cellNName2 = cellNName
 
-    if isinstance(t_sol,str): 
+    if isinstance(t_sol,str):
         h = Filter.Handle(t_sol)
         t = h.loadSkeleton()
         h._loadZonesWoVars(t)

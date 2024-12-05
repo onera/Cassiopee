@@ -21,7 +21,7 @@ a = T.subzone(a, (3,3,3), (7,8,5))
 t = C.newPyTree(['Base',a])
 test.testT(t, 1)
 
-# structure 2D + CL 
+# structure 2D + CL
 a = G.cart((0,0,0), (1,1,1), (10,20,1))
 C._initVars(a,'Density',dens,['CoordinateX','CoordinateY'])
 C._initVars(a,'centers:cellN',1)
@@ -47,7 +47,7 @@ t[2][1] = C.addState(t[2][1], 'EquationDimension', 3)
 t = T.subzone(t, (3,3,3), (7,8,5))
 test.testT(t, 3)
 
-# structure 2D + CL 
+# structure 2D + CL
 a = G.cart((0,0,0), (1,1,1), (10,20,1))
 C._initVars(a,'Density',dens,['CoordinateX','CoordinateY'])
 C._initVars(a,'centers:cellN',1)

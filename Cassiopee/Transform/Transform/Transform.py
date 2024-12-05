@@ -2,11 +2,11 @@
 """
 __version__ = '4.0'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud"
-# 
+#
 # Python Interface to make basic transformations on arrays
 #
 from . import transform
-try: import Converter 
+try: import Converter
 except: raise ImportError("Transform: requires Converter module.")
 from Converter.Internal import E_NpyInt
 import numpy
@@ -14,22 +14,22 @@ import numpy
 try: range = xrange
 except: pass
 
-__all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', '_cart2Cyl', 'collapse', 
-    'computeDeformationVector', '_contract', 'contract', 'cyl2Cart', '_cyl2Cart', 'deform', 'deformNormals', 'deformPoint', 
-    'dual', '_homothety', 'homothety', 'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart', 
-    'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate', 'projectAllDirs', 'projectDir', 
-    'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 
-    'rotate', '_rotate', '_scale', 'scale', 
-    'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold', 
-    'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches', 
-    'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField',
-    'alignVectorFieldWithRadialCylindricProjection', '_alignVectorFieldWithRadialCylindricProjection']
+__all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', '_cart2Cyl', 'collapse',
+           'computeDeformationVector', '_contract', 'contract', 'cyl2Cart', '_cyl2Cart', 'deform', 'deformNormals', 'deformPoint',
+           'dual', '_homothety', 'homothety', 'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart',
+           'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate', 'projectAllDirs', 'projectDir',
+           'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll',
+           'rotate', '_rotate', '_scale', 'scale',
+           'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold',
+           'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches',
+           'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField',
+           'alignVectorFieldWithRadialCylindricProjection', '_alignVectorFieldWithRadialCylindricProjection']
 
 #========================================================================================
 # Merge a set of cart grids in A for each refinement level
 #========================================================================================
 def mergeCartByRefinementLevel(A, sizeMax):
-    dhmin = 1.e10 
+    dhmin = 1.e10
     allDh = []
     for a in A:
         xt = a[1][0,:]
@@ -45,7 +45,7 @@ def mergeCartByRefinementLevel(A, sizeMax):
         found = 0
         for noc in range(nzones):
             dh = allDh[noc]
-            if dh < 1.2*dhmin and dh > 0.8*dhmin: 
+            if dh < 1.2*dhmin and dh > 0.8*dhmin:
                 if level in levels:
                     levels[level].append(noc)
                 else:
@@ -55,7 +55,7 @@ def mergeCartByRefinementLevel(A, sizeMax):
         print('Level %d: merging %d zones over %d (Total: %d).'%(level,found,nzones,count))
         if found > 0:
             res = []
-            for i in levels[level]: res.append(A[i])            
+            for i in levels[level]: res.append(A[i])
             res = mergeCart(res, sizeMax)
             out += res
         if count == nzones: ok = 1
@@ -112,7 +112,7 @@ def merge(A, Ac=[], sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180.):
         if len(STRUCTc) == 0: ret += r
         else: ret += r[0]; retc += r[1]
     if len(BARs) > 0:
-        if len(BARc) > 0: 
+        if len(BARc) > 0:
             r = join(BARs, arrayc=BARc, tol=tol)
             ret += [r[0]]; retc += [r[1]]
         else: ret += [join(BARs, tol=tol)]
@@ -184,7 +184,7 @@ def _cyl2Cart(a, center=(0,0,0), axis=(0,0,1)):
 def collapse(a):
     """Collapse the smallest edge of each element for TRI arrays. Return a BAR.
     Usage: collapse(a)"""
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         b = []
         for i in a:
             b.append(transform.collapse(i))
@@ -237,7 +237,7 @@ def homothety(a, center, alpha):
     return b
 
 def _homothety(a, center, alpha):
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         for i in a:
             transform.homothety(i, center, alpha)
     else:
@@ -254,7 +254,7 @@ def contract(a, center, dir1, dir2, alpha):
 def _contract(a, center, dir1, dir2, alpha):
     """Contract a mesh around a plane defined by (center, dir1, dir2) and of factor alpha.
     Usage: contract(a, (xc,yc,zc), dir1, dir2, alpha)"""
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         for i in a:
             transform.contract(i, center, dir1, dir2, alpha)
     else:
@@ -331,7 +331,7 @@ def _smoothField(a, eps=0.1, niter=1, type=0, varNames=[]):
     else: transform._smoothField(a, epsv, epsf, niter, type, varNames)
     return None
 
-def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[], 
+def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
            projConstraints=[], delta=1., point=(0,0,0), radius=-1.):
     """Smooth a mesh with a Laplacian.
     Usage: smooth(a, eps, niter, type, fixedConstraints, projConstraints, delta, (xR,yR,zR), radius)"""
@@ -356,7 +356,7 @@ def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
         else:
             if isinstance(projConstraints[0], list):
                 projConstraint = join(projConstraints)
-            else: projConstraint = projConstraints    
+            else: projConstraint = projConstraints
     else: projConstraint = []
 
     listeType = -1
@@ -369,10 +369,10 @@ def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
             if len(i) == 5 and listeType != 1:
                 raise TypeError("smooth: list of zones must be all structured or all unstructured.")
 
-        if listeType == 1: # all struct    
+        if listeType == 1: # all struct
             b = Converter.convertArray2Hexa(a); b = join(b); b = G.close(b)
             listOfIndices = KCore.indiceStruct2Unstr2(a, b, 1.e-14)
-            c = transform.smooth(b, eps, niter, type, 
+            c = transform.smooth(b, eps, niter, type,
                                  fixedConstraint, projConstraint, delta,
                                  point, radius)
             listOfCoords = []
@@ -386,26 +386,26 @@ def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
         else: # all unstruct
             coords = []
             for i in a:
-                coords.append(transform.smooth(i, eps, niter, type, 
+                coords.append(transform.smooth(i, eps, niter, type,
                                                fixedConstraint, projConstraint,
                                                delta, point, radius))
             return coords
 
-    elif len(a) == 5: # array structure    
+    elif len(a) == 5: # array structure
         b = Converter.convertArray2Hexa(a); b = G.close(b)
-        c = transform.smooth(b, eps, niter, type, fixedConstraint, 
+        c = transform.smooth(b, eps, niter, type, fixedConstraint,
                              projConstraint, delta, point, radius)
         listOfIndices = []
         listOfIndices = KCore.indiceStruct2Unstr2([a], b, 1.e-14)
         coords = Converter.copy(a)
-        c = transform.smooth(b, eps, niter, type, fixedConstraint, 
+        c = transform.smooth(b, eps, niter, type, fixedConstraint,
                              projConstraint, delta, point, radius)
         ninjnk = coords[2]*coords[3]*coords[4]
         indicesU = listOfIndices[0]
         coords[1][0:3,:] = c[1][0:3,indicesU[:]]
         return coords
     else: # array non structure
-        return transform.smooth(a, eps, niter, type, fixedConstraint, 
+        return transform.smooth(a, eps, niter, type, fixedConstraint,
                                 projConstraint, delta, point, radius)
 
 def projectAllDirs(arrays, surfaces, vect=['nx','ny','nz'], oriented=0):
@@ -413,18 +413,18 @@ def projectAllDirs(arrays, surfaces, vect=['nx','ny','nz'], oriented=0):
     Usage: projectAllDirs(arrays,surfaces,vect,oriented)
     """
     try:
-        b = Converter.convertArray2Tetra(surfaces) 
+        b = Converter.convertArray2Tetra(surfaces)
     except: b = surfaces
     if not isinstance(arrays[0], list):
-        return transform.projectAllDirs([arrays], b, vect, oriented)[0] 
-    else: 
+        return transform.projectAllDirs([arrays], b, vect, oriented)[0]
+    else:
         return transform.projectAllDirs(arrays, b, vect, oriented)
 
 def projectDir(surfaces, arrays, dir, smooth=0, oriented=0):
     """Project surfaces onto surface arrays following dir. 
     Usage: projectDir(surfaces, arrays, dir)"""
     try:
-        b = Converter.convertArray2Tetra(arrays) 
+        b = Converter.convertArray2Tetra(arrays)
         if isinstance(b[0], list): b = join(b)
     except: b = arrays[0]
     if isinstance(surfaces[0], list):
@@ -511,14 +511,14 @@ def _alignVectorFieldWithRadialCylindricProjection(a, axisPassingPoint, axisDire
 
 def deform(a, vector=['dx','dy','dz']):
     """Deform surface by moving surface of the vector dx, dy, dz. 
-    Usage: deform(a, vector)"""    
+    Usage: deform(a, vector)"""
     if len(vector) != 3 or not isinstance(vector[1],str):
         a = Converter.addVars([a,vector])
         if isinstance(vector[0], list):
             vector = vector[0][0].split(',')
         else: vector = vector[0].split(',')
     else :
-        if len(vector) != 3: 
+        if len(vector) != 3:
             raise ValueError("deform: 3 variables are required.")
 
     if isinstance(a[0], list):
@@ -531,8 +531,8 @@ def deformNormals(array, alpha, niter=1):
     """Deform a a surface of alpha times the surface normals.
     Usage: deformNormals(array, alpha, niter)"""
     try: import Generator as G
-    except: raise ImportError("deformNormals: requires Generator module.")   
-    if isinstance(array[0], list) and isinstance(alpha[0], list): 
+    except: raise ImportError("deformNormals: requires Generator module.")
+    if isinstance(array[0], list) and isinstance(alpha[0], list):
         if len(array) != len(alpha): raise ValueError("deformNormals: number of arrays in a and alpha must be equal.")
         b = []; noi = 0
         for i in array:
@@ -560,7 +560,7 @@ def deformNormals(array, alpha, niter=1):
             n[1][:,:] = n[1][:,:]*alp[:]
             aloc = Converter.addVars([aloc,n])
             aloc = deform(aloc,['sx','sy','sz'])
-            aloc = Converter.rmVars(aloc,['sx','sy','sz'])            
+            aloc = Converter.rmVars(aloc,['sx','sy','sz'])
         return aloc
 
     else: raise ValueError("deformNormals: array and alpha must be both an array or a list of arrays.")
@@ -581,7 +581,7 @@ def deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh wrt surfDelta defining surface grids and deformation vector on it.
     Usage: deformMesh(a, surfDelta, beta, type)"""
     if not isinstance(a[0], list):
-        if len(a) == 5: 
+        if len(a) == 5:
             if type == 'nearest': return deformMeshStruct1__(a, surfDelta, beta)
             elif type == 'gridline': return deformMeshStruct2__(a, surfDelta, beta)
             else: raise TypeError("deformMesh: type is invalid.")
@@ -589,7 +589,7 @@ def deformMesh(a, surfDelta, beta=4., type='nearest'):
     else:
         out = []
         for i in a:
-            if len(i) == 5: 
+            if len(i) == 5:
                 if type == 'nearest': out.append(deformMeshStruct1__(i, surfDelta, beta))
                 elif type =='gridline': out.append(deformMeshStruct2__(i, surfDelta, beta))
                 else: raise TypeError("deformMesh: type is invalid.")
@@ -610,15 +610,15 @@ def deformMeshStruct1__(arrayi, surfDelta, beta):
     dim = 3
     if ni == 1 or nj == 1 or nk == 1: dim = 2
     if dim == 3:
-        m1 = subzone(array, (1,1,1),(1,nj,nk)); m1[2] = nj; m1[3] = nk; m1[4] = 1 
-        m2 = subzone(array,(ni,1,1),(ni,nj,nk)); m2[2] = nj; m2[3] = nk; m2[4] = 1 
-        m3 = subzone(array, (1,1,1),(ni,1,nk)); m3[3] = nk; m3[4] = 1 
-        m4 = subzone(array,(1,nj,1),(ni,nj,nk)); m4[3] = nk; m4[4] = 1 
+        m1 = subzone(array, (1,1,1),(1,nj,nk)); m1[2] = nj; m1[3] = nk; m1[4] = 1
+        m2 = subzone(array,(ni,1,1),(ni,nj,nk)); m2[2] = nj; m2[3] = nk; m2[4] = 1
+        m3 = subzone(array, (1,1,1),(ni,1,nk)); m3[3] = nk; m3[4] = 1
+        m4 = subzone(array,(1,nj,1),(ni,nj,nk)); m4[3] = nk; m4[4] = 1
         m5 = subzone(array,(1,1,1),(ni,nj,1))
         m6 = subzone(array,(1,1,nk),(ni,nj,nk))
         borders = [m1,m2,m3,m4,m5,m6]
     else:
-        m1 = subzone(array, (1,1,1),(1,nj,nk)); m1[2] = nj; m1[3] = 1 
+        m1 = subzone(array, (1,1,1),(1,nj,nk)); m1[2] = nj; m1[3] = 1
         m2 = subzone(array,(ni,1,1),(ni,nj,nk)); m2[2] = nj; m2[3] = 1
         m3 = subzone(array, (1,1,1),(ni,1,nk))
         m4 = subzone(array,(1,nj,1),(ni,nj,nk))
@@ -627,7 +627,7 @@ def deformMeshStruct1__(arrayi, surfDelta, beta):
     borders = Converter.addVars([borders,res])
     delta = G.TFI(borders)
     delta = Converter.extractVars(delta, ['dx','dy','dz'])
-    dim = delta[1].shape[0] 
+    dim = delta[1].shape[0]
     array[1][:dim,:] += delta[1][:dim,:]
     return array
 
@@ -649,15 +649,15 @@ def deformMeshStruct2__(arrayi, surfDelta, beta):
     dim = 3
     if ni == 1 or nj == 1 or nk == 1: dim = 2
     if dim == 3:
-        m1 = subzone(res,(1,1,1),(1,nj,nk)); m1[2]=nj; m1[3]=nk; m1[4]=1 
-        m2 = subzone(res,(ni,1,1),(ni,nj,nk)); m2[2]=nj; m2[3]=nk; m2[4]=1 
-        m3 = subzone(res,(1,1,1),(ni,1,nk)); m3[3]=nk; m3[4]=1 
-        m4 = subzone(res,(1,nj,1),(ni,nj,nk)); m4[3]=nk; m4[4]=1 
+        m1 = subzone(res,(1,1,1),(1,nj,nk)); m1[2]=nj; m1[3]=nk; m1[4]=1
+        m2 = subzone(res,(ni,1,1),(ni,nj,nk)); m2[2]=nj; m2[3]=nk; m2[4]=1
+        m3 = subzone(res,(1,1,1),(ni,1,nk)); m3[3]=nk; m3[4]=1
+        m4 = subzone(res,(1,nj,1),(ni,nj,nk)); m4[3]=nk; m4[4]=1
         m5 = subzone(res,(1,1,1),(ni,nj,1))
         m6 = subzone(res,(1,1,nk),(ni,nj,nk))
         borders = [m1,m2,m3,m4,m5,m6]
     else:
-        m1 = subzone(res,(1,1,1),(1,nj,nk)); m1[2]=nj; m1[3]=1 
+        m1 = subzone(res,(1,1,1),(1,nj,nk)); m1[2]=nj; m1[3]=1
         m2 = subzone(res,(ni,1,1),(ni,nj,nk)); m2[2]=nj; m2[3]=1
         m3 = subzone(res,(1,1,1),(ni,1,nk))
         m4 = subzone(res,(1,nj,1),(ni,nj,nk))
@@ -666,7 +666,7 @@ def deformMeshStruct2__(arrayi, surfDelta, beta):
     del res
     delta = G.TFI(borders)
     delta = Converter.extractVars(delta, ['dx','dy','dz'])
-    dim = delta[1].shape[0] 
+    dim = delta[1].shape[0]
     array[1][:dim,:] += delta[1][:dim,:]
     return array
 
@@ -678,7 +678,7 @@ def computeDeformationVector(array, surfDelta, beta=4.):
     if not isinstance(surfDelta[0], list): surfDelta = [surfDelta]
     if isinstance(array[0], list):
         return transform.computeDeformationVector(array, surfDelta, beta)
-    else: return transform.computeDeformationVector([array], surfDelta, beta)  
+    else: return transform.computeDeformationVector([array], surfDelta, beta)
 
 def join(array, array2=[], arrayc=[], arrayc2=[], tol=1.e-10):
     """Join two arrays in one or join a list of arrays in one. 
@@ -740,7 +740,7 @@ def joinsb__(array1, array2, arrayc1, arrayc2, tol):
         if array1[3] == "NGON":
             a = Converter.convertArray2NGon(array2)
             ac = Converter.convertArray2NGon(arrayc2)
-        else: 
+        else:
             a = Converter.convertArray2Hexa(array2)
             ac = Converter.convertArray2Hexa(arrayc2)
         cn = a[2]; ac = [ac[0], ac[1], cn, ac[3]+'*']
@@ -750,7 +750,7 @@ def joinsb__(array1, array2, arrayc1, arrayc2, tol):
         if array2[3] == "NGON":
             a = Converter.convertArray2NGon(array1)
             ac = Converter.convertArray2NGon(arrayc1)
-        else: 
+        else:
             a = Converter.convertArray2Hexa(array1)
             ac = Converter.convertArray2Hexa(arrayc1)
         cn = a[2]; ac = [ac[0], ac[1], cn, ac[3]+'*']# la conversion d'un array structure en centres en non structure ne donne pas un array de type elt*
@@ -784,7 +784,7 @@ def joins__(array1, array2, tol):
         else: a = Converter.convertArray2Hexa(array1)
         return transform.join(a, array2, tol)
 
-    else: # Unstruct           
+    else: # Unstruct
         if array1[3] == "NGON" and array2[3] != "NGON":
             a = Converter.convertArray2NGon(array2)
             return transform.join(array1, a, tol)
@@ -795,7 +795,7 @@ def joins__(array1, array2, tol):
 
 def patch(a1, a2, position=None, nodes=None, order=None):
     """Patch mesh2 defined by a2 in mesh1 defined by a1 at position (i,j,k).
-    Usage: patch(a1, a2, (i,j,k))"""    
+    Usage: patch(a1, a2, (i,j,k))"""
     import numpy
     if (isinstance(a1[0], list) or isinstance(a2[0], list)):
         raise TypeError("patch: not for a list of arrays.")
@@ -814,7 +814,7 @@ def patch(a1, a2, position=None, nodes=None, order=None):
 def oneovern(a, N, add=1):
     """Take one over N points from mesh.
     Usage: oneovern(a, (Ni,Nj,Nk))"""
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         b = []
         for i in a:
             b.append(transform.oneovern(i, N, add))
@@ -827,7 +827,7 @@ def subzone(array, minIndex, maxIndex=None, type=None):
     Usage: subzone(array, (imin,jmin,kmin), (imax,jmax,kmax))"""
     if maxIndex is None: # non structure
         if type == 'elements':
-            if len(array) == 5: 
+            if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of elements not yet implemented for structured arrays.")
             return transform.subzoneElements(array, minIndex)
         elif type == 'faces':
@@ -836,10 +836,10 @@ def subzone(array, minIndex, maxIndex=None, type=None):
             else:
                 return transform.subzoneFaces(array, minIndex)
         elif type == 'nodes':
-            if len(array) == 5: 
+            if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
             return  transform.subzoneUnstruct(array, minIndex)
-        else: 
+        else:
             if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
             return transform.subzoneUnstruct(array, minIndex)
@@ -946,13 +946,13 @@ def makeCartesianXYZ__(z, tol=1.e-10):
         elif abs(dz_k) > tol: dirk = 3
         dirs = [0,0,0]
         if diri == 1: dirs[0] = 1
-        elif diri==2: dirs[1] = 1 
+        elif diri==2: dirs[1] = 1
         else: dirs[2] = 1
         if dirj == 1: dirs[0] = 2
-        elif dirj==2: dirs[1] = 2 
+        elif dirj==2: dirs[1] = 2
         else: dirs[2] = 2
         if dirk == 1: dirs[0] = 3
-        elif dirk==2: dirs[1] = 3 
+        elif dirk==2: dirs[1] = 3
         else: dirs[2] = 3
         z = reorder(z,(dirs[0], dirs[1], dirs[2]))
         ni = z[2]; nj = z[3]; nk = z[4]
@@ -966,22 +966,22 @@ def makeCartesianXYZ__(z, tol=1.e-10):
         ok = 0
         diri = 1; dirj = 2; dirk = 3
         if dx_i < tol: diri =-1; ok = 1
-        dy_j = valindj[posy]-valind[posy] 
+        dy_j = valindj[posy]-valind[posy]
         if dy_j < tol: dirj =-2; ok = 1
-        dz_k = valindk[posz]-valind[posz] 
+        dz_k = valindk[posz]-valind[posz]
         if dz_k < tol: dirk =-3; ok = 1
         if ok == 1: z = reorder(z,(diri,dirj,dirk))
     return z
 
 def makeDirect(a):
     """Reorder a structured mesh to make it direct."""
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         b = []
         for i in a:
             b.append(makeDirect__(i))
         return b
     else:
-        return makeDirect__(a)     
+        return makeDirect__(a)
 
 def makeDirect__(a):
     import KCore
@@ -1015,7 +1015,7 @@ def makeDirect__(a):
 def addkplane(a, N=1):
     """Add N k-plane(s) to a mesh.
     Usage: addkplane(a, N)"""
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         b = []
         for i in a:
             c = addkplane__(i, N)
@@ -1042,7 +1042,7 @@ def addkplane__(a, N):
         return res
 
 def addkplaneCenters(arrayC, arrayK, N=1):
-    if isinstance(arrayC[0], list): 
+    if isinstance(arrayC[0], list):
         b = []
         for noi in range(len(arrayC)):
             c = transform.addkplaneCenters(arrayC[noi], arrayK[noi],N)
@@ -1121,7 +1121,7 @@ def splitSize__(a, N, multigrid, dirs):
 
             if dirl == 1:
                 ns = findMGSplit__(ni, level=multigrid)
-                if ns > 0: 
+                if ns > 0:
                     a1 = subzone(a, (1,1,1), (ns,nj,nk))
                     a2 = subzone(a, (ns,1,1), (ni,nj,nk))
                 else: return [a]
@@ -1161,7 +1161,7 @@ def splitSizeUp__(a, N, multigrid, dirs):
             if dirl == 1:
                 nc = N//njk
                 ns = findMGSplitUp__(ni, nc, level=multigrid)
-                if ns > 0: 
+                if ns > 0:
                     a1 = subzone(a, (1,1,1), (ns,nj,nk))
                     a2 = subzone(a, (ns,1,1), (ni,nj,nk))
                 else: return [a]
@@ -1295,7 +1295,7 @@ def splitSizeUpR__(A, N, R, multigrid, dirs, minPtsPerDir):
     #print('Tot', Tot)
     return out
 
-def splitSize(array, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None, 
+def splitSize(array, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
               minPtsPerDir=5):
     """Split a block until it has less than N points.
     Usage: splitSize(array, N, multigrid=0, dirs=[1,2,3], type=0)"""
@@ -1355,7 +1355,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 out.append((b1,b2,1,nj,1,nk))
                 b1 = b2
 
-        elif dirs[0] == 2: 
+        elif dirs[0] == 2:
             ns = kround(njg*1./N); ns = int(ns)
             r = (nj-N*ns*plev)//plev
             b1 = 1
@@ -1366,7 +1366,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 if j == N-1: b2 = nj
                 out.append((1,ni,b1,b2,1,nk))
                 b1 = b2
-        else: 
+        else:
             ns = kround(nkg*1./N); ns = int(ns)
             r = (nk-N*ns*plev)//plev
             b1 = 1
@@ -1379,12 +1379,12 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 b1 = b2
 
     elif ldir == 2:
-        if dirs[0] == 1: ns1 = ni; bs1 = ni; ng1 = (ni-1)//plev+1 
-        elif dirs[0] == 2: ns1 = nj; bs1 = nj; ng1 = (nj-1)//plev+1 
-        else: ns1 = nk; bs1 = nk; ng1 = (nk-1)//plev+1 
-        if dirs[1] == 1: ns2 = ni; bs2 = ni; ng2 = (ni-1)//plev+1 
-        elif dirs[1] == 2: ns2 = nj; bs2 = nj; ng2 = (nj-1)//plev+1 
-        else: ns2 = nk; bs2 = nk; ng2 = (nk-1)//plev+1 
+        if dirs[0] == 1: ns1 = ni; bs1 = ni; ng1 = (ni-1)//plev+1
+        elif dirs[0] == 2: ns1 = nj; bs1 = nj; ng1 = (nj-1)//plev+1
+        else: ns1 = nk; bs1 = nk; ng1 = (nk-1)//plev+1
+        if dirs[1] == 1: ns2 = ni; bs2 = ni; ng2 = (ni-1)//plev+1
+        elif dirs[1] == 2: ns2 = nj; bs2 = nj; ng2 = (nj-1)//plev+1
+        else: ns2 = nk; bs2 = nk; ng2 = (nk-1)//plev+1
         best = [1,1,1]
         size = -1
         for N1 in range(1,N+1):
@@ -1407,14 +1407,14 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
             if r1 > 0: b2 = b1+plev*(ns1+1); r1 -= 1
             elif r1 < 0: b2 = b1+plev*(ns1-1); r1 += 1
             else: b2 = b1+plev*ns1
-            if dirs[0] == 1: 
-                i1 = b1; i2 = b2; 
+            if dirs[0] == 1:
+                i1 = b1; i2 = b2;
                 if i == N1-1: i2 = ni
-            elif dirs[0] == 2: 
+            elif dirs[0] == 2:
                 j1 = b1; j2 = b2
                 if i == N1-1: j2 = nj
-            else: 
-                k1 = b1; k2 = b2     
+            else:
+                k1 = b1; k2 = b2
                 if i == N1-1: k2 = nk
 
             r2 = (ni-N2*ns2*plev)//plev
@@ -1423,13 +1423,13 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 if r2 > 0: c2 = c1+plev*(ns2+1); r2 -= 1
                 elif r2 < 0: c2 = c1+plev*(ns2-1); r2 += 1
                 else: c2 = c1+plev*ns2
-                if dirs[1] == 1: 
+                if dirs[1] == 1:
                     i1 = c1; i2 = c2
                     if j == N2-1: i2 = ni
-                elif dirs[1] == 2: 
+                elif dirs[1] == 2:
                     j1 = c1; j2 = c2
                     if j == N2-1: j2 = nj
-                else: 
+                else:
                     k1 = c1; k2 = c2
                     if j == N2-1: k2 = nk
                 out.append( (i1,i2,j1,j2,k1,k2) )
@@ -1489,7 +1489,7 @@ def findSplits__(ni, nj, nk, N, dirs, multigrid):
                 if j == N2-1: j2 = nj
                 r3 = (nk-N3*ns3*plev)//plev
                 d1 = 1
-                for k in range(N3): # tous les splits en k                    
+                for k in range(N3): # tous les splits en k
                     if r3 > 0: d2 = d1+plev*(ns3+1); r3 -= 1
                     elif r3 < 0: d2 = d1+plev*(ns3-1); r3 += 1
                     else: d2 = d1+plev*ns3
@@ -1539,7 +1539,7 @@ def findNsi__(l, N, Np):
                 Ns[no] += 1 #print Ns[no]*Nm-Np[no]
             pass
         elif ND > N: # trop de blocs
-            # On cherche a diminuer les splits des plus petits Er 
+            # On cherche a diminuer les splits des plus petits Er
             for i in range(ND-N):
                 e = Er[l-i-1]
                 no = e[1]
@@ -1564,7 +1564,7 @@ def splitNParts(arrays, N, multigrid=0, dirs=[1,2,3]):
             arraysS.append(a)
             NpS.append(a[2]*a[3]*a[4])
             NeS.append(max(a[2]-1,1)*max(a[3]-1,1)*max(a[4]-1,1))
-        elif a[3] == 'NGON': 
+        elif a[3] == 'NGON':
             arraysN.append(a)
             NpN.append(a[1].size)
             c = a[2]; NeN.append(c[0,c[0,1]+2])
@@ -1589,7 +1589,7 @@ def splitNParts(arrays, N, multigrid=0, dirs=[1,2,3]):
     for i in range(len(arraysN)):
         a = arraysN[i]
         if NPart[i] > 1:
-            if a[3] == 'NGON': 
+            if a[3] == 'NGON':
                 elts = transform.splitNGon(a, NPart[i])
             else:
                 elts = transform.splitElement(a, NPart[i])
@@ -1705,7 +1705,7 @@ def splitSharpEdges(array, alphaRef=30.):
 def splitCurvatureAngle(array, sensibility):
     """Split a line following curvature angle.
     Usage: splitCurvatureAngle(array, sensibility)"""
-    out = []; array3 = array; ispl = 1 
+    out = []; array3 = array; ispl = 1
     if len(array) != 5:
         raise TypeError("splitCurvatureAngle: defined for a i-array only.")
 
@@ -1738,7 +1738,7 @@ def splitMultiplePts2D__(A):
         isplit = -1; jsplit = -1
         # detecte si un pt interieur est de tag > 1
         # fenetre i = 1
-        for j in range(1,nj-1): 
+        for j in range(1,nj-1):
             if taga[1][0,j*ni] > 1.:
                 isplit = 1; jsplit = j+1
                 z1 = subzone(z,(1,1,1),(ni,jsplit,nk))
@@ -1748,7 +1748,7 @@ def splitMultiplePts2D__(A):
                 return A, restart
 
         # fenetre i = ni
-        for j in range(1,nj-1): 
+        for j in range(1,nj-1):
             if taga[1][0,ni-1+j*ni] > 1.:
                 isplit = ni; jsplit = j+1
                 z1 = subzone(z,(1,1,1),(ni,jsplit,nk))
@@ -1758,7 +1758,7 @@ def splitMultiplePts2D__(A):
                 return A, restart
 
         # fenetre j = 1
-        for i in range(1,ni-1): 
+        for i in range(1,ni-1):
             if taga[1][0,i] > 1.:
                 isplit = i+1; jsplit = 1
                 z1 = subzone(z,(1,1,1),(isplit,nj,nk))
@@ -1768,14 +1768,14 @@ def splitMultiplePts2D__(A):
                 return A, restart
 
         # fenetre j = nj
-        for i in range(1,ni-1): 
+        for i in range(1,ni-1):
             if taga[1][0,i+(nj-1)*ni] > 1.:
                 isplit = i+1; jsplit = nj
                 z1 = subzone(z,(1,1,1),(isplit,nj,nk))
                 z2 = subzone(z,(isplit,1,1),(ni,nj,nk))
                 del A[noz]; A+= [z1,z2]
                 restart = 1
-                return A, restart   
+                return A, restart
     return A, restart
 
 def splitMultiplePts3D__(A):
@@ -1858,7 +1858,7 @@ def splitMultiplePts3D__(A):
                                 z1 = subzone(z,(1,1,1),(ni,jsplit,nk))
                                 z2 = subzone(z,(1,jsplit,1),(ni,nj,nk))
                                 del A[noz]; A+=[z1,z2]; restart = 1
-                                return A,restart               
+                                return A,restart
     return A, restart
 
 def splitMultiplePts__(A,dim=3):
@@ -1870,28 +1870,28 @@ def splitMultiplePts__(A,dim=3):
     tags = Converter.extractVars(tags, ['definedBC'])
 
     for noz1 in range(nzones):
-        z = A[noz1]; ni=z[2]; nj=z[3]; nk=z[4] 
-        winp=subzone(z,(1,1,1),(1,nj,nk));allWins.append(winp)     
-        winp=subzone(z,(ni,1,1),(ni,nj,nk));allWins.append(winp)             
-        winp=subzone(z,(1,1,1),(ni,1,nk));allWins.append(winp)             
-        winp=subzone(z,(1,nj,1),(ni,nj,nk));allWins.append(winp)             
+        z = A[noz1]; ni=z[2]; nj=z[3]; nk=z[4]
+        winp=subzone(z,(1,1,1),(1,nj,nk));allWins.append(winp)
+        winp=subzone(z,(ni,1,1),(ni,nj,nk));allWins.append(winp)
+        winp=subzone(z,(1,1,1),(ni,1,nk));allWins.append(winp)
+        winp=subzone(z,(1,nj,1),(ni,nj,nk));allWins.append(winp)
         if dim == 3:
-            winp=subzone(z,(1,1,1),(ni,nj,1));allWins.append(winp)             
-            winp=subzone(z,(1,1,nk),(ni,nj,nk));allWins.append(winp)             
+            winp=subzone(z,(1,1,1),(ni,nj,1));allWins.append(winp)
+            winp=subzone(z,(1,1,nk),(ni,nj,nk));allWins.append(winp)
     globWin = Converter.convertArray2Hexa(allWins); globWin = join(globWin); globWin = G.close(globWin)
     hook = Converter.createHook(globWin,function='nodes')
     tagG = [-1]*globWin[1].shape[1]
     for noz1 in range(nzones):
         res = Converter.identifyNodes(hook,A[noz1])
         for ind in range(A[noz1][1].shape[1]):
-            if res[ind] != -1: 
+            if res[ind] != -1:
                 indg = res[ind]-1; tagG[indg]+=1
 
     for noz1 in range(nzones):
         tag1 = tags[noz1]
         res = Converter.identifyNodes(hook,A[noz1])
         for ind in range(A[noz1][1].shape[1]):
-            if res[ind] != -1: 
+            if res[ind] != -1:
                 indg = res[ind]-1
                 tag1[1][0,ind] = tagG[indg]
     A = Converter.addVars([A,tags])
@@ -1924,7 +1924,7 @@ def splitBAR(array, N, N2=-1):
 def splitTBranches(array, tol=1.e-13):
     """Split a BAR into a set of BARS at vertices where T branches exist.
     Usage: splitTBranches(array, tol=1.e-13)"""
-    if isinstance(array[0], list): 
+    if isinstance(array[0], list):
         b = []
         for i in array:
             res = transform.splitTBranches(i, tol)
@@ -1933,7 +1933,7 @@ def splitTBranches(array, tol=1.e-13):
         return b
     else:
         res = transform.splitTBranches(array, tol)
-        if not isinstance(res[0], list): res = [res] 
+        if not isinstance(res[0], list): res = [res]
         return res
 
 def splitTRI(array, idxList):

@@ -84,7 +84,7 @@ def setBgColor(event=None):
         if 'backgroundFile' in CTK.PREFS: initFile = CTK.PREFS['backgroundFile']
         else: initFile = 'paperBackground1.png'
         files = tkFileDialog.askopenfilenames(
-        filetypes=[('png image file', '*.png')], initialfile=initFile, multiple=0)
+            filetypes=[('png image file', '*.png')], initialfile=initFile, multiple=0)
         if files == '' or files is None or files == (): # user cancel
             return
         files = CTK.fixFileString__(files, initFile)
@@ -265,9 +265,9 @@ def createApp(win):
         F.grid(row=r, column=1, sticky=TK.EW)
         WIDGETS['guitheme'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[9], 
-                        values=[], state='readonly', width=10)
-        B.bind('<<ComboboxSelected>>', setTheme) 
+        B = ttk.Combobox(F, textvariable=VARS[9],
+                         values=[], state='readonly', width=10)
+        B.bind('<<ComboboxSelected>>', setTheme)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateThemeList2)
         F.grid(row=r, column=1, sticky=TK.EW)

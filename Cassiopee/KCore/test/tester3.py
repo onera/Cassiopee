@@ -8,4 +8,3 @@ import numpy
 
 a = KCore.tester()
 print(a)
-

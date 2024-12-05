@@ -6,14 +6,14 @@ import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
 from Apps.Fast.Common import Common
-import numpy 
+import numpy
 try: range = xrange
 except: pass
 
 #================================================================================
 # Multiblock prepare (avec split)
 # NP is the target number of processors
-#================================================================================ 
+#================================================================================
 def prepare(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single', NG=1):
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank; size = Cmpi.size
@@ -53,7 +53,7 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
         # Rajout des coins
         zonesDup=[]; zonesDupNames=[]
         for z in Internal.getZones(t[2][1]):
-            isperiod = Internal.getNodeFromName1(z, 'TempPeriodicZone')    
+            isperiod = Internal.getNodeFromName1(z, 'TempPeriodicZone')
             if isperiod is not None:
                 C._rmBCOfType(z,'BCMatch')
                 zonesDup.append(z)
@@ -63,7 +63,7 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
             isperiod = Internal.getNodeFromName1(z, 'TempPeriodicZone')
             if isperiod is None:
                 for j in [-1,1]:
-                    for i in [-1,1]:                
+                    for i in [-1,1]:
                         zdup = T.translate(z,(i*TX,j*TY,0.))
                         C._rmBCOfType(zdup,"BCMatch")
                         zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
@@ -71,7 +71,7 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
                         zonesDup.append(zdup)
                         #
                         zonesDup = X.connectMatch(zonesDup)
-                        zdup=zonesDup[-1]      
+                        zdup=zonesDup[-1]
                         gc = Internal.getNodeFromType(zdup,'GridConnectivity1to1_t')
                         if gc is not None:
                             zdonorname = Internal.getValue(gc)
@@ -79,7 +79,7 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
                                                  value=zdonorname,children=None)
                             zcorners.append(zdup)
                         del zonesDup[-1]
-        del zonesDup                
+        del zonesDup
         t[2][1][2]+= zcorners
         del zcorners
 
@@ -113,13 +113,13 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
     #
     if isPerio: C._removeDuplicatedPeriodicZones__(t)
     #
-    tc = X.setInterpData(t,tc,nature=1, loc='centers', storage='inverse', 
+    tc = X.setInterpData(t,tc,nature=1, loc='centers', storage='inverse',
                          sameName=1,itype='chimera')
 
     # on remet chez la zone initiale les donnees d interp
     if isPerio:
         for z in Internal.getZones(tc):
-            if z[0] not in zonesNamesORIG:        
+            if z[0] not in zonesNamesORIG:
                 parentz,noz = Internal.getParentOfNode(tc,z)
                 zdnames = z[0].split('_')
                 znameorig = zdnames[0]
@@ -354,7 +354,7 @@ class LBM(Common):
         self.authors = ["stephanie.peron@onera.fr"]
         self.cartesian = True
 
-    # Prepare 
+    # Prepare
     def prepare(self, t_case, t_out=None, tc_out=None, NP=0, translation=[0.,0.,0.],NG=1):
         #if NP is None: NP = Cmpi.size
         #if NP == 0: print('Preparing for a sequential computation.')

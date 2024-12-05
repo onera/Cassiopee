@@ -25,7 +25,7 @@ I._initConst(z, MInf=0.8, loc='centers')
 test.testT(z, 4)
 
 # ME
-a = G.cartHexa((0,0,0), (0.05,0.05,1), (50,100,2)) 
+a = G.cartHexa((0,0,0), (0.05,0.05,1), (50,100,2))
 b = G.cartTetra((2.45,0,0), (0.05,0.05,1), (50,100,2))
 z = C.mergeConnectivity(a, b, boundary=0)
 I._initConst(z, MInf=0.8, loc='centers')

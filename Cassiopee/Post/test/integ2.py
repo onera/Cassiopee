@@ -21,4 +21,3 @@ c1 = C.array('vx,vy,vz', ni, nj, 1)
 cn = C.initVars(c1, 'vx,vy,vz', 1.); del c1
 resn = P.integNorm([m], [cn], [])
 print(resn)
-

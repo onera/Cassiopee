@@ -5,7 +5,7 @@ import Generator.PyTree as G
 import Post.PyTree as P
 import KCore.test as test
 
-def F(x, y, z): return x+2*y+z 
+def F(x, y, z): return x+2*y+z
 
 def F2(x):
     if (x > 15.): return True

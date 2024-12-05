@@ -32,4 +32,3 @@ T.testA([p2], 2)
 # test sur une liste
 P = P.computeNormCurl([m1,m2],['u','v','w']) # defined on centers
 T.testA(P, 3)
-

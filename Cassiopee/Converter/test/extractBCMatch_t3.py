@@ -32,11 +32,9 @@ for z in zones:
         zname  = Internal.getValue(gc)
         zdonor = Internal.getNodeFromName(t,zname)
 
-        [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim,varL) 
+        [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim,varL)
         test.testO([indFaceR,fldFace], it)
 
-        [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim) 
+        [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim)
 
         test.testO([indFaceR,fldFace], it+6)
-
-

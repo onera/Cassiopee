@@ -193,7 +193,7 @@ def drawCircle(npts):
                     tx = tx*normi; ty = ty*normi; tz = tz*normi;
                     alpha = R*R - (xa*xa+ya*ya+za*za)*0.25
                     if alpha >= 0: alpha = math.sqrt(alpha)
-                    else: alpha = 0.    
+                    else: alpha = 0.
                     center = [0,0,0]
                     center[0] = 0.5*(x1+x2) + alpha*tx
                     center[1] = 0.5*(y1+y2) + alpha*ty
@@ -206,8 +206,8 @@ def drawCircle(npts):
                         center[1] = 0.5*(y1+y2) - alpha*ty
                         center[2] = 0.5*(z1+z2) - alpha*tz
                         l = (center[0]-x3)*(center[0]-x3) + \
-                        (center[1]-y3)*(center[1]-y3) + \
-                        (center[2]-z3)*(center[2]-z3)
+                            (center[1]-y3)*(center[1]-y3) + \
+                            (center[2]-z3)*(center[2]-z3)
                     circle = D.circle( (center[0],center[1],center[2]), R, N=npts)
                     e1 = [x1-center[0], y1-center[1], z1-center[2]]
                     e2 = [x2-center[0], y2-center[1], z2-center[2]]
@@ -320,7 +320,7 @@ def drawArc(npts):
                         e3 = Vector.cross(e1, e2)
                     e4 = Vector.cross(e1, e3)
 
-                    # Images des pts dans le plan xyz 
+                    # Images des pts dans le plan xyz
                     pt1 = D.point((x1,y1,z1))
                     pt2 = D.point((x2,y2,z2))
                     pt3 = D.point((x3,y3,z3))
@@ -370,7 +370,7 @@ def drawArc(npts):
                     if teta3 > teta2: teta1 = 360.
                     else: teta1 = 0.
 
-                    circle = D.circle((center[0],center[1],center[2]), R, 
+                    circle = D.circle((center[0],center[1],center[2]), R,
                                       tetas=teta2, tetae=teta1, N=npts)
                     circle = T.rotate(circle,
                                       (center[0], center[1], center[2]),
@@ -708,7 +708,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Underlaying model surfaces.')
 
     # - Figure type -
-    B = TTK.OptionMenu(Frame, VARS[0], 'Line', 'Circle', 'Circular arc', 
+    B = TTK.OptionMenu(Frame, VARS[0], 'Line', 'Circle', 'Circular arc',
                        'Rectangle', 'Polyline', 'Cubic', 'Free hand')
     BB = CTK.infoBulle(parent=B, text='Type of drawing.')
     B.grid(row=1, column=0, sticky=TK.EW)

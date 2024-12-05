@@ -1,5 +1,5 @@
 # - diffArrays en non structure tetra -
-import Converter as C   
+import Converter as C
 import Generator as G
 import KCore.test as T
 
@@ -46,5 +46,3 @@ b = C.array('F,G',np,ne,'QUAD')
 b = C.initVars(b, "F", 1.2)
 ret = C.diffArrays([a], [b])
 T.testA(ret, 3)
-
-

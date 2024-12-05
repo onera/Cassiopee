@@ -34,8 +34,8 @@ def measure():
                     CTK.TXT.insert('START', 'Click second point...\n')
                 elif prev != l:
                     dist = (l[0]-prev[0])*(l[0]-prev[0])+\
-                    (l[1]-prev[1])*(l[1]-prev[1])+\
-                    (l[2]-prev[2])*(l[2]-prev[2])
+                        (l[1]-prev[1])*(l[1]-prev[1])+\
+                        (l[2]-prev[2])*(l[2]-prev[2])
                     dist = math.sqrt(dist)
                     CTK.TXT.insert('START', 'd= %.4e\n'%dist)
                     time.sleep(CPlot.__timeStep__)
@@ -95,7 +95,7 @@ def vector():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                          text='tkRuler  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+                           text='tkRuler  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Take measures by clicking.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)

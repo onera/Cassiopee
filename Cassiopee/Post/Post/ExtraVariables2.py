@@ -52,7 +52,7 @@ def _computeVorticity2(t, ghostCells=False):
     C._rmVars(t, ['centers:gradxVelocityZ', 'centers:gradyVelocityZ', 'centers:gradzVelocityZ'])
     return None
 
-# IN: centers:Velocity 
+# IN: centers:Velocity
 # OUT: centers:VorticityMagnitude
 def computeVorticityMagnitude2(t, ghostCells=False):
     """Compute vorticity magnitude from velocity in centers."""
@@ -61,7 +61,7 @@ def computeVorticityMagnitude2(t, ghostCells=False):
     return tp
 
 def _computeVorticityMagnitude2(t, ghostCells=False):
-    """Compute vorticity magnitude from velocity in centers."""    
+    """Compute vorticity magnitude from velocity in centers."""
     _computeVorticity2(t, ghostCells)
     C._magnitude(t, ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ'])
     C._rmVars(t, ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ'])
@@ -89,7 +89,7 @@ def _computeQCriterion2(t, ghostCells=False):
     C._rmVars(t, ['centers:gradxVelocityZ', 'centers:gradzVelocityZ', 'centers:gradzVelocityX', 'centers:gradzVelocityY', 'centers:gradzVelocityX', 'centers:gradyVelocityZ'])
     return None
 
-# IN: centers:Velocity 
+# IN: centers:Velocity
 # OUT: centers:lambda2
 def computeLambda2(t, ghostCells=False):
     """Compute lambda2 criterion from velocity in centers."""
@@ -104,7 +104,7 @@ def _computeLambda2(t, ghostCells=False):
     P._computeGrad2(t, 'centers:VelocityZ', ghostCells)
 
     # Rate of strain tensor
-    C._initVars(t, 'centers:s11 = {centers:gradxVelocityX}')   
+    C._initVars(t, 'centers:s11 = {centers:gradxVelocityX}')
     C._initVars(t, 'centers:s12 = 0.5*({centers:gradyVelocityX}+{centers:gradxVelocityY})')
     C._initVars(t, 'centers:s13 = 0.5*({centers:gradzVelocityX}+{centers:gradxVelocityZ})')
     C._initVars(t, 'centers:s22 = {centers:gradyVelocityY}')
@@ -205,7 +205,7 @@ def _extractPressure(t):
     P._computeVariables2(t, ['centers:Pressure'])
     return None
 
-# Calcul module de la vitesse 
+# Calcul module de la vitesse
 # IN: centers:VelocityX, centers:VelocityY, centers:VelocityZ
 # OUT: centers:VelocityMagnitude
 # v = sqrt(vx**2+vy**2+vz**2)
@@ -316,7 +316,7 @@ def _extractQCriterion(t):
     return None
 
 #===========================================================
-# Surfacic extractions 
+# Surfacic extractions
 # input : effort tree (teff)
 #===========================================================
 
@@ -579,7 +579,7 @@ def integLoads(teff):
     return [retx[0],rety[0],retz[0]]
 
 #=============================================================
-# Profile extractions 
+# Profile extractions
 # input : effort tree (teff) + volume tree t
 #=============================================================
 
@@ -691,6 +691,6 @@ def extractRtheta(zp, Uinf, Roinf, Muinf):
     C._initVars(zpp, '{dDelta} = ( 1. - {VelocityTangential} / %20.16g ) * ( {Density} / %20.16g)'%(Uinf,Roinf) )
     ret2 = P.integ(zpp, 'dDelta')
     delta = ret2[0]
-    ShapeFactor = delta / theta    
+    ShapeFactor = delta / theta
 
     return delta,theta,Rtheta,ShapeFactor

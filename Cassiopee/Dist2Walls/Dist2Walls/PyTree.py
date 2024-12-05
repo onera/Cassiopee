@@ -49,7 +49,7 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isI
     for i,z in enumerate(zones):
         if Internal.getZoneType(z)==1: orderedZones.append(i)
     for i, z in enumerate(zones):
-        if Internal.getZoneType(z)==2: orderedZones.append(i) 
+        if Internal.getZoneType(z)==2: orderedZones.append(i)
 
     coords = C.getFields(Internal.__GridCoordinates__,zones)
     if loc == 'centers': flag = C.getField('centers:flag',zones)
@@ -66,8 +66,8 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isI
     return None
 
 #==============================================================================
-# Eikonal equation starting from spring points 
-# Multidomain not taken into account, no transfer is done !  
+# Eikonal equation starting from spring points
+# Multidomain not taken into account, no transfer is done !
 #==============================================================================
 def eikonal(t,tc=None,loc='nodes',nitmax=10, err=0.01,algo=fim_old):
     """Solve the eikonal equation.
@@ -101,8 +101,8 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
         # Eikonal sur les zones non convergees et sources
         if loc == 'nodes': C._initVars(t,'{PhiM}={Phi}')
         else: C._initVars(t,'{centers:PhiM}={centers:Phi}')
-        no = 0 
-        for z in Internal.getNodesFromType2(t,"Zone_t"): 
+        no = 0
+        for z in Internal.getNodesFromType2(t,"Zone_t"):
             if isConverged[no] < 1 and C.getMaxValue(z,loc+':flag')>0.:
                 if loc == 'nodes': C._initVars(z,'{Phi}=({flag}<0.1)*%f+({flag}>0.)*{Phi}'%PHIMAX)
                 else: C._initVars(z,'{centers:Phi}=({centers:flag}<0.1)*%f+({centers:flag}>0.)*{Phi}'%PHIMAX)
@@ -122,7 +122,7 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
                     X._setInterpTransfers(t,z2, variables=['Phi','flag'],variablesIBC=None)
                 no += 1
 
-        # Convergence 
+        # Convergence
         if it > 0:
             no = 0 ; nocv = 0
             for z in Internal.getNodesFromType2(t,"Zone_t"):
@@ -137,14 +137,14 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
                 elif isConverged[no] == 1: nocv+=1
                 no += 1
 
-        # Iteration 
+        # Iteration
         it += 1
     #-----------------------------------------------------------------------------
     if it < nitmax+1: print('Distance by Eikonal converged after %d subiterations.'%it)
-    else: 
+    else:
         print('Warning: distance by Eikonal did not converged after %d subiterations.'%nitmax)
         noi = 0
-        for i in isConverged: 
+        for i in isConverged:
             if i != 1: print('%d, %d'%(i, noi))
             noi += 1
     return None
@@ -161,14 +161,14 @@ def _eikonalForZone(z,loc='nodes',algo=fim_old):
     if loc == 'nodes': locNode = True
 
     nodes = C.getFields(Internal.__GridCoordinates__, z)[0]
-    if locNode: 
+    if locNode:
         phi = C.getField('Phi',z)[0]
         speed = C.getField('speed',z)[0]
     else:
         phi = C.getField('centers:Phi',z)[0]
         speed = C.getField("centers:speed",z)[0]
         nodes = Converter.node2Center(nodes)
-    if phi == []: 
+    if phi == []:
         raise ValueError("Dist2Walls:_eikonalForZone: Phi variable not defined in zone.")
     if speed == []:
         raise ValueError("Dist2Walls:_eikonalForZone: speed variable not defined in zone.")
@@ -254,12 +254,12 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
 
     if loc == 'nodes':
         C._initVars(t,'{sign}=({cellN}>0.)-1.*({cellN}<1.)')
-        # Marquage des points 
+        # Marquage des points
         C._initVars(t,'{Phi}=%g*{flag}'%PHIMAX)#'Phi=%g*({flag}<1.)+({flag}>0.)'%PHIMAX)
 
     else:
         C._initVars(t,'{centers:sign}=({centers:cellN}>0.)-1.*({centers:cellN}<1.)')
-        # Marquage des points 
+        # Marquage des points
         C._initVars(t,'{centers:Phi}=%g*({centers:flag}<1.)+({centers:flag}>0.)'%PHIMAX)
 
     #----------------------------------------------
@@ -287,14 +287,14 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
             #print("Calcul distance initiale : {} secondes".format(end3-beg3))
 
         #beg5 = time.time()
-        if loc == 'nodes': 
+        if loc == 'nodes':
             C._initVars(z,'{Phi}={TurbulentDistance}*({flag}>0.)+%g*({flag}<1.)'%PHIMAX)
         else:
             C._initVars(z,'{centers:Phi}={centers:TurbulentDistance}*({centers:flag}>0.)+%g*({centers:flag}<1.)'%PHIMAX)
         #end5 = time.time()
         #print("Temps passe init var turbulentDistance : {} secondes".format(end5-beg5))
 
-        if type == 0: 
+        if type == 0:
             ni = dims[1]; nj = dims[2]; nk = dims[3]
             i = max(1,ni//2); j = max(1,nj//2); k = max(1,nk//2)
             ind1 = i+j*ni+k*ni*nj
@@ -319,6 +319,3 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
         C._initVars(t,'{centers:TurbulentDistance}={centers:sign}*{centers:Phi}')
         C._rmVars(t,['centers:flag','centers:PhiM','centers:DPhi','centers:speed','centers:Phi']) # pour l instant on detruit tout
     return t
-
-
-

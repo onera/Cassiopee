@@ -47,7 +47,7 @@ def showNodeValue(event=None):
     if isinstance(v, float): v = strFormat2(v); flatView2[2] = v; index = 0
     elif isinstance(v, int): v = strFormat2(v); flatView2[2] = v; index = 0
     elif isinstance(v, numpy.ndarray):
-        if v.dtype == 'c': 
+        if v.dtype == 'c':
             v = Internal.getValue(node); flatView2[2] = v; index = 0
         else:
             sh = v.shape
@@ -123,13 +123,13 @@ def showNodeValue(event=None):
                 flatView = strFormat(vf[index])
                 CTK.TXT.insert('START', flatView, 'Warning')
                 flatView = dim
-                CTK.TXT.insert('START', flatView)                
+                CTK.TXT.insert('START', flatView)
 
             v = strFormat2(vf[index])
 
             SIZE = 10
             flatView2[0] = dim
-            if index-SIZE//2 >= 0 and index+SIZE//2 < vf.size: 
+            if index-SIZE//2 >= 0 and index+SIZE//2 < vf.size:
                 left = index - SIZE//2
                 right = index + SIZE//2
             elif index - SIZE//2 < 0:
@@ -143,7 +143,7 @@ def showNodeValue(event=None):
             for i in range(left, index):
                 rep += strFormat(vf[i])+' '
             if rep != '':
-                if left > 0: rep = '...'+rep 
+                if left > 0: rep = '...'+rep
                 flatView2[1] = rep
 
             rep = strFormat(vf[index])+' '

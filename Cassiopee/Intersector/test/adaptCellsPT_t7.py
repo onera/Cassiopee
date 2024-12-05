@@ -16,7 +16,7 @@ a = G.close(a)
 
 #C.convertPyTree2File(a,'z_nonreg7.plt')
 
-b = G.cart((0.4,0.4,-0.2), (0.01,0.01,-0.01),(5,5,5)) 
+b = G.cart((0.4,0.4,-0.2), (0.01,0.01,-0.01),(5,5,5))
 b = C.convertArray2NGon(b)
 b = G.close(b)
 

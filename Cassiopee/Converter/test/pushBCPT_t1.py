@@ -41,4 +41,3 @@ a = C.addBC2Zone(a, 'wall', 'BCWall', subzone=bc)
 b = G.cartNGon( (0,0,0), (1,1,1), (10,10,10) )
 b = C.pushBC(a, b)
 test.testT(b, 6)
-

@@ -30,4 +30,3 @@ m = XOR.adaptCells(aTH4, nodal_vals, sensor_type=2, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 C.convertArrays2File([m], 'out2.plt')
-

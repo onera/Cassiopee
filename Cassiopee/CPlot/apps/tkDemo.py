@@ -97,7 +97,7 @@ def fly():
             x = posCam[0]-xc; y = posCam[2]-yc; z = posCam[1]-zc
             x = 10*x /max((bb[3]-bb[0]), 1.e-10)
             y = 10*y /max((bb[4]-bb[1]), 1.e-10)
-            z = 30*z /max((bb[5]-bb[2]), 1.e-10) 
+            z = 30*z /max((bb[5]-bb[2]), 1.e-10)
             xp = x + step*speed*sigma*(y - x)
             yp = y + step*speed*(ro*x - y - x*z)
             zp = z + step*speed*(x*y - beta*z)
@@ -195,7 +195,7 @@ def createApp(win):
     CTK.addPinMenu(FrameMenu, 'tkDemo')
     WIDGETS['frameMenu'] = FrameMenu
 
-    # -0- Orbiter path - 
+    # -0- Orbiter path -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
 
     # - Slider -

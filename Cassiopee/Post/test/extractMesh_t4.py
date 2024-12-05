@@ -31,4 +31,3 @@ for i in [2,3,5]:
     print('Computing order %d...'%i)
     a2 = P.extractMesh([m], a, i)
     test.testA([a2], i)
-

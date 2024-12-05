@@ -7,14 +7,14 @@ try:
     import KCore.kcore as KCore
     import numpy
     importOK = True
-except ImportError: 
+except ImportError:
     importOK = False
 
 try: range = xrange
 except: pass
 
 def checkImport():
-    if not importOK: 
+    if not importOK:
         raise ImportError("mapEdge requires Converter, Generator, Transform.")
 
 # uniformize a 1D mesh (regular step) - OK
@@ -56,7 +56,7 @@ def uniformize__(a, N, h, factor, density, sharpAngle):
 
     out = []; Nt = 0; rest = 0
     for ct, i in enumerate(b):
-        if C.getNPts(i) >= 2: # avoid degenerated cases 
+        if C.getNPts(i) >= 2: # avoid degenerated cases
             Li = D.getLength(i)
             Ni = int(T.kround(N*1.*(Li/L)))+1
             rest += Ni-1-N*1.*(Li/L)
@@ -79,7 +79,7 @@ def uniformize__(a, N, h, factor, density, sharpAngle):
 def refine(a, N=10, factor=-1, sharpAngle=30.):
     """Refine the point distribution on a 1D-mesh."""
     if checkImport is None: return None
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         b = []
         for i in a:
             b.append(refine__(i, N, factor, sharpAngle))
@@ -216,7 +216,7 @@ def moyenne(a, hl):
                     i1 = 0; i2 = i; h1 = hi; h2 = hi
                 if h1 > 0:
                     i2 = i; h2 = hi
-                sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))                
+                sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))
                 Li = D.getLength(sub)
                 href += (h1+h2)*0.5*Li
                 # loop
@@ -297,7 +297,7 @@ def enforceh__(a, N, h):
         if pos == -1:
             #raise ValueError("enforceh: h or f is not present.")
             return a
-        else: 
+        else:
             hl = numpy.copy(a[1][pos])
             factorMoy = moyenne(a, hl)
             if h > 0:
@@ -354,7 +354,7 @@ def enforceh__(a, N, h):
             #if i1 == -1: i1 = 0; i2 = i; h1 = hi; h2 = hi # propagate hi from inside if not set on borders
             # keep border h if not set
             i2 = i; h2 = hi
-            sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))             
+            sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))
             Li = D.getLength(sub)
             Pi = Li*1./(0.5*(h1+h2)+1.e-12)
             i1s.append(i1); i2s.append(i2)
@@ -452,7 +452,7 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
 def smooth(a, eps=0.1, niter=5, sharpAngle=30.):
     """Smooth point distribution in a 1D-mesh."""
     if checkImport is None: return None
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         b = []
         for i in a:
             b.append(smooth__(i, eps, niter, sharpAngle))
@@ -506,6 +506,6 @@ def mapCurvature(a, N, factor=1., sharpAngle=30.):
         # set in split
         setH(a, split[x], h*alp)
         # set middle
-        if x < nsplit-1: setH(a, 0.5*(split[x]+split[x+1]), h) 
+        if x < nsplit-1: setH(a, 0.5*(split[x]+split[x+1]), h)
     out = enforceh(a, N)
     return out

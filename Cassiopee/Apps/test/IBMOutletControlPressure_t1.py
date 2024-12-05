@@ -60,7 +60,7 @@ D_IBM._snearFactor(tb, 3)
 itExtrctPrb = 2
 D_IBM._setOutPressControlParam(tb,probeName='point', AtestSection=0.83721966959, AOutPress=0.83721966959,
                                machTarget=0.082, pStatTarget=99445, tStatTarget=297.2,lmbd=0.1,
-                               cxSupport = 0.6, sSupport=0.1, itExtrctPrb=itExtrctPrb)
+                               cxSupport=0.6, sSupport=0.1, itExtrctPrb=itExtrctPrb)
 test.testT(tb,1)
 
 t,tc=X_IBM.prepareIBMData(tb         , None   , None   ,
@@ -115,8 +115,8 @@ numz["psiroe"]             = 0.01
 Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
 
 [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
-          ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
-          Mus, Cs, Ts, Pr] = C.getState(tc)
+ ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+ Mus, Cs, Ts, Pr] = C.getState(tc)
 
 (t, tc, metrics) = FastS.warmup(t, tc, graph=graph)
 
@@ -130,12 +130,12 @@ itValues4gain=[5,2,100]
 
 isRestartProbe = False
 values4gain,controlProbeName,itExtrctPrb=COP.getInfo(tb, familyName='outlet')
-COP._setUpOutletPressure(values4gain, itValues4gain)    
+COP._setUpOutletPressure(values4gain, itValues4gain)
 dctProbeLocationsCheck,dctProbes=COP.setupMachProbe(t, buffer_size, isRestartProbe, DIRECTORY_PROBES)
 
 for it in range(NIT):
     FastS._compute(t, metrics, it, tc, graph=graph, layer='Python')
-    if it%modulo_verif == 0:        
+    if it%modulo_verif == 0:
         FastS.display_temporal_criteria(t, metrics, it)
     if it%itExtrctPrb == 0:
         dctProbes=COP.recordDataMach(t,dctProbes,it)

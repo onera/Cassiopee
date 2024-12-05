@@ -14,7 +14,7 @@ t2 = C.convertArray2NGon(t2); t2 = G.close(t2)
 #C.convertArrays2File([t2], 's.plt')
 
 # test 1 : volume/volume
-res = XOR.getOverlappingFaces(t1, t2, RTOL = 0.05, amax = 0.1)
+res = XOR.getOverlappingFaces(t1, t2, RTOL=0.05, amax=0.1)
 
 # create a list of polygon list (t1), one list per zone
 
@@ -27,7 +27,7 @@ test.testA(t,1)
 t2 = P.exteriorFaces(t2)
 t2 = XOR.convertNGON2DToNGON3D(t2)
 
-res = XOR.getOverlappingFaces(t1, t2, RTOL = 0.05, amax = 0.1)
+res = XOR.getOverlappingFaces(t1, t2, RTOL=0.05, amax=0.1)
 
 t = XOR.agglomerateCellsWithSpecifiedFaces(t1, res[0])
 

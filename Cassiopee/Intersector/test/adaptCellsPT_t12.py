@@ -19,15 +19,15 @@ z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 STYPE=3 # DIR
 ########################## create the hook
 XOR._setZonesAndJoinsUId(z)
-hmsh = XOR.createHMesh(z, subdiv_type=STYPE) # 0 : ISOTROPIC subdivision 
-######################################## 
+hmsh = XOR.createHMesh(z, subdiv_type=STYPE) # 0 : ISOTROPIC subdivision
+########################################
 
 #nodal specification
 n = C.getNCells(z)
 cell_vals = numpy.empty((n,), dtype=I.E_NpyInt)
 cell_vals[:] = 1
 # refine now with source mesh
-z = XOR.adaptCells(z, cell_vals, subdiv_type=STYPE, sensor_type=3, itermax=-1, hmesh = hmsh)
+z = XOR.adaptCells(z, cell_vals, subdiv_type=STYPE, sensor_type=3, itermax=-1, hmesh=hmsh)
 
 z = XOR.conformizeHMesh(z, hmsh)     # each children faces replace its mother in any polyhedron
 
@@ -42,13 +42,3 @@ test.testT(z, 1)
 ########################## free the hook
 XOR.deleteHMesh(hmsh)
 #####################################
-
-
-
-
-
-
-
-
-
-

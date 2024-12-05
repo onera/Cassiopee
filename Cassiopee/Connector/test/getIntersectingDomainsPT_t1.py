@@ -19,4 +19,3 @@ test.testO(interDict,2)
 
 interDict = X.getIntersectingDomains(t, method='hybrid')
 test.testO(interDict,3)
-

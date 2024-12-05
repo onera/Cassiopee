@@ -49,7 +49,7 @@ def meshCADEdges(event=None):
 #==============================================================================
 def meshCADFaces(event=None):
     if CTK.CADHOOK is None: return
-    if CTK.t == []: return 
+    if CTK.t == []: return
     mtype = VARS[2].get()
     import OCC.PyTree as OCC
     hmin = CTK.varsFromWidget(VARS[3].get(), 1)[0]
@@ -120,7 +120,7 @@ def createApp(win):
     # -3- hmin -
     V = TK.StringVar(win); V.set('%g'%hmin); VARS.append(V)
 
-    # Hmin    
+    # Hmin
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Hmin step of surface mesh.')

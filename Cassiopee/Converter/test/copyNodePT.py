@@ -1,4 +1,4 @@
-# - copyNode (pyTree) - 
+# - copyNode (pyTree) -
 import Converter.Internal as Internal
 
 a = Internal.newDataArray(value=[1,2,3])

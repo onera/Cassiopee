@@ -1,6 +1,6 @@
 # - concatenate (PyTree) -
 
-import Converter.PyTree   as C 
+import Converter.PyTree   as C
 import Generator.PyTree   as G
 import Connector.PyTree   as X
 import Transform.PyTree   as T
@@ -12,7 +12,7 @@ import Converter.Internal as I
 # ----------------------------------------------------------------
 # TEST 1
 # ----------------------------------------------------------------
-# Maillages 
+# Maillages
 a    = G.cartHexa((0.,0.,0.), (1.,1.,1.), (10,10,10))
 a    = C.convertArray2NGon(a)
 
@@ -40,5 +40,3 @@ a = X.connectMatchPeriodic(a, translation=[0.,0.,9.])
 
 #C.convertPyTree2File(a, 'out.cgns')
 test.testT(a, 1)
-
-

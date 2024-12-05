@@ -33,7 +33,7 @@ def extractEdge(event=None):
     noz = CTK.Nz[nzs[0]]
     z = CTK.t[2][nob][2][noz]
     dimz = Internal.getZoneDim(z)
-    if dimz[0] == 'Unstructured': 
+    if dimz[0] == 'Unstructured':
         CTK.TXT.insert('START', 'Selected block must be structured.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
@@ -54,7 +54,7 @@ def extractEdge(event=None):
         erange = [1,ni,ind[3],ind[3],ind[4],ind[4]]
     else:
         CTK.TXT.insert('START', 'Not a valid edge.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return    
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     CTK.saveTree()
 

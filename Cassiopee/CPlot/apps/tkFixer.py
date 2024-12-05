@@ -90,7 +90,7 @@ def fixGap():
     CTK.saveTree()
     CTK.t[2][1][2].append(b)
     #C._fillMissingVariables(CTK.t)
-    CTK.TXT.insert('START', 'Gap fixed.\n')    
+    CTK.TXT.insert('START', 'Gap fixed.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)

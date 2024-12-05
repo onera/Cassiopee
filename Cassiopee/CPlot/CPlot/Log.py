@@ -96,10 +96,10 @@ def readToEnd(ptf, ret):
         res = ptf.readline()
         rend = endExp.search(res)
         if rend is not None: cont = False
-        else: ret.append(res) 
+        else: ret.append(res)
 
 #===============================================================================
-# Retourne une liste de chaines contenant le code python de la liste des zones 
+# Retourne une liste de chaines contenant le code python de la liste des zones
 # selectionnees (zones)
 # Retourne None si pas de zone a traiter
 #===============================================================================
@@ -117,8 +117,8 @@ def getSelectedZones():
     if nobu > 0:
         base = Internal.getBases(CTK.t)[nobu-1]
         if len(nzs) == len(Internal.getZones(base)):
-            return ['base = Internal.getBases(t)[%d]'%(nobu-1), 
-            'zones = Internal.getZones(base)']
+            return ['base = Internal.getBases(t)[%d]'%(nobu-1),
+                    'zones = Internal.getZones(base)']
     ret = ['zones = []']
     for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
@@ -143,7 +143,7 @@ def getSelectedZones2():
         if nobu == -1: nobu = nob
         elif nobu != nob: nobu = -2; break
     if nobu > 0:
-        path = Internal.getPath(t[2][nobu])     
+        path = Internal.getPath(t[2][nobu])
         return ['zonesPath = [%s]'%path]
 
     ret = ['zonesPath = []']
@@ -158,7 +158,7 @@ def getSelectedZones2():
 #================================================================================
 def initLog():
     global LOG
-    LOG = ['import Converter.PyTree as C', 
+    LOG = ['import Converter.PyTree as C',
            'import Converter.Internal as Internal']
     if CTK.FILE != '':
         LOG.append('C.convertFile2PyTree(%s)\n'%CTK.FILE)
@@ -172,7 +172,7 @@ def addImportModule(moduleName):
     for i in LOG:
         sp = i.split(' ')
         if sp[0] == 'import': modules.append(sp[1])
-        else: break 
+        else: break
         c += 1
     if moduleName not in modules:
         LOG.insert(c, 'import %s'%moduleName)

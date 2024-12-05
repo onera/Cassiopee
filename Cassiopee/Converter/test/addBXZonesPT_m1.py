@@ -1,7 +1,7 @@
-# - addBXZones (pyTree) - 
+# - addBXZones (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
-import Transform.PyTree as T 
+import Transform.PyTree as T
 import Converter.Filter as Filter
 import Converter.Mpi    as Cmpi
 import KCore.test       as test
@@ -23,12 +23,12 @@ if Cmpi.rank == 0:
 
 Cmpi.barrier()
 
-# Load 
+# Load
 h = Filter.Handle(LOCAL+'/case.cgns')
 a = h.loadAndDistribute()
 
 # Ajout XZones
 Cmpi._addBXZones(a)
 
-# Test 
+# Test
 if Cmpi.rank == 0: test.testT(a, 1)

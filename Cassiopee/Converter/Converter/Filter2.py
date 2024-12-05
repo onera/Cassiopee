@@ -366,7 +366,7 @@ def computeSlabs(array_shape, gnum_interval):
             ncell_to_load -= this_line_size
             hslab_list.append(start_line)
             # print('start_line {0}, loaded {1} elmts\n'.format(
-                # start_line, start_line[0][1] - start_line[0][0]))
+            # start_line, start_line[0][1] - start_line[0][0]))
 
     #If the plan is full, merged it with the block
     this_plan_size = min(ny, jstart+(ncell_to_load // nx)) - jstart
@@ -377,7 +377,7 @@ def computeSlabs(array_shape, gnum_interval):
             ncell_to_load -= nx*this_plan_size
             hslab_list.append(start_plane)
             # print('start_plane {0}, loaded {1} lines ({2} elmts)\n'.format(
-                # start_plane, start_plane[1][1] - start_plane[1][0], nx*(start_plane[1][1] - start_plane[1][0])))
+            # start_plane, start_plane[1][1] - start_plane[1][0], nx*(start_plane[1][1] - start_plane[1][0])))
 
     this_block_size = min(nz, kstart+(ncell_to_load // plan_size)) - kstart
     if this_block_size > 0:
@@ -385,20 +385,20 @@ def computeSlabs(array_shape, gnum_interval):
         ncell_to_load -= plan_size*this_block_size
         hslab_list.append(central_block)
         # print('central_block {0}, loaded {1} planes ({2} elmts)\n'.format(
-            # central_block, central_block[2][1] - central_block[2][0], plan_size*(central_block[2][1] - central_block[2][0])))
+        # central_block, central_block[2][1] - central_block[2][0], plan_size*(central_block[2][1] - central_block[2][0])))
 
     if ncell_to_load >= nx:
         end_plane = [[0, nx], [0, (ncell_to_load // nx)], [kmax, kmax+1]]
         ncell_to_load -= nx*(end_plane[1][1] - end_plane[1][0])
         hslab_list.append(end_plane)
         # print('end_plane {0}, loaded {1} lines ({2} elmts)\n'.format(
-            # end_plane, end_plane[1][1] - end_plane[1][0], nx*(end_plane[1][1] - end_plane[1][0])))
+        # end_plane, end_plane[1][1] - end_plane[1][0], nx*(end_plane[1][1] - end_plane[1][0])))
     if ncell_to_load > 0:
         end_line = [[0, ncell_to_load], [jmax, jmax+1], [kmax, kmax+1]]
         ncell_to_load -= (end_line[0][1] - end_line[0][0])
         hslab_list.append(end_line)
         # print('end_line {0}, loaded {1} elmts\n'.format(
-            # end_line, end_line[0][1] - end_line[0][0]))
+        # end_line, end_line[0][1] - end_line[0][0]))
     assert(ncell_to_load == 0)
 
     return hslab_list
@@ -792,14 +792,14 @@ def updateTreeWithPartialLoadDict(dist_tree, partial_dict_load):
 def loadTreeFromFilter(filename, dist_tree, comm, hdf_filter):
     # print("load_tree_from_filter")
     hdf_filter_with_dim = {key: value for (key, value) in hdf_filter.items() \
-        if isinstance(value, (list, tuple))}
+                           if isinstance(value, (list, tuple))}
 
     partial_dict_load = C.convertFile2PartialPyTreeFromPath(filename, hdf_filter_with_dim, comm)
     updateTreeWithPartialLoadDict(dist_tree, partial_dict_load)
 
     # > Match with callable
     hdf_filter_with_func = {key: value for (key, value) in hdf_filter.items() \
-        if not isinstance(value, (list, tuple))}
+                            if not isinstance(value, (list, tuple))}
     unlock_at_least_one = True
     while (len(hdf_filter_with_func) > 0 and unlock_at_least_one):
         # Update if you can
@@ -814,7 +814,7 @@ def loadTreeFromFilter(filename, dist_tree, comm, hdf_filter):
         partial_dict_load = C.convertFile2PartialPyTreeFromPath(filename, next_hdf_filter, comm)
         updateTreeWithPartialLoadDict(dist_tree, partial_dict_load)
         hdf_filter_with_func = {key: value for (key, value) in next_hdf_filter.items() \
-            if not isinstance(value, (list, tuple))}
+                                if not isinstance(value, (list, tuple))}
 
     if unlock_at_least_one is False:
         raise RuntimeError("Something strange in the loading process")
@@ -832,7 +832,7 @@ def cleanDistributionInfo(dist_tree):
                     I._rmNodesByName2(bc, 'PointList#Size')
             for zone_gc in I.getNodesFromType1(zone, 'ZoneGridConnectivity_t'):
                 for gc in I.getNodesFromType1(zone_gc, 'GridConnectivity_t') + \
-                          I.getNodesFromType1(zone_gc, 'GridConnectivity1to1_t'):
+                        I.getNodesFromType1(zone_gc, 'GridConnectivity1to1_t'):
                     I._rmNodesByName1(gc, ':CGNS#Distribution')
                     I._rmNodesByName1(gc, 'PointList#Size')
             for zone_subregion in I.getNodesFromType1(zone, 'ZoneSubRegion_t'):
@@ -893,15 +893,15 @@ def chunk2part(dt):
     solc = []; solcNames = []
     if fsolc is not None:
         for f in fsolc[2]:
-            if f[3] == 'DataArray_t': 
-                solc.append(f[1]); solcNames.append(f[0]) 
+            if f[3] == 'DataArray_t':
+                solc.append(f[1]); solcNames.append(f[0])
 
     fsol = I.getNodeFromName2(z, I.__FlowSolutionNodes__)
     soln = []; solNames = []
     if fsol is not None:
         for f in fsol[2]:
-            if f[3] == 'DataArray_t': 
-                soln.append(f[1]); solNames.append(f[0]) 
+            if f[3] == 'DataArray_t':
+                soln.append(f[1]); solNames.append(f[0])
 
     zonebc = I.getNodeFromType(z, 'ZoneBC_t')
     bcs = []

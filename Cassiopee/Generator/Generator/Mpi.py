@@ -69,7 +69,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
         zname = z[0]
 
         size_loc  = numpy.size(f)
-        fcrit_loc = numpy.count_nonzero(f<critValue) if field == 'vol' else numpy.count_nonzero(f>critValue) 
+        fcrit_loc = numpy.count_nonzero(f<critValue) if field == 'vol' else numpy.count_nonzero(f>critValue)
         fmin_loc  = numpy.min(f)
         fmax_loc  = numpy.max(f)
         fsum_loc  = numpy.sum(f)

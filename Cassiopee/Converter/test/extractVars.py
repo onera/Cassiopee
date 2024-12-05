@@ -7,5 +7,5 @@ a = C.initVars(a, 'F', 2.)
 # Var defined by a string
 r = C.extractVars(a, 'F')
 # Vars defined by a list
-r = C.extractVars(a, ['x','y']) 
+r = C.extractVars(a, ['x','y'])
 C.convertArrays2File(r, 'out.plt')

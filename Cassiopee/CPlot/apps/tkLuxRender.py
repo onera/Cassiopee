@@ -188,7 +188,7 @@ def writeChrome0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'chrome'
     if name not in dict: dict[name] = 0
 
-    file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
+    file.write('MakeNamedMaterial "material'+str(c)+'"\n')
     file.write('      "float film" [0.000000000000000]\n')
     file.write('      "float filmindex" [1.333299994468689]\n')
     #file.write('      "color Kr" [0.69999999 0.69999999 0.69999999]\n')
@@ -210,7 +210,7 @@ def writeMetal0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'metal'
     if name not in dict: dict[name] = 0
 
-    file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
+    file.write('MakeNamedMaterial "material'+str(c)+'"\n')
     file.write('	"bool multibounce" ["false"]\n')
     file.write('        "color Kd" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
     #file.write('	"color Kd" [0.11725003 0.11927158 0.10916383]\n')
@@ -255,7 +255,7 @@ def writeMarble0(file, dict, c, colorR, colorG, colorB, scale):
     file.write('    "color tex2" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
     file.write('\n')
 
-    file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
+    file.write('MakeNamedMaterial "material'+str(c)+'"\n')
     file.write('      "bool multibounce" ["false"]\n')
     file.write('      "texture Kd" ["Texture.002"]\n')
     file.write('      "color Ks" [0.07657672 0.07657672 0.07657672]\n')
@@ -301,7 +301,7 @@ def writeWood0(file, dict, c, colorR, colorG, colorB, scale):
     file.write('     "string coordinates" ["local"]\n')
     file.write('     "vector translate" [0.0 0.0 0.0]\n')
     file.write('     "vector rotate" [0.0 0.0 0.0]\n')
-    file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')	
+    file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')
     file.write('\n')
 
     file.write('Texture "wood alder mix" "float" "mix"\n')
@@ -374,7 +374,7 @@ def writeCassiopeeLamps(file):
     n = Vector.mul(0.4*norm, n)
     pos = Vector.sub(eye, n)
 
-    if type == 'Interior': pass        
+    if type == 'Interior': pass
 ##         # distant light
 ##         file.write('AttributeBegin\n')
 ##         file.write('LightGroup "default"\n')
@@ -599,15 +599,15 @@ def createApp(win):
     # - VARS -
     # -0- Image size
     V = TK.StringVar(win); V.set('800x600'); VARS.append(V)
-    if 'tkLuxRenderSize' in CTK.PREFS: 
+    if 'tkLuxRenderSize' in CTK.PREFS:
         V.set(CTK.PREFS['tkLuxRenderSize'])
     # -1- Rep name
     V = TK.StringVar(win); V.set('LuxRender'); VARS.append(V)
-    if 'tkLuxRenderOutput' in CTK.PREFS: 
+    if 'tkLuxRenderOutput' in CTK.PREFS:
         V.set(CTK.PREFS['tkLuxRenderOutput'])
     # -2- Interior / exterior
-    V = TK.StringVar(win); V.set('Exterior'); VARS.append(V)   
-    if 'tkLuxRenderType' in CTK.PREFS: 
+    V = TK.StringVar(win); V.set('Exterior'); VARS.append(V)
+    if 'tkLuxRenderType' in CTK.PREFS:
         V.set(CTK.PREFS['tkLuxRenderType'])
 
     # - Type of scene

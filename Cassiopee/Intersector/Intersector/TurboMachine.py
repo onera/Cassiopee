@@ -12,13 +12,13 @@ import sys
 #==============================================================================
 # buildPeriodicCanalOperand
 
-# GOAL : Append the configuration with both neighbor sectors to ensure periodicity of the result 
+# GOAL : Append the configuration with both neighbor sectors to ensure periodicity of the result
 
 # IN: t             : 3D NGON mesh
 
 # OUT: returns the tolerance and the max bounding box size
 #==============================================================================
-def buildPeriodicCanalOperand(zv, angle, JTOL, rotationCenter=[0.,0.,0.], rotationAxis = [1., 0., 0.]):
+def buildPeriodicCanalOperand(zv, angle, JTOL, rotationCenter=[0.,0.,0.], rotationAxis=[1., 0., 0.]):
 
     #zv = X.connectMatchPeriodic(zv, rotationCenter, angle*rotationAxis, tol=JTOL, dim=3, unitAngle='Degree')
 
@@ -36,7 +36,7 @@ def buildPeriodicCanalOperand(zv, angle, JTOL, rotationCenter=[0.,0.,0.], rotati
     #C.convertPyTree2File(t2, 'op2.cgns')
     return t2
 
-def transform(z, translation = [0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis = [0., 0., 0.]):
+def transform(z, translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis=[0., 0., 0.]):
     is_trans=False
     if translation[0] != 0. or translation[1] != 0. or translation[2] != 0.:
         is_trans = True;
@@ -49,14 +49,14 @@ def transform(z, translation = [0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAx
     if is_trans == False and is_rot == False:
         print('Input tranform error : no translation nor rotation is defined')
 
-    if is_trans == True: 
+    if is_trans == True:
         zt = T.translate(z, translation)
     if is_rot == True:
         zt = T.rotate(z, rotationCenter, rotationAxis)
     return zt
 
 # creates a tree with 3 zones : the main and one on each side of it
-def build_periodic_operand_2(zi, zone_name, translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis = [0., 0., 0.]):
+def build_periodic_operand_2(zi, zone_name, translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis=[0., 0., 0.]):
 
     z = I.copyRef(zi) # to avoid to modify input zone with connectMatch call
 
@@ -77,7 +77,7 @@ def build_periodic_operand_2(zi, zone_name, translation=[0.,0.,0.], rotationCent
     return t
 
 # creates a tree with 3 zones : the main and one on each side of it
-def build_periodic_operand_3(zi, zone_name, translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis = [0., 0., 0.]):
+def build_periodic_operand_3(zi, zone_name, translation=[0.,0.,0.], rotationCenter=[0.,0.,0.], rotationAxis=[0., 0., 0.]):
 
     z = I.copyRef(zi) # to avoid to modify input zone with connectMatch call
     # 'left zone'
@@ -107,13 +107,13 @@ def build_periodic_operand_3(zi, zone_name, translation=[0.,0.,0.], rotationCent
 #==============================================================================
 # buildPeriodicFeatureOperand
 
-# GOAL : Append the configuration with one neighbor sector to ensure periodicity of the result 
+# GOAL : Append the configuration with one neighbor sector to ensure periodicity of the result
 
 # IN: t             : 3D NGON mesh
 
 # OUT: returns the tolerance and the max bounding box size
 #==============================================================================
-def buildPeriodicFeatureOperand(zf, angle, JTOL, rotationCenter=[0.,0.,0.], rotationAxis = [1., 0., 0.]):
+def buildPeriodicFeatureOperand(zf, angle, JTOL, rotationCenter=[0.,0.,0.], rotationAxis=[1., 0., 0.]):
 
     rotationAxis[0] *= angle ; rotationAxis[1] *= angle ; rotationAxis[2] *= angle
     zf = X.connectMatchPeriodic(zf, rotationCenter, rotationAxis, tol=JTOL, dim=3, unitAngle='Degree') # to freeze periodic boundaries when agglomerating
@@ -128,7 +128,7 @@ def buildPeriodicFeatureOperand(zf, angle, JTOL, rotationCenter=[0.,0.,0.], rota
 #==============================================================================
 # prepareFeature (aperiodic version)
 
-# GOAL : remove singularities on features (overlapping polygons) by agglomeration on the vicinity of the canal's skin to ease the assembly. 
+# GOAL : remove singularities on features (overlapping polygons) by agglomeration on the vicinity of the canal's skin to ease the assembly.
 
 # IN: feature             : 3D NGON mesh of the features to assemble (axisym features)
 # IN: canal               : 3D NGON mesh of the canal
@@ -137,31 +137,31 @@ def buildPeriodicFeatureOperand(zf, angle, JTOL, rotationCenter=[0.,0.,0.], rota
 
 # OUT: returns the adapted feature
 #==============================================================================
-def prepareFeature(feature, canal, max_overlap_angle, max_simplify_angle, treat_externals = 1):
+def prepareFeature(feature, canal, max_overlap_angle, max_simplify_angle, treat_externals=1):
     vf = P.exteriorFaces(canal)
     vf = XOR.convertNGON2DToNGON3D(vf)
     #C.convertPyTree2File(vf, 'vf.cgns')
     #import time
     #t0 = time.time()
     #print('get overlapping faces...')
-    res = XOR.getOverlappingFaces(feature, vf, RTOL = 0.15, amax = max_overlap_angle)# rad == 6 deg
+    res = XOR.getOverlappingFaces(feature, vf, RTOL=0.15, amax=max_overlap_angle)# rad == 6 deg
     # get pgids for t1 zones only : first par of each pairs
     nb_zones = len(res)
     t1zones_pgids = []
     for i in range(nb_zones):
         t1zones_pgids.append(res[i][0])
     #print('agglomerateCellsWithSpecifiedFaces')
-    ag_feature = XOR.agglomerateCellsWithSpecifiedFaces(feature, t1zones_pgids, treat_externals=treat_externals, amax = max_simplify_angle)
+    ag_feature = XOR.agglomerateCellsWithSpecifiedFaces(feature, t1zones_pgids, treat_externals=treat_externals, amax=max_simplify_angle)
     #C.convertPyTree2File(ag_feature, 'ag_feature.cgns')
     return ag_feature
 
 #==============================================================================
 # preparePeriodicFeature
 
-# GOAL : remove singularities on features (overlapping polygons) by agglomeration on the vicinity of the canal's skin to ease the assembly. 
+# GOAL : remove singularities on features (overlapping polygons) by agglomeration on the vicinity of the canal's skin to ease the assembly.
 
 # ASSUMPTION : feature and canal have one main zone each. The remaining zones are duplicated and rotated (by rotation_angle) of the main one (for periodicity)
-# so we force the agglomeration to be the same for all zones by merging what we get on each zone with getOverlappingFaces 
+# so we force the agglomeration to be the same for all zones by merging what we get on each zone with getOverlappingFaces
 # and apply the result to all zones when calling agglomerateCellsWithSpecifiedFaces
 # this constraint ensure the boolean operation to give a periodic result.
 
@@ -175,14 +175,14 @@ def prepareFeature(feature, canal, max_overlap_angle, max_simplify_angle, treat_
 
 # OUT: returns the adapted feature
 #==============================================================================
-def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_angle, max_simplify_angle, treat_externals = 1):
+def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_angle, max_simplify_angle, treat_externals=1):
 
     tmp = T.join(canal, tol=JTOL)
     s2 = P.exteriorFaces(tmp)
     s2 = XOR.convertNGON2DToNGON3D(s2)
     #C.convertPyTree2File(s2, 's2.cgns')
     #print('get overlapping faces...')
-    res = XOR.getOverlappingFaces(feature, s2, RTOL = 0.15, amax = max_overlap_angle)
+    res = XOR.getOverlappingFaces(feature, s2, RTOL=0.15, amax=max_overlap_angle)
 
     nb_zones = len(res)
 
@@ -194,7 +194,7 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
     idlist = list(set(idlist))
     #format
     ids = numpy.empty(len(idlist), I.E_NpyInt)
-    ids[:] = idlist[:]  
+    ids[:] = idlist[:]
 
     # give this list to all zones
     featurezones_pgids = []
@@ -202,7 +202,7 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
         featurezones_pgids.append(ids)
 
     #print('agglomerateCellsWithSpecifiedFaces')
-    feature = XOR.agglomerateCellsWithSpecifiedFaces(feature, featurezones_pgids, treat_externals=treat_externals, amax = max_simplify_angle) 
+    feature = XOR.agglomerateCellsWithSpecifiedFaces(feature, featurezones_pgids, treat_externals=treat_externals, amax=max_simplify_angle)
 
     # force periodicity by cloning the most agglomerated zone and replace the less one
     z1s = I.getZones(feature)
@@ -224,10 +224,10 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
 #==============================================================================
 # regularizeFeature
 
-# GOAL : remove singularities on features (overlapping polygons) by agglomeration on the vicinity of the canal's skin to ease the assembly. 
+# GOAL : remove singularities on features (overlapping polygons) by agglomeration on the vicinity of the canal's skin to ease the assembly.
 
 # ASSUMPTION : feature and canal have one main zone each. The remaining zones are duplicated and rotated (by rotation_angle) of the main one (for periodicity)
-# so we force the agglomeration to be the same for all zones by merging what we get on each zone with getOverlappingFaces 
+# so we force the agglomeration to be the same for all zones by merging what we get on each zone with getOverlappingFaces
 # and apply the result to all zones when calling agglomerateCellsWithSpecifiedFaces
 # this constraint ensure the boolean operation to give a periodic result.
 
@@ -240,8 +240,8 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
 # OUT: returns the adapted feature
 #==============================================================================
 def regularizeFeature(feature, skin, max_overlap_angle, max_simplify_angle):
-    res1 = XOR.getOverlappingFaces(feature, skin, RTOL = 0.15, amax = max_overlap_angle)
-    res2 = XOR.getCollidingTopFaces(feature, skin, RTOL = 0.15)
+    res1 = XOR.getOverlappingFaces(feature, skin, RTOL=0.15, amax=max_overlap_angle)
+    res2 = XOR.getCollidingTopFaces(feature, skin, RTOL=0.15)
 
     #f = XOR.getFaces(feature, [res2[0]])
     #C.convertPyTree2File(f, 'tops.cgns')
@@ -254,9 +254,9 @@ def regularizeFeature(feature, skin, max_overlap_angle, max_simplify_angle):
     ids_per_z = []
     for i in range(nbz):
         idlist = []
-        if len(res1) > i and len(res1[i]) > 0 : 
+        if len(res1) > i and len(res1[i]) > 0 :
             idlist = numpy.concatenate((idlist, res1[i][0]))
-        if len(res2) > i : 
+        if len(res2) > i :
             idlist = numpy.concatenate((idlist, res2[i]))
         idlist = list(set(idlist))# get rid of duplicate ids
         ids = numpy.empty(len(idlist), I.E_NpyInt) #format
@@ -266,7 +266,7 @@ def regularizeFeature(feature, skin, max_overlap_angle, max_simplify_angle):
     #f = XOR.getFaces(feature, ids_per_z)
     #C.convertPyTree2File(f, 'allf.cgns')
 
-    azt = XOR.agglomerateCellsWithSpecifiedFaces(feature, ids_per_z, treat_externals=1, amax = max_simplify_angle)
+    azt = XOR.agglomerateCellsWithSpecifiedFaces(feature, ids_per_z, treat_externals=1, amax=max_simplify_angle)
     return azt
 
 #==============================================================================
@@ -332,7 +332,7 @@ def periodicMeshAssembly(t1, t2, TOL, real_zone_list):
     for i in range(sz):
         zs.append(zones[real_zone_list[i]])
 
-    assembly = XOR.concatenate(zs, tol = TOL) # now one single block
+    assembly = XOR.concatenate(zs, tol=TOL) # now one single block
 
     print("Check conformity ...")
     ##### VERIFICATION 1 : CONFORMITE (PAS DE FACES INTERNES)

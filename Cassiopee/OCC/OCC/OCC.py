@@ -12,15 +12,15 @@ import KCore
 import Converter.Mpi as Cmpi
 
 __all__ = ['convertCAD2Arrays', 'switch2UV', 'switch2UV2', '_scaleUV', '_unscaleUV',
-'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__', 
-'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__', 
-'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct']
+           'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__',
+           'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
+           'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct']
 
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
 # algo=2: algorithme T3mesher (h, chordal_error, growth_ratio, merge_tol)
-def convertCAD2Arrays(fileName, format=None, 
-                      h=0., chordal_err=0., growth_ratio=0., 
+def convertCAD2Arrays(fileName, format=None,
+                      h=0., chordal_err=0., growth_ratio=0.,
                       merge_tol=-1, algo=1, join=True):
     """Convert a CAD (IGES or STEP) file to arrays.
     Usage: a = convertCAD2Arrays(fileName, options)"""
@@ -116,7 +116,7 @@ def meshSTRUCT(fileName, format='fmt_iges', N=11):
 # IN: hook: CAD hook
 # IN: faceSubSet: a list of faces to mesh
 # OUT: faceNo: keep the CAD face number for each zone
-# OUT: one mesh per CAD face 
+# OUT: one mesh per CAD face
 def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     """Return a STRUCT discretisation of CAD."""
     nbFaces = occ.getNbFaces(hook)
@@ -160,7 +160,7 @@ def meshTRI(fileName, format="fmt_step", N=11, hmax=-1., order=1):
 # IN: hook: CAD hook
 # IN: faceSubSet: a list of faces to mesh
 # OUT: faceNo: keep the CAD face number for each zone
-# OUT: one mesh per CAD face 
+# OUT: one mesh per CAD face
 def meshTRI__(hook, N=11, hmax=-1., hausd=-1., order=1, faceSubset=None, faceNo=None):
     """Return a TRI discretisation of CAD."""
     if hmax > 0 and hausd > 0: out = meshTRIH2__(hook, hmax, hausd, order, faceSubset, faceNo)
@@ -209,17 +209,17 @@ def reorderEdgesByFace__(edges):
             #order = 1
             #if ind0 == inds[0]:
             #    if ind1 == inds[0]-1: order = -1
-            #    elif ind1 == inds[0]+1: order = 1 
+            #    elif ind1 == inds[0]+1: order = 1
             #elif ind0 == inds[1]:
             #    if ind1 == inds[1]-1: order = -1
-            #    elif ind1 == inds[0]+1: order = 1 
+            #    elif ind1 == inds[0]+1: order = 1
             #else: # ind0 = inds[2]
             #    if ind1 == inds[2]-1: order = -1
             #    elif ind1 == inds[2]+1: order = 1
             #print('order', order)
             nz = 1; order = 1
         except:
-            print("Warning: finding the exterior edge failed.") 
+            print("Warning: finding the exterior edge failed.")
             surf = 0.; nz = 1.; order = 1
         sortedEdges.append((e, surf, nz, order))
     sorted(sortedEdges, key=itemgetter(1), reverse=True)
@@ -327,7 +327,7 @@ def meshTRIH__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None):
         edges = Transform.join(edges)
         edges = Generator.close(edges, 1.e-6)
         edges = reorderEdgesByFace__(edges)
-        try:    
+        try:
             a = Generator.T3mesher2D(edges, grading=1.)
             _unscaleUV([a], T)
             if order > 1: a = Converter.convertLO2HO(a, order=order)
@@ -366,8 +366,8 @@ def meshTRIH2__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None)
 
 def meshTRIHO(fileName, format="fmt_step", N=11):
     """Return a TRI HO discretisation of CAD."""
-    a = convertCAD2Arrays(fileName, format, 
-                          h=0., chordal_err=0., growth_ratio=0., 
+    a = convertCAD2Arrays(fileName, format,
+                          h=0., chordal_err=0., growth_ratio=0.,
                           merge_tol=-1, algo=2)
     #a = meshTRI(fileName, format, N)
     hook = occ.readCAD(fileName, format)
@@ -386,7 +386,7 @@ def meshQUADHO(fileName, format="fmt_step", N=11):
 
 def meshQUADHO__(hook, N=11, faceSubset=None, faceNo=None):
     """Return a QUAD HO discretisation of CAD."""
-    if faceNo is None: faceNo = [] 
+    if faceNo is None: faceNo = []
     a = meshSTRUCT__(hook, N, faceSubset, faceNo)
     a = Converter.convertArray2Hexa(a)
     out = []
@@ -541,7 +541,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     try:
         a = occ.trimesh(hook, edges, i, hmin, hmax, hausd, 1.1)
         _enforceEdgesInFace(a, edgesSav)
-        if occ.getFaceOrientation(hook, i) == 0: 
+        if occ.getFaceOrientation(hook, i) == 0:
             a = Transform.reorder(a, (-1,))
         mesh.append(a)
         SUCCESS = True
@@ -567,7 +567,7 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
 
     # Maillage de la face
     try:
-        a = Generator.T3mesher2D(edges, grading=grading)    
+        a = Generator.T3mesher2D(edges, grading=grading)
         _unscaleUV([a], T)
         o = occ.evalFace(hook, a, i)
         _enforceEdgesInFace(o, edgesSav)
