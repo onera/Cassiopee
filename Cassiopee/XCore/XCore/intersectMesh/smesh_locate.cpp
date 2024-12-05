@@ -121,6 +121,30 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
 
     size_t on_vertex = 0, on_edge = 0;
 
+    for (E_Int pid = 0; pid < Sf.np; pid++) {
+        E_Float x = Sf.X[pid];
+        E_Float y = Sf.Y[pid];
+        E_Float z = Sf.Z[pid];
+        std::vector<PointLoc> locs;
+        ray_intersect_BVH(x, y, z, 1, 0, 0, root_node_idx, locs);
+        if (locs.empty()) {
+            fprintf(stderr, "Could not locate point %d\n", pid);
+            point_write("lost.im", x, y, z);
+        }
+        assert(locs.size() > 0);
+        auto &ploc = plocs[pid];
+        E_Float min_abs_t = EFLOATMAX;
+        for (const auto &loc : locs) {
+            if (fabs(loc.t) < min_abs_t) {
+                min_abs_t = fabs(loc.t);
+                ploc = loc;
+            }
+        }
+    }
+    
+    return plocs;
+    /*
+
     //std::vector<Point> oedge, dedge, vpoints;
 
     for (E_Int pid = 0; pid < Sf.np; pid++) {
@@ -135,18 +159,21 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
 
         const auto &pf = bin_faces.at(voxel);
 
-        //if (pid == 332) write_ngon("pf.im", pf);
+        if (pid == 4941) write_ngon("pf.im", pf);
 
         bool found = false;
 
         auto &ploc = plocs[pid];
 
         for (auto fid : pf) {
+
+            if (pid == 4941) write_face("fid.im", fid);
+
             found = is_point_in_3D_polygon(x, y, z, fid);
 
             if (found) {
 
-                //if (pid == 332) write_face("fid.im", fid);
+                //if (pid == 4941) write_face("fid.im", fid);
 
                 ploc.fid = fid;
                 
@@ -178,6 +205,7 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
     //point_write("oedge.im", oedge);
     //point_write("dedge.im", dedge);
     //point_write("vpoints.im", vpoints);
+    */
 
     return plocs;
 }

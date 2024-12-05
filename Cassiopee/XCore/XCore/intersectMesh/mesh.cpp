@@ -178,7 +178,20 @@ void IMesh::make_edges()
     }
 }
 
-
+E_Float IMesh::get_min_edge_length() const
+{
+    E_Float ret = EFLOATMAX;
+    for (const auto &e : E) {
+        E_Int p = e.p;
+        E_Int q = e.q;
+        E_Float d = (X[p]-X[q])*(X[p]-X[q]) +
+                    (Y[p]-Y[q])*(Y[p]-Y[q]) +
+                    (Z[p]-Z[q])*(Z[p]-Z[q]);
+        d = sqrt(d);
+        if (d < ret) ret = d;
+    }
+    return ret;
+}
 
 IMesh::IMesh()
 {}

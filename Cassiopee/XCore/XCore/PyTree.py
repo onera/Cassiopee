@@ -588,3 +588,26 @@ def _triangulateSkin(m):
                 ptlist[1] = ptlists_out[j]
 
     return None
+
+def writeIm(t, fname):
+    I._adaptNGon32NGon4(t)
+    zones = I.getNodesFromType(t, 'Zone_t')
+    assert(len(zones) == 1)
+    arr = C.getFields(I.__GridCoordinates__, zones[0], api=3)[0]
+    xcore.write_im(arr, fname)
+    return None
+
+def writeBim(t, fname):
+    I._adaptNGon32NGon4(t)
+    zones = I.getNodesFromType(t, 'Zone_t')
+    assert(len(zones) == 1)
+    arr = C.getFields(I.__GridCoordinates__, zones[0], api=3)[0]
+    xcore.write_bim(arr, fname)
+    return None
+
+def writeBimS(t, fname):
+    zones = I.getNodesFromType(t, 'Zone_t')
+    assert(len(zones) == 1)
+    arr = C.getFields(I.__GridCoordinates__, zones[0], api=3)[0]
+    xcore.write_bim_s(arr, fname)
+    return None

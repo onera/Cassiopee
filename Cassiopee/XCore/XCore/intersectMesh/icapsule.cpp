@@ -179,7 +179,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
     M.set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
     M.make_skin();
     M.orient_skin(OUT);
-    M.triangulate_skin();
+    //M.triangulate_skin();
 
     Ss.reserve(sarrays.size());
     for (size_t i = 0; i < sarrays.size(); i++) {
@@ -187,7 +187,7 @@ ICapsule::ICapsule(const Karray &marray, const std::vector<Karray> &sarrays,
         Ss[i].set_tolerances(NEAR_VERTEX_TOL, NEAR_EDGE_TOL);
         Ss[i].make_skin();
         Ss[i].orient_skin(IN);
-        Ss[i].triangulate_skin();
+        //Ss[i].triangulate_skin();
         Ss[i].ptag.resize(Ss[i].np);
         memcpy(Ss[i].ptag.data(), ptags[i], Ss[i].np*sizeof(E_Float));
     }
@@ -287,12 +287,11 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
     for (size_t i = 0; i < Ss.size(); i++) {
         printf("S%lu\n", i);
 
-        Mf.make_bbox();
-        Mf.hash_faces();
         Mf.make_fcenters();
         Mf.make_fnormals();
         Mf.make_pnormals();
         Mf.make_point_faces();
+        Mf.make_BVH();
 
         auto &S = Ss[i];
 
@@ -301,8 +300,6 @@ PyObject *K_XCORE::icapsule_adapt(PyObject *self, PyObject *args)
         Sf.make_fcenters();
         Sf.make_fnormals();
         Sf.make_pnormals();
-        Sf.make_bbox();
-        Sf.hash_faces();
         Sf.compute_min_distance_between_points();
         printf("Min dist: %f\n", Sf.min_pdist);
 
@@ -412,12 +409,13 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         
         printf("Intersecting slave %lu\n", i);
 
-        Mf.make_bbox();
-        Mf.hash_faces();
+        //Mf.make_bbox();
+        //Mf.hash_faces();
         Mf.make_fcenters();
         Mf.make_fnormals();
         Mf.make_pnormals();
         Mf.make_point_faces();
+        Mf.make_BVH();
 
         //Mf.write_ngon("Mf_before_intersect.im");
 

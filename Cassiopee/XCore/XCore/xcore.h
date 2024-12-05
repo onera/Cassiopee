@@ -78,7 +78,10 @@ namespace K_XCORE
     PyObject *icapsule_extract_master(PyObject *self, PyObject *args);
     PyObject *icapsule_extract_slave(PyObject *self, PyObject *args);
     PyObject *icapsule_extract_slaves(PyObject *self, PyObject *args);
-   
+
+    PyObject *write_im(PyObject *self, PyObject *args);
+    PyObject *write_bim(PyObject *self, PyObject *args);
+    PyObject *write_bim_s(PyObject *self, PyObject *args);
 
     PyObject *triangulate_skin(PyObject *self, PyObject *args);
 

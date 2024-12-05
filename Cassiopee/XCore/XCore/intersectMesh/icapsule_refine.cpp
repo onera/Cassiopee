@@ -98,10 +98,8 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
         std::vector<E_Int> fat_sfids;
         std::vector<E_Int> fat_mfids;
 
-        Sf.make_BVH();
-
-        Mf.make_bbox();
-        Mf.hash_faces();
+        Mf.make_fcenters();
+        Mf.make_BVH();
 
         /*********************** Mf refinement ***********************/
 
@@ -145,6 +143,7 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
 
         // Project mpids on Sf
         Sf.make_fcenters();
+        Sf.make_BVH();
         auto plocs_m = Sf.project(Mf, mpids);
 
         // Deduce sfids to refine

@@ -98,6 +98,8 @@ struct IMesh {
     std::vector<E_Int> ftag;
     std::vector<E_Float> ptag;
     std::vector<E_Float> ctag;
+
+    E_Float get_min_edge_length() const;
     
     void set_tolerances(E_Float near_vertex_tol, E_Float near_edge_tol)
     {

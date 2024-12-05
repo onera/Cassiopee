@@ -68,6 +68,10 @@ static PyMethodDef Pyxcore [] =
     {"icapsule_extract_slave", K_XCORE::icapsule_extract_slave, METH_VARARGS},
     {"icapsule_extract_slaves", K_XCORE::icapsule_extract_slaves, METH_VARARGS},
 
+    {"write_im", K_XCORE::write_im, METH_VARARGS},
+    {"write_bim", K_XCORE::write_bim, METH_VARARGS},
+    {"write_bim_s", K_XCORE::write_bim_s, METH_VARARGS},
+
     {"triangulate_skin", K_XCORE::triangulate_skin, METH_VARARGS},
 
     {"extractCell", K_XCORE::extractCell, METH_VARARGS},
