@@ -63,6 +63,10 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/fillHole.cpp',
         'OCC/Atomic/addFillet.cpp',
 
+        'OCC/Atomic/translate.cpp',
+        'OCC/Atomic/scale.cpp',
+        'OCC/Atomic/rotate.cpp',
+
         'OCC/Atomic/getOppData.cpp']
 
 import KCore.Dist as Dist

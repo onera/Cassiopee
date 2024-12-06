@@ -75,6 +75,10 @@ static PyMethodDef Pyocc [] =
   {"fillHole", K_OCC::fillHole, METH_VARARGS},
   {"addFillet", K_OCC::addFillet, METH_VARARGS},
 
+  {"translate", K_OCC::translate, METH_VARARGS},
+  {"scale", K_OCC::scale, METH_VARARGS},
+  {"rotate", K_OCC::rotate, METH_VARARGS},
+
   {"getOppData", K_OCC::getOppData, METH_VARARGS},
 
   {NULL, NULL}
