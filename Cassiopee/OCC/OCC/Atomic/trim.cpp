@@ -22,7 +22,6 @@
 #include "ShapeFix_Shape.hxx"
 #include "ShapeFix_Wireframe.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
-#include "ShapeUpgrade_UnifySameDomain.hxx"
 #include "BRepFeat_SplitShape.hxx"
 #include "BRep_Builder.hxx"
 #include "TopExp.hxx"

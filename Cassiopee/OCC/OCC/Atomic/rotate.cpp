@@ -50,6 +50,8 @@ PyObject* K_OCC::rotate(PyObject* self, PyObject* args)
   gp_Dir direction(xaxis, yaxis, zaxis);
   gp_Ax1 axis(center, direction);
 
+  //printf("angle=%g\n", angle);
+  angle = angle * M_PI / 180.;
   gp_Trsf myTrsf;
   myTrsf.SetRotation(axis, angle); 
 

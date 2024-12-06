@@ -9,6 +9,7 @@ import Transform.PyTree as T
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import KCore.Vector as Vector
+import Converter.Internal as Internal
 import time
 
 # local widgets list
@@ -115,6 +116,14 @@ def rotate(event=None):
         noz = CTK.Nz[nz]
         a = T.rotate(CTK.t[2][nob][2][noz], (X[0],X[1],X[2]), axe, angle)
         CTK.replace(CTK.t, nob, noz, a)
+
+    # update CAD if necessary
+    if CTK.CADHOOK is not None:
+        if len(nzs) == len(Internal.getZones(CTK.t)):
+            import OCC
+            print('rotate cad')
+            OCC.occ.rotate(CTK.CADHOOK, X, axe, angle)
+
     CTK.TXT.insert('START', 'Zones have been rotated.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -157,6 +166,14 @@ def translate():
         noz = CTK.Nz[nz]
         a = T.translate(CTK.t[2][nob][2][noz], (v[0], v[1], v[2]))
         CTK.replace(CTK.t, nob, noz, a)
+
+    # update CAD if necessary
+    if CTK.CADHOOK is not None:
+        if len(nzs) == len(Internal.getZones(CTK.t)):
+            import OCC
+            print('translating cad')
+            OCC.occ.translate(CTK.CADHOOK, (v[0], v[1], v[2]))
+
     CTK.TXT.insert('START', 'Zones have been translated.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -271,6 +288,14 @@ def scale():
             z = T.contract(z, (X[0],X[1],X[2]), axe1, axe3, v[1])
             a = T.contract(z, (X[0],X[1],X[2]), axe1, axe2, v[2])
         CTK.replace(CTK.t, nob, noz, a)
+    
+    # update CAD if necessary
+    if CTK.CADHOOK is not None:
+        if len(nzs) == len(Internal.getZones(CTK.t)) and len(v) == 1:
+            import OCC
+            print('scale cad')
+            OCC.occ.scale(CTK.CADHOOK, v[0], X)
+
     CTK.TXT.insert('START', 'Zones have been scaled.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -344,9 +369,9 @@ def createApp(win):
 
     # - VARS -
     # -0- Translation vector -
-    V = TK.StringVar(win); V.set('0;0;0'); VARS.append(V)
+    V = TK.StringVar(win); V.set('0; 0; 0'); VARS.append(V)
     # -1- Scale factors -
-    V = TK.StringVar(win); V.set('1;1;1'); VARS.append(V)
+    V = TK.StringVar(win); V.set('1; 1; 1'); VARS.append(V)
     # -2- Rotate axis
     V = TK.StringVar(win); V.set('around X'); VARS.append(V)
     # -3- Rotation angle
