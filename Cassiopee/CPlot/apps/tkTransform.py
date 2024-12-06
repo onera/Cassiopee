@@ -288,7 +288,7 @@ def scale():
             z = T.contract(z, (X[0],X[1],X[2]), axe1, axe3, v[1])
             a = T.contract(z, (X[0],X[1],X[2]), axe1, axe2, v[2])
         CTK.replace(CTK.t, nob, noz, a)
-    
+
     # update CAD if necessary
     if CTK.CADHOOK is not None:
         if len(nzs) == len(Internal.getZones(CTK.t)) and len(v) == 1:
