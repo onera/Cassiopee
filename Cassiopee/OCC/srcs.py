@@ -41,6 +41,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
 
         'OCC/Atomic/bottle.cpp',
         'OCC/Atomic/addSphere.cpp',
+        'OCC/Atomic/addSquare.cpp',
 
         'OCC/Atomic/meshEdge.cpp',
         'OCC/Atomic/meshEdge2.cpp',

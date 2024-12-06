@@ -39,7 +39,7 @@ PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
 #else
   packet1 = (void**) PyCapsule_GetPointer(hook1, NULL);
 #endif
-  TopoDS_Shape* shp1 = (TopoDS_Shape*) packet1[0];
+  //TopoDS_Shape* shp1 = (TopoDS_Shape*) packet1[0];
   TopTools_IndexedMapOfShape& surfaces1 = *(TopTools_IndexedMapOfShape*)packet1[1];
 
   void** packet2 = NULL;
@@ -48,7 +48,7 @@ PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
 #else
   packet2 = (void**) PyCapsule_GetPointer(hook2, NULL);
 #endif
-  TopoDS_Shape* shp2 = (TopoDS_Shape*) packet2[0];
+  //TopoDS_Shape* shp2 = (TopoDS_Shape*) packet2[0];
   TopTools_IndexedMapOfShape& surfaces2 = *(TopTools_IndexedMapOfShape*)packet2[1];
 
   // Rebuild a single compound
@@ -95,8 +95,4 @@ PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
 #endif
 
   return hook;
-
-
-  Py_INCREF(Py_None);
-  return Py_None;
 } 

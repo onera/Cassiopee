@@ -36,7 +36,8 @@ static PyMethodDef Pyocc [] =
   
   {"bottle", K_OCC::bottle, METH_VARARGS},
   {"addSphere", K_OCC::addSphere, METH_VARARGS},
-  
+  {"addSquare", K_OCC::addSquare, METH_VARARGS},
+
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},
   {"getNbEdges", K_OCC::getNbEdges, METH_VARARGS},
   {"getFileAndFormat", K_OCC::getFileAndFormat, METH_VARARGS},

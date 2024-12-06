@@ -25,14 +25,18 @@
 #include "TopExp_Explorer.hxx"
 #include "BRepPrimAPI_MakeSphere.hxx"
 #include "BRep_Builder.hxx"
+#include "BRepBuilderAPI_MakeEdge.hxx"
+#include "BRepBuilderAPI_MakeWire.hxx"
+#include "BRepBuilderAPI_MakeFace.hxx"
 
 //=====================================================================
-// Add a sphere to CAD hook
+// Add a square to CAD hook
 //=====================================================================
-PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
+PyObject* K_OCC::addSquare(PyObject* self, PyObject* args)
 {
-  PyObject* hook; E_Float xc, yc, zc, R;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ R_, &hook, &xc, &yc, &zc, &R)) return NULL;
+  PyObject* hook; E_Float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_ TRRR_, &hook, &x1, &y1, &z1, 
+    &x2, &y2, &z2, &x3, &y3, &z3, &x4, &y4, &z4)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -44,10 +48,19 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
   //TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
-  /* new sphere */
-  gp_Pnt center(xc, yc, zc);
-  BRepPrimAPI_MakeSphere makerSphere(center, R);
-  TopoDS_Shape sphere = makerSphere.Shape();
+  /* new square */
+  gp_Pnt p1(x1, y1, z1); // Bottom left
+  gp_Pnt p2(x2, y2, z2); // Bottom right
+  gp_Pnt p3(x3, y3, z3); // Top right
+  gp_Pnt p4(x4, y4, z4); // Top left
+
+  TopoDS_Edge edge1 = BRepBuilderAPI_MakeEdge(p1, p2);
+  TopoDS_Edge edge2 = BRepBuilderAPI_MakeEdge(p2, p3);
+  TopoDS_Edge edge3 = BRepBuilderAPI_MakeEdge(p3, p4);
+  TopoDS_Edge edge4 = BRepBuilderAPI_MakeEdge(p4, p1);
+
+  TopoDS_Wire wire = BRepBuilderAPI_MakeWire(edge1, edge2, edge3, edge4);
+  TopoDS_Face face = BRepBuilderAPI_MakeFace(wire);
 
   // Rebuild a single compound
   BRep_Builder builder;
@@ -59,16 +72,7 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
     TopoDS_Face F = TopoDS::Face(surfaces(i));
     builder.Add(compound, F);
   }
-
-  TopTools_IndexedMapOfShape* sfs = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(sphere, TopAbs_FACE, *sfs);
-  TopTools_IndexedMapOfShape& surfaces2 = *(TopTools_IndexedMapOfShape*)sfs;
-  for (E_Int i = 1; i <= surfaces2.Extent(); i++)
-  {
-    TopoDS_Face F = TopoDS::Face(surfaces2(i));
-    builder.Add(compound, F);
-  }
-  delete sfs;
+  builder.Add(compound, face);
 
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
     

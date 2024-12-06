@@ -35,6 +35,7 @@ namespace K_OCC
 
   PyObject* bottle(PyObject* self, PyObject* args);
   PyObject* addSphere(PyObject* self, PyObject* args);
+  PyObject* addSquare(PyObject* self, PyObject* args);
   
   PyObject* getNbFaces(PyObject* self, PyObject* args);
   PyObject* getNbEdges(PyObject* self, PyObject* args);
