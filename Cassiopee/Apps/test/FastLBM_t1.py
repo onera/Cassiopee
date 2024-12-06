@@ -122,6 +122,7 @@ Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
 # POST
 Internal._rmNodesByName(t,'*M1*')
+Internal._rmNodesByName(t,'*_P1')
 Internal._rmNodesByName(t,'*cell*')
 Internal._rmNodesByName(t,'*Qstar*')
 Internal._rmNodesByName(t,'*Qeq*')
