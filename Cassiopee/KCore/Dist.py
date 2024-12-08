@@ -1,7 +1,7 @@
 # Functions used in *Cassiopee* modules setup.py
 import os, sys, distutils.sysconfig, platform, glob, subprocess
 
-# Toggle to True for compiling for debug (valgrind, inspector)
+# Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
 DEBUG = False
 
 # Toggle to True for compiling Cassiopee in i8
