@@ -336,13 +336,14 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
   MPI_Barrier(MPI_COMM_WORLD); // seems needed
 
   // software postprocessing on final buffer (just before screen dump)
+  /*
   if (rank == 0)
   {
     char* bfl = new char [3*_view.w*_view.h];
     for (E_Int i = 0; i < 3*_view.w*_view.h; i++) bfl[i] = buffer[i];
     specPostProcess(bfl, _view.w, _view.h, depth, buffer);
     delete [] bfl;
-  }
+  }*/
   
   free(depth);
 
