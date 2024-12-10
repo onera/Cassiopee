@@ -355,83 +355,80 @@ def writeEnvs():
 
     # sh ou bash
     # usage: source $CASSIOPEE/Dist/env_Cassiopee.sh
-    p = open(envPath+"env_Cassiopee.sh", 'w')
-    p.write("ulimit -s unlimited\n")
-    if cassiopee != '': p.write("export CASSIOPEE=%s\n"%cassiopee)
-    if elsaprod != '': p.write("export ELSAPROD=%s\n"%elsaprod)
-    p.write("export OMP_NUM_THREADS=%d\n"%mt)
-    p.write("export PATH=%s:%s/bin:$PATH\n"%(cmdPath,cmdPath))
-    p.write("if [ \"$PYTHONPATH\" = \"\" ]; then\n")
-    p.write("      export PYTHONPATH=%s\n"%installPathLocal)
-    p.write("else\n")
-    p.write("      export PYTHONPATH=%s:$PYTHONPATH\n"%installPathLocal)
-    p.write("fi\n")
-    if installLD is None:
-        p.write("if [ \"$LD_LIBRARY_PATH\" = \"\" ]; then\n")
-        p.write("      export LD_LIBRARY_PATH=%s\n"%libPath)
+    with open(envPath+"env_Cassiopee.sh", 'w') as p:
+        p.write("ulimit -s unlimited\n")
+        if cassiopee != '': p.write("export CASSIOPEE=%s\n"%cassiopee)
+        if elsaprod != '': p.write("export ELSAPROD=%s\n"%elsaprod)
+        p.write("export OMP_NUM_THREADS=%d\n"%mt)
+        p.write("export PATH=%s:%s/bin:$PATH\n"%(cmdPath,cmdPath))
+        p.write("if [ \"$PYTHONPATH\" = \"\" ]; then\n")
+        p.write("      export PYTHONPATH=%s\n"%installPathLocal)
         p.write("else\n")
-        p.write("      export LD_LIBRARY_PATH=%s:$LD_LIBRARY_PATH\n"%libPath)
+        p.write("      export PYTHONPATH=%s:$PYTHONPATH\n"%installPathLocal)
         p.write("fi\n")
-    else:
-        p.write("if [ \"$LD_LIBRARY_PATH\" = \"\" ]; then\n")
-        p.write("      export LD_LIBRARY_PATH=%s:%s\n"%(libPath,installLD))
-        p.write("else\n")
-        p.write("      export LD_LIBRARY_PATH=%s:%s:$LD_LIBRARY_PATH\n"%(libPath,installLD))
-        p.write("fi\n")
-    p.close()
+        if installLD is None:
+            p.write("if [ \"$LD_LIBRARY_PATH\" = \"\" ]; then\n")
+            p.write("      export LD_LIBRARY_PATH=%s\n"%libPath)
+            p.write("else\n")
+            p.write("      export LD_LIBRARY_PATH=%s:$LD_LIBRARY_PATH\n"%libPath)
+            p.write("fi\n")
+        else:
+            p.write("if [ \"$LD_LIBRARY_PATH\" = \"\" ]; then\n")
+            p.write("      export LD_LIBRARY_PATH=%s:%s\n"%(libPath,installLD))
+            p.write("else\n")
+            p.write("      export LD_LIBRARY_PATH=%s:%s:$LD_LIBRARY_PATH\n"%(libPath,installLD))
+            p.write("fi\n")
 
     # csh ou tcsh
     # usage: source $CASSIOPEE/Dist/env_Cassiopee.csh
-    p = open(envPath+"env_Cassiopee.csh", 'w')
-    p.write("limit stacksize unlimited\n")
-    if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
-    if elsaprod != '': p.write("setenv ELSAPROD %s\n"%elsaprod)
-    p.write("setenv OMP_NUM_THREADS %d\n"%mt)
-    p.write("set path=(%s %s/bin $path)\n"%(cmdPath,cmdPath))
-    p.write("if ($?PYTHONPATH == 0) then\n")
-    p.write("     setenv PYTHONPATH %s\n"%installPathLocal)
-    p.write("else\n")
-    p.write("     setenv PYTHONPATH %s:$PYTHONPATH\n"%installPathLocal)
-    p.write("endif\n")
-    if installLD is None:
-        p.write("if ($?LD_LIBRARY_PATH == 0) then\n")
-        p.write("     setenv LD_LIBRARY_PATH %s\n"%libPath)
+    with open(envPath+"env_Cassiopee.csh", 'w') as p:
+        p.write("limit stacksize unlimited\n")
+        if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
+        if elsaprod != '': p.write("setenv ELSAPROD %s\n"%elsaprod)
+        p.write("setenv OMP_NUM_THREADS %d\n"%mt)
+        p.write("set path=(%s %s/bin $path)\n"%(cmdPath,cmdPath))
+        p.write("if ($?PYTHONPATH == 0) then\n")
+        p.write("     setenv PYTHONPATH %s\n"%installPathLocal)
         p.write("else\n")
-        p.write("     setenv LD_LIBRARY_PATH %s:$LD_LIBRARY_PATH\n"%libPath)
+        p.write("     setenv PYTHONPATH %s:$PYTHONPATH\n"%installPathLocal)
         p.write("endif\n")
-    else:
-        p.write("if ($?LD_LIBRARY_PATH == 0) then\n")
-        p.write("     setenv LD_LIBRARY_PATH %s:%s\n"%(libPath,installLD))
-        p.write("else\n")
-        p.write("     setenv LD_LIBRARY_PATH %s:%s:$LD_LIBRARY_PATH\n"%(libPath,installLD))
-        p.write("endif\n")
-    p.close()
+        if installLD is None:
+            p.write("if ($?LD_LIBRARY_PATH == 0) then\n")
+            p.write("     setenv LD_LIBRARY_PATH %s\n"%libPath)
+            p.write("else\n")
+            p.write("     setenv LD_LIBRARY_PATH %s:$LD_LIBRARY_PATH\n"%libPath)
+            p.write("endif\n")
+        else:
+            p.write("if ($?LD_LIBRARY_PATH == 0) then\n")
+            p.write("     setenv LD_LIBRARY_PATH %s:%s\n"%(libPath,installLD))
+            p.write("else\n")
+            p.write("     setenv LD_LIBRARY_PATH %s:%s:$LD_LIBRARY_PATH\n"%(libPath,installLD))
+            p.write("endif\n")
 
     # bat
-    p = open(envPath+"env_Cassiopee.bat", 'w')
-    p.write("path = "+libPath+";"+cmdPath+"%PATH%\n")
-    p.write("set PYTHONPATH="+installPathLocal+";%PYTHONPATH%\n")
-    p.write("set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%\n")
-    p.close()
+    with open(envPath+"env_Cassiopee.bat", 'w') as p:
+        p.write("path = "+libPath+";"+cmdPath+"%PATH%\n")
+        p.write("set PYTHONPATH="+installPathLocal+";%PYTHONPATH%\n")
+        p.write("set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%\n")
 
     # module
     # usage: module use $CASSIOPEE/Dist
     # module load cassiopee
-    p = open(envPath+"cassiopee", 'w')
-    p.write("#%Module1.0#####################################################################\n")
-    p.write("##\n")
-    p.write("## CASSIOPEE\n")
-    p.write("##\n")
-    p.write("module-whatis   \"Set the environment for using Cassiopee\"\n")
-    if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
-    if elsaprod != '': p.write("setenv ELSAPROD %s\n"%elsaprod)
-    p.write("setenv OMP_NUM_THREADS %d\n"%mt)
-    p.write("prepend-path PATH %s\n"%cmdPath)
-    p.write("prepend-path PATH %s/bin\n"%cmdPath)
-    p.write("prepend-path PYTHONPATH %s\n"%installPathLocal)
-    if installLD is not None:
-        p.write("prepend-path LD_LIBRARY_PATH %s\n"%installLD)
-    p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
+    with open(envPath+"cassiopee", 'w') as p:
+        p.write("#%Module1.0#####################################################################\n")
+        p.write("##\n")
+        p.write("## CASSIOPEE\n")
+        p.write("##\n")
+        p.write("module-whatis   \"Set the environment for using Cassiopee\"\n")
+        if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
+        if elsaprod != '': p.write("setenv ELSAPROD %s\n"%elsaprod)
+        p.write("setenv OMP_NUM_THREADS %d\n"%mt)
+        p.write("prepend-path PATH %s\n"%cmdPath)
+        p.write("prepend-path PATH %s/bin\n"%cmdPath)
+        p.write("prepend-path PYTHONPATH %s\n"%installPathLocal)
+        if installLD is not None:
+            p.write("prepend-path LD_LIBRARY_PATH %s\n"%installLD)
+        p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
 
 #==============================================================================
 # Write setup.cfg en fonction du compilateur C++ (si different de None)
