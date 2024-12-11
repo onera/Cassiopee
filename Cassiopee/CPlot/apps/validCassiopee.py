@@ -883,7 +883,7 @@ def updateRefMetadata(refMDDict, module, test):
     from datetime import datetime
     testName = os.path.join(module, test)
     cassiopeeIncDir, fastIncDir = getInstallPaths()[:2]
-    if fastIncDir is not None: hashFast = Dist.getGitHash(fastIncDir)[:7] 
+    if fastIncDir is not None: hashFast = Dist.getGitHash(fastIncDir)[:7]
     else: hashFast = None
     entry = {
         "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -892,7 +892,7 @@ def updateRefMetadata(refMDDict, module, test):
     }
     if testName in refMDDict: refMDDict[testName].append(entry)
     else: refMDDict[testName] = [entry]
-    
+
 def updateTests():
     # Load ref metadata
     import json
@@ -901,7 +901,7 @@ def updateTests():
     if os.access(mDFilename, os.F_OK):
         with open(mDFilename, 'r') as f:
             refMDDict = json.load(f)
-            
+
     # Supprime les references
     selection = Listbox.curselection()
     for s in selection:
@@ -924,7 +924,7 @@ def updateTests():
         rmFile(pathl, test)
         rmFile(pathl, test2)
         updateRefMetadata(refMDDict, module, testname)
-        
+
     # Run les tests
     runTests()
     # Update metadata
