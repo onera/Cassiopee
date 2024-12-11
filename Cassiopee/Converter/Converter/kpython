@@ -200,6 +200,16 @@ else
             fi
             [ $? != 0 ] && exit 1;  
             ;;
+        'juno_coda' | 'juno_coda_*' ) # juno coda, to list before juno
+            # openMpi
+            if [ $SANITIZE = '1' ]
+            then
+                mpirun $ARGS -x LD_PRELOAD=$ASAN_LIB -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS -x OMP_PLACES=cores $PYTHONEXE $SCRIPT  #--bind-to core --map-by socket:PE=$NTHREADS --report-bindings -x OMP_PROC_BIND=TRUE -x OMP_DISPLAY_ENV=VERBOSE
+            else
+                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS -x OMP_PLACES=cores $PYTHONEXE $SCRIPT  #--bind-to core --map-by socket:PE=$NTHREADS --report-bindings -x OMP_PROC_BIND=TRUE -x OMP_DISPLAY_ENV=VERBOSE
+            fi
+            [ $? != 0 ] && exit 1;  
+            ;;
         'juno' | 'juno_*' ) # juno
             # intelMpi
             mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT

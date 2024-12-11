@@ -641,6 +641,9 @@ elif [ "$MAC" = "juno_coda" ]; then
     module load subversion/1.14.1-gnu831
     export PYTHONEXE=python3
     export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    unset OMP_PLACES
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
