@@ -751,6 +751,12 @@ else if ($MAC == "juno_coda") then
         setenv OMP_NUM_THREADS 48
         setenv PYTHONEXE python3
         setenv PRODMODE 1
+        setenv PIP_DISABLE_PIP_VERSION_CHECK 1
+        unsetenv SLURM*
+        unsetenv OMP_PLACES
+        setenv ASAN_OPTIONS verify_asan_link_order=false
+        setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+        setenv ASAN_LIB /opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 else if ($MAC == "sator_brw") then
 #------------------------------- sator for broadwell ----------------------------------
