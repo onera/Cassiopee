@@ -994,7 +994,7 @@ E_Int __getParamHminHmaxHausd3(const TopoDS_Edge& E, E_Float hmin, E_Float hmax,
 
   Nf = 1./integ;
   N = std::rint(Nf);
-  N = std::max(N, 2);
+  N = std::max(N, E_Int(2));
 
   //printf("N= %d, Nf = %g\n", N, Nf);
 
