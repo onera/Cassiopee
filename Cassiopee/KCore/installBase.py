@@ -922,6 +922,21 @@ installDict = {
                  [] # NvccAdditionalOptions
                  ],
     ###############################################################################
+    'sat_gcc': [ 'Cluster de calcul Sator Saphire (Onera)',
+                 'gfortran', # f77compiler
+                 'gfortran', # f90compiler
+                 'gcc', # Cppcompiler
+                 ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX2P512'], # CppAdditionalOptions
+                 [], # f77AdditionalOptions
+                 True, # useOMP
+                 False, # static
+                 [], # additionalIncludePaths
+                 [], # additionalLibs
+                 [], # additionalLibPaths
+                 False, # useCuda
+                 [] # NvccAdditionalOptions
+                 ],
+    ###############################################################################
     'spiro_sky': [ 'Machine dev Spiro (proc skylake)',
                    'ifort', # f77compiler
                    'ifort', # f90compiler

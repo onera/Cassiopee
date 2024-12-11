@@ -170,14 +170,19 @@ else
             mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
             [ $? != 0 ] && exit 1;
             ;;
-        'sat_r8' ) # sator
+        'sat_cas_r8' | 'sat_cas_r8_*' | 'sat_r8' | 'sat_sph' | 'sat_sph_*' ) # sator, sator-new
             # intelMpi
             mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
             [ $? != 0 ] && exit 1;
             ;;
-        'sat_cas_r8' | 'sat_cas_r8_*' ) # sator-new
-            # intelMpi
-            mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
+        'sat_gcc' | 'sat_gcc_*' ) # sator
+            # openMpi
+            if [ $SANITIZE = '1' ]
+            then
+                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS -x LD_PRELOAD=$ASAN_LIB $PYTHONEXE $SCRIPT
+            else
+                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
+            fi
             [ $? != 0 ] && exit 1;
             ;;
         'spiro_el8' | 'spiro_el8_*' | 'spiro_amdrm_r8' | 'spiro_amdnp_r8' | 'spiro_sky_r8' | 'spiro_cas_r8' ) # spiro
