@@ -877,9 +877,31 @@ def runTestsInThread():
     THREAD.start()
 
 #==============================================================================
-# Update the data base for selected tests
+# Update the data base and metadata for selected tests
 #==============================================================================
+def updateRefMetadata(refMDDict, module, test):
+    from datetime import datetime
+    testName = os.path.join(module, test)
+    cassiopeeIncDir, fastIncDir = getInstallPaths()[:2]
+    if fastIncDir is not None: hashFast = Dist.getGitHash(fastIncDir)[:7] 
+    else: hashFast = None
+    entry = {
+        "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "hashCassiopee": Dist.getGitHash(cassiopeeIncDir)[:7],
+        "hashFast": hashFast
+    }
+    if testName in refMDDict: refMDDict[testName].append(entry)
+    else: refMDDict[testName] = [entry]
+    
 def updateTests():
+    # Load ref metadata
+    import json
+    mDFilename = os.path.join(VALIDDIR['LOCAL'], "refs-metadata.json")
+    refMDDict = {}
+    if os.access(mDFilename, os.F_OK):
+        with open(mDFilename, 'r') as f:
+            refMDDict = json.load(f)
+            
     # Supprime les references
     selection = Listbox.curselection()
     for s in selection:
@@ -888,21 +910,26 @@ def updateTests():
         module = splits[0]
         test = splits[1]
         module = module.strip()
-        test = test.strip()
+        testname = test.strip()
         modulesDir = MODULESDIR[BASE4COMPARE][module]
         if module == 'CFDBase':
-            pathl = os.path.join(modulesDir, CFDBASEPATH, test)
-            test2 = test+'.time'
+            pathl = os.path.join(modulesDir, CFDBASEPATH, testname)
+            test2 = testname+'.time'
             test = 'post'+'.ref*'
         else:
-            d = os.path.splitext(test)
+            d = os.path.splitext(testname)
             test = d[0]+'.ref*'
             test2 = d[0]+'.time'
             pathl = os.path.join(modulesDir, module, 'test')
         rmFile(pathl, test)
         rmFile(pathl, test2)
+        updateRefMetadata(refMDDict, module, testname)
+        
     # Run les tests
     runTests()
+    # Update metadata
+    with open(mDFilename, 'w') as f:
+        json.dump(refMDDict, f, indent=4, sort_keys=True)
 
 def updateTestsInThread():
     global THREAD
