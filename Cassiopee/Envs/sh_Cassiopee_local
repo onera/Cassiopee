@@ -637,8 +637,10 @@ elif [ "$MAC" = "juno_coda" ]; then
     # modules
     module purge
     source /stck/rhea/dist/juno_v2024_02_python3108/source.sh --env coda_dev --compiler gcc@10 --mpi openmpi
+    module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
     module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
