@@ -55,6 +55,8 @@ void construct_faces(std::vector<std::vector<E_Int>> &faces,
     NF++;
 }
 
+#include <chrono>
+
 PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
 {
     E_Int ni = sarray.ni;
@@ -72,6 +74,11 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
     // Indices of points to be projected
     std::vector<E_Int> proj_points;
 
+    //using std::chrono::high_resolution_clock;
+    //using std::chrono::duration_cast;
+    //using std::chrono::milliseconds;
+    //auto t1 = high_resolution_clock::now();
+
     for (E_Int j = 0; j < nj; j++) {
         for (E_Int i = 0; i < ni; i++) {
 
@@ -86,7 +93,8 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
                 E_Float py = Ys[idx];
                 E_Float pz = Zs[idx];
 
-                if (M->is_point_inside(px, py, pz)) {
+                if (Mf.is_point_inside(px, py, pz)) {
+                //if (M->is_point_inside(px, py, pz)) {
                     kmax[base] = k-1;
 
                     // Cache the point to be projected
@@ -98,6 +106,9 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
                 }
             }
 
+            //assert(was_outside);
+
+            
             if (!was_inside) {
                 // i-j line completely outside of M
                 // Projection points is the last point
@@ -107,6 +118,10 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
             }
         }
     }
+
+    //auto t2 = high_resolution_clock::now();
+    //auto ms_int = duration_cast<milliseconds>(t2-t1);
+    //std::cout << ms_int.count() << "ms\n";
 
     assert(proj_points.size() == (size_t)nij);
 
@@ -544,6 +559,7 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
 }
 
 #include "smesh.h"
+#include <random>
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
@@ -562,13 +578,36 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     IMesh *M = (IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
 
     M->make_skin();
-    M->make_bbox();
-    M->hash_skin();
+    //M->make_bbox();
+    //M->hash_skin();
 
     Smesh Mf = Smesh::Smesh_from_mesh_skin(*M, M->skin, false);
     printf("Mf: %d tris\n", Mf.nf);
     Mf.make_fcenters();
     Mf.make_BVH();
+    Mf.box.print();
+
+    /*
+    E_Float lo = -1.0;
+    E_Float up = 1.0;
+    std::uniform_real_distribution<E_Float> unif(lo, up);
+    std::default_random_engine re;
+
+    E_Float px = 0, py = 0, pz = 0;
+    for (int i = 0; i < 1; i++) {
+        //E_Float dx = unif(re);
+        //E_Float dy = unif(re);
+        //E_Float dz = unif(re);
+        //E_Float n = sqrt(dx*dx + dy*dy + dz*dz);
+        //dx /= n; dy /= n; dz /= n;
+        E_Float dx = 1.0, dy = 0.0, dz = 0.0;
+        Ray ray(px, py, pz, dx, dy, dz);
+        bool inside = Mf.is_point_inside(ray);
+        assert(inside);
+    }
+
+    return Py_None;
+    */
 
     E_Int nslaves = PyList_Size(SLAVES);
     E_Int i, ret;
