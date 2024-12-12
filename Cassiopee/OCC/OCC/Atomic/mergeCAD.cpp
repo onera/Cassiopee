@@ -88,6 +88,18 @@ PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
   printf("INFO: after merge: Nb edges=%d\n", se->Extent());
   printf("INFO: after merge: Nb faces=%d\n", sf->Extent());
   
+  // copy filenames
+  char* fileName = (char*)packet2[3];
+  E_Int l = strlen(fileName);
+  char* fileNameC = new char [l+1];
+  strcpy(fileNameC, fileName);
+  packet[3] = fileNameC;
+  char* fileFmt = (char*)packet2[4];
+  l = strlen(fileFmt);
+  char* fileFmtC = new char [l+1];
+  strcpy(fileFmtC, fileFmt);
+  packet[4] = fileFmtC;
+
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else

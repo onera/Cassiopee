@@ -18,6 +18,8 @@
 */
 #include "../Data.h"
 
+#define M_PI 3.1415926535897932384626433832795
+
 //=============================================================================
 // supersample X factor: moyenne des pixels
 // IN: im1 : image 1 RGB factor * w x factor * h (deja alloue)

@@ -102,7 +102,13 @@ PyObject* K_OCC::addBox(PyObject* self, PyObject* args)
   wire = BRepBuilderAPI_MakeWire(edge1, edge2, edge3, edge4);
   TopoDS_Face face5 = BRepBuilderAPI_MakeFace(wire);
 
+  edge1 = BRepBuilderAPI_MakeEdge(p1, p5);
+  edge2 = BRepBuilderAPI_MakeEdge(p5, p6);
+  edge3 = BRepBuilderAPI_MakeEdge(p6, p2);
+  edge4 = BRepBuilderAPI_MakeEdge(p2, p1);
 
+  wire = BRepBuilderAPI_MakeWire(edge1, edge2, edge3, edge4);
+  TopoDS_Face face6 = BRepBuilderAPI_MakeFace(wire);
 
   // Rebuild a single compound
   BRep_Builder builder;
@@ -117,7 +123,9 @@ PyObject* K_OCC::addBox(PyObject* self, PyObject* args)
   builder.Add(compound, face1);
   builder.Add(compound, face2);
   builder.Add(compound, face3);
-  builder.Add(compound, face4);  
+  builder.Add(compound, face4);
+  builder.Add(compound, face5);
+  builder.Add(compound, face6);
 
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
     

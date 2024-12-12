@@ -89,7 +89,6 @@ PyObject* K_OCC::addCylinder(PyObject* self, PyObject* args)
     builder.Add(compound, F);
   }*/
 
-
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
     
   // Rebuild the hook

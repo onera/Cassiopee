@@ -50,12 +50,20 @@ PyObject* K_OCC::freeHook(PyObject* self, PyObject* args)
   TopTools_IndexedMapOfShape* edges = (TopTools_IndexedMapOfShape*)packet[2];
   TopTools_IndexedMapOfShape* surfaces = (TopTools_IndexedMapOfShape*)packet[1];
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
+  char* fileName = (char*)packet[3];
+  char* fileFmt = (char*)packet[4];
+  
   delete shp;
   delete edges;
   delete surfaces;
+  delete [] fileName;
+  delete [] fileFmt;
+
   packet[0] = NULL;
   packet[1] = NULL;
   packet[2] = NULL;
+  packet[3] = NULL;
+  packet[4] = NULL;
 
   Py_INCREF(Py_None);
   return Py_None;

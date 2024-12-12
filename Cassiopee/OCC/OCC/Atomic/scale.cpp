@@ -26,13 +26,14 @@
 #include "BRepBuilderAPI_Transform.hxx"
 
 //=====================================================================
-// Translate the full shape or some faces
-// from vector
+// scale the full shape or some faces
+// from a constant scale factor
 //=====================================================================
 PyObject* K_OCC::scale(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Float factor; E_Float x0, y0, z0;
-  if (!PYPARSETUPLE_(args, O_ R_ TRRR_, &hook, &factor, &x0, &y0, &z0)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_ TRRR_, &hook, &factor, 
+    &x0, &y0, &z0)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -46,7 +47,7 @@ PyObject* K_OCC::scale(PyObject* self, PyObject* args)
   // idem scale
   gp_Trsf myTrsf;
   myTrsf.SetScale(gp_Pnt(x0, y0, z0), factor);
-
+  
   BRepBuilderAPI_Transform myTransform(*shp, myTrsf);
   TopoDS_Shape tShape = myTransform.Shape();
 

@@ -412,7 +412,8 @@ E_Int __getParamHmaxHausd(const TopoDS_Edge& E, E_Float hmax, E_Float hausd, E_I
 }
 
 // ============================================================================
-// Return the nbPoints and ue for meshing E with hmin/hmax/hausd 
+// Return the nbPoints and ue for meshing E with hmin/hmax/hausd evaluated
+// only on edge
 // using geometric progression between points
 // ============================================================================
 E_Int __getParamHminHmaxHausd(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, E_Float hausd, E_Int& nbPoints, E_Float*& ue)
@@ -521,8 +522,185 @@ E_Int __getParamHminHmaxHausd(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, 
   return 1;
 }
 
+// ============================================================================
+// Return the nbPoints and ue for meshing E with hmin/hmax/hausd evaluated
+// only on edge using linear evaluation between points
+// ============================================================================
+E_Int __getParamHminHmaxHausd4(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, E_Float hausd, E_Int& nbPoints, E_Float*& ue)
+{
+  BRepAdaptor_Curve C0(E);
+  GeomAdaptor_Curve geomAdap(C0.Curve());
+  Standard_Real u0 = geomAdap.FirstParameter();
+  Standard_Real u1 = geomAdap.LastParameter();
+  if (BRep_Tool::Degenerated(E))
+  { 
+    nbPoints = 2;
+    ue = new E_Float [nbPoints];
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
+    return 1; 
+  }
+  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
+  L = K_FUNC::E_max(L, 1.e-12);
+  
+  // Compute local h
+  Handle(Geom_Curve) curve;
+  Standard_Real first, last;
+  curve = BRep_Tool::Curve(E, first, last);
+  gp_Pnt point;
+  gp_Vec dE, d2E;
+  E_Float U, dE1, dE2, dE3, d2E1, d2E2, d2E3;
+  E_Float t1, t2, t3, a, b, rho;
+
+  E_Int npts = 5;
+  std::vector<E_Float> Us(npts);
+  for (E_Int i = 0; i < npts; i++) 
+  {
+    Us[i] = u0+(i/(npts-1.))*(u1-u0);
+    //GCPnts_AbscissaPoint Pt(1.e-10, geomAdap, i*L/(npts-1.), u0);
+    //Us[i] = Pt.Parameter();
+  }
+  std::vector<E_Float> h(npts);
+
+  for (E_Int i = 0; i < npts; i++)
+  {
+    U = Us[i];
+    // Compute the derivatives
+    curve->D2(U, point, dE, d2E);
+  
+    // compute curvature
+    dE1 = dE.X();
+    dE2 = dE.Y();
+    dE3 = dE.Z();
+    d2E1 = d2E.X();
+    d2E2 = d2E.Y();
+    d2E3 = d2E.Z();
+    t1 = dE2*d2E3-dE3*d2E2;
+    t2 = dE3*d2E1-dE1*d2E3;
+    t3 = dE1*d2E2-dE2*d2E1;
+  
+    a = t1*t1+t2*t2+t3*t3;
+    a = std::sqrt(a);
+    b = d2E1*d2E1+d2E2*d2E2+d2E3*d2E3;
+    b = std::pow(b, 3./2.);
+    if (a > 1.e-12) rho = b / a;
+    else rho = 1.e12;
+
+    // Compute local h
+    h[i] = std::sqrt(8.*hausd*rho);
+    h[i] = K_FUNC::E_min(h[i], hmax);
+    h[i] = K_FUNC::E_max(h[i], hmin);
+    //printf("rho=%g h=%g, h=%g\n", rho, std::sqrt(8.*hausd*rho), h[i]);
+  }
+
+  printf("hi dimensioned= ");
+  for (E_Int i = 0; i < npts; i++) 
+  { printf("%g ", h[i]); }
+  printf("\n");
+
+  for (E_Int i = 0; i < npts; i++)
+  {
+    // passage en parametres
+    h[i] = h[i]/L;
+  }
+
+  //printf("h parameter= ");
+  //for (E_Int i = 0; i < npts; i++)
+  //{ printf("%g ", h[i]); }
+  //printf("\n");
+
+  // compute integral of h dxsi
+  E_Float h1, h2, Nf, res, xi, r;
+  E_Int N, i0, i1;
+  E_Float dxi = 1./(npts-1);
+
+  E_Float integ = 0.;
+  for (E_Int i = 0; i < npts-1; i++)
+  {
+    h1 = h[i]; h2 = h[i+1];
+    integ += dxi*(h1+h2)*0.5; // mid
+  }
+  //printf("integ=%g\n", integ);
+
+  Nf = 1./integ;
+  N = std::rint(Nf);
+  N = std::max(N, E_Int(2));
+
+  printf("N= %d, Nf = %g\n", N, Nf);
+
+  // scale h to match N
+  res = Nf/N;
+  if (std::abs(res) > 1.e-10)
+  {
+    for (E_Int i = 0; i < npts; i++) h[i] = h[i]*res;
+  }
+
+  // DBX
+  /*
+  integ = 0.;
+  for (E_Int i = 0; i < npts-1; i++)
+  {
+    h1 = h[i]; h2 = h[i+1];
+    integ += dxi*(h1+h2)*0.5; // mid
+  }
+  Nf = 1./integ+1.;
+  printf("Nf after rescale=%g\n", Nf);
+  */
+  // END DBX
+
+  // get linear interpolation of h on new discretization
+  std::vector<E_Float> hn(N);
+  dxi = 1./(N-1);
+  for (E_Int j = 0; j < N; j++)
+  {
+    xi = j*dxi;
+    i0 = xi*(npts-1);
+    i1 = std::min(i0+1, npts-1); 
+    r = xi-i0/(npts-1);
+    hn[j] = (1.-r)*h[i0]+r*h[i1];
+  }
+
+  printf("hn remesh\n");
+  for (E_Int i = 0; i < N; i++)
+  { printf("%g ", hn[i]); }
+  printf("\n");
+
+  // for each point, get x
+  ue = new E_Float [N];
+  
+  ue[0] = 0.;
+  for (E_Int j = 1; j < N; j++)
+  {
+    ue[j] = ue[j-1] + N*hn[j]*dxi;
+  }
+
+  if (std::abs(ue[N-1]-1.) > 1.e-10)
+  {
+    // rescale
+    res = 1./ue[N-1];
+    for (E_Int j = 1; j < N; j++)
+    {
+      ue[j] = ue[j]*res;
+    }
+  }
+
+  printf("ue end\n");
+  for (E_Int i = 0; i < N; i++)
+  { printf("%g ", ue[i]); }
+  printf("\n");
+
+  for (E_Int j = 0; j < N; j++)
+  {
+    //ue[j] = ue[j]*(u1-u0)+ u0;
+    GCPnts_AbscissaPoint Pt(1.e-10, geomAdap, ue[j]*L, u0);
+    ue[j] = Pt.Parameter();
+  }
+  nbPoints = N;
+  return 1;
+}
+
 // ===============================================================================
-// Return the nbPoints and ue for meshing E with hmin/hmax/hausd with max of faces
+// Return the nbPoints and ue for meshing E with hmin/hmax/hausd evaluated  
+// as max of faces using geometric progression between points
 // ===============================================================================
 E_Int __getParamHminHmaxHausd2(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, E_Float hausd, E_Int& nbPoints, E_Float*& ue,
   TopoDS_Shape* shape)
@@ -774,8 +952,8 @@ E_Int __getParamHminHmaxHausd2(const TopoDS_Edge& E, E_Float hmin, E_Float hmax,
 }
 
 // ===============================================================================
-// Return the nbPoints and ue for meshing E with hmin/hmax/hausd with max of faces
-// new in between points evaluation
+// Return the nbPoints and ue for meshing E with hmin/hmax/hausd evaluated 
+// as max of faces using linear between points evaluation
 // ===============================================================================
 E_Int __getParamHminHmaxHausd3(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, E_Float hausd, E_Int& nbPoints, E_Float*& ue,
   TopoDS_Shape* shape)
@@ -800,19 +978,18 @@ E_Int __getParamHminHmaxHausd3(const TopoDS_Edge& E, E_Float hmin, E_Float hmax,
   L = K_FUNC::E_max(L, 1.e-12);
 
   gp_Pnt2d Puv;
-  E_Float u,v;
-  E_Float ues; 
-  Standard_Real aFirst = C0.FirstParameter(), aEnd=C0.LastParameter();
+  E_Float u,v, ues;
+  Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
   //printf("afirst=%g aend=%g\n", aFirst, aEnd);
-  Standard_Real pFirst = aFirst, pEnd=aEnd;
+  Standard_Real pFirst=aFirst, pEnd=aEnd;
   
   gp_Pnt point;
   gp_Vec DU1, DV1, DU2, DV2, DUV;
   E_Float rho, hh, K1, K2;
 
-  E_Int npts = 3; // number of evaluation points
+  E_Int npts = 20; // number of evaluation points
   std::vector<E_Float> Us(npts);
-  for (E_Int i = 0; i < npts; i++) Us[i] = i/(npts-1.);
+  for (E_Int i = 0; i < npts; i++)  { Us[i] = i/(npts-1.); }
   //Us[0] = Us[0]+0.001*(Us[1]-Us[0]);
   //Us[npts-1] = Us[npts-1]-0.001*(Us[npts-1]-Us[npts-2]);
   
@@ -836,7 +1013,11 @@ E_Int __getParamHminHmaxHausd3(const TopoDS_Edge& E, E_Float hmin, E_Float hmax,
     // estimate at some points
     for (E_Int i = 0; i < npts; i++)
     {
-      ues = Us[i]*(pEnd-pFirst)+pFirst;
+      //ues = Us[i]*(pEnd-pFirst)+pFirst;
+      GCPnts_AbscissaPoint Pt(1.e-10, geomAdap, Us[i]*L, u0);
+      ues = Pt.Parameter();
+      C0.D0(ues, point);
+      printf("param=%g, %g %g %g\n", ues, point.X(), point.Y(), point.Z());
 
       pCurve->D0(ues, Puv);
       u = Puv.X(); v = Puv.Y(); // u,v edge on surface
@@ -963,10 +1144,11 @@ E_Int __getParamHminHmaxHausd3(const TopoDS_Edge& E, E_Float hmin, E_Float hmax,
     }
   }
 
-  //printf("hi dimensioned= ");
-  //for (E_Int i = 0; i < npts; i++) 
-  //{ printf("%g ", h[i]); }
-  //printf("\n");
+  printf("Length = %g\n", L);
+  printf("hi dimensioned= ");
+  for (E_Int i = 0; i < npts; i++) 
+  { printf("%g ", h[i]); }
+  printf("\n");
 
   for (E_Int i = 0; i < npts; i++)
   {
@@ -990,13 +1172,13 @@ E_Int __getParamHminHmaxHausd3(const TopoDS_Edge& E, E_Float hmin, E_Float hmax,
     h1 = h[i]; h2 = h[i+1];
     integ += dxi*(h1+h2)*0.5; // mid
   }
-  //printf("integ=%g\n", integ);
+  printf("integ=%g\n", integ);
 
   Nf = 1./integ;
   N = std::rint(Nf);
   N = std::max(N, E_Int(2));
 
-  //printf("N= %d, Nf = %g\n", N, Nf);
+  printf("N= %d, Nf = %g\n", N, Nf);
 
   // scale h to match N
   res = Nf/N;
@@ -1030,10 +1212,10 @@ E_Int __getParamHminHmaxHausd3(const TopoDS_Edge& E, E_Float hmin, E_Float hmax,
     hn[j] = (1.-r)*h[i0]+r*h[i1];
   }
 
-  //printf("hn remesh\n");
-  //for (E_Int i = 0; i < N; i++)
-  //{ printf("%g ", hn[i]); }
-  //printf("\n");
+  printf("hn remesh\n");
+  for (E_Int i = 0; i < N; i++)
+  { printf("%g ", hn[i]); }
+  printf("\n");
 
   // for each point, get x
   ue = new E_Float [N];
@@ -1061,8 +1243,211 @@ E_Int __getParamHminHmaxHausd3(const TopoDS_Edge& E, E_Float hmin, E_Float hmax,
 
   for (E_Int j = 0; j < N; j++)
   {
-    ue[j] = ue[j]*(aEnd-aFirst)+ aFirst;
+    //ue[j] = ue[j]*(aEnd-aFirst)+ aFirst;
+    GCPnts_AbscissaPoint Pt(1.e-10, geomAdap, ue[j]*L, u0);
+    ue[j] = Pt.Parameter();
   }
+  nbPoints = N;
+  return 1;
+}
+
+// ===============================================================================
+// Return the nbPoints and ue for meshing E with hmin/hmax/hausd evaluated 
+// as max of faces using progressive walk
+// ===============================================================================
+E_Int __getParamHminHmaxHausd5(const TopoDS_Edge& E, E_Float hmin, E_Float hmax, E_Float hausd, E_Int& nbPoints, E_Float*& ue,
+  TopoDS_Shape* shape)
+{
+  TopTools_IndexedDataMapOfShapeListOfShape edgeFaceMap;
+  TopExp::MapShapesAndAncestors(*shape, TopAbs_EDGE, TopAbs_FACE, edgeFaceMap);
+
+  BRepAdaptor_Curve C0(E);
+  GeomAdaptor_Curve geomAdap(C0.Curve());
+  Standard_Real u0 = geomAdap.FirstParameter();
+  Standard_Real u1 = geomAdap.LastParameter();
+  //printf("===============edge =========================\n");
+  //printf("u0=%g u1=%g\n", u0, u1);
+  if (BRep_Tool::Degenerated(E))
+  { 
+    nbPoints = 2;
+    ue = new E_Float [nbPoints];
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
+    return 1; 
+  }
+  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
+  L = K_FUNC::E_max(L, 1.e-12);
+
+  gp_Pnt2d Puv;
+  E_Float u,v, ues;
+  Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
+  //printf("afirst=%g aend=%g\n", aFirst, aEnd);
+  Standard_Real pFirst=aFirst, pEnd=aEnd;
+  
+  gp_Pnt point;
+  gp_Vec DU1, DV1, DU2, DV2, DUV;
+  E_Float rho, hh, K1, K2, h;
+  
+  E_Float Ltot = 0.;
+  E_Int N = 0;
+  ue = new E_Float [1000];
+
+  while (Ltot < L)
+  {
+    h = K_CONST::E_MAX_FLOAT;
+
+    GCPnts_AbscissaPoint Pt(1.e-10, geomAdap, Ltot, u0);
+    ues = Pt.Parameter();
+    ue[N] = ues;
+
+    // Find faces of E
+    const TopTools_ListOfShape& connectedFaces = edgeFaceMap.FindFromKey(E);
+    for (TopTools_ListIteratorOfListOfShape it(connectedFaces); it.More(); it.Next()) 
+    {
+      const TopoDS_Face& F = TopoDS::Face(it.Value());
+      Handle(Geom_Surface) surface = BRep_Tool::Surface(F);
+    
+      Standard_Real BU1, BU2, BV1, BV2; surface->Bounds(BU1, BU2, BV1, BV2);
+
+      // p curve on F
+      Handle(Geom2d_Curve) pCurve = BRep_Tool::CurveOnSurface(E, F, pFirst, pEnd);
+      
+      //C0.D0(ues, point);
+      //printf("param=%g, %g %g %g\n", ues, point.X(), point.Y(), point.Z());
+
+      pCurve->D0(ues, Puv);
+      u = Puv.X(); v = Puv.Y(); // u,v edge on surface
+      if (u <= BU1) u = BU1+1.e-1;
+      if (u >= BU2) u = BU2-1.e-1;
+      if (v <= BV1) v = BV1+1.e-1;
+      if (v >= BV2) v = BV2-1.e-1;
+
+// must be MINE (0) or OCC (1)
+#define CURVATURE 1
+#if CURVATURE == 0
+      E_Float nx, ny, nz, n2;
+      E_Float G11, G12, G21, G22, detG;
+      E_Float M11, M12, M21, M22, detM;
+      E_Float det, S11, S12, S21, S22, Mi11, Mi21, Mi12, Mi22, detS;
+
+      //printf("surf: u=%g, v=%g\n", u, v);
+      // estimer les derivees sur la surface
+      surface->D2(u, v, point, DU1, DV1, DU2, DV2, DUV);
+      //printf("point=%g %g %g\n", point.X(), point.Y(), point.Z());
+      //printf("dU1=%g %g %g\n", DU1.X(), DU1.Y(), DU1.Z());
+      //printf("dV1=%g %g %g\n", DV1.X(), DV1.Y(), DV1.Z());
+      
+      // get normal
+      nx = DU1.Y()*DV1.Z()-DU1.Z()*DV1.Y();
+      ny = DU1.Z()*DV1.X()-DU1.X()*DV1.Z();
+      nz = DU1.X()*DV1.Y()-DU1.Y()*DV1.X();
+      n2 = nx*nx+ny*ny+nz*nz;
+      n2 = std::sqrt(n2);
+      if (n2 < 1.e-24) n2 = 1.e12;
+      else n2 = 1./n2;
+      nx = nx*n2;
+      ny = ny*n2;
+      nz = nz*n2;
+      //printf("normale= %g %g %g norm=%g\n", nx, ny, nz, nx*nx+ny*ny+nz*nz);
+
+      // Metric
+      M11 = DU1.X()*DU1.X()+DU1.Y()*DU1.Y()+DU1.Z()*DU1.Z();
+      M22 = DV1.X()*DV1.X()+DV1.Y()*DV1.Y()+DV1.Z()*DV1.Z();
+      M12 = M21 = DU1.X()*DV1.X()+DU1.Y()*DV1.Y()+DU1.Z()*DV1.Z();
+      //printf("matrice M:\n");
+      //printf("  %g %g\n", M11, M12);
+      //printf("  %g %g\n", M21, M22);
+
+      detM = M11*M22-M12*M21;
+      if (std::abs(detM) < 1.e-12) det = 1.e12; // invalid metric
+      else det = 1./detM;
+      Mi11 = det*M22;
+      Mi21 = -det*M21;
+      Mi12 = -det*M12;
+      Mi22 = det*M11;
+      detM = std::abs(detM);
+      //printf("detM=%g\n", detM);
+
+      // matrice de courbure
+      G11 = DU2.X()*nx+DU2.Y()*ny+DU2.Z()*nz;
+      G22 = DV2.X()*nx+DV2.Y()*ny+DV2.Z()*nz;
+      G12 = G21 = DUV.X()*nx+DUV.Y()*ny+DUV.Z()*nz;
+      detG = G11*G22-G12*G21;
+      detG = std::abs(detG);
+      
+      S11 = G11*Mi11 + G12*Mi21;
+      S12 = G11*Mi12 + G12*Mi22;
+      S21 = G21*Mi11 + G22*Mi21;
+      S22 = G21*Mi12 + G22*Mi22;
+      
+      detS = S11*S22-S12*S21;
+      //printf("dU2=%g %g %g\n", DU2.X(), DU2.Y(), DU2.Z());
+      //printf("dV2=%g %g %g\n", DV2.X(), DV2.Y(), DV2.Z());
+      //printf("dUV=%g %g %g\n", DUV.X(), DUV.Y(), DUV.Z());
+      //printf("detG=%g\n", detG);
+
+      // courbure de gauss - rayon K1*K2
+      //if (detS > 1.e-12) rho = 1./detS;
+      //else rho = 1.e12;
+      //printf("gauss=%g ou bien %g\n", detG/detM, detS);
+
+      // K1 et K2
+      //printf("matrice G:\n");
+      //printf("  %g %g\n", G11, G12);
+      //printf("  %g %g\n", G21, G22);
+      
+      K_LINEAR::DelaunayMath sl;
+      sl.eigen_values(S11, S22, S12, K2, K1);
+      //printf("K1=%g K2=%g K1K2=%g\n", K1, K2, K1*K2);
+      //printf("mean=%g\n", 0.5*(S11+S22));
+
+      rho = K_FUNC::E_max(std::abs(K1), std::abs(K2));
+      if (rho > 1.e-12) rho = 1./rho;
+      else rho = 1.e12;
+
+#else
+      // with open cascade
+      GeomLProp_SLProps props(surface, u, v, 2, Precision::Confusion());
+
+      if (props.IsCurvatureDefined()) 
+      {
+        Standard_Real gaussianCurvature = props.GaussianCurvature();
+        Standard_Real meanCurvature = props.MeanCurvature();
+
+        //std::cout << "OCC: gauss: " << gaussianCurvature << std::endl;
+        //std::cout << "OCC: mean: " << meanCurvature << std::endl;
+
+        // Principal curvatures
+        K1 = meanCurvature + sqrt(meanCurvature * meanCurvature - gaussianCurvature);
+        K2 = meanCurvature - sqrt(meanCurvature * meanCurvature - gaussianCurvature);
+        //std::cout << "OCC: k1: " << K1 << " k2: " <<K2 << std::endl;
+        rho = K_FUNC::E_max(std::abs(K1), std::abs(K2));
+        if (rho > 1.e-12) rho = 1./rho;
+        else rho = 1.e12;
+      } 
+      else 
+      {
+        rho = 1.e12;
+        //std::cout << "OCC: Curvature is not defined at the given parameters." << std::endl;
+      }
+#endif
+
+      hh = std::sqrt(8.*hausd*rho);
+      hh = K_FUNC::E_min(hh, hmax);
+      hh = K_FUNC::E_max(hh, hmin);
+      //printf("rho=%g h=%g, h=%g\n", rho, std::sqrt(1.*hausd*rho), hh);
+      h = K_FUNC::E_min(h, hh);
+    }
+    Ltot += h; N += 1;
+  }
+
+  printf("N= %d\n", N);
+  for (E_Int i = 0; i < N; i++) printf("%g ", ue[i]);
+  printf("\n");
+
+  // scale ue to match u0, u1 exactly
+  
+  
+  
   nbPoints = N;
   return 1;
 }
@@ -1077,8 +1462,18 @@ E_Int __getParamExt(const TopoDS_Edge& E, E_Int nbPoints, E_Float* uext, E_Float
   Standard_Real u0 = geomAdap.FirstParameter();
   Standard_Real u1 = geomAdap.LastParameter();
   ue = new E_Float [nbPoints];
-  for (E_Int i = 0; i < nbPoints; i++) ue[i] = uext[i]*(u1-u0)+u0;
-  //for (E_Int i = 0; i < nbPoints; i++) printf("%d : %f %f\n", i, ue[i], uext[i]);
+  //for (E_Int i = 0; i < nbPoints; i++) ue[i] = uext[i]*(u1-u0)+u0;
+  
+  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
+  E_Float abscissa;
+  for (E_Int i = 0; i < nbPoints; i++)
+  {
+    abscissa = uext[i]*L;
+    GCPnts_AbscissaPoint Pt(1.e-10, geomAdap, abscissa, u0);
+    ue[i] = Pt.Parameter();
+  }
+  //for (E_Int i = 0; i < nbPoints; i++) printf("ue: %d : %f %f\n", i, ue[i], uext[i]);
+  
   return 0;
 }
 
@@ -1266,6 +1661,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
     // courbure sur le max des faces
     //__getParamHminHmaxHausd2(E, hmin, hmax, hausd, nbPoints, ue, shape);
     __getParamHminHmaxHausd3(E, hmin, hmax, hausd, nbPoints, ue, shape);
+    //__getParamHminHmaxHausd4(E, hmin, hmax, hausd, nbPoints, ue);
+    
     PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
     FldArrayF* f; K_ARRAY::getFromArray2(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
