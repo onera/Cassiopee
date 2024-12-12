@@ -481,6 +481,10 @@ def writeSetupCfg():
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=unix\n')
         p.close()
+    elif Cppcompiler == 'clang' or Cppcompiler == 'clang++':
+        p = open("./setup.cfg", 'w')
+        p.write('[build_ext]\ncompiler=unix\n')
+        p.close()
     else:
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=%s\n'%Cppcompiler)
@@ -1019,16 +1023,14 @@ def getForArgs():
             options += ['-large-address-aware']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-fdefault-integer-8']
+        #options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     elif f77compiler == "ifort":
-        if DEBUG:
-            options += ['-g', '-O0', '-CB', '-traceback', '-fpe0']
+        if DEBUG: options += ['-g', '-O0', '-CB', '-traceback', '-fpe0']
         else: options += ['-O3']
         v = getForVersion()
-        if v[0] < 15:
-            options += ['-fp-speculation=strict']
-        else:
-            options += ['-fp-model=precise']
+        if v[0] < 15: options += ['-fp-speculation=strict']
+        else: options += ['-fp-model=precise']
         if useOMP() == 1:
             v = getForVersion()
             if v[0] < 15: options += ['-openmp']
@@ -1037,6 +1039,7 @@ def getForArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
+        #options += ['-r8']
         return options
     elif f77compiler == "ifx":
         if DEBUG: options += ['-g', '-O0', '-CB', '-fpe0']
@@ -1047,6 +1050,7 @@ def getForArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
+        #options += ['-r8']
         return options
     elif f77compiler == "pgfortran":
         if useStatic() == 1: options += ['-static']
@@ -1056,6 +1060,7 @@ def getForArgs():
         if useOMP() == 1: options += ['-mp=multicore']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
+        #options += ['-r8']
         return options
     elif f77compiler == "nvfortran":
         if useStatic() == 1: options += ['-static']
@@ -1065,6 +1070,7 @@ def getForArgs():
         if useOMP() == 1: options += ['-mp=multicore']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
+        #options += ['-r8']
         return options
     elif f77compiler == "x86_64-w64-mingw32-gfortran":
         if DEBUG: options += ['-g', '-O0']
@@ -1074,6 +1080,7 @@ def getForArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-fdefault-integer-8']
+        #options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     elif f77compiler == "ifort.exe":
         if useOMP() == 1: return ['/names:lowercase', '/assume:underscore', '/Qopenmp']
@@ -1086,6 +1093,7 @@ def getForArgs():
         if useOMP() == 1: options += ['-fopenmp']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
+        #options += ['-r8']
         return options
     elif f77compiler == "ftn":
         if useStatic() == 1: options += ['-static']
@@ -1095,6 +1103,17 @@ def getForArgs():
         if useOMP() == 1: options += ['-fopenmp']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
+        #options += ['-r8']
+        return options
+    elif f77compiler == "flang":
+        if useStatic() == 1: options += ['-static']
+        else: options += ['-fPIC']
+        if DEBUG: options += ['-g', '-O0']
+        else: options += ['-O3']
+        if useOMP() == 1: options += ['-fopenmp']
+        options += getSimdOptions()
+        if EDOUBLEINT: options += ['-fdefault-integer-8']
+        #options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     else: return options
 
@@ -1130,6 +1149,10 @@ def getLinkArgs():
         else: out += ['-shared']
         if useOMP() == 1: out += ['-fopenmp']
     elif Cppcompiler == 'cc':
+        if useStatic() == 1: out += ['-static']
+        else: out += ['-shared']
+        if useOMP() == 1: out += ['-fopenmp']
+    elif Cppcompiler == 'clang' or Cppcompiler == 'clang++':
         if useStatic() == 1: out += ['-static']
         else: out += ['-shared']
         if useOMP() == 1: out += ['-fopenmp']
@@ -1987,7 +2010,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             else: ret = False
 
     # ifort (ifcore, svml, irc, guide, iomp5)
-    if f77compiler == 'ifort':
+    elif f77compiler == 'ifort':
         l = checkLibFile__('libifcore.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libifcore.a', additionalLibPaths)
@@ -2024,7 +2047,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                 else: ret = False
 
     # ifx (ifcore, svml, irc, guide, iomp5)
-    if f77compiler == 'ifx':
+    elif f77compiler == 'ifx':
         l = checkLibFile__('libifcore.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libifcore.a', additionalLibPaths)
@@ -2061,7 +2084,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                 else: ret = False
 
     # pgfortran
-    if f77compiler == 'pgfortran':
+    elif f77compiler == 'pgfortran':
         l = checkLibFile__('libnvf.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libnvf.a', additionalLibPaths)
@@ -2077,7 +2100,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             else: ret = False
 
     # nvfortran
-    if f77compiler == 'nvfortran':
+    elif f77compiler == 'nvfortran':
         l = checkLibFile__('libnvf.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libnvf.a', additionalLibPaths)
@@ -2093,7 +2116,7 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
             else: ret = False
 
     # crayftn
-    if f77compiler == 'crayftn':
+    elif f77compiler == 'crayftn':
         l = checkLibFile__('libf.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libf.a', additionalLibPaths)
