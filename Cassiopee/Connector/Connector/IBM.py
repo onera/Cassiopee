@@ -1956,7 +1956,8 @@ def _blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
         for body in bodiesInv:
             print('Info: blankByIBCBodies: reverse blanking for body.')
             X._blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
-            C._initVars(t,'{centers:%s}=1-{centers:%s}'%(cellNName,cellNName)) # ecoulement interne
+            if loc == 'centers': C._initVars(t,'{centers:%s}=1-{centers:%s}'%(cellNName,cellNName)) # ecoulement interne
+            else:                C._initVars(t,'{%s}=1-{%s}'%(cellNName,cellNName)) # ecoulement interne
         for body in bodies:
             X._blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
 
