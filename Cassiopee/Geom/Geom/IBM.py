@@ -651,7 +651,10 @@ def localWMMFlags__(tb,tbFilament):
 
     if tbFilament:
         if len(Internal.getBases(tbFilament))==len(Internal.getBases(tb)):
-            isFilamentOnly=True
+            bb1 = Internal.getBases(tb)
+            bb2 = Internal.getBases(tbFilament)
+            if bb1[0][0]==bb2[0][0]:
+                isFilamentOnly=True
         for z in Internal.getZones(tbFilament):
             soldef  = Internal.getNodeFromName(z,'.Solver#define')
             if soldef is not None:
