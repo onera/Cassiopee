@@ -381,23 +381,27 @@ def setPaths():
 
             try: mods = os.listdir(path)
             except: mods = []
-            for i in mods:
-                if i not in notTested and i not in MODULESDIR[loc]:
-                    if loc == 'GLOBAL' and i not in MODULESDIR['LOCAL']:
+            for mod in mods:
+                if mod not in notTested and mod not in MODULESDIR[loc]:
+                    if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
                         # Skip modules which aren't found locally - would hang
                         continue
-                    a = os.access(os.path.join(path, i, 'test'), os.F_OK)
-                    if a: MODULESDIR[loc][i] = path
+                    pathMod = os.path.join(path, mod)
+                    a = os.access(os.path.join(pathMod, 'test'), os.F_OK) # PModules svn
+                    if a: MODULESDIR[loc][mod] = path
+                    else:
+                        a = os.access(os.path.join(pathMod, mod, 'test'), os.F_OK) # PModules git
+                        if a: MODULESDIR[loc][mod] = pathMod
 
         print('Info: getting {} module names in: {}.'.format(
             loc.lower(), cassiopeeIncDir))
         try: mods = os.listdir(cassiopeeIncDir)
         except: mods = []
-        for i in mods:
-            if i not in MODULESDIR[loc]:
-                a = os.access(os.path.join(cassiopeeIncDir, i, 'test'), os.F_OK)
+        for mod in mods:
+            if mod not in MODULESDIR[loc]:
+                a = os.access(os.path.join(cassiopeeIncDir, mod, 'test'), os.F_OK)
                 if a:
-                    MODULESDIR[loc][i] = cassiopeeIncDir
+                    MODULESDIR[loc][mod] = cassiopeeIncDir
 
         # Validation CFD
         MODULESDIR[loc]['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
