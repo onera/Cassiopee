@@ -1023,7 +1023,7 @@ def getForArgs():
             options += ['-large-address-aware']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-fdefault-integer-8']
-        #options += ['-fdefault-real-8', '-fdefault-double-8']
+        options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     elif f77compiler == "ifort":
         if DEBUG: options += ['-g', '-O0', '-CB', '-traceback', '-fpe0']
@@ -1039,7 +1039,7 @@ def getForArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
-        #options += ['-r8']
+        options += ['-r8']
         return options
     elif f77compiler == "ifx":
         if DEBUG: options += ['-g', '-O0', '-CB', '-fpe0']
@@ -1050,7 +1050,7 @@ def getForArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
-        #options += ['-r8']
+        options += ['-r8']
         return options
     elif f77compiler == "pgfortran":
         if useStatic() == 1: options += ['-static']
@@ -1060,7 +1060,7 @@ def getForArgs():
         if useOMP() == 1: options += ['-mp=multicore']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
-        #options += ['-r8']
+        options += ['-r8']
         return options
     elif f77compiler == "nvfortran":
         if useStatic() == 1: options += ['-static']
@@ -1070,7 +1070,7 @@ def getForArgs():
         if useOMP() == 1: options += ['-mp=multicore']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
-        #options += ['-r8']
+        options += ['-r8']
         return options
     elif f77compiler == "x86_64-w64-mingw32-gfortran":
         if DEBUG: options += ['-g', '-O0']
@@ -1080,7 +1080,7 @@ def getForArgs():
         else: options += ['-fPIC']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-fdefault-integer-8']
-        #options += ['-fdefault-real-8', '-fdefault-double-8']
+        options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     elif f77compiler == "ifort.exe":
         if useOMP() == 1: return ['/names:lowercase', '/assume:underscore', '/Qopenmp']
@@ -1093,7 +1093,7 @@ def getForArgs():
         if useOMP() == 1: options += ['-fopenmp']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
-        #options += ['-r8']
+        options += ['-r8']
         return options
     elif f77compiler == "ftn":
         if useStatic() == 1: options += ['-static']
@@ -1103,7 +1103,7 @@ def getForArgs():
         if useOMP() == 1: options += ['-fopenmp']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-i8']
-        #options += ['-r8']
+        options += ['-r8']
         return options
     elif f77compiler == "flang":
         if useStatic() == 1: options += ['-static']
@@ -1113,7 +1113,7 @@ def getForArgs():
         if useOMP() == 1: options += ['-fopenmp']
         options += getSimdOptions()
         if EDOUBLEINT: options += ['-fdefault-integer-8']
-        #options += ['-fdefault-real-8', '-fdefault-double-8']
+        options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     else: return options
 
