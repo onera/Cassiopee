@@ -30,7 +30,7 @@ def readCAD(event=None):
     [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     if hmax is None or (hmax < 0 and hausd < 0):
         (hmax,hmin,hausd) = OCC.occ.analyseEdges(hook)
-    OCC._setCADcontainer(CTK.t, fileName, fileFmt, hmax, hausd)
+    OCC._setCADcontainer(CTK.t, fileName, fileFmt, hmin, hmax, hausd)
     CTK.CADHOOK = hook
     # remesh and redisplay
     CTK.setCursor(2, WIDGETS['frame'])
@@ -410,15 +410,16 @@ def checkWatertight(event=None):
     if CAD is not None:
         hmax = Internal.getNodeFromName1(CAD, 'hmax')
         hmax = Internal.getValue(hmax)
-        tol = hmax/10.
+        tol = hmax/100.
 
     CTK.t = C.addBase2PyTree(CTK.t, 'LEAKS', 1)
     p = Internal.getNodeFromName1(CTK.t, 'LEAKS')
     gnob = C.getNobOfBase(p, CTK.t)
 
     f = Internal.getZones(b)
+    f = G.zip(f, tol)
     f = T.join(f)
-    f = G.close(f, tol)
+    #f = G.close(f, tol)
     ef = T.splitConnexity(f)
     VARS[6].set('Components: %d'%(len(ef)))
 
