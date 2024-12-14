@@ -137,16 +137,12 @@ def createSurfaceProbes(tb, surface_in, probeSurfaceList):
 
     ts = Internal.merge(surfaces)
 
-    if Cmpi.rank == 0:
-        C.convertPyTree2File(ts, surface_in)
-
     if Cmpi.size > 1:
         for b in Internal.getBases(ts):
             T._splitNParts(b, Cmpi.size)
             D2._distribute(b, Cmpi.size)
 
-    if Cmpi.rank == 0:
-        C.convertPyTree2File(ts, surface_in)
+    if Cmpi.rank == 0: C.convertPyTree2File(ts, surface_in)
 
     Cmpi.barrier()
 
