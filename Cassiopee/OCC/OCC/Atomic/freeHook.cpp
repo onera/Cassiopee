@@ -29,7 +29,7 @@
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
 #include "BRep_Builder.hxx"
-
+#include "TDocStd_Document.hxx"
 
 //=====================================================================
 // Split shape by max area
@@ -52,18 +52,21 @@ PyObject* K_OCC::freeHook(PyObject* self, PyObject* args)
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
   char* fileName = (char*)packet[3];
   char* fileFmt = (char*)packet[4];
-  
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+
   delete shp;
   delete edges;
   delete surfaces;
   delete [] fileName;
   delete [] fileFmt;
+  //delete doc; // can i free it? not sure
 
   packet[0] = NULL;
   packet[1] = NULL;
   packet[2] = NULL;
   packet[3] = NULL;
   packet[4] = NULL;
+  packet[5] = NULL;
 
   Py_INCREF(Py_None);
   return Py_None;

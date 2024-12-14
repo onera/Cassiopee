@@ -939,7 +939,6 @@ E_Int __getParamHminHmaxHausdF5(const TopoDS_Edge& E, E_Float hmin, E_Float hmax
     }
   }
 
-
   // smooth hi
   /*
   for (E_Int i = 0; i < N-1; i++)

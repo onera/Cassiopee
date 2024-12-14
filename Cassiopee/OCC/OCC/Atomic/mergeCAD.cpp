@@ -23,6 +23,7 @@
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
 #include "BRep_Builder.hxx"
+#include "TDocStd_Document.hxx"
 
 // ============================================================================
 /* Merge two CAD hooks in a single hook 
@@ -72,7 +73,7 @@ PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
 
   // capsule 
   PyObject* hook;
-  E_Int sizePacket = 5;
+  E_Int sizePacket = 6;
   void** packet = new void* [sizePacket];
   packet[0] = newshp;
 
@@ -99,6 +100,8 @@ PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
   char* fileFmtC = new char [l+1];
   strcpy(fileFmtC, fileFmt);
   packet[4] = fileFmtC;
+  TDocStd_Document* doc = (TDocStd_Document*)packet2[5]; // todo: must merge document
+  packet[5] = doc;
 
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);

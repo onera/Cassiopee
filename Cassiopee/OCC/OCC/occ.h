@@ -33,6 +33,9 @@ namespace K_OCC
   PyObject* mergeCAD(PyObject* self, PyObject* args);
   PyObject* freeHook(PyObject* self, PyObject* args);
 
+  PyObject* printOCAF(PyObject* self, PyObject* args);
+  PyObject* printShapeOCAF(PyObject* self, PyObject* args);
+
   PyObject* bottle(PyObject* self, PyObject* args);
   PyObject* addSphere(PyObject* self, PyObject* args);
   PyObject* addSquare(PyObject* self, PyObject* args);
