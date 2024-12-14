@@ -45,8 +45,8 @@ def createPointProbes(probe_in, probePointsList):
     if Cmpi.rank == 0: C.convertPyTree2File(probe, probe_in)
 
     Cmpi.barrier()
-    
-    return None 
+
+    return None
 
 def initPointProbes(t, probe_in, fields, bufferSize=100, append=False, historyDirectory='.'):
     if isinstance(probe_in, str): probes = C.convertFile2PyTree(probe_in)
@@ -71,7 +71,7 @@ def initPointProbes(t, probe_in, fields, bufferSize=100, append=False, historyDi
         filename = "probe_{:s}.cgns".format(pname)
         filename = os.path.join(historyDirectory, filename)
 
-        probe = Probe.Probe(filename, t, X=point, fields=fields, bufferSize=bufferSize, append=append) 
+        probe = Probe.Probe(filename, t, X=point, fields=fields, bufferSize=bufferSize, append=append)
         dictOfProbes[pname] = probe
 
     if 'centers:Mach' in fields: C._rmVars(t, ['centers:Mach'])
@@ -85,16 +85,16 @@ def _updatePointProbes(t, dictOfProbes, it, fields):
     fields = ['centers:'+fname for fname in fields if 'centers' not in fname] #extraction from cell-centered t
 
     if 'centers:Mach' in fields: P._computeVariables(t, ['centers:Mach'])
-    if 'centers:Pressure' in fields: P._computeVariables(t, ['centers:Pressure'])    
+    if 'centers:Pressure' in fields: P._computeVariables(t, ['centers:Pressure'])
 
     for name, probe in dictOfProbes.items():
         probe.extract(t, time=it)
 
     if 'centers:Mach' in fields: C._rmVars(t, ['centers:Mach'])
     if 'centers:Pressure' in fields: C._rmVars(t, ['centers:Pressure'])
-   
+
     Cmpi.barrier()
-    
+
     return None
 
 ###############
@@ -139,7 +139,7 @@ def createSurfaceProbes(tb, surface_in, probeSurfaceList):
 
     if Cmpi.rank == 0:
         C.convertPyTree2File(ts, surface_in)
-    
+
     if Cmpi.size > 1:
         for b in Internal.getBases(ts):
             T._splitNParts(b, Cmpi.size)
@@ -153,7 +153,7 @@ def createSurfaceProbes(tb, surface_in, probeSurfaceList):
     return None
 
 def initSurfaceProbes(t, tc, surface_in, fields, bufferSize=100, historyDirectory='.'):
-    if isinstance(surface_in, str): 
+    if isinstance(surface_in, str):
         if Cmpi.size > 1: probes = Cmpi.convertFile2PyTree(surface_in, proc=Cmpi.rank)
         else: probes = C.convertFile2PyTree(surface_in)
     else: probes = Internal.copyTree(surface_in)
@@ -162,7 +162,7 @@ def initSurfaceProbes(t, tc, surface_in, fields, bufferSize=100, historyDirector
 
     if 'Mach' in fields: P._computeVariables(t, ['centers:Mach'])
     if 'Pressure' in fields: P._computeVariables(t, ['centers:Pressure'])
-    
+
     tcs = Internal.rmNodesFromType(tc, 'ZoneSubRegion_t')
     if Cmpi.size <= 1: Cmpi._setProc(tcs, 0) # Security for Probe functions
     for var in fields+['cellN']: C._cpVars(t, 'centers:'+var, tcs, var)
@@ -185,11 +185,11 @@ def initSurfaceProbes(t, tc, surface_in, fields, bufferSize=100, historyDirector
 
 def _updateSurfaceProbes(t, dictOfProbes, fields):
     if 'Mach' in fields: P._computeVariables(t, ['centers:Mach'])
-    if 'Pressure' in fields: P._computeVariables(t, ['centers:Pressure'])    
+    if 'Pressure' in fields: P._computeVariables(t, ['centers:Pressure'])
 
     for key in dictOfProbes:
         probe, tbs_loc, tcs_loc = dictOfProbes[key]
-        for var in fields: 
+        for var in fields:
             C._cpVars(t, 'centers:'+var, tcs_loc, var)
             C._initVars(tbs_loc, var, 1)
 
@@ -197,9 +197,9 @@ def _updateSurfaceProbes(t, dictOfProbes, fields):
 
     if 'Mach' in fields: C._rmVars(t, ['centers:Mach'])
     if 'Pressure' in fields: C._rmVars(t, ['centers:Pressure'])
-   
+
     Cmpi.barrier()
-    
+
     return None
 
 def getMassflow(t):
