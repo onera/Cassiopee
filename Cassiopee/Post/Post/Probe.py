@@ -78,11 +78,14 @@ class Probe:
         self.init0()
         self._bsize = bufferSize
         self._fileName = fileName
-        self._fields = fields
         self._coords = writeCoords
         self._append = append
-        if fields is not None: loc = self.getFieldLoc(fields)
-        else: loc = None
+        if fields is not None:
+            self._fields = list(fields)
+            loc = self.getFieldLoc(fields)
+        else:
+            self._fields = None
+            loc = None
 
         # Localisation a partir de X (mode=0)
         if X is not None:
