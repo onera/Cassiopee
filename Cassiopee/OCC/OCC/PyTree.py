@@ -1405,7 +1405,7 @@ def getComponents(t, tol=1.e-10):
     tags = {}
     for c, z in enumerate(a):
         tags[c] = identifyTags__(z)
-    
+
     # Get the component number for each zone
     pos = getAllPos(t)
     for k in tags:
