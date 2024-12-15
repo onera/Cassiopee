@@ -1377,3 +1377,42 @@ def _updateTree(t, oldNbEdges, oldNbFaces, new2OldEdgeMap, new2OldFaceMap):
     # recolor
     _setLonelyEdgesColor(t)
     return None
+
+def identifyTags__(a):
+    array = C.getFields(Internal.__FlowSolutionNodes__, a, "__tag__", api=3)[0]
+    return OCC.identifyTags__(array)
+
+def getComponents(t, tol=1.e-10):
+    """Return the number of components in t, taggings faces with component number."""
+    import Transform.PyTree as T
+    # init FACES with a tag
+    FACES = Internal.getNodeFromName1(t, 'FACES')
+    zones = Internal.getZones(FACES)
+    for z in zones:
+        # Get face number
+        CAD = Internal.getNodeFromName1(z, 'CAD')
+        no = Internal.getNodeFromName1(CAD, 'no')
+        no = Internal.getValue(no)
+        # init tag
+        C._initVars(z, '__tag__ = %d'%no)
+
+    # join all zones
+    a = G.zip(zones, tol)
+    a = T.join(zones)
+    a = T.splitConnexity(a)
+
+    # Identify faces in component
+    tags = {}
+    for c, z in enumerate(a):
+        tags[c] = identifyTags__(z)
+    
+    # Get the component number for each zone
+    pos = getAllPos(t)
+    for k in tags:
+        C._addFamily2Base(FACES, 'Component%02d'%k)
+        faces = tags[k]
+        for f in faces:
+            z = getFace(t, pos, f)
+            C._tagWithFamily(z, 'Component%02d'%k)
+
+    return a

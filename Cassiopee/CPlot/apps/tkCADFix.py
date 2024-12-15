@@ -384,6 +384,7 @@ def trimFaces(event=None):
 
 #==============================================================================
 def checkWatertight(event=None):
+    import OCC.PyTree as OCC
     if CTK.t == []: return
     b = Internal.getNodeFromName1(CTK.t, 'FACES')
     if b is None:
@@ -416,19 +417,18 @@ def checkWatertight(event=None):
     p = Internal.getNodeFromName1(CTK.t, 'LEAKS')
     gnob = C.getNobOfBase(p, CTK.t)
 
-    f = Internal.getZones(b)
-    f = G.zip(f, tol)
-    f = T.join(f)
-    #f = G.close(f, tol)
-    ef = T.splitConnexity(f)
+    ef = OCC.getComponents(CTK.t, tol)
+
     VARS[6].set('Components: %d'%(len(ef)))
 
     isWatertight = False
     try:
-        ext = P.exteriorFaces(f)
-        ext = T.splitConnexity(ext)
-        for i in ext: CTK.add(CTK.t, gnob, -1, i)
-        if len(ext) == 0: isWatertight = True
+        isWatertight = True
+        for f in ef:
+            ext = P.exteriorFaces(f)
+            ext = T.splitConnexity(ext)
+            for i in ext: CTK.add(CTK.t, gnob, -1, i)
+            if len(ext) != 0: isWatertight = False
     except: isWatertight = True
 
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)

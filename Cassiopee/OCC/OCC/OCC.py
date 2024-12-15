@@ -14,7 +14,8 @@ import Converter.Mpi as Cmpi
 __all__ = ['convertCAD2Arrays', 'switch2UV', 'switch2UV2', '_scaleUV', '_unscaleUV',
            'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
-           'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct']
+           'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
+           'identifyTags__']
 
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
@@ -734,3 +735,7 @@ def getNbFaces(hook):
 # Return the file and format used to load CAD in hook
 def getFileAndFormat(hook):
     return occ.getFileAndFormat(hook)
+
+# identify tag component
+def identifyTags__(a):
+    return occ.identifyTags(a)

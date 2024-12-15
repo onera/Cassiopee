@@ -87,6 +87,7 @@ static PyMethodDef Pyocc [] =
   {"rotate", K_OCC::rotate, METH_VARARGS},
 
   {"getOppData", K_OCC::getOppData, METH_VARARGS},
+  {"identifyTags", K_OCC::identifyTags, METH_VARARGS},
 
   {NULL, NULL}
 };

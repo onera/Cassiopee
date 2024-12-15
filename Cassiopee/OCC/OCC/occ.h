@@ -86,7 +86,7 @@ namespace K_OCC
   PyObject* rotate(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
-
+  PyObject* identifyTags(PyObject* self, PyObject* args);
 }
 
 #endif

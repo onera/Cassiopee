@@ -903,7 +903,7 @@ class Node:
                 for z in zones:
                     base, c = Internal.getParentOfNode(CTK.t, z)
                     #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
-                    noz = dnz[base[0], z[0]]
+                    noz = dnz[base[0]][z[0]]
                     selected.append((noz, s))
                 if clear: CPlot.unselectAllZones()
                 CPlot.setSelectedZones(selected)
