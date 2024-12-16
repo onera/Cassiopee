@@ -411,25 +411,28 @@ def checkWatertight(event=None):
     if CAD is not None:
         hmax = Internal.getNodeFromName1(CAD, 'hmax')
         hmax = Internal.getValue(hmax)
-        tol = hmax/100.
+        hmin = Internal.getNodeFromName1(CAD, 'hmin')
+        hmin = Internal.getValue(hmin)
+        tol = (hmin+hmax)*0.2
 
     CTK.t = C.addBase2PyTree(CTK.t, 'LEAKS', 1)
     p = Internal.getNodeFromName1(CTK.t, 'LEAKS')
     gnob = C.getNobOfBase(p, CTK.t)
 
-    ef = OCC.getComponents(CTK.t, tol)
+    ef = OCC.getComponents(CTK.t)
 
     VARS[6].set('Components: %d'%(len(ef)))
 
     isWatertight = False
-    try:
-        isWatertight = True
-        for f in ef:
+    #try:
+    isWatertight = True
+    for f in ef:
+        try:
             ext = P.exteriorFaces(f)
             ext = T.splitConnexity(ext)
             for i in ext: CTK.add(CTK.t, gnob, -1, i)
-            if len(ext) != 0: isWatertight = False
-    except: isWatertight = True
+            if len(ext) != 0: isWatertight = False; break
+        except: isWatertight = True
 
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -468,7 +471,8 @@ def createApp(win):
     WIDGETS['frameMenu'] = FrameMenu
 
     #- VARS -
-    tol = 1.e-6
+    tol = 1.e-6; NL = 0
+    fileName = ''; fileFmt = 'fmt_step'
     if CTK.CADHOOK is not None:
         import OCC.PyTree as OCC
         fileName, fileFmt = OCC.getFileAndFormat(CTK.CADHOOK)
@@ -479,7 +483,6 @@ def createApp(win):
             tol = Internal.getValue(tol)
             power = math.floor(math.log10(abs(tol)))
             tol = round(tol, -power)
-    else: fileName = ''; fileFmt = 'fmt_step'; NL = 0
 
     # -0- CAD file name -
     V = TK.StringVar(win); V.set(fileName); VARS.append(V)

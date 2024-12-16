@@ -1070,6 +1070,11 @@ E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
   E_Float* pu = coords.begin(4);
   E_Float* pv = coords.begin(5);
 
+  E_Float* pex = fe.begin(1);
+  E_Float* pey = fe.begin(2);
+  E_Float* pez = fe.begin(3);
+  E_Float* peu = fe.begin(4);
+
   // degenerated
   if (BRep_Tool::Degenerated(E))
   {
@@ -1084,12 +1089,14 @@ E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
       pCurve->D0(u, Puv);
       if (reverse)
       {
-        px[nbPoints-i-1] = Pt.X(); py[nbPoints-i-1] = Pt.Y(); pz[nbPoints-i-1] = Pt.Z();
+        //px[nbPoints-i-1] = Pt.X(); py[nbPoints-i-1] = Pt.Y(); pz[nbPoints-i-1] = Pt.Z();
+        px[nbPoints-i-1] = pex[i]; py[nbPoints-i-1] = pey[i]; pz[nbPoints-i-1] = pez[i];
         pu[nbPoints-i-1] = Puv.X(); pv[nbPoints-i-1] = Puv.Y();
       }
       else
       {
-        px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
+        //px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
+        px[i] = pex[i]; py[i] = pey[i]; pz[i] = pez[i];
         pu[i] = Puv.X(); pv[i] = Puv.Y();
       }
     }
@@ -1098,20 +1105,22 @@ E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
   
   // non degenerated    
   {
-    gp_Pnt Pt; gp_Pnt2d Puv; 
+    gp_Pnt Pt; gp_Pnt2d Puv; E_Float u;
     for (E_Int i = 1; i <= nbPoints; i++)
     {
-      E_Float u = fe(i-1,4);
+      u = peu[i-1];
       C0.D0(u, Pt);
       pCurve->D0(u, Puv);
       if (reverse)
       { 
-        px[nbPoints-i] = Pt.X(); py[nbPoints-i] = Pt.Y(); pz[nbPoints-i] = Pt.Z();
+        //px[nbPoints-i] = Pt.X(); py[nbPoints-i] = Pt.Y(); pz[nbPoints-i] = Pt.Z();
+        px[nbPoints-i] = pex[i-1]; py[nbPoints-i] = pey[i-1]; pz[nbPoints-i] = pez[i-1];
         pu[nbPoints-i] = Puv.X(); pv[nbPoints-i] = Puv.Y(); 
       }
       else
       {
-        px[i-1] = Pt.X(); py[i-1] = Pt.Y(); pz[i-1] = Pt.Z();
+        //px[i-1] = Pt.X(); py[i-1] = Pt.Y(); pz[i-1] = Pt.Z();
+        px[i-1] = pex[i-1]; py[i-1] = pey[i-1]; pz[i-1] = pez[i-1];
         pu[i-1] = Puv.X(); pv[i-1] = Puv.Y(); 
       }
     }

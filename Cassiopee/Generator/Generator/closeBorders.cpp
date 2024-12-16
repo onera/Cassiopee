@@ -569,6 +569,5 @@ void K_GENERATOR::closeAllStructuredMeshes(
         }
       }
     }
-
   } // tous les pts
 }

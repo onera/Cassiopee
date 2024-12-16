@@ -542,6 +542,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     try:
         a = occ.trimesh(hook, edges, i, hmin, hmax, hausd, 1.1)
         _enforceEdgesInFace(a, edgesSav)
+        a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             a = Transform.reorder(a, (-1,))
         mesh.append(a)
@@ -572,6 +573,7 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
         _unscaleUV([a], T)
         o = occ.evalFace(hook, a, i)
         _enforceEdgesInFace(o, edgesSav)
+        a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             o = Transform.reorder(o, (-1,))
         mesh.append(o)
@@ -584,7 +586,7 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
 
     return SUCCESS
 
-# mesh all CAD edges with hmax, hausd
+# mesh all CAD edges with hmin, hmax, hausd
 def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
     if edgeList is None:
         nbEdges = occ.getNbEdges(hook)
@@ -593,6 +595,7 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
     for i in edgeList:
         e = occ.meshOneEdge(hook, i, hmin, hmax, hausd, N, None)
         dedges.append(e)
+    dedges = Generator.zip(dedges, tol=hmax/100.) # safe and necessary for corner/seam points
     return dedges
 
 #=================================================================

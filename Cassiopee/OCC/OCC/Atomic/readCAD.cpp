@@ -42,6 +42,14 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
   char* fileName; char* fileFmt;
   if (!PyArg_ParseTuple(args, "ss", &fileName, &fileFmt)) return NULL;
 
+  FILE* ptrFile = fopen(fileName, "r");
+  if (ptrFile == NULL)
+  {
+    PyErr_SetString(PyExc_TypeError, "readCAD: file not found.");
+    return NULL;
+  }
+  fclose(ptrFile);
+
   TopoDS_Shape* shp = new TopoDS_Shape();
   
   TDocStd_Document* doc = NULL;
