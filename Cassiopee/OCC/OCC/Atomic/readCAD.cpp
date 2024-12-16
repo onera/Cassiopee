@@ -44,7 +44,7 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
 
   TopoDS_Shape* shp = new TopoDS_Shape();
   
-  Handle(TDocStd_Document) doc = NULL;
+  TDocStd_Document* doc = NULL;
 
   if (strcmp(fileFmt, "fmt_iges") == 0)
   {
@@ -62,7 +62,8 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     IGESCAFControl_Reader reader2;
     reader2.ReadFile(fileName);
     doc = new TDocStd_Document("MDTV-Standard");
-    reader2.Transfer(doc);
+    Handle(TDocStd_Document) doc2 = doc;
+    reader2.Transfer(doc2);
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
   {
@@ -76,7 +77,8 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     STEPCAFControl_Reader reader2;
     reader2.ReadFile(fileName);
     doc = new TDocStd_Document("MDTV-Standard");
-    reader2.Transfer(doc);    
+    Handle(TDocStd_Document) doc2 = doc;
+    reader2.Transfer(doc2);    
   }
   
   // Extract surfaces

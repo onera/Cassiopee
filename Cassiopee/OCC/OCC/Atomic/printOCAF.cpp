@@ -27,6 +27,7 @@
 #include "TDocStd_Document.hxx"
 #include "TDataStd_Name.hxx"
 #include "TDF_ChildIterator.hxx"
+#include <iostream>
 
 // recursive iteration through labels
 void iterateLabels(const TDF_Label& label) 
@@ -34,7 +35,7 @@ void iterateLabels(const TDF_Label& label)
   // print label entry
   TCollection_AsciiString es;
   TDF_Tool::Entry(label, es); // retourne l'entry de la label (3:0:3 indiquant sa position dans la hierarchie)
-  cout  <<  "Info: Label entry: " << es.ToCString() << endl;
+  std::cout  <<  "Info: Label entry: " << es.ToCString() << std::endl;
 
   // Print the label string attributes
   Handle(TDataStd_Name) nameAttr;
@@ -115,7 +116,7 @@ PyObject* K_OCC::printShapeOCAF(PyObject* self, PyObject* args)
 
     TCollection_AsciiString es;
     TDF_Tool::Entry(label, es); // retourne l'entry de la label (3:0:3 indiquant sa position dans la hierarchie)
-    cout  <<  "Info: Label entry: " << es.ToCString()  <<  endl;
+    std::cout  <<  "Info: Label entry: " << es.ToCString()  <<  std::endl;
 
     Handle(TDataStd_Name) NAME = new TDataStd_Name(); 
     if (label.FindAttribute(TDataStd_Name::GetID(), NAME)) // retourne tous les attributs de type string
