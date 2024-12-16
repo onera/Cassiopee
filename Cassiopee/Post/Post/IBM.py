@@ -1038,18 +1038,24 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
 
     return graphIBCDPost, ts
 
-def computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], isPreProjectOrtho=False):
+##Added old parameter to revert back to the previous project cloud solution method.
+##See Post/PyTree.py _projectCloudSolution
+##old=True for wind tunnel test cases. Has shown to yield more physically accurate results.
+##old means we are reverting back to predominant extrapolations for the projectCloudSolution.
+##When a more stable & robust solution is obtained for these test cases this argument will be removed.
+##See Antoine J. @ DAAA/DEFI for more questions. - error appears at 90 edges of the wind tunnels.
+def computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], isPreProjectOrtho=False, old=False):
     """Computes the surface flow solution at the wall."""
     tp = Internal.copyRef(ts)
-    _computeSkinVariables(tp, tc, graphIBCDPost, dimPb, ibctypes, isPreProjectOrtho=isPreProjectOrtho)
+    _computeSkinVariables(tp, tc, graphIBCDPost, dimPb, ibctypes, isPreProjectOrtho=isPreProjectOrtho, old=old)
     return tp
 
-def _computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], isPreProjectOrtho=False):
+def _computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], isPreProjectOrtho=False, old=False):
     """Computes the surface flow solution at the wall."""
     tl = createCloudIBM__(tc, ibctypes)
     tl = setIBCTransfersPost__(graphIBCDPost, tl)
     tl = T.join(tl)
-    P._projectCloudSolution(tl, ts, dim=dimPb, ibm=True, isPreProjectOrtho=isPreProjectOrtho)
+    P._projectCloudSolution(tl, ts, dim=dimPb, ibm=True, isPreProjectOrtho=isPreProjectOrtho, old=old)
     Cmpi.barrier()
     return None
 
