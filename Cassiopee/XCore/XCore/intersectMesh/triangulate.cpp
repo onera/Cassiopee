@@ -63,15 +63,28 @@ PyObject *K_XCORE::triangulate_skin(PyObject *self, PyObject *args)
             }
         }
 
-        std::vector<PyArrayObject *> new_bcs = M.triangulate_skin(bcs_in, fid_to_bc);
+        M.triangulate_skin(fid_to_bc);
+
+        std::vector<std::vector<E_Int>> new_bcs(nbcs);
+        for (const auto &it : fid_to_bc) {
+            new_bcs[it.second].push_back(it.first);
+        }
 
         PyObject *out = PyList_New(0);
         PyList_Append(out, M.export_karray());
         PyObject *bcs_out = PyList_New(0);
+
         for (const auto &new_bc : new_bcs) {
-            PyList_Append(bcs_out, (PyObject *)new_bc);
-            Py_DECREF(new_bc);
+            npy_intp dims[2];
+            dims[0] = (npy_intp)new_bc.size();
+            dims[1] = 1;
+            PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+            E_Int *ptr = (E_Int *)PyArray_DATA(arr);
+            memcpy(ptr, new_bc.data(), new_bc.size()*sizeof(E_Int));
+            PyList_Append(bcs_out, (PyObject *)arr);
+            Py_DECREF(arr);
         }
+
         PyList_Append(out, bcs_out);
         Py_DECREF(bcs_out);
         return out;
@@ -81,98 +94,106 @@ PyObject *K_XCORE::triangulate_skin(PyObject *self, PyObject *args)
     }
 }
 
-std::vector<PyArrayObject *> IMesh::triangulate_skin(const std::vector<Py_BC> &bcs_in,
-    const std::unordered_map<E_Int, E_Int> &fid_to_bc)
+void IMesh::triangulate_skin(std::unordered_map<E_Int, E_Int> &fid_to_bc)
 {
-    E_Int NF = nf;
+    E_Int to_tri = 0;
 
-    owner.resize(nf + skin.size(), -1);
-    neigh.resize(nf + skin.size(), -1);
-
-    std::vector<PyArrayObject *> new_bcs(bcs_in.size());
-    std::vector<E_Int *> ptrs(bcs_in.size());
-    std::vector<E_Int> counts(bcs_in.size(), 0);
-
-    for (size_t i = 0; i < bcs_in.size(); i++) {
-        E_Int new_size = bcs_in[i].size * 2;
-        npy_intp dims[2];
-        dims[0] = (npy_intp)new_size;
-        dims[1] = 1;
-        new_bcs[i] = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-        ptrs[i] = (E_Int *)PyArray_DATA(new_bcs[i]);
-    }
-
-    for (auto fid : skin) {
-        assert(neigh[fid] == -1);
-
+    for (E_Int fid : skin) {
         const auto &pn = F[fid];
         if (pn.size() == 3) continue;
-
         assert(pn.size() == 4);
+        to_tri++;
+    }
+
+    F.resize(nf + 3*to_tri);
+    X.resize(np + to_tri, 0);
+    Y.resize(np + to_tri, 0);
+    Z.resize(np + to_tri, 0);
+
+    for (E_Int fid : skin) {
+        const auto &pn = F[fid];
+        if (pn.size() == 3) continue;
+        for (E_Int pid : pn) {
+            X[np] += X[pid];
+            Y[np] += Y[pid];
+            Z[np] += Z[pid];
+        }
+        X[np] *= 0.25;
+        Y[np] *= 0.25;
+        Z[np] *= 0.25;
 
         E_Int nodes[4] = {pn[0], pn[1], pn[2], pn[3]};
 
-        F.push_back({nodes[2], nodes[3], nodes[0]});
-        F[fid] = {nodes[0], nodes[1], nodes[2]};
-        assert(F[fid].size() == 3);
+        F[fid] = {nodes[0], nodes[1], np};
+        F[nf] = {nodes[1], nodes[2], np};
+        F[nf+1] = {nodes[2], nodes[3], np};
+        F[nf+2] = {nodes[3], nodes[0], np};
 
         E_Int own = owner[fid];
         auto &pf = C[own];
-        pf.push_back(nf);
+        size_t stride = pf.size();
+        pf.resize(stride + 3);
+        for (int i = 0; i < 3; i++) pf[stride+i] = nf+i;
 
-        owner[nf] = own;
-
-        // Which bc (if any) does fid belong to?
+        // One-based
         auto it = fid_to_bc.find(fid+1);
         if (it != fid_to_bc.end()) {
-            E_Int bc_id = it->second;
-            ptrs[bc_id][counts[bc_id]++] = fid+1;
-            ptrs[bc_id][counts[bc_id]++] = nf+1;
+            for (int i = 0; i < 3; i++) fid_to_bc[nf+i+1] = it->second;
         }
 
-        nf++;
+        np += 1;
+        nf += 3;
     }
 
-    for (E_Int i = NF; i < nf; i++)
-        skin.push_back(i);
-
-    for (size_t i = 0; i < counts.size(); i++) {
-        assert(counts[i] == 2*bcs_in[i].size);
-    }
-
-    return new_bcs;
+    assert((size_t)nf == F.size());
+    assert((size_t)np == X.size());
 }
 
 void IMesh::triangulate_skin()
 {
-    E_Int NF = nf;
+    E_Int to_tri = 0;
 
-    owner.resize(nf + skin.size(), -1);
-    neigh.resize(nf + skin.size(), -1);
-
-    for (auto fid : skin) {
-        assert(neigh[fid] == -1);
-
+    for (E_Int fid : skin) {
         const auto &pn = F[fid];
         if (pn.size() == 3) continue;
-
         assert(pn.size() == 4);
+        to_tri++;
+    }
+
+    F.resize(nf + 3*to_tri);
+    X.resize(np + to_tri, 0);
+    Y.resize(np + to_tri, 0);
+    Z.resize(np + to_tri, 0);
+
+    for (E_Int fid : skin) {
+        const auto &pn = F[fid];
+        if (pn.size() == 3) continue;
+        for (E_Int pid : pn) {
+            X[np] += X[pid];
+            Y[np] += Y[pid];
+            Z[np] += Z[pid];
+        }
+        X[np] *= 0.25;
+        Y[np] *= 0.25;
+        Z[np] *= 0.25;
 
         E_Int nodes[4] = {pn[0], pn[1], pn[2], pn[3]};
 
-        F.push_back({nodes[2], nodes[3], nodes[0]});
-        F[fid] = {nodes[0], nodes[1], nodes[2]};
-        assert(F[fid].size() == 3);
-        
+        F[fid] = {nodes[0], nodes[1], np};
+        F[nf] = {nodes[1], nodes[2], np};
+        F[nf+1] = {nodes[2], nodes[3], np};
+        F[nf+2] = {nodes[3], nodes[0], np};
+
         E_Int own = owner[fid];
         auto &pf = C[own];
-        pf.push_back(nf);
+        size_t stride = pf.size();
+        pf.resize(stride + 3);
+        for (int i = 0; i < 3; i++) pf[stride+i] = nf+i;
 
-        owner[nf] = own;
-
-        nf++;
+        np += 1;
+        nf += 3;
     }
 
-    for (E_Int i = NF; i < nf; i++)
-        skin.push_back(i);
+    assert((size_t)nf == F.size());
+    assert((size_t)np == X.size());
 }

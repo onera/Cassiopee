@@ -95,7 +95,7 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
 
                 if (Mf.is_point_inside(px, py, pz)) {
                 //if (M->is_point_inside(px, py, pz)) {
-                    kmax[base] = k-1;
+                    kmax[base] = k-2;
 
                     // Cache the point to be projected
                     E_Int proj_id = base + nij*kmax[base];
@@ -112,7 +112,7 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
             if (!was_inside) {
                 // i-j line completely outside of M
                 // Projection points is the last point
-                kmax[base] = nk-1;
+                kmax[base] = nk-2;
                 E_Int proj_id = base + nij*kmax[base];
                 proj_points.push_back(proj_id);
             }
