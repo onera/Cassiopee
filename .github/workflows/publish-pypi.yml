@@ -6,6 +6,7 @@ on:
       - 'v*'
     branches:
       - 'main'
+      - 'pypi'
 
 jobs:
   build:
@@ -87,8 +88,12 @@ jobs:
                   wheel unpack "\$kwheel"; \
                   rm "\$kwheel"; \
               done
+              FREEMODULES="KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot"
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do \
-                  mv \$dir \${dir%-4.0}; \
+                  origDir=\${dir%-4.0}
+                  mv \$dir \$origDir; \
+                  cp \$CASSIOPEE/Cassiopee/\$origDir/\$origDir/*.py \$origDir/\$origDir/
+                  ls \$origDir/\$origDir/
               done
               ls .
               python3 -m build
