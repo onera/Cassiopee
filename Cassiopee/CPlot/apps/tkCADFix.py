@@ -150,7 +150,7 @@ def removeFaces(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
     hook = CTK.CADHOOK
-    [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
+    #[hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected faces
     nzs = CPlot.getSelectedZones()
     faces = []

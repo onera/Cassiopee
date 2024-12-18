@@ -947,7 +947,7 @@ def _setLonelyEdgesColor(t):
                 CPlot._addRender2Zone(ze, color='Green')
             elif size == 1: # lonely: red
                 L = D.getLength(ze)
-                if L > 1.e-16: CPlot._addRender2Zone(ze, color='Red')
+                if L > 1.e-11: CPlot._addRender2Zone(ze, color='Red')
                 else: CPlot._addRender2Zone(ze, color='Green')
             else: # strange!!
                 CPlot._addRender2Zone(ze, color='Green')

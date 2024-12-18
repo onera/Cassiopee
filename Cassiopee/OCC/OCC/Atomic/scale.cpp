@@ -24,6 +24,7 @@
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "TopoDS.hxx"
 #include "BRepBuilderAPI_Transform.hxx"
+#include "BRep_Builder.hxx"
 
 //=====================================================================
 // scale the full shape or some faces
@@ -32,8 +33,9 @@
 PyObject* K_OCC::scale(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Float factor; E_Float x0, y0, z0;
-  if (!PYPARSETUPLE_(args, O_ R_ TRRR_, &hook, &factor, 
-    &x0, &y0, &z0)) return NULL;
+  PyObject* listFaces; 
+  if (!PYPARSETUPLE_(args, O_ R_ TRRR_ O_, &hook, &factor, 
+    &x0, &y0, &z0, &listFaces)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -43,16 +45,65 @@ PyObject* K_OCC::scale(PyObject* self, PyObject* args)
 #endif
 
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
   // idem scale
   gp_Trsf myTrsf;
   myTrsf.SetScale(gp_Pnt(x0, y0, z0), factor);
   
-  BRepBuilderAPI_Transform myTransform(*shp, myTrsf);
-  TopoDS_Shape tShape = myTransform.Shape();
+  E_Int nfaces = PyList_Size(listFaces);
 
   TopoDS_Shape* newshp = new TopoDS_Shape();
-  *newshp = tShape;
+
+  if (nfaces == 0) // on all shape
+  {
+    BRepBuilderAPI_Transform myTransform(*shp, myTrsf);
+    TopoDS_Shape tShape = myTransform.Shape();
+    *newshp = tShape;
+  }
+  else
+  {
+    // Build a compound
+    BRep_Builder builder;
+    TopoDS_Compound shc;
+    builder.MakeCompound(shc);
+    E_Int nf = surfaces.Extent();
+    std::vector<E_Int> nos(nf);
+    for (E_Int i = 0; i < nf; i++) nos[i] = -1;
+    
+    for (E_Int no = 0; no < nfaces; no++)
+    {
+      PyObject* noFaceO = PyList_GetItem(listFaces, no);
+      E_Int noFace = PyInt_AsLong(noFaceO);
+      nos[noFace-1] = no;
+      const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+      builder.Add(shc, F);
+    }
+    BRepBuilderAPI_Transform myTransform(shc, myTrsf);
+    TopoDS_Shape tShape = myTransform.Shape();
+
+    // Rebuild
+    TopTools_IndexedMapOfShape surfaces2;
+    TopExp::MapShapes(tShape, TopAbs_FACE, surfaces2);  
+
+    BRep_Builder builder2;
+    TopoDS_Compound shc2;
+    builder2.MakeCompound(shc2);
+    for (E_Int i = 0; i < nf; i++)
+    {
+      if (nos[i] == -1)
+      {
+        const TopoDS_Face& F = TopoDS::Face(surfaces(i+1));
+        builder2.Add(shc2, F);
+      }
+      else
+      {
+        const TopoDS_Face& F = TopoDS::Face(surfaces2(nos[i]+1));
+        builder2.Add(shc2, F);
+      }
+    }
+    *newshp = shc2;
+  }
 
   // Rebuild the hook
   packet[0] = newshp;

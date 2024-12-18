@@ -43,7 +43,7 @@
 //=====================================================================
 PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
 {
-  PyObject* hook; PyObject* listFaces; E_Float tol; 
+  PyObject* hook; PyObject* listFaces; E_Float tol;
   if (!PYPARSETUPLE_(args, OO_ R_, &hook, &listFaces, &tol)) return NULL;
 
   void** packet = NULL;
@@ -61,7 +61,7 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
   BRepBuilderAPI_Sewing sewer(tolerance);
   
   TopoDS_Shape* newshp = NULL;
-  E_Int nfaces = PyList_Size(listFaces); 
+  E_Int nfaces = PyList_Size(listFaces);
   //nfaces = 0; // force car le code par subfaces semble ne pas marcher
   if (nfaces == 0)
   {
