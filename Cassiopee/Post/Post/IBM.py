@@ -520,10 +520,10 @@ def _extractYplusAtImagePoints(tc, regularized=False):
                         hloc = getHloc__(zsr)
 
                         meanDistance = numpy.mean(distIW)
-                        
+
                         if hloc not in dictOfMeanDistance: dictOfMeanDistance[hloc] = [meanDistance]
                         else: dictOfMeanDistance[hloc].append(meanDistance)
-                        
+
                         yplusI = yplus/distCW
                         zsr[2].append([varname, yplusI, [], 'DataArray_t'])
 
@@ -531,7 +531,7 @@ def _extractYplusAtImagePoints(tc, regularized=False):
                         yplusI = yplus/distCW*distIW
                         zsr[2].append([varname, yplusI, [], 'DataArray_t'])
 
-    
+
     dictOfMeanDistance = Cmpi.allgatherDict(dictOfMeanDistance)
     dictOfMeanDistance = {key:sum(value)/len(value) for key, value in dictOfMeanDistance.items()}
 
