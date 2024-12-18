@@ -84,12 +84,11 @@ jobs:
               find . -type f -name '*.whl' -exec mv {} \$CASSIOPEE \;
               find /tmp/ -type f -name 'KCore*.whl' -exec mv {} \$CASSIOPEE \;
               cd \$CASSIOPEE
-              FREEMODULES="KCore XCore Converter Geom Transform Generator Post Initiator Connector Distributor2 Dist2Walls RigidMotion Compressor Modeler Intersector Apps CPlot"
               for kwheel in \$(find . -name '*.whl'); do \
                   wheel unpack "\$kwheel"; \
                   rm "\$kwheel"; \
               done
-              ls
+              ls .
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do \
                   origDir=\${dir%-4.0}; \
                   echo \$origDir; \
