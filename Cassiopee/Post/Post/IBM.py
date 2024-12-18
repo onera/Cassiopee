@@ -461,14 +461,36 @@ def _extractLocalPressureGradients(ts):
 #=============================================================================
 # compute yplus_i
 #=============================================================================
-def extractYplusAtImagePoints(tc):
+def getHloc__(z):
+    XPC = Internal.getNodeFromName(z, 'CoordinateX_PC')[1]
+    YPC = Internal.getNodeFromName(z, 'CoordinateY_PC')[1]
+    ZPC = Internal.getNodeFromName(z, 'CoordinateZ_PC')[1]
+
+    if   abs(XPC[1]-XPC[0]) == 0 and abs(YPC[1]-YPC[0]) == 0: hloc = abs(ZPC[1]-ZPC[0])
+    elif abs(XPC[1]-XPC[0]) == 0 and abs(ZPC[1]-ZPC[0]) == 0: hloc = abs(YPC[1]-YPC[0])
+    elif abs(YPC[1]-YPC[0]) == 0 and abs(ZPC[1]-ZPC[0]) == 0: hloc = abs(XPC[1]-XPC[0])
+    elif abs(XPC[1]-XPC[0]) == 0: hloc = min(abs(YPC[1]-YPC[0]), abs(ZPC[1]-ZPC[0]))
+    elif abs(YPC[1]-YPC[0]) == 0: hloc = min(abs(XPC[1]-XPC[0]), abs(ZPC[1]-ZPC[0]))
+    elif abs(ZPC[1]-ZPC[0]) == 0: hloc = min(abs(XPC[1]-XPC[0]), abs(YPC[1]-YPC[0]))
+    else: hloc = min(abs(XPC[1]-XPC[0]), abs(YPC[1]-YPC[0]), abs(ZPC[1]-ZPC[0]))
+
+    mag = math.floor(math.log(hloc, 10))
+    hloc = round(hloc*10**(-mag+3), 0)/10**(-mag+3) # Quatre chiffres significatifs
+
+    return hloc
+
+def extractYplusAtImagePoints(tc, regularized=False):
     """Extracts the yplus values at the image points."""
     tp = Internal.copyRef(tc)
-    _extractYplusAtImagePoints(tp)
+    _extractYplusAtImagePoints(tp, regularized)
     return tp
 
-def _extractYplusAtImagePoints(tc):
+def _extractYplusAtImagePoints(tc, regularized=False):
     """Extracts the yplus values at the image points."""
+    dictOfMeanDistance = {}
+
+    varname = 'yplusIP_reg' if regularized else 'yplusIP'
+
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -494,9 +516,43 @@ def _extractYplusAtImagePoints(tc):
                     distCW = numpy.sqrt( (XPW-XPC)*(XPW-XPC) + (YPW-YPC)*(YPW-YPC) + (ZPW-ZPC)*(ZPW-ZPC))
                     distIW = numpy.sqrt( (XPW-XPI)*(XPW-XPI) + (YPW-YPI)*(YPW-YPI) + (ZPW-ZPI)*(ZPW-ZPI))
 
-                    yplusI = yplus/distCW*distIW
+                    if regularized and len(XPW) > 1:
+                        hloc = getHloc__(zsr)
 
-                    zsr[2].append(['yplusIP', yplusI, [], 'DataArray_t'])
+                        meanDistance = numpy.mean(distIW)
+                        
+                        if hloc not in dictOfMeanDistance: dictOfMeanDistance[hloc] = [meanDistance]
+                        else: dictOfMeanDistance[hloc].append(meanDistance)
+                        
+                        yplusI = yplus/distCW
+                        zsr[2].append([varname, yplusI, [], 'DataArray_t'])
+
+                    else:
+                        yplusI = yplus/distCW*distIW
+                        zsr[2].append([varname, yplusI, [], 'DataArray_t'])
+
+    
+    dictOfMeanDistance = Cmpi.allgatherDict(dictOfMeanDistance)
+    dictOfMeanDistance = {key:sum(value)/len(value) for key, value in dictOfMeanDistance.items()}
+
+    if regularized:
+        for z in Internal.getZones(tc):
+            subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+            for zsr in subRegions:
+                nameSubRegion = zsr[0]
+                if (nameSubRegion[:4] == 'IBCD' or nameSubRegion[:4] == '2_IB'):
+                    yplus = Internal.getNodeFromName(zsr, 'yplus')
+                    if yplus is not None:
+
+                        if len(yplus[1]) < 2: continue
+
+                        yplusI = Internal.getNodeFromName(zsr, 'yplusIP_reg')[1]
+
+                        hloc = getHloc__(zsr)
+                        meanDistance = dictOfMeanDistance[hloc]
+
+                        Internal.getNodeFromName(zsr, 'yplusIP_reg')[1] = yplusI*meanDistance
+
     return None
 
 #=============================================================================
@@ -781,10 +837,11 @@ def _computeExtraVariables(ts, PInf, QInf,
 # OUT: ts (tree): NODE-type zones of surface projection for IBM points. ts is Fully distributed among procs.
 # OUT: graphIBCDPost (graph): graph of comm between ts & tc
 #==========================================================================================
-def createCloudIBM__(tc, ibctypes=[]):
+def createCloudIBM__(tc, ibctypes=[], famZones=[], extraIBCVariables=['yplusIP']):
     tp = Internal.copyRef(tc)
 
-    _extractYplusAtImagePoints(tp)
+    if 'yplusIP' in extraIBCVariables: _extractYplusAtImagePoints(tp, regularized=False)
+    if 'yplusIP_reg' in extraIBCVariables: _extractYplusAtImagePoints(tp, regularized=True)
 
     cpt_name = 0
     tl = C.newPyTree(['CLOUD_IBCW'])
@@ -792,9 +849,15 @@ def createCloudIBM__(tc, ibctypes=[]):
         allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
         allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
         for IBCD in allIBCD:
-            zname = Internal.getValue(IBCD)
             ztype = int(IBCD[0].split("_")[1])
+
+            fname = Internal.getNodeFromType(IBCD,'FamilyName_t')
+            if fname is not None: fname = Internal.getValue(fname)
+            else: fname = 'None'
+
             if ibctypes != [] and ztype not in ibctypes: continue
+            if famZones != [] and fname not in famZones: continue
+
             XW = Internal.getNodeFromName(IBCD,'CoordinateX_PW')[1]
             YW = Internal.getNodeFromName(IBCD,'CoordinateY_PW')[1]
             ZW = Internal.getNodeFromName(IBCD,'CoordinateZ_PW')[1]
@@ -814,7 +877,7 @@ def createCloudIBM__(tc, ibctypes=[]):
             Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
             FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
                                            gridLocation='Vertex', parent=z)
-            pressNP = []; utauNP = []; yplusNP = []; yplusINP = []; densNP = []
+            pressNP = []; utauNP = []; yplusNP = []; yplusINP = []; yplusIRNP = []; densNP = []
             vxNP = []; vyNP = []; vzNP = []
             gradxPressureNP = []; gradyPressureNP = []; gradzPressureNP = []
 
@@ -829,6 +892,9 @@ def createCloudIBM__(tc, ibctypes=[]):
 
             YPLUSIW = Internal.getNodeFromName1(IBCD, XOD.__YPLUSIP__)
             if YPLUSIW is not None: yplusINP.append(YPLUSIW[1])
+
+            YPLUSIRW = Internal.getNodeFromName1(IBCD, XOD.__YPLUSIP__+'_reg')
+            if YPLUSIRW is not None: yplusIRNP.append(YPLUSIRW[1])
 
             VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
             if VXW is not None: vxNP.append(VXW[1])
@@ -853,6 +919,9 @@ def createCloudIBM__(tc, ibctypes=[]):
 
             if yplusINP != []:
                 FSN[2].append([XOD.__YPLUSIP__,yplusINP[0], [],'DataArray_t'])
+
+            if yplusIRNP != []:
+                FSN[2].append([XOD.__YPLUSIP__+'_reg',yplusIRNP[0], [],'DataArray_t'])
 
             if vxNP != []:
                 FSN[2].append([XOD.__VELOCITYX__,vxNP[0], [],'DataArray_t'])
@@ -938,13 +1007,13 @@ def setIBCTransfersPost__(graphIBCDPost, tl):
 
     return tl
 
-def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
+def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], famZones=[], extraIBCVariables=['yplusIP'], prepareMLS=True):
     """Prepares the flow solution extraction at immersed boundaries."""
     import Distributor2.PyTree as D2
 
     alphah=2.2 # to extend the bboxes
 
-    tl = createCloudIBM__(tc, ibctypes=ibctypes)
+    tl = createCloudIBM__(tc, ibctypes=ibctypes, famZones=famZones, extraIBCVariables=extraIBCVariables)
 
     ts = Internal.copyRef(tb)
 
@@ -961,6 +1030,19 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
         for zpath in listOfZones: Internal._rmNodeByPath(ts, zpath)
         zones = Internal.getNodesByType(ts, 'Zone_t')
         if not zones: raise ValueError('prepareSkinReconstruction: no ibctypes {} in case tree.'.format(ibctypes))
+
+    if famZones:
+        listOfZones = []
+        for b in Internal.getBases(ts):
+            for z in Internal.getZones(b):
+                fname = Internal.getNodeFromType(z, 'FamilyName_t')
+                if fname is not None:
+                    fname = Internal.getValue(fname)
+                    if fname not in famZones: listOfZones.append(b[0]+'/'+z[0])
+                else: listOfZones.append(b[0]+'/'+z[0])
+        for zpath in listOfZones: Internal._rmNodeByPath(ts, zpath)
+        zones = Internal.getNodesByType(ts, 'Zone_t')
+        if not zones: raise ValueError('computeAerodynamicLoads: no famZones {} in case tree.'.format(famZones))
 
     ts = T.splitNParts(ts, Cmpi.size)
     stats = D2._distribute(ts, Cmpi.size)
@@ -1017,7 +1099,9 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
     C._initVars(ts,XOD.__DENSITY__,0.)
     C._initVars(ts,XOD.__UTAU__,0.)
     C._initVars(ts,XOD.__YPLUS__,0.)
-    C._initVars(ts,XOD.__YPLUSIP__,0.)
+
+    if 'yplusIP' in extraIBCVariables: C._initVars(ts,XOD.__YPLUSIP__,0.)
+    if 'yplusIP_reg' in extraIBCVariables: C._initVars(ts,XOD.__YPLUSIP__+'_reg',0.)
 
     C._initVars(ts,XOD.__VELOCITYX__,0.)
     C._initVars(ts,XOD.__VELOCITYY__,0.)
@@ -1044,15 +1128,15 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=True):
 ##old means we are reverting back to predominant extrapolations for the projectCloudSolution.
 ##When a more stable & robust solution is obtained for these test cases this argument will be removed.
 ##See Antoine J. @ DAAA/DEFI for more questions. - error appears at 90 edges of the wind tunnels.
-def computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], isPreProjectOrtho=False, old=False):
+def computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], famZones=[], extraIBCVariables=['yplusIP'], isPreProjectOrtho=False, old=False):
     """Computes the surface flow solution at the wall."""
     tp = Internal.copyRef(ts)
-    _computeSkinVariables(tp, tc, graphIBCDPost, dimPb, ibctypes, isPreProjectOrtho=isPreProjectOrtho, old=old)
+    _computeSkinVariables(tp, tc, graphIBCDPost, dimPb, ibctypes, famZones, extraIBCVariables, isPreProjectOrtho=isPreProjectOrtho, old=old)
     return tp
 
-def _computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], isPreProjectOrtho=False, old=False):
+def _computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], famZones=[], extraIBCVariables=['yplusIP'], isPreProjectOrtho=False, old=False):
     """Computes the surface flow solution at the wall."""
-    tl = createCloudIBM__(tc, ibctypes)
+    tl = createCloudIBM__(tc, ibctypes, famZones, extraIBCVariables)
     tl = setIBCTransfersPost__(graphIBCDPost, tl)
     tl = T.join(tl)
     P._projectCloudSolution(tl, ts, dim=dimPb, ibm=True, isPreProjectOrtho=isPreProjectOrtho, old=old)
