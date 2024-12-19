@@ -338,13 +338,22 @@ def T3mesher2D(a, grading=1.2, triangulateOnly=0, metricInterpType=0):
     return C.convertArrays2ZoneNode('tri', [c])
 
 def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
-                remeshBoundaries=0, algo=1, optionString=""):
+                remeshBoundaries=0, algo=1, optionString="", recoverBC=False):
     """Create a TRI/TETRA mesh given a set of BAR or surfaces in a.
     Usage: tetraMesher(a, fineness, grading)"""
+    if recoverBC:
+        zbcs=[]; bcnames=[]; bctypes=[]
+        for z in Internal.getZones(a):
+            b = C.getBCs(z, extrapFlow=False)
+            zbcs += b[0]; bcnames += b[1]; bctypes += b[2]
+        gbcs = (zbcs, bcnames, bctypes)
     c = C.getFields('coords', a)
     c = Generator.tetraMesher(c, maxh, grading, triangulateOnly,
                               remeshBoundaries, algo, optionString)
-    return C.convertArrays2ZoneNode('mesh', [c])
+    z = C.convertArrays2ZoneNode('mesh', [c])
+    if recoverBC:
+        C._recoverBCs(z, gbcs)
+    return z
 
 def gapfixer(contour, cloud, hardPoints=None, refine=1):
     """Fix a gap defined by a contour bar and a point cloud representing the gap surface.

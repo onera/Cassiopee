@@ -582,9 +582,6 @@ def rmBCOfType():
 #==============================================================================
 def setBCWith():
     if CTK.t == []: return
-    if CTK.__MAINTREE__ != CTK.UNDEFINEDBC:
-        CTK.TXT.insert('START', 'Fail on a this tree (view undefined BC before).\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     nzs = CPlot.getSelectedZones()
     if nzs == []: return
@@ -592,6 +589,26 @@ def setBCWith():
     if typeBC not in Internal.KNOWNBCS:
         nameBC = typeBC; typeBC = 'FamilySpecified:'+typeBC
     else: nameBC = typeBC
+
+    # On CAD tree, we set directly BC to full zone
+    if CTK.CADHOOK is not None:
+        CTK.saveTree()
+        CTK.setCursor(2, WIDGETS['setBCWith'])
+        for nz in nzs:
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            z = CTK.t[2][nob][2][noz]
+            dim = Internal.getZoneDim(z)
+            C._addBC2Zone(z, nameBC, typeBC, elementRange=[0,dim[2]])
+        CTK.TXT.insert('START', 'BCs set to %s.\n'%typeBC)
+        CTK.TKTREE.updateApp()
+        CTK.setCursor(0, WIDGETS['setBCWith'])
+        return
+
+    # On volume tree, we set from undefinedbc
+    if CTK.__MAINTREE__ != CTK.UNDEFINEDBC:
+        CTK.TXT.insert('START', 'Fail on a this tree (view undefined BC before).\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     node = Internal.getNodeFromName(CTK.t, 'EquationDimension')
     if node is not None: ndim = Internal.getValue(node)
