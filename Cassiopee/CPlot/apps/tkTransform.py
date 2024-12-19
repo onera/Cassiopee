@@ -454,7 +454,7 @@ def createApp(win):
     B.grid(row=0, column=2, columnspan=1, sticky=TK.EW)
     B.bind('<Return>', translate)
     BB = CTK.infoBulle(parent=B, text='Translation vector.')
-    
+
     # - Translate from here to here -
     B = TTK.Button(Frame, text="Translate by clicking", command=translateClick)
     B.grid(row=1, column=0, columnspan=3, sticky=TK.EW)
