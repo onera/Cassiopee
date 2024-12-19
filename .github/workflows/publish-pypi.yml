@@ -89,7 +89,7 @@ jobs:
                   rm "\$kwheel"; \
               done
               ls .
-              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do \
+              for dir in \$(find . -maxdepth 1 -type d -name '*-4.1'); do \
                   origDir=\${dir%-4.1}; \
                   echo \$origDir; \
                   mv \$dir \$origDir; \
