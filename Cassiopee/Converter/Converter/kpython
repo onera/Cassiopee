@@ -216,9 +216,9 @@ else # parallel run forced
             # openMpi
             if [ $SANITIZE = '1' ]
             then
-                mpirun $ARGS -x LD_PRELOAD=$ASAN_LIB -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS -x OMP_PLACES=cores $PYTHONEXE $SCRIPT  #--bind-to core --map-by socket:PE=$NTHREADS --report-bindings -x OMP_PROC_BIND=TRUE -x OMP_DISPLAY_ENV=VERBOSE
+                mpirun $ARGS -x LD_PRELOAD=$ASAN_LIB -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS --bind-to core --map-by socket:PE=$NTHREADS $PYTHONEXE $SCRIPT  #--report-bindings
             else
-                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS -x OMP_PLACES=cores $PYTHONEXE $SCRIPT  #--bind-to core --map-by socket:PE=$NTHREADS --report-bindings -x OMP_PROC_BIND=TRUE -x OMP_DISPLAY_ENV=VERBOSE
+                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS --bind-to core --map-by socket:PE=$NTHREADS $PYTHONEXE $SCRIPT  #--report-bindings
             fi
             [ $? != 0 ] && exit 1;  
             ;;

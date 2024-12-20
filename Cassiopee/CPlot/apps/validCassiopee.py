@@ -420,7 +420,7 @@ def setPaths():
 
     # Module paths when the global base is used
     parentDirname = os.path.join('/stck', 'cassiope', 'git')
-    if os.access(parentDirname, os.R_OK):
+    if getDBInfo():  # check if a global base exists
         cassiopeeIncDir = os.path.join(parentDirname, 'Cassiopee', 'Cassiopee')
         fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
         if not os.path.isdir(fastIncDir): fastIncDir = None
@@ -1582,10 +1582,11 @@ def setupLocal(**kwargs):
     createEmptySessionLog()
     buildTestList(**kwargs)
     updateDBLabel()
+    return 0
 
 def setupGlobal(**kwargs):
     global BASE4COMPARE
-    if VALIDDIR['GLOBAL'] is None: return
+    if VALIDDIR['GLOBAL'] is None: return 1
     # Change to global ref
     print('Info: comparing to global database.')
     BASE4COMPARE = 'GLOBAL'
@@ -1603,6 +1604,7 @@ def setupGlobal(**kwargs):
     createEmptySessionLog()
     buildTestList(**kwargs)
     updateDBLabel()
+    return 0
 
 def getDBInfo():
     dbInfo = ''
@@ -1622,7 +1624,7 @@ def updateDBLabel():
     if BASE4COMPARE == 'GLOBAL':
         label = 'Switch to local data base'
     else:
-        label = 'Switch to global data base ' + getDBInfo()
+        label = 'Switch to global data base ' + dbInfo
     toolsTab.entryconfig(3, label=label)
 
 #==============================================================================
@@ -1873,7 +1875,8 @@ if __name__ == '__main__':
         CTK.infoBulle(parent=UpdateButton,
                       text='Update tests (replace data base files).')
         CTK.infoBulle(parent=TextThreads, text='Number of threads.')
-        setupLocal()
+        ierr = setupGlobal()  # Comparison is made against the global valid
+        if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
         TK.mainloop()
     else:
         # --- Command line execution ---
