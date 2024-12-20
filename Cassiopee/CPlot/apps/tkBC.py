@@ -257,7 +257,7 @@ def view(event=None):
 def check():
     if CTK.t == []: return
     if CTK.CADHOOK is not None: return
-    
+
     node = Internal.getNodeFromName(CTK.t, 'EquationDimension')
     if node is not None: ndim = Internal.getValue(node)
     else:
@@ -516,7 +516,7 @@ def connectNearMatch():
 def fillEmptyBCWith():
     if CTK.t == []: return
     if CTK.CADHOOK is not None: return # not coded for now
-    
+
     typeBC = VARS[4].get()
     if typeBC not in Internal.KNOWNBCS:
         nameBC = typeBC; typeBC = 'FamilySpecified:'+typeBC
