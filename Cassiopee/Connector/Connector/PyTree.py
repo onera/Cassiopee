@@ -239,7 +239,7 @@ def _connectMatchStruct__(a, tol, dim, glob):
             if dimzone == 3:
                 if topp0[2] > 0: topp[topp0[2]-1] = 3
                 else: topp[-topp0[2]-1] = -3
-            
+
             print('match from ', zones[noz1][0], 'et ', zones[noz2][0])
             print(topp, topp0, info[3])
 
@@ -872,7 +872,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                 if dimZ == 3:
                     if topp0[2] > 0: topp[topp0[2]-1] = 3
                     else: topp[-topp0[2]-1] = -3
-                
+
                 # addBC2Zone...
                 name1 = 'nmatch%d_%d'%(noz1+1,glob); glob+=1
                 name2 = 'nmatch%d_%d'%(noz2+1,glob); glob+=1

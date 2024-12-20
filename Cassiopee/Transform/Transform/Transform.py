@@ -1008,7 +1008,7 @@ def makeDirect__(a):
     l3 = Vector.sub(P3,P0); ln3 = Vector.norm2(l3)
     if ln1 > 0 and ln2 > 0 and ln3 > 0: # 3D
         c = Vector.cross(l1, l2)
-        c = Vector.dot(c, l3) 
+        c = Vector.dot(c, l3)
         if c < 0: b = reorder(a, (1,2,-3)); return b
     elif ln1 > 0 and ln2 > 0: # 2D
         xmin = Converter.getMinValue(a, 'x')
