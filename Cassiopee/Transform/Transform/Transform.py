@@ -1006,10 +1006,29 @@ def makeDirect__(a):
     l1 = Vector.sub(P1,P0); ln1 = Vector.norm2(l1)
     l2 = Vector.sub(P2,P0); ln2 = Vector.norm2(l2)
     l3 = Vector.sub(P3,P0); ln3 = Vector.norm2(l3)
-    if ln1 > 0 and ln2 > 0 and ln3 > 0:
-        c = Vector.cross(l1,l2)
-        c = Vector.dot(c,l3)
+    if ln1 > 0 and ln2 > 0 and ln3 > 0: # 3D
+        c = Vector.cross(l1, l2)
+        c = Vector.dot(c, l3) 
         if c < 0: b = reorder(a, (1,2,-3)); return b
+    elif ln1 > 0 and ln2 > 0: # 2D
+        xmin = Converter.getMinValue(a, 'x')
+        xmax = Converter.getMaxValue(a, 'x')
+        ymin = Converter.getMinValue(a, 'y')
+        ymax = Converter.getMaxValue(a, 'y')
+        zmin = Converter.getMinValue(a, 'z')
+        zmax = Converter.getMaxValue(a, 'z')
+        if abs(zmax-zmin) < 1.e-6:
+            l3 = (0., 0., 1.)
+            c = Vector.dot(c, l3)
+            if c < 0: b = reorder(a, (1,-2,3)); return b
+        elif abs(ymax-ymin < 1.e-6):
+            l3 = (0., 1., 0.)
+            c = Vector.dot(c, l3)
+            if c < 0: b = reorder(a, (1,-2,3)); return b
+        elif abs(xmax-xmin < 1.e-6):
+            l3 = (1., 0., 0.)
+            c = Vector.dot(c, l3)
+            if c < 0: b = reorder(a, (1,-2,3)); return b
     return Converter.copy(a)
 
 def addkplane(a, N=1):

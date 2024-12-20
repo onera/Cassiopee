@@ -200,7 +200,7 @@ def _connectMatchStruct__(a, tol, dim, glob):
     for z in Internal.getZones(a):
         if Internal.getZoneType(z) == 1:
             zones.append(z)
-            if dimPb == -1: dimPb=Internal.getZoneDim(z)[4]
+            if dimPb == -1: dimPb = Internal.getZoneDim(z)[4]
             else:
                 if dimPb != Internal.getZoneDim(z)[4]:
                     print('Warning: some structured zones in connectMatch are not of same dimension. Function might fail...')
@@ -216,10 +216,10 @@ def _connectMatchStruct__(a, tol, dim, glob):
 
     # Identify matching cells for structured zones
     if structTags != []:
-        structTags = Connector.identifyMatching(structTags,tol)
-        structTags = Converter.extractVars(structTags,['tag1','tag2'])
+        structTags = Connector.identifyMatching(structTags, tol)
+        structTags = Converter.extractVars(structTags, ['tag1','tag2'])
         # Gather into structured patches [[[noz1,noz2],[imin1,imax1,...],[imin2,imax2,...],trirac]]
-        infos = Connector.gatherMatching(structWins,structTags,typeOfWins,structIndirBlkOfWins,
+        infos = Connector.gatherMatching(structWins, structTags, typeOfWins, structIndirBlkOfWins,
                                          dimsI, dimsJ, dimsK, dim, tol)
         for info in infos:
             noz1 = info[0][0]; noz2 = info[0][1]
@@ -239,12 +239,16 @@ def _connectMatchStruct__(a, tol, dim, glob):
             if dimzone == 3:
                 if topp0[2] > 0: topp[topp0[2]-1] = 3
                 else: topp[-topp0[2]-1] = -3
+            
+            print('match from ', zones[noz1][0], 'et ', zones[noz2][0])
+            print(topp, topp0, info[3])
+
             #------------------------------------------
             # addBC2Zone...
             name1 = 'match%d_%d'%(noz1+1,glob); glob += 1
             name2 = 'match%d_%d'%(noz2+1,glob); glob += 1
-            C._addBC2Zone(zones[noz1],name1,'BCMatch',range1,zones[noz2],range2,topp0)
-            C._addBC2Zone(zones[noz2],name2,'BCMatch',range2,zones[noz1],range1,topp)
+            C._addBC2Zone(zones[noz1], name1, 'BCMatch', range1, zones[noz2], range2, topp0)
+            C._addBC2Zone(zones[noz2], name2, 'BCMatch', range2, zones[noz1], range1, topp)
 
             # couplage RANS/laminar ou euler
             model_z1 = model; model_z2 = model
@@ -346,7 +350,7 @@ def getEmptyWindowsInfoStruct__(t, dim=3):
             dimsI.append(ni); dimsJ.append(nj); dimsK.append(nk)
             ranges = C.getEmptyBC(z, dim=dim)
             if ranges != []:
-                locWins = []; locTypes = []; locIndir=[]
+                locWins=[]; locTypes=[]; locIndir=[]
                 winp = T.subzone(z,(1,1,1),(1,nj,nk))
                 win = C.getFields(Internal.__GridCoordinates__,winp)[0]
                 locWins.append(win); locTypes.append(1); locIndir.append(noz)
@@ -390,7 +394,7 @@ def getEmptyWindowsInfoStruct__(t, dim=3):
                         else: now = 6
 
                     tag = locTags[now-1]
-                    postag = KCore.isNamePresent(tag,'tag1')
+                    postag = KCore.isNamePresent(tag, 'tag1')
                     taga = tag[1][postag,:]
                     imax = min(imax-1,nic)
                     jmax = min(jmax-1,njc)
@@ -868,7 +872,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                 if dimZ == 3:
                     if topp0[2] > 0: topp[topp0[2]-1] = 3
                     else: topp[-topp0[2]-1] = -3
-                #
+                
                 # addBC2Zone...
                 name1 = 'nmatch%d_%d'%(noz1+1,glob); glob+=1
                 name2 = 'nmatch%d_%d'%(noz2+1,glob); glob+=1
@@ -884,8 +888,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
                 C._addBC2Zone(zones[noz1],name1,'BCNearMatch',rangenm1,zones[noz2],range2  , topp0)
                 C._addBC2Zone(zones[noz2],name2,'BCNearMatch',range2  ,zones[noz1],rangenm1, topp )
 
-
-                #couplage RANS/laminar ou euler
+                # couplage RANS/laminar ou euler
                 model_z1 = model; model_z2 = model
                 eq = Internal.getNodeFromName2(zones[noz1], 'GoverningEquations')
                 if eq is not None: model_z1 = Internal.getValue( eq )

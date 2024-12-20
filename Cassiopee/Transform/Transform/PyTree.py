@@ -1905,10 +1905,30 @@ def _makeDirect(t):
             l1 = Vector.sub(P1,P0); ln1 = Vector.norm2(l1)
             l2 = Vector.sub(P2,P0); ln2 = Vector.norm2(l2)
             l3 = Vector.sub(P3,P0); ln3 = Vector.norm2(l3)
-            if ln1 > 0 and ln2 > 0 and ln3 > 0:
-                c = Vector.cross(l1,l2)
-                c = Vector.dot(c,l3)
-                if c < 0: _reorder(z, (1,2,-3))#, t)
+
+            c = Vector.cross(l1, l2)
+            if ln1 > 0 and ln2 > 0 and ln3 > 0: # 3D
+                c = Vector.dot(c, l3)
+                if c < 0: _reorder(z, (1,2,-3))
+            elif ln1 > 0 and ln2 > 0: # 2D
+                xmin = C.getMinValue(z, 'CoordinateX')
+                xmax = C.getMaxValue(z, 'CoordinateX')
+                ymin = C.getMinValue(z, 'CoordinateY')
+                ymax = C.getMaxValue(z, 'CoordinateY')
+                zmin = C.getMinValue(z, 'CoordinateZ')
+                zmax = C.getMaxValue(z, 'CoordinateZ')
+                if abs(zmax-zmin) < 1.e-6:
+                    l3 = (0., 0., 1.)
+                    c = Vector.dot(c, l3)
+                    if c < 0: _reorder(z, (1,-2,3))
+                elif abs(ymax-ymin < 1.e-6):
+                    l3 = (0., 1., 0.)
+                    c = Vector.dot(c, l3)
+                    if c < 0: _reorder(z, (1,-2,3))
+                elif abs(xmax-xmin < 1.e-6):
+                    l3 = (1., 0., 0.)
+                    c = Vector.dot(c, l3)
+                    if c < 0: _reorder(z, (1,-2,3))
     return None
 
 def addkplane(t, N=1):

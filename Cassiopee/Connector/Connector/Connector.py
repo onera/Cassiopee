@@ -27,7 +27,7 @@ def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
     elif dim == 3: nwins = 6
     else: raise ImportError("connectMatch: dim must be 2 or 3.")
 
-    allWins = []; dimsI = []; dimsJ = []; dimsK = []; typeOfWins=[]; indirBlkOfWins=[]
+    allWins=[]; dimsI=[]; dimsJ=[]; dimsK=[]; typeOfWins=[]; indirBlkOfWins=[]
     dimsI.append(a1[2]); dimsJ.append(a1[3]); dimsK.append(a1[4])
     dimsI.append(a2[2]); dimsJ.append(a2[3]); dimsK.append(a2[4])
 
@@ -90,11 +90,11 @@ def identifyMatchingP(A, AP, tol=1.e-6):
 
 #===============================================================================
 def identifyMatchingNM(AR, AD, tol=1.e-6):
-    return connector.identifyMatchingNM(AR, AD,tol)
+    return connector.identifyMatchingNM(AR, AD, tol)
 
 #===============================================================================
 def identifyDegenerated(A, tol=1.e-6):
-    return connector.identifyDegenerated(A,tol)
+    return connector.identifyDegenerated(A, tol)
 
 #===============================================================================
 # Retourne [ [[noz1,noz2],[imin1,imax1,...],[imin2,imax2,...],trirac] ]
