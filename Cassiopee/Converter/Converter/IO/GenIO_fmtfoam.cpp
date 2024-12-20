@@ -59,7 +59,7 @@ bool dirExist(char* path)
 // return 0: OK, 1: FAILED
 E_Int createDir(char* path)
 {
-  if (dirExist(path) == true) { printf("exists : %s\n", path); return 0; }
+  if (dirExist(path) == true) { printf("exists: %s\n", path); return 0; }
 #if defined(_WIN32)
   int ret = _mkdir(path);
 #else
@@ -273,7 +273,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       char buf[128];
       readWord(ptrFile, buf);
       E_Float val = strtod(buf, NULL);
-      printf("Info; foamread: uniform " SF_F_ ".\n", val);
+      printf("Info: foamread: uniform " SF_F_ ".\n", val);
       for (E_Int j = 0; j < bcsize; j++) {
         bcf[j] = val;
       }
@@ -291,7 +291,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       if (strcmp(buf, "uniform") == 0) {
         readWord(ptrFile, buf);
         E_Float val = strtod(buf, NULL);
-        printf("Info; foamread: uniform " SF_F_ ".\n", val);
+        printf("Info: foamread: uniform " SF_F_ ".\n", val);
         for (E_Int j = 0; j < bcsize; j++) {
           bcf[i] = val;
         }
@@ -352,7 +352,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       char buf[128];
       readWord(ptrFile, buf);
       E_Float val = strtod(buf, NULL);
-      printf("Info; foamread: uniform " SF_F_ ".\n", val);
+      printf("Info: foamread: uniform " SF_F_ ".\n", val);
       for (E_Int j = 0; j < bcsize; j++) {
         bcf[j] = val;
       }
@@ -494,7 +494,7 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
       readInt(buf, 1024, pos, nfaces);
       assert(nfaces == bcsize);
 
-      printf("Info; foamread: " SF_D_ " faces.", nfaces);
+      printf("Info: foamread: " SF_D_ " faces.", nfaces);
 
       skipLine(ptrFile);
 
@@ -989,7 +989,7 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
   }
   fclose(ptrFile);
 
-  printf("points: " SF_D_ "\n", f.getSize());
+  printf("Info: foamread: points: " SF_D_ "\n", f.getSize());
 
   return 0;
 }
@@ -1057,7 +1057,7 @@ E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
   }
   fclose(ptrFile);
 
-  printf("faces: " SF_D_ "\n", nfaces);
+  printf("Info: foamread: faces: " SF_D_ "\n", nfaces);
 
   return 0;
 }
@@ -1153,7 +1153,7 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
     PE(i,2) = 0; // exterior
   }
 
-  printf("internal faces: " SF_D_ "\n", nifaces);
+  printf("Info: foamread: internal faces: " SF_D_ "\n", nifaces);
 
   fclose(ptrFile);
 
@@ -1172,7 +1172,7 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file,
   FILE* ptrFile = fopen(fullPath, "r");
   if (ptrFile == NULL)
   {
-    printf("foamread: can not open constant/polyMesh/boundary.\n");
+    printf("Info: foamread: can not open constant/polyMesh/boundary.\n");
     return 1;
   }
   E_Int ret;
@@ -1545,8 +1545,6 @@ E_Int K_IO::GenIO::foamwrite(
   createSimpleFoamStructure(file);
 
   E_Int nzone = unstructField.size();
-
-  std::cout << "nzone = " << nzone << std::endl;
 
   // All zones must have posx, posy, posz
   E_Int posx, posy, posz;

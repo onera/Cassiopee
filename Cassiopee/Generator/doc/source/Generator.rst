@@ -582,10 +582,10 @@ General purpose grid generator
     :type maxh: float 
     :param grading: max adjacent cell ratio [tetgen]
     :type grading: float 
-    :param optionString: string of options identical to tetgen [tetgen]
-    :type optionString: string
     :param algo:  choice parameter between netgen and tetgen
     :type  algo:  integer (0 or 1)
+    :param optionString: string of options identical to tetgen [tetgen]
+    :type optionString: string
     :return: 3D mesh
     :rtype: [array] or [pyTree zone]
 
