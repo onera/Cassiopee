@@ -6,6 +6,8 @@ from Geom.IBM import setSnear, _setSnear, setDfar, _setDfar, snearFactor, _snear
 
 from Generator.IBMmodelHeight import computeModelisationHeight, computeSnearOpt
 
+from Post.IBM import extractPressureGradients, extractPressureHighOrder, extractYplusAtImagePoints, prepareSkinReconstruction, computeSkinVariables, _computeSkinVariables, computeAerodynamicLoads, computeAerodynamicCoefficients
+
 from Apps.Fast.WindTunnelOutPres import getInfo, _setUpOutletPressure, getPointsFromTree, setupMachProbe, recordDataMach, _controlOutletPressureMachProbe
 
 import Converter.PyTree as C
