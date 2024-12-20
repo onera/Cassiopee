@@ -1604,7 +1604,7 @@ def setupGlobal(**kwargs):
     createEmptySessionLog()
     buildTestList(**kwargs)
     updateDBLabel()
-    return 0 
+    return 0
 
 def getDBInfo():
     dbInfo = ''
