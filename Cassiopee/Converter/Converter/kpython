@@ -50,8 +50,10 @@ NTHREADS="0"
 ARGS=""
 # SANITIZE (-s)
 SANITIZE="0"
+# GDB (-g)
+GDB="0"
 
-while getopts :hpsn:t:a: OPTION
+while getopts :hpsgn:t:a: OPTION
 do
     case $OPTION in
         h)
@@ -81,7 +83,9 @@ do
         s) 
             SANITIZE="1"
             ;;
-        
+        g)
+            GDB="1"
+            ;;
         \?)
             PYARGS+=$OPTARG
             ;;
@@ -128,20 +132,28 @@ fi
 echo 'Running '$SCRIPT' with Nprocs='$NPROCS' and Nthreads='$NTHREADS
 
 if [ "$NPROCS" = "0" ]
-then
+then # sequential run forced
     export MPIRUN=0
     export OMP_NUM_THREADS=$NTHREADS
-    if [ $SANITIZE = '1' ]
+    if [ $SANITIZE = '1' -a $GDB = '0' ]
     then
         export LD_PRELOAD=$ASAN_LIB
         $PYTHONEXE $ARGS $SCRIPT
         unset LD_PRELOAD
+    elif [ $SANITIZE = '1' -a $GDB = '1' ]
+    then
+        export LD_PRELOAD=$ASAN_LIB
+        gdb --args $PYTHONEXE $ARGS $SCRIPT
+        unset LD_PRELOAD
+    elif [ $SANITIZE = '0' -a $GDB = '1' ]
+    then
+        gdb --args $PYTHONEXE $ARGS $SCRIPT #--eval-command="r "$SCRIPT 
     else
         $PYTHONEXE $ARGS $SCRIPT
     fi
     export OMP_NUM_THREADS=$OMPNUMTHREADSINIT
     unset MPIRUN
-else
+else # parallel run forced
     export MPIRUN=1
     export OMP_NUM_THREADS=$NTHREADS
     case "$ELSAPROD" in
@@ -204,9 +216,9 @@ else
             # openMpi
             if [ $SANITIZE = '1' ]
             then
-                mpirun $ARGS -x LD_PRELOAD=$ASAN_LIB -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS -x OMP_PLACES=cores $PYTHONEXE $SCRIPT  #--bind-to core --map-by socket:PE=$NTHREADS --report-bindings -x OMP_PROC_BIND=TRUE -x OMP_DISPLAY_ENV=VERBOSE
+                mpirun $ARGS -x LD_PRELOAD=$ASAN_LIB -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS --bind-to core --map-by socket:PE=$NTHREADS $PYTHONEXE $SCRIPT  #--report-bindings
             else
-                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS -x OMP_PLACES=cores $PYTHONEXE $SCRIPT  #--bind-to core --map-by socket:PE=$NTHREADS --report-bindings -x OMP_PROC_BIND=TRUE -x OMP_DISPLAY_ENV=VERBOSE
+                mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS --bind-to core --map-by socket:PE=$NTHREADS $PYTHONEXE $SCRIPT  #--report-bindings
             fi
             [ $? != 0 ] && exit 1;  
             ;;

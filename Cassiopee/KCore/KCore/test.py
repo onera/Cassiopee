@@ -374,8 +374,8 @@ def checkTree__(node1, node2):
     if isinstance(val1, str):
         if not isinstance(val2, str):
             print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
-            print('DIFF: reference:'+val2)
-            print('DIFF: courant:'+val1)
+            print('DIFF: reference: {}'.format(type(val2)))
+            print('DIFF: courant: str')
             return 0
         if val1 != val2:
             print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
@@ -385,8 +385,8 @@ def checkTree__(node1, node2):
     elif isinstance(val1, float):
         if not isinstance(val2, float):
             print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
-            print('DIFF: reference: %f'%val2)
-            print('DIFF: courant: %f'%val1)
+            print('DIFF: reference: {}'.format(type(val2)))
+            print('DIFF: courant: float')
             return 0
         if val1 != val2:
             print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
@@ -396,8 +396,8 @@ def checkTree__(node1, node2):
     elif isinstance(val1, int):
         if not isinstance(val2, int):
             print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
-            print('DIFF: reference: %d'%val2)
-            print('DIFF: courant: %d'%val1)
+            print('DIFF: reference: {}'.format(type(val2)))
+            print('DIFF: courant: int')
             return 0
         if val1 != val2:
             print('DIFF: valeurs differentes au noeud:'%node1[0])
