@@ -844,7 +844,7 @@ def runTests(update=False):
                 testref = 'post.ref*'
             else:
                 pathl = os.path.join(modulesDir, module, 'test')
-                testref = os.path.splitext(test)[0] + '.ref*'  
+                testref = os.path.splitext(test)[0] + '.ref*'
             rmFile(pathl, testref)
         current += 1; displayProgress(current, total, remaining, elapsed)
         remaining -= string2Time(splits[3])
@@ -920,7 +920,7 @@ def fillTestMetadata():
                 refCoverage = '...%'
             if os.access(fileStar, os.R_OK): refTag = readStar(fileStar)
             else: refTag = ' '
-            
+
             testName = module+'/'+test
             TESTMETA[testName] = newMetadata(coverage=refCoverage, tag=refTag,
                                              time=refCPUtime)
