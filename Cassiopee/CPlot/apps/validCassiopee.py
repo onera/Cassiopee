@@ -1740,7 +1740,7 @@ def updateASANLabel(entry_index):
     toolsTab.entryconfig(entry_index, label=label)
 
 #==============================================================================
-# Switches to control the state of USE_ASAN (Address/Leak Sanitizers)
+# Set message in the title bar
 #==============================================================================
 def setGUITitleBar(loc='GLOBAL'):
     # Machine name
