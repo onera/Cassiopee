@@ -1,5 +1,6 @@
 # *Cassiopee* GUI for validation and tests
 import os, sys, re, glob, signal, platform
+import socket
 import json
 import numpy as np
 import subprocess
@@ -10,10 +11,6 @@ import KCore.Dist as Dist
 
 # System
 mySystem = Dist.getSystem()[0]
-
-# Machine name
-import socket
-machine = socket.gethostname()
 
 # Support MPI?
 try:
@@ -1609,6 +1606,7 @@ def setupLocal(**kwargs):
     loadTestMetadata()
     buildTestList(**kwargs)
     updateDBLabel()
+    setGUITitleBar(loc='LOCAL')
     return 0
 
 def setupGlobal(**kwargs):
@@ -1632,6 +1630,7 @@ def setupGlobal(**kwargs):
     loadTestMetadata()
     buildTestList(**kwargs)
     updateDBLabel()
+    setGUITitleBar(loc='GLOBAL')
     return 0
 
 def getDBInfo():
@@ -1741,6 +1740,20 @@ def updateASANLabel(entry_index):
     toolsTab.entryconfig(entry_index, label=label)
 
 #==============================================================================
+# Set message in the title bar
+#==============================================================================
+def setGUITitleBar(loc='GLOBAL'):
+    # Machine name
+    machine = socket.gethostname()
+    title = '*Cassiopee* valid {} : {} @ {}'.format(loc, os.getenv("ELSAPROD"),
+                                                    machine)
+    cassiopeeIncDir = getInstallPaths()[0]
+    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
+    if gitBranch and gitBranch != "main":
+        title += " (branch {})".format(gitBranch)
+    Master.title(title)
+
+#==============================================================================
 # Main
 #==============================================================================
 
@@ -1762,8 +1775,7 @@ if __name__ == '__main__':
         from functools import partial
         # Main window
         Master = TK.Tk()
-        Master.title('*Cassiopee* valid : {} @ {}'.format(
-            os.getenv("ELSAPROD"), machine))
+        setGUITitleBar()
         Master.columnconfigure(0, weight=1)
         Master.rowconfigure(0, weight=1)
         #GENERALFONT = ('Courier', 9)
