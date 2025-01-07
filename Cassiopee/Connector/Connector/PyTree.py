@@ -240,8 +240,8 @@ def _connectMatchStruct__(a, tol, dim, glob):
                 if topp0[2] > 0: topp[topp0[2]-1] = 3
                 else: topp[-topp0[2]-1] = -3
 
-            print('match from ', zones[noz1][0], 'et ', zones[noz2][0])
-            print(topp, topp0, info[3])
+            #print('match from ', zones[noz1][0], 'et ', zones[noz2][0])
+            #print(topp, topp0, info[3])
 
             #------------------------------------------
             # addBC2Zone...
