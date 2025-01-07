@@ -57,15 +57,12 @@ void Smesh::intersect_ray(const Ray &ray, E_Int node_idx, HitData &hit_data) con
 bool Smesh::is_point_inside(E_Float px, E_Float py, E_Float pz) const
 {
     Ray ray(px, py, pz, 1, 0, 0);
-    if (!box.is_point_inside(ray.o)) return false;
-    HitData hit_data;
-    intersect_ray(ray, 0, hit_data);
-    return hit_data.hits.size() % 2 == 1;
+    return is_point_inside(ray);
 }
 
 bool Smesh::is_point_inside(const Ray &ray) const
 {
-    if (!box.is_point_inside(ray.o)) return false;
+    //if (!box.is_point_inside(ray.o)) return false;
     HitData hit_data;
     intersect_ray(ray, 0, hit_data);
     return hit_data.hits.size() % 2 == 1;

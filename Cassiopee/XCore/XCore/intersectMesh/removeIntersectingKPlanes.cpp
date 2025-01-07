@@ -83,9 +83,9 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
         for (E_Int i = 0; i < ni; i++) {
 
             E_Int base = i + ni*j;
-            bool was_inside = false;
+            //bool was_inside = true;
 
-            for (E_Int k = 0; k < nk; k++) {
+            for (E_Int k = nk-1; k >= 0; k--) {
 
                 E_Int idx = base + nij*k;
 
@@ -93,29 +93,28 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
                 E_Float py = Ys[idx];
                 E_Float pz = Zs[idx];
 
-                if (Mf.is_point_inside(px, py, pz)) {
+                if (!Mf.is_point_inside(px, py, pz)) {
                 //if (M->is_point_inside(px, py, pz)) {
-                    kmax[base] = k-2;
+                    kmax[base] = k-1;
 
                     // Cache the point to be projected
                     E_Int proj_id = base + nij*kmax[base];
                     proj_points.push_back(proj_id);
 
-                    was_inside = true;
+                    //was_outside = false;
                     break;
                 }
             }
-
-            //assert(was_outside);
-
             
-            if (!was_inside) {
+            /*
+            if (was_outside) {
                 // i-j line completely outside of M
                 // Projection points is the last point
                 kmax[base] = nk-2;
                 E_Int proj_id = base + nij*kmax[base];
                 proj_points.push_back(proj_id);
             }
+            */
         }
     }
 
@@ -560,6 +559,7 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
 
 #include "smesh.h"
 #include <random>
+//#include "precise.h"
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
@@ -575,17 +575,18 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    /*
+    E_Float a = 2.654351;
+    E_Float b = 8.321359;
+    E_Float c = 11.63157;
+    E_Float d = 29.68484;
+    auto E = difference_of_products(a, b, c, d);
+    E.print();
+    printf("%d\n", E.sign());
+    exit(0);
+    */
+
     IMesh *M = (IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
-
-    M->make_skin();
-    //M->make_bbox();
-    //M->hash_skin();
-
-    Smesh Mf = Smesh::Smesh_from_mesh_skin(*M, M->skin, false);
-    printf("Mf: %d tris\n", Mf.nf);
-    Mf.make_fcenters();
-    Mf.make_BVH();
-    Mf.box.print();
 
     /*
     E_Float lo = -1.0;
@@ -649,7 +650,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < nslaves; i++) {
         printf("Projecting %d / %d\n", i+1, nslaves);
         //PyObject *st = handle_slave2(M, sarrays[i], kmax);
-        PyObject *st = handle_slave(M, Mf, sarrays[i]);
+        PyObject *st = handle_slave(M, M->Mf, sarrays[i]);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);
         Karray_free_structured(sarrays[i]);

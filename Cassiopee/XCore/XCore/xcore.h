@@ -69,6 +69,13 @@ namespace K_XCORE
     PyObject *IntersectMesh_Exit(PyObject *self, PyObject *args);
     PyObject *IntersectMesh_ExtractFaceSet(PyObject *self, PyObject *args);
     
+    PyObject *icapsule_init2(PyObject *self, PyObject *args);
+    PyObject *icapsule_set_master(PyObject *self, PyObject *args);
+    PyObject *icapsule_set_slaves(PyObject *self, PyObject *args);
+    PyObject *icapsule_adapt2(PyObject *self, PyObject *args);
+    PyObject *icapsule_intersect2(PyObject *self, PyObject *args);
+
+
     PyObject *icapsule_init(PyObject *self, PyObject *args);
     PyObject *icapsule_adapt(PyObject *self, PyObject *args);
     PyObject *icapsule_intersect(PyObject *self, PyObject *args);
