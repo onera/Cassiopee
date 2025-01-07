@@ -1,4 +1,4 @@
-# - setInterpData (pyTree) - 
+# - setInterpData (pyTree) -
 # case without cellN field: the whole receiver zone is interpolated
 import Converter.PyTree as C
 import Generator.PyTree as G

@@ -70,9 +70,9 @@ def getVariableValue(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     cvar = VARS[0].get()
-    if cvar == 'CoordinateX': 
+    if cvar == 'CoordinateX':
         VARS[1].set(str(point[0]))
-    elif cvar == 'CoordinateY': 
+    elif cvar == 'CoordinateY':
         VARS[1].set(str(point[1]))
     elif cvar == 'CoordinateZ':
         VARS[1].set(str(point[2]))
@@ -103,7 +103,7 @@ def setVariableValue(event=None):
     z = CTK.t[2][nob][2][noz]
     ind = CPlot.getActivePointIndex()
     if ind == []:
-        CTK.TXT.insert('START', 'No selected point.\n')    
+        CTK.TXT.insert('START', 'No selected point.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     indv = ind[0]; inde = ind[1]
 
@@ -113,7 +113,7 @@ def setVariableValue(event=None):
     svar = cvar.split(':')
     if len(svar) == 2 and svar[0] == 'centers':
         C.setValue(zp, cvar, inde, val[0])
-    else: 
+    else:
         C.setValue(zp, cvar, indv, val[0])
     CPlot.replace(CTK.t, nob, noz, zp)
     CTK.TXT.insert('START', 'Point modified.\n')
@@ -160,8 +160,8 @@ def createApp(win):
         F.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Selected var name.')
         WIDGETS['variable'] = B
-    else: 
-        B = ttk.Combobox(F, textvariable=VARS[0], 
+    else:
+        B = ttk.Combobox(F, textvariable=VARS[0],
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2)

@@ -31,5 +31,3 @@ test.testT(t,7)
 
 t = C.newPyTree(['Base', [z1,z2]])
 test.testT(t,8)
-
-

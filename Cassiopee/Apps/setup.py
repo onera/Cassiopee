@@ -20,7 +20,7 @@ setup(
     author="ONERA",
     packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda'],
     package_dir={"":"."}
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

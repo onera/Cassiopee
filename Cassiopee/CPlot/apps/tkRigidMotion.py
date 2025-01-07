@@ -572,7 +572,7 @@ def createApp(win):
 
     # - Settings -
     B = TTK.OptionMenu(Frame, VARS[11], '1:MotionStrings', '2:KMotionRotor',
-                       '3:ConstantMotion', 
+                       '3:ConstantMotion',
                        command=changeMotionType)
     B.grid(row=0, column=0, columnspan=3, sticky=TK.EW)
 

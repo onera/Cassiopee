@@ -46,8 +46,8 @@ def computeMeshInfo(z, dim):
             nfaces = dim[1]*(dim[2]-1)+dim[2]*(dim[1]-1)
         elif dim[4] == 3:
             nfaces = dim[1]*(dim[2]-1)*(dim[3]-1)+ \
-                     dim[2]*(dim[3]-1)*(dim[1]-1)+ \
-                     dim[3]*(dim[1]-1)*(dim[2]-1)
+                dim[2]*(dim[3]-1)*(dim[1]-1)+ \
+                dim[3]*(dim[1]-1)*(dim[2]-1)
     else:
         # Compute nodes number
         np = dim[1]
@@ -280,8 +280,8 @@ def createApp(win):
         F.grid(row=4, column=1, columnspan=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Selected var name.')
         WIDGETS['variable'] = B
-    else: 
-        B = ttk.Combobox(F, textvariable=VARS[5], 
+    else:
+        B = ttk.Combobox(F, textvariable=VARS[5],
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2)
@@ -289,7 +289,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Selected var name.')
         WIDGETS['variable'] = B
 
-    # - Min de la variable - 
+    # - Min de la variable -
     B = TTK.Label(Frame, text="Min:")
     B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Min of variable.')
@@ -298,7 +298,7 @@ def createApp(win):
     B.grid(row=5, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Min of variable.')
 
-    # - Max de la variable -    
+    # - Max de la variable -
     B = TTK.Label(Frame, text="Max:")
     B.grid(row=6, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Max of variable.')

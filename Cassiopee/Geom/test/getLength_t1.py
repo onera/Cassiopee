@@ -5,7 +5,7 @@ import KCore.test as test
 
 res = C.array('r', 1,1,1)
 
-# test getLength structure 
+# test getLength structure
 a = D.line((0,0,0), (1,0,0))
 l = D.getLength(a) - 1.0
 res[1][0,0] = l

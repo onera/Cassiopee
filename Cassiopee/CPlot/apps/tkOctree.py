@@ -106,9 +106,9 @@ def octree2Struct():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         try:
-            zlist = G.octree2Struct(z, vmin=vmin, ext=ext, optimized=optimized, 
-                                    merged=merged, AMR=AMR)    
-        except Exception as e: 
+            zlist = G.octree2Struct(z, vmin=vmin, ext=ext, optimized=optimized,
+                                    merged=merged, AMR=AMR)
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     CTK.t = C.addBase2PyTree(CTK.t, 'CARTESIAN')
@@ -260,7 +260,7 @@ def adaptInsideOctree():
         CTK.TXT.insert('START', 'Invalid body surface.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    # Blank   
+    # Blank
     CTK.saveTree()
 
     BM = numpy.zeros((1, 1), dtype=Internal.E_NpyInt); BM[0,0] = 1
@@ -289,12 +289,12 @@ def adaptInsideOctree():
     #C._fillMissingVariables(CTK.t)
     if fail == False:
         CTK.TXT.insert('START', 'Adapt octree computed.\n')
-    else: 
+    else:
         CTK.TXT.insert('START', 'Adapt octree failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CPlot.render()    
+    CPlot.render()
 
 #==============================================================================
 def hexaOctree():
@@ -352,7 +352,7 @@ def hexaOctree():
     #C._fillMissingVariables(CTK.t)
     if fail == False:
         CTK.TXT.insert('START', 'Hexa octree computed.\n')
-    else: 
+    else:
         CTK.TXT.insert('START', 'Hexa octree failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)

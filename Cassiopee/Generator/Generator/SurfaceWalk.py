@@ -10,7 +10,7 @@ except: pass
 #=============================================================================
 # Python Interface to create surface grids by marching on surfaces
 #=============================================================================
-try: 
+try:
     import Transform as T
     import Converter as C
     import Post as P
@@ -67,7 +67,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
 
     if len(distrib) != 5: distrib = C.convertBAR2Struct(distrib)
     c0 = G.close(c, tol=toldist)
-    if len(c) == 4: c0 = C.convertBAR2Struct(c0) 
+    if len(c) == 4: c0 = C.convertBAR2Struct(c0)
 
     surfaces = C.convertArray2Tetra(surfaces, split='withBarycenters')
     surfaces = T.join(surfaces)
@@ -127,7 +127,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
     stop = 0; j1 = 1; jmaxout = -1
     while j1 < jmax and stop == 0:
         # Interpolation des normales sur le contour
-        indices, dists = C.nearestNodes(hook, c2) 
+        indices, dists = C.nearestNodes(hook, c2)
         c2 = C.addVars(c2, vn)
         alpn2 = C.extractVars(c2,vn)
         n1 = C.extractVars(normales,vn)
@@ -145,7 +145,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
             alpxp = alpp[1][0,:]; alpyp = alpp[1][1,:]; alpzp = alpp[1][2,:]
 
             for ieta in range(eta[1].shape[1]):
-                ps = alpxn[ieta]*alpxp[ieta]+alpyn[ieta]*alpyp[ieta]+alpzn[ieta]*alpzp[ieta]                
+                ps = alpxn[ieta]*alpxp[ieta]+alpyn[ieta]*alpyp[ieta]+alpzn[ieta]*alpzp[ieta]
                 if abs(ps) < cosalphaRef: stop = 1; jmaxout = j1; break
         #----------------------------------
         # add layer a partir de c et de eta
@@ -153,7 +153,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
         if stop == 0:
             alpp = alpn
             etap = C.normalize(eta, veta)
-            if constraints2 != []: 
+            if constraints2 != []:
                 eta = generator.straightenVector(c2, etap, constrainedPts, constraints2, loop, niter, toldist)
             else: eta = etap
             if loop == 1: # meme eta en imin et imax
@@ -189,16 +189,16 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
     volmin = -1.e6
     if check == 1:
         jminout = jmaxout
-        for j1 in range(1,jmaxout-1): 
-            subc = T.subzone(coords,(1,j1,1),(imax,j1+1,1))            
+        for j1 in range(1,jmaxout-1):
+            subc = T.subzone(coords,(1,j1,1),(imax,j1+1,1))
             vol = G.getVolumeMap(subc)
-            if C.getMinValue(vol,'vol') < 0.1*volmin: 
+            if C.getMinValue(vol,'vol') < 0.1*volmin:
                 jminout = min(jminout,j1prev)
                 break
             if j1 == 1: volmin = C.getMinValue(vol,'vol')
             j1prev += 1
         return T.subzone(coords,(1,1,1),(imax,jminout,1))
-    else: #check == 0: 
+    else: #check == 0:
         if jmaxout == jmax: return coords
         else: return T.subzone(coords,(1,1,1),(imax,jmaxout,1))
     return None

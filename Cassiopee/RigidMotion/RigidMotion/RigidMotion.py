@@ -6,7 +6,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
 from . import rigidMotion
 import numpy
 try: import Converter as C
-except ImportError: 
+except ImportError:
     raise ImportError("RigidMotion: requires Converter module.")
 
 #==============================================================================
@@ -44,7 +44,7 @@ def _evalPosition(array, time, F):
     if len(r) != 3: raise ValueError("evalPosition: rotation matrix must be 3x3.")
     else:
         if len(r[0]) != 3: raise ValueError("evalPosition: rotation matrix must be 3x3.")
-    if isinstance(array[0], list): 
+    if isinstance(array[0], list):
         for i in array:
             rigidMotion.move(i, d[0], d[1], d[2], \
                              c[0], c[1], c[2], \
@@ -62,7 +62,7 @@ def _evalPosition(array, time, F):
 # Applique la formule XP=d+r*(XN-c) sur des numpys de coordonnees
 # in place
 def _moveN(coordsN, d, c, r):
-    return rigidMotion.moveN(coordsN, 
+    return rigidMotion.moveN(coordsN,
                              (d[0], d[1], d[2]), \
                              (c[0], c[1], c[2]), \
                              r[0,0], r[0,1], r[0,2], \

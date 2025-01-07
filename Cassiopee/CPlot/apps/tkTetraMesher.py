@@ -37,7 +37,7 @@ def tetraMesher():
         out.append(CTK.t[2][nob][2][noz])
 
     try:
-        mesh = G.tetraMesher(out, algo=algo, grading=0.3)
+        mesh = G.tetraMesher(out, algo=algo, grading=0.3, recoverBC=True)
         CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
         bases = Internal.getNodesFromName1(CTK.t, 'MESHES')
         nob = C.getNobOfBase(bases[0], CTK.t)
@@ -82,12 +82,12 @@ def createApp(win):
     if 'tkTetraMesherType' in CTK.PREFS: V.set(CTK.PREFS['tkTetraMesherType'])
 
     # - mesher menu -
-    B = TTK.OptionMenu(Frame, VARS[0], 'netgen', 'tetgen')
-    B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
+    #B = TTK.OptionMenu(Frame, VARS[0], 'netgen', 'tetgen')
+    #B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
 
     # - Run -
     B = TTK.Button(Frame, text="tetraMesher", command=tetraMesher)
-    B.grid(row=0, column=0, sticky=TK.EW)
+    B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
     WIDGETS['tetraMesher'] = B
     BB = CTK.infoBulle(parent=B, text='Mesh with TETRAs or TRIs.')
 
@@ -128,7 +128,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]

@@ -75,26 +75,26 @@ cpp_srcs = ["Post/coarsen.cpp",
 
 if STREAMLINE2:
     cpp_srcs += [
-            "Post/Stream2/face.cpp",
-            "Post/Stream2/connectivity.cpp",
-            "Post/Stream2/kdtree.cpp",
-            "Post/Stream2/linear_algebra.cpp",
-            "Post/Stream2/triangulated_polyhedron.cpp",
-            "Post/Stream2/zone_data_view.cpp",
-            "Post/Stream2/structured_data_view.cpp",
-            "Post/Stream2/unstructured_data_view.cpp",
-            "Post/Stream2/ngon_data_view.cpp",
-            "Post/Stream2/stream_line.cpp",
-            "Post/Stream2/py_stream_line.cpp",
-            "Post/Stream2/write_svg.cpp",
-            "Post/Stream2/volume.cpp",
-            "Post/Stream2/rotational.cpp",
-            "Post/Stream2/ribbon_stream_line.cpp",
-            "Post/Stream2/py_streamribbon.cpp"]
+        "Post/Stream2/face.cpp",
+        "Post/Stream2/connectivity.cpp",
+        "Post/Stream2/kdtree.cpp",
+        "Post/Stream2/linear_algebra.cpp",
+        "Post/Stream2/triangulated_polyhedron.cpp",
+        "Post/Stream2/zone_data_view.cpp",
+        "Post/Stream2/structured_data_view.cpp",
+        "Post/Stream2/unstructured_data_view.cpp",
+        "Post/Stream2/ngon_data_view.cpp",
+        "Post/Stream2/stream_line.cpp",
+        "Post/Stream2/py_stream_line.cpp",
+        "Post/Stream2/write_svg.cpp",
+        "Post/Stream2/volume.cpp",
+        "Post/Stream2/rotational.cpp",
+        "Post/Stream2/ribbon_stream_line.cpp",
+        "Post/Stream2/py_streamribbon.cpp"]
 else:
     cpp_srcs += [
-            "Post/Stream2/py_stream_line_stub.cpp",
-            "Post/Stream2/py_stream_ribbon_stub.cpp"]
+        "Post/Stream2/py_stream_line_stub.cpp",
+        "Post/Stream2/py_stream_ribbon_stub.cpp"]
 
 if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
     cpp_srcs.append("Post/usurp.cpp")

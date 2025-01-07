@@ -636,11 +636,19 @@ elif [ "$MAC" = "juno_coda" ]; then
     export OMP_NUM_THREADS=48
     # modules
     module purge
-    source /stck/rhea/dist/juno_v2024_02_python3108/source.sh --env coda_dev --compiler gcc@10 --mpi openmpi
+    source /stck/rhea/dist/juno_v2024_08/source.sh --env coda_users
+    module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
     module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
     export PYTHONEXE=python3
     export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    #unset OMP_PLACES
+    export OMP_PLACES=cores
+    export OMP_PROC_BIND=TRUE
+    #export OMP_DISPLAY_ENV=VERBOSE
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
@@ -740,6 +748,27 @@ elif [ "$MAC" = "sator_sph" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
+    
+elif [ "$MAC" = "sator_gcc" ]; then
+#----------------------------- sator gcc ---------------------------------------
+    export ELSAPROD=sat_gcc
+    export ELSAPROD=$ELSAPROD$EXT
+    # Nbre de threads
+    export OMP_NUM_THREADS=48
+    # modules
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load socle-cfd/7.0-gnu850-ompi502
+    module load occt/7.6.1-gnu831
+    module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
+    export OMP_PLACES=cores
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export ASAN_OPTIONS=verify_asan_link_order=false
+    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "adastra_cpu" ]; then
 #----------------------------- adastra cpu  ---------------------------------------

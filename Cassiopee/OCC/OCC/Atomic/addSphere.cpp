@@ -18,6 +18,7 @@
 */
 
 #include "occ.h"
+#include "TopoDS.hxx"
 #include "TopoDS_Shape.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "TopExp.hxx"
@@ -31,7 +32,7 @@
 PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Float xc, yc, zc, R;
-  if (!PYPARSETUPLE_(args, O_ RRRR_, &hook, &xc, &yc, &zc, &R)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ R_, &hook, &xc, &yc, &zc, &R)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -40,47 +41,39 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
   packet = (void**) PyCapsule_GetPointer(hook, NULL);
 #endif
 
-  /* previous shape or compound */
-  /*
-  TopoDS_Shape* psh = (TopoDS_Shape*)packet[0];
-  
-  if (psh != NULL)
-  {
-    TopAbs_ShapeEnum ptype = psh->ShapeType();
-    if (ptype == TopAbs_COMPOUND)
-    {
-      printf("previous is a compoud\n");
-      // == TopAbs_COMPOUND 
-      //for(TopoDS_Iterator anExp(psh); anExp.More(); anExp.Next()){
-      //const TopoDS_Shape &curShape1 = anExp.Value();}
-    }
-    else
-    { printf("previous is a shape\n"); }
-  }*/
+  //TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
   /* new sphere */
   gp_Pnt center(xc, yc, zc);
   BRepPrimAPI_MakeSphere makerSphere(center, R);
   TopoDS_Shape sphere = makerSphere.Shape();
 
-  /* another sphere */
-  //gp_Pnt center2(xc+2, yc, zc);
-  //BRepPrimAPI_MakeSphere makerSphere2(center2, R);
-  //TopoDS_Shape sphere2 = makerSphere2.Shape();
+  // Rebuild a single compound
+  BRep_Builder builder;
+  TopoDS_Compound compound;
+  builder.MakeCompound(compound);
+    
+  for (E_Int i = 1; i <= surfaces.Extent(); i++)
+  {
+    TopoDS_Face F = TopoDS::Face(surfaces(i));
+    builder.Add(compound, F);
+  }
 
-  // Building a Compound
-  //TopoDS_Compound sh;
-  //BRep_Builder aBuilder;
-  //aBuilder.MakeCompound(sh);
-  //aBuilder.Add(sh, sphere);
-  //aBuilder.Add(sh, sphere2);
-  
-  /* export */
-  TopoDS_Shape* newshp = new TopoDS_Shape(sphere);
-  //TopoDS_Shape* newshp = new TopoDS_Compound(sh);
-  
+  TopTools_IndexedMapOfShape* sfs = new TopTools_IndexedMapOfShape();
+  TopExp::MapShapes(sphere, TopAbs_FACE, *sfs);
+  TopTools_IndexedMapOfShape& surfaces2 = *(TopTools_IndexedMapOfShape*)sfs;
+  for (E_Int i = 1; i <= surfaces2.Extent(); i++)
+  {
+    TopoDS_Face F = TopoDS::Face(surfaces2(i));
+    builder.Add(compound, F);
+  }
+  delete sfs;
+
+  TopoDS_Shape* newshp = new TopoDS_Shape(compound);
+    
+  // Rebuild the hook
   packet[0] = newshp;
-  
   // Extract surfaces
   TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
   delete ptr;
@@ -94,6 +87,8 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
   TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
   packet[2] = se;
+  printf("INFO: after addSphere: Nb edges=%d\n", se->Extent());
+  printf("INFO: after addSphere: Nb faces=%d\n", sf->Extent());
   
   Py_INCREF(Py_None);
   return Py_None;

@@ -62,7 +62,7 @@ def setFilter(event=None):
         for i in familySelect: listFmlySlct.append(i[0])
         del familySelect
         for b in bases:
-            baseName = b[0]            
+            baseName = b[0]
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     zoneName = baseName + '/' + z[0]
@@ -284,7 +284,7 @@ def setFilter(event=None):
                 for z in b[2]:
                     if z[3] == 'Zone_t':
                         i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                        active.append((i,1)) 
+                        active.append((i,1))
             elif prios == [] and prio == 0:
                 for z in b[2]:
                     if z[3] == 'Zone_t':
@@ -325,12 +325,12 @@ def setFilter(event=None):
             return
         b1 = formula.find('==')
         formula1 = formula; formula2 = formula
-        if b1 != -1: 
+        if b1 != -1:
             formula1 = formula.replace('==', '<=')
             formula2 = formula.replace('==', '>=')
         else:
             b1 = formula.find('=')
-            if b1 != -1: 
+            if b1 != -1:
                 formula1 = formula.replace('=', '<=')
                 formula2 = formula.replace('=', '>=')
 
@@ -401,7 +401,7 @@ def createApp(win):
 
     B = TTK.OptionMenu(Frame, VARS[1], 'By Zone name', 'By Zone family' ,'By size >',
                        'By size <', 'By MG lvl =', 'By MG lvl !=',
-                       'By proc', 'By priority', 'By number', 
+                       'By proc', 'By priority', 'By number',
                        'By formula (or)', 'By formula (and)')
     BB = CTK.infoBulle(parent=B, text='Filter criteria.')
     B.grid(row=0, column=1, sticky=TK.EW)

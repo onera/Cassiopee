@@ -12,7 +12,7 @@ CPlot.setState(gridSize=(1,2))
 for i in range(100):
     B = C.initVars(B, '{f}=sin({x}+0.02*%d)'%i)
     B = C.initVars(B, '{g}={x}')
-    CPlot.display1D(B, slot=0, bgBlend=1., gridPos=(0,0), 
+    CPlot.display1D(B, slot=0, bgBlend=1., gridPos=(0,0),
                     var1='x', var2='f')
 
 # 1D data defined in numpys

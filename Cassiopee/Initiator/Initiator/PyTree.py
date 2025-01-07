@@ -14,16 +14,16 @@ except ImportError:
     raise ImportError("Initiator.PyTree: requires Converter.PyTree module.")
 
 def _applyGaussianAL(t, listOfLoads, listOfALPositions, listOfRotMat,
-                    localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
-                    TruncVarLoads, TruncVarVelos):
+                     localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
+                     TruncVarLoads, TruncVarVelos):
     writeDim = False
     fa = C.getFields(Internal.__FlowSolutionCenters__, t, api=3)
     if fa != []:
         Initiator._applyGaussianAL(fa, listOfLoads, listOfALPositions, listOfRotMat,
-                    localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVarLoads, TruncVarVelos)
+                                   localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVarLoads, TruncVarVelos)
     return None
 
-def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, 
+def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
               loc='nodes'):
     """Init the pyTree by the reference state if it is defined in t, else by input parameters.
     Usage: initConst(t, adim, MInf, alphaZ, alphaY, ReInf, loc)"""
@@ -31,14 +31,14 @@ def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
     _initConst(tp, adim, MInf, alphaZ, alphaY, ReInf, loc)
     return tp
 
-def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, 
+def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
                loc='nodes'):
     """Init the pyTree by the reference state if it is defined in t, else by input parameters."""
     if MInf is None: # recuperation de reference state
         eq = Internal.getNodeFromName(t, 'GoverningEquations')
         state = Internal.getNodeFromName(t, 'ReferenceState')
         if state is None: raise ValueError("initConst: no reference state and no argument.")
-        vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 
+        vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
                  'EnergyStagnationDensity']
         if eq is not None and Internal.getValue(eq) == 'NSTurbulent':
             vars0 += ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity', 'TurbulentDissipationDensity']
@@ -70,7 +70,7 @@ def _initDist(t, adim='adim1', loc='nodes'):
     eq = Internal.getNodeFromName(t, 'GoverningEquations')
     state = Internal.getNodeFromName(t, 'ReferenceState')
     if state is None: raise ValueError("initConst: no reference state and no argument.")
-    vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 
+    vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
              'EnergyStagnationDensity']
     if eq is not None and Internal.getValue(eq) == 'NSTurbulent':
         vars0 += ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity', 'TurbulentDissipationDensity']
@@ -160,7 +160,7 @@ def initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     _initVisbal(tp, position, Gamma, MInf, loc)
     return tp
 
-def _initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):    
+def _initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     """Init the array defining a grid with a Visbal vortex of intensity Gamma and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
@@ -219,7 +219,7 @@ def _initYee(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     return None
 
 def initScully(t, position=(0.,0.), Gamma=2.,
-               coreRadius=1., MInf=0.5, model=0, loc='nodes'): 
+               coreRadius=1., MInf=0.5, model=0, loc='nodes'):
     """Init the array defining a block field with a Scully vortex
     of intensity Gamma, core radius coreRadius and position (x0,y0).
     Usage: initScully(array, (x0,y0), Gamma, coreRadius, MInf, model)"""
@@ -292,7 +292,7 @@ def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
 def cons2Prim(t, Gamma=1.4, Rgas=287.053, loc='centers'):
     """Compute primitive variables from conservative variables"""
     tp = Internal.copyRef(t)
-    _cons2Prim(t, Gamma=Gamma, Rgas = Rgas, loc=loc)
+    _cons2Prim(t, Gamma=Gamma, Rgas=Rgas, loc=loc)
     return tp
 
 def _cons2Prim(t, Gamma=1.4, Rgas=287.053, loc='centers'):

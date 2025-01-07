@@ -7,21 +7,21 @@ from . import converter
 # Acces a Distributed
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths, mergeGraph, splitGraph
 
-__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND', 
-    'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
-    'bcast', 'Bcast', 'gather', 'Gather', 
-    'reduce', 'Reduce', 'allreduce', 'Allreduce', 
-    'bcastZone', 'gatherZones', 'allgatherZones',
-    'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
-    'allgather', 'readZones', 'writeZones', 'convert2PartialTree', 
-    'convert2SkeletonTree',
-    'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
-    'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree', 
-    'convertPyTree2File', 'seq', 'print0', 'printA',
-    'createBboxDict', 'computeGraph', 'addXZones', 
-    '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
-    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict', 
-    'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty', 'COMM_WORLD']
+__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
+           'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
+           'bcast', 'Bcast', 'gather', 'Gather',
+           'reduce', 'Reduce', 'allreduce', 'Allreduce',
+           'bcastZone', 'gatherZones', 'allgatherZones',
+           'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
+           'allgather', 'readZones', 'writeZones', 'convert2PartialTree',
+           'convert2SkeletonTree',
+           'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
+           'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree',
+           'convertPyTree2File', 'seq', 'print0', 'printA',
+           'createBboxDict', 'computeGraph', 'addXZones',
+           '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
+           'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict',
+           'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty', 'COMM_WORLD']
 
 from mpi4py import MPI
 import numpy
@@ -160,7 +160,7 @@ def sendRecvC(datas, graph):
         for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
             #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
-            if oppNode in datas: 
+            if oppNode in datas:
                 s = converter.iSend(datas[oppNode], oppNode, rank, KCOMM)
             else:
                 s = converter.iSend(None, oppNode, rank, KCOMM)
@@ -211,7 +211,7 @@ def intersect(zone, BBTree):
     return converter.intersect(minBBox, maxBBox, BBTree)
 
 def intersect2(t, BBTree):
-    zones = Internal.getZones(t)    
+    zones = Internal.getZones(t)
     inBB = numpy.empty((6*len(zones)), dtype=numpy.float64)
     for c, z in enumerate(zones):
         gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
@@ -270,7 +270,7 @@ def allgather(data):
     ret = KCOMM.allgather(data)
     # Si dictionnaire de listes, on fusionne les listes
     # Si dictionnaire d'autre chose, on append dans des listes
-    if isinstance(data, dict):        
+    if isinstance(data, dict):
         out = {}
         for r in ret:
             for k in r:
@@ -376,7 +376,7 @@ def bcastZone(z, root=0, coord=True, variables=[]):
         if rank != root:
             # Reconstruction de la zone
             flowSol = Internal.__FlowSolutionNodes__ if loc == 'nodes' else Internal.__FlowSolutionCenters__
-            if cpt == 0: 
+            if cpt == 0:
                 Internal._createUniqueChild(zp, flowSol, 'FlowSolution_t')
                 n = Internal.getNodeFromName1(zp, flowSol)
                 if loc == 'centers': Internal._createUniqueChild(n, 'GridLocation', 'GridLocation_t', 'CellCenter')
@@ -384,7 +384,7 @@ def bcastZone(z, root=0, coord=True, variables=[]):
                 n = Internal.getNodeFromName1(zp, flowSol)
             Internal._createUniqueChild(n, var, 'DataArray_t', value=pv)
 
-    if rank == root: 
+    if rank == root:
         zp = Internal.copyRef(z)
         # suppression coord si coord=False et des autres champs
         if not coord: Internal._rmNodesFromType(zp, 'GridCoordinates_t')
@@ -392,14 +392,14 @@ def bcastZone(z, root=0, coord=True, variables=[]):
         else:
             varszp = C.getVarNames(zp, excludeXYZ=True, loc='both')[0]
             for var in varszp:
-                if var not in variables: 
+                if var not in variables:
                     Internal._rmNodesFromName(zp, var.replace('centers:',''))
     return zp
 
 # All gather une liste de zones, recuperation identique sur tous les procs
 # dans une liste a plat
 # Partage les coordonnees si coord=True
-# Partage les variables renseignees et supprime les autres 
+# Partage les variables renseignees et supprime les autres
 def allgatherZones(zones, coord=True, variables=[]):
     # Chaque processeur bcast ses zones vers les autres ranks
     zones = Internal.getZones(zones)
@@ -415,7 +415,7 @@ def allgatherZones(zones, coord=True, variables=[]):
             #        varszp = C.getVarNames(zp, excludeXYZ=True, loc='both')[0]
             #        for var in varszp:
             #            if var not in variables: Internal._rmNodesFromName(zp, var.replace('centers:',''))
-            else: 
+            else:
                 zp = bcastZone(None, root=i, coord=coord, variables=variables)
 
             #if rank == i: zp = zones[cz]
@@ -490,11 +490,11 @@ def _merge__(t):
 # Avec recuperation de toutes les zones
 # si ignoreProcNodes=True, toutes les zones non squelette sont ecrites,
 # sinon ecrit seulement les zones procNode correspondant a rank
-# si merge=True, effectue un merge prealable des arbres de tous les procs 
+# si merge=True, effectue un merge prealable des arbres de tous les procs
 # sans zones (pour recuperer toutes les bases et les data des bases)
 #==============================================================================
-def convertPyTree2File(t, fileName, format=None, links=[], 
-    ignoreProcNodes=False, merge=True):
+def convertPyTree2File(t, fileName, format=None, links=[],
+                       ignoreProcNodes=False, merge=True):
     """Write a skeleton or partial tree."""
     tp = convert2PartialTree(t)
     tp = C.deleteEmptyZones(tp)
@@ -565,7 +565,7 @@ def createBboxDict(t):
 
 #==============================================================================
 # Calcule le graph
-# graph[proc1][proc2] est la liste des zones de proc1 intersectant au moins 
+# graph[proc1][proc2] est la liste des zones de proc1 intersectant au moins
 # une zone de proc2
 # IN: type: type de graph
 # IN: reduction: si True, on assure que le graph est le meme sur tous
@@ -575,11 +575,11 @@ def createBboxDict(t):
 # IN: intersectionsDict: dictionnaire d'intersections. Consulter la doc de
 # computeGraph dans Distributed.py pour plus de details.
 #==============================================================================
-def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True, 
+def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
                  intersectionsDict=None, exploc=False, procDict2=None, it=0):
     """Return the communication graph for different block relation types."""
     if not procDict: procDict = getProcDict(t)
-    graph = Distributed.computeGraph(t, type, t2, procDict, rank, 
+    graph = Distributed.computeGraph(t, type, t2, procDict, rank,
                                      intersectionsDict, exploc, procDict2, it)
 
     if reduction:
@@ -614,22 +614,22 @@ def GetIntersectionBbox(bbox1, bbox2):
 # if subr=True, the ZoneSubRegions are sent
 # if zoneGC=True, the ZoneGridConnectivity are sent
 #==============================================================================
-def addXZones(t, graph, variables=None, noCoordinates=False, 
-              cartesian=False, subr=True, 
+def addXZones(t, graph, variables=None, noCoordinates=False,
+              cartesian=False, subr=True,
               keepOldNodes=True, zoneGC=True):
     """Add zones specified in graph on current proc."""
     tp = Internal.copyRef(t)
-    _addXZones(tp, graph, variables, noCoordinates, cartesian, subr, 
-              keepOldNodes, zoneGC)
+    _addXZones(tp, graph, variables, noCoordinates, cartesian, subr,
+               keepOldNodes, zoneGC)
     return tp
 
-def _addXZones(t, graph, variables=None, noCoordinates=False, 
-               cartesian=False, subr=True, 
+def _addXZones(t, graph, variables=None, noCoordinates=False,
+               cartesian=False, subr=True,
                keepOldNodes=True, zoneGC=True):
     """Add zones specified in graph on current proc."""
     if not graph: return t
     reqs = []
-    if cartesian: import Compressor.PyTree as Compressor 
+    if cartesian: import Compressor.PyTree as Compressor
     if rank in graph:
         g = graph[rank] # graph du proc courant
         for oppNode in g:
@@ -646,18 +646,18 @@ def _addXZones(t, graph, variables=None, noCoordinates=False,
                     elif variables == []: vars = None
                     else: vars = variables
                     zonep = C.extractVars(zone, vars=variables, keepOldNodes=False)
-                    if noCoordinates: C._rmVars(zonep, ['CoordinateX', 'CoordinateY', 'CoordinateZ']) 
+                    if noCoordinates: C._rmVars(zonep, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
                     if cartesian: Compressor._compressCartesian(zonep)
-                    if zoneGC: 
+                    if zoneGC:
                         zGC = Internal.getNodeFromType1(zone, 'ZoneGridConnectivity_t')
                         if zGC is not None: zonep[2].append(zGC)
                 elif variables is not None: # all nodes but vars and coordinates
                     v = C.getVarNames(zone, excludeXYZ=True)[0]
-                    for i in variables: 
+                    for i in variables:
                         if i in v: v.remove(i)
                     if noCoordinates: v += ['CoordinateX', 'CoordinateY', 'CoordinateZ']
                     zonep = C.rmVars(zone, v)
-                    if cartesian: Compressor._compressCartesian(zonep, subr=subr)    
+                    if cartesian: Compressor._compressCartesian(zonep, subr=subr)
                 else: # full zone
                     zonep = Internal.copyRef(zone)
                     if cartesian: Compressor._compressCartesian(zonep)
@@ -676,7 +676,7 @@ def _addXZones(t, graph, variables=None, noCoordinates=False,
                 if cartesian:
                     import Compressor.PyTree as Compressor
                     Compressor._uncompressCartesian(z)
-                Internal.createChild(z, 'XZone', 'UserDefinedData_t') 
+                Internal.createChild(z, 'XZone', 'UserDefinedData_t')
 
                 ret = z[0].split('/',1)
                 if len(ret) == 2:
@@ -706,7 +706,7 @@ def _addXZones(t, graph, variables=None, noCoordinates=False,
 # Recupere les zones specifiees dans le graph, les ajoute a l'arbre local t
 # if layers not None, only communicate the desired number of layers
 # bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
-# if subr=True, the ZoneSubRegions are kept during the exchange 
+# if subr=True, the ZoneSubRegions are kept during the exchange
 #==============================================================================
 def addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=2, subr=True):
     """Add zones specified in graph on current proc."""
@@ -719,7 +719,7 @@ def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDic
     # create bboXDict if necessary
     if not bboxDict: bboxDict = createBboxDict(t)
     reqs = []
-    if cartesian: import Compressor.PyTree as Compressor 
+    if cartesian: import Compressor.PyTree as Compressor
     if rank in graph:
         g = graph[rank] # graph du proc courant
         for oppNode in g:
@@ -731,7 +731,7 @@ def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDic
                 zone = Internal.getNodeFromName2(t, n)
                 if variables is not None:
                     v = C.getVarNames(zone, excludeXYZ=True)[0]
-                    for i in variables: 
+                    for i in variables:
                         if i in v: v.remove(i)
                     zonep = C.rmVars(zone, v)
                     if cartesian:
@@ -775,12 +775,12 @@ def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDic
                     import Compressor.PyTree as Compressor
                     Compressor._uncompressCartesian(z)
                 #print('%d: recoit la zone %s.'%(rank,z[0]))
-                Internal.createChild(z, 'XZone', 'UserDefinedData_t') 
-                # Existe deja? 
+                Internal.createChild(z, 'XZone', 'UserDefinedData_t')
+                # Existe deja?
                 zone = Internal.getNodeFromName2(t, z[0])
                 if zone is not None: # replace
                     if cartesian: # a cartesian block might be splitted into several parts...
-                    # Hence the counter, to avoid two identical zone names in the tree
+                        # Hence the counter, to avoid two identical zone names in the tree
                         cpt = 1
                         z[0] = z[0][:-2]+'#'+str(cpt)+z[0][-2:]
                         while Internal.getNodeFromName2(t, z[0]) is not None:
@@ -849,7 +849,7 @@ def _updateGridConnectivity(a):
         for g in gcs:
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
-                # Recherche le nom de la bandelette en raccord 
+                # Recherche le nom de la bandelette en raccord
                 oppName = Internal.getValue(n)
 
                 # suffix
@@ -881,12 +881,12 @@ def _updateGridConnectivity(a):
                     p      = Internal.window2Range(p)
                     Internal.setValue(prd, p)
 
-                    # Update XZone 
+                    # Update XZone
                     gcopp  = Internal.getNodesFromType1(zopp, 'ZoneGridConnectivity_t')
                     match  = Internal.getNodesFromType1(gcopp, 'GridConnectivity1to1_t')[0] # 1 seul match dans les XZone
 
                     pr     = Internal.getNodeFromName1(match, 'PointRange')
-                    Internal.setValue(pr, p) 
+                    Internal.setValue(pr, p)
 
     return None
 
@@ -900,10 +900,10 @@ def _revertMXGridConnectivity(a):
 
     for z in zonesReal:
         gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-        for g in gcs:  
+        for g in gcs:
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
-                # Recherche le nom de la bandelette en raccord 
+                # Recherche le nom de la bandelette en raccord
                 oppName = Internal.getValue(n)
 
                 zopp    = Internal.getNodeFromName(a, oppName)
@@ -934,10 +934,10 @@ def _revertBXGridConnectivity(a):
 
     for z in zonesReal:
         gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-        for g in gcs:  
+        for g in gcs:
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
-                # Recherche le nom de la bandelette en raccord 
+                # Recherche le nom de la bandelette en raccord
                 oppName = Internal.getValue(n)
                 zopp    = Internal.getNodeFromName(a, oppName)
                 if zopp is not None:
@@ -958,12 +958,12 @@ def _revertBXGridConnectivity(a):
                             prr = Internal.getNodeFromName1(n,'PointRange')
                             p2 = Internal.range2Window(prr[1])
                             for i in range(6):
-                                if p2[i] != p[i]: 
+                                if p2[i] != p[i]:
                                     remove=False
                                     break
                         if not remove:
                             p = Internal.window2Range(p)
-                            Internal.setValue(prd, p)                   
+                            Internal.setValue(prd, p)
                         else:
                             Internal._rmNodesByName(z,n[0])
 
@@ -972,7 +972,7 @@ def _revertBXGridConnectivity(a):
                 gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
                 gctype = Internal.getValue(gctype)
                 if gctype == 'Abutting':
-                    # Recherche le nom de la bandelette en raccord 
+                    # Recherche le nom de la bandelette en raccord
                     oppName = Internal.getValue(n)
                     zopp    = Internal.getNodeFromName(a, oppName)
                     if zopp is not None:
@@ -1004,21 +1004,21 @@ def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=Tr
                         elif variables == []: vars = None
                         else: vars = variables
                         zsp = C.extractVars(zs, vars=variables, keepOldNodes=False)
-                        if noCoordinates: C._rmVars(zsp, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])       
+                        if noCoordinates: C._rmVars(zsp, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
                         for c, z in enumerate(zsp):
                             ns = Internal.getNodeFromName1(zs[c], 'XZone')
                             if ns is not None: z[2].append(ns)
                             ns = Internal.getNodeFromName1(zs[c], '.Solver#ownData')
-                            if ns is not None: 
+                            if ns is not None:
                                 if 'Parameter_int' in ns[2]: ns[2].remove('Parameter_int')
                                 if 'Parameter_real' in ns[2]: ns[2].remove('Parameter_real')
                                 z[2].append(ns)
                             ns = Internal.getNodesFromType1(zs[c], 'ZoneGridConnectivity_t')
-                            z[2] += ns                               
+                            z[2] += ns
                         zs = zsp
                     elif variables is not None:
                         v = C.getVarNames(zs, excludeXYZ=True)[0]
-                        for i in variables: 
+                        for i in variables:
                             if i in v: v.remove(i)
                         if noCoordinates: v += ['CoordinateX', 'CoordinateY', 'CoordinateZ']
                         C._rmVars(zs, v)
@@ -1063,7 +1063,7 @@ def subzone(a, indMin, indMax, supp):
 
 # Ajoute les bandelettes des autres procs sur le procs locaux
 # si allB=True, les 6 bandelettes de chaque zone voisine sont ramenees (necessaire pour connectMatchPeriodic).
-# IN: variables: None (all vars), ['Density'], []                    
+# IN: variables: None (all vars), ['Density'], []
 def _addBXZones(a, depth=2, allB=False, variables=None):
     import Generator.PyTree as G
     # Calcul des bbox des zones locales
@@ -1099,10 +1099,10 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
             # Bandelettes non recouvrantes
             b1 = subzone(z, (1,1,1), (ri1,nj,nk), 'S1')
             b2 = subzone(z, (ri2,1,1), (ni,nj,nk), 'S2')
-            b3 = subzone(z, (rip1,1,1), (rip2,rj1,nk), 'S3') 
-            b4 = subzone(z, (rip1,rj2,1), (rip2,nj,nk), 'S4') 
-            b5 = subzone(z, (rip1,rjp1,1), (rip2,rjp2,rk1), 'S5') 
-            b6 = subzone(z, (rip1,rjp1,rk2), (rip2,rjp2,nk), 'S6') 
+            b3 = subzone(z, (rip1,1,1), (rip2,rj1,nk), 'S3')
+            b4 = subzone(z, (rip1,rj2,1), (rip2,nj,nk), 'S4')
+            b5 = subzone(z, (rip1,rjp1,1), (rip2,rjp2,rk1), 'S5')
+            b6 = subzone(z, (rip1,rjp1,rk2), (rip2,rjp2,nk), 'S6')
 
             if variables is not None: # no var
                 b1 = C.extractVars(b1, vars=variables, keepOldNodes=False)
@@ -1148,11 +1148,11 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
                         if not allB:
                             data_i[k] = sz[k]
                         else:
-                            zname = k[:len(k)-2] 
+                            zname = k[:len(k)-2]
                             if zname not in zone_i:
-                                zone_i.append(zname) 
+                                zone_i.append(zname)
 
-            if allB:                    
+            if allB:
                 for z in zone_i:
                     data_i[z+'S1'] = sz[z+'S1']
                     data_i[z+'S2'] = sz[z+'S2']

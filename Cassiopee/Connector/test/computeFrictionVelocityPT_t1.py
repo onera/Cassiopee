@@ -10,7 +10,7 @@ nb_node = 3
 zsize = numpy.empty((1,3), Internal.E_NpyInt, order='F')
 zsize[0,0] = nb_node; zsize[0,1] = 0; zsize[0,2] = 0
 z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
-coord_node = Internal.newGridCoordinates(parent = z)
+coord_node = Internal.newGridCoordinates(parent=z)
 # Image Points : PI
 coord_node[2].append(['CoordinateX',numpy.array([0.1,0.2,0.3]),[],'DataArray_t'])
 coord_node[2].append(['CoordinateY',numpy.array([0.1,0.2,0.3]),[],'DataArray_t'])

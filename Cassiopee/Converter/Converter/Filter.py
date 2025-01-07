@@ -4,7 +4,7 @@ from . import PyTree
 from . import Converter
 from . import Mpi as Cmpi
 from .Distributed import convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, _convert2SkeletonTree, convertFile2SkeletonTree, \
-  _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, readNodesFromPaths, fixPaths__
+    _readPyTreeFromPaths, readPyTreeFromPaths, _readZones, readNodesFromPaths, fixPaths__
 from . import Distributed
 import Compressor.PyTree as Compressor
 import numpy
@@ -199,7 +199,7 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
         if dim[2] == 1 and dim[3] == 1:
             DataSpaceMMRY = [[0], [1], [j[1]-j[0]+1], [1]]
             DataSpaceFILE = [[j[0]-1], [1], [j[1]-j[0]+1], [1]]
-            DataSpaceGLOB = [[0]]        
+            DataSpaceGLOB = [[0]]
         elif dim[3] == 1:
             DataSpaceMMRY = [[0,0], [1,1], [j[1]-j[0]+1,j[3]-j[2]+1], [1,1]]
             DataSpaceFILE = [[j[0]-1,j[2]-1], [1,1], [j[1]-j[0]+1,j[3]-j[2]+1], [1,1]]
@@ -218,7 +218,7 @@ def _loadContainerPartial(a, fileName, znp, variablesN=[], variablesC=[], format
         if dim[2] == 1 and dim[3] == 1:
             DataSpaceMMRYC = [[0], [1], [max(j[1]-j[0],1)], [1]]
             DataSpaceFILEC = [[j[0]-1,j[2]-1], [1], [max(j[1]-j[0],1)], [1]]
-            DataSpaceGLOBC = [[0]]        
+            DataSpaceGLOBC = [[0]]
         elif dim[3] == 1:
             DataSpaceMMRYC = [[0,0], [1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1)], [1,1]]
             DataSpaceFILEC = [[j[0]-1,j[2]-1], [1,1], [max(j[1]-j[0],1),max(j[3]-j[2],1)], [1,1]]
@@ -263,7 +263,7 @@ def _loadConnectivity(a, fileName, znp, format=None):
         elts = Internal.getNodesFromType1(z, 'Elements_t')
         paths = []
         for e in elts: paths.append(p+'/'+e[0])
-        _readPyTreeFromPaths(a, fileName, paths, format)    
+        _readPyTreeFromPaths(a, fileName, paths, format)
     return None
 
 # force le proc node des zones au processeur courant
@@ -289,9 +289,9 @@ def _loadVariables(a, fileName, znp, var, format):
         s = v.split(':',1)
         if v[0:10] == 'Coordinate':
             fvars.append(Internal.__GridCoordinates__+'/'+v); cont = Internal.__GridCoordinates__
-        elif len(s) == 2 and s[0] == 'centers': 
+        elif len(s) == 2 and s[0] == 'centers':
             fvars.append(Internal.__FlowSolutionCenters__+'/'+s[1]); cont = Internal.__FlowSolutionCenters__
-        elif len(s) == 2 and s[0] == 'nodes': 
+        elif len(s) == 2 and s[0] == 'nodes':
             fvars.append(Internal.__FlowSolutionNodes__+'/'+s[1]); cont = Internal.__FlowSolutionNodes__
         else:
             s = v.split('/')
@@ -398,7 +398,7 @@ def _loadZoneExtras(a, fileName, znp, format=None):
         for i in n[2]:
             if i[3] == 'DataArray_t' and i[1] is None: paths.append(p+'/'+i[0])
 
-        # Level2 
+        # Level2
         # UserDefinedData_t/DataArray_t
         for i in n[2]:
             if i[3] == 'UserDefinedData_t':
@@ -410,7 +410,7 @@ def _loadZoneExtras(a, fileName, znp, format=None):
         #  for j in i[2]:
         #    if j[3] == 'DataArray_t' and j[1] is None: paths.append(p+'/'+i[0]+'/'+j[0])
 
-        # Level3 
+        # Level3
         # - FlowSolution_t/UserDefinedData_t/DataArray_t
         # - TimeMotion/TimeRigidMotion_t/DataArray_t
         for i in n[2]:
@@ -573,7 +573,7 @@ def writeZonesWoVars(a, fileName, znp, format=None):
     for c, z in enumerate(zones):
         children = z[2]
         for i in children:
-            if i[3] != 'FlowSolution_t': 
+            if i[3] != 'FlowSolution_t':
                 nodes.append(i)
                 paths.append(znps[c])
     writeNodesFromPaths(fileName, paths, nodes, format, mode=0)
@@ -598,7 +598,7 @@ def writeVariables(a, fileName, var, znp, format=None):
     loc = []
     for v in vars:
         vs = v.split(':',1)
-        if len(vs) == 2: 
+        if len(vs) == 2:
             if vs[0] == 'centers': loc.append(Internal.__FlowSolutionCenters__)
             else: loc.append(Internal.__FlowSolutionNodes__)
         else: loc.append(Internal.__FlowSolutionNodes__)
@@ -606,10 +606,10 @@ def writeVariables(a, fileName, var, znp, format=None):
     conts = []; cpaths = []; nodes = []; npaths = []
     for c, z in enumerate(zones):
         for i in z[2]:
-            if i[3] == 'FlowSolution_t': 
+            if i[3] == 'FlowSolution_t':
                 conts.append(i); cpaths.append(znps[c])
             for j in i[2]:
-                if j[3] == 'GridLocation_t': 
+                if j[3] == 'GridLocation_t':
                     conts.append(j); cpaths.append(znps[c]+'/'+i[0])
         for d, v in enumerate(vars):
             ns = PyTree.getStdNodesFromName(z, v)
@@ -647,7 +647,7 @@ class Handle:
                 for z in zones: out.append('/'+b[0]+'/'+z[0])
         else:
             zones = Internal.getZones(a)
-            for z in zones: 
+            for z in zones:
                 for p in self.znp:
                     r = p.rsplit('/',1)[1]
                     if r == z[0]: out.append(p); break
@@ -713,18 +713,18 @@ class Handle:
             # Lecture ZoneBC + ZoneGC necessaire pour le split
             for b in Internal.getBases(a):
                 for z in Internal.getZones(b):
-                    paths = []          
-                    if Internal.getNodeFromName1(z,"ZoneBC") is not None: 
+                    paths = []
+                    if Internal.getNodeFromName1(z,"ZoneBC") is not None:
                         paths.append(b[0]+'/'+z[0]+'/ZoneBC')
-                    if Internal.getNodeFromName1(z,"ZoneGridConnectivity") is not None: 
+                    if Internal.getNodeFromName1(z,"ZoneGridConnectivity") is not None:
                         paths.append(b[0]+'/'+z[0]+'/ZoneGridConnectivity')
                     if paths != []:
                         _readPyTreeFromPaths(a, self.fileName, paths)
 
             # Lecture des noms de variables
             varsN = ['%s/CoordinateX'%Internal.__GridCoordinates__,
-            '%s/CoordinateY'%Internal.__GridCoordinates__,
-            '%s/CoordinateZ'%Internal.__GridCoordinates__]
+                     '%s/CoordinateY'%Internal.__GridCoordinates__,
+                     '%s/CoordinateZ'%Internal.__GridCoordinates__]
             varsC = []
             for b in Internal.getBases(a):
                 for z in Internal.getZones(b):
@@ -749,15 +749,15 @@ class Handle:
                     if NParts is not None: T._splitNParts(b, N=NParts)
                     else: T._splitNParts(b, N=NProc)
                     if NProc is not None:
-                        import Distributor2.PyTree as D2   
+                        import Distributor2.PyTree as D2
                         D2._distribute(b, NProc, algorithm=algorithm)
             else: # split on full skeleton
                 if NParts is not None: T._splitNParts(a, N=NParts)
                 else: T._splitNParts(a, N=NProc)
                 if NProc is not None:
-                    import Distributor2.PyTree as D2   
+                    import Distributor2.PyTree as D2
                     D2._distribute(a, NProc, algorithm=algorithm)
-        else: 
+        else:
             a = None; varsN = None; varsC = None
         a = Cmpi.bcast(a)
         self.varsN = Cmpi.bcast(varsN); self.varsC = Cmpi.bcast(varsC)
@@ -842,7 +842,7 @@ class Handle:
                     for z in zones:
                         p = '%s/%s/ZoneType'%(b[0],z[0])
                         paths.append(p)
-                _readPyTreeFromPaths(t, self.fileName, paths, self.format)  
+                _readPyTreeFromPaths(t, self.fileName, paths, self.format)
             # Load les extras de l'arbre (autre que base)
             self._loadTreeExtras(t)
             # Distribue
@@ -1096,7 +1096,7 @@ class Handle:
         Compressor._uncompressAll(a)
         return None
 
-    # Charge toutes les BCs (avec BCDataSet) des zones de a  
+    # Charge toutes les BCs (avec BCDataSet) des zones de a
     def _loadZoneBCs(self, a, znp=None):
         if znp is None: znp = self.getZonePaths(a)
         _loadZoneBCs(a, self.fileName, znp, self.format)
@@ -1155,7 +1155,7 @@ class Handle:
     def writeZonesWoVars(self, a, fileName=None, znp=None):
         """Write specified zones without variables."""
         if znp is None: znp = self.getZonePaths(a)
-        if fileName is None: fileName = self.fileName    
+        if fileName is None: fileName = self.fileName
         writeZonesWoVars(a, fileName, znp, self.format)
 
     # Ecrit des variables
@@ -1187,4 +1187,3 @@ class Handle:
             # Ecrit les zones partiellement
             fr = {}
             writePyTreeFromFilter(a, fileName, fr, skelData=[])
-

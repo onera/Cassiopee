@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Connector documentation build configuration file
-# 
+#
 import sys
 import os
 
@@ -192,15 +192,15 @@ htmlhelp_basename = 'Connector'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-'pointsize': '12pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    'pointsize': '12pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
-'preamble': r'''
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
+    'preamble': r'''
         \usepackage{charter}
         \usepackage[defaultsans]{lato}
         \usepackage{inconsolata}
@@ -211,10 +211,10 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('Connector', 'Connector.tex', u'Connector Documentation',
-   u'/ELSA/MU-090XX/V'+__version__, 'manual'),
-  ('Connector_IBM', 'Connector_IBM.tex', u'Connector IBM Documentation',
-   u'/ELSA/MU-090XX/V'+__version__, 'manual')
+    ('Connector', 'Connector.tex', u'Connector Documentation',
+     u'/ELSA/MU-090XX/V'+__version__, 'manual'),
+    ('Connector_IBM', 'Connector_IBM.tex', u'Connector IBM Documentation',
+        u'/ELSA/MU-090XX/V'+__version__, 'manual')
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -257,9 +257,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Connector', u'Connector Documentation',
-   u'ONERA', 'Connector', 'One line description of project.',
-   'Miscellaneous'),
+    ('index', 'Connector', u'Connector Documentation',
+     u'ONERA', 'Connector', 'One line description of project.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

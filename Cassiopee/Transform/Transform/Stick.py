@@ -1,7 +1,7 @@
 # Stick
 import Converter.PyTree as C
 import Ael.Quantum as KDG
-import Converter.Internal as Internal 
+import Converter.Internal as Internal
 import Transform.PyTree as T
 import numpy
 
@@ -11,7 +11,7 @@ import numpy
 # IN: tp: surface projection tree
 # Done to stick blade meshes on hubs
 # Projection can introduce artifacts
-# modifies t 
+# modifies t
 #=======================================================================================
 def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
 

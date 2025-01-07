@@ -410,7 +410,7 @@ PyObject* K_CONNECTOR::gatherMatching(PyObject* self, PyObject* args)
 
     if (inds1 == -1 || isMatch < nmatch) goto nextwin;
 
-    // We know inds1/inds2, now1/now2, noblk1/noblk2,typewin1/typewin2 and indTab1/indTab2
+    // We know inds1/inds2, now1/now2, noblk1/noblk2, typewin1/typewin2 and indTab1/indTab2
     // Determine the increments
     inci = 1; incj = imw1;
     inciopp = indTab2[noOpp[1]]-indTab2[noOpp[0]]; incjopp = 0;
@@ -477,7 +477,7 @@ PyObject* K_CONNECTOR::gatherMatching(PyObject* self, PyObject* args)
       imin1.push_back(iminloc); jmin1.push_back(jminloc); kmin1.push_back(kminloc); 
       imax1.push_back(imaxloc); jmax1.push_back(jmaxloc); kmax1.push_back(kmaxloc); 
       // calcul trirac            
-      if ( dimPb == 3) compTrirac(im1, jm1, im2, jm2, typewin1, inci, incj, typewin2, inciopp, incjopp, rac1, rac2, rac3);
+      if (dimPb == 3) compTrirac(im1, jm1, im2, jm2, typewin1, inci, incj, typewin2, inciopp, incjopp, rac1, rac2, rac3);
       else compTrirac2D(im1, jm1, im2, jm2, typewin1, typewin2, inci, inciopp, rac1, rac2, rac3);
       rcvBlk.push_back(noblk1); dnrBlk.push_back(noblk2);
       // dnrWin to be computed
@@ -882,7 +882,7 @@ void K_CONNECTOR::compTrirac2D(
   E_Int im1, E_Int jm1, E_Int im2, E_Int jm2, 
   E_Int typewin1, E_Int typewin2, E_Int inc1, E_Int incm1,
   vector<E_Int>& rac1, vector<E_Int>& rac2, vector<E_Int>& rac3)
-{
+{  
   switch (typewin1)
   {
     case 1:
@@ -942,5 +942,6 @@ void K_CONNECTOR::compTrirac2D(
     else if (r1 == 2) r2 =-1;
     else if (r1 ==-2) r2 = 1; 
   }
+
   rac1.push_back(r1); rac2.push_back(r2); rac3.push_back(3);
 }

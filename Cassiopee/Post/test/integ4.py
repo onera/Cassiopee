@@ -31,9 +31,9 @@ for i in a :
     nj = arrays[i][3]
     nk = arrays[i][4]
     print(ni, nj, nk)
-#    dens = ones( (1, ni * nj * nk), float64 )    
+#    dens = ones( (1, ni * nj * nk), float64 )
 #    densa = ['t', dens, ni, nj, nk]
-    dens = ones( (1, (ni-1) * (nj-1) * (nk-1)), float64 )    
+    dens = ones( (1, (ni-1) * (nj-1) * (nk-1)), float64 )
     densa = ['t', dens, (ni-1), (nj-1), (nk-1)]
     data.append(densa)
     c=P.node2Center(arrays[i])
@@ -45,5 +45,3 @@ res = P.integ([arraysc[0]], [data[0]], [])
 #print(res)
 #res = P.integNorm(data)
 print(res)
-
-

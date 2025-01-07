@@ -111,7 +111,7 @@ def polyLineMesher(polyLine, h, yplus, density):
             if (indv == -1): ext1 = 1
         if (ext2 != 1):
             indv = findNeighbourIndex(polyLine, ind2+1, i+1)
-            if (indv == -1): ext2 = 1            
+            if (indv == -1): ext2 = 1
         #print 'mesh no=',i,' ext1=',ext1,' ext2=',ext2
 
         lext1 = max(0,ext1) ; lext2 = max(0,ext2)
@@ -168,7 +168,7 @@ def polyLineMesher(polyLine, h, yplus, density):
             elif (ext2 == -1):
                 px3 = px2 + np[1][0,i+1] * h
                 py3 = py2 + np[1][1,i+1] * h
-                pz3 = pz2 + np[1][2,i+1] * h                 
+                pz3 = pz2 + np[1][2,i+1] * h
 
             d1 = D.line( (px1,py1,pz1), (px2,py2,pz2) )
             d2 = D.line( (px4,py4,pz4), (px3,py3,pz3) )

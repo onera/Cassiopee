@@ -1,4 +1,4 @@
-# - nearestNodes (array) - 
+# - nearestNodes (array) -
 # Permet de tester que Converter a ete bien installe
 import Converter as C
 import Generator as G

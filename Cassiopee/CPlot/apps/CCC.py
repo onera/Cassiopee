@@ -86,7 +86,7 @@ def caseSelector():
         F = TK.Frame(CSWINDOW, borderwidth=0)
         F.grid(row=0, column=0)
         F.columnconfigure(0, weight=1)
-        lb = TK.Listbox(F, selectmode=TK.SINGLE, 
+        lb = TK.Listbox(F, selectmode=TK.SINGLE,
                         width=120, height=22,
                         background='White')
         WIDGETS['selectListBox'] = lb
@@ -100,7 +100,7 @@ def caseSelector():
         # populate list
         getCases()
         for i in range(len(CASES)):
-            txt = CASES[i].ljust(20) + separatorl + INFOS[i].ljust(75) + STATUS[i].ljust(6) 
+            txt = CASES[i].ljust(20) + separatorl + INFOS[i].ljust(75) + STATUS[i].ljust(6)
             lb.insert(TK.END, txt)
     else:
         CSWINDOW.withdraw(); CSWINDOW.deiconify(); CSWINDOW.focus_set()
@@ -227,7 +227,7 @@ def getCases():
     reps = os.listdir(path)
     for i in reps:
         a = os.access(path+'/'+i+'/run.py', os.F_OK)
-        if a: 
+        if a:
             CASES.append(i)
             a = os.access(path+'/'+i+'/Readme.txt', os.F_OK)
             if a:
@@ -331,14 +331,14 @@ def rmFile(path, file):
     try:
         subprocess.call(cmd, shell=True, stderr=subprocess.STDOUT)
         subprocess.call(cmd2, shell=True, stderr=subprocess.STDOUT)
-    except: pass   
+    except: pass
     return
 
 #==============================================================================
 # Fait un rm de restart.cgns
 #==============================================================================
 def cleanCases():
-    res = tkMessageBox.askquestion("Clean", "Are You Sure to rm restart.cgns\nfor selected cases?", 
+    res = tkMessageBox.askquestion("Clean", "Are You Sure to rm restart.cgns\nfor selected cases?",
                                    icon='warning')
     if (res == 'no'): return
     path = CASSIOPEE+'/Cases'
@@ -370,8 +370,8 @@ def buildString(info):
     gfx = info[3]
     status = info[4]
     string = case.ljust(20) + separatorl + nit.ljust(10) + separatorl + \
-    scale.ljust(5) + separatorl + gfx.ljust(2) + separatorl + \
-    status.ljust(10)
+        scale.ljust(5) + separatorl + gfx.ljust(2) + separatorl + \
+        status.ljust(10)
     return string
 
 #==============================================================================
@@ -518,7 +518,7 @@ F.grid(row=1, column=0, sticky=TK.EW)
 #    F.bind('<Enter>', updateCases1)
 #    F.grid(row=1, column=0, sticky=TK.EW)
 #else:
-#    B = ttk.Combobox(F, textvariable=VARS[0], 
+#    B = ttk.Combobox(F, textvariable=VARS[0],
 #                     values=[], state='normal')
 #    B.grid(sticky=TK.EW)
 #    WIDGETS['case'] = B

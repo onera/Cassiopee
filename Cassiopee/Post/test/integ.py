@@ -14,4 +14,3 @@ resc = P.integ([m], [c], [])[0]; print(resc)
 # Field in nodes
 cn = C.array('vx', ni, nj, 1); cn = C.initVars(cn, 'vx', 1.)
 resn = P.integ([m], [cn], [])[0]; print(resn)
-

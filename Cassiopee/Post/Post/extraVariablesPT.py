@@ -15,8 +15,8 @@ import numpy
 def computeVorticity(t):
     t2 = Internal.copyRef(t)
     presvx = C.isNamePresent(t2, 'VelocityX')
-    if presvx == -1: 
-        presvxc = C.isNamePresent(t2, 'centers:VelocityX') 
+    if presvx == -1:
+        presvxc = C.isNamePresent(t2, 'centers:VelocityX')
         if presvxc > -1: t2 = C.center2Node(t2, ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'])
         else: t2 = P.computeVariables(t2, ['VelocityX', 'VelocityY', 'VelocityZ'])
 
@@ -47,9 +47,9 @@ def computeQCriterion(t):
              'centers:gradxVelocityY', 'centers:gradyVelocityY', 'centers:gradzVelocityY',
              'centers:gradxVelocityZ', 'centers:gradyVelocityZ', 'centers:gradzVelocityZ']
     t2 = Internal.copyRef(t)
-    presvx = C.isNamePresent(t2, 'VelocityX') 
-    if presvx == -1: 
-        presvxc = C.isNamePresent(t2, 'centers:VelocityX') 
+    presvx = C.isNamePresent(t2, 'VelocityX')
+    if presvx == -1:
+        presvxc = C.isNamePresent(t2, 'centers:VelocityX')
         if presvxc > -1: t2 = C.center2Node(t2,['centers:VelocityX','centers:VelocityY','centers:VelocityZ'])
         else: t2 = P.computeVariables(t2, ['VelocityX', 'VelocityY', 'VelocityZ'])
 
@@ -81,9 +81,9 @@ def computeShearStress(t, gamma=1.4, rgp=287.053,
 
     # Molecular Viscosity
     presmuc = C.isNamePresent(t2, 'centers:ViscosityMolecular')
-    if presmuc == -1: 
+    if presmuc == -1:
         presmu = C.isNamePresent(t2, 'ViscosityMolecular')
-        if presmu == -1: 
+        if presmu == -1:
             t2 = P.computeVariables(t2, ['ViscosityMolecular'],
                                     gamma=gamma, rgp=rgp, Cs=Cs, mus=mus, Ts=Ts)
         t2 = C.node2Center(t2, 'ViscosityMolecular')
@@ -91,10 +91,10 @@ def computeShearStress(t, gamma=1.4, rgp=287.053,
 
     # Gradient of velocity
     presgx = C.isNamePresent(t2, 'centers:gradxVelocityX')
-    if presgx == -1: 
+    if presgx == -1:
         presgxn = C.isNamePresent(t2, 'gradxVelocityX')
         if presgxn > -1: t2 = C.center2Node(t2,vars1)
-        else: 
+        else:
             # No gradient found
             presvx = C.isNamePresent(t2, 'VelocityX')
             if presvx > -1:
@@ -135,12 +135,12 @@ def _computeWallShearStress(t):
     if dimPb is None: dimPb = 3
     else: dimPb = Internal.getValue(dimPb)
 
-    if dimPb == 2: 
-        vars1 = ['gradxVelocityX', 'gradyVelocityX', 'gradxVelocityY', 'gradyVelocityY'] 
-    else: 
+    if dimPb == 2:
+        vars1 = ['gradxVelocityX', 'gradyVelocityX', 'gradxVelocityY', 'gradyVelocityY']
+    else:
         vars1 = ['gradxVelocityX', 'gradyVelocityX', 'gradzVelocityX',\
-        'gradxVelocityY', 'gradyVelocityY', 'gradzVelocityY',\
-        'gradxVelocityZ', 'gradyVelocityZ', 'gradzVelocityZ']
+                 'gradxVelocityY', 'gradyVelocityY', 'gradzVelocityY',\
+                 'gradxVelocityZ', 'gradyVelocityZ', 'gradzVelocityZ']
 
     presgx = C.isNamePresent(t,vars1[0])
     if presgx == 1: loc = 'nodes'
@@ -149,7 +149,7 @@ def _computeWallShearStress(t):
         if presgx == 1: loc = 'centers'
         else:
             raise ValueError('gradxVelocity is required in tree.')
-        for nov in range(len(vars1)): 
+        for nov in range(len(vars1)):
             vars1[nov]='centers:'+vars1[nov]
 
     [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf, ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf, Mus, Cs, Ts, Pr] = C.getState(t)
@@ -242,13 +242,13 @@ def computeSkinFriction(t, centers=0, tangent=0):
         if pres1 == -1: t2 = G.getNormalMap(t2)
         else:
             pres1n = C.isNamePresent(t2, 'sx')
-            if pres1n > -1: t2 = C.node2Center(t2,['sx','sy','sz'])                
+            if pres1n > -1: t2 = C.node2Center(t2,['sx','sy','sz'])
         t2 = C.normalize(t2, ['centers:sx', 'centers:sy', 'centers:sz'])
 
         pres2 = C.isNamePresent(t2, 'centers:SkinFrictionX')
         if pres2 == -1:
             pres2n = C.isNamePresent(t2, 'SkinFrictionX')
-            if pres2n > -1: t2 = C.node2Center(t2,['SkinFrictionX','SkinFrictionY','SkinFrictionZ'])     
+            if pres2n > -1: t2 = C.node2Center(t2,['SkinFrictionX','SkinFrictionY','SkinFrictionZ'])
             else:
                 t2 = C.initVars(t2, '{centers:SkinFrictionX}={centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
                 t2 = C.initVars(t2, '{centers:SkinFrictionY}={centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}')
@@ -259,7 +259,7 @@ def computeSkinFriction(t, centers=0, tangent=0):
             if pres3 == -1:
                 pres3n = C.isNamePresent(t2,'SkinFrictionTangentialX')
                 if pres3n > -1:
-                    t2 = C.node2Center(t2,['SkinFrictionTangentialX','SkinFrictionTangentialY','SkinFrictionTangentialZ'])   
+                    t2 = C.node2Center(t2,['SkinFrictionTangentialX','SkinFrictionTangentialY','SkinFrictionTangentialZ'])
                 else:
                     t2 = C.initVars(t2, '{centers:SkinFrictionTangentialX}={centers:SkinFrictionX} - {centers:sx}*({centers:SkinFrictionX}*{centers:sx}+{centers:SkinFrictionY}*{centers:sy}+{centers:SkinFrictionZ}*{centers:sz})')
                     t2 = C.initVars(t2, '{centers:SkinFrictionTangentialY}={centers:SkinFrictionY} - {centers:sy}*({centers:SkinFrictionX}*{centers:sx}+{centers:SkinFrictionY}*{centers:sy}+{centers:SkinFrictionZ}*{centers:sz})')

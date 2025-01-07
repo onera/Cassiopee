@@ -192,15 +192,15 @@ htmlhelp_basename = 'CPlotdoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-'pointsize': '12pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    'pointsize': '12pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
-'preamble': r'''
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
+    'preamble': r'''
         \usepackage{charter}
         \usepackage[defaultsans]{lato}
         \usepackage{inconsolata}
@@ -211,14 +211,14 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('CPlot', 'CPlot.tex', u'CPlot Documentation',
-   u'/ELSA/MU-10020/V'+__version__, 'manual'),
-  ('tkCassiopee', 'tkCassiopee.tex', u'tkCassiopee Documentation',
-   u'/ELSA/MU-10020/V'+__version__, 'manual'),
-  ('tkPlotXY', 'tkPlotXY.tex', u'tkPlotXY Documentation',
-   u'/ELSA/MU-10020/V'+__version__, 'manual'),
-  ('Decorator', 'Decorator.tex', u'Decorator Documentation',
-   u'/ELSA/MU-10020/V'+__version__, 'manual'), 
+    ('CPlot', 'CPlot.tex', u'CPlot Documentation',
+     u'/ELSA/MU-10020/V'+__version__, 'manual'),
+    ('tkCassiopee', 'tkCassiopee.tex', u'tkCassiopee Documentation',
+        u'/ELSA/MU-10020/V'+__version__, 'manual'),
+    ('tkPlotXY', 'tkPlotXY.tex', u'tkPlotXY Documentation',
+        u'/ELSA/MU-10020/V'+__version__, 'manual'),
+    ('Decorator', 'Decorator.tex', u'Decorator Documentation',
+        u'/ELSA/MU-10020/V'+__version__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -261,9 +261,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'CPlot', u'CPlot Documentation',
-   u'ONERA', 'CPlot', 'One line description of project.',
-   'Miscellaneous'),
+    ('index', 'CPlot', u'CPlot Documentation',
+     u'ONERA', 'CPlot', 'One line description of project.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

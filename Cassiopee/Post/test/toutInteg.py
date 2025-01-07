@@ -83,6 +83,3 @@ if math.fabs(res[0]-res2) > 1.e-1:
     print("pb in integ, ni=1")
 
 print('done.')
-
-
-

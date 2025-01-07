@@ -40,7 +40,7 @@ def revolve():
 
     teta = CTK.varsFromWidget(VARS[5].get(), type=1)
     if len(teta) != 1:
-        CTK.TXT.insert('START', 'Revolve angle is incorrect.\n') 
+        CTK.TXT.insert('START', 'Revolve angle is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     teta = teta[0]
 
@@ -79,7 +79,7 @@ def revolve():
         try:
             z = D.axisym(z, (xo,yo,zo), (ntx,nty,ntz), teta, Nteta, rmod)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception as e: 
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -109,7 +109,7 @@ def setAxis():
         z = CTK.t[2][nob][2][noz]
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
-    VARS[4].set(selected)    
+    VARS[4].set(selected)
 
 #==============================================================================
 def setCurve():
@@ -128,7 +128,7 @@ def setCurve():
         z = CTK.t[2][nob][2][noz]
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
-    VARS[3].set(selected)    
+    VARS[3].set(selected)
 
 #=============================================================================
 def lineDrive():
@@ -174,7 +174,7 @@ def extrudeWCurve(mode=0):
             if mode == 0: z = D.lineDrive(z, curve)
             else: z = D.orthoDrive(z, curve)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception as e: 
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -216,7 +216,7 @@ def addLayers():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    CTK.setCursor(2, WIDGETS['addLayers'])    
+    CTK.setCursor(2, WIDGETS['addLayers'])
     CTK.saveTree()
     zlist = []
     for nz in nzs:
@@ -229,7 +229,7 @@ def addLayers():
     fail = False; errors = []
     try:
         zlist = G.addNormalLayers(zlist, d, niter=smooth)
-    except Exception as e: 
+    except Exception as e:
         fail = True; errors += [0,str(e)]
 
     for z in zlist: z[0] = C.getZoneName(z[0]) # unique name
@@ -275,7 +275,7 @@ def addkplanes():
         CTK.replace(CTK.t, nob, noz, z)
         #except Exception as e: fail = True
     if not fail: CTK.TXT.insert('START', 'K planes added.\n')
-    else: 
+    else:
         CTK.TXT.insert('START', 'add K planes failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)

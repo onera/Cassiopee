@@ -117,7 +117,7 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
 #
 # if layers not None, only communicate the desired number of layers
 # bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
-# if subr, the tree subregions are kept during the exchange 
+# if subr, the tree subregions are kept during the exchange
 def compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
     """For Cartesian grids, replace Grid Coordinates with a compressed node."""
     tp = Internal.copyRef(t)
@@ -195,23 +195,23 @@ def _compressCartesian__(z, ztype, gc, tol=1.e-10):
     elif nk > 2: hk = zp[2*ni*nj]-zp[ni*nj]
     elif nk > 1: hk = zp[ni*nj]-z0
     else: hk = 1.
-    if nk > 1: 
+    if nk > 1:
         if abs(zp[ni*nj] - zp[0] - hk) > tol: cartesian = False
         if abs(xp[ni*nj] - x0) > tol: cartesian = False
         if abs(yp[ni*nj] - y0) > tol: cartesian = False
-    if nk > 2: 
+    if nk > 2:
         if abs(zp[2*ni*nj] - zp[ni*nj] - hk) > tol: cartesian = False
         if abs(xp[ni*nj] - x0) > tol: cartesian = False
         if abs(yp[ni*nj] - y0) > tol: cartesian = False
-    if nk > 3: 
+    if nk > 3:
         if abs(zp[3*ni*nj] - zp[2*ni*nj] - hk) > tol: cartesian = False
         if abs(xp[2*ni*nj] - x0) > tol: cartesian = False
         if abs(yp[2*ni*nj] - y0) > tol: cartesian = False
-    if nk > 4: 
+    if nk > 4:
         if abs(zp[4*ni*nj] - zp[3*ni*nj] - hk) > tol: cartesian = False
         if abs(xp[3*ni*nj] - x0) > tol: cartesian = False
         if abs(yp[3*ni*nj] - y0) > tol: cartesian = False
-    if nk > 5: 
+    if nk > 5:
         if abs(zp[5*ni*nj] - zp[4*ni*nj] - hk) > tol: cartesian = False
         if abs(xp[4*ni*nj] - x0) > tol: cartesian = False
         if abs(yp[4*ni*nj] - y0) > tol: cartesian = False
@@ -461,7 +461,7 @@ def _compressCoords(t, tol=1.e-8, ctype=0):
         fields = []
         for c in GC: fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields:
-            if Internal.getNodeFromName1(f, 'ZData') is None: 
+            if Internal.getNodeFromName1(f, 'ZData') is None:
                 _packNode(f, tol, ctype)
     return None
 
@@ -488,10 +488,10 @@ def _compressFields(t, tol=1.e-8, ctype=0, varNames=None):
             for v in varNames:
                 varname = v.split(':', 1)
                 container = Internal.__FlowSolutionNodes__
-                if len(varname) == 2 and varname[0] == 'centers': 
+                if len(varname) == 2 and varname[0] == 'centers':
                     container = Internal.__FlowSolutionCenters__
                     varname = varname[1]
-                elif len(varname) == 2 and varname[0] == 'nodes': 
+                elif len(varname) == 2 and varname[0] == 'nodes':
                     varname = varname[1]
                 else: varname = v
                 FS = Internal.getNodeFromName1(z, container)
@@ -522,7 +522,7 @@ def _compressCellN(t, varNames=['cellN']):
     return None
 
 def compressCellN(t, varNames=['cellN']):
-    """Compress cellN (0,1,2) lossless on 2 bits.""" 
+    """Compress cellN (0,1,2) lossless on 2 bits."""
     tp = Internal.copyRef(t)
     _compressCellN(tp, varNames)
     return tp
@@ -538,14 +538,14 @@ def _compressElements(t):
             if eltno == 22 or eltno == 23: # NGON
                 n = Internal.getNodeFromName1(e, 'ElementConnectivity')
                 _packNode(n, 0, 4)
-            else:                  
+            else:
                 (stype, net) = Internal.eltNo2EltName(eltno)
                 n = Internal.getNodeFromName1(e, 'ElementConnectivity')
                 _packNode(n, net, 3)
     return None
 
 def compressElements(t):
-    """Compress lossless Element connectivity.""" 
+    """Compress lossless Element connectivity."""
     tp = Internal.copyRef(t)
     _compressElements(tp)
     return tp
@@ -559,7 +559,7 @@ def _uncompressAll(t):
         GC = Internal.getNodesFromType1(z, 'GridCoordinates_t')
         FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
         fields = []
-        for c in GC+FS: 
+        for c in GC+FS:
             fields += Internal.getNodesFromType1(c, 'DataArray_t')
         for f in fields:
             _unpackNode(f)

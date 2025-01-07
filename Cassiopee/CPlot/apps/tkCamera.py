@@ -68,7 +68,7 @@ def exportInfo(event=None):
         scalarStyle = CPlot.getState('scalarStyle'); com += ', scalarStyle=%d'%scalarStyle
         colormap = CPlot.getState('colormap'); com += ', colormap=%d'%colormap
         isoEdges = CPlot.getState('isoEdges'); com += ', isoEdges=%g'%isoEdges
-        isoScale = CPlot.getState('isoScale'); 
+        isoScale = CPlot.getState('isoScale');
         isoScale = [field]+isoScale
         com += ', isoScales=%s'%str(isoScale)
 

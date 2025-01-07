@@ -21,7 +21,7 @@ MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
 def setColorVar(l):
     if l == 'Custom>':
         try: import tkinter.colorchooser as tkColorChooser
-        except: import tkColorChooser 
+        except: import tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
     VARS[1].set(l)
@@ -32,7 +32,7 @@ def setColorVar2(event=None):
     l = VARS[1].get()
     if l == 'Custom>':
         try: import tkinter.colorchooser as tkColorChooser
-        except: import tkColorChooser 
+        except: import tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
         VARS[1].set(l)
@@ -142,7 +142,7 @@ def setAll():
                                  material=material,
                                  color=color,
                                  blending=blending,
-                                 shaderParameters=[shaderParameter1, 
+                                 shaderParameters=[shaderParameter1,
                                                    shaderParameter2])
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TKTREE.updateApp()
@@ -216,7 +216,7 @@ def setShaderParameter(event=None):
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz],
-                                 shaderParameters=[shaderParameter1, 
+                                 shaderParameters=[shaderParameter1,
                                                    shaderParameter2])
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TKTREE.updateApp()
@@ -304,7 +304,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Blending.'); VARS.append(V)
 
     # - set Blending -
-    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, 
+    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL,
                   command=setBlending, showvalue=0, borderwidth=1, value=100)
     WIDGETS['blending'] = B
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -352,7 +352,7 @@ def createApp(win):
         F.grid(row=3, column=1, sticky=TK.EW)
         WIDGETS['colors'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[1], 
+        B = ttk.Combobox(F, textvariable=VARS[1],
                          values=[], state='readonly', height=11)
         B.bind('<<ComboboxSelected>>', setColorVar2)
         B.grid(sticky=TK.EW)

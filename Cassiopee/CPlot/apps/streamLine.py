@@ -20,6 +20,6 @@ while (bool == 0):
             C.convertArrays2File(b, 'out.plt')
             import sys; sys.exit();
         time.sleep(0.1)
-    stream = P.streamLine(a, (l[0],l[1],l[2])) 
+    stream = P.streamLine(a, (l[0],l[1],l[2]))
     b += [stream]
     CPlot.display(b)

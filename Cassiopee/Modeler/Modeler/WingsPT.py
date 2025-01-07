@@ -55,12 +55,12 @@ def airfoil(designation='NACA0012',Ntop=None, Nbot=None, ChordLength=1., TopDist
                      but based only on the X coordinate.
     Usage example: airfoil(designation,Ntop,Nbot,ChordLength,TopDistribution,
                            BottomDistribution,Closed,LeadingEdgePos )
-    """          
+    """
     a = Aero.airfoil(designation,Ntop,Nbot,ChordLength,TopDistribution,
                      BottomDistribution,Closed,LeadingEdgePos)
     return C.convertArrays2ZoneNode('airfoil'+designation, [a])
 
-def linelaw(P1=(0,0,0), P2=(1,0,0), N=100, Distribution = None):
+def linelaw(P1=(0,0,0), P2=(1,0,0), N=100, Distribution=None):
     """Create a line of N points following a given point Distribution.
     Distribution is a dictionnary with fields:
     'kind' of law: 'linear', 'tanhOneSide', 'tanhTwoSides', 'trigonometric' 
@@ -81,7 +81,7 @@ def splinelaw(polyLine,N=100,Distribution=None,SplineDegree=3):
     """
     polyLineA = C.getFields(Internal.__GridCoordinates__, polyLine)[0]
     a = Aero.splinelaw(polyLineA,N,Distribution,SplineDegree)
-    return C.convertArrays2ZoneNode('splinelaw', [a])    
+    return C.convertArrays2ZoneNode('splinelaw', [a])
 
 def printSmth(string):
     return Aero.printSmth(string)
@@ -94,8 +94,8 @@ def pyTreeExample(z):
 def pyTreeExample1(t):
     return aero.pyTreeExample1(t)
 
-def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.], 
-        dihedral=[0.], distribution=[{'points':10}],sectionShapeLaw='linear'):
+def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
+         dihedral=[0.], distribution=[{'points':10}],sectionShapeLaw='linear'):
     '''
     This function builds an airplane's wing section by section, using typical
     aerodynamic parameters. The result is a structured surface.
@@ -136,19 +136,19 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
     angles are applied is the origin (0,0,0), which corresponds by default to 
     the Leading Edge of the airfoil. If you wish to re-position this reference,
     you may apply a translation to the wing sections beforehand.
-    '''        
+    '''
     sectionsA = []
 
     for i in range(len(sections)):
         sectionsA.append(C.getFields(Internal.__GridCoordinates__, sections[i])[0])
-    a = Aero.wing(sectionsA, span, washout, sweep, 
-        dihedral, distribution,sectionShapeLaw)
-    return C.convertArrays2ZoneNode('wing', [a])   
+    a = Aero.wing(sectionsA, span, washout, sweep,
+                  dihedral, distribution,sectionShapeLaw)
+    return C.convertArrays2ZoneNode('wing', [a])
 
 def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
                   rotation=[0.], rotationLaw='linear',
                   NormalDirection=np.array([1,0,0]),
-                  spine=linelaw(P2=(0,0,1)), sectionShapeLaw='linear'):     
+                  spine=linelaw(P2=(0,0,1)), sectionShapeLaw='linear'):
     '''
     This function builds a sweep surface from a given profile, or a set of
     profiles, throughout a spine. The result is a structured surface.
@@ -189,11 +189,11 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
     XY plane. The reference point from which the rotation 
     angles are applied is the origin (0,0,0). If you wish to re-position
     this reference, you may apply a translation to the sections beforehand.
-    '''                        
+    '''
     sectionsA = []
     for i in range(len(sections)):
         sectionsA.append(C.getFields(Internal.__GridCoordinates__, sections[i])[0])
     spineA = C.getFields(Internal.__GridCoordinates__, spine)[0]
     a = Aero.sweepSections(sectionsA, SpanPositions, rotation, rotationLaw,
-                NormalDirection, spineA, sectionShapeLaw)
-    return C.convertArrays2ZoneNode('sweep', [a])                        
+                           NormalDirection, spineA, sectionShapeLaw)
+    return C.convertArrays2ZoneNode('sweep', [a])

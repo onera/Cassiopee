@@ -22,12 +22,17 @@
 #include "IGESControl_Reader.hxx" 
 #include "STEPControl_Reader.hxx"
 
-//Data structure
-#include "TColStd_HSequenceOfTransient.hxx"
+// Data structure
 #include "TopoDS.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
+
+// Document
+#include "IGESCAFControl_Reader.hxx"
+#include "STEPCAFControl_Reader.hxx"
+#include "XCAFDoc_DocumentTool.hxx"
+#include "TDocStd_Document.hxx"
 
 // ============================================================================
 /* Convert CAD to OpenCascade hook */
@@ -37,8 +42,18 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
   char* fileName; char* fileFmt;
   if (!PyArg_ParseTuple(args, "ss", &fileName, &fileFmt)) return NULL;
 
+  FILE* ptrFile = fopen(fileName, "r");
+  if (ptrFile == NULL)
+  {
+    PyErr_SetString(PyExc_TypeError, "readCAD: file not found.");
+    return NULL;
+  }
+  fclose(ptrFile);
+
   TopoDS_Shape* shp = new TopoDS_Shape();
   
+  TDocStd_Document* doc = NULL;
+
   if (strcmp(fileFmt, "fmt_iges") == 0)
   {
     IGESControl_Reader reader;
@@ -50,6 +65,13 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     
     // get shape
     *shp = reader.OneShape();
+
+    // Read document
+    IGESCAFControl_Reader reader2;
+    reader2.ReadFile(fileName);
+    doc = new TDocStd_Document("MDTV-Standard");
+    Handle(TDocStd_Document) doc2 = doc;
+    reader2.Transfer(doc2);
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
   {
@@ -58,16 +80,13 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     reader.ReadFile(fileName);
     reader.TransferRoots();
     *shp = reader.OneShape();
-
-    // tentative pour recuperer les noms des entites
-    //#include "XSControl_WorkSession.hxx"
-    //#include "XSControl_TransferReader.hxx"
-    //#include "Standard_Transient.hxx"
-    //Handle(XSControl_WorkSession) ws = reader.WS();
-    //Handle(XSControl_TransferReader) tr = ws.TransferReader();
-    //Handle(Standard_Transient) item = tr.EntityFromShapeResult(aShape);
-    //char* name = item.Name().ToCString();
-    //print("name=%s\n", name);
+    
+    // Read document
+    STEPCAFControl_Reader reader2;
+    reader2.ReadFile(fileName);
+    doc = new TDocStd_Document("MDTV-Standard");
+    Handle(TDocStd_Document) doc2 = doc;
+    reader2.Transfer(doc2);    
   }
   
   // Extract surfaces
@@ -98,14 +117,15 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
 
   // capsule 
   PyObject* hook;
-  E_Int sizePacket = 5;
+  E_Int sizePacket = 6;
   void** packet = new void* [sizePacket];
   packet[0] = shp; // the top shape
   packet[1] = surfs; // the face map
   packet[2] = edges; // the edge map
   packet[3] = fileNameC; // CAD file name
   packet[4] = fileFmtC; // CAD file format
-  
+  packet[5] = doc; // OCAF document
+
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else

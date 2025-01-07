@@ -160,7 +160,7 @@ def createApp(win):
         F.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['zones'] = B
     else:
-        B = TTK.Combobox(F, textvariable=VARS[2], 
+        B = TTK.Combobox(F, textvariable=VARS[2],
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFamilyZoneNameList2)
@@ -181,7 +181,7 @@ def createApp(win):
         B = TK.OptionMenu(Frame, VARS[3], *(Internal.KNOWNBCS))
         B.grid(row=2, column=2, sticky=TK.EW)
     else:
-        B = TTK.Combobox(Frame, textvariable=VARS[3], 
+        B = TTK.Combobox(Frame, textvariable=VARS[3],
                          values=Internal.KNOWNBCS, state='readonly', width=10)
         B.grid(row=2, column=2, sticky=TK.EW)
 

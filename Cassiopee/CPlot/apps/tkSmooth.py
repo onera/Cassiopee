@@ -76,7 +76,7 @@ def smooth():
     fixedConstraints = []; projConstraints = []
 
     name = VARS[1].get()
-    names = name.split(';')    
+    names = name.split(';')
     for v in names:
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
@@ -111,7 +111,7 @@ def smooth():
     if dims[3] == 'TRI': pbDim = 2
 
     # Keep external faces
-    if VARS[3].get() == 1 or pbDim == 3: 
+    if VARS[3].get() == 1 or pbDim == 3:
         try: ext = P.exteriorFaces(A)
         except: ext = []
     if VARS[3].get() == 1 and ext != []: fixedConstraints.append(ext)
@@ -149,13 +149,13 @@ def smooth():
     try:
         if Pj == 0:
             zones = T.smooth(zones, eps=eps, niter=smooth, type=ntype,
-                             fixedConstraints=fixedConstraints, 
+                             fixedConstraints=fixedConstraints,
                              projConstraints=projConstraints, delta=strength)
         else:
             for s in range(smooth):
                 zones = T.smooth(zones, eps=eps, niter=2, type=ntype,
-                                 fixedConstraints=fixedConstraints, 
-                                 projConstraints=projConstraints, 
+                                 fixedConstraints=fixedConstraints,
+                                 projConstraints=projConstraints,
                                  delta=strength)
                 zones = T.projectOrtho(zones, [projSurf])
     except Exception as e:
@@ -216,25 +216,25 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Constraint strength
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if 'tkSmoothConsStrength' in CTK.PREFS: 
+    if 'tkSmoothConsStrength' in CTK.PREFS:
         V.set(CTK.PREFS['tkSmoothConsStrength'])
     # -3- Constraint external faces
     V = TK.IntVar(win); V.set(1); VARS.append(V)
     # -4- smooth eps
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if 'tkSmoothEps' in CTK.PREFS: 
+    if 'tkSmoothEps' in CTK.PREFS:
         V.set(CTK.PREFS['tkSmoothEps'])
     # -5- Constraint sharp edges
     V = TK.IntVar(win); V.set(0); VARS.append(V)
     # -6- Sharp edges detection angle
     V = TK.StringVar(win); V.set('30.'); VARS.append(V)
-    if 'tkSmoothSharpAngle' in CTK.PREFS: 
+    if 'tkSmoothSharpAngle' in CTK.PREFS:
         V.set(CTK.PREFS['tkSmoothSharpAngle'])
     # -7- Project on surface
     V = TK.IntVar(win); V.set(0); VARS.append(V)
     # -8- Type de smoothing
     V = TK.StringVar(win); V.set('Volume'); VARS.append(V)
-    if 'tkSmoothType' in CTK.PREFS: 
+    if 'tkSmoothType' in CTK.PREFS:
         V.set(CTK.PREFS['tkSmoothType'])
 
     # - Smoother power -

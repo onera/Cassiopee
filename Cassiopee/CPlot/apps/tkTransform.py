@@ -9,6 +9,8 @@ import Transform.PyTree as T
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import KCore.Vector as Vector
+import Converter.Internal as Internal
+import CPlot.Panels as Panels
 import time
 
 # local widgets list
@@ -80,8 +82,8 @@ def rotate(event=None):
     axis = VARS[2].get()
     angle = CTK.varsFromWidget(VARS[3].get(), type=1)
     if len(angle) == 1: angle = angle[0]; X=None
-    elif len(angle) == 4: X=(angle[1],angle[2],angle[3]); angle = angle[0] 
-    else: 
+    elif len(angle) == 4: X=(angle[1],angle[2],angle[3]); angle = angle[0]
+    else:
         CTK.TXT.insert('START', 'Invalid angle or angle+rotation center.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     if axis == 'around X': axe = (1.,0.,0.)
@@ -115,12 +117,38 @@ def rotate(event=None):
         noz = CTK.Nz[nz]
         a = T.rotate(CTK.t[2][nob][2][noz], (X[0],X[1],X[2]), axe, angle)
         CTK.replace(CTK.t, nob, noz, a)
+
+    # update CAD if necessary
+    if CTK.CADHOOK is not None:
+        import OCC.PyTree as OCC
+        faceList = []
+        for nz in nzs:
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            z = CTK.t[2][nob][2][noz]
+            no = OCC.getNo(z)
+            faceList.append(no)
+        faceList = [] # forced for debug
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        OCC.occ.rotate(CTK.CADHOOK, X, axe, angle, faceList)
+        if faceList != []:
+            [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
+            edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
+            edges[2] = []
+            faces = Internal.getNodeFromName1(CTK.t, 'FACES')
+            faces[2] = []
+            OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing
+            OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+            CTK.TKTREE.updateApp()
+            CTK.display(CTK.t)
+
     CTK.TXT.insert('START', 'Zones have been rotated.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
 
 #==============================================================================
-def translate():
+def translate(event=None):
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
@@ -157,6 +185,33 @@ def translate():
         noz = CTK.Nz[nz]
         a = T.translate(CTK.t[2][nob][2][noz], (v[0], v[1], v[2]))
         CTK.replace(CTK.t, nob, noz, a)
+
+    # update CAD if necessary
+    if CTK.CADHOOK is not None:
+        import OCC.PyTree as OCC
+        faceList = []
+        for nz in nzs:
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            z = CTK.t[2][nob][2][noz]
+            no = OCC.getNo(z)
+            faceList.append(no)
+        faceList = [] # forced for debug
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        OCC.occ.translate(CTK.CADHOOK, (v[0], v[1], v[2]), faceList)
+        if faceList != []:
+            [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
+            edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
+            edges[2] = []
+            faces = Internal.getNodeFromName1(CTK.t, 'FACES')
+            faces[2] = []
+            OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing
+            OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+            CTK.TKTREE.updateApp()
+            CTK.display(CTK.t)
+
+
     CTK.TXT.insert('START', 'Zones have been translated.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -210,7 +265,7 @@ def translateClick():
         TTK.raiseButton(w)
 
 #==============================================================================
-def scale():
+def scale(event=None):
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
@@ -249,7 +304,7 @@ def scale():
         X = [v[3],v[4],v[5]]
     else:
         X = G.barycenter(selection)
-    if len(v) == 1 and v[0] == 0.: # scale unitaire 
+    if len(v) == 1 and v[0] == 0.: # scale unitaire
         bbox = G.bbox(selection)
         dx = bbox[3]-bbox[0]
         dy = bbox[4]-bbox[1]
@@ -271,6 +326,33 @@ def scale():
             z = T.contract(z, (X[0],X[1],X[2]), axe1, axe3, v[1])
             a = T.contract(z, (X[0],X[1],X[2]), axe1, axe2, v[2])
         CTK.replace(CTK.t, nob, noz, a)
+
+    # update CAD if necessary
+    if CTK.CADHOOK is not None and len(v) == 1:
+        import OCC.PyTree as OCC
+        faceList = []
+        for nz in nzs:
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            z = CTK.t[2][nob][2][noz]
+            no = OCC.getNo(z)
+            faceList.append(no)
+        faceList = [] # forced for debug
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        OCC.occ.scale(CTK.CADHOOK, v[0], X, faceList)
+        if faceList != []:
+            [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
+            edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
+            edges[2] = []
+            faces = Internal.getNodeFromName1(CTK.t, 'FACES')
+            faces[2] = []
+            OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing
+            OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+            CTK.TKTREE.updateApp()
+            CTK.display(CTK.t)
+
+
     CTK.TXT.insert('START', 'Zones have been scaled.\n')
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -344,9 +426,9 @@ def createApp(win):
 
     # - VARS -
     # -0- Translation vector -
-    V = TK.StringVar(win); V.set('0;0;0'); VARS.append(V)
+    V = TK.StringVar(win); V.set('0; 0; 0'); VARS.append(V)
     # -1- Scale factors -
-    V = TK.StringVar(win); V.set('1;1;1'); VARS.append(V)
+    V = TK.StringVar(win); V.set('1; 1; 1'); VARS.append(V)
     # -2- Rotate axis
     V = TK.StringVar(win); V.set('around X'); VARS.append(V)
     # -3- Rotation angle
@@ -370,6 +452,7 @@ def createApp(win):
     B.grid(row=0, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=5)
     B.grid(row=0, column=2, columnspan=1, sticky=TK.EW)
+    B.bind('<Return>', translate)
     BB = CTK.infoBulle(parent=B, text='Translation vector.')
 
     # - Translate from here to here -
@@ -387,6 +470,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[5], 'along XYZ', 'along view')
     B.grid(row=2, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=5)
+    B.bind('<Return>', scale)
     B.grid(row=2, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Scale factors (+ optionally center for scaling): uniform f value or fx;fy;fz (+ optionally cx;cy;cz)\nFor automatic adimensioning, use 0.')
 
@@ -399,6 +483,7 @@ def createApp(win):
                        'around Z', 'around view')
     B.grid(row=3, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
+    B.bind('<Return>', rotate)
     B.grid(row=3, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='angle (degrees) or \nangle; Xc;Yc;Zc (angle+rotation center)\nIf center is not specified, rotate around barycenter of zones.')
 
@@ -419,6 +504,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[7], 'cart2Cyl', 'cyl2Cart')
     B.grid(row=5, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[8], background='White')
+    B.bind('<Return>', changeFrame)
     B.grid(row=5, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Origin: x0;y0;z0\nAxis: tx;ty;tz.')
 

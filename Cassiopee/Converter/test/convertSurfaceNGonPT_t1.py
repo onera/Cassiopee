@@ -29,4 +29,3 @@ b = C.convertSurfaceNGon(a)
 # type A : NGON=bars, NFACE=polygon
 c = C.convertSurfaceNGon(b)
 test.testT(c, 4)
-

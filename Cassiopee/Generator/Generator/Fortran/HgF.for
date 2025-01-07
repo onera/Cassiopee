@@ -62,7 +62,7 @@ C_LOCAL
 C==============================================================================
       indice(i,j) = i+(j-1)*ni
 
-      pi = 4*atan(1.D0)
+      pi = 4.D0*atan(1.D0)
       
       betas = MIN(betas, 0.125)  ! max stabilite
 

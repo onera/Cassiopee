@@ -17,7 +17,7 @@ test.TOLERANCE = 1.e-6
 
 LOCAL = test.getLocal()
 
-#Fabrication case 2d pour maillage octree 
+#Fabrication case 2d pour maillage octree
 lines=[]
 lines.append( D.line((0.05,-0.15, 0), (0.1 ,-0.08,0), N=10) )
 lines.append( D.line((0.10,-0.03, 0), (0.1 ,-0.08,0), N=10) )
@@ -101,7 +101,7 @@ C._addBC2Zone(a, 'wallOut','BCWallViscous',  [30,200,1,1,1,5])
 t_curvi = C.newPyTree(['Base', a])
 
 zones = Internal.getZones(t_curvi)
-#les zones curviligne possedanr raccord chimere avec zone Cart IBC doit avoir la racine "joinIBC" dans leur nom 
+#les zones curviligne possedanr raccord chimere avec zone Cart IBC doit avoir la racine "joinIBC" dans leur nom
 zones[0][0]='curvi_joinIBC'
 t_curvi = X.connectMatchPeriodic(t_curvi, translation=[0.,0.,0.04])
 #stretch maillage plaque direction normal paroi
@@ -157,4 +157,3 @@ Internal._rmNodesByName(t_final, '*P1*')
 Internal._rmNodesByName(t_final, '*M1*')
 Internal._rmNodesFromType(t_final, 'Rind_t')
 test.testT(t_final, 7)
-

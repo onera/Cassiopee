@@ -24,11 +24,11 @@ def hub1(R, zlow, zup, zcone, NbPoints):
     l4 = T.join([l1,l2,l3])
     l4 = D.uniformize(l4, NbPoints)
     Ntheta = int(NbPoints*0.7)
-    if (Ntheta//2)*2 == Ntheta: Ntheta += 1 
+    if (Ntheta//2)*2 == Ntheta: Ntheta += 1
     l4 = D.axisym(l4, (0.,0.,0.), (0.,0.,1.), Ntheta=Ntheta)
     div = NbPoints//8
     l5 = T.subzone(l4,(1,1,1),(-div,1,-1))
-    l5 = T.subzone(l5,(div,1,1),(-1,1,-1))    
+    l5 = T.subzone(l5,(div,1,1),(-1,1,-1))
     l6 = P.exteriorFacesStructured(l5)
     z1 = l6[0]
     z2 = l6[1]
@@ -36,4 +36,4 @@ def hub1(R, zlow, zup, zcone, NbPoints):
     z2 = G.TFIO(z2)
     proj1 = T.projectOrthoSmooth(z1, [l4], niter=3)
     proj2 = T.projectOrthoSmooth(z2, [l4], niter=3)
-    return [l5]+proj1+proj2 
+    return [l5]+proj1+proj2

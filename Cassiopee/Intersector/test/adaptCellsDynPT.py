@@ -1,5 +1,5 @@
 # - dynamic adaptation
-# 
+#
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Intersector.PyTree as XOR
@@ -17,7 +17,7 @@ hmsh = XOR.createHMesh(mesh)
 senso = XOR.createSensor(hmsh)
 XOR.assignData2Sensor(senso, source)
 
-m = XOR.adaptCells(mesh, hmesh = hmsh, sensor=senso)
+m = XOR.adaptCells(mesh, hmesh=hmsh, sensor=senso)
 
 m = XOR.conformizeHMesh(m, hmsh)
 m = XOR.closeCells(m)

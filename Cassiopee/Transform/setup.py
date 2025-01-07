@@ -56,7 +56,7 @@ setup(
     package_dir={"":"."},
     packages=['Transform'],
     ext_modules=listExtensions
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

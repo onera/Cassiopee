@@ -12,7 +12,7 @@ def parseArgs():
     # Create argument parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--email", action="store_true",
-                          help="Email results. Default: print in terminal")
+                        help="Email results. Default: print in terminal")
     parser.add_argument("-r", "--recipients", type=str, default='',
                         help="Single-quoted space-separated list of recipients")
     # Parse arguments
@@ -44,11 +44,11 @@ if __name__ == '__main__':
     gitBranch = Dist.getGitBranch(cassiopeeIncDir)
     gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
     gitInfo = "Git origin: {}\nGit branch: {}\nCommit hash: {}".format(
-      gitOrigin, gitBranch, gitHash)
+        gitOrigin, gitBranch, gitHash)
 
     baseState = 'OK'
     messageText = "Installation of Cassiopee, Fast and all "\
-      "PModules:\n{}\n\n{}\n\n".format(48*'-', gitInfo)
+        "PModules:\n{}\n\n{}\n\n".format(48*'-', gitInfo)
     messageText += '{:^20} | {:^30} | {:^10}\n{}\n'.format(
         "PROD.", "DATE", "STATUS", 67*'-')
     for log_machine in log_entries:
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     messageSubject = "[Install Cassiopee] State: {}".format(baseState)
     if baseState == 'FAILED':
         messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
-          'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
-          'vincent.casseau@onera.fr'
+            'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
+            'vincent.casseau@onera.fr'
 
     if script_args.email:
         notify(recipients=recipients,

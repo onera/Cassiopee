@@ -172,7 +172,7 @@ def createApp(win):
     # - VARS -
     # - 0 - Type de BC -
     V = TK.StringVar(win); V.set('-All BC-'); VARS.append(V)
-    if 'tkExtractBCType' in CTK.PREFS: 
+    if 'tkExtractBCType' in CTK.PREFS:
         V.set(CTK.PREFS['tkExtractBCType'])
     # - 1 - List of zoneBCs to recover
     V = TK.StringVar(win); V.set(''); VARS.append(V)
@@ -191,8 +191,8 @@ def createApp(win):
         F.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['BC'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[0], 
-                         values=Internal.KNOWNBCS, 
+        B = ttk.Combobox(F, textvariable=VARS[0],
+                         values=Internal.KNOWNBCS,
                          state='readonly', width=10)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFamilyBCNameList2)

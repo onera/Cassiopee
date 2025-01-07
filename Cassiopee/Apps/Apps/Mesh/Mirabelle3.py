@@ -368,7 +368,7 @@ def buildDistribWallLaw(t, block, dir, h1, h2, N):
         l2 = T.subzone(l, (N,1,1), (-1,1,1))
         P0 = C.getValue(l1, 'GridCoordinates', 0)
         P1 = C.getValue(l1, 'GridCoordinates', N-1)
-        ll = D.line(P0, P1, N=2) 
+        ll = D.line(P0, P1, N=2)
         l = T.join(ll, l2)
     else:
         npts = C.getNPts(l)
@@ -376,7 +376,7 @@ def buildDistribWallLaw(t, block, dir, h1, h2, N):
         l2 = T.subzone(l, (1,1,1), (npts-N+1,1,1))
         P0 = C.getValue(l1, 'GridCoordinates', 0)
         P1 = C.getValue(l1, 'GridCoordinates', N-1)
-        ll = D.line(P0, P1, N=2) 
+        ll = D.line(P0, P1, N=2)
         l = T.join(l2, ll)
     C.convertPyTree2File(l, 'linelet.cgns')
 

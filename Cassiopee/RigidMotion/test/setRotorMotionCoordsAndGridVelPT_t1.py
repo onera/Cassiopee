@@ -1,4 +1,4 @@
-# - setRotorMotionAndGridVel (pyTree) - 
+# - setRotorMotionAndGridVel (pyTree) -
 # Rotor motion
 import RigidMotion.PyTree as R
 import Generator.PyTree as G
@@ -39,7 +39,7 @@ bet_pnt = dictBlade["bet_pnt"]
 bet_vct = dictBlade["bet_vct"]
 bet0 = dictBlade["bet0"]
 betc = (dictBlade["bet1c"],)
-bets = (dictBlade["bet1s"],)    
+bets = (dictBlade["bet1s"],)
 tet_pnt = dictBlade["tet_pnt"]
 tet_vct = dictBlade["tet_vct"]
 tet0 = dictBlade["tet0"]

@@ -17,10 +17,10 @@ elif Cmpi.rank == 1:
     C._initVars(a, '{F}={CoordinateX}*{CoordinateX}')
     C._initVars(a, '{centers:G}={centers:CoordinateX}')
 else:
-    a = None    
+    a = None
 
-tkPlotXY.plot([a], varx='CoordinateX', vary='centers:G', 
-              xlabel='x', 
+tkPlotXY.plot([a], varx='CoordinateX', vary='centers:G',
+              xlabel='x',
               xformat='03.1f', yformat='03.1f',
               legends=['no1', 'no2'],
               xFontSize=11,

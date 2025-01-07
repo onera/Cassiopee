@@ -43,15 +43,15 @@ extensions = [
     #          library_dirs=additionalLibPaths+libraryDirs,
     #          libraries=libraries+["SZ",]+additionalLibs,
     #          extra_compile_args=Dist.getCppArgs(),
-    #          extra_link_args=Dist.getLinkArgs()),    
+    #          extra_link_args=Dist.getLinkArgs()),
     #Extension('Compressor.zfp.czfp',
     #          sources=["Compressor/zfp/compressor.cpp"],
     #          include_dirs=["Compressor"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
     #          library_dirs=additionalLibPaths+libraryDirs,
     #          libraries=libraries+["zfp",]+additionalLibs,
     #          extra_compile_args=Dist.getCppArgs(),
-    #          extra_link_args=Dist.getLinkArgs()),    
-    ]
+    #          extra_link_args=Dist.getLinkArgs()),
+]
 
 # Setup ======================================================================
 setup(
@@ -63,7 +63,7 @@ setup(
     #packages=['Compressor', 'Compressor.zfp', 'Compressor.sz'],
     packages=['Compressor'],
     ext_modules=extensions
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

@@ -49,7 +49,7 @@ def _distributeMem(t, tc, NP):
 def _distributeOpt(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     if isinstance(t_in, str):
         if Cmpi.rank == 0: _distributeOptFile(t_in, tc_in, corePerNode, nptMaxPerCore)
-    else: 
+    else:
         #_distributeOptMem(t_in, tc_in, corePerNode, nptMaxPerCore)
         raise ValueError('Not implemented.')
     return None
@@ -148,7 +148,7 @@ def finalize(t, t_out=None, it0=None, time0=None, format='single', compress=0):
 # format: single ou multiple
 # compress: si 1, compress le fichier de sortie pour le cartesien, 2 compressAll
 #======================================================================================
-def compute(t_in, tc_in, 
+def compute(t_in, tc_in,
             t_out, tc_out,
             numb, numz,
             NIT,
@@ -193,7 +193,7 @@ def compute(t_in, tc_in,
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     if t_out is not None and isinstance(t_out,str):
         FastC.save(t, t_out, split=format, NP=Cmpi.size, compress=compress)
-    if tc_out is not None and isinstance(tc_out,str): 
+    if tc_out is not None and isinstance(tc_out,str):
         FastC.save(tc, tc_out, split=format, NP=Cmpi.size)
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
@@ -221,7 +221,7 @@ class Common(App):
         compress = self.compress
         return compute(t_in, tc_in, t_out, tc_out,
                        numb, numz,
-                       nit, 
+                       nit,
                        format=self.data['format'],
                        compress=compress)
 
@@ -242,5 +242,3 @@ class Common(App):
     # distribue fichiers ou en memoire, trouve le NP optimal
     def _distributeOpt(self, t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
         return _distributeOpt(t_in, tc_in, corePerNode, nptMaxPerCore)
-
-

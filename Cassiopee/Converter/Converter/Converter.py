@@ -20,23 +20,23 @@ from KCore.Dist import EDOUBLEINT
 if EDOUBLEINT: E_NpyInt = numpy.int64
 else: E_NpyInt = numpy.int32
 
-__all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 
-    'center2ExtCenter', 'center2Node', 'conformizeNGon', 
-    'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node', 
-    'convertArray2Tetra', 'convertBAR2Struct', 'convertTri2Quad',
-    'convertStrand2Penta', 'convertPenta2Strand',
-    'convertArrays2File', 'convertFile2Arrays', 'copy',
-    'createGlobalHook', 'createHook', 
-    'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
-    'createSockets', 'diffArrays', 'diffArrayGeom', 'isFinite', 'setNANValuesAt', 'extCenter2Node', 
-    'extractVars', 'getIndexField',
-    'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue',
-    'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes',
-    'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
-    'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
-    'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
-    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity', 
-    '_signNGonFaces', '_unsignNGonFaces', 'makeParentElements']
+__all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2',
+           'center2ExtCenter', 'center2Node', 'conformizeNGon',
+           'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node',
+           'convertArray2Tetra', 'convertBAR2Struct', 'convertTri2Quad',
+           'convertStrand2Penta', 'convertPenta2Strand',
+           'convertArrays2File', 'convertFile2Arrays', 'copy',
+           'createGlobalHook', 'createHook',
+           'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
+           'createSockets', 'diffArrays', 'diffArrayGeom', 'isFinite', 'setNANValuesAt', 'extCenter2Node',
+           'extractVars', 'getIndexField',
+           'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue',
+           'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes',
+           'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
+           'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
+           'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
+           'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity',
+           '_signNGonFaces', '_unsignNGonFaces', 'makeParentElements']
 
 # -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -49,7 +49,7 @@ def array(vars, n1, n2, sub, api=1):
     else:
         return arrayS(vars, n1, n2, sub, api)
 
-# -- Create a structured array -- 
+# -- Create a structured array --
 def arrayS(vars, ni, nj, nk, api=1):
     """Create a structured array.
     Usage: array(vars, ni, nj, nk)"""
@@ -105,7 +105,7 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
             for i in range(v):
                 if vl[i] == 'cellN' or vl[i] == 'cellNF':
                     a.append(numpy.ones((nelts), numpy.float64))
-                else: 
+                else:
                     a.append(numpy.zeros((nelts), numpy.float64))
     else:
         if api == 1:
@@ -117,7 +117,7 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
             for i in range(v):
                 if vl[i] == 'cellN' or vl[i] == 'cellNF':
                     a.append(numpy.ones((npoints), numpy.float64))
-                else: 
+                else:
                     a.append(numpy.zeros((npoints), numpy.float64))
 
     if api == 1: c = numpy.ones((nt, nelts), E_NpyInt)
@@ -173,7 +173,7 @@ def getNPts__(a):
     if len(a) == 5: # structure
         npts = a[2]*a[3]*a[4]
     elif len(a) == 4: # non structure
-        if a[3][-1] != '*': 
+        if a[3][-1] != '*':
             if isinstance(a[1], list): npts = a[1][0].size
             else: npts = a[1].shape[1]
         else: npts = 0 # don't know
@@ -361,7 +361,7 @@ def _addVars__(a, varNames):
         s = a[1].shape[1]
         nfld = a[1].shape[0]
         n = numpy.zeros((nfld+lg, s), dtype=numpy.float64)
-        for i in range(nfld): n[i,:] = a[1][i,:]        
+        for i in range(nfld): n[i,:] = a[1][i,:]
         a[1] = n
     return None
 
@@ -781,16 +781,16 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             if isinstance(a[0], list):
                 for i in a:
                     if len(i) == 4:
-                        if isinstance(i[2], list): # array2/3 
-                            for c, k in enumerate(i[2]): 
-                                if k.dtype != E_NpyInt: i[2][c] = k.astype(E_NpyInt, order='K') 
+                        if isinstance(i[2], list): # array2/3
+                            for c, k in enumerate(i[2]):
+                                if k.dtype != E_NpyInt: i[2][c] = k.astype(E_NpyInt, order='K')
                         else: # array1
                             if i[2].dtype != E_NpyInt: i[2] = i[2].astype(E_NpyInt, order='K')
             else:
                 if len(a) == 4:
-                    if isinstance(a[2], list): # array2/3 
-                        for c, k in enumerate(a[2]): 
-                            if k.dtype != E_NpyInt: a[2][c] = k.astype(E_NpyInt, order='K') 
+                    if isinstance(a[2], list): # array2/3
+                        for c, k in enumerate(a[2]):
+                            if k.dtype != E_NpyInt: a[2][c] = k.astype(E_NpyInt, order='K')
                     else: # array1
                         if a[2].dtype != E_NpyInt: a[2] = a[2].astype(E_NpyInt, order='K')
 
@@ -802,7 +802,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         a = OCC.convertCAD2Arrays(fileName, format=format, h=hmax,
                                   chordal_err=hausd, growth_ratio=grow,
                                   merge_tol=mergeTol, algo=occAlgo)
-        if zoneNames is not None: 
+        if zoneNames is not None:
             for c in range(len(a)): zoneNames.append('zone%d'%c)
         return a
     elif format == 'fmt_free':
@@ -847,16 +847,16 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                 return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays, api)
             except:
                 FORMATS = ['bin_ply', 'fmt_tp', 'fmt_v3d',
-                'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
-                'fmt_gmsh', 'bin_gmsh', 'fmt_stl', 
-                'bin_stl', 'bin_gltf',
-                'fmt_xfig', 'fmt_svg', 'bin_3ds',
-                'fmt_obj', 'fmt_gts' , 'fmt_pov', 'bin_arc']
+                           'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
+                           'fmt_gmsh', 'bin_gmsh', 'fmt_stl',
+                           'bin_stl', 'bin_gltf',
+                           'fmt_xfig', 'fmt_svg', 'bin_3ds',
+                           'fmt_obj', 'fmt_gts' , 'fmt_pov', 'bin_arc']
                 for fmt in FORMATS:
                     try:
                         a = converter.convertFile2Arrays(fileName, fmt, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
                         return a
-                    except: 
+                    except:
                         return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
 
 def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
@@ -911,7 +911,7 @@ def diffArrays(arrays1, arrays2, arrays3=[]):
 
 def diffArrayGeom(array1, array2, tol=1.e-10):
     """Diff arrays defining solutions, geometrically. Return the delta field."""
-    if isinstance(array1[0], list): 
+    if isinstance(array1[0], list):
         ret = []
         for c, a in enumerate(array1):
             res = diffArrayGeom__(a, array2[c], tol)
@@ -980,7 +980,7 @@ def _setNANValuesAt__(a, var=None, value=0.):
     for c, v in enumerate(vars):
         if var is None or v == var:
             ptr = a[1][c]
-            ptr = ptr.ravel(order="K")            
+            ptr = ptr.ravel(order="K")
             converter.setNANValuesAt(ptr, value)
     return None
 
@@ -1306,7 +1306,7 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
 
         elif t == 'NGON':
             if arrayC == []: return converter.convertNGon2TetraBary(array)
-            else: 
+            else:
                 return converter.convertNGon2TetraBaryBoth(array, arrayC)
         elif t == 'HEXA*' or t == 'PENTA*' or t == 'PYRA*' or t == 'BAR*':
             tmp = center2Node(array)
@@ -1327,7 +1327,7 @@ def convertArray2Tetra(array, split='simple'):
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(convertArray2Tetra1__(i, split=split))       
+            b.append(convertArray2Tetra1__(i, split=split))
         return b
     else: return convertArray2Tetra1__(array, split=split)
 
@@ -1625,9 +1625,9 @@ def freeHook(hook):
     """Free hook.
     Usage: freeHook(hook)"""
     if isinstance(hook, list):
-        for i in hook: 
+        for i in hook:
             if i is not None: converter.freeHook(i)
-    else: 
+    else:
         if hook is not None: converter.freeHook(hook)
 
 #==============================================================================
@@ -1788,7 +1788,7 @@ def mergeConnectivity(a1, a2):
 
     # connectivity
     c1 = a1[2]; c2 = a2[2]
-    for cp in c2: cp[:] = cp[:]+npts 
+    for cp in c2: cp[:] = cp[:]+npts
     co = c1+c2
     return [a1[0], fo, co, a1[3]+','+a2[3]]
 

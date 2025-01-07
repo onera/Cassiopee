@@ -1,4 +1,4 @@
-# join avec les coordonnees et champs desordonnes 
+# join avec les coordonnees et champs desordonnes
 import Converter.PyTree as C
 import Transform.PyTree as T
 import Geom.PyTree as D

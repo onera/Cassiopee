@@ -12,21 +12,21 @@ except: pass
 
 ## [AJ - KEEP FOR NOW - FROM MASTER]
 __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable',
-    'computeGrad', 'computeGrad2', 'computeGradLSQ',
-    'computeDiv', 'computeDiv2', 'computeIndicatorField',
-    'computeIndicatorFieldForBounds', 'computeIndicatorValue',
-    'computeNormCurl', 'computeNormGrad', 'computeVariables',
-    'computeVariables2', '_computeVariables2',
-    'enforceIndicatorForCoarsestLevel', 'enforceIndicatorForFinestLevel',
-    'enforceIndicatorNearBodies', 'exteriorElts', 'exteriorEltsStructured',
-    'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
-    'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
-    'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf',
-    'isoSurfMC', 'perlinNoise', 'projectCloudSolution',
-    'refine', 'renameVars', 'selectCells', 'selectCells2', 'selectCells3',
-    'sharpEdges', 'silhouette', 'slice', 'streamLine', 'streamLine2',
-    'streamRibbon', 'streamRibbon2', 'streamSurf', 'usurp', 'zip', 'zipper',
-    'growOfEps__','computeIndicatorField_AMR']
+           'computeGrad', 'computeGrad2', 'computeGradLSQ',
+           'computeDiv', 'computeDiv2', 'computeIndicatorField',
+           'computeIndicatorFieldForBounds', 'computeIndicatorValue',
+           'computeNormCurl', 'computeNormGrad', 'computeVariables',
+           'computeVariables2', '_computeVariables2',
+           'enforceIndicatorForCoarsestLevel', 'enforceIndicatorForFinestLevel',
+           'enforceIndicatorNearBodies', 'exteriorElts', 'exteriorEltsStructured',
+           'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
+           'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
+           'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf',
+           'isoSurfMC', 'perlinNoise', 'projectCloudSolution',
+           'refine', 'renameVars', 'selectCells', 'selectCells2', 'selectCells3',
+           'sharpEdges', 'silhouette', 'slice', 'streamLine', 'streamLine2',
+           'streamRibbon', 'streamRibbon2', 'streamSurf', 'usurp', 'zip', 'zipper',
+           'growOfEps__','computeIndicatorField_AMR']
 
 #==============================================================================
 # Add two layers to surface arrays
@@ -55,13 +55,13 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
         j = Transform.reorder(j, (-1,))
         c = Generator.addNormalLayers(j, dplus)
         p = Transform.join(b, c); p = Generator.close(p)
-        p = Converter.convertArray2Tetra(p)    
+        p = Converter.convertArray2Tetra(p)
 
     if p[3] == 'TRI': # une BAR au depart
         p = Transform.reorder(p, (1,))
         b = Generator.addNormalLayers(p, dplus)
         p = Transform.reorder(p, (-1,))
-        c = Generator.addNormalLayers(p, dplus)    
+        c = Generator.addNormalLayers(p, dplus)
         p = Transform.join(b, c); p = Generator.close(p)
         p = Converter.convertArray2Tetra(p)
     return p
@@ -98,7 +98,7 @@ def growOfEps__(arrays, eps, nlayers=1, planarity=True):
     return inl, modified
 
 def extractPoint(arrays, Pts, order=2, extrapOrder=1,
-                constraint=40., tol=1.e-6, hook=None):
+                 constraint=40., tol=1.e-6, hook=None):
     """Extract the solution in one or more points.
     Usage: extractPoint( arrays, Pts, order,extrapOrder,constraint,hook)"""
     if arrays[0][1].shape[0] < 4: return [] # nofield
@@ -666,7 +666,7 @@ def streamSurf(arrays, b, vector, N=2000, dir=1):
     if b[3] != 'BAR': raise TypeError("streamSurf: b must be a BAR.")
     coord = b[1]
     for no in range(len(arrays)):
-        if len(arrays[no])!= 5: 
+        if len(arrays[no])!= 5:
             arrays[no] = Converter.convertArray2Tetra(arrays[no])
     return post.compStreamSurf(arrays, b, vector, dir, N)
 
@@ -765,7 +765,7 @@ def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=Non
 #------------------------------------------------------------------------------
 # selectCells preserving center flow field solutions
 # an : coordinates and fields in nodes
-# ac : fields in centers 
+# ac : fields in centers
 def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None, cleanConnectivity=True):
     """Select cells in a given array following tag.
     Usage: selectCells2(arrayN, arrayC, tag, strict)"""
@@ -954,7 +954,7 @@ def isoSurf(array, var, value, split='simple'):
     else:
         try:
             dim = 3
-            if array[3] == 'NGON': 
+            if array[3] == 'NGON':
                 ap = array[2].ravel('K')
                 if ap[2] == 1: dim = 1
                 if ap[2] == 2: dim = 2
@@ -1257,6 +1257,3 @@ def computeIndicatorField_AMR(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
         print('Number of points: Pre %d | Post %d | Increase: %f | Lower Threshold: %f | Upper Threshold: %f | Limits Modif. Loop Cnt: %d'%(npts, nptsfin, count))
 
     return indicator1
-
-
-

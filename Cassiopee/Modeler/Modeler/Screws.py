@@ -9,9 +9,9 @@ from .Boxes import box
 
 #==============================================================================
 # Hexa head of screw
-# IN: X: center position 
+# IN: X: center position
 # IN: r: radius of screw
-# IN: h: height of screw 
+# IN: h: height of screw
 #==============================================================================
 def hexaScrew(X, r, h, chamfer=-1):
     if chamfer < 0:
@@ -42,7 +42,7 @@ def hexaScrew(X, r, h, chamfer=-1):
 # IN: X: position
 # IN: r: radius
 # IN: h: height
-# IN: drive: type of drive. 0: None, 1: straight 
+# IN: drive: type of drive. 0: None, 1: straight
 #==============================================================================
 def roundScrew(X, r, h, drive=0):
     p = D.polyline([(X[0],X[1],X[2]+h), (X[0]+0.8*r,X[1],X[2]+h*0.8), (X[0]+r,X[1],X[2])])

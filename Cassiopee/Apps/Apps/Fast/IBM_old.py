@@ -61,7 +61,7 @@ def _change_name_IBCD(tc2,NewIBCD):
             zsplit[1]=str(NewIBCD)
             znew = '_'.join(zsplit)
             Internal.setName(z, znew)
-    return None   
+    return None
 
 # IN: maillage surfacique + reference State + snears
 #================================================================================
@@ -81,7 +81,7 @@ def _change_name_IBCD(tc2,NewIBCD):
 def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
             tbox=None, snearsf=None, yplus=100.,
             vmin=21, check=False, NP=0, format='single',
-            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, 
+            frontType=1, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None,
             dfarDir=0, recomputeDist=False, redistribute=False):
     rank = Cmpi.rank; size = Cmpi.size
     ret = None
@@ -93,9 +93,9 @@ def prepare(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     # parallel prep
     #else:
     ret = prepare1(t_case, t_out, tc_out, snears=snears, dfar=dfar, dfarList=dfarList,
-                   tbox=tbox, snearsf=snearsf, yplus=yplus, 
+                   tbox=tbox, snearsf=snearsf, yplus=yplus,
                    vmin=vmin, check=check, NP=NP, format=format, frontType=frontType,
-                   expand=expand, tinit=tinit, initWithBBox=initWithBBox, 
+                   expand=expand, tinit=tinit, initWithBBox=initWithBBox,
                    wallAdapt=wallAdapt, dfarDir=dfarDir, redistribute=redistribute)
 
     return ret
@@ -160,8 +160,8 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
     #--------------------------------------------------------
     # Generates the full Cartesian mesh
     t = G_IBM.generateIBMMesh_legacy(tb, vmin=vmin, snears=snears, dfar=dfar, dfarList=dfarList, DEPTH=2,
-                             tbox=tbox, snearsf=snearsf, check=check, sizeMax=1000000,
-                             expand=expand, dfarDir=dfarDir)
+                                     tbox=tbox, snearsf=snearsf, check=check, sizeMax=1000000,
+                                     expand=expand, dfarDir=dfarDir)
     test.printMem(">>> Build octree full [end]")
 
     #------------------------------------------------------
@@ -331,7 +331,7 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = G_IBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
+                                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -386,7 +386,7 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
     # ReferenceState
     C._addState(t, state=refstate)
     C._addState(t, 'GoverningEquations', model)
-    C._addState(t, 'EquationDimension', dimPb)            
+    C._addState(t, 'EquationDimension', dimPb)
     return t
 
 #================================================================================
@@ -420,7 +420,7 @@ def extrudeCartesian(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10, spa
     #Dim = 3D
     c = 0
     for tree in [t,tb]:
-        for dim in Internal.getNodesFromName(tree,'EquationDimension'): dim[1]=3 
+        for dim in Internal.getNodesFromName(tree,'EquationDimension'): dim[1]=3
 
         dz_loc={}; Nk={}
         if c ==0:
@@ -510,7 +510,7 @@ def extrudeCartesian(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10, spa
             BCs = Internal.getNodesFromType(z, "BC_t")
             for bc in BCs:
                 ptrg = Internal.getNodeFromName(bc, "PointRange")[1]
-                ptrg[2,0] = 3 
+                ptrg[2,0] = 3
                 ptrg[2,1] = Nk[z[0]]
 
             # Creatioon connectivite perio dans t
@@ -619,7 +619,7 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
             for zsr in Internal.getNodesFromType(zc, "ZoneSubRegion_t"):
                 zsrname = Internal.getName(zsr)
                 zsrname = zsrname.split('_')
-                if zsrname[0]=='IBCD' and zsrname[1] == itype: 
+                if zsrname[0]=='IBCD' and zsrname[1] == itype:
                     zrname = Internal.getValue(zsr)
                     ptlistD= Internal.getNodeFromName(zsr,'PointListDonor')[1]
                     zloc   = Internal.getNodeFromName(t_3d,zrname)
@@ -657,7 +657,7 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
     zonelist=[]
     for z in Internal.getZones(t_3d):
         if C.getMaxValue(z,'centers:cellN')==2:
-            dnrZones = []    
+            dnrZones = []
             for zdname in interDict[z[0]]:
                 zd = Internal.getNodeFromName(tc2,zdname)
                 dnrZones.append(zd)
@@ -670,8 +670,8 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
     print(" Interp curvi from Cartesian")
     for z in Internal.getZones(t_curvi):
         if C.getMaxValue(z,'centers:cellN')==2:
-        #if 'join' in z[0]:
-            dnrZones = []    
+            #if 'join' in z[0]:
+            dnrZones = []
             for zdname in interDict_curvi[z[0]]:
                 zd = Internal.getNodeFromName(tc_3d,zdname)
                 dnrZones.append(zd)
@@ -716,7 +716,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
              tbox=None, snearsf=None, yplus=100., Lref=1.,
              vmin=21, check=False, NP=0, format='single', interpDataType=0, order=2, ext=2,
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
-             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
+             distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0,
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
              height_in=1.0,isoverideheight=False,isFilamentOnly=False,closedSolid=[],isWireModel=False, cleanCellN=True):
 
@@ -783,8 +783,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     if dimPb == 2 and cleanCellN == False: C._initVars(tb, 'CoordinateZ', 0.) # forced
     if t_in is None:
         t = generateCartesian(tb, dimPb=dimPb, snears=snears, dfar=dfar, dfarList=dfarList, tbox=tbox, ext=ext+1,
-                              snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir)                    
-    else: 
+                              snearsf=snearsf, yplus=yplus,vmin=vmin, check=check, expand=expand, dfarDir=dfarDir)
+    else:
         t = t_in
 
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
@@ -858,9 +858,9 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
             C._initVars(t,'{centers:TurbulentDistance_ori}={centers:TurbulentDistance}')
 
             Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
-            if Reynolds is not None: 
+            if Reynolds is not None:
                 Reynolds = Internal.getValue(Reynolds)
-            else: 
+            else:
                 Reynolds = 6.e6
 
             if yplus > 0.:
@@ -887,7 +887,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                         coordY[0][1] = coordY[0][1] + shiftDist
                         coordY[1][1] = coordY[1][1] + shiftDist
                         Internal.getNodeFromName(bboxBody, 'CoordinateY')[1] = coordY
-                        coordZ = Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1] 
+                        coordZ = Internal.getNodeFromName(bboxBody, 'CoordinateZ')[1]
                         coordZ[0][0][0] = coordZ[0][0][0] - shiftDist
                         coordZ[0][1][0] = coordZ[0][1][0] - shiftDist
                         coordZ[1][0][0] = coordZ[1][0][0] - shiftDist
@@ -1010,7 +1010,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
             for z in Internal.getZones(t):
                 h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
                 if yplus > 0.:
-                    if isoverideheight:height = height_in                    
+                    if isoverideheight:height = height_in
                     else:height = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
                 else:
                     if isoverideheight:height = height_in
@@ -1163,7 +1163,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     test.printMem(">>> Interpdata [start]")
     tc = C.node2Center(t)
 
-    # abutting ? 
+    # abutting ?
     if Internal.getNodeFromType(t,"GridConnectivity1to1_t") is not None:
         test.printMem("setInterpData abutting")
         Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=3, itype='abutting')
@@ -1379,7 +1379,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                                        cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isOrthoFirst=isOrtho_Project_First)
         if twoFronts:
             res2 = X_IBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
-                                        cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
+                                         cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref)
         if isWireModel:
             res2 = X_IBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front, frontType=frontType,
                                          cellNName='cellNIBC', depth=DEPTH, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,isWireModel=isWireModel,
@@ -1535,8 +1535,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                         if zd is None: print('!!!Zone None', zrname, zdname)
                         else: dnrZones.append(zd)
                     XOD._setIBCDataForZone2__(zrcv, dnrZones, allCorrectedPts2[nozr], allWallPts2[nozr], None, allInterpPts2[nozr],
-                                             nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
-                                             interpDataType=interpDataType, ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                              nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
+                                              interpDataType=interpDataType, ReferenceState=ReferenceState, bcType=ibcTypeL)
 
                     nozr += 1
                     for zd in dnrZones:
@@ -1633,7 +1633,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         # Avoid that two procs write the same information
         for z in Internal.getZones(tibm):
             if int(z[0][-1]) != rank:
-                    # Internal._rmNodesByName(tibm, z[0])
+                # Internal._rmNodesByName(tibm, z[0])
                 z[0] = z[0]+"%{}".format(rank)
 
         Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
@@ -1675,7 +1675,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                 zsrname = Internal.getName(zsr)
                 zsrname = zsrname.split('_')
                 if zsrname[0]=='IBCD':
-                    for var in ['C','W','I']:            
+                    for var in ['C','W','I']:
                         r     = Internal.getNodeFromName(zsr,'CoordinateY_P'+var)[1]
                         theta = Internal.getNodeFromName(zsr,'CoordinateZ_P'+var)[1]
                         #print('cyl2cart', var, numpy.size(r), zsr[0], z[0], toto,tutu )
@@ -1724,7 +1724,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
             DTW._distance2Walls(t,tb,type='ortho', signed=0, dim=dimPb, loc='centers')
         C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistance}*({centers:cellN}>0.)+(-1.)*{centers:TurbulentDistance}*({centers:cellN}<1.)')
 
-        test.printMem(">>> wall distance for viscous wall only - RANS [end]")  
+        test.printMem(">>> wall distance for viscous wall only - RANS [end]")
     # Save tc
     if twoFronts or isWireModel:
         tc2 = Internal.copyTree(tc)
@@ -1735,13 +1735,13 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
 
     if RENAMEIBCNODES:
         for zc in Internal.getZones(tc):
-            for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):            
+            for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):
                 proposedName = Internal.getName(ibcd)[0:6]+'_X%d'%(rank)
                 ibcd[0]=getIBCDName(proposedName)
 
         if twoFronts or isWireModel:
             for zc in Internal.getZones(tc2):
-                for ibcd in Internal.getNodesFromName1(zc,'2_IBCD_*'):            
+                for ibcd in Internal.getNodesFromName1(zc,'2_IBCD_*'):
                     proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(rank)
                     ibcd[0]=getIBCDName(proposedName)
 
@@ -1774,7 +1774,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     if isWireModel:
         vars_wm = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
         if model == 'NSTurbulent':vars_wm.append('TurbulentSANuTilde')
-        vars_wm.append('DistWall2IP')            
+        vars_wm.append('DistWall2IP')
         for z in Internal.getZones(t):
             #if C.getMaxValue(C.rmGhostCells(z, z, 2, adaptBCs=1), 'centers:cellN')>1:
             for v_local in vars_wm:
@@ -1803,7 +1803,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         if rank == 0: checkNcellsNptsPerProc(tc_tmp, Cmpi.size, isAtCenter=True)
         del tc_tmp
 
-    # Save t         
+    # Save t
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
@@ -1995,14 +1995,14 @@ def initOutflow(tc, familyNameOutflow, P_tot):
     return tc
 
 def initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
-    tc=D_IBM.initInj(tc, familyNameInj, P_tot, H_tot, injDir)                    
+    tc=D_IBM.initInj(tc, familyNameInj, P_tot, H_tot, injDir)
     return tc
 
 def _initOutflow(tc, familyNameOutflow, P_tot):
     return D_IBM._initOutflow(tc, familyNameOutflow, P_tot)
 
 def _initInj(tc, familyNameInj, P_tot, H_tot, injDir=[1.,0.,0.]):
-    return D_IBM._initInj(tc, familyNameInj, P_tot, H_tot, injDir)       
+    return D_IBM._initInj(tc, familyNameInj, P_tot, H_tot, injDir)
 
 def transformTc2(tc2):
     tc2=D_IBM.transformTc2(tc2)
@@ -2080,7 +2080,7 @@ def post(t_case, t_in, tc_in, t_out, wall_out):
     X._setInterpTransfers(t, tc, variables=vars,
                           variablesIBC=varsIBC, bcType=bcType,
                           varType=varType, storage=1,
-                          Gamma=Gamma, Cv=cvInf, MuS=Mus, 
+                          Gamma=Gamma, Cv=cvInf, MuS=Mus,
                           Cs=Cs, Ts=Ts)
 
     zw = P_IBM.extractIBMWallFields(tc, tb=tb)
@@ -2176,7 +2176,7 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
                     tc = P_IBM.extractPressureHO2(tc)
 
         # add gradP fields in tc2 if necessary
-        if tc2 is not None: 
+        if tc2 is not None:
 
             for z in Internal.getZones(tc2):
                 P_IBM._addGradxiP__(z)
@@ -2190,7 +2190,7 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
     #====================================
     # Extraction des grandeurs a la paroi
     #====================================
-    if tc is None: 
+    if tc is None:
         zw = Internal.getZones(tb)
         zw = T.join(zw)
     else:
@@ -2250,7 +2250,7 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
     if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
     return ts
 
-#====================================================================================    
+#====================================================================================
 
 ## IMPORTANT NOTE !!
 ## FUNCTIONS MIGRATED TO $CASSIOPEE/Cassiopee/Post/Post/IBM.py
@@ -2319,7 +2319,7 @@ def dist2wallNearBody(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
     tBB =G.BB(t)
     tbBB=G.BB(tb)
 
-    interDict = X.getIntersectingDomains(tBB, tbBB)    
+    interDict = X.getIntersectingDomains(tBB, tbBB)
 
     #FULL TB
     zt       = []
@@ -2336,7 +2336,7 @@ def dist2wallNearBody(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
     list_additional_zones = get_zones_scale_up_down(tbBB,tBB,zt_names,dim=dim)
 
     ###PRT2
-    if list_additional_zones:        
+    if list_additional_zones:
         zt=[]
         for i in list_additional_zones:
             zt.append(Internal.getNodeByName(t,i))
@@ -2346,20 +2346,20 @@ def dist2wallNearBody(t, tb, type='ortho', signed=0, dim=3, loc='centers'):
 
 
 def get_zones_scale_up_down(tbBB,tBB,zt_names,diff_percent=0.15,sweep_num=4,scaleDirection=0,dim=2):
-    minval_tb = C.getMinValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
-    maxval_tb = C.getMaxValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
+    minval_tb = C.getMinValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']);
+    maxval_tb = C.getMaxValue(tbBB, ['CoordinateX', 'CoordinateY','CoordinateZ']);
     mean_tb   = get_mean(maxval_tb,minval_tb)
     diff_percentz=diff_percent
     if dim==2: diff_percentz=0
 
     list_additional_zones=[]
     for i in range(1,sweep_num+1):
-        if scaleDirection>=0:            
+        if scaleDirection>=0:
             tbBB_scale    = T.scale(tbBB, factor=(1.0+i*diff_percent,1.0+i*diff_percent,1.0+i*diff_percentz))
             add2listAdditionalZones(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
 
         if scaleDirection<=0:
-            tbBB_scale    = T.scale(tbBB, factor=(1.0-i*diff_percent,1.0-i*diff_percent,1.0-i*diff_percentz))            
+            tbBB_scale    = T.scale(tbBB, factor=(1.0-i*diff_percent,1.0-i*diff_percent,1.0-i*diff_percentz))
             add2listAdditionalZones(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names)
 
 
@@ -2374,17 +2374,12 @@ def get_mean(max_local,min_local):
 
 
 def add2listAdditionalZones(list_additional_zones,tbBB_scale,tBB,mean_tb,zt_names):
-    minval_tbscale = C.getMinValue(tbBB_scale, ['CoordinateX', 'CoordinateY','CoordinateZ']); 
+    minval_tbscale = C.getMinValue(tbBB_scale, ['CoordinateX', 'CoordinateY','CoordinateZ']);
     maxval_tbscale = C.getMaxValue(tbBB_scale, ['CoordinateX', 'CoordinateY','CoordinateZ']);
-    mean_tbscale   = get_mean(maxval_tbscale,minval_tbscale) 
+    mean_tbscale   = get_mean(maxval_tbscale,minval_tbscale)
     T._translate(tbBB_scale, (mean_tb[0]-mean_tbscale[0],mean_tb[1]-mean_tbscale[1],mean_tb[2]-mean_tbscale[2]))
     interDict_scale = X.getIntersectingDomains(tBB, tbBB_scale)
     for i in interDict_scale:
         if interDict_scale[i] and i not in list_additional_zones and i not in zt_names:
             list_additional_zones.append(i)
     return None
-
-
-
-
-

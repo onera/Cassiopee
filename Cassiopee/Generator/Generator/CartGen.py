@@ -226,7 +226,7 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
 
     # SplitNParts on core
     if size is None: size = 1
-    if rank is None: rank = 0    
+    if rank is None: rank = 0
     b = Internal.getNodeFromName(t, 'CARTESIAN')
     T._splitNParts(b, N=size, topTree=t)
     D2._distribute(b, NProc=size, algorithm='fast')
@@ -258,15 +258,15 @@ def cartRx2(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                     i1 = dest[0]-1; j1 = dest[2]-1; k1 = dest[4]-1
                     i2 = dest[1]-1; j2 = dest[3]-1; k2 = dest[5]-1
 
-                    if R[0] == 1.: 
+                    if R[0] == 1.:
                         ratiox = i1; Hx = H[0]
                     else:
                         ratiox = (R[0]**i1-1.)/(R[0]-1.); Hx = H[0]*R[0]**i1
-                    if R[1] == 1.: 
+                    if R[1] == 1.:
                         ratioy = j1; Hy = H[1]
                     else:
                         ratioy = (R[1]**j1-1.)/(R[1]-1.); Hy = H[1]*R[1]**j1
-                    if R[2] == 1.: 
+                    if R[2] == 1.:
                         ratioz = k1; Hz = H[2]
                     else:
                         ratioz = (R[2]**k1-1.)/(R[2]-1.); Hz = H[2]*R[2]**k1
@@ -406,7 +406,7 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
 
     # SplitNParts on core
     if size is None: size = 1
-    if rank is None: rank = 0    
+    if rank is None: rank = 0
     b = Internal.getNodeFromName(t, 'CARTESIAN')
     T._splitNParts(b, N=size, topTree=t)
     D2._distribute(b, NProc=size, algorithm='fast')
@@ -439,11 +439,11 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                     i2 = dest[1]-1; j2 = dest[3]-1; k2 = dest[5]-1
                     doubleLeft=[0,0,0]; doubleRight=[0,0,0]
                     if dL[0] == 1 and i1 == 0: doubleLeft[0] = 1
-                    if dR[0] == 1 and i2 == N[0]-1: doubleRight[0] = 1 
+                    if dR[0] == 1 and i2 == N[0]-1: doubleRight[0] = 1
                     if dL[1] == 1 and j1 == 0: doubleLeft[1] = 1
-                    if dR[1] == 1 and j2 == N[1]-1: doubleRight[1] = 1 
+                    if dR[1] == 1 and j2 == N[1]-1: doubleRight[1] = 1
                     if dL[2] == 1 and k1 == 0: doubleLeft[2] = 1
-                    if dR[2] == 1 and k2 == N[2]-1: doubleRight[2] = 1 
+                    if dR[2] == 1 and k2 == N[2]-1: doubleRight[2] = 1
 
                     if doubleLeft[0] == 1 and doubleRight[0] == 0:
                         if R[0] == 1.: ratiox = i1; Hx = H[0]
@@ -455,31 +455,31 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                             else: ratiox = 1. + (R[0]**(i1-1)-1.)/(R[0]-1.); Hx = H[0]*R[0]**(i1-1)
                     elif doubleLeft[0] == 0 and doubleRight[0] == 1:
                         if R[0] == 1: ratiox=i1; Hx = H[0]
-                        else: 
+                        else:
                             if i1 == 0: ratiox = (R[0]**i1 - 1.)/(R[0] - 1.); Hx = H[0]*R[0]**i1
-                            else: ratiox = (R[0]**(i1) - 1.)/(R[0] - 1.); Hx = H[0]*R[0]**(i1)                                        
+                            else: ratiox = (R[0]**(i1) - 1.)/(R[0] - 1.); Hx = H[0]*R[0]**(i1)
                     elif doubleLeft[0] == 1 and doubleRight[0] == 1:
                         if R[0] == 1: ratiox=i1; Hx = H[0]
-                        else: 
+                        else:
                             if i1 == 0: ratiox = (R[0]**i1 - 1.)/(R[0] - 1.); Hx = H[0]
                             else: ratiox =  1.+(R[0]**(i1-1) - 1.)/(R[0] - 1.); Hx = H[0]*R[0]**(i1-1)
 
                     if doubleLeft[1] == 1 and doubleRight[1] == 0:
                         if R[1] == 1.: ratioy = j1; Hy = H[1]
-                        else: ratioy = (R[1]**(j1) - 1.)/(R[1]-1.); Hy= H[1] 
+                        else: ratioy = (R[1]**(j1) - 1.)/(R[1]-1.); Hy= H[1]
                     elif doubleLeft[1] == 0 and doubleRight[1] == 0:
                         if R[1] == 1.: ratioy = j1; Hy = H[1]
                         else:
-                            if j1 == 0: ratioy = (R[1]**j1-1.)/(R[1]-1.); Hy = H[1]*R[1]**j1 
+                            if j1 == 0: ratioy = (R[1]**j1-1.)/(R[1]-1.); Hy = H[1]*R[1]**j1
                             else: ratioy = 1. + (R[1]**(j1-1.)-1.)/(R[1]-1.); Hy = H[1]*R[1]**(j1 -1)
                     elif doubleLeft[1] == 0 and doubleRight[1] == 1:
                         if R[1] == 1: ratioy=j1; Hy = H[1]
-                        else: 
+                        else:
                             if j1 == 0: ratioy = (R[1]**j1 - 1.)/(R[1] - 1.); Hy = H[1]*R[1]**j1
-                            else: ratioy = (R[1]**(j1) - 1.)/(R[1] - 1.); Hy = H[1]*R[1]**(j1) 
+                            else: ratioy = (R[1]**(j1) - 1.)/(R[1] - 1.); Hy = H[1]*R[1]**(j1)
                     elif doubleLeft[1] == 1 and doubleRight[1] ==1:
                         if R[1] == 1: ratioy=j1 ; Hy = H[1]
-                        else: 
+                        else:
                             if j1 == 0: ratioy = (R[1]**j1 - 1.)/(R[1] - 1.); Hy = H[1]
                             else: ratioy =  1.+(R[1]**(j1-1) - 1.)/(R[1] - 1.); Hy = H[1]*R[1]**(j1-1)
 
@@ -491,17 +491,17 @@ def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
                     elif doubleLeft[2] == 0 and doubleRight[2] == 0:
                         if R[2] == 1.: ratioz = k1; Hz = H[2]
                         else:
-                            if k1 == 0: ratioz = (R[2]**k1-1.)/(R[2]-1.); Hz = H[2]*R[2]**k1                    
-                            else: ratioz = 1. + (R[2]**(k1-1) -1.)/(R[2]-1.); Hz = H[2]*R[2]**(k1 - 1) 
+                            if k1 == 0: ratioz = (R[2]**k1-1.)/(R[2]-1.); Hz = H[2]*R[2]**k1
+                            else: ratioz = 1. + (R[2]**(k1-1) -1.)/(R[2]-1.); Hz = H[2]*R[2]**(k1 - 1)
                     elif doubleLeft[2] == 0 and doubleRight[2] ==1:
                         if R[2] == 1: ratioz=k1; Hz = H[2]
-                        else: 
+                        else:
                             if k1 == 0: ratioz = (R[2]**k1 - 1.)/(R[2] - 1.); Hz = H[2]*R[2]**k1
-                            else: ratioz =  (R[2]**(k1) - 1.)/(R[2] - 1.); Hz = H[2]*R[2]**(k1)     
+                            else: ratioz =  (R[2]**(k1) - 1.)/(R[2] - 1.); Hz = H[2]*R[2]**(k1)
 
                     elif doubleLeft[2] == 1 and doubleRight[2] == 1:
                         if R[2] == 1: ratioz=k1; Hz = H[2]
-                        else: 
+                        else:
                             if k1 == 0: ratioz = (R[2]**k1 - 1.)/(R[2] - 1.); Hz = H[2]
                             else: ratioz =  1.+(R[2]**(k1-1) - 1.)/(R[2] - 1.); Hz = H[2]*R[2]**(k1-1)
 
@@ -616,7 +616,7 @@ def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=Non
                         bcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
                         Internal._setValue(bcs[-1], 'cart%d-%d-%d'%(i,j,k+1))
 
-                    if i == 0: hio=hio*rio**(ni-3); rio=1./rio; Px=Qx; doubleLeft[0] = 0; doubleRight[0] = 1 
+                    if i == 0: hio=hio*rio**(ni-3); rio=1./rio; Px=Qx; doubleLeft[0] = 0; doubleRight[0] = 1
                     if j == 0: hjo=hjo*rjo**(nj-3); rjo=1./rjo; Py=Qy; doubleLeft[1] = 0; doubleRight[1] = 1
                     if k == 0: hko=hko*rko**(nk-3); rko=1./rko; Pz=Qz; doubleLeft[2] = 0; doubleRight[2] = 1
                     data[z[0]] = [(Px,Py,Pz), (hio,hjo,hko), (rio,rjo,rko), (ni,nj,nk), doubleLeft, doubleRight]
@@ -632,9 +632,9 @@ def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=Non
     t = C.newPyTree(['CARTESIAN','FLEX'])
     core = []
     for z in a:
-        if z[0] in coreL: 
+        if z[0] in coreL:
             core.append(z)
-    for zone in core : 
+    for zone in core :
         t[2][1][2].append(zone)
         a.remove(zone)
     t[2][2][2] += a
@@ -659,7 +659,7 @@ def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=Non
 
     # SplitNParts on core
     if size is None: size = 1
-    if rank is None: rank = 0    
+    if rank is None: rank = 0
     b = Internal.getNodeFromName(t, 'CARTESIAN')
     T._splitNParts(b, N=size, topTree=t)
     D2._distribute(b, NProc=size, algorithm='fast')
@@ -692,11 +692,11 @@ def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=Non
                     i2 = dest[1]-1; j2 = dest[3]-1; k2 = dest[5]-1
                     doubleLeft=[0,0,0]; doubleRight=[0,0,0]
                     if dL[0] == 1 and i1 == 0: doubleLeft[0] = 1
-                    if dR[0] == 1 and i2 == N[0]-1: doubleRight[0] = 1 
+                    if dR[0] == 1 and i2 == N[0]-1: doubleRight[0] = 1
                     if dL[1] == 1 and j1 == 0: doubleLeft[1] = 1
-                    if dR[1] == 1 and j2 == N[1]-1: doubleRight[1] = 1 
+                    if dR[1] == 1 and j2 == N[1]-1: doubleRight[1] = 1
                     if dL[2] == 1 and k1 == 0: doubleLeft[2] = 1
-                    if dR[2] == 1 and k2 == N[2]-1: doubleRight[2] = 1 
+                    if dR[2] == 1 and k2 == N[2]-1: doubleRight[2] = 1
 
                     if doubleLeft[0] == 1 and doubleRight[0] == 0:
                         if R[0] == 1.: ratiox = i1; Hx = H[0]
@@ -708,31 +708,31 @@ def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=Non
                             else: ratiox = 1. + (R[0]**(i1-1)-1.)/(R[0]-1.); Hx = H[0]*R[0]**(i1-1)
                     elif doubleLeft[0] == 0 and doubleRight[0] == 1:
                         if R[0] == 1: ratiox=i1; Hx = H[0]
-                        else: 
+                        else:
                             if i1 == 0: ratiox = (R[0]**i1 - 1.)/(R[0] - 1.); Hx = H[0]*R[0]**i1
-                            else: ratiox = (R[0]**(i1) - 1.)/(R[0] - 1.); Hx = H[0]*R[0]**(i1)                                        
+                            else: ratiox = (R[0]**(i1) - 1.)/(R[0] - 1.); Hx = H[0]*R[0]**(i1)
                     elif doubleLeft[0] == 1 and doubleRight[0] == 1:
                         if R[0] == 1: ratiox=i1; Hx = H[0]
-                        else: 
+                        else:
                             if i1 == 0: ratiox = (R[0]**i1 - 1.)/(R[0] - 1.); Hx = H[0]
                             else: ratiox =  1.+(R[0]**(i1-1) - 1.)/(R[0] - 1.); Hx = H[0]*R[0]**(i1-1)
 
                     if doubleLeft[1] == 1 and doubleRight[1] == 0:
                         if R[1] == 1.: ratioy = j1; Hy = H[1]
-                        else: ratioy = (R[1]**(j1) - 1.)/(R[1]-1.); Hy= H[1] 
+                        else: ratioy = (R[1]**(j1) - 1.)/(R[1]-1.); Hy= H[1]
                     elif doubleLeft[1] == 0 and doubleRight[1] == 0:
                         if R[1] == 1.: ratioy = j1; Hy = H[1]
                         else:
-                            if j1 == 0: ratioy = (R[1]**j1-1.)/(R[1]-1.); Hy = H[1]*R[1]**j1 
+                            if j1 == 0: ratioy = (R[1]**j1-1.)/(R[1]-1.); Hy = H[1]*R[1]**j1
                             else: ratioy = 1. + (R[1]**(j1-1.)-1.)/(R[1]-1.); Hy = H[1]*R[1]**(j1 -1)
                     elif doubleLeft[1] == 0 and doubleRight[1] == 1:
                         if R[1] == 1: ratioy=j1; Hy = H[1]
-                        else: 
+                        else:
                             if j1 == 0: ratioy = (R[1]**j1 - 1.)/(R[1] - 1.); Hy = H[1]*R[1]**j1
-                            else: ratioy = (R[1]**(j1) - 1.)/(R[1] - 1.); Hy = H[1]*R[1]**(j1) 
+                            else: ratioy = (R[1]**(j1) - 1.)/(R[1] - 1.); Hy = H[1]*R[1]**(j1)
                     elif doubleLeft[1] == 1 and doubleRight[1] ==1:
                         if R[1] == 1: ratioy=j1 ; Hy = H[1]
-                        else: 
+                        else:
                             if j1 == 0: ratioy = (R[1]**j1 - 1.)/(R[1] - 1.); Hy = H[1]
                             else: ratioy =  1.+(R[1]**(j1-1) - 1.)/(R[1] - 1.); Hy = H[1]*R[1]**(j1-1)
 
@@ -744,17 +744,17 @@ def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=Non
                     elif doubleLeft[2] == 0 and doubleRight[2] == 0:
                         if R[2] == 1.: ratioz = k1; Hz = H[2]
                         else:
-                            if k1 == 0: ratioz = (R[2]**k1-1.)/(R[2]-1.); Hz = H[2]*R[2]**k1                    
-                            else: ratioz = 1. + (R[2]**(k1-1) -1.)/(R[2]-1.); Hz = H[2]*R[2]**(k1 - 1) 
+                            if k1 == 0: ratioz = (R[2]**k1-1.)/(R[2]-1.); Hz = H[2]*R[2]**k1
+                            else: ratioz = 1. + (R[2]**(k1-1) -1.)/(R[2]-1.); Hz = H[2]*R[2]**(k1 - 1)
                     elif doubleLeft[2] == 0 and doubleRight[2] ==1:
                         if R[2] == 1: ratioz=k1; Hz = H[2]
-                        else: 
+                        else:
                             if k1 == 0: ratioz = (R[2]**k1 - 1.)/(R[2] - 1.); Hz = H[2]*R[2]**k1
-                            else: ratioz =  (R[2]**(k1) - 1.)/(R[2] - 1.); Hz = H[2]*R[2]**(k1)     
+                            else: ratioz =  (R[2]**(k1) - 1.)/(R[2] - 1.); Hz = H[2]*R[2]**(k1)
 
                     elif doubleLeft[2] == 1 and doubleRight[2] == 1:
                         if R[2] == 1: ratioz=k1; Hz = H[2]
-                        else: 
+                        else:
                             if k1 == 0: ratioz = (R[2]**k1 - 1.)/(R[2] - 1.); Hz = H[2]
                             else: ratioz =  1.+(R[2]**(k1-1) - 1.)/(R[2] - 1.); Hz = H[2]*R[2]**(k1-1)
 

@@ -4,7 +4,7 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import KCore.test as test
 
-# test sur une zone 
+# test sur une zone
 a = G.cart( (0,0,0), (1.,1.,1.), (10,10,10) )
 a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G', 2.)
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'imin')

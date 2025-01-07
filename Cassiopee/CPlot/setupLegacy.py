@@ -81,8 +81,8 @@ extensions = [
               libraries=libraries+additionalLibs,
               extra_compile_args=EXTRA,
               extra_link_args=Dist.getLinkArgs()
-	)
-    ]
+              )
+]
 
 # Setup ======================================================================
 setup(
@@ -93,7 +93,7 @@ setup(
     package_dir={"":"."},
     packages=['CPlot'],
     ext_modules=extensions
-    )
+)
 
 # Install shaders + textures ==================================================
 os.system("cp CPlot/Shaders/*.vert %s/CPlot/"%KCore.installPath.installPath)

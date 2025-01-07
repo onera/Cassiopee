@@ -1,9 +1,9 @@
-# - surfaceWalk (pyTree) 
+# - surfaceWalk (pyTree)
 import Converter.PyTree as C
 import Geom.PyTree  as D
 import Transform.PyTree  as T
 import Generator.PyTree  as G
-import KCore.test as test 
+import KCore.test as test
 # User definition of parametric curve
 def f(t,u):
     x = t+u

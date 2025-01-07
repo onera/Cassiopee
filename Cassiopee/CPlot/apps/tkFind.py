@@ -120,7 +120,7 @@ def extract(event=None):
             else:  # unstruct
                 a = T.subzone(z, inds, type='elements')
             b = Internal.createUniqueChild(CTK.t, 'EXTRACT', 'CGNSBase_t')
-            nob = C.getNobOfBase(b, CTK.t) 
+            nob = C.getNobOfBase(b, CTK.t)
             CTK.add(CTK.t, nob, -1, a)
         except: pass
         #zp = C.node2Center(z)

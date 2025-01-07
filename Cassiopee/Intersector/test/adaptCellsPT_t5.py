@@ -13,7 +13,7 @@ a = G.quad2Pyra(a)
 a = C.convertArray2NGon(a)
 a = G.close(a)
 
-b = G.cart((0.2,0.2,0.2), (0.01,0.01,0.01),(5,5,5)) 
+b = G.cart((0.2,0.2,0.2), (0.01,0.01,0.01),(5,5,5))
 b = C.convertArray2NGon(b)
 b = G.close(b)
 

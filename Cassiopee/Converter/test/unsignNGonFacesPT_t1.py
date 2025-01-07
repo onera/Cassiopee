@@ -18,7 +18,7 @@ a = G.cartNGon((0., 0., 0.), (1., 1., 1.), (5, 5, 5), api=1)
 C._unsignNGonFaces(a)
 test.testT(a, 3)
 
-# Unstructured - unsigned NGon v4 
+# Unstructured - unsigned NGon v4
 a = G.cartNGon((0., 0., 0.), (1., 1., 1.), (5, 5, 5), api=3)
 C._unsignNGonFaces(a)
 test.testT(a, 4)

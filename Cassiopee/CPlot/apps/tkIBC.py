@@ -68,7 +68,7 @@ def symmetrize():
 
     if axis == 'Around XY-': dir_sym = 1
     elif axis == 'Around XZ-': dir_sym = 2
-    elif axis == 'Around YZ-': dir_sym = 3    
+    elif axis == 'Around YZ-': dir_sym = 3
 
     D_IBM._symetrizePb(CTK.t, bodySymName, snear_sym, dir_sym=dir_sym)
     CTK.TXT.insert('START', 'Symmetry plane has been created with snear=%f.\n'%snear_sym)
@@ -120,7 +120,7 @@ def ViewUndefinedIBC():
     ZoneLocal       = []
     bases           = CTK.t[2][1:]
     for b in bases:
-        for zone in Internal.getZones(b):            
+        for zone in Internal.getZones(b):
             n = Internal.getNodeFromPath(zone, '.Solver#define/snear')
             if n is not None:
                 val = Internal.getValue(n)
@@ -149,7 +149,7 @@ def ViewUndefinedIBC():
 def ViewAllDefinedIBC(t):
     natives = set()
     zones = Internal.getZones(t)
-    for zone in zones:            
+    for zone in zones:
         n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
         if n is not None:
             natives.add(Internal.getValue(n))
@@ -179,7 +179,7 @@ def updateIBCNameList(event=None):
 def ViewIBC(event=None):
     if CTK.t == []: return
 
-    nz  = len(Internal.getZones(CTK.t))  
+    nz  = len(Internal.getZones(CTK.t))
     nzs = CPlot.getActiveZones()
     active = [(i,1) for i in range(nz)]
     CPlot.setActiveZones(active)
@@ -194,7 +194,7 @@ def ViewIBC(event=None):
     ZoneLocal = []
     bases = CTK.t[2][1:]
     for b in bases:
-        for zone in Internal.getZones(b):            
+        for zone in Internal.getZones(b):
             n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
 
             if n is not None:
@@ -263,7 +263,7 @@ def getData():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkIBC  [ + ]  ', font=CTK.FRAMEFONT, 
+                           text='tkIBC  [ + ]  ', font=CTK.FRAMEFONT,
                            takefocus=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
@@ -329,7 +329,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Set symmetry plane", command=symmetrize)
     B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Create a symmetry plane.')    
+                       text='Create a symmetry plane.')
     B = TTK.OptionMenu(Frame, VARS[7], 'Around YZ-', 'Around XZ-', 'Around XY-')
     B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
 
@@ -375,8 +375,8 @@ def createApp(win):
     LB.bind('<Double-1>', ViewIBC)
     LB.bind('<Enter>', updateIBCNameList)
     for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): LB.insert(i, value)
-    SB.config(command = LB.yview)
-    LB.config(yscrollcommand = SB.set)
+    SB.config(command=LB.yview)
+    LB.config(yscrollcommand=SB.set)
     LB.grid(row=0, column=0, sticky=TK.NSEW)
     SB.grid(row=0, column=1, sticky=TK.NSEW)
     WIDGETS['IBCLB'] = LB

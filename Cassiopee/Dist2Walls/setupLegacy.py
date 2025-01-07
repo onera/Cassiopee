@@ -35,8 +35,8 @@ extensions = [
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs()
-	)
-    ]
+              )
+]
 
 # Setup ======================================================================
 setup(
@@ -47,7 +47,7 @@ setup(
     package_dir={"":"."},
     packages=['Dist2Walls'],
     ext_modules=extensions
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

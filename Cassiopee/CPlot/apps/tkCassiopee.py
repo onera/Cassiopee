@@ -18,7 +18,7 @@ STATEAPPS = ['tkState', '---',
 EDGEAPPS = ['tkCanvas', 'tkPoint', 'tkDraw','---',
             'tkExtractEdges', 'tkMapEdge']
 SURFAPPS = ['tkBasicSurfs', 'tkText', '---',
-            'tkCADMesh', 
+            'tkCADMesh',
             'tkFixer2', 'tkBoolean', '---',
             'tkMapUV', 'tkSculpt', '---',
             'tkMMGs', 'tkCartWrap', 'tkOffset', 'tkSurfaceWalk', '---',
@@ -44,7 +44,7 @@ POSTAPPS = ['tkVariables', '---',
             'tkExtractMesh', '---',
             'tkStream', 'tkIsoLine', 'tkIsoSurf', '---',
             'tkInteg']
-VISUAPPS = ['tkView', #'tkPlot', 
+VISUAPPS = ['tkView', #'tkPlot',
             'tkPlotXY', '---',
             'tkSlice', 'tkIJK', 'tkCellN', '---',
             'tkBackground']
@@ -53,15 +53,15 @@ RENDERAPPS = ['tkRenderTree', 'tkRenderSet', '---',
               'tkPovRay', 'tkLuxRender']
 
 ALLAPPS = TREEAPPS + STATEAPPS + EDGEAPPS + SURFAPPS + MESHAPPS + \
-          BLOCKAPPS + BCAPPS + MOTIONAPPS + SOLVERAPPS + POSTAPPS + \
-          VISUAPPS + RENDERAPPS
+    BLOCKAPPS + BCAPPS + MOTIONAPPS + SOLVERAPPS + POSTAPPS + \
+    VISUAPPS + RENDERAPPS
 PERSOAPPS = []
 
 #==============================================================================
 # Add a personal app to pref file
 #==============================================================================
 def addPersonalApp():
-    try: import tkinter.filedialog as tkFileDialog 
+    try: import tkinter.filedialog as tkFileDialog
     except: import tkFileDialog
     file = tkFileDialog.askopenfilename(filetypes=[('python', '*.py')])
     a = os.access(file, os.F_OK)
@@ -211,7 +211,7 @@ def run(t=None):
         CTK.t = Internal.correctPyTree(CTK.t, level=5)
         CTK.display(CTK.t)
 
-    # - Update apps -    
+    # - Update apps -
     CTK.TKTREE.updateApp()
     if CTK.TKMODULES['tkContainers'] is not None: CTK.TKMODULES['tkContainers'].updateApp()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
@@ -236,7 +236,7 @@ def run(t=None):
     win.mainloop()
 
     # Del photos
-    CTK.PHOTOS = []    
+    CTK.PHOTOS = []
 
 #==============================================================================
 if __name__ == "__main__":

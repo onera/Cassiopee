@@ -26,6 +26,6 @@ else: # Essai en dynamique
     a = os.access(installPathLocal+"/connector"+__EXTMODULE__, os.F_OK)
     if a:
         shutil.copyfile(installPathLocal+"/connector"+__EXTMODULE__,
-                        libPath+"/libconnector"+__EXTSHARED__) 
+                        libPath+"/libconnector"+__EXTSHARED__)
     else:
         print("Error: connector"+__EXTMODULE__+" can not be found.")

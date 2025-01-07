@@ -751,6 +751,12 @@ else if ($MAC == "juno_coda") then
         setenv OMP_NUM_THREADS 48
         setenv PYTHONEXE python3
         setenv PRODMODE 1
+        setenv PIP_DISABLE_PIP_VERSION_CHECK 1
+        unsetenv SLURM*
+        unsetenv OMP_PLACES
+        setenv ASAN_OPTIONS verify_asan_link_order=false
+        setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+        setenv ASAN_LIB /opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 else if ($MAC == "sator_brw") then
 #------------------------------- sator for broadwell ----------------------------------
@@ -823,6 +829,26 @@ else if ($MAC == "sator_sph") then
         setenv PYTHONEXE python3
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
+
+else if ($MAC == "sator_gcc") then
+#------------------------------- sator gcc ------------------------------------
+        setenv ELSAPROD sat_gcc
+        setenv ELSAPROD "$ELSAPROD$EXT"
+        # Number of threads
+        setenv OMP_NUM_THREADS 48
+        source /etc/profile.d/modules-onera.csh
+        module purge
+        module load socle-cfd/7.0-gnu850-ompi502
+        module load occt/7.6.1-gnu831
+        module load subversion/1.14.1-gnu831
+        module load emacs/27.2-gnu831
+        setenv OMP_PLACES cores
+        setenv PYTHONEXE python3
+        setenv PRODMODE 1
+        setenv PIP_DISABLE_PIP_VERSION_CHECK 1
+        setenv ASAN_OPTIONS verify_asan_link_order=false
+        setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+        setenv ASAN_LIB /opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 endif
 #---------------------------Common---------------------------------------------
 

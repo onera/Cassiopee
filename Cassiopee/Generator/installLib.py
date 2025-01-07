@@ -1,6 +1,6 @@
 # Installation de libgenerator pour etre accessible par les autres modules
 # Si libgenerator.a existe, on la recopie
-# Sinon, on cherche generator.so ou generator.pyd, on le recopie en 
+# Sinon, on cherche generator.so ou generator.pyd, on le recopie en
 # libgenerator.so ou dll
 import os, shutil
 import KCore.Dist as Dist
@@ -27,6 +27,6 @@ else: # Essai en dynamique
     a = os.access(installPathLocal+"/generator"+__EXTMODULE__, os.F_OK)
     if a:
         shutil.copyfile(installPathLocal+"/generator"+__EXTMODULE__,
-                        libPath+"/libgenerator"+__EXTSHARED__) 
+                        libPath+"/libgenerator"+__EXTSHARED__)
     else:
         print("Error: generator"+__EXTMODULE__+" can not be found.")

@@ -9,26 +9,26 @@ P2 = (0,7,0)
 P3 = (5,7,0)
 
 # Geometrie
-d1 = D.line(P0, P1) 
+d1 = D.line(P0, P1)
 d2 = D.line(P2, P3)
 pts = C.array('x,y,z', 5, 1, 1)
 x = pts[1][0]; y = pts[1][1]; z = pts[1][2]
 
-x[0] = 0. ; y[0] = 0.; 
-x[1] =-2. ; y[1] = 2.; 
+x[0] = 0. ; y[0] = 0.;
+x[1] =-2. ; y[1] = 2.;
 x[2] =-3. ; y[2] = 3.;
-x[3] = 2. ; y[3] = 5.; 
+x[3] = 2. ; y[3] = 5.;
 x[4] = 0. ; y[4] = 7.;
 b1 = D.bezier(pts)
 
 pts = C.array('x,y,z', 5, 1, 1)
 x = pts[1][0]; y = pts[1][1]; z = pts[1][2]
 x[0 ] = 5.; y[ 0 ] = 0.;
-x[1 ] = 3.; y[ 1 ] = 2.; 
-x[2 ] = 2.; y[ 2 ] = 3.; 
-x[3 ] = 6.; y[ 3 ] = 5.; 
-x[4 ] = 5.; y[ 4 ] = 7.; 
-b2 = D.bezier( pts ) 
+x[1 ] = 3.; y[ 1 ] = 2.;
+x[2 ] = 2.; y[ 2 ] = 3.;
+x[3 ] = 6.; y[ 3 ] = 5.;
+x[4 ] = 5.; y[ 4 ] = 7.;
+b2 = D.bezier( pts )
 
 C.convertArrays2File([d1, d2, b1, b2], "geom.plt", "bin_tp")
 

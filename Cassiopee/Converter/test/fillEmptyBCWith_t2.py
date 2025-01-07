@@ -1,4 +1,4 @@
-# - fillEmptyBC (pyTree) - 
+# - fillEmptyBC (pyTree) -
 # avec des raccords partiels
 import Converter.PyTree as C
 import Generator.PyTree as G

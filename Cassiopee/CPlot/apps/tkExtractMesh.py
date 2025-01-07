@@ -69,7 +69,7 @@ def extractMesh():
 
     fail = False
     try:
-        meshes = P.extractMesh(sources, meshes, order=2, tol=1.e-6) 
+        meshes = P.extractMesh(sources, meshes, order=2, tol=1.e-6)
     except Exception as e:
         fail = True
         Panels.displayErrors([0,str(e)], header='Error: extractMesh')
@@ -86,7 +86,7 @@ def extractMesh():
         CTK.TXT.insert('START', 'Error: ', 'Error')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CTK.display(CTK.t) 
+    CTK.display(CTK.t)
 
 #==============================================================================
 # Create app widgets

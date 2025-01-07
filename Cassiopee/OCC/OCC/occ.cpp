@@ -31,11 +31,18 @@ static PyMethodDef Pyocc [] =
   {"readCAD", K_OCC::readCAD, METH_VARARGS},
   {"writeCAD", K_OCC::writeCAD, METH_VARARGS},
   {"createEmptyCAD", K_OCC::createEmptyCAD, METH_VARARGS},
+  {"mergeCAD", K_OCC::mergeCAD, METH_VARARGS},
   {"freeHook", K_OCC::freeHook, METH_VARARGS},
+  
+  {"printOCAF", K_OCC::printOCAF, METH_VARARGS},
+  {"printShapeOCAF", K_OCC::printShapeOCAF, METH_VARARGS},
   
   {"bottle", K_OCC::bottle, METH_VARARGS},
   {"addSphere", K_OCC::addSphere, METH_VARARGS},
-  
+  {"addSquare", K_OCC::addSquare, METH_VARARGS},
+  {"addCylinder", K_OCC::addCylinder, METH_VARARGS},
+  {"addBox", K_OCC::addBox, METH_VARARGS},
+
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},
   {"getNbEdges", K_OCC::getNbEdges, METH_VARARGS},
   {"getFileAndFormat", K_OCC::getFileAndFormat, METH_VARARGS},
@@ -75,7 +82,12 @@ static PyMethodDef Pyocc [] =
   {"fillHole", K_OCC::fillHole, METH_VARARGS},
   {"addFillet", K_OCC::addFillet, METH_VARARGS},
 
+  {"translate", K_OCC::translate, METH_VARARGS},
+  {"scale", K_OCC::scale, METH_VARARGS},
+  {"rotate", K_OCC::rotate, METH_VARARGS},
+
   {"getOppData", K_OCC::getOppData, METH_VARARGS},
+  {"identifyTags", K_OCC::identifyTags, METH_VARARGS},
 
   {NULL, NULL}
 };

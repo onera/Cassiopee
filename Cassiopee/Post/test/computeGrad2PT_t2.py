@@ -6,7 +6,7 @@ import Transform.PyTree   as T
 import Connector.PyTree   as X
 import KCore.test         as test
 
-# Cas 2D avec raccord match 
+# Cas 2D avec raccord match
 # =========================
 ni = 20
 nj = 20
@@ -30,4 +30,3 @@ t = C.initVars(t, '{centers:F}={centers:CoordinateX}*{centers:CoordinateY}')
 P._computeGrad2(t, 'centers:F')
 
 test.testT(t,1)
-

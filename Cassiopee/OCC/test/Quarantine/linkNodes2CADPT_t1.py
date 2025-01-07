@@ -85,7 +85,7 @@ t = C.setFields(ncadid,t, 'nodes')
 #-------------------------------------------
 # updateFcadidFromNcadid
 #-------------------------------------------
-p = Internal.getNodeFromName(t, 'CADData'); 
+p = Internal.getNodeFromName(t, 'CADData');
 Internal.newDataArray('fcadid', value=fcadid, parent=p)
 
 occ.updateFcadidFromNcadid( c, wall_face_ids, ncadid, fcadid)
@@ -97,7 +97,7 @@ n = C.getNPts(t)
 nv = np.empty((n,), dtype=np.int32)
 nv[:] = 1
 
-t = XOR.adaptCells(t,nv, sensor_type=2,hmesh = hmsh)
+t = XOR.adaptCells(t,nv, sensor_type=2,hmesh=hmsh)
 t = XOR.conformizeHMesh(t, hmsh)
 t = XOR.closeCells(t)
 Internal._rmNodesByName(t, 'zid')

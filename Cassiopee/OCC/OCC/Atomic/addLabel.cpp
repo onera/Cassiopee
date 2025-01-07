@@ -54,7 +54,7 @@ PyObject* K_OCC::addLabel(PyObject* self, PyObject* args)
   {
     TopoDS_Shape face = exp.Current();
     TDF_Label label;
-    if (shapeTool->FindShape(face, label)) 
+    if (shapeTool->FindShape(face, label))
     {
       // Do something with the label
     }

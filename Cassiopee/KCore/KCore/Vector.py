@@ -62,7 +62,7 @@ def dist(p1, p2):
     dz = p1[2]-p2[2]
     return math.sqrt(dx*dx+dy*dy+dz*dz)
 
-# the matrix is given by lines 
+# the matrix is given by lines
 def matprod(m, v):
     """Matrix-vector product."""
     [l1,l2,l3] = m # get each line of matrix

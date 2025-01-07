@@ -352,17 +352,21 @@ void Data::displayActivePoint()
         E_Int ncon = ptrState->activePointL;
         E_Int* connect = z->connect[ncon];
         E_Int net = z->nec[ncon];
-  
+
         E_Int eltType = z->eltType[ncon];
         E_Int ind1, ind2;
         double dx, dy, dz, h;
         bool is1D = false;
         if (eltType == 1) is1D = true;
+        if (ne >= net || ne < 0) is1D = false; // force
+  
         if (is1D)
         {
           h = 0.;
           ind1 = connect[ne];
-          ind2 = connect[ne+net];
+          if (ne+1 < net) ind2 = connect[ne+1];
+          else if (ne-1 >= 0) ind2 = connect[ne-1];
+          else ind2 = ind1;
           dx = z->x[ind2] - z->x[ind1];
           h += dx*dx;
           dy = z->y[ind2] - z->y[ind1];

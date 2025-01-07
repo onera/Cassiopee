@@ -74,7 +74,7 @@ def saveConfigFile(event=None):
     except: additionalLibPaths = []
 
     dict[machine] = [Vdescription.get(),
-                     Vf77compiler.get(), 
+                     Vf77compiler.get(),
                      Vf90compiler.get(),
                      VCppcompiler.get(),
                      VuseOMP.get(), VuseStatic.get(),
@@ -100,7 +100,7 @@ def changeMachineName(event=None):
     # Reset color
     if WIDGETS != {}:
         for name in ['Cppcompiler', 'f77compiler',
-                     'f90compiler', 
+                     'f90compiler',
                      'additionalIncludePaths', 'additionalLibs',
                      'additionalLibPaths']:
             entry = WIDGETS[name]
@@ -150,7 +150,7 @@ def check__(name):
         (ok, FLibs, FLibPaths) = Dist.checkFortranLibs(
             [], additionalLibPaths, Vf90compiler.get(), VuseOMP.get())
         if ok: out = ['f90: OK']
-        else: out = ['f90: Fail']   
+        else: out = ['f90: Fail']
 
     elif name == 'png':
         additionalLibPaths = eval(VadditionalLibPaths.get())
@@ -308,7 +308,7 @@ WIDGETS = {}
 key = ''
 for i in dict.keys():
     if (re.compile(i).search(host) is not None or
-        re.compile(i).search(prod) is not None):
+            re.compile(i).search(prod) is not None):
         key = i ; break
 
 if (re.compile(key).search(host) is not None): setMachineName(host)
@@ -327,7 +327,7 @@ def instructions():
     # position de la fenetre parent
     xpos = winl.master.winfo_rootx()
     ypos = winl.master.winfo_rooty()
-    winl.geometry("%+d%+d" % (xpos+40, ypos)) 
+    winl.geometry("%+d%+d" % (xpos+40, ypos))
     scrollbar = TK.Scrollbar(winl, orient=TK.VERTICAL, width=10)
     scrollbar.grid(sticky=TK.NSEW, row=0, column=1)
 
@@ -361,7 +361,7 @@ def printCheck():
     # position de la fenetre parent
     xpos = winl.master.winfo_rootx()
     ypos = winl.master.winfo_rooty()
-    winl.geometry("%+d%+d" % (xpos+40, ypos)) 
+    winl.geometry("%+d%+d" % (xpos+40, ypos))
     scrollbar = TK.Scrollbar(winl, orient=TK.VERTICAL, width=10)
     scrollbar.grid(sticky=TK.NSEW, row=0, column=1)
 

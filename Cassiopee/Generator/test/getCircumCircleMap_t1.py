@@ -8,4 +8,3 @@ a = D.sphere((0,0,0), 1, 50)
 a = C.convertArray2Tetra(a)
 n = G.getCircumCircleMap(a)
 test.testA([n],1)
-

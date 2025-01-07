@@ -53,7 +53,7 @@ libraries += ["kcore"]
 libraries += fortranLibs
 
 mySystem = Dist.getSystem()
-if mySystem[0] == 'mingw': 
+if mySystem[0] == 'mingw':
     libraries += ["wsock32"]
 
 if cc == 'icc':
@@ -105,17 +105,17 @@ if cython and mpi and mpi4py:
             name = names[0]+'.'+names[-1]
             listExtensionsPyx.append(
                 Extension(name,
-                        sources=[c],
-                        include_dirs=["XCore","%s"%PPATH,"%s/ppart"%PPATH,"%s/struct"%PPATH,"%s/pario"%PPATH,"%s/mesh"%PPATH,"%s/meshgen"%PPATH,"%s/mpi_wrapper"%PPATH, "%s/util"%PPATH]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
-                        library_dirs=additionalLibPaths+libraryDirs,
-                        libraries=libraries+additionalLibs,
-                        extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-                        extra_link_args=[],
-                        language='c++'
-                        ) )
+                          sources=[c],
+                          include_dirs=["XCore","%s"%PPATH,"%s/ppart"%PPATH,"%s/struct"%PPATH,"%s/pario"%PPATH,"%s/mesh"%PPATH,"%s/meshgen"%PPATH,"%s/mpi_wrapper"%PPATH, "%s/util"%PPATH]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
+                          library_dirs=additionalLibPaths+libraryDirs,
+                          libraries=libraries+additionalLibs,
+                          extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+                          extra_link_args=[],
+                          language='c++'
+                          ) )
     else:
         def cythonize(srcs, include_path): return []
-        paradigmaDir = '' 
+        paradigmaDir = ''
 else:
     def cythonize(srcs, include_path): return []
     paradigmaDir = ''
@@ -130,7 +130,7 @@ setup(
     packages=['XCore'],
     package_dir={"":"."},
     ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=[paradigmaDir])
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

@@ -4,7 +4,7 @@ from KCore.config import *
 MPEG = False
 if MPEG:
     (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
-                                                additionalIncludePaths)
+                                                 additionalIncludePaths)
 else: mpeg = False
 
 # Choix des SHADERS (2 ou 4) pour GL et OSMESA
@@ -75,7 +75,7 @@ cpp_srcs = ['CPlot/render.cpp',
             'CPlot/Display/displaySMeshZone.cpp',
             'CPlot/Display/displayUMesh.cpp',
             'CPlot/Display/displayUMeshZone.cpp',
-            'CPlot/Display/displayUMeshHOZone.cpp',            
+            'CPlot/Display/displayUMeshHOZone.cpp',
             'CPlot/Display/displaySSolid.cpp',
             'CPlot/Display/displaySSolidZone.cpp',
             'CPlot/Display/displayUSolid.cpp',
@@ -178,65 +178,65 @@ cpp_srcs2 = ['CPlot/displayNew2.cpp',
 
 if SHADERS1 == 4 and SHADERS2 == 4:
     cpp_srcs += [
-             'CPlot/Shaders/TesselationShaderManager.cpp',
-             'CPlot/Shaders/TesselationControlShader.cpp',
-             'CPlot/Shaders/TesselationEvaluationShader.cpp',
-             'CPlot/Shaders/triggerShader.cpp',
-             'CPlot/Shaders/FragmentShader.cpp',
-             'CPlot/Shaders/VertexShader.cpp',
-             'CPlot/Shaders/GeomShader.cpp',
-             'CPlot/Shaders/ShaderObject.cpp',
-             'CPlot/Shaders/Shader.cpp',
-             'CPlot/Shaders/ShaderManager.cpp']
+        'CPlot/Shaders/TesselationShaderManager.cpp',
+        'CPlot/Shaders/TesselationControlShader.cpp',
+        'CPlot/Shaders/TesselationEvaluationShader.cpp',
+        'CPlot/Shaders/triggerShader.cpp',
+        'CPlot/Shaders/FragmentShader.cpp',
+        'CPlot/Shaders/VertexShader.cpp',
+        'CPlot/Shaders/GeomShader.cpp',
+        'CPlot/Shaders/ShaderObject.cpp',
+        'CPlot/Shaders/Shader.cpp',
+        'CPlot/Shaders/ShaderManager.cpp']
 elif SHADERS1 == 2 and SHADERS2 == 2:
     cpp_srcs += [
-             'CPlot/Shaders2.0/triggerShader.cpp',
-             'CPlot/Shaders2.0/FragmentShader.cpp',
-             'CPlot/Shaders2.0/VertexShader.cpp',
-             'CPlot/Shaders2.0/GeomShader.cpp',
-             'CPlot/Shaders2.0/ShaderObject.cpp',
-             'CPlot/Shaders2.0/Shader.cpp',
-             'CPlot/Shaders2.0/ShaderManager.cpp']
+        'CPlot/Shaders2.0/triggerShader.cpp',
+        'CPlot/Shaders2.0/FragmentShader.cpp',
+        'CPlot/Shaders2.0/VertexShader.cpp',
+        'CPlot/Shaders2.0/GeomShader.cpp',
+        'CPlot/Shaders2.0/ShaderObject.cpp',
+        'CPlot/Shaders2.0/Shader.cpp',
+        'CPlot/Shaders2.0/ShaderManager.cpp']
 elif SHADERS1 == 4 and SHADERS2 == 2:
     cpp_srcs1 += [
-             'CPlot/Shaders/TesselationShaderManager.cpp',
-             'CPlot/Shaders/TesselationControlShader.cpp',
-             'CPlot/Shaders/TesselationEvaluationShader.cpp',
-             'CPlot/Shaders/triggerShader.cpp',
-             'CPlot/Shaders/FragmentShader.cpp',
-             'CPlot/Shaders/VertexShader.cpp',
-             'CPlot/Shaders/GeomShader.cpp',
-             'CPlot/Shaders/ShaderObject.cpp',
-             'CPlot/Shaders/Shader.cpp',
-             'CPlot/Shaders/ShaderManager.cpp']
+        'CPlot/Shaders/TesselationShaderManager.cpp',
+        'CPlot/Shaders/TesselationControlShader.cpp',
+        'CPlot/Shaders/TesselationEvaluationShader.cpp',
+        'CPlot/Shaders/triggerShader.cpp',
+        'CPlot/Shaders/FragmentShader.cpp',
+        'CPlot/Shaders/VertexShader.cpp',
+        'CPlot/Shaders/GeomShader.cpp',
+        'CPlot/Shaders/ShaderObject.cpp',
+        'CPlot/Shaders/Shader.cpp',
+        'CPlot/Shaders/ShaderManager.cpp']
     cpp_srcs2 += [
-             'CPlot/Shaders2.0/triggerShader.cpp',
-             'CPlot/Shaders2.0/FragmentShader.cpp',
-             'CPlot/Shaders2.0/VertexShader.cpp',
-             'CPlot/Shaders2.0/GeomShader.cpp',
-             'CPlot/Shaders2.0/ShaderObject.cpp',
-             'CPlot/Shaders2.0/Shader.cpp',
-             'CPlot/Shaders2.0/ShaderManager.cpp']
+        'CPlot/Shaders2.0/triggerShader.cpp',
+        'CPlot/Shaders2.0/FragmentShader.cpp',
+        'CPlot/Shaders2.0/VertexShader.cpp',
+        'CPlot/Shaders2.0/GeomShader.cpp',
+        'CPlot/Shaders2.0/ShaderObject.cpp',
+        'CPlot/Shaders2.0/Shader.cpp',
+        'CPlot/Shaders2.0/ShaderManager.cpp']
 else:
     cpp_srcs1 += [
-             'CPlot/Shaders2.0/triggerShader.cpp',
-             'CPlot/Shaders2.0/FragmentShader.cpp',
-             'CPlot/Shaders2.0/VertexShader.cpp',
-             'CPlot/Shaders2.0/GeomShader.cpp',
-             'CPlot/Shaders2.0/ShaderObject.cpp',
-             'CPlot/Shaders2.0/Shader.cpp',
-             'CPlot/Shaders2.0/ShaderManager.cpp']
+        'CPlot/Shaders2.0/triggerShader.cpp',
+        'CPlot/Shaders2.0/FragmentShader.cpp',
+        'CPlot/Shaders2.0/VertexShader.cpp',
+        'CPlot/Shaders2.0/GeomShader.cpp',
+        'CPlot/Shaders2.0/ShaderObject.cpp',
+        'CPlot/Shaders2.0/Shader.cpp',
+        'CPlot/Shaders2.0/ShaderManager.cpp']
     cpp_srcs2 += [
-             'CPlot/Shaders/TesselationShaderManager.cpp',
-             'CPlot/Shaders/TesselationControlShader.cpp',
-             'CPlot/Shaders/TesselationEvaluationShader.cpp',
-             'CPlot/Shaders/triggerShader.cpp',
-             'CPlot/Shaders/FragmentShader.cpp',
-             'CPlot/Shaders/VertexShader.cpp',
-             'CPlot/Shaders/GeomShader.cpp',
-             'CPlot/Shaders/ShaderObject.cpp',
-             'CPlot/Shaders/Shader.cpp',
-             'CPlot/Shaders/ShaderManager.cpp']
+        'CPlot/Shaders/TesselationShaderManager.cpp',
+        'CPlot/Shaders/TesselationControlShader.cpp',
+        'CPlot/Shaders/TesselationEvaluationShader.cpp',
+        'CPlot/Shaders/triggerShader.cpp',
+        'CPlot/Shaders/FragmentShader.cpp',
+        'CPlot/Shaders/VertexShader.cpp',
+        'CPlot/Shaders/GeomShader.cpp',
+        'CPlot/Shaders/ShaderObject.cpp',
+        'CPlot/Shaders/Shader.cpp',
+        'CPlot/Shaders/ShaderManager.cpp']
 
 #==============================================================================
 # Fichiers fortran

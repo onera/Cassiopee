@@ -25,7 +25,7 @@ def adim1(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
     DCs      = 110.4 # Cs air (dimensionne)
     DTs      = 288.15 # Temperature de reference dans Sutherland (dimensionne)
     DTInf    = DTs # On choisit que l'etat de reference de sutherland
-                   # soit la temperature a l'infini
+    # soit la temperature a l'infini
     DMus     = 1.78938e-5 # Mu dimensionne a la temperature de reference
     DMuInf   = DMus  # toujours identification des grandeurs de reference et infini
 
@@ -95,7 +95,7 @@ def adim2(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, MutSMuInf=0.2,
     DCs      = 110.4 # Cs air (dimensionne)
     DTs      = 288.15 # Temperature de reference dans Sutherland (dimensionne)
     DTInf    = DTs # On choisit que l'etat de reference de sutherland
-                   # soit la temperature a l'infini
+    # soit la temperature a l'infini
     DMus     = 1.78938e-5 # Mu dimensionne a la temperature de reference
     DMuInf   = DMus  # toujours identification des grandeurs de reference et infini
 
@@ -164,7 +164,7 @@ def adim3(MInf=0.5, alphaZ=0., alphaY=0., ReInf=1.e8, LInf=1., MutSMuInf=0.2,
     DCs      = 110.4 # Cs air (dimensionne)
     DTs      = 288.15 # Temperature de reference dans Sutherland (dimensionne)
     DTInf    = DTs # On choisit que l'etat de reference de sutherland
-                   # soit la temperature a l'infini
+    # soit la temperature a l'infini
     DMus     = 1.78938e-5 # Mu dimensionne a la temperature de reference
     DMuInf   = DMus  # toujours identification des grandeurs de reference et infini
 
@@ -392,7 +392,7 @@ def dim4(UInf=2.7777, TInf=298.15, PInf=101325., LInf=1.,
 
     # si Mtip existe, les grandeurs visqueuses et turbulentes
     # sont prises par rapport a Mtip
-    if Mtip is not None: UInf = Mtip*aInf 
+    if Mtip is not None: UInf = Mtip*aInf
 
     ReInf = UInf*LInf/NuInf
 

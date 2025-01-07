@@ -9,5 +9,3 @@ c = Internal.createChild(b, 'level2', 'DataArray_t', 2)
 p = Internal.getParentsFromType(a, c, 'DataArray_t')
 res = [i[0] for i in p]
 test.testO(res, 1)
-
-

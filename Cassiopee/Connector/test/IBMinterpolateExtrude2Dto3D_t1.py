@@ -19,7 +19,7 @@ vmin      = 42
 dfars     = 5
 snears    = 1
 t, tc = X_IBM.prepareIBMData(bodySurfaceFile, None         , None     ,
-                             snears=snears  , dfars=dfars  , vmin=vmin, 
+                             snears=snears  , dfars=dfars  , vmin=vmin,
                              check=False    , frontType=1  , cartesian=False)
 
 #C.convertPyTree2File(t,LOCAL+'/t2D_checking.cgns')
@@ -47,7 +47,7 @@ for t in [t3D,tb3D]:
     T._translate(t, (0,0,0-zavg))
 
 #C.convertPyTree2File(t3D ,LOCAL+'/t3D_checking.cgns')
-#C.convertPyTree2File(tb3D,LOCAL+'/tb3D_checking.cgns') 
+#C.convertPyTree2File(tb3D,LOCAL+'/tb3D_checking.cgns')
 
 # Interpolation 3D
 t3D, tc3D      = X_IBM.prepareIBMDataExtrude(tb3D, None, None, t3D, extrusion=extrusion)

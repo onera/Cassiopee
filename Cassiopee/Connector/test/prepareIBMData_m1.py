@@ -11,7 +11,7 @@ vmin      = 42
 dfars     = 5
 snears    = 1
 t, tc = X_IBM.prepareIBMData(tb             , None         , None     ,
-                             snears=snears  , dfars=dfars  , vmin=vmin, 
+                             snears=snears  , dfars=dfars  , vmin=vmin,
                              check=False    , frontType=1  , cartesian=False)
 if Cmpi.rank==0:
     test.testT(t , 1)

@@ -1,7 +1,7 @@
 # Various specific TFIs
 from . import Generator as G
 from . import generator
-try: 
+try:
     import Converter as C
     import Transform as T
 except ImportError:
@@ -83,7 +83,7 @@ def mergeEdgesAngle(edges, thresold=0.3):
     for c, e in enumerate(edges):
         tangle = abs(angles[c] - numpy.pi)
         if tangle < thresold and len(medges) > 0:
-            e2 = T.join(medges[-1], e); medges[-1] = e2            
+            e2 = T.join(medges[-1], e); medges[-1] = e2
         else: medges.append(e)
     tangle0 = abs(angles[0] - numpy.pi)
     if tangle0 < thresold and len(medges) > 0:
@@ -94,7 +94,7 @@ def mergeEdgesAngle(edges, thresold=0.3):
 def findSplitInEdges(edges, N2):
     isp = 0; N = 0
     for e in edges:
-        N += C.getNPts(e)-1 
+        N += C.getNPts(e)-1
         if N == N2-1: break
         if N > N2: isp = -1; break
         isp += 1
@@ -131,7 +131,7 @@ def mergeEdges4(iedges):
     #c90 = 0
     #for c, a in angles:
     #    if abs(a-numpy/2.) < abs(angles[c90]-numpy.pi/2): c90 = c
-    #if c90 > 0: 
+    #if c90 > 0:
     #    e1 = edges[0:c90]; e2 = edges[c90:]; edges = e2+e1
 
     # try to find first split
@@ -191,7 +191,7 @@ def allTFI__(edges):
     nedges = len(edges)
     if nedges == 4:
         # TFI directe ou TFIQuad
-        try: 
+        try:
             ret = [TFI(edges)]
             q = quality(ret)
             if q >= 1000: return None
@@ -200,14 +200,14 @@ def allTFI__(edges):
         except: pass
     elif nedges == 1:
         # TFIO ou TFISingle
-        try: 
+        try:
             ret = TFISingle(edges[0])
             q = quality(ret)
             if q >= 1000: return None
             print("%d: TFI Single"%nedges)
             return ret
         except:
-            try: 
+            try:
                 ret = TFIO(edges[0])
                 q = quality(ret)
                 if q >= 1000: return None
@@ -216,7 +216,7 @@ def allTFI__(edges):
             except: pass
     elif nedges == 2:
         # TFIHalfO
-        try: 
+        try:
             ret = TFIHalfO(edges[0], edges[1])
             q = quality(ret)
             if q >= 1000: return None
@@ -225,7 +225,7 @@ def allTFI__(edges):
         except: pass
     elif nedges == 3:
         # TFITri
-        try: 
+        try:
             ret = TFITri2(edges[0], edges[1], edges[2])
             q = quality(ret)
             if q >= 1000: return None
@@ -592,7 +592,7 @@ def TFIHalfO__(a1, a2, weight, offset=0, tol=1.e-6):
     #elif (indexPP3 == (Nt2-1)//2): indexPP3 += -1
     PP3 = (a2[1][0,indexPP3], a2[1][1,indexPP3], a2[1][2,indexPP3])
     N1 = indexPP3+1
-    indexPP4 = Nt2-N1 
+    indexPP4 = Nt2-N1
     PP4 = (a2[1][0,indexPP4], a2[1][1,indexPP4], a2[1][2,indexPP4])
     N2 = Nt2-2*N1+2
 
@@ -719,7 +719,7 @@ def TFISingle(a1):
     return ret
 
 #==============================================================================
-# Cree un ensemble de maillages TFI en etoilant les edges et en 
+# Cree un ensemble de maillages TFI en etoilant les edges et en
 # faisant des TFIs par triangle
 #==============================================================================
 def TFIStar(edges):

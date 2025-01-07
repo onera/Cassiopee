@@ -303,14 +303,14 @@ def adjustNProc():
                                     useCom=useCom, algorithm=algo)
 
     # Best
-    VARS[0].set(str(classes[c])) 
+    VARS[0].set(str(classes[c]))
     CTK.t, STATS = D.distribute(CTK.t, classes[c], perfo=(1.,0.,comSpeed),
                                 useCom=useCom, algorithm=algo)
 
     CTK.TXT.insert('START', 'Blocks distributed.\n')
     CTK.TKTREE.updateApp()
     updateStats()
-    return 
+    return
 
 #==============================================================================
 # Create app widgets
@@ -340,25 +340,25 @@ def createApp(win):
     # - VARS -
     # -0- NProc -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if 'tkDistributorNProc' in CTK.PREFS: 
+    if 'tkDistributorNProc' in CTK.PREFS:
         V.set(CTK.PREFS['tkDistributorNProc'])
     # -1- ComSpeed -
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if 'tkDistributorComSpeed' in CTK.PREFS: 
+    if 'tkDistributorComSpeed' in CTK.PREFS:
         V.set(CTK.PREFS['tkDistributorComSpeed'])
     # -2- Algorithm
     V = TK.StringVar(win); V.set('graph'); VARS.append(V)
-    if 'tkDistributorAlgorithm' in CTK.PREFS: 
+    if 'tkDistributorAlgorithm' in CTK.PREFS:
         V.set(CTK.PREFS['tkDistributorAlgorithm'])
     # -3- Communication types
     V = TK.StringVar(win); V.set('all'); VARS.append(V)
-    if 'tkDistributorComType' in CTK.PREFS: 
+    if 'tkDistributorComType' in CTK.PREFS:
         V.set(CTK.PREFS['tkDistributorComType'])
     # -4- Manual proc setting
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -5- Multigrid level
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if 'tkDistributorMultigrid' in CTK.PREFS: 
+    if 'tkDistributorMultigrid' in CTK.PREFS:
         V.set(CTK.PREFS['tkDistributorMultigrid'])
 
     # - NProc -

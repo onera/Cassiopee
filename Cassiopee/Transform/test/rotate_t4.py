@@ -20,7 +20,7 @@ b = T.rotate(a, (0.,0.,0.), (0.,0.,1.), 90., vectors=[['vx','vy','vz']])
 test.testA([b],1)
 # Rotate with axis transformations
 c = T.rotate(a, (0.,0.,0.), ((1.,0.,0.),(0,1,0),(0,0,1)),
-              ((1,1,0), (1,-1,0), (0,0,1)), vectors=[['vx','vy','vz']] )
+             ((1,1,0), (1,-1,0), (0,0,1)), vectors=[['vx','vy','vz']] )
 test.testA([c],2)
 
 # Rotate with three angles

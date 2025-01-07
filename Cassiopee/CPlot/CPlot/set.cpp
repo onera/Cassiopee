@@ -631,8 +631,7 @@ PyObject* K_CPLOT::setSelectedZones(PyObject* self, PyObject* args)
   
   if (PyList_Check(o) == 0)
   {
-    PyErr_SetString(
-      PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError, 
       "setSelectedZones: arg must be a list.");
     return NULL;
   }
@@ -645,15 +644,13 @@ PyObject* K_CPLOT::setSelectedZones(PyObject* self, PyObject* args)
     // tpl must be a tuple of two ints (no, 1)
     if (PyTuple_Check(tpl) == 0)
     {
-      PyErr_SetString(
-        PyExc_TypeError, 
+      PyErr_SetString(PyExc_TypeError, 
         "setSelectedZones: arg must be a list of tuples (noz, 1).");
       return NULL;
     }
     if (PyTuple_Size(tpl) != 2) 
     {
-      PyErr_SetString(
-        PyExc_TypeError, 
+      PyErr_SetString(PyExc_TypeError, 
         "setSelectedZones: arg must be a list of tuples (noz, 1).");
       return NULL;
     }

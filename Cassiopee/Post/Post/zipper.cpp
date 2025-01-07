@@ -239,7 +239,7 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-// Lecture des options et retourne les valeurs associées: 
+// Lecture des options et retourne les valeurs associï¿½es: 
 // geomTol: tolerance geometrique 
 //=============================================================================
 void K_POST::readZipperOptions(PyObject* optionList, E_Float& overlapTol,
@@ -287,7 +287,7 @@ void K_POST::readZipperOptions(PyObject* optionList, E_Float& overlapTol,
         {
           printf("Warning: zipper: matchTol must be a float. Set to default value: 1.e-6.\n");
         }
-        else matchTol =  PyFloat_AsDouble(tpl2);
+        else matchTol = PyFloat_AsDouble(tpl2);
       } 
       else //autres 
       {

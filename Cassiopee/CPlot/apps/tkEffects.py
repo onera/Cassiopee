@@ -14,15 +14,15 @@ WIDGETS = {}; VARS = []
 
 #==============================================================================
 def setShadow(event=None):
-    if VARS[1].get() == '1': shadow= 1 
-    else: shadow = 0 
+    if VARS[1].get() == '1': shadow= 1
+    else: shadow = 0
     CPlot.setState(shadow=shadow)
     CPlot._addRender2PyTree(CTK.t, shadow=shadow)
 
 #==============================================================================
 def setDOF(event=None):
     if VARS[2].get() == '1': dof = 1
-    else: dof = 0 
+    else: dof = 0
     CPlot.setState(dof=dof)
     CPlot._addRender2PyTree(CTK.t, dof=dof)
 
@@ -95,7 +95,7 @@ def getData(event=None):
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
-        CPlot.setState(bumpMaps=out)  
+        CPlot.setState(bumpMaps=out)
     pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
     if pos is not None:
         out = []

@@ -10,4 +10,3 @@ CPlot.display(a, dim=2, mode=0)
 
 CPlot.changeBlanking(); time.sleep(2)
 CPlot.changeBlanking(); time.sleep(2)
-

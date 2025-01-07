@@ -3,8 +3,8 @@
 # 2 fonctionnements possibles :
 # update direct de la solution par interpolation
 # ajout d'une contribution d'un donneur a un champ existant - plusieurs donneurs possibles
-import Converter.Mpi as Cmpi 
-import Converter.Internal as Internal 
+import Converter.Mpi as Cmpi
+import Converter.Internal as Internal
 import Converter.Filter as Filter
 import Converter.PyTree as C
 import Geom.PyTree as D
@@ -55,7 +55,7 @@ def _interpolate(tR, tD, interpTree, graph, procDict, typeTransfer=0):
             else:
                 fsname = Internal.getName(fs)
                 for fnode in Internal.getNodesFromType(fs,'DataArray_t'):
-                    fname = Internal.getName(fnode)            
+                    fname = Internal.getName(fnode)
                     varsI.append(fname)
                 dictOfFSN[fsname] = varsI
 
@@ -74,7 +74,7 @@ def _interpolate(tR, tD, interpTree, graph, procDict, typeTransfer=0):
             C._cpVars(tD,'%s'%varl, interpTree, varl)
             C._initVars(tR,'%s'%varl,0)
         _setInterpTransfers(tR, interpTree, variables=varsI, cellNVariable='cellN',
-                            graph=graph, procDict=procDict, type='ID', typeTransfer=typeTransfer)  
+                            graph=graph, procDict=procDict, type='ID', typeTransfer=typeTransfer)
 
     Internal.__FlowSolutionCenters__ = FSC_SAV
     Internal.__FlowSolutionNodes__ = FSN_SAV
@@ -96,7 +96,7 @@ def prepareInterpData(tR, tD, order=2, loc='CellCenter', cartesian=False, cleanI
 
 def _setInterpData2__(tR, tD, order=2, loc='centers', cartesian=False, cleanID=True, typeTransfer=0):
     if loc == 'nodes': varcelln = 'cellN'
-    else: varcelln = 'centers:cellN'    
+    else: varcelln = 'centers:cellN'
 
     # Clean previous IDs if necessary
     if cleanID:
@@ -134,12 +134,12 @@ def _setInterpData2__(tR, tD, order=2, loc='centers', cartesian=False, cleanID=T
         if cellNPresent==-1: C._initVars(zs, varcelln, 2.) # interp all
         if dnrZones != []:
             if typeTransfer == 0:
-                X._setInterpData(zs, dnrZones, nature=1, penalty=1, order=order, loc=loc, 
+                X._setInterpData(zs, dnrZones, nature=1, penalty=1, order=order, loc=loc,
                                  storage='inverse', extrap=0, verbose=0,
                                  sameName=0, interpDataType=interpDataType, itype='chimera')
             else:
                 for zd in dnrZones:
-                    X._setInterpData(zs, zd, nature=1, penalty=1, order=order, loc=loc, 
+                    X._setInterpData(zs, zd, nature=1, penalty=1, order=order, loc=loc,
                                      storage='inverse', extrap=0, verbose=0,
                                      sameName=0, interpDataType=interpDataType, itype='chimera')
 
@@ -187,12 +187,12 @@ def _setInterpData2__(tR, tD, order=2, loc='centers', cartesian=False, cleanID=T
 
 #===============================================================================
 # typeTransfer=0 : replace field by interpolated value
-# typeTransfer=1 : sum to existing field the interpolated value 
+# typeTransfer=1 : sum to existing field the interpolated value
 def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
-                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
-                        bcType=0, varType=1, compact=0, graph=None, 
+                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
+                        bcType=0, varType=1, compact=0, graph=None,
                         procDict=None, type='ALLD',
-                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, 
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                         Cs=0.3831337844872463, Ts=1.0, alpha=1., typeTransfer=0):
 
     if procDict is None: procDict = Cmpi.getProcDict(aD)
@@ -205,7 +205,7 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
     zonesD = Internal.getZones(aD)
     for zD in zonesD:
         infos = X.setInterpTransfersD(zD, variables=variables, cellNVariable=cellNVariable,
-                                      variablesIBC=variablesIBC, 
+                                      variablesIBC=variablesIBC,
                                       bcType=bcType, varType=varType, compact=compact,
                                       Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts, alpha=alpha)
         for n in infos:
@@ -245,4 +245,3 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
                     C._updatePartialFields(z, [field], [listIndices], loc=n[3])
 
     return None
-

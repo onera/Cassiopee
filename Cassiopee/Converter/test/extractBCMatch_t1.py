@@ -6,7 +6,7 @@ import Transform.PyTree as T
 import Connector.PyTree as X
 import KCore.test as test
 
-# Cas 2D 
+# Cas 2D
 # ======
 a = G.cart((1,1,1), (1.,1.,1.), (4,10,1)); a[0]='cart1'
 b = G.cart((4,2,1), (1.,1.,1.), (5, 8,1)); b[0]='cart2'
@@ -32,10 +32,10 @@ for z in zones:
         zname  = Internal.getValue(gc)
         zdonor = Internal.getNodeFromName(t,zname)
 
-        [indFaceR,fldFace] = CP.extractBCMatch(zdonor,gc,dim,['centers:G','centers:H','centers:M']) 
+        [indFaceR,fldFace] = CP.extractBCMatch(zdonor,gc,dim,['centers:G','centers:H','centers:M'])
 
         test.testO([indFaceR,fldFace], it)
 
-        [indFaceR,fldFace] = CP.extractBCMatch(zdonor,gc,dim) 
+        [indFaceR,fldFace] = CP.extractBCMatch(zdonor,gc,dim)
 
         test.testO([indFaceR,fldFace], it+2)

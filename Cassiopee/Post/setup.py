@@ -39,7 +39,7 @@ listExtensions = []
 listExtensions.append(
     Extension('Post.post',
               sources=["Post/post.cpp"],
-              include_dirs=["Post"]+additionalIncludePaths+[numpyIncDir,kcoreIncDir], 
+              include_dirs=["Post"]+additionalIncludePaths+[numpyIncDir,kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
@@ -56,7 +56,7 @@ setup(
     packages=['Post'],
     package_dir={"":"."},
     ext_modules=listExtensions
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

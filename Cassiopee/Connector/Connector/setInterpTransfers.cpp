@@ -1346,6 +1346,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                                   ipt_param_realR[ NoR ],
                                   vectOfDnrFields, vectOfRcvFields);
 
+                  // Si calcul LBM => reconstruction a l'equilibre des Qs
                   if (solver_R==4)
                    {
 #                   include "includeTransfers_LBM_feq.h"

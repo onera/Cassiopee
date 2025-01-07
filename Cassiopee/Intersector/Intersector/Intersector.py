@@ -2,7 +2,7 @@
 """
 __version__ = '4.0'
 __author__ = "Sam Landier"
-# 
+#
 # Python Interface to create arrays defining meshes
 #
 from . import intersector
@@ -60,7 +60,7 @@ def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mod
     c = intersector.booleanIntersection(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, True, itermax)# last is dummy (outward)
     return G.close(c)
 
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True, hard_mode=0, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs=True, hard_mode=0, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -73,11 +73,11 @@ def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, im
         except: pass
         c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0, itermax)
         return G.close(c[0])
-    else: 
+    else:
         c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode, itermax)
         return c[0] #close is done inside
 
-def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs = True, hard_mode=0, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1, improve_qual=False, extrude_pgs=[], simplify_pgs=True, hard_mode=0, itermax=10): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two closed-surface or two volume meshes.
     Usage for surfaces or bars: booleanUnion(a1, a2, tol)
     Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
@@ -90,7 +90,7 @@ def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_m
         except: pass
         c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, 0, 0, itermax)
         return G.close(c)
-    else: 
+    else:
         c = intersector.booleanUnion(a1, a2, tol, preserve_right, solid_right, agg_mode, improve_qual, extrude_pgs, simplify_pgs, hard_mode, itermax)
         return c #close is done inside
 
@@ -99,7 +99,7 @@ def booleanUnionWithHisto(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_m
 
 
 
-def booleanUnionMZ(a1, a2, xtol=0., jtol = 0., agg_mode=1, improve_qual=False, simplify_pgs = True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
+def booleanUnionMZ(a1, a2, xtol=0., jtol=0., agg_mode=1, improve_qual=False, simplify_pgs=True, hard_mode=0): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
     """Computes the union between two volume meshes.
     Usage for volumes: booleanUnionMZ(a1, a2, tol, agg_mode)"""
     c = intersector.booleanUnionMZ(a1, a2, xtol, jtol, agg_mode, improve_qual, simplify_pgs, hard_mode)
@@ -149,7 +149,7 @@ def XcellN(coord, zwall_ids, basenum, masks, wall_ids, priorities, output_type=0
 # IN: aR : receiver mesh
 # IN : aD : donnor mesh
 # IN : fldD : donnor center fields
-# OUT: returns aR with transferred center fields from aD in a conservative manner 
+# OUT: returns aR with transferred center fields from aD in a conservative manner
 #==============================================================================
 def P1ConservativeInterpolation(aR, aD, fldD):
     """Does conservative interpolations from aD center fields (fldD) to aR
@@ -225,18 +225,18 @@ def externalFaces(a, discarded_ids=None, geo_dim=-1):
 
 #==============================================================================
 # reorient
-# IN: 
-# OUT: 
+# IN:
+# OUT:
 #==============================================================================
-def reorient(a, dir = 1):
+def reorient(a, dir=1):
     """Reorients outward the external polygons of a mesh.
     Usage: reorient(a)"""
     return intersector.reorient(a, dir)
 
 #==============================================================================
 # reorientSpecifiedFaces
-# IN: 
-# OUT: 
+# IN:
+# OUT:
 #==============================================================================
 def reorientSpecifiedFaces(a, pgs, dir):
     """Reorients outward (dir = 1) or inward (dir=-1) the specified polygons of a mesh.
@@ -245,15 +245,15 @@ def reorientSpecifiedFaces(a, pgs, dir):
 
 #==============================================================================
 # reorientSpecifiedFaces
-# IN: 
-# OUT: 
+# IN:
+# OUT:
 #==============================================================================
 def reorientSurf(a, dir):
 	return intersector.reorientSurf(a, dir)
 #==============================================================================
 # reorientBC
-# IN: 
-# OUT: 
+# IN:
+# OUT:
 #==============================================================================
 def reorientBC(a, pgs, dir):
     """Reorients outward (dir = 1) or inward (dir=-1) the specified polygons of a mesh.
@@ -265,7 +265,7 @@ def reorientBC(a, pgs, dir):
 # IN: coords: 3D NGON mesh
 # OUT: returns a 3D NGON Mesh with all the faces made convex
 #==============================================================================
-def convexifyFaces(a, convexity_TOL = 1.e-8):
+def convexifyFaces(a, convexity_TOL=1.e-8):
     """Convexifies any non-convex polygon in a mesh.
     Usage: convexifyFaces(a)"""
     return intersector.convexifyFaces(a, convexity_TOL)
@@ -275,12 +275,12 @@ def convexifyFaces(a, convexity_TOL = 1.e-8):
 # IN : mesh         : 3D NGON mesh
 # IN : PH_set       : PH to process. 0 for concave cells or 1 for non-centroid-star_shaped cells
 # IN : split_policy : 0 : convexify concave pgs. 1 : starify concave pgs. 2 : starify any pgs at concave-chains ends.
-# OUT: returns a 3D NGON Mesh with some face polygon splits : 
-#      split (convexify, starify) some targeted polygons on targeted cells 
+# OUT: returns a 3D NGON Mesh with some face polygon splits :
+#      split (convexify, starify) some targeted polygons on targeted cells
 #      (typically bad polyhedra -concaves, non-centroid-star-shaped-)
 #      to prepare the split of those bad cells.
 #==============================================================================
-def prepareCellsSplit(a, PH_set = 1, split_policy = 0, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = 1.e-8):
+def prepareCellsSplit(a, PH_set=1, split_policy=0, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=1.e-8):
     """Splits some prescribed polygons following a prescribed splitting policy.
     Usage: prepareCellsSplit(a, PH_set, split_policy, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold)"""
     return intersector.prepareCellsSplit(a, PH_set, split_policy, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold)
@@ -293,7 +293,7 @@ def prepareCellsSplit(a, PH_set = 1, split_policy = 0, PH_conc_threshold = 1./3.
 # IN : PG_cvx_threshold  : convexity angle threshold for polygons
 # OUT: returns a 3D NGON Mesh with none (or at least less) non-centroid-star_shaped cells.
 #==============================================================================
-def splitNonStarCells(a, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = 1.e-8):
+def splitNonStarCells(a, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=1.e-8):
     """Splits some non-centroid-star_shaped cells.
     Usage: splitNonStarCells(a, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold)"""
     return intersector.splitNonStarCells(a, PH_conc_threshold, PH_cvx_threshold, PG_cvx_threshold)
@@ -305,7 +305,7 @@ def splitNonStarCells(a, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_
 # IN : discarded_ids : list of ids (0-based) to skip
 # OUT: returns a 3D NGON Mesh with less polygons (but same shape)
 #==============================================================================
-def simplifyCells(a, treat_externals, angular_threshold = 1.e-12, discarded_ids=None):
+def simplifyCells(a, treat_externals, angular_threshold=1.e-12, discarded_ids=None):
     """Simplifies over-defined polyhedral cells (agglomerate some elligible polygons).
     Usage: simplifyCells(a, treat_externals, angular_threshold)"""
     return intersector.simplifyCells(a, treat_externals, angular_threshold, discarded_ids)
@@ -326,7 +326,7 @@ def simplifyFaces(a):
 # IN: angular_threshold : should be as small as possible to avoid introducing degeneracies
 # OUT: returns a 3D NGON Mesh with less polygons (but same shape)
 #==============================================================================
-def simplifySurf(a, angular_threshold = 1.e-12):
+def simplifySurf(a, angular_threshold=1.e-12):
     """Simplifies over-defined surfaces (agglomerate some elligible polygons).
     Usage: simplifySurf(a, angular_threshold)"""
     return intersector.simplifySurf(a, angular_threshold)
@@ -340,7 +340,7 @@ def simplifySurf(a, angular_threshold = 1.e-12):
 # IN: method = 0 (XXX)
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother growth ratio
 #==============================================================================
-def agglomerateSmallCells(a, vmin=0., vratio=0.01, angular_threshold = 1.e-12, method=0):
+def agglomerateSmallCells(a, vmin=0., vratio=0.01, angular_threshold=1.e-12, method=0):
     """Agglomerates prescribed cells.
     Usage: agglomerateSmallCells(a, vmin, vratio)"""
     return intersector.agglomerateSmallCells(a, vmin, vratio,angular_threshold, method)
@@ -375,7 +375,7 @@ def agglomerateCellsWithSpecifiedFaces(a, pgs):
 # IN: vratio : growth ratio threshold
 # OUT: returns a 3D NGON Mesh with less cells and with a smoother growth ratio
 #==============================================================================
-def agglomerateNonStarCells(a, angular_threshold = 1.e-12):
+def agglomerateNonStarCells(a, angular_threshold=1.e-12):
     """Agglomerates non-centroid-star-shaped cells.
     Usage: agglomerateNonStarCells(a)"""
     return intersector.agglomerateNonStarCells(a, angular_threshold)
@@ -432,7 +432,7 @@ def closeCells(a):
 # IN: sensor : sensor hook
 # OUT: returns a 3D NGON conformal polyhedral mesh with adapted cells
 #==============================================================================
-def adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
+def adaptCells(a, sensdata=None, sensor_type=0, smoothing_type=0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None):
     """Adapts an unstructured mesh a with repsect to a sensor.
     Usage: adaptCells(a1, [sensdata, sensor_type, smoothing_type, itermax, subdiv_type, hmesh, sensor])"""
     owesHMesh=0
@@ -460,21 +460,21 @@ def adaptBox(a, box_ratio=10., smoothing_type=0, itermax=-1):
     return intersector.adaptBox(a, box_ratio, smoothing_type, itermax)
 
 #==============================================================================
-# createHMesh : Returns a hierarchical zone hook 
+# createHMesh : Returns a hierarchical zone hook
 # IN: a : 3D NGON array
 # IN: subdiv_type : isotropic currently
-# OUT: Returns a hierarchical zone hook 
+# OUT: Returns a hierarchical zone hook
 #==============================================================================
-def createHMesh(a, subdiv_type = 0): # 0 : ISO, 1: ISO_HEX
+def createHMesh(a, subdiv_type=0): # 0 : ISO, 1: ISO_HEX
     """Returns a hierarchical zone hook.
     Usage: createHMesh(a, subdiv_type= 0)"""
     a = intersector.initForAdaptCells(a, {})
     return intersector.createHMesh(a, subdiv_type, 0)
 
 #==============================================================================
-# deleteHMesh : Releases a hierachical zone hook 
+# deleteHMesh : Releases a hierachical zone hook
 # IN: hmesh : hierarchcial mesh hook
-# OUT: Nothing 
+# OUT: Nothing
 #==============================================================================
 def deleteHMesh(hmesh):
     """Releases a hierachical zone hook.
@@ -483,9 +483,9 @@ def deleteHMesh(hmesh):
 
 #==============================================================================
 # conformizeHMesh : Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
-# 
+#
 # IN: hmesh : hierarchcial mesh hook
-# OUT: Nothing 
+# OUT: Nothing
 #==============================================================================
 def conformizeHMesh(hmesh):
     """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
@@ -495,7 +495,7 @@ def conformizeHMesh(hmesh):
 def interpolateHMeshNodalField(hooks, fieldN):
     return intersector.interpolateHMeshNodalField(hooks, fieldN)
 
-def createSensor(hmesh, sensor_type = 0, smoothing_type=0 , itermax = -1, sensor_metric_policy=0):
+def createSensor(hmesh, sensor_type=0, smoothing_type=0 , itermax=-1, sensor_metric_policy=0):
     return intersector.createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
 
 def assignData2Sensor(hmesh, sensdata):
@@ -641,12 +641,12 @@ def collapseSmallEdges(a, eratio, lmax=-1):
 # IN : a1:              : NGON mesh (surface or volume).
 # IN : a2:              : NGON mesh (surface or volume).
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).
-# IN: amax              : maximal angular value (in rad) between the normals of each pair of colliding polygons. 
+# IN: amax              : maximal angular value (in rad) between the normals of each pair of colliding polygons.
 #                         In ragnge [0,PI]. A value of 0. means pure parallelism. A value of PI means any collision.
 # IN: dir2              : if specified, direction vector used for all a2's polygons instead of their own normals.
 # OUT: 2 lists of overlapping polygons, the first one for a1, the seoncd one for a2.
 #==============================================================================
-def getOverlappingFaces(a1, a2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
+def getOverlappingFaces(a1, a2, RTOL=0.1, amax=0.1, dir2=(0.,0.,0.)):
     """ Returns the list of polygons in a1 and a2 that are overlapping.
     Usage: getOverlappingFaces(a1, a2, RTOL, amax, dir2)"""
     return intersector.getOverlappingFaces(a1,a2, RTOL, amax, dir2)
@@ -659,7 +659,7 @@ def getOverlappingFaces(a1, a2, RTOL = 0.1, amax = 0.1, dir2=(0.,0.,0.)):
 # IN : RTOL:            : Relative tolerance (in ]0., 1.[).
 # OUT: list of t1 involved faces
 #==============================================================================
-def getCollidingTopFaces(a1, a2, RTOL = 0.1):
+def getCollidingTopFaces(a1, a2, RTOL=0.1):
     """ Returns the list of TRI/QUAD in a1 (HEXA and PRISM only) that collide a2.
     Usage: getCollidingTopFaces(a1, a2, RTOL)"""
     try :
@@ -676,7 +676,7 @@ def getCollidingTopFaces(a1, a2, RTOL = 0.1):
 # IN : only_externals:  : Boolean
 # OUT: 2 lists of colliding cells, the first one for a1, the seoncd one for a2.
 #==============================================================================
-def getCollidingCells(a1, a2, RTOL = 1.e-12, only_externals = False):
+def getCollidingCells(a1, a2, RTOL=1.e-12, only_externals=False):
     """ Returns the list of cells in a1 and a2 that are colliding.
    Usage: getCollidingCells(a1, a2, RTOL = 1.e-12, only_externals = False)"""
     return intersector.getCollidingCells(a1, a2, RTOL, only_externals)
@@ -720,13 +720,13 @@ def getFaces(t1, pgids):
 # IN : ids:             : polygon ids.
 # OUT: selected cells.
 #==============================================================================
-def getCells(t1, ids, are_face_ids = True):
+def getCells(t1, ids, are_face_ids=True):
     """ Returns the cells in t1 having specified faces or cell ids.
     Usage: getCells(t1, ids, are_face_ids)"""
     return intersector.getCells(t1, ids, are_face_ids)
 
 #==============================================================================
-# getNthNeighborhood     : returns the list of cells in the N-thneighborhood of t cells given in ids 
+# getNthNeighborhood     : returns the list of cells in the N-thneighborhood of t cells given in ids
 # IN : a :               : NGON mesh.
 # IN : N :               : number of neighborhood required
 # IN : ids :             : input cells ids
@@ -738,7 +738,7 @@ def getNthNeighborhood(a, N, ids):
     return intersector.getNthNeighborhood(a, N, ids)
 
 #==============================================================================
-# estimateAdapReq     : estimates an cell-specified adaptation requirement from 
+# estimateAdapReq     : estimates an cell-specified adaptation requirement from
 #                       on a istotropic metric field based on donnor connectivity
 # IN : t :               : NGON mesh.
 # IN : donnor :          : donnor mesh (Volume; Surface or BAR)
@@ -749,7 +749,7 @@ def getNthNeighborhood(a, N, ids):
 # OUT: Returns a list of integers sized as the nb of cells in t giving the nb of subdivisions
 #      per cell in the range [minv, maxv].
 #==============================================================================
-def estimateAdapReq(t, donnor, metric_policy=2, rtol= 1.e-12, minv=0, maxv=5):
+def estimateAdapReq(t, donnor, metric_policy=2, rtol=1.e-12, minv=0, maxv=5):
     """ estimates an cell-specified adaptation requirement based on a istotropic metric field based on donnor connectivity.
     Usage : estimateAdapReq(t, donnor [, metric_policy, rtol, minv, maxv])"""
     return intersector.estimateAdapReq(t, donnor, metric_policy, rtol, minv, maxv)
@@ -798,10 +798,10 @@ def checkCellsClosure(a):
     return intersector.checkCellsClosure(a)
 
 #==============================================================================
-# checkCellsFlux : Computes the Gauss fluxes using the input orientation (ParentElement). 
+# checkCellsFlux : Computes the Gauss fluxes using the input orientation (ParentElement).
 #                  Should be clsoe to zero machine for a closed and well oriented mesh.
 # IN: a:               : 3D NGON mesh
-# OUT: A message telling the cell id for which the Gauss flux is the greatest. 
+# OUT: A message telling the cell id for which the Gauss flux is the greatest.
 #==============================================================================
 def checkCellsFlux(a, PE):
     """ Returns the cell id for which the Gauss flux is the greatest.
@@ -809,19 +809,19 @@ def checkCellsFlux(a, PE):
     return intersector.checkCellsFlux(a, PE)
 
 #==============================================================================
-# checkAngularExtrema : Returns the min/max dihedral angles vals and associted cell ids.. 
+# checkAngularExtrema : Returns the min/max dihedral angles vals and associted cell ids..
 # IN: a:         : 3D NGON mesh
-# OUT: A message telling the cell id for which the Gauss flux is the greatest. 
+# OUT: A message telling the cell id for which the Gauss flux is the greatest.
 #==============================================================================
 def checkAngularExtrema(a, PE):
     """ Returns the min/max dihedral angles vals and associted cell ids.
     Usage: checkAngularExtrema(a, PE)"""
     return intersector.checkAngularExtrema(a, PE)
 #==============================================================================
-# checkCellsVolume : Computes the minimum volume using the input orientation (ParentElement). 
-#              
+# checkCellsVolume : Computes the minimum volume using the input orientation (ParentElement).
+#
 # IN: a:               : 3D NGON mesh
-# OUT: A message telling the cell id for which the volume is the smallest. 
+# OUT: A message telling the cell id for which the volume is the smallest.
 #==============================================================================
 def checkCellsVolume(a, PE):
     """ Computes the minimum volume using the input orientation (ParentElement).
@@ -829,10 +829,10 @@ def checkCellsVolume(a, PE):
     return intersector.checkCellsVolume(a, PE)
 
 #==============================================================================
-# checkCellsVolumeAndGrowthRatio : Computes the minimum volume and growth ratio using the input orientation (ParentElement). 
-#              
+# checkCellsVolumeAndGrowthRatio : Computes the minimum volume and growth ratio using the input orientation (ParentElement).
+#
 # IN: a:               : 3D NGON mesh
-# OUT: A message telling the cell id for which the volume is the smallest. 
+# OUT: A message telling the cell id for which the volume is the smallest.
 #==============================================================================
 def checkCellsVolumeAndGrowthRatio(a, PE):
     """ Computes the minimum volume and growth ratio using the input orientation (ParentElement).
@@ -883,19 +883,19 @@ def computeGrowthRatio(a, vmin=0.):
 #==============================================================================
 # extrudeBC : XXX
 #==============================================================================
-def extrudeBC(a, extrude_pgs=[], height = 0.25, mean_or_min = 1, create_ghost=1):
+def extrudeBC(a, extrude_pgs=[], height=0.25, mean_or_min=1, create_ghost=1):
     return intersector.extrudeBC(a, extrude_pgs, height, mean_or_min, create_ghost)
 
 #==============================================================================
 # extrudeSurf : XXX
 #==============================================================================
-def extrudeSurf(a, layer_height, nlayers = 1, strategy = 1):
+def extrudeSurf(a, layer_height, nlayers=1, strategy=1):
     return intersector.extrudeSurf(a, layer_height, nlayers, strategy)
 
 #==============================================================================
 # extrudeRevolSurf : XXX
 #==============================================================================
-def extrudeRevolSurf(a, ax_pt, ax_dir, nlayers = 1):
+def extrudeRevolSurf(a, ax_pt, ax_dir, nlayers=1):
     return intersector.extrudeRevolSurf(a, ax_pt, ax_dir, nlayers)
 
 #==============================================================================
@@ -907,7 +907,7 @@ def statsUncomputableFaces(a):
 #==============================================================================
 # statsSize : XXX
 #==============================================================================
-def statsSize(a, compute_metrics = 1):
+def statsSize(a, compute_metrics=1):
     return intersector.statsSize(a, compute_metrics)
 
 #==============================================================================
@@ -974,10 +974,10 @@ def volumes(a, algo=1, all_pgs_convex=False):
     Usage: volumes(a, algo=1, all_pgs_convex=False)"""
     return intersector.volumes(a, algo, all_pgs_convex)
 
-def merge(a, s, tol = 1.e-15): #target arr, source arr
+def merge(a, s, tol=1.e-15): #target arr, source arr
     return intersector.merge(a, s, tol)
 
-def concatenate(la, tol = 1.e-15):
+def concatenate(la, tol=1.e-15):
     return intersector.concatenate(la, tol)
 
 #==============================================================================
@@ -986,7 +986,7 @@ def concatenate(la, tol = 1.e-15):
 # IN: xcelln : name of the weighting field (at centers)/
 # OUT: volume computed
 #==============================================================================
-def volume(a, xcelln = None):
+def volume(a, xcelln=None):
     """ Computes the volume of a with an optional weighting.
     Usage: volume(a, xcelln)"""
     return intersector.volume(a, xcelln)
@@ -1009,17 +1009,17 @@ def drawOrientation(a):
 # OUT: returns a 3D NGON Mesh with synchronised faces
 #==============================================================================
 def syncMacthPeriodicFaces(a, rotationCenter=[0.,0.,0.],
-                              rotationAngle=[0.,0.,0.],
-                              translation=[0.,0.,0.], tol=-0.01):
+                           rotationAngle=[0.,0.,0.],
+                           translation=[0.,0.,0.], tol=-0.01):
     """ Force periodicity for faces that are supposed to be periodic.
       Usage: syncMacthPeriodicFaces(a, rotationCenter, rotationAngle, translation, TOL)"""
     return intersector.syncMacthPeriodicFaces(a, rotationCenter, rotationAngle,
-                                                  translation, tol)
+                                              translation, tol)
 
 #~ def conservativeTransfer(a1, flowsol, a2, tol=0., reconstruction_type=0):
     #~ c = intersector.conservative_transfer(a1, flowsol, a2, tol, reconstruction_type)
     #~ return c
-    #~ 
+    #~
 #~ def totalMass(a1, flowsol):
     #~ intersector.total_mass(a1, flowsol)
     #~ return a1

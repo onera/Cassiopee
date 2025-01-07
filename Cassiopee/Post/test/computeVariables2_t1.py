@@ -4,9 +4,9 @@ import Post as P
 import Generator as G
 import KCore.test as test
 
-# Variables a calculer 
+# Variables a calculer
 # --------------------
-vars = ['Pressure','VelocityX','VelocityZ','VelocityMagnitude', 
+vars = ['Pressure','VelocityX','VelocityZ','VelocityMagnitude',
         'Temperature','Entropy','Enthalpy','Mach','ViscosityMolecular',
         'PressureStagnation','TemperatureStagnation']
 

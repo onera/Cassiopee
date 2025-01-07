@@ -30,7 +30,7 @@ test.testT(a2,3)
 
 # test 3D cylindre HEXA
 ni = 20; nj = 20; nk = 5
-a0 = G.cylinder((0.,0.,0.), 0., 1., 0., 359, 1., (ni,nj,nk)) 
+a0 = G.cylinder((0.,0.,0.), 0., 1., 0., 359, 1., (ni,nj,nk))
 a0 = T.subzone(a0,(1,10,1),(20,13,5))
 a = C.convertArray2Hexa(a0)
 C._addVars(a,'Density'); C._initVars(a,'centers:cellN',1.)

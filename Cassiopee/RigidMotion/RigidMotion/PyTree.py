@@ -32,13 +32,13 @@ def setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
                          ex="0", ey="0", ez="1", angle="0"):
     """Define a motion of type 1 (time strings)."""
     tp = Internal.copyRef(t)
-    _setPrescribedMotion1(tp, name, tx=tx, ty=ty, tz=tz, cx=cx, cy=cy, cz=cz, 
+    _setPrescribedMotion1(tp, name, tx=tx, ty=ty, tz=tz, cx=cx, cy=cy, cz=cz,
                           ex=ex, ey=ey, ez=ez, angle=angle)
     return tp
 
 def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
-                         cx="0", cy="0", cz="0",
-                         ex="0", ey="0", ez="1", angle="0"):
+                          cx="0", cy="0", cz="0",
+                          ex="0", ey="0", ez="1", angle="0"):
     for z in Internal.getZones(t):
         # Recupere le conteneur TimeMotion
         cont = Internal.getNodeFromName1(z, 'TimeMotion')
@@ -69,7 +69,7 @@ def _setPrescribedMotion1(t, name, tx="0", ty="0", tz="0",
     return None
 
 #==================================================================
-# Permet de definir un mouvement de RotorMotion 
+# Permet de definir un mouvement de RotorMotion
 #==================================================================
 def setPrescribedMotion2(t, name,
                          transl_speed=(0.,0.,0.), psi0=0., psi0_b=0.,
@@ -195,11 +195,11 @@ def _setPrescribedMotion2(t, name,
         for noh in range(len(tets)): DELHS.append(tets[noh])
         motion[2].append(['tets', numpy.array(DELHS, numpy.float64), [], 'DataArray_t'])
 
-        # blade spanwise vector 
+        # blade spanwise vector
         motion[2].append(['span_vct', numpy.array([span_vct[0], span_vct[1], span_vct[2]], numpy.float64),
                           [], 'DataArray_t'])
 
-        # pre-lag 
+        # pre-lag
         motion[2].append(['pre_lag_pnt', numpy.array([pre_lag_pnt[0], pre_lag_pnt[1], pre_lag_pnt[2]], numpy.float64),
                           [], 'DataArray_t'])
         motion[2].append(['pre_lag_vct', numpy.array([pre_lag_vct[0], pre_lag_vct[1], pre_lag_vct[2]], numpy.float64),
@@ -219,7 +219,7 @@ def _setPrescribedMotion2(t, name,
 # Permet de definir un mouvement de rotation + translation a vitesse constante
 #=============================================================================
 def setPrescribedMotion3(t, name,
-                         transl_speed=(0.,0.,0.),  
+                         transl_speed=(0.,0.,0.),
                          axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,1.),
                          omega=0.):
     """Define a motion of type 3 (constant rotation+translation speed)."""
@@ -229,8 +229,8 @@ def setPrescribedMotion3(t, name,
     return tp
 
 def _setPrescribedMotion3(t, name, transl_speed=(0.,0.,0.),
-                         axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,1.),
-                         omega=0.):
+                          axis_pnt=(0.,0.,0.), axis_vct=(0.,0.,1.),
+                          omega=0.):
     """Define a motion of type 3 (constant rotation+translation speed)."""
     for z in Internal.getZones(t):
         # Recupere le conteneur TimeMotion
@@ -321,7 +321,7 @@ def _moveZone__(z, time):
                     angle = angle #*__RAD2DEG__
                     T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle, vectors=[])
 
-            elif dtype == 2: # type 2: rotor_motion for helicopters in FF                
+            elif dtype == 2: # type 2: rotor_motion for helicopters in FF
                 transl_speed = Internal.getValue(Internal.getNodeFromName(m, 'transl_speed'))
                 psi0 = Internal.getValue(Internal.getNodeFromName(m, 'psi0'))
                 psi0_b = Internal.getValue(Internal.getNodeFromName(m, 'psi0_b'))
@@ -340,7 +340,7 @@ def _moveZone__(z, time):
                 bet_vct = Internal.getValue(Internal.getNodeFromName(m, 'bet_vct'))
                 bet0 = Internal.getValue(Internal.getNodeFromName(m, 'bet0'))
                 betc = getNodeValue__(m, 'betc')
-                bets = getNodeValue__(m, 'bets')                
+                bets = getNodeValue__(m, 'bets')
                 betc = getNodeValue__(m, 'betc')
                 bets = getNodeValue__(m, 'bets')
                 tet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'tet_pnt'))
@@ -383,7 +383,7 @@ def _moveZone__(z, time):
                 transl_speed = getNodeValue__(m, 'transl_speed')
                 axis_pnt = getNodeValue__(m, 'axis_pnt')
                 axis_vct = getNodeValue__(m, 'axis_vct')
-                omega = getNodeValue__(m, 'omega')               
+                omega = getNodeValue__(m, 'omega')
                 cx = axis_pnt[0]
                 cy = axis_pnt[1]
                 cz = axis_pnt[2]
@@ -397,7 +397,7 @@ def _moveZone__(z, time):
                 print("Warning: Motion type not found. Nothing done.")
     return None
 
-# Recopie GridCoordinates#Init (s'il existe) dans GridCoordinates 
+# Recopie GridCoordinates#Init (s'il existe) dans GridCoordinates
 def copyGridInit2Grid(t):
     tp = Internal.copyRef(t)
     _copyGridInit2Grid(tp)
@@ -470,7 +470,7 @@ def _switchGridAndGridInit(t):
             gc2[0] = 'GridCoordinates#Init'
     return None
 
-# eval position by deformation: 
+# eval position by deformation:
 # ajoute Displacement#0 dans Coordinates#Init
 def _evalDeformationPosition(t):
     zones = Internal.getZones(t)
@@ -539,7 +539,7 @@ def evalPosition__(t, time):
         np = Internal.copyTree(n)
         #for c, p in enumerate(n[2]): n[2][c] = np[2][c]
         n[2][:] = np[2][:]
-    for z in zones: 
+    for z in zones:
         _copyGridInit2Grid(z)
         _moveZone__(z, time)
     return a
@@ -586,7 +586,7 @@ def getDictOfMotionMatrix(a, time, F=None):
         dictRM[zname] = getMotionMatrixForZone(z, time, F)
     return dictRM
 
-def getMotionMatrixForZone(z, time, F=None):    
+def getMotionMatrixForZone(z, time, F=None):
     if F is None:
         cont = Internal.getNodeFromName1(z, 'TimeMotion')
         if cont is not None:
@@ -691,7 +691,7 @@ def _evalGridSpeed(a, time, out=0):
     """Eval grid speed at given time. Position must be already at time."""
     zones = Internal.getZones(a)
     for z in zones:
-    # Find Coordinates pointers (must already be updated)
+        # Find Coordinates pointers (must already be updated)
         grid = Internal.getNodeFromName1(z, 'GridCoordinates')
         xcoord = Internal.getNodeFromName1(grid, 'CoordinateX')
         ycoord = Internal.getNodeFromName1(grid, 'CoordinateY')
@@ -700,9 +700,9 @@ def _evalGridSpeed(a, time, out=0):
         # Get translation vector
         cont = Internal.getNodeFromName1(z, 'TimeMotion')
         if cont is not None:
-        # Get speed pointers
+            # Get speed pointers
             mmo = Internal.getNodeFromName1(z, 'Motion')
-            if mmo is None: mmo = Internal.createNode('Motion', 'UserDefined_t', parent=z)  
+            if mmo is None: mmo = Internal.createNode('Motion', 'UserDefined_t', parent=z)
             sx = Internal.getNodeFromName1(mmo, 'VelocityX')
             if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size))
             sy = Internal.getNodeFromName1(mmo, 'VelocityY')
@@ -758,7 +758,7 @@ def _evalGridSpeed(a, time, out=0):
                     bet_vct = Internal.getValue(Internal.getNodeFromName(m, 'bet_vct'))
                     bet0 = Internal.getValue(Internal.getNodeFromName(m, 'bet0'))
                     betc = getNodeValue__(m, 'betc')
-                    bets = getNodeValue__(m, 'bets')                
+                    bets = getNodeValue__(m, 'bets')
                     betc = getNodeValue__(m, 'betc')
                     bets = getNodeValue__(m, 'bets')
                     tet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'tet_pnt'))
@@ -803,10 +803,10 @@ def _evalGridSpeed(a, time, out=0):
                     else: omega = Internal.getValue(omega)
 
                     rigidMotion.evalSpeed3(xcoord[1], ycoord[1], zcoord[1],
-                      sx[1], sy[1], sz[1], omega, omega*time,
-                      transl_speed[0], transl_speed[1], transl_speed[2],
-                      axis_pnt[0], axis_pnt[1], axis_pnt[2],
-                      axis_vct[0], axis_vct[1], axis_vct[2])
+                                           sx[1], sy[1], sz[1], omega, omega*time,
+                                           transl_speed[0], transl_speed[1], transl_speed[2],
+                                           axis_pnt[0], axis_pnt[1], axis_pnt[2],
+                                           axis_vct[0], axis_vct[1], axis_vct[2])
 
             # Recopie le champ dans un FlowSolution pour visu
             if out == 1:
@@ -866,7 +866,7 @@ def evalPositionM1(coords, z, time):
                 bet_vct = Internal.getValue(Internal.getNodeFromName(m, 'bet_vct'))
                 bet0 = Internal.getValue(Internal.getNodeFromName(m, 'bet0'))
                 betc = getNodeValue__(m, 'betc')
-                bets = getNodeValue__(m, 'bets')                
+                bets = getNodeValue__(m, 'bets')
                 betc = getNodeValue__(m, 'betc')
                 bets = getNodeValue__(m, 'bets')
                 tet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'tet_pnt'))
@@ -920,7 +920,7 @@ def _setRotorMotionCoordsAndGridVel(a, time):
                     # Get grid velocity pointers
                     name = 'Motion'
                     mmo = Internal.getNodeFromName1(z,name)
-                    if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
+                    if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)
                     sx = Internal.getNodeFromName1(mmo, 'VelocityX')
                     if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size))
                     sy = Internal.getNodeFromName1(mmo, 'VelocityY')
@@ -945,7 +945,7 @@ def _setRotorMotionCoordsAndGridVel(a, time):
                     bet_vct = Internal.getValue(Internal.getNodeFromName(m, 'bet_vct'))
                     bet0 = Internal.getValue(Internal.getNodeFromName(m, 'bet0'))
                     betc = getNodeValue__(m, 'betc')
-                    bets = getNodeValue__(m, 'bets')                
+                    bets = getNodeValue__(m, 'bets')
                     betc = getNodeValue__(m, 'betc')
                     bets = getNodeValue__(m, 'bets')
                     tet_pnt = Internal.getValue(Internal.getNodeFromName(m, 'tet_pnt'))
@@ -987,11 +987,11 @@ def _evalGridSpeed2(a, time, dtime=1.e-6, out=0):
         # evalue la position a l'instant time+dtime
         c = evalPosition(z, time+dtime)
         # evalue la difference
-        coord1X = Internal.getNodeFromName(b, 'CoordinateX')[1] 
+        coord1X = Internal.getNodeFromName(b, 'CoordinateX')[1]
         coord1Y = Internal.getNodeFromName(b, 'CoordinateY')[1]
         coord1Z = Internal.getNodeFromName(b, 'CoordinateZ')[1]
-        coord2X = Internal.getNodeFromName(c, 'CoordinateX')[1] 
-        coord2Y = Internal.getNodeFromName(c, 'CoordinateY')[1] 
+        coord2X = Internal.getNodeFromName(c, 'CoordinateX')[1]
+        coord2Y = Internal.getNodeFromName(c, 'CoordinateY')[1]
         coord2Z = Internal.getNodeFromName(c, 'CoordinateZ')[1]
         speedX = coord2X[:]-coord1X[:]
         speedY = coord2Y[:]-coord1Y[:]
@@ -1006,7 +1006,7 @@ def _evalGridSpeed2(a, time, dtime=1.e-6, out=0):
             xcoord = Internal.getNodeFromName2(z, 'CoordinateX')
             name  = 'Motion'
             mmo = Internal.getNodeFromName1(z, name)
-            if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
+            if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)
             sx = Internal.getNodeFromName1(mmo, 'VelocityX')
             if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size))
             sy = Internal.getNodeFromName1(mmo, 'VelocityY')
@@ -1049,7 +1049,7 @@ def _evalPositionIBC(tc,time):
             transl_speed = Internal.getNodeFromName(motions[0], 'transl_speed')[1]
             axis_pnt     = Internal.getNodeFromName(motions[0], 'axis_pnt')[1]
             axis_vct     = Internal.getNodeFromName(motions[0], 'axis_vct')[1]
-            omega        = Internal.getNodeFromName(motions[0], 'omega')[1]            
+            omega        = Internal.getNodeFromName(motions[0], 'omega')[1]
             cx           = axis_pnt[0]
             cy           = axis_pnt[1]
             cz           = axis_pnt[2]
@@ -1084,4 +1084,3 @@ def _evalPositionIBC(tc,time):
                         coordY_PC[:] = transl_speed[1]*time + a21*(coordX_PCInit[:]-cx)+a22*(coordY_PCInit[:]-cy)+a23*(coordZ_PCInit[:]-cz)+cy
                         coordZ_PC[:] = transl_speed[2]*time + a31*(coordX_PCInit[:]-cx)+a32*(coordY_PCInit[:]-cy)+a33*(coordZ_PCInit[:]-cz)+cz
     return None
-

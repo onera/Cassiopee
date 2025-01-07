@@ -13,4 +13,3 @@ a.drawParticles('particules1', pos=(0,0,0), Np=30)
 for i in range(100):
     a.animateParticles('particules1', 0.001, 0.1)
     time.sleep(0.1)
-

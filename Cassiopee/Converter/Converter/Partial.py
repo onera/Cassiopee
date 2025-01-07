@@ -2,8 +2,8 @@
 
 # -- convertPyTree2FileMPI
 def convertPyTree2FileMPI(t, fileName, comm, SkeletonTree, ParallelHDF=False,
-                             format=None, isize=4, rsize=8,
-                             endian='big', colormap=0, dataFormat='%.9e '):
+                          format=None, isize=4, rsize=8,
+                          endian='big', colormap=0, dataFormat='%.9e '):
     """Convert a pyTree to a file.
     Usage: convertPyTree2File(t, fileName, format, options)"""
 

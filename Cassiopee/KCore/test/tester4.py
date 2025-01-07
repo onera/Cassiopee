@@ -41,4 +41,4 @@ KCore.tester(a)
 #print(a[2][0].shape)
 
 #=============================================================
-# NGON tra la la 
+# NGON tra la la

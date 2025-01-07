@@ -43,7 +43,7 @@ def rmBlock():
     CTK.TXT.insert('START', 'Selected zones deleted.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CPlot.delete(deletedZoneNames) 
+    CPlot.delete(deletedZoneNames)
     CPlot.render()
 
 #==============================================================================
@@ -130,7 +130,7 @@ def convert2Tetra():
 #==============================================================================
 # Converti un bloc ou tous les blocs en hexa
 # IN: t, cplot.selectedZones
-# OUT: t modifie et affiche. 
+# OUT: t modifie et affiche.
 #==============================================================================
 def convert2Hexa():
     if CTK.t == []: return
@@ -165,7 +165,7 @@ def convert2Hexa():
         Panels.displayErrors(errors, header='Error: convert2Hexa')
         CTK.TXT.insert('START', 'Hexa conversion fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    #C._fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -173,7 +173,7 @@ def convert2Hexa():
 #==============================================================================
 # Converti un bloc en node
 # IN: t, cplot.selectedZones
-# OUT: t modifie et affiche. 
+# OUT: t modifie et affiche.
 #==============================================================================
 def convert2Node():
     if CTK.t == []: return
@@ -188,7 +188,7 @@ def convert2Node():
 
     for nz in nzs:
         nob = CTK.Nb[nz]+1
-        noz = CTK.Nz[nz]        
+        noz = CTK.Nz[nz]
         a = C.convertArray2Node(CTK.t[2][nob][2][noz])
         CTK.replace(CTK.t, nob, noz, a)
 
@@ -254,7 +254,7 @@ def oneovern():
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return 
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
     args = VARS[0].get()
     args = args.split(';')
     if (len(args) != 3):
@@ -330,7 +330,7 @@ def close():
 #==============================================================================
 def createApp(win):
     # - Frame -
-    Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE, 
+    Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                            text='tkBlock  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='General block operations.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)

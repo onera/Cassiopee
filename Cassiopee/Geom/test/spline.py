@@ -38,4 +38,3 @@ C.setValue(a, (4,4,1), [4.,4.,2.])
 b = D.spline(a, 4, N=30, M=30)
 c = D.spline(a, 4, density=10.)
 C.convertArrays2File([a, b, c], 'out2.plt')
-

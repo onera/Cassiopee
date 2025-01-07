@@ -25,113 +25,113 @@ __CHIMGROUPNAMEDD__ = 'ChimGroupDD_' # reference to donors for suffixed base nam
 
 # Traduction : keyword elsA -> keyword CGNS
 keyselsA2CGNS = {\
-'config'         :'EquationDimension'             , \
-'fluid'          :'GasModel'                      , \
-''               :'GasModelType'                  , \
-'pg'             :'Ideal'                         , \
-'gamma'          :'SpecificHeatRatio'             , \
-'cv'             :'SpecificHeatVolume'            , \
-'_'              :'IdealGasConstant'              , \
-'__'             :'ThermalConductivityModel'      , \
-'___'            :'TurbulenceClosure'             , \
-'prandtl'        :'ConstantPrandtl'               , \
-'prandtltb'      :'PrandtlTurbulent'              , \
-'phymod'         :"GoverningEquations"            , \
-'turbmod'        :'TurbulenceModel'               , \
-'euler'          :'Euler'                         , \
-'nstur'          :'NSTurbulent'                   , \
-'nslam'          :'NSLaminar'                     , \
-'spalart'        :'OneEquation_SpalartAllmaras'   , \
-'kepsjl'         :'TwoEquation_JonesLaunder'      , \
-'komega_menter'  :'TwoEquation_MenterSST'         , \
-'komega_wilcox'  :'TwoEquation_Wilcox'            , \
-'komega_kok'     :'UserDefined'                   , \
-'smith'          :'UserDefined'                   , \
-'visclaw'        :'ViscosityModel'                , \
-'sutherland'     :'Sutherland'                    , \
-'suth_const'     :'SutherlandLawConstant'         , \
-'suth_muref'     :'ViscosityMolecularReference'   , \
-'suth_tref'      :'TemperatureReference'          , \
-'walladia'       :'BCWall'                        , \
-'wallslip'       :'BCWallInviscid'                , \
-'cell'           :'CellCenter'                    , \
-'node'           :'Vertex'                        , \
-'x'              :'CoordinateX'                   , \
-'y'              :'CoordinateY'                   , \
-'z'              :'CoordinateZ'                   , \
-'X'              :'CoordinateX'                   , \
-'Y'              :'CoordinateY'                   , \
-'Z'              :'CoordinateZ'                   , \
-'ro'             :'Density'                       , \
-'rou'            :'MomentumX'                     , \
-'rov'            :'MomentumY'                     , \
-'row'            :'MomentumZ'                     , \
-'rovx'           :'MomentumX'                     , \
-'rovy'           :'MomentumY'                     , \
-'rovz'           :'MomentumZ'                     , \
-'roe'            :'EnergyStagnationDensity'       , \
-'roE'            :'EnergyStagnationDensity'       , \
-'rok'            :'TurbulentEnergyKineticDensity' , \
-'roeps'          :'TurbulentDissipationDensity'   , \
-'ronutilde'      :'TurbulentSANuTildeDensity'     , \
-'mach'           :'Mach'                          , \
-'psta'           :'Pressure'                      , \
-'tsta'           :'Temperature'                   , \
-'viscrapp'       :'Viscosity_EddyMolecularRatio'  , \
-'walldistance'   :'TurbulentDistance'             , \
-'wallglobalindex':'TurbulentDistanceIndex'        , \
+    'config'         :'EquationDimension'             , \
+    'fluid'          :'GasModel'                      , \
+    ''               :'GasModelType'                  , \
+    'pg'             :'Ideal'                         , \
+    'gamma'          :'SpecificHeatRatio'             , \
+    'cv'             :'SpecificHeatVolume'            , \
+    '_'              :'IdealGasConstant'              , \
+    '__'             :'ThermalConductivityModel'      , \
+    '___'            :'TurbulenceClosure'             , \
+    'prandtl'        :'ConstantPrandtl'               , \
+    'prandtltb'      :'PrandtlTurbulent'              , \
+    'phymod'         :"GoverningEquations"            , \
+    'turbmod'        :'TurbulenceModel'               , \
+    'euler'          :'Euler'                         , \
+    'nstur'          :'NSTurbulent'                   , \
+    'nslam'          :'NSLaminar'                     , \
+    'spalart'        :'OneEquation_SpalartAllmaras'   , \
+    'kepsjl'         :'TwoEquation_JonesLaunder'      , \
+    'komega_menter'  :'TwoEquation_MenterSST'         , \
+    'komega_wilcox'  :'TwoEquation_Wilcox'            , \
+    'komega_kok'     :'UserDefined'                   , \
+    'smith'          :'UserDefined'                   , \
+    'visclaw'        :'ViscosityModel'                , \
+    'sutherland'     :'Sutherland'                    , \
+    'suth_const'     :'SutherlandLawConstant'         , \
+    'suth_muref'     :'ViscosityMolecularReference'   , \
+    'suth_tref'      :'TemperatureReference'          , \
+    'walladia'       :'BCWall'                        , \
+    'wallslip'       :'BCWallInviscid'                , \
+    'cell'           :'CellCenter'                    , \
+    'node'           :'Vertex'                        , \
+    'x'              :'CoordinateX'                   , \
+    'y'              :'CoordinateY'                   , \
+    'z'              :'CoordinateZ'                   , \
+    'X'              :'CoordinateX'                   , \
+    'Y'              :'CoordinateY'                   , \
+    'Z'              :'CoordinateZ'                   , \
+    'ro'             :'Density'                       , \
+    'rou'            :'MomentumX'                     , \
+    'rov'            :'MomentumY'                     , \
+    'row'            :'MomentumZ'                     , \
+    'rovx'           :'MomentumX'                     , \
+    'rovy'           :'MomentumY'                     , \
+    'rovz'           :'MomentumZ'                     , \
+    'roe'            :'EnergyStagnationDensity'       , \
+    'roE'            :'EnergyStagnationDensity'       , \
+    'rok'            :'TurbulentEnergyKineticDensity' , \
+    'roeps'          :'TurbulentDissipationDensity'   , \
+    'ronutilde'      :'TurbulentSANuTildeDensity'     , \
+    'mach'           :'Mach'                          , \
+    'psta'           :'Pressure'                      , \
+    'tsta'           :'Temperature'                   , \
+    'viscrapp'       :'Viscosity_EddyMolecularRatio'  , \
+    'walldistance'   :'TurbulentDistance'             , \
+    'wallglobalindex':'TurbulentDistanceIndex'        , \
 }
 
 # Traduction : keyword CGNS -> keyword elsA
 # keysCGNS2elsA = dict((v, k) for k, v in keyselsA2CGNS.iteritems())
 keysCGNS2elsA={
-'EquationDimension'             :'config'       , \
-'GasModel'                      :'fluid'        , \
-'GasModelType'                  :''             , \
-'Ideal'                         :'pg'           , \
-#'CalloricallyPerfect'           :'pg'           , \
-'SpecificHeatRatio'             :'gamma'        , \
-'SpecificHeatVolume'            :'cv'           , \
-'IdealGasConstant'              :'_'            , \
-'ThermalConductivityModel'      :'__'           , \
-'TurbulenceClosure'             :'___'          , \
-'ConstantPrandtl'               :'prandtl'      , \
-'PrandtlTurbulent'              :'prandtltb'    , \
-"GoverningEquations"            :'phymod'       , \
-'TurbulenceModel'               :'turbmod'      , \
-'Euler'                         :'euler'        , \
-'NSTurbulent'                   :'nstur'        , \
-'NSLaminar'                     :'nslam'        , \
-'OneEquation_SpalartAllmaras'   :'spalart'      , \
-'TwoEquation_JonesLaunder'      :'kepsjl'       , \
-'TwoEquation_MenterSST'         :'komega_menter', \
-'TwoEquation_Wilcox'            :'komega_wilcox', \
-'UserDefined'                   :'komega_kok'   , \
-'UserDefined'                   :'smith'        , \
-'ViscosityModel'                :'visclaw'      , \
-'Sutherland'                    :'sutherland'   , \
-'SutherlandLawConstant'         :'suth_const'   , \
-'ViscosityMolecularReference'   :'suth_muref'   , \
-'TemperatureReference'          :'suth_tref'    , \
-'BCWall'                        :'walladia'     , \
-'BCWallInviscid'                :'wallslip'     , \
-'CellCenter'                    :'cell'         , \
-'Vertex'                        :'node'         , \
-'CoordinateX'                   :'x'            , \
-'CoordinateY'                   :'y'            , \
-'CoordinateZ'                   :'z'            , \
-'Density'                       :'ro'           , \
-'MomentumX'                     :'rou'          , \
-'MomentumY'                     :'rov'          , \
-'MomentumZ'                     :'row'          , \
-'EnergyStagnationDensity'       :'roe'          , \
-"TurbulentEnergyKineticDensity" :'rok'          , \
-"TurbulentDissipationDensity"   :'roeps'        , \
-"TurbulentSANuTildeDensity"     :'ronutilde'    , \
-'Mach'                          :'mach'         , \
-'Pressure'                      :'psta'         , \
-'Temperature'                   :'tsta'         , \
-'Viscosity_EddyMolecularRatio'  :'viscrapp'     , \
+    'EquationDimension'             :'config'       , \
+    'GasModel'                      :'fluid'        , \
+    'GasModelType'                  :''             , \
+    'Ideal'                         :'pg'           , \
+    #'CalloricallyPerfect'           :'pg'           , \
+    'SpecificHeatRatio'             :'gamma'        , \
+    'SpecificHeatVolume'            :'cv'           , \
+    'IdealGasConstant'              :'_'            , \
+    'ThermalConductivityModel'      :'__'           , \
+    'TurbulenceClosure'             :'___'          , \
+    'ConstantPrandtl'               :'prandtl'      , \
+    'PrandtlTurbulent'              :'prandtltb'    , \
+    "GoverningEquations"            :'phymod'       , \
+    'TurbulenceModel'               :'turbmod'      , \
+    'Euler'                         :'euler'        , \
+    'NSTurbulent'                   :'nstur'        , \
+    'NSLaminar'                     :'nslam'        , \
+    'OneEquation_SpalartAllmaras'   :'spalart'      , \
+    'TwoEquation_JonesLaunder'      :'kepsjl'       , \
+    'TwoEquation_MenterSST'         :'komega_menter', \
+    'TwoEquation_Wilcox'            :'komega_wilcox', \
+    'UserDefined'                   :'komega_kok'   , \
+    'UserDefined'                   :'smith'        , \
+    'ViscosityModel'                :'visclaw'      , \
+    'Sutherland'                    :'sutherland'   , \
+    'SutherlandLawConstant'         :'suth_const'   , \
+    'ViscosityMolecularReference'   :'suth_muref'   , \
+    'TemperatureReference'          :'suth_tref'    , \
+    'BCWall'                        :'walladia'     , \
+    'BCWallInviscid'                :'wallslip'     , \
+    'CellCenter'                    :'cell'         , \
+    'Vertex'                        :'node'         , \
+    'CoordinateX'                   :'x'            , \
+    'CoordinateY'                   :'y'            , \
+    'CoordinateZ'                   :'z'            , \
+    'Density'                       :'ro'           , \
+    'MomentumX'                     :'rou'          , \
+    'MomentumY'                     :'rov'          , \
+    'MomentumZ'                     :'row'          , \
+    'EnergyStagnationDensity'       :'roe'          , \
+    "TurbulentEnergyKineticDensity" :'rok'          , \
+    "TurbulentDissipationDensity"   :'roeps'        , \
+    "TurbulentSANuTildeDensity"     :'ronutilde'    , \
+    'Mach'                          :'mach'         , \
+    'Pressure'                      :'psta'         , \
+    'Temperature'                   :'tsta'         , \
+    'Viscosity_EddyMolecularRatio'  :'viscrapp'     , \
 }
 
 #==============================================================================
@@ -143,7 +143,7 @@ keysCGNS2elsA={
 # In elsA: it is the opposite
 #===============================================================================
 def adaptPeriodicMatch(t, clean=False):
-    """Convert Periodic Match Grid Connectivity (GC) data to be compliant with elsA solver.""" 
+    """Convert Periodic Match Grid Connectivity (GC) data to be compliant with elsA solver."""
     tp = Internal.copyRef(t)
     _adaptPeriodicMatch(tp, clean=clean)
     return tp
@@ -167,13 +167,13 @@ def _adaptPeriodicMatch(t, clean=False):
             periodic = Internal.getNodeFromType2(c, 'Periodic_t')
             if periodic is not None:
                 rotAngleNode = Internal.getNodeFromName1(periodic, 'RotationAngle')
-                if rotAngleNode is not None: 
+                if rotAngleNode is not None:
                     #rotAngle = Internal.getValue(rotAngleNode)
                     rotAngle = numpy.zeros(3,numpy.float64)
                     rotAngleDeg = Internal.getRotationAngleValueInDegrees(rotAngleNode)
                     for i in range(3): rotAngle[i]=rotAngleDeg[i]
                     Internal._rmNodesByNameAndType(rotAngleNode,'DimensionalUnits','DimensionalUnits_t')
-                else: 
+                else:
                     rotAngle = numpy.empty(0,numpy.float64)
 
                 rotCenter = Internal.getNodeFromName1(periodic, 'RotationCenter')
@@ -225,7 +225,7 @@ def _adaptPeriodicMatch(t, clean=False):
                         sp += [Internal.createNode('ztran','DataArray_t',value=-translation[2])]
 
                 Internal.createNode('.Solver#Property','UserDefinedData_t',value=None,children=sp, parent=c)
-                if clean: 
+                if clean:
                     Internal._rmNodesFromType(c, 'Periodic_t')
 
     return None
@@ -234,7 +234,7 @@ def _adaptPeriodicMatch(t, clean=False):
 # add periodic data for grid connectivity in zone in a .Solver#Param node
 # direction: for periodic Chimera
 #---------------------------------------------------------------------------------------------------------
-def _addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.], 
+def _addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,0.],
                                   NAzimutalSectors=0, isChimera=False):
     if isChimera: periodicDir=3
     else: periodicDir=0
@@ -248,7 +248,7 @@ def _addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.], rotationAngle=[0
         axis=[0.,0.,0.]; axis[diraxis] = 1.
         if NAzimutalSectors>0: angle1 = int(NAzimutalSectors)
         else: angle1 = int(round(360./abs(rotationAngle[diraxis]))) # number of angular sectors of the component which includes the zone in radian
-        angle2 = 1    
+        angle2 = 1
 
         paramNames = ['axis_ang_1','axis_ang_2','axis_pnt_x','axis_pnt_y','axis_pnt_z','axis_vct_x','axis_vct_y','axis_vct_z']
         paramValues = [angle1,angle2,xc,yc,zc,axis[0],axis[1],axis[2]]
@@ -261,7 +261,7 @@ def _addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.], rotationAngle=[0
                 for nop, v in enumerate(paramValues):
                     nodes.append(Internal.createNode(paramNames[nop],'DataArray_t',value=v))
                 Internal._createChild(z,".Solver#Param",'UserDefinedData_t',value=None, children=nodes)
-            else: 
+            else:
                 for nop, v in enumerate(paramValues):
                     node = Internal.getNodeFromName(solverParam, paramNames[nop])
                     if node is None:
@@ -271,7 +271,7 @@ def _addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.], rotationAngle=[0
 
     return None
 
-def addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.], 
+def addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.],
                                  rotationAngle=[1.,0.,0.], NAzimutalSectors=0, isChimera=False):
     """Add periodic data for grid connectivity in zone in a .Solver#Param node."""
     tp = Internal.copyRef(a)
@@ -304,7 +304,7 @@ def _addOutput(a, Dict, name='', update=False):
         for each in Dict: nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
         a[2].append(Internal.createNode(outputName, 'UserDefinedData_t',children=nodeso))
     else:
-        if update: 
+        if update:
             Internal._rmNodesByName(a, outputName)
             nodeso = []
             for each in Dict: nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
@@ -441,7 +441,7 @@ def _addReferenceState(t, conservative=None, temp=None, turbmod='spalart',
     Usage: _addReferenceState(t, conservative, temp, turbmod, name, comments)"""
     strcomments = str(comments)
 
-    if conservative is None: 
+    if conservative is None:
         raise ValueError("addReferenceState: conservative arg must be defined as a list of strings.")
     nvars = len(conservative)
     if nvars < 5:
@@ -451,9 +451,9 @@ def _addReferenceState(t, conservative=None, temp=None, turbmod='spalart',
     if nvars == 5: pass
     elif nvars == 6:
         if turbmod == 'spalart': varnames+=['TurbulentSANuTildeDensity']
-        else: raise ValueError("Inconsistent model for 6-variable equations. Must be 'spalart'.") 
+        else: raise ValueError("Inconsistent model for 6-variable equations. Must be 'spalart'.")
     elif nvars == 7:
-        if turbmod[0:6] =='komega': 
+        if turbmod[0:6] =='komega':
             varnames.append('TurbulentEnergyKineticDensity')
             varnames.append('TurbulentDissipationRateDensity')
         elif turbmod[0:4]=='keps' or turbmod == 'chien' or turbmod == 'asm':
@@ -534,7 +534,7 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
                      addBCExtract=False, protocol="end"):
     """Add a node to extract the flow solution."""
     if governingEquations is not None: gE0 = governingEquations
-    else: 
+    else:
         gE0 = None
         GE = Internal.getNodeFromType2(t,'GoverningEquations_t')
         if GE is not None: gE0 = Internal.getValue(GE)
@@ -566,8 +566,8 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
             childrenNodes = []
             childrenNodes.append(Internal.createNode('GridLocation','GridLocation_t',value=loc))
             if variables is None:
-                if gE0 is None: 
-                    if variables is None: variables = [] 
+                if gE0 is None:
+                    if variables is None: variables = []
 
                 else:
                     variables = __CONSERVATIVE__+__COMMONS__
@@ -576,17 +576,17 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
                     #print('addFlowSolution: extracted variables are: ',variables)
             else:
                 if isinstance(variables,str): variables = variables.split()
-                if "xyz" in variables: 
+                if "xyz" in variables:
                     variables+= __XYZ__; novar = variables.index("xyz"); variables.pop(novar)
-                if "Conservative" in variables: 
+                if "Conservative" in variables:
                     variables += __CONSERVATIVE__; novar = variables.index("Conservative"); variables.pop(novar)
-                if 'Turbulent' in variables: 
+                if 'Turbulent' in variables:
                     variables+=__TURBULENT__; novar = variables.index("Turbulent"); variables.pop(novar)
-                if "Commons" in variables: 
+                if "Commons" in variables:
                     variables+=__COMMONS__; novar = variables.index("Commons"); variables.pop(novar)
-                if 'CommonsNS' in variables: 
+                if 'CommonsNS' in variables:
                     variables+=__COMMONSNS__; novar = variables.index("CommonsNS"); variables.pop(novar)
-                if 'WallDistance' in variables: 
+                if 'WallDistance' in variables:
                     variables+=__WALLDISTANCE__; novar = variables.index("WallDistance"); variables.pop(novar)
                 variables= list(set(variables))
 
@@ -596,7 +596,7 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
             if addBCExtract:
                 subChildren1 = []
                 for bc in Internal.getNodesFromType2(z, "BC_t"):
-                    prval = Internal.getValue(Internal.getNodeFromName1(bc, "PointRange")) 
+                    prval = Internal.getValue(Internal.getNodeFromName1(bc, "PointRange"))
                     subChildren2 = [Internal.createNode("PointRange","DataArray_t", value=prval)]
                     subChildren2+= [Internal.createNode("Protocol","Descriptor_t",value=protocol)]
                     strval = '\n'.join(['SurfaceSolution/NeumannData/'+variable for variable in variables])
@@ -621,7 +621,7 @@ def _buildMaskFiles(t, keepOversetHoles=True, fileDir='.', prefixBase=False):
         basename = Internal.getName(base)
         for z in Internal.getZones(base):
             ho = Internal.getNodeFromType2(z, 'OversetHoles_t')
-            if ho is not None:          
+            if ho is not None:
                 pl = Internal.getNodeFromName1(ho,'PointList')
                 h = Internal.getValue(pl)
                 dim = Internal.getZoneDim(z)
@@ -645,7 +645,7 @@ def buildMaskFiles(t, keepOversetHoles=True, fileDir='.', prefixBase=False):
     return tp
 
 #==============================================================================
-# set BCOverlap - version 1: a la Thomas 
+# set BCOverlap - version 1: a la Thomas
 #==============================================================================
 def overlapGC2BC(t):
     """ Convert the Overlap boundary conditions from GC (Grid Connectivity) to BC (Boundary Condition) for elsA solver.
@@ -684,7 +684,7 @@ def _overlapGC2BC(t):
                             foundDD = False
                             ovsons = [PRBC]
                             for childov in Internal.getChildren(ov):
-                                if Internal.getType(childov)=='UserDefinedData_t': 
+                                if Internal.getType(childov)=='UserDefinedData_t':
                                     if Internal.getNodeFromName1(childov,"doubly_defined") is not None:
                                         isDD = True
                                         foundDD = True
@@ -695,7 +695,7 @@ def _overlapGC2BC(t):
                                             if dnrList=="": dnrList+=dnr
                                             else: dnrList+=" "+dnr
 
-                                        # family dd 
+                                        # family dd
                                         famOvlpName = __FAMOVERLAPDDBC__+ov[0]
                                         DDnode=Internal.createNode('doubly_defined','DataArray_t',value='active')
                                         NLnode=Internal.createNode('NeighbourList','DataArray_t',value=dnrList)
@@ -709,7 +709,7 @@ def _overlapGC2BC(t):
                             overlapbcs.append(ovbc)
                             if not foundDD: isClassical = True
 
-                        if zbc is None: 
+                        if zbc is None:
                             newZoneBC = Internal.createNode("ZoneBC","ZoneBC_t",value=None,children=overlapbcs)
                             Internal._addChild(t[2][nob][2][noz],newZoneBC)
                         else:
@@ -723,12 +723,12 @@ def _overlapGC2BC(t):
                     FamOvlp = Internal.getNodeFromName1(base, famOvlpName)
                     if FamOvlp:
                         NLnode = Internal.createNode('NeighbourList', 'DataArray_t')
-                        Internal._createChild(FamOvlp, '.Solver#Overlap', 'UserDefinedData_t', 
+                        Internal._createChild(FamOvlp, '.Solver#Overlap', 'UserDefinedData_t',
                                               value=None, children=[NLnode])
 
             # renommage en FamilySpecified des doubly defined UserDefinedDD
-            for bc in Internal.getNodesFromType3(t[2][nob],'BC_t'): 
-                if Internal.getValue(bc)=='UserDefinedDD': 
+            for bc in Internal.getNodesFromType3(t[2][nob],'BC_t'):
+                if Internal.getValue(bc)=='UserDefinedDD':
                     Internal.setValue(bc,'FamilySpecified')
 
     return None
@@ -816,7 +816,7 @@ def _fillNeighbourList(t, sameBase=0):
                     Internal.createNode("FamilyName", "FamilyName_t", value=chimgroupname, parent=t[2][nobd][2][nozd])
 
                 # create ChimGroup for donor base
-                if nobd not in listOfDnrBasesNob: 
+                if nobd not in listOfDnrBasesNob:
                     listOfDnrBasesNob.append(nobd)
                     chimgroupsons = [Internal.createNode("FamilyBC","FamilyBC_t",value='UserDefined')]
                     chmg=Internal.createNode(chimgroupname,"Family_t",children=chimgroupsons)
@@ -859,7 +859,7 @@ def _fillNeighbourList(t, sameBase=0):
                                             baseName = baseLoc[0]
                                             dnrname = baseName+'/'+dnrname
                                             if dnrListNL =="": dnrListNL=dnrname
-                                            else: dnrListNL += " "+dnrname                      
+                                            else: dnrListNL += " "+dnrname
                             else:
                                 if dnrListNL =="": dnrListNL=dnrname
                                 else: dnrListNL += " "+dnrname
@@ -869,7 +869,7 @@ def _fillNeighbourList(t, sameBase=0):
                             nobd = dictOfNobOfZone[dnrname]
                             Internal.createNode("FamilyName", "FamilyName_t", value=chimgroupnamedd, parent=t[2][nobd][2][nozd])
                             # create ChimGroup for donor base
-                            if nobd not in listOfDnrBasesNob: 
+                            if nobd not in listOfDnrBasesNob:
                                 listOfDnrBasesNob.append(nobd)
                                 chimgroupsons = [Internal.createNode("FamilyBC","FamilyBC_t",value='UserDefined')]
                                 chmg=Internal.createNode(chimgroupnamedd,"Family_t",children=chimgroupsons)
@@ -963,7 +963,7 @@ def _adaptNearMatch(t):
                         PRD2 = Internal.createNode("PointRangeDonor","IndexRange_t",value=Internal.getValue(PRD),parent=gc)
                         transfo2 = Internal.createNode('Transform','\"int[IndexDimension]\"',value=Internal.getValue(transfo),parent=gc)
                         Internal._rmNodesByName(gc,udd[0])
-                        Internal._rmNodesByName(gc,"PointListDonor")            
+                        Internal._rmNodesByName(gc,"PointListDonor")
                         Internal._rmNodesByName(gc,'GridConnectivityType')
                         # fine or coarse
                         fine = 0; iratio=1; jratio=1; kratio=1
@@ -1015,7 +1015,7 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
             CE = Internal.getNodeFromName1(node, 'ElementConnectivity')
             PE = Internal.getNodeFromName1(node, 'ParentElements')
             if PE is None:
-                Internal._adaptNFace2PE(z, remove=False, methodPE = methodPE)
+                Internal._adaptNFace2PE(z, remove=False, methodPE=methodPE)
                 PE = Internal.getNodeFromName1(node, 'ParentElements')
             er = Internal.getNodeFromName1(node, 'ElementRange')
             nfaces = er[1][1]-er[1][0]+1
@@ -1055,7 +1055,7 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     return None
 
 #==============================================================================
-# Prefix ID_* zone subregion donors 
+# Prefix ID_* zone subregion donors
 #==============================================================================
 def prefixDnrInSubRegions(t):
     """Prefix zone subregion ID_* donor names with base name."""
@@ -1078,7 +1078,7 @@ def _prefixDnrInSubRegions(t):
         subRegions= Internal.getNodesFromType1(z,'ZoneSubRegion_t')
         for s in subRegions:
             sname = Internal.getName(s)
-            if sname.split('_')[0] == 'ID': 
+            if sname.split('_')[0] == 'ID':
                 dnrname = Internal.getValue(s)
                 s2 = dnrname.split('/')
                 if len(s2)==1:
@@ -1551,7 +1551,7 @@ def buildPart__(g):
 
     return equivalenceNames
 
-# Nettoie l'arbre 
+# Nettoie l'arbre
 def cleanTree__(t):
     tp = Internal.copyRef(t)
     g = buildGraph__(tp)
@@ -1585,7 +1585,7 @@ def _splitHybridBCMatch(t):
                             name = g[0]
                             Internal._rmNodesFromName(zgc, name)
                             for i in range(6):
-                                if SPL[i] is not None: 
+                                if SPL[i] is not None:
                                     n = Internal.createChild(zgc, C.getBCName(name), 'GridConnectivity1to1_t', value=Internal.getValue(g))
                                     Internal.createChild(n, 'GridLocation', 'GridLocation_t', value='FaceCenter')
                                     Internal.createChild(n, 'PointList', 'IndexArray_t', value=SPL[i].reshape(1,SPL[i].size))
@@ -1608,7 +1608,7 @@ def _splitHybridBCMatch(t):
                                 name = g[0]
                                 Internal._rmNodesFromName(zgc, name)
                                 for i in range(6):
-                                    if SPL[i] is not None: 
+                                    if SPL[i] is not None:
                                         n = Internal.createChild(zgc, C.getBCName(name), 'GridConnectivity_t', value=zdname)
                                         Internal.createChild(n, 'GridLocation', 'GridLocation_t', value='FaceCenter')
                                         Internal.createChild(n, 'PointList', 'IndexArray_t', value=SPL[i+6].reshape(1,SPL[i+6].size))

@@ -20,15 +20,15 @@ z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 
 XOR._setZonesAndJoinsUId(z)
 
-m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type = 1)
+m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type=1)
 
 m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'out.cgns')
 
 ## HEXA dynamic adaptation
-hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
+hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision
 
-m = XOR.adaptCellsNodal(z, [nodal_vals], hmesh = hmsh, smoothing_type = 1)
+m = XOR.adaptCellsNodal(z, [nodal_vals], hmesh=hmsh, smoothing_type=1)
 m = XOR.closeCells(m)            # close cells (adding point on lateral faces)
 
 C.convertPyTree2File(m, "out1.cgns")
@@ -43,9 +43,7 @@ n = C.getNPts(zTH4)
 nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
-m = XOR.adaptCellsNodal(zTH4, [nodal_vals], smoothing_type = 1)
+m = XOR.adaptCellsNodal(zTH4, [nodal_vals], smoothing_type=1)
 
 m = XOR.closeCells(m)
 C.convertPyTree2File(m, 'out2.cgns')
-
-

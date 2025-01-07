@@ -12,7 +12,7 @@ t2 = G.cart((1.,0,0), (1,1,1), (10,10,10))
 t2 = C.convertArray2NGon(t2); t2 = G.close(t2)
 
 # test 1 : volume/volume
-res = XOR.getOverlappingFaces(t1, t2, RTOL = 0.05, amax = 0.1)
+res = XOR.getOverlappingFaces(t1, t2, RTOL=0.05, amax=0.1)
 
 # create a list of polygon list (t1), one list per zone
 nb_zones = len(res)
@@ -29,7 +29,7 @@ C.convertPyTree2File(t, "out.cgns")
 t2 = P.exteriorFaces(t2)
 t2 = XOR.convertNGON2DToNGON3D(t2)
 
-res = XOR.getOverlappingFaces(t1, t2, RTOL = 0.05, amax = 0.1)
+res = XOR.getOverlappingFaces(t1, t2, RTOL=0.05, amax=0.1)
 
 t1zones_pgids = []
 for i in range(nb_zones):

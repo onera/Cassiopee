@@ -9,25 +9,25 @@ applet = {
     # tkNodeEdir
     'tkNodeEdit':'tkNodeEdit', 'Edit/change node value':'tkNodeEdit', 'Load a node':'tkNodeEdit',
     # tkTreeOps
-    'tkTreeOps':'tkTreeOps', 'Move node':'tkTreeOps', 'Delete/remove node':'tkTreeOps', 
+    'tkTreeOps':'tkTreeOps', 'Move node':'tkTreeOps', 'Delete/remove node':'tkTreeOps',
     'Move zone to another base':'tkTreeOps',
     # tkCheckPyTree
-    'tkCheckPyTree':'tkCheckPyTree', 'Correct pyTree':'tkCheckPyTree', 
+    'tkCheckPyTree':'tkCheckPyTree', 'Correct pyTree':'tkCheckPyTree',
     'Correct nodes':'tkCheckPyTree', 'Correct BCs':'tkCheckPyTree',
     # tkFilter
     'tkFilter':'tkFilter', 'Find multigrid zones':'tkFilter',
     'Find zone of given name':'tkFilter', 'Find zone of given proc':'tkFilter',
     # tkFamily
-    'tkFamily':'tkFamily', 'Create/tag zone family':'tkFamily', 
+    'tkFamily':'tkFamily', 'Create/tag zone family':'tkFamily',
     'Create BCFamily':'tkFamily',
     # tkCADFix
-    'tkCADFix':'tkCADFix', 'Read/load CAD file':'tkCADFix', 
+    'tkCADFix':'tkCADFix', 'Read/load CAD file':'tkCADFix',
     'Write/save CAD file':'tkCADFix', 'Repair CAD':'tkCADFix',
     # tkState
-    'tkState':'tkState', 'Set problem dimension':'tkState', 
+    'tkState':'tkState', 'Set problem dimension':'tkState',
     'Set reference state':'tkState',
     # tkPrefs
-    'tkPrefs':'tkPrefs', 'Change background image/color':'tkPrefs', 
+    'tkPrefs':'tkPrefs', 'Change background image/color':'tkPrefs',
     'Change export resolution':'tkPrefs', 'Customize':'tkPrefs',
     # tkPerfo
     'tkPerfo':'tkPerfo', 'Improve performance':'tkPerfo',
@@ -44,10 +44,10 @@ applet = {
     # tkProbe
     'tkProbe':'tkProbe', 'Probe value in cell or vertex':'tkProbe', 'Set a field value in a cell':'tkProbe',
     # tkCanvas
-    'tkCanvas':'tkCanvas', 'Create Canvas for drawing':'tkCanvas', 
+    'tkCanvas':'tkCanvas', 'Create Canvas for drawing':'tkCanvas',
     'Enlarge canvas':'tkCanvas', 'Reduce canvas':'tkCanvas',
     # tkPoint
-    'tkPoint':'tkPoint', 'Create a point':'tkPoint', 
+    'tkPoint':'tkPoint', 'Create a point':'tkPoint',
     'Modify point coordinates':'tkPoint',
     # tkDraw
     'tkDraw':'tkDraw', 'Draw lines/beziers/splines':'tkDraw',
@@ -66,7 +66,7 @@ applet = {
     # tkBasicSurfs
     'tkBasicSurfs':'tkBasicSurfs', 'Create Sphere/Cube/Cylinder surface mesh':'tkBasicSurfs',
     'Create Tetra/Hexa/Pyramid/Torus surface mesh':'tkBasicSurfs',
-    'Create Plane mesh':'tkBasicSurfs',    
+    'Create Plane mesh':'tkBasicSurfs',
     'Create Classical surface meshes':'tkBasicSurfs', 'Create mesh from Geometry data base':'tkBasicSurfs',
     # tkText
     'tkText':'tkText', 'Create mesh of text':'tkText',
@@ -78,7 +78,7 @@ applet = {
     'ConformUnstr':'tkFixer2', 'Conformize a TRI surface':'tkFixer2',
     # tkBoolean
     'tkBoolean':'tkBoolean', 'Union two surfaces':'tkBoolean',
-    'Intersection of rwo surfaces':'tkBoolean', 
+    'Intersection of rwo surfaces':'tkBoolean',
     'Difference of two surfaces':'tkBoolean',
     # tkMapUV
     'tkMapUV':'tkMapUV', 'UV map of surface':'tkMapUV',
@@ -91,7 +91,7 @@ applet = {
     'tkMMGs':'tkMMGs', 'Remesh a TRI surface':'tkMMGs',
     'Refine a TRI surface':'tkMMGs',
     # tkSurfaceWalk
-    'tkSurfaceWalk':'tkSurfaceWalk', 
+    'tkSurfaceWalk':'tkSurfaceWalk',
     'Mesh a surface -othogonal/structured-':'tkSurfaceWalk',
     # tkProjection
     'tkProjection':'tkProjection', 'Project a mesh on a surface':'tkProjection',
@@ -111,7 +111,7 @@ applet = {
     'Fill with triangles':'tkTetraMesher', 'Triangulate mesh':'tkTetraMesher',
     'Generate tetra/triangle mesh':'tkTetraMesher',
     # tkTFI
-    'TkTFI':'tkTFI', 'TFI Mesh -structured-':'tkTFI', 
+    'TkTFI':'tkTFI', 'TFI Mesh -structured-':'tkTFI',
     'O Mesh -structured-':'tkTFI',
     # tkSmooth
     'tkSmooth':'tkSmooth', 'Smooth mesh':'tkSmooth',
@@ -120,7 +120,7 @@ applet = {
     'Create Octree -structured-':'tkOctree',
     # tkMeshQual
     'tkMeshQual':'tkMeshQual', 'Check mesh quality':'tkMeshQual',
-    'Check mesh regularity':'tkMeshQual', 
+    'Check mesh regularity':'tkMeshQual',
     'Check mesh orthogonality':'tkMeshQual',
     'Compute cell volume':'tkMeshQual',
     'View negative volume cells':'tkMeshQual',
@@ -130,7 +130,7 @@ applet = {
     # tkBlock
     'tkBlock':'tkBlock', 'Delete/remove block':'tkBlock', 'Convert to tetra':'tkBlock',
     'Convert to hexa':'tkBlock', 'Convert to node':'tkBlock',
-    'Exterior faces':'tkBlock', 'Close block':'tkBlock', 
+    'Exterior faces':'tkBlock', 'Close block':'tkBlock',
     'Suppress multiple points':'tkBlock', 'Take one over n points':'tkBlock',
     'Element type conversion':'tkBlock',
     # tkTransform
@@ -157,7 +157,7 @@ applet = {
     # tkIBC
     'tkIBC':'tkIBC', 'Set snear on surface':'tkIBC', 'Immersed boundaries':'tkIBC', 'Set data for IBM':'tkIBC',
     # tkChimera
-    'tkChimera':'tkChimera', 'Blank cells':'tkChimera', 
+    'tkChimera':'tkChimera', 'Blank cells':'tkChimera',
     'Optimize overlap':'tkChimera',
     # tkExtractBC
     'tkExtractBC':'tkExtractBC', 'Extract BC':'tkExtractBC',
@@ -178,7 +178,7 @@ applet = {
     'tkFastSolver':'tkFastSolver', 'Compute CFD with IBM':'tkFastSolver',
     # tkVariables
     'tkVariables':'tkVariables', 'Compute variables/fields':'tkVariables',
-    'Center2Node or Node2Center variables/fields':'tkVariables', 
+    'Center2Node or Node2Center variables/fields':'tkVariables',
     'Grad/curl variables/fields':'tkVariables', 'Remove/delete variables/fields':'tkVariables',
     'Compute Pressure/Mach/Vorticity':'tkVariables',
     'Init variables/fields -with formula-':'tkVariables',
@@ -216,14 +216,14 @@ applet = {
     'Set color on surface':'tkRenderSet',
     'Set Surface texture':'tkRenderSet', 'Set Transparency/blending':'tkRenderSet',
     # tkStereo
-    'tkStereo':'tkStereo', 'View anaglyph':'tkStereo', '3D effect':'tkStereo', 
+    'tkStereo':'tkStereo', 'View anaglyph':'tkStereo', '3D effect':'tkStereo',
     'Use Red/Blue glasses':'tkStereo',
     # tkEffects
     'tkEffects':'tkEffects', 'Add shadow':'tkEffects', 'Change camera angle':'tkEffects',
     'Add depth of field': 'tkEffects', 'Set gamma': 'tkEffects', 'Set camera angle': 'tkEffects',
     # tkDemo
     'tkDemo':'tkDemo', 'Automatic camera motion':'tkDemo'
-    }
+}
 # Liste des actions
 lista = applet.keys()
 
@@ -233,7 +233,7 @@ class AutocompleteEntry(TK.Entry):
         TK.Entry.__init__(self, *args, **kwargs)
         TK.Entry.config(self, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
         self.lista = lista
-        self.var = self["textvariable"]        
+        self.var = self["textvariable"]
         if self.var == '':
             self.var = self["textvariable"] = TK.StringVar()
             self.var.set("Ask me...")
@@ -260,7 +260,7 @@ class AutocompleteEntry(TK.Entry):
             self.lb_up = False
         else:
             words = self.comparison()
-            if words:            
+            if words:
                 if not self.lb_up: # listbox exists
                     self.lb = TTK.Listbox(width=self.winfo_width())
                     self.lb.bind("<Double-Button-1>", self.selection)
@@ -293,11 +293,11 @@ class AutocompleteEntry(TK.Entry):
         if self.lb_up:
             if self.lb.curselection() == (): index = '0'
             else: index = self.lb.curselection()[0]
-            if index != '0':                
+            if index != '0':
                 self.lb.selection_clear(first=index)
-                index = str(int(index)-1)                
+                index = str(int(index)-1)
                 self.lb.selection_set(first=index)
-                self.lb.activate(index) 
+                self.lb.activate(index)
 
     def down(self, event):
         if self.lb_up:
@@ -305,9 +305,9 @@ class AutocompleteEntry(TK.Entry):
             else: index = self.lb.curselection()[0]
             if index != TK.END:
                 self.lb.selection_clear(first=index)
-                index = str(int(index)+1)        
+                index = str(int(index)+1)
                 self.lb.selection_set(first=index)
-                self.lb.activate(index) 
+                self.lb.activate(index)
 
     def comparison(self):
         import re
@@ -328,7 +328,7 @@ class AutocompleteEntry(TK.Entry):
         ret = []
         for s in sol:
             lr = len(ret); ls = len(s)
-            if lr < 8: 
+            if lr < 8:
                 if lr + ls < 8: ret += s
                 else: ret += s[0:8-lr]
         #ret = [w for w in self.lista if re.match(pattern, w)]
@@ -350,7 +350,7 @@ class AutocompleteEntry(TK.Entry):
             frames = CTK.WIDGETS['noteBookFrames']
             menus = CTK.WIDGETS['noteBookMenus']
             buttons = CTK.WIDGETS['noteBookButtons']
-            if app in TREEAPPS: 
+            if app in TREEAPPS:
                 frame = frames[0]; menu = menus[0]; bt = buttons[0]
             elif app in STATEAPPS:
                 frame = frames[1]; menu = menus[1]; bt = buttons[1]

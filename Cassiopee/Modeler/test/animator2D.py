@@ -52,7 +52,7 @@ time.sleep(2.)
 while 1 != 2:
     r = random.randint(0,20)
     if r == 0 or r == 1 or r == 2: cligne()
-    elif r == 5: 
+    elif r == 5:
         triste()
     elif r == 8: souris()
     time.sleep(0.5)

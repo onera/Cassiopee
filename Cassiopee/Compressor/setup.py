@@ -46,22 +46,22 @@ if srcs.SZ:
     else: additionalLibs += ["z"]
 
     extensions += [
-      Extension('Compressor.sz.csz',
-                 sources=["Compressor/sz/compressor.cpp"],
-                 include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-                 library_dirs=additionalLibPaths+libraryDirs,
-                 libraries=libraries+["ksz", "kzstd"]+additionalLibs,
-                 extra_compile_args=Dist.getCppArgs(),
-                 extra_link_args=Dist.getLinkArgs())]
+        Extension('Compressor.sz.csz',
+                  sources=["Compressor/sz/compressor.cpp"],
+                  include_dirs=["Compressor", "Compressor/sz/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+                  library_dirs=additionalLibPaths+libraryDirs,
+                  libraries=libraries+["ksz", "kzstd"]+additionalLibs,
+                  extra_compile_args=Dist.getCppArgs(),
+                  extra_link_args=Dist.getLinkArgs())]
 if srcs.ZFP:
     extensions += [
-      Extension('Compressor.zfp.czfp',
-                sources=["Compressor/zfp/compressor.cpp"],
-                include_dirs=["Compressor", "Compressor/zfp/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-                library_dirs=additionalLibPaths+libraryDirs,
-                libraries=libraries+["kzfp"]+additionalLibs,
-                extra_compile_args=Dist.getCppArgs(),
-                extra_link_args=Dist.getLinkArgs())]
+        Extension('Compressor.zfp.czfp',
+                  sources=["Compressor/zfp/compressor.cpp"],
+                  include_dirs=["Compressor", "Compressor/zfp/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+                  library_dirs=additionalLibPaths+libraryDirs,
+                  libraries=libraries+["kzfp"]+additionalLibs,
+                  extra_compile_args=Dist.getCppArgs(),
+                  extra_link_args=Dist.getLinkArgs())]
 
 # Setup ======================================================================
 setup(
@@ -73,7 +73,7 @@ setup(
     package_dir={"":"."},
     packages=['Compressor', 'Compressor.sz', 'Compressor.zfp'],
     ext_modules=extensions
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

@@ -42,14 +42,14 @@ dfars = 5
 snears = 1
 vmin = 11
 
-t,tc = X_IBM.prepareIBMData(tb               , None         , None     , tbox=tboffset,      
-                            snears=snears    , dfars=dfars  , vmin=vmin, 
+t,tc = X_IBM.prepareIBMData(tb               , None         , None     , tbox=tboffset,
+                            snears=snears    , dfars=dfars  , vmin=vmin,
                             check=False      , frontType=1  , cartesian=False)
 test.testT(t , 1)
 test.testT(tc, 2)
 
 ##COMPUTE
-NIT           = 25  # number of iterations 
+NIT           = 25  # number of iterations
 modulo_verif  = 5   # iteration frequency to display modulo_verif
 
 numb = {}
@@ -57,7 +57,7 @@ numb["temporal_scheme"]    = "implicit"
 numb["ss_iteration"]       = 30
 numb["modulo_verif"]       = modulo_verif
 numz = {}
-numz["time_step"]          = 5.0e-5 
+numz["time_step"]          = 5.0e-5
 numz["time_step_nature"]   = "global"
 numz["epsi_newton"]        = 0.1
 

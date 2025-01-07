@@ -29,7 +29,7 @@ def union():
 
     tol = CTK.varsFromWidget(VARS[0].get(), type=1)
     if len(tol) != 1:
-        CTK.TXT.insert('START', 'Tolerance is incorrect.\n') 
+        CTK.TXT.insert('START', 'Tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 
@@ -44,7 +44,7 @@ def union():
         z = CTK.t[2][nob][2][noz]
         zlist.append(z)
 
-    try: 
+    try:
         j = XOR.booleanUnion(zlist[0], zlist[1], tol=tol)
     except Exception as e:
         CTK.setCursor(0, WIDGETS['union'])
@@ -52,14 +52,14 @@ def union():
         CTK.TXT.insert('START', 'Union failed\n'); return
 
     for nz in range(len(zlist)-2):
-        try: 
+        try:
             j = XOR.booleanUnion(j, zlist[nz+2], tol=tol)
         except Exception as e:
             CTK.setCursor(0, WIDGETS['union'])
             Panels.displayErrors([0,str(e)], header='Error: union')
             CTK.TXT.insert('START', 'Union failed.\n'); return
 
-    CTK.setCursor(0, WIDGETS['union'])    
+    CTK.setCursor(0, WIDGETS['union'])
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(deletedZoneNames)
     CTK.add(CTK.t, CTK.Nb[0]+1, -1, j)
@@ -84,7 +84,7 @@ def difference():
 
     tol = CTK.varsFromWidget(VARS[0].get(), type=1)
     if len(tol) != 1:
-        CTK.TXT.insert('START', 'Tolerance is incorrect.\n') 
+        CTK.TXT.insert('START', 'Tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 
@@ -133,7 +133,7 @@ def difference2():
 
     tol = CTK.varsFromWidget(VARS[0].get(), type=1)
     if len(tol) != 1:
-        CTK.TXT.insert('START', 'Tolerance is incorrect.\n') 
+        CTK.TXT.insert('START', 'Tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 
@@ -162,7 +162,7 @@ def difference2():
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
 
-    CTK.setCursor(0, WIDGETS['revdiff'])    
+    CTK.setCursor(0, WIDGETS['revdiff'])
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -182,7 +182,7 @@ def intersection():
 
     tol = CTK.varsFromWidget(VARS[0].get(), type=1)
     if len(tol) != 1:
-        CTK.TXT.insert('START', 'Tolerance is incorrect.\n') 
+        CTK.TXT.insert('START', 'Tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     tol = tol[0]
 

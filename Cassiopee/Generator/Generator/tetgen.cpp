@@ -159,6 +159,7 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   }
 
   // print b
+  /*
   printf("plc %d\n", b.plc);                                      // '-p', 0.
   printf("psc %d\n", b.psc);                                      // '-s', 0.
   printf("refine %d\n", b.refine);                                // '-r', 0.
@@ -232,7 +233,7 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   printf("epsilon %g\n", b.epsilon);                               // '-T', 1.0e-8.
   printf("minedgelength %g\n", b.minedgelength);                   // 0.0.
   printf("coarsen_percent %g\n", b.coarsen_percent);               // -R1/#, 1.0.
-
+  */
 
   // Remplissage de in a partir de array
   in.mesh_dim = 3;

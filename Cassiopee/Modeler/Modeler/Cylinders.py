@@ -1,4 +1,4 @@
-# - Cylinders/Cones - 
+# - Cylinders/Cones -
 import Geom as D
 import Transform as T
 import Generator as G

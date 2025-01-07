@@ -236,7 +236,7 @@ def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
             [xmin2,ymin2,zmin2,xmax2,ymax2,zmax2] = G.bbox(b)
             if (xmax1 > xmin2-tol and xmin1 < xmax2+tol and
                 ymax1 > ymin2-tol and ymin1 < ymax2+tol and
-                zmax1 > zmin2-tol and zmin1 < zmax2+tol):
+                    zmax1 > zmin2-tol and zmin1 < zmax2+tol):
                 bases2.append(b)
 
     # recherche des zones intersectantes par base
@@ -343,11 +343,11 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
 #=============================================================================
 def setIBCData(tR, tD, order=2, penalty=0, nature=0,
                method='lagrangian', loc='nodes', storage='direct',
-               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0, 
+               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0,
                Reynolds=6.e6, yplus=100., Lref=1., frontType=0, tb=None):
     """Compute Immersed Boundary data."""
     aR = Internal.copyRef(tR)
-    aD = Internal.copyRef(tD) 
+    aD = Internal.copyRef(tD)
     _setIBCData(aR, aD, order=order, penalty=penalty, nature=nature, method=method, loc=loc, storage=storage, interpDataType=interpDataType,
                 hook=hook, sameName=sameName, he=he, hi=hi, tfront=tfront, dim=dim, bcType=bcType, Reynolds=Reynolds, yplus=yplus, tb=tb, frontType=frontType)
 
@@ -355,9 +355,9 @@ def setIBCData(tR, tD, order=2, penalty=0, nature=0,
     else: return aD
 
 def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
-               method='lagrangian', loc='nodes', storage='direct',
-               interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0,
-               Reynolds=6.e6, yplus=100., Lref=1., frontType=0, tb=None):
+                method='lagrangian', loc='nodes', storage='direct',
+                interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0,
+                Reynolds=6.e6, yplus=100., Lref=1., frontType=0, tb=None):
     """Compute Immersed Boundary data."""
     try: from . import ToolboxIBM as IBM
     except: raise ImportError("setIBCData: requires ToolboxIBM module.")
@@ -378,7 +378,7 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
     locCellND = 'nodes'
     # pour l'enlever ensuite si addCellN le cree
     dictIsCellNPresent={}
-    for zd in Internal.getZones(aD):        
+    for zd in Internal.getZones(aD):
         dictIsCellNPresent[zd[0]]=C.isNamePresent(zd, 'cellN')
     _addCellN__(aD, loc=locCellND)
 
@@ -555,14 +555,14 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
 
                 if storage == 'direct':
                     _createInterpRegion__(z, zonesDnr[noz][0],resInterp[0][noz],resInterp[1][noz],resInterp[3][noz],\
-                                             resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
-                                             tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
+                                          resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
+                                          tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(z, zonesDnr[noz][0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD,model=model)
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],resInterp[1][noz],resInterp[0][noz],resInterp[3][noz],\
-                                         resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
+                                          resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
                                           tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
@@ -571,13 +571,13 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
             elif nborphan==nbinterpolated0: # Only orphan pts: orphan pt list is stored in any candidate donor zone
                 if storage == 'direct':
                     _createInterpRegion__(z, zonesDnr[noz][0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
-                                         tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
+                                          tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(z, zonesDnr[noz][0], correctedPts, wallPts, interpPts, bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD,model=model)
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
-                                         tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
+                                          tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], correctedPts, wallPts, interpPts, bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD,model=model)
@@ -586,8 +586,8 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
 
 # 2nd PI
 def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpPts2=None, loc='nodes', \
-                         order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
-                         interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None):
+                          order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                          interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None):
 
     prefixIBCD ='IBCD_'
     prefixIBC2D ='2_IBCD_'
@@ -630,8 +630,8 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
 
     if interpPts2 is not None:
         resInterp2 = Connector.setInterpData__(interpPts2, arraysD, order=order, penalty=penalty, \
-                                          nature=nature, method=method, interpDataType=interpDataType,\
-                                          hook=hook, dim=dim)
+                                               nature=nature, method=method, interpDataType=interpDataType,\
+                                               hook=hook, dim=dim)
     else:
         resInterp2 = None
 
@@ -725,15 +725,15 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
 
                 if storage == 'direct':
                     _createInterpRegion__(z, zonesDnr[noz][0],resInterp[0][noz],resInterp[1][noz],resInterp[3][noz],\
-                                             resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
-                                             tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
+                                          resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
+                                          tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(z, zonesDnr[noz][0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD,model=model)
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],resInterp[1][noz],resInterp[0][noz],resInterp[3][noz],\
-                                         resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
-                                         tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
+                                          resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
+                                          tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD,model=model)
@@ -741,13 +741,13 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
             elif nborphan==nbinterpolated0: # Only orphan pts: orphan pt list is stored in any candidate donor zone
                 if storage == 'direct':
                     _createInterpRegion__(z, zonesDnr[noz][0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
-                                         tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
+                                          tag='Receiver', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(z, zonesDnr[noz][0], correctedPts, wallPts, interpPts, bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD,model=model)
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
-                                         tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
+                                          tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], correctedPts, wallPts, interpPts, bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD,model=model)
@@ -842,31 +842,31 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
 
                 if storage == 'direct':
                     _createInterpRegion__(z, zonesDnr[noz][0],resInterp2[0][noz],resInterp2[1][noz],resInterp2[3][noz],\
-                                             resInterp2[2][noz], VOL, EXTRAP, ORPHAN, \
-                                             tag='Receiver', loc=loc,itype='ibc2', prefix=prefixIBC2D)
+                                          resInterp2[2][noz], VOL, EXTRAP, ORPHAN, \
+                                          tag='Receiver', loc=loc,itype='ibc2', prefix=prefixIBC2D)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords2__(z, zonesDnr[noz][0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
-                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
+                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],resInterp2[1][noz],resInterp2[0][noz],resInterp2[3][noz],\
-                                         resInterp2[2][noz], VOL, EXTRAP, ORPHAN, \
-                                         tag='Donor', loc=loc,itype='ibc2', prefix=prefixIBC2D)
+                                          resInterp2[2][noz], VOL, EXTRAP, ORPHAN, \
+                                          tag='Donor', loc=loc,itype='ibc2', prefix=prefixIBC2D)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords2__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
-                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
+                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
             elif nborphan==nbinterpolated0: # Only orphan pts: orphan pt list is stored in any candidate donor zone
                 if storage == 'direct':
                     _createInterpRegion__(z, zonesDnr[noz][0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
-                                         tag='Receiver', loc=loc,itype='ibc2', prefix=prefixIBC2D)
+                                          tag='Receiver', loc=loc,itype='ibc2', prefix=prefixIBC2D)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords2__(z, zonesDnr[noz][0], correctedPts, wallPts, interpPts2, bcType, \
-                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
+                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,
-                                         tag='Donor', loc=loc,itype='ibc2', prefix=prefixIBC2D)
+                                          tag='Donor', loc=loc,itype='ibc2', prefix=prefixIBC2D)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords2__(zonesDnr[noz], z[0], correctedPts, wallPts, interpPts2, bcType, \
-                                    bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
+                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
 
     return None
 
@@ -1093,11 +1093,11 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
     else: interpDataType = 1
 
     if loc == 'nodes': varcelln = 'cellN'
-    else: varcelln = 'centers:cellN'    
+    else: varcelln = 'centers:cellN'
     cellNPresent = C.isNamePresent(aR, varcelln)
     if cellNPresent==-1: C._initVars(aR, varcelln, 2.) # interp all
-    _setInterpData(aR, aD, order=order, penalty=1, nature=1, extrap=1, 
-                   method='lagrangian', loc=loc, storage='inverse', 
+    _setInterpData(aR, aD, order=order, penalty=1, nature=1, extrap=1,
+                   method='lagrangian', loc=loc, storage='inverse',
                    interpDataType=interpDataType, sameName=0, itype="chimera")
     if cellNPresent==-1: C._rmVars(aR, [varcelln])
     return None
@@ -1129,7 +1129,7 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
 # IN: itype='both','chimera','abutting': calcule toutes les donnees de transferts, seules les chimere, seules les match/nearmatch
 # OUT: stockage direct: retourne tR avec les donnees d'interpolation
 # OUT: stockage indirect: retourne tD avec les donnees d'interpolation
-# verbose: 0 (rien), 1 (bilan interpolation), 2 (ecrit les indices de pts orphelins), 
+# verbose: 0 (rien), 1 (bilan interpolation), 2 (ecrit les indices de pts orphelins),
 # RMQ: method='conservative' -> tout le domaine receveur est pour l'instant considere a interpoler (maquette)
 #==============================================================================
 def setInterpData(tR, tD, order=2, penalty=1, nature=0, extrap=1,
@@ -1536,7 +1536,7 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
                     ret = connector.setInterpDataForGCNGon(FL, FLd, p, pd, a1, a2, PE, PEd)
                     # Stockage
                     _createInterpRegion__(zdonorp, zp[0], ret[1], ret[0], ret[3], ret[2], vols, indicesExtrap,
-                                          indicesOrphan, tag = 'Donor', loc='centers', EXDir=EXdir,
+                                          indicesOrphan, tag='Donor', loc='centers', EXDir=EXdir,
                                           itype='abutting', prefix=prefix,
                                           RotationAngle=RotationAngle, RotationCenter=RotationCenter)
 
@@ -1689,12 +1689,12 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
                         else: prefix = 'IDPERM_'
                     if storage == 'direct':
                         _createInterpRegion__(zp, zdonorname,res[0],res[1],res[3],res[2],vols,indicesExtrap,\
-                                              indicesOrphan,tag = 'Receiver',loc=loc,EXDir=EXdir,itype='abutting',\
+                                              indicesOrphan,tag='Receiver',loc=loc,EXDir=EXdir,itype='abutting',\
                                               prefix=prefix, RotationAngle=RotationAngle, RotationCenter=RotationCenter)
 
                     else:
                         _createInterpRegion__(zdonorp, zname, res[1], res[0], res[3], res[2], vols, indicesExtrap,\
-                                              indicesOrphan, tag = 'Donor',loc=loc,EXDir=EXdir,itype='abutting',\
+                                              indicesOrphan, tag='Donor',loc=loc,EXDir=EXdir,itype='abutting',\
                                               prefix=prefix,RotationAngle=RotationAngle, RotationCenter=RotationCenter)
     return None
 
@@ -1750,7 +1750,7 @@ def _adaptForRANSLES__(tR, tD, dictOfModels=None):
     return None
 
 def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, interpType, interpVol, indicesExtrap, indicesOrphan, \
-                          EXDir = [], pointlistdonorExtC=None, tag='Receiver', loc='centers', itype='chimera',
+                          EXDir=[], pointlistdonorExtC=None, tag='Receiver', loc='centers', itype='chimera',
                           prefix=None, RotationAngle=None, RotationCenter=None):
     if prefix is None:
         if itype == 'chimera': nameSubRegion = 'ID_'+zname
@@ -1919,7 +1919,7 @@ def transferFields(z, interpXN, interpYN, interpZN, order=2, penalty=1, nature=0
 # IN: storage=-1/0/1: unknown/direct/inverse
 # IN: loc = 'nodes' or 'centers': location of receiver zone field
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
-# compactD : 1 for IBC transfers. In that case, fields in IBCD zonesubregions must be aligned with density 
+# compactD : 1 for IBC transfers. In that case, fields in IBCD zonesubregions must be aligned with density
 #===============================================================================
 def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
                        variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
@@ -1934,7 +1934,7 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
 
     tR = Internal.copyRef(aR)
 
-    _setInterpTransfers(tR, topTreeD, variables=variables, variablesIBC=variablesIBC, 
+    _setInterpTransfers(tR, topTreeD, variables=variables, variablesIBC=variablesIBC,
                         bcType=bcType, varType=varType, storage=storage, compact=compact, compactD=compactD,
                         cellNVariable=cellNVariable, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts)
     return tR
@@ -1957,7 +1957,7 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
 # IN: storage=-1/0/1: unknown/direct/inverse
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
 # compact: 1 if fields in t are compacted
-# compactD: 1 for IBC transfers. In that case, fields in IBCD zonesubregions must be aligned with density 
+# compactD: 1 for IBC transfers. In that case, fields in IBCD zonesubregions must be aligned with density
 #===============================================================================
 def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
@@ -1975,8 +1975,8 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
         for zr in zonesR:
             subRegions = Internal.getNodesFromType1(zr, 'ZoneSubRegion_t')
             for s in subRegions:
-                sname = s[0][0:2]                
-                # test pour eviter parcours arbre inutile 
+                sname = s[0][0:2]
+                # test pour eviter parcours arbre inutile
                 if ((sname == 'ID') and variables is not None) or (sname == 'IB' and variablesIBC is not None):
                     idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
                     if idn is not None: # la subRegion decrit des interpolations
@@ -1986,7 +1986,7 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                             location = Internal.getNodeFromName1(s, 'GridLocation')
                             if location is not None: location = Internal.getValue(location)
                             Coefs = idn[1]
-                            DonorType = Internal.getNodeFromName1(s, 'InterpolantsType')[1] 
+                            DonorType = Internal.getNodeFromName1(s, 'InterpolantsType')[1]
                             ListRcv   = Internal.getNodeFromName1(s, 'PointList')[1]
                             ListDonor = Internal.getNodeFromName1(s, 'PointListDonor')[1]
                             # Recup des champs du receveur
@@ -1998,22 +1998,22 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                             # Transferts
                             if sname == 'ID':
                                 RotAngleNode = Internal.getNodeFromName1(s, 'RotationAngle')
-                                RotAngleX = 0.; RotAngleY = 0.; RotAngleZ = 0. 
+                                RotAngleX = 0.; RotAngleY = 0.; RotAngleZ = 0.
                                 if RotAngleNode is not None:
                                     RotAngle = Internal.getValue(RotAngleNode)
                                     RotAngleX = RotAngle[0]
                                     RotAngleY = RotAngle[1]
                                     RotAngleZ = RotAngle[2]
 
-                                connector._setInterpTransfers(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs, loc, varType, compact, 
+                                connector._setInterpTransfers(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs, loc, varType, compact,
                                                               cellNVariable,
-                                                              Internal.__GridCoordinates__, 
-                                                              Internal.__FlowSolutionNodes__, 
-                                                              Internal.__FlowSolutionCenters__, 
+                                                              Internal.__GridCoordinates__,
+                                                              Internal.__FlowSolutionNodes__,
+                                                              Internal.__FlowSolutionCenters__,
                                                               RotAngleX, RotAngleY, RotAngleZ)
 
                             elif sname == 'IB' and compactD:
-                                xPC = Internal.getNodeFromName1(s,'CoordinateX_PC')[1]                              
+                                xPC = Internal.getNodeFromName1(s,'CoordinateX_PC')[1]
                                 yPC = Internal.getNodeFromName1(s,'CoordinateY_PC')[1]
                                 zPC = Internal.getNodeFromName1(s,'CoordinateZ_PC')[1]
                                 xPW = Internal.getNodeFromName1(s,'CoordinateX_PW')[1]
@@ -2024,12 +2024,12 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                 zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                                 density = Internal.getNodeFromName1(s,'Density')[1]
                                 # Transferts
-                                connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
-                                                           xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-                                                           density, 
+                                connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                           xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI,
+                                                           density,
                                                            bcType, loc, varType, compactD, Gamma, Cv, MuS, Cs, Ts,
-                                                           Internal.__GridCoordinates__, 
-                                                           Internal.__FlowSolutionNodes__, 
+                                                           Internal.__GridCoordinates__,
+                                                           Internal.__FlowSolutionNodes__,
                                                            Internal.__FlowSolutionCenters__)
 
     # Recup des donnees a partir des zones donneuses
@@ -2043,7 +2043,7 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
             subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
             for s in subRegions:
                 sname = s[0][0:2]
-                # test pour eviter parcours arbre inutile 
+                # test pour eviter parcours arbre inutile
                 if (sname=='ID' and variables is not None) or (sname == 'IB' and variablesIBC is not None):
                     idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
                     if idn is not None:
@@ -2066,15 +2066,15 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                 # Transferts
                                 if sname == 'ID':
                                     RotAngleNode = Internal.getNodeFromName1(s,'RotationAngle')
-                                    RotAngleX = 0.; RotAngleY = 0.; RotAngleZ = 0. 
+                                    RotAngleX = 0.; RotAngleY = 0.; RotAngleZ = 0.
                                     if RotAngleNode is not None:
                                         RotAngleNode=RotAngleNode[1]
                                         RotAngleX = RotAngleNode[0]
                                         RotAngleY = RotAngleNode[1]
                                         RotAngleZ = RotAngleNode[2]
                                     connector._setInterpTransfers(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs,loc, varType, compact, cellNVariable,
-                                                                  Internal.__GridCoordinates__, 
-                                                                  Internal.__FlowSolutionNodes__, 
+                                                                  Internal.__GridCoordinates__,
+                                                                  Internal.__FlowSolutionNodes__,
                                                                   Internal.__FlowSolutionCenters__,
                                                                   RotAngleX, RotAngleY, RotAngleZ)
                                 elif sname == 'IB' and compactD:
@@ -2089,12 +2089,12 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                     zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                                     Density = Internal.getNodeFromName1(s,'Density')[1]
 
-                                    connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs, 
-                                                               xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-                                                               Density, 
+                                    connector._setIBCTransfers(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
+                                                               xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI,
+                                                               Density,
                                                                bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts,
-                                                               Internal.__GridCoordinates__, 
-                                                               Internal.__FlowSolutionNodes__, 
+                                                               Internal.__GridCoordinates__,
+                                                               Internal.__FlowSolutionNodes__,
                                                                Internal.__FlowSolutionCenters__)
     return None
 
@@ -2171,16 +2171,16 @@ def setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         Cs=0.3831337844872463, Ts=1.0, extract=0, alpha=1.):
     tD = Internal.copyRef(topTreeD)
     return _setInterpTransfersD(tD, variables=variables, cellNVariable=cellNVariable,
-                        variablesIBC=variablesIBC,
-                        bcType=bcType, varType=varType, compact=compact, compactD=compactD,
-                        Gamma=Gamma, Cv=Cv, MuS=MuS,
-                        Cs=Cs, Ts=Ts, extract=extract)
+                                variablesIBC=variablesIBC,
+                                bcType=bcType, varType=varType, compact=compact, compactD=compactD,
+                                Gamma=Gamma, Cv=Cv, MuS=MuS,
+                                Cs=Cs, Ts=Ts, extract=extract)
 
 def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
-                        variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
-                        bcType=0, varType=2, compact=0, compactD=0,
-                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
-                        Cs=0.3831337844872463, Ts=1.0, extract=0, alpha=1.):
+                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
+                         bcType=0, varType=2, compact=0, compactD=0,
+                         Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
+                         Cs=0.3831337844872463, Ts=1.0, extract=0, alpha=1.):
 
     # Recup des donnees a partir des zones donneuses
     zonesD = Internal.getZones(topTreeD)
@@ -2189,9 +2189,9 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
         subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
         for s in subRegions:
             sname = s[0][0:2]
-            #test pour eviter parcours arbre inutile 
+            #test pour eviter parcours arbre inutile
             if (sname=='ID' and variables is not None) or (sname == 'IB' and variablesIBC is not None):
-                dname = Internal.getValue(s) 
+                dname = Internal.getValue(s)
                 idn = Internal.getNodeFromName1(s, 'InterpolantsDonor')
                 if idn is not None: # la subRegion decrit des interpolations
                     zoneRole = Internal.getNodeFromName2(s, 'ZoneRole')
@@ -2206,11 +2206,11 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                         ListDonor = Internal.getNodeFromName1(s,'PointList')[1]
                         ListRcv   = Internal.getNodeFromName1(s,'PointListDonor')[1]
                         if sname == 'ID':
-                        # print 'transfert ID: zd ', zd[0]
+                            # print 'transfert ID: zd ', zd[0]
                             arrayT = connector._setInterpTransfersD(zd, variables, ListDonor, DonorType, Coefs, varType, compact,
                                                                     cellNVariable,
-                                                                    Internal.__GridCoordinates__, 
-                                                                    Internal.__FlowSolutionNodes__, 
+                                                                    Internal.__GridCoordinates__,
+                                                                    Internal.__FlowSolutionNodes__,
                                                                     Internal.__FlowSolutionCenters__)
                             infos.append([dname,arrayT,ListRcv,loc])
 
@@ -2225,13 +2225,13 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                             yPI = Internal.getNodeFromName1(s,'CoordinateY_PI')[1]
                             zPI = Internal.getNodeFromName1(s,'CoordinateZ_PI')[1]
                             Density = Internal.getNodeFromName1(s,'Density')[1]
-                            arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs, 
-                                                                     xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
-                                                                     Density, 
-                                                                     bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts,                                                             
-                                                                     Internal.__GridCoordinates__, 
-                                                                     Internal.__FlowSolutionNodes__, 
-                                                                     Internal.__FlowSolutionCenters__)
+                            arrayT = connector._setIBCTransfersD(zd, variablesIBC, ListDonor, DonorType, Coefs,
+                                                                 xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI,
+                                                                 Density,
+                                                                 bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts,
+                                                                 Internal.__GridCoordinates__,
+                                                                 Internal.__FlowSolutionNodes__,
+                                                                 Internal.__FlowSolutionCenters__)
                             infos.append([dname,arrayT,ListRcv,loc])
 
                         elif sname == 'IB' and "gradxDensity" in variablesIBC:
@@ -2258,12 +2258,12 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
 
                             #print 'transfert IBC : zd ', zd[0]
                             arrayT = connector._setIBCTransfersD4GradP(zd, variablesIBC, ListDonor, DonorType, Coefs,
-                                                                 pressure,
-                                                                 gradxP, gradyP, gradzP,
-                                                                 bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
-                                                                 Internal.__GridCoordinates__,
-                                                                 Internal.__FlowSolutionNodes__,
-                                                                 Internal.__FlowSolutionCenters__)
+                                                                       pressure,
+                                                                       gradxP, gradyP, gradzP,
+                                                                       bcType, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                                       Internal.__GridCoordinates__,
+                                                                       Internal.__FlowSolutionNodes__,
+                                                                       Internal.__FlowSolutionCenters__)
                             infos.append([dname,arrayT,ListRcv,loc])
 
     # Sortie
@@ -2890,7 +2890,7 @@ def _setIBCTransfersDForPressureGradients(topTreeD, ibctypes=[], secondOrder=Fal
 
             for var in variables:
                 field = Internal.getNodeFromName1(IBCD, var)
-                if field is not None: 
+                if field is not None:
                     dictOfNumpys[var] = field[1]
                 else:
                     fieldNP = numpy.zeros((nIBC),numpy.float64)
@@ -2899,23 +2899,23 @@ def _setIBCTransfersDForPressureGradients(topTreeD, ibctypes=[], secondOrder=Fal
 
             if secondOrder:
                 arrayT = connector._setIBCTransfersDForPressureGradientsOrder2(zd, variables, ListDonor, DonorType, Coefs,
-                                                        dictOfNumpys['Pressure'],
-                                                        dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
-                                                        dictOfNumpys['gradxgradxPressure'], dictOfNumpys['gradxgradyPressure'], dictOfNumpys['gradxgradzPressure'],
-                                                        dictOfNumpys['gradygradxPressure'], dictOfNumpys['gradygradyPressure'], dictOfNumpys['gradygradzPressure'],
-                                                        dictOfNumpys['gradzgradxPressure'], dictOfNumpys['gradzgradyPressure'], dictOfNumpys['gradzgradzPressure'],
-                                                        Internal.__GridCoordinates__,
-                                                        Internal.__FlowSolutionNodes__,
-                                                        Internal.__FlowSolutionCenters__)
+                                                                               dictOfNumpys['Pressure'],
+                                                                               dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
+                                                                               dictOfNumpys['gradxgradxPressure'], dictOfNumpys['gradxgradyPressure'], dictOfNumpys['gradxgradzPressure'],
+                                                                               dictOfNumpys['gradygradxPressure'], dictOfNumpys['gradygradyPressure'], dictOfNumpys['gradygradzPressure'],
+                                                                               dictOfNumpys['gradzgradxPressure'], dictOfNumpys['gradzgradyPressure'], dictOfNumpys['gradzgradzPressure'],
+                                                                               Internal.__GridCoordinates__,
+                                                                               Internal.__FlowSolutionNodes__,
+                                                                               Internal.__FlowSolutionCenters__)
             else:
                 arrayT = connector._setIBCTransfersDForPressureGradientsOrder1(zd, variables, ListDonor, DonorType, Coefs,
-                                                        dictOfNumpys['Pressure'],
-                                                        dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
-                                                        Internal.__GridCoordinates__,
-                                                        Internal.__FlowSolutionNodes__,
-                                                        Internal.__FlowSolutionCenters__)
+                                                                               dictOfNumpys['Pressure'],
+                                                                               dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
+                                                                               Internal.__GridCoordinates__,
+                                                                               Internal.__FlowSolutionNodes__,
+                                                                               Internal.__FlowSolutionCenters__)
 
-            infos.append([zrcvname,arrayT,ListRcv,loc])                                            
+            infos.append([zrcvname,arrayT,ListRcv,loc])
 
     return infos
 
@@ -2965,7 +2965,7 @@ def _setIBCTransfersForPressureGradients(aR, topTreeD, ibctypes=[], secondOrder=
 
                 for var in variables:
                     field = Internal.getNodeFromName1(IBCD, var)
-                    if field is not None: 
+                    if field is not None:
                         dictOfNumpys[var] = field[1]
                     else:
                         fieldNP = numpy.zeros((nIBC),numpy.float64)
@@ -2974,23 +2974,23 @@ def _setIBCTransfersForPressureGradients(aR, topTreeD, ibctypes=[], secondOrder=
 
                 if secondOrder:
                     connector._setIBCTransfersForPressureGradientsOrder2(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs,
-                                                dictOfNumpys['Pressure'],
-                                                dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
-                                                dictOfNumpys['gradxgradxPressure'], dictOfNumpys['gradxgradyPressure'], dictOfNumpys['gradxgradzPressure'],
-                                                dictOfNumpys['gradygradxPressure'], dictOfNumpys['gradygradyPressure'], dictOfNumpys['gradygradzPressure'],
-                                                dictOfNumpys['gradzgradxPressure'], dictOfNumpys['gradzgradyPressure'], dictOfNumpys['gradzgradzPressure'],
-                                                loc,
-                                                Internal.__GridCoordinates__,
-                                                Internal.__FlowSolutionNodes__,
-                                                Internal.__FlowSolutionCenters__)
+                                                                         dictOfNumpys['Pressure'],
+                                                                         dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
+                                                                         dictOfNumpys['gradxgradxPressure'], dictOfNumpys['gradxgradyPressure'], dictOfNumpys['gradxgradzPressure'],
+                                                                         dictOfNumpys['gradygradxPressure'], dictOfNumpys['gradygradyPressure'], dictOfNumpys['gradygradzPressure'],
+                                                                         dictOfNumpys['gradzgradxPressure'], dictOfNumpys['gradzgradyPressure'], dictOfNumpys['gradzgradzPressure'],
+                                                                         loc,
+                                                                         Internal.__GridCoordinates__,
+                                                                         Internal.__FlowSolutionNodes__,
+                                                                         Internal.__FlowSolutionCenters__)
                 else:
                     connector._setIBCTransfersForPressureGradientsOrder1(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs,
-                                                dictOfNumpys['Pressure'],
-                                                dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
-                                                loc,
-                                                Internal.__GridCoordinates__,
-                                                Internal.__FlowSolutionNodes__,
-                                                Internal.__FlowSolutionCenters__)
+                                                                         dictOfNumpys['Pressure'],
+                                                                         dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
+                                                                         loc,
+                                                                         Internal.__GridCoordinates__,
+                                                                         Internal.__FlowSolutionNodes__,
+                                                                         Internal.__FlowSolutionCenters__)
     return None
 
 # NOTE !!
@@ -3002,9 +3002,9 @@ def _setIBCTransfersForPressureGradients(aR, topTreeD, ibctypes=[], secondOrder=
 # tc/tc2 -> RCV ZONES
 #==============================================================================
 def _setIBCTransfers4GradP(aR, topTreeD, variables=[], cellNVariable='',
-                        variablesIBC=["Density", "Temperature", "gradxDensity", "gradyDensity", "gradzDensity", "gradxTemperature", "gradyTemperature", "gradzTemperature"],
-                        bcType=3, varType=1, compact=0,
-                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+                           variablesIBC=["Density", "Temperature", "gradxDensity", "gradyDensity", "gradzDensity", "gradxTemperature", "gradyTemperature", "gradzTemperature"],
+                           bcType=3, varType=1, compact=0,
+                           Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
 
     # Recup des donnees a partir des zones donneuses
     # Dictionnaire pour optimisation
@@ -3060,12 +3060,12 @@ def _setIBCTransfers4GradP(aR, topTreeD, variables=[], cellNVariable='',
                                 gradzP = Internal.getNodeFromName1(s, 'gradzPressure')[1]
 
                             connector._setIBCTransfers4GradP(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
-                                                       Pressure,
-                                                       gradxP, gradyP, gradzP,
-                                                       bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
-                                                       Internal.__GridCoordinates__,
-                                                       Internal.__FlowSolutionNodes__,
-                                                       Internal.__FlowSolutionCenters__)
+                                                             Pressure,
+                                                             gradxP, gradyP, gradzP,
+                                                             bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                             Internal.__GridCoordinates__,
+                                                             Internal.__FlowSolutionNodes__,
+                                                             Internal.__FlowSolutionCenters__)
     return None
 
 #==============================================================================
@@ -3073,9 +3073,9 @@ def _setIBCTransfers4GradP(aR, topTreeD, variables=[], cellNVariable='',
 # tc/tc2 -> RCV ZONES
 #==============================================================================
 def _setIBCTransfers4GradP2(aR, topTreeD, variables=[], cellNVariable='',
-                        variablesIBC=["Density", "Temperature", "gradxDensity", "gradyDensity", "gradzDensity", "gradxTemperature", "gradyTemperature", "gradzTemperature"],
-                        bcType=3, varType=1, compact=0,
-                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+                            variablesIBC=["Density", "Temperature", "gradxDensity", "gradyDensity", "gradzDensity", "gradxTemperature", "gradyTemperature", "gradzTemperature"],
+                            bcType=3, varType=1, compact=0,
+                            Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
 
     # Recup des donnees a partir des zones donneuses
     # Dictionnaire pour optimisation
@@ -3192,15 +3192,15 @@ def _setIBCTransfers4GradP2(aR, topTreeD, variables=[], cellNVariable='',
                                 gradzzP = Internal.getNodeFromName1(s, 'gradzzPressure')[1]
 
                             connector._setIBCTransfers4GradP2(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
-                                                       Pressure,
-                                                       gradxP, gradyP, gradzP,
-                                                       gradxxP, gradxyP, gradxzP,
-                                                       gradyxP, gradyyP, gradyzP,
-                                                       gradzxP, gradzyP, gradzzP,
-                                                       bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
-                                                       Internal.__GridCoordinates__,
-                                                       Internal.__FlowSolutionNodes__,
-                                                       Internal.__FlowSolutionCenters__)
+                                                              Pressure,
+                                                              gradxP, gradyP, gradzP,
+                                                              gradxxP, gradxyP, gradxzP,
+                                                              gradyxP, gradyyP, gradyzP,
+                                                              gradzxP, gradzyP, gradzzP,
+                                                              bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                              Internal.__GridCoordinates__,
+                                                              Internal.__FlowSolutionNodes__,
+                                                              Internal.__FlowSolutionCenters__)
     return None
 
 #==============================================================================
@@ -3209,16 +3209,16 @@ def _setIBCTransfers4GradP2(aR, topTreeD, variables=[], cellNVariable='',
 # Parallel version + compact
 #==============================================================================
 def _setIBCTransfers4GradP3(zones, zonesD, graphInvIBCD, graphIBCD, procDict,
-                        variablesIBC=['Density', 'Temperature', 'gradxDensity', 'gradyDensity', 'gradzDensity', 'gradxTemperature', 'gradyTemperature', 'gradzTemperature'],
-                        bcType=0, varType=1, compact=1,
-                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+                            variablesIBC=['Density', 'Temperature', 'gradxDensity', 'gradyDensity', 'gradzDensity', 'gradxTemperature', 'gradyTemperature', 'gradzTemperature'],
+                            bcType=0, varType=1, compact=1,
+                            Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
 
     import Converter.Mpi as Cmpi
 
     rank=Cmpi.rank
     datas = {}
     znr = {}
-    for z in zones: 
+    for z in zones:
         znr[z[0]] = z
 
     for zd in zonesD:
@@ -3247,11 +3247,11 @@ def _setIBCTransfers4GradP3(zones, zonesD, graphInvIBCD, graphIBCD, procDict,
         for [name, zname, Coefs, DonorType, ListDonor, ListRcv, gradxP, gradyP, gradzP] in rcvDatas[dest]:
             zr = znr[zname]
             connector._setIBCTransfers4GradP3(zr, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
-                                                gradxP, gradyP, gradzP,
-                                                bcType, 1, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
-                                                Internal.__GridCoordinates__,
-                                                Internal.__FlowSolutionNodes__,
-                                                Internal.__FlowSolutionCenters__)
+                                              gradxP, gradyP, gradzP,
+                                              bcType, 1, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                              Internal.__GridCoordinates__,
+                                              Internal.__FlowSolutionNodes__,
+                                              Internal.__FlowSolutionCenters__)
             rcvNode = dest
             infos = [name, zname, gradxP, gradyP, gradzP]
             if rcvNode not in datas: datas[rcvNode] = [infos]
@@ -3272,9 +3272,9 @@ def _setIBCTransfers4GradP3(zones, zonesD, graphInvIBCD, graphIBCD, procDict,
                             gradxP    = Internal.getNodeFromName1(s, 'gradxPressure')[1]
                             gradyP    = Internal.getNodeFromName1(s, 'gradyPressure')[1]
                             gradzP    = Internal.getNodeFromName1(s, 'gradzPressure')[1]
-                            connector._setIBCTransfers4GradP4( 
-                                                    gradxP_new, gradyP_new, gradzP_new,
-                                                    gradxP, gradyP, gradzP)
+                            connector._setIBCTransfers4GradP4(
+                                gradxP_new, gradyP_new, gradzP_new,
+                                gradxP, gradyP, gradzP)
 
     return None
 
@@ -3284,9 +3284,9 @@ def _setIBCTransfers4GradP3(zones, zonesD, graphInvIBCD, graphIBCD, procDict,
 #==============================================================================
 
 def _setIBCTransfers4FULLTBLE(aR, topTreeD, variables=[], cellNVariable='',
-                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
-                        bcType=0, varType=1, storage=-1, compact=0,
-                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+                              variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
+                              bcType=0, varType=1, storage=-1, compact=0,
+                              Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
 
     # Recup des donnees a partir des zones receveuses
     if storage < 1:
@@ -3425,16 +3425,16 @@ def _setIBCTransfers4FULLTBLE(aR, topTreeD, variables=[], cellNVariable='',
 
                             #print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
                             connector._setIBCTransfers4FULLTBLE(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
-                                                       pressure,
-                                                       vx, vy, vz,
-                                                       gradxP, gradyP, gradzP,
-                                                       gradxU, gradyU, gradzU,
-                                                       gradxV, gradyV, gradzV,
-                                                       gradxW, gradyW, gradzW,
-                                                       bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
-                                                       Internal.__GridCoordinates__,
-                                                       Internal.__FlowSolutionNodes__,
-                                                       Internal.__FlowSolutionCenters__)
+                                                                pressure,
+                                                                vx, vy, vz,
+                                                                gradxP, gradyP, gradzP,
+                                                                gradxU, gradyU, gradzU,
+                                                                gradxV, gradyV, gradzV,
+                                                                gradxW, gradyW, gradzW,
+                                                                bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                                Internal.__GridCoordinates__,
+                                                                Internal.__FlowSolutionNodes__,
+                                                                Internal.__FlowSolutionCenters__)
 
     # Recup des donnees a partir des zones donneuses
     if storage != 0:
@@ -3572,16 +3572,16 @@ def _setIBCTransfers4FULLTBLE(aR, topTreeD, variables=[], cellNVariable='',
 
                                 # print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
                                 connector._setIBCTransfers4FULLTBLE(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
-                                                           pressure,
-                                                           vx, vy, vz,
-                                                           gradxP, gradyP, gradzP,
-                                                           gradxU, gradyU, gradzU,
-                                                           gradxV, gradyV, gradzV,
-                                                           gradxW, gradyW, gradzW,
-                                                           bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
-                                                           Internal.__GridCoordinates__,
-                                                           Internal.__FlowSolutionNodes__,
-                                                           Internal.__FlowSolutionCenters__)
+                                                                    pressure,
+                                                                    vx, vy, vz,
+                                                                    gradxP, gradyP, gradzP,
+                                                                    gradxU, gradyU, gradzU,
+                                                                    gradxV, gradyV, gradzV,
+                                                                    gradxW, gradyW, gradzW,
+                                                                    bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                                    Internal.__GridCoordinates__,
+                                                                    Internal.__FlowSolutionNodes__,
+                                                                    Internal.__FlowSolutionCenters__)
     return None
 
 #==============================================================================
@@ -3590,9 +3590,9 @@ def _setIBCTransfers4FULLTBLE(aR, topTreeD, variables=[], cellNVariable='',
 #==============================================================================
 
 def _setIBCTransfers4FULLTBLE2(aR, topTreeD, variables=[], cellNVariable='',
-                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
-                        bcType=0, varType=1, storage=-1, compact=0,
-                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
+                               variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
+                               bcType=0, varType=1, storage=-1, compact=0,
+                               Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,Cs=0.3831337844872463, Ts=1.0, alpha=1.0):
 
     # Recup des donnees a partir des zones receveuses
     if storage < 1:
@@ -3731,16 +3731,16 @@ def _setIBCTransfers4FULLTBLE2(aR, topTreeD, variables=[], cellNVariable='',
 
                             #print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
                             connector._setIBCTransfers4FULLTBLE2(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
-                                                       pressure,
-                                                       vx, vy, vz,
-                                                       gradxP, gradyP, gradzP,
-                                                       gradxU, gradyU, gradzU,
-                                                       gradxV, gradyV, gradzV,
-                                                       gradxW, gradyW, gradzW,
-                                                       bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
-                                                       Internal.__GridCoordinates__,
-                                                       Internal.__FlowSolutionNodes__,
-                                                       Internal.__FlowSolutionCenters__)
+                                                                 pressure,
+                                                                 vx, vy, vz,
+                                                                 gradxP, gradyP, gradzP,
+                                                                 gradxU, gradyU, gradzU,
+                                                                 gradxV, gradyV, gradzV,
+                                                                 gradxW, gradyW, gradzW,
+                                                                 bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                                 Internal.__GridCoordinates__,
+                                                                 Internal.__FlowSolutionNodes__,
+                                                                 Internal.__FlowSolutionCenters__)
 
     # Recup des donnees a partir des zones donneuses
     if storage != 0:
@@ -3878,16 +3878,16 @@ def _setIBCTransfers4FULLTBLE2(aR, topTreeD, variables=[], cellNVariable='',
 
                                 # print 'transfert IBC : zr ', zr[0], ' et donor : ', zd[0]
                                 connector._setIBCTransfers4FULLTBLE2(zr, zd, variablesIBC, ListRcv, ListDonor, DonorType, Coefs,
-                                                           pressure,
-                                                           vx, vy, vz,
-                                                           gradxP, gradyP, gradzP,
-                                                           gradxU, gradyU, gradzU,
-                                                           gradxV, gradyV, gradzV,
-                                                           gradxW, gradyW, gradzW,
-                                                           bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
-                                                           Internal.__GridCoordinates__,
-                                                           Internal.__FlowSolutionNodes__,
-                                                           Internal.__FlowSolutionCenters__)
+                                                                     pressure,
+                                                                     vx, vy, vz,
+                                                                     gradxP, gradyP, gradzP,
+                                                                     gradxU, gradyU, gradzU,
+                                                                     gradxV, gradyV, gradzV,
+                                                                     gradxW, gradyW, gradzW,
+                                                                     bcType, loc, varType, compact, Gamma, Cv, MuS, Cs, Ts, alpha,
+                                                                     Internal.__GridCoordinates__,
+                                                                     Internal.__FlowSolutionNodes__,
+                                                                     Internal.__FlowSolutionCenters__)
     return None
 
 #==============================================================================
@@ -4041,7 +4041,7 @@ def _modifcellNBC(t, BCTarget=['BCWall'], depth=2,dim=3):
         if bc is not None: bcs = Internal.getNodesFromType(bc,'BC_t')
         for bc in bcs:
             bctyp = Internal.getValue(bc)
-            if bctyp in BCTarget: 
+            if bctyp in BCTarget:
                 ptrg = Internal.getNodeFromName1(bc,'PointRange')
                 dimZ = Internal.getZoneDim(z)
                 #print(z[0], dimZ,'range', ptrg[1])
@@ -4051,14 +4051,14 @@ def _modifcellNBC(t, BCTarget=['BCWall'], depth=2,dim=3):
                 #print('idir=',idir)
                 cellN= Internal.getNodeFromName2(z,'cellN')[1]
 
-                if idir==0: 
+                if idir==0:
                     jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
                     kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
                     for k in range(kmin,kmax):
                         for j in range(jmin,jmax):
                             for d in range(depth):
                                 if cellN[depth-1-d,j,k]>=1.99 : cellN[depth-1-d,j,k]=1
-                if idir==1: 
+                if idir==1:
                     i1 = ptrg[1][0,1]-depth-1
                     jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
                     kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
@@ -4066,7 +4066,7 @@ def _modifcellNBC(t, BCTarget=['BCWall'], depth=2,dim=3):
                         for j in range(jmin,jmax):
                             for d in range(depth):
                                 if cellN[i1+d,j,k]>=1.99: cellN[i1+d,j,k]=1
-                if idir==2: 
+                if idir==2:
                     imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
                     kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
                     #print(z[0],'range', imin, imax,kmin,kmax,depth-1)
@@ -4074,7 +4074,7 @@ def _modifcellNBC(t, BCTarget=['BCWall'], depth=2,dim=3):
                         for i in range(imin,imax):
                             for d in range(depth):
                                 if  cellN[i,depth-1-d,k]>=1.99: cellN[i,depth-1-d,k]= 1
-                if idir==3: 
+                if idir==3:
                     js = ptrg[1][1,1]-depth-1
                     imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
                     kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
@@ -4082,7 +4082,7 @@ def _modifcellNBC(t, BCTarget=['BCWall'], depth=2,dim=3):
                         for i in range(imin,imax):
                             for d in range(depth):
                                 if cellN[i,js+d,k]>=1.99: cellN[i,js+d,k]= 1.
-                if idir==4: 
+                if idir==4:
                     imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
                     jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
                     for j in range(jmin,jmax):
@@ -4090,7 +4090,7 @@ def _modifcellNBC(t, BCTarget=['BCWall'], depth=2,dim=3):
                             for d in range(depth):
                                 if cellN[i,j,depth-1-d]>=1.99: cellN[i,j,depth-1-d]= 1.
 
-                if idir==5: 
+                if idir==5:
                     ks = ptrg[1][2,1]-depth-1
                     imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
                     jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1

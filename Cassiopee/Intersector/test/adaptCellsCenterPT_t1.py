@@ -1,7 +1,7 @@
 # - adapts a cells with respect to b points (PyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
-import Converter.Internal as I 
+import Converter.Internal as I
 import Generator.PyTree as G
 import numpy
 import KCore.test as test
@@ -22,7 +22,7 @@ z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 
 XOR._setZonesAndJoinsUId(z)
 
-m = XOR.adaptCells(z, [nodal_vals], sensor_type=3, smoothing_type = 1, subdiv_type=0, hmesh=None)
+m = XOR.adaptCells(z, [nodal_vals], sensor_type=3, smoothing_type=1, subdiv_type=0, hmesh=None)
 
 m = XOR.closeCells(m)
 
@@ -33,9 +33,9 @@ I._rmNodesByName(m, 'rid')
 test.testT(m,1)
 
 ## HEXA dynamic adaptation
-hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
+hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision
 
-m = XOR.adaptCells(z, [nodal_vals], sensor_type=3, smoothing_type = 1, subdiv_type=0, hmesh=hmsh)
+m = XOR.adaptCells(z, [nodal_vals], sensor_type=3, smoothing_type=1, subdiv_type=0, hmesh=hmsh)
 m = XOR.conformizeHMesh(m, hmsh)
 m = XOR.closeCells(m)            # close cells (adding point on lateral faces)
 
@@ -58,7 +58,7 @@ nodal_vals[:] = 2
 
 XOR._setZonesAndJoinsUId(zTH4)
 
-m = XOR.adaptCells(zTH4, [nodal_vals], sensor_type=3, smoothing_type = 1, subdiv_type=0)
+m = XOR.adaptCells(zTH4, [nodal_vals], sensor_type=3, smoothing_type=1, subdiv_type=0)
 
 m = XOR.closeCells(m)
 
@@ -67,5 +67,3 @@ I._rmNodesByName(m, 'rid')
 
 #C.convertPyTree2File(m, 'nodalPT_t1_3.cgns')
 test.testT(m,3)
-
-

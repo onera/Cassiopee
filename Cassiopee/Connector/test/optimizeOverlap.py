@@ -11,6 +11,6 @@ a = T.rotate(a, (0,0,0), (0,0,1), 10.)
 a = T.translate(a, (0.5,0.5,0))
 
 ca = C.node2Center(a); ca =  C.initVars(ca, 'cellN', 1.)
-cb = C.node2Center(b); cb =  C.initVars(cb, 'cellN', 1.) 
+cb = C.node2Center(b); cb =  C.initVars(cb, 'cellN', 1.)
 res = X.optimizeOverlap(a, ca, b, cb)
 C.convertArrays2File(res, "out.plt")

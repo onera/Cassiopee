@@ -16,7 +16,7 @@ c = C.converter.convertQuad2Tri(b)
 C.convertArrays2File([b,c, s], 'out.plt')
 
 # Same with smooth
-#c = T.smooth(c, eps=0.5, niter=5, 
+#c = T.smooth(c, eps=0.5, niter=5,
 #             fixedConstraints=s)
 #            #projConstraints=s)C
 

@@ -18,12 +18,12 @@ except: pass
 def computeBBoxes__(arrays, zoneNames):
     bboxes = []; c = 0
     for a in arrays:
-        try: bb = G.bbox(a); bb = bb+[zoneNames[c],True] 
+        try: bb = G.bbox(a); bb = bb+[zoneNames[c],True]
         except: bb = [0,0,0,1,1,1,zoneNames[c],False]
         bboxes.append(bb)
         c += 1
     # Parallel eventuel
-    try: 
+    try:
         import Converter.Mpi as Cmpi
         allboxes = Cmpi.allgather(bboxes)
         c = 0
@@ -33,7 +33,7 @@ def computeBBoxes__(arrays, zoneNames):
                     for k in j:
                         if k[6] == bb[6] and k[7] == True:
                             bboxes[c] = k
-            c += 1                
+            c += 1
     except: pass
     return bboxes
 
@@ -46,7 +46,7 @@ def addCom__(comd, c, d, NBlocs, vol):
 #==============================================================================
 # Distribute t (pyTree) over NProc processors
 # IN: NProc: number of processors
-# IN: prescribed: dict containing the zones names as key, and the 
+# IN: prescribed: dict containing the zones names as key, and the
 # prescribed proc as value
 # IN: perfo: describes performance of processors
 # IN: weight: weight assigned to zones of t as a list of integers. Must be ordered as the zones in the pyTree
@@ -59,7 +59,7 @@ def addCom__(comd, c, d, NBlocs, vol):
 # IN: algorithm: gradient0, gradient1, genetic, fast
 # IN: nghost: nbre de couches de ghost cells ajoutees
 #==============================================================================
-def distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match', 
+def distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match',
                algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
     Usage: distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
@@ -70,7 +70,7 @@ def distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match
     return tp, out
 
 # in place version
-def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match', 
+def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match',
                 algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
     Usage: _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
@@ -78,9 +78,9 @@ def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='matc
     (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, prescribed, weight, useCom, mode, tbb)
 
     # Equilibrage
-    out = Distributor2.distribute(nbPts, NProc, prescribed=aset, 
+    out = Distributor2.distribute(nbPts, NProc, prescribed=aset,
                                   com=com, comd=comd,
-                                  perfo=perfo, weight=weightlist, 
+                                  perfo=perfo, weight=weightlist,
                                   algorithm=algorithm, mode=mode, nghost=nghost)
 
     # Sortie
@@ -144,7 +144,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
         bases = Internal.getBases(tpp)
         zc = 0; c = 0
         for b in bases:
-            zones = Internal.getNodesFromType1(b, 'Zone_t') 
+            zones = Internal.getNodesFromType1(b, 'Zone_t')
             mdict = {}
             pc = 0
             for z in zones: mdict[z[0]] = pc; pc += 1
@@ -202,7 +202,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
                                 zmin2 = bboxd[2]; zmax2 = bboxd[5]
                                 if (xmax1 > xmin2-tol and xmin1 < xmax2+tol and
                                     ymax1 > ymin2-tol and ymin1 < ymax2+tol and
-                                    zmax1 > zmin2-tol and zmin1 < zmax2+tol):
+                                        zmax1 > zmin2-tol and zmin1 < zmax2+tol):
                                     addCom__(comd, c, d, Nb, vol)
                             d += 1
             c += 1
@@ -243,7 +243,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
                     zmin2 = bboxd[2]; zmax2 = bboxd[5]
                     if (xmax1 > xmin2-tol and xmin1 < xmax2+tol and
                         ymax1 > ymin2-tol and ymin1 < ymax2+tol and
-                        zmax1 > zmin2-tol and zmin1 < zmax2+tol):
+                            zmax1 > zmin2-tol and zmin1 < zmax2+tol):
                         addCom__(comd, c, d, Nb, np)
                 d += 1
             c += 1
@@ -300,16 +300,16 @@ def getProcList(t, NProc=None, sort=False):
     for s in range(NProc): procList.append([])
 
     if not sort: # pas de tri
-        for z in zones: 
-            proc = Internal.getNodeFromName2(z, 'proc') 
+        for z in zones:
+            proc = Internal.getNodeFromName2(z, 'proc')
             if proc is not None:
                 procList[Internal.getValue(proc)].append(z[0])
 
     else:
-        # On trie les zones par taille decroissant pour chaque base pour etre conforme avec 
+        # On trie les zones par taille decroissant pour chaque base pour etre conforme avec
         # mode openmp (see reorder dans Fast.Internal)
         bases = Internal.getNodesFromType1(t,'CGNSBase_t')
-        for base in bases: 
+        for base in bases:
             zones = Internal.getNodesFromType1(base,'Zone_t')
             # calcul taille de la zone
             size_zone =[]
@@ -318,7 +318,7 @@ def getProcList(t, NProc=None, sort=False):
                 if dim[0] == 'Structured':
                     if dim[3] == 1: kfic = 0
                     else          : kfic = 2
-                    ndimdx = (dim[1]-4)*(dim[2]-4)*(dim[3]-kfic) 
+                    ndimdx = (dim[1]-4)*(dim[2]-4)*(dim[3]-kfic)
                 else: ndimdx = dim[2]
                 size_zone.append(ndimdx)
 
@@ -333,7 +333,7 @@ def getProcList(t, NProc=None, sort=False):
 
             for z in new_zones:
                 proc = Internal.getNodeFromName2(z, 'proc')
-                if proc is not None: 
+                if proc is not None:
                     procList[Internal.getValue(proc)].append(z[0])
 
     return procList
@@ -380,7 +380,7 @@ def addProcNode(t, proc):
 def _addProcNode(t, proc):
     zones = Internal.getZones(t)
     for z in zones:
-        Internal.createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t', 
+        Internal.createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t',
                                    value=None)
         n = Internal.getNodeFromName1(z, '.Solver#Param')
         Internal.createUniqueChild(n, 'proc', 'DataArray_t', value=proc)
@@ -424,7 +424,7 @@ def printProcStats(t, stats=None, NProc=None):
                 lzone.append(Internal.getName(z))
                 dim = Internal.getZoneDim(z)
                 if dim[0] == 'Structured': npts += dim[1]*dim[2]*dim[3]
-                else: npts += dim[1] 
+                else: npts += dim[1]
             print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
 
     else: # no dist
@@ -486,7 +486,7 @@ def stats(t, useCom='match', mode='nodes'):
 
     (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, None, None, useCom, mode)
 
-    if comd is not None:    
+    if comd is not None:
         allkeys = comd.keys()
         size = len(allkeys)
         volComd = numpy.empty((2*size), dtype=Internal.E_NpyInt)
