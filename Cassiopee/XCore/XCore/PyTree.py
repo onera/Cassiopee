@@ -516,7 +516,7 @@ def icapsule_set_slaves(IC, slaves):
                 ctag = I.getNodeFromName(zone, 'keep')
                 if ctag is None: raise ValueError('Missing cell tags.')
                 ctags.append(ctag[1])
-        
+
     return xcore.icapsule_set_slaves(IC, sarrs, ptags, ctags)
 
 def icapsule_adapt2(IC):
