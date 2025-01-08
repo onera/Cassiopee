@@ -1743,6 +1743,7 @@ def updateASANLabel(entry_index):
 # Set message in the title bar
 #==============================================================================
 def setGUITitleBar(loc='GLOBAL'):
+    if not INTERACTIVE: return
     # Machine name
     machine = socket.gethostname()
     title = '*Cassiopee* valid {} : {} @ {}'.format(loc, os.getenv("ELSAPROD"),
