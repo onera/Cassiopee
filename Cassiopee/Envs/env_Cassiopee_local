@@ -237,6 +237,7 @@ else if ($MAC == "ubuntu") then
         setenv ASAN_OPTIONS verify_asan_link_order=false
         setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
         setenv ASAN_LIB /usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
+        limit stacksize 8192
 
 else if ($MAC == "fulvio") then
 #------------------------------- fulvio ---------------------------------------

@@ -161,7 +161,8 @@ elif [ "$MAC" = "ubuntu" ]; then
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
-    
+    ulimit -s 8192 # for ASAN
+
 elif [ "$MAC" = "azure" ]; then
 #------------------------ azure: Centos7 - github actions ----------------------
     export ELSAPROD=azure
