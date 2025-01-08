@@ -1101,7 +1101,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     exportRoot = kwargs.get('export', 'export.png')
     exportRoot = os.path.dirname(exportRoot)
     if exportRoot == '': exportRoot = '.'
-    
+
     # right
     posCam0 = posCam
     posEye0 = Vector.sub(posCam, v2)
