@@ -1059,7 +1059,6 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
     E_Float** vectOfRcvFields = RcvFields + (nvars+nvars_Pnt2)*(ithread-1);
     E_Float** vectOfDnrFields = DnrFields +  nvars*(ithread-1);
-    
     //1ere pass_typ: IBC
     //2eme pass_typ: transfert
 
@@ -1077,7 +1076,6 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           irac_fin = ipt_param_int[ ech + 4 + it_target + timelevel ];
         }
 
-////# pragma omp for schedule(dynamic)
         for  (E_Int irac=irac_deb; irac< irac_fin; irac++)
         {
           E_Int irac_auto= irac-irac_deb;
@@ -1259,9 +1257,6 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
               { if (ithread ==1 ){ pt_deb = ideb; pt_fin = ifin;}
                 else             { pt_deb = ideb; pt_fin = ideb;}
               }
-
-              // ATTENTION
-              //pt_deb = ideb; pt_fin = ifin;
 
               noi       = shiftDonor;                             // compteur sur le tableau d indices donneur
               indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
