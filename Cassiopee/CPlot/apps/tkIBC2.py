@@ -39,7 +39,7 @@ def _setDataInZone(z, bLocal, snear, ibctype, dfar, inv):
         elif VARS[15].get()=='fine(1)': granLocal = 1
         Internal.createUniqueChild(n, 'granularity', 'DataArray_t', value=granLocal)
 
-    if VARS[1].get() in ['noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear']:
+    if VARS[1].get() in ['slip', 'noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear']:
         # Set Extractions triggers in .Solver#define
         if VARS[4].get() == "1": value = 1
         else: value = 0
@@ -74,18 +74,18 @@ def _setDataInZone(z, bLocal, snear, ibctype, dfar, inv):
 # Change the mode
 def setMode(event=None):
     mode = VARS[1].get()
-    if mode == 'wall': VARS[1].set('noslip')
-    if mode in ['noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear']: mode = 'wall'
+    if mode == 'wall': VARS[1].set('slip')
+    if mode in ['slip', 'noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear']: mode = 'wall'
     imode = 0
-    WIDGETS['slip'].grid_forget()
+    WIDGETS['symmetry'].grid_forget()
     WIDGETS['wall'].grid_forget()
     WIDGETS['outpress'].grid_forget()
     WIDGETS['inj'].grid_forget()
     WIDGETS['rec'].grid_forget()
     WIDGETS['wmm'].grid_forget()
 
-    if mode == 'slip':
-        imode = 0; WIDGETS['slip'].grid(row=10, column=0, columnspan=2, sticky=TK.EW)
+    if mode == 'symmetry':
+        imode = 0; WIDGETS['symmetry'].grid(row=10, column=0, columnspan=2, sticky=TK.EW)
     elif mode == 'wall':
         imode = 0; WIDGETS['wall'].grid(row=10, column=0, columnspan=4, sticky=TK.EW)
     elif mode == 'outpress':
@@ -344,7 +344,7 @@ def createApp(win):
     # -0- Snear -
     V = TK.DoubleVar(win); V.set(0.01); VARS.append(V)
     # -1- IBC type -
-    V = TK.StringVar(win); V.set('slip'); VARS.append(V)
+    V = TK.StringVar(win); V.set('symmetry'); VARS.append(V)
     # -2- dfar local -
     V = TK.DoubleVar(win); V.set(20.); VARS.append(V)
     # -3- mask inv or not -
@@ -392,7 +392,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="IBC type")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition.')
-    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'wall', 'outpress', 'inj', 'slip_cr', 'overlap','wiremodel','rectilinear','None', command=setMode)
+    B = TTK.OptionMenu(Frame, VARS[1], 'symmetry', 'wall', 'outpress', 'inj', 'slip_cr', 'overlap','wiremodel','rectilinear','None', command=setMode)
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
     # - Mask settings (in or out) -
@@ -445,16 +445,16 @@ def createApp(win):
     ## WIDGETS THAT APPEAR & DISAPPEAR
 
     # - Symmetry plane -
-    slip = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Slip Parameters:")
-    slip.columnconfigure(0, weight=1)
-    slip.columnconfigure(1, weight=1)
-    slip.grid(row=10, column=0, columnspan=2)
-    WIDGETS['slip'] = slip
+    symmetry = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Symmetry Parameters:")
+    symmetry.columnconfigure(0, weight=1)
+    symmetry.columnconfigure(1, weight=1)
+    symmetry.grid(row=10, column=0, columnspan=2)
+    WIDGETS['symmetry'] = symmetry
 
-    B = TTK.Button(slip, text="Set symmetry plane", command=symmetrize)
+    B = TTK.Button(symmetry, text="Set symmetry plane", command=symmetrize)
     BB = CTK.infoBulle(parent=B, text='Create a symmetry plane.')
     B.grid(row=10, column=0, sticky=TK.EW)
-    B = TTK.OptionMenu(slip, VARS[7], 'Around YZ-', 'Around XZ-', 'Around XY-')
+    B = TTK.OptionMenu(symmetry, VARS[7], 'Around YZ-', 'Around XZ-', 'Around XY-')
     B.grid(row=10, column=1, sticky=TK.EW)
 
 
@@ -482,7 +482,7 @@ def createApp(win):
     B = TTK.Label(wall, text="Wall Type")
     B.grid(row=11, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition Wall Conditions.')
-    B = TTK.OptionMenu(wall, VARS[1], 'noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear')
+    B = TTK.OptionMenu(wall, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear')
     B.grid(row=11, column=1, columnspan=2, sticky=TK.EW)
 
 

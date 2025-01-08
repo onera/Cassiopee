@@ -33,7 +33,7 @@ BLOCKAPPS = ['tkBlock', '---',
              'tkSplit', 'tkReorder']
 BCAPPS = ['tkBC', '---',
           'tkChimera', 'tkIBC',
-          #'tkIBC2',
+          'tkIBC2',
           '---',
           'tkExtractBC']
 MOTIONAPPS = ['tkRigidMotion', 'tkTime']
