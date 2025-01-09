@@ -484,10 +484,31 @@ def extractFacesFromPointTag(t, tag_name):
 
 ###############################################################################
 
-def icapsule_init2():
+def splitConnex(m):
+    zones = I.getNodesFromType(m, 'Zone_t')
+    if len(zones) != 1: raise ValueError('Master should be one zone.')
+    zm = zones[0]
+    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    ptag = I.getNodeFromName(zm, 'tag')
+    if ptag is None: raise ValueError('Missing point tags')
+    ctag = I.getNodeFromName(zm, 'keep')
+    if ctag is None: raise ValueError('Missing cell tags')
+    new_arrs, new_ctags, new_ptags = xcore.split_connex(marr, ctag[1], ptag[1])
+    zout = []
+    for i in range(len(new_arrs)):
+        z = I.createZoneNode("zone"+str(i), new_arrs[i])
+        cont = I.createUniqueChild(z, I.__FlowSolutionCenters__, 'FlowSolution_t')
+        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+        I.newDataArray('keep', value=new_ctags[i], parent=cont)
+        cont = I.createUniqueChild(z, I.__FlowSolutionNodes__, 'FlowSolution_t')
+        I.newDataArray('tag', value=new_ptags[i], parent=cont)
+        zout.append(z)
+    return zout
+
+def icapsuleInit2():
     return xcore.icapsule_init2()
 
-def icapsule_set_master(IC, m):
+def icapsuleSetMaster(IC, m):
     zones = I.getNodesFromType(m, 'Zone_t')
     if len(zones) != 1: raise ValueError('Master should be one zone.')
     zm = zones[0]
@@ -496,7 +517,7 @@ def icapsule_set_master(IC, m):
     if ctag is None: raise ValueError('Missing cell tags')
     return xcore.icapsule_set_master(IC, marr, ctag[1])
 
-def icapsule_set_slaves(IC, slaves):
+def icapsuleSetSlaves(IC, slaves):
     sarrs = []
     ptags = []
     ctags = []
@@ -519,13 +540,13 @@ def icapsule_set_slaves(IC, slaves):
 
     return xcore.icapsule_set_slaves(IC, sarrs, ptags, ctags)
 
-def icapsule_adapt2(IC):
+def icapsuleAdapt2(IC):
     return xcore.icapsule_adapt2(IC)
 
-def icapsule_intersect2(IC):
+def icapsuleIntersect2(IC):
     return xcore.icapsule_intersect2(IC)
 
-def icapsule_extract_master(IC):
+def icapsuleExtractMaster(IC):
     marr, ctag = xcore.icapsule_extract_master(IC)
     zm = I.createZoneNode("master", marr)
 
@@ -534,7 +555,7 @@ def icapsule_extract_master(IC):
     I.newDataArray("keep", value=ctag, parent=cont)
     return zm
 
-def icapsule_extract_slaves(IC):
+def icapsuleExtractSlaves(IC):
     sarrs, ctags = xcore.icapsule_extract_slaves(IC)
     assert(len(sarrs) == len(ctags))
     zones = []
@@ -550,7 +571,7 @@ def icapsule_extract_slaves(IC):
 
 ###############################################################################
 
-def icapsule_init(mp, sp):
+def icapsuleInit(mp, sp):
     zm = I.getZones(mp)[0]
     marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
 
@@ -568,7 +589,7 @@ def icapsule_init(mp, sp):
 
     return xcore.icapsule_init(marr, sarrs, tags)
 
-def icapsule_adapt(IC):
+def icapsuleAdapt(IC):
     marr, sarrs, stags = xcore.icapsule_adapt(IC)
     zm = I.createZoneNode("ma", marr)
     assert(len(sarrs) == len(stags))
@@ -583,7 +604,7 @@ def icapsule_adapt(IC):
     ts = C.newPyTree(['Base', slave_zones])
     return tm, ts
 
-def icapsule_intersect(ma, sa):
+def icapsuleIntersect(ma, sa):
     zm = I.getZones(ma)[0]
     marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
 
@@ -613,7 +634,7 @@ def icapsule_intersect(ma, sa):
     ts = C.newPyTree(['Base', slave_zones])
     return tm, ts
 
-def icapsule_extract_slave(IC, index=0):
+def icapsuleExtractSlave(IC, index=0):
     sarr = xcore.icapsule_extract_slave(IC, index)
     zs = I.createZoneNode("slave_"+str(index), sarr)
     return zs

@@ -21,6 +21,8 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/common/common.cpp',
             'XCore/common/Karray.cpp',
 
+            'XCore/intersectMesh/split.cpp',
+
             'XCore/intersectMesh/write.cpp',
 
             'XCore/intersectMesh/icapsule_init.cpp',

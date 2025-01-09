@@ -508,9 +508,9 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
     char *varString, *eltType;
     K_ARRAY::getFromArray3(tpl, varString, f, ni, nj, nk, c, eltType);
 
-    E_Float* xt = f->begin(1);
-    E_Float* yt = f->begin(2);
-    E_Float* zt = f->begin(3);
+    E_Float *xt = f->begin(1);
+    E_Float *yt = f->begin(2);
+    E_Float *zt = f->begin(3);
 
     // Copy all the points up to kmax
     for (E_Int k = 0; k < kmax+1; k++) {

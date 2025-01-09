@@ -75,6 +75,8 @@ namespace K_XCORE
     PyObject *icapsule_adapt2(PyObject *self, PyObject *args);
     PyObject *icapsule_intersect2(PyObject *self, PyObject *args);
 
+    PyObject *split_connex(PyObject *self, PyObject *args);
+
 
     PyObject *icapsule_init(PyObject *self, PyObject *args);
     PyObject *icapsule_adapt(PyObject *self, PyObject *args);

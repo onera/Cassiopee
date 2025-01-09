@@ -63,6 +63,8 @@ static PyMethodDef Pyxcore [] =
     {"icapsule_adapt2", K_XCORE::icapsule_adapt2, METH_VARARGS},
     {"icapsule_intersect2", K_XCORE::icapsule_intersect2, METH_VARARGS},
 
+    {"split_connex", K_XCORE::split_connex, METH_VARARGS},
+
     {"icapsule_init", K_XCORE::icapsule_init, METH_VARARGS},
     {"icapsule_adapt", K_XCORE::icapsule_adapt, METH_VARARGS},
     {"icapsule_intersect", K_XCORE::icapsule_intersect, METH_VARARGS},
