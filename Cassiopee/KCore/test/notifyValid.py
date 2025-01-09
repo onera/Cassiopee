@@ -36,27 +36,27 @@ if __name__ == '__main__':
     with open('/stck/cassiope/git/logs/validation_status.txt', 'r') as f:
         for line in f:
             log_entries.append(line.strip().split(' - '))
-    log_entries.sort(key=lambda x: x[1], reverse=True)
+    log_entries.sort(key=lambda x: x[3], reverse=True)
 
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
-    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
-    gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
-    gitInfo = "Git origin: {}\nGit branch: {}\nCommit hash: {}".format(
-        gitOrigin, gitBranch, gitHash)
+    gitInfo = "Git origin: {}".format(gitOrigin)
 
     vnvState = 'OK'
     messageText = "Non-regression testing of Cassiopee, Fast and all "\
         "PModules:\n{}\n\n{}\n\n".format(58*'-', gitInfo)
-    messageText += '{:^20} | {:^30} | {:^10}\n{}\n'.format(
-        "PROD.", "DATE", "STATUS", 67*'-')
+    messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
+        "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
     for log_machine in log_entries:
         prod = log_machine[0]
-        date = strptime(log_machine[1], "%y%m%d-%H%M%S")
+        gitBranch = log_machine[1]
+        gitHash = log_machine[2]
+        date = strptime(log_machine[3], "%y%m%d-%H%M%S")
         date = strftime("%d/%m/%y at %T", date)
-        status = log_machine[2]
-        messageText += '{:^20} | {:^30} | {:^10}\n'.format(prod, date, status)
+        status = log_machine[4]
+        messageText += '  {:<20} | {:^6} | {:^7} | {:^24} | {:^10}\n'.format(
+            prod, gitBranch, gitHash, date, status)
         if 'FAILED' in log_machine: vnvState = 'FAILED'
 
     messageSubject = "[V&V Cassiopee] State: {}".format(vnvState)
@@ -71,4 +71,4 @@ if __name__ == '__main__':
                messageSubject=messageSubject,
                messageText=messageText)
     else:
-        print("{0}\n|{1:^65}|\n{0}\n{2}".format(67*'-', messageSubject, messageText))
+        print("{0}\n|{1:^81}|\n{0}\n{2}".format(83*'-', messageSubject, messageText))
