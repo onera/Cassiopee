@@ -29,7 +29,7 @@ def _setDataInZone(z, bLocal, snear, ibctype, ibctype2, dfar, inv):
 
         if VARS[1].get()=='wall':    Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype2)
         else:                        Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
-        
+
         Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
         Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
     else:
