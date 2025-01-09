@@ -259,7 +259,7 @@ if __name__ == '__main__':
         # Amend state of the base in logs/validation_status.txt
         logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
         entry = "{} - {} - {} - {} - {}\n".format(prod, gitInfo['Git branch'],
-            gitInfo['Commit hash'], tlog2, baseState)
+                                                  gitInfo['Commit hash'], tlog2, baseState)
         if os.access(os.path.dirname(logAllValids), os.W_OK):
             with open(logAllValids, 'r') as f: contents = f.readlines()
             prodFound = False
