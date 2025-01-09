@@ -68,19 +68,19 @@ installDict = {
                ],
     ###############################################################################
     'msys2': [ 'Windows win64+msys2',
-                'gfortran', # f77compiler
-                'gfortran', # f90compiler
-                'gcc', # Cppcompiler
-                ['-Wno-attributes'], # CppAdditionalOptions
-                [], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                [], # additionalIncludePaths
-                ['gomp', 'gfortran'], # additionalLibs
-                [], # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
+               'gfortran', # f77compiler
+               'gfortran', # f90compiler
+               'gcc', # Cppcompiler
+               ['-Wno-attributes'], # CppAdditionalOptions
+               [], # f77AdditionalOptions
+               True, # useOMP
+               False, # static
+               [], # additionalIncludePaths
+               ['gomp', 'gfortran'], # additionalLibs
+               [], # additionalLibPaths
+               False, # useCuda
+               [] # NvccAdditionalOptions
+               ],
     ###############################################################################
     'WDAAA161Z': [ 'Windows win64+msys2 (CB-Onera)',
                    'gfortran', # f77compiler
