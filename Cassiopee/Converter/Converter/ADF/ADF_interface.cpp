@@ -1215,7 +1215,7 @@ else {  /** this node is NOT a link **/
 
     /** Delete all data for this node **/
 
-   ADF_Put_Dimension_Information( ID, "MT", 0, (cgsize_t *)0, error_return ) ;
+   ADF_Put_Dimension_Information( ID, "MT                              ", 0, (cgsize_t *)0, error_return ) ;
    CHECK_ADF_ABORT( *error_return ) ;
    } /* end if-else */
 

@@ -848,7 +848,7 @@ elif [ "$MAC" = "WDAAA161Z" ]; then
 
 elif [ "$MAC" = "msys2" ]; then
 #----------------------------- msys2 (generic)  ---------------------------------------
-    export ELSAPROD=msys2
+    export ELSAPROD=win64
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=4
