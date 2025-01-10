@@ -16,34 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+#include "mesh.h"
+#include "common/Karray.h"
 
-#include "xcore.h"
-
-struct AABB {
-    E_Float xmin;
-    E_Float ymin;
-    E_Float zmin;
-    E_Float xmax;
-    E_Float ymax;
-    E_Float zmax;
-    E_Float dx;
-    E_Float dy;
-    E_Float dz;
-
-    bool is_point_inside(const E_Float p[3]) const
-    {
-        return (p[0] >= xmin && p[0] <= xmax && p[1] >= ymin && p[1] <= ymax &&
-            p[2] >= zmin && p[2] <= zmax);
+PyObject *K_XCORE::check_manifoldness(PyObject *self, PyObject *args)
+{
+    PyObject *MESH;
+    if (!PYPARSETUPLE_(args, O_, &MESH)) {
+        RAISE("Bad input.");
+        return NULL;
     }
 
-    void print() const
-    {
-        printf("[%f %f %f] - [%f %f %f]\n", xmin, ymin, zmin, xmax, ymax, zmax);
+    Karray array;
+    if (Karray_parse_ngon(MESH, array) != 0) {
+        RAISE("Input not NGon.");
+        return NULL;
     }
-};
 
-const AABB AABB_HUGE = {EFLOATMIN, EFLOATMIN, EFLOATMIN,
-                        EFLOATMAX, EFLOATMAX, EFLOATMAX};
+    IMesh M(array);
 
-void AABB_clamp(AABB &box, const AABB &parent);
+    bool is_manifold = true;
+
+    M.make_skin();
+    Smesh Mf(M, M.skin, false);
+
+    Karray_free_ngon(array);
+
+    return PyBool_FromLong(is_manifold);
+}

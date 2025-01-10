@@ -19,6 +19,54 @@
 #include "smesh.h"
 #include "primitives.h"
 #include "io.h"
+#include "ray.h"
+
+struct HitData {
+    std::set<E_Int> tested;
+    std::set<E_Int> fids;
+    std::set<Point3D> hits;
+};
+
+void Smesh::intersect_ray(const Ray &ray, E_Int node_idx, HitData &hit_data) const
+{
+    const BVH_node &node = bvh_nodes[node_idx];
+    if (!ray.intersect_AABB(node.box)) return;
+    if (!node.is_leaf()) {
+        intersect_ray(ray, node.left_node, hit_data);
+        intersect_ray(ray, node.left_node+1, hit_data);
+        return;
+    }
+    for (E_Int i = 0; i < node.tri_count; i++) {
+        E_Int tri = tri_idx[node.first_tri_idx+i];
+        hit_data.tested.insert(tri);
+        const auto &pn = F[tri];
+        //write_face("tri.im", tri);
+        E_Float u, v, w, t, x, y, z;
+        u = v = w = 2.0;
+        bool hit = ray.intersect_triangle({X[pn[0]], Y[pn[0]], Z[pn[0]]},
+            {X[pn[1]], Y[pn[1]], Z[pn[1]]}, {X[pn[2]], Y[pn[2]], Z[pn[2]]},
+            u, v, w, t, x, y, z);
+        
+        if (hit) {
+            hit_data.fids.insert(tri);
+            hit_data.hits.insert({x, y, z});
+        }
+    }
+}
+
+bool Smesh::is_point_inside(E_Float px, E_Float py, E_Float pz) const
+{
+    Ray ray(px, py, pz, 1, 0, 0);
+    return is_point_inside(ray);
+}
+
+bool Smesh::is_point_inside(const Ray &ray) const
+{
+    //if (!box.is_point_inside(ray.o)) return false;
+    HitData hit_data;
+    intersect_ray(ray, 0, hit_data);
+    return hit_data.hits.size() % 2 == 1;
+}
 
 void Smesh::replace_by_projections(const std::vector<E_Int> &pids,
     const std::vector<PointLoc> &plocs)

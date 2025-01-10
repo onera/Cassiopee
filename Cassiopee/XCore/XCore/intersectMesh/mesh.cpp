@@ -328,8 +328,6 @@ void IMesh::make_skin()
     owner.resize(nf, -1);
     neigh.resize(nf, -1);
 
-    std::vector<E_Int> count(nf, 0);
-
     for (E_Int cid = 0; cid < nc; cid++) {
         const auto &pf = C[cid];
         for (auto fid : pf) {
@@ -339,8 +337,7 @@ void IMesh::make_skin()
     }
 
     for (E_Int fid = 0; fid < nf; fid++) {
-        if (neigh[fid] == -1)
-            skin.push_back(fid);
+        if (neigh[fid] == -1) skin.push_back(fid);
     }
 }
 

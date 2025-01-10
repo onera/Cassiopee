@@ -20,30 +20,21 @@
 
 #include "xcore.h"
 
-struct AABB {
-    E_Float xmin;
-    E_Float ymin;
-    E_Float zmin;
-    E_Float xmax;
-    E_Float ymax;
-    E_Float zmax;
-    E_Float dx;
-    E_Float dy;
-    E_Float dz;
+struct o_edge {
+    E_Int p, q;
 
-    bool is_point_inside(const E_Float p[3]) const
-    {
-        return (p[0] >= xmin && p[0] <= xmax && p[1] >= ymin && p[1] <= ymax &&
-            p[2] >= zmin && p[2] <= zmax);
-    }
-
-    void print() const
-    {
-        printf("[%f %f %f] - [%f %f %f]\n", xmin, ymin, zmin, xmax, ymax, zmax);
-    }
+    o_edge(E_Int P, E_Int Q)
+    : p(P), q(Q)
+    {}
 };
 
-const AABB AABB_HUGE = {EFLOATMIN, EFLOATMIN, EFLOATMIN,
-                        EFLOATMAX, EFLOATMAX, EFLOATMAX};
-
-void AABB_clamp(AABB &box, const AABB &parent);
+struct o_edge_cmp {
+    bool operator()(const o_edge &e, const o_edge &f) const
+    {
+        E_Int e_p = std::min(e.p, e.q);
+        E_Int e_q = std::max(e.p, e.q);
+        E_Int f_p = std::min(f.p, f.q);
+        E_Int f_q = std::max(f.p, f.q);
+        return (e_p < f_p) || (e_p == f_p && e_q < f_q);
+    }
+};
