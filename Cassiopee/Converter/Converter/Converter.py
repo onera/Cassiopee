@@ -403,20 +403,20 @@ def randomizeVar(array, var, deltaMin, deltaMax):
         return converter.randomizeVar(array, var, deltaMin, deltaMax)
 
 # -- Init variables --
-def initVars(a, var, v1=[], v2=[], mode=0, isVectorized=False):
+def initVars(a, var, v1=None, v2=None, mode=0, isVectorized=False):
     """Initialize a variable by a value, a function or a formula."""
     b = copy(a)
     _initVars(b, var, v1, v2, mode, isVectorized)
     return b
 
-def _initVars(a, var, v1=[], v2=[], mode=0, isVectorized=False):
+def _initVars(a, var, v1=None, v2=None, mode=0, isVectorized=False):
     if isinstance(a[0], list):
         for i in a: _initVars__(i, var, v1, v2, mode, isVectorized)
     else: _initVars__(a, var, v1, v2, mode, isVectorized)
     return None
 
 def _initVars__(a, var, v1, v2, mode=0, isVectorized=False):
-    if v1 == []:
+    if v1 is None:
         if mode == 0: _initVarByEq__(a, var) # numpy eval
         else: _initVarByEq2__(a, var) # expression eval
     elif callable(v1):
