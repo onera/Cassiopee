@@ -995,10 +995,12 @@ int fast_expansion_sum_zeroelim(int elen, REAL *e, int flen, REAL *f, REAL *h)
     while ((eindex < elen) && (findex < flen)) {
       if ((fnow > enow) == (fnow > -enow)) {
         Two_Sum(Q, enow, Qnew, hh);
-        enow = e[++eindex];
+        ++eindex;
+        enow = e[(eindex < elen) ? eindex : elen-1];
       } else {
         Two_Sum(Q, fnow, Qnew, hh);
-        fnow = f[++findex];
+        ++findex;
+        fnow = f[(findex < flen) ? findex : flen-1];
       }
       Q = Qnew;
       if (hh != 0.0) {
@@ -1008,7 +1010,8 @@ int fast_expansion_sum_zeroelim(int elen, REAL *e, int flen, REAL *f, REAL *h)
   }
   while (eindex < elen) {
     Two_Sum(Q, enow, Qnew, hh);
-    enow = e[++eindex];
+    ++eindex;
+    enow = e[(eindex < elen) ? eindex : elen-1];
     Q = Qnew;
     if (hh != 0.0) {
       h[hindex++] = hh;
@@ -1016,7 +1019,8 @@ int fast_expansion_sum_zeroelim(int elen, REAL *e, int flen, REAL *f, REAL *h)
   }
   while (findex < flen) {
     Two_Sum(Q, fnow, Qnew, hh);
-    fnow = f[++findex];
+    ++findex;
+    fnow = f[(findex < flen) ? findex : flen-1];
     Q = Qnew;
     if (hh != 0.0) {
       h[hindex++] = hh;
