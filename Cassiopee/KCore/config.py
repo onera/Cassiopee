@@ -63,14 +63,14 @@ useCuda = v[11]
 NvccAdditionalOptions = v[12]
 
 # this part to add intel compilers to distutils
-if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
-    def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
-        from distutils.unixccompiler import UnixCCompiler
-        compiler = UnixCCompiler(None, dry_run, force)
-        compiler.cc_exe = Cppcompiler
-        compiler.set_executables(compiler=Cppcompiler, compiler_cxx=Cppcompiler, compiler_so=Cppcompiler,
-                                 linker_exe=Cppcompiler, linker_so=Cppcompiler+' -shared')
-        return compiler
-
-    from distutils import ccompiler
-    ccompiler.new_compiler = new_compiler
+#if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
+#    def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
+#        from distutils.unixccompiler import UnixCCompiler
+#        compiler = UnixCCompiler(None, dry_run, force)
+#        compiler.cc_exe = Cppcompiler
+#        compiler.set_executables(compiler=Cppcompiler, compiler_cxx=Cppcompiler, compiler_so=Cppcompiler,
+#                                 linker_exe=Cppcompiler, linker_so=Cppcompiler+' -shared')
+#        return compiler
+#
+#    from distutils import ccompiler
+#    ccompiler.new_compiler = new_compiler
