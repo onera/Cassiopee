@@ -108,10 +108,10 @@ new_pylvs="$new_pylib/$pyversion/$pysite"
 if [ $MODULE = "all" ]; then
   # Copy all modules to their destination
   cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
-  tar cvf all.tar .
+  tar --exclude='all.tar' -cvf all.tar .
   mv all.tar $DEST_PROD_PATH
   cd $DEST_PROD_PATH
-  tar xvf all.tar
+  tar -xvf all.tar
   rm all.tar
   if [ -L lib64 ]; then
     rm lib64
