@@ -148,8 +148,7 @@ def generateIBMMesh_legacy(tb, vmin=15, snears=0.01, dfar=10., dfarList=[], DEPT
 
     # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut
     # et les 8 octants en 3D sous forme de listes de zones non structurees
-    parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                   dimPb=dimPb, vmin=vmin, fileout=None, rank=0, dfarDir=dfarDir, octreeMode=octreeMode)
+    parento = buildParentOctrees__(o, tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=4., dfars=dfar, dfarDir=dfarDir, to=to, tbox=tbox, snearsf=snearsf, octreeMode=octreeMode)
     res = generateCartMesh__(o, parento=parento, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax,
                              check=check, externalBCType=externalBCType)
     return res
@@ -726,11 +725,11 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         o = buildOctree(tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=1., dfars=dfars, dfarDir=dfarDir,
                         tbox=tbox, snearsf=snearsf, to=to, expand=expand, octreeMode=octreeMode)
 
-    # build parent octree 3 levels higher
-    # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = buildParentOctrees__(o, tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=4., dfars=dfars, dfarDir=dfarDir,
-                                   tbox=tbox, snearsf=snearsf, to=to, octreeMode=octreeMode)
-
+        # build parent octree 3 levels higher
+        # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
+        parento = buildParentOctrees__(o, tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=4., dfars=dfars, dfarDir=dfarDir, 
+                                       tbox=tbox, snearsf=snearsf, to=to, octreeMode=octreeMode)
+    
     # adjust the extent of the box defining the symmetry plane if in tb
     baseSYM = Internal.getNodeFromName1(tb,"SYM")
     dir_sym = 0; X_SYM = 0.; coordsym =  None; symmetry=0
