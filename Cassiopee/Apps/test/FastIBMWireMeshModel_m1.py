@@ -51,7 +51,7 @@ X_IBM.prepareIBMData(tb               , tFile        , tcFile   , tbox=tboffset,
                      snears=snears    , dfars=dfars  , vmin=vmin,
                      check=False       , frontType=1  , cartesian=False)
 App._distribute(tFile, tcFile, NP=Cmpi.size)
-t       = Fast.loadTree(os.path.basename(tFile), directory=LOCAL, split='single',  mpirun=True)
+t       = Fast.loadTree(tFile, split='single',  mpirun=True)
 tc,graph= Fast.loadFile(tcFile, split='single',  mpirun=True, graph=True)
 
 if Cmpi.rank == 0:
