@@ -32,7 +32,6 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
     if graph is not None and graphliste==False:
         procDict  = graph['procDict']
-        procList  = graph['procList']
         graphID   = graph['graphID']
         graphIBCD = graph['graphIBCD']
         if 'graphID_Unsteady' in graph:
@@ -42,18 +41,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             graphID_U = None; graphID_S = None
     elif graph is not None and graphliste==True:
         procDict  = graph[0]['procDict']
-        procList  = graph[0]['procList']
         graphID   = graph[0]['graphID']
         graphIBCD = graph[0]['graphIBCD']
         graphID_U = None; graphID_S = None
     else:
         procDict=None; graphID=None; graphIBCD=None; graphID_U = None; graphID_S = None
 
-    # if Cmpi is not None and rank == 0:
-    #    print("GRAPH IBC IS : ",graph['graphIBCD'])
-    #    print("graphID IS :",graph['graphID'])
-
-    # print("procDict is : ",procDict)
     size_int  = 0
     size_real = 0
     listproc  = []
@@ -61,7 +54,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     rac_inst  = []
     sizeI     = []
     sizeR     = []
+    sizeNb    = []
     sizeNbD   = []
+    sizeNbFlu = []
     sizeType  = []
     nrac      = 0
 
@@ -69,9 +64,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     neq_subRegions =[]
     No_zoneD =[]
     MeshTypeD=[]
+    infoZoneList={}
     inst = {}
     numero_max =-100000000
     numero_min = 100000000
+
+    ntab_int    = 18
+    sizefluxCons=4
 
     bases = Internal.getNodesFromType1(tc, 'CGNSBase_t')  # noeud
     c     = 0
@@ -99,12 +98,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
             else: neq_trans = neq_base
 
-            #print(z[0])
             subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
             meshtype   = 1
             zonetype   = Internal.getNodeFromType1(z, 'ZoneType_t')
             tmp        = Internal.getValue(zonetype)
-            #dimPb      = Internal.getZoneDim(z)[4]
             if tmp != "Structured": meshtype = 2
             for s in subRegions:
                 zRname = Internal.getValue(s)
@@ -155,34 +152,56 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 Interptype    =  Internal.getNodeFromName1(s, 'InterpolantsType')
                 RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
                 RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
-                prange        =  Internal.getNodeFromName1(s, 'PointRange')       # Besoin des point range pour l'explicite local
-                pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor')  # Besoin des point range pour l'explicite local
-                direction     =  Internal.getNodeFromName1(s, 'DirReceveur')       # Besoin des directions pour l'explicite local
-                directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')  # Besoin des point directions pour l'explicite local
-                transfo       =  Internal.getNodeFromName1(s, 'Transform')  # Besoin du transform pour l'explicite local
-                pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')  # Besoin du point pivot pour l'explicite local (conservativite)
-                profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')  # Besoin de la profondeur pour l'explicite local (nearmatch)
-                ratio         =  Internal.getNodeFromName1(s, 'NMratio') # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
-                levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv') # Niveau en temps zone receveuse (exp local)
-                leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr') # Niveau en temps zone donneuse (exp local)
+                prange        =  Internal.getNodeFromName1(s, 'PointRange')      # Besoin des point range pour l'explicite local
+                pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor') # Besoin des point range pour l'explicite local 
+                direction     =  Internal.getNodeFromName1(s, 'DirReceveur')     # Besoin des directions pour l'explicite local
+                directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')      # Besoin des point directions pour l'explicite local 
+                transfo       =  Internal.getNodeFromName1(s, 'Transform')       # Besoin du transform pour l'explicite local
+                pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')      # Besoin du point pivot pour l'explicite local (conservativite)
+                profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')      # Besoin de la profondeur pour l'explicite local (nearmatch) 
+                ratio         =  Internal.getNodeFromName1(s, 'NMratio')         # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
+                levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv')       # Niveau en temps zone receveuse (exp local)
+                leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr')       # Niveau en temps zone donneuse (exp local)
 
+                utau          =  Internal.getNodeFromName1(s, 'utau')
+                temp_local    =  Internal.getNodeFromName1(s, 'Temperature')
+                wmodel_local  =  Internal.getNodeFromName1(s, 'Density_WM')
+                gradxP        =  Internal.getNodeFromName1(s, 'gradxPressure')
+                gradxU        =  Internal.getNodeFromName1(s, 'gradxVelocityX')
+                xcInit        =  Internal.getNodeFromName1(s, 'CoordinateX_PC#Init')
+                motion_type   =  Internal.getNodeFromName1(s, 'MotionType')
+                kcurv         =  Internal.getNodeFromName1(s, XOD.__KCURV__)
+                sd1           =  Internal.getNodeFromName1(s, 'StagnationEnthalpy')
+                yline         =  Internal.getNodeFromName1(s, 'CoordinateN_ODE')
+      
                 Nbpts         =  numpy.shape(pointlist[ 1])[0]
                 Nbpts_D       =  numpy.shape(pointlistD[1])[0]
                 Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
 
                 sname        = s[0][0:2]
-                utau         = Internal.getNodeFromName1(s, 'utau')
-                temp_local   = Internal.getNodeFromName1(s, 'Temperature')
-                wmodel_local = Internal.getNodeFromName1(s, 'Density_WM')
-                gradxP       = Internal.getNodeFromName1(s, 'gradxPressure')
-                gradxU       = Internal.getNodeFromName1(s, 'gradxVelocityX')
-                xcInit       = Internal.getNodeFromName1(s, 'CoordinateX_PC#Init')
-                motion_type  = Internal.getNodeFromName1(s, 'MotionType')
-                kcurv        = Internal.getNodeFromName1(s, XOD.__KCURV__)
-                sd1          = Internal.getNodeFromName1(s, 'StagnationEnthalpy')
-                yline        = Internal.getNodeFromName1(s, 'CoordinateN_ODE')
 
+                #recherche raccord conservatif
+                zd = zones[c]
+                nbfluCons=0
+                bcs   = Internal.getNodesFromType2(zd, 'BC_t')
+                bc_info=[]
+                for c4, bc in enumerate(bcs):
+                   bcname = bc[0].split('_') #
+                   btype = Internal.getValue(bc)
+                   if 'BCFluxOctree_F' == btype and bcname[1]==zRname: nbfluCons+=1 #flux donneur(Fine)
+                   if 'BCFluxOctree_C' == btype:                                    #flux receveur (Coarse)
+                      if   bcname[2][0:5]=='imin': idir_tg=2
+                      elif bcname[2][0:5]=='imax': idir_tg=1
+                      elif bcname[2][0:5]=='jmin': idir_tg=4
+                      elif bcname[2][0:5]=='jmax': idir_tg=3
+                      elif bcname[2][0:5]=='kmin': idir_tg=6
+                      elif bcname[2][0:5]=='kmax': idir_tg=5
+                      bc_info.append( [ bcname[1], idir_tg, c4 ] )
+                infoZoneList[zd[0]] = [ c , bc_info] #[ No zoneD, bcs(conservatif)]
 
+                if nbfluCons !=0: print("flux cons: Z_D/R",  z[0], zRname, 'nflux=', nbfluCons)
+
+                sname        = s[0][0:2]
                 # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
                 if sname == 'IB':
                     vx = Internal.getNodeFromName1(s, 'VelocityX')
@@ -266,39 +285,36 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                     rac.append(1)
                     if '#' in s[0]: rac_inst.append(1)
                     else          : rac_inst.append(0)
-                    sizeI.append(    Nbpts_D*2     + Nbpts   + nbTypeSize+1 )
-                    sizeR.append(    Nbpts_InterpD + size_IBC + rotation    )
-                    sizeNbD.append(  Nbpts_D                                )
-                    sizeType.append( Nbpts_D                 + nbTypeSize+1 )
+                    sizeI.append(    Nbpts_D*2     + Nbpts   + nbTypeSize+1 + nbfluCons*sizefluxCons)
+                    sizeR.append(    Nbpts_InterpD + size_IBC + rotation                            )
+                    sizeNbD.append(  Nbpts_D                                                        )
+                    sizeNb.append(   Nbpts                                                          )
+                    sizeType.append( Nbpts_D                 + nbTypeSize+1                         )
+                    sizeNbFlu.append( nbfluCons*sizefluxCons)
                 else:
                     pos           = listproc.index(proc)
                     rac[pos]      = rac[pos] + 1
                     if '#' in s[0]: rac_inst[pos]= rac_inst[pos] + 1
-                    sizeI[pos]    = sizeI[pos]     + Nbpts_D*2     + Nbpts   + nbTypeSize+1
+                    sizeI[pos]    = sizeI[pos]     + Nbpts_D*2     + Nbpts   + nbTypeSize+1  + nbfluCons*sizefluxCons
                     sizeR[pos]    = sizeR[pos]     + Nbpts_InterpD + size_IBC + rotation
                     sizeNbD[pos]  = sizeNbD[pos]   + Nbpts_D
+                    sizeNb[pos]   = sizeNb[pos]    + Nbpts
                     sizeType[pos] = sizeType[pos]  + Nbpts_D                 + nbTypeSize+1
-
+                    sizeNbFlu[pos]= sizeNbFlu[pos] + nbfluCons*sizefluxCons
             c += 1
-
-    #for pos in range(len(rac)):
-    #   print('RAC=', rac[pos], 'racInst', rac_inst[pos], pos,'rank=', rank, 'dest=',listproc[pos])
 
     base     = Internal.getNodeFromType1(tc, 'CGNSBase_t')  # noeud
     model    = 'NSLaminar'
     a        = Internal.getNodeFromName2(base, 'GoverningEquations')
     if a is not None: model = Internal.getValue(a)
 
-    NbP2P     = len(listproc)
+    NbP2P     = len(listproc)  #nombre Comm MPI point a Point pour envoi
     sizeproc  = []
-    ntab_int  = 16
+    ntab_tot  = ntab_int
 
-    if nrac != 0:
-        if prange is not None:
-            ntab_int = ntab_int + 27
+    if nrac != 0 and prange is not None: ntab_tot += 27
 
-
-    for i in range(NbP2P): sizeproc.append(5 + TimeLevelNumber*2 + ntab_int*rac[i] + sizeI[i])
+    for i in range(NbP2P): sizeproc.append(4 + TimeLevelNumber*2 + ntab_tot*rac[i] + sizeI[i])
 
     size_int  =  2 + NbP2P + sum(sizeproc)
     size_real =  sum(sizeR)
@@ -349,6 +365,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         graphIBCrcv  = pos_IBC + graphIBCrcv_
         graphIDrcv   = pos_ID  + graphIDrcv_
 
+
+    ## Recuperation info zone
+    infoZoneList = Cmpi.allgatherDict(infoZoneList)
+
     #print("len graphIBCrcv is",len(graphIBCrcv))
     #print("len graphIDrcv  is",len(graphIDrcv))
     #print("pos_IBC is",pos_IBC)
@@ -371,15 +391,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     param_int[3+len(graphIBCrcv):4+len(graphIBCrcv)+len(graphIDrcv)] = _graphID
 
     # print("param_int is ",param_int[0:2+len(graphIBCrcv)+len(graphIDrcv)+1])
-    # Dictionnaire pour optimisation
-    znd = []
-    for z in zones: znd.append(z[0])
 
     #
     #initialisation numpy
     #
     param_int[0] = 0  #flag pour init transfert couche C (X. Juvigny)
     param_int[1] = NbP2P
+    size_ptflux = []
     size_ptlist = []
     size_ptlistD= []
     size_ptType = []
@@ -397,6 +415,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
         param_int[i+shift_graph] = NbP2P + shift              #adresse echange
         shift          =  shift  + sizeproc[i]
+        size_ptflux.append(0)
         size_ptlist.append(0)
         size_ptlistD.append(0)
         size_ptType.append(0)
@@ -415,15 +434,32 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     S = 0
     for s in ordered_subRegions:
 
+        zRname   = Internal.getValue(s)
+
         NozoneD  = No_zoneD[c]
         meshtype = MeshTypeD[c]
         neq_loc  = neq_subRegions[c]
 
-        zRname = Internal.getValue(s)
+        #recherche raccord conservatif
+        zd = zones[NozoneD]
+        nbfluCons=0
+        bcs   = Internal.getNodesFromType2(zd, 'BC_t')
+        no_bc=[]
+        for c1, bc in enumerate(bcs):
+            bcname = bc[0].split('_')
+            btype = Internal.getValue(bc)
+            if 'BCFluxOctree_F' == btype and bcname[1]==zRname: 
+              nbfluCons+=1
+              no_bc.append(c1)
+              param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
+              #print("bc",  s[0], bc[0])
+
+        #if nbfluCons !=0: print("Verif flux cons: Z_D/R",  zd[0], zRname, 'nflux=', nbfluCons, 'NoZoneD:', NozoneD)
+
         proc = 0
         if procDict is not None: proc = procDict[zRname]
         pos  = listproc.index(proc)
-        pt_ech = param_int[ pos + shift_graph]                 # adresse debut raccord pour l'echange pos
+        pt_ech = param_int[ pos + shift_graph]      # adresse debut raccord pour l'echange pos
         pt_coef= adr_coef[pos] + size_coef[pos]     # adresse debut coef
 
         pointlist     =  Internal.getNodeFromName1(s, 'PointList')
@@ -449,12 +485,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         Nbpts_D       =  numpy.shape(pointlistD[1])[0]
         Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
 
-        param_int[ pt_ech    ] = proc
-        param_int[ pt_ech +1 ] = rac[pos]
-        param_int[ pt_ech +2 ] = rac_inst[pos]
+        param_int[ pt_ech    ] = proc                    #proc destination
+        param_int[ pt_ech +1 ] = rac[pos]                #nbr de raccord a envoyer a proc destination
+        param_int[ pt_ech +2 ] = rac_inst[pos]           #nbr de raccord instat a envoyer a proc destination
         nrac_steady            = rac[pos] - rac_inst[pos]
 
-        param_int[ pt_ech +3 ] = TimeLevelNumber
+        param_int[ pt_ech +3 ] = TimeLevelNumber         #nbr pas de temps instationnaire dans raccord
         nrac_inst_deb  =  nrac_steady
         for i in range(TimeLevelNumber):
 
@@ -463,23 +499,25 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             for procSearch in inst[i+numero_min][3]:
                 if procSearch==proc: NracInsta+=1
 
-            #nrac_inst_fin  = nrac_inst_deb + len(inst[i+numero_min][0])
             nrac_inst_fin  = nrac_inst_deb + NracInsta
 
             #print('NracInsta=',NracInsta,'TimeLevel=',i, 'dest=',proc)
 
-            param_int[ pt_ech +4 + i                  ] = nrac_inst_deb
-            param_int[ pt_ech +4 + i + TimeLevelNumber] = nrac_inst_fin
+            param_int[ pt_ech +4 + i                  ] = nrac_inst_deb   #unsteadyJoins(No rac debut)
+            param_int[ pt_ech +4 + i + TimeLevelNumber] = nrac_inst_fin   #unsteadyJoins(No rac fin)
 
             nrac_inst_deb  = nrac_inst_fin
 
-        iadr = pt_ech + 4 + TimeLevelNumber*2 + nb_rac[pos]   # ptr echange + dest + nrac + norac
-        iadr2= pt_ech + 4 + TimeLevelNumber*2 + 1
+        iadr2    = pt_ech + 4 + TimeLevelNumber*2
+        iadr     = iadr2 + nb_rac[pos]             # ptr echange + dest + nrac ...
+        iadr_ptr = iadr2 + ntab_tot*rac[pos]
 
         param_int[ iadr            ] = Nbpts
         param_int[ iadr + rac[pos] ] = Nbpts_InterpD
 
         #on recupere le nombre de type different
+        #NbType = numpy.unique(Interptype[1])
+        #NbTypeSize = NbType.size
         typecell = Interptype[1][0]
         Nbtype= [ typecell ]
         for i in range(Nbpts_D):
@@ -816,20 +854,55 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 size_IBC += 2*Nbpts_D; inc += 2
 
 
-
-
         tmp = Internal.getNodeFromName1(s, 'ZoneRole')
         if tmp[1][0] == b'D': param_int[ iadr +rac[pos]*4 ] = 0   # role= Donor
         else                : param_int[ iadr +rac[pos]*4 ] = 1   # role= Receiver
 
         param_int[ iadr +rac[pos]*5 ] = NozoneD                    # No zone donneuse
 
-        lst                              = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + sizeNbD[pos] + sizeType[pos] + size_ptlist[pos]
-        param_int[ iadr +rac[pos]*6    ] = lst                                                                      # PointlistAdr
-        ptTy                             = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + sizeNbD[pos] + size_ptType[pos]
-        param_int[ iadr +rac[pos]*7    ] = ptTy                                                                     # TypAdr
-        lstD                             = iadr + 1 -nb_rac[pos] +ntab_int*rac[pos] + size_ptlistD[pos]
-        param_int[ iadr +rac[pos]*12 +1] = lstD                                                                     # PointlistDAdr
+        lstD  = iadr_ptr + size_ptlistD[pos]
+        ptTy  = iadr_ptr + sizeNbD[pos] + size_ptType[pos]
+        lst   = iadr_ptr + sizeNbD[pos] + sizeType[pos] + size_ptlist[pos]
+        ptFlux= iadr_ptr + sizeNbD[pos] + sizeType[pos] + sizeNb[pos] + size_ptflux[pos]
+        param_int[ iadr +rac[pos]*6 ] = lst                                                                      # PointlistAdr
+        param_int[ iadr +rac[pos]*7 ] = ptTy                                                                     # TypAdr
+        param_int[ iadr +rac[pos]*12] = lstD                                                                     # PointlistDAdr
+        param_int[ iadr +rac[pos]*17] = ptFlux                                                                   # Ptr_flux
+
+        #
+        #construction info flux conservatif
+        #
+        zd = zones[NozoneD]
+        nbfluCons=0
+        bcs   = Internal.getNodesFromType2(zd, 'BC_t')
+        no_bc=[]
+        for c1, bc in enumerate(bcs):
+            bcname = bc[0].split('_')
+            btype = Internal.getValue(bc)
+            if 'BCFluxOctree_F' == btype and bcname[1]==zRname: 
+              nbfluCons+=1
+              no_bc.append(c1)
+              param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
+
+        for c2 , no in enumerate(no_bc):
+          pt_bcs = param_int_zD[70]  #70=PT_BC
+          pt_bc  = param_int_zD[pt_bcs + 1 + no]
+          idir_bc= param_int_zD[pt_bc + 1]
+          sz_bc  =(param_int_zD[pt_bc +3]-param_int_zD[pt_bc+2]+1)*(param_int_zD[pt_bc +5]-param_int_zD[pt_bc+4]+1)*(param_int_zD[pt_bc +7]-param_int_zD[pt_bc+6]+1)
+           
+          pt_flu = ptFlux + c2*sizefluxCons   
+          param_int[ pt_flu   ]= idir_bc
+          param_int[ pt_flu +1]= sz_bc
+          param_int[ pt_flu +2]= no
+
+          #determination No Bc sur zone receuveuse a partir du nom du noeud bc
+          for bc in infoZoneList[zRname][1]:
+             if bc[0]==zd[0] and bc[1]== idir_bc: param_int[pt_flu +3] = bc[2]
+           
+          print("Flux compact: zr=", zRname, "zd=", zd[0], 'idir', idir_bc, 'sz_bc', sz_bc, 'ptbc', pt_bc, 'NobcR', param_int[pt_flu +3] )
+        #
+        #Fin flux conservatif
+        #
 
         Nbtot += Nbpts
 
@@ -1059,25 +1132,18 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
         param_int[ iadr +rac[pos]*8 ] = adr_coef[pos] + size_coef[pos]          # PtcoefAdr
 
-        iadr = iadr +1
-        param_int[ iadr +rac[pos]*8 ] = rac[pos]                  # nrac pour mpi
-
-
         tmp = Internal.getNodeFromName1(s , 'GridLocation')
         if tmp[1][4] == b'C': param_int[ iadr +rac[pos]*9 ] = 1   # location= CellCenter
         else                : param_int[ iadr +rac[pos]*9 ] = 0   # location= Vertex
 
         param_int[ iadr +rac[pos]*10 ] = Nbpts_D
 
-        #chercher No zone receveuse grace a tc ou dico (si mpi)
-        if procDict is None:
-            param_int[ iadr +rac[pos]*11 ] = znd.index( zRname )         # No zone receveuse
-        else:
-            param_int[ iadr +rac[pos]*11  ]= procList[proc].index( zRname )  # No zone raccord
+        NoR = infoZoneList[zRname][0]
+        param_int[ iadr +rac[pos]*11  ]= NoR  # No zone receveuse
 
-        #print( 'rac', s[0], 'zoneR=', zRname, 'NoR=', param_int[ iadr +rac[pos]*11 ],  'adr=',iadr +rac[pos]*11, 'NoD=',  param_int[ iadr-1 +rac[pos]*5 ], 'adr=',iadr-1 +rac[pos]*5,'rank=', rank, 'dest=', proc)
+        #print('rac',s[0],'zoneR=',zRname,'NoR=',NoR ,'adr=',iadr +rac[pos]*11, 'NoD=', param_int[ iadr-1 +rac[pos]*5 ], 'adr=',iadr-1 +rac[pos]*5,'rank=',rank,'dest=', proc)
 
-        #print 'model=',model,'zoneR',zones_tc[param_int[ iadr +rac[pos]*11  ]][0], 'NoR=', param_int[ iadr +rac[pos]*11  ], 'NoD=', c
+        #print 'model=',model,'zoneR',zones_tc[param_int[ iadr +rac[pos]*11  ]][0], 'NoR=', NoR, 'NoD=', c
         tmp =  Internal.getNodeFromName1(s , 'RANSLES')
         if tmp is not None: param_int[ iadr +rac[pos]*13  ] = min (5, neq_loc)   # RANSLES
         else:               param_int[ iadr +rac[pos]*13  ] = neq_loc
@@ -1103,40 +1169,47 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             param_int[ iadr +rac[pos]*14  ] = 0
             shiftRotation                   = 0
 
-        #print('rac*14= ',iadr +rac[pos]*14)
-
         # raccord instationnaire
+        #Ivan: rac*15: inutile?? On affecte levelReceveur pour preparer nettoyage dtloc
+        param_int[ iadr + rac[pos]*15 ] = 1  # valeur par defaut niveau temps zone receveuse
+        if levelrcv is not None:
+           param_int[ iadr +rac[pos]*15 ] = int(levelrcv[1])
+
+        # nombre de flux conservatif a corriger
+        param_int[ iadr + rac[pos]*16 ] = nbfluCons  
+
+        '''
         param_int[ iadr +rac[pos]*15  ] =-1
         if '#' in s[0]:
             numero_iter = int( s[0].split('#')[1].split('_')[0] )
             param_int[ iadr +rac[pos]*15  ] = numero_iter
+        '''
 
         if nrac != 0:
 
             if pranged is not None and prange is not None : #Si on est en explicite local, on rajoute des choses dans param_int
 
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] : iadr2 + rac[pos]*16 + 27*nb_rac[pos]+6 ] = prange[1]
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos]  + 6] = direction[1]
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 7 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13 ] = pranged[1]
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 13] = directiond[1]
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 14 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 17 ] = transfo[1]
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 17 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 20 ] = pt_pivot[1]
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 20 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 21 ] = profondeur[1]
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 21 : iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 24 ] = ratio[1]
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 24] = int(levelrcv[1])
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 25] = int(leveldnr[1])
-                param_int[ iadr2 + rac[pos]*16 + 27*nb_rac[pos] + 26] = S
+                adr = iadr2 + rac[pos]*ntab_int + 27*nb_rac[pos]
+                param_int[ adr     : adr+ 6 ] = prange[1]
+                param_int[ adr+ 7  : adr+ 13] = pranged[1]
+                param_int[ adr+ 14 : adr+ 17] = transfo[1]
+                param_int[ adr+ 17 : adr+ 20] = pt_pivot[1]
+                param_int[ adr+ 20 : adr+ 21] = profondeur[1]
+                param_int[ adr+ 21 : adr+ 24] = ratio[1]
+                param_int[ adr+ 6]  = direction[1]
+                param_int[ adr+ 13] = directiond[1]
+                param_int[ adr+ 24] = int(levelrcv[1])
+                param_int[ adr+ 25] = int(leveldnr[1])
+                param_int[ adr+ 26] = S
 
                 if int(levelrcv[1]) != int(leveldnr[1]):
                     S=S + 3*5*(pranged[1][1]-pranged[1][0]+1)*(pranged[1][3]-pranged[1][2]+1)*(pranged[1][5]-pranged[1][4]+1)*(profondeur[1][0]+1)
-                #print [int(levelrcv[1])], [int(leveldnr[1])],'--'
-                #print int([1]
-        #print('model=', model, 'tmp=', tmp, 'neq_loc=', neq_loc)
 
         ### Verifier position et choix entre Nbpts et NbptsD
         size_ptlistD[pos] = size_ptlistD[pos] + Nbpts_D
         size_ptlist[pos]  = size_ptlist[pos]  + Nbpts
         size_ptType[pos]  = size_ptType[pos]  + Nbpts_D + len(Nbtype)+1
+        size_ptflux[pos]  = size_ptflux[pos]  + nbfluCons*sizefluxCons
 
         size_coef[pos] = size_coef[pos] + Nbpts_InterpD + size_IBC + shiftRotation
         nb_rac[pos]    = nb_rac[pos] + 1
