@@ -311,7 +311,7 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                                                               extrapPts, resInterp[5], tag='Donor', loc=locR, EXDir=EXdir)
 
                             dim__       = Internal.getZoneDim(zonesDnr[noz])
-                            prange      = numpy.zeros(6,dtype=Internal.E_NpyInt) 
+                            prange      = numpy.zeros(6,dtype=Internal.E_NpyInt)
                             prangedonor = numpy.zeros(6,dtype=Internal.E_NpyInt)
                             profondeur  = numpy.zeros(1,dtype=Internal.E_NpyInt)
                             dirR        = numpy.zeros(1,dtype=Internal.E_NpyInt)
@@ -835,8 +835,8 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     leveldnr  = Internal.getValue(sol)[0][0][0]
 
                     info = zdonorp[2][len(zdonorp[2])-1]
-                    if storage == 'direct':                       
-                       info = zp[2][len(zp[2])-1]
+                    if storage == 'direct':
+                        info = zp[2][len(zp[2])-1]
 
                     info[2].append(['PointRange',      prange      , [], 'IndexArray_t'])
                     info[2].append(['PointRangeDonor', prangedonor , [], 'IndexArray_t'])
@@ -846,8 +846,8 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     info[2].append(['PointPivot',      pt_pivot    , [], 'IndexArray_t'])
                     info[2].append(['Profondeur',      profondeur  , [], 'IndexArray_t'])
                     info[2].append(['NMratio',         NMratio     , [], 'IndexArray_t'])
-                    info[2].append(['LevelZRcv',       levelrcv    , [], 'IndexArray_t'])    
-                    info[2].append(['LevelZDnr',       leveldnr    , [], 'IndexArray_t']) 
+                    info[2].append(['LevelZRcv',       levelrcv    , [], 'IndexArray_t'])
+                    info[2].append(['LevelZDnr',       leveldnr    , [], 'IndexArray_t'])
 
     if storage == 'direct': return aR
     else: return aD

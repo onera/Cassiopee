@@ -153,12 +153,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 RotationAngle =  Internal.getNodeFromName1(s, 'RotationAngle')
                 RotationCenter=  Internal.getNodeFromName1(s, 'RotationCenter')
                 prange        =  Internal.getNodeFromName1(s, 'PointRange')      # Besoin des point range pour l'explicite local
-                pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor') # Besoin des point range pour l'explicite local 
+                pranged       =  Internal.getNodeFromName1(s, 'PointRangeDonor') # Besoin des point range pour l'explicite local
                 direction     =  Internal.getNodeFromName1(s, 'DirReceveur')     # Besoin des directions pour l'explicite local
-                directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')      # Besoin des point directions pour l'explicite local 
+                directiond    =  Internal.getNodeFromName1(s, 'DirDonneur')      # Besoin des point directions pour l'explicite local
                 transfo       =  Internal.getNodeFromName1(s, 'Transform')       # Besoin du transform pour l'explicite local
                 pt_pivot      =  Internal.getNodeFromName1(s, 'PointPivot')      # Besoin du point pivot pour l'explicite local (conservativite)
-                profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')      # Besoin de la profondeur pour l'explicite local (nearmatch) 
+                profondeur    =  Internal.getNodeFromName1(s, 'Profondeur')      # Besoin de la profondeur pour l'explicite local (nearmatch)
                 ratio         =  Internal.getNodeFromName1(s, 'NMratio')         # Besoin des ratios entre les pas d espace des zones donneuse et receveuse (exp local)
                 levelrcv      =  Internal.getNodeFromName1(s, 'LevelZRcv')       # Niveau en temps zone receveuse (exp local)
                 leveldnr      =  Internal.getNodeFromName1(s, 'LevelZDnr')       # Niveau en temps zone donneuse (exp local)
@@ -173,7 +173,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 kcurv         =  Internal.getNodeFromName1(s, XOD.__KCURV__)
                 sd1           =  Internal.getNodeFromName1(s, 'StagnationEnthalpy')
                 yline         =  Internal.getNodeFromName1(s, 'CoordinateN_ODE')
-      
+
                 Nbpts         =  numpy.shape(pointlist[ 1])[0]
                 Nbpts_D       =  numpy.shape(pointlistD[1])[0]
                 Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
@@ -186,17 +186,17 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 bcs   = Internal.getNodesFromType2(zd, 'BC_t')
                 bc_info=[]
                 for c4, bc in enumerate(bcs):
-                   bcname = bc[0].split('_') #
-                   btype = Internal.getValue(bc)
-                   if 'BCFluxOctree_F' == btype and bcname[1]==zRname: nbfluCons+=1 #flux donneur(Fine)
-                   if 'BCFluxOctree_C' == btype:                                    #flux receveur (Coarse)
-                      if   bcname[2][0:5]=='imin': idir_tg=2
-                      elif bcname[2][0:5]=='imax': idir_tg=1
-                      elif bcname[2][0:5]=='jmin': idir_tg=4
-                      elif bcname[2][0:5]=='jmax': idir_tg=3
-                      elif bcname[2][0:5]=='kmin': idir_tg=6
-                      elif bcname[2][0:5]=='kmax': idir_tg=5
-                      bc_info.append( [ bcname[1], idir_tg, c4 ] )
+                    bcname = bc[0].split('_') #
+                    btype = Internal.getValue(bc)
+                    if 'BCFluxOctree_F' == btype and bcname[1]==zRname: nbfluCons+=1 #flux donneur(Fine)
+                    if 'BCFluxOctree_C' == btype:                                    #flux receveur (Coarse)
+                        if   bcname[2][0:5]=='imin': idir_tg=2
+                        elif bcname[2][0:5]=='imax': idir_tg=1
+                        elif bcname[2][0:5]=='jmin': idir_tg=4
+                        elif bcname[2][0:5]=='jmax': idir_tg=3
+                        elif bcname[2][0:5]=='kmin': idir_tg=6
+                        elif bcname[2][0:5]=='kmax': idir_tg=5
+                        bc_info.append( [ bcname[1], idir_tg, c4 ] )
                 infoZoneList[zd[0]] = [ c , bc_info] #[ No zoneD, bcs(conservatif)]
 
                 if nbfluCons !=0: print("flux cons: Z_D/R",  z[0], zRname, 'nflux=', nbfluCons)
@@ -448,11 +448,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         for c1, bc in enumerate(bcs):
             bcname = bc[0].split('_')
             btype = Internal.getValue(bc)
-            if 'BCFluxOctree_F' == btype and bcname[1]==zRname: 
-              nbfluCons+=1
-              no_bc.append(c1)
-              param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
-              #print("bc",  s[0], bc[0])
+            if 'BCFluxOctree_F' == btype and bcname[1]==zRname:
+                nbfluCons+=1
+                no_bc.append(c1)
+                param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
+                #print("bc",  s[0], bc[0])
 
         #if nbfluCons !=0: print("Verif flux cons: Z_D/R",  zd[0], zRname, 'nflux=', nbfluCons, 'NoZoneD:', NozoneD)
 
@@ -879,27 +879,27 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         for c1, bc in enumerate(bcs):
             bcname = bc[0].split('_')
             btype = Internal.getValue(bc)
-            if 'BCFluxOctree_F' == btype and bcname[1]==zRname: 
-              nbfluCons+=1
-              no_bc.append(c1)
-              param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
+            if 'BCFluxOctree_F' == btype and bcname[1]==zRname:
+                nbfluCons+=1
+                no_bc.append(c1)
+                param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
 
         for c2 , no in enumerate(no_bc):
-          pt_bcs = param_int_zD[70]  #70=PT_BC
-          pt_bc  = param_int_zD[pt_bcs + 1 + no]
-          idir_bc= param_int_zD[pt_bc + 1]
-          sz_bc  =(param_int_zD[pt_bc +3]-param_int_zD[pt_bc+2]+1)*(param_int_zD[pt_bc +5]-param_int_zD[pt_bc+4]+1)*(param_int_zD[pt_bc +7]-param_int_zD[pt_bc+6]+1)
-           
-          pt_flu = ptFlux + c2*sizefluxCons   
-          param_int[ pt_flu   ]= idir_bc
-          param_int[ pt_flu +1]= sz_bc
-          param_int[ pt_flu +2]= no
+            pt_bcs = param_int_zD[70]  #70=PT_BC
+            pt_bc  = param_int_zD[pt_bcs + 1 + no]
+            idir_bc= param_int_zD[pt_bc + 1]
+            sz_bc  =(param_int_zD[pt_bc +3]-param_int_zD[pt_bc+2]+1)*(param_int_zD[pt_bc +5]-param_int_zD[pt_bc+4]+1)*(param_int_zD[pt_bc +7]-param_int_zD[pt_bc+6]+1)
 
-          #determination No Bc sur zone receuveuse a partir du nom du noeud bc
-          for bc in infoZoneList[zRname][1]:
-             if bc[0]==zd[0] and bc[1]== idir_bc: param_int[pt_flu +3] = bc[2]
-           
-          print("Flux compact: zr=", zRname, "zd=", zd[0], 'idir', idir_bc, 'sz_bc', sz_bc, 'ptbc', pt_bc, 'NobcR', param_int[pt_flu +3] )
+            pt_flu = ptFlux + c2*sizefluxCons
+            param_int[ pt_flu   ]= idir_bc
+            param_int[ pt_flu +1]= sz_bc
+            param_int[ pt_flu +2]= no
+
+            #determination No Bc sur zone receuveuse a partir du nom du noeud bc
+            for bc in infoZoneList[zRname][1]:
+                if bc[0]==zd[0] and bc[1]== idir_bc: param_int[pt_flu +3] = bc[2]
+
+            print("Flux compact: zr=", zRname, "zd=", zd[0], 'idir', idir_bc, 'sz_bc', sz_bc, 'ptbc', pt_bc, 'NobcR', param_int[pt_flu +3] )
         #
         #Fin flux conservatif
         #
@@ -1173,10 +1173,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         #Ivan: rac*15: inutile?? On affecte levelReceveur pour preparer nettoyage dtloc
         param_int[ iadr + rac[pos]*15 ] = 1  # valeur par defaut niveau temps zone receveuse
         if levelrcv is not None:
-           param_int[ iadr +rac[pos]*15 ] = int(levelrcv[1])
+            param_int[ iadr +rac[pos]*15 ] = int(levelrcv[1])
 
         # nombre de flux conservatif a corriger
-        param_int[ iadr + rac[pos]*16 ] = nbfluCons  
+        param_int[ iadr + rac[pos]*16 ] = nbfluCons
 
         '''
         param_int[ iadr +rac[pos]*15  ] =-1
