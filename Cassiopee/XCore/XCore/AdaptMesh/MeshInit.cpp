@@ -54,6 +54,7 @@ Mesh::Mesh()
 
     cref = NULL;
     fref = NULL;
+    fpattern = NULL;
 
     clevel = NULL;
     flevel = NULL;
@@ -82,6 +83,10 @@ Mesh::Mesh()
     l2gc = l2gf = NULL;
 
     xneis = cneis = NULL;
+    
+    ctag = NULL;
+    ftag = NULL;
+    ptag = NULL;
 }
 
 Mesh *Mesh_from_Karray(Karray *karray)

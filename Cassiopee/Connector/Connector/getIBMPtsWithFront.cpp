@@ -21,6 +21,7 @@
 # include "Nuga/include/BbTree.h"
 # include "Nuga/include/KdTree.h"
 # include "Nuga/include/ArrayAccessor.h"
+# include <math.h>
 using namespace K_FLD;
 using namespace std;
 using namespace K_SEARCH;
@@ -480,20 +481,16 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         E_Float* ptrXI = xit[noz];
         E_Float* ptrYI = yit[noz];
         E_Float* ptrZI = zit[noz];
-	E_Float* ptrPT = xPTt[noz];
+        E_Float* ptrPT = xPTt[noz];
         E_Float snearloc = vectOfSnearsLoc[noz];
         E_Float heightloc = vectOfModelisationHeightsLoc[noz];
         //distance max for image pt to its corrected pt : height*sqrt(3)
 
-        // heightloc = heightloc + 2*snearloc; // for 2nd image point
-        // heightloc = (heightloc*1.1)*(heightloc*1.1)*3;     
-        // snearloc = snearloc*snearloc;
+        heightloc = heightloc*1.1 + 3*snearloc*sqrt(3.); // for 2nd image point
+        heightloc = heightloc*heightloc;
 
-        // heightloc = heightloc*1.1 + 4*snearloc*snearloc*3; // for 2nd image point
-        // snearloc = snearloc*snearloc + 4*snearloc*snearloc*3; // for 2nd image point
-
-        heightloc = heightloc*1.1 + 2*snearloc*snearloc*3; // for 2nd image point
-        snearloc = snearloc*snearloc + 2*snearloc*snearloc*3; // for 2nd image point
+        snearloc = snearloc + 3*snearloc*sqrt(3); // for 2nd image point
+        snearloc = snearloc*snearloc;
 
         E_Float distMaxF2 = max(toldistFactorImage*snearloc, heightloc);// distance au carre maximale des pts cibles au front via depth ou modelisationHeight
         E_Float distMaxB2 = max(toldistFactorWall*snearloc, heightloc);// distance au carre maximale des pts cibles au projete paroi via depth ou modelisationHeight
@@ -580,7 +577,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
 		    if (ok == 1)
                     {
                         distF2 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);
-                        if (distF2  <= distMaxF2 && distB2 <= distMaxB2) 
+                        if (distF2  <= distMaxF2 && distB2 <= distMaxB2)
                         {
                             ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                             ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;

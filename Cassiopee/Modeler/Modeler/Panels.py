@@ -67,7 +67,7 @@ def frame(w, h, border):
     q10 = D.quadrangle(P5b, P6b, P2, P1)
     q11 = D.quadrangle(P6b, P7b, P3, P2)
     q12 = D.quadrangle(P7b, P4b, P0, P3)
-    
+
     all = [q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11,q12]
     all = C.initVars(all, '_u_=0')
     all = C.initVars(all, '_v_=0')

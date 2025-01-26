@@ -22,9 +22,9 @@ Dist.writeSetupCfg()
 
 # Test if generator exists ===================================================
 (generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
-    
+
 # Test if open-cascade is already installed ==================================
-(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
+(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths,
                                                    additionalIncludePaths)
 
 if not OCEPresent: os._exit(0)
@@ -40,8 +40,8 @@ includeDirs = [numpyIncDir, kcoreIncDir, generatorIncDir]
 libraries = ["occ_cassiopee", "generator", "kcore"]
 
 if OCEPresent:
-  libraryDirs += [OCELibDir]
-  includeDirs += [OCEIncDir]
+    libraryDirs += [OCELibDir]
+    includeDirs += [OCEIncDir]
 
 import srcs
 libOCE = srcs.allMods
@@ -71,7 +71,7 @@ setup(
                            extra_compile_args=Dist.getCppArgs(),
                            extra_link_args=Dist.getLinkArgs()
                            )]
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

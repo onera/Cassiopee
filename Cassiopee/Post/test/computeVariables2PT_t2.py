@@ -7,9 +7,9 @@ import KCore.test        as test
 ni = 30; nj = 40
 z1 = GP.cartHexa((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
 
-# Variables a calculer 
+# Variables a calculer
 # --------------------
-vars = ['centers:Pressure','VelocityX','VelocityZ','VelocityMagnitude', 
+vars = ['centers:Pressure','VelocityX','VelocityZ','VelocityMagnitude',
         'Temperature','Entropy','centers:Enthalpy','Mach','ViscosityMolecular',
         'PressureStagnation','centers:TemperatureStagnation']
 
@@ -70,5 +70,3 @@ t2 = CP.newPyTree(['Base', z2])
 t2 = CP.addState(t2, 'Cv', 10.9/0.4)
 PT._computeVariables2(t2, vars)
 test.testT(t2,4)
-
-

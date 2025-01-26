@@ -10,7 +10,7 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     zones = I.getZones(t)
     z = zones[0]
     array = C.getFields(I.__GridCoordinates__, z, api=3)[0]
-  
+
     bcs = []
     zonebc = I.getNodeFromType(z, 'ZoneBC_t')
     if zonebc is not None:
@@ -54,7 +54,7 @@ def AdaptMesh_ExtractMesh(AM, conformize=1):
             cont = I.createUniqueChild(zone, 'ZoneGridConnectivity', 'ZoneGridConnectivity_t')
             Name = 'Match_'+str(data[0])
             I.newGridConnectivity1to1(name=Name, donorName=str(data[0]), pointList=data[1], parent=cont)
-    
+
     # add BCs
     if bcs is not None:
         for i in range(len(bcs)):
@@ -65,12 +65,12 @@ def AdaptMesh_ExtractMesh(AM, conformize=1):
                 tag = bc[1]
                 bcname = bc[2]
                 bctype = bc[3]
-    
+
                 if bctype not in BCType_l:
                     bc = I.newBC(name=bcname, pointList=ptlist, family=bctype, parent=cont)
                 else:
                     bc = I.newBC(name=bcname, pointList=ptlist, btype=bctype, parent=cont)
-                
+
                 I.newUserDefinedData(name='Tag', value=tag, parent=bc)
 
     t = C.newPyTree([name, zone])
@@ -90,6 +90,49 @@ def AdaptMesh_ExtractCellRanges(AM):
 
 def AdaptMesh_ExtractHaloCellLevels(AM):
     return xcore.AdaptMesh_ExtractHaloCellLevels(AM)
+
+def AdaptMesh_TagFaces(AM, faces):
+    return xcore.AdaptMesh_TagFaces(AM, faces)
+
+def AdaptMesh_TriangulateFaces(AM, faces):
+    return xcore.AdaptMesh_TriangulateFaces(AM, faces)
+
+def AdaptMesh_GeneratePrisms(AM, faces):
+    return xcore.AdaptMesh_GeneratePrisms(AM, faces)
+
+def AdaptMesh_AdaptGeom(AM, slave, tagged_faces):
+    zs = I.getZones(slave)[0]
+    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    keep = I.getNodeFromName(zs, 'keep')
+
+    s = xcore.AdaptMesh_AdaptGeom(AM, s, tagged_faces)
+
+    zso = I.createZoneNode("S_adapted", s)
+
+    ts = C.newPyTree(["S_adapted", zso])
+
+    return ts
+
+    '''
+    s, spatch = xcore.AdaptMesh_AdaptGeom(AM, s, tagged_faces)
+
+    zso = I.createZoneNode("S_adapted", s)
+
+    zbcs = I.createUniqueChild(zso, 'ZoneBC', 'ZoneBC_t')
+
+    I.newBC(name="intersection_patch", pointList=spatch, family='UserDefined', parent=zbcs)
+
+    ts = C.newPyTree(["S_adapted", zso])
+
+    if keep is not None:
+        C._cpVars(slave, 'centers:keep', ts, 'centers:keep')
+
+    return ts
+    '''
+
+def AdaptMesh_ExtractTaggedFaces(AM):
+    return xcore.AdaptMesh_ExtractTaggedFaces(AM)
 
 
 ################################################################################
@@ -122,43 +165,43 @@ def exchangeFields(t, fldNames):
     return rfields
 
 def loadAndSplitElt(fileName):
-  dt = Filter2.loadAsChunks(fileName)
-  zones = I.getZones(dt)
-  
-  if len(zones) > 1:
-    raise TypeError("loadAndSplitElt: one zone only.")
+    dt = Filter2.loadAsChunks(fileName)
+    zones = I.getZones(dt)
 
-  z = zones[0]
+    if len(zones) > 1:
+        raise TypeError("loadAndSplitElt: one zone only.")
 
-  cx = I.getNodeFromName2(z, 'CoordinateX')[1]
-  cy = I.getNodeFromName2(z, 'CoordinateY')[1]
-  cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
+    z = zones[0]
 
-  XYZ = []
-  XYZ.append(cx); XYZ.append(cy); XYZ.append(cz)
+    cx = I.getNodeFromName2(z, 'CoordinateX')[1]
+    cy = I.getNodeFromName2(z, 'CoordinateY')[1]
+    cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
 
-  cns = I.getNodesFromType(z, 'Elements_t')
+    XYZ = []
+    XYZ.append(cx); XYZ.append(cy); XYZ.append(cz)
 
-  chunks = []
+    cns = I.getNodesFromType(z, 'Elements_t')
 
-  for cn in cns:
-    name, stride = I.eltNo2EltName(cn[1][0])
-    arr = I.getNodeFromName1(cn, 'ElementConnectivity')[1]
-    chunks.append([name, stride, arr])
+    chunks = []
 
-  parts = xcore.chunk2partElt(XYZ, chunks)
+    for cn in cns:
+        name, stride = I.eltNo2EltName(cn[1][0])
+        arr = I.getNodeFromName1(cn, 'ElementConnectivity')[1]
+        chunks.append([name, stride, arr])
 
-  zones = []
+    parts = xcore.chunk2partElt(XYZ, chunks)
 
-  for i, p in enumerate(parts):
-    z = I.createZoneNode('Zone' + '%d'%Cmpi.rank + '_%d'%i, p)
-    zones.append(z)
+    zones = []
 
-  t = C.newPyTree(['Base', zones])
+    for i, p in enumerate(parts):
+        z = I.createZoneNode('Zone' + '%d'%Cmpi.rank + '_%d'%i, p)
+        zones.append(z)
 
-  Cmpi._setProc(t, Cmpi.rank)
+    t = C.newPyTree(['Base', zones])
 
-  return t
+    Cmpi._setProc(t, Cmpi.rank)
+
+    return t
 
 def loadAndSplitNGon(fileName):
     dt = Filter2.loadAsChunks(fileName)
@@ -183,14 +226,14 @@ def loadAndSplitNGon(fileName):
     if fsolc is not None:
         for f in fsolc[2]:
             if f[3] == 'DataArray_t':
-                solc.append(f[1]); solcNames.append(f[0]) 
+                solc.append(f[1]); solcNames.append(f[0])
 
     fsol = I.getNodeFromName2(z, I.__FlowSolutionNodes__)
     soln = []; solNames = []
     if fsol is not None:
         for f in fsol[2]:
-            if f[3] == 'DataArray_t': 
-                soln.append(f[1]); solNames.append(f[0]) 
+            if f[3] == 'DataArray_t':
+                soln.append(f[1]); solNames.append(f[0])
 
     zonebc = I.getNodeFromType(z, 'ZoneBC_t')
     bcs = []
@@ -233,7 +276,7 @@ def loadAndSplitNGon(fileName):
     for data in comm_data:
         Name = 'Match_'+str(data[0])
         I.newGridConnectivity1to1(name=Name, donorName=str(data[0]), pointList=data[1], parent=ZGC)
-    
+
     I.newUserDefinedData(name='CellLoc2Glob', value=RES[5], parent=ZGC)
     I.newUserDefinedData(name='FaceLoc2Glob', value=RES[6], parent=ZGC)
     I.newUserDefinedData(name='PointLoc2Glob', value=RES[7], parent=ZGC)
@@ -242,7 +285,7 @@ def loadAndSplitNGon(fileName):
     for n, name in enumerate(solNames):
         cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
         I.newDataArray(name, value=sol[n], parent=cont)
-    
+
     for n, name in enumerate(solcNames):
         cont = I.createUniqueChild(zo, I.__FlowSolutionCenters__, 'FlowSolution_t')
         I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
@@ -263,13 +306,13 @@ def loadAndSplitNGon(fileName):
 
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
-  
+
     # copy families
     base = I.getNodeFromName1(t, 'Base')
     families = I.getNodesFromType2(dt, 'Family_t')
     for fam in families:
         I.duptree__(fam, base)
-  
+
     I._correctPyTree(t, level=7)
 
     return t, RES
@@ -298,16 +341,18 @@ def IntersectMesh_ExtractMesh(IM, removePeriodic=0):
     t = XOR.closeCells(t)
     return t
 
-def removeIntersectingKPlanes(IM, slave):
-
-    slave_bases = I.getBases(slave)
+def removeIntersectingKPlanes(IM, slave_struct):
+    slave_bases = I.getBases(slave_struct)
 
     iter = -1
+
+    import Generator.PyTree as G
+    import Transform.PyTree as T
 
     ts = I.newCGNSTree()
 
     for slave_base in slave_bases:
-        
+
         iter = iter + 1
 
         zs = I.getZones(slave_base)
@@ -324,13 +369,21 @@ def removeIntersectingKPlanes(IM, slave):
 
         new_base = I.newCGNSBase('slave'+str(iter), 3, 3, parent=ts)
 
+        zones = []
         for i in range(len(new_slaves_and_tags)):
             new_slave, tag = new_slaves_and_tags[i]
             zname = zs[i][0]
             zo = I.createZoneNode(zname, new_slave)
             cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
             I.newDataArray("tag", value=tag, parent=cont)
-            I.addChild(new_base, zo)
+            C._convertArray2NGon(zo)
+            G._close(zo)
+            zones.append(zo)
+
+        merged = T.merge(zones)
+        merged = G.close(merged)
+        I.addChild(new_base, merged)
+
 
     return ts
 
@@ -341,7 +394,7 @@ def prepareMeshesForIntersection(IM, slave):
     zs = I.getZones(slave)[0]
 
     s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
-  
+
     tag = I.getNodeFromName2(zs, "tag")
     if tag is None:
         raise ValueError("Tag field not found in slave mesh.")
@@ -349,45 +402,69 @@ def prepareMeshesForIntersection(IM, slave):
 
     keep = I.getNodeFromName(zs, 'keep')
 
-    s, spatch = xcore.prepareMeshesForIntersection(IM, s, tag)
+    m, mpatch, s, spatch = xcore.prepareMeshesForIntersection(IM, s, tag)
+
+    zmo = I.createZoneNode("M_adapted", m)
+    zbcs = I.createUniqueChild(zmo, 'ZoneBC', 'ZoneBC_t')
+    I.newBC(name="intersection_patch", pointList=mpatch, family='UserDefined', parent=zbcs)
+    ma = C.newPyTree(["M_adapted", zmo])
 
     zso = I.createZoneNode("S_adapted", s)
-
     zbcs = I.createUniqueChild(zso, 'ZoneBC', 'ZoneBC_t')
-
     I.newBC(name="intersection_patch", pointList=spatch, family='UserDefined', parent=zbcs)
-
-    ts = C.newPyTree(["S_adapted", zso])
-
-    if keep is not None:
-        C._cpVars(slave, 'centers:keep', ts, 'centers:keep')
-
-    return ts
-
-def intersectMesh(IM, slave):
-    zs = I.getZones(slave)[0]
-
-    keep = I.getNodeFromName(zs, 'keep')
-
-    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
-
-    spatch = I.getNodeFromName(zs, "intersection_patch")[2][0][1]
-    
-    sinter = xcore.intersectMesh(IM, s, spatch)
-
-    zso = I.createZoneNode("S_inter", sinter)
-
-    ts = C.newPyTree(["S_inter", zso])
+    sa = C.newPyTree(["S_adapted", zso])
 
     try: import Intersector.PyTree as XOR
     except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
 
-    ts = XOR.closeCells(ts)
+    ma = XOR.closeCells(ma)
+    sa = XOR.closeCells(sa)
 
     if keep is not None:
-        C._cpVars(slave, 'centers:keep', ts, 'centers:keep')
+        C._cpVars(slave, 'centers:keep', sa, 'centers:keep')
 
-    return ts
+    return ma, sa
+
+def intersectMesh(master, slave):
+    zm = I.getZones(master)[0]
+    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    mpatch = I.getNodeFromName(zm, "intersection_patch")[2][0][1]
+
+    zs = I.getZones(slave)[0]
+    keep = I.getNodeFromName(zs, 'keep')
+    sarr = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+    #spatch = I.getNodeFromName(zs, "intersection_patch")[2][1][1][0]
+    spatch = I.getNodeFromName(zs, "intersection_patch")[2][0][1]
+
+    marr, sarr = xcore.intersectMesh(marr, mpatch, sarr, spatch)
+
+    zmo = I.createZoneNode("mi", marr)
+    zso = I.createZoneNode("si", sarr)
+
+    mi = C.newPyTree(["mi", zmo])
+    si = C.newPyTree(["si", zso])
+
+    try: import Intersector.PyTree as XOR
+    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
+
+    mi = XOR.closeCells(mi)
+    si = XOR.closeCells(si)
+
+    if keep is not None:
+        C._cpVars(slave, 'centers:keep', si, 'centers:keep')
+
+    return mi, si
+
+def IntersectMesh_ExtractFaceSet(AM):
+    return xcore.IntersectMesh_ExtractFaceSet(AM)
+
+def IntersectMesh_Merge(M, S):
+    zm = I.getZones(M)[0]
+    m = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    zs = I.getZones(S)[0]
+    s = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    return xcore.IntersectMesh_Merge(m, s)
 
 def extractCell(a, cid):
     z = I.getZones(a)[0]
@@ -398,3 +475,139 @@ def extractCell(a, cid):
 
     return zmo
 
+def extractFacesFromPointTag(t, tag_name):
+    z = I.getZones(t)[0]
+    tag = I.getNodeFromName(z, tag_name)
+    if tag is None: raise ValueError(tag_name + 'not found')
+    arr = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+    return xcore.extractFacesFromPointTag(arr, tag[1])
+
+def icapsule_init(mp, sp):
+    zm = I.getZones(mp)[0]
+    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+
+    sarrs = []
+    tags = []
+    bases = I.getBases(sp)
+
+    for base in bases:
+        zones = I.getZones(base)
+        for zone in zones:
+            sarr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+            sarrs.append(sarr)
+            tag = I.getNodeFromName(zone, 'tag')[1]
+            tags.append(tag)
+
+    return xcore.icapsule_init(marr, sarrs, tags)
+
+def icapsule_adapt(IC):
+    marr, sarrs, stags = xcore.icapsule_adapt(IC)
+    zm = I.createZoneNode("ma", marr)
+    assert(len(sarrs) == len(stags))
+    slave_zones = []
+    for i in range(len(sarrs)):
+        zs = I.createZoneNode("sa"+str(i), sarrs[i])
+        cont = I.createUniqueChild(zs, 'ZoneBC', 'ZoneBC_t')
+        bc = I.newBC(name="IntersectionFaces", pointList=stags[i],
+                     family="IntersectionFaces", parent=cont)
+        slave_zones.append(zs)
+    tm = C.newPyTree(['Base', zm])
+    ts = C.newPyTree(['Base', slave_zones])
+    return tm, ts
+
+def icapsule_intersect(ma, sa):
+    zm = I.getZones(ma)[0]
+    marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+
+    zs = I.getZones(sa)
+    sarrs = []
+    stags = []
+    for zone in zs:
+        sarr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+        sarrs.append(sarr)
+        zonebc = I.getNodeFromType(zone, 'ZoneBC_t')
+        zbc = I.getNodesFromType(zonebc, 'BC_t')
+        stag = I.getNodeFromName(zbc, 'PointList')[1]
+        stags.append(stag)
+
+    marr_i, slist_i, stags_i = xcore.icapsule_intersect(marr, sarrs, stags)
+
+    zm = I.createZoneNode("mi", marr_i)
+    assert(len(slist_i) == len(stags_i))
+    slave_zones = []
+    for i in range(len(slist_i)):
+        zs = I.createZoneNode("si"+str(i), slist_i[i])
+        cont = I.createUniqueChild(zs, 'ZoneBC', 'ZoneBC_t')
+        bc = I.newBC(name="IntersectionFaces", pointList=stags_i[i],
+                     family="IntersectionFaces", parent=cont)
+        slave_zones.append(zs)
+    tm = C.newPyTree(['Base', zm])
+    ts = C.newPyTree(['Base', slave_zones])
+    return tm, ts
+
+
+def icapsule_extract_master(IC):
+    marr = xcore.icapsule_extract_master(IC)
+    zm = I.createZoneNode("master", marr)
+    return zm
+
+def icapsule_extract_slave(IC, index=0):
+    sarr = xcore.icapsule_extract_slave(IC, index)
+    zs = I.createZoneNode("slave", sarr)
+    return zs
+
+def icapsule_extract_slaves(IC):
+    sarrs = xcore.icapsule_extract_slaves(IC)
+    zs = []
+    for i in range(len(sarrs)):
+        z = I.createZoneNode("slave"+str(i), sarrs[i])
+        zs.append(z)
+    return zs
+
+def triangulateSkin(m):
+    m_copy = I.copyRef(m)
+    _triangulateSkin(m_copy)
+    return m_copy
+
+def _triangulateSkin(m):
+    zones = I.getNodesFromType(m, 'Zone_t')
+    for i, zone in enumerate(zones):
+        marr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+        zbc = I.getNodeFromType(zone, 'ZoneBC_t')
+        ptlists = []
+        if zbc is not None:
+            bcs = I.getNodesFromType(zbc, 'BC_t')
+            for bc in bcs:
+                ptlists.append(I.getNodeFromName(bc, 'PointList')[1][0])
+        m_out, ptlists_out = xcore.triangulate_skin(marr, ptlists)
+        C.setFields([m_out], zone, 'nodes')
+        if zbc is not None:
+            bcs = I.getNodesFromType(zbc, 'BC_t')
+            for j, bc in enumerate(bcs):
+                ptlist = I.getNodeFromName(bc, 'PointList')
+                ptlist[1] = ptlists_out[j]
+
+    return None
+
+def writeIm(t, fname):
+    I._adaptNGon32NGon4(t)
+    zones = I.getNodesFromType(t, 'Zone_t')
+    assert(len(zones) == 1)
+    arr = C.getFields(I.__GridCoordinates__, zones[0], api=3)[0]
+    xcore.write_im(arr, fname)
+    return None
+
+def writeBim(t, fname):
+    I._adaptNGon32NGon4(t)
+    zones = I.getNodesFromType(t, 'Zone_t')
+    assert(len(zones) == 1)
+    arr = C.getFields(I.__GridCoordinates__, zones[0], api=3)[0]
+    xcore.write_bim(arr, fname)
+    return None
+
+def writeBimS(t, fname):
+    zones = I.getNodesFromType(t, 'Zone_t')
+    assert(len(zones) == 1)
+    arr = C.getFields(I.__GridCoordinates__, zones[0], api=3)[0]
+    xcore.write_bim_s(arr, fname)
+    return None

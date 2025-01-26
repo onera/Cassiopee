@@ -11,7 +11,7 @@ import KCore.Dist as Dist
 
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
-    
+
 # setup ======================================================================
 setup(
     name="Apps",
@@ -20,7 +20,7 @@ setup(
     author="ONERA",
     packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda'],
     package_dir={"":"."}
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

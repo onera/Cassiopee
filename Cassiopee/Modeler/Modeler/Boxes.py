@@ -51,7 +51,7 @@ def box(Pmin, Pmax, chamfer=-1.):
 
         P13 = (xmax,yminp,zminp); P14 = (xmax,ymaxp,zminp)
         P15 = (xmax,ymaxp,zmaxp); P16 = (xmax,yminp,zmaxp)
-        
+
         P17 = (xminp,ymin,zminp); P18 = (xmaxp,ymin,zminp)
         P19 = (xmaxp,ymin,zmaxp); P20 = (xminp,ymin,zmaxp)
 
@@ -71,7 +71,7 @@ def box(Pmin, Pmax, chamfer=-1.):
         Q8 = D.quadrangle(P3,P4,P21,P22)
         Q9 = D.quadrangle(P2,P3,P14,P13)
         Q10 = D.quadrangle(P4,P1,P9,P10)
-        
+
         Q11 = D.quadrangle(P5,P20,P19,P6)
         Q12 = D.quadrangle(P6,P16,P15,P7)
         Q13 = D.quadrangle(P7,P23,P24,P8)
@@ -109,7 +109,7 @@ def box2D(Pmin, Pmax, r=0., fill=True, uv=False):
     """2D Box with round chamfer."""
     xmin = Pmin[0]; ymin = Pmin[1]
     xmax = Pmax[0]; ymax = Pmax[1]
-    dx = r*(xmax-xmin); dy = r*(ymax-ymin) 
+    dx = r*(xmax-xmin); dy = r*(ymax-ymin)
     P0 = (xmin,ymin,0)
     P1 = (xmin,ymin+dy,0)
     P2 = (xmin,ymax-dy,0)

@@ -112,4 +112,3 @@ test.testT(t,6)
 
 #tfin = time.time()
 #print "duree : ", tfin-tdebut, "s"
-

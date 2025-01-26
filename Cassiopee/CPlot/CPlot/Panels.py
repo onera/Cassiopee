@@ -182,10 +182,10 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     # position de la fenetre parent
     xpos = winl.master.winfo_rootx()+45
     ypos = winl.master.winfo_rooty()+45
-    winl.geometry("%+d%+d" % (xpos, ypos)) 
+    winl.geometry("%+d%+d" % (xpos, ypos))
     scrollbar = TTK.Scrollbar(winl, orient=TK.VERTICAL, width=10)
     scrollbar.grid(sticky=TK.NSEW, row=0, column=1)
-    
+
     textWidget = TK.Text(winl, yscrollcommand=scrollbar.set,
                          width=43, height=20, background='White')
     textWidget.tag_config('title', justify=TK.CENTER, foreground='blue')
@@ -196,7 +196,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText = "A CFD pre- and post-processing tool"
     textWidget.insert(TK.END, myText, 'title')
     textWidget.insert(TK.END, '\n\n')
-    
+
     textWidget.image_create(TK.INSERT, image=logoImg)
     textWidget.image = logoImg
 
@@ -228,7 +228,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
         myText += 'present.\n'
     else: myText += 'not present (HDF format unavailable).\n'
     textWidget.insert(TK.END, myText)
-    
+
     #myText = " CPlot: png: "
     #if 'png' in buildInfo and buildInfo['png'] != "None":
     #    myText += 'present.\n'
@@ -263,7 +263,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText += " - png (see KCore/Images/png/LICENCE).\n"
     myText += " - libjpeg (see KCore/Images/libjpeg/README).\n"
     myText += " - Icons by Icons8.\n"
-    
+
     textWidget.insert(TK.END, myText)
     return
 
@@ -309,7 +309,7 @@ def activation():
 def checkKey():
     import KCore
     return KCore.kcore.activation('0')
-    
+
 def readKeyFile(file):
     d = {}
     try:
@@ -330,7 +330,7 @@ def submitKey(event=None):
     key = key.split(':')
     if len(key) == 2: name = key[0]; key = key[1]
     else: name = '0'; key = key[0]
-    
+
     import KCore.installPath
     path = KCore.installPath.libPath
     # Essai dans installPath/.CassiopeKey
@@ -347,12 +347,12 @@ def submitKey(event=None):
     except: fail = True
 
     if not fail:
-         AVARS[0].destroy()
-         return
+        AVARS[0].destroy()
+        return
 
     # Essai dans home/.CassiopeeKey
     import os.path
-    path = os.path.expanduser('~')    
+    path = os.path.expanduser('~')
     file = path+'/.CassiopeeKey'
     d = readKeyFile(file)
     d[name] = key
@@ -366,10 +366,10 @@ def submitKey(event=None):
         CTK.TXT.insert('START', 'Can not write key (check permission).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error') ; return
     AVARS[0].destroy()
-    
+
 def cancelKey(event=None):
     AVARS[0].destroy()
-    
+
 #==============================================================================
 # Error panel
 #==============================================================================
@@ -383,7 +383,7 @@ def _destroyErrorWindow(event):
 
 #==============================================================================
 # IN: errors: [A,B,C,D,...]: display B, C,
-# A is intended to be error number or garbage 
+# A is intended to be error number or garbage
 #==============================================================================
 def displayErrors(errors, header=''):
     if len(errors) == 0: return
@@ -443,7 +443,7 @@ def cancelMail(event=None):
     mailData.pop('mailWindow')
 
 def createMail():
-    try: 
+    try:
         import smtplib
         from email.mime.image import MIMEImage
         from email.mime.text import MIMEText
@@ -461,7 +461,7 @@ def createMail():
     CPlot.setState(export='.tmp001203.png')
 
     friendText = mailData['mailFriends']
-    if friendText is None: 
+    if friendText is None:
         os.remove('.tmp001203.png')
         return # cancelMail
     me = mailData['mailMe']
@@ -503,8 +503,8 @@ def createMail():
         s = smtplib.SMTP('localhost')
     except:
         os.remove('.tmp001203.png')
-        CTK.TXT.insert('START', 'No valid SMTP server on your machine.\n') 
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return      
+        CTK.TXT.insert('START', 'No valid SMTP server on your machine.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
         # essai de passer par gmail
         #s = smtplib.SMTP('smtp.gmail.com', 587)
         #s = smtplib.SMTP('mailhost.onera')
@@ -559,7 +559,7 @@ def openMailWindow():
     if 'mailWindow' in mailData:
         try: mailData['mailWindow'].withdraw()
         except: mailData.pop('mailWindow')
-    
+
     if 'mailWindow' not in mailData:
         MAILWINDOW = TTK.Toplevel()
         mailData['mailWindow'] = MAILWINDOW
@@ -634,7 +634,7 @@ def createDoc():
         from odf.text import P
         from odf.draw import Frame, Image
         from odf.style import Style, MasterPage, PageLayout, PageLayoutProperties, TextProperties, GraphicProperties, ParagraphProperties, DrawingPageProperties
-    except: 
+    except:
         CTK.TXT.insert('START', 'odf module unavailable.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -647,7 +647,7 @@ def createDoc():
     CPlot.setState(export='.tmp001204.png')
 
     text = docData['docText']
-    if text is None: 
+    if text is None:
         os.remove('.tmp001204.png')
         return # cancel
 
@@ -703,12 +703,12 @@ def createDoc():
         imgFrame = Frame(width="%fcm"%15., height="%fcm"%(15.*coeff), x="%fcm"%0.1, y="56pt")
         doc.text.addElement(imgFrame)
         href = doc.addPicture('.tmp001205.png')
-        imgFrame.addElement(Image(href=href))        
+        imgFrame.addElement(Image(href=href))
 
     p = P()
     p.addElement(imgFrame)
     doc.text.addElement(p)
-  
+
     doc.save(docName, True)
     os.remove('.tmp001204.png')
     CTK.TXT.insert('START', 'Image added to %s.\n'%(docNameOdt))
@@ -735,7 +735,7 @@ def writeBlog(event=None):
     CTK.PREFS['docName'] = docData['docName']
     #s = docData['docText'].encode('base64', 'strict')
     s = docData['docText']
-    s = s.split('\n'); s = "".join(s) 
+    s = s.split('\n'); s = "".join(s)
     CTK.PREFS['docText'] = s
     CTK.savePrefFile()
     createDoc()
@@ -793,7 +793,7 @@ def openDocWindow():
             s = CTK.PREFS['docText']
             B.insert(TK.END, s)
         B = TTK.Button(DOCWINDOW, text="Cancel", command=cancelDocument)
-        B.grid(row=2, column=0, sticky=TK.EW)    
+        B.grid(row=2, column=0, sticky=TK.EW)
         B = TTK.Button(DOCWINDOW, text="Add image", command=writeDocument)
         BB = CTK.infoBulle(parent=B, text='Add current screenshot and text to \nyour document.')
         B.grid(row=2, column=1, sticky=TK.EW)
@@ -824,10 +824,10 @@ def updateRenderPanel():
     for l in WIDGETS['myLists']:
         cur = l.curselection()
         for s in cur:
-            zname = listz.get(s) 
+            zname = listz.get(s)
             selzones.add(zname)
     for l in WIDGETS['myLists']: l.delete(0, TK.END)
-    
+
     bases = Internal.getBases(CTK.t)
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
@@ -880,7 +880,7 @@ def renderSelect(event=None):
         for i in sel: myset.add(i)
 
     # setter values
-    material = None; color = None; blending = None; 
+    material = None; color = None; blending = None;
     meshOverlay = None; shader1 = None; shader2 = None
 
     # select les zones dans CPlot
@@ -971,7 +971,7 @@ def openScalar(event=None):
         tkView.VARS[18].set(varName[4:])
         tkView.displayField()
         CPlot.setState(mode='render')
-        
+
 def selectAll(event=None):
     myList = RENDERPANEL.winfo_children()[1]
     myList.selection_set(0, TK.END)
@@ -989,7 +989,7 @@ def getSelection(event=None):
         name = baseName+'/'+CTK.t[2][nob][2][noz][0]
         for c in range(myList.size()):
             name2 = myList.get(c)
-            if name2.strip() == name: 
+            if name2.strip() == name:
                 myList.see(c)
                 myList.selection_set(c)
                 break
@@ -1015,7 +1015,7 @@ def reselect(i):
 def setColorVar(l):
     if l == 'Custom>':
         try: import tkinter.colorchooser as tkColorChooser
-        except: import tkColorChooser 
+        except: import tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
     VARS[1].set(l)
@@ -1051,7 +1051,7 @@ def updateVarNameList2(event=None):
 
     if 'colors' in WIDGETS:
         WIDGETS['colors']['values'] = allvars
-    
+
 def setMaterial(event=None):
     nzs = CPlot.getSelectedZones()
     material = VARS[0].get()
@@ -1074,7 +1074,7 @@ def setColor(event=None):
         ret = tkColorChooser.askcolor()
         color = ret[1]
     VARS[1].set(color)
-    
+
     if nzs == []: return
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -1168,7 +1168,7 @@ def yscrolli(i, *args):
     l0 = WIDGETS['myLists'][i]
     for c, l in enumerate(WIDGETS['myLists']):
         if c != i:
-            if l.yview() != l0.yview(): 
+            if l.yview() != l0.yview():
                 l.yview_moveto(args[0])
     WIDGETS['scrollbar'].set(*args)
 
@@ -1196,7 +1196,7 @@ def openRenderPanel():
         RENDERPANEL.rowconfigure(1, weight=0)
         RENDERPANEL.rowconfigure(2, weight=1)
         RENDERPANEL.rowconfigure(3, weight=0)
-        
+
         RENDERPANEL.title("Render panel")
         # position de la fenetre parent
         xpos = RENDERPANEL.master.winfo_rootx()+45
@@ -1212,53 +1212,53 @@ def openRenderPanel():
             if i == 0: # I cant find another way of setting constant in lambda functions
                 # ZoneName listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
-                                    yscrollcommand=lambda *args: yscrolli(0,*args),
-                                    #width=30, height=20, 
-                                    background='white', exportselection=1)
+                                     yscrollcommand=lambda *args: yscrolli(0,*args),
+                                     #width=30, height=20,
+                                     background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(0, event))
                 myList.bind('<Button-3>', deactivateZone)
 
             elif i == 1:
                 # Material listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
-                                    yscrollcommand=lambda *args: yscrolli(1,*args),
-                                    #width=30, height=20, 
-                                    background='white', exportselection=1)
+                                     yscrollcommand=lambda *args: yscrolli(1,*args),
+                                     #width=30, height=20,
+                                     background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(1, event))
             elif i == 2:
                 # Color listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
-                                    yscrollcommand=lambda *args: yscrolli(2,*args),
-                                    #width=30, height=20, 
-                                    background='white', exportselection=1)
+                                     yscrollcommand=lambda *args: yscrolli(2,*args),
+                                     #width=30, height=20,
+                                     background='white', exportselection=1)
                 myList.bind('<Double-Button>', openScalar)
             elif i == 3:
                 # Blend listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
-                                    yscrollcommand=lambda *args: yscrolli(3,*args),
-                                    width=4, 
-                                    background='white', exportselection=1)
+                                     yscrollcommand=lambda *args: yscrolli(3,*args),
+                                     width=4,
+                                     background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(3, event))
             elif i == 4:
                 # Mesh listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
-                                    yscrollcommand=lambda *args: yscrolli(4,*args),
-                                    width=4, 
-                                    background='white', exportselection=1)
-                myList.bind('<Double-Button>', lambda event: fitZone(4, event))  
+                                     yscrollcommand=lambda *args: yscrolli(4,*args),
+                                     width=4,
+                                     background='white', exportselection=1)
+                myList.bind('<Double-Button>', lambda event: fitZone(4, event))
             elif i == 5:
                 # Shader param1 listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
-                                    yscrollcommand=lambda *args: yscrolli(5,*args),
-                                    width=4, 
-                                    background='white', exportselection=1)
+                                     yscrollcommand=lambda *args: yscrolli(5,*args),
+                                     width=4,
+                                     background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(5, event))
             elif i == 6:
                 # shader param2 listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
-                                    yscrollcommand=lambda *args: yscrolli(6,*args),
-                                    width=4,  
-                                    background='white', exportselection=1)
+                                     yscrollcommand=lambda *args: yscrolli(6,*args),
+                                     width=4,
+                                     background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(6, event))
 
             myList.grid(sticky=TK.NSEW, row=2, column=i)
@@ -1311,7 +1311,7 @@ def openRenderPanel():
         B.grid(row=3, column=0, columnspan=7, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Filter zones by this regexp.')
 
-        # -- Setters -- 
+        # -- Setters --
 
         # zone get selection from CPlot
         B = TTK.Button(RENDERPANEL, command=getSelection, text='Get',
@@ -1333,8 +1333,8 @@ def openRenderPanel():
             F.grid(row=1, column=2, sticky=TK.EW)
             WIDGETS['colors'] = B
         else:
-            B = ttk.Combobox(F, textvariable=VARS[1], 
-                            values=[], state='readonly', height=11)
+            B = ttk.Combobox(F, textvariable=VARS[1],
+                             values=[], state='readonly', height=11)
             B.bind('<<ComboboxSelected>>', setColor)
             B.grid(sticky=TK.EW)
             F.bind('<Enter>', updateVarNameList2)
@@ -1342,29 +1342,29 @@ def openRenderPanel():
             WIDGETS['colors'] = B
 
         # blending setter
-        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL, 
-                     command=setBlend, showvalue=0, borderwidth=1, value=100)
+        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL,
+                      command=setBlend, showvalue=0, borderwidth=1, value=100)
         WIDGETS['blending'] = B
         B.grid(row=1, column=3, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
-    
+
         # Mesh setter (toggle)
         #B = TTK.Button(RENDERPANEL, text="Toggle", command=setMesh)
         B = TTK.Checkbutton(RENDERPANEL, variable=VARS[3], command=setMesh)
         B.grid(row=1, column=4, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text="Toggle mesh overlay")
-        
+
         # shader param1 setter
-        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL, 
-                     command=setShaderParameter1, showvalue=0, borderwidth=1, value=100)
+        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL,
+                      command=setShaderParameter1, showvalue=0, borderwidth=1, value=100)
         WIDGETS['shader1'] = B
         WIDGETS['shader1'].set(50)
         B.grid(row=1, column=5, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, textVariable=VARS[7])
 
         # shaderparam2 setter
-        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL, 
-                     command=setShaderParameter2, showvalue=0, borderwidth=1, value=100)
+        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL,
+                      command=setShaderParameter2, showvalue=0, borderwidth=1, value=100)
         WIDGETS['shader2'] = B
         WIDGETS['shader2'].set(50)
         B.grid(row=1, column=6, sticky=TK.EW)
@@ -1393,7 +1393,7 @@ def openLoadFileDialog(event=None):
 # OUT: retourne: le nom (/Base/Zone) et le nom tagge (/Base/Zone [X])
 def ripTag(wname):
     l = len(wname)
-    if wname[l-4:l] == ' [X]': 
+    if wname[l-4:l] == ' [X]':
         pname = wname[0:l-4]
         tname = wname
     else:
@@ -1416,7 +1416,7 @@ def updateLoadPanel():
     OVARS[0].set(CTK.HANDLE.fileName)
     vars = CTK.HANDLE.fileVars
     znp = CTK.HANDLE.znp
-        
+
     # VARS
     lb = WIDGETS['LBVARS']
     #values = lb.get(0, lb.size())
@@ -1495,7 +1495,7 @@ def loadZones(event=None):
     import Converter.Filter as Filter
     # First load
     if len(Internal.getZones(CTK.t)) == 0: firstLoad = True
-    else: firstLoad = False 
+    else: firstLoad = False
     # Recupere les zones selectionnees
     selection = WIDGETS['LBZONES'].curselection()
     zList = []
@@ -1515,7 +1515,7 @@ def loadZones(event=None):
         vars = vars[0]
         if len(vars)>0:
             Filter._loadVariables(CTK.t, CTK.HANDLE.fileName, zList, vars, CTK.HANDLE.format)
-    
+
     Filter._convert2PartialTree(CTK.t)
     CTK.t = CTK.upgradeTree(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -1599,7 +1599,7 @@ def openLoadPanel(event=None):
         OVARS.append([])
         # -4- Store Zone list
         OVARS.append([])
-        
+
         # Entete
         B = TTK.Entry(F, textvariable=OVARS[0], background='White')
         BB = CTK.infoBulle(parent=B, text='File for reading.')
@@ -1618,12 +1618,12 @@ def openLoadPanel(event=None):
         scrollbar.config(command=myList.yview)
         WIDGETS['LBZONES'] = myList
         WIDGETS['SCROLLZONES'] = scrollbar
-        
+
         B = TTK.Button(F, text="Load", command=loadZones)
         B.grid(row=2, column=0, sticky=TK.EW)
         WIDGETS['loadZones'] = B
         BB = CTK.infoBulle(parent=B, text='Load zones.')
-        
+
         B = TTK.Button(F, text="Unload", command=unloadZones)
         B.grid(row=2, column=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Unload zones.')
@@ -1643,16 +1643,16 @@ def openLoadPanel(event=None):
         scrollbar.config(command=myList.yview)
         WIDGETS['LBVARS'] = myList
         WIDGETS['SCROLLVARS'] = scrollbar
-        
+
         B = TTK.Button(F, text="Load", command=loadVars)
         B.grid(row=2, column=3, sticky=TK.EW)
         WIDGETS['loadVars'] = B
         BB = CTK.infoBulle(parent=B, text='Load vars.')
-        
+
         B = TTK.Button(F, text="Unload", command=unloadVars)
         B.grid(row=2, column=4, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Unload vars.')
-        
+
         B = TK.Entry(F, textvariable=OVARS[1], background='White', width=40)
         B.bind('<KeyRelease>', filterVarList)
         B.grid(row=3, column=3, columnspan=2, sticky=TK.EW)

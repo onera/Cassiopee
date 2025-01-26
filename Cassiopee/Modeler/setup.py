@@ -34,7 +34,7 @@ libraries = ["kcore"]
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-    
+
 # setup ======================================================================
 setup(
     name="Modeler",
@@ -44,7 +44,7 @@ setup(
     url="https://cassiopee.onera.fr",
     packages=['Modeler'],
     package_dir={"":"."}
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

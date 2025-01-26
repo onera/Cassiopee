@@ -18,6 +18,129 @@
 */
 #include "ray.h"
 #include "primitives.h"
+#include "AABB.h"
+
+E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
+    const E_Float fN[3], E_Float px, E_Float py, E_Float pz)
+{
+    E_Float w[3] = {px-o[0], py-o[1], pz-o[2]};
+    E_Float c[3];
+    K_MATH::cross(d, w, c);
+    E_Float dp = K_MATH::dot(c, fN, 3);
+    // TODO(Imad): needs FEA + float128
+    E_Int cmp = Sign(dp);
+    if (cmp > 0) return 1;
+    if (cmp < 0) return -1;
+    return 0;
+}
+
+bool ray_AABB_intersect(E_Float ox, E_Float oy, E_Float oz,
+    E_Float dx, E_Float dy, E_Float dz,
+    const AABB &box)
+{
+    E_Float inv_dx = (dx != 0.0) ? 1.0/dx : EFLOATMAX;
+    E_Float inv_dy = (dy != 0.0) ? 1.0/dy : EFLOATMAX;
+    E_Float inv_dz = (dz != 0.0) ? 1.0/dz : EFLOATMAX;
+
+    E_Float t_min = EFLOATMIN;
+    E_Float t_max = EFLOATMAX;
+
+    // X
+    if (dx == 0.0) {
+        if (ox < box.xmin || ox > box.xmax) {
+            return false;
+        }
+    } else {
+        E_Float t1 = (box.xmin - ox) * inv_dx;
+        E_Float t2 = (box.xmax - ox) * inv_dx;
+
+        if (t1 > t2) std::swap(t1, t2);
+
+        t_min = std::max(t_min, t1);
+        t_max = std::max(t_max, t2);
+
+        if (t_min > t_max)
+            return false;
+    }
+
+    // Y
+    if (dy == 0.0) {
+        if (oy < box.ymin || oy > box.ymax) {
+            return false;
+        }
+    } else {
+        E_Float t1 = (box.ymin - oy) * inv_dy;
+        E_Float t2 = (box.ymax - oy) * inv_dy;
+
+        if (t1 > t2) std::swap(t1, t2);
+
+        t_min = std::max(t_min, t1);
+        t_max = std::max(t_max, t2);
+
+        if (t_min > t_max)
+            return false;
+    }
+
+    // Z
+    if (dz == 0.0) {
+        if (oz < box.zmin || oz > box.zmax) {
+            return false;
+        }
+    } else {
+        E_Float t1 = (box.zmin - oz) * inv_dz;
+        E_Float t2 = (box.zmax - oz) * inv_dz;
+
+        if (t1 > t2) std::swap(t1, t2);
+
+        t_min = std::max(t_min, t1);
+        t_max = std::max(t_max, t2);
+
+        if (t_min > t_max)
+            return false;
+    }
+
+    return true;
+}
+
+bool MollerTrumboreAnyDir(
+    E_Float ox, E_Float oy, E_Float oz,
+    E_Float dx, E_Float dy, E_Float dz,
+    E_Float ax, E_Float ay, E_Float az,
+    E_Float bx, E_Float by, E_Float bz,
+    E_Float cx, E_Float cy, E_Float cz,
+    E_Float &u, E_Float &v, E_Float &w, E_Float &t,
+    E_Float &x, E_Float &y, E_Float &z)
+{
+    E_Float v1[3] = {bx-ax, by-ay, bz-az};
+    E_Float v2[3] = {cx-ax, cy-ay, cz-az};
+
+    E_Float d[3] = {dx, dy, dz};
+    E_Float h[3];
+    K_MATH::cross(d, v2, h);
+    E_Float det = K_MATH::dot(v1, h, 3);
+    if (Sign(det) == 0) return false;
+
+    E_Float inv_det = 1.0 / det;
+
+    E_Float s[3] = {ox-ax, oy-ay, oz-az};
+    v = K_MATH::dot(s, h, 3) * inv_det;
+    if (v < -TOL || v > 1+TOL) return false;
+
+    E_Float q[3];
+    K_MATH::cross(s, v1, q);
+    w = K_MATH::dot(d, q, 3) * inv_det;
+    if (w < -TOL || w > 1+TOL) return false;
+
+    u = 1 - v - w;
+    if (u < -TOL || u > 1+TOL) return false;
+
+    t = K_MATH::dot(v2, q, 3) * inv_det;
+    x = ox + t * dx;
+    y = oy + t * dy;
+    z = oz + t * dz;
+
+    return true;
+}
 
 E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
     E_Float dz, E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by, E_Float bz,
@@ -74,12 +197,18 @@ E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
     return 0;
 }
 
-Ray::Ray(Point O, Vec3 D)
+/*
+Ray::Ray(Point O, E_Float D[3])
 : org(O), dir(D)
 {
-    E_Float adx = fabs(dir[0]);
-    E_Float ady = fabs(dir[1]);
-    E_Float adz = fabs(dir[2]);
+    org.x = O.x;
+    org.y = O.y;
+    org.z = O.z;
+
+
+    E_Float adx = fabs(dir.x);
+    E_Float ady = fabs(dir.y);
+    E_Float adz = fabs(dir.z);
 
     if (adx > ady && adx > adz) kz = 0;
     else if (ady > adz) kz = 1;
@@ -162,3 +291,4 @@ E_Int Ray::intersect_triangle(const Point &a, const Point &b, const Point &c,
 
     return 1;
 }
+*/

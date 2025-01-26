@@ -1,4 +1,4 @@
-# - rmGhostCellsNGon (array) - 
+# - rmGhostCellsNGon (array) -
 import Converter as C
 import Generator as G
 

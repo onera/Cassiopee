@@ -108,10 +108,10 @@ new_pylvs="$new_pylib/$pyversion/$pysite"
 if [ $MODULE = "all" ]; then
   # Copy all modules to their destination
   cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
-  tar cvf all.tar .
+  tar --exclude='all.tar' -cvf all.tar .
   mv all.tar $DEST_PROD_PATH
   cd $DEST_PROD_PATH
-  tar xvf all.tar
+  tar -xvf all.tar
   rm all.tar
   if [ -L lib64 ]; then
     rm lib64
@@ -134,7 +134,7 @@ if [ $MODULE = "all" ]; then
     s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$new_pylib")
     sed -i "s/$s1/$s2/g" installPath.py
   fi
-  more installPath.py
+  cat installPath.py
 
   # Copy environment files
   cp "$CASSIOPEE"/Dist/env_* "$DEST_PROD_PATH"/../..

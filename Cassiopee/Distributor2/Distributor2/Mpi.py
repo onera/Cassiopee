@@ -24,7 +24,7 @@ def _redispatch(t, graph=None, verbose=0):
 
     for i in range(1, Cmpi.size):
         graph_local = copy.deepcopy(graph)
-        
+
         for rank in range(Cmpi.size): # create a local 2 by 2 connectivity graph to reduce memory consumption
             if rank not in graph_local: graph_local[rank] = {}
             else:
@@ -35,7 +35,7 @@ def _redispatch(t, graph=None, verbose=0):
         Cmpi._addXZones(t, graph_local)
 
         nzonesMax = max(nzonesMax, len(Internal.getZones(t)))
-        
+
         for z in Internal.getZones(t):
             tag = Internal.getNodeFromName1(z, 'XZone')
             if tag is None:

@@ -16,4 +16,3 @@ C.convertArrays2File(a, "out.plt", "bin_tp")
 
 # Execute povray
 import os; os.system("povray -W800 -H600 +a0.3 +SP16 render.pov +P")
-

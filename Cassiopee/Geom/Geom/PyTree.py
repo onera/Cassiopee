@@ -16,7 +16,7 @@ def point(P):
     Usage: point((x,y,z))"""
     a = Geom.point(P)
     return C.convertArrays2ZoneNode('point', [a])
-    
+
 def cloud(arr):
     """Create a point cloud.
     Usage: cloud([(x1,x2,...,xn),(y1,y2,...,yn),(z1,z2,...,zn)])"""
@@ -29,8 +29,8 @@ def naca(e, N=101, sharpte=True):
     a = Geom.naca(e, N, sharpte)
     zname = 'naca'
     if isinstance(e, str): zname ='NACA'+e
-    return C.convertArrays2ZoneNode(zname, [a])    
-    
+    return C.convertArrays2ZoneNode(zname, [a])
+
 def line(P1, P2, N=100):
     """Create a line of N points. Usage: line( (x1,y1,z1), (x2,y2,z2), N )"""
     a = Geom.line(P1, P2, N)
@@ -53,7 +53,7 @@ def bezier(t, N=100, M=100, density=-1):
     """Create a a Bezier curve controlled by an array of control points.
     Usage: bezier(tc, N)"""
     return C.TZGC1(t, 'nodes', True, Geom.bezier, N, M, density)
-    
+
 def spline(t, order=3, N=100, M=100, density=-1):
     """Create a spline of N points.
     Usage: spline(ctrlsPts, order, N)"""
@@ -67,7 +67,7 @@ def nurbs(t, weight='weight', order=3, N=100, M=100, density=-1):
     Pts = Converter.addVars([Pts,w])
     surf = Geom.nurbs(Pts, weight, order, N, M, density)
     return C.convertArrays2ZoneNode('nurbs', [surf])
-    
+
 def curve(f, N=100):
     """Create a curve from a user defined parametric function.
     Usage: curve(f, N)"""
@@ -93,11 +93,11 @@ def sphere6(center, R, N=100, ntype='STRUCT'):
     A = Geom.sphere6(center, R, N, ntype)
     if ntype == 'STRUCT':
         return [C.convertArrays2ZoneNode('sphere-part1', [A[0]]),
-        C.convertArrays2ZoneNode('sphere-part2', [A[1]]),
-        C.convertArrays2ZoneNode('sphere-part3', [A[2]]),
-        C.convertArrays2ZoneNode('sphere-part4', [A[3]]),
-        C.convertArrays2ZoneNode('sphere-part5', [A[4]]),
-        C.convertArrays2ZoneNode('sphere-part6', [A[5]])]
+                C.convertArrays2ZoneNode('sphere-part2', [A[1]]),
+                C.convertArrays2ZoneNode('sphere-part3', [A[2]]),
+                C.convertArrays2ZoneNode('sphere-part4', [A[3]]),
+                C.convertArrays2ZoneNode('sphere-part5', [A[4]]),
+                C.convertArrays2ZoneNode('sphere-part6', [A[5]])]
     else:
         return C.convertArrays2ZoneNode('sphere', [A])
 
@@ -107,7 +107,7 @@ def sphereYinYang(center, R, N=100, ntype='STRUCT'):
     A = Geom.sphereYinYang(center, R, N)
     if ntype == 'STRUCT':
         return [C.convertArrays2ZoneNode('sphere-part1', [A[0]]),
-        C.convertArrays2ZoneNode('sphere-part2', [A[1]])]
+                C.convertArrays2ZoneNode('sphere-part2', [A[1]])]
     else:
         return C.convertArrays2ZoneNode('sphere', [A])
 
@@ -117,10 +117,10 @@ def disc(center, R, N=100, ntype='STRUCT'):
     A = Geom.disc(center, R, N, ntype)
     if ntype == 'STRUCT':
         return [C.convertArrays2ZoneNode('disc-part1', [A[0]]),
-        C.convertArrays2ZoneNode('disc-part2', [A[1]]),
-        C.convertArrays2ZoneNode('disc-part3', [A[2]]),
-        C.convertArrays2ZoneNode('disc-part4', [A[3]]),
-        C.convertArrays2ZoneNode('disc-part5', [A[4]])]
+                C.convertArrays2ZoneNode('disc-part2', [A[1]]),
+                C.convertArrays2ZoneNode('disc-part3', [A[2]]),
+                C.convertArrays2ZoneNode('disc-part4', [A[3]]),
+                C.convertArrays2ZoneNode('disc-part5', [A[4]])]
     else:
         return C.convertArrays2ZoneNode('disc', [A])
 
@@ -130,11 +130,11 @@ def box(Pmin, Pmax, N=100, ntype='STRUCT'):
     A = Geom.box(Pmin, Pmax, N, ntype)
     if ntype == 'STRUCT':
         return [C.convertArrays2ZoneNode('box-part1', [A[0]]),
-        C.convertArrays2ZoneNode('box-part2', [A[1]]),
-        C.convertArrays2ZoneNode('box-part3', [A[2]]),
-        C.convertArrays2ZoneNode('box-part4', [A[3]]),
-        C.convertArrays2ZoneNode('box-part5', [A[4]]),
-        C.convertArrays2ZoneNode('box-part6', [A[5]])]
+                C.convertArrays2ZoneNode('box-part2', [A[1]]),
+                C.convertArrays2ZoneNode('box-part3', [A[2]]),
+                C.convertArrays2ZoneNode('box-part4', [A[3]]),
+                C.convertArrays2ZoneNode('box-part5', [A[4]]),
+                C.convertArrays2ZoneNode('box-part6', [A[5]])]
     else:
         return C.convertArrays2ZoneNode('box', [A])
 
@@ -144,16 +144,16 @@ def cylinder(center, R, H, N=100, ntype='STRUCT'):
     A = Geom.cylinder(center, R, H, N, ntype)
     if ntype == 'STRUCT':
         return [C.convertArrays2ZoneNode('cyl-part1', [A[0]]),
-        C.convertArrays2ZoneNode('cyl-part2', [A[1]]),
-        C.convertArrays2ZoneNode('cyl-part3', [A[2]]),
-        C.convertArrays2ZoneNode('cyl-part4', [A[3]]),
-        C.convertArrays2ZoneNode('cyl-part5', [A[4]]),
-        C.convertArrays2ZoneNode('cyl-part6', [A[5]]),
-        C.convertArrays2ZoneNode('cyl-part7', [A[6]]),
-        C.convertArrays2ZoneNode('cyl-part8', [A[7]]),
-        C.convertArrays2ZoneNode('cyl-part9', [A[8]]),
-        C.convertArrays2ZoneNode('cyl-part10', [A[9]]),
-        C.convertArrays2ZoneNode('cyl-part11', [A[10]])]
+                C.convertArrays2ZoneNode('cyl-part2', [A[1]]),
+                C.convertArrays2ZoneNode('cyl-part3', [A[2]]),
+                C.convertArrays2ZoneNode('cyl-part4', [A[3]]),
+                C.convertArrays2ZoneNode('cyl-part5', [A[4]]),
+                C.convertArrays2ZoneNode('cyl-part6', [A[5]]),
+                C.convertArrays2ZoneNode('cyl-part7', [A[6]]),
+                C.convertArrays2ZoneNode('cyl-part8', [A[7]]),
+                C.convertArrays2ZoneNode('cyl-part9', [A[8]]),
+                C.convertArrays2ZoneNode('cyl-part10', [A[9]]),
+                C.convertArrays2ZoneNode('cyl-part11', [A[10]])]
     else:
         return C.convertArrays2ZoneNode('cyl', [A])
 
@@ -165,15 +165,15 @@ def torus(center, R, r, alphas=0., alphae=360.,
     Usage: torus((xc,yc,zc), R, r, NR, Nr, alphas, alphae, betas, betae)"""
     a = Geom.torus(center, R, r, alphas, alphae, betas, betae, NR, Nr)
     return C.convertArrays2ZoneNode('torus', [a])
-            
+
 def triangle(P1, P2, P3, N=0, ntype='TRI'):
     """Create a single triangle with points P1, P2, P3.
     Usage: triangle((x1,y,1,z1), (x2,y2,z2), (x3,y3,z3))"""
     a = Geom.triangle(P1, P2, P3, N, ntype)
     if ntype == 'STRUCT':
         return [C.convertArrays2ZoneNode('tri-part1', [a[0]]),
-        C.convertArrays2ZoneNode('tri-part2', [a[1]]),
-        C.convertArrays2ZoneNode('tri-part3', [a[2]])]
+                C.convertArrays2ZoneNode('tri-part2', [a[1]]),
+                C.convertArrays2ZoneNode('tri-part3', [a[2]])]
     else:
         return C.convertArrays2ZoneNode('triangle', [a])
 
@@ -183,9 +183,9 @@ def quadrangle(P1, P2, P3, P4, N=0, ntype='QUAD'):
     a = Geom.quadrangle(P1, P2, P3, P4, N, ntype)
     if ntype == 'STRUCT':
         return [C.convertArrays2ZoneNode('quad-part1', [a[0]]),
-        C.convertArrays2ZoneNode('quad-part2', [a[1]]),
-        C.convertArrays2ZoneNode('quad-part3', [a[2]]),
-        C.convertArrays2ZoneNode('quad-part2', [a[3]])]
+                C.convertArrays2ZoneNode('quad-part2', [a[1]]),
+                C.convertArrays2ZoneNode('quad-part3', [a[2]]),
+                C.convertArrays2ZoneNode('quad-part2', [a[3]])]
     else:
         return C.convertArrays2ZoneNode('quadrangle', [a])
 
@@ -227,9 +227,9 @@ def getCurvatureRadius(t):
     """Return the curvature radius for each point.
     Usage: getCurvatureRadius(t)"""
     return C.TZGC1(t, 'nodes', True, Geom.getCurvatureRadius)
-    
+
 def _getCurvatureRadius(t):
-    """Return the curvature radius for each point.""" 
+    """Return the curvature radius for each point."""
     return C._TZGC1(t, 'nodes', False, Geom.getCurvatureRadius)
 
 def getCurvatureAngle(t):
@@ -285,7 +285,7 @@ def addSeparationLine(t, line0):
     arrays = Geom.addSeparationLine(at, al)
     zones = []
     for i in arrays:
-        zone = C.convertArrays2ZoneNode(t[0], [i])        
+        zone = C.convertArrays2ZoneNode(t[0], [i])
         zones.append(zone)
     return zones
 

@@ -19,13 +19,13 @@ t1 = C.convertFile2PyTree(ifile1)
 t2 = C.convertFile2PyTree(ifile2)
 
 #print('getOverlappingFaces')
-res = XOR.getOverlappingFaces(t1, t2, RTOL = 0.3, ps_min = 0.95)
+res = XOR.getOverlappingFaces(t1, t2, RTOL=0.3, ps_min=0.95)
 
 # get pgids for t1 zones only : first par of each pairs
 nb_zones = len(res)
 t1zones_pgids = []
 for i in range(nb_zones):
-  t1zones_pgids.append(res[i][0])
+    t1zones_pgids.append(res[i][0])
 
 
 #print('agglomerateCellsWithSpecifiedFaces')

@@ -7,12 +7,12 @@ import copy
 import Generator.IBMmodelHeight as G_IBM_Height
 from . import PyTree as D
 varsDeleteIBM = ['utau','StagnationEnthalpy','StagnationPressure',
-                'dirx'          ,'diry'          ,'dirz',
-                'gradxPressure' ,'gradyPressure' ,'gradzPressure' ,
-                'gradxVelocityX','gradyVelocityX','gradzVelocityX',
-                'gradxVelocityY','gradyVelocityY','gradzVelocityY',
-                'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
-                'KCurv'         ,'yplus']        
+                 'dirx'          ,'diry'          ,'dirz',
+                 'gradxPressure' ,'gradyPressure' ,'gradzPressure' ,
+                 'gradxVelocityX','gradyVelocityX','gradzVelocityX',
+                 'gradxVelocityY','gradyVelocityY','gradzVelocityY',
+                 'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
+                 'KCurv'         ,'yplus']
 #==============================================================================
 # Creation of a case with a symmetry plane
 #==============================================================================
@@ -51,7 +51,7 @@ def _addSymPlane(tb, snear_sym, dir_sym=2):
         if snearl is not None:
             snearl = Internal.getValue(snearl)
             snearList.append(snearl*snearFactor)
-        
+
         dfarl = Internal.getNodeFromName1(sdd,"dfar")
         if dfarl is not None:
             dfarl = Internal.getValue(dfarl)
@@ -181,7 +181,7 @@ def _setIBCType(t, value):
     """Set the IBC type in a geometry tree.
     Usage: _setIBCType(t, value=X)"""
     zones = Internal.getZones(t)
-    for z in zones:         
+    for z in zones:
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(z, '.Solver#define')
         Internal._createUniqueChild(n, 'ibctype', 'DataArray_t', value)
@@ -233,19 +233,19 @@ def _setFluidOutside(t):
 #==============================================================================
 def setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
                             machTarget=0.1, pStatTarget=1e05, tStatTarget=298.15,lmbd=0.1,
-                            cxSupport = 0.6, sSupport=0.1, itExtrctPrb=10):
+                            cxSupport=0.6, sSupport=0.1, itExtrctPrb=10):
     """Set the user input parameters for the outpress control algorithm.
     Usage: setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ,itExtrctPrb=XXXX)"""
     tp = Internal.copyRef(t)
     _setOutPressControlParam(tp, probeName=probeName, AtestSection=AtestSection, AOutPress=AOutPress,
                              machTarget=machTarget, pStatTarget=pStatTarget, tStatTarget=tStatTarget,lmbd=lmbd,
-                             cxSupport = cxSupport, sSupport=sSupport, itExtrctPrb=itExtrctPrb)
+                             cxSupport=cxSupport, sSupport=sSupport, itExtrctPrb=itExtrctPrb)
     return tp
 
 
 def _setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
                              machTarget=0.1, pStatTarget=1e05, tStatTarget=298.15,lmbd=0.1,
-                             cxSupport = 0.6, sSupport=0.1, itExtrctPrb=10):
+                             cxSupport=0.6, sSupport=0.1, itExtrctPrb=10):
     """Set the user input parameters for the outpress control algorithm.
     Usage: _setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ,itExtrctPrb=XXXX)"""
     zones = Internal.getZones(t)
@@ -262,7 +262,7 @@ def _setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutP
         Internal._createUniqueChild(n, 'cxSupport'   , 'DataArray_t', cxSupport)
         Internal._createUniqueChild(n, 'sSupport'    , 'DataArray_t', sSupport)
         Internal._createUniqueChild(n, 'itExtrctPrb' , 'DataArray_t', itExtrctPrb)
-        
+
     return None
 #==============================================================================
 # Set the IBC type outpress for zones in familyName
@@ -300,12 +300,12 @@ def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isD
                     else:
                         stagPNode[1][:] = PStatic
                     if not isDensityConstant:
-                        dens = Internal.getNodeFromName(zsr, 'Density') 
+                        dens = Internal.getNodeFromName(zsr, 'Density')
                         dens[1][:] = -dens[1][:]
     return None
 
 #==============================================================================
-# 
+#
 #==============================================================================
 def initIsoThermal(tc, familyName, TStatic):
     """Set the value of static temperature TStatic for the wall no slip IBC with family name familyName.
@@ -323,17 +323,17 @@ def _initIsoThermal(tc, familyName, TStatic):
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName == familyName:
-                    stagPNode = Internal.getNodeFromName(zsr, 'TemperatureWall')    
+                    stagPNode = Internal.getNodeFromName(zsr, 'TemperatureWall')
                     sizeIBC = numpy.shape(stagPNode[1])
                     stagPNode[1][:] = TStatic
                     #Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
 
-                    stagPNode = Internal.getNodeFromName(zsr, 'Temperature')    
+                    stagPNode = Internal.getNodeFromName(zsr, 'Temperature')
                     Internal.setValue(stagPNode, TStatic*numpy.ones(sizeIBC))
     return None
 
 #==============================================================================
-# 
+#
 #==============================================================================
 def initHeatFlux(tc, familyName, QWall):
     """Set the value of heat flux QWall for the wall no slip IBC with family name familyName.
@@ -352,12 +352,12 @@ def _initHeatFlux(tc, familyName, QWall):
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName == familyName:
-                    stagPNode = Internal.getNodeFromName(zsr,'WallHeatFlux')    
+                    stagPNode = Internal.getNodeFromName(zsr,'WallHeatFlux')
                     sizeIBC   = numpy.shape(stagPNode[1])
                     stagPNode[1][:]  = QWall
                     #Internal.setValue(stagPNode,QWall*numpy.ones(sizeIBC))
 
-                    stagPNode =  Internal.getNodeFromName(zsr,'Temperature')    
+                    stagPNode =  Internal.getNodeFromName(zsr,'Temperature')
                     Internal.setValue(stagPNode,QWall*numpy.ones(sizeIBC))
     return None
 
@@ -371,7 +371,7 @@ def initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, P
     tc2 = Internal.copyRef(tc)
     _initInj(tc2, familyName, PTot, HTot, injDir, InterpolPlane=InterpolPlane, PressureVar=PressureVar, EnthalpyVar=EnthalpyVar)
     return tc2
-                 
+
 
 def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, PressureVar=0, EnthalpyVar=0):
     """Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.
@@ -389,7 +389,7 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, 
 
                     node_temp = Internal.getNodeFromName(zsr, 'yplus')
                     if node_temp is not None: Internal._rmNode(zsr, node_temp)
-                    
+
                     stagPNode = Internal.getNodeFromName(zsr, 'StagnationPressure')
                     stagHNode = Internal.getNodeFromName(zsr, 'StagnationEnthalpy')
                     dirxNode  = Internal.getNodeFromName(zsr, 'dirx')
@@ -417,7 +417,7 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, 
                     dirxNode[1][:] = injDir[0]
                     diryNode[1][:] = injDir[1]
                     dirzNode[1][:] = injDir[2]
-                    
+
     return None
 
 #==============================================================================
@@ -445,22 +445,22 @@ def _addVariablesTcIbc(zsr, ibctype, nIBC):
             zsr[2].append(['gradxVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradyVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradzVelocityX' , copy.copy(Nlength) , [], 'DataArray_t'])
-            
+
             zsr[2].append(['gradxVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradyVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradzVelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
-            
+
             zsr[2].append(['gradxVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradyVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
             zsr[2].append(['gradzVelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
-        
+
     elif ibctype == 100:
         zsr[2].append(["KCurv" , copy.copy(Nlength) , [], 'DataArray_t'])
-        
+
     return None
 
 #==============================================================================
-# 
+#
 #==============================================================================
 def changeIBCType(tc, oldIBCType, newIBCType):
     """Change the IBC type in a connectivity tree from oldIBCType to newIBCType.
@@ -486,13 +486,13 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
 
                     for var_local in varsDeleteIBM:
                         Internal._rmNodesByName(zsr, var_local)
-                    
+
                     _addVariablesTcIbc(zsr, newIBCType, nIBC)
 
     return None
 
 #==============================================================================
-# 
+#
 #==============================================================================
 def transformTc2(tc2):
     """Change the name of the IBM nodes for the second image point.
@@ -513,7 +513,7 @@ def _transformTc2(tc2):
 
                 pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
                 nIBC = pressure.shape[0]
-                
+
                 vars_delete = ['Density','VelocityX','VelocityY','VelocityZ']+varsDeleteIBM
                 for var_local in vars_delete:
                     Internal._rmNodesByName(zsr, var_local)
@@ -524,11 +524,11 @@ def _transformTc2(tc2):
                 zsr[2].append(['VelocityY' , copy.copy(Nlength) , [], 'DataArray_t'])
                 zsr[2].append(['VelocityZ' , copy.copy(Nlength) , [], 'DataArray_t'])
                 _addVariablesTcIbc(zsr,ibctype,nIBC)
-                
+
     return None
 
 #==============================================================================
-# 
+#
 #==============================================================================
 def closeContour(contour, N=2):
     """Closes a 1D contour with a line or a set of lines."""
@@ -542,7 +542,7 @@ def closeContour(contour, N=2):
         connectivity = Internal.getNodeFromName(z, 'ElementConnectivity')[1]
         values, counts = numpy.unique(connectivity, return_counts=True)
         ends = values[numpy.argwhere(counts==1).flatten()]
-        if len(ends) == 2: 
+        if len(ends) == 2:
             i_first = ends[0] - 1
             i_last  = ends[1] - 1
             x = Internal.getNodeFromName(z, "CoordinateX")[1]
@@ -572,7 +572,7 @@ def closeContour(contour, N=2):
     return contour2
 
 #==============================================================================
-# 
+#
 #==============================================================================
 def closeSurface(surface):
     """Closes a 2D surface with a patch or a set of patches."""
@@ -592,9 +592,12 @@ def closeSurface(surface):
 
     for c in cont:
         c = T.reorder(c, (1,2,3))
-        p = G.fittingPlaster(c)
-        p = G.gapfixer(c, p)
-        listOfZones.append(p)
+        try:
+            p = G.fittingPlaster(c)
+            p = G.gapfixer(c, p)
+            listOfZones.append(p)
+        except:
+            print("Info: closeSurface: one gapfixer failed, moving on to the next")
 
     surface2 = C.newPyTree(['Base', listOfZones])
 
@@ -614,7 +617,7 @@ def determineClosedSolidFilament__(tb):
     ## or tb only has a filament
     filamentBases = []
     isFilamentOnly= False
-    
+
     for b in Internal.getBases(tb):
         if "IBCFil" in b[0]:filamentBases.append(b[0])
 
@@ -623,7 +626,7 @@ def determineClosedSolidFilament__(tb):
 
     ## assume isFilamentOnly=True
     tbFilament = Internal.copyTree(tb)
-    
+
     ## if tb has 1) no filaments or 2) filaments & closed bodies
     if not isFilamentOnly:
         if len(filamentBases)==0:
@@ -635,20 +638,23 @@ def determineClosedSolidFilament__(tb):
             for b in filamentBases:
                 node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
                 tbFilament.append(node_local)
-                Internal._rmNode(tb,node_local)     
+                Internal._rmNode(tb,node_local)
                 isOrthoProjectFirst = True
             tbFilament = C.newPyTree(tbFilament);
-                                    
+
     return tb, tbFilament
 
 
 def localWMMFlags__(tb,tbFilament):
     isFilamentOnly=False
     isWireModel   =False
-    
+
     if tbFilament:
         if len(Internal.getBases(tbFilament))==len(Internal.getBases(tb)):
-            isFilamentOnly=True
+            bb1 = Internal.getBases(tb)
+            bb2 = Internal.getBases(tbFilament)
+            if bb1[0][0]==bb2[0][0]:
+                isFilamentOnly=True
         for z in Internal.getZones(tbFilament):
             soldef  = Internal.getNodeFromName(z,'.Solver#define')
             if soldef is not None:
@@ -669,7 +675,7 @@ def _addOneOverLocally(FileName,oneOver):
     t_local = C.convertFile2PyTree(FileName)
     nodes   = Internal.getNodesFromNameAndType(t_local, '*OneOver*', 'CGNSBase_t')
     for b in nodes:
-        Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')           
+        Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(b, '.Solver#define')
         Internal._createUniqueChild(n, 'dirx'       , 'DataArray_t', value=oneOver[count][0])
         Internal._createUniqueChild(n, 'diry'       , 'DataArray_t', value=oneOver[count][1])

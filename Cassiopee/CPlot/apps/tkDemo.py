@@ -25,7 +25,7 @@ def setPath():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     selected = ''
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -97,7 +97,7 @@ def fly():
             x = posCam[0]-xc; y = posCam[2]-yc; z = posCam[1]-zc
             x = 10*x /max((bb[3]-bb[0]), 1.e-10)
             y = 10*y /max((bb[4]-bb[1]), 1.e-10)
-            z = 30*z /max((bb[5]-bb[2]), 1.e-10) 
+            z = 30*z /max((bb[5]-bb[2]), 1.e-10)
             xp = x + step*speed*sigma*(y - x)
             yp = y + step*speed*(ro*x - y - x*z)
             zp = z + step*speed*(x*y - beta*z)
@@ -116,7 +116,7 @@ def fly():
         TTK.raiseButton(WIDGETS['fly'])
         CPlot.setState(cursor=0)
         CTK.setCursor(0, WIDGETS['fly'])
-        
+
 #==============================================================================
 def orbite():
     if CTK.t == []: return
@@ -146,7 +146,7 @@ def orbite():
         path = C.convertBAR2Struct(path)
         dim = Internal.getZoneDim(path)
         N = dim[1]
-        
+
         CTK.__BUSY__ = True
         TTK.sunkButton(WIDGETS['orbite'])
         CPlot.setState(cursor=2)
@@ -172,7 +172,7 @@ def orbite():
         TTK.raiseButton(WIDGETS['orbite'])
         CPlot.setState(cursor=0)
         CTK.setCursor(0, WIDGETS['orbite'])
-        
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -195,7 +195,7 @@ def createApp(win):
     CTK.addPinMenu(FrameMenu, 'tkDemo')
     WIDGETS['frameMenu'] = FrameMenu
 
-    # -0- Orbiter path - 
+    # -0- Orbiter path -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
 
     # - Slider -
@@ -204,7 +204,7 @@ def createApp(win):
     WIDGETS['speed'] = B
     B.grid(row=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Speed.')
-    
+
     # - Rotate -
     B = TTK.Button(Frame, text="Rotate", command=rotate)
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -230,7 +230,7 @@ def createApp(win):
     B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Orbite following a path.')
     WIDGETS['orbite'] = B
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -255,7 +255,7 @@ def updateApp(): return
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

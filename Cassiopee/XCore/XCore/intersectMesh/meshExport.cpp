@@ -1,13 +1,31 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "mesh.h"
 
-PyObject *IMesh::export_karray(E_Int remove_periodic)
+PyObject *IMesh::export_karray(E_Int remove_periodic) const
 {
     if (remove_periodic) return export_karray_periodic();
 
     return export_karray_orig();
 }
 
-PyObject *IMesh::export_karray_periodic()
+PyObject *IMesh::export_karray_periodic() const
 {
     // Keep the cells whose tag is 1
 
@@ -47,7 +65,6 @@ PyObject *IMesh::export_karray_periodic()
 
     for (const auto &fdat : new_fids) {
         E_Int ofid = fdat.first;
-        //E_Int nfid = fdat.second;
 
         const auto &pn = F[ofid];
 
@@ -142,7 +159,7 @@ PyObject *IMesh::export_karray_periodic()
     return array;
 }
 
-PyObject *IMesh::export_karray_orig()
+PyObject *IMesh::export_karray_orig() const
 {
     E_Int sizeNGon = 0, sizeNFace = 0;
 
@@ -193,7 +210,6 @@ PyObject *IMesh::export_karray_orig()
 
     delete f;
     delete cn;
-
 
     return array;
 }

@@ -49,7 +49,7 @@ def _distributeMem(t, tc, NP):
 def _distributeOpt(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     if isinstance(t_in, str):
         if Cmpi.rank == 0: _distributeOptFile(t_in, tc_in, corePerNode, nptMaxPerCore)
-    else: 
+    else:
         #_distributeOptMem(t_in, tc_in, corePerNode, nptMaxPerCore)
         raise ValueError('Not implemented.')
     return None
@@ -58,7 +58,7 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     import Distributor2.PyTree as D2
     t = Filter.convertFile2SkeletonTree(t_in, maxDepth=3, maxFloatSize=6)
     tc = Filter.convertFile2SkeletonTree(tc_in, maxDepth=3, maxFloatSize=6)
-    
+
     nbpts=0.; maxipts=0.
     for zone in Internal.getZones(t):
         ncells = C.getNCells(zone)
@@ -80,10 +80,10 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     NP = MinNbProcs
     for nbproc in range(MinNbProcs,MaxNbProcs+1):
         if nbproc%corePerNode==0:
-         print('Distribution sur %s procs.')
-         stats = D2._distribute(tc, nbproc, algorithm='graph', useCom='ID')
-         listequ.append([nbproc,stats['varMax']])
-         if stats['varMax']<varmax: varmax = stats['varMax']; NP=nbproc
+            print('Distribution sur %s procs.')
+            stats = D2._distribute(tc, nbproc, algorithm='graph', useCom='ID')
+            listequ.append([nbproc,stats['varMax']])
+            if stats['varMax']<varmax: varmax = stats['varMax']; NP=nbproc
 
     stats = D2._distribute(tc, NP, algorithm='graph', useCom='ID')
     print('Best distribution found on %d procs.'%NP)
@@ -99,7 +99,7 @@ def _distributeOptFile(t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
     for n in nodes:
         p = Internal.getPath(tc, n)
         Filter.writeNodesFromPaths(tc_in, p, n)
-    
+
     return NP
 
 #================================================================================
@@ -148,7 +148,7 @@ def finalize(t, t_out=None, it0=None, time0=None, format='single', compress=0):
 # format: single ou multiple
 # compress: si 1, compress le fichier de sortie pour le cartesien, 2 compressAll
 #======================================================================================
-def compute(t_in, tc_in, 
+def compute(t_in, tc_in,
             t_out, tc_out,
             numb, numz,
             NIT,
@@ -174,7 +174,7 @@ def compute(t_in, tc_in,
     if first is not None: time0 = Internal.getValue(first)
     time_step = Internal.getNodeFromName(t, 'time_step')
     time_step = Internal.getValue(time_step)
-    
+
     if 'modulo_verif' in numb: moduloVerif = numb['modulo_verif']
     else: moduloVerif = 200
 
@@ -193,7 +193,7 @@ def compute(t_in, tc_in,
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     if t_out is not None and isinstance(t_out,str):
         FastC.save(t, t_out, split=format, NP=Cmpi.size, compress=compress)
-    if tc_out is not None and isinstance(tc_out,str): 
+    if tc_out is not None and isinstance(tc_out,str):
         FastC.save(tc, tc_out, split=format, NP=Cmpi.size)
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
@@ -221,7 +221,7 @@ class Common(App):
         compress = self.compress
         return compute(t_in, tc_in, t_out, tc_out,
                        numb, numz,
-                       nit, 
+                       nit,
                        format=self.data['format'],
                        compress=compress)
 
@@ -242,5 +242,3 @@ class Common(App):
     # distribue fichiers ou en memoire, trouve le NP optimal
     def _distributeOpt(self, t_in, tc_in, corePerNode=28, nptMaxPerCore=4.e6):
         return _distributeOpt(t_in, tc_in, corePerNode, nptMaxPerCore)
-
-

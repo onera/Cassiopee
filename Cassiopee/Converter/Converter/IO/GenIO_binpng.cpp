@@ -359,7 +359,8 @@ E_Int K_IO::GenIO::pngwrite(
   row_pointers = new png_bytep [height];
   for (int y = 0; y < height; y++)
   {
-    row_pointers[y] = (png_bytep)buffer + (height-1-y)*width*stride;
+    //row_pointers[y] = (png_bytep)buffer + (height-1-y)*width*stride;
+    row_pointers[y] = (png_bytep)buffer + y*width*stride;
   }
 
   png_write_image(png_ptr, row_pointers);

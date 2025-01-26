@@ -1,11 +1,12 @@
-
-// Transfert fine to coarse LBM
+//======================================================
+// Transfert fine grid to coarse grid LBM
+//======================================================
 
 E_Float taug_f = ipt_param_realR[NoD][LBM_TAUG];
 E_Float taug_c = ipt_param_realR[NoR][LBM_TAUG];
 
 E_Int flag_psi = 0;
-E_Int nb_dist = ipt_param_intR[NoR][NEQ_LBM];
+E_Int nb_dist    = ipt_param_intR[NoR][NEQ_LBM];
 E_Int coll_model = ipt_param_intR[NoR][LBM_COLL_MODEL];
 if ( coll_model==4 ) flag_psi = 1;
 
@@ -15,6 +16,21 @@ E_Int shift_psi   = 11;
 E_Int shift_q     = 17;
 
 E_Float scale_f2c = 2*taug_c/taug_f;
+
+// Adimensionnement masse volumique
+E_Float rho_ref = ipt_param_realR[NoD][ROINF];
+E_Float adim_rho = 1. / rho_ref;
+
+// Adimensionnement vitesse
+E_Float c0 = 1. / sqrt(3.);
+E_Float gam  = ipt_param_realR[NoD][GAMMA];
+E_Float rgp  = ipt_param_realR[NoD][CVINF] * (gam - 1);
+E_Float Tref = ipt_param_realR[NoD][TINF];
+E_Float cson = sqrt(gam * rgp * Tref);
+E_Float adim_vit = c0 / cson;
+
+// Adimensionnement corr
+E_Float adim_corr = adim_rho * pow(adim_vit, 3.);
 
 if (nb_dist == 19)
 {
@@ -40,10 +56,10 @@ if (nb_dist == 19)
     indR = rcvPts[noind];
 
     // Calcul de l'equilibre
-    Ro = vectOfRcvFields[0][indR];
-    Ux = vectOfRcvFields[1][indR];
-    Uy = vectOfRcvFields[2][indR];
-    Uz = vectOfRcvFields[3][indR];
+    Ro = vectOfRcvFields[0][indR]*adim_rho;
+    Ux = vectOfRcvFields[1][indR]*adim_vit;
+    Uy = vectOfRcvFields[2][indR]*adim_vit;
+    Uz = vectOfRcvFields[3][indR]*adim_vit;
     ec = Ux * Ux + Uy * Uy + Uz * Uz;
 
     coef1 = Ux * Ux * Uy + Uy * Uz * Uz;
@@ -53,12 +69,12 @@ if (nb_dist == 19)
     coef5 = Ux * Uz * Uz - Ux * Uy * Uy;
     coef6 = Uy * Uy * Uz - Ux * Ux * Uz;
 
-    corr_xx = vectOfRcvFields[shift_psi][indR];
-    corr_yy = vectOfRcvFields[shift_psi + 1][indR];
-    corr_zz = vectOfRcvFields[shift_psi + 2][indR];
-    corr_x = vectOfRcvFields[shift_psi + 3][indR];
-    corr_y = vectOfRcvFields[shift_psi + 4][indR];
-    corr_z = vectOfRcvFields[shift_psi + 5][indR];
+    corr_xx = vectOfRcvFields[shift_psi    ][indR]*adim_corr;
+    corr_yy = vectOfRcvFields[shift_psi + 1][indR]*adim_corr;
+    corr_zz = vectOfRcvFields[shift_psi + 2][indR]*adim_corr;
+    corr_x  = vectOfRcvFields[shift_psi + 3][indR]*adim_corr;
+    corr_y  = vectOfRcvFields[shift_psi + 4][indR]*adim_corr;
+    corr_z  = vectOfRcvFields[shift_psi + 5][indR]*adim_corr;
 
     // Q 1
     eq1 = Ro * w1 * (1. - 1.5 * ec);
@@ -216,10 +232,10 @@ else if (nb_dist == 27)
       indR = rcvPts[noind];
 
       // Calcul de l'equilibre
-      Ro = vectOfRcvFields[0][indR];
-      Ux = vectOfRcvFields[1][indR];
-      Uy = vectOfRcvFields[2][indR];
-      Uz = vectOfRcvFields[3][indR];
+      Ro = vectOfRcvFields[0][indR]*adim_rho;
+      Ux = vectOfRcvFields[1][indR]*adim_vit;
+      Uy = vectOfRcvFields[2][indR]*adim_vit;
+      Uz = vectOfRcvFields[3][indR]*adim_vit;
       ec = Ux * Ux + Uy * Uy + Uz * Uz;
 
       axxy = Ux * Ux * Uy;
@@ -240,14 +256,15 @@ else if (nb_dist == 27)
       axxyzz = Ux * Ux * Uy * Uz * Uz;
       axxyyz = Ux * Ux * Uy * Uy * Uz;
       axyyzz = Ux * Uy * Uy * Uz * Uz;
+
       axxyyzz = Ux * Ux * Uy * Uy * Uz * Uz;
 
-      corr_xx = vectOfRcvFields[shift_psi][indR];
-      corr_yy = vectOfRcvFields[shift_psi + 1][indR];
-      corr_zz = vectOfRcvFields[shift_psi + 2][indR];
-      corr_x = vectOfRcvFields[shift_psi + 3][indR];
-      corr_y = vectOfRcvFields[shift_psi + 4][indR];
-      corr_z = vectOfRcvFields[shift_psi + 5][indR];
+      corr_xx = vectOfRcvFields[shift_psi    ][indR]*adim_corr;
+      corr_yy = vectOfRcvFields[shift_psi + 1][indR]*adim_corr;
+      corr_zz = vectOfRcvFields[shift_psi + 2][indR]*adim_corr;
+      corr_x  = vectOfRcvFields[shift_psi + 3][indR]*adim_corr;
+      corr_y  = vectOfRcvFields[shift_psi + 4][indR]*adim_corr;
+      corr_z  = vectOfRcvFields[shift_psi + 5][indR]*adim_corr;
 
       // Q 1
       herm2 = axxyy + axxzz + ayyzz;
@@ -388,7 +405,7 @@ else if (nb_dist == 27)
 
       // Q 19
       eq19 = eq16 - 6 * Ro * w3 * (vit - 1.5 * herm + 0.75 * herm3);
-      offeq18 = vectOfRcvFields[shift_q + 18][indR] - eq19 - flag_psi * psi;
+      offeq19 = vectOfRcvFields[shift_q + 18][indR] - eq19 - flag_psi * psi;
       vectOfRcvFields[shift_q + 18][indR] = eq19 + offeq19 * scale_f2c + 0.5 * flag_psi * psi;
 
       // Q 20

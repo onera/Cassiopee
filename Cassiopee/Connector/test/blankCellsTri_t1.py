@@ -22,6 +22,3 @@ celln = X.blankCellsTri([a], [ca], m, blankingType=0, tol=1.e-12)
 celln = C.addVars([[a], celln])
 #C.convertArrays2File(celln, 'out0.plt')
 test.testA(celln,1)
-
-
-

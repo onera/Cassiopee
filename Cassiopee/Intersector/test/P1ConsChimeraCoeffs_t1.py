@@ -27,6 +27,3 @@ cR = C.extractVars(cR, ['cellN'])
 # Blanking
 coef_and_indices = XOR.P1ConservativeChimeraCoeffs(R, cR, D)
 test.testO(coef_and_indices,1)
-
-
-

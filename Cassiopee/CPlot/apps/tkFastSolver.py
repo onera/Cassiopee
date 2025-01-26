@@ -106,7 +106,7 @@ def reloadPrevStep(event=None):
         CTK.TXT.insert('START', 'Revert to previous solution step.\n')
         VARS[10].set('Main')
         NITRUN -= 1
-    except: 
+    except:
         CTK.TXT.insert('START', 'restart file not found.\n')
         VARS[10].set('Body')
 
@@ -124,7 +124,7 @@ def setData():
     scheme = VARS[4].get()
     time_step = VARS[5].get()
     timeVal = VARS[11].get() # "cfl" or "time_step"
-    
+
     numb = {'temporal_scheme':temporal_scheme,
             'ss_iteration':ss_iteration}
     numz = {'scheme':scheme, 'senseurType':0}
@@ -139,7 +139,7 @@ def setData():
         Fast._setNum2Base(CTK.t, numb)
         Fast._setNum2Zones(CTK.t, numz)
         CTK.TXT.insert('START', 'Solver data set in all bases.\n')
-    
+
     else:
         for nz in nzs:
             nob = CTK.Nb[nz]+1
@@ -149,7 +149,7 @@ def setData():
             Fast._setNum2Base(b, numb)
             Fast._setNum2Zones(z, numz)
         CTK.TXT.insert('START', 'Solver data set in selection.\n')
-    
+
 #=============================================================================
 # Modifie le body, met le body modifie dans CTK.t
 #=============================================================================
@@ -219,7 +219,7 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[4].set(val)
-        
+
 
 #==============================================================================
 # get dim from equation set
@@ -244,17 +244,17 @@ def run(event=None):
             prepare() # save t, tc
             CTK.TXT.insert('START', 'Prepare OK.\n')
         except:
-            CTK.setCursor(0, WIDGETS['compute'])    
+            CTK.setCursor(0, WIDGETS['compute'])
             CTK.TXT.insert('START', 'Prepare failed.\n')
             return
-        
+
         VARS[10].set('Main')
         CTK.t = CTK.upgradeTree(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         if dim == 2: CTK.display(CTK.t)
         else: displaySlices()
-        
+
     # Set CPlot to scalar mode to monitor solution
     if CPlot.getState('mode') == 0: # mesh
         CPlot.setState(mode=3, scalarField='Density')
@@ -273,7 +273,7 @@ def run(event=None):
 
         if dim == 2: displayByReplace(CTK.t)
         else: displaySlices()
-    
+
     CTK.TKTREE.updateApp()
     CTK.setCursor(0, WIDGETS['compute'])
     return None
@@ -287,7 +287,7 @@ def displayByReplace(t):
                 if z[3] == 'Zone_t':
                     CPlot.replace(t, nob, noz, z)
     CPlot.render()
-                
+
 #==============================================================================
 # A partir de CTK.t considere comme les bodies
 # tinit est un arbre de reprise eventuel
@@ -308,7 +308,7 @@ def prepare(tinit=None):
     if dim is not None:
         dim = Internal.getNodeFromName1(dim, 'EquationDimension')
         dim = Internal.getValue(dim)
-        if dim == 2: 
+        if dim == 2:
             # in 2D, the case must be in XY plane
             C._initVars(CTK.t, 'CoordinateZ', 0.)
 
@@ -326,13 +326,13 @@ def prepare(tinit=None):
     myApp.input_var.tbox = tbox
     myApp.input_var.check = False
     myApp.input_var.tinit = tinit
-    
+
     CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns')
-    
+
     # Preparation pour le front 42
-    #CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21, 
+    #CTK.t, tc = myApp.prepare(CTK.t, t_out='t.cgns', tc_out='tc.cgns', vmin=21,
     #                          tbox=tbox, check=False, tinit=tinit, frontType=42, yplus=150.)
-    
+
     return None
 
 #==============================================================================
@@ -343,7 +343,7 @@ def compute(nrun):
 
     import Apps.Fast.IBM as App
     global NITRUN # numero courant du run
-    
+
     # Save preventif avec compression cartesienne
     Fast.saveFile(CTK.t, 'restart.cgns', compress=2)
 
@@ -365,17 +365,17 @@ def compute(nrun):
 
     myApp = App.IBM(format='single')
     myApp.set(numb={
-    "temporal_scheme": temporal_scheme,
-    "ss_iteration": ss_iteration,
-    "omp_mode": 1,
-    "modulo_verif": 50
+        "temporal_scheme": temporal_scheme,
+        "ss_iteration": ss_iteration,
+        "omp_mode": 1,
+        "modulo_verif": 50
     })
 
     myApp.set(numz={
-    "time_step": val,
-    "scheme": scheme,
-    "time_step_nature": time_step_nature,
-    "cfl": val
+        "time_step": val,
+        "scheme": scheme,
+        "time_step_nature": time_step_nature,
+        "cfl": val
     })
 
     nit = VARS[9].get() # nbre d'iterations a faire
@@ -428,7 +428,7 @@ def compute(nrun):
     C.convertPyTree2File(tc, 'tc_restart.cgns')
 
     # optional plots
-    if CTK.TKPLOTXY is not None: 
+    if CTK.TKPLOTXY is not None:
         updateWallPlot(WALL)
         updateLoadPlot(CL, CD, NITRUN, nit)
     return None
@@ -465,7 +465,7 @@ def updateWallPlot(walls):
     wallsz = Internal.getZones(walls)
     for c, b in enumerate(Internal.getBases(BODY)):
         zones = Internal.getZones(b)
-        if zones: 
+        if zones:
             n = Internal.getNodeFromPath(zones[0], '.Solver#define/extractWalls')
             if n is not None:
                 v = Internal.getValue(n)
@@ -507,14 +507,14 @@ def updateLoadPlot(CL, CD, nitrun, nit):
     outCL = []; outCD = []
     for c, b in enumerate(Internal.getBases(BODY)):
         zones = Internal.getZones(b)
-        if zones: 
+        if zones:
             n = Internal.getNodeFromPath(zones[0], '.Solver#define/extractLoads')
             if n is not None:
                 v = Internal.getValue(n)
                 if v == 1:
                     outCL.append(CL[c])
                     outCD.append(CD[c])
-        
+
     if outCL == []: return
 
     if DESKTOP2 is None:
@@ -609,14 +609,14 @@ def writePrepFile():
         tbox[2].append(b)
         tbody = Internal.rmNodesFromName1(tbody, 'REFINE')
     else: tbox = None
-    
+
     # Save preventif
     C.convertPyTree2File(tbody, 'body.cgns')
     if tbox is not None:
         C.convertPyTree2File(tbox, 'tbox.cgns')
-    
+
     f = open('prep.py', 'w')
-    
+
     text= """
 import Apps.Fast.IBM as App
 myApp = App.IBM(format='single')
@@ -636,7 +636,7 @@ myApp.input_var.check = False
 #==============================================================================
 def writeComputeFile():
     if CTK.t == []: return
-            
+
     temporal_scheme = VARS[0].get()
     scheme = VARS[4].get()
     a = VARS[11].get()
@@ -650,7 +650,7 @@ def writeComputeFile():
     nit = VARS[9].get()
 
     f = open('compute.py', 'w')
-    
+
     text= """
 import Apps.Fast.IBM as App
 
@@ -694,14 +694,14 @@ def displaySlices():
         TKSLICE.VARS[0].set('Y')
         TKSLICE.VARS[1].set(TKSLICE.YVALUE)
         TKSLICE.view()
-        
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkFastSolver  [ + ]  ', font=CTK.FRAMEFONT, 
+                           text='tkFastSolver  [ + ]  ', font=CTK.FRAMEFONT,
                            takefocus=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
@@ -711,7 +711,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -822,7 +822,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[15], width=5, background='White')
     BB = CTK.infoBulle(parent=B, text='Number of runs.')
     B.grid(row=6, column=2, columnspan=1, sticky=TK.EW)
-    
+
     # - Body time -
     #B = TTK.Button(Frame, text="Step", command=updateBodyAndPrepare)
     #BB = CTK.infoBulle(parent=B, text='Apply one motion step to body.')

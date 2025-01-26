@@ -20,44 +20,22 @@
 
 #include <vector>
 
-#include "queue.h"
-#include "status.h"
 #include "common/common.h"
 
-extern E_Float TOL;
+constexpr E_Float TOL = 1e-11;
+constexpr E_Float RAY_EDGE_TOL = 1e-5;
 
-void compute_intersection(Queue &Q, Snode *sit0, Snode *sit1,
-    std::vector<Vertex *> &I);
+E_Int Sign(E_Float x, E_Float tol=TOL);
 
-E_Int compare(const Vertex &a, const Vertex &b);
+E_Int cmp_points(E_Float x1, E_Float y1, E_Float z1,
+    E_Float x2, E_Float y2, E_Float z2);
 
-E_Int compare(const Segment &s0, const Segment &s1, E_Float rx, E_Float ry);
+bool ray_edge_intersect(E_Float ox, E_Float oy, E_Float oz,
+    E_Float dx, E_Float dy, E_Float dz,
+    E_Float px, E_Float py, E_Float pz,
+    E_Float qx, E_Float qy, E_Float qz,
+    E_Float &t, E_Float &u,
+    bool coplanar = true);
 
-E_Int cmp_mySeg(const Segment &s1, const Segment &s2);
-
-E_Int cmp_points(E_Float x1, E_Float y1, E_Float z1, E_Float x2, E_Float y2, E_Float z2);
-//E_Int cmp_points(E_Float x1, E_Float y1, E_Float x2, E_Float y2);
-
-E_Float DifferenceOfProducts(E_Float a, E_Float b, E_Float c, E_Float d);
-
-E_Float TwoDiff(E_Float a, E_Float b);
-
-E_Int Sign(E_Float x);
-
-E_Int orient3D(E_Float *A, E_Float *B, E_Float *C, E_Float *D);
-
-E_Float dRand(E_Float dMin, E_Float dMax);
-
-E_Int is_point_on_segment(E_Float px, E_Float py, E_Float pz, E_Float ax, E_Float ay,
-    E_Float az, E_Float bx, E_Float by, E_Float bz);
-
-E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
-    E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz,
-    E_Float &ix, E_Float &iy, E_Float &iz);
-
-E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
-    E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz);
-
-E_Int EdgeEdgeIntersect(E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by,
-    E_Float bz, E_Float px, E_Float py, E_Float pz, E_Float qx, E_Float qy, E_Float qz,
-    E_Float &t);
+E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
+    const E_Float fN[3], E_Float px, E_Float py, E_Float pz);

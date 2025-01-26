@@ -12,7 +12,7 @@ def fly(a, bb, posCam, posEye, dirCam, step):
     yc = 0.5*(bb[4]+bb[1])
     zc = 0.5*(bb[5]+bb[2])
     x = posCam[0]-xc; y = posCam[2]-yc; z = posCam[1]-zc
-    x = 10*x /(bb[3]-bb[0]); y = 10*y /(bb[4]-bb[1]); z = 30*z /(bb[5]-bb[2]); 
+    x = 10*x /(bb[3]-bb[0]); y = 10*y /(bb[4]-bb[1]); z = 30*z /(bb[5]-bb[2]);
     xp = x + step*sigma*(y - x)
     yp = y + step*(ro*x - y - x*z)
     zp = z + step*(x*y - beta*z)

@@ -20,7 +20,7 @@ t = C.newPyTree(['Base',2,c])
 test.testT(t, 2)
 
 # 2D structure + champ en noeuds + champ en centres
-a = G.cylinder((0,0,0), 1, 2, 360, 0, 1, (50,21,1)) 
+a = G.cylinder((0,0,0), 1, 2, 360, 0, 1, (50,21,1))
 a = C.addVars(a, 'var')
 a = C.addVars(a, 'centers:var2')
 b = D.line((0,0,0), (0,0.,1.))

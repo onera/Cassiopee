@@ -19,7 +19,7 @@ WIDGETS = {}; VARS = []
 # if zone is 1D STRUCT or BAR: remesh
 def _setDataInZone(z, bLocal, snear, ibctype, dfar, inv):
     # set IBM data in .Solver#define
-    
+
     if VARS[1].get()!='rectilinear':
         if Internal.getNodeFromName1(z, '.Solver#define'):
             Internal._rmNode(z,Internal.getNodeFromName1(z, '.Solver#define'))
@@ -60,7 +60,7 @@ def _setDataInZone(z, bLocal, snear, ibctype, dfar, inv):
         Internal.createUniqueChild(n, 'diameter', 'DataArray_t', value=float(VARS[12].get()))
         Internal.createUniqueChild(n, 'ct'      , 'DataArray_t', value=float(VARS[13].get()))
         Internal.createUniqueChild(n, 'k'       , 'DataArray_t', value=float(VARS[14].get()))
-        
+
     # remesh surface eventually
     dim = Internal.getZoneDim(z)
     remesh = False
@@ -71,7 +71,7 @@ def _setDataInZone(z, bLocal, snear, ibctype, dfar, inv):
 
 
 
-# Change the mode 
+# Change the mode
 def setMode(event=None):
     mode = VARS[1].get()
     if mode == 'wall': VARS[1].set('noslip')
@@ -95,7 +95,7 @@ def setMode(event=None):
     elif mode == 'rectilinear':
         imode = 0; WIDGETS['rec'].grid(row=10, column=0, columnspan=3, sticky=TK.EW)
     elif mode == 'wiremodel':
-        imode = 0; WIDGETS['wmm'].grid(row=10, column=0, columnspan=3, sticky=TK.EW)  
+        imode = 0; WIDGETS['wmm'].grid(row=10, column=0, columnspan=3, sticky=TK.EW)
     CPlot.setState(mode=imode)
     CTK.TXT.insert('START', 'Mode %s displayed.\n'%mode)
 
@@ -114,7 +114,7 @@ def symmetrize():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
-        
+
     bodySymName=None
     snear_sym = 0
 
@@ -123,10 +123,10 @@ def symmetrize():
     bodySymName = CTK.t[2][nob][0]
     z = CTK.t[2][nob][2][noz]
     snear_sym = Internal.getValue(Internal.getNodeFromName(z,'snear'))
-    
+
     if axis == 'Around XY-': dir_sym = 1
     elif axis == 'Around XZ-': dir_sym = 2
-    elif axis == 'Around YZ-': dir_sym = 3    
+    elif axis == 'Around YZ-': dir_sym = 3
 
     D_IBM._symetrizePb(CTK.t, bodySymName, snear_sym, dir_sym=dir_sym)
     CTK.TXT.insert('START', 'Symmetry plane has been created with snear=%f.\n'%snear_sym)
@@ -140,13 +140,13 @@ def symmetrize():
 #==============================================================================
 def setData():
     if CTK.t == []: return
-    
+
     snear = VARS[0].get()
     ibctype = VARS[1].get()
     dfar = VARS[2].get()
     if VARS[3].get() == 'out': inv = 0
     else: inv = 1
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -172,14 +172,14 @@ def setData():
 def ViewUndefinedIBC():
     CTK.TXT.insert('START', 'Display undefined IBC zones.\n')
     if CTK.t == []: return
-            
+
     nzs             = Internal.getNodesFromType2(CTK.t, 'Zone_t')
     VARSlocal       = 10e10
     ZoneLocalString = ''
     ZoneLocal       = []
     bases           = CTK.t[2][1:]
     for b in bases:
-        for zone in Internal.getZones(b):            
+        for zone in Internal.getZones(b):
             n = Internal.getNodeFromPath(zone, '.Solver#define/snear')
             if n is not None:
                 val = Internal.getValue(n)
@@ -193,29 +193,29 @@ def ViewUndefinedIBC():
     if VARSlocal < 0:
         #VARS[6].set(ZoneLocalString[:-1])
         TTK.setButtonRed(WIDGETS['ViewUndefinedIBC'])
-        
+
     if VARSlocal > 0:
         #VARS[6].set(ZoneLocalString[:])
         TTK.setButtonGreen(WIDGETS['ViewUndefinedIBC'])
-    
+
     CPlot.setActiveZones(ZoneLocal)
     WIDGETS['ViewUndefinedIBC'].update()
     CPlot.setState(ghostifyDeactivatedZones=1)
-                
+
 #==============================================================================
 # View all defined IBC
 #==============================================================================
 def ViewAllDefinedIBC(t):
     natives = set()
     zones = Internal.getZones(t)
-    for zone in zones:            
+    for zone in zones:
         n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
         if n is not None:
             natives.add(Internal.getValue(n))
     natives = list(natives)
     natives.sort(key=str.lower)
     return natives
-                
+
 #==============================================================================
 # Automatic update of all defined IBC
 #==============================================================================
@@ -226,7 +226,7 @@ def updateIBCNameList(event=None):
     lb = WIDGETS['IBCLB']
     lb.focus_set()
     varsbc = ['-All IBC-']+ViewAllDefinedIBC(CTK.t)
-    
+
     # Remplace tous les elements
     lb.delete(0, TK.END)
     for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): lb.insert(i, value)
@@ -238,7 +238,7 @@ def updateIBCNameList(event=None):
 def ViewIBC(event=None):
     if CTK.t == []: return
 
-    nz  = len(Internal.getZones(CTK.t))  
+    nz  = len(Internal.getZones(CTK.t))
     nzs = CPlot.getActiveZones()
     active = [(i,1) for i in range(nz)]
     CPlot.setActiveZones(active)
@@ -248,14 +248,14 @@ def ViewIBC(event=None):
     for s in selection:
         t = WIDGETS['IBCLB'].get(s)
         IBCTypes.append(t)
-        
+
     nzs = Internal.getNodesFromType2(CTK.t, 'Zone_t')
     ZoneLocal = []
     bases = CTK.t[2][1:]
     for b in bases:
-        for zone in Internal.getZones(b):            
+        for zone in Internal.getZones(b):
             n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
-            
+
             if n is not None:
                 val = Internal.getValue(n)
                 if val not in IBCTypes and '-All IBC-' not in IBCTypes:
@@ -323,7 +323,7 @@ def getData():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkIBC2  [ + ]  ', font=CTK.FRAMEFONT, 
+                           text='tkIBC2  [ + ]  ', font=CTK.FRAMEFONT,
                            takefocus=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
@@ -333,7 +333,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -380,7 +380,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='The generated grid spacing for selected curve.')
     B = TTK.Entry(Frame, textvariable=VARS[0], width=4, background="White")
     B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
-    
+
     # - dfar settings  -
     B = TTK.Label(Frame, text="dfar")
     B.grid(row=1, column=0, sticky=TK.EW)
@@ -429,8 +429,8 @@ def createApp(win):
     LB.bind('<Double-1>', ViewIBC)
     LB.bind('<Enter>', updateIBCNameList)
     for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): LB.insert(i, value)
-    SB.config(command = LB.yview)
-    LB.config(yscrollcommand = SB.set)
+    SB.config(command=LB.yview)
+    LB.config(yscrollcommand=SB.set)
     LB.grid(row=0, column=0, sticky=TK.NSEW)
     SB.grid(row=0, column=1, sticky=TK.NSEW)
     WIDGETS['IBCLB'] = LB
@@ -450,7 +450,7 @@ def createApp(win):
     slip.columnconfigure(1, weight=1)
     slip.grid(row=10, column=0, columnspan=2)
     WIDGETS['slip'] = slip
-    
+
     B = TTK.Button(slip, text="Set symmetry plane", command=symmetrize)
     BB = CTK.infoBulle(parent=B, text='Create a symmetry plane.')
     B.grid(row=10, column=0, sticky=TK.EW)
@@ -466,14 +466,14 @@ def createApp(win):
     wall.columnconfigure(3, weight=0)
     wall.grid(row=10, column=0, columnspan=4)
     WIDGETS['wall'] = wall
-    
+
     # - Extract fields on surface
     B = TTK.Label(wall, text="Extract")
     B.grid(row=10, column=0, sticky=TK.EW)
     B = TTK.Checkbutton(wall, text='Wall Fields', variable=VARS[4])
     B.grid(row=10, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract various fields on surface.')
-    
+
     # - Extract loads on components
     B = TTK.Checkbutton(wall, text='Loads', variable=VARS[5])
     B.grid(row=10, column=2, sticky=TK.EW)
@@ -493,7 +493,7 @@ def createApp(win):
     outpress.columnconfigure(2, weight=0)
     outpress.grid(row=10, column=0, columnspan=3)
     WIDGETS['outpress'] = outpress
-    
+
     B = TTK.Label(outpress, text="Static Pressure")
     B.grid(row=10, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Static Pressure at outlet')
@@ -511,7 +511,7 @@ def createApp(win):
     inj.columnconfigure(2, weight=0)
     inj.grid(row=10, column=0, columnspan=3)
     WIDGETS['inj'] = inj
-    
+
     B = TTK.Label(inj, text="Total Pressure")
     B.grid(row=10, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Total Pressure at injection inlet')
@@ -590,7 +590,7 @@ def createApp(win):
     B.grid(row=11, column=2, sticky=TK.EW)
 
     if 'tkViewMode' in CTK.PREFS: setMode()
-    
+
     ## - Zones that are missing IBC info  -
     #B = TTK.Label(Frame, text="No IBC (Zones)")
     #B.grid(row=8, column=0, sticky=TK.EW)
@@ -598,7 +598,7 @@ def createApp(win):
     #B = TTK.Entry(Frame, textvariable=VARS[6], width=4, background="White")
     #B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
 
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

@@ -33,7 +33,7 @@ def extractEdge(event=None):
     noz = CTK.Nz[nzs[0]]
     z = CTK.t[2][nob][2][noz]
     dimz = Internal.getZoneDim(z)
-    if dimz[0] == 'Unstructured': 
+    if dimz[0] == 'Unstructured':
         CTK.TXT.insert('START', 'Selected block must be structured.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
@@ -54,7 +54,7 @@ def extractEdge(event=None):
         erange = [1,ni,ind[3],ind[3],ind[4],ind[4]]
     else:
         CTK.TXT.insert('START', 'Not a valid edge.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return    
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     CTK.saveTree()
 
@@ -67,11 +67,11 @@ def extractEdge(event=None):
     b = Internal.createUniqueChild(CTK.t, 'EXTRACTED', 'CGNSBase_t')
     nob = C.getNobOfBase(b, CTK.t)
     CTK.add(CTK.t, nob, -1, zt)
-    
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def propagateEdge(event=None):
 
@@ -120,11 +120,11 @@ def propagateEdge(event=None):
 
     # Adapte les donneurs a la fin
     Mirabelle._adaptDonorRanges(CTK.t)
-    
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.display(CTK.t)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -146,21 +146,21 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkMirabelle')
     WIDGETS['frameMenu'] = FrameMenu
-    
+
     # - VARS -
     # -0- Zone filter regexp -
     #V = TK.StringVar(win); V.set(''); VARS.append(V)
-    
+
     # - Extract edge -
     B = TTK.Button(Frame, text="Extract edge", command=extractEdge)
     B.grid(row=0, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract mesh edge for remeshing.')
-    
+
     # - Propagate edge -
     B = TTK.Button(Frame, text="Propagate edge", command=propagateEdge)
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Propagate remeshed edge in structured mesh.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================

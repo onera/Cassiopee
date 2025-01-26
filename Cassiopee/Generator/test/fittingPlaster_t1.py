@@ -9,4 +9,3 @@ a = C.convertArray2Tetra(a)
 a = G.close(a)
 b = G.fittingPlaster(a, bumpFactor=0.5)
 test.testA([b])
-

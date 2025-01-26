@@ -11,7 +11,7 @@ C._fillEmptyBCWith(m, 'nref','BCFarfield')
 
 # Create receptor mesh
 a = D.sphere((0,0,0),0.1)
-# Structure 
+# Structure
 mc = C.node2Center(m)
 hookC = C.createGlobalHook([mc], 'nodes')
 hookN = C.createGlobalHook([m], 'nodes')

@@ -21,4 +21,4 @@ C.convertPyTree2File(slices, 'slice.cgns')
 
 # export for CnM2 maps
 exp = PR.exportAccumulatorMap(accu, vars=['CnM2x','CnM2y','CnM2z'])
-C.convertPyTree2File(exp, 'map.cgns') 
+C.convertPyTree2File(exp, 'map.cgns')

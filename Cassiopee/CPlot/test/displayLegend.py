@@ -10,4 +10,3 @@ a = C.initVars(a, 'F', F, ['x','y'])
 
 CPlot.display(a, mode=3, scalarField=0, dim=2,
               displayIsoLegend=1)
-

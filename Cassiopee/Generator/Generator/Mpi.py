@@ -42,7 +42,7 @@ def getAngleRegularityMap(t, addGC=False):
     t = C.TZGC1(t, 'centers', True, Generator.getAngleRegularityMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
-    
+
 def _getAngleRegularityMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles)."""
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
@@ -69,7 +69,7 @@ def getMeshFieldInfo(m, field, critValue, verbose):
         zname = z[0]
 
         size_loc  = numpy.size(f)
-        fcrit_loc = numpy.count_nonzero(f<critValue) if field == 'vol' else numpy.count_nonzero(f>critValue) 
+        fcrit_loc = numpy.count_nonzero(f<critValue) if field == 'vol' else numpy.count_nonzero(f>critValue)
         fmin_loc  = numpy.min(f)
         fmax_loc  = numpy.max(f)
         fsum_loc  = numpy.sum(f)

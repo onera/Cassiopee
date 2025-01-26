@@ -53,7 +53,7 @@ print(res)
 a = expr.ast("{norm} = {x}**2+{y}**2+{z}**2")
 coords = C.array("x,y,z,norm", 3, 1, 1)
 coords[1][:, :] = np.array([[1., 2., 3.], [2., 3., 4.], [-1., -3., -5.],
-                                                        [0., 0., 0.]])
+                            [0., 0., 0.]])
 a.run(coords)
 print(coords)
 

@@ -40,7 +40,7 @@ def revolve():
 
     teta = CTK.varsFromWidget(VARS[5].get(), type=1)
     if len(teta) != 1:
-        CTK.TXT.insert('START', 'Revolve angle is incorrect.\n') 
+        CTK.TXT.insert('START', 'Revolve angle is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     teta = teta[0]
 
@@ -64,12 +64,12 @@ def revolve():
     # - Extrait rmod si il y en a
     if len(curve) > 1: rmod = curve[1]
     else: rmod = None
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
@@ -79,7 +79,7 @@ def revolve():
         try:
             z = D.axisym(z, (xo,yo,zo), (ntx,nty,ntz), teta, Nteta, rmod)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception as e: 
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -91,7 +91,7 @@ def revolve():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 def setAxis():
     if CTK.t == []: return
@@ -109,7 +109,7 @@ def setAxis():
         z = CTK.t[2][nob][2][noz]
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
-    VARS[4].set(selected)    
+    VARS[4].set(selected)
 
 #==============================================================================
 def setCurve():
@@ -128,15 +128,15 @@ def setCurve():
         z = CTK.t[2][nob][2][noz]
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
-    VARS[3].set(selected)    
+    VARS[3].set(selected)
 
 #=============================================================================
 def lineDrive():
     extrudeWCurve(mode=0)
-    
+
 def orthoDrive():
     extrudeWCurve(mode=1)
-    
+
 #=============================================================================
 def extrudeWCurve(mode=0):
     if CTK.t == []: return
@@ -163,7 +163,7 @@ def extrudeWCurve(mode=0):
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     CTK.saveTree()
     fail = False; errors = []
     for nz in nzs:
@@ -174,7 +174,7 @@ def extrudeWCurve(mode=0):
             if mode == 0: z = D.lineDrive(z, curve)
             else: z = D.orthoDrive(z, curve)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception as e: 
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -216,7 +216,7 @@ def addLayers():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    CTK.setCursor(2, WIDGETS['addLayers'])    
+    CTK.setCursor(2, WIDGETS['addLayers'])
     CTK.saveTree()
     zlist = []
     for nz in nzs:
@@ -229,11 +229,11 @@ def addLayers():
     fail = False; errors = []
     try:
         zlist = G.addNormalLayers(zlist, d, niter=smooth)
-    except Exception as e: 
+    except Exception as e:
         fail = True; errors += [0,str(e)]
-        
+
     for z in zlist: z[0] = C.getZoneName(z[0]) # unique name
-    
+
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
     base = Internal.getNodeFromName1(CTK.t, 'MESHES')
 
@@ -249,7 +249,7 @@ def addLayers():
     CTK.TKTREE.updateApp()
     CPlot.render()
     CTK.setCursor(0, WIDGETS['addLayers'])
-    
+
 #==============================================================================
 def addkplanes():
     if CTK.t == []: return
@@ -275,7 +275,7 @@ def addkplanes():
         CTK.replace(CTK.t, nob, noz, z)
         #except Exception as e: fail = True
     if not fail: CTK.TXT.insert('START', 'K planes added.\n')
-    else: 
+    else:
         CTK.TXT.insert('START', 'add K planes failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -298,7 +298,7 @@ def createApp(win):
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -345,7 +345,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=5)
     B.grid(row=0, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of smoothing iterations.')
-    
+
     B = TTK.Button(Frame, text="Add layers", command=addLayers)
     WIDGETS['addLayers'] = B
     B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
@@ -363,11 +363,11 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White')
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Driving curve(s) for extrusion.')
-    
+
     B = TTK.Button(Frame, text="LineDrive", command=lineDrive)
     B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extrude following linearly curve(s).')
-    
+
     B = TTK.Button(Frame, text="OrthoDrive", command=orthoDrive)
     B.grid(row=3, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extrude following orthogonally curve(s).')
@@ -387,11 +387,11 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[6], background='White', width=5)
     B.grid(row=5, column=1,  columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of points in revolve.')
-    
+
     B = TTK.Button(Frame, text="Revolve", command=revolve)
     B.grid(row=5, column=2, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Revolve following axis.')
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -421,7 +421,7 @@ def saveApp():
     CTK.PREFS['tkExtrusionRevAngle'] = VARS[5].get()
     CTK.PREFS['tkExtrusionNpts'] = VARS[6].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('1.e-1')
@@ -439,7 +439,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

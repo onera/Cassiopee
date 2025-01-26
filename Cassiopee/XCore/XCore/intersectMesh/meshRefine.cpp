@@ -23,6 +23,7 @@
 
 #include "triangle.h"
 #include "io.h"
+#include "primitives.h"
 
 E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {
@@ -32,27 +33,271 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
     S.init_adaptation_data();
     M.init_adaptation_data();
 
+    E_Int S_np_before = S.np;
+
     do {
         iter++;
 
+        // Refine M wrt S
+
         S.make_point_faces();
         M.make_bbox();
-        M.hash_skin();
+        M.hash_skin(); // TODO(Imad): hash_patch!
     
         refM = M.refine(S);
         printf("Refined mf: %zu\n", refM);
 
-        if (refM > 0) {
+        // Refine S wrt M
+        /*if (iter == 1 || (iter > 1 && refM > 0)) {
             M.make_point_faces();
             S.make_bbox();
-            S.hash_skin();
+            S.hash_skin(); // TODO(Imad): hash_patch!
 
-            refS = S.refine(M);
+            refS = S.refine_slave(M);
             printf("Refined sf: %zu\n", refS);
-        }
+        }*/
+        
     } while (refS > 0);
 
+    S.make_point_faces();
+
+    // Project all the new points from S onto M faces
+    // TODO(Imad): shouldn't this step be done after conformizing?
+
+    for (E_Int spid = S_np_before; spid < S.np; spid++) {
+        const auto &pf = S.P2F[spid];
+        std::vector<E_Int> stids;
+        for (auto stid : pf) {
+            if (S.F[stid].size() == 3) stids.push_back(stid);
+        }
+
+        // Compute the normal at spid := sum of the normals of stids
+        E_Float N[3] = {0};
+        for (auto stid : stids) {
+            const auto &pn = S.F[stid];
+            E_Int a = pn[0], b = pn[1], c = pn[2];
+            E_Float v0[3] = {S.X[b]-S.X[a], S.Y[b]-S.Y[a], S.Z[b]-S.Z[a]};
+            E_Float v1[3] = {S.X[c]-S.X[a], S.Y[c]-S.Y[a], S.Z[c]-S.Z[a]};
+            E_Float fN[3];
+            K_MATH::cross(v0, v1, fN);
+            N[0] += fN[0];
+            N[1] += fN[1];
+            N[2] += fN[2];
+        }
+
+        E_Float NORM = K_MATH::norm(N, 3);
+        assert(Sign(NORM) != 0);
+        N[0] /= NORM;
+        N[1] /= NORM;
+        N[2] /= NORM;
+
+        TriangleIntersection TI;
+        E_Int hit = 0;
+
+        if (M.is_point_inside(S.X[spid], S.Y[spid], S.Z[spid])) {
+            hit = M.project_point(S.X[spid], S.Y[spid], S.Z[spid],
+                -N[0], -N[1], -N[2], TI, spid - S_np_before);
+        } else {
+            hit = M.project_point(S.X[spid], S.Y[spid], S.Z[spid],
+                N[0], N[1], N[2], TI, spid - S_np_before);
+        }
+
+        assert(hit);
+        assert(M.patch.find(TI.face) != M.patch.end());
+
+        printf("Spid: %f %f %f -> Proj: %f %f %f (t = %f)\n",
+            S.X[spid], S.Y[spid], S.Z[spid], TI.x, TI.y, TI.z, TI.t);
+        
+        // Replace the point by its projection
+        S.X[spid] = TI.x;
+        S.Y[spid] = TI.y;
+        S.Z[spid] = TI.z;
+    }
+
     return 0;
+}
+
+struct Fidn {
+    E_Int fid;
+    E_Float N[3];
+};
+
+size_t IMesh::refine_slave(const IMesh &master)
+{
+    const auto &mpatch = master.patch;
+    std::set<E_Int> mpids;
+    for (const auto mfid : mpatch) {
+        assert(master.face_is_active(mfid));
+        const auto &pn = master.F[mfid];
+        for (const auto p : pn) mpids.insert(p);
+    }
+
+    std::vector<Fidn> spatch;
+    spatch.reserve(patch.size());
+    for (const auto fid : patch) {
+        const auto &pn = F[fid];
+        assert(face_is_tri(fid));
+        assert(face_is_active(fid));
+        E_Int a = pn[0], b = pn[1], c = pn[2];
+        E_Float v0[3] = {X[b]-X[a], Y[b]-Y[a], Z[b]-Z[a]};
+        E_Float v1[3] = {X[c]-X[a], Y[c]-Y[a], Z[c]-Z[a]};
+        Fidn fidn;
+        fidn.fid = fid;
+        K_MATH::cross(v0, v1, fidn.N);
+        E_Float NORM = K_MATH::norm(fidn.N, 3);
+        assert(Sign(NORM) != 0);
+        fidn.N[0] /= NORM;
+        fidn.N[1] /= NORM;
+        fidn.N[2] /= NORM;
+        spatch.push_back(fidn);
+    }
+
+    const auto &mX = master.X;
+    const auto &mY = master.Y;
+    const auto &mZ = master.Z;
+
+    // Master points to Slave triangles
+    std::map<E_Int, std::vector<E_Int>> mpids_to_stids;
+
+    // TODO(Imad): how to accelerate this?
+    for (const auto &fidn : spatch) {
+        const E_Int fid = fidn.fid;
+        const E_Float *N = fidn.N;
+        const auto &pn = F[fid];
+        E_Int a = pn[0];
+        E_Int b = pn[1];
+        E_Int c = pn[2];
+
+        for (auto mpid : mpids) {
+            // Does the projection of mpid along N live in the triangle fid?
+
+            E_Float V[3] = {mX[mpid]-X[a], mY[mpid]-Y[a], mZ[mpid]-Z[a]};
+            E_Float dp = K_MATH::dot(V, N, 3);
+
+            E_Float Proj[3];
+            Proj[0] = mX[mpid] - dp * N[0];
+            Proj[1] = mY[mpid] - dp * N[1];
+            Proj[2] = mZ[mpid] - dp * N[2];
+
+            bool inside = Triangle::is_point_inside(Proj[0], Proj[1], Proj[2],
+                X[a], Y[a], Z[a],
+                X[b], Y[b], Z[b],
+                X[c], Y[c], Z[c]);
+            
+            if (inside) {
+                mpids_to_stids[mpid].push_back(fid);
+            }
+        }
+    }
+
+    // Invert the map: S triangles to all the M points (projection) within them
+    std::map<E_Int, std::vector<E_Int>> stids_to_mpids;
+
+    for (const auto &m2s : mpids_to_stids) {
+        E_Int mpid = m2s.first;
+        const auto &stids = m2s.second;
+        for (const auto tid : stids) {
+            stids_to_mpids[tid].push_back(mpid);
+        }
+    }
+
+    // Keep the S triangles containing three of more M points
+    std::map<E_Int, std::vector<E_Int>> filtered_stids_map;
+
+    for (const auto &s2m : stids_to_mpids) {
+        if (s2m.second.size() >= 3) {
+            filtered_stids_map.insert({s2m.first, s2m.second});
+        }
+    }
+
+    // Sensor
+    std::map<E_Int, std::vector<E_Int>> ref_stids_to_mtids;
+
+    for (const auto &s2m : filtered_stids_map) {
+        auto stid = s2m.first;
+        const auto &mpids = s2m.second;
+
+        // For every sface, how many points are contained within mface?
+        std::map<E_Int, size_t> mcontained;
+
+        for (auto mpid : mpids) {
+            // M tris sharing mpid
+            const auto &mtris = master.P2F[mpid];
+ 
+            for (auto mtri : mtris) {
+                assert(master.face_is_active(mtri));
+
+                // M tri should belong to patch
+                if (master.patch.find(mtri) == master.patch.end()) continue;
+
+                // S tri contains another point of M tri
+                mcontained[mtri]++;
+            }
+        }
+
+        for (const auto &mfdat : mcontained) {
+            E_Int mtid = mfdat.first;
+
+            // The number of points of mtid contained within stid...
+            size_t npts = mfdat.second;
+
+            // ... should be at most equal to the stride of mtid!
+            assert(npts <= master.F[mtid].size());
+
+            // Discard mtid if it is not completely enclosed by stid
+            if (npts < master.F[mtid].size()) continue;
+
+            // Discard sface if it is a duplicate of mface
+            if (faces_are_dups(stid, mtid, master)) continue;
+
+            // Add mtid to the set of faces enclosed by stid
+            ref_stids_to_mtids[stid].push_back(mtid);
+        }
+    }
+
+    //printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
+
+    E_Int iter = 0;
+    size_t ret = 0;
+
+    while (!ref_stids_to_mtids.empty()) {
+        iter++;
+
+        auto ref_data = smooth_ref_data(ref_stids_to_mtids);
+
+        auto ref_faces = prepare_for_refinement(ref_data);
+
+        ret += ref_faces.size();
+
+        refine_faces(ref_faces);
+
+        std::map<E_Int, std::vector<E_Int>> new_sensor;
+
+        for (const auto &fdata : ref_stids_to_mtids) {
+            E_Int parent = fdata.first;
+            const auto &mtids = fdata.second;
+
+            const auto &children = fchildren[parent];
+
+            for (E_Int child : children) {
+                for (E_Int mtid : mtids) {
+                    if (face_contains_sface(child, mtid, master)) {
+                        // TODO(Imad): I think we can safely discard this check
+                        assert(!faces_are_dups(child, mtid, master));
+                        new_sensor[child].push_back(mtid);
+                    }
+                }
+            }
+
+            // Update mpatch
+            patch.erase(parent);
+            for (E_Int child : children) patch.insert(child);
+        }
+
+        ref_stids_to_mtids = new_sensor;
+    }
+
+    return ret;
 }
 
 size_t IMesh::refine(const IMesh &S)
@@ -81,11 +326,9 @@ size_t IMesh::refine(const IMesh &S)
         E_Int voxel_z = floor((S.Z[spt] - zmin) / HZ);
         E_Int spt_bin = voxel_x + NX * voxel_y + NXY * voxel_z;
 
-        auto it = fmap.find(spt_bin);
+        const auto &pf = bin_faces[spt_bin];
 
-        if (it == fmap.end()) continue;
-
-        const auto &pf = it->second;
+        assert(pf.size() > 0);
 
         for (E_Int fid : pf) {
 

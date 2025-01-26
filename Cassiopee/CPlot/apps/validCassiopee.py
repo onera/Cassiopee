@@ -1,7 +1,9 @@
 # *Cassiopee* GUI for validation and tests
 import os, sys, re, glob, signal, platform
+import socket
+import json
 import numpy as np
-import subprocess 
+import subprocess
 import threading
 import time
 import KCore
@@ -10,12 +12,8 @@ import KCore.Dist as Dist
 # System
 mySystem = Dist.getSystem()[0]
 
-# Machine name
-import socket
-machine = socket.gethostname()
-
 # Support MPI?
-try: 
+try:
     import mpi4py
     isMpi = True
 except: isMpi = False
@@ -37,6 +35,10 @@ expTest4 = re.compile("_m[0-9]+") # distributed tests
 TESTS = []
 # Test filter: 0 (no filter), 1: sequential tests only, 2: distributed tests only
 TESTS_FILTER = 0
+# Test metadata: ref info (date, hashes), tag, duration
+TESTMETA = {}
+# Have test metadata been updated?
+TESTMETA_UPDATE = False
 
 # Name of the data folders
 DATA = None
@@ -46,8 +48,8 @@ CFDBASEPATH = os.path.join('Validation', 'Cases')
 MODULESDIR = {'LOCAL': {}, 'GLOBAL': {}}
 # Paths to the local and global ValidData folders
 VALIDDIR = {'LOCAL': None, 'GLOBAL': None}
-# Base used for comparisons. Default is the local base.
-BASE4COMPARE = 'LOCAL'
+# Base used for comparisons. Default is the global base.
+BASE4COMPARE = 'GLOBAL'
 
 # Si THREAD est None, les test unitaires ne tournent pas
 # Sinon, THREAD vaut le thread lance
@@ -67,8 +69,8 @@ WIDGETS = {}
 
 
 #==============================================================================
-# Classes used to by-pass tkinter in the absence of a display environment or 
-# for command-line execution 
+# Classes used to by-pass tkinter in the absence of a display environment or
+# for command-line execution
 #==============================================================================
 class NoDisplayListbox:
     def __init__(self, *args, **kwargs):
@@ -78,7 +80,7 @@ class NoDisplayListbox:
     def config(self, *args, **kwargs): pass
     def update(self, *args, **kwargs): pass
     def yview(self, *args, **kwargs): pass
-    
+
     def insert(self, pos, entry):
         if isinstance(pos, int):
             self._data.insert(pos, entry)
@@ -86,7 +88,7 @@ class NoDisplayListbox:
         else:
             self._data.append(entry)
             self._active.append(False)
-    
+
     def delete(self, pos, posEnd=None):
         if not self._data: return
         pos = int(pos)
@@ -106,7 +108,7 @@ class NoDisplayListbox:
         delIds = list(range(pos, posEnd))
         self._data = [self._data[i] for i in range(ndata) if i not in delIds]
         self._active = [self._active[i] for i in range(ndata) if i not in delIds]
-    
+
     def selection_set(self, pos, posEnd=None):
         pos = int(pos)
         ndata = len(self._data)
@@ -121,37 +123,37 @@ class NoDisplayListbox:
             # A range of new active entries
             posEnd = min(int(posEnd), ndata)
         for i in range(pos, posEnd): self._active[i] = True
-    
+
     def curselection(self):
         return [i for i, state in enumerate(self._active) if state]
     def get(self, pos): return self._data[pos]
-    
+
 class NoDisplayIntVar:
     def __init__(self, value, *args, **kwargs): self._value = int(value)
     def set(self, value): self._value = int(value)
     def get(self): return self._value
-        
+
 class NoDisplayStringVar:
     def __init__(self, *args, **kwargs): self._filters = ""
     def set(self, filters): self._filters = str(filters)
     def get(self): return self._filters
-        
+
 class NoDisplayLabel:
     def __init__(self, *args, **kwargs): pass
     def grid(self, *args, **kwargs): pass
     def config(self, *args, **kwargs): pass
     def update(self, *args, **kwargs): pass
-    
+
 class NoDisplayButton:
     def __init__(self, *args, **kwargs): pass
     def configure(self, *args, **kwargs): pass
-    
+
 class NoDisplayEntry:
     def __init__(self, *args, **kwargs): pass
     def grid(self, *args, **kwargs): pass
     def bind(self, *args, **kwargs): pass
     def update(self, *args, **kwargs): pass
-    
+
 class NoDisplayScrollbar:
     def __init__(self, *args, **kwargs): pass
     def grid(self, *args, **kwargs): pass
@@ -163,36 +165,36 @@ class NoDisplayScrollbar:
 # Get installation paths of Cassiopee, Fast and all PModules
 #==============================================================================
 def getInstallPaths():
-  try:
-      # Check installPath
-      import KCore.installPath
-      cassiopeeIncDir = KCore.installPath.includePath
-      cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
-  except ImportError:
-      raise SystemError("Error: KCore module is required to use this script.")
-  try:
-      import FastC.installPath
-      fastIncDir = FastC.installPath.includePath
-      fastIncDir = os.path.dirname(fastIncDir)
-  except: 
-      fastIncDir = None
-  pmodulesDir = os.path.join(os.path.dirname(os.path.dirname(cassiopeeIncDir)),
-                             'PModules')
-  if not os.path.isdir(pmodulesDir): pmodulesDir = None
-  
-  return cassiopeeIncDir, fastIncDir, pmodulesDir
-                        
+    try:
+        # Check installPath
+        import KCore.installPath
+        cassiopeeIncDir = KCore.installPath.includePath
+        cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
+    except ImportError:
+        raise SystemError("Error: KCore module is required to use this script.")
+    try:
+        import FastC.installPath
+        fastIncDir = FastC.installPath.includePath
+        fastIncDir = os.path.dirname(fastIncDir)
+    except:
+        fastIncDir = None
+    pmodulesDir = os.path.join(os.path.dirname(os.path.dirname(cassiopeeIncDir)),
+                               'PModules')
+    if not os.path.isdir(pmodulesDir): pmodulesDir = None
+
+    return cassiopeeIncDir, fastIncDir, pmodulesDir
+
 def checkEnvironment():
-  # Check environment
-  cassiopee = os.getenv('CASSIOPEE')
-  if cassiopee is None or cassiopee == '':
-    print('Error: CASSIOPEE must be present in your environment.')
-    sys.exit()
-  
-  # Cannot work because of symbolic links to prods on juno
-  #if os.path.join(cassiopee, "Cassiopee") != getInstallPaths()[0]:
-  #    print("Error: Path mismatch between $CASSIOPEE and KCore/installPath")
-  #    sys.exit()
+    # Check environment
+    cassiopee = os.getenv('CASSIOPEE')
+    if cassiopee is None or cassiopee == '':
+        print('Error: CASSIOPEE must be present in your environment.')
+        sys.exit()
+
+    # Cannot work because of symbolic links to prods on juno
+    #if os.path.join(cassiopee, "Cassiopee") != getInstallPaths()[0]:
+    #    print("Error: Path mismatch between $CASSIOPEE and KCore/installPath")
+    #    sys.exit()
 
 #==============================================================================
 # Simulate check_output since it doesn't exist for early version of python
@@ -206,7 +208,7 @@ def check_output(cmd, shell, stderr):
     mode = 4
 
     #if (version0 == 2 and version1 >= 7) or (version0 == 3 and version1 >= 2) or version0 > 3:
-    
+
     if mode == 0: # avec check_output
         out = subprocess.check_output(cmd, shell=shell, stderr=stderr)
         return out
@@ -217,7 +219,7 @@ def check_output(cmd, shell, stderr):
     elif mode == 2: # avec Popen + python 2.7
         import shlex
         cmd = shlex.split(cmd)
-        
+
         wdir = '.'
         # modifie cd en working dir
         if cmd[0] == 'cd': wdir = cmd[1]; cmd = cmd[3:]
@@ -242,7 +244,7 @@ def check_output(cmd, shell, stderr):
             ti += 's'
             out += ti
         return out
-        
+
     elif mode == 3: # avec Popen + python 3
         cmd = cmd.split(' ')
         wdir = '.'
@@ -280,12 +282,12 @@ def check_output(cmd, shell, stderr):
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir,
                                    shell=shell, preexec_fn=ossid)
-        
+
         # max accepted time is between 2 to 6 minutes
         nthreads = float(KCore.kcore.getOmpMaxThreads())
         timeout = (100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
         stdout, stderr = PROCESS.communicate(None, timeout=timeout)
-        
+
         if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
         return stdout+stderr
@@ -318,38 +320,17 @@ def ljust(text, size):
 #==============================================================================
 def buildString(module, test, CPUtime='...', coverage='...%', status='...',
                 tag=' '):
-    modulesDir = MODULESDIR[BASE4COMPARE][module]
-    if module == 'CFDBase':
-        path = os.path.join(modulesDir, CFDBASEPATH)
-        fileTime = os.path.join(path, test, DATA, test+'.time')
-        fileStar = os.path.join(path, test, DATA, test+'.star')
-    else:
-        testr = os.path.splitext(test)
-        fileTime = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.time')
-        fileStar = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.star')
-
-    if os.access(fileTime, os.F_OK):
-        with open(fileTime, 'r') as f:
-            fileData = f.read()
-        fileData = fileData.split('\n')
-        if len(fileData) > 0: refDate = fileData[0]
-        else: refDate = '...'
-        if len(fileData) > 1: refCPUtime = fileData[1]
-        else: refCPUtime = '...'
-        if len(fileData) > 3 and fileData[2] != '': refCoverage = fileData[2]
-        else: refCoverage = '...%'
-    else:
-        refDate = '...'
-        refCPUtime = '...'
-        refCoverage = '...%'
-
-    if os.access(fileStar, os.F_OK):
-        with open(fileStar, 'r') as f:
-            fileData = f.read()
-        fileData = fileData.split('\n')
-        if len(fileData) > 0: refTag = fileData[0]
-        else: refTag = ' '
-    else: refTag = ' '
+    global TESTMETA, TESTMETA_UPDATE
+    testName = module+'/'+test
+    refDate = '...'
+    if testName not in TESTMETA:
+        TESTMETA_UPDATE = True
+        TESTMETA[testName] = newMetadata()
+    elif TESTMETA[testName].get('ref', []):
+        refDate = TESTMETA[module+'/'+test]['ref'][0].get('date', '...')
+    refCoverage = TESTMETA[module+'/'+test].get('coverage', '...%')
+    refCPUtime = TESTMETA[module+'/'+test].get('time', '...')
+    refTag = TESTMETA[module+'/'+test].get('tag', ' ')
 
     execTime = '../../.. ..h..'
     if status != '...': # Not First call
@@ -381,49 +362,52 @@ def setPaths():
 
             try: mods = os.listdir(path)
             except: mods = []
-            for i in mods:
-                if i not in notTested and i not in MODULESDIR[loc]:
-                    if loc == 'GLOBAL' and i not in MODULESDIR['LOCAL']:
+            for mod in mods:
+                if mod not in notTested and mod not in MODULESDIR[loc]:
+                    if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
                         # Skip modules which aren't found locally - would hang
                         continue
-                    a = os.access(os.path.join(path, i, 'test'), os.F_OK)
-                    if a: MODULESDIR[loc][i] = path
-        
+                    pathMod = os.path.join(path, mod)
+                    a = os.access(os.path.join(pathMod, 'test'), os.F_OK) # PModules svn
+                    if a: MODULESDIR[loc][mod] = path
+                    else:
+                        a = os.access(os.path.join(pathMod, mod, 'test'), os.F_OK) # PModules git
+                        if a: MODULESDIR[loc][mod] = pathMod
+
         print('Info: getting {} module names in: {}.'.format(
             loc.lower(), cassiopeeIncDir))
         try: mods = os.listdir(cassiopeeIncDir)
         except: mods = []
-        for i in mods:
-            if i not in MODULESDIR[loc]:
-                a = os.access(os.path.join(cassiopeeIncDir, i, 'test'), os.F_OK)
-                if a: 
-                    MODULESDIR[loc][i] = cassiopeeIncDir
-        
+        for mod in mods:
+            if mod not in MODULESDIR[loc]:
+                a = os.access(os.path.join(cassiopeeIncDir, mod, 'test'), os.F_OK)
+                if a: MODULESDIR[loc][mod] = cassiopeeIncDir
+
         # Validation CFD
         MODULESDIR[loc]['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
-    
+
     global VALIDDIR
     # Module paths when the local base is used
     cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
     _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='LOCAL')
-    
+
     # Local valid paths
     VALIDDIR['LOCAL'] = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee',
                                      'Valid{}'.format(DATA))
     if not os.access(VALIDDIR['LOCAL'], os.W_OK):
         VALIDDIR['LOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
         if not os.path.isdir(VALIDDIR['LOCAL']): os.mkdir(VALIDDIR['LOCAL'])
-    
+
     # Module paths when the global base is used
     parentDirname = os.path.join('/stck', 'cassiope', 'git')
-    if os.access(parentDirname, os.R_OK):
+    if getDBInfo():  # check if a global base exists
         cassiopeeIncDir = os.path.join(parentDirname, 'Cassiopee', 'Cassiopee')
         fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
         if not os.path.isdir(fastIncDir): fastIncDir = None
         pmodulesIncDir = os.path.join(parentDirname, 'PModules')
         if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
         _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='GLOBAL')
-    
+
         # Global valid paths
         VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
                                           'Cassiopee', 'Valid{}'.format(DATA))
@@ -441,10 +425,8 @@ def getModules():
 # si module == 'CFDBase', retourne la liste des cas de validation CFD
 #==============================================================================
 def getTests(module):
-    a = []
-    if module == 'CFDBase': a += getCFDBaseTests()
-    else: a += getUnitaryTests(module)
-    return a
+    if module == 'CFDBase': return getCFDBaseTests()
+    return getUnitaryTests(module)
 
 #==============================================================================
 # Retourne la liste des tests unitaires pour un module donne
@@ -501,7 +483,7 @@ def writeTime(fileTime, CPUtime, coverage):
     except: pass
 
 #==============================================================================
-# Ecrit un fichier contenant date, machine, nbre de threads, git info 
+# Ecrit un fichier contenant date, machine, nbre de threads, git info
 # et logTxt
 #==============================================================================
 def writeFinal(filename, gitInfo="", logTxt=None, append=False):
@@ -519,7 +501,7 @@ def writeFinal(filename, gitInfo="", logTxt=None, append=False):
         if logTxt is not None: f.write(logTxt+'\n')
 
 #==============================================================================
-# Read and update star dans un fichier star
+# Read un fichier star
 #==============================================================================
 def readStar(fileStar):
     star = ' '
@@ -528,19 +510,13 @@ def readStar(fileStar):
             star = f.readline().rstrip('\n')
     except: pass
     return star
-    
-def writeStar(fileStar, star):
-    try:
-        with open(fileStar, 'w') as f:
-            f.write(star+'\n')
-    except: pass
 
 #==============================================================================
 # Lance un seul test unitaire ou un cas de la base de validation
 #==============================================================================
-def runSingleTest(no, module, test):
-    if module == 'CFDBase': return runSingleCFDTest(no, module, test)
-    else: return runSingleUnitaryTest(no, module, test)
+def runSingleTest(no, module, test, update=False):
+    if module == 'CFDBase': return runSingleCFDTest(no, module, test, update)
+    return runSingleUnitaryTest(no, module, test, update)
 
 #==============================================================================
 # extrait le temps CPU d'un chaine output (utile sur windows)
@@ -602,7 +578,7 @@ def extractCPUTimeUnix(output):
             tf += dt[i]*float(output[i])
         hf = tf//3600
         tf = tf%3600
-        output = [int(hf), int(tf//60), float(tf%60)]    
+        output = [int(hf), int(tf//60), float(tf%60)]
         if hf > 0.: CPUtime = '{:d}h{:d}m{:.2f}'.format(*output)
         elif output[1] > 0.: CPUtime = '{:d}m{:.2f}'.format(*output[1:])
         else: CPUtime = '0m{:.2f}'.format(output[-1])
@@ -613,7 +589,7 @@ def extractCPUTimeUnix(output):
 #==============================================================================
 # Lance un seul test unitaire de module
 #==============================================================================
-def runSingleUnitaryTest(no, module, test):
+def runSingleUnitaryTest(no, module, test, update=False):
     global TESTS
     testr = os.path.splitext(test)
     modulesDir = MODULESDIR[BASE4COMPARE][module]
@@ -649,13 +625,13 @@ def runSingleUnitaryTest(no, module, test):
             if sys.version_info[0] == 3: output1 = output1.decode()
         output = check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         if sys.version_info[0] == 3: output = output.decode()
-        
+
         if mySystem == 'mingw' or mySystem == 'windows':
             output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
             if sys.version_info[0] == 3: output2 = output2.decode()
-        
+
         print(output)
-        
+
         # Recupere success/failed
         success = 0
         if regLeakError.search(output) is not None: success = 2 # always check first
@@ -699,13 +675,12 @@ def runSingleUnitaryTest(no, module, test):
     fileTime = '%s/%s/%s/%s/%s.time'%(MODULESDIR['LOCAL'][module], module, 'test', DATA, testr[0])
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
-        
+
     # Recupere le tag local
-    pathStar = os.path.join(MODULESDIR['LOCAL'][module], module, 'test')
-    fileStar = os.path.join(pathStar, DATA, testr[0]+'.star')
-    tag = ' '
-    if os.access(fileStar, os.R_OK):
-        tag = readStar(fileStar)
+    tag = TESTMETA[module+'/'+test]['tag']
+
+    if update:  # Update test metadata
+        updateTestMetadata(module, test, CPUtime)
 
     # update status
     if success == 0: status = 'OK'
@@ -729,7 +704,7 @@ def runSingleUnitaryTest(no, module, test):
 # module = 'CFDBase'
 # test = nom du repertoire du cas CFD
 #==============================================================================
-def runSingleCFDTest(no, module, test):
+def runSingleCFDTest(no, module, test, update=False):
     global TESTS
     print('Info: Running CFD test %s.'%test)
     path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH, test)
@@ -763,7 +738,7 @@ def runSingleCFDTest(no, module, test):
         if mySystem == 'mingw' or mySystem == 'windows':
             output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
             if sys.version_info[0] == 3: output2 = output2.decode()
-        
+
         print(output)
 
         # Recupere success/failed
@@ -802,13 +777,12 @@ def runSingleCFDTest(no, module, test):
     fileTime = '%s/%s/%s.time'%(path, DATA, test)
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
-        
+
     # Recupere le tag local
-    pathStar = os.path.join(MODULESDIR[BASE4COMPARE][module], module, 'test')
-    fileStar = os.path.join(pathStar, DATA, test+'.star')
-    tag = ' '
-    if os.access(fileStar, os.R_OK):
-        tag = readStar(fileStar)
+    tag = TESTMETA[module+'/'+test]['tag']
+
+    if update:  # Update test metadata
+        updateTestMetadata(module, test, CPUtime)
 
     # update status
     if success == 0: status = 'OK'
@@ -844,14 +818,14 @@ def getTestsTime():
 # Run selected tests
 # Update TESTS, update listbox, update progression
 #==============================================================================
-def runTests():
+def runTests(update=False):
     global STOP, THREAD
     selection = Listbox.curselection()
     displayStatus(1)
     current = 0
     (total, remaining) = getTestsTime()
     elapsed = 0.
-    
+
     for s in selection:
         no = int(s)
         t = Listbox.get(s)
@@ -860,55 +834,138 @@ def runTests():
         test = splits[1]
         module = module.strip()
         test = test.strip()
+        if update:  # Delete reference
+            modulesDir = MODULESDIR[BASE4COMPARE][module]
+            if module == 'CFDBase':
+                pathl = os.path.join(modulesDir, CFDBASEPATH, test)
+                testref = 'post.ref*'
+            else:
+                pathl = os.path.join(modulesDir, module, 'test')
+                testref = os.path.splitext(test)[0] + '.ref*'
+            rmFile(pathl, testref)
         current += 1; displayProgress(current, total, remaining, elapsed)
         remaining -= string2Time(splits[3])
-        CPUtime = runSingleTest(no, module, test)
+        CPUtime = runSingleTest(no, module, test, update)
         elapsed += CPUtime # real elapsed time
         if STOP == 1: STOP = 0; displayStatus(0); return
     displayStatus(0)
     THREAD=None
     writeSessionLog()
-    
-def runTestsInThread():
+
+def runTestsInThread(update=False):
     global THREAD, STOP
     if THREAD is not None: return
     STOP = 0
-    THREAD = threading.Thread(target=runTests)
+    THREAD = threading.Thread(target=runTests, args=(update,))
     THREAD.start()
 
 #==============================================================================
-# Update the data base for selected tests
+# Load, fill, update, and write test metadata
 #==============================================================================
-def updateTests():
-    # Supprime les references
-    selection = Listbox.curselection()
-    for s in selection:
-        t = Listbox.get(s)
-        splits = t.split(separator)
-        module = splits[0]
-        test = splits[1]
-        module = module.strip()
-        test = test.strip()
-        modulesDir = MODULESDIR[BASE4COMPARE][module]
-        if module == 'CFDBase':
-            pathl = os.path.join(modulesDir, CFDBASEPATH, test)
-            test2 = test+'.time'
-            test = 'post'+'.ref*'
-        else:
-            d = os.path.splitext(test)
-            test = d[0]+'.ref*'
-            test2 = d[0]+'.time'
-            pathl = os.path.join(modulesDir, module, 'test')
-        rmFile(pathl, test)
-        rmFile(pathl, test2)
-    # Run les tests
-    runTests()
+def loadTestMetadata(loc=None):
+    global TESTMETA
+    if loc is None: loc = BASE4COMPARE
+    metaFilename = os.path.join(VALIDDIR[loc], "testMetadata.json")
+    if os.access(metaFilename, os.R_OK):
+        with open(metaFilename, 'r') as f: TESTMETA = json.load(f)
+        if loc == 'GLOBAL':  # overwrite global tags with local tags
+            metaFilename = os.path.join(VALIDDIR['LOCAL'], "testMetadata.json")
+            if os.access(metaFilename, os.R_OK):
+                with open(metaFilename, 'r') as f: tmpMeta = json.load(f)
+                for testName in TESTMETA:
+                    if testName in tmpMeta:
+                        TESTMETA[testName]['tag'] = tmpMeta[testName].get('tag', ' ')
+    else: fillTestMetadata()
 
-def updateTestsInThread():
-    global THREAD
-    if THREAD is not None: return
-    THREAD = threading.Thread(target=updateTests)
-    THREAD.start()
+def newMetadata(coverage='...%', tag=' ', time='...'):
+    return {'coverage': coverage, 'tag': tag, 'ref': [], 'time': time}
+
+def newRefMetadata(date='...', hashCassiopee='Unknown', hashFast='Unknown'):
+    return {'date': date, 'hashCassiopee': hashCassiopee, 'hashFast': hashFast}
+
+def fillTestMetadata():
+    global TESTMETA, TESTMETA_UPDATE
+    TESTMETA = {}
+    TESTMETA_UPDATE = True
+    # Loop over all modules
+    for module in getModules():
+        tests = getTests(module)
+        # Loop over all tests of that module
+        for test in tests:
+            # Get local tag and reference time
+            modulesDirCmp = MODULESDIR[BASE4COMPARE][module]
+            modulesDirLoc = MODULESDIR['LOCAL'][module]
+            if module == 'CFDBase':
+                fileTime = os.path.join(modulesDirCmp, CFDBASEPATH, test, DATA, test+'.time')
+                fileStar = os.path.join(modulesDirLoc, CFDBASEPATH, test, DATA, test+'.star')
+            else:
+                testr = os.path.splitext(test)
+                fileTime = os.path.join(modulesDirCmp, module, 'test', DATA, testr[0]+'.time')
+                fileStar = os.path.join(modulesDirLoc, module, 'test', DATA, testr[0]+'.star')
+
+            if os.access(fileTime, os.R_OK):
+                with open(fileTime, 'r') as f: fileData = f.read().split('\n')
+                if len(fileData) > 0: refDate = fileData[0]
+                else: refDate = '...'
+                if len(fileData) > 1: refCPUtime = fileData[1]
+                else: refCPUtime = '...'
+                if len(fileData) > 3 and fileData[2] != '': refCoverage = fileData[2]
+                else: refCoverage = '...%'
+            else:
+                refDate = '...'
+                refCPUtime = '...'
+                refCoverage = '...%'
+            if os.access(fileStar, os.R_OK): refTag = readStar(fileStar)
+            else: refTag = ' '
+
+            testName = module+'/'+test
+            TESTMETA[testName] = newMetadata(coverage=refCoverage, tag=refTag,
+                                             time=refCPUtime)
+            if refDate != '...':
+                TESTMETA[testName]['ref'].append(newRefMetadata(date=refDate))
+
+def updateTestMetadata(module, test, CPUtime='...'):
+    global TESTMETA, TESTMETA_UPDATE
+    TESTMETA_UPDATE = True
+    testName = module+'/'+test
+    cassiopeeIncDir, fastIncDir = getInstallPaths()[:2]
+    if fastIncDir is not None: hashFast = Dist.getGitHash(fastIncDir)[:7]
+    else: hashFast = None
+    refEntry = newRefMetadata(
+        date=time.strftime('%d/%m/%y %Hh%M', time.localtime()),
+        hashCassiopee=Dist.getGitHash(cassiopeeIncDir)[:7],
+        hashFast=hashFast
+    )
+    if not isinstance(CPUtime, str):
+        mins = int(CPUtime//60)
+        secs = CPUtime%60
+        fullsec = int(secs)
+        csecs = int((secs - fullsec)*100)
+        CPUtime = "{}m{}.{:02d}s".format(mins, fullsec, csecs)
+
+    if testName in TESTMETA:
+        TESTMETA[testName]['time'] = CPUtime
+        if 'ref' in TESTMETA[testName]:
+            TESTMETA[testName]['ref'].insert(0, refEntry)
+            TESTMETA[testName]['ref'] = TESTMETA[testName]['ref'][:5]
+        else: TESTMETA[testName]['ref'] = [refEntry]
+    else:
+        TESTMETA[testName] = newMetadata(time=CPUtime)
+        TESTMETA[testName]['ref'] = [refEntry]
+
+def writeTestMetadata():
+    if TESTMETA_UPDATE:
+        if BASE4COMPARE == 'GLOBAL':  # update tags in local test metadata only
+            from copy import deepcopy
+            tmpMeta = deepcopy(TESTMETA)
+            loadTestMetadata(loc='LOCAL')  # reload original local metadata
+            for testName in TESTMETA:
+                if testName in tmpMeta:
+                    TESTMETA[testName]['tag'] = tmpMeta[testName].get('tag', ' ')
+
+        metaFilename = os.path.join(VALIDDIR['LOCAL'], "testMetadata.json")
+        with open(metaFilename, 'w') as f:
+            json.dump(TESTMETA, f, indent=4, sort_keys=True)
 
 #==============================================================================
 # Supprime un fichier
@@ -947,16 +1004,16 @@ def buildTestList(loadSession=False, modules=[]):
             sessionLog = [line.rstrip().split(':') for line in g.readlines()]
         # Remove header from logfile
         sessionLog = [testLog for testLog in sessionLog
-            if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+                      if (isinstance(testLog, list) and len(testLog) == ncolumns)]
         if not sessionLog:
             ncolumns = 7
             sessionLog = [testLog for testLog in sessionLog
-                if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+                          if (isinstance(testLog, list) and len(testLog) == ncolumns)]
         # Create array and remove leading and trailing white spaces
         arr = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
                        dtype=object)
         arr = arr.reshape(-1, ncolumns)
-        
+
         # Read sessionLog and combine with lastSession. Priority given to
         # data from current session
         ncolumns = 8
@@ -965,18 +1022,18 @@ def buildTestList(loadSession=False, modules=[]):
             with open(logname, "r") as g:
                 sessionLog = [line.rstrip().split(':') for line in g.readlines()]
             sessionLog = [testLog for testLog in sessionLog
-                if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+                          if (isinstance(testLog, list) and len(testLog) == ncolumns)]
             if not sessionLog:
                 ncolumns = 7
                 sessionLog = [testLog for testLog in sessionLog
-                    if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+                              if (isinstance(testLog, list) and len(testLog) == ncolumns)]
             arr2 = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
                             dtype=object)
             arr2 = arr2.reshape(-1, ncolumns)
-            
+
             testDict = {}
             for t in arr2: testDict[tuple(t[:2])] = t[2:]
-            
+
             for t in arr:
                 key = tuple(t[:2])
                 if (key not in testDict) or ('...' in testDict[key]):
@@ -985,7 +1042,7 @@ def buildTestList(loadSession=False, modules=[]):
     else:
         # Build an empty array
         arr = np.array([], dtype=object)
-        
+
     for m in modules:
         tests = getTests(m)
         for t in tests:
@@ -1024,7 +1081,7 @@ def filterTestList(event=None):
             if not any(str1 != str2 and str1 in str2 for str2 in filters):
                 outFilters.add(str1)
         return outFilters
-        
+
     def _substituteCustomFilters(filters):
         """Substitute custom keyworded filters comprised between angle brackets
         by their regular expression"""
@@ -1051,14 +1108,14 @@ def filterTestList(event=None):
                     elif tmpFiltr == 'UNTAG': outFilters.add(r'@^(?![\*,r,g,b])')
             else: outFilters.add(filtr)
         return outFilters
-        
+
     filters = Filter.get()
     filters = _rmSubstrings(filters.split(' '))
     filters = _substituteCustomFilters(filters)
     if filters and all(filtr[0] == '&' for filtr in filters):
         filtr0 = filters.pop()
         if len(filtr0) > 1: filters.add(filtr0[1:])
-    
+
     # Apply filters with an OR gate and append strings to set
     filteredTests = set()
     for filtr in filters:
@@ -1074,13 +1131,13 @@ def filterTestList(event=None):
             strg = s.split(separator)[pos].strip()
             if endidx != 0: strg = strg[:endidx]
             try:
-              if filtr[shift] == '!':
-                  if re.search(filtr[1+shift:], strg) is None:
-                      filteredTests.add(s)
-              elif re.search(filtr[shift:], strg) is not None:
-                  filteredTests.add(s)
+                if filtr[shift] == '!':
+                    if re.search(filtr[1+shift:], strg) is None:
+                        filteredTests.add(s)
+                elif re.search(filtr[shift:], strg) is not None:
+                    filteredTests.add(s)
             except re.error: pass
-    
+
     # Apply filters with an AND gate to remove strings from set
     insertedTests = filteredTests.copy()
     for filtr in filters:
@@ -1096,13 +1153,13 @@ def filterTestList(event=None):
                 if endidx != 0: strg = strg[:endidx]
                 if len(filtr) < 3: continue
                 try:
-                  if filtr[1+shift] == '!':
-                      if len(filtr) > 3 and re.search(filtr[2+shift:], strg) is not None:
-                          insertedTests.discard(s)
-                  elif re.search(filtr[1+shift:], strg) is None:
-                      insertedTests.discard(s)
+                    if filtr[1+shift] == '!':
+                        if len(filtr) > 3 and re.search(filtr[2+shift:], strg) is not None:
+                            insertedTests.discard(s)
+                    elif re.search(filtr[1+shift:], strg) is None:
+                        insertedTests.discard(s)
                 except re.error: pass
-        
+
     Listbox.delete(0, 'end')
     if filters:
         for s in sorted(insertedTests): Listbox.insert('end', s)
@@ -1225,7 +1282,7 @@ def showPartialCovered():
     Listbox.delete(0, 'end')
     for s in TESTS:
         if (re.search(filter1, s) is None and re.search(filter2, s) is None
-            and re.search(filter3, s) is None):
+                and re.search(filter3, s) is None):
             Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
@@ -1330,7 +1387,7 @@ def stopTests():
     global STOP, THREAD, PROCESS
     STOP = 1
 
-    if PROCESS is not None: 
+    if PROCESS is not None:
         if mySystem == 'mingw' or mySystem == 'windows':
             subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
         else: # unix
@@ -1339,7 +1396,7 @@ def stopTests():
             os.kill(PROCESS.pid, signal.SIGTERM)
             os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
             os.kill(PROCESS.pid, signal.SIGKILL)
-            
+
         PROCESS = None
         displayStatus(0)
 
@@ -1370,7 +1427,7 @@ def displayProgress(current, total, remaining, elapsed):
     Progress.set("%3d/%3d [%s/%s]"%
                  (current,total,time2String(remaining),time2String(elapsed)))
     ProgressLabel.update()
-        
+
 #==============================================================================
 # Modifie le nbre de threads utilises pour la valid
 #==============================================================================
@@ -1396,7 +1453,7 @@ def getThreads():
 #==============================================================================
 def export2Text():
     try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog 
+    except: import tkinter.filedialog as tkFileDialog
     ret = tkFileDialog.asksaveasfilename()
     if ret == '' or ret is None or ret == (): # user cancel
         return
@@ -1410,7 +1467,7 @@ def createEmptySessionLog():
     # Create an empty session log
     with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f:
         f.write("")
-    
+
 def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
@@ -1418,7 +1475,7 @@ def writeSessionLog():
     gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
     gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
         gitOrigin, gitBranch, gitHash)
-    
+
     messageText = "Base from {}\n{}\n".format(cassiopeeIncDir, gitInfo)
     for t in TESTS: messageText += t+'\n'
 
@@ -1428,8 +1485,8 @@ def writeSessionLog():
     writeFinal(os.path.join(VALIDDIR['LOCAL'], 'session.log'), logTxt=messageText)
 
 #==============================================================================
-# Notify "Commit ready" 
-#============================================================================== 
+# Notify "Commit ready"
+#==============================================================================
 def notifyValidOK():
     cassiopeeIncDir = getInstallPaths()[0]
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
@@ -1440,7 +1497,7 @@ def notifyValidOK():
 
     messageText = "Base from {}\n{}\n".format(cassiopeeIncDir, gitInfo)
     for t in TESTS: messageText += t+'\n'
-    
+
     try:
         from KCore.notify import notify
         notify(recipients=['christophe.benoit@onera.fr'],
@@ -1449,7 +1506,7 @@ def notifyValidOK():
     except ImportError:
         print("Error: KCore is required to import notify.")
         sys.exit()
-    
+
 #==============================================================================
 def Quit(event=None):
     import os
@@ -1462,6 +1519,8 @@ def Quit(event=None):
         dst = os.path.join(VALIDDIR['LOCAL'], "session-{}.log".format(now))
         print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
+    # Write test metadata
+    writeTestMetadata()
     os._exit(0)
 
 #==============================================================================
@@ -1471,7 +1530,8 @@ def Quit(event=None):
 # est globale
 #==============================================================================
 def tagSelection(event=None):
-    global TESTS
+    global TESTS, TESTMETA, TESTMETA_UPDATE
+    TESTMETA_UPDATE = True
     tagSymbols = '* r g b'.split()
     ntags = len(tagSymbols)
     selection = Listbox.curselection()
@@ -1481,14 +1541,10 @@ def tagSelection(event=None):
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
-        testr = os.path.splitext(test)
-        modulesDir = MODULESDIR['LOCAL'][module]
-        path = os.path.join(modulesDir, module, 'test')
-        fileStar = os.path.join(path, DATA, testr[0]+'.star')
         tag = splits[6].strip()
         if not tag: tag = '*'
         else: tag = tagSymbols[(tagSymbols.index(tag)+1)%ntags]
-        writeStar(fileStar, tag)
+        TESTMETA[module+'/'+test]['tag'] = tag
         splits[6] = ' {} '.format(tag)
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
@@ -1502,7 +1558,8 @@ def tagSelection(event=None):
     return
 
 def untagSelection(event=None):
-    global TESTS
+    global TESTS, TESTMETA, TESTMETA_UPDATE
+    TESTMETA_UPDATE = True
     selection = Listbox.curselection()
     for s in selection:
         no = int(s)
@@ -1510,10 +1567,7 @@ def untagSelection(event=None):
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
-        testr = os.path.splitext(test)
-        modulesDir = MODULESDIR['LOCAL'][module]
-        path = os.path.join(modulesDir, module, 'test')
-        rmFile(path, testr[0]+'.star')
+        TESTMETA[module+'/'+test]['tag'] = ' '
         splits[6] = ' '*3
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
@@ -1546,20 +1600,23 @@ def setupLocal(**kwargs):
         os.makedirs(casValidFolder, exist_ok=True)
     else:
         os.environ['VALIDLOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
-    
+
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
     createEmptySessionLog()
+    loadTestMetadata()
     buildTestList(**kwargs)
     updateDBLabel()
-    
+    setGUITitleBar(loc='LOCAL')
+    return 0
+
 def setupGlobal(**kwargs):
     global BASE4COMPARE
-    if VALIDDIR['GLOBAL'] is None: return
+    if VALIDDIR['GLOBAL'] is None: return 1
     # Change to global ref
     print('Info: comparing to global database.')
     BASE4COMPARE = 'GLOBAL'
     os.environ['VALIDLOCAL'] = VALIDDIR['LOCAL']
-    
+
     # No update on global ref
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.DISABLED)
     # Change to match the numthreads of global ref
@@ -1570,10 +1627,13 @@ def setupGlobal(**kwargs):
             setThreads()
     except: pass
     createEmptySessionLog()
+    loadTestMetadata()
     buildTestList(**kwargs)
     updateDBLabel()
-   
-def getDBInfo():    
+    setGUITitleBar(loc='GLOBAL')
+    return 0
+
+def getDBInfo():
     dbInfo = ''
     if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK):
         filename = '/stck/cassiope/git/Cassiopee/Cassiopee/Valid{}/base.time'
@@ -1583,15 +1643,15 @@ def getDBInfo():
                 dbInfo = '[{} - {} - {} threads]'.format(*dbInfo[0:3])
         except: pass
     return dbInfo
-    
-def updateDBLabel():    
+
+def updateDBLabel():
     if not INTERACTIVE: return
     dbInfo = getDBInfo()
     if not dbInfo: return
     if BASE4COMPARE == 'GLOBAL':
         label = 'Switch to local data base'
     else:
-        label = 'Switch to global data base ' + getDBInfo()
+        label = 'Switch to global data base ' + dbInfo
     toolsTab.entryconfig(3, label=label)
 
 #==============================================================================
@@ -1636,7 +1696,7 @@ def parseArgs():
 
     # Parse arguments
     return parser.parse_args()
-    
+
 # Purge session logs by date down to the last n most recent
 def purgeSessionLogs(n):
     lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], 'session-*.log')))
@@ -1651,13 +1711,13 @@ def toggleASAN():
     global USE_ASAN
     USE_ASAN[0] = not USE_ASAN[0]
     updateASANLabel(3)
-    
+
 def toggleLSAN():
     global USE_ASAN
     USE_ASAN[1] = not USE_ASAN[1]
     updateASANLabel(4)
     updateASANOptions()
-    
+
 def updateASANOptions():
     # Update ASAN_OPTIONS according to USE_ASAN
     asan_opt = os.getenv("ASAN_OPTIONS", "")
@@ -1671,13 +1731,28 @@ def updateASANOptions():
     print("Info: ASAN_OPTIONS = " + os.getenv("ASAN_OPTIONS", ""))
     print("      LSAN_OPTIONS = " + os.getenv("LSAN_OPTIONS", ""))
 
-def updateASANLabel(entry_index):    
+def updateASANLabel(entry_index):
     if not INTERACTIVE: return
     if getDBInfo(): entry_index += 2
     label = toolsTab.entrycget(entry_index, "label")
     if label[0].startswith('E'): label = 'Dis' + label[2:]
     else: label = 'En' + label[3:]
     toolsTab.entryconfig(entry_index, label=label)
+
+#==============================================================================
+# Set message in the title bar
+#==============================================================================
+def setGUITitleBar(loc='GLOBAL'):
+    if not INTERACTIVE: return
+    # Machine name
+    machine = socket.gethostname()
+    title = '*Cassiopee* valid {} : {} @ {}'.format(loc, os.getenv("ELSAPROD"),
+                                                    machine)
+    cassiopeeIncDir = getInstallPaths()[0]
+    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
+    if gitBranch and gitBranch != "main":
+        title += " (branch {})".format(gitBranch)
+    Master.title(title)
 
 #==============================================================================
 # Main
@@ -1690,7 +1765,7 @@ if __name__ == '__main__':
     DATA = Dist.getDataFolderName()
     # Set MODULESDIR and VALIDDIR paths once, both locally and globally
     setPaths()
-    
+
     if INTERACTIVE:
         # --- Use GUI ---
         try: import Tkinter as TK
@@ -1701,8 +1776,7 @@ if __name__ == '__main__':
         from functools import partial
         # Main window
         Master = TK.Tk()
-        Master.title('*Cassiopee* valid : {} @ {}'.format(
-            os.getenv("ELSAPROD"), machine))
+        setGUITitleBar()
         Master.columnconfigure(0, weight=1)
         Master.rowconfigure(0, weight=1)
         #GENERALFONT = ('Courier', 9)
@@ -1754,7 +1828,7 @@ if __name__ == '__main__':
 
         toolsTab.add_command(label='Tag selection', command=tagSelection)
         toolsTab.add_command(label='Untag selection', command=untagSelection)
-        
+
         dbInfo = getDBInfo()
         if dbInfo:
             # Show this button if the global database can be interrogated
@@ -1773,53 +1847,54 @@ if __name__ == '__main__':
         Master.bind_all("<Control-q>", Quit)
         Master.protocol("WM_DELETE_WINDOW", Quit)
         Master.bind_all("<Control-a>", selectAll)
-    
+
         # Main frame
         Frame = TK.Frame(Master)
         Frame.columnconfigure(0, weight=1)
         Frame.rowconfigure(0, weight=1)
         Frame.columnconfigure(1, weight=1)
         Frame.grid(row=0, column=0, sticky=TK.EW)
-    
+
         Listbox = TK.Listbox(Frame, selectmode=TK.EXTENDED, width=120,
                              height=39, background='White')
         Listbox.grid(row=0, column=0, columnspan=11, sticky=TK.NSEW)
-    
+
         Scrollbar = TK.Scrollbar(Frame, orient=TK.VERTICAL)
         Scrollbar.grid(row=0, column=11, sticky=TK.NSEW)
-    
+
         Status = TK.StringVar(Master)
         StatusLabel = TK.Label(Frame, textvariable=Status)
         Status.set('Stopped'); StatusLabel.config(bg='red')
         StatusLabel.grid(row=1, column=0, sticky=TK.EW)
-        
+
         Progress = TK.StringVar(Master)
         ProgressLabel = TK.Label(Frame, textvariable=Progress)
         Progress.set('  0/  0 [0h 0m 0s/0h 0m 0s]')
         ProgressLabel.grid(row=1, column=1, sticky=TK.EW)
-        
+
         Filter = TK.StringVar(Master)
         TextFilter = TK.Entry(Frame, textvariable=Filter, background='White',
                               width=50)
         TextFilter.bind('<KeyRelease>', filterTestList)
         TextFilter.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
-        
+
         filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
-          '1) White-spaced: ^cylinder ^sphere\n'\
-          '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
-          '3) Status filter using /: /FAILED /MEMLEAK   or simply   /F\n'\
-          '4) Coverage filter using %: %100\n'\
-          '5) Tag symbol filter using @: @r   to catch red-coloured cases\n'\
-          '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
-          '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
-          '8) Negated using !: #Fast &#!FastC (innermost symbol)'
+            '1) White-spaced: ^cylinder ^sphere\n'\
+            '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
+            '3) Status filter using /: /FAILED /MEMLEAK   or simply   /F\n'\
+            '4) Coverage filter using %: %100\n'\
+            '5) Tag symbol filter using @: @r   to catch red-coloured cases\n'\
+            '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
+            '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
+            '8) Negated using !: #Fast &#!FastC (innermost symbol)'
 
         RunButton = TK.Button(Frame, text='Run', command=runTestsInThread,
                               fg='blue')
         RunButton.grid(row=1, column=5, sticky=TK.EW)
-        
+
         Button = TK.Button(Frame, text='Stop', command=stopTests, fg='red')
         Button.grid(row=1, column=6, sticky=TK.EW)
+        updateTestsInThread = partial(runTestsInThread, True)
         UpdateButton = TK.Button(Frame, text='Update',
                                  command=updateTestsInThread, fg='blue')
         WIDGETS['UpdateButton'] = UpdateButton
@@ -1836,18 +1911,19 @@ if __name__ == '__main__':
         getThreads()
 
         Frame.grid(sticky=TK.NSEW)
-        
+
         CTK.infoBulle(parent=TextFilter, text=filterInfoBulle)
         CTK.infoBulle(parent=RunButton, text='Run selected tests.')
         CTK.infoBulle(parent=UpdateButton,
                       text='Update tests (replace data base files).')
         CTK.infoBulle(parent=TextThreads, text='Number of threads.')
-        setupLocal()
+        ierr = setupGlobal()  # Comparison is made against the global valid
+        if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
         TK.mainloop()
     else:
         # --- Command line execution ---
         vcargs = parseArgs()
-        
+
         generalFontFixed = 1
         Listbox = NoDisplayListbox()
         Scrollbar = NoDisplayScrollbar()
@@ -1875,9 +1951,5 @@ if __name__ == '__main__':
                 if vcargs.leak_sanitizer: USE_ASAN[1] = True
                 updateASANOptions()
             selectAll()
-            runTests()
-            Quit()
-        elif vcargs.update:
-            selectAll()
-            updateTests()
+            runTests(update=vcargs.update)
             Quit()

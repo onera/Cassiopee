@@ -19,14 +19,14 @@ def switch(node1, node2):
     node2[1] = temp
     return node1, node2
 
-def ProdVect(U,V):  
+def ProdVect(U,V):
     Wx = U[1]*V[2]-U[2]*V[1]
     Wy = U[2]*V[0]-U[0]*V[2]
     Wz = U[0]*V[1]-U[1]*V[0]
     return Wx,Wy,Wz
 
 #=========================================================================
-# Detection des bords de fuite, attaque et quart de corde 
+# Detection des bords de fuite, attaque et quart de corde
 # Creation du repere local et calcul de la matrice de passage
 # IN: a: slice
 #     r: rayon de la slice
@@ -44,7 +44,7 @@ def detectBA_BF_QC(a, r):
     iLE = numpy.argmin(xcp)
     iTE = numpy.argmax(xcp)
 
-    # Replace la pale avec son mouvement 
+    # Replace la pale avec son mouvement
     gridx = Internal.getNodeFromName2(a, 'CoordinateX')
     gridy = Internal.getNodeFromName2(a, 'CoordinateY')
     gridz = Internal.getNodeFromName2(a, 'CoordinateZ')
@@ -78,10 +78,10 @@ def detectBA_BF_QC(a, r):
     norme = numpy.sqrt(sxmean**2+symean**2+szmean**2)
     Vy = (sxmean/norme, symean/norme, szmean/norme)
 
-    # Vz pointe vers le haut 
+    # Vz pointe vers le haut
     Vz = ProdVect(Vx, Vy)
 
-    #===== Matrices de passage 
+    #===== Matrices de passage
     MatPass = numpy.array([[Vx[i],Vy[i],Vz[i]] for i in range(3)]).real
     #print(MatPass)
     Glob2Loc = numpy.linalg.inv(MatPass)
@@ -127,7 +127,7 @@ def exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2']):
     C._addVars(z, vars)
     qx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
     qr = Internal.getNodeFromName2(z, 'radius')[1]
-        
+
     for r, rad in enumerate(radii):
         acu = accumulator[(psi,rad)]
         qx[r] = rad
@@ -154,7 +154,7 @@ def exportAccumulatorPerRadius(accumulator, rad=0., vars=['F1','F2']):
     C._addVars(z, vars)
     qx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
     qp = Internal.getNodeFromName2(z, 'psi')[1]
-        
+
     for p, psi in enumerate(psis):
         acu = accumulator[(psi,rad)]
         qx[p] = psi
@@ -194,12 +194,12 @@ def exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz']):
     if len(psis) == 1:
         psirad = psis[0]*math.pi/180.
         for r, rad in enumerate(radii):
-                acu = accumulator[(psis[0],rad)]
-                qx[r] = rad * math.cos(psirad)
-                qy[r] = rad * math.sin(psirad)
-                for c, v in enumerate(vars):
-                    q = Internal.getNodeFromName2(z, v)[1]
-                    q[r] = acu[c]
+            acu = accumulator[(psis[0],rad)]
+            qx[r] = rad * math.cos(psirad)
+            qy[r] = rad * math.sin(psirad)
+            for c, v in enumerate(vars):
+                q = Internal.getNodeFromName2(z, v)[1]
+                q[r] = acu[c]
     elif len(radii) == 1:
         for p, psi in enumerate(psis):
             psirad = psi*math.pi/180.
@@ -232,7 +232,7 @@ def exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz']):
 # IN: relativeShaft: si le repere du maillage n'est pas le repere vent
 # OUT: rotor traction
 #========================================================================
-def computeZb(teff, psi, RoInf, ASOUND, Mtip, AR, SIGMA, 
+def computeZb(teff, psi, RoInf, ASOUND, Mtip, AR, SIGMA,
               relativeShaft=0., accumulatorZb=None):
     """Compute Zb."""
     PE._extractShearStress(teff)
@@ -289,7 +289,7 @@ def frictionLines(teff):
     for i in range(20):
         Pt = C.getValue(z, 'GridCoordinates', (i,35,1))
         Pt = (Pt[0]+1.e-6,Pt[1],Pt[2])
-        points.append(Pt)    
+        points.append(Pt)
     s1 = P.streamLine2(b, points, vector=['centers:frictionX','centers:frictionY','centers:frictionZ'])
     return s1
 
@@ -301,14 +301,14 @@ def frictionLines(teff):
 #========================================================================
 def extractRadius(teff, axis_pnt, axis_vct, loc='node'):
     """Extract the radius field, using the rotation axis and center."""
-    def function(x,y,z): 
+    def function(x,y,z):
         ux,uy,uz = axis_vct
         cx,cy,cz = axis_pnt
         ax = (y-cy)*uz - (z-cz)*uy
         ay = (x-cx)*uz - (z-cz)*ux
         az = (x-cx)*uy - (y-cy)*ux
         return math.sqrt(ax**2 + ay**2 + az**2)/math.sqrt(ux**2 + uy**2 + uz**2)
-    
+
     if loc == 'center':
         teff = C.initVars(teff, 'centers:Radius', function, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
     else:
@@ -329,7 +329,7 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
         det += m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1])
         det -= m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0])
         det += m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0])
-        
+
         return det
 
     def comatrix(m):
@@ -383,24 +383,24 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
         a,b,c = vec
         norm = math.sqrt(a*a + b*b + c*c)
         base.append((a/norm, b/norm, c/norm))
-    
+
     # matrice de passage de R dans base
     P = [[base[0][0], base[1][0], base[2][0]],
          [base[0][1], base[1][1], base[2][1]],
          [base[0][2], base[1][2], base[2][2]]]
-    
+
     # inverse de P
     invP = inverse(P)
 
     # C (canonical base) -> Cprime (new base) using
     # C = P.Cprime <=> Cprime = invP.C
     # C = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
-    
+
     Cprime = [axis_pnt[0]*invP[0][0] + axis_pnt[1]*invP[0][1] + axis_pnt[2]*invP[0][2],
               axis_pnt[0]*invP[1][0] + axis_pnt[1]*invP[1][1] + axis_pnt[2]*invP[1][2],
               axis_pnt[0]*invP[2][0] + axis_pnt[1]*invP[2][1] + axis_pnt[2]*invP[2][2]]
 
-    def function(x,y,z): 
+    def function(x,y,z):
         # X' = invP*X
         # first direction is the rotation axis
         dist2 = x*invP[1][0] + y*invP[1][1] + z*invP[1][2] - Cprime[1]
@@ -408,9 +408,9 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
 
         theta = numpy.arctan2(-dist2,dist3)
         if theta < 0: theta += 2*numpy.pi
-        
+
         return theta
-    
+
     if loc == 'center':
         teff = C.initVars(teff, 'centers:Theta', function, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
     else:
@@ -418,7 +418,7 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
     return teff
 
 #========================================================================
-# extrait les slices en parallele et calcule les variables de post traitement 
+# extrait les slices en parallele et calcule les variables de post traitement
 # IN: teff
 # IN: bladeName: name of base of blade
 # IN: psi: current angle of rotation, used as key in all accumulator dict
@@ -441,17 +441,17 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
 # OUT: dictionnaire des slices, slices[rad] est une zone
 # OUT: accumule les valeurs de CnM2 dans un dictionnaire (psi,rad)
 #========================================================================
-def extractSlices(teff, bladeName, psi, radii, 
+def extractSlices(teff, bladeName, psi, radii,
                   RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU,
                   accumulatorSlices=None,
                   accumulatorCnM2=None, accumulatorCmM2=None,
                   adimCnM2=0, adimCmM2=0, adimKp=0,
-                  relativeShaft=0., localFrame=True, delta=0.05, rotationCenter=[0.,0.,0.], 
+                  relativeShaft=0., localFrame=True, delta=0.05, rotationCenter=[0.,0.,0.],
                   coordDir='CoordinateZ', coordSlice='CoordinateX', sliceNature='straight'):
     """Extract slices on blade and compute Kp,Cf,CnM2,CmM2."""
     if coordDir == coordSlice:
         raise ValueError('extractSlices: coordDir and coordSlice are identical.')
-    
+
     if sliceNature not in ['curved', 'straight']:
         print('Warning: extractSlices: invalid sliceNature name. Default value is used')
         sliceNature = 'straight'
@@ -488,7 +488,7 @@ def extractSlices(teff, bladeName, psi, radii,
         G._getNormalMap(b)
         C._normalize(b, ['centers:sx','centers:sy','centers:sz'])
         if relativeShaft != 0.:
-            b = T.rotate(b, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ'],['centers:Fx','centers:Fy','centers:Fz']]) 
+            b = T.rotate(b, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ'],['centers:Fx','centers:Fy','centers:Fz']])
 
         # switch GridInit and GridCoordinates and save GridCoordinates in field
         bp = Internal.copyRef(b)
@@ -529,8 +529,10 @@ def extractSlices(teff, bladeName, psi, radii,
             tag = Internal.getNodeFromName2(z, 'tag')
             tag[1] = tag[1].ravel('k')
             tag[1][:] = (xc[1][:] < rad+delta) & (xc[1][:] > rad-delta)
-            sel = P.selectCells2(z, 'tag')
-            # sel = P.selectCells2(z, 'tag', strict=1)
+            if sliceNature == 'curved':
+                sel = P.selectCells2(z, 'tag', strict=1)
+            else:
+                sel = P.selectCells2(z, 'tag')
             Internal._rmNodesFromName(sel, 'GridCoordinates#Init')
             Internal._rmNodesFromName(sel, '.Solver#ownData')
             Internal._rmNodesFromName(sel, 'tag')
@@ -539,7 +541,7 @@ def extractSlices(teff, bladeName, psi, radii,
         allbandes[rad] = Cmpi.gatherZones(bandes, root=proc)
         proc += 1
         proc = proc%Cmpi.size
-    
+
     # Chaque proc a sa ou ses bandelettes (liste de zones)
     #print(Cmpi.rank, allbandes.keys())
     #for rad in allbandes:
@@ -547,7 +549,7 @@ def extractSlices(teff, bladeName, psi, radii,
     #    if b != []:
     #        print('Proc ',Cmpi.rank, 'writes bandes ',rad)
     #        C.convertPyTree2File(allbandes[rad], 'bandes%f.cgns'%rad)
-    
+
     slices = {}
     for rad in allbandes:
         #Internal.printTree(allbandes[rad])
@@ -569,7 +571,7 @@ def extractSlices(teff, bladeName, psi, radii,
     CnM2All = []; CmM2All = []
     for rad in slices:
         if rad not in slices: continue
-        
+
         iso = slices[rad]
 
         #no = radius.index(rad) # position du rayon de la slice actuelle dans la liste complete des rayons
@@ -585,8 +587,8 @@ def extractSlices(teff, bladeName, psi, radii,
             C._initVars(iso, '{xc}= 1.-({CoordinateY}-%20.16g)/(%20.16g-%20.16g)'%(xmin,xmax,xmin))
         else:
             C._initVars(iso, '{xc}= 1.-({CoordinateZ}-%20.16g)/(%20.16g-%20.16g)'%(xmin,xmax,xmin))
-        
-        
+
+
         # Kp
         if adimKp == 0: adimKp_loc = 0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR + MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
         else: adimKp_loc = adimKp
@@ -626,7 +628,7 @@ def extractSlices(teff, bladeName, psi, radii,
         CmM2z = CmM2z/adimCmM2_loc
         Cm = (CmM2x, CmM2y, CmM2z)
         if localFrame: Cm = numpy.dot(Glob2Loc, Cm)
-        
+
         if accumulatorCmM2 is not None: accumulatorCmM2[(psi,rad)] = [Cm[0],Cm[1],Cm[2]]
         CmM2All.append([Cm[0],Cm[1],Cm[2]])
 
@@ -648,7 +650,7 @@ def extractSlices(teff, bladeName, psi, radii,
 
 #============================================================
 # extract the files for H2T RotorLoads
-# IN: teff: stress tree 
+# IN: teff: stress tree
 # IN: bladeName: nom de la base blade a extraire
 # IN: nblade: numero de la pale a extraire (pour les noms de fichiers de sortie)
 # IN: it: iteration correspondant a l'extraction de teff (pour les noms de fichiers de sortie)
@@ -658,8 +660,8 @@ def extractSlices(teff, bladeName, psi, radii,
 def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
     b = Internal.getNodeFromName1(teff, bladeName)
     bp = Internal.copyRef(b)
-    
-    # extrait le maillage de reference 
+
+    # extrait le maillage de reference
     R._switchGridAndGridInit(bp)
     for c, z in enumerate(Internal.getZones(bp)):
         Internal._rmNodesFromName(z, 'FlowSolution#Centers')
@@ -672,7 +674,7 @@ def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
         z = C.extractVars(z, ['centers:Pressure'], keepOldNodes=False)
         P._renameVars(z, ['centers:Pressure'], ['centers:p'])
         C.convertPyTree2File(z, 'SURFACES/ExtBlade%04dpsta_%04d.tp%04d'%(nblade,c+1,it), 'bin_tp')
-        
+
     # sortie friction vector
     bp = Internal.copyRef(b)
     PE._extractShearStress(bp)
@@ -681,7 +683,7 @@ def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
     G._getNormalMap(bp)
 
     # Pour retrouver le repere absolu
-    T._rotate(bp, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ']]) 
+    T._rotate(bp, (0,0,0), (0,1,0), relativeShaft, vectors=[['centers:sx','centers:sy','centers:sz'],['centers:frictionX','centers:frictionY','centers:frictionZ']])
 
     for c, z in enumerate(Internal.getZones(bp)):
         z = C.extractVars(z, ['centers:sx', 'centers:sy', 'centers:sz', 'centers:frictionX','centers:frictionY','centers:frictionZ','centers:frictionMagnitude'], keepOldNodes=False)
@@ -693,6 +695,74 @@ def extractForH2TRotorLoads(teff, bladeName, nblade, it, relativeShaft=0.):
         C.convertPyTree2File(z, 'SURFACES/ExtBlade%04dvect_%04d.tp%04d'%(nblade,c+1,it), 'bin_tp')
 
     return None
+
+#============================================================
+# Clean stress for KIM post-processing
+# IN: teff: stress tree
+# IN: cpt: flowsol and grodcoordinate container number
+#============================================================
+def cleanStress(teff, cpt):
+    tclean = Internal.copyRef(teff)
+
+    flowSol = Internal.getNodeFromName(tclean, Internal.__FlowSolutionCenters__)
+    varnames = [z[0] for z in flowSol[2][1:]]
+    for v in varnames:
+        if v != 'Pressure': Internal._rmNodesByName(tclean, v)
+
+    Internal._rmNodesByName(tclean, 'CARTESIAN')
+    Internal._rmNodesByName(tclean, 'FLEX')
+    Internal._rmNodesByName(tclean, '.Solver#ownData')
+    Internal._rmNodesByName(tclean, 'ReferenceState')
+    Internal._rmNodesByName(tclean, 'FlowEquationSet')
+    Internal._rmNodesByName(tclean, 'TimeMotion')
+    Internal._rmNodesByName(tclean, Internal.__GridCoordinates__+"#Init")
+
+    Internal._renameNode(tclean, Internal.__GridCoordinates__, Internal.__GridCoordinates__+"#%d"%cpt)
+    Internal._renameNode(tclean, Internal.__FlowSolutionCenters__, Internal.__FlowSolutionCenters__+"#%d"%cpt)
+
+    listOfZones = []
+    for b in Internal.getBases(tclean):
+        listOfZones = listOfZones+Internal.getZones(b)
+
+    tclean = C.newPyTree(['Base', listOfZones])
+
+    return tclean
+
+#============================================================
+# Concatenate stress files (F-order) for KIM post-processing
+# IN: t1, t2: stress trees
+# IN: cpt: flowsol and grodcoordinate container number
+#============================================================
+def concatenateStress(t1, t2, cpt):
+    for z1, z2 in zip(Internal.getZones(t1), Internal.getZones(t2)):
+        coordinates1 = Internal.getNodeFromName(z1, Internal.__GridCoordinates__+"#%d"%cpt)
+        coordinates2 = Internal.getNodeFromName(z2, Internal.__GridCoordinates__+"#%d"%cpt)
+
+        flowSol1 = Internal.getNodeFromName(z1, Internal.__FlowSolutionCenters__+"#%d"%cpt)
+        flowSol2 = Internal.getNodeFromName(z2, Internal.__FlowSolutionCenters__+"#%d"%cpt)
+
+        for cname in ['CoordinateX', 'CoordinateY', 'CoordinateZ']:
+            c1 = Internal.getNodeFromName(coordinates1, cname)[1]
+            c2 = Internal.getNodeFromName(coordinates2, cname)[1]
+            if numpy.shape(c1) == numpy.shape(c2):
+                c1 = numpy.stack((c1,c2), axis=2)
+            else:
+                c1 = numpy.concatenate((c1,c2[:,:,numpy.newaxis]), axis=2)
+
+            Internal.getNodeFromName(coordinates1, cname)[1] = numpy.asfortranarray(c1)
+
+        for vname in ['Pressure']:
+            v1 = Internal.getNodeFromName(flowSol1, vname)[1]
+            v2 = Internal.getNodeFromName(flowSol2, vname)[1]
+
+            if numpy.shape(v1) == numpy.shape(v2):
+                v1 = numpy.stack((v1,v2), axis=2)
+            else:
+                v1 = numpy.concatenate((v1,v2[:,:,numpy.newaxis]), axis=2)
+
+            Internal.getNodeFromName(flowSol1, vname)[1] = numpy.asfortranarray(v1)
+
+    return t1
 
 #=========================================================================
 # Extrait des slices a certains radius

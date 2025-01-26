@@ -38,8 +38,8 @@ for rangel in ['imin','imax','jmin','jmax']:
     C._addBC2Zone(b,'overlapdd','BCOverlap',rangel,zoneDonor=[a],rangeDonor='doubly_defined')
 
 import Converter.elsAProfile as CE
-CE._addPeriodicDataInSolverParam(b,rotationCenter=[0.,0.,0.], 
-                                 rotationAngle=[0.,0.,1.], 
+CE._addPeriodicDataInSolverParam(b,rotationCenter=[0.,0.,0.],
+                                 rotationAngle=[0.,0.,1.],
                                  NAzimutalSectors=3, isChimera=True)
 T._rotate(b,(0,0,0),(0,0,1),60.)
 

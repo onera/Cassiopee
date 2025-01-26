@@ -25,7 +25,7 @@ def extractBodies():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-   
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
@@ -41,8 +41,8 @@ def extractBodies():
     CTK.TXT.insert('START', 'Walls extracted.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CTK.display(CTK.t)        
-    
+    CTK.display(CTK.t)
+
 #==============================================================================
 def stitchedHat():
     if CTK.t == []: return
@@ -53,7 +53,7 @@ def stitchedHat():
     args = VARS[1].get(); args = args.split(';')
     if len(args) != 2: return
     eps = float(args[0]); eps2 = float(args[1])
-    
+
     args = VARS[2].get(); args = args.split(';')
     if len(args) != 3: return
     offx = float(args[0]); offy = float(args[1]); offz = float(args[2])
@@ -61,13 +61,13 @@ def stitchedHat():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-   
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
         z = G.stitchedHat(CTK.t[2][nob][2][noz],
                           (offx,offy,offz), eps, eps2)
         CTK.replace(CTK.t, nob, noz, z)
-        
+
     CTK.TXT.insert('START', 'Stitched hat created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -88,7 +88,7 @@ def pointedHat():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
         z = G.pointedHat(CTK.t[2][nob][2][noz],
@@ -97,7 +97,7 @@ def pointedHat():
     CTK.TXT.insert('START', 'Pointed hat created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CPlot.render()   
+    CPlot.render()
     return
 
 #==============================================================================
@@ -111,14 +111,14 @@ def closeBody():
 #==============================================================================
 def createApp(win):
     # - Frame -
-    Frame = TK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE, 
+    Frame = TK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
                           text='tkHats  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Fix holes with hats.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - VARS -
     # -0- close bodies -
     V = TK.StringVar(win); V.set('stitchedHat'); VARS.append(V)
@@ -126,28 +126,28 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1.e-5;1.e-5'); VARS.append(V)
     # -2- stitchedHat : offx,offy,offz
     V = TK.StringVar(win); V.set('0.;0.;0.'); VARS.append(V)
-    # -3- pointedHat : x,y,z 
+    # -3- pointedHat : x,y,z
     V = TK.StringVar(win); V.set('0.;0.;0.'); VARS.append(V)
-    
+
     # - create hat -
     B = TK.Button(Frame, text="Create hat", command=closeBody)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Close selected contour with hat.')
     B = TK.OptionMenu(Frame, VARS[0], 'stitchedHat', 'pointedHat')
     B.grid(row=0, column=1, sticky=TK.EW)
-    
+
     B = TK.Label(Frame, text="eps;eps2")
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Tolerances for stitchedHat.')
     B = TK.Entry(Frame, textvariable=VARS[1])
     B.grid(row=1, column=1, sticky=TK.EW)
-    
+
     B = TK.Label(Frame, text="offx;offy;offz")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Offsets for stitchedHat.')
     B = TK.Entry(Frame, textvariable=VARS[2])
     B.grid(row=2, column=1, sticky=TK.EW)
-    
+
     B = TK.Label(Frame, text="x0;y0;z0")
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Coordinates of top of pointed hat.')

@@ -249,7 +249,7 @@ E_Int isInFrustum(Zone* z, ViewInfo& view)
 {
 #ifdef __MESA__
   // to avoid abusive clipping in osmesa
-  //return 1;
+  return 1;
 #endif
 
   E_Int out;

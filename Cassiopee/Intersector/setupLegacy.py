@@ -26,7 +26,7 @@ Dist.writeSetupCfg()
                                                      additionalIncludePaths)
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
                                                         additionalIncludePaths)
-    
+
 # Compilation des fortrans ===================================================
 from KCore.config import *
 if f77compiler == "None":
@@ -70,7 +70,7 @@ setup(
                            extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
                            extra_link_args=Dist.getLinkArgs()
                            )]
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

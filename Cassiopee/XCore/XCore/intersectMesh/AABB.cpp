@@ -1,31 +1,29 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "AABB.h"
-#include "mesh.h"
 
-AABB::AABB()
-: xmin(EFLOATMAX), ymin(EFLOATMAX), zmin(EFLOATMAX),
-  xmax(EFLOATMIN), ymax(EFLOATMIN), zmax(EFLOATMIN)
-{}
-
-AABB::AABB(const IMesh &M, E_Int *ids, E_Int count)
+void AABB_clamp(AABB &box, const AABB &parent)
 {
-    xmin = ymin = zmin = EFLOATMAX;
-    xmax = ymax = zmax = EFLOATMIN;
-
-    for (E_Int i = 0; i < count; i++) {
-        E_Int fid = ids[i];
-
-        const auto &pn = M.F[fid];
-
-        for (E_Int p : pn) {
-            E_Float x = M.X[p];
-            E_Float y = M.Y[p];
-            E_Float z = M.Z[p];
-            if (x < xmin) xmin = x;
-            if (y < ymin) ymin = y;
-            if (z < zmin) zmin = z;
-            if (x > xmax) xmax = x;
-            if (y > ymax) ymax = y;
-            if (z > zmax) zmax = z;
-        }
-    }
+    box.xmin = std::max(parent.xmin, box.xmin);
+    box.ymin = std::max(parent.ymin, box.ymin);
+    box.zmin = std::max(parent.zmin, box.zmin);
+    box.xmax = std::min(parent.xmax, box.xmax);
+    box.ymax = std::min(parent.ymax, box.ymax);
+    box.zmax = std::min(parent.zmax, box.zmax);
 }

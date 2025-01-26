@@ -4,7 +4,7 @@ from . import PyTree as X
 import Converter.Internal as Internal
 import Converter.PyTree as C
 import Converter.converter
-import numpy 
+import numpy
 from . import connector
 import RigidMotion.PyTree as RM
 
@@ -37,14 +37,14 @@ def connectMatch(a, tol=1.e-6, dim=3):
 
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=2)
-    
-    # Construction des raccords 
+
+    # Construction des raccords
     a = X.connectMatch(a, tol=tol, dim=dim)
-   
-    # Suppression des XZones et correction des matchs 
+
+    # Suppression des XZones et correction des matchs
     Cmpi._rmBXZones(a)
-    
-    # Fusion des fenetres des raccords 
+
+    # Fusion des fenetres des raccords
     a = mergeWindows(a)
 
     return a
@@ -52,7 +52,7 @@ def connectMatch(a, tol=1.e-6, dim=3):
 #==============================================================================
 def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
     """Find boundaries that matches with a given ratio."""
-    if not isinstance(ratio, list): 
+    if not isinstance(ratio, list):
         iratio = ratio
     else:
         iratio = 1
@@ -60,13 +60,13 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
 
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=iratio+1)
-    
+
     # Construction des raccords
     a = X.connectNearMatch(a, ratio=2, tol=tol, dim=dim)
 
     for z in Internal.getZones(a):
         gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-        for g in gcs:  
+        for g in gcs:
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity_t')
             for n in nodes:
                 gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
@@ -78,17 +78,17 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
 
                     if fratio==1.:
                         Internal._rmNodesByName(z,n[0])
-                    
-    # Suppression des XZones et correction des matchs 
+
+    # Suppression des XZones et correction des matchs
     Cmpi._rmBXZones(a)
-    
-    # Fusion des fenetres des raccords 
+
+    # Fusion des fenetres des raccords
     a = mergeWindows(a)
 
     return a
 
 #==============================================================================
-# connectMatchPeriodic 
+# connectMatchPeriodic
 #==============================================================================
 def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
                          rotationAngle=[0.,0.,0.],
@@ -97,34 +97,34 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
 
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=2,allB=True)
- 
-    # Construction des raccords 
+
+    # Construction des raccords
     a = X.connectMatchPeriodic(a,rotationCenter,rotationAngle,translation,tol,dim,unitAngle)
 
-    # Suppression des XZones et correction des matchs 
+    # Suppression des XZones et correction des matchs
     Cmpi._rmBXZones(a)
 
-    # Fusion des fenetres des raccords 
+    # Fusion des fenetres des raccords
     a = mergeWindows(a)
 
-    return a 
+    return a
 
 #==============================================================================
 def giveName2Window(p, zname, zopp):
     if p[0] == p[1]:
         if p[0] == 1: pos = zname+'_imin_'+zopp
         else: pos = zname+'_imax_'+zopp
-            
+
     elif p[2] == p[3]:
         if p[2] == 1: pos = zname+'_jmin_'+zopp
         else: pos = zname+'_jmax_'+zopp
-            
+
     elif p[4] == p[5]:
         if p[4] == 1: pos = zname+'_kmin_'+zopp
         else: pos = zname+'_kmax_'+zopp
 
     return pos
-    
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def mergeWindows(t):
     # Merge grid connectivities created after addBXZones
@@ -132,16 +132,16 @@ def mergeWindows(t):
     for z in zones:
         xz = Internal.getNodeFromName1(z, 'XZone')
         if xz is None:
-            # Construction du dictionnaire des matchs 
+            # Construction du dictionnaire des matchs
             dico = {}
             gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-            for g in gcs:  
+            for g in gcs:
                 nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
 
                 for n in Internal.getNodesFromType1(g,'GridConnectivity_t'):
                     gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
                     if Internal.getValue(gctype)=='Abutting': nodes.append(n)
-                        
+
                 for n in nodes:
                     pr    = Internal.getNodeFromName1(n, 'PointRange')
                     p     = Internal.range2Window(pr[1])
@@ -150,7 +150,7 @@ def mergeWindows(t):
 
                     if pos not in dico.keys(): dico[pos] = [n[0]]
                     else: dico[pos].append(n[0])
-                  
+
             # Test si match peuvent etre fusionnes
             for match in dico.keys():
                 if len(dico[match]) > 1:
@@ -166,18 +166,18 @@ def mergeWindows(t):
                         if pglob[0] is None:
                             pglob[0] = p[0] ; pglob[1] = p[1]
                             pglob[2] = p[2] ; pglob[3] = p[3]
-                            pglob[4] = p[4] ; pglob[5] = p[5] 
+                            pglob[4] = p[4] ; pglob[5] = p[5]
                         else:
                             if pglob[0] > p[0] : pglob[0] = p[0]
                             if pglob[1] < p[1] : pglob[1] = p[1]
                             if pglob[2] > p[2] : pglob[2] = p[2]
-                            if pglob[3] < p[3] : pglob[3] = p[3]                    
+                            if pglob[3] < p[3] : pglob[3] = p[3]
                             if pglob[4] > p[4] : pglob[4] = p[4]
                             if pglob[5] < p[5] : pglob[5] = p[5]
 
                     surfMatch = max(1,(pglob[1]-pglob[0]))*max(1,(pglob[3]-pglob[2]))*max(1,(pglob[5]-pglob[4]))
 
-                    # Fusion des matchs 
+                    # Fusion des matchs
                     if surfMatch == sumSurf:
                         # Fenetre du match donneur
                         pglobD   = [None]*6
@@ -195,15 +195,15 @@ def mergeWindows(t):
                                 if pglobD[0] > pd[0] : pglobD[0] = pd[0]
                                 if pglobD[1] < pd[1] : pglobD[1] = pd[1]
                                 if pglobD[2] > pd[2] : pglobD[2] = pd[2]
-                                if pglobD[3] < pd[3] : pglobD[3] = pd[3]                    
+                                if pglobD[3] < pd[3] : pglobD[3] = pd[3]
                                 if pglobD[4] > pd[4] : pglobD[4] = pd[4]
                                 if pglobD[5] < pd[5] : pglobD[5] = pd[5]
-                                
-                        # Modif du 1er match et suppression des autres 
-                        first = True 
+
+                        # Modif du 1er match et suppression des autres
+                        first = True
                         for name in dico[match]:
                             if first:
-                                first = False 
+                                first = False
                                 modifMatch = dico[match][0]
                                 node    = Internal.getNodeFromName(z,modifMatch)
                                 pr      = Internal.getNodeFromName1(node, 'PointRange')
@@ -234,23 +234,23 @@ def mergeWindows(t):
 # Adim: KCore.adim1 for Minf=0.1
 #===============================================================================
 def setInterpTransfers(aR, aD, variables=[], cellNVariable='',
-                       variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
+                       variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
                        bcType=0, varType=1, graph=None,
-                       procDict=None, type='ALLD', 
-                       Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, 
+                       procDict=None, type='ALLD',
+                       Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                        Cs=0.3831337844872463, Ts=1.0, alpha=1.):
     tp = Internal.copyRef(aR)
     compact = 0
-    _setInterpTransfers(tp, aD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC, 
-                        bcType=bcType, varType=varType,  compact=compact, graph=graph, 
+    _setInterpTransfers(tp, aD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC,
+                        bcType=bcType, varType=varType,  compact=compact, graph=graph,
                         procDict=procDict, type=type, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts)
     return tp
 #===============================================================================
 def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
-                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'], 
-                        bcType=0, varType=1, compact=0, graph=None, 
+                        variablesIBC=['Density','MomentumX','MomentumY','MomentumZ','EnergyStagnationDensity'],
+                        bcType=0, varType=1, compact=0, graph=None,
                         procDict=None, type='ALLD',
-                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08, 
+                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                         Cs=0.3831337844872463, Ts=1.0, alpha=1.):
 
     if procDict is None: procDict = Cmpi.getProcDict(aD)
@@ -262,8 +262,8 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
     datas = {}
     zonesD = Internal.getZones(aD)
     for zD in zonesD:
-        infos = X.setInterpTransfersD(zD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC, 
-                                      bcType=bcType, varType=varType, compact=compact, Gamma=Gamma, Cv=Cv, MuS=MuS, 
+        infos = X.setInterpTransfersD(zD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC,
+                                      bcType=bcType, varType=varType, compact=compact, Gamma=Gamma, Cv=Cv, MuS=MuS,
                                       Cs=Cs, Ts=Ts, alpha=alpha)
         for n in infos:
             rcvName = n[0]
@@ -337,7 +337,7 @@ def _setInterpTransfersForPressureGradients(aR, aD, ibctypes=[], secondOrder=Fal
     return None
 
 #===============================================================================
-# __setInterpTransfers - version optimisee de _setInterpTransfers: arbre t et tc compact, 
+# __setInterpTransfers - version optimisee de _setInterpTransfers: arbre t et tc compact,
 # moins de python + de C
 #
 # Warning: inverse storage!
@@ -368,7 +368,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
     #motionType = int(Internal.getNodeFromName(zones, "Parameter_real")[1][64])
     #motionType = Cmpi.allreduce(motionType, op=Cmpi.MAX)
     #if motionType==3: isIbmMoving_int=1
-	
+
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
     # On envoie aussi les indices receveurs pour l'instant
@@ -390,13 +390,13 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
             rank  = Cmpi.rank
             infos = connector.__setInterpTransfersD(zones, zonesD, vars, dtloc, param_int, param_real, it_target, varType,
                                                     type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage, rank,
-                                                    isWireModel_int, isIbmMoving_int) 
+                                                    isWireModel_int, isIbmMoving_int)
             if infos != []:
-               for n in infos:
-                  rcvNode = dest
-                  if rcvNode not in datas: datas[rcvNode] = [n]
-                  else: datas[rcvNode] += [n]
-		  
+                for n in infos:
+                    rcvNode = dest
+                    if rcvNode not in datas: datas[rcvNode] = [n]
+                    else: datas[rcvNode] += [n]
+
 ##[AJ] Keep for Now
 ##if isWireModel_int==0 and isSetPartialFieldsCheck==1:
 ##for i in datas:
@@ -412,24 +412,24 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
 ##            count+=1
 
     # Envoie des numpys suivant le graph
-    if graph is not None: 
+    if graph is not None:
         rcvDatas = Cmpi.sendRecvC(datas, graph)
         #rcvDatas = Cmpi.sendRecv(datas, graph)
     else: rcvDatas = {}
-    
+
     # Remise des champs interpoles dans l'arbre receveur
     for i in rcvDatas:
         #if Cmpi.rank==0: print(Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i]), 'nstep=',nstep,flush=True)
         for n in rcvDatas[i]:
             rcvName = n[0]
             field = n[1]
-        
+
             isSetPartialFields = True
             if isSetPartialFieldsCheck==1 and field != []:
-              minfld = numpy.ndarray.min(field[1][0])
-              maxfld = numpy.ndarray.max(field[1][0])
-              if (maxfld == minfld and maxfld < -1e05): isSetPartialFields=False
-            
+                minfld = numpy.ndarray.min(field[1][0])
+                maxfld = numpy.ndarray.max(field[1][0])
+                if (maxfld == minfld and maxfld < -1e05): isSetPartialFields=False
+
             if isSetPartialFields:
                 listIndices = n[2]
                 z = zones[rcvName]
@@ -442,11 +442,11 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
 # transfert de ['Density', 'VelocityX', 'VelocityY', 'VelocityZ', 'Temperature', 'nuSA'] -> 6 vars
 # transfert de ['gradx/y/zDensity', 'gradx/y/zTemperature'] -> 6 varsGrad
 # varType 22 : tc2/tc -> RCV ZONES
-# varType 23 : RCV ZONES -> tc 
+# varType 23 : RCV ZONES -> tc
 #===============================================================================
 def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_transfert, it_target,
-                         nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
-                         graph=None, procDict=None):
+                               nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
+                               graph=None, procDict=None):
     isWireModelPrep= False
     isWireModel    = False
     # Transferts locaux/globaux
@@ -468,25 +468,25 @@ def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_
                                                   isWireModel)
 
         else:
-            if varType != 24: 
+            if varType != 24:
                 allInfos = connector.__setInterpTransfersD4GradP(zones, zonesD, vars, param_int, param_real, it_target, varType,
-                                                        type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage) 
+                                                                 type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage)
                 infos = allInfos[0]
                 infosGrad = allInfos[1]
 
                 if infos != []:
-                   for n in infos:
-                      rcvNode = dest
-                      if rcvNode not in datas: datas[rcvNode] = [n]
-                      else: datas[rcvNode] += [n]
+                    for n in infos:
+                        rcvNode = dest
+                        if rcvNode not in datas: datas[rcvNode] = [n]
+                        else: datas[rcvNode] += [n]
 
 
                 if infosGrad != []:
-                   for n in infosGrad:
-                      rcvNode = dest
-                      if rcvNode not in datasGradP: datasGradP[rcvNode] = [n]
-                      else: datasGradP[rcvNode] += [n]
-    
+                    for n in infosGrad:
+                        rcvNode = dest
+                        if rcvNode not in datasGradP: datasGradP[rcvNode] = [n]
+                        else: datasGradP[rcvNode] += [n]
+
     # Envoie des numpys suivant le graph
     rcvDatas = Cmpi.sendRecv(datas, graph)
 
@@ -520,7 +520,7 @@ def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_
 # absFrame=True: les coordonnees de t sont deja dans le repere absolu en entree
 # interpInDnrFrame=True: interpolation avec les coordonnees des pts a interpoler dans le repere relatif au donneur
 # applicable en mouvement rigide; en mvt avec deformation: mettre False
-# verbose: 0 (rien), 1 (bilan interpolation), 2 (ecrit les indices de pts orphelins), 
+# verbose: 0 (rien), 1 (bilan interpolation), 2 (ecrit les indices de pts orphelins),
 # 3 (met cellN=-1 pour les points orphelins)
 #---------------------------------------------------------------------------------------------------------
 def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
@@ -538,7 +538,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     dictOfMotionMatR2A={}; dictOfMotionMatA2R={}
     coordsD=[0.,0.,0.]; coordsC=[0.,0.,0.] # XAbs = coordsD + coordsC + Mat*(XRel-coordsC)
     dictOfFields={}; dictOfIndices={}
-    
+
     # 1. Formation data interpolation globale
     #Cmpi.trace("1. transfer2 - start")
     datas={}; listOfLocalData = []; interpDatas={}
@@ -559,8 +559,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                 raise ValueError("_transfer: t and tc skeletons must be identical.")
 
             C._cpVars(z, 'centers:'+cellNName, zc, cellNName)
-            res = X.getInterpolatedPoints(zc, loc='nodes', cellNName=cellNName) 
-            if res is not None: 
+            res = X.getInterpolatedPoints(zc, loc='nodes', cellNName=cellNName)
+            if res is not None:
                 indicesI, XI, YI, ZI = res  #indiceI des pts cellN=2 et coord des pts
                 # passage des coordonnees du recepteur dans le repere absolu
                 # si mouvement gere par FastS -> les coordonnees dans z sont deja les coordonnees en absolu
@@ -581,7 +581,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                     else:
                         if procD not in datas: datas[procD] = [[zname, znamed, indicesI, XI, YI, ZI]]
                         else: datas[procD].append([zname, znamed, indicesI, XI, YI, ZI])
-    
+
     # 2. envoie data interpolation globale en asynchrone
         #Cmpi.trace("2. transfer2")
         reqs = []
@@ -591,7 +591,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
                 for oppNode in g:
                     # Envoie les datas necessaires au noeud oppose
                     #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
-                    if oppNode in datas: 
+                    if oppNode in datas:
                         s = Converter.converter.iSend(datas[oppNode], oppNode, Cmpi.rank, Cmpi.KCOMM)
                     else:
                         s = Converter.converter.iSend(None, oppNode, Cmpi.rank, Cmpi.KCOMM)
@@ -614,7 +614,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         else: interpDataType = 1
         if interpInDnrFrame: [XIRel,YIRel,ZIRel] = RM.evalPositionM1([XI,YI,ZI], zdnr, time)
         else: [XIRel,YIRel,ZIRel] = [XI,YI,ZI]
-        
+
         # transfers avec coordonnees dans le repere relatif
         if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
             # On suppose que le precond est dans init quand il y a un TimeMotion
@@ -622,12 +622,12 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
             GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
             TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP
-    
+
         fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, order=order, hook=adt, variables=variables, interpDataType=interpDataType)
 
         # hack par CB
-        if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None: 
-            TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP        
+        if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
+            TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP
 
         if zname not in dictOfFields:
             dictOfFields[zname] = [fields]
@@ -667,17 +667,17 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
             else: [XIRel,YIRel,ZIRel] = [XI,YI,ZI]
 
             # [XIRel,YIRel,ZIRel] = RM.moveN([XI,YI,ZI],coordsC,coordsD,MatAbs2RelD)
-            # transferts avec coordonnees dans le repere relatif 
+            # transferts avec coordonnees dans le repere relatif
             if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
                 GC1 = Internal.getNodeFromName1(zdnr, 'GridCoordinates')
                 GC2 = Internal.getNodeFromName1(zdnr, 'GridCoordinates#Init')
-                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP   
+                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP
 
             fields = X.transferFields(zdnr, XIRel, YIRel, ZIRel, hook=adt, variables=variables, interpDataType=interpDataType)
 
             # hack par CB
             if interpInDnrFrame and Internal.getNodeFromName1(zdnr, 'TimeMotion') is not None:
-                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP       
+                TEMP = GC1[2]; GC1[2] = GC2[2]; GC2[2] = TEMP
 
             procR = procDict[zrcvname]
             if procR not in transferedDatas:
@@ -709,8 +709,8 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         noz = dictOfNozOfRcvZones[zrcvname]
         z = t[2][nob][2][noz]
         allInterpFields = dictOfFields[zrcvname]
-        indicesI = dictOfIndices[zrcvname]        
-        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, 
+        indicesI = dictOfIndices[zrcvname]
+        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0,
                                filterName='donorVol', verbose=verbose)
 
     #Cmpi.trace("8. transfer2 end")
@@ -743,16 +743,16 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 
     dictOfModels = Cmpi.allgatherDict(dictOfModels)
     dictOfModels = {key:value[0] for key,value in dictOfModels.items()}
-        
+
     # Le graph doit correspondre au probleme
     if itype == 'abutting':
         graph = Cmpi.computeGraph(aR, type='match', reduction=True)
-        Cmpi._addXZones(aR, graph, variables=[], noCoordinates=True, 
+        Cmpi._addXZones(aR, graph, variables=[], noCoordinates=True,
                         cartesian=False, zoneGC=True, keepOldNodes=False)
-        Cmpi._addXZones(aD, graph, variables=[], noCoordinates=True, 
+        Cmpi._addXZones(aD, graph, variables=[], noCoordinates=True,
                         cartesian=False, zoneGC=True, keepOldNodes=False)
         X._setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
-                         method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook, 
+                         method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
                          sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
         Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
@@ -767,24 +767,24 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
         for i in interDict:
             bi = baseNames[i]
             out = []
-            for z in interDict[i]: 
+            for z in interDict[i]:
                 if bi != baseNames[z]: out.append(z)
             interDict[i] = out
 
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
-        Cmpi._addXZones(aR, graph, variables=['centers:cellN'], noCoordinates=False, 
+        Cmpi._addXZones(aR, graph, variables=['centers:cellN'], noCoordinates=False,
                         cartesian=False, zoneGC=False, keepOldNodes=False)
-        Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
+        Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False,
                         cartesian=False, zoneGC=False, keepOldNodes=False)
-        
+
         X._setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
-                         method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook, 
+                         method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
                          sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
 
         Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
-    
-    elif itype == 'chimera': # nouvelle version 
+
+    elif itype == 'chimera': # nouvelle version
         tbbc = Cmpi.createBBoxTree(aD)
         interDict = X.getIntersectingDomains(tbbc)
         procDict = Cmpi.getProcDict(aD)
@@ -805,25 +805,25 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 
         # Perform addXZones on aD
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
-        Cmpi._addXZones(aD, graph, variables=['cellN'], noCoordinates=False, 
+        Cmpi._addXZones(aD, graph, variables=['cellN'], noCoordinates=False,
                         cartesian=cartesian, zoneGC=False, keepOldNodes=False)
 
         # serialisation eventuelle
         #graphs = Cmpi.splitGraph(graph)
         #for g in graphs:
-        #    Cmpi._addXZones(aD, g, variables=['centers:cellN'], noCoordinates=False, 
+        #    Cmpi._addXZones(aD, g, variables=['centers:cellN'], noCoordinates=False,
         #                    cartesian=False, zoneGC=False, keepOldNodes=False)
 
         # Build hook on local aD zones
-        hooks = {}; 
+        hooks = {};
         for b in Internal.getBases(aD):
             if b[0] == 'CARTESIAN':
                 for z in Internal.getZones(b):
                     hooks[z[0]] = None # must be None for Cartesian
             else:
-                for z in Internal.getZones(b): 
+                for z in Internal.getZones(b):
                     hooks[z[0]] = C.createHook(z, 'adt')
-        
+
         datas = {}
         # InterpData par zone
         for zr in Internal.getZones(aR):
@@ -837,26 +837,26 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                     if baseNameDnr != baseNameRcv: dnrZones.append(zd)
                 else:
                     dnrZones.append(zd)
-            
+
             hookL = []; interpDataTypeL = []
             for z in dnrZones:
                 h = hooks[z[0]]
                 hookL.append(h)
                 if h is None: interpDataTypeL.append(0)
                 else: interpDataTypeL.append(1)
-            
+
             if dnrZones != []:
-                X._setInterpData(zr, dnrZones, order=order, penalty=penalty, 
-                         nature=nature, extrap=extrap, verbose=verbose,
-                         method=method, loc=loc, storage=storage, 
-                         interpDataType=interpDataTypeL, hook=hookL, 
-                         topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
-                         sameName=sameName, dim=dim, itype="chimera", dictOfModels=dictOfModels)
+                X._setInterpData(zr, dnrZones, order=order, penalty=penalty,
+                                 nature=nature, extrap=extrap, verbose=verbose,
+                                 method=method, loc=loc, storage=storage,
+                                 interpDataType=interpDataTypeL, hook=hookL,
+                                 topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
+                                 sameName=sameName, dim=dim, itype="chimera", dictOfModels=dictOfModels)
 
             for zd in dnrZones:
                 zdname = zd[0]
                 destProc = procDict[zdname]
-        
+
                 IDs = []
                 for i in zd[2]:
                     if i[0][0:2] == 'ID':
@@ -874,7 +874,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 
         Cmpi._rmXZones(aD)
         for h in hooks: C.freeHook(hooks[h])
-        
+
         destDatas = Cmpi.sendRecv(datas, graph)
         for i in destDatas:
             for n in destDatas[i]:
@@ -898,12 +898,12 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
     """Compute interpolation data for 2 different trees."""
 
     if loc == 'nodes': varcelln = 'cellN'
-    else: varcelln = 'centers:cellN'    
+    else: varcelln = 'centers:cellN'
 
     # Clean previous IDs if necessary
     Internal._rmNodesFromType(tD, 'ZoneSubRegion_t')
     Internal._rmNodesFromName(tD, 'GridCoordinates#Init')
-        
+
     if cartesian: interpDataType = 0 # 0 if tc is cartesian
     else: interpDataType = 1
     locR = loc
@@ -916,9 +916,9 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
     interDictD2R = X.getIntersectingDomains(tDBB, tsBB)
 
     graph = Cmpi.computeGraph(tDBB, type='bbox3', intersectionsDict=interDictD2R,
-                            procDict=procDictD, procDict2=procDicts, t2=tsBB, reduction=True)
+                              procDict=procDictD, procDict2=procDicts, t2=tsBB, reduction=True)
     graph2 = Cmpi.computeGraph(tsBB, type='bbox3', intersectionsDict=interDicts,
-                            procDict=procDicts, procDict2=procDictD, t2=tDBB, reduction=True)
+                               procDict=procDicts, procDict2=procDictD, t2=tDBB, reduction=True)
     Cmpi._addXZones(tD, graph, variables=['cellN'], cartesian=cartesian, subr=False, keepOldNodes=False)
 
     datas = {}
@@ -940,7 +940,7 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
         for zd in dnrZones:
             zdname = zd[0]
             destProc = procDictD[zdname]
-    
+
             IDs = []
             for i in zd[2]:
                 if i[0][0:2] == 'ID':
@@ -966,7 +966,7 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
                 zD = Internal.getNodeFromName2(tD, zname)
                 zD[2] += IDs
     datas = {}; destDatas = None
-    
+
     return None
 
 
@@ -977,7 +977,7 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
 
     variablesIBC=['Density_WM', 'VelocityX_WM', 'VelocityY_WM', 'VelocityZ_WM', 'Temperature_WM', 'TurbulentSANuTilde_WM']
     if nvars == 5: variablesIBC=['Density_WM', 'VelocityX_WM', 'VelocityY_WM', 'VelocityZ_WM', 'Temperature_WM']
-        
+
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
     # On envoie aussi les indices receveurs pour l'instant
@@ -1000,7 +1000,7 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
     datas = {}
     znr   = {}
     for z in zones: znr[z[0]] = z
-    
+
     for zd in zonesD:
         subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
         for s in subRegions:
@@ -1026,7 +1026,7 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
     for dest in rcvDatas:
         for [name, zname, ListDonor, ListRcv, dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm] in rcvDatas[dest]:
             zr = znr[zname]
-            connector._WM_getVal2tc(zr, variablesIBC, ListRcv,  
+            connector._WM_getVal2tc(zr, variablesIBC, ListRcv,
                                     dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm,
                                     1, nvars,
                                     Internal.__GridCoordinates__,
@@ -1036,7 +1036,7 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
             infos = [name, zname, dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm]
             if rcvNode not in datas: datas[rcvNode] = [infos]
             else: datas[rcvNode] += [infos]
-    
+
     rcvDatas = Cmpi.sendRecv(datas, graphInvIBCD_WM)
     for dest in rcvDatas:
         for [name, zname, dens_wm_new, velx_wm_new, vely_wm_new, velz_wm_new, temp_wm_new, sanu_wm_new] in rcvDatas[dest]:

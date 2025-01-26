@@ -38,7 +38,7 @@ class perso:
 
     # register sounds
     def registerSounds(self):
-        self.gob = Sound.registerSound("gob2.wav")  
+        self.gob = Sound.registerSound("gob2.wav")
         self.faster = Sound.registerSound("gettin' faster.wav")
 
     # register images
@@ -50,7 +50,7 @@ class perso:
         if s is not None:
             Sound.closeAllSounds()
             Sound.playSound(s)
-            
+
     # Positionne perso init
     def place(self, world, i=None, j=None):
         m = world.map
@@ -71,7 +71,7 @@ class perso:
             self.vy = 0.
         else:
             print ('>>init pb')
-        
+
     # Build the model (sphere)
     def build(self, world):
         a = D.sphere((0,0,0),0.5,N=8)
@@ -97,14 +97,14 @@ class perso:
         elif self.x < 0: self.x = world.nx
         if self.y > world.ny: self.y = 0.
         elif self.y < 0: self.y = world.ny
-            
+
     # Checking collision with world
     def checkCollision(self, world):
         # Check buffs
         if self.timeBuff > 0 and world.time - self.timeBuff > 100:
             self.timeBuff = 0
             self.speed = self.baseSpeed
-            
+
         # Check collision
         m = world.map
         x = self.x; y = self.y
@@ -119,7 +119,7 @@ class perso:
         i = max(i,0); i = min(i,world.nx-1)
         j = max(j,0); j = min(j,world.ny-1)
         #print i,j,m[i,j]
-        if m[i,j] == 1: # wall 
+        if m[i,j] == 1: # wall
             self.playSound(self.gob)
             self.x -= self.vx
             self.y -= self.vy
@@ -190,7 +190,7 @@ class perso:
             self.animate(1./16.,4./16.)
         if self.vx < 0:
             self.animate(9./16.,12./16.)
-        if self.vy < 0: 
+        if self.vy < 0:
             self.animate(13./16.,16./16.)
         b = T.translate(self.piece, (self.x, self.y, 0.001))
         zones = Internal.getZones(world.all[2][3])
@@ -240,4 +240,4 @@ class perso:
         elif self.count < 17: pass
         elif self.count < 19: self.moveUp()
         self.count += 1
-        if self.count == 19: self.count = 0 
+        if self.count == 19: self.count = 0

@@ -3,7 +3,7 @@ import Generator.PyTree as G
 import Converter.PyTree as C
 import KCore.test as test
 
-# cas 2D multibloc avec CL et raccords 
+# cas 2D multibloc avec CL et raccords
 a = G.cart( (0,0,0), (0.1,0.1,0.1), (11,11,1))
 b = G.cart( (0,1,0), (0.1,0.1,0.1), (11,11,1))
 a = C.addBC2Zone(a,'match1','BCMatch','jmax',b,'jmin')

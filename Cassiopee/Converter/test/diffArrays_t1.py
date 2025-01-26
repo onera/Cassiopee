@@ -1,5 +1,5 @@
 # - diffArrays -
-import Converter as C   
+import Converter as C
 import Generator as G
 import KCore.test as T
 

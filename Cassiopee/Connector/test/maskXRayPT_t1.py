@@ -21,7 +21,7 @@ xray =  X.maskXRay__(surf, 0.,2)
 test.testT(xray,2)
 
 # cas surface 2D avec body en TRI
-surf = G.cylinder((0.,0.,0.), 0., 1., 360., 0., 1., (50,50,2)) 
+surf = G.cylinder((0.,0.,0.), 0., 1., 360., 0., 1., (50,50,2))
 surf = T.subzone(surf,(1,50,1),(50,50,2))
 surf = C.convertArray2Tetra(surf)
 xray =  X.maskXRay__(surf, 0.,2)

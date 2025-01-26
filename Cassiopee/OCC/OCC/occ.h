@@ -30,10 +30,17 @@ namespace K_OCC
   PyObject* readCAD(PyObject* self, PyObject* args);
   PyObject* writeCAD(PyObject* self, PyObject* args);
   PyObject* createEmptyCAD(PyObject* self, PyObject* args);
+  PyObject* mergeCAD(PyObject* self, PyObject* args);
   PyObject* freeHook(PyObject* self, PyObject* args);
+
+  PyObject* printOCAF(PyObject* self, PyObject* args);
+  PyObject* printShapeOCAF(PyObject* self, PyObject* args);
 
   PyObject* bottle(PyObject* self, PyObject* args);
   PyObject* addSphere(PyObject* self, PyObject* args);
+  PyObject* addSquare(PyObject* self, PyObject* args);
+  PyObject* addCylinder(PyObject* self, PyObject* args);
+  PyObject* addBox(PyObject* self, PyObject* args);
   
   PyObject* getNbFaces(PyObject* self, PyObject* args);
   PyObject* getNbEdges(PyObject* self, PyObject* args);
@@ -74,8 +81,12 @@ namespace K_OCC
   PyObject* fillHole(PyObject* self, PyObject* args);
   PyObject* addFillet(PyObject* self, PyObject* args);
 
-  PyObject* getOppData(PyObject* self, PyObject* args);
+  PyObject* translate(PyObject* self, PyObject* args);
+  PyObject* scale(PyObject* self, PyObject* args);
+  PyObject* rotate(PyObject* self, PyObject* args);
 
+  PyObject* getOppData(PyObject* self, PyObject* args);
+  PyObject* identifyTags(PyObject* self, PyObject* args);
 }
 
 #endif

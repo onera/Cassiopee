@@ -18,8 +18,8 @@ fr['/Base/cart/GridCoordinates/CoordinateX'] = DataSpaceMMRY+DataSpaceFILE+DataS
 # Formation squelette pour le filtre
 ts = Internal.copyRef(t)
 for path in fr:
-      node = Internal.getNodeFromPath(ts, path)
-      node[1] = None
+    node = Internal.getNodeFromPath(ts, path)
+    node[1] = None
 
 # Ecriture squelette sur le proc 0
 C.convertPyTree2File(ts, 'out.hdf')

@@ -5,7 +5,7 @@ import KCore.test as test
 
 a = G.cart((0.,0.,0), (0.01,0.01,1.), (20,20,2))
 b = G.cart((1.,0.,0), (0.01,0.01,1.), (20,20,2))
-C._tagWithFamily(a, 'CARTER') 
+C._tagWithFamily(a, 'CARTER')
 C._tagWithFamily(b, 'CARTER')
 
 t = C.newPyTree(['Base',a,b])

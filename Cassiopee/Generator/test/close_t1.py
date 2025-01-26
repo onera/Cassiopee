@@ -3,7 +3,7 @@ import Converter as C
 import Generator as G
 import KCore.test as test
 
-a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0.01, 10., (20,20,10)) 
+a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0.01, 10., (20,20,10))
 a = C.addVars(a, 'F')
 
 # test structure

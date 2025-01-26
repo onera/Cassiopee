@@ -1,5 +1,6 @@
 #include "Hexa.h"
 #include "Quad.h"
+#include "Mesh.h"
 
 void H27_refine(E_Int hexa, Mesh *M)
 {
@@ -1349,7 +1350,6 @@ void H27_reorder(E_Int hexa, Mesh *M)
     }
 }
 
-static
 void reconstruct_quad(Mesh *M, E_Int hexa, E_Int *fids, E_Int crange, E_Int normalIn,
     E_Int NODE, E_Int pn[4])
 {
@@ -1515,4 +1515,23 @@ E_Int check_canon_hexa(E_Int hexa, Mesh *M)
     assert(local[3] == NODES[7]);
 
     return 0;
+}
+
+void update_range_and_stride(Mesh *M, E_Int hexa, E_Int cpos, E_Int nchildren)
+{
+    E_Int *crange = Mesh_get_crange(M, hexa);
+    for (E_Int i = 0; i < M->cstride[hexa]; i++) {
+        crange[i] = 1;
+    }
+
+    for (E_Int i = 0; i < nchildren; i++) {
+        E_Int child = cpos + i;
+
+        M->cstride[child] = M->cstride[hexa];
+
+        crange = Mesh_get_crange(M, child);
+        for (E_Int j = 0; j < M->cstride[child]; j++) {
+            crange[j] = 1;
+        }
+    }
 }

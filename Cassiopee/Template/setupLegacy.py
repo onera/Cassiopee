@@ -54,7 +54,7 @@ listExtensions.append(
               extra_compile_args=Dist.getCppArgs(),
               extra_link_args=Dist.getLinkArgs()
               ) )
-    
+
 # setup ======================================================================
 setup(
     name="Template",
@@ -64,7 +64,7 @@ setup(
     package_dir={"":"."},
     packages=['Template'],
     ext_modules=listExtensions
-    )
+)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()

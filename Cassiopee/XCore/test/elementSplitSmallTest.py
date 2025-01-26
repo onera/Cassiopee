@@ -23,7 +23,7 @@ else:
     elt2vert_glob = np.empty(8*nb_procs, np.int32)
     for i in range(0,2*nb_procs):
         elt2vert_glob[4*i:4*(i+1)] = [i+1,i+2,i+3,i+4]
-        if (i%2 == 1) : 
+        if (i%2 == 1) :
             elt2vert_glob[4*i+1],elt2vert_glob[4*i+2] = elt2vert_glob[4*i+2],elt2vert_glob[4*i+1]
     nb_vert_glob  = elt2vert_glob[-1]
     coords_glob   = np.empty((3,nb_vert_glob), np.double)

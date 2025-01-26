@@ -3,7 +3,7 @@ import Geom.PyTree as D
 import Converter.PyTree as C
 import KCore.test as test
 
-# test getLength structure 
+# test getLength structure
 a = D.line((0,0,0), (1,0,0))
 l = D.getLength(a)
 test.testO(l, l)

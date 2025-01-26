@@ -10,7 +10,7 @@ for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     arrays.append(a)
-    
+
 out = D2.distribute(arrays, NProc=5, algorithm='gradient')
 test.testO(out['distrib'], 1)
 

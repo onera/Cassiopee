@@ -4,7 +4,7 @@ import shutil
 exp = RE.compile("#include")
 
 MODS = ['TKBool', 'TKBRep', 'TKernel',
-        'TKG2d', 'TKG3d', 'TKGeomAlgo', 
+        'TKG2d', 'TKG3d', 'TKGeomAlgo',
         'GeomBase', 'TKIGES', 'TKMath', 'TKPrim',
         'TKShHealing', 'TKTopAlgo', 'TKXSBase']
 
@@ -25,8 +25,8 @@ def checkDepend(file, dic):
             f = open(i+'/'+file, "r")
             print('Found %s.'%(i+'/'+file))
             break
-        except: pass 
-    if f is None: 
+        except: pass
+    if f is None:
         print('File %s not found.'%file); return
 
     lines = f.readlines()
@@ -41,7 +41,7 @@ def checkDepend(file, dic):
             i = i.replace("<","")
             i = i.replace(">","")
             if i not in dic: dic[i] = 0 # add include file
-            
+
             c = i.replace("hxx", "cxx")
             if c not in dic: dic[c] = 0 # add cxx file
             d = i.replace("hxx", "dxx")
@@ -70,10 +70,10 @@ def rebuild(dic):
         if (base != '.'):
             shutil.copyfile(n, target);
             print('copy %s -> %s'%(n, target))
-    
+
 #==============================================================================
 # Ecrit les sources (.cxx) par modules
-#============================================================================== 
+#==============================================================================
 def writeSources(dic):
     keys = dic.keys()
     print('== Sources (%d) =='%len(keys))
@@ -112,7 +112,7 @@ checkDepend('OCCSurface.cpp', dic)
 end = False
 while end == False:
     keys = dic.keys() ; l = len(keys) ; update = 0
-    for k in keys: 
+    for k in keys:
         if (dic[k] == 0): checkDepend(k, dic) ; update = 1
     if update == 0: end = True
 

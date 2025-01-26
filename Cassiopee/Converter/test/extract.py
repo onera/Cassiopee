@@ -21,7 +21,7 @@ for b in arrays:
     for i in l:
         t2[c] = t[i]
         c += 1
-        
+
     v = ['x,y,z,ro,rovx,cellnf', t2, ni, nj, nk]
     out.append(v)
 

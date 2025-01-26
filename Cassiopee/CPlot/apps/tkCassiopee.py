@@ -18,7 +18,7 @@ STATEAPPS = ['tkState', '---',
 EDGEAPPS = ['tkCanvas', 'tkPoint', 'tkDraw','---',
             'tkExtractEdges', 'tkMapEdge']
 SURFAPPS = ['tkBasicSurfs', 'tkText', '---',
-            'tkCADMesh', 
+            'tkCADMesh',
             'tkFixer2', 'tkBoolean', '---',
             'tkMapUV', 'tkSculpt', '---',
             'tkMMGs', 'tkCartWrap', 'tkOffset', 'tkSurfaceWalk', '---',
@@ -44,7 +44,7 @@ POSTAPPS = ['tkVariables', '---',
             'tkExtractMesh', '---',
             'tkStream', 'tkIsoLine', 'tkIsoSurf', '---',
             'tkInteg']
-VISUAPPS = ['tkView', #'tkPlot', 
+VISUAPPS = ['tkView', #'tkPlot',
             'tkPlotXY', '---',
             'tkSlice', 'tkIJK', 'tkCellN', '---',
             'tkBackground']
@@ -53,15 +53,15 @@ RENDERAPPS = ['tkRenderTree', 'tkRenderSet', '---',
               'tkPovRay', 'tkLuxRender']
 
 ALLAPPS = TREEAPPS + STATEAPPS + EDGEAPPS + SURFAPPS + MESHAPPS + \
-          BLOCKAPPS + BCAPPS + MOTIONAPPS + SOLVERAPPS + POSTAPPS + \
-          VISUAPPS + RENDERAPPS
+    BLOCKAPPS + BCAPPS + MOTIONAPPS + SOLVERAPPS + POSTAPPS + \
+    VISUAPPS + RENDERAPPS
 PERSOAPPS = []
 
 #==============================================================================
 # Add a personal app to pref file
 #==============================================================================
 def addPersonalApp():
-    try: import tkinter.filedialog as tkFileDialog 
+    try: import tkinter.filedialog as tkFileDialog
     except: import tkFileDialog
     file = tkFileDialog.askopenfilename(filetypes=[('python', '*.py')])
     a = os.access(file, os.F_OK)
@@ -103,23 +103,23 @@ def run(t=None):
     if t is not None:
         if Internal.isTopTree(t): CTK.t = t
         else: CTK.t, ntype = Internal.node2PyTree(t)
-        
+
     if CTK.t != []:
         # upgrade tree
         CTK.t = CTK.upgradeTree(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         fileName = os.path.split(CTK.FILE)
         CPlot.setWindowTitle(fileName[1], fileName[0])
-        
+
     # - Verifie l'arbre -
     errors = []
     if CTK.t != []:
         errors = Internal.checkPyTree(CTK.t, level=5)
         if errors == []: CTK.display(CTK.t)
-        
+
     # Load and set prefs for interface
     CTK.loadPrefFile(); CTK.setPrefs()
-    
+
     # Modules a ouvrir automatiquement
     auto = {}
     for app in ALLAPPS:
@@ -136,7 +136,7 @@ def run(t=None):
     # Main window
     (win, frames, menu, menus, file, tools) = CTK.minimal2('Cassiopee '+C.__version__,
                                                            show=False)
-    
+
     fileName = os.path.split(CTK.FILE)
     CTK.changeWindowTitle(fileName[1], fileName[0])
 
@@ -174,7 +174,7 @@ def run(t=None):
         module = CTK.getModule('tkPlotXY')
         if module is not None: CTK.TKPLOTXY = module
     except: pass
-    
+
     # - Personal apps  -
     tools.add_command(label='Add a personal app',
                       command=addPersonalApp)
@@ -210,12 +210,12 @@ def run(t=None):
         Panels.displayErrors(errors, header='Checking pyTree')
         CTK.t = Internal.correctPyTree(CTK.t, level=5)
         CTK.display(CTK.t)
-    
-    # - Update apps -    
+
+    # - Update apps -
     CTK.TKTREE.updateApp()
     if CTK.TKMODULES['tkContainers'] is not None: CTK.TKMODULES['tkContainers'].updateApp()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
-        
+
     # - open load panel if partial load -
     if CTK.t != []:
         zones = Internal.getZones(CTK.t)
@@ -236,7 +236,7 @@ def run(t=None):
     win.mainloop()
 
     # Del photos
-    CTK.PHOTOS = []    
+    CTK.PHOTOS = []
 
 #==============================================================================
 if __name__ == "__main__":

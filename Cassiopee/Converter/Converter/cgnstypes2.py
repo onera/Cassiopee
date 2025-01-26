@@ -1,7 +1,7 @@
 #  -------------------------------------------------------------------------
-#  Taken from pyCGNS - Python package for CFD General Notation System - 
+#  Taken from pyCGNS - Python package for CFD General Notation System -
 #  See license.txt file in the root directory of this Python module source
-#  Written by M. Poinot  
+#  Written by M. Poinot
 #  -------------------------------------------------------------------------
 #
 from . import cgnskeywords as CK
@@ -11,7 +11,7 @@ tlistA=[
     CK.UserDefinedData_ts,
     CK.DataClass_ts,
     CK.DimensionalUnits_ts,
-    ]
+]
 
 allDT=[CK.C1,CK.MT,CK.I4,CK.I8,CK.R4,CK.R8] # LK is default
 
@@ -28,37 +28,37 @@ allCARD=[C_01,C_11,C_0N,C_1N,C_NN]
 
 # --------------------------------------------------------
 class CGNStype:
-  def __init__(self,ntype,dtype=[CK.MT],names=[UD]):
-    self.type=ntype
-    self.datatype=[CK.LK]+dtype
-    self.enumerate=[]
-    self.shape=()
-    self.names=names
-    self.children=[]
-    self.parents=[]
-  def hasChild(self,ctype):
-    for c in self.children:
-      if (c[0]==ctype): return True
-    return False
-  def addChild(self,ctype,cname=UD,dtype=CK.MT,card=C_0N):
-    if (type(cname)!=list): lname=[cname]
-    else: lname=cname
-    self.children.append((ctype,lname,dtype,card))
-  def addParent(self,parent):
-    self.parents.append(parent)
-  def cardinality(self,childtype):
-    for c in self.children:
-      if (c[0]==childtype): return c[3]
-    return C_00
-  def isReservedName(self,name):
-    for c in self.children:
-      if (name in c[1]): return True
-    return False
-  def hasReservedNameType(self,name):
-    nl=[]
-    for c in self.children:
-      if (name in c[1]): nl.append(c[0])
-    return nl
+    def __init__(self,ntype,dtype=[CK.MT],names=[UD]):
+        self.type=ntype
+        self.datatype=[CK.LK]+dtype
+        self.enumerate=[]
+        self.shape=()
+        self.names=names
+        self.children=[]
+        self.parents=[]
+    def hasChild(self,ctype):
+        for c in self.children:
+            if (c[0]==ctype): return True
+        return False
+    def addChild(self,ctype,cname=UD,dtype=CK.MT,card=C_0N):
+        if (type(cname)!=list): lname=[cname]
+        else: lname=cname
+        self.children.append((ctype,lname,dtype,card))
+    def addParent(self,parent):
+        self.parents.append(parent)
+    def cardinality(self,childtype):
+        for c in self.children:
+            if (c[0]==childtype): return c[3]
+        return C_00
+    def isReservedName(self,name):
+        for c in self.children:
+            if (name in c[1]): return True
+        return False
+    def hasReservedNameType(self,name):
+        nl=[]
+        for c in self.children:
+            if (name in c[1]): nl.append(c[0])
+        return nl
 
 cgt={}
 
@@ -646,7 +646,7 @@ cgt[t].addChild(CK.BCProperty_ts,CK.BCProperty_s)
 # --------------------------------------------------------
 t=CK.ArbitraryGridMotionType_ts
 cgt[t]=CGNStype(t,dtype=[CK.C1],
-                  names=[CK.ArbitraryGridMotionType_s])
+                names=[CK.ArbitraryGridMotionType_s])
 cgt[t].shape=(0,)
 
 # --------------------------------------------------------
@@ -819,8 +819,8 @@ types=cgt
 tk=types.keys()
 tk.sort()
 for pk in tk:
-  for ck in tk:
-    if ((ck!=pk) and (types[pk].hasChild(ck))):
-        types[ck].addParent(pk)
-  
+    for ck in tk:
+        if ((ck!=pk) and (types[pk].hasChild(ck))):
+            types[ck].addParent(pk)
+
 # --- last line

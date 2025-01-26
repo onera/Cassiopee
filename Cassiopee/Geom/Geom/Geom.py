@@ -20,7 +20,7 @@ def point(P):
     a[0,0] = P[0]; a[1,0] = P[1]; a[2,0] = P[2]
     c = numpy.ones((1, 0), numpy.int32)
     return ['x,y,z', a, c, 'NODE']
-    
+
 def cloud(arr):
     """Create a point cloud. 
     Usage: a = cloud([(x1,x2,...,xn),(y1,y2,...,yn),(z1,z2,...,zn)])"""
@@ -52,8 +52,8 @@ def naca(e, N=101, sharpte=True):
         e = 0.
     if not sharpte: sharpte = 0
     else: sharpte = 1
-    return geom.naca(e, N, im, ip, it, ith, iq, sharpte)    
-    
+    return geom.naca(e, N, im, ip, it, ith, iq, sharpte)
+
 def line(P1, P2, N=100):
     """Create a line of N points. 
     Usage: a = line((x1,y1,z1), (x2,y2,z2), N)"""
@@ -72,7 +72,7 @@ def nurbs(Pts, weight='weight', order=3, N=100, M=100, density=-1):
     try:
         import Converter
         Weights = Converter.extractVars(Pts,[weight])
-    except: 
+    except:
         ni = Pts[2]; nj = Pts[3]; nk = Pts[4]
         Weights = [weight, numpy.ones((1,ni*nj*nk), numpy.float64), ni, nj, nk]
     return geom.nurbs(Pts, Weights, order, N, order, M, density)
@@ -136,7 +136,7 @@ def sphereYinYang(C, R, N=100, ntype='STRUCT'):
 # IN: liste de maillages struct
 def export__(a, ntype='STRUCT'):
     try: import Converter as C; import Transform as T; import Generator as G
-    except ImportError: 
+    except ImportError:
         raise ImportError("export: requires Converter, Generator and Transform modules.")
     if ntype == 'STRUCT': return a
     elif ntype == 'QUAD':
@@ -218,27 +218,27 @@ def triangle(P0, P1, P2, N=0, ntype='TRI'):
     C = (1./3.*(P0[0]+P1[0]+P2[0]),
          1./3.*(P0[1]+P1[1]+P2[1]),
          1./3.*(P0[2]+P1[2]+P2[2]))
-    
+
     l1 = line(P0, C01, N)
     l2 = line(C01, C, N)
     l3 = line(C, C02, N)
     l4 = line(C02, P0, N)
     m1 = G.TFI([l1, l2, l3, l4])
     m1 = T.reorder(m1, (-1,2,3))
-    
+
     l1 = line(C01, P1, N)
     l2 = line(P1, C12, N)
     l3 = line(C12, C, N)
     l4 = line(C, C01, N)
     m2 = G.TFI([l1, l2, l3, l4])
     m2 = T.reorder(m2, (-1,2,3))
-    
+
     l1 = line(C, C12, N)
     l2 = line(C12, P2, N)
     l3 = line(P2, C02, N)
     l4 = line(C02, C, N)
     m3 = G.TFI([l1, l2, l3, l4])
-    m3 = T.reorder(m3, (-1,2,3))    
+    m3 = T.reorder(m3, (-1,2,3))
     m = [m1, m2, m3]
     return export__(m, ntype)
 
@@ -340,7 +340,7 @@ def surface_(f, N):
     a = Converter.initVars(a, f)
     a = Converter.extractVars(a, ['x','y','z'])
     return a
-    
+
 # Surface parametree a partir d'une fonction
 def surface__(f, N):
     a = numpy.zeros((3, N*N), dtype=numpy.float64)
@@ -363,7 +363,7 @@ def surface__(f, N):
 def getLength(a):
     """Return the length of 1D-mesh.
     Usage: l = getLength(a"""
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         l = 0.
         for i in a: l += geom.getLength(i)
         return l
@@ -408,7 +408,7 @@ def getCurvatureRadius(a):
         return b
     else:
         return geom.getCurvatureRadius(a)
-    
+
 def getCurvatureAngle(a):
     """Return the curvature angle for each point.
     Usage: getCurvatureAngle(a)"""
@@ -419,7 +419,7 @@ def getCurvatureAngle(a):
         return b
     else:
         return geom.getCurvatureAngle(a)
-    
+
 def getCurvatureHeight(a):
     """Return the curvature height for each node in a 2D or 1D mesh.
     Usage: getCurvatureHeight(a)"""
@@ -434,12 +434,12 @@ def getSharpestAngle(a):
     """Return the sharpest angle for each point of a surface based on the sharpest angle
     between adjacent element to which the point belongs to.
     Usage: getSharpestAngle(a)"""
-    if isinstance(a[0], list): 
+    if isinstance(a[0], list):
         out = []
         for i in a: out.append(geom.getSharpestAngle(i))
         return out
     else: return geom.getSharpestAngle(a)
-    
+
 def getCurvilinearAbscissa(a):
     """Return the curvilinear abscissa for each point.
     Usage: getCurvilinearAbscissa(a)"""
@@ -449,7 +449,7 @@ def getCurvilinearAbscissa(a):
         return b
     else:
         return geom.getCurvilinearAbscissa(a)
-        
+
 def getDistribution(a):
     """Return the curvilinear abscissa for each point as X coordinate.
     Usage: getDistribution(a)"""
@@ -464,9 +464,9 @@ def getDistribution(a):
     else:
         if a[-1] == 'BAR': raise TypeError("getDistribution: only for structured arrays.")
         c = line((0,0,0),(1,0,0),a[2])
-        c[1][0] = geom.getCurvilinearAbscissa(a)[1]   
-        return c       
-        
+        c[1][0] = geom.getCurvilinearAbscissa(a)[1]
+        return c
+
 def getTangent(a):
     """Return the unit tangent vector of a 1D curve as coordinates. 
     The input argument shall be an array. Each node of the output represents the unitary tangent 
@@ -556,10 +556,10 @@ def orthoDrive(a, d, mode=0):
         U = Vector.mul(alpha, S)
         U = Vector.add(U, [0,1,0])
     V = Vector.cross(U, S)
-    
+
     n = d[2]
     all = []
-    
+
     e2p = None
     P0 = [coord[0,0],coord[1,0],coord[2,0]]
     for i in range(n):
@@ -567,7 +567,7 @@ def orthoDrive(a, d, mode=0):
             Pi = [coord[0,i-1],coord[1,i-1],coord[2,i-1]]
             Pip = [coord[0,i],coord[1,i],coord[2,i]]
             v = Vector.sub(Pip, P0)
-        else:                
+        else:
             Pi = [coord[0,i],coord[1,i],coord[2,i]]
             Pip = [coord[0,i+1],coord[1,i+1],coord[2,i+1]]
             v = Vector.sub(Pi, P0)
@@ -605,10 +605,10 @@ def addSeparationLine(array, array2):
 def axisym(a, C, axis, angle=360., Ntheta=180, rmod=None):
     """Create an axisymetrical mesh given an azimuthal 1D or 2D mesh.
     Usage: axisym(array, (xo,yo,zo), (nx,ny,nz), teta, Nteta, rmod)"""
-    try: 
+    try:
         import Converter
         if rmod is not None: rmod = Converter.convertBAR2Struct(rmod)
-    except: pass 
+    except: pass
     if isinstance(a[0], list):
         b = []
         for i in a:
@@ -647,7 +647,7 @@ def volumeFromCrossSections(contours):
             c[z] = C.convertArray2Tetra(d)
 
     sort = sorted(c.items())
-    
+
     # Delaunay constrained
     DT = []; CT = []
     for i in sort:
@@ -787,9 +787,9 @@ def text1D(string, font='vera', smooth=0, offset=0.5):
         d = Generator.cart((0,0,0), (1./nmap,1,1), (nmap+1,1,1))
         c = 0
         for i in retour:
-            b = Generator.densify(i, hdensify) 
+            b = Generator.densify(i, hdensify)
             retour[c] = Generator.map(b, d); c += 1
-            
+
     return retour
 
 def text2D(string, font='vera', smooth=0, offset=0.5):
@@ -821,7 +821,7 @@ def text3D(string, font='vera', smooth=0, offset=0.5, thickness=8.):
     a = lineDrive(a, l)
     a = Converter.convertArray2Tetra(a)
     b = Transform.join(a)
-    
+
     a = text2D(string, font, smooth, offset)
     a = Transform.translate(a, (0,0,-0.0001))
     c = Transform.translate(a, (0,0,thickness+.0002))
@@ -840,7 +840,7 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
     try:
         import Transform as T
         import Converter as C
-        import Generator as G    
+        import Generator as G
     except ImportError:
         raise ImportError("connect1D requires Transform, Converter, Generator modules.")
     #curves = T.splitTBranch(curves)
@@ -860,7 +860,7 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
     added = []
     for c in range(ncurves):
         lcurve = getLength(curves[c]) * lengthFactor
-        P1 = Pts[c][0] 
+        P1 = Pts[c][0]
         minDist, P2, d, ext = findNearest__(P1, Pts, c)
         n1 = Vector.sub(P1, PtsM[c][0])
         n1 = Vector.normalize(n1)
@@ -897,7 +897,7 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
     if added != []:
         added = C.convertArray2Hexa(added)
         out = T.join(out+added)
-    out = G.close(out) 
+    out = G.close(out)
     return out
 
 # Pt d'intersection par minimal distance
@@ -921,10 +921,10 @@ def findNearest__(Pt, Pts, c):
     minDist = 1.e6; nearest = None; dmin = -1; ext=0
     for d in range(len(Pts)):
         if d <= c: # possible sur lui meme !!
-            e2a = Pts[d][0]; e2b = Pts[d][1]    
+            e2a = Pts[d][0]; e2b = Pts[d][1]
             d1 = Vector.squareDist(Pt, e2a)
             d2 = Vector.squareDist(Pt, e2b)
-            if d1 < minDist and d1 > 1.e-12: 
+            if d1 < minDist and d1 > 1.e-12:
                 minDist = d1; nearest = e2a; ext=0; dmin = d
             if d2 < minDist and d2 > 1.e-12:
                 minDist = d2; nearest = e2b; ext=1; dmin = d
@@ -944,7 +944,7 @@ def getUVFromIJ(a):
     a = Converter.initVars(a, '_v_', 0.)
     if isinstance(a[1], list): # array2/3
         pu = a[1][3].ravel('k'); pv = a[1][4].ravel('k')
-    else: # array1 
+    else: # array1
         pu = a[1][3].ravel('k'); pv = a[1][4].ravel('k')
     ni = a[2]; nj = a[3]
     for j in range(nj):

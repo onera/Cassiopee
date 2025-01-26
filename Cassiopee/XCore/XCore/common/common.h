@@ -54,8 +54,6 @@ E_Int Get_pos(E_Int e, E_Int *pn, E_Int size)
         if (pn[i] == e) return i;
     }
     
-    assert(0);
-    
     return -1;
 }
 

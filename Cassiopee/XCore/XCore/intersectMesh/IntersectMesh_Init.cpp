@@ -18,7 +18,6 @@
 */
 #include "mesh.h"
 #include "common/Karray.h"
-//#include "BVH.h"
 
 PyObject *K_XCORE::IntersectMesh_Init(PyObject *self, PyObject *args)
 {
@@ -39,14 +38,7 @@ PyObject *K_XCORE::IntersectMesh_Init(PyObject *self, PyObject *args)
 
     // Init mesh
 
-    IMesh *M = new IMesh(*karray.cn, karray.x, karray.y, karray.z, karray.npts);
-    /*
-    M->make_skin();
-    puts("Making BVH");
-    BVH bvh(*M);
-    puts("Done");
-    bvh.arena.drop();
-    */
+    IMesh *M = new IMesh(karray);
 
     if (TAGS != Py_None) {
         E_Int size, nfld;

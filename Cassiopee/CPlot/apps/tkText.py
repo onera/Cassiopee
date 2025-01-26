@@ -107,7 +107,7 @@ def replaceText(event=None):
     if abs(n1) < 1.e-12: v1 = Vector.cross(v2,v3); v1p = (0.,0.,0.)
     elif abs(n2) < 1.e-12: v2 = Vector.cross(v1,v3); v2p = (0.,0.,0.)
     elif abs(n3) < 1.e-12: v3 = Vector.cross(v2,v3); v3p = (0.,0.,0.)
-    
+
     # Essaie de matcher les vecteur sur la vue p1,p2,p3
     # On suppose que dirCam doit etre e2, ...
     posCam = CPlot.getState('posCam')
@@ -116,7 +116,7 @@ def replaceText(event=None):
     e2 = dirCam
     e3 = Vector.sub(posCam, posEye)
     e1 = Vector.cross(e2, e3)
-    
+
     f1 = None; f2 = None; f3 = None; Pt = P0
     s1 = Vector.dot(e1, v1)
     s2 = Vector.dot(e1, v2)
@@ -301,7 +301,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

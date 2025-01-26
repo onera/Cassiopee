@@ -6,7 +6,7 @@ import os, os.path, sys
 #==============================================================================
 # To be called when CTK.t is set
 def run(a, q):
-    
+
     # Set cassiopee prefs
     CTK.loadPrefFile(); CTK.setPrefs()
 
@@ -45,14 +45,14 @@ def run(a, q):
         submenus = {}
         for app in ['tkPlotXY']: CTK.addMenuItem(app, menus[10], frames[10], submenus, auto)
     except: pass
-    
+
     # Place win devant les autres fenetres
     win.deiconify(); win.focus_set()
-    
+
     win.config(cursor="watch")
     win.update_idletasks()
     win.update()
-    
+
     # get data from reading process
     if a is not None and q is not None:
         CTK.t = q.get()
@@ -62,7 +62,7 @@ def run(a, q):
     # - Update apps -
     CTK.TKTREE.updateApp()
     #if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
-    
+
     # - Main loop -
     win.mainloop()
 
@@ -76,8 +76,8 @@ def run(a, q):
 def loadSkeleton(q, h):
     t2 = h.loadSkeleton(maxDepth=-1)
     q.put(t2)
-    
-    
+
+
 #==============================================================================
 if __name__ == "__main__":
     # Ouverture du fichier de la ligne de commande
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         import Converter.Filter as Filter
         CTK.HANDLE = Filter.Handle(files[0])
         CTK.FILE = files[0]
-                
+
         # with multiprocessing, we must communicate CTK.t through Queue
         import multiprocessing
         q = multiprocessing.Queue()

@@ -73,7 +73,7 @@ def updateVarNameList2_2(event=None):
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        zvars = C.getVarNames(CTK.t[2][nob][2][noz])    
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])
     if len(zvars) == 0: return
     if 'var2' in WIDGETS:
         WIDGETS['var2']['values'] = zvars[0]
@@ -93,7 +93,7 @@ def updateVarNameList3(event=None):
     m = WIDGETS['var3'].children['menu']
     m.delete(0, TK.END)
     zvars = ['FlowSolutionCenters']
-    if len(varsl) != 0: zvars += varsl[0] 
+    if len(varsl) != 0: zvars += varsl[0]
     for i in zvars:
         m.add_command(label=i, command=lambda v=VARS[8],l=i:v.set(l))
 
@@ -108,7 +108,7 @@ def updateVarNameList3_2(event=None):
         noz = CTK.Nz[0]
         varsl = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True,
                               loc='centers')
-   
+
     zvars = ['FlowSolutionCenters']
     if len(varsl) != 0: zvars += varsl[0]
 
@@ -133,7 +133,7 @@ def updateVarNameList4(event=None):
     if len(varsl) != 0: zvars += varsl[0]
     for i in zvars:
         m.add_command(label=i, command=lambda v=VARS[9],l=i:v.set(l))
-   
+
 # Pour node2Center - seult les variables en noeuds (combobox)
 def updateVarNameList4_2(event=None):
     if CTK.t == []: return
@@ -232,11 +232,11 @@ def node2CenterVar():
     CTK.TXT.insert('START', 'Variable %s put to centers in all tree.\n'%var)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 def chooseImportFile(event=None):
     try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog 
+    except: import tkinter.filedialog as tkFileDialog
     init = VARS[4].get()
     init = init.split(';')[0]
     files = tkFileDialog.askopenfilenames(
@@ -315,21 +315,21 @@ def computeVariables():
     if state is None:
         CTK.TXT.insert('START', 'ReferenceState is missing (tkState).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        
+
     # If gamma exists -> suppose full RefState, we take all from it
     gamma = Internal.getNodeFromName(state, 'Gamma')
     fail = False
     if gamma is not None: gamma = Internal.getValue(gamma)
     else: fail = True
-    
+
     Cv = Internal.getNodeFromName(state, 'Cv')
     if Cv is not None: Cv = Internal.getValue(Cv)
     else: fail = True
-            
+
     TInf = Internal.getNodeFromName(state, 'Temperature')
     if TInf is not None: TInf = Internal.getValue(TInf)
-    else: fail = True 
-        
+    else: fail = True
+
     Ts = Internal.getNodeFromName(state, 'Ts')
     if Ts is not None: Ts = Internal.getValue(Ts)
     else: fail = True
@@ -337,7 +337,7 @@ def computeVariables():
     Cs = Internal.getNodeFromName(state, 'Cs')
     if Cs is not None: Cs = Internal.getValue(Cs)
     else: fail = True
-    
+
     Mus = Internal.getNodeFromName(state, 'Mus')
     if Mus is not None: Mus = Internal.getValue(Mus)
     else: fail = True
@@ -347,11 +347,11 @@ def computeVariables():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     rgp = (gamma-1)*Cv
-    loc = VARS[6].get()    
+    loc = VARS[6].get()
     CTK.saveTree()
     if (varname == 'Vorticity' or varname == 'VorticityMagnitude' or
         varname == 'QCriterion' or varname == 'ShearStress' or
-        varname == 'SkinFriction' or varname == 'SkinFrictionTangential'): # extra variables
+            varname == 'SkinFriction' or varname == 'SkinFrictionTangential'): # extra variables
         varloc = loc+':'+varname
         if CTK.__MAINTREE__ <= 0 or nzs == []:
             try:
@@ -363,7 +363,7 @@ def computeVariables():
                 Panels.displayErrors([0,str(e)], header='Error: computeExtraVariables')
                 CTK.TXT.insert('START', 'Computation of variable %s failed.\n'%varloc)
                 CTK.TXT.insert('START', 'Error: ', 'Error')
-            
+
         else:
             fail = False; errors = []
             for nz in nzs:
@@ -383,7 +383,7 @@ def computeVariables():
                 CTK.TXT.insert('START', 'Computation of variable %s failed.\n'%varloc)
                 CTK.TXT.insert('START', 'Error: ', 'Error')
 
-    else: # std variables 
+    else: # std variables
         varloc = loc+':'+varname
         if CTK.__MAINTREE__ <= 0 or nzs == []:
             try:
@@ -394,7 +394,7 @@ def computeVariables():
             except Exception as e:
                 Panels.displayErrors([0,str(e)], header='Error: computeVariables')
                 CTK.TXT.insert('START', 'Computation of variable %s failed.\n'%varloc)
-                CTK.TXT.insert('START', 'Error: ', 'Error')   
+                CTK.TXT.insert('START', 'Error: ', 'Error')
         else:
             fail = False; errors = []
             for nz in nzs:
@@ -407,7 +407,7 @@ def computeVariables():
                 except Exception as e:
                     fail = True; errors += [0,str(e)]
 
-            if not fail: 
+            if not fail:
                 CTK.TXT.insert('START', 'Variable %s computed.\n'%varloc)
             else:
                 Panels.displayErrors(errors, header='Error: computeVariables')
@@ -439,7 +439,7 @@ def addVar(event=None):
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
-            
+
 #==============================================================================
 def computeGrad():
     if CTK.t == []: return
@@ -503,7 +503,7 @@ def computeCurl():
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
-    
+
 #==============================================================================
 # Fill missing variables
 #==============================================================================
@@ -514,7 +514,7 @@ def fillMissingVariables():
     CTK.TXT.insert('START', 'Missing variables filled.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -545,11 +545,11 @@ def createApp(win):
     # - VARS -
     # -0- computeVariable name
     V = TK.StringVar(win); V.set('Pressure'); VARS.append(V)
-    if 'tkVariablesName' in CTK.PREFS: 
+    if 'tkVariablesName' in CTK.PREFS:
         V.set(CTK.PREFS['tkVariablesName'])
     # -1- addVar
     V = TK.StringVar(win); V.set('Density'); VARS.append(V)
-    if 'tkVariablesAddVar' in CTK.PREFS: 
+    if 'tkVariablesAddVar' in CTK.PREFS:
         V.set(CTK.PREFS['tkVariablesAddVar'])
     # -2- computeGrad -
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
@@ -558,17 +558,17 @@ def createApp(win):
     VARS.append(V)
     # -4- importFile -
     V = TK.StringVar(win); V.set('output.plt'); VARS.append(V)
-    if 'tkVariablesImportFile' in CTK.PREFS: 
+    if 'tkVariablesImportFile' in CTK.PREFS:
         V.set(CTK.PREFS['tkVariablesImportFile'])
     # -5- Rm variable
     V = TK.StringVar(win); V.set('All'); VARS.append(V)
     # -6- Var location
     V = TK.StringVar(win); V.set('centers'); VARS.append(V)
-    if 'tkVariablesLoc' in CTK.PREFS: 
+    if 'tkVariablesLoc' in CTK.PREFS:
         V.set(CTK.PREFS['tkVariablesLoc'])
     # -7- adim type
     V = TK.StringVar(win); V.set('Adim1 (ro,a,T)'); VARS.append(V)
-    if 'tkVariablesAdim' in CTK.PREFS: 
+    if 'tkVariablesAdim' in CTK.PREFS:
         V.set(CTK.PREFS['tkVariablesAdim'])
     # -8- center2Node variable
     V = TK.StringVar(win); V.set('FlowSolutionCenters'); VARS.append(V)
@@ -622,15 +622,15 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Removed variable.')
         WIDGETS['var1'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[5], 
+        B = ttk.Combobox(F, textvariable=VARS[5],
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList1_2)
         F.grid(row=norow, column=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Removed variable.')
         WIDGETS['var1'] = B
-    
-    # - renameVar - 
+
+    # - renameVar -
     #norow+= 1
     #F = TTK.Frame(Frame, borderwidth=0)
     #F.columnconfigure(0, weight=1)
@@ -642,7 +642,7 @@ def createApp(win):
     #    BB = CTK.infoBulle(parent=B, text='Renamed variable.')
     #    WIDGETS['var5'] = B
     #else:
-    #    B = ttk.Combobox(F, textvariable=VARS[11], 
+    #    B = ttk.Combobox(F, textvariable=VARS[11],
     #                     values=[], state='readonly')
     #    B.grid(sticky=TK.EW)
     #    F.bind('<Enter>', updateVarNameList5_2)
@@ -655,8 +655,8 @@ def createApp(win):
     #norow+=1
     #B = TK.Button(Frame, text="Rename variable", command=renameVar)
     #B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW)
-    #BB = CTK.infoBulle(parent=B, text='Rename variable from pyTree.') 
-    
+    #BB = CTK.infoBulle(parent=B, text='Rename variable from pyTree.')
+
     # - center2Node var -
     norow += 1
     B = TTK.Button(Frame, text="Center2Node", command=center2NodeVar)
@@ -673,7 +673,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Center variable to be set in nodes.')
         WIDGETS['var3'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[8], 
+        B = ttk.Combobox(F, textvariable=VARS[8],
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList3_2)
@@ -686,7 +686,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Node2Center", command=node2CenterVar)
     B.grid(row=norow, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Put a node variable to centers in pyTree.')
-    
+
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
 
@@ -698,14 +698,14 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Node variable to be set in centers.')
         WIDGETS['var4'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[9], 
+        B = ttk.Combobox(F, textvariable=VARS[9],
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList4_2)
         F.grid(row=norow, column=1, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Node variable to be set in centers.')
         WIDGETS['var4'] = B
-            
+
     # - computeGrad -
     norow+=1
     F = TTK.Frame(Frame, borderwidth=0)
@@ -728,7 +728,7 @@ def createApp(win):
         BB = CTK.infoBulle(parent=B, text='Variable for gradient.')
         WIDGETS['var2'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[2], 
+        B = ttk.Combobox(F, textvariable=VARS[2],
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2_2)
@@ -752,7 +752,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White')
     BB = CTK.infoBulle(parent=B, text='Variables for curl.')
     B.grid(row=norow, column=1, sticky=TK.EW)
-    
+
     # - computeVariables -
     norow += 1
     #B = TTK.OptionMenu(Frame, VARS[7], 'Adim1 (ro,a,T)', 'Adim2 (ro,u,T)', 'dim')
@@ -761,7 +761,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[6], 'nodes', 'centers')
     B.grid(row=norow, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Computed variable will be localized here.')
-    
+
     norow += 1
     B = TTK.Button(Frame, text="Compute variable", command=computeVariables)
     B.grid(row=norow, column=0, sticky=TK.EW)
@@ -780,7 +780,7 @@ def createApp(win):
                    command=fillMissingVariables)
     B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='All zones will have the same variables.')
-       
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -825,7 +825,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

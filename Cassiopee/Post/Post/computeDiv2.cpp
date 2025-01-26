@@ -487,7 +487,7 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   FldArrayF faceField(nbIntTot, dimPb*nfld); faceField.setAllValuesAtNull();
   FldArrayI voisins(nbIntTot,2); voisins.setAllValuesAt(-1);
   E_Int* cellG = voisins.begin(1); E_Int* cellD = voisins.begin(2);
-  PyObject* tpl;
+  PyObject* tpl = NULL;
   
   if (dimPb == 2)
     tpl = computeDiv2Struct2D(ni, nj, nic, njc, ixyz, varStringOut, cellNp, 

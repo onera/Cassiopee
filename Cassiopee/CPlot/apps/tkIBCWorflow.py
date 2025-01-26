@@ -25,7 +25,7 @@ WIDGETS = {}; VARS = []
 def getIBCFrontForZone__(a):
     f0 =  P.selectCells(a, '{centers:cellN} == 2.')
     f0 = T.join(f0); f0 = G.close(f0)
-    
+
     # recuperation des champs en centres perdus par selectCells
     a2 = C.initVars(a, 'centers:cellN', 1.)
     ta = C.newPyTree(['Base', a2])
@@ -44,11 +44,11 @@ def getIBCFrontForZone__(a):
 #==============================================================================
 # Calcul de la normale et de delta pour les pts du front
 # IN: fc1: front IBC sous forme de zone
-# IN: parentZone: zone dont provient la zone IBC, localisee comme 
+# IN: parentZone: zone dont provient la zone IBC, localisee comme
 # souhaitee pour les interpolations (ex en centres avec cell fict)
-# OUT: front fc1 avec delta 
+# OUT: front fc1 avec delta
 #          la normale = delta * grad TurbulentDistance
-#          l'indice global dans le maillage parent correspondant au pt IBC 
+#          l'indice global dans le maillage parent correspondant au pt IBC
 #==============================================================================
 def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
     listPts = [] # on ne modifie pas localement le maillage
@@ -90,10 +90,10 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
             else: dyloc = abs(yt[0,index]-yt[0,index+nigc])
             if indk == nkgc-1: dzloc = abs(zt[0,index]-zt[0,index-nigcnjgc])
             else: dzloc = abs(zt[0,index]-zt[0,index+nigcnjgc])
-            
+
             if dxloc < toldist: dxloc = 1.e10
             if dyloc < toldist: dyloc = 1.e10
-            if dzloc < toldist: dzloc = 1.e10            
+            if dzloc < toldist: dzloc = 1.e10
             dhLoc[ind] = min(dxloc,dyloc,dzloc)
 
     C.setFields([coords1], fc1, loc='nodes')
@@ -103,7 +103,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
     varny = 'gradyTurbulentDistance'
     varnz = 'gradzTurbulentDistance'
     fc1 = C.normalize(fc1, [varnx, varny, varnz])
-    
+
     if listPts == []:
         C._initVars(fc1,'delta',0.)
         deltaa = C.getField('delta',fc1)[0]
@@ -113,9 +113,9 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
             dist = distance[0,ind]
             # NOUVELLE VERSION
             # # cas 1 : le centre est proche paroi, le point interpole est alors positionne a dhloc+eps de la paroi
-	        # if abs(dist) < dhLoc[ind]: deltaa[1][0,ind] =  2*dhLoc[ind] + eps
+        # if abs(dist) < dhLoc[ind]: deltaa[1][0,ind] =  2*dhLoc[ind] + eps
             # # cas 2 : le centre est loin de la paroi, le point interpole est alors positionne a dist+eps de la paroi
-	        # else: deltaa[1][0,ind] = 2.*abs(dist) + eps
+        # else: deltaa[1][0,ind] = 2.*abs(dist) + eps
             # FIN NOUVELLE VERSION
 
             # cas 1 : le centre est proche paroi, le point interpole est alors positionne a dhloc+eps de la paroi
@@ -129,7 +129,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
         deltaa = C.getField('delta',fc1)[0]
         for ind in listPts: deltaa[1][0,ind] += eps
         C.setFields([deltaa], fc1, loc='nodes')
-    
+
     C._initVars(fc1, '{nx} = {gradxTurbulentDistance} * {delta}')
     C._initVars(fc1, '{ny} = {gradyTurbulentDistance} * {delta}')
     C._initVars(fc1, '{nz} = {gradzTurbulentDistance} * {delta}')
@@ -155,7 +155,7 @@ def setSurface():
     VARS[5].set(selected)
 
 #==============================================================================
-# blanking de la selection avec la surface fournie 
+# blanking de la selection avec la surface fournie
 #==============================================================================
 def blank():
     if CTK.t == []: return
@@ -216,13 +216,13 @@ def blank():
     t = X.setHoleInterpolatedPoints(t, depth=-depth)
 
     tp = C.newPyTree(['Base']); donorNoz=[]
-    for noz in range(len(t[2][1][2])):       
+    for noz in range(len(t[2][1][2])):
         z = t[2][1][2][noz]
         valmax = C.getMaxValue(z, 'centers:cellN')
         if valmax == 2.: tp[2][1][2].append(z); donorNoz.append(noz)
-    
+
     tp = DTW.distance2Walls(tp, surfaces, type='ortho', loc='centers', signed=1,dim=dimPb)
-    tp = Internal.correctPyTree(tp, level= 6) 
+    tp = Internal.correctPyTree(tp, level=6)
     tp = C.center2Node(tp,'centers:TurbulentDistance')
     tp = P.computeGrad(tp, 'TurbulentDistance')
     for noz2 in range(len(donorNoz)):
@@ -241,7 +241,7 @@ def blank():
     C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Blanking done.\n')
     CTK.TKTREE.updateApp()
-    CTK.display(CTK.t)    
+    CTK.display(CTK.t)
 
 #==============================================================================
 def getIBCFront():
@@ -273,7 +273,7 @@ def getIBCFront():
 
     if nghostcells > 0: td = Internal.addGhostCells(td, td, nghostcells, adaptBCs=0)
     if locD == 'centers': td = C.node2Center(td)
-    elif locD == 'ext_centers': td = C.node2ExtCenter(td)       
+    elif locD == 'ext_centers': td = C.node2ExtCenter(td)
     CTK.saveTree()
 
     # dhloc : distmin a partir de laquelle on peut symetriser fc1
@@ -296,7 +296,7 @@ def getIBCFront():
     if interpType == '2nd order': interpOrder = 2
     elif interpType == '3rd order Lagrangian': interpOrder = 3
     elif interpType == '5th order Lagrangian': interpOrder = 5
-    front2 = X.setInterpData(front2, td, order=interpOrder,loc='nodes',penalty=1,nature=0)      
+    front2 = X.setInterpData(front2, td, order=interpOrder,loc='nodes',penalty=1,nature=0)
     front2 = C.rmNodes(front2,Internal.__FlowSolutionCenters__)
 
     CTK.t = C.addBase2PyTree(CTK.t, 'IBCFront')
@@ -306,7 +306,7 @@ def getIBCFront():
 
     C._fillMissingVariables(CTK.t)
     CTK.t = C.rmVars(CTK.t,'centers:cellN')
-    CTK.TXT.insert('START', 'IBC front zones added.\n')    
+    CTK.TXT.insert('START', 'IBC front zones added.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -339,7 +339,7 @@ def createApp(win):
     # -1- Blanking surface
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- delta XRay -
-    V = TK.StringVar(win); V.set('1.e-10'); VARS.append(V)    
+    V = TK.StringVar(win); V.set('1.e-10'); VARS.append(V)
     # -3- tolerance XRay -
     V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
     # -4- blank inside bodies - outside
@@ -347,9 +347,9 @@ def createApp(win):
     # -5- Blanking surface
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -6- Nb de rangees de pts du front1
-    V = TK.StringVar(win); V.set('2'); VARS.append(V)   
+    V = TK.StringVar(win); V.set('2'); VARS.append(V)
     # -7- Nb de rangees de ghost cells du maillage donneur
-    V = TK.StringVar(win); V.set('0'); VARS.append(V)   
+    V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -8- Localisation du maillage donneur
     V = TK.StringVar(win); V.set('centers'); VARS.append(V)
     # -9- distance minimale a la paroi des pts du front interieur pour pouvoir construire le symetrique
@@ -376,7 +376,7 @@ def createApp(win):
     B.grid(row=r, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Blanking type.')
     r += 1
-    
+
     # - XRay delta  -
     B = TTK.Label(Frame, text="XRay delta")
     B.grid(row=r, column=0, sticky=TK.EW)
@@ -393,7 +393,7 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
     B.grid(row=r, column=1, sticky=TK.EW)
     r += 1
-    
+
     # - Surface -
     B = TTK.Button(Frame, text="Bodies", command=setSurface)
     B.grid(row=r, column=0, sticky=TK.EW)
@@ -445,7 +445,7 @@ def createApp(win):
     B.grid(row=r, column=1, sticky=TK.EW)
     r += 1
 
-    # - interpolation type : 
+    # - interpolation type :
     B = TTK.Label(Frame, text="Interpolation type")
     B.grid(row=r, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Interpolation type of IBC points.')
@@ -453,9 +453,9 @@ def createApp(win):
     B.grid(row=r, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Interpolation type of IBC points.')
     r += 1
-   
 
-    # - create IBC front - 
+
+    # - create IBC front -
     B = TTK.Button(Frame, text="Create IBC front", command=getIBCFront)
     B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create inside front.')

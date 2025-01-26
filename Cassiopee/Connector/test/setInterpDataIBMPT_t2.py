@@ -7,7 +7,7 @@ import Converter.Internal as Internal
 import Geom.PyTree as D
 import KCore.test as test
 
-# --- Front Type=1 
+# --- Front Type=1
 N = 30; h = 1./(N-1)
 s1 = D.sphere((0.,0.,0.),0.2,N//2); s1[0] = 'sphere'
 DIBM._setIBCType(s1, 'Musker')

@@ -7,4 +7,3 @@ m = C.convertArray2NGon(m[0])
 
 m = XOR.triangulateExteriorFaces(m)
 C.convertArrays2File([m], 'out.plt')
-

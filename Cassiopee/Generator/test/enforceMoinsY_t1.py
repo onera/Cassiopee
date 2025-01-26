@@ -10,4 +10,3 @@ test.testA([b],1)
 # Exact nb of added pts
 b = G.enforceMoinsY(a, 1.e-3, 10,15)
 test.testA([b],2)
-

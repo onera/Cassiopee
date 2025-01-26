@@ -50,7 +50,7 @@ Re   = RoInf*Vtip*diam/1.85e-05
 ##CREATING GEOMETRY
 densityOfPts = 200
 a = D.circle((0.,0.,0.), diam*0.5, N=densityOfPts)
-  
+
 C._initVars(a, '{CoordinateZ}=0')
 tb           = C.newPyTree(["CYLINDER"]); tb[2][1][2] = Internal.getZones(a)
 snear        = 5.0e-5
@@ -59,7 +59,7 @@ D_IBM._setSnear(tb, snear)
 D_IBM._setDfar(tb, dfar_ext)
 D_IBM._setIBCType(tb,"noslip")
 C._addState(tb, adim='dim1', UInf=UInf, TInf=TInf, PInf=PInf, LInf=diam,EquationDimension=dimPb, GoverningEquations=ModelTmp)
-    
+
 ##CREATING OVERSET IBM MESH AROUND GEOMETRY
 dfars=[]
 for z in Internal.getZones(tb): dfars.append(dfar_nb)
@@ -78,7 +78,7 @@ C._fillEmptyBCWith(t_ibm,'dummy','BCExtrapolate', dim=dimPb)
 ##GETTING EDGE OF OVERSET IBM MESH --> NEW GEOMETRY FOR BACKGROUND
 ovs = C.extractBCOfType(t_ibm,'BCExtrapolate')
 
-G._getVolumeMap(ovs)    
+G._getVolumeMap(ovs)
 DZ = C.getMaxValue(ovs,'CoordinateZ')-C.getMinValue(ovs,'CoordinateZ')
 C._initVars(ovs,'{centers:vol}={centers:vol}*%g'%(1./DZ))
 ovs = T.subzone(ovs,(1,1,1),(-1,1,1))
@@ -108,7 +108,7 @@ cartesian=True
 if Internal.getNodeFromType(t_off, "GridConnectivity1to1_t") is not None:
     Xmpi._setInterpData(t_off, tc_off, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
 Xmpi._setInterpData(t_off, tc_off, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
-    
+
 
 # ASSEMBLY
 for a in [t_off, tc_off, t_ibm, tc_ibm]:
@@ -124,7 +124,7 @@ R._setPrescribedMotion3(t_ibm ,'rot', axis_pnt=(0.,0.,0.), axis_vct=(0,0,1),omeg
 R._setPrescribedMotion3(tc_ibm,'rot', axis_pnt=(0.,0.,0.), axis_vct=(0,0,1),omega=-OMG)
 
 
-## BLANKING OF BACKGROUND MESH -- USING AN OFFSET OF IMMERSED GEOMETRY 
+## BLANKING OF BACKGROUND MESH -- USING AN OFFSET OF IMMERSED GEOMETRY
 blankingBody= D.offsetSurface(Internal.getZones(tb_off), offset=-offset, pointsPerUnitLength=20000, algo=0, dim=dimPb)
 tb_blank    = C.newPyTree(["BODY"]); tb_blank[2][1][2] = Internal.getZones(blankingBody)
 R._setPrescribedMotion3(tb_blank ,'rot', axis_pnt=(0.,0.,0.), axis_vct=(0,0,1),omega=-OMG)
@@ -135,7 +135,7 @@ if dimPb==2:
     DZ = C.getMaxValue(zl,'CoordinateZ')-C.getMinValue(zl,'CoordinateZ')
     T._addkplane(tb_blank)
     T._contract(tb_blank,  (0,0,0), (1,0,0), (0,1,0), DZ)
-R._copyGrid2GridInit(tb_blank)    
+R._copyGrid2GridInit(tb_blank)
 C.convertPyTree2File(tb_blank, LOCAL+'/bodiesBlank.cgns')
 
 # suppress static BCOverlap in t_off
@@ -168,7 +168,7 @@ for b in Internal.getBases(t):
         if node is not None:
             val = float(node[1][0])
             C._initVars(b, 'centers:'+v, val)
-            
+
 R._copyGrid2GridInit(t)
 C.convertPyTree2File(t, LOCAL+'/t.cgns')
 R._copyGrid2GridInit(tc)
@@ -181,4 +181,3 @@ Internal._rmNodesByName(tc, '.Solver#ownData')
 
 test.testT(t, 1)
 test.testT(tc, 2)
-

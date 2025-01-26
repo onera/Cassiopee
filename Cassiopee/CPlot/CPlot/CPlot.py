@@ -17,6 +17,7 @@ __timeStep__ = 0.01
 __slot__ = None
 
 #==============================================================================
+# -- configuration --
 def configure(useRender):
     """Configure CPlot for direct rendering (cplot.useDirect), display Lists (cplot.useDL)
         or VBO (cplot.useVBO)"""
@@ -52,8 +53,8 @@ def display(arrays,
             dirCam=(-999,-999,-999),
             viewAngle=-1.,
             bgColor=-1, backgroundFile="None",
-            shadow=-1, lightOffset=(-999,-999), 
-            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
+            shadow=-1, lightOffset=(-999,-999),
+            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
             export="None", exportResolution="None",
             zoneNames=[], renderTags=[], frameBuffer=-1,
@@ -69,33 +70,33 @@ def display(arrays,
             shaderPath = os.path.dirname(__file__)+'/OSMESA/'
             cplotOSMesa.setShaderPath(shaderPath)
             cplotOSMesa.displayNew(arrays, dim, mode, scalarField, vectorField1,
-                        vectorField2, vectorField3, displayBB, displayInfo,
-                        displayIsoLegend, meshStyle, solidStyle,
-                        scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                        vectorShowSurface, vectorShape, vectorProjection, 
-                        colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                        niso, isoEdges, isoScales, win,
-                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                        shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                        stereo, stereoDist, panorama,
-                        export, exportResolution, zoneNames, renderTags,
-                        frameBuffer, offscreen, 
-                        posCamList, posEyeList, dirCamList)
+                                   vectorField2, vectorField3, displayBB, displayInfo,
+                                   displayIsoLegend, meshStyle, solidStyle,
+                                   scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                                   vectorShowSurface, vectorShape, vectorProjection,
+                                   colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                                   niso, isoEdges, isoScales, win,
+                                   posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                                   shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+                                   stereo, stereoDist, panorama,
+                                   export, exportResolution, zoneNames, renderTags,
+                                   frameBuffer, offscreen,
+                                   posCamList, posEyeList, dirCamList)
             __slot__ = 1
         else:
             cplotOSMesa.displayAgain(arrays, dim, mode, scalarField, vectorField1,
-                        vectorField2, vectorField3, displayBB, displayInfo,
-                        displayIsoLegend, meshStyle, solidStyle,
-                        scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                        vectorShowSurface, vectorShape, vectorProjection, 
-                        colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                        niso, isoEdges, isoScales, win,
-                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                        shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                        stereo, stereoDist, panorama,
-                        export, exportResolution, zoneNames, renderTags,
-                        frameBuffer, offscreen,
-                        posCamList, posEyeList, dirCamList)
+                                     vectorField2, vectorField3, displayBB, displayInfo,
+                                     displayIsoLegend, meshStyle, solidStyle,
+                                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                                     vectorShowSurface, vectorShape, vectorProjection,
+                                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                                     niso, isoEdges, isoScales, win,
+                                     posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                                     shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+                                     stereo, stereoDist, panorama,
+                                     export, exportResolution, zoneNames, renderTags,
+                                     frameBuffer, offscreen,
+                                     posCamList, posEyeList, dirCamList)
         return
     from . import cplot
     if __slot__ is None:
@@ -104,12 +105,12 @@ def display(arrays,
         displayNew__(arrays, dim, mode, scalarField, vectorField1,
                      vectorField2, vectorField3, displayBB, displayInfo,
                      displayIsoLegend, meshStyle, solidStyle,
-                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                     vectorShowSurface, vectorShape, vectorProjection, 
+                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                     vectorShowSurface, vectorShape, vectorProjection,
                      colormap, colormapC1, colormapC2, colormapC3, colormapC,
                      niso, isoEdges, isoScales, win,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                     shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                     shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                      stereo, stereoDist, panorama,
                      export, exportResolution, zoneNames, renderTags,
                      frameBuffer, offscreen,
@@ -120,15 +121,15 @@ def display(arrays,
                        displayIsoLegend, meshStyle, solidStyle,
                        scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
                        vectorShowSurface, vectorShape, vectorProjection,
-                       colormap, colormapC1, colormapC2, colormapC3, colormapC, 
+                       colormap, colormapC1, colormapC2, colormapC3, colormapC,
                        niso, isoEdges, isoScales, win,
                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                       shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                       shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                        stereo, stereoDist, panorama,
                        export, exportResolution,
                        zoneNames, renderTags, frameBuffer, offscreen,
                        posCamList, posEyeList, dirCamList)
-    
+
 #==============================================================================
 def render():
     """Force render.
@@ -304,15 +305,15 @@ def filterColormap(values):
     if colormap == 16 or colormap == 17: # Viridis
         colormapC = ColorMaps.Viridis
         if colormap == 16: colormap = 10
-        elif colormap == 17: colormap = 11 
+        elif colormap == 17: colormap = 11
     elif colormap == 18 or colormap == 19: # Inferno
         colormapC = ColorMaps.Inferno
         if colormap == 18: colormap = 10
-        elif colormap == 19: colormap = 11 
+        elif colormap == 19: colormap = 11
     elif colormap == 20 or colormap == 21: # Magma
         colormapC = ColorMaps.Magma
         if colormap == 20: colormap = 10
-        elif colormap == 21: colormap = 11 
+        elif colormap == 21: colormap = 11
     elif colormap == 22 or colormap == 23: # Plasma
         colormapC = ColorMaps.Plasma
         if colormap == 22: colormap = 10
@@ -320,11 +321,11 @@ def filterColormap(values):
     elif colormap == 24 or colormap == 25: # Jet
         colormapC = ColorMaps.Jet2
         if colormap == 24: colormap = 10
-        elif colormap == 25: colormap = 11    
+        elif colormap == 25: colormap = 11
     elif colormap == 26 or colormap == 27: # Greys
         colormapC = ColorMaps.Greys
         if colormap == 26: colormap = 10
-        elif colormap == 27: colormap = 11    
+        elif colormap == 27: colormap = 11
     elif colormap == 28 or colormap == 29: # NiceBlue
         colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
         if colormap == 28: colormap = 6
@@ -332,8 +333,8 @@ def filterColormap(values):
     elif colormap == 30 or colormap == 31: # Greys
         colormapC = ColorMaps.Greens
         if colormap == 30: colormap = 10
-        elif colormap == 31: colormap = 11    
-        
+        elif colormap == 31: colormap = 11
+
     return [colormap, colormapC1, colormapC2, colormapC3, colormapC]
 
 def setState(dim=-1,
@@ -394,7 +395,7 @@ def setState(dim=-1,
              offscreen=0):
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
-    if colormap != -1: 
+    if colormap != -1:
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     if offscreen == 1 or offscreen == 5 or offscreen == 6 or offscreen == 7: # must set in the right module
         from . import cplotOSMesa as cplot
@@ -408,16 +409,16 @@ def setState(dim=-1,
                    colormap, colormapC1, colormapC2, colormapC3, colormapC,
                    niso, isoEdges, isoScales, win,
                    posCam, posEye, dirCam, viewAngle, lightOffset,
-                   bgColor, backgroundFile, shadow, 
-                   dof, dofPower, gamma, toneMapping, 
+                   bgColor, backgroundFile, shadow,
+                   dof, dofPower, gamma, toneMapping,
                    sobelThreshold, sharpenPower, ssaoPower,
                    ghostifyDeactivatedZones, edgifyActivatedZones,
                    edgifyDeactivatedZones, simplifyOnDrag,
                    export, exportResolution, continuousExport,
                    envmap, message,
-                   stereo, stereoDist, 
+                   stereo, stereoDist,
                    cursor, gridSize, timer, selectionStyle,
-                   activateShortCuts, billBoards, billBoardSize, 
+                   activateShortCuts, billBoards, billBoardSize,
                    materials, bumpMaps, frameBuffer, offscreen)
 
 def setMode(mode):
@@ -501,7 +502,7 @@ def fitView():
 
 def finalizeExport(action=0):
     """Finalize export."""
-    if action == 1 or action == 5 or action == 6 or action == 7: 
+    if action == 1 or action == 5 or action == 6 or action == 7:
         from . import cplotOSMesa
         cplotOSMesa.finalizeExport(action)
         return
@@ -532,88 +533,88 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     # Set d, array of posCams and N nbre of points
     import Geom
     if len(posCams) == 5 and isinstance(posCams[0], str): # input struct array
-      N = posCams[2]
-      d = posCams
-      pinc = KCore.isNamePresent(posCams, 'incEye')
-      if pinc >= 0: pinc = posCams[1][pinc]
-      else: pinc = None
+        N = posCams[2]
+        d = posCams
+        pinc = KCore.isNamePresent(posCams, 'incEye')
+        if pinc >= 0: pinc = posCams[1][pinc]
+        else: pinc = None
     else: # list
-      N = max(N, 3)
-      Np = len(posCams)
-      pOut = []
-      P0 = posCams[0]
-      pOut.append(P0)
-      for i in range(1,Np):
-        P1 = posCams[i]
-        sub = Vector.sub(P1,P0)
-        if Vector.norm(sub)>1.e-10: pOut.append(P1)
-        P0 = P1
-      if len(pOut) == 1:
-        d = Geom.polyline(pOut*N)
-      elif len(pOut) == 2:
-        p = Geom.polyline(pOut)
-        d = Geom.spline(p, 2, N)
-      else:
-        p = Geom.polyline(pOut) 
-        d = Geom.spline(p, 3, N)
-      pinc = None
-
-    # Set e, array of posEye of N pts
-    if posEyes is not None:
-      if len(posEyes) == 5 and isinstance(posEyes[0], str): # input struct array
-        Neye = posEyes[2]
-        if Neye != N:
-          import Generator
-          dis = Geom.getDistribution(d)
-          posEyes = Generator.map(posEyes, dis, 1)
-        e = posEyes
-      else: # list
-        Np = len(posEyes)
+        N = max(N, 3)
+        Np = len(posCams)
         pOut = []
-        P0 = posEyes[0]
+        P0 = posCams[0]
         pOut.append(P0)
         for i in range(1,Np):
-            P1 = posEyes[i]
+            P1 = posCams[i]
             sub = Vector.sub(P1,P0)
             if Vector.norm(sub)>1.e-10: pOut.append(P1)
             P0 = P1
         if len(pOut) == 1:
-            e = Geom.polyline(pOut*N)
+            d = Geom.polyline(pOut*N)
         elif len(pOut) == 2:
             p = Geom.polyline(pOut)
-            e = Geom.spline(p, 2, N)
+            d = Geom.spline(p, 2, N)
         else:
             p = Geom.polyline(pOut)
-            e = Geom.spline(p, 3, N)
+            d = Geom.spline(p, 3, N)
+        pinc = None
+
+    # Set e, array of posEye of N pts
+    if posEyes is not None:
+        if len(posEyes) == 5 and isinstance(posEyes[0], str): # input struct array
+            Neye = posEyes[2]
+            if Neye != N:
+                import Generator
+                dis = Geom.getDistribution(d)
+                posEyes = Generator.map(posEyes, dis, 1)
+            e = posEyes
+        else: # list
+            Np = len(posEyes)
+            pOut = []
+            P0 = posEyes[0]
+            pOut.append(P0)
+            for i in range(1,Np):
+                P1 = posEyes[i]
+                sub = Vector.sub(P1,P0)
+                if Vector.norm(sub)>1.e-10: pOut.append(P1)
+                P0 = P1
+            if len(pOut) == 1:
+                e = Geom.polyline(pOut*N)
+            elif len(pOut) == 2:
+                p = Geom.polyline(pOut)
+                e = Geom.spline(p, 2, N)
+            else:
+                p = Geom.polyline(pOut)
+                e = Geom.spline(p, 3, N)
     else: e = None
 
     # Set dc, array of dirCams of N pts
     if dirCams is not None:
-      if len(dirCams) == 5 and isinstance(dirCams[0], str): # input struct array
-        Ndc = dirCams[2]
-        if Ndc != N:
-          import Generator
-          dis = Geom.getDistribution(d)
-          dirCams = Generator.map(dirCams, dis, 1)
-        dc = dirCams
-      else: # list
-        Np = len(dirCams)
-        pOut = []
-        P0 = dirCams[0]
-        pOut.append(P0)
-        for i in range(1,Np):
-            P1 = dirCams[i]
-            sub = Vector.sub(P1,P0)
-            if Vector.norm(sub)>1.e-10: pOut.append(P1)
-            P0 = P1
-        if len(pOut) == 1:
-            dc = Geom.polyline(pOut*N)
-        elif len(pOut) == 2:
-            p = Geom.polyline(pOut)
-            dc = Geom.spline(p, 2, N)
-        else:
-            p = Geom.polyline(pOut)
-            dc = Geom.spline(p, 3, N)
+        if len(dirCams) == 5 and isinstance(dirCams[0], str): # input struct array
+            Ndc = dirCams[2]
+            if Ndc != N:
+                import Generator
+                dis = Geom.getDistribution(d)
+                dirCams = Generator.map(dirCams, dis, 1)
+            dc = dirCams
+        else: # list
+            Np = len(dirCams)
+            pOut = []
+            P0 = dirCams[0]
+            pOut.append(P0)
+            for i in range(1,Np):
+                P1 = dirCams[i]
+                sub = Vector.sub(P1,P0)
+                if Vector.norm(sub)>1.e-10: pOut.append(P1)
+                P0 = P1
+            if len(pOut) == 1:
+                dc = Geom.polyline(pOut*N)
+            elif len(pOut) == 2:
+                p = Geom.polyline(pOut)
+                dc = Geom.spline(p, 2, N)
+            else:
+                p = Geom.polyline(pOut)
+                dc = Geom.spline(p, 3, N)
     else: dc = None
 
     posCam = getState('posCam')
@@ -621,42 +622,42 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     dirCam = getState('dirCam')
 
     if pos == -1:
-      i = 0
-      while i < N-1:
-        time.sleep(__timeStep__*speed*0.06)
-        if i > N-11: inc = N-i-1
+        i = 0
+        while i < N-1:
+            time.sleep(__timeStep__*speed*0.06)
+            if i > N-11: inc = N-i-1
+            else: inc = 10
+            posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
+            if e is not None:
+                posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
+                if dc is not None:
+                    dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
+                    setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
+                else:
+                    setState(posCam=posCam, posEye=posEye)
+            elif moveEye:
+                posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
+                setState(posCam=posCam, posEye=posEye)
+            else: setState(posCam=posCam)
+            i += 1
+    else:
+        i = pos; i = min(pos, N-1)
+        if pinc is not None: inc = int(pinc[i])
         else: inc = 10
+        inc = min(inc, N-i-1)
         posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
         if e is not None:
-          posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
-          if dc is not None:
-            dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
-            setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
-          else:
-            setState(posCam=posCam, posEye=posEye)
+            posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
+            if dc is not None:
+                dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
+                setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
+            else:
+                setState(posCam=posCam, posEye=posEye)
         elif moveEye:
-          posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
-          setState(posCam=posCam, posEye=posEye)
-        else: setState(posCam=posCam)
-        i += 1
-    else:
-      i = pos; i = min(pos, N-1)
-      if pinc is not None: inc = int(pinc[i])
-      else: inc = 10
-      inc = min(inc, N-i-1)
-      posCam = (d[1][0,i],d[1][1,i],d[1][2,i])
-      if e is not None:
-          posEye = (e[1][0,i],e[1][1,i],e[1][2,i])
-          if dc is not None:
-            dirCam = (dc[1][0,i],dc[1][1,i],dc[1][2,i])
-            setState(posCam=posCam, posEye=posEye, dirCam=dirCam)
-          else:
+            posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
             setState(posCam=posCam, posEye=posEye)
-      elif moveEye:
-        posEye = (d[1][0,i+inc],d[1][1,i+inc],d[1][2,i+inc])
-        setState(posCam=posCam, posEye=posEye)
-      else: setState(posCam=posCam)
-    
+        else: setState(posCam=posCam)
+
     return posCam, posEye, dirCam
 
 def travelRight(xr=0.1, N=100):
@@ -752,7 +753,17 @@ def travelOut(xr=0.1, N=100):
     return moveCamera(checkPoints, N=N)
 
 #==============================================================================
+# image
+#==============================================================================
+def blur(a, blurSigma=0.8):
+    """Blur an image array."""
+    from . import cplot
+    if isinstance(a[0], list):
+        for i in a: cplot.blur(i, blurSigma)
+    else: cplot.blur(a, blurSigma)
+    return None
 
+#==============================================================================
 # -- Internal functions --
 def setFileName__(name):
     from . import cplot
@@ -763,54 +774,54 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  meshStyle, solidStyle, scalarStyle, vectorStyle,
                  vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
                  vectorShape, vectorProjection,
-                 colormap, colormapC1, colormapC2, colormapC3, colormapC, 
+                 colormap, colormapC1, colormapC2, colormapC3, colormapC,
                  niso, isoEdges, isoScales, win,
                  posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                 shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                 shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                  stereo, stereoDist, panorama,
                  export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen,
                  posCamList, posEyeList, dirCamList):
     global __slot__
     import threading
-    if colormap != -1: 
+    if colormap != -1:
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     if offscreen > 0: daemon = True
     else: daemon = False
     from . import cplot
     if version_info[0] == 2: # python 2 - no daemon
         a = threading.Thread(None, cplot.displayNew, None,
-                         (arrays, dim, mode, scalarField, vectorField1,
-                          vectorField2, vectorField3, displayBB, displayInfo,
-                          displayIsoLegend,
-                          meshStyle, solidStyle, scalarStyle,
-                          vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-                          vectorShowSurface, vectorShape, vectorProjection, 
-                          colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                          niso, isoEdges, isoScales,
-                          win, posCam, posEye, dirCam, viewAngle, 
-                          bgColor, backgroundFile,
-                          shadow, lightOffset, dof, dofPower, gamma, toneMapping,  
-                          stereo, stereoDist, panorama,
-                          export, exportResolution,
-                          zoneNames, renderTags, frameBuffer, offscreen, 
-                          posCamList, posEyeList, dirCamList), {})
+                             (arrays, dim, mode, scalarField, vectorField1,
+                              vectorField2, vectorField3, displayBB, displayInfo,
+                              displayIsoLegend,
+                              meshStyle, solidStyle, scalarStyle,
+                              vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                              vectorShowSurface, vectorShape, vectorProjection,
+                              colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                              niso, isoEdges, isoScales,
+                              win, posCam, posEye, dirCam, viewAngle,
+                              bgColor, backgroundFile,
+                              shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+                              stereo, stereoDist, panorama,
+                              export, exportResolution,
+                              zoneNames, renderTags, frameBuffer, offscreen,
+                              posCamList, posEyeList, dirCamList), {})
     else: # python3 - daemon
         a = threading.Thread(None, cplot.displayNew, None,
-                         (arrays, dim, mode, scalarField, vectorField1,
-                          vectorField2, vectorField3, displayBB, displayInfo,
-                          displayIsoLegend,
-                          meshStyle, solidStyle, scalarStyle,
-                          vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-                          vectorShowSurface, vectorShape, vectorProjection, 
-                          colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                          niso, isoEdges, isoScales,
-                          win, posCam, posEye, dirCam, viewAngle, 
-                          bgColor, backgroundFile,
-                          shadow, lightOffset, dof, dofPower, gamma, toneMapping,  
-                          stereo, stereoDist, panorama,
-                          export, exportResolution,
-                          zoneNames, renderTags, frameBuffer, offscreen,
-                          posCamList, posEyeList, dirCamList), {}, daemon=daemon)
+                             (arrays, dim, mode, scalarField, vectorField1,
+                              vectorField2, vectorField3, displayBB, displayInfo,
+                              displayIsoLegend,
+                              meshStyle, solidStyle, scalarStyle,
+                              vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                              vectorShowSurface, vectorShape, vectorProjection,
+                              colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                              niso, isoEdges, isoScales,
+                              win, posCam, posEye, dirCam, viewAngle,
+                              bgColor, backgroundFile,
+                              shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+                              stereo, stereoDist, panorama,
+                              export, exportResolution,
+                              zoneNames, renderTags, frameBuffer, offscreen,
+                              posCamList, posEyeList, dirCamList), {}, daemon=daemon)
     a.start()
     __slot__ = a
 
@@ -822,25 +833,25 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    colormap, colormapC1, colormapC2, colormapC3, colormapC,
                    niso, isoEdges, isoScales,
                    win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                   shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                   shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                    stereo, stereoDist, panorama,
                    export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen,
                    posCamList, posEyeList, dirCamList):
-    if colormap != -1: 
+    if colormap != -1:
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     from . import cplot
     cplot.displayAgain(arrays, dim, mode, scalarField, vectorField1,
                        vectorField2, vectorField3, displayBB, displayInfo,
                        displayIsoLegend,
                        meshStyle, solidStyle, scalarStyle, vectorStyle,
-                       vectorScale, vectorDensity, vectorNormalize, vectorShowSurface, 
+                       vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
                        vectorShape, vectorProjection,
                        colormap, colormapC1, colormapC2, colormapC3, colormapC,
                        niso, isoEdges, isoScales,
                        win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                       shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                       stereo, stereoDist, panorama, 
+                       shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+                       stereo, stereoDist, panorama,
                        export, exportResolution, zoneNames, renderTags,
-                       frameBuffer, offscreen, 
+                       frameBuffer, offscreen,
                        posCamList, posEyeList, dirCamList)
     time.sleep(__timeStep__)

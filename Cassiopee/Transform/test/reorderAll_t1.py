@@ -17,7 +17,7 @@ A = [m1,m2]
 A = C.initVars(A,'F',f,['x','y'])
 B = T.reorderAll(A,1)
 test.testA(B,1)
-                     
+
 #-------------------------------------------------
 # test 2 : blocs recouvrants orientes differemment
 #-------------------------------------------------

@@ -12,15 +12,16 @@ import KCore
 import Converter.Mpi as Cmpi
 
 __all__ = ['convertCAD2Arrays', 'switch2UV', 'switch2UV2', '_scaleUV', '_unscaleUV',
-'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__', 
-'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__', 
-'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct']
+           'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__',
+           'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
+           'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
+           'identifyTags__']
 
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
 # algo=2: algorithme T3mesher (h, chordal_error, growth_ratio, merge_tol)
-def convertCAD2Arrays(fileName, format=None, 
-                      h=0., chordal_err=0., growth_ratio=0., 
+def convertCAD2Arrays(fileName, format=None,
+                      h=0., chordal_err=0., growth_ratio=0.,
                       merge_tol=-1, algo=1, join=True):
     """Convert a CAD (IGES or STEP) file to arrays.
     Usage: a = convertCAD2Arrays(fileName, options)"""
@@ -33,7 +34,7 @@ def convertCAD2Arrays(fileName, format=None,
         a = occ.convertCAD2Arrays1(fileName, format, h, chordal_err, growth_ratio, join)
     else: # OCC+T3Mesher v2
         a = occ.convertCAD2Arrays2(fileName, format, h, chordal_err, growth_ratio, merge_tol, join)
-    
+
     # if nothing is read, try to read as edges (suppose draft)
     if Converter.getNPts(a) == 0:
         if h == 0.: h = 1.e-2
@@ -104,7 +105,7 @@ def _unscaleUV(edges, T, vu='x', vv='y'):
         e[1][pv,:] = e[1][pv,:]*dv+vmin
     return None
 
-        
+
 # Mailleur structure de CAD
 # IN: N: the number of points for each patch boundary
 def meshSTRUCT(fileName, format='fmt_iges', N=11):
@@ -116,7 +117,7 @@ def meshSTRUCT(fileName, format='fmt_iges', N=11):
 # IN: hook: CAD hook
 # IN: faceSubSet: a list of faces to mesh
 # OUT: faceNo: keep the CAD face number for each zone
-# OUT: one mesh per CAD face 
+# OUT: one mesh per CAD face
 def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     """Return a STRUCT discretisation of CAD."""
     nbFaces = occ.getNbFaces(hook)
@@ -147,7 +148,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
             print(str(e))
             Converter.convertArrays2File(edges, "edgesOfFace%03d.plt"%(i+1))
     return out
-    
+
 # Mailleur CAD non structure TRI
 # IN: N: number of points for each face boundary, discarded if < 0
 # IN: hmax: mesh step, discarded if < 0
@@ -160,7 +161,7 @@ def meshTRI(fileName, format="fmt_step", N=11, hmax=-1., order=1):
 # IN: hook: CAD hook
 # IN: faceSubSet: a list of faces to mesh
 # OUT: faceNo: keep the CAD face number for each zone
-# OUT: one mesh per CAD face 
+# OUT: one mesh per CAD face
 def meshTRI__(hook, N=11, hmax=-1., hausd=-1., order=1, faceSubset=None, faceNo=None):
     """Return a TRI discretisation of CAD."""
     if hmax > 0 and hausd > 0: out = meshTRIH2__(hook, hmax, hausd, order, faceSubset, faceNo)
@@ -209,17 +210,17 @@ def reorderEdgesByFace__(edges):
             #order = 1
             #if ind0 == inds[0]:
             #    if ind1 == inds[0]-1: order = -1
-            #    elif ind1 == inds[0]+1: order = 1 
+            #    elif ind1 == inds[0]+1: order = 1
             #elif ind0 == inds[1]:
             #    if ind1 == inds[1]-1: order = -1
-            #    elif ind1 == inds[0]+1: order = 1 
+            #    elif ind1 == inds[0]+1: order = 1
             #else: # ind0 = inds[2]
             #    if ind1 == inds[2]-1: order = -1
             #    elif ind1 == inds[2]+1: order = 1
             #print('order', order)
             nz = 1; order = 1
         except:
-            print("Warning: finding the exterior edge failed.") 
+            print("Warning: finding the exterior edge failed.")
             surf = 0.; nz = 1.; order = 1
         sortedEdges.append((e, surf, nz, order))
     sorted(sortedEdges, key=itemgetter(1), reverse=True)
@@ -327,7 +328,7 @@ def meshTRIH__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None):
         edges = Transform.join(edges)
         edges = Generator.close(edges, 1.e-6)
         edges = reorderEdgesByFace__(edges)
-        try:    
+        try:
             a = Generator.T3mesher2D(edges, grading=1.)
             _unscaleUV([a], T)
             if order > 1: a = Converter.convertLO2HO(a, order=order)
@@ -338,7 +339,7 @@ def meshTRIH__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None):
         except Exception as e:
             print(str(e))
             Converter.convertArrays2File(edges, 'edgesOfFace%03d.plt'%(i+1))
-        
+
     return out
 
 # using trimesh
@@ -366,8 +367,8 @@ def meshTRIH2__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None)
 
 def meshTRIHO(fileName, format="fmt_step", N=11):
     """Return a TRI HO discretisation of CAD."""
-    a = convertCAD2Arrays(fileName, format, 
-                          h=0., chordal_err=0., growth_ratio=0., 
+    a = convertCAD2Arrays(fileName, format,
+                          h=0., chordal_err=0., growth_ratio=0.,
                           merge_tol=-1, algo=2)
     #a = meshTRI(fileName, format, N)
     hook = occ.readCAD(fileName, format)
@@ -386,7 +387,7 @@ def meshQUADHO(fileName, format="fmt_step", N=11):
 
 def meshQUADHO__(hook, N=11, faceSubset=None, faceNo=None):
     """Return a QUAD HO discretisation of CAD."""
-    if faceNo is None: faceNo = [] 
+    if faceNo is None: faceNo = []
     a = meshSTRUCT__(hook, N, faceSubset, faceNo)
     a = Converter.convertArray2Hexa(a)
     out = []
@@ -459,7 +460,7 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
     mesh = []
     FAILED1 = []; FAILED2 = []
     nbFaces = occ.getNbFaces(hook)
-    
+
     for i in range(nbFaces):
         print('Meshing face %d ======================'%i)
 
@@ -480,12 +481,12 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
         # sauvegarde des edges
         edgesSav = []
         for e in edges: edgesSav.append(Converter.copy(e))
-    
+
         # TRIMESH METRIC TRY
         SUCCESS = False
         if metric:
             SUCCESS = meshFaceWithMetric(hook, i, edges, hmax, hausd, 1.1, mesh, FAILED1)
-        
+
         if not SUCCESS: # TRIMESH sans metric
             edges = edgesSav
             meshFaceInUV(hook, i, edges, 1., mesh, FAILED2)
@@ -498,7 +499,7 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
     print("FINAL FAILURE = %d / %d"%(FAIL2,nbFaces))
     for f in FAILED2:
         print("FINAL FAILED on face = %03d_edgeUV.plt"%f)
-    
+
     return mesh
 
 #=======================================================================================
@@ -513,7 +514,7 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
 # hmax: hmin/hmax/hausd par face
 #===============================================================================
 def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
-    
+
     # save edges
     edgesSav = []
     for e in edges: edgesSav.append(Converter.copy(e))
@@ -530,18 +531,19 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     edges = Converter.addVars(edges, ['u','v'])
     edges[1][3,:] = pt[3,:]
     edges[1][4,:] = pt[4,:]
-        
+
     if edges[2].shape[1] == 0: return True # pass
-    
+
     # supprime les edges collapsed
     #edges2 = Generator.close(edges, 1.e-6)
-    
+
     # Scale UV des edges
     _scaleUV([edges], vu='u', vv='v')
     try:
         a = occ.trimesh(hook, edges, i, hmin, hmax, hausd, 1.1)
         _enforceEdgesInFace(a, edgesSav)
-        if occ.getFaceOrientation(hook, i) == 0: 
+        a = Generator.close(a, 1.e-10) # needed for periodic faces
+        if occ.getFaceOrientation(hook, i) == 0:
             a = Transform.reorder(a, (-1,))
         mesh.append(a)
         SUCCESS = True
@@ -549,28 +551,29 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i) # pas vraiment UV
         FAILED.append(i)
-        
+
     return SUCCESS
 
 # TRI mesh face regular in UV space
 def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
-    
+
     # save edges
     edgesSav = []
     for e in edges: edgesSav.append(Converter.copy(e))
-    
+
     # Passage des edges dans espace uv
     edges = switch2UV(edges)
     T = _scaleUV(edges)
     edges = Converter.convertArray2Tetra(edges)
     edges = Transform.join(edges)
-        
+
     # Maillage de la face
     try:
-        a = Generator.T3mesher2D(edges, grading=grading)    
+        a = Generator.T3mesher2D(edges, grading=grading)
         _unscaleUV([a], T)
         o = occ.evalFace(hook, a, i)
         _enforceEdgesInFace(o, edgesSav)
+        a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             o = Transform.reorder(o, (-1,))
         mesh.append(o)
@@ -580,20 +583,21 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i)
         mesh.append(None)
         FAILED.append(i)
-    
+
     return SUCCESS
 
-# mesh all CAD edges with hmax, hausd
-def meshAllEdges(hook, hmax, hausd, N, edgeList=None):
+# mesh all CAD edges with hmin, hmax, hausd
+def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
     if edgeList is None:
         nbEdges = occ.getNbEdges(hook)
         edgeList = range(1, nbEdges+1)
     dedges = []
     for i in edgeList:
-        e = occ.meshOneEdge(hook, i, hmax, hausd, N, None)
+        e = occ.meshOneEdge(hook, i, hmin, hmax, hausd, N, None)
         dedges.append(e)
+    dedges = Generator.zip(dedges, tol=hmax/100.) # safe and necessary for corner/seam points
     return dedges
-    
+
 #=================================================================
 # mesh TRI given CAD faces from discrete edges U + hList
 # IN: hook: hook of cad
@@ -610,9 +614,9 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
     for c, i in enumerate(faceList):
 
         print("========== face %d / %d ==========="%(i,nbFaces))
-        
+
         wires = occ.meshEdgesOfFace(hook, i, dedges)
-        
+
         # join des edges par wire (structured)
         edges = []
         for w in wires:
@@ -622,17 +626,17 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
         # sauvegarde des edges
         edgesSav = []
         for e in edges: edgesSav.append(Converter.copy(e))
-    
+
         # TRIMESH METRIC TRY
         SUCCESS = False
         if metric:
             hsize = hList[c]
             SUCCESS = meshFaceWithMetric(hook, i, edges, hsize[0], hsize[1], hsize[2], dfaces, FAILED1)
-            
+
         if not SUCCESS: # TRIMESH sans metric
             edges = edgesSav
             SUCCESS = meshFaceInUV(hook, i, edges, 1., dfaces, FAILED2)
-            
+
     FAIL1 = len(FAILED1)
     print("METRICFAILURE = %d / %d"%(FAIL1, nbFaces))
     for f in FAILED1:
@@ -641,7 +645,7 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
     print("FINAL FAILURE = %d / %d"%(FAIL2,nbFaces))
     for f in FAILED2:
         print("FINAL FAILED on face = %03d_edgeUV.plt"%f)
-    
+
     return dfaces
 
 #==================================================================
@@ -654,7 +658,7 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
     for c, i in enumerate(faceList):
 
         print("========== face %d / %d ==========="%(i,nbFaces))
-        
+
         wires = occ.meshEdgesOfFace(hook, i, dedges)
         edges = wires[0] # only first for now
 
@@ -687,5 +691,54 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
     print("STRUCTFAILURE = %d / %d"%(FAIL1, nbFaces))
     for f in FAILED1:
         print("STRUCTFAILED on face = %03d_edgeUV.plt"%f)
-    
+
     return dfaces, nloct, nofacet
+
+#=============================================================================
+# CAD fixing
+#=============================================================================
+
+# sew a set of faces
+# faces: face list numbers
+def _sewing(hook, faces, tol=1.e-6):
+    occ.sewing(hook, faces, tol)
+    return None
+
+# add fillet from edges with given radius
+def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
+    occ.addFillet(hook, edges, radius, new2OldEdgeMap, new2OldFaceMap)
+    return None
+
+# edgeMap and faceMap are new2old maps
+def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+    occ.removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
+    return None
+
+# fill hole from edges
+# edges: edge list numbers (must be ordered)
+def _fillHole(hook, edges, faces=[], continuity=0):
+    occ.fillHole(hook, edges, faces, continuity)
+    return None
+
+# trim two set of surfaces
+def _trimFaces(hook, faces1, faces2):
+    occ.trimFaces(hook, faces1, faces2)
+    return None
+
+# Return the number of edges in CAD hook
+def getNbEdges(hook):
+    """Return the number of edges in CAD hook."""
+    return occ.getNbEdges(hook)
+
+# Return the number of faces in CAD hook
+def getNbFaces(hook):
+    """Return the number of faces in CAD hook."""
+    return occ.getNbFaces(hook)
+
+# Return the file and format used to load CAD in hook
+def getFileAndFormat(hook):
+    return occ.getFileAndFormat(hook)
+
+# identify tag component
+def identifyTags__(a):
+    return occ.identifyTags(a)

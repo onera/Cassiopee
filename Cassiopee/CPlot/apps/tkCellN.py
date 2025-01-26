@@ -21,7 +21,7 @@ def chimeraInfo():
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     typename = VARS[1].get()
-    CTK.saveTree()    
+    CTK.saveTree()
     X._chimeraInfo(CTK.t,typename)
     CTK.TXT.insert('START', 'Field %s added.\n'%typename)
     CTK.TKTREE.updateApp()
@@ -57,7 +57,7 @@ def Filter1(c1, c2, c3, c4, c5, c6, c7, c8):
     if c8 > 1+eps: return 1
     if c8 < -eps: return 1
     return 0
-    
+
 #==============================================================================
 # Filter cellN
 # Pour les zones actives de t
@@ -75,7 +75,7 @@ def view():
     active = []
     zones = Internal.getZones(tp)
     for z in CTK.__MAINACTIVEZONES__: active.append(zones[z])
-    
+
     Z = None
     if type == 'cf>1':
         Z = P.selectCells(active, Filter1, ['interpCoefs1', 'interpCoefs2',
@@ -98,7 +98,7 @@ def view():
         Z = X.extractChimeraInfo(active,'orphan')
     elif type == 'Extrapolated points':
         Z = X.extractChimeraInfo(active,'extrapolated')
-        
+
     if Z is not None:
         CTK.TXT.insert('START', 'Filter '+type+' displayed.\n')
         CTK.dt = C.newPyTree(['Base'])
@@ -107,7 +107,7 @@ def view():
     else:
         CTK.TXT.insert('START', 'Nothing to display.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-        
+
 #==============================================================================
 # La variable var existe t elle dans la premiere zone de l'arbre?
 # Retourne 0: non
@@ -153,9 +153,9 @@ def selectWithFormula(zones, formula):
         if res == 2: formula = formula.replace('cellN', 'centers:cellnf')
     elif res == 2:
         formula = formula.replace('cellN', 'centers:cellN')
-        
+
     if res == 1: # cellN en noeuds
-        Z = P.selectCells(zones, formula)        
+        Z = P.selectCells(zones, formula)
     else: # cellN en centres
         Z = P.selectCells(zones, formula)
     for z in Z: z[0] = C.getZoneName(z[0])
@@ -196,7 +196,7 @@ def extract():
         Z = X.extractChimeraInfo(zones,type='orphan',loc='centers')
         if Z == []: Z = None
     elif type == 'cf>1':
-        Z = X.extractChimeraInfo(zones,type='cf>1',loc='centers')        
+        Z = X.extractChimeraInfo(zones,type='cf>1',loc='centers')
         if Z == []: Z = None
 
     if Z is not None:
@@ -212,7 +212,7 @@ def extract():
     else:
         CTK.TXT.insert('START', 'Nothing extracted.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -228,7 +228,7 @@ def createApp(win):
     Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -247,7 +247,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[0], 'Mesh', 'cellN=0', 'cellN=-99999',
                        'cellN=2', 'cellN<0', '0<cellN<1', 'cellN=1', 'cf>1', 'Orphan points',
                        'Extrapolated points','Interpolated points')
-    B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW) 
+    B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW)
 
     # - View cellN -
     norow += 1
@@ -259,7 +259,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="Extract", command=extract)
     B.grid(row=norow, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract the location of specified cellN.\nTree is modified.')
-    
+
     # - chimeraInfo
     # -1- chimeraInfo type
     norow += 1
@@ -270,9 +270,9 @@ def createApp(win):
     B = TTK.Button(Frame, text="Chimera info", command=chimeraInfo)
     B.grid(row=norow, column=0, sticky=TK.EW)
     B = TTK.OptionMenu(Frame, VARS[1], 'interpolated', 'extrapolated', 'orphan',
-                      'cellRatio','donorAspect')
+                       'cellRatio','donorAspect')
     B.grid(row=norow, column=1, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -308,7 +308,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if __name__ == "__main__":
     import sys

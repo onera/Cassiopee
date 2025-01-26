@@ -17,7 +17,7 @@ test.TOLERANCE = 1.e-6
 
 LOCAL = test.getLocal()
 
-#Fabrication case 2d pour maillage octree 
+#Fabrication case 2d pour maillage octree
 lines=[]
 lines.append( D.line((0.05,-0.15, 0), (0.1 ,-0.08,0), N=10) )
 lines.append( D.line((0.10,-0.03, 0), (0.1 ,-0.08,0), N=10) )
@@ -40,13 +40,13 @@ IBM._setFluidInside(case)
 
 zones = Internal.getZones(case)
 for z in zones:
- if '8' in z[0] or '9'  in z[0]  or '6'  in z[0]:
-    IBM._setIBCType(z, "overlap")
-    IBM._setSnear(z, 0.008)
- if 'line.1' == z[0] or '10'  in z[0]:
-    IBM._setSnear(z, 0.008)
- if '2' in z[0] or '0'  in z[0]:
-    IBM._setSnear(z, 0.004)
+    if '8' in z[0] or '9'  in z[0]  or '6'  in z[0]:
+        IBM._setIBCType(z, "overlap")
+        IBM._setSnear(z, 0.008)
+    if 'line.1' == z[0] or '10'  in z[0]:
+        IBM._setSnear(z, 0.008)
+    if '2' in z[0] or '0'  in z[0]:
+        IBM._setSnear(z, 0.004)
 
 zones[6][0]='line10'
 zones[8][0]='line9'
@@ -101,15 +101,15 @@ C._addBC2Zone(a, 'wallOut','BCWallViscous',  [30,200,1,1,1,5])
 t_curvi = C.newPyTree(['Base', a])
 
 zones = Internal.getZones(t_curvi)
-#les zones curviligne possedanr raccord chimere avec zone Cart IBC doit avoir la racine "joinIBC" dans leur nom 
+#les zones curviligne possedanr raccord chimere avec zone Cart IBC doit avoir la racine "joinIBC" dans leur nom
 zones[0][0]='curvi_joinIBC'
 t_curvi = X.connectMatchPeriodic(t_curvi, translation=[0.,0.,0.04])
 #stretch maillage plaque direction normal paroi
 for z in zones:
-  coordy =  Internal.getNodeFromName(z,'CoordinateY')[1]
-  sh = np.shape(coordy)
-  for j in range(1,sh[1]):
-     coordy[:,j,:]=coordy[:,j-1,:]+0.002*1.02**j
+    coordy =  Internal.getNodeFromName(z,'CoordinateY')[1]
+    sh = np.shape(coordy)
+    for j in range(1,sh[1]):
+        coordy[:,j,:]=coordy[:,j-1,:]+0.002*1.02**j
 
 
 C._addState(t_curvi, 'GoverningEquations', equation )
@@ -147,7 +147,7 @@ nit = 100; time = 0.
 for it in range(nit):
     FastS._compute(t_final, metrics, it, tc_final)
     if it%25==0:
-       FastS.displayTemporalCriteria(t_final, metrics, it)
+        FastS.displayTemporalCriteria(t_final, metrics, it)
 
 #C.convertPyTree2File(t_final, 'restart.cgns')
 Internal._rmNodesByName(t_final, '.Solver#Param')
@@ -157,4 +157,3 @@ Internal._rmNodesByName(t_final, '*P1*')
 Internal._rmNodesByName(t_final, '*M1*')
 Internal._rmNodesFromType(t_final, 'Rind_t')
 test.testT(t_final, 7)
-

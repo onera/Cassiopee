@@ -53,14 +53,15 @@ PyObject* K_OCC::createEmptyCAD(PyObject* self, PyObject* args)
 
   // capsule 
   PyObject* hook;
-  E_Int sizePacket = 5;
+  E_Int sizePacket = 6;
   void** packet = new void* [sizePacket];
   packet[0] = shp; // the top shape
   packet[1] = surfs; // the face map
   packet[2] = edges; // the edge map
   packet[3] = fileNameC; // CAD file name
   packet[4] = fileFmtC; // CAD file format
-  
+  packet[5] = NULL; // document
+
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else

@@ -29,6 +29,14 @@
 # include "ADF/ADF.h"
 # define CGNSMAXLABEL 32
 # define CGNSMAXDIM 20
+# define __R4__ "R4                               "
+# define __R8__ "R8                               "
+# define __I4__ "I4                               "
+# define __I8__ "I8                               "
+# define __MT__ "MT                               "
+# define __B1__ "B1                               "
+# define __C1__ "C1                               "
+
 using namespace std;
 
 namespace K_IO
@@ -839,7 +847,7 @@ double K_IO::GenIOAdf::setSingleR4(double node, float data)
   int dim;
   int dims[1];
   dim = 1; dims[0] = 1;
-  ADF_Put_Dimension_Information(node, "R4", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __R4__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)&data, &_errorFlag);
   return node;
 }
@@ -851,7 +859,7 @@ double K_IO::GenIOAdf::setSingleR8(double node, double data)
   int dims[1];
 
   dim = 1; dims[0] = 1;
-  ADF_Put_Dimension_Information(node, "R8", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __R8__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)&data, &_errorFlag);
   return node;
 }
@@ -863,7 +871,7 @@ double K_IO::GenIOAdf::setSingleI4(double node, int data)
   int dims[1];
 
   dim = 1; dims[0] = 1;
-  ADF_Put_Dimension_Information(node, "I4", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __I4__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)&data, &_errorFlag);
 
   return node;
@@ -876,7 +884,7 @@ double K_IO::GenIOAdf::setSingleI8(double node, E_LONG data)
   int dims[1];
 
   dim = 1; dims[0] = 1;
-  ADF_Put_Dimension_Information(node, "I8", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __I8__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)&data, &_errorFlag);
 
   return node;
@@ -887,7 +895,7 @@ double K_IO::GenIOAdf::setArrayMT(double node)
 {
   int dim;
   dim = 1; _dims[0] = 0;
-  ADF_Put_Dimension_Information(node, "MT", dim, _dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __MT__, dim, _dims, &_errorFlag);
 
   return node;
 }
@@ -896,7 +904,7 @@ double K_IO::GenIOAdf::setArrayMT(double node)
 double K_IO::GenIOAdf::setArrayR8(double node, double *data, int dim,
                                   int *dims)
 {
-  ADF_Put_Dimension_Information(node, "R8", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __R8__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)data, &_errorFlag);
   return node;
 }
@@ -905,7 +913,7 @@ double K_IO::GenIOAdf::setArrayR8(double node, double *data, int dim,
 double K_IO::GenIOAdf::setArrayI8(double node, E_LONG *data, int dim,
                                   int *dims)
 {
-  ADF_Put_Dimension_Information(node, "I8", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __I8__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)data, &_errorFlag);
   return node;
 }
@@ -913,7 +921,7 @@ double K_IO::GenIOAdf::setArrayI8(double node, E_LONG *data, int dim,
 //=============================================================================
 double K_IO::GenIOAdf::setArrayR4(double node, float *data, int dim, int *dims)
 {
-  ADF_Put_Dimension_Information(node, "R4", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __R4__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)data, &_errorFlag);
   return node;
 }
@@ -921,7 +929,7 @@ double K_IO::GenIOAdf::setArrayR4(double node, float *data, int dim, int *dims)
 //=============================================================================
 double K_IO::GenIOAdf::setArrayI1(double node, char *data, int dim, int *dims)
 {
-  ADF_Put_Dimension_Information(node, "B1", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __B1__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)data, &_errorFlag);
   return node;
 }
@@ -929,7 +937,7 @@ double K_IO::GenIOAdf::setArrayI1(double node, char *data, int dim, int *dims)
 //=============================================================================
 double K_IO::GenIOAdf::setArrayI4(double node, int *data, int dim, int *dims)
 {
-  ADF_Put_Dimension_Information(node, "I4", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __I4__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)data, &_errorFlag);
   return node;
 }
@@ -947,7 +955,7 @@ double K_IO::GenIOAdf::setArrayC1(double node, char *data)
   // use begin(i) to get i-th field
   ptr = (char*)data;
 
-  ADF_Put_Dimension_Information(node, "C1", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __C1__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, ptr, &_errorFlag);
 
   return node;
@@ -958,7 +966,7 @@ double K_IO::GenIOAdf::setArrayC1(double node, char *data, int dim, int* dims)
 {
   char *ptr;
   ptr = (char*)data;
-  ADF_Put_Dimension_Information(node, "C1", dim, dims, &_errorFlag);
+  ADF_Put_Dimension_Information(node, __C1__, dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, ptr, &_errorFlag);
   return node;
 }

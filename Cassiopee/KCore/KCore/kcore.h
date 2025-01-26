@@ -58,6 +58,8 @@ namespace K_KCORE
   PyObject* empty(PyObject* self, PyObject* args);
   PyObject* tester(PyObject* self, PyObject* args);
   PyObject* testerAcc(PyObject* self, PyObject* args);
+  PyObject* copyto(PyObject* self, PyObject* args);
+  PyObject* copyfrom(PyObject* self, PyObject* args);
   void memcpy__(E_Int* a, E_Int* b, E_Int s);
   void memcpy__(E_Float* a, E_Float* b, E_Int s);
 } 

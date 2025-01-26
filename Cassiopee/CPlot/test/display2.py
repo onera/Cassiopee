@@ -118,4 +118,3 @@ for i in range(18):
     for j in range(28):
         C.setValue(a, i+j*18, (i,j,0.))
 CPlot.display(a, mode=0); time.sleep(2)
-

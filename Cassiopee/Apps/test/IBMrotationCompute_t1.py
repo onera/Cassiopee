@@ -28,7 +28,7 @@ modulo_verif = 5
 
 rpm  = 100
 OMG  = rpm*2*math.pi/60
-time_step= 1/(OMG*180/math.pi)/600    
+time_step= 1/(OMG*180/math.pi)/600
 ## =======================
 ## =======================
 
@@ -37,7 +37,7 @@ numb={"temporal_scheme": "implicit_local",
       "omp_mode":0,
       "modulo_verif":modulo_verif}
 
-numz={"time_step": time_step, 
+numz={"time_step": time_step,
       "time_step_nature": "global",
       "epsi_newton": 0.1}
 
@@ -126,8 +126,8 @@ cont  = Internal.getNodeFromType(t, 'ReferenceState_t')
 Minf  = Internal.getNodeFromName(cont, 'Mach')
 zones = Internal.getZones(t)
 for z in zones:
-  n = Internal.getNodeFromName2(z, 'Parameter_real')[1]
-  n[5] = max(30, UInf)
+    n = Internal.getNodeFromName2(z, 'Parameter_real')[1]
+    n[5] = max(30, UInf)
 
 timeiter  = time0
 varType   = 0
@@ -148,7 +148,7 @@ rhoInf   = Internal.getNodeFromName1(RefState,'Density')[1][0]
 for it in range(it0,NIT+it0):
     if Cmpi.rank == 0: print("it=%d, time=%f, angle=%f, N_rot=%d"%(it, timeiter, (timeiter*OMG*180./numpy.pi) % 360 , (timeiter*OMG*180./numpy.pi)//360 ),flush=True)
     timeiter += time_step
-    
+
     # bouge tout
     R._evalPosition(tb, timeiter)
     R._evalPosition(t, timeiter)
@@ -164,7 +164,7 @@ for it in range(it0,NIT+it0):
     bodies=[]
     for base in Internal.getBases(tb):
         bodies.append(Internal.getZones(base))
-        
+
     XRAYDIM1 = 2000;RAYDIM2 = XRAYDIM1
     if dimPb == 2: XRAYDIM2 = 2
     X._blankCells(t, bodies, BM, cellNName='cellN#Motion',XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, blankingType='cell_intersect',dim=dimPb)
@@ -172,12 +172,12 @@ for it in range(it0,NIT+it0):
     C._initVars(t, "{centers:cellN#Motion}=({centers:cellN#Static}<2)*{centers:cellN#Motion}+({centers:cellN#Static}>1)*minimum(1,{centers:cellN#Motion})")
     C._initVars(t,"{centers:cellN}=minimum({centers:cellN#Motion}*{centers:cellN#Static},2.)")
     C._cpVars(t, 'centers:cellN',tc, 'cellN')
-    ucData = (graphX, intersectionDict, dictOfADT, 
+    ucData = (graphX, intersectionDict, dictOfADT,
               dictOfNobOfRcvZones, dictOfNozOfRcvZones,
-              dictOfNobOfDnrZones, dictOfNozOfDnrZones, 
+              dictOfNobOfDnrZones, dictOfNozOfDnrZones,
               dictOfNobOfRcvZonesC, dictOfNozOfRcvZonesC,
               timeiter, procDict, True, varType, 1, 2, 1)
-    
+
     FastS._compute(t, metrics, it, tc, graph, layer="Python", ucData=ucData)
 
     if it%modulo_verif==0:

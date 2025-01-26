@@ -18,6 +18,8 @@
 */
 #include "../Data.h"
 
+#define M_PI 3.1415926535897932384626433832795
+
 //=============================================================================
 // supersample X factor: moyenne des pixels
 // IN: im1 : image 1 RGB factor * w x factor * h (deja alloue)
@@ -246,4 +248,142 @@ void Data::sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
   }
   
   free(im3);
+}
+
+//============================================================================
+// specific post-processing applied to interlaced color buffer (3), return out
+// do darken color with depth, blur with depth (dof)
+//============================================================================
+void Data::specPostProcess(char* in, E_Int ni, E_Int nj, float* depth, char* out)
+{
+  uint8_t r, g, b;
+  printf("Specific post process\n");
+  float dmin, dmax;
+  // compute min/max of depth
+  dmin = 1.e30; dmax = -1.e30;
+  for (E_Int i = 0; i < ni*nj; i++)
+  {
+    dmin = std::min(dmin, depth[i]);
+    // pix with 4.e7 are no body
+    if (depth[i] < 1.e7) dmax = std::max(dmax, depth[i]);
+  }
+  
+  printf("dmin=%g dmax=%g\n", dmin, dmax);
+  E_Float dx = _view.xeye - _view.xcam;
+  E_Float dy = _view.yeye - _view.ycam;
+  E_Float dz = _view.zeye - _view.zcam;
+  printf("dist=%g\n", std::sqrt(dx*dx+dy*dy+dz*dz));
+  dmax = 0.3; // hard value for create for all 360 views
+  
+  // normalize depth
+  for (E_Int i = 0; i < ni*nj; i++)
+  {
+    depth[i] = (depth[i]-dmin)/(dmax-dmin);
+  }
+ 
+  // darken far pixels
+  E_Float percentage = 0.5;
+  E_Float ramp1 = 0.35; E_Float ramp2 = 0.6;
+  E_Float p, q, s;
+  for (E_Int i = 0; i < ni*nj; i++)
+  {
+    if (depth[i] <= ramp1)
+    {
+      out[3*i] = in[3*i];
+      out[3*i+1] = in[3*i+1];
+      out[3*i+2] = in[3*i+2];
+    }
+    else if (depth[i] <= ramp2)
+    {
+      p = (percentage-1.)/(ramp2-ramp1);
+      q = 1.-p*ramp1;
+      s = p*depth[i]+q;
+      r = (uint8_t)in[3*i];
+      g = (uint8_t)in[3*i+1];
+      b = (uint8_t)in[3*i+2];
+      r = (uint8_t)(r*s);
+      g = (uint8_t)(g*s);
+      b = (uint8_t)(b*s);
+      out[3*i] = r;
+      out[3*i+1] = g;
+      out[3*i+2] = b;
+    }
+    else
+    {
+      r = (uint8_t)in[3*i];
+      g = (uint8_t)in[3*i+1];
+      b = (uint8_t)in[3*i+2];
+      r = (uint8_t)(r*percentage);
+      g = (uint8_t)(g*percentage);
+      b = (uint8_t)(b*percentage);
+      out[3*i] = r;
+      out[3*i+1] = g;
+      out[3*i+2] = b;
+    }
+  }
+
+  for (E_Int i = 0; i < ni*nj; i++)
+  {
+    in[3*i] = out[3*i];
+    in[3*i+1] = out[3*i+1];
+    in[3*i+2] = out[3*i+2];
+  }
+  
+  // DBX - output depth
+  /*
+  for (E_Int i = 0; i < ni*nj; i++)
+  {
+    r = (uint8_t)(depth[i]*255.);
+    out[3*i] = r;
+    out[3*i+1] = r;
+    out[3*i+2] = r;
+    }*/
+
+  // dof
+  E_Float blurSigma = 0.8;
+  E_Float sigma, sigma2, c;
+  E_Int ind;
+  E_Int n = 5; // max coc
+  
+  // blur
+  E_Float rc, gc, bc;
+  for (E_Int j = n; j < nj-n; j++)
+  for (E_Int i = n; i < ni-n; i++)
+  {
+    ind = i+j*ni;
+    if (depth[ind] <= ramp1) sigma = 0.;
+    else if (depth[ind] <= ramp2)
+    {
+      p = (blurSigma)/(ramp2-ramp1);
+      q = -p*ramp1;
+      sigma = p*depth[ind]+q;
+      sigma = 0.;
+    }
+    else sigma = blurSigma;
+
+    sigma2 = sigma*sigma;
+
+    rc = 0.; gc = 0.; bc = 0.;
+    for (E_Int ki = -n; ki <= n; ki++)
+    for (E_Int kj = -n; kj <= n; kj++)
+    {
+      if (sigma2 < 1.e-12)
+      {
+        if (ki == 0 && kj == 0) c = 1.;
+        else c = 0.;
+      }
+      else c = exp( -(ki*ki+kj*kj)/(2.*sigma2) ) / (sigma2*2.*M_PI);
+      r = (uint8_t)in[3*(ind+ki+kj*ni)];
+      g = (uint8_t)in[3*(ind+ki+kj*ni)+1];
+      b = (uint8_t)in[3*(ind+ki+kj*ni)+2];
+      rc += (r*c);
+      gc += (g*c);
+      bc += (b*c);
+    }
+
+    out[3*ind] = (uint8_t)rc;
+    out[3*ind+1] = (uint8_t)gc;
+    out[3*ind+2] = (uint8_t)bc;
+  }
+
 }

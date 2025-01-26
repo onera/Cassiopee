@@ -11,5 +11,3 @@ C.convertPyTree2File(t, 'out.adf')
 t[2][1][2] += [a,b]
 (t, dic) = Distributor2.distribute(t, NProc=2, algorithm='fast')
 Distributed.writeZones(t, 'out.adf', proc=0)
-
-

@@ -332,9 +332,20 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
       }
       free(localBuf); free(localDepth);
   }
-  free(depth);
 
   MPI_Barrier(MPI_COMM_WORLD); // seems needed
+
+  // software postprocessing on final buffer (just before screen dump)
+  /*
+  if (rank == 0)
+  {
+    char* bfl = new char [3*_view.w*_view.h];
+    for (E_Int i = 0; i < 3*_view.w*_view.h; i++) bfl[i] = buffer[i];
+    specPostProcess(bfl, _view.w, _view.h, depth, buffer);
+    delete [] bfl;
+  }*/
+  
+  free(depth);
 
 #else
   printf("Error: CPlot: mesa offscreen or MPI unavailable.\n");
@@ -409,12 +420,12 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
           offscreenD[ind]    = depth[ind];
         }
       }
-      }
     }
-    // export dans buffer
-    char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
-    for (E_Int i = 0; i < screenSize*3; i++) buffer[i] = offscreen[i];
-    free(depth);
+  }
+  // export dans buffer
+  char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer+1];
+  for (E_Int i = 0; i < screenSize*3; i++) buffer[i] = offscreen[i];
+  free(depth);
 #else
   printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif

@@ -9,7 +9,7 @@ import Generator.PyTree as G
 import KCore.test as test
 import Transform.PyTree as T
 import math
-import numpy 
+import numpy
 
 myApp = App.LBM(format='single')
 VARSMACRO = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
@@ -28,11 +28,11 @@ n = Nx-1
 
 tree=dict()
 tree['mach']=0.1
-tree['maille']=0.01                     
+tree['maille']=0.01
 tree['timestep']=tree['maille']/(c0*numpy.sqrt(3.))
 tree['reynolds']=100.
 tree['char_length']=L/10. # R0
-tree['rho0']=1.                       
+tree['rho0']=1.
 
 # Fluid
 rho0 = 1.
@@ -95,10 +95,10 @@ numz['cache_blocking_J']=1000000
 numz['cache_blocking_K']=1000000
 numz['cache_blocking_I']=1000000
 
-colop_select     = 'RR' 
+colop_select     = 'RR'
 NQ_local         = 'D3Q19'
 nu_local         = 0
-numz["time_step"]           = 1 
+numz["time_step"]           = 1
 numz["LBM_velocity_set"]    = NQ_local
 numz["lbm_c0"]              = math.sqrt(1./3.)
 numz["lbm_dif_coef"]        = nu_local
@@ -107,13 +107,13 @@ numz["LBM_coll_model"]      =colop_select
 numz["LBM_relax_time"]      =0.5
 
 
-myApp.set(numb=numb) 
+myApp.set(numb=numb)
 myApp.set(numz=numz)
 FastC._setNum2Zones(t, numz); FastC._setNum2Base(t, numb)
 
 (t, tc, metrics)  = FastLBM.warmup(t, tc,nghost=NG,flag_initprecise=0)
 
-for it in range(1,nit+1):    
+for it in range(1,nit+1):
     if it%10==0:
         print("--------- iteration %d -------------"%it)
     FastLBM._compute(t, metrics, it, tc,layer='Python',nittotal=nit)
@@ -122,6 +122,7 @@ Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
 # POST
 Internal._rmNodesByName(t,'*M1*')
+Internal._rmNodesByName(t,'*_P1')
 Internal._rmNodesByName(t,'*cell*')
 Internal._rmNodesByName(t,'*Qstar*')
 Internal._rmNodesByName(t,'*Qeq*')

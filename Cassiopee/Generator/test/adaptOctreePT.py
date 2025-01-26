@@ -1,4 +1,4 @@
-# - adaptOctree (pyTree) - 
+# - adaptOctree (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Geom.PyTree as D

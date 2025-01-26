@@ -9,7 +9,7 @@ def rotate(a):
         a = T.rotate(a, (0.5, 0, 0), (0,0,1), 0.5)
         CPlot.display(a)
     return a
-    
+
 a = C.convertFile2Arrays('dauphin2.plt', 'bin_tp')
 
 CPlot.display(a, win=(700,500), displayBB=0, mode=0, meshStyle=0)

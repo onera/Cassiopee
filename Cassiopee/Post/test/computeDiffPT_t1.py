@@ -26,7 +26,7 @@ test.testT(m,1)
 # Prise en compte du cellN
 #
 m = C.initVars(m, 'cellN', celln, ['CoordinateY'])
-m = P.computeDiff(m,'Density') 
+m = P.computeDiff(m,'Density')
 test.testT(m,2)
 
 #
@@ -51,13 +51,13 @@ test.testT(t,21)
 ni = 30; nj = 40; nk = 11
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
 m = C.initVars(m, 'Density', F, ['CoordinateX'])
-m = P.computeDiff(m,'Density') 
+m = P.computeDiff(m,'Density')
 test.testT(m,3)
 #
 # Prise en compte du cellN
 #
 m = C.initVars(m, 'cellN', celln, ['CoordinateY'])
-m = P.computeDiff(m,'Density') 
+m = P.computeDiff(m,'Density')
 test.testT(m,4)
 
 #

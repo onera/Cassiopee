@@ -16,7 +16,7 @@ vmin      = 42
 dfars     = 5
 snears    = 1
 t, tc = X_IBM.prepareIBMData(bodySurfaceFile, None         , None     ,
-                             snears=snears  , dfars=dfars  , vmin=vmin, 
+                             snears=snears  , dfars=dfars  , vmin=vmin,
                              check=False    , frontType=1  , cartesian=False)
 
 test.testT(t ,1)
@@ -45,7 +45,7 @@ test.testT(t3D  ,3)
 test.testT(tb3D ,4)
 
 #C.convertPyTree2File(t3D ,LOCAL+'/t3D_checking.cgns')
-#C.convertPyTree2File(tb3D,LOCAL+'/tb3D_checking.cgns') 
+#C.convertPyTree2File(tb3D,LOCAL+'/tb3D_checking.cgns')
 #
 
 t3Dorig, tb3Dorig = App.extrudeCartesian(t2, bodySurface2, extrusion=extrusion, NPas=NPas, span=span, dz=span/(NPas-1))
@@ -61,7 +61,7 @@ for bc in BCs:
         nameSplit=bc[0].split(".")
         lenLocal=len(nameSplit)
         bc[0]='.'.join(nameSplit[0:lenLocal-1])
-C._rmVars(t3Dorig, ['centers:cellN'])        
+C._rmVars(t3Dorig, ['centers:cellN'])
 test.testT(t3Dorig,3)
 
 #C.convertPyTree2File(t3Dorig ,LOCAL+'/t3Dorig_checking.cgns')

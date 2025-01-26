@@ -24,7 +24,7 @@ def initGround(a, type=0):
     elif type == 2:
         Converter._initVars(a, '{z}=3.*(3*cos(0.01*{x})+cos(0.1*{x}))*sin(0.01*{y})')
     else:
-        Converter._initVars(a, '{z}=floor(5*cos(0.1*{x})*sin(0.01*{y}))') 
+        Converter._initVars(a, '{z}=floor(5*cos(0.1*{x})*sin(0.01*{y}))')
     return a
 
 # -getZ-
@@ -88,7 +88,7 @@ def getKeys(state):
         elif v == 7: state['left']=0
         elif v == 4: state['right']=1
         elif v == 8: state['right']=0
-        elif v == 106: state['jump']=1  
+        elif v == 106: state['jump']=1
     CPlot.resetKeyboard()
 
 # - move viewer forward -
@@ -97,7 +97,7 @@ def getKeys(state):
 # IN: headstop: limite les mouvements de tete
 def moveForward(zmap, pos, unit=1., headStop=0.1):
     (x,y,z) = pos[0] # position of viewer
-    posCam = pos[0] 
+    posCam = pos[0]
     (xe,ye,ze) = pos[1] # posEye
     H = pos[2] # hauteur viewer
     deltaZ = pos[3] # deltaZ permis
@@ -115,7 +115,7 @@ def moveForward(zmap, pos, unit=1., headStop=0.1):
     (xpe,ype,zpe) = Vector.add(posCam, delta2)
     zp = getZ(zmap,xp,yp)
     zpe = getZ(zmap,xpe,ype)
-    
+
     if zpe-zp>headStop*unit: zpe = zp+headStop*unit
     elif zpe-zp<-headStop*unit: zpe = zp-headStop*unit
     if abs(zp+H-z) < deltaZ*unit:
@@ -294,17 +294,16 @@ def simpleLoop2(zmap, pos, unit=0.3):
     while 1 != 2:
         getKeys(kstate)
         if kstate['forward'] == 1: # forward
-           pos = moveForward(zmap, pos, unit)    
+            pos = moveForward(zmap, pos, unit)
         if kstate['backward'] == 1: #backward
-           pos = moveBackward(zmap, pos, unit) 
+            pos = moveBackward(zmap, pos, unit)
         if kstate['left'] == 1: # left
-           pos = turnLeft(zmap, pos, 5.)   
+            pos = turnLeft(zmap, pos, 5.)
         if kstate['right'] == 1: # right
-           pos = turnRight(zmap, pos, 5.)
+            pos = turnRight(zmap, pos, 5.)
         if kstate['jump'] == 1: # jump
-           pos = jump(zmap, pos, 1.+4*unit)
-           kstate['jump']=0
+            pos = jump(zmap, pos, 1.+4*unit)
+            kstate['jump']=0
         pos = completeMotion(zmap, pos)
         time.sleep(0.05)
         t += 1
- 

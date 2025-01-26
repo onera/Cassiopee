@@ -20,7 +20,7 @@ Cmpi.barrier()
 
 # Reread in parallel
 sk = Cmpi.convertFile2SkeletonTree('in.cgns')
-(sk, dic) = Distributor2.distribute(sk, NProc=Cmpi.size, algorithm='gradient0', 
+(sk, dic) = Distributor2.distribute(sk, NProc=Cmpi.size, algorithm='gradient0',
                                     useCom='match')
 a = Cmpi.readZones(sk, 'in.cgns', rank=Cmpi.rank)
 

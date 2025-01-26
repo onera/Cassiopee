@@ -7,13 +7,13 @@ import Converter.Internal as Internal
 import Connector.ToolboxIBM as TIBM
 import Connector.PyTree as X
 import Transform.PyTree as T
-import numpy 
+import numpy
 
 # Generates in parallel a Cartesian mesh
 # if ext=0, match and nearmatch joins are not computed
-def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, tbox=None, snearsf=None, 
+def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=False, tbox=None, snearsf=None,
                      ext=2, dimPb=3, sizeMax=1000000, expand=0):
-    
+
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
@@ -21,10 +21,10 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     if dfarList == []:
         zones = Internal.getZones(tb)
         dfarList = [dfar*1.]*len(zones)
-        for c, z in enumerate(zones): 
+        for c, z in enumerate(zones):
             n = Internal.getNodeFromName2(z, 'dfar')
             if n is not None: dfarList[c] = Internal.getValue(n)*1.
-    # a mettre dans la classe ou en parametre de prepare1 ??? 
+    # a mettre dans la classe ou en parametre de prepare1 ???
     to = None
     fileout = None
     if check: fileout = 'octree.cgns'
@@ -39,11 +39,11 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     # addRefinementZones
     if tbox is not None:
         o = addRefinementZones(o, tbox, snearsf, vmin=vmin, dim=dimPb)
-  
-  
+
+
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox, 
+    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox,
                                         snearsf=snearsf, dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
@@ -59,7 +59,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
     res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=sizeMax)
-    del p 
+    del p
     if parento is not None:
         for po in parento: del po
     t = C.newPyTree(['CARTESIAN', res])
@@ -68,7 +68,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     Cmpi._setProc(t, rank)
     C._addState(t, 'EquationDimension', dimPb)
     test.printMem(">>> Octree struct [end]")
-    
+
     # Add xzones for ext
     if ext>0:
         test.printMem(">>> extended cart grids [start]")
@@ -87,7 +87,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
         Cmpi._rmXZones(t)
         coords = None; zones = None
         test.printMem(">>> extended cart grids (after rmXZones) [end]")
-    
+
         TIBM._addBCOverlaps(t, bbox=bb)
         TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
 
@@ -122,7 +122,7 @@ def addRefinementZones(o, tbox, snearsf=None, vmin=15, dim=3):
     # volume minimum au dela duquel on ne peut pas raffiner
     volmin0 = 1.*volmin0
     while end == 0:
-        # Do not refine inside obstacles 
+        # Do not refine inside obstacles
         nob = 0
         C._initVars(to, 'centers:indicator', 0.)
         for box in boxes:
@@ -137,7 +137,7 @@ def addRefinementZones(o, tbox, snearsf=None, vmin=15, dim=3):
         C._initVars(to,'{centers:indicator}={centers:indicator}*({centers:vol}>%g)'%volmin0)
         print("max value", C.getMaxValue(to, 'centers:indicator'))
         C.convertPyTree2File(to,'to.cgns')
-        if  C.getMaxValue(to, 'centers:indicator') == 1.: 
+        if  C.getMaxValue(to, 'centers:indicator') == 1.:
             end = 0
             # Maintien du niveau de raffinement le plus fin
             o = Internal.getZones(to)[0]
@@ -176,7 +176,7 @@ def _setSnear(z, value):
         Internal._createUniqueChild(n, 'snear', 'DataArray_t', value)
     return None
 
-# Set dfar in zones 
+# Set dfar in zones
 def setDfar(t, value):
     tp = Internal.copyRef(t)
     _setDfar(t, value)

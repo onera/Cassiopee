@@ -37,6 +37,3 @@ a = T.subzone(a, [0], type='elements')
 a = C.convertLO2HO(a, 0)
 a = C.convertHO2LO(a, 0)
 test.testA(a, 5)
-
-
-

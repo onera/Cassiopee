@@ -31,10 +31,10 @@ namespace K_LINEAR
   {
   public:
     static void eigen_vectors 
-      (E_Float a00, E_Float a11, E_Float a10, E_Float& lambda0, E_Float& lambda1, E_Float* v0, E_Float* v1) ;
+      (E_Float a00, E_Float a11, E_Float a10, E_Float& lambda0, E_Float& lambda1, E_Float* v0, E_Float* v1);
 
     static void eigen_values 
-      (E_Float a00, E_Float a11, E_Float a10, E_Float& lambda0, E_Float& lambda1) ;
+      (E_Float a00, E_Float a11, E_Float a10, E_Float& lambda0, E_Float& lambda1);
 
     static void simultaneous_reduction
       (const K_FLD::FloatArray& M1, const K_FLD::FloatArray& M2,

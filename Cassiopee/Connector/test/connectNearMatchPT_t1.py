@@ -30,4 +30,3 @@ t = C.initVars(t, 'centers:Density', 1.)
 t = C.initVars(t, 'Density', 1.)
 t = X.connectNearMatch(t, dim=2, tol=2.e-5)
 test.testT(t,2)
-

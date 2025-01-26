@@ -117,35 +117,35 @@ def prepare0(t_case, t_out, tc_out, solvertype=None, translation=[0.,0.,0.], NP=
         isPerio=1
         t = X.connectMatchPeriodic(t,translation=[TX,0.,0.])
         for z in Internal.getZones(t):
-           match = Internal.getNodesFromType(z,'GridConnectivity1to1_t')
-           for m in match:
-               #On ne s'interesse qu'aux nouvelles connections qui sont forcement
-               #issues de la periodicite selon X.
-               if m[0] not in present_match:
-                   present_match.append(m[0])
-                   name_other = Internal.getValue(m)
-                   if (z[0] in zones_NS) and (name_other in zones_LBM):
-                       #Dans ce cas on a une CL periodique avec une frontiere NSLBM
-                       node = Internal.getNodeFromName(m, 'PointRange')
-                       per_range = Internal.getValue(node)
-                       per_range = sum(per_range.tolist(),[])
-                       C._addBC2Zone(z,'match_PerX'+z[0],'BCdimNS',per_range)
-                       node = Internal.getNodesFromValue(z,'BCdimNS')
-                       if node != []:
-                          for n in node:
-                             infos_couplage_zones[z[0]].append(Internal.copyNode(n))
-                       count += 1
-                   elif (z[0] in zones_LBM) and (name_other in zones_NS):
-                       #Dans ce cas on a une CL periodique avec une frontiere NSLBM
-                       node = Internal.getNodeFromName(m, 'PointRange')
-                       per_range = Internal.getValue(node)
-                       per_range = sum(per_range.tolist(),[])
-                       C._addBC2Zone(z,'match_PerX'+z[0],'BCReconsLBM',per_range)
-                       node = Internal.getNodesFromValue(z,'BCReconsLBM')
-                       if node != []:
-                          for n in node:
-                             infos_couplage_zones[z[0]].append(Internal.copyNode(n))
-                       count += 1
+            match = Internal.getNodesFromType(z,'GridConnectivity1to1_t')
+            for m in match:
+                #On ne s'interesse qu'aux nouvelles connections qui sont forcement
+                #issues de la periodicite selon X.
+                if m[0] not in present_match:
+                    present_match.append(m[0])
+                    name_other = Internal.getValue(m)
+                    if (z[0] in zones_NS) and (name_other in zones_LBM):
+                        #Dans ce cas on a une CL periodique avec une frontiere NSLBM
+                        node = Internal.getNodeFromName(m, 'PointRange')
+                        per_range = Internal.getValue(node)
+                        per_range = sum(per_range.tolist(),[])
+                        C._addBC2Zone(z,'match_PerX'+z[0],'BCdimNS',per_range)
+                        node = Internal.getNodesFromValue(z,'BCdimNS')
+                        if node != []:
+                            for n in node:
+                                infos_couplage_zones[z[0]].append(Internal.copyNode(n))
+                        count += 1
+                    elif (z[0] in zones_LBM) and (name_other in zones_NS):
+                        #Dans ce cas on a une CL periodique avec une frontiere NSLBM
+                        node = Internal.getNodeFromName(m, 'PointRange')
+                        per_range = Internal.getValue(node)
+                        per_range = sum(per_range.tolist(),[])
+                        C._addBC2Zone(z,'match_PerX'+z[0],'BCReconsLBM',per_range)
+                        node = Internal.getNodesFromValue(z,'BCReconsLBM')
+                        if node != []:
+                            for n in node:
+                                infos_couplage_zones[z[0]].append(Internal.copyNode(n))
+                        count += 1
         print('Found {} X-periodic NSLBM boundary conditions corresponding to {} NSLBM interfaces.'.format(count,int(count/2)))
         #Internal._rmNodesByType(t,'ZoneBC_t')
         C._rmBCOfType(t,'BCdimNS')
@@ -171,8 +171,8 @@ def prepare0(t_case, t_out, tc_out, solvertype=None, translation=[0.,0.,0.], NP=
                         C._addBC2Zone(z,'match_PerY'+z[0],'BCdimNS',per_range)
                         node = Internal.getNodesFromValue(z,'BCdimNS')
                         if node != []:
-                           for n in node:
-                              infos_couplage_zones[z[0]].append(Internal.copyNode(n))
+                            for n in node:
+                                infos_couplage_zones[z[0]].append(Internal.copyNode(n))
                         count += 1
                     elif (z[0] in zones_LBM) and (name_other in zones_NS):
                         #Dans ce cas on a une CL periodique avec une frontiere NSLBM
@@ -182,8 +182,8 @@ def prepare0(t_case, t_out, tc_out, solvertype=None, translation=[0.,0.,0.], NP=
                         C._addBC2Zone(z,'match_PerY'+z[0],'BCReconsLBM',per_range)
                         node = Internal.getNodesFromValue(z,'BCReconsLBM')
                         if node != []:
-                           for n in node:
-                              infos_couplage_zones[z[0]].append(Internal.copyNode(n))
+                            for n in node:
+                                infos_couplage_zones[z[0]].append(Internal.copyNode(n))
                         count += 1
         print('Found {} Y-periodic NSLBM boundary conditions corresponding to {} NSLBM interfaces.'.format(count,int(count/2)))
         #Internal._rmNodesByType(t,'ZoneBC_t')
@@ -259,31 +259,31 @@ def prepare0(t_case, t_out, tc_out, solvertype=None, translation=[0.,0.,0.], NP=
         t = X.connectMatchPeriodic(t,translation=[0.,0.,TZ])
         for z in Internal.getZones(t):
             if z[0] in zonesNamesORIG:
-               match = Internal.getNodesFromType(z,'GridConnectivity1to1_t')
-               for m in match:
-                  val = Internal.getNodeFromType(m,'Periodic_t')
-                  if val is not None:
-                     name_other = Internal.getValue(m)
-                     if (z[0] in zones_NS) and (name_other in zones_LBM):
-                        node = Internal.getNodeFromName(m,'PointRange')
-                        per_range = Internal.getValue(node)
-                        per_range = sum(per_range.tolist(),[])
-                        C._addBC2Zone(z,'match_PerZ'+z[0],'BCdimNS',per_range)
-                        node = Internal.getNodesFromValue(z,'BCdimNS')
-                        if node !=[]:
-                           for n in node:
-                              infos_couplage_zones[z[0]].append(Internal.copyNode(n))
-                        count += 1
-                     elif (z[0] in zones_LBM) and (name_other in zones_NS):
-                        node = Internal.getNodeFromName(m,'PointRange')
-                        per_range = Internal.getValue(node)
-                        per_range = sum(per_range.tolist(),[])
-                        C._addBC2Zone(z,'math_PerZ'+z[0],'BCReconsLBM',per_range)
-                        node = Internal.getNodesFromValue(z,'BCReconsLBM')
-                        if node != []:
-                           for n in node:
-                              infos_couplage_zones[z[0]].append(Internal.copyNode(n))
-                        count += 1
+                match = Internal.getNodesFromType(z,'GridConnectivity1to1_t')
+                for m in match:
+                    val = Internal.getNodeFromType(m,'Periodic_t')
+                    if val is not None:
+                        name_other = Internal.getValue(m)
+                        if (z[0] in zones_NS) and (name_other in zones_LBM):
+                            node = Internal.getNodeFromName(m,'PointRange')
+                            per_range = Internal.getValue(node)
+                            per_range = sum(per_range.tolist(),[])
+                            C._addBC2Zone(z,'match_PerZ'+z[0],'BCdimNS',per_range)
+                            node = Internal.getNodesFromValue(z,'BCdimNS')
+                            if node !=[]:
+                                for n in node:
+                                    infos_couplage_zones[z[0]].append(Internal.copyNode(n))
+                            count += 1
+                        elif (z[0] in zones_LBM) and (name_other in zones_NS):
+                            node = Internal.getNodeFromName(m,'PointRange')
+                            per_range = Internal.getValue(node)
+                            per_range = sum(per_range.tolist(),[])
+                            C._addBC2Zone(z,'math_PerZ'+z[0],'BCReconsLBM',per_range)
+                            node = Internal.getNodesFromValue(z,'BCReconsLBM')
+                            if node != []:
+                                for n in node:
+                                    infos_couplage_zones[z[0]].append(Internal.copyNode(n))
+                            count += 1
         print('Found {} Z-periodic NSLBM boundary conditions correspondig to {} NSLBM interfaces.'.format(count,int(count/2.)))
         #Internal._rmNodesByType(t,'ZoneBC_t')
         C._rmBCOfType(t,'BCdimNS')

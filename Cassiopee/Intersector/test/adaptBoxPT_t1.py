@@ -11,4 +11,3 @@ m = XOR.adaptBox(a, box_ratio=10.)
 
 m = XOR.closeCells(m)
 test.testT(m,1)
-

@@ -39,11 +39,3 @@ I._rmNodesByName(ta, 'rid')
 
 test.testT(ta,1)
 #C.convertPyTree2File(ta, 'PT_t11.cgns')
-
-
-
-
-
-
-
-

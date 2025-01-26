@@ -4,7 +4,7 @@ import Generator.PyTree as G
 import KCore.test as test
 
 # test structure
-a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0.01, 10., (20,20,10)) 
+a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0.01, 10., (20,20,10))
 C._addBC2Zone(a, 'match1','BCMatch','imin',a,'imax',[1,2,3])
 C._addBC2Zone(a, 'match2','BCMatch','imax',a,'imin',[1,2,3])
 C._fillEmptyBCWith(a, 'wall','BCWall')

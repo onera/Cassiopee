@@ -1,4 +1,4 @@
-# - display (array) - 
+# - display (array) -
 # test scalar mode -
 import Converter as C
 import Generator as G

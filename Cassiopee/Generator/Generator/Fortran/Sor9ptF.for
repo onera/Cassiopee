@@ -27,10 +27,10 @@ c
       omg = 0.01D0
       dx = 1.D0/n
       dy = 1.D0/m
-      tdx = 2.*dx
-      tdy = 2.*dy
+      tdx = 2.D0*dx
+      tdy = 2.D0*dy
       dxx = dx*dx
-      dxy = 4.*dx*dy
+      dxy = 4.D0*dx*dy
       dyy = dy*dy
 
       xerr = 0.D0
@@ -40,9 +40,9 @@ c
       do j = 2, m-1
          do i = 2, n-1
 c
-            cf11 = 2.*( a11(i,j)/dxx + c11(i,j)/dyy )
-            cf12 = 2.*( a12(i,j)/dxx + c12(i,j)/dyy )
-            cf22 = 2.*( a22(i,j)/dxx + c22(i,j)/dyy )
+            cf11 = 2.D0*( a11(i,j)/dxx + c11(i,j)/dyy )
+            cf12 = 2.D0*( a12(i,j)/dxx + c12(i,j)/dyy )
+            cf22 = 2.D0*( a22(i,j)/dxx + c22(i,j)/dyy )
 c
             x12 = ( x(i+1,j+1) - x(i+1,j-1) - x(i-1,j+1) + x(i-1,j-1) )/
      $           dxy

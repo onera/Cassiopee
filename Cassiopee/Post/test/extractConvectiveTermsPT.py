@@ -19,22 +19,22 @@ for z in Internal.getZones(a):
     for zsr in subRegions:
         Internal._createChild(zsr, 'ZoneRole', 'DataArray_t', value='Donor')
         Internal._createChild(zsr, 'GridLocation', 'GridLocation_t', value='CellCenter')
-        
+
         zsr[2].append(['CoordinateX_PW', copy.copy(Nlength), [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PW', copy.copy(Nlength), [], 'DataArray_t'])
         zsr[2].append(['CoordinateZ_PW', copy.copy(Nlength), [], 'DataArray_t'])
-        
+
         zsr[2].append(['CoordinateX_PC', copy.copy(Nlength)+14, [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PC', copy.copy(Nlength)+14, [], 'DataArray_t'])
         zsr[2].append(['CoordinateZ_PC', copy.copy(Nlength)+14, [], 'DataArray_t'])
-        
+
         zsr[2].append(['CoordinateX_PI', copy.copy(Nlength)+15, [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PI', copy.copy(Nlength)+15, [], 'DataArray_t'])
         zsr[2].append(['CoordinateZ_PI', copy.copy(Nlength)+15, [], 'DataArray_t'])
 
         zsr[2].append(['Pressure', Nlength+3, [], 'DataArray_t'])
         zsr[2].append(['Density' , copy.copy(Nlength)+1, [], 'DataArray_t'])
-            
+
         zsr[2].append(['gradxPressure', copy.copy(Nlength)+2, [], 'DataArray_t'])
         zsr[2].append(['gradyPressure', copy.copy(Nlength)+2, [], 'DataArray_t'])
         zsr[2].append(['gradzPressure', copy.copy(Nlength)+2, [], 'DataArray_t'])
@@ -54,6 +54,6 @@ for z in Internal.getZones(a):
         zsr[2].append(['VelocityX', copy.copy(Nlength)+6, [], 'DataArray_t'])
         zsr[2].append(['VelocityY', copy.copy(Nlength)+7, [], 'DataArray_t'])
         zsr[2].append(['VelocityZ', copy.copy(Nlength)+8, [], 'DataArray_t'])
-        
+
 a=P_IBM.extractConvectiveTerms(a)
 C.convertPyTree2File(a,'out.cgns')

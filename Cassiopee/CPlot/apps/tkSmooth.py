@@ -34,7 +34,7 @@ def setConstraint():
         selected += CTK.t[2][nob][0]+'/'+z[0]+';'
     selected = selected[0:-1]
     VARS[1].set(selected)
-    
+
 #==============================================================================
 def smooth():
     if CTK.t == []: return
@@ -46,7 +46,7 @@ def smooth():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
+
     smooth = CTK.varsFromWidget(VARS[0].get(), type=2)
     if len(smooth) != 1:
         CTK.TXT.insert('START', 'Smooth iter is incorrect.\n')
@@ -76,7 +76,7 @@ def smooth():
     fixedConstraints = []; projConstraints = []
 
     name = VARS[1].get()
-    names = name.split(';')    
+    names = name.split(';')
     for v in names:
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
@@ -87,7 +87,7 @@ def smooth():
                 if z[0] == sname[1]: fixedConstraints.append(z)
 
     CTK.saveTree()
-    
+
     # Get all zones
     zones = []
     for nz in nzs:
@@ -109,9 +109,9 @@ def smooth():
     dims = Internal.getZoneDim(A)
     pbDim = 3
     if dims[3] == 'TRI': pbDim = 2
-        
+
     # Keep external faces
-    if VARS[3].get() == 1 or pbDim == 3: 
+    if VARS[3].get() == 1 or pbDim == 3:
         try: ext = P.exteriorFaces(A)
         except: ext = []
     if VARS[3].get() == 1 and ext != []: fixedConstraints.append(ext)
@@ -142,20 +142,20 @@ def smooth():
         # Pour l'instant, on ne sait pas projeter un maillage volumique
         # sur une surface
         Pj = 0
-    
+
     # Smooth
     CTK.setCursor(2, WIDGETS['smooth'])
     fail = False
     try:
         if Pj == 0:
             zones = T.smooth(zones, eps=eps, niter=smooth, type=ntype,
-                             fixedConstraints=fixedConstraints, 
+                             fixedConstraints=fixedConstraints,
                              projConstraints=projConstraints, delta=strength)
         else:
             for s in range(smooth):
                 zones = T.smooth(zones, eps=eps, niter=2, type=ntype,
-                                 fixedConstraints=fixedConstraints, 
-                                 projConstraints=projConstraints, 
+                                 fixedConstraints=fixedConstraints,
+                                 projConstraints=projConstraints,
                                  delta=strength)
                 zones = T.projectOrtho(zones, [projSurf])
     except Exception as e:
@@ -175,12 +175,12 @@ def smooth():
         CTK.TXT.insert('START', 'Error: ', 'Error')
 
     CTK.setCursor(0, WIDGETS['smooth'])
-    
+
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -199,7 +199,7 @@ def createApp(win):
     Frame.columnconfigure(3, weight=0)
     Frame.columnconfigure(4, weight=0)
     WIDGETS['frame'] = Frame
-    
+
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
@@ -216,25 +216,25 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Constraint strength
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if 'tkSmoothConsStrength' in CTK.PREFS: 
+    if 'tkSmoothConsStrength' in CTK.PREFS:
         V.set(CTK.PREFS['tkSmoothConsStrength'])
     # -3- Constraint external faces
     V = TK.IntVar(win); V.set(1); VARS.append(V)
     # -4- smooth eps
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if 'tkSmoothEps' in CTK.PREFS: 
+    if 'tkSmoothEps' in CTK.PREFS:
         V.set(CTK.PREFS['tkSmoothEps'])
     # -5- Constraint sharp edges
     V = TK.IntVar(win); V.set(0); VARS.append(V)
     # -6- Sharp edges detection angle
     V = TK.StringVar(win); V.set('30.'); VARS.append(V)
-    if 'tkSmoothSharpAngle' in CTK.PREFS: 
+    if 'tkSmoothSharpAngle' in CTK.PREFS:
         V.set(CTK.PREFS['tkSmoothSharpAngle'])
     # -7- Project on surface
     V = TK.IntVar(win); V.set(0); VARS.append(V)
     # -8- Type de smoothing
     V = TK.StringVar(win); V.set('Volume'); VARS.append(V)
-    if 'tkSmoothType' in CTK.PREFS: 
+    if 'tkSmoothType' in CTK.PREFS:
         V.set(CTK.PREFS['tkSmoothType'])
 
     # - Smoother power -
@@ -285,13 +285,13 @@ def createApp(win):
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=8)
     B.grid(row=2, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Constraint curves for smoother (points dont move).')
-    
+
     # - Smooth -
     B = TTK.Button(Frame, text="Smooth", command=smooth)
     WIDGETS['smooth'] = B
     BB = CTK.infoBulle(parent=B, text='Smooth mesh.')
     B.grid(row=3, column=0, columnspan=5, sticky=TK.EW)
-    
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
@@ -307,7 +307,7 @@ def showApp():
 def hideApp(event=None):
     #WIDGETS['frame'].grid_forget()
     CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
-    
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -321,7 +321,7 @@ def saveApp():
     CTK.PREFS['tkSmoothSharpAngle'] = VARS[6].get()
     CTK.PREFS['tkSmoothType'] = VARS[8].get()
     CTK.savePrefFile()
-    
+
 #==============================================================================
 def resetApp():
     VARS[0].set('10')
@@ -339,7 +339,7 @@ def resetApp():
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
-    
+
 #==============================================================================
 if (__name__ == "__main__"):
     import sys

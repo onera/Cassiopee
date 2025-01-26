@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Quad.h"
+#include "Mesh.h"
 
 E_Int Q9_refine(E_Int quad, Mesh *M)
 {
@@ -145,9 +146,18 @@ E_Int Q9_refine(E_Int quad, Mesh *M)
 
     M->fchildren[quad] = {quad, M->nf, M->nf+1, M->nf+2};
 
-    M->fparent[M->nf] = quad;
+    M->fparent[M->nf]   = quad;
     M->fparent[M->nf+1] = quad;
     M->fparent[M->nf+2] = quad;
+
+    M->ftag[M->nf]   = M->ftag[quad];
+    M->ftag[M->nf+1] = M->ftag[quad];
+    M->ftag[M->nf+2] = M->ftag[quad];
+
+    //assert(M->fpattern[quad] == DIR_ISO);
+    M->fpattern[M->nf] = M->fpattern[quad];
+    M->fpattern[M->nf+1] = M->fpattern[quad];
+    M->fpattern[M->nf+2] = M->fpattern[quad];
 
     // Increment face/edge/point count
     M->nf += 3;
@@ -161,4 +171,16 @@ void Q4_reorder(E_Int *pn, E_Int reorient, E_Int i0, E_Int local[4])
     for (E_Int i = 0; i < 4; i++) local[i] = pn[i];
     Right_shift(local, i0, 4);
     if (reorient) std::swap(local[1], local[3]);
+}
+
+void refine_face_iso(E_Int face, Mesh *M)
+{
+    switch (M->ftype[face]) {
+        case QUAD:
+            Q9_refine(face, M);
+            break;
+        default:
+            assert(0);
+            break;
+    }
 }

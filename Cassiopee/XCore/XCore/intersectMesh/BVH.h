@@ -1,32 +1,27 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
 #include "AABB.h"
-#include "common/mem.h"
-
-#define MAX_FACES_PER_LEAF 10
-
-struct IMesh;
 
 struct BVH_node {
-    AABB bbox;
-    BVH_node *left;
-    BVH_node *right;
-    E_Int *elements;
-};
-
-BVH_node *BVH_create_node(AABB aabb, BVH_node *left_child,
-    BVH_node *right_child, Mem_arena &arena);
-
-BVH_node *BVH_create_node(AABB aabb, BVH_node *left_child, BVH_node *right_child,
-        E_Int *ids, E_Int count, Mem_arena &arena);
-
-BVH_node *BVH_create_node(E_Int *ids, E_Int count, const IMesh &M,
-    Mem_arena &arena);
-
-struct BVH {
-    BVH_node *root;
-
-    Mem_arena arena;
-
-    BVH(const IMesh &M);
+    AABB box = AABB_HUGE;
+    E_Int left_node, first_tri_idx, tri_count;
+    bool is_leaf() const { return tri_count > 0; }
 };

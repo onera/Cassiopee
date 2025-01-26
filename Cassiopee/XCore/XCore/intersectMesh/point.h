@@ -18,9 +18,30 @@
 */
 #pragma once
 
-#include "vec3.h"
+#include "xcore.h"
 
-typedef Vec3 Point;
+struct Point {
+    E_Float x, y, z;
+};
+
+struct PointLoc {
+    E_Int fid = -1;
+    E_Int v_idx = -1;
+    E_Int e_idx = -1;
+    E_Float bcrd[3] = {EFLOATMAX, EFLOATMAX, EFLOATMAX};
+    E_Float t = EFLOATMAX;
+    E_Float x = EFLOATMAX;
+    E_Float y = EFLOATMAX;
+    E_Float z = EFLOATMAX;
+    E_Int sub = -1;
+};
+
+struct PointData {
+    E_Int pid; // my id in spatch
+    E_Int fid; // id of the mface I am on
+    E_Int sid; // if of the smesh I belong to
+    E_Float x, y, z;
+};
 
 struct pointFace {
     E_Int F;
