@@ -105,12 +105,14 @@ jobs:
               sed -i '/Name: /c\Name: \$PACKAGE_NAME' \${PACKAGE_NAME}-4.0.dist-info/METADATA
               ls .
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
+                  ls \${dir}
                   origDir=\${dir%-4.0};
                   mv \$dir \$origDir;
-                  if [[ "\$origDir" == "KCore" || "\$origDir" == "XCore" ]]; then
+                  if [[ \"\$origDir\" == \"KCore\" || \"\$origDir\" == \"XCore\" ]]; then
                       continue
                   fi
                   echo \"\" >> \${PACKAGE_NAME}-4.0.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> \${PACKAGE_NAME}-4.0.dist-info/RECORD
+                  ls \${dir}.dist-info
                   rm -r \${dir}.dist-info
               done
               echo \"\" >> KCore-4.0.dist-info/RECORD && cat \${PACKAGE_NAME}-4.0.dist-info/RECORD >> KCore-4.0.dist-info/RECORD
