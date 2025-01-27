@@ -96,13 +96,13 @@ jobs:
                   rm "\$kwheel";
               done
               cd \$CASSIOPEE/\$PACKAGE_NAME
-              mv XCore-4.0.dist-info Cassiopee88-4.0.dist-info
-              echo \$FREE_MODULES | tr ' ' '\n' > Cassiopee88-4.0.dist-info/toplevel.txt
-              sed -i '/Name: /c\Name: Cassiopee88' Cassiopee88-4.0.dist-info/METADATA
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
                   ls \${dir}/*
                   cp -r \$dir/* .
               done
+              mv XCore-4.0.dist-info Cassiopee88-4.0.dist-info
+              echo \$FREE_MODULES | tr ' ' '\n' > Cassiopee88-4.0.dist-info/toplevel.txt
+              sed -i '/Name: /c\Name: Cassiopee88' Cassiopee88-4.0.dist-info/METADATA
               ls .
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
                   ls \${dir}
@@ -119,6 +119,7 @@ jobs:
               echo \"\" >> KCore-4.0.dist-info/RECORD && cat Cassiopee88-4.0.dist-info/RECORD >> KCore-4.0.dist-info/RECORD
               mv KCore-4.0.dist-info/RECORD Cassiopee88-4.0.dist-info/RECORD
               find . -maxdepth 1 -type d -name '*.dist-info' -not -name 'Cassiopee88-4.0.dist-info' -exec rm -rf {} +
+              rm -r *-4.0
               ls .
               cat Cassiopee88-4.0.dist-info/METADATA
               cat Cassiopee88-4.0.dist-info/toplevel.txt
