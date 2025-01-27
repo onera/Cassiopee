@@ -100,9 +100,9 @@ jobs:
                   cp -r \$dir/* .
                   rm -r \$dir
               done
-              mv XCore-4.0.dist-info \${PACKAGE_NAME}-4.0.dist-info
-              echo \$FREE_MODULES | tr ' ' '\n' > \${PACKAGE_NAME}-4.0.dist-info/toplevel.txt
-              sed -i '/Name: /c\Name: \$PACKAGE_NAME' \${PACKAGE_NAME}-4.0.dist-info/METADATA
+              mv XCore-4.0.dist-info \$PACKAGE_NAME-4.0.dist-info
+              echo \$FREE_MODULES | tr ' ' '\n' > \$PACKAGE_NAME-4.0.dist-info/toplevel.txt
+              sed -i '/Name: /c\Name: \$PACKAGE_NAME' \$PACKAGE_NAME-4.0.dist-info/METADATA
               ls .
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
                   ls \${dir}
@@ -111,17 +111,18 @@ jobs:
                   if [[ \"\$origDir\" == \"KCore\" || \"\$origDir\" == \"XCore\" ]]; then
                       continue
                   fi
-                  echo \"\" >> \${PACKAGE_NAME}-4.0.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> \${PACKAGE_NAME}-4.0.dist-info/RECORD
                   ls \${dir}.dist-info
-                  rm -r \${dir}.dist-info
+                  ls \$dir.dist-info
+                  echo \"\" >> \$PACKAGE_NAME-4.0.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> \$PACKAGE_NAME-4.0.dist-info/RECORD
               done
-              echo \"\" >> KCore-4.0.dist-info/RECORD && cat \${PACKAGE_NAME}-4.0.dist-info/RECORD >> KCore-4.0.dist-info/RECORD
-              mv KCore-4.0.dist-info/RECORD \${PACKAGE_NAME}-4.0.dist-info/RECORD
-              rm -r KCore-4.0.dist-info
+              sed -i '/-4.0.dist-info/d' \$PACKAGE_NAME-4.0.dist-info/RECORD
+              echo \"\" >> KCore-4.0.dist-info/RECORD && cat \$PACKAGE_NAME-4.0.dist-info/RECORD >> KCore-4.0.dist-info/RECORD
+              mv KCore-4.0.dist-info/RECORD \$PACKAGE_NAME-4.0.dist-info/RECORD
+              find . -maxdepth 1 -type d -name '*.dist-info' ! -name '\$PACKAGE_NAME-4.0.dist-info' -exec rm -rf {} +
               ls .
-              cat \${PACKAGE_NAME}-4.0.dist-info/METADATA
-              cat \${PACKAGE_NAME}-4.0.dist-info/toplevel.txt
-              cat \${PACKAGE_NAME}-4.0.dist-info/RECORD
+              cat \$PACKAGE_NAME-4.0.dist-info/METADATA
+              cat \$PACKAGE_NAME-4.0.dist-info/toplevel.txt
+              cat \$PACKAGE_NAME-4.0.dist-info/RECORD
               cd .. && python -m wheel pack \$PACKAGE_NAME
               ls .
               cd \$CASSIOPEE/\$PACKAGE_NAME/
