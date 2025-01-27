@@ -3504,10 +3504,10 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
 
                 transfo=numpy.zeros(3,dtype=Internal.E_NpyInt)#XOD.getTransfo(dnrZones[nod],zrcv)
 
-                connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
+                connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1],dim__[2],dim__[3])
 
 
-                #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1]+1 , dim__[2]+1 , dim__[3]+1)
+                #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1] , dim__[2] , dim__[3])
 
                 NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                 NMratio[0]=1
@@ -3611,9 +3611,9 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
 
                         transfo=numpy.zeros(3,dtype=Internal.E_NpyInt)#XOD.getTransfo(dnrZones[nod],zrcv)
 
-                        connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
+                        connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1],dim__[2],dim__[3])
 
-                        #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1]+1 , dim__[2]+1 , dim__[3]+1)
+                        #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1] , dim__[2] , dim__[3])
 
                         NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                         NMratio[0]=1
@@ -3990,10 +3990,10 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
                 transfo = XOD.getTransfo(dnrZones[nod],zrcv)
 
-                connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
+                connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1],dim__[2],dim__[3])
 
 
-                #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1]+1 , dim__[2]+1 , dim__[3]+1)
+                #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1] , dim__[2] , dim__[3])
 
                 NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                 NMratio[0]=1
@@ -4097,9 +4097,9 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
                         transfo=XOD.getTransfo(dnrZones[nod],zrcv)
 
-                        connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
+                        connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1],dim__[2],dim__[3])
 
-                        #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1]+1 , dim__[2]+1 , dim__[3]+1)
+                        #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1], dim__[2], dim__[3])
 
                         NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                         NMratio[0]=1
