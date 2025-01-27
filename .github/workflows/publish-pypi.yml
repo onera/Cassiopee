@@ -79,8 +79,6 @@ jobs:
               cd \$CASSIOPEE/
               PACKAGE_NAME=\$(grep '^name =' pyproject.toml | sed 's/name = \"\(.*\)\"/\\1/')
               PACKAGE_VERSION=\$(grep '^version =' pyproject.toml | sed 's/version = \"\(.*\)\"/\\1/')
-              echo \"Package Name: \$PACKAGE_NAME\"
-              echo \"Package Version: \$PACKAGE_VERSION\"
               cd \$CASSIOPEE/Cassiopee
               . \$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
               sed -i "s/OCC//g" MODULES
@@ -97,36 +95,24 @@ jobs:
               done
               cd \$CASSIOPEE/\$PACKAGE_NAME
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
-                  ls \${dir}/*
                   cp -r \$dir/* .
               done
               mv XCore-4.0.dist-info Cassiopee88-4.0.dist-info
               echo \$FREE_MODULES | tr ' ' '\n' > Cassiopee88-4.0.dist-info/toplevel.txt
               sed -i '/Name: /c\Name: Cassiopee88' Cassiopee88-4.0.dist-info/METADATA
-              ls .
-              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
-                  ls \${dir}
-                  origDir=\${dir%-4.0};
-                  mv \$dir \$origDir;
-                  if [[ \"\$origDir\" == \"KCore\" || \"\$origDir\" == \"XCore\" ]]; then
-                      continue
-                  fi
-                  ls \${dir}.dist-info
-                  ls \$dir.dist-info
+              sed -i '/Summary: /c\Summary: *Cassiopee* modules.' Cassiopee88-4.0.dist-info/METADATA
+              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0' -not -name '[K,X]Core*' ); do
                   echo \"\" >> Cassiopee88-4.0.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> Cassiopee88-4.0.dist-info/RECORD
               done
               sed -i '/-4.0.dist-info/d' Cassiopee88-4.0.dist-info/RECORD
               echo \"\" >> KCore-4.0.dist-info/RECORD && cat Cassiopee88-4.0.dist-info/RECORD >> KCore-4.0.dist-info/RECORD
               mv KCore-4.0.dist-info/RECORD Cassiopee88-4.0.dist-info/RECORD
               find . -maxdepth 1 -type d -name '*.dist-info' -not -name 'Cassiopee88-4.0.dist-info' -exec rm -rf {} +
-              rm -r *-4.0
-              ls .
+              find . -maxdepth 1 -type d -name '*-4.0' -exec rm -rf {} +
               cat Cassiopee88-4.0.dist-info/METADATA
               cat Cassiopee88-4.0.dist-info/toplevel.txt
               cat Cassiopee88-4.0.dist-info/RECORD
               cd .. && python -m wheel pack \$PACKAGE_NAME
-              ls .
-              cd \$CASSIOPEE/\$PACKAGE_NAME/
               for kwheel in \$(find . -name '*.whl'); do
                   auditwheel repair \$kwheel;
               done
