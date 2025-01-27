@@ -76,6 +76,11 @@ jobs:
               python --version && python -m pip list
               export CASSIOPEE=/io/Cassiopee
               export MACHINE=azure
+              cd \$CASSIOPEE/
+              PACKAGE_NAME=\$(grep '^name =' pyproject.toml | sed 's/name = \"\(.*\)\"/\\1/')
+              PACKAGE_VERSION=\$(grep '^version =' pyproject.toml | sed 's/version = \"\(.*\)\"/\\1/')
+              echo \"Package Name: \$PACKAGE_NAME\"
+              echo \"Package Version: \$PACKAGE_VERSION\"
               cd \$CASSIOPEE/Cassiopee
               . \$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
               sed -i "s/OCC//g" MODULES
@@ -85,19 +90,19 @@ jobs:
               find . -type f -name '*.whl' -exec mv {} \$CASSIOPEE \;
               find /tmp/ -type f -name 'KCore*.whl' -exec mv {} \$CASSIOPEE \;
               cd \$CASSIOPEE
-              mkdir \$CASSIOPEE/Cassiopee88
-              for kwheel in \$(find . -name '*.whl'); do \
-                  wheel unpack "\$kwheel" --dest \$CASSIOPEE/Cassiopee88; \
-                  rm "\$kwheel"; \
+              mkdir \$CASSIOPEE/\$PACKAGE_NAME
+              for kwheel in \$(find . -name '*.whl'); do
+                  wheel unpack "\$kwheel" --dest \$CASSIOPEE/\$PACKAGE_NAME;
+                  rm "\$kwheel";
               done
-              cd \$CASSIOPEE/Cassiopee88
-              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do \
+              cd \$CASSIOPEE/\$PACKAGE_NAME
+              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
                   cp -r \$dir/* .
                   rm -r \$dir
               done
-              mv XCore-4.0.dist-info Cassiopee88-4.0.dist-info
-              echo \$FREE_MODULES | tr ' ' '\n' > Cassiopee88-4.0.dist-info/toplevel.txt
-              sed -i '/Name: /c\Name: Cassiopee88' Cassiopee88-4.0.dist-info/METADATA
+              mv XCore-4.0.dist-info \${PACKAGE_NAME}-4.0.dist-info
+              echo \$FREE_MODULES | tr ' ' '\n' > \${PACKAGE_NAME}-4.0.dist-info/toplevel.txt
+              sed -i '/Name: /c\Name: \$PACKAGE_NAME' \${PACKAGE_NAME}-4.0.dist-info/METADATA
               ls .
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
                   origDir=\${dir%-4.0};
@@ -105,21 +110,21 @@ jobs:
                   if [[ "\$origDir" == "KCore" || "\$origDir" == "XCore" ]]; then
                       continue
                   fi
-                  echo \"\" >> Cassiopee88-4.0.dist-info/RECORD && cat \$dir.dist-info/RECORD >> Cassiopee88-4.0.dist-info/RECORD
-                  rm -r \$dir.dist-info
+                  echo \"\" >> \${PACKAGE_NAME}-4.0.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> \${PACKAGE_NAME}-4.0.dist-info/RECORD
+                  rm -r \${dir}.dist-info
               done
-              echo \"\" >> KCore-4.0.dist-info/RECORD && cat Cassiopee88-4.0.dist-info/RECORD >> KCore-4.0.dist-info/RECORD
-              mv KCore-4.0.dist-info/RECORD Cassiopee88-4.0.dist-info/RECORD
-              rm -r KCore-4.0.dist-info XCore-4.0.dist-info
+              echo \"\" >> KCore-4.0.dist-info/RECORD && cat \${PACKAGE_NAME}-4.0.dist-info/RECORD >> KCore-4.0.dist-info/RECORD
+              mv KCore-4.0.dist-info/RECORD \${PACKAGE_NAME}-4.0.dist-info/RECORD
+              rm -r KCore-4.0.dist-info
               ls .
-              cat Cassiopee88-4.0.dist-info/METADATA
-              cat Cassiopee88-4.0.dist-info/toplevel.txt
-              cat Cassiopee88-4.0.dist-info/RECORD
-              cd .. && python -m wheel pack Cassiopee88
+              cat \${PACKAGE_NAME}-4.0.dist-info/METADATA
+              cat \${PACKAGE_NAME}-4.0.dist-info/toplevel.txt
+              cat \${PACKAGE_NAME}-4.0.dist-info/RECORD
+              cd .. && python -m wheel pack \$PACKAGE_NAME
               ls .
-              cd \$CASSIOPEE/Cassiopee88/
-              for kwheel in \$(find . -name '*.whl'); do \
-                  auditwheel repair \$kwheel; \
+              cd \$CASSIOPEE/\$PACKAGE_NAME/
+              for kwheel in \$(find . -name '*.whl'); do
+                  auditwheel repair \$kwheel;
               done
               ls .
               ls wheelhouse
@@ -131,8 +136,8 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
           export CASSIOPEE=$GITHUB_WORKSPACE
-          for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do \
-              twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel; \
+          for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do
+              twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
           done
           
 #      - name: Publish to PyPI
@@ -141,6 +146,6 @@ jobs:
 #          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 #        run: |
 #          export CASSIOPEE=$GITHUB_WORKSPACE
-#          for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do \
-#              twine upload --verbose $kwheel; \
+#          for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do
+#              twine upload --verbose $kwheel;
 #          done
