@@ -76,9 +76,8 @@ jobs:
               python --version && python -m pip list
               export CASSIOPEE=/io/Cassiopee
               export MACHINE=azure
-              cd \$CASSIOPEE/
-              PACKAGE_NAME=\$(grep '^name =' pyproject.toml | sed 's/name = \"\(.*\)\"/\\1/')
-              PACKAGE_VERSION=\$(grep '^version =' pyproject.toml | sed 's/version = \"\(.*\)\"/\\1/')
+              PACKAGE_NAME=\$(grep '^name =' \$CASSIOPEE/pyproject.toml | sed 's/name = \"\(.*\)\"/\\1/')
+              PACKAGE_VERSION=\$(grep '^version =' \$CASSIOPEE/pyproject.toml | sed 's/version = \"\(.*\)\"/\\1/')
               cd \$CASSIOPEE/Cassiopee
               . \$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
               sed -i "s/OCC//g" MODULES
@@ -95,13 +94,13 @@ jobs:
               done
               cd \$CASSIOPEE/\$PACKAGE_NAME
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
-                  cp -r \$dir/* .
+                  mv \$dir/* .
               done
               mv XCore-4.0.dist-info Cassiopee88-4.0.dist-info
               echo \$FREE_MODULES | tr ' ' '\n' > Cassiopee88-4.0.dist-info/toplevel.txt
               sed -i '/Name: /c\Name: Cassiopee88' Cassiopee88-4.0.dist-info/METADATA
               sed -i '/Summary: /c\Summary: *Cassiopee* modules.' Cassiopee88-4.0.dist-info/METADATA
-              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0' -not -name '[K,X]Core*' ); do
+              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0' -not -name '[K,X]Core*'); do
                   echo \"\" >> Cassiopee88-4.0.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> Cassiopee88-4.0.dist-info/RECORD
               done
               sed -i '/-4.0.dist-info/d' Cassiopee88-4.0.dist-info/RECORD
@@ -125,8 +124,8 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
-          export CASSIOPEE=$GITHUB_WORKSPACE
-          for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do
+          export CASSIOPEE=$GITHUB_WORKSPACE/../
+          for kwheel in $(find $CASSIOPEE/wheelhouse/ -name '*.whl'); do
               twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
           done
           
@@ -136,6 +135,6 @@ jobs:
 #          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 #        run: |
 #          export CASSIOPEE=$GITHUB_WORKSPACE
-#          for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do
+#          for kwheel in $(find $CASSIOPEE/wheelhouse/ -name '*.whl'); do
 #              twine upload --verbose $kwheel;
 #          done
