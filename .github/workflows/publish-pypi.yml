@@ -112,7 +112,9 @@ jobs:
               cat Cassiopee88-4.0.dist-info/toplevel.txt
               cat Cassiopee88-4.0.dist-info/RECORD
               cd .. && python -m wheel pack \$PACKAGE_NAME
-              auditwheel repair 'Cassiopee88-4.0*.whl'
+              for kwheel in \$(find . -name '*.whl'); do
+                  auditwheel repair \$kwheel;
+              done
               ls .
               ls wheelhouse
           "
@@ -124,14 +126,16 @@ jobs:
         run: |
           export CASSIOPEE=$GITHUB_WORKSPACE/
           ls $CASSIOPEE
-          twine upload --repository-url https://test.pypi.org/legacy/ --verbose '$CASSIOPEE/wheelhouse/*.whl'
+          for kwheel in $(find $CASSIOPEE/wheelhouse/ -name '*.whl'); do
+              twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
+          done
           
 #      - name: Publish to PyPI
 #        env:
 #          TWINE_USERNAME: __token__
 #          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 #        run: |
-#          export CASSIOPEE=$GITHUB_WORKSPACE/../
+#          export CASSIOPEE=$GITHUB_WORKSPACE
 #          for kwheel in $(find $CASSIOPEE/wheelhouse/ -name '*.whl'); do
 #              twine upload --verbose $kwheel;
 #          done
