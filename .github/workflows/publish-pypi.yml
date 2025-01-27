@@ -89,8 +89,8 @@ jobs:
                   rm "\$kwheel"; \
               done
               ls .
-              for dir in \$(find . -maxdepth 1 -type d -name '*-4.1'); do \
-                  origDir=\${dir%-4.1}; \
+              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do \
+                  origDir=\${dir%-4.0}; \
                   echo \$origDir; \
                   mv \$dir \$origDir; \
                   cp \$CASSIOPEE/Cassiopee/\$origDir/\$origDir/*.py \$origDir/\$origDir/; \
@@ -106,12 +106,22 @@ jobs:
               ls wheelhouse
           "
             
-      - name: Publish to PyPI
+      - name: Publish to Test-PyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
           export CASSIOPEE=$GITHUB_WORKSPACE
           for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do \
-              twine upload --verbose $kwheel; \
+              twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel; \
           done
+          
+#      - name: Publish to PyPI
+#        env:
+#          TWINE_USERNAME: __token__
+#          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+#        run: |
+#          export CASSIOPEE=$GITHUB_WORKSPACE
+#          for kwheel in $(find $CASSIOPEE/dist/ -name '*.whl'); do \
+#              twine upload --verbose $kwheel; \
+#          done
