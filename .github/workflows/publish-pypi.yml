@@ -91,28 +91,33 @@ jobs:
                   rm "\$kwheel"; \
               done
               cd \$CASSIOPEE/Cassiopee88
-              ls .
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do \
                   cp -r \$dir/* .
                   rm -r \$dir
               done
-              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do \
-                  origDir=\${dir%-4.0}; \
-                  echo \$origDir; \
-                  mv \$dir \$origDir;
-              done
-              mv Converter-4.0.dist-info Cassiopee88-4.0.dist-info
-              echo \"FREE MODS: \$FREE_MODULES\"
+              mv XCore-4.0.dist-info Cassiopee88-4.0.dist-info
               echo \$FREE_MODULES | tr ' ' '\n' > Cassiopee88-4.0.dist-info/toplevel.txt
-              cat Cassiopee88-4.0.dist-info/METADATA
               sed -i '/Name: /c\Name: Cassiopee88' Cassiopee88-4.0.dist-info/METADATA
+              ls .
+              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
+                  origDir=\${dir%-4.0};
+                  mv \$dir \$origDir;
+                  if [[ "\$origDir" == "KCore" || "\$origDir" == "XCore" ]]; then
+                      continue
+                  fi
+                  echo \"\" >> Cassiopee88-4.0.dist-info/RECORD && cat \$dir.dist-info/RECORD >> Cassiopee88-4.0.dist-info/RECORD
+                  rm -r \$dir.dist-info
+              done
+              echo \"\" >> KCore-4.0.dist-info/RECORD && cat Cassiopee88-4.0.dist-info/RECORD >> KCore-4.0.dist-info/RECORD
+              mv KCore-4.0.dist-info/RECORD Cassiopee88-4.0.dist-info/RECORD
+              rm -r KCore-4.0.dist-info XCore-4.0.dist-info
+              ls .
               cat Cassiopee88-4.0.dist-info/METADATA
               cat Cassiopee88-4.0.dist-info/toplevel.txt
+              cat Cassiopee88-4.0.dist-info/RECORD
+              cd .. && python -m wheel pack Cassiopee88
               ls .
-              cd \$CASSIOPEE/
-              python -m wheel pack Cassiopee88
-              ls .
-              cd \$CASSIOPEE/dist/
+              cd \$CASSIOPEE/Cassiopee88/
               for kwheel in \$(find . -name '*.whl'); do \
                   auditwheel repair \$kwheel; \
               done
