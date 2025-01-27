@@ -85,8 +85,8 @@ case $ELSAPROD in
     SITE_PACKAGES_PATH=$SITE_PACKAGES_PATH"/site-packages"
     ;;
 esac
-PYLIB_PATH=$(dirname $PYTHON_FOLDER)
-PYVERSION=$(basename $PYTHON_FOLDER)
+PYLIB_PATH=$(dirname $SITE_PACKAGES_PATH)
+PYVERSION=$(basename $SITE_PACKAGES_PATH)
 
 NEW_PYLIB_PATH="lib"
 case $NEW_ELSAPROD in
@@ -117,7 +117,7 @@ if [ $MODULE = "all" ]; then
   fi
 
   # Edit installPath (replace $CASSIOPEE by $DEST_CAS_PATH and edit prod. name)
-  cd "$SITE_PACKAGES_PATH/KCore"
+  cd "$DEST_PROD_PATH/$SITE_PACKAGES_PATH/KCore"
   cp "$CASSIOPEE/Dist/bin/$ELSAPROD/$SITE_PACKAGES_PATH/KCore/installPath.py" .
   s1=$(sed 's/[\/&]/\\&/g' <<< "$CASSIOPEE")
   s2=$(sed 's/[\/&]/\\&/g' <<< "$DEST_CAS_PATH")
