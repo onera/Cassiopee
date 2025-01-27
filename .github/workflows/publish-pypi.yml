@@ -102,7 +102,7 @@ jobs:
                   mv \$dir \$origDir;
               done
               mv Converter-4.0.dist-info Cassiopee88-4.0.dist-info
-              echo "FREE MODS: \$FREE_MODULES"
+              echo \"FREE MODS: \$FREE_MODULES\"
               echo \$FREE_MODULES | tr ' ' '\n' > Cassiopee88-4.0.dist-info/toplevel.txt
               cat Cassiopee88-4.0.dist-info/METADATA
               sed -i '/Name: /c\Name: Cassiopee88' Cassiopee88-4.0.dist-info/METADATA
