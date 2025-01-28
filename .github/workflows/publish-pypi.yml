@@ -99,7 +99,7 @@ jobs:
               mv XCore-4.0.dist-info Cassiopee88-4.0.dist-info
               echo \$FREE_MODULES | tr ' ' '\n' > Cassiopee88-4.0.dist-info/toplevel.txt
               sed -i '/Name: /c\Name: Cassiopee88' Cassiopee88-4.0.dist-info/METADATA
-              sed -i '/Summary: /c\Summary: *Cassiopee* modules\.' Cassiopee88-4.0.dist-info/METADATA
+              sed -i '/Summary: /c\Summary: CFD pre- and post-processing python modules' Cassiopee88-4.0.dist-info/METADATA
               for dir in \$(find . -maxdepth 1 -type d -name '*-4.0' -not -name '[K,X]Core*'); do
                   echo \"\" >> Cassiopee88-4.0.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> Cassiopee88-4.0.dist-info/RECORD
               done

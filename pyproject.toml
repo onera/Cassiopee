@@ -53,6 +53,6 @@ include = [
 
 [project.urls]
 Homepage = "https://github.com/onera/Cassiopee"
-Documentation = "https://cassiopee.onera.fr/"
+Documentation = "https://onera.github.io/Cassiopee/"
 Repository = "https://github.com/onera/Cassiopee.git"
 Issues = "https://github.com/onera/Cassiopee/issues"
