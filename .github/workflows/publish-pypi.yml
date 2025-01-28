@@ -104,11 +104,11 @@ jobs:
               for dir in \$(find . -maxdepth 1 -type d -name '*-\${PKG_VERSION}' -not -name '[K,X]Core*'); do
                   echo \"\" >> \${PKG_NV}.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> \${PKG_NV}.dist-info/RECORD
               done
-              sed -i '/-4\.0\.dist-info/d' \${PKG_NV}.dist-info/RECORD
+              sed -i '/-\${PKG_VERSION}\.dist-info/d' \${PKG_NV}.dist-info/RECORD
               echo \"\" >> KCore-\${PKG_VERSION}.dist-info/RECORD
               cat \${PKG_NV}.dist-info/RECORD >> KCore-\${PKG_VERSION}.dist-info/RECORD
               mv KCore-\${PKG_VERSION}.dist-info/RECORD \${PKG_NV}.dist-info/RECORD
-              sed -i 's/KCore-4\.0\.dist-info/Cassiopee88-4\.0\.dist-info/g' \${PKG_NV}.dist-info/RECORD
+              sed -i 's/KCore-\${PKG_VERSION}\.dist-info/Cassiopee88-\${PKG_VERSION}\.dist-info/g' \${PKG_NV}.dist-info/RECORD
               cp \$CASSIOPEE/Cassiopee/KCore/Dist.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installPath.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installBase.py KCore/
