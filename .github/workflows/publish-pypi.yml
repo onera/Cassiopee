@@ -76,9 +76,9 @@ jobs:
               python --version && python -m pip list
               export CASSIOPEE=/io/Cassiopee
               export MACHINE=azure
-              PACKAGE_NAME=\$(grep '^name =' \$CASSIOPEE/pyproject.toml | sed 's/name = \"\(.*\)\"/\\1/')
-              PACKAGE_VERSION=\$(grep '^version =' \$CASSIOPEE/pyproject.toml | sed 's/version = \"\(.*\)\"/\\1/')
-              PACKAGE_NV=\${PACKAGE_NAME}-\${PACKAGE_VERSION}
+              PKG_NAME=\$(grep '^name =' \$CASSIOPEE/pyproject.toml | sed 's/name = \"\(.*\)\"/\\1/')
+              PKG_VERSION=\$(grep '^version =' \$CASSIOPEE/pyproject.toml | sed 's/version = \"\(.*\)\"/\\1/')
+              PKG_NV=\${PKG_NAME}-\${PKG_VERSION}
               cd \$CASSIOPEE/Cassiopee
               . \$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
               sed -i "s/OCC//g" MODULES
@@ -88,45 +88,45 @@ jobs:
               find . -type f -name '*.whl' -exec mv {} \$CASSIOPEE \;
               find /tmp/ -type f -name 'KCore*.whl' -exec mv {} \$CASSIOPEE \;
               cd \$CASSIOPEE
-              mkdir \$CASSIOPEE/\$PACKAGE_NAME
+              mkdir \$CASSIOPEE/\$PKG_NAME
               for kwheel in \$(find . -name '*.whl'); do
-                  wheel unpack "\$kwheel" --dest \$CASSIOPEE/\$PACKAGE_NAME;
+                  wheel unpack "\$kwheel" --dest \$CASSIOPEE/\$PKG_NAME;
                   rm "\$kwheel";
               done
-              cd \$CASSIOPEE/\$PACKAGE_NAME
-              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0'); do
+              cd \$CASSIOPEE/\$PKG_NAME
+              for dir in \$(find . -maxdepth 1 -type d -name '*-\${PKG_VERSION}'); do
                   mv \$dir/* .
               done
-              mv XCore-\${PACKAGE_VERSION}.dist-info \${PACKAGE_NV}.dist-info
-              echo \$FREE_MODULES | tr ' ' '\n' > \${PACKAGE_NV}.dist-info/toplevel.txt
-              sed -i '/Name: /c\Name: Cassiopee88' \${PACKAGE_NV}.dist-info/METADATA
-              sed -i '/Summary: /c\Summary: CFD pre- and post-processing python modules' \${PACKAGE_NV}.dist-info/METADATA
-              for dir in \$(find . -maxdepth 1 -type d -name '*-4.0' -not -name '[K,X]Core*'); do
-                  echo \"\" >> \${PACKAGE_NV}.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> \${PACKAGE_NV}.dist-info/RECORD
+              mv XCore-\${PKG_VERSION}.dist-info \${PKG_NV}.dist-info
+              echo \$FREE_MODULES | tr ' ' '\n' > \${PKG_NV}.dist-info/toplevel.txt
+              sed -i '/Name: /c\Name: Cassiopee88' \${PKG_NV}.dist-info/METADATA
+              sed -i '/Summary: /c\Summary: CFD pre- and post-processing python modules' \${PKG_NV}.dist-info/METADATA
+              for dir in \$(find . -maxdepth 1 -type d -name '*-\${PKG_VERSION}' -not -name '[K,X]Core*'); do
+                  echo \"\" >> \${PKG_NV}.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> \${PKG_NV}.dist-info/RECORD
               done
-              sed -i '/-4\.0\.dist-info/d' \${PACKAGE_NV}.dist-info/RECORD
-              echo \"\" >> KCore-\${PACKAGE_VERSION}.dist-info/RECORD
-              cat \${PACKAGE_NV}.dist-info/RECORD >> KCore-\${PACKAGE_VERSION}.dist-info/RECORD
-              mv KCore-\${PACKAGE_VERSION}.dist-info/RECORD \${PACKAGE_NV}.dist-info/RECORD
-              sed -i 's/KCore-4\.0\.dist-info/Cassiopee88-4\.0\.dist-info/g' \${PACKAGE_NV}.dist-info/RECORD
+              sed -i '/-4\.0\.dist-info/d' \${PKG_NV}.dist-info/RECORD
+              echo \"\" >> KCore-\${PKG_VERSION}.dist-info/RECORD
+              cat \${PKG_NV}.dist-info/RECORD >> KCore-\${PKG_VERSION}.dist-info/RECORD
+              mv KCore-\${PKG_VERSION}.dist-info/RECORD \${PKG_NV}.dist-info/RECORD
+              sed -i 's/KCore-4\.0\.dist-info/Cassiopee88-4\.0\.dist-info/g' \${PKG_NV}.dist-info/RECORD
               cp \$CASSIOPEE/Cassiopee/KCore/Dist.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installPath.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installBase.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installLib.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/switchDebugMode.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/switchIntSize.py KCore/
-              sed -i '1i KCore/switchIntSize.py,,' \${PACKAGE_NV}.dist-info/RECORD
-              sed -i '1i KCore/switchDebugMode.py,,' \${PACKAGE_NV}.dist-info/RECORD
-              sed -i '1i KCore/installBase.py,,' \${PACKAGE_NV}.dist-info/RECORD
-              sed -i '1i KCore/installPath.py,,' \${PACKAGE_NV}.dist-info/RECORD
-              sed -i '1i KCore/installLib.py,,' \${PACKAGE_NV}.dist-info/RECORD
-              sed -i '1i KCore/Dist.py,,' \${PACKAGE_NV}.dist-info/RECORD
-              find . -maxdepth 1 -type d -name '*.dist-info' -not -name 'Cassiopee88-4.0.dist-info' -exec rm -rf {} +
-              find . -maxdepth 1 -type d -name '*-4.0' -exec rm -rf {} +
-              cat \${PACKAGE_NV}.dist-info/METADATA
-              cat \${PACKAGE_NV}.dist-info/toplevel.txt
-              cat \${PACKAGE_NV}.dist-info/RECORD
-              cd .. && python -m wheel pack \$PACKAGE_NAME
+              sed -i '1i KCore/switchIntSize.py,,' \${PKG_NV}.dist-info/RECORD
+              sed -i '1i KCore/switchDebugMode.py,,' \${PKG_NV}.dist-info/RECORD
+              sed -i '1i KCore/installBase.py,,' \${PKG_NV}.dist-info/RECORD
+              sed -i '1i KCore/installPath.py,,' \${PKG_NV}.dist-info/RECORD
+              sed -i '1i KCore/installLib.py,,' \${PKG_NV}.dist-info/RECORD
+              sed -i '1i KCore/Dist.py,,' \${PKG_NV}.dist-info/RECORD
+              find . -maxdepth 1 -type d -name '*.dist-info' -not -name 'Cassiopee88-\${PKG_VERSION}.dist-info' -exec rm -rf {} +
+              find . -maxdepth 1 -type d -name '*-\${PKG_VERSION}' -exec rm -rf {} +
+              cat \${PKG_NV}.dist-info/METADATA
+              cat \${PKG_NV}.dist-info/toplevel.txt
+              cat \${PKG_NV}.dist-info/RECORD
+              cd .. && python -m wheel pack \$PKG_NAME
               for kwheel in \$(find . -name '*.whl'); do
                   auditwheel repair \$kwheel;
               done
