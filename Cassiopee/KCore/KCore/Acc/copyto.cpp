@@ -33,8 +33,9 @@ PyObject* K_KCORE::copyto(PyObject* self, PyObject* args)
   E_Float* ipttarget = f->begin();
   E_Int sizetot = f->getSize();
 
+#ifdef _OPENACC
 //#pragma omp target enter data map(to: ipttarget[:sizetot])
-	//printf("copy2gpu \n");
+#endif
 
   RELEASESHAREDN(numpyArray, f);
 

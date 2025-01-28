@@ -39,8 +39,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
    return NULL;
   }
   if (ext == 0) return arrays;
-  if (optimized != 0 && optimized != 1  && optimized != -1) 
-  {printf("Warning: extendCartGrids: optimized is set to 1.\n"); optimized = 1;}
+  if (optimized != 0 && optimized != 1 && optimized != -1) 
+  { printf("Warning: extendCartGrids: optimized is set to 1.\n"); optimized = 1; }
 
   // Extract infos from arrays
   vector<E_Int> resl;
@@ -107,7 +107,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   }
 
   // Determination des extensions pour chq zone a partir de l'octree
-  E_Int extg = ext; E_Int extf = ext; E_Int extff= ext;
+  E_Int extg = ext; E_Int extf = ext; E_Int extff = ext;
   if (optimized == 1) {extg = ext-1; extff = extg;}
   if (optimized ==-1) {extg = ext+1;}
 
@@ -325,9 +325,9 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
                                         face.begin(3), cnf, xp, yp, zp,
                                         p0, p1, p2, p);
         dx = xp-xt1[indA1]; dy = yp-yt1[indA1]; dz = zp-zt1[indA1];
-        if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
-        {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
-        if ( found1 == 1 ) goto finjmin2;
+        if (ret > -1 && dx*dx + dy*dy + dz*dz <= tol2) 
+        { found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
+        if (found1 == 1) goto finjmin2;
 
         // projeter le pt B sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indB1], yt1[indB1], zt1[indB1], 
@@ -335,12 +335,12 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
                                         face.begin(3), cnf, xp, yp, zp,
                                         p0, p1, p2, p);
         dx = xp-xt1[indB1]; dy = yp-yt1[indB1]; dz = zp-zt1[indB1];
-        if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
-        { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
-        if ( found2 == 1) goto finjmin2;
+        if (ret > -1 && dx*dx + dy*dy + dz*dz <= tol2) 
+        { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
+        if (found2 == 1) goto finjmin2;
         finjmin2:;
 
-        if ( found1+found2 > 0 ) 
+        if (found1+found2 > 0) 
         {
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);

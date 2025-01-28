@@ -1402,7 +1402,7 @@ class IBM_Input:
         self.wallAdapt                 = None
         self.yplus                     = 100.
         self.yplusAdapt                = 100.
-        self.ConservativeFlux          = False
+        self.conservativeFlux          = False
 
 class IBM(Common):
     """Prepare IBM for FastS"""
@@ -3228,7 +3228,7 @@ class IBM(Common):
         ##OUT - tbbc                  :pytree of the bounding box of tc
         tc=self.setInterpDataAndSetInterpTransfer__(t)
 
-        if self.input_var.ConservativeFlux==True: self.buildConservativeFlux__(t,tc)
+        if self.input_var.conservativeFlux: self.buildConservativeFlux__(t, tc)
 
         ## ================================================
         ## ======= Specific treatment for front 2 =========
@@ -3540,7 +3540,7 @@ def computeSnearOpt(Re=None, tb=None, Lref=1., q=1.2, yplus=300., Cf_law='ANSYS'
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfars=10.,
              tbox=None, snearsf=None, yplus=100.,
              vmin=21, check=False, format='single', frontType=1, recomputeDist=False,
-             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, check_snear=False, ConservativeFlux=False):
+             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, check_snear=False, conservativeFlux=False):
     prep_local=IBM()
     prep_local.input_var.snears                 =snears
     prep_local.input_var.dfars                  =dfars
@@ -3558,7 +3558,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfars=10.,
     prep_local.input_var.initWithBBox           =initWithBBox
     prep_local.input_var.wallAdapt              =wallAdapt
     prep_local.input_var.dfarDir                =dfarDir
-    prep_local.input_var.ConservativeFlux       =ConservativeFlux
+    prep_local.input_var.conservativeFlux       =conservativeFlux
 
     t,tc = prep_local.prepare(t_case, t_out, tc_out)
 
@@ -3573,7 +3573,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=10.,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0,
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
              height_in=-1.0,isFilamentOnly=False, cleanCellN=True, check_snear=False, generateCartesianMeshOnly=False,
-             tbOneOver=None, ConservativeFlux=False):
+             tbOneOver=None, conservativeFlux=False):
     prep_local=IBM()
     prep_local.input_var.t_in                   =t_in
     prep_local.input_var.to                     =to
@@ -3613,7 +3613,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=10.,
     prep_local.input_var.cleanCellN             =cleanCellN
     prep_local.input_var.generateCartesianMeshOnly  = generateCartesianMeshOnly
     prep_local.input_var.tbOneOver              = tbOneOver
-    prep_local.input_var.ConservativeFlux       =ConservativeFlux
+    prep_local.input_var.conservativeFlux       =conservativeFlux
 
     t,tc = prep_local.prepare(t_case, t_out, tc_out)
     return t, tc

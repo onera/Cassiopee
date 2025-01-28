@@ -193,9 +193,12 @@ Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=timeiter)
 
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
+Internal._rmNodesFromName(t, 'Parameter_int')
+Internal._rmNodesFromName(t, 'Parameter_real')
 Internal._rmNodesByName(tc, '.Solver#Param')
 Internal._rmNodesByName(tc, '.Solver#ownData')
-
+Internal._rmNodesFromName(tc, 'Parameter_int')
+Internal._rmNodesFromName(tc, 'Parameter_real')
 test.testT(t,1)
 test.testT(tc,2)
 

@@ -34,8 +34,9 @@ PyObject* K_KCORE::copyfrom(PyObject* self, PyObject* args)
   E_Float* ipttarget = f->begin();
   E_Int sizetot = f->getSize();
 
+#ifdef _OPENACC
 //#pragma omp target update from (ipttarget[:sizetot])
-	//printf("copyfrom \n");
+#endif
 
   RELEASESHAREDN(numpyArray, f);
 
