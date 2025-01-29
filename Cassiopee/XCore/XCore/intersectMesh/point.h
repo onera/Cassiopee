@@ -22,6 +22,30 @@
 
 struct Point {
     E_Float x, y, z;
+    bool operator<(const Point &p) const
+    {
+        return (x < p.x) || (x == p.x && y < p.y) ||
+            (x == p.x && y == p.y && z < p.z);
+    }
+    Point operator-(const Point &p) const
+    {
+        return {x-p.x, y-p.y, z-p.z};
+    }
+    E_Float &operator[](E_Int idx)
+    {
+        return (idx == 0) ? x : ((idx == 1) ? y : z);
+    }
+    E_Float operator[](E_Int idx) const
+    {
+        return (idx == 0) ? x : ((idx == 1) ? y : z);
+    }
+};
+
+typedef Point Point3D;
+
+struct Point2D
+{
+    E_Float x, y;
 };
 
 struct PointLoc {

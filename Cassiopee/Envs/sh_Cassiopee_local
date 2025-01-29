@@ -845,6 +845,18 @@ elif [ "$MAC" = "WDAAA161Z" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
+
+elif [ "$MAC" = "msys2" ]; then
+#----------------------------- msys2 (generic)  ---------------------------------------
+    export ELSAPROD=win64
+    export ELSAPROD=$ELSAPROD$EXT
+    # Nbre de threads
+    export OMP_NUM_THREADS=4
+    # modules
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+
 fi
 
 #-------------------------- Common to all prods --------------------------------

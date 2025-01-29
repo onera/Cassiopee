@@ -21,12 +21,20 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/common/common.cpp',
             'XCore/common/Karray.cpp',
 
+            'XCore/intersectMesh/split.cpp',
+
             'XCore/intersectMesh/write.cpp',
 
-            'XCore/intersectMesh/icapsule.cpp',
+            'XCore/intersectMesh/icapsule_init.cpp',
+            'XCore/intersectMesh/icapsule_adapt.cpp',
+            'XCore/intersectMesh/icapsule_intersect.cpp',
+            'XCore/intersectMesh/icapsule_extract.cpp',
+
             'XCore/intersectMesh/icapsule_refine.cpp',
 
             'XCore/intersectMesh/triangulate.cpp',
+
+            'XCore/intersectMesh/precise.cpp',
 
             'XCore/intersectMesh/mesh_io.cpp',
 

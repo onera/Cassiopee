@@ -132,7 +132,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
         if (attr.type == cgltf_attribute_type_position)
         {
-          printf("bloc " SF_D_ ": trouve coords\n", blockId);
+          //printf("bloc " SF_D_ ": trouve coords\n", blockId);
           // numerotation i*3+j (i = pts, j = 0,1,2 composante)
           //for (E_Int i = 0; i < data.size(); i++) 
           //  printf("%f %f %f\n", data[i*3+0], data[i*3+1], data[i*3+2]);

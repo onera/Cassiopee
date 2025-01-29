@@ -16,30 +16,25 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-// copy a numpy from device (openmp5)
-// numpy must already exists in cpu memory
-#include "kcore.h"
+#include "xcore.h"
 
-PyObject* K_KCORE::copyfrom(PyObject* self, PyObject* args)
-{
-  PyObject* numpyArray; 
-  if (!PYPARSETUPLE_(args, O_ II_, &numpyArray))
-  {
-    return NULL;
-  }
+struct o_edge {
+    E_Int p, q;
 
-  FldArrayF* f;
-  K_NUMPY::getFromNumpyArray(numpyArray, f, true); 
-  E_Float* ipttarget = f->begin();
-  E_Int sizetot = f->getSize();
+    o_edge(E_Int P, E_Int Q)
+    : p(P), q(Q)
+    {}
+};
 
-#ifdef _OPENACC
-//#pragma omp target update from (ipttarget[:sizetot])
-#endif
-
-  RELEASESHAREDN(numpyArray, f);
-
-  Py_INCREF(Py_None);
-  return Py_None;
-}
+struct o_edge_cmp {
+    bool operator()(const o_edge &e, const o_edge &f) const
+    {
+        E_Int e_p = std::min(e.p, e.q);
+        E_Int e_q = std::max(e.p, e.q);
+        E_Int f_p = std::min(f.p, f.q);
+        E_Int f_q = std::max(f.p, f.q);
+        return (e_p < f_p) || (e_p == f_p && e_q < f_q);
+    }
+};

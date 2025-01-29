@@ -34,10 +34,10 @@ git config --global user.email <firstname.name@example.com>
 Change directory to where you'd like the Cassiopee Github repository to be and type:
 
 ```sh 
-git clone git@github.com:onera/Cassiopee.git
+git clone --branch main --single-branch git@github.com:onera/Cassiopee.git
 ```
 
-2. To contribute to the Github repository instead, please consider creating a fork first: on the [github repo](https://github.com/onera/Cassiopee), click on the _Fork_ button followed by _Create new fork_. Then, you can clone the `main` branch of your Fork as:
+2. To contribute to the Github repository instead, please consider creating a fork first: on the [github repo](https://github.com/onera/Cassiopee), click on the _Fork_ button followed by _Create new fork_. Then, you can clone the `dev` branch of your Fork as:
 
 ```sh 
 git clone git@github.com:<github_username>/Cassiopee.git
@@ -56,7 +56,7 @@ The next time you will want to synchronise your fork from the command line, plea
 
 ```sh 
 git status # make sure you have no local changes
-git pull upstream main
+git pull upstream dev
 git push
 ```
 

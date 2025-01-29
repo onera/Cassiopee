@@ -30,6 +30,17 @@ struct AABB {
     E_Float dx;
     E_Float dy;
     E_Float dz;
+
+    bool is_point_inside(const E_Float p[3]) const
+    {
+        return (p[0] >= xmin && p[0] <= xmax && p[1] >= ymin && p[1] <= ymax &&
+            p[2] >= zmin && p[2] <= zmax);
+    }
+
+    void print() const
+    {
+        printf("[%f %f %f] - [%f %f %f]\n", xmin, ymin, zmin, xmax, ymax, zmax);
+    }
 };
 
 const AABB AABB_HUGE = {EFLOATMIN, EFLOATMIN, EFLOATMIN,

@@ -2608,7 +2608,7 @@ def _addAVar__(z, dim, var):
     return None
 
 # -- initVars: initialise une variable
-def initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
+def initVars(t, varNameString, v1=None, v2=None, mode=0, isVectorized=False):
     """Init variables defined by varNameString.
     Usage: a = initVars(array, varNameString, val)
     or
@@ -2617,7 +2617,7 @@ def initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
     _initVars(tp, varNameString, v1, v2, mode, isVectorized)
     return tp
 
-def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
+def _initVars(t, varNameString, v1=None, v2=None, mode=0, isVectorized=False):
     loc = 'nodes'
     centerCoordNeeded = False
     # Check that the type of varNameString is correct for all types of initialisations
@@ -2648,7 +2648,7 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
         s = varNameString.split('=')
         varName = s[0].replace('}', '').replace('{', '').strip()
         v = varName.split(':',1)
-        if len(v) > 1 and v[0] == 'centers' and v1 == []:
+        if len(v) > 1 and v[0] == 'centers' and v1 is None:
             loc = v[0]
             rhsVars = re.findall("{.*?}", s[1])
             for var in rhsVars:
@@ -2670,7 +2670,7 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
             _TZAGC3(t, loc, loc, False, Converter.initVars, Converter.initVars,
                     varNameString, v1, v2, mode)
     else:
-        if v1 == []:
+        if v1 is None:
             # Initialisation by string
             _addVars(t, varName)
             __TZA3(t, loc, Converter._initVars, varNameString, v1, v2, mode)
@@ -2688,7 +2688,7 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
 # Merge BCDataSets
 def _mergeBCDataSets(t):
     zones = Internal.getZones(t)
-    if zones == []: zones = [t] # must be a BC node
+    if len(zones) == 0: zones = [t] # must be a BC node
     for z in zones:
         bcs = Internal.getNodesFromType2(z, 'BC_t')
         for b in bcs:
@@ -2853,7 +2853,7 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
     return None
 
 # Apply init to all BCDataSets
-def _initBCDataSet(t, varNameString, val1=[], val2=[]):
+def _initBCDataSet(t, varNameString, val1=None, val2=None):
     zones = Internal.getZones(t)
     if zones == []: zones = [t] # must be a BC node
     for z in zones:

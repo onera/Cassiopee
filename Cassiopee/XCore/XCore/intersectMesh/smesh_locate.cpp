@@ -417,16 +417,19 @@ void Smesh::make_bbox()
     E_Float dy = ymax - ymin;
     E_Float dz = zmax - zmin;
 
-    xmin = xmin - dx*0.01;
-    ymin = ymin - dy*0.01;
-    zmin = zmin - dz*0.01;
-    xmax = xmax + dx*0.01;
-    ymax = ymax + dy*0.01;
-    zmax = zmax + dz*0.01;
+    //xmin = xmin - dx*0.01;
+    //ymin = ymin - dy*0.01;
+    //zmin = zmin - dz*0.01;
+    //xmax = xmax + dx*0.01;
+    //ymax = ymax + dy*0.01;
+    //zmax = zmax + dz*0.01;
 
-    HX = (dx != 0) ? (xmax - xmin) / NX : 1;
-    HY = (dy != 0) ? (ymax - ymin) / NY : 1;
-    HZ = (dz != 0) ? (zmax - zmin) / NZ : 1;
+    //HX = (dx != 0) ? (xmax - xmin) / NX : 1;
+    //HY = (dy != 0) ? (ymax - ymin) / NY : 1;
+    //HZ = (dz != 0) ? (zmax - zmin) / NZ : 1;
+
+    box.xmin = xmin, box.ymin = ymin, box.zmin = zmin;
+    box.xmax = xmax, box.ymax = ymax, box.zmax = zmax;
 }
 
 inline

@@ -27,22 +27,14 @@
 #include "u_edge.h"
 #include "point.h"
 #include "BVH.h"
+#include "AABB.h"
 
 #define LEFT 0
 #define RIGHT 1
 
-struct Point3D
-{
-    E_Float x, y, z;
-};
-
-struct Point2D
-{
-    E_Float x, y;
-};
-
 struct IMesh;
-struct AABB;
+struct Ray;
+struct HitData;
 
 struct o_edge {
     E_Int p, q;
@@ -111,6 +103,9 @@ struct Smesh {
         PointLoc &ploc, E_Float min_pdist) const;
     bool is_point_a_polygon_vertex(E_Float x, E_Float y, E_Float z, E_Int fid,
         PointLoc &ploc, E_Float min_pdist) const;
+    bool is_point_inside(E_Float px, E_Float py, E_Float pz) const;
+    bool is_point_inside(const Ray &ray) const;
+    void intersect_ray(const Ray &ray, E_Int node_idx, HitData &hit_data) const;
     
     void make_fcenters();
     void make_fnormals();
@@ -130,7 +125,7 @@ struct Smesh {
     inline void compute_face_center(E_Int fid);
 
     // Hash
-
+    AABB box;
     E_Int NX, NY, NZ, NXY, NXYZ;
     E_Float xmin, xmax, ymin, ymax, zmin, zmax;
     E_Float HX, HY, HZ;

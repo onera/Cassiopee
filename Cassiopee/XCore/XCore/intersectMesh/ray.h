@@ -28,15 +28,20 @@ struct Vec3 {
 };
 
 struct Ray {
-    Point org;
-    Vec3 dir;
+    E_Float o[3];
+    E_Float d[3];
     E_Int kx, ky, kz;
     E_Float Sx, Sy, Sz;
+    E_Float inv_dx, inv_dy, inv_dz;
 
     Ray(Point O, Vec3 D);
+    Ray(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy, E_Float dz);
 
-    E_Int intersect_triangle(const Point &a, const Point &b, const Point &c,
-        TriangleIntersection &TI);
+    bool intersect_AABB(const AABB &box) const;
+
+    bool intersect_triangle(const Point &a, const Point &b, const Point &c,
+        E_Float &u, E_Float &v, E_Float &w, E_Float &t, E_Float &x,
+        E_Float &y, E_Float &z) const;
 };
 
 E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],

@@ -455,7 +455,7 @@ def writeSetupCfg():
         if a: os.remove("./setup.cfg")
     elif Cppcompiler == 'icc' or Cppcompiler == 'icpc':
         p = open("./setup.cfg", 'w')
-        p.write('[build_ext]\ncompiler=intel\n')
+        p.write('[build_ext]\ncompiler=unix\n')
         p.close()
     elif Cppcompiler == 'icx' or Cppcompiler == 'icpx':
         p = open("./setup.cfg", 'w')
@@ -2161,7 +2161,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
 
     # gcc (stdc++, gomp)
     if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0:
-        os.environ['CC'] = 'gcc' # forced in 2.6 to overide setup.cfg
+        os.environ['CC'] = 'gcc'
         os.environ['CXX'] = 'g++'
         from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
@@ -2190,6 +2190,12 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
 
     # icc (stdc++, guide ou iomp5)
     if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
+        os.environ['CC'] = 'icc' # forced to overide setup.cfg
+        os.environ['CXX'] = 'icpc'
+        from distutils import sysconfig
+        cflags = sysconfig.get_config_var('CFLAGS')
+        sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
+        sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libstdc++.a', additionalLibPaths)

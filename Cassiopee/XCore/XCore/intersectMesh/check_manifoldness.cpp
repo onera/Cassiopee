@@ -16,30 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "mesh.h"
+#include "common/Karray.h"
 
-// copy a numpy from device (openmp5)
-// numpy must already exists in cpu memory
-#include "kcore.h"
-
-PyObject* K_KCORE::copyfrom(PyObject* self, PyObject* args)
+PyObject *K_XCORE::check_manifoldness(PyObject *self, PyObject *args)
 {
-  PyObject* numpyArray; 
-  if (!PYPARSETUPLE_(args, O_ II_, &numpyArray))
-  {
-    return NULL;
-  }
+    PyObject *MESH;
+    if (!PYPARSETUPLE_(args, O_, &MESH)) {
+        RAISE("Bad input.");
+        return NULL;
+    }
 
-  FldArrayF* f;
-  K_NUMPY::getFromNumpyArray(numpyArray, f, true); 
-  E_Float* ipttarget = f->begin();
-  E_Int sizetot = f->getSize();
+    Karray array;
+    if (Karray_parse_ngon(MESH, array) != 0) {
+        RAISE("Input not NGon.");
+        return NULL;
+    }
 
-#ifdef _OPENACC
-//#pragma omp target update from (ipttarget[:sizetot])
-#endif
+    IMesh M(array);
 
-  RELEASESHAREDN(numpyArray, f);
+    bool is_manifold = true;
 
-  Py_INCREF(Py_None);
-  return Py_None;
+    M.make_skin();
+    Smesh Mf(M, M.skin, false);
+
+    Karray_free_ngon(array);
+
+    return PyBool_FromLong(is_manifold);
 }

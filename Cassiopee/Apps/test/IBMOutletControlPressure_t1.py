@@ -151,8 +151,11 @@ os.remove(DIRECTORY_PROBES+'/probes.cgns')
 
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
+
 Internal._rmNodesByName(tc, '.Solver#Param')
 Internal._rmNodesByName(tc, '.Solver#ownData')
+Internal._rmNodesFromName(tc, 'Parameter_int')
+Internal._rmNodesFromName(tc, 'Parameter_real')
 
 test.testT(tc,4)
 #test.testT(t ,5)

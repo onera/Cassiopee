@@ -17,49 +17,20 @@ WIDGETS = {}; VARS = []
 
 # Set IBM data in zone
 # if zone is 1D STRUCT or BAR: remesh
-def _setDataInZone(z, bLocal, snear, ibctype, dfar, inv):
+def _setDataInZone(z, snear, ibctype, dfar, inv):
     # set IBM data in .Solver#define
-
-    if VARS[1].get()!='rectilinear':
-        if Internal.getNodeFromName1(z, '.Solver#define'):
-            Internal._rmNode(z,Internal.getNodeFromName1(z, '.Solver#define'))
-        n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
-        Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
-        Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
-        Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
-        Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
-    else:
-        if Internal.getNodeFromName1(bLocal, '.Solver#define'):
-            Internal._rmNode(z,Internal.getNodeFromName1(bLocal, '.Solver#define'))
-        n = Internal.createUniqueChild(bLocal, '.Solver#define', 'UserDefinedData_t')
-        Internal.createUniqueChild(n, 'dirx'       , 'DataArray_t', value=int(VARS[12].get()))
-        Internal.createUniqueChild(n, 'diry'       , 'DataArray_t', value=int(VARS[13].get()))
-        Internal.createUniqueChild(n, 'dirz'       , 'DataArray_t', value=int(VARS[14].get()))
-        if VARS[15].get()=='coarse(0)': granLocal = 0
-        elif VARS[15].get()=='fine(1)': granLocal = 1
-        Internal.createUniqueChild(n, 'granularity', 'DataArray_t', value=granLocal)
-
-    if VARS[1].get() in ['noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear']:
-        # Set Extractions triggers in .Solver#define
-        if VARS[4].get() == "1": value = 1
-        else: value = 0
-        Internal.createUniqueChild(n, 'extractWalls', 'DataArray_t', value=value)
-        if VARS[5].get() == "1": value = 1
-        else: value = 0
-        Internal.createUniqueChild(n, 'extractLoads', 'DataArray_t', value=value)
-    if VARS[1].get()=='outpress':
-        Internal.createUniqueChild(n, 'pStatic', 'DataArray_t'          , value=float(VARS[8].get()))
-        Internal.createUniqueChild(n, 'isDensityConstant', 'DataArray_t', value=float(VARS[9].get()))
-    if VARS[1].get()=='inj':
-        Internal.createUniqueChild(n, 'StagnationPressure', 'DataArray_t', value=float(VARS[10].get()))
-        Internal.createUniqueChild(n, 'StagnationEnthalpy', 'DataArray_t', value=float(VARS[11].get()))
-        Internal.createUniqueChild(n, 'dirx', 'DataArray_t', value=float(VARS[12].get()))
-        Internal.createUniqueChild(n, 'diry', 'DataArray_t', value=float(VARS[13].get()))
-        Internal.createUniqueChild(n, 'dirz', 'DataArray_t', value=float(VARS[14].get()))
-    if VARS[1].get()=='wmm':
-        Internal.createUniqueChild(n, 'diameter', 'DataArray_t', value=float(VARS[12].get()))
-        Internal.createUniqueChild(n, 'ct'      , 'DataArray_t', value=float(VARS[13].get()))
-        Internal.createUniqueChild(n, 'k'       , 'DataArray_t', value=float(VARS[14].get()))
+    n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+    Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
+    Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
+    Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
+    Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
+    # Set Extractions triggers in .Solver#define
+    if VARS[4].get() == "1": value = 1
+    else: value = 0
+    Internal.createUniqueChild(n, 'extractWalls', 'DataArray_t', value=value)
+    if VARS[5].get() == "1": value = 1
+    else: value = 0
+    Internal.createUniqueChild(n, 'extractLoads', 'DataArray_t', value=value)
 
     # remesh surface eventually
     dim = Internal.getZoneDim(z)
@@ -69,35 +40,6 @@ def _setDataInZone(z, bLocal, snear, ibctype, dfar, inv):
     if remesh: D._uniformize(z, h=float(snear))
     return None
 
-
-
-# Change the mode
-def setMode(event=None):
-    mode = VARS[1].get()
-    if mode == 'wall': VARS[1].set('noslip')
-    if mode in ['noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear']: mode = 'wall'
-    imode = 0
-    WIDGETS['slip'].grid_forget()
-    WIDGETS['wall'].grid_forget()
-    WIDGETS['outpress'].grid_forget()
-    WIDGETS['inj'].grid_forget()
-    WIDGETS['rec'].grid_forget()
-    WIDGETS['wmm'].grid_forget()
-
-    if mode == 'slip':
-        imode = 0; WIDGETS['slip'].grid(row=10, column=0, columnspan=2, sticky=TK.EW)
-    elif mode == 'wall':
-        imode = 0; WIDGETS['wall'].grid(row=10, column=0, columnspan=4, sticky=TK.EW)
-    elif mode == 'outpress':
-        imode = 0; WIDGETS['outpress'].grid(row=10, column=0, columnspan=3, sticky=TK.EW)
-    elif mode == 'inj':
-        imode = 0; WIDGETS['inj'].grid(row=10, column=0, columnspan=3, sticky=TK.EW)
-    elif mode == 'rectilinear':
-        imode = 0; WIDGETS['rec'].grid(row=10, column=0, columnspan=3, sticky=TK.EW)
-    elif mode == 'wiremodel':
-        imode = 0; WIDGETS['wmm'].grid(row=10, column=0, columnspan=3, sticky=TK.EW)
-    CPlot.setState(mode=imode)
-    CTK.TXT.insert('START', 'Mode %s displayed.\n'%mode)
 
 #==============================================================================
 # Creates a symmetry plane
@@ -156,9 +98,8 @@ def setData():
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        bLocal = CTK.t[2][nob]
-        z      = bLocal[2][noz]
-        _setDataInZone(z, bLocal, snear, ibctype, dfar, inv)
+        z = CTK.t[2][nob][2][noz]
+        _setDataInZone(z, snear, ibctype, dfar, inv)
         CTK.replace(CTK.t, nob, noz, z)
 
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -292,7 +233,6 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[1].set(val)
-            setMode()
         else:
             VARS[1].set('None')
         n = Internal.getNodeFromPath(zone, '.Solver#define/dfar')
@@ -323,7 +263,7 @@ def getData():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkIBC2  [ + ]  ', font=CTK.FRAMEFONT,
+                           text='tkIBCOld  [ + ]  ', font=CTK.FRAMEFONT,
                            takefocus=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
@@ -337,14 +277,14 @@ def createApp(win):
     # - Frame menu -
     FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
-    CTK.addPinMenu(FrameMenu, 'tkIBC2')
+    CTK.addPinMenu(FrameMenu, 'tkIBCOld')
     WIDGETS['frameMenu'] = FrameMenu
 
     # - VARS -
     # -0- Snear -
     V = TK.DoubleVar(win); V.set(0.01); VARS.append(V)
     # -1- IBC type -
-    V = TK.StringVar(win); V.set('slip'); VARS.append(V)
+    V = TK.StringVar(win); V.set('WallLaw'); VARS.append(V)
     # -2- dfar local -
     V = TK.DoubleVar(win); V.set(20.); VARS.append(V)
     # -3- mask inv or not -
@@ -357,22 +297,6 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -7- Symmetry plane -
     V = TK.StringVar(win); V.set('Around XZ-'); VARS.append(V)
-    # -8- OutletPressure
-    V = TK.DoubleVar(win); V.set(101325); VARS.append(V)
-    # -9- Constant outlet density
-    V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    # -10- Injection total Pressure
-    V = TK.DoubleVar(win); V.set(101325); VARS.append(V)
-    # -11- Injection total enthalpy
-    V = TK.DoubleVar(win); V.set(101325); VARS.append(V)
-    # -12- Injection dirx
-    V = TK.DoubleVar(win); V.set(1); VARS.append(V)
-    # -13- Injection diry
-    V = TK.DoubleVar(win); V.set(0); VARS.append(V)
-    # -14- Injection dirz
-    V = TK.DoubleVar(win); V.set(0); VARS.append(V)
-    # -15- Rectilinear granularity
-    V = TK.StringVar(win); V.set('coarse'); VARS.append(V)
 
     # - Snear settings -
     B = TTK.Label(Frame, text="snear")
@@ -392,7 +316,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="IBC type")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition.')
-    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'wall', 'outpress', 'inj', 'slip_cr', 'overlap','wiremodel','rectilinear','None', command=setMode)
+    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'SA', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap','wiremodel','MuskerLinear','SALinear','None')
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
     # - Mask settings (in or out) -
@@ -401,26 +325,48 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[3], 'out', 'in')
     B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
 
+    # - Symmetry plane -
+    B = TTK.Button(Frame, text="Set symmetry plane", command=symmetrize)
+    B.grid(row=4, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='Create a symmetry plane.')
+    B = TTK.OptionMenu(Frame, VARS[7], 'Around YZ-', 'Around XZ-', 'Around XY-')
+    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Extract fields on surface
+    B = TTK.Label(Frame, text="Extract")
+    B.grid(row=5, column=0, sticky=TK.EW)
+    B = TTK.Checkbutton(Frame, text='Wall Fields', variable=VARS[4])
+    BB = CTK.infoBulle(parent=B, text='Extract various fields on surface.')
+    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Extract loads on components
+    B = TTK.Label(Frame, text="Extract")
+    B.grid(row=6, column=0, sticky=TK.EW)
+    B = TTK.Checkbutton(Frame, text='Loads', variable=VARS[5])
+    BB = CTK.infoBulle(parent=B, text='Extract loads for each component.')
+    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
+
     # - Set data -
     B = TTK.Button(Frame, text="Set data", command=setData)
     BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
-    B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=7, column=0, columnspan=1, sticky=TK.EW)
 
     # - Get data -
     B = TTK.Button(Frame, text="Get data", command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
-    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
 
     # - View type de IBC -
     B = TTK.Button(Frame, text="View IBC", command=ViewIBC)
-    B.grid(row=5, column=0, sticky=TK.EW)
+    B.grid(row=8, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='View specified IBC.\nTree is NOT modified.')
 
     # - Type of IBC - ListBox Frame -
     LBFrame = TTK.Frame(Frame)
-    LBFrame.grid(row=5, column=1, rowspan=4, columnspan=2, sticky=TK.EW)
+    LBFrame.grid(row=8, column=1, rowspan=4, columnspan=2, sticky=TK.EW)
     LBFrame.rowconfigure(0, weight=1)
     LBFrame.columnconfigure(0, weight=1)
     LBFrame.columnconfigure(1, weight=0)
@@ -439,157 +385,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="View Undefined\n     IBC", command=ViewUndefinedIBC)
     WIDGETS['ViewUndefinedIBC'] = B
     BB = CTK.infoBulle(parent=B, text='View Undefined IBC.')
-    B.grid(row=6, column=0, sticky=TK.EW)
-
-
-    ## WIDGETS THAT APPEAR & DISAPPEAR
-
-    # - Symmetry plane -
-    slip = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Slip Parameters:")
-    slip.columnconfigure(0, weight=1)
-    slip.columnconfigure(1, weight=1)
-    slip.grid(row=10, column=0, columnspan=2)
-    WIDGETS['slip'] = slip
-
-    B = TTK.Button(slip, text="Set symmetry plane", command=symmetrize)
-    BB = CTK.infoBulle(parent=B, text='Create a symmetry plane.')
-    B.grid(row=10, column=0, sticky=TK.EW)
-    B = TTK.OptionMenu(slip, VARS[7], 'Around YZ-', 'Around XZ-', 'Around XY-')
-    B.grid(row=10, column=1, sticky=TK.EW)
-
-
-    ## Wall Conditions
-    wall = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Wall Parameters:")
-    wall.columnconfigure(0, weight=0)
-    wall.columnconfigure(1, weight=0)
-    wall.columnconfigure(2, weight=0)
-    wall.columnconfigure(3, weight=0)
-    wall.grid(row=10, column=0, columnspan=4)
-    WIDGETS['wall'] = wall
-
-    # - Extract fields on surface
-    B = TTK.Label(wall, text="Extract")
-    B.grid(row=10, column=0, sticky=TK.EW)
-    B = TTK.Checkbutton(wall, text='Wall Fields', variable=VARS[4])
-    B.grid(row=10, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Extract various fields on surface.')
-
-    # - Extract loads on components
-    B = TTK.Checkbutton(wall, text='Loads', variable=VARS[5])
-    B.grid(row=10, column=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Extract loads for each component.')
-
-    B = TTK.Label(wall, text="Wall Type")
-    B.grid(row=11, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition Wall Conditions.')
-    B = TTK.OptionMenu(wall, VARS[1], 'noslip', 'Log', 'Musker', 'SA', 'TBLE', 'MuskerLinear','SALinear')
-    B.grid(row=11, column=1, columnspan=2, sticky=TK.EW)
-
-
-    ## Outlet Pressure
-    outpress = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Outlet Pressure Parameters:")
-    outpress.columnconfigure(0, weight=0)
-    outpress.columnconfigure(1, weight=1)
-    outpress.columnconfigure(2, weight=0)
-    outpress.grid(row=10, column=0, columnspan=3)
-    WIDGETS['outpress'] = outpress
-
-    B = TTK.Label(outpress, text="Static Pressure")
-    B.grid(row=10, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Static Pressure at outlet')
-    B = TTK.Entry(outpress, textvariable=VARS[8], width=4, background="White")
-    B.grid(row=10, column=1, columnspan=2, sticky=TK.EW)
-
-    B = TTK.Checkbutton(outpress, text='Constant density at outlet', variable=VARS[9])
-    B.grid(row=11, column=0, columnspan=2,sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Set a fixed outlet density')
-
-    ## Injection
-    inj = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Injection Parameters:")
-    inj.columnconfigure(0, weight=0)
-    inj.columnconfigure(1, weight=1)
-    inj.columnconfigure(2, weight=0)
-    inj.grid(row=10, column=0, columnspan=3)
-    WIDGETS['inj'] = inj
-
-    B = TTK.Label(inj, text="Total Pressure")
-    B.grid(row=10, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Total Pressure at injection inlet')
-    B = TTK.Entry(inj, textvariable=VARS[10], width=4, background="White")
-    B.grid(row=10, column=1, columnspan=2, sticky=TK.EW)
-
-    B = TTK.Label(inj, text="Total Enthalpy")
-    B.grid(row=11, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Total Enthalpy at injection inlet')
-    B = TTK.Entry(inj, textvariable=VARS[11], width=4, background="White")
-    B.grid(row=11, column=1, columnspan=2, sticky=TK.EW)
-
-    B = TTK.Label(inj, text="Unit Normal: x")
-    B.grid(row=12, column=0, sticky=TK.EW)
-    B = TTK.Entry(inj, textvariable=VARS[12], width=4, background="White")
-    B.grid(row=12, column=1, columnspan=2, sticky=TK.EW)
-
-    B = TTK.Label(inj, text="Unit Normal: y")
-    B.grid(row=13, column=0, sticky=TK.EW)
-    B = TTK.Entry(inj, textvariable=VARS[13], width=4, background="White")
-    B.grid(row=13, column=1, columnspan=2, sticky=TK.EW)
-
-    B = TTK.Label(inj, text="Unit Normal: z")
-    B.grid(row=14, column=0, sticky=TK.EW)
-    B = TTK.Entry(inj, textvariable=VARS[14], width=4, background="White")
-    B.grid(row=14, column=1, columnspan=2, sticky=TK.EW)
-
-    ## Rectilienar
-    rec = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Rectilinear Parameters:")
-    rec.columnconfigure(0, weight=1)
-    rec.columnconfigure(1, weight=1)
-    rec.columnconfigure(2, weight=1)
-    rec.grid(row=10, column=0, columnspan=3)
-    WIDGETS['rec'] = rec
-
-    B = TTK.Label(rec, text="x-dir")
-    B.grid(row=10, column=0, sticky=TK.EW)
-    B = TTK.Label(rec, text="y-dir")
-    B.grid(row=10, column=1, sticky=TK.EW)
-    B = TTK.Label(rec, text="z-dir")
-    B.grid(row=10, column=2, sticky=TK.EW)
-
-    B = TTK.Entry(rec, textvariable=VARS[12], width=4, background="White")
-    B.grid(row=11, column=0, sticky=TK.EW)
-    B = TTK.Entry(rec, textvariable=VARS[13], width=4, background="White")
-    B.grid(row=11, column=1, sticky=TK.EW)
-    B = TTK.Entry(rec, textvariable=VARS[14], width=4, background="White")
-    B.grid(row=11, column=2, sticky=TK.EW)
-
-    B = TTK.Label(rec, text="Rectilinear granularity")
-    B.grid(row=12, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Specify the granularity of the rectilinear approach.')
-    B = TTK.OptionMenu(rec, VARS[15], 'coarse(0)', 'fine(1)')
-    B.grid(row=12, column=1, sticky=TK.EW)
-
-    ## Wire Mesh Model
-    wmm = TTK.LabelFrame(Frame, borderwidth=2, relief="solid", text="Wire Mesh Model Parameters:")
-    wmm.columnconfigure(0, weight=1)
-    wmm.columnconfigure(1, weight=1)
-    wmm.columnconfigure(2, weight=1)
-    wmm.grid(row=10, column=0, columnspan=3)
-    WIDGETS['wmm'] = wmm
-
-    B = TTK.Label(wmm, text="DiameterWire")
-    B.grid(row=10, column=0, sticky=TK.EW)
-    B = TTK.Label(wmm, text="CtWire")
-    B.grid(row=10, column=1, sticky=TK.EW)
-    B = TTK.Label(wmm, text="KWire")
-    B.grid(row=10, column=2, sticky=TK.EW)
-
-    B = TTK.Entry(wmm, textvariable=VARS[12], width=4, background="White")
-    B.grid(row=11, column=0, sticky=TK.EW)
-    B = TTK.Entry(wmm, textvariable=VARS[13], width=4, background="White")
-    B.grid(row=11, column=1, sticky=TK.EW)
-    B = TTK.Entry(wmm, textvariable=VARS[14], width=4, background="White")
-    B.grid(row=11, column=2, sticky=TK.EW)
-
-    if 'tkViewMode' in CTK.PREFS: setMode()
+    B.grid(row=9, column=0, sticky=TK.EW)
 
     ## - Zones that are missing IBC info  -
     #B = TTK.Label(Frame, text="No IBC (Zones)")
@@ -604,7 +400,7 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkIBC2')
+    try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkIBCOld')
     except: pass
     CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
     getData()
@@ -637,7 +433,7 @@ if __name__ == "__main__":
         except: pass
 
     # Main window
-    (win, menu, file, tools) = CTK.minimal('tkIBC2 '+C.__version__)
+    (win, menu, file, tools) = CTK.minimal('tkIBCOld '+C.__version__)
 
     createApp(win); showApp()
 

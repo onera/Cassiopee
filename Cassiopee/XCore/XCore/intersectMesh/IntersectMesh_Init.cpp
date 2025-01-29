@@ -59,6 +59,15 @@ PyObject *K_XCORE::IntersectMesh_Init(PyObject *self, PyObject *args)
         for (E_Int i = 0; i < M->nc; i++) M->ctag[i] = (int)tags[i];
     }
 
+    // Init surface mesh data
+    M->make_skin();
+    M->Mf = Smesh::Smesh_from_mesh_skin(*M, M->skin, false);
+    printf("Mf: %d tris\n", M->Mf.nf);
+    M->Mf.make_fcenters();
+    M->Mf.make_BVH();
+    printf("Mesh bounds: ");
+    M->Mf.box.print();
+
     // Clean-up
 
     Karray_free_ngon(karray);

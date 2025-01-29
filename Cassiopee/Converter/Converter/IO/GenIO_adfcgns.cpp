@@ -29,13 +29,13 @@
 # include "ADF/ADF.h"
 # define CGNSMAXLABEL 32
 # define CGNSMAXDIM 20
-# define __R4__ "R4                               "
-# define __R8__ "R8                               "
-# define __I4__ "I4                               "
-# define __I8__ "I8                               "
-# define __MT__ "MT                               "
-# define __B1__ "B1                               "
-# define __C1__ "C1                               "
+# define __R4__ "R4                              "
+# define __R8__ "R8                              "
+# define __I4__ "I4                              "
+# define __I8__ "I8                              "
+# define __MT__ "MT                              "
+# define __B1__ "B1                              "
+# define __C1__ "C1                              "
 
 using namespace std;
 

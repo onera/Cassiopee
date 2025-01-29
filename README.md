@@ -1,6 +1,6 @@
-# Cassiopee 4
+# Cassiopee
 
-**C**omputational **F**luid **D**ynamics pre- and post-processing python modules.
+Computational Fluid Dynamics pre- and post-processing python modules.
 
 -- Under construction --
 
