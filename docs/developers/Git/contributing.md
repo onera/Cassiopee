@@ -13,7 +13,7 @@ To contribute, you need to create a `Pull Request` from your remote fork webpage
 
 <br> </br>
 
-## Synchronising your fork from the upstream repository
+## Synchronising your fork from the dev branch of the upstream repository
 
 - From your remote fork webpage (https://github.com/github_username/Cassiopee/), click on the _Sync fork_ button
 
@@ -45,11 +45,11 @@ git stash pop stash@{stash_id}  # combine git stash apply and git stash drop in 
 
 <br> </br>
 
-## Synchronising your fork's local and working directories from your remote fork
+## Synchronising your local and working directories from your remote fork
 
 To synchronise your local directory only:
 ```sh
-git fetch origin main
+git fetch origin dev
 ```
 
 To synchronise your working directory from your local directory:
@@ -59,7 +59,16 @@ git merge
 
 To synchronise both directories at once:
 ```sh
-git pull origin main
+git pull origin dev
+```
+
+<br> </br>
+
+## Synchronising your local and working directories, and your remote fork, from the upstream repo
+
+```sh
+git pull upstream dev
+git push origin dev
 ```
 
 <br> </br>
@@ -118,5 +127,5 @@ git push
 
 ## Submitting changes to the upstream repository
 
-Finally, to propose your modifications to the upstream/official repository, you have to 
+Finally, to propose your modifications to the `dev` branch of the upstream/official repository, you have to 
 create a Pull Request. Go to the webpage of your remote fork: https://github.com/github_username/Cassiopee/, click on the _Contribute_ button and follow the instructions (give a title to your PR, describe the modifications and review your changes).
