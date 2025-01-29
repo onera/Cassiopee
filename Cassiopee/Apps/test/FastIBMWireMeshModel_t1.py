@@ -94,8 +94,10 @@ for it in range(NIT):
         FastS.display_temporal_criteria(t, metrics, it)
 
 # time stamp
+Internal._rmNodesFromName(t, 'Parameter_int')
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
+Internal._rmNodesFromName(tc, 'Parameter_int')
 Internal._rmNodesByName(tc, '.Solver#Param')
 Internal._rmNodesByName(tc, '.Solver#ownData')
 
