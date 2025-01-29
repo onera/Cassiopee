@@ -6,6 +6,14 @@ import os
 import sys
 from time import strptime, strftime
 
+# Tests to ignore in non-debug mode
+IGNORE_TESTS_NDBG = []
+# Tests to ignore in debug mode
+IGNORE_TESTS_DBG = [
+    "Ael/quantum_t1.py", "Converter/mpi4py_t1.py", "KCore/empty_t1.py"
+]
+
+
 # Parse command-line arguments
 def parseArgs():
     import argparse
@@ -118,6 +126,12 @@ def getDiffExecTime(test, ref, new):
     diffNew = round((newExecTime-baseExecTime)/baseExecTime*100., 1)
     return diffRef, diffNew
 
+# Return a list of tests to ignore for a given prod.
+def tests2Ignore(prod):
+    if '_DBG' in prod:
+        return IGNORE_TESTS_DBG
+    return IGNORE_TESTS_NDBG
+
 # Stringify test comparison
 def stringify(test='', ref='', new=''):
     if not test:
@@ -150,6 +164,9 @@ if __name__ == '__main__':
     newSession = readLog(script_args.logs[1])
     gitInfo = readGitInfo(script_args.logs[1])
 
+    # Get prod name
+    prod = getProd(script_args.logs[1])
+
     # Draw a one-to-one correspondance between tests of each session
     # (module + testname)
     refDict = dict((test[0] + '/' + test[1], test[2:]) for test in refSession)
@@ -165,6 +182,7 @@ if __name__ == '__main__':
     deletedTests = sorted(refSet - newSet)
     # Find failed tests in newSession
     failedTests = sorted([k for k, v in newDict.items() if v[5] != 'OK'])
+    failedTests = [t for t in failedTests if t not in tests2Ignore(prod)]
 
     # Write differences to terminal or send an email
     baseState = 'OK'
@@ -226,7 +244,6 @@ if __name__ == '__main__':
         if cmpt == 0: compStr += "[none]\n"
 
     baseStateMsg = ""
-    prod = getProd(script_args.logs[1])
     tlog, tlog2 = getTimeFromLog(script_args.logs[1])
     messageSubject = "[validCassiopee - {}] {} - State: {}".format(prod, tlog, baseState)
     messageText = header + compStr + baseStateMsg
