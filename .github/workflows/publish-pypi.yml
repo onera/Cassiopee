@@ -5,7 +5,6 @@ on:
     tags:
       - 'v*'
     branches:
-      - 'main'
       - 'pypi'
 
 jobs:
@@ -113,10 +112,8 @@ jobs:
               cp \$CASSIOPEE/Cassiopee/KCore/installPath.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installBase.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installLib.py KCore/
-              cp \$CASSIOPEE/Cassiopee/KCore/switchDebugMode.py KCore/
-              cp \$CASSIOPEE/Cassiopee/KCore/switchIntSize.py KCore/
-              sed -i '1i KCore/switchIntSize.py,,' \${PKG_NV}.dist-info/RECORD
-              sed -i '1i KCore/switchDebugMode.py,,' \${PKG_NV}.dist-info/RECORD
+              cp \$CASSIOPEE/Cassiopee/Converter/kpython Converter/
+              sed -i '1i Converter/kpython,,' \${PKG_NV}.dist-info/RECORD
               sed -i '1i KCore/installBase.py,,' \${PKG_NV}.dist-info/RECORD
               sed -i '1i KCore/installPath.py,,' \${PKG_NV}.dist-info/RECORD
               sed -i '1i KCore/installLib.py,,' \${PKG_NV}.dist-info/RECORD
