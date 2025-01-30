@@ -1,5 +1,5 @@
 C    
-C    Copyright 2013-2024 Onera.
+C    Copyright 2013-2025 Onera.
 C
 C    This file is part of Cassiopee.
 C
