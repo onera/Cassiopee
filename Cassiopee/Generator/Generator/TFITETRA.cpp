@@ -144,7 +144,7 @@ PyObject* K_GENERATOR::TFITETRA(PyObject* arrays)
   E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
   FldArrayF coord(npts, 3, coordp, true);
   E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cn(ntetra,4, cnp, true); cn.setAllValuesAt(1);
+  FldArrayI cn(ntetra, 4, cnp, true); cn.setAllValuesAt(1);
  
   E_Float* xt = coord.begin(1);
   E_Float* yt = coord.begin(2);

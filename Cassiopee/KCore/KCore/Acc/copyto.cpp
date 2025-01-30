@@ -30,10 +30,10 @@ PyObject* K_KCORE::copyto(PyObject* self, PyObject* args)
 
   FldArrayF* f;
   K_NUMPY::getFromNumpyArray(numpyArray, f, true); 
-  E_Float* ipttarget = f->begin();
-  E_Int sizetot = f->getSize();
 
 #ifdef _OPENACC
+  E_Float* ipttarget = f->begin();
+  E_Int sizetot = f->getSize();
 //#pragma omp target enter data map(to: ipttarget[:sizetot])
 #endif
 
