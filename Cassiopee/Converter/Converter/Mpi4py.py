@@ -442,7 +442,9 @@ def gatherZones(zones, root=0):
 def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
                              maxDepth=-1, links=None):
     """Read a file and return a skeleton tree."""
-    exists = os.path.exists(fileName)
+    if rank == 0: exists = int(os.path.exists(fileName))
+    else: exists = 1
+    exists = bcast(exists, root=0)
     if not exists: raise IOError("convertFile2SkeletonTree: file %s not found."%fileName)
 
     if rank == 0: t = Distributed.convertFile2SkeletonTree(fileName, format, maxFloatSize, maxDepth, None, links)
@@ -460,7 +462,9 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
 #==============================================================================
 def convertFile2PyTree(fileName, format=None, proc=None):
     """Read a file and return a full tree or partial tree."""
-    exists = os.path.exists(fileName)
+    if rank == 0: exists = int(os.path.exists(fileName))
+    else: exists = 1
+    exists = bcast(exists, root=0)
     if not exists: raise IOError("convertFile2PyTree: file %s not found."%fileName)
 
     if proc is None: # load full tree on all procs
