@@ -1140,7 +1140,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         param_int[ iadr +rac[pos]*10 ] = Nbpts_D
 
         NoR = infoZoneList[zRname][0]
-        
+
         param_int[ iadr +rac[pos]*11  ]= NoR  # No zone receveuse
 
         #print('rac',s[0],'zoneR=',zRname,'NoR=',NoR ,'adr=',iadr +rac[pos]*11, 'NoD=', param_int[ iadr-1 +rac[pos]*5 ], 'adr=',iadr-1 +rac[pos]*5,'rank=',rank,'dest=', proc)
