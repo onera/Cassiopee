@@ -23,13 +23,9 @@ t = Cmpi.convertFile2PyTree(LOCAL+'/t_TMP.cgns',proc=Cmpi.rank)
 
 ##Test 1 - Cartesian
 cartesian = G_IBM.checkCartesian(t)
-isCartesian = 0
-if cartesian: isCartesian=1
-Internal._createUniqueChild(t, 'TMP_Node', 'UserDefinedData_t')
-Internal._createUniqueChild(Internal.getNodeFromName1(t, 'TMP_Node'), 'Cartesian', 'DataArray_t', value=isCartesian)
 if Cmpi.rank == 0:
-    test.testT(t,1)
-    print('Is Cartesian::', cartesian, isCartesian)
+    test.testO(cartesian,1)
+    print('Is Cartesian::', cartesian)
 tsave = Internal.copyTree(t)
 #C.convertPyTree2File(t,'t_test1.cgns')
 
@@ -38,14 +34,9 @@ Internal._rmNode(t, Internal.getNodeFromName(t, 'TMP_Node'))
 coord = Internal.getNodeFromName(Internal.getZones(t)[0],'CoordinateZ')[1]
 for i in range(6): coord[:,:,i] = coord[:,:,i]*i/10+coord[:,:,i]
 cartesian = G_IBM.checkCartesian(t)
-
-isCartesian=0
-if cartesian: isCartesian=1
-Internal._createUniqueChild(t, 'TMP_Node', 'UserDefinedData_t')
-Internal._createUniqueChild(Internal.getNodeFromName1(t, 'TMP_Node'), 'Cartesian', 'DataArray_t', value=isCartesian)
 if Cmpi.rank == 0:
-    test.testT(t,2)
-    print('Is Cartesian::',cartesian,isCartesian)
+    test.testO(cartesian,2)
+    print('Is Cartesian::',cartesian)
 #C.convertPyTree2File(t,'t_test2.cgns')
 
 ## Test 3 - Y direction is non homogenous --> non Cartesian mesh
@@ -54,14 +45,9 @@ Internal._rmNode(t, Internal.getNodeFromName(t, 'TMP_Node'))
 coord = Internal.getNodeFromName(Internal.getZones(t)[0],'CoordinateY')[1]
 for i in range(6): coord[:,i,:] = coord[:,i,:]*i/10+coord[:,i,:]
 cartesian = G_IBM.checkCartesian(t)
-
-isCartesian=0
-if cartesian:isCartesian=1
-Internal._createUniqueChild(t, 'TMP_Node', 'UserDefinedData_t')
-Internal._createUniqueChild(Internal.getNodeFromName1(t, 'TMP_Node'), 'Cartesian', 'DataArray_t', value=isCartesian)
 if Cmpi.rank == 0:
-    test.testT(t,3)
-    print('Is Cartesian::',cartesian,isCartesian)
+    test.testO(cartesian,3)
+    print('Is Cartesian::',cartesian)
 #C.convertPyTree2File(t,'t_test3.cgns')
 
 ## Test 4 - Z direction is non homogenous --> non Cartesian mesh
@@ -70,14 +56,9 @@ Internal._rmNode(t, Internal.getNodeFromName(t, 'TMP_Node'))
 coord = Internal.getNodeFromName(Internal.getZones(t)[0],'CoordinateX')[1]
 for i in range(6): coord[i,:,:] = coord[i,:,:]*i/10+coord[i,:,:]
 cartesian = G_IBM.checkCartesian(t)
-
-isCartesian=0
-if cartesian:isCartesian=1
-Internal._createUniqueChild(t, 'TMP_Node', 'UserDefinedData_t')
-Internal._createUniqueChild(Internal.getNodeFromName1(t, 'TMP_Node'), 'Cartesian', 'DataArray_t', value=isCartesian)
 if Cmpi.rank == 0:
-    test.testT(t,4)
-    print('Is Cartesian::',cartesian,isCartesian)
+    test.testO(cartesian,4)
+    print('Is Cartesian::',cartesian)
 #C.convertPyTree2File(t,'t_test4.cgns')
 
 del t
