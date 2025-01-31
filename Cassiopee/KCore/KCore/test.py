@@ -277,8 +277,8 @@ def checkObject_(objet, refObjet, reference):
 #=============================================================================
 def testO(objet, number=1):
     """Test python object."""
-    # perform some sort on dict to be predictible
     if isinstance(objet, dict):
+        # perform some sort on dict to be predictible
         from collections import OrderedDict
         objet = OrderedDict(sorted(objet.items(), key=lambda t: t[0]))
 

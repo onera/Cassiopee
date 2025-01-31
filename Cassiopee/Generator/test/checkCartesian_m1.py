@@ -11,39 +11,39 @@ import os
 
 LOCAL = test.getLocal()
 
-if Cmpi.rank==0:
+if Cmpi.rank == 0:
     a = G.cart((0.,0.,0.), (0.1,0.1,1), (40,40,40))
     t = C.newPyTree(['CARTESIAN', a])
     C._addState(t, 'EquationDimension', 3)
 
-    t       = T.splitNParts(t, 10)
+    t = T.splitNParts(t, 10)
     t,stats = D2.distribute(t, 2)
     C.convertPyTree2File(t,LOCAL+'/t_TMP.cgns')
-t=Cmpi.convertFile2PyTree(LOCAL+'/t_TMP.cgns',proc=Cmpi.rank)
+t = Cmpi.convertFile2PyTree(LOCAL+'/t_TMP.cgns',proc=Cmpi.rank)
 
 ##Test 1 - Cartesian
-cartesian=G_IBM.checkCartesian(t)
-isCartesian=0
-if cartesian:isCartesian=1
+cartesian = G_IBM.checkCartesian(t)
+isCartesian = 0
+if cartesian: isCartesian=1
 Internal._createUniqueChild(t, 'TMP_Node', 'UserDefinedData_t')
 Internal._createUniqueChild(Internal.getNodeFromName1(t, 'TMP_Node'), 'Cartesian', 'DataArray_t', value=isCartesian)
-if Cmpi.rank==0:
+if Cmpi.rank == 0:
     test.testT(t,1)
-    print('Is Cartesian::',cartesian,isCartesian)
+    print('Is Cartesian::', cartesian, isCartesian)
 tsave = Internal.copyTree(t)
 #C.convertPyTree2File(t,'t_test1.cgns')
 
 ## Test 2 - Z direction is non homogenous --> non Cartesian mesh
 Internal._rmNode(t, Internal.getNodeFromName(t, 'TMP_Node'))
 coord = Internal.getNodeFromName(Internal.getZones(t)[0],'CoordinateZ')[1]
-for i in range(6): coord[:,:,i]=coord[:,:,i]*i/10+coord[:,:,i]
-cartesian=G_IBM.checkCartesian(t)
+for i in range(6): coord[:,:,i] = coord[:,:,i]*i/10+coord[:,:,i]
+cartesian = G_IBM.checkCartesian(t)
 
 isCartesian=0
-if cartesian:isCartesian=1
+if cartesian: isCartesian=1
 Internal._createUniqueChild(t, 'TMP_Node', 'UserDefinedData_t')
 Internal._createUniqueChild(Internal.getNodeFromName1(t, 'TMP_Node'), 'Cartesian', 'DataArray_t', value=isCartesian)
-if Cmpi.rank==0:
+if Cmpi.rank == 0:
     test.testT(t,2)
     print('Is Cartesian::',cartesian,isCartesian)
 #C.convertPyTree2File(t,'t_test2.cgns')
@@ -52,14 +52,14 @@ if Cmpi.rank==0:
 t = Internal.copyTree(tsave)
 Internal._rmNode(t, Internal.getNodeFromName(t, 'TMP_Node'))
 coord = Internal.getNodeFromName(Internal.getZones(t)[0],'CoordinateY')[1]
-for i in range(6): coord[:,i,:]=coord[:,i,:]*i/10+coord[:,i,:]
-cartesian=G_IBM.checkCartesian(t)
+for i in range(6): coord[:,i,:] = coord[:,i,:]*i/10+coord[:,i,:]
+cartesian = G_IBM.checkCartesian(t)
 
 isCartesian=0
 if cartesian:isCartesian=1
 Internal._createUniqueChild(t, 'TMP_Node', 'UserDefinedData_t')
 Internal._createUniqueChild(Internal.getNodeFromName1(t, 'TMP_Node'), 'Cartesian', 'DataArray_t', value=isCartesian)
-if Cmpi.rank==0:
+if Cmpi.rank == 0:
     test.testT(t,3)
     print('Is Cartesian::',cartesian,isCartesian)
 #C.convertPyTree2File(t,'t_test3.cgns')
@@ -68,18 +68,18 @@ if Cmpi.rank==0:
 t = Internal.copyTree(tsave)
 Internal._rmNode(t, Internal.getNodeFromName(t, 'TMP_Node'))
 coord = Internal.getNodeFromName(Internal.getZones(t)[0],'CoordinateX')[1]
-for i in range(6): coord[i,:,:]=coord[i,:,:]*i/10+coord[i,:,:]
-cartesian=G_IBM.checkCartesian(t)
+for i in range(6): coord[i,:,:] = coord[i,:,:]*i/10+coord[i,:,:]
+cartesian = G_IBM.checkCartesian(t)
 
 isCartesian=0
 if cartesian:isCartesian=1
 Internal._createUniqueChild(t, 'TMP_Node', 'UserDefinedData_t')
 Internal._createUniqueChild(Internal.getNodeFromName1(t, 'TMP_Node'), 'Cartesian', 'DataArray_t', value=isCartesian)
-if Cmpi.rank==0:
+if Cmpi.rank == 0:
     test.testT(t,4)
     print('Is Cartesian::',cartesian,isCartesian)
 #C.convertPyTree2File(t,'t_test4.cgns')
 
 del t
 del tsave
-if Cmpi.rank==0: os.remove(LOCAL+'/t_TMP.cgns')
+if Cmpi.rank == 0: os.remove(LOCAL+'/t_TMP.cgns')

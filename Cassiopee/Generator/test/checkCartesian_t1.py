@@ -5,7 +5,6 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
 import Generator.IBM as G_IBM
-import random
 
 a = G.cart((0.,0.,0.), (0.1,0.1,1), (20,20,20))
 t = C.newPyTree(['CARTESIAN', a])

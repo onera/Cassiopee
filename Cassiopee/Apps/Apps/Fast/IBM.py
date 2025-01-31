@@ -2131,12 +2131,12 @@ class IBM(Common):
                         #Internal.createUniqueChild( tmp, 'PointRange', 'DataArray_t', winD[:,idir])
                         #Internal.createUniqueChild( tmp, 'PointRangeDonor', 'DataArray_t', win[:,idir])
 
-                        C._addBC2Zone(zr_t, 'Flux_'+zd_t[0]+'_'+name, 'BCFluxOctree_C', wrange=win[:,idir])
+                        C._addBC2Zone(zr_t, 'Flux_'+zd_t[0]+'_'+name, 'BCFluxOctreeC', wrange=win[:,idir])
                         if name[2]=='i':
                             name2= name[0:2]+'ax'
                         else:
                             name2= name[0:2]+'in'
-                        C._addBC2Zone(zd_t, 'Flux_'+zr_t[0]+'_'+name2, 'BCFluxOctree_F', wrange=winD[:,idir])
+                        C._addBC2Zone(zd_t, 'Flux_'+zr_t[0]+'_'+name2, 'BCFluxOctreeF', wrange=winD[:,idir])
 
                     else:
 
@@ -2290,12 +2290,12 @@ class IBM(Common):
                                 #Internal.createUniqueChild(tmp,'PointRange', 'DataArray_t', winD[:,idir])
                                 #Internal.createUniqueChild( tmp, 'PointRangeDonor', 'DataArray_t', win[:,idir])
 
-                                C._addBC2Zone(zr_t, 'Flux_'+zd_t[0]+'_'+name, 'BCFluxOctree_C', wrange=win[:,idir])
+                                C._addBC2Zone(zr_t, 'Flux_'+zd_t[0]+'_'+name, 'BCFluxOctreeC', wrange=win[:,idir])
                                 if name[2]=='i':
                                     name2= name[0:2]+'ax'
                                 else:
                                     name2= name[0:2]+'in'
-                                C._addBC2Zone(zd_t, 'Flux_'+zr_t[0]+'_'+name2, 'BCFluxOctree_F', wrange=winD[:,idir])
+                                C._addBC2Zone(zd_t, 'Flux_'+zr_t[0]+'_'+name2, 'BCFluxOctreeF', wrange=winD[:,idir])
 
                             else: print("Error: build flux conservative octree"+name, sz, count[idir],  win[:,idir])
                             #stop

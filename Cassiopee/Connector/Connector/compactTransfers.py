@@ -188,8 +188,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 for c4, bc in enumerate(bcs):
                     bcname = bc[0].split('_') #
                     btype = Internal.getValue(bc)
-                    if 'BCFluxOctree_F' == btype and bcname[1]==zRname: nbfluCons+=1 #flux donneur(Fine)
-                    if 'BCFluxOctree_C' == btype:                                    #flux receveur (Coarse)
+                    if 'BCFluxOctreeF' == btype and bcname[1]==zRname: nbfluCons+=1 #flux donneur(Fine)
+                    if 'BCFluxOctreeC' == btype:                                    #flux receveur (Coarse)
                         if   bcname[2][0:5]=='imin': idir_tg=2
                         elif bcname[2][0:5]=='imax': idir_tg=1
                         elif bcname[2][0:5]=='jmin': idir_tg=4
@@ -414,7 +414,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         shift_coef = shift_coef + sizeR[i]
 
         param_int[i+shift_graph] = NbP2P + shift              #adresse echange
-        shift          =  shift  + sizeproc[i]
+        shift =  shift  + sizeproc[i]
         size_ptflux.append(0)
         size_ptlist.append(0)
         size_ptlistD.append(0)
@@ -443,13 +443,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         #recherche raccord conservatif
         zd = zones[NozoneD]
         nbfluCons=0
-        bcs   = Internal.getNodesFromType2(zd, 'BC_t')
+        bcs = Internal.getNodesFromType2(zd, 'BC_t')
         no_bc=[]
         for c1, bc in enumerate(bcs):
             bcname = bc[0].split('_')
             btype = Internal.getValue(bc)
-            if 'BCFluxOctree_F' == btype and bcname[1]==zRname:
-                nbfluCons+=1
+            if 'BCFluxOctreeF' == btype and bcname[1] == zRname:
+                nbfluCons += 1
                 no_bc.append(c1)
                 param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
                 #print("bc",  s[0], bc[0])
@@ -879,7 +879,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         for c1, bc in enumerate(bcs):
             bcname = bc[0].split('_')
             btype = Internal.getValue(bc)
-            if 'BCFluxOctree_F' == btype and bcname[1]==zRname:
+            if 'BCFluxOctreeF' == btype and bcname[1]==zRname:
                 nbfluCons+=1
                 no_bc.append(c1)
                 param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
