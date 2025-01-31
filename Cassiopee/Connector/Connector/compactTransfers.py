@@ -60,12 +60,12 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     sizeType  = []
     nrac      = 0
 
-    ordered_subRegions =[]
-    neq_subRegions =[]
-    No_zoneD =[]
+    ordered_subRegions=[]
+    neq_subRegions=[]
+    No_zoneD=[]
     MeshTypeD=[]
     infoZoneList={}
-    inst = {}
+    inst={}
     numero_max =-100000000
     numero_min = 100000000
 
@@ -93,16 +93,17 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 model_z = Internal.getValue(a)
                 if model_z=="NSLaminar" or model_z=="Euler": neq_trans=5
                 elif model_z=="NSTurbulent": neq_trans=6
-                elif model_z=='LBMLaminar':
-                    neq_trans = Internal.getNodeFromName2(zones[c] , 'Parameter_int')[1][NEQ_LBM]
+                elif model_z=="LBMLaminar":
+                    neq_trans = Internal.getNodeFromName2(zones[c], 'Parameter_int')[1][NEQ_LBM]
 
             else: neq_trans = neq_base
 
-            subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
+            subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
             meshtype   = 1
             zonetype   = Internal.getNodeFromType1(z, 'ZoneType_t')
             tmp        = Internal.getValue(zonetype)
             if tmp != "Structured": meshtype = 2
+            infoZoneList[zones[c][0]] = [ c , None ] # init par defaut
             for s in subRegions:
                 zRname = Internal.getValue(s)
                 proc = 0
@@ -133,13 +134,13 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         dest= dest+ [proc]
                         neqtrans= inst[ numero_iter ][4]
                         neqtrans= neqtrans+ [neq_trans]
-                        inst[ numero_iter ]=  [ sub , Noz , mesh, dest, neqtrans ]
+                        inst[ numero_iter ]= [ sub , Noz , mesh, dest, neqtrans ]
                     else:
                         inst[ numero_iter ]= [ [s],[c],[meshtype], [proc], [neq_trans] ]
 
                 TimeLevelNumber = len(inst)
 
-                if TimeLevelNumber != 1+numero_max-numero_min and len(inst)!= 0:
+                if TimeLevelNumber != 1+numero_max-numero_min and len(inst) != 0:
                     raise ValueError("miseAPlatDonorTree__: missing timestep in tc : %d %d %d")%(numero_max,numero_min, TimeLevelNumber)
 
 
@@ -178,18 +179,18 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 Nbpts_D       =  numpy.shape(pointlistD[1])[0]
                 Nbpts_InterpD =  numpy.shape(InterpD[ 1  ])[0]
 
-                sname        = s[0][0:2]
+                sname         = s[0][0:2]
 
-                #recherche raccord conservatif
+                # recherche raccord conservatif
                 zd = zones[c]
-                nbfluCons=0
-                bcs   = Internal.getNodesFromType2(zd, 'BC_t')
-                bc_info=[]
+                nbfluCons = 0
+                bcs = Internal.getNodesFromType2(zd, 'BC_t')
+                bc_info = []
                 for c4, bc in enumerate(bcs):
-                    bcname = bc[0].split('_') #
+                    bcname = bc[0].split('_')
                     btype = Internal.getValue(bc)
-                    if 'BCFluxOctreeF' == btype and bcname[1]==zRname: nbfluCons+=1 #flux donneur(Fine)
-                    if 'BCFluxOctreeC' == btype:                                    #flux receveur (Coarse)
+                    if 'BCFluxOctreeF' == btype and bcname[1] == zRname: nbfluCons+=1 #flux donneur(Fine)
+                    if 'BCFluxOctreeC' == btype:                                      #flux receveur (Coarse)
                         if   bcname[2][0:5]=='imin': idir_tg=2
                         elif bcname[2][0:5]=='imax': idir_tg=1
                         elif bcname[2][0:5]=='jmin': idir_tg=4
@@ -197,11 +198,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         elif bcname[2][0:5]=='kmin': idir_tg=6
                         elif bcname[2][0:5]=='kmax': idir_tg=5
                         bc_info.append( [ bcname[1], idir_tg, c4 ] )
-                infoZoneList[zd[0]] = [ c , bc_info] #[ No zoneD, bcs(conservatif)]
+                infoZoneList[zd[0]] = [ c , bc_info ] #[ No zoneD, bcs(conservatif)]
 
                 if nbfluCons !=0: print("flux cons: Z_D/R",  z[0], zRname, 'nflux=', nbfluCons)
 
-                sname        = s[0][0:2]
+                sname = s[0][0:2]
                 # cas ou les vitesses n'ont pas ete ajoutees lors du prep (ancien tc)
                 if sname == 'IB':
                     vx = Internal.getNodeFromName1(s, 'VelocityX')
@@ -355,11 +356,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         for nstep in range(0,len(graph)):
 
             graphIBCD_= graph[nstep]['graphIBCD']
-            stokproc  =[]
+            stokproc  = []
             S_IBC     = _procSource(rank, S_IBC, pos_IBC, graphIBCD_, stokproc, graphIBCrcv_)
 
             graphID_  = graph[nstep]['graphID']
-            stokproc  =[]
+            stokproc  = []
             S_ID      = _procSource(rank, S_ID, pos_ID, graphID_, stokproc, graphIDrcv_)
 
         graphIBCrcv  = pos_IBC + graphIBCrcv_
@@ -377,15 +378,15 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     param_int  = numpy.empty(size_int + len(graphIDrcv) + len(graphIBCrcv) + 2, dtype=Internal.E_NpyInt)
     param_real = numpy.empty(size_real, dtype=numpy.float64)
     Internal.createUniqueChild(tc, 'Parameter_int' , 'DataArray_t', param_int)
-    if size_real !=0 :
+    if size_real != 0:
         Internal.createUniqueChild(tc, 'Parameter_real', 'DataArray_t', param_real)
 
     if len(graphIBCrcv) == 0:
         _graphIBC = numpy.zeros(1, dtype=Internal.E_NpyInt)
     else:
-        _graphIBC  = numpy.asarray([len(graphIBCrcv)]+graphIBCrcv, dtype=Internal.E_NpyInt)
+        _graphIBC = numpy.asarray([len(graphIBCrcv)]+graphIBCrcv, dtype=Internal.E_NpyInt)
 
-    _graphID   = numpy.asarray([len(graphIDrcv)] +graphIDrcv, dtype=Internal.E_NpyInt)
+    _graphID = numpy.asarray([len(graphIDrcv)] +graphIDrcv, dtype=Internal.E_NpyInt)
 
     param_int[2                 :3+len(graphIBCrcv)                ] = _graphIBC
     param_int[3+len(graphIBCrcv):4+len(graphIBCrcv)+len(graphIDrcv)] = _graphID
@@ -422,7 +423,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         size_coef.append(0)
         nb_rac.append(0)
 
-    for iter in range(numero_min,numero_max+1):
+    for iter in range(numero_min, numero_max+1):
         ordered_subRegions =  ordered_subRegions + inst[ iter ][0]
         No_zoneD           =  No_zoneD           + inst[ iter ][1]
         MeshTypeD          =  MeshTypeD          + inst[ iter ][2]
@@ -875,11 +876,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         zd = zones[NozoneD]
         nbfluCons=0
         bcs   = Internal.getNodesFromType2(zd, 'BC_t')
-        no_bc=[]
+        no_bc = []
         for c1, bc in enumerate(bcs):
             bcname = bc[0].split('_')
             btype = Internal.getValue(bc)
-            if 'BCFluxOctreeF' == btype and bcname[1]==zRname:
+            if 'BCFluxOctreeF' == btype and bcname[1] == zRname:
                 nbfluCons+=1
                 no_bc.append(c1)
                 param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
@@ -897,7 +898,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
             #determination No Bc sur zone receuveuse a partir du nom du noeud bc
             for bc in infoZoneList[zRname][1]:
-                if bc[0]==zd[0] and bc[1]== idir_bc: param_int[pt_flu +3] = bc[2]
+                if bc[0] == zd[0] and bc[1] == idir_bc: param_int[pt_flu+3] = bc[2]
 
             print("Flux compact: zr=", zRname, "zd=", zd[0], 'idir', idir_bc, 'sz_bc', sz_bc, 'ptbc', pt_bc, 'NobcR', param_int[pt_flu +3] )
         #
@@ -906,7 +907,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
         Nbtot += Nbpts
 
-        param_int[ ptTy  ] = len(Nbtype)
+        param_int[ ptTy ] = len(Nbtype)
         noi       = 0
         nocoef    = 0
         sizecoef  = 0
@@ -941,8 +942,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         xc,yc,zc,xi,yi,zi,xw,yw,zw,
                         density,pressure, kcurv,
                         vx, vy, vz,
-                        utau,yplus,
-                        temp_local, temp_extra_local,temp_extra2_local,
+                        utau, yplus,
+                        temp_local, temp_extra_local, temp_extra2_local,
                         wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
                         wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
                         gradxP, gradyP, gradzP,
@@ -1139,6 +1140,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         param_int[ iadr +rac[pos]*10 ] = Nbpts_D
 
         NoR = infoZoneList[zRname][0]
+        
         param_int[ iadr +rac[pos]*11  ]= NoR  # No zone receveuse
 
         #print('rac',s[0],'zoneR=',zRname,'NoR=',NoR ,'adr=',iadr +rac[pos]*11, 'NoD=', param_int[ iadr-1 +rac[pos]*5 ], 'adr=',iadr-1 +rac[pos]*5,'rank=',rank,'dest=', proc)
