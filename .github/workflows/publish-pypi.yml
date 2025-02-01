@@ -113,6 +113,11 @@ jobs:
               cp \$CASSIOPEE/Cassiopee/KCore/installBase.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installLib.py KCore/
               cp \$CASSIOPEE/Cassiopee/Converter/Converter/kpython Converter/
+              mkdir -p CPlot/apps
+              cp \$CASSIOPEE/Cassiopee/Apps/CPlot/apps/cassiopee CPlot/apps/
+              cp \$CASSIOPEE/Cassiopee/Apps/CPlot/apps/kcgnsview CPlot/apps/
+              sed -i '1i CPlot/apps/kcgnsview,,' \${PKG_NV}.dist-info/RECORD
+              sed -i '1i CPlot/apps/cassiopee,,' \${PKG_NV}.dist-info/RECORD
               sed -i '1i Converter/kpython,,' \${PKG_NV}.dist-info/RECORD
               sed -i '1i KCore/installBase.py,,' \${PKG_NV}.dist-info/RECORD
               sed -i '1i KCore/installPath.py,,' \${PKG_NV}.dist-info/RECORD

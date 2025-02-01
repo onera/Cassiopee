@@ -7,7 +7,7 @@ version_scheme = "post-release"
 local_scheme = "node-and-date"
 
 [project]
-name = "Cassiopee91"
+name = "Cassiopee92"
 version = "4.0"
 authors = [
   {name="ONERA", email="christophe.benoit@onera.fr"},
@@ -50,6 +50,11 @@ include = [
     "Apps",
     "CPlot" 
 ]
+
+[tool.setuptools.scripts]
+kpython = "Converter/kpython"
+cassiopee = "CPlot/apps/cassiopee"
+kcgnsview = "CPlot/apps/kcgnsview"
 
 [project.urls]
 Homepage = "https://github.com/onera/Cassiopee"
