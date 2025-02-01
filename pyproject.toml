@@ -7,7 +7,7 @@ version_scheme = "post-release"
 local_scheme = "node-and-date"
 
 [project]
-name = "Cassiopee90"
+name = "Cassiopee91"
 version = "4.0"
 authors = [
   {name="ONERA", email="christophe.benoit@onera.fr"},

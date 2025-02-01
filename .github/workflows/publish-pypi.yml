@@ -112,7 +112,7 @@ jobs:
               cp \$CASSIOPEE/Cassiopee/KCore/installPath.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installBase.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installLib.py KCore/
-              cp \$CASSIOPEE/Cassiopee/Converter/kpython Converter/
+              cp \$CASSIOPEE/Cassiopee/Converter/Converter/kpython Converter/
               sed -i '1i Converter/kpython,,' \${PKG_NV}.dist-info/RECORD
               sed -i '1i KCore/installBase.py,,' \${PKG_NV}.dist-info/RECORD
               sed -i '1i KCore/installPath.py,,' \${PKG_NV}.dist-info/RECORD
