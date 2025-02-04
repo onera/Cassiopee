@@ -116,56 +116,56 @@ void iterateLabels(const TDF_Label& label)
   Handle(TDataStd_ExtStringArray) attExtStringArray;
   if (label.FindAttribute(TDataStd_Expression::GetID(), attExtStringArray))
   {
-    std::cout << ">>>>: extStringArray detected "  << endl;
+    std::cout << ">>>>: extStringArray detected "  << std::endl;
   }
 
   // ExtStringList
   Handle(TDataStd_ExtStringList) attExtStringList;
   if (label.FindAttribute(TDataStd_Expression::GetID(), attExtStringList))
   {
-    std::cout << ">>>>: extStringList detected "  << endl;
+    std::cout << ">>>>: extStringList detected "  << std::endl;
   }
 
   // Integer
   Handle(TDataStd_Integer) attInteger;
   if (label.FindAttribute(TDataStd_Integer::GetID(), attInteger))
   {
-    std::cout << ">>>>: integer detected "  << endl;
+    std::cout << ">>>>: integer detected "  << std::endl;
   }
 
   // IntegerArray
   Handle(TDataStd_IntegerArray) attIntegerArray;
   if (label.FindAttribute(TDataStd_IntegerArray::GetID(), attIntegerArray))
   {
-    std::cout << ">>>>: integerArray detected "  << endl;
+    std::cout << ">>>>: integerArray detected "  << std::endl;
   }
 
   // IntegerList
   Handle(TDataStd_IntegerList) attIntegerList;
   if (label.FindAttribute(TDataStd_IntegerArray::GetID(), attIntegerList))
   {
-    std::cout << ">>>>: integerList detected "  << endl;
+    std::cout << ">>>>: integerList detected "  << std::endl;
   }
 
   // Real
   Handle(TDataStd_Real) attReal;
   if (label.FindAttribute(TDataStd_Real::GetID(), attReal))
   {
-    std::cout << ">>>>: real detected "  << endl;
+    std::cout << ">>>>: real detected "  << std::endl;
   }
 
   // RealArray
   Handle(TDataStd_RealArray) attRealArray;
   if (label.FindAttribute(TDataStd_RealArray::GetID(), attRealArray))
   {
-    std::cout << ">>>>: realArray detected "  << endl;
+    std::cout << ">>>>: realArray detected "  << std::endl;
   }
 
   // RealList
   Handle(TDataStd_RealList) attRealList;
   if (label.FindAttribute(TDataStd_RealArray::GetID(), attRealList))
   {
-    std::cout << ">>>>: realList detected "  << endl;
+    std::cout << ">>>>: realList detected "  << std::endl;
   }
 
   // Iterate through child labels

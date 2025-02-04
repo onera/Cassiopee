@@ -77,6 +77,7 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     reader2.ReadFile(fileName);
     //doc = new TDocStd_Document("MDTV-Standard");
     doc = new TDocStd_Document("XmlXCAF");
+    
     Handle(TDocStd_Document) doc2 = doc;
     reader2.Transfer(doc2);
     app->InitDocument(doc2);
@@ -95,12 +96,13 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     reader2.ReadFile(fileName);
     //doc = new TDocStd_Document("MDTV-Standard");
     doc = new TDocStd_Document("XmlXCAF");
+
     Handle(TDocStd_Document) doc2 = doc;
     reader2.Transfer(doc2);
     app->InitDocument(doc2);
-    //XmlXCAFDrivers::DefineFormat(*app); // register drivers
-    PCDM_StoreStatus status = app->SaveAs(doc2, "toto.xml");
-    if (status != PCDM_SS_OK) printf("can not write document\n");
+    //XmlXCAFDrivers::DefineFormat(app); // register driver
+    //PCDM_StoreStatus status = app->SaveAs(doc2, "toto.xml");
+    //if (status != PCDM_SS_OK) printf("can not write document\n");
   }
   
   // Extract surfaces
