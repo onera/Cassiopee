@@ -133,7 +133,7 @@ def tests2Ignore(prod):
         return IGNORE_TESTS_DBG
     return IGNORE_TESTS_NDBG
 
-# Get full test logs for a given list of tests 
+# Get full test logs for a given list of tests
 def getTestLogs(prodname, testList):
     testLog = ""
     modNames = [test.split('/')[0] for test in testList]
