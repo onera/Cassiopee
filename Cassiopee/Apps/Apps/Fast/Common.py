@@ -137,7 +137,7 @@ def finalize(t, t_out=None, it0=None, time0=None, format='single', compress=0):
     if time0 is not None:
         Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     if t_out is not None and isinstance(t_out, str):
-        FastC.save(t, t_out, split=format, NP=Cmpi.size, compress=compress)
+        FastC.save(t, t_out, split=format, compress=compress)
 
 #=====================================================================================
 # IN: t_in : nom du fichier t input ou arbre input
@@ -192,9 +192,9 @@ def compute(t_in, tc_in,
     Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
     Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
     if t_out is not None and isinstance(t_out,str):
-        FastC.save(t, t_out, split=format, NP=Cmpi.size, compress=compress)
+        FastC.save(t, t_out, split=format, compress=compress)
     if tc_out is not None and isinstance(tc_out,str):
-        FastC.save(tc, tc_out, split=format, NP=Cmpi.size)
+        FastC.save(tc, tc_out, split=format)
     if Cmpi.size > 1: Cmpi.barrier()
     return t, tc
 
