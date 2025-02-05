@@ -4,6 +4,7 @@
 # Differences written in: compSession_DATE.txt where DATE is the current time
 import os
 import sys
+from glob import glob
 from time import strptime, strftime
 
 # Tests to ignore in non-debug mode
@@ -21,6 +22,8 @@ def parseArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--email", action="store_true",
                         help="Email results. Default: print in terminal")
+    parser.add_argument("-f", "--full", action="store_true",
+                        help="Show test case logs. Default: disabled")
     parser.add_argument("-l", "--logs", type=str, default='',
                         help="Single-quoted logs to compare.")
     parser.add_argument("-p", "--prod", type=str, default='',
@@ -52,8 +55,6 @@ def readGitInfo(filename):
 
 # Find a two session logs of validCassiopee for a given production
 def findLogs(prodname):
-    import os
-    from glob import glob
     validDataFolder = "/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{}".format(prodname)
     if not os.access(validDataFolder, os.R_OK):
         raise Exception("Session logs can't be retrieved in {}".format(validDataFolder))
@@ -131,6 +132,27 @@ def tests2Ignore(prod):
     if '_DBG' in prod:
         return IGNORE_TESTS_DBG
     return IGNORE_TESTS_NDBG
+
+# Get full test logs for a given list of tests
+def getTestLogs(prodname, testList):
+    testLog = ""
+    modNames = [test.split('/')[0] for test in testList]
+    testNames = [test.split('/')[1] for test in testList]
+    validDataFolder = "/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{}".format(prodname)
+    # Read the last purged logValidCassiopee.dat file
+    purgedLogs = sorted(glob(os.path.join(validDataFolder, "logValidCassiopee_purged_*.dat")))
+    if not purgedLogs or not os.access(purgedLogs[-1], os.R_OK): return testLog
+    with open(purgedLogs[-1], 'r') as f: log = f.read()
+    # Split log using "Running " as the delimiter
+    failedTests = log.split("Running ")[1:]
+    failedTestNames = [test.split(' ')[0] for test in failedTests]
+    # Add logs of cases that failed
+    for i, name in enumerate(testNames):
+        try:
+            pos = failedTestNames.index(name)
+            testLog += "{}/{}{}\n\n".format(modNames[i], failedTests[pos], 88*'*')
+        except ValueError: pass
+    return testLog
 
 # Stringify test comparison
 def stringify(test='', ref='', new=''):
@@ -247,6 +269,12 @@ if __name__ == '__main__':
     tlog, tlog2 = getTimeFromLog(script_args.logs[1])
     messageSubject = "[validCassiopee - {}] {} - State: {}".format(prod, tlog, baseState)
     messageText = header + compStr + baseStateMsg
+
+    if script_args.full:
+        testLogs = getTestLogs(script_args.prod, failedTests)
+        if testLogs:
+            messageText += f"\n\nFailed test logs:\n{'-'*16}\n{testLogs}"
+
     if script_args.email:
         if baseStateMsg: baseStateMsg = '\n\n'+baseStateMsg
         try:
