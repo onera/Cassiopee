@@ -943,7 +943,7 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
         to = X_IBM.blankByIBCBodies(to, tbSolid, 'nodes', 3)
         to = C.node2Center(to, 'cellN')
         Internal._rmNodesFromName(to, Internal.__FlowSolutionNodes__)
-        C._initVars(to, '{centers:cellN}=({centers:cellN}>0.9)')
+        C._initVars(to, '{centers:cellN}=({centers:cellN}>0.1)')
         C._initVars(to, '{centers:cellNBody}={centers:cellN}')
         nob = 0
         C._initVars(to, 'centers:indicator', 0.)
