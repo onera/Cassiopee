@@ -2,7 +2,7 @@
 import os, sys, distutils.sysconfig, platform, glob, subprocess
 
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
-DEBUG = True
+DEBUG = False
 
 # Toggle to True for compiling Cassiopee in i8
 EDOUBLEINT = False

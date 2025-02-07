@@ -892,7 +892,6 @@ def setPrefs():
             elif val == 'Scalar': CPlot.setState(mode=3)
             elif val == 'Vector': CPlot.setState(mode=4)
         elif i == 'tkViewMeshStyle':
-            print('val=%s'%val)
             if val == 'Red wires+solid': style = 0
             elif val == 'Multicolor wireframes': style = 1
             elif val == 'Multicolor wires+solid': style = 2
