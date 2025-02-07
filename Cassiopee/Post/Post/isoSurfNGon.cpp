@@ -1069,6 +1069,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
 
   delete [] prevT; delete [] prevF;
   delete [] npts; delete [] ntris;
+  delete [] istart; delete [] iend;
   for (E_Int i = 0; i < nthreads; i++) delete fisos[i];
   for (E_Int i = 0; i < nthreads; i++) delete cisos[i];
   delete [] fisos; delete [] cisos;
