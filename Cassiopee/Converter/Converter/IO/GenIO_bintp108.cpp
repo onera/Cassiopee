@@ -2641,7 +2641,16 @@ E_Int K_IO::GenIO::tecwrite108(
     }
     else // BE
     {
-      sizet = c.getSize() * c.getNfld();
+      switch (eltTypes[no][0])
+      {
+        case 2: sizet += 4*c.getSize(); break; // ALL FIX
+        case 3: sizet += 4*c.getSize(); break;
+        case 4: sizet += 8*c.getSize(); break;
+        case 5: sizet += 8*c.getSize(); break;
+        case 6: sizet += 8*c.getSize(); break;
+        case 7: sizet += 8*c.getSize(); break;
+        default: break;
+      }
     }
     
     bufferi = new int [sizet];
