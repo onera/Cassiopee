@@ -349,7 +349,7 @@ def createApp(win):
     # -0- Snear -
     V = TK.DoubleVar(win); V.set(0.01); VARS.append(V)
     # -1- IBC type -
-    V = TK.StringVar(win); V.set('symmetry'); VARS.append(V)
+    V = TK.StringVar(win); V.set('None'); VARS.append(V)
     # -2- dfar local -
     V = TK.DoubleVar(win); V.set(20.); VARS.append(V)
     # -3- mask inv or not -
@@ -596,7 +596,7 @@ def createApp(win):
     B = TTK.Entry(wmm, textvariable=VARS[14], width=4, background="White")
     B.grid(row=11, column=2, sticky=TK.EW)
 
-    if 'tkViewMode' in CTK.PREFS: setMode()
+    setMode()
 
     ## - Zones that are missing IBC info  -
     #B = TTK.Label(Frame, text="No IBC (Zones)")
