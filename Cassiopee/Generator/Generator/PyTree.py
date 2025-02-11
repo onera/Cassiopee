@@ -1733,7 +1733,7 @@ def refineIndependently(t, refine=[1,1,1], dim=2):
 #========================================================
 # Mesh quality informations
 #========================================================
-def getMeshFieldInfo(m, field, critValue, verbose):
+def getMeshFieldInfo__(m, field, critValue, verbose):
     fmin  = 1.e32
     fsum  = 0
     fmax  = -1.
@@ -1770,19 +1770,19 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     """Return information on mesh quality."""
 
     _getVolumeMap(m)
-    vmin,vmax,vmean,vcrit = getMeshFieldInfo(m, 'vol', critVol, verbose)
+    vmin,vmax,vmean,vcrit = getMeshFieldInfo__(m, 'vol', critVol, verbose)
     Internal._rmNodesFromName(m, 'vol')
 
     _getOrthogonalityMap(m)
-    omin,omax,omean,ocrit = getMeshFieldInfo(m, 'orthogonality', critOrtho, verbose)
+    omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'orthogonality', critOrtho, verbose)
     Internal._rmNodesFromName(m, 'orthogonality')
 
     _getRegularityMap(m, addGC)
-    rmin,rmax,rmean,rcrit = getMeshFieldInfo(m, 'regularity', critReg, verbose)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'regularity', critReg, verbose)
     Internal._rmNodesFromName(m, 'regularity')
 
     _getAngleRegularityMap(m, addGC)
-    amin,amax,amean,acrit = getMeshFieldInfo(m, 'regularityAngle', critAngReg, verbose)
+    amin,amax,amean,acrit = getMeshFieldInfo__(m, 'regularityAngle', critAngReg, verbose)
     Internal._rmNodesFromName(m, 'regularityAngle')
 
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,

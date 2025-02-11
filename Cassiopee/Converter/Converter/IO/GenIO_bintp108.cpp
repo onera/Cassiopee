@@ -2641,7 +2641,6 @@ E_Int K_IO::GenIO::tecwrite108(
     }
     else // BE
     {
-      printf("== %d %d\n", eltTypes[no][0], c.getNfld());
       switch (eltTypes[no][0])
       {
         case 1: sizet += 2*c.getSize(); break; // BAR
