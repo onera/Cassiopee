@@ -54,6 +54,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   // Acces universel sur BE/ME
   E_Int nc = cnl->getNConnect();
   E_Int elOffset = 0, fcOffset = 0; // element and face offsets for ME
+  E_Int indPGOffset = 0, indPHOffset = 0;
   // Acces universel aux eltTypes
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
@@ -147,7 +148,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   else if (api == 3) ngonType = 3; // force CGNSv4, array3
   else if (api == 2) ngonType = 2; // CGNSv3, array2
   E_Boolean center = false;
-
+  std::cout << "1." << std::endl;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, ntotelts,
                                        ntotfaces, "NGON", sizeFN, sizeEF,
                                        ngonType, center, api);
@@ -162,12 +163,22 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   {
     indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
   }
-  
+  std::cout << "api. " << api << std::endl;
+  std::cout << "npts. " << npts << std::endl;
+  std::cout << "ntotelts. " << ntotelts << std::endl;
+  std::cout << "ntotfaces. " << ntotfaces << std::endl;
+  std::cout << "sizeFN. " << sizeFN << std::endl;
+  std::cout << "sizeEF. " << sizeEF << std::endl;
   // Loop over all ME connectivities to fill the new NGON connectivity
   for (E_Int ic = 0; ic < nc; ic++)
   {
     FldArrayI& cm = *(cnl->getConnect(ic));
     char* eltTypConn = eltTypes[ic];
+    std::cout << "ic. " << ic << std::endl;
+    std::cout << "shift. " << shift << std::endl;
+    std::cout << "elOffset. " << elOffset << std::endl;
+    std::cout << "fcOffset. " << fcOffset << std::endl;
+    std::cout << "nelts[ic]. " << nelts[ic] << std::endl;
     
 #pragma omp parallel
     {
@@ -185,7 +196,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           ngon2[c1] = 1; ngon2[c1+shift] = v1; // face 1
           ngon2[c1+shift+1] = 1; ngon2[c1+2*shift+1] = v2; // face 2
           // connectivite elt/faces
-          c2 = elOffset + (shift+2)*et; nof = 1 + fcOffset + nf[ic]*et;
+          c2 = elOffset + (shift+2)*et; nof = shift + fcOffset + nf[ic]*et;
           nface2[c2] = 2; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1;
         }
       }
@@ -202,7 +213,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           ngon2[c1+shift+2] = 2; ngon2[c1+2*shift+2] = v2; ngon2[c1+2*shift+3] = v3; // face 2
           ngon2[c1+2*shift+4] = 2; ngon2[c1+3*shift+4] = v3; ngon2[c1+3*shift+5] = v1; // face 3
           // connectivite elt/faces
-          c2 = elOffset + (shift+3)*et; nof = 1 + fcOffset + nf[ic]*et;
+          c2 = elOffset + (shift+3)*et; nof = shift + fcOffset + nf[ic]*et;
           nface2[c2] = 3; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1; nface2[c2+shift+2] = nof+2;   
         }
       }
@@ -220,7 +231,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           ngon2[c1+2*shift+4] = 2; ngon2[c1+3*shift+4] = v3; ngon2[c1+3*shift+5] = v4; // face 3
           ngon2[c1+3*shift+6] = 2; ngon2[c1+4*shift+6] = v4; ngon2[c1+4*shift+7] = v1; // face 4
           // connectivite elt/faces
-          c2 = elOffset + (shift+4)*et; nof = 1 + fcOffset + nf[ic]*et;
+          c2 = elOffset + (shift+4)*et; nof = shift + fcOffset + nf[ic]*et;
           nface2[c2] = 4; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1;
           nface2[c2+shift+2] = nof+2; nface2[c2+shift+3] = nof+3;      
         }
@@ -239,7 +250,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           ngon2[c1+2*shift+6] = 3; ngon2[c1+3*shift+6] = v2; ngon2[c1+3*shift+7] = v3; ngon2[c1+3*shift+8] = v4;// face 3
           ngon2[c1+3*shift+9] = 3; ngon2[c1+4*shift+9] = v3; ngon2[c1+4*shift+10] = v1; ngon2[c1+4*shift+11] = v4;// face 4
           // connectivite elt/faces
-          c2 = elOffset + (shift+4)*et; nof = 1 + fcOffset + nf[ic]*et;
+          c2 = elOffset + (shift+4)*et; nof = shift + fcOffset + nf[ic]*et;
           nface2[c2] = 4; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1;
           nface2[c2+shift+2] = nof+2; nface2[c2+shift+3] = nof+3;      
         }
@@ -261,7 +272,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           ngon2[c1+4*shift+16] = 4; ngon2[c1+5*shift+16] = v1; ngon2[c1+5*shift+17] = v4; ngon2[c1+5*shift+18] = v8; ngon2[c1+5*shift+19] = v5;// face 5
           ngon2[c1+5*shift+20] = 4; ngon2[c1+6*shift+20] = v2; ngon2[c1+6*shift+21] = v3; ngon2[c1+6*shift+22] = v7; ngon2[c1+6*shift+23] = v6;// face 6
           // connectivite elt/faces
-          c2 = elOffset + (shift+6)*et; nof = 1 + fcOffset + nf[ic]*et;
+          c2 = elOffset + (shift+6)*et; nof = shift + fcOffset + nf[ic]*et;
           nface2[c2] = 6; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1; nface2[c2+shift+2] = nof+2;
           nface2[c2+shift+3] = nof+3; nface2[c2+shift+4] = nof+4; nface2[c2+shift+5] = nof+5;
         }
@@ -282,7 +293,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           ngon2[c1+3*shift+10] = 4; ngon2[c1+4*shift+10] = v2; ngon2[c1+4*shift+11] = v3; ngon2[c1+4*shift+12]= v6; ngon2[c1+4*shift+13] = v5;// face 4 : QUAD
           ngon2[c1+4*shift+14] = 4; ngon2[c1+5*shift+14] = v3; ngon2[c1+5*shift+15] = v1; ngon2[c1+5*shift+16] = v4; ngon2[c1+5*shift+17] = v6;// face 5 : QUAD
           // connectivite elt/faces
-          c2 = elOffset + (shift+5)*et; nof = 1 + fcOffset + nf[ic]*et;
+          c2 = elOffset + (shift+5)*et; nof = shift + fcOffset + nf[ic]*et;
           nface2[c2] = 5; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1; nface2[c2+shift+2] = nof+2;
           nface2[c2+shift+3] = nof+3; nface2[c2+shift+4] = nof+4;      
         }
@@ -303,7 +314,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           ngon2[c1+3*shift+10] = 3; ngon2[c1+4*shift+10] = v3; ngon2[c1+4*shift+11] = v4; ngon2[c1+4*shift+12] = v5;// face 4: TRI
           ngon2[c1+4*shift+13] = 3; ngon2[c1+5*shift+13] = v4; ngon2[c1+5*shift+14] = v1; ngon2[c1+5*shift+15] = v5;// face 5: TRI
           // connectivite elt/faces
-          c2 = elOffset + (shift+5)*et; nof = 1 + fcOffset + nf[ic]*et;
+          c2 = elOffset + (shift+5)*et; nof = shift + fcOffset + nf[ic]*et;
           nface2[c2] = 5; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1; nface2[c2+shift+2] = nof+2;
           nface2[c2+shift+3] = nof+3; nface2[c2+shift+4] = nof+4;      
         }
@@ -343,7 +354,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           for (E_Int i = 0; i < nfaces[ic]; i++)
           {
             c = fcOffset + i;
-            indPG2[c] = (nv[ic]+shift)*c;
+            indPG2[c] = indPGOffset + (nv[ic]+shift)*i;
           }
         }
 
@@ -351,18 +362,26 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
         for (E_Int i = 0; i < nelts[ic]; i++)
         {
           c = elOffset + i;
-          indPH2[c] = (nf[ic]+shift)*c;
+          indPH2[c] = indPHOffset + (nf[ic] + shift)*i;
         } 
       }
     }
 
-    // Increment element and face offsets
+    // Increment offsets
+    indPGOffset += (nv[ic] + shift)*nfaces[ic];
+    indPHOffset += (nf[ic] + shift)*nelts[ic];
     elOffset += nelts[ic];
     fcOffset += nfaces[ic];
   }
 
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  for (E_Int i = 0; i < sizeFN; i++) {
+    std::cout << indPG2[i] << " ";
+    if (i%20 == 0) std::cout << std::endl;
+  }
+  std::cout << std::endl;
 
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+std::cout << "6." << std::endl;
 #pragma omp parallel
   {
     // Copy fields to f2
@@ -374,9 +393,10 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
       for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
     }
   }
-
+std::cout << "7." << std::endl;
   RELEASESHAREDU(array, f, cnl);
-
+  return tpl;
+std::cout << "8." << std::endl;
   // Clean connectivity
   E_Float tol = 1.e-12;
   E_Bool rmOverlappingPts=true; E_Bool rmOrphanPts=false;
@@ -388,7 +408,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
       rmDuplicatedFaces, rmDuplicatedElts,
       rmDegeneratedFaces, rmDegeneratedElts
   );
-  
+  std::cout << "9." << std::endl;
   RELEASESHAREDU(tpl, f2, cn2);
   if (tplClean == NULL) return tpl;
   else { Py_DECREF(tpl); return tplClean; }

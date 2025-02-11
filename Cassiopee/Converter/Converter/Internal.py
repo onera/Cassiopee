@@ -4806,7 +4806,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
               shiftn = shift1[zdonorname][ref][0]-shift0[zdonorname][ref][0]
               pln[:] += shiftn
               pld[1] = pln.reshape((1, pln.size))
-  _adaptNGon42NGon3(t)
+  #_adaptNGon42NGon3(t)
   return None
 
 #==============================================================================
