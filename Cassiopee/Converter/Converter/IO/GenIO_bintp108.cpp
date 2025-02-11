@@ -2641,14 +2641,16 @@ E_Int K_IO::GenIO::tecwrite108(
     }
     else // BE
     {
+      printf("== %d %d\n", eltTypes[no][0], c.getNfld());
       switch (eltTypes[no][0])
       {
-        case 2: sizet += 4*c.getSize(); break; // ALL FIX
-        case 3: sizet += 4*c.getSize(); break;
-        case 4: sizet += 8*c.getSize(); break;
-        case 5: sizet += 8*c.getSize(); break;
-        case 6: sizet += 8*c.getSize(); break;
-        case 7: sizet += 8*c.getSize(); break;
+        case 1: sizet += 2*c.getSize(); break; // BAR
+        case 2: sizet += 3*c.getSize(); break; // TRI
+        case 3: sizet += 4*c.getSize(); break; // QUAD
+        case 4: sizet += 4*c.getSize(); break; // TETRA
+        case 5: sizet += 8*c.getSize(); break; // PYRA->HEXA
+        case 6: sizet += 8*c.getSize(); break; // PENTA->HEXA
+        case 7: sizet += 8*c.getSize(); break; // HEXA
         default: break;
       }
     }
