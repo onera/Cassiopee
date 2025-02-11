@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -1241,7 +1241,34 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   }
   else // if (res == 2)
   {
-    printf("Warning: getAngleRegularityMap: not for unstructured arrays.\n");
-    return 0;
+    if (strcmp(eltType, "NGON") != 0) // Elements basiques
+    { 
+      E_Int nelts = cn->getSize(); // nb d'elements
+      tpl = K_ARRAY::buildArray(1, "regularityAngle", f->getSize(), nelts, -1, eltType, true);
+      E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
+      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
+      FldArrayI cnn(nelts, cn->getNfld(), cnnp, true); cnn = *cn;
+      for (E_Int i = 0; i < nelts; i++) fieldp[i] = 0.;
+    }
+    else
+    {
+      E_Int* cnp = cn->begin(); // pointeur sur la connectivite NGon
+      E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
+      E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
+      E_Int npts = f->getSize();
+      tpl = K_ARRAY::buildArray(1, "regularityAngle",
+                                npts, nelts,
+                                -1, eltType, true, cn->getSize());
+      E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
+      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
+      FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
+      for (E_Int i = 0; i < nelts; i++) fieldp[i] = 0.;
+    } 
+    
+    return tpl;
+    //RELEASESHAREDB(res, array, f, cn);
+    //PyErr_SetString(PyExc_ValueError,
+    //                "getAngleOrthogonalityMap: not for unstructured arrays.");
+    //return NULL;
   }
 }

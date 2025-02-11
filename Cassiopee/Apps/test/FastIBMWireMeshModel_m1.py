@@ -51,8 +51,8 @@ X_IBM.prepareIBMData(tb               , tFile        , tcFile   , tbox=tboffset,
                      snears=snears    , dfars=dfars  , vmin=vmin,
                      check=False       , frontType=1  , cartesian=False)
 App._distribute(tFile, tcFile, NP=Cmpi.size)
-t       = Fast.loadTree(tFile, split='single',  mpirun=True)
-tc,graph= Fast.loadFile(tcFile, split='single',  mpirun=True, graph=True)
+t       = Fast.loadTree(tFile, split='single')
+tc,graph= Fast.loadFile(tcFile, split='single', graph=True)
 
 if Cmpi.rank == 0:
     test.testT(t , 1)

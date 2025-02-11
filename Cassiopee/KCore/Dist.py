@@ -896,8 +896,10 @@ def getCArgs():
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
         if DEBUG:
             options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
-            options += ['-ggdb', '-fsanitize=address']
-            if mySystem[0] == 'mingw': options.remove('-fsanitize=address') # no asan on mingw
+            options += ['-ggdb']
+            if mySystem[0] != 'mingw': # no asan on mingw
+                options += ['-fsanitize=address']
+                #options += ['-fsanitize=thread']
         else: options += ['-DNDEBUG', '-O3', '-Wall', '-Werror=return-type']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -980,10 +982,8 @@ def getCppArgs():
     opt = getCArgs()
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
-    if Cppcompiler == "icl.exe":
-        opt += ["/std=c++11"]
-    else:
-        opt += ["-std=c++11"]
+    if Cppcompiler == "icl.exe": opt += ["/std=c++11"]
+    else: opt += ["-std=c++11"]
     return opt
 
 #==============================================================================
@@ -1437,13 +1437,13 @@ def checkElsa():
             a2 = os.access(kvar+"/Kernel/lib/"+pvar+'/elsA.x', os.F_OK)
             b1 = os.access(kvar+"/Dist/include", os.F_OK)
             b2 = os.access(kvar+"/Dist/bin/"+pvar+'/elsAc.x', os.F_OK)
-            if (a1 and a2):
+            if a1 and a2:
                 elsA = True
                 elsAUseMpi = True
                 elsAIncDir = kvar + "/Kernel/include"
                 elsALibDir = kvar + "/Kernel/lib/" + pvar
 
-            elif (b1 and b2):
+            elif b1 and b2:
                 elsA = True
                 elsAUseMpi = True
                 elsAIncDir = kvar + "/Dist/include"
@@ -2179,6 +2179,10 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             if l is None:
                 l = checkLibFile__('libasan.a', additionalLibPaths)
             if l is not None: libs += ["asan"]
+            #l = checkLibFile__('libtsan.so*', additionalLibPaths)
+            #if l is None:
+            #    l = checkLibFile__('libtsan.a', additionalLibPaths)
+            #if l is not None: libs += ["tsan"]
 
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)

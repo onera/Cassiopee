@@ -1,4 +1,6 @@
 #!/bin/sh
+# tree_grep . toto
+# Find toto occurences everywhere
 
 # man ------------------------------------------------------------------------
 if ([ $# -eq 0 ])

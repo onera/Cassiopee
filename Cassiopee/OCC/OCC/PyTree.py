@@ -567,9 +567,15 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None):
     return t
 
 # the first version of parallel CAD split and TRI meshing
-def meshAllPara(hook, area, hmin=-1, hmax=-1., hausd=-1.):
+def meshAllPara(hook, hmin=-1, hmax=-1., hausd=-1.):
     import Distributor2
     import Distributor2.PyTree as D2
+
+    # total area of top shape
+    areaTot = OCC.occ.getFaceArea(hook, [])
+
+    # area per proc
+    area = areaTot / Cmpi.size
 
     # split CAD with max area
     OCC.occ.splitFaces(hook, area)
@@ -582,7 +588,7 @@ def meshAllPara(hook, area, hmin=-1, hmax=-1., hausd=-1.):
 
     arrays = []; weights = []
     for i in range(nfaces):
-        area = OCC.occ.getFaceArea(hook, i+1)
+        area = OCC.occ.getFaceArea(hook, [i+1])
         arrays.append(['x',None,1,1,1])
         weights.append(area)
 
