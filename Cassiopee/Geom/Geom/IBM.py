@@ -725,7 +725,7 @@ def flatPlate(snear=0.001, ibctype='Musker'):
     _setFluidInside(t)
 
     C._addState(t, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6,\
-            MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
+                MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
 
     return t
 
@@ -790,7 +790,7 @@ def bumpInChannel(snear=0.001, ibctype='Musker'):
     _setFluidInside(t)
 
     C._addState(t, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=3.e6,\
-            MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
+                MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
 
     return t
 
@@ -805,7 +805,7 @@ def naca0012(snear=0.001, ibctype='Musker', alpha=0.):
     _setDfar(t, 100)
 
     C._addState(t, adim='adim1', MInf=0.15, alphaZ=alpha, alphaY=0., ReInf=6.e6,\
-            MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
+                MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
 
     return t
 

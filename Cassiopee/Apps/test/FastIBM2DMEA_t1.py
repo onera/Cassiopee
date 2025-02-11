@@ -34,8 +34,8 @@ def multiElementAirfoil(snear=0.001, ibctype='Musker', alpha=16.):
     FastIBM._setDfar(t, 100)
 
     C._addState(t, adim='adim1', MInf=0.2, alphaZ=alpha, alphaY=0., ReInf=5.e6,\
-            MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
-    
+                MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
+
     return t
 
 tb = multiElementAirfoil(snear=0.005)
