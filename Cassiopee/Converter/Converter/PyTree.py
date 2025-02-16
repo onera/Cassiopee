@@ -3482,7 +3482,7 @@ def _convertArray2NGon(t, recoverBC=True, api=1):
     _deleteGridConnectivity__(t)
     #_TZA1(t, 'both', 'nodes', True, Converter.convertArray2NGon)
     _TZAX(api, t, 'both', 'nodes', True, Converter.convertArray2NGon, api)
-    Internal._fixNGon(t)
+    Internal._fixNGon(t, api=api)
 
     # Recover BCs for NGon
     if recoverBC:

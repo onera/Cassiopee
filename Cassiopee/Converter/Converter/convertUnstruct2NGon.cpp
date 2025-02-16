@@ -330,11 +330,11 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           for (E_Int i = 0; i < nelts[ic]; i += nf[ic])
           {
             c = fcOffset + i;
-            indPG2[c] = (4+shift)*c; c++;
-            indPG2[c] = (4+shift)*c; c++;
-            indPG2[c] = (4+shift)*c; c++;
-            indPG2[c] = (3+shift)*c; c++;
-            indPG2[c] = (3+shift)*c;
+            indPG2[c] = indPGOffset + (4+shift)*c; c++;
+            indPG2[c] = indPGOffset + (4+shift)*c; c++;
+            indPG2[c] = indPGOffset + (4+shift)*c; c++;
+            indPG2[c] = indPGOffset + (3+shift)*c; c++;
+            indPG2[c] = indPGOffset + (3+shift)*c;
           }
         }
         else if (strcmp(eltTypConn, "PYRA") == 0)
@@ -343,9 +343,9 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           for (E_Int i = 0; i < nelts[ic]; i += nf[ic])
           {
             c = fcOffset + i;
-            indPG2[c] = (4+shift)*c; c++;
-            indPG2[c] = (3+shift)*c; c++;
-            indPG2[c] = (3+shift)*c;
+            indPG2[c] = indPGOffset + (4+shift)*c; c++;
+            indPG2[c] = indPGOffset + (3+shift)*c; c++;
+            indPG2[c] = indPGOffset + (3+shift)*c;
           }
         }
         else
@@ -362,7 +362,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
         for (E_Int i = 0; i < nelts[ic]; i++)
         {
           c = elOffset + i;
-          indPH2[c] = indPHOffset + (nf[ic] + shift)*i;
+          indPH2[c] = indPHOffset + (nf[ic]+shift)*i;
         } 
       }
     }

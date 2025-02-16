@@ -4616,12 +4616,12 @@ def referencedElement(ind, zname, d):
 # Si addNFace=True, ajoute le NFace
 # Si NFACE, fait la valeur absolue des indices
 # Si nouvel NGON, convertit en ancien NGON
-def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
+def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True, api=1):
   tp = copyRef(t)
-  _fixNGon(tp, remove, breakBE, convertMIXED)
+  _fixNGon(tp, remove, breakBE, convertMIXED, api=api)
   return tp
 
-def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
+def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True, api=1):
   zones = getZones(t)
   dictOfZTypes = {} # dictionnaire des types de zone (0: struct, 1: non struct)
   for z in zones:
@@ -4806,7 +4806,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
               shiftn = shift1[zdonorname][ref][0]-shift0[zdonorname][ref][0]
               pln[:] += shiftn
               pld[1] = pln.reshape((1, pln.size))
-  #_adaptNGon42NGon3(t)
+  if api != 3: _adaptNGon42NGon3(t)
   return None
 
 #==============================================================================
