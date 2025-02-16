@@ -21,7 +21,7 @@ try:
 except ImportError:
     print("Error: KCore is required to execute notifyCassiopee.py")
     sys.exit()
-    
+
 
 # Tests to ignore in non-debug mode
 IGNORE_TESTS_NDBG = []
@@ -190,7 +190,7 @@ def stringify(test='', ref='', new=''):
         return "{:>15} | {:>42} | {:>10} | {:>10} |\n".format(mod, test, ref, new)
     else:
         return "{:>15} | {:>42} | {:>10} | {:>10} |\n".format(mod, test, ref[5], new[5])
-        
+
 # Check install status
 def checkInstallStatus():
     log_entries = []
@@ -225,7 +225,7 @@ def checkInstallStatus():
         messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
             'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
             'vincent.casseau@onera.fr'
-    
+
     return messageSubject, messageText
 
 # Check checkout status
@@ -269,7 +269,7 @@ def checkCheckoutStatus(sendEmail=False):
     messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
         'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
         'vincent.casseau@onera.fr'
-        
+
     return messageSubject, messageText
 
 # Check valid status
@@ -307,7 +307,7 @@ def checkValidStatus():
             'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
             'vincent.casseau@onera.fr\nor list remaining issues with:\n'\
             'notifyCassiopee --valid --prod=your_prod_name --full'
-    
+
     return messageSubject, messageText
 
 # Compare session logs
@@ -400,14 +400,14 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False, showTestLogs=False)
     baseStateMsg = ""
     tlog, tlog2 = getTimeFromLog(logFiles[1])
     messageSubject = "[validCassiopee - {}] {} - State: {}".format(prod, tlog,
-        baseState)
+                                                                   baseState)
     messageText = header + compStr + baseStateMsg
 
     if showTestLogs:
         testLogs = getTestLogs(prod, failedTests)
         if testLogs:
             messageText += f"\n\nFailed test logs:\n{'-'*16}\n{testLogs}"
-            
+
     return messageSubject, messageText
 
 # Main
@@ -439,7 +439,7 @@ if __name__ == '__main__':
                 raise Exception("Two session logs were not found for "
                                 "prod. {}".format(scriptArgs.prod))
             mode = "compare"
-                            
+
         if mode == "overview":
             messageSubject, messageText = checkValidStatus()
         else:
@@ -456,7 +456,7 @@ if __name__ == '__main__':
     else:
         sep = 83*'-'
         print(f"{sep}\n|{messageSubject:^81}|\n{sep}\n{messageText}")
-        
+
     if scriptArgs.valid and scriptArgs.update:
         # If the state of the Base is OK, set the new session log to be the
         # reference
