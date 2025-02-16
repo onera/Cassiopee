@@ -81,15 +81,9 @@ fi
 # Install libkcore
 python installLib.py
 
-# Copie les scripts de notification d'installation et validation
-cp test/notifyCheckout.py "$INSTALLPATH"
-cp test/notifyCheckout "$INSTALLPATH"
-cp test/notifyInstall.py "$INSTALLPATH"
-cp test/notifyInstall "$INSTALLPATH"
-cp test/notifyValid.py "$INSTALLPATH"
-cp test/notifyValid "$INSTALLPATH"
-cp test/compareSessionLogs.py "$INSTALLPATH"
-cp test/compareSessionLogs "$INSTALLPATH"
+# Copie le script de notifications utilisateur
+cp test/notifyCassiopee.py "$INSTALLPATH"
+cp test/notifyCassiopee "$INSTALLPATH"
 
 # LSAN: Ajoute un fichier pour supprimer certaines fuites memoire du log
 cat > "$INSTALLPATH"/asan.supp <<EOF
