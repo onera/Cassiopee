@@ -12,7 +12,7 @@ LOCAL = test.getLocal()
 ##PREP
 def multiElementAirfoil(snear=0.001, ibctype='Musker', alpha=16.):
     """Generate an IBM case for the canonical subsonic 2DMEA test-case."""
-    t = C.convertFile2PyTree(LOCAL+'/2DMEA.stp', hmax=10*snear)
+    t = C.convertFile2PyTree('2DMEA.stp', hmax=10*snear)
     Internal._rmNodesByName(t, 'CAD')
     Internal._rmNodesByName(t, 'FACES')
     Internal._rmNodesByType(t, Internal.__FlowSolutionNodes__)
