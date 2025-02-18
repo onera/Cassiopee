@@ -10,7 +10,7 @@ import Transform
 import Generator
 import KCore
 
-__all__ = ['convertCAD2Arrays', 
+__all__ = ['convertCAD2Arrays',
            'switch2UV', 'switch2UV2', '_scaleUV', '_unscaleUV',
            'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
