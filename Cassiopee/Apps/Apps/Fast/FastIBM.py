@@ -8,8 +8,6 @@ from Generator.IBMmodelHeight import computeModelisationHeight, computeSnearOpt
 
 from Post.IBM import extractPressureGradients, extractPressureHighOrder, extractYplusAtImagePoints, prepareSkinReconstruction, computeSkinVariables, _computeSkinVariables, computeAerodynamicLoads, computeAerodynamicCoefficients
 
-from Apps.Fast.WindTunnelOutPres import getInfo, _setUpOutletPressure, getPointsFromTree, setupMachProbe, recordDataMach, _controlOutletPressureMachProbe
-
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
@@ -27,8 +25,168 @@ import numpy
 import math
 import os
 
-# Ajouter l'initialisation de la pression, temperature et masse volumique
-# à l'aide des formulations isentropiques (cf. tau de S Mouton)
+###############
+# Pressure outlet control
+###############
+def tauFunction__(mach, gamma=1.4):
+    """Return :math:`1 + \\frac{\\gamma - 1}{2} M^2`
+
+    Parameters
+    ----------
+    mach : array_like
+        Value of Mach number :math:`M`
+    gamma : float
+        Specific heat ratio :math:`\\gamma`
+    """
+    return 1. + 0.5*(gamma - 1.)*mach**2
+
+def sigmaFunction__(mach, gamma=1.4):
+    """Return :math:`\\Sigma(M)`
+
+    Parameters
+    ----------
+    mach : array_like
+        Value of Mach number :math:`M`
+    gamma : float
+        Specific heat ratio :math:`\\gamma`
+    """
+    return ( 2./(gamma + 1.) + (gamma - 1.)/(gamma + 1.) * mach**2 )**(0.5*(gamma + 1.)/(gamma - 1.)) / mach
+
+def sigmaFunctionDerivate__(mach, gamma=1.4):
+    """Return :math:`\\Sigma'(M)`, first derivative of :math:`\\Sigma(M)`
+
+    Parameters
+    ----------
+    mach : array_like
+        Value of Mach number :math:`M`
+    gamma : float
+        Specific heat ratio :math:`\\gamma`
+    """
+    return ( 2./(gamma + 1.) + (gamma - 1.)/(gamma + 1.) * mach**2 )**(0.5*(gamma + 1.)/(gamma - 1.)) \
+        * (-1/mach**2 + 1./(2./(gamma + 1.) + (gamma - 1.)/(gamma + 1.) * mach**2))
+
+def _scalarSigmaFunctionInv__(s, gamma=1.4, range='subsonic'):
+    import scipy.optimize
+    eps = numpy.finfo(float).eps
+    if range == 'subsonic':
+        sol = scipy.optimize.root_scalar(lambda M: sigmaFunction__(M, gamma) - s,
+                                         x0=0.5, bracket=(2*eps, 1. - 2*eps), method='brentq')
+    elif range == 'supersonic':
+        sol = scipy.optimize.root_scalar(lambda M: sigmaFunction__(M, gamma) - s,
+                                         x0=1.5, bracket=(1. + 2*eps, 1e3), method='brentq') # it is unlikely that user require Mach number above 1000.
+    else:
+        raise RuntimeError("Unexpected value for `range`: {:s}".format(str(range)))
+    return sol.root
+
+def sigmaFunctionInv__(s, gamma=1.4, range='subsonic'):
+    # This method vectorizes _scalarSigmaFunctionInv__
+    """Return the inverse of the function :math:`\\Sigma(M)`
+
+    Parameters
+    ----------
+    s : array_like
+        Value of :math:`\\Sigma`
+    gamma : float
+        Specific heat ratio :math:`\\gamma`
+    range : ['subsonic', 'supersonic']
+        Range over which the inverse is to be looked for
+    """
+    with numpy.nditer([s, None],
+                      op_flags=[['readonly'], ['writeonly', 'allocate', 'no_broadcast']],
+                      op_dtypes=['float64', 'float64']) as it:
+        for x, y in it:
+            y[...] = _scalarSigmaFunctionInv__(s, gamma=gamma)
+        return it.operands[1]
+
+def getInfoOutletPressure(tcase, familyName, gamma=1.4):
+
+    familyNameExists=False
+    for z in Internal.getZones(tcase):
+        FamNode = Internal.getNodeFromType(z, 'FamilyName_t')
+        if FamNode is not None:
+            FamName = Internal.getValue(FamNode)
+            if FamName == familyName:
+                familyNameExists = True
+                solDef           = Internal.getNodeFromName(z, '.Solver#define')
+                controlProbeName = Internal.getNodeFromName(solDef, 'probeName')
+                controlProbeName = Internal.getValue(controlProbeName)
+                A1               = Internal.getNodeFromName(solDef, 'AtestSection')[1][0]
+                A2               = Internal.getNodeFromName(solDef, 'AOutPress')[1][0]
+                m1               = Internal.getNodeFromName(solDef, 'machTarget')[1][0]
+                pi1              = Internal.getNodeFromName(solDef, 'pStatTarget')[1][0]
+                ti1              = Internal.getNodeFromName(solDef, 'tStatTarget')[1][0]
+                lbda             = Internal.getNodeFromName(solDef, 'lmbd')[1][0]
+                cxSupport        = Internal.getNodeFromName(solDef, 'cxSupport')[1][0]
+                sSupport         = Internal.getNodeFromName(solDef, 'sSupport')[1][0]
+                itExtrctPrb      = Internal.getNodeFromName(solDef, 'itExtrctPrb')[1][0]
+                break
+
+    if not familyNameExists:
+        print('Family name %s is not an outlet pressure family name'%(familyName))
+        print('Exiting')
+        exit()
+
+    ## Calculated Values
+    _tau        = tauFunction__(m1)                                   # Eqn. (10) || τ(M)= 1 + (γ-1)/2 M²
+    m2is        = sigmaFunctionInv__(A2/A1 * sigmaFunction__(m1))     # Eqn. (11) || M_2,is=Σ⁻¹(A_2 /A_1 Σ(M_1))
+    p2is        = pi1 * tauFunction__(m2is)**(-gamma/(gamma - 1.))    # Eqn. (12) || p_2,is=p_i1 τ(M_2,is)^(−γ∕(γ−1))
+
+    # coefficient de perte de charge entre l'entrée et la sortie du domaine,
+    # ici uniquement du au support, et calculé à partir d'une estimation de la traînée du support
+    if lbda <0: lbda = cxSupport * sSupport/A1
+
+    p0          = pi1 / _tau **(gamma/(gamma - 1.))                  # Pa - static pressure for m1
+    q0          = 0.5*p0*gamma*m1**2                                 # Pa - dynamic pressure for m1
+    p2          = p2is - q0*lbda                                     # Eqn. (13) || Pa - outlet static pressure || λ = (p_2,is-p_2)/q_1
+
+    values4gain  =[p2,
+                   m1,
+                   p2is*gamma*m2is,
+                   tauFunction__(m2is),
+                   A2/A1,
+                   sigmaFunctionDerivate__(m1),
+                   sigmaFunctionDerivate__(m2is),
+                   0,
+                   0]
+
+    return values4gain,controlProbeName,itExtrctPrb
+
+def _setUpOutletPressure(values4gain,itValues4gain):
+    # G : proportional gain Eqn. (15) || G=-0.7* (∂p_2/∂M_1)
+    #     The 0.7 constant is for stability of the algorithm and is independent of the WT
+    values4gain[7]=-0.7 * (-values4gain[2] / values4gain[3] * values4gain[4] * values4gain[5] / values4gain[6])
+
+    # D: derivative coefficient || D=G(n_charac/n_control)
+    values4gain[8]=values4gain[7] * float(itValues4gain[2]) / itValues4gain[1]
+    return None
+
+def _controlOutletPressureMachProbe(tc,dctProbes,controlProbeName,values4gain,it,familyName):
+    probe_tmp = dctProbes[controlProbeName]
+    proc = probe_tmp._proc
+
+    if Cmpi.rank == proc:
+        print("   iteration {:06d}: adjusting back pressure...".format(it), end='')
+        time      = numpy.concatenate([node[1] for node in Internal.getNodesFromName(probe_tmp,'time')])
+        mach      = numpy.concatenate([node[1] for node in Internal.getNodesFromName(probe_tmp,'Mach')])
+        select    = (time >= 0.)  # select values that have been recorded: array is prefilled with -1
+        time      = time[select]
+        mach      = mach[select]
+
+        index_current  = -1
+        index_previous = -2 #-1 - (itValues4gain[1] // itExtractProbe)
+        current_it     = time[index_current]
+        current_mach   = mach[index_current]
+
+        previous_it    = time[index_previous]
+        previous_mach  = mach[index_previous]
+        #print(current_it, previous_it, current_mach, previous_mach,flush=True)
+        oldPressure    = values4gain[0]
+        values4gain[0] += values4gain[7] * (current_mach - values4gain[1]) + values4gain[8] * (current_mach - previous_mach)
+        print("Control of Output Pressure:: target Ma = {:.5f}, current Ma = {:.5f}|| old Pout = {:.1f} Pa, new Pout = {:.1f} Pa, ".format(values4gain[1], current_mach, oldPressure, values4gain[0]))
+    Cmpi.bcast(values4gain[0], root=proc)
+    _initOutflow(tc, familyName, values4gain[0])
+    Cmpi.barrier()
+    return None
 
 ###############
 # Point Probes

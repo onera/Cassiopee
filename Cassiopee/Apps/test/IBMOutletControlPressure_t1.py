@@ -1,6 +1,6 @@
 # - compute (pyTree) -
 import Apps.Fast.IBM as Apps
-import Apps.Fast.WindTunnelOutPres as COP
+import Apps.Fast.FastIBM as FastIBM
 import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 import Converter.PyTree as C
@@ -129,23 +129,25 @@ Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
 itValues4gain=[5,2,100]
 
 isRestartProbe = False
-values4gain,controlProbeName,itExtrctPrb=COP.getInfo(tb, familyName='outlet')
-COP._setUpOutletPressure(values4gain, itValues4gain)
-dctProbeLocationsCheck,dctProbes=COP.setupMachProbe(t, buffer_size, isRestartProbe, DIRECTORY_PROBES)
+values4gain,controlProbeName,itExtrctPrb=FastIBM.getInfoOutletPressure(tb, familyName='outlet')
+FastIBM._setUpOutletPressure(values4gain, itValues4gain)
+
+probe_in = os.path.join(DIRECTORY_PROBES, "probes.cgns")
+dictOfPointProbes = FastIBM.initPointProbes(t, probe_in, fields=['centers:Mach'], bufferSize=buffer_size, append=isRestartProbe, historyDirectory=DIRECTORY_PROBES)
 
 for it in range(NIT):
     FastS._compute(t, metrics, it, tc, graph=graph, layer='Python')
     if it%modulo_verif == 0:
         FastS.display_temporal_criteria(t, metrics, it)
     if it%itExtrctPrb == 0:
-        dctProbes=COP.recordDataMach(t,dctProbes,it)
+        FastIBM._updatePointProbes(t, dictOfPointProbes, it, ['centers:Mach'])
         if it>itValues4gain[0] and it%itValues4gain[1] == 0:
-            COP._controlOutletPressureMachProbe(tc,dctProbes,controlProbeName,DIRECTORY_PROBES,itValues4gain,values4gain,itExtrctPrb,it,familyName='outlet')
+            FastIBM._controlOutletPressureMachProbe(tc,dictOfPointProbes,controlProbeName,values4gain,it,familyName='outlet')
 
 #C.convertPyTree2File(tc,LOCAL+'/tc_restart.cgns')
 #C.convertPyTree2File(t ,LOCAL+'/t_restart.cgns' )
 
-for name, probe in dctProbes.items(): probe.flush()
+for name, probe in dictOfPointProbes.items(): probe.flush()
 os.remove(DIRECTORY_PROBES+'/probe_point.cgns')
 os.remove(DIRECTORY_PROBES+'/probes.cgns')
 
