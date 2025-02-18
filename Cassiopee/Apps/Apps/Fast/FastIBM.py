@@ -28,6 +28,17 @@ import os
 ###############
 # Pressure outlet control
 ###############
+# For more info : Mouton, S. (2023). Numerical Simulation of the Flow in the ONERA F1 Wind Tunnel. Journal of Aircraft, 60(2), 355-367.
+
+# ∆p_(2n) = G∆M-(1n) + D[∆M_(1n) − ∆M_(n−ncontrol) ]
+# G = -0.7 *  ∂p2/∂M1 || G: proportional coefficeint
+# 0.7 :: damping coefficient for stability
+# ∂p2/∂M1 ≈ −p_(2,is) γ M_(2,is) A_2 Σ′(M_1)/(τ(M_(2,is)) A_1 Σ′(M_(2,is)))
+# D = G(n_charac/n_control)
+# n_charac = approx. characteristic response time of the CFD of the wind tunnel - a prior run to determine this
+# τ :: tau_function
+# Σ′:: sigma_function_inv
+
 def tauFunction__(mach, gamma=1.4):
     """Return :math:`1 + \\frac{\\gamma - 1}{2} M^2`
 
