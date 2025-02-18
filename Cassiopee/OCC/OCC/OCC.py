@@ -9,13 +9,15 @@ import Converter
 import Transform
 import Generator
 import KCore
-import Converter.Mpi as Cmpi
 
-__all__ = ['convertCAD2Arrays', 'switch2UV', 'switch2UV2', '_scaleUV', '_unscaleUV',
+__all__ = ['convertCAD2Arrays', 
+           'switch2UV', 'switch2UV2', '_scaleUV', '_unscaleUV',
            'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
-           'identifyTags__']
+           'identifyTags__',
+           'readCAD', 'getNbEdges', 'getNbFaces', 'getFileAndFormat',
+           'getFaceArea']
 
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
@@ -698,6 +700,32 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
 # CAD fixing
 #=============================================================================
 
+# return CAD hook
+def readCAD(fileName, fileFmt='fmt_step'):
+    """Read CAD file and return CAD hook."""
+    h = occ.readCAD(fileName, fileFmt)
+    return h
+
+# Return the number of edges in CAD hook
+def getNbEdges(hook):
+    """Return the number of edges in CAD hook."""
+    return occ.getNbEdges(hook)
+
+# Return the number of faces in CAD hook
+def getNbFaces(hook):
+    """Return the number of faces in CAD hook."""
+    return occ.getNbFaces(hook)
+
+# Return the file and format used to load CAD in hook
+def getFileAndFormat(hook):
+    """Return file and format of associated CAD file."""
+    return occ.getFileAndFormat(hook)
+
+# Return the area of specified faces
+def getFaceArea(hook, listFaces=[]):
+    """Return the area of given faces."""
+    return occ.getFaceArea(hook, listFaces)
+
 # sew a set of faces
 # faces: face list numbers
 def _sewing(hook, faces, tol=1.e-6):
@@ -725,19 +753,6 @@ def _trimFaces(hook, faces1, faces2):
     occ.trimFaces(hook, faces1, faces2)
     return None
 
-# Return the number of edges in CAD hook
-def getNbEdges(hook):
-    """Return the number of edges in CAD hook."""
-    return occ.getNbEdges(hook)
-
-# Return the number of faces in CAD hook
-def getNbFaces(hook):
-    """Return the number of faces in CAD hook."""
-    return occ.getNbFaces(hook)
-
-# Return the file and format used to load CAD in hook
-def getFileAndFormat(hook):
-    return occ.getFileAndFormat(hook)
 
 # identify tag component
 def identifyTags__(a):

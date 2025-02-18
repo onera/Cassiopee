@@ -13,7 +13,7 @@ GDOUBLEINT = False
 # Check module import
 # Write SUCCESS or FAILED (with colored output)
 #==============================================================================
-def checkModuleImport(moduleName, raiseOnError=True):
+def checkModuleImport(moduleName):
     # Remove . from PYTHONPATH
     try: del sys.path[sys.path.index('')]
     except: pass
@@ -24,7 +24,7 @@ def checkModuleImport(moduleName, raiseOnError=True):
     if sys.stdout.isatty(): color = True
 
     # sec / lock
-    moduleBase = moduleName.split('.')[0]
+    #moduleBase = moduleName.split('.')[0]
     #os.chmod(moduleBase, 0o700)
 
     # try import module
