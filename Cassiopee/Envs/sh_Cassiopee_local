@@ -13,9 +13,6 @@ fi
 ulimit -s unlimited
 
 # Compilation on different machines:
-# cephee: x86 processors, intel compilers -> cp
-# Linux ubuntu: distribution Linux Ubuntu, g++, gfortran -> ub
-# stelvio: x86 processors, intel compilers -> stv
 
 # Detect machine (shortest first)
 KC=$(uname -n)
@@ -170,6 +167,15 @@ elif [ "$MAC" = "azure" ]; then
     export OMP_NUM_THREADS=4
     export PYTHONEXE=python3
     export PRODMODE=2
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+
+elif [ "$MAC" = "linux" ]; then
+#------------------------ generic linux --------------------------------------
+    export ELSAPROD=linux
+    export ELSAPROD=$ELSAPROD$EXT
+    export OMP_NUM_THREADS=4
+    export PYTHONEXE=python3
+    export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
 
 elif [ "$MAC" = "visio" ]; then
