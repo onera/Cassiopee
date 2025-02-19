@@ -409,10 +409,10 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
         if testLogs:
             messageText += f"\n\nFailed test logs:\n{'-'*16}\n{testLogs}"
 
+    exitStatus = 0
     if update:
         # If the state of the Base is OK, set the new session log to be the
         # reference
-        exitStatus = 0
         if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS']) and
                 os.path.basename(logFiles[0]).startswith('REF-')):
             if os.access(logFiles[0], os.W_OK):
