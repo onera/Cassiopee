@@ -408,7 +408,7 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
         testLogs = getTestLogs(prod, failedTests)
         if testLogs:
             messageText += f"\n\nFailed test logs:\n{'-'*16}\n{testLogs}"
-            
+
     if update:
         # If the state of the Base is OK, set the new session log to be the
         # reference
