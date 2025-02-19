@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Generator.PyTree as G
 import KCore.test as test
-import testers as Q
 
 # 2D ME: tri-quad-tri
 #             |
