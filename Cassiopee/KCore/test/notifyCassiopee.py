@@ -311,7 +311,8 @@ def checkValidStatus():
     return messageSubject, messageText
 
 # Compare session logs
-def compareSessionLogs(logFiles=[], showExecTimeDiffs=False, showTestLogs=False):
+def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
+                       showTestLogs=False, update=False):
     # Read log files and git info
     refSession = readLog(logFiles[0])
     newSession = readLog(logFiles[1])
@@ -408,10 +409,43 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False, showTestLogs=False)
         if testLogs:
             messageText += f"\n\nFailed test logs:\n{'-'*16}\n{testLogs}"
 
-    return messageSubject, messageText
+    if update:
+        # If the state of the Base is OK, set the new session log to be the
+        # reference
+        exitStatus = 0
+        if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS']) and
+                os.path.basename(logFiles[0]).startswith('REF-')):
+            if os.access(logFiles[0], os.W_OK):
+                import shutil
+                os.remove(logFiles[0])
+                newRef = os.path.join(os.path.dirname(logFiles[1]),
+                                      'REF-' + os.path.basename(logFiles[1]))
+                shutil.copyfile(logFiles[1], newRef)
+            else: exitStatus = 2
+        else: exitStatus = 1
+
+        # Amend state of the base in logs/validation_status.txt
+        logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
+        entry = "{} - {} - {} - {} - {}\n".format(prod, gitInfo['Git branch'],
+                                                  gitInfo['Commit hash'], tlog2,
+                                                  baseState)
+        if os.access(os.path.dirname(logAllValids), os.W_OK):
+            with open(logAllValids, 'r') as f: contents = f.readlines()
+            prodFound = False
+            for i, line in enumerate(contents):
+                if line.startswith(prod):
+                    contents[i] = entry
+                    prodFound = True
+                    break
+
+            if not prodFound: contents.append(entry)
+            with open(logAllValids, 'w') as f: f.writelines(contents)
+
+    return messageSubject, messageText, exitStatus
 
 # Main
 if __name__ == '__main__':
+    exitStatus = 0
     scriptArgs = parseArgs()
     recipients = scriptArgs.recipients.split(' ')
     if not recipients[0]: recipients = []
@@ -443,10 +477,11 @@ if __name__ == '__main__':
         if mode == "overview":
             messageSubject, messageText = checkValidStatus()
         else:
-            messageSubject, messageText = compareSessionLogs(
+            messageSubject, messageText, exitStatus = compareSessionLogs(
                 logFiles=scriptArgs.logs,
                 showExecTimeDiffs=scriptArgs.email,
-                showTestLogs=scriptArgs.full
+                showTestLogs=scriptArgs.full,
+                update=scriptArgs.update
             )
 
     if scriptArgs.email:
@@ -456,36 +491,4 @@ if __name__ == '__main__':
     else:
         sep = 83*'-'
         print(f"{sep}\n|{messageSubject:^81}|\n{sep}\n{messageText}")
-
-    if scriptArgs.valid and scriptArgs.update:
-        # If the state of the Base is OK, set the new session log to be the
-        # reference
-        exitStatus = 0
-        if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS']) and
-                os.path.basename(scriptArgs.logs[0]).startswith('REF-')):
-            if os.access(scriptArgs.logs[0], os.W_OK):
-                import shutil
-                os.remove(scriptArgs.logs[0])
-                newRef = os.path.join(os.path.dirname(scriptArgs.logs[1]),
-                                      'REF-' + os.path.basename(scriptArgs.logs[1]))
-                shutil.copyfile(scriptArgs.logs[1], newRef)
-            else: exitStatus = 2
-
-        # Amend state of the base in logs/validation_status.txt
-        logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
-        entry = "{} - {} - {} - {} - {}\n".format(prod, gitInfo['Git branch'],
-                                                  gitInfo['Commit hash'], tlog2,
-                                                  baseState)
-        if os.access(os.path.dirname(logAllValids), os.W_OK):
-            with open(logAllValids, 'r') as f: contents = f.readlines()
-            prodFound = False
-            for i, line in enumerate(contents):
-                if line.startswith(prod):
-                    contents[i] = entry
-                    prodFound = True
-                    break
-
-            if not prodFound: contents.append(entry)
-            with open(logAllValids, 'w') as f: f.writelines(contents)
-
-        sys.exit(exitStatus)
+    sys.exit(exitStatus)
