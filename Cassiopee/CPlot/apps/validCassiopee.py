@@ -288,7 +288,7 @@ def check_output(cmd, shell, stderr):
                                    shell=shell, preexec_fn=ossid)
 
         # max accepted time is between 2 to 6 minutes
-        nthreads = float(KCore.kcore.getOmpMaxThreads())
+        nthreads = float(Threads.get())
         timeout = (100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
         stdout, stderr = PROCESS.communicate(None, timeout=timeout)
 
@@ -601,7 +601,7 @@ def runSingleUnitaryTest(no, module, test, update=False):
 
     m1 = expTest1.search(test) # seq (True) ou distribue (False)
 
-    nthreads = KCore.kcore.getOmpMaxThreads()
+    nthreads = int(Threads.get())
     bktest = "bk_{0}".format(test) # backup
 
     if mySystem == 'mingw' or mySystem == 'windows':
@@ -721,7 +721,7 @@ def runSingleCFDTest(no, module, test, update=False):
         try: import mpi4py
         except: m1 = None
 
-    nthreads = KCore.kcore.getOmpMaxThreads()
+    nthreads = int(Threads.get())
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
