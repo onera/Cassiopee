@@ -16,8 +16,9 @@ __all__ = ['convertCAD2Arrays',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
            'identifyTags__',
-           'readCAD', 'getNbEdges', 'getNbFaces', 'getFileAndFormat',
-           'getFaceArea']
+           'readCAD', 'writeCAD',
+           'getNbEdges', 'getNbFaces', 'getFileAndFormat',
+           'getFaceArea', '_splitFaces', '_mergeFaces']
 
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
@@ -700,11 +701,17 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
 # CAD fixing
 #=============================================================================
 
-# return CAD hook
-def readCAD(fileName, fileFmt='fmt_step'):
+# read CAD and return CAD hook
+def readCAD(fileName, format='fmt_step'):
     """Read CAD file and return CAD hook."""
-    h = occ.readCAD(fileName, fileFmt)
+    h = occ.readCAD(fileName, format)
     return h
+
+# write CAD to file
+def writeCAD(hook, fileName, format='fmt_step'):
+    """Write CAD file."""
+    occ.writeCAD(hook, fileName, format)
+    return None
 
 # Return the number of edges in CAD hook
 def getNbEdges(hook):
@@ -728,8 +735,9 @@ def getFaceArea(hook, listFaces=[]):
 
 # sew a set of faces
 # faces: face list numbers
-def _sewing(hook, faces, tol=1.e-6):
-    occ.sewing(hook, faces, tol)
+def _sewing(hook, listFaces=[], tol=1.e-6):
+    """Sew some faces (suppress redundant edges)."""
+    occ.sewing(hook, listFaces, tol)
     return None
 
 # add fillet from edges with given radius
@@ -738,21 +746,33 @@ def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
     return None
 
 # edgeMap and faceMap are new2old maps
-def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
-    occ.removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
+def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+    """Remove given faces."""
+    occ.removeFaces(hook, listFaces, new2OldEdgeMap, new2OldFaceMap)
     return None
 
 # fill hole from edges
 # edges: edge list numbers (must be ordered)
-def _fillHole(hook, edges, faces=[], continuity=0):
-    occ.fillHole(hook, edges, faces, continuity)
+def _fillHole(hook, edges, listFaces=[], continuity=0):
+    occ.fillHole(hook, edges, listFaces, continuity)
     return None
 
 # trim two set of surfaces
-def _trimFaces(hook, faces1, faces2):
-    occ.trimFaces(hook, faces1, faces2)
+def _trimFaces(hook, listFaces1, listFaces2):
+    occ.trimFaces(hook, listFaces1, listFaces2)
     return None
 
+# split all faces
+def _splitFaces(hook, area):
+    """Split all faces to be less than area."""
+    occ.splitFaces(hook, area)
+    return None
+
+# merge faces
+def _mergeFaces(hook, listFaces=[]):
+    """Merge some faces."""
+    occ.mergeFaces(hook, listFaces)
+    return None
 
 # identify tag component
 def identifyTags__(a):

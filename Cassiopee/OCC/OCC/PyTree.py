@@ -1226,10 +1226,15 @@ def orderEdgeList(edges, tol=1.e-10):
 #=============================================================================
 # CAD fixing
 #=============================================================================
-def readCAD(fileName, fileFmt='fmt_step'):
+def readCAD(fileName, format='fmt_step'):
     """Read CAD file and return CAD hook."""
-    h = OCC.occ.readCAD(fileName, fileFmt)
+    h = OCC.occ.readCAD(fileName, format)
     return h
+
+def writeCAD(hook, fileName, format='fmt_step'):
+    """Write CAD file."""
+    OCC.occ.writeCAD(hook, fileName, format)
+    return None
 
 # Return the number of edges in CAD hook
 def getNbEdges(hook):
@@ -1253,8 +1258,9 @@ def getFaceArea(hook, listFaces=[]):
 
 # sew a set of faces
 # faces: face list numbers
-def _sewing(hook, faces, tol=1.e-6):
-    OCC.occ.sewing(hook, faces, tol)
+def _sewing(hook, listFaces=[], tol=1.e-6):
+    """Sew some faces (suppress redundant edges)."""
+    OCC.occ.sewing(hook, listFaces, tol)
     return None
 
 # add fillet from edges with given radius
@@ -1263,8 +1269,9 @@ def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
     return None
 
 # edgeMap and faceMap are new2old maps
-def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
-    OCC.occ.removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
+def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+    """Remove given faces."""
+    OCC.occ.removeFaces(hook, listFaces, new2OldEdgeMap, new2OldFaceMap)
     return None
 
 # fill hole from edges
@@ -1278,6 +1285,17 @@ def _trimFaces(hook, faces1, faces2):
     OCC.occ.trimFaces(hook, faces1, faces2)
     return None
 
+# split faces
+def _splitFaces(hook, area):
+    """Split all faces to be less than area."""
+    OCC.occ.splitFaces(hook, area)
+    return None
+
+# merge faces
+def _mergeFaces(hook, listFaces=[]):
+    """Merge some faces."""
+    OCC.occ.mergeFaces(hook, listFaces)
+    return None
 
 # IN: new2old: new2old map
 # IN: Nold: size of old entities

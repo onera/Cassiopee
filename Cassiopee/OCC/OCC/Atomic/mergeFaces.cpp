@@ -26,6 +26,7 @@
 #include "TopoDS.hxx"
 #include "TopExp.hxx"
 #include <TopoDS_Shape.hxx>
+#include <BRepBuilderAPI_Sewing.hxx>
 
 // ============================================================================
 /* Merge a list of faces in a single face */
@@ -65,7 +66,10 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
       const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
       builder.Add(compound, F);
     }
-    shp = new TopoDS_Shape(compound);
+    BRepBuilderAPI_Sewing sewer(0.5);
+    sewer.Add(compound);
+    sewer.Perform();
+    shp = new TopoDS_Shape(sewer.SewedShape());
   }
 
   // Unify the faces
@@ -73,9 +77,51 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
   unifier.Build();
   TopoDS_Shape unifiedShape = unifier.Shape();
   
-  if (nfaces > 0) delete shp;
+  TopoDS_Shape* newshp = NULL;
 
-  TopoDS_Shape* newshp = new TopoDS_Shape(unifiedShape);
+  if (nfaces == 0)
+  {
+    newshp = new TopoDS_Shape(unifiedShape);
+  }
+  else if (nfaces > 0)
+  {
+    delete shp;
+
+    // rebuild compound
+    E_Int* tag = new E_Int [surfaces.Extent()];
+    for (E_Int i = 0; i < surfaces.Extent(); i++) tag[i] = 1;
+    for (E_Int i = 0; i < nfaces; i++)
+    {
+      PyObject* noFaceO = PyList_GetItem(listFaces, i);
+      E_Int noFace = PyInt_AsLong(noFaceO);
+      tag[noFace-1] = 0;
+    }
+
+    BRep_Builder builder;
+    TopoDS_Compound compound;
+    builder.MakeCompound(compound);
+ 
+    for (E_Int i = 0; i < surfaces.Extent(); i++)
+    {
+      if (tag[i] == 1) builder.Add(compound, surfaces(i+1));
+    }
+    delete [] tag;
+
+    TopTools_IndexedMapOfShape sf = TopTools_IndexedMapOfShape();
+    TopExp::MapShapes(unifiedShape, TopAbs_FACE, sf);
+    printf("number of faces in unified=%d\n", sf.Extent());
+    for (E_Int i = 0; i < sf.Extent(); i++) builder.Add(compound, sf(i+1));
+
+    BRepBuilderAPI_Sewing sewer(0.5);
+    sewer.Add(compound);
+    sewer.Perform();
+    newshp = new TopoDS_Shape(sewer.SewedShape());
+  }
+  else
+  {
+    // DBX
+    newshp = new TopoDS_Shape(*shp);
+  }
 
   // export
   packet[0] = newshp;
