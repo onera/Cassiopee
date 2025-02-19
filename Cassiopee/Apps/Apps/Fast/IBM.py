@@ -1208,11 +1208,11 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
 #====================================================================================
 # Redistrib on NP processors
 #====================================================================================
-def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
+def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None, useCom='ID'):
     if isinstance(tc_in, str):
         tcs = Cmpi.convertFile2SkeletonTree(tc_in, maxDepth=3)
     else: tcs = tc_in
-    stats = D2._distribute(tcs, NP, algorithm=algorithm, useCom='ID')
+    stats = D2._distribute(tcs, NP, algorithm=algorithm, useCom=useCom)
     if isinstance(tc_in, str):
         paths = []; ns = []
         bases = Internal.getBases(tcs)
