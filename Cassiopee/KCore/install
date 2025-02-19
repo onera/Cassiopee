@@ -95,6 +95,7 @@ leak:libc.so.*
 leak:libstdc++.so.*
 leak:libTKernel.so.*
 leak:libTKVCAF.so.*
+leak:libTKG3d.so.*
 leak:Netgen/stlgeom/stlgeom.cpp
 leak:Objects/obmalloc.c
 leak:Objects/unicodeobject.c
