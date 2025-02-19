@@ -1187,10 +1187,6 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
     Internal.createNode('InterpolantsType', 'DataArray_t', value=data, parent=zsr)
     return None
 
-#=============================================================================
-# CAD fixing
-#=============================================================================
-
 # return ordered edgeList with possible negative number (meaning to be reversed)
 # edges: list of arrays
 # return edgeList: list of edge numbers in CAD
@@ -1227,6 +1223,34 @@ def orderEdgeList(edges, tol=1.e-10):
         outno.append(no)
     return outno
 
+#=============================================================================
+# CAD fixing
+#=============================================================================
+def readCAD(fileName, fileFmt='fmt_step'):
+    """Read CAD file and return CAD hook."""
+    h = OCC.occ.readCAD(fileName, fileFmt)
+    return h
+
+# Return the number of edges in CAD hook
+def getNbEdges(hook):
+    """Return the number of edges in CAD hook."""
+    return OCC.occ.getNbEdges(hook)
+
+# Return the number of faces in CAD hook
+def getNbFaces(hook):
+    """Return the number of faces in CAD hook."""
+    return OCC.occ.getNbFaces(hook)
+
+# Return the file and format used to load CAD in hook
+def getFileAndFormat(hook):
+    """Return file and format of associated CAD file."""
+    return OCC.occ.getFileAndFormat(hook)
+
+# Return the area of specified faces
+def getFaceArea(hook, listFaces=[]):
+    """Return the area of given faces."""
+    return occ.getFaceArea(hook, listFaces)
+
 # sew a set of faces
 # faces: face list numbers
 def _sewing(hook, faces, tol=1.e-6):
@@ -1254,19 +1278,6 @@ def _trimFaces(hook, faces1, faces2):
     OCC.occ.trimFaces(hook, faces1, faces2)
     return None
 
-# Return the number of edges in CAD hook
-def getNbEdges(hook):
-    """Return the number of edges in CAD hook."""
-    return OCC.occ.getNbEdges(hook)
-
-# Return the number of faces in CAD hook
-def getNbFaces(hook):
-    """Return the number of faces in CAD hook."""
-    return OCC.occ.getNbFaces(hook)
-
-# Return the file and format used to load CAD in hook
-def getFileAndFormat(hook):
-    return OCC.occ.getFileAndFormat(hook)
 
 # IN: new2old: new2old map
 # IN: Nold: size of old entities

@@ -1,11 +1,27 @@
-# Compare session logs printed by validCassiopee
-# Usage: python compareSessionLogs.py --logs='log1 log2'
-#        python compareSessionLogs.py --logs='log1 log2' --email
-# Differences written in: compSession_DATE.txt where DATE is the current time
+# Notify a user about:
+#   - the installation status
+#   - the checkout status
+#   - the validation status
+# of different prods, either in the terminal window (default) or by email
+# (set the environment variable CASSIOPEE_EMAIL and run on localhost)
+# Usage: python notifyCassiopee.py --install
+#        python notifyCassiopee.py --install --email --recipients='a.b@onera.fr c.d@onera.fr'
+#        python notifyCassiopee.py --checkout
+#        python notifyCassiopee.py --valid
+#        python notifyCassiopee.py --valid --prod=<prod_name>
+#        python notifyCassiopee.py --valid --prod=<prod_name> --full
 import os
 import sys
 from glob import glob
 from time import strptime, strftime
+
+try:
+    import KCore.Dist as Dist
+    from KCore.notify import notify
+except ImportError:
+    print("Error: KCore is required to execute notifyCassiopee.py")
+    sys.exit()
+
 
 # Tests to ignore in non-debug mode
 IGNORE_TESTS_NDBG = []
@@ -20,16 +36,24 @@ def parseArgs():
     import argparse
     # Create argument parser
     parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--checkout", action="store_true",
+                        help="Show checkout status. Default: disabled")
     parser.add_argument("-e", "--email", action="store_true",
                         help="Email results. Default: print in terminal")
+    parser.add_argument("-i", "--install", action="store_true",
+                        help="Show installation status. Default: disabled")
     parser.add_argument("-f", "--full", action="store_true",
                         help="Show test case logs. Default: disabled")
     parser.add_argument("-l", "--logs", type=str, default='',
                         help="Single-quoted logs to compare.")
     parser.add_argument("-p", "--prod", type=str, default='',
                         help="Name of the production.")
+    parser.add_argument("-r", "--recipients", type=str, default='',
+                        help="Single-quoted space-separated list of recipients")
     parser.add_argument("-u", "--update", action="store_true",
-                        help="Update valid. log on stck. Default: no update")
+                        help="Update valid. log on stck. Default: disabled")
+    parser.add_argument("-v", "--valid", action="store_true",
+                        help="Show validation status. Default: disabled")
     # Parse arguments
     return parser.parse_args()
 
@@ -167,27 +191,135 @@ def stringify(test='', ref='', new=''):
     else:
         return "{:>15} | {:>42} | {:>10} | {:>10} |\n".format(mod, test, ref[5], new[5])
 
-# Main
-if __name__ == '__main__':
-    script_args = parseArgs()
-    if script_args.prod:
-        script_args.logs = findLogs(script_args.prod)
-        if not(isinstance(script_args.logs, list) and len(script_args.logs) == 2):
-            raise Exception("Two session logs were not found for prod. {}".format(
-                script_args.prod))
-    else:
-        script_args.logs = script_args.logs.split(' ')
-        if len(script_args.logs) != 2:
-            raise Exception("Two session logs must be provided using the flag -l "
-                            "or --logs")
+# Check install status
+def checkInstallStatus():
+    log_entries = []
+    with open('/stck/cassiope/git/logs/installation_status.txt', 'r') as f:
+        for line in f:
+            log_entries.append(line.strip().split(' - '))
+    log_entries.sort(key=lambda x: x[3], reverse=True)
 
+    # Get git info
+    cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitInfo = "Git origin: {}".format(gitOrigin)
+
+    baseState = 'OK'
+    messageText = "Installation of Cassiopee, Fast and all "\
+        "PModules:\n{}\n\n{}\n\n".format(48*'-', gitInfo)
+    messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
+        "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
+    for log_machine in log_entries:
+        prod = log_machine[0]
+        gitBranch = log_machine[1]
+        gitHash = log_machine[2]
+        date = strptime(log_machine[3], "%y%m%d-%H%M%S")
+        date = strftime("%d/%m/%y at %T", date)
+        status = log_machine[4]
+        messageText += '  {:<20} | {:^6} | {:^7} | {:^24} | {:^10}\n'.format(
+            prod, gitBranch, gitHash, date, status)
+        if 'FAILED' in log_machine: baseState = 'FAILED'
+
+    messageSubject = "[Install Cassiopee] State: {}".format(baseState)
+    if baseState == 'FAILED':
+        messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
+            'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
+            'vincent.casseau@onera.fr'
+
+    return messageSubject, messageText
+
+# Check checkout status
+def checkCheckoutStatus(sendEmail=False):
+    log_entries = []
+    with open('/stck/cassiope/git/logs/checkout_status.txt', 'r') as f:
+        for line in f:
+            log_entries.append(line.strip().split(' - '))
+    log_entries.sort(key=lambda x: x[1], reverse=True)
+
+    # Do not send a notification when everything is OK
+    if not any('FAILED' in log_machine for log_machine in log_entries):
+        if sendEmail: sys.exit(0)
+        else:
+            messageSubject = "[Checkout Cassiopee] State: OK"
+            messageText = ""
+            return messageSubject, messageText
+
+    # Get git info
+    cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
+    gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
+    gitInfo = "Git origin: {}\nGit branch: {}\nCommit hash: {}".format(
+        gitOrigin, gitBranch, gitHash)
+
+    messageSubject = "[Checkout Cassiopee] State: FAILED"
+    messageText = "Pulling updates for Cassiopee, Fast and all "\
+        "PModules:\n{}\n\n{}\n\n".format(52*'-', gitInfo)
+    messageText += '{:^20} | {:^15} | {:^30} | {:^10}\n{}\n'.format(
+        "PROD.", "PCKG.", "DATE", "STATUS", 85*'-')
+    for log_machine in log_entries:
+        prod = log_machine[0]
+        pckg = log_machine[1]
+        date = strptime(log_machine[2], "%y%m%d-%H%M%S")
+        date = strftime("%d/%m/%y at %T", date)
+        status = log_machine[3]
+        messageText += '{:^20} | {:^15} | {:^30} | {:^10}\n'.format(
+            prod, pckg, date, status)
+
+    messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
+        'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
+        'vincent.casseau@onera.fr'
+
+    return messageSubject, messageText
+
+# Check valid status
+def checkValidStatus():
+    log_entries = []
+    with open('/stck/cassiope/git/logs/validation_status.txt', 'r') as f:
+        for line in f:
+            log_entries.append(line.strip().split(' - '))
+    log_entries.sort(key=lambda x: x[3], reverse=True)
+
+    # Get git info
+    cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitInfo = "Git origin: {}".format(gitOrigin)
+
+    vnvState = 'OK'
+    messageText = "Non-regression testing of Cassiopee, Fast and all "\
+        "PModules:\n{}\n\n{}\n\n".format(58*'-', gitInfo)
+    messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
+        "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
+    for log_machine in log_entries:
+        prod = log_machine[0]
+        gitBranch = log_machine[1]
+        gitHash = log_machine[2]
+        date = strptime(log_machine[3], "%y%m%d-%H%M%S")
+        date = strftime("%d/%m/%y at %T", date)
+        status = log_machine[4]
+        messageText += '  {:<20} | {:^6} | {:^7} | {:^24} | {:^10}\n'.format(
+            prod, gitBranch, gitHash, date, status)
+        if 'FAILED' in log_machine: vnvState = 'FAILED'
+
+    messageSubject = "[V&V Cassiopee] State: {}".format(vnvState)
+    if vnvState == 'FAILED':
+        messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
+            'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
+            'vincent.casseau@onera.fr\nor list remaining issues with:\n'\
+            'notifyCassiopee --valid --prod=your_prod_name --full'
+
+    return messageSubject, messageText
+
+# Compare session logs
+def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
+                       showTestLogs=False, update=False):
     # Read log files and git info
-    refSession = readLog(script_args.logs[0])
-    newSession = readLog(script_args.logs[1])
-    gitInfo = readGitInfo(script_args.logs[1])
+    refSession = readLog(logFiles[0])
+    newSession = readLog(logFiles[1])
+    gitInfo = readGitInfo(logFiles[1])
 
     # Get prod name
-    prod = getProd(script_args.logs[1])
+    prod = getProd(logFiles[1])
 
     # Draw a one-to-one correspondance between tests of each session
     # (module + testname)
@@ -210,8 +342,8 @@ if __name__ == '__main__':
     baseState = 'OK'
     compStr = ""
     header = "\n".join("{}: {}".format(k,v) for k,v in gitInfo.items())
-    header += "\n\nREF = {}\n".format(script_args.logs[0])
-    header += "NEW = {}\n\n\n".format(script_args.logs[1])
+    header += "\n\nREF = {}\n".format(logFiles[0])
+    header += "NEW = {}\n\n\n".format(logFiles[1])
     header += "{} | {} | {} |\n{}\n".format("TESTS".center(60), "REF".center(10),
                                             "NEW".center(10), '*'*88)
     commonTestsHeader = "Tests that differ:\n{}\n".format('-'*17)
@@ -252,9 +384,10 @@ if __name__ == '__main__':
         execTime.append([test, *getDiffExecTime(test, refDict[test], newDict[test])])
     execTime.sort(key=lambda x: x[2])
 
-    if script_args.email:
+    if showExecTimeDiffs:
         threshold = 50.
-        execTimeHeader = "\nExecution time - {:.0f}% threshold:\n{}\n".format(threshold, '-'*30)
+        execTimeHeader = "\nExecution time - {:.0f}% threshold:\n{}\n".format(
+            threshold, '-'*30)
         compStr += execTimeHeader
         compStr += "{} | {} | {} |\n{}\n".format(" "*60, "REF v Base".center(10),
                                                  "NEW v Base".center(10), '*'*88)
@@ -266,45 +399,36 @@ if __name__ == '__main__':
         if cmpt == 0: compStr += "[none]\n"
 
     baseStateMsg = ""
-    tlog, tlog2 = getTimeFromLog(script_args.logs[1])
-    messageSubject = "[validCassiopee - {}] {} - State: {}".format(prod, tlog, baseState)
+    tlog, tlog2 = getTimeFromLog(logFiles[1])
+    messageSubject = "[validCassiopee - {}] {} - State: {}".format(prod, tlog,
+                                                                   baseState)
     messageText = header + compStr + baseStateMsg
 
-    if script_args.full:
-        testLogs = getTestLogs(script_args.prod, failedTests)
+    if showTestLogs:
+        testLogs = getTestLogs(prod, failedTests)
         if testLogs:
             messageText += f"\n\nFailed test logs:\n{'-'*16}\n{testLogs}"
 
-    if script_args.email:
-        if baseStateMsg: baseStateMsg = '\n\n'+baseStateMsg
-        try:
-            from KCore.notify import notify
-            notify(recipients=['vincent.casseau@onera.fr', 'christophe.benoit@onera.fr'],
-                   messageSubject=messageSubject,
-                   messageText=messageText)
-        except ImportError:
-            raise SystemError("Error: KCore is required to import notify.")
-    else:
-        print("{0}\n|{1:^86}|\n{0}\n{2}".format(88*'-', messageSubject, messageText))
-
-    if script_args.update:
+    if update:
         # If the state of the Base is OK, set the new session log to be the
         # reference
         exitStatus = 0
         if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS']) and
-                os.path.basename(script_args.logs[0]).startswith('REF-')):
-            if os.access(script_args.logs[0], os.W_OK):
+                os.path.basename(logFiles[0]).startswith('REF-')):
+            if os.access(logFiles[0], os.W_OK):
                 import shutil
-                os.remove(script_args.logs[0])
-                newRef = os.path.join(os.path.dirname(script_args.logs[1]),
-                                      'REF-' + os.path.basename(script_args.logs[1]))
-                shutil.copyfile(script_args.logs[1], newRef)
+                os.remove(logFiles[0])
+                newRef = os.path.join(os.path.dirname(logFiles[1]),
+                                      'REF-' + os.path.basename(logFiles[1]))
+                shutil.copyfile(logFiles[1], newRef)
             else: exitStatus = 2
+        else: exitStatus = 1
 
         # Amend state of the base in logs/validation_status.txt
         logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
         entry = "{} - {} - {} - {} - {}\n".format(prod, gitInfo['Git branch'],
-                                                  gitInfo['Commit hash'], tlog2, baseState)
+                                                  gitInfo['Commit hash'], tlog2,
+                                                  baseState)
         if os.access(os.path.dirname(logAllValids), os.W_OK):
             with open(logAllValids, 'r') as f: contents = f.readlines()
             prodFound = False
@@ -317,4 +441,54 @@ if __name__ == '__main__':
             if not prodFound: contents.append(entry)
             with open(logAllValids, 'w') as f: f.writelines(contents)
 
-        sys.exit(exitStatus)
+    return messageSubject, messageText, exitStatus
+
+# Main
+if __name__ == '__main__':
+    exitStatus = 0
+    scriptArgs = parseArgs()
+    recipients = scriptArgs.recipients.split(' ')
+    if not recipients[0]: recipients = []
+    if not (scriptArgs.install or scriptArgs.checkout or scriptArgs.valid):
+        scriptArgs.install = True  # Show installation status by default
+
+    if scriptArgs.install:
+        messageSubject, messageText = checkInstallStatus()
+    if scriptArgs.checkout:
+        messageSubject, messageText = checkCheckoutStatus(sendEmail=scriptArgs.email)
+    elif scriptArgs.valid:
+        mode = "overview"
+        if scriptArgs.logs:
+            scriptArgs.logs = scriptArgs.logs.split(' ')
+            if len(scriptArgs.logs) != 2:
+                raise Exception("Two session logs must be provided using the "
+                                "flag -l or --logs")
+            mode = "compare"
+        elif scriptArgs.prod:
+            scriptArgs.logs = findLogs(scriptArgs.prod)
+            if not(
+                isinstance(scriptArgs.logs, list) and
+                len(scriptArgs.logs) == 2
+            ):
+                raise Exception("Two session logs were not found for "
+                                "prod. {}".format(scriptArgs.prod))
+            mode = "compare"
+
+        if mode == "overview":
+            messageSubject, messageText = checkValidStatus()
+        else:
+            messageSubject, messageText, exitStatus = compareSessionLogs(
+                logFiles=scriptArgs.logs,
+                showExecTimeDiffs=scriptArgs.email,
+                showTestLogs=scriptArgs.full,
+                update=scriptArgs.update
+            )
+
+    if scriptArgs.email:
+        notify(recipients=recipients,
+               messageSubject=messageSubject,
+               messageText=messageText)
+    else:
+        sep = 83*'-'
+        print(f"{sep}\n|{messageSubject:^81}|\n{sep}\n{messageText}")
+    sys.exit(exitStatus)

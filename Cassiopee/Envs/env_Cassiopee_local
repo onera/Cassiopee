@@ -231,13 +231,22 @@ else if ($MAC == "ubuntu") then
         setenv ELSAPROD ubuntu
         setenv ELSAPROD "$ELSAPROD$EXT"
         setenv OMP_NUM_THREADS 4
-        setenv PYTHONEXE=python3
-        setenv PRODMODE=1
-        setenv PIP_DISABLE_PIP_VERSION_CHECK=1
-        setenv ASAN_OPTIONS verify_asan_link_order=false
-        setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+        setenv PYTHONEXE python3
+        setenv PRODMODE 1
+        setenv PIP_DISABLE_PIP_VERSION_CHECK 1
+        setenv ASAN_OPTIONS verify_asan_link_order false
+        setenv LSAN_OPTIONS suppressions "$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
         setenv ASAN_LIB /usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
         limit stacksize 8192
+
+else if ($MAC == "linux") then
+#-------------------------------- linux ------------------------------------
+        setenv ELSAPROD linux
+        setenv ELSAPROD "$ELSAPROD$EXT"
+        setenv OMP_NUM_THREADS 4
+        setenv PYTHONEXE python3
+        setenv PRODMODE 1
+        setenv PIP_DISABLE_PIP_VERSION_CHECK 1
 
 else if ($MAC == "fulvio") then
 #------------------------------- fulvio ---------------------------------------
