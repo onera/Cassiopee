@@ -990,19 +990,22 @@ def rmFile(path, fileName):
 # Construit la liste des tests
 # Update TESTS et la listBox
 #==============================================================================
-def buildTestList(loadSession=False, modules=[]):
+def buildTestList(sessionName=None, modules=[]):
     global TESTS
     TESTS = []
     Listbox.delete(0, 'end')
     if not modules:
         modules = getModules()
-    # Read last sessionLog conditionally
-    ncolumns = 8
-    logname = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], "session-*.log")))
-    if len(logname): logname = logname[-1]
-    else: loadSession = False
 
-    if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
+    if sessionName is not None:
+        # Read last sessionLog conditionally
+        ncolumns = 8
+        logname = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], "{}-*.log".format(sessionName))))
+        if len(logname): logname = logname[-1]
+        else: sessionName = None
+
+    if (sessionName is not None and os.access(logname, os.R_OK) and
+            os.path.getsize(logname) > 0):
         print("Loading last session: {}".format(logname))
         with open(logname, "r") as g:
             sessionLog = [line.rstrip().split(':') for line in g.readlines()]
@@ -1050,7 +1053,7 @@ def buildTestList(loadSession=False, modules=[]):
     for m in modules:
         tests = getTests(m)
         for t in tests:
-            if loadSession and arr.size:
+            if sessionName is not None and arr.size:
                 testArr = arr[np.logical_and(arr[:,0] == m, arr[:,1] == t)]
                 if testArr.size:
                     # Args are CPU time, Coverage, Status, and Tag if present
@@ -1066,7 +1069,7 @@ def buildTestList(loadSession=False, modules=[]):
                 s = buildString(m, t)
             TESTS.append(s)
             Listbox.insert('end', s)
-    if loadSession and arr.size: writeSessionLog()
+    if sessionName is not None and arr.size: writeSessionLog()
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
 
@@ -1512,7 +1515,7 @@ def notifyValidOK():
         sys.exit()
 
 #==============================================================================
-def Quit(event=None):
+def Quit(event=None, sessionName="session"):
     import os
     import shutil
     logname = os.path.join(VALIDDIR['LOCAL'], "session.log")
@@ -1520,7 +1523,7 @@ def Quit(event=None):
     # permissions
     if os.access(VALIDDIR['LOCAL'], os.W_OK) and (not os.path.getsize(logname) == 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
-        dst = os.path.join(VALIDDIR['LOCAL'], "session-{}.log".format(now))
+        dst = os.path.join(VALIDDIR['LOCAL'], "{}-{}.log".format(sessionName, now))
         print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
     # Write test metadata
@@ -1695,6 +1698,9 @@ def parseArgs():
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
                         help="Run selected tests")
+    parser.add_argument("-s", "--session-name", type=str, default='session',
+                        dest="sessionName",
+                        help="Name of the session file. Default: session")
     parser.add_argument("--update", action="store_true",
                         help="Update local database")
 
@@ -1702,8 +1708,8 @@ def parseArgs():
     return parser.parse_args()
 
 # Purge session logs by date down to the last n most recent
-def purgeSessionLogs(n):
-    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], 'session-*.log')))
+def purgeSessionLogs(n, sessionName="session"):
+    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], '{}-*.log'.format(sessionName))))
     if len(lognames) > n:
         for log in lognames[:-n]: os.remove(log)
     return None
@@ -1801,7 +1807,7 @@ if __name__ == '__main__':
         viewTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='View', menu=viewTab)
 
-        loadSessionWithArgs = partial(buildTestList, True)
+        loadSessionWithArgs = partial(buildTestList, "session")
         fileTab.add_command(label='Load last session', command=loadSessionWithArgs)
         fileTab.add_command(label='Purge session', command=buildTestList)
         fileTab.add_command(label='Export to text file', command=export2Text)
@@ -1944,12 +1950,13 @@ if __name__ == '__main__':
         TextThreads = NoDisplayEntry()
         getThreads()
 
+        sessionName = vcargs.sessionName if vcargs.loadSession else None
         if (os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and
                 vcargs.global_db and not (vcargs.update or isDBAdmin())):
-            ierr = setupGlobal(loadSession=vcargs.loadSession)
+            ierr = setupGlobal(sessionName=sessionName)
             if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
-        else: setupLocal(loadSession=vcargs.loadSession)
-        purgeSessionLogs(vcargs.purge)
+        else: setupLocal(sessionName=sessionName)
+        purgeSessionLogs(n=vcargs.purge, sessionName=vcargs.sessionName)
         if vcargs.filters:
             Filter.set(vcargs.filters)
             filterTestList()
@@ -1960,4 +1967,4 @@ if __name__ == '__main__':
                 updateASANOptions()
             selectAll()
             runTests(update=vcargs.update)
-            Quit()
+            Quit(sessionName=vcargs.sessionName)
