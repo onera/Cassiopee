@@ -35,11 +35,11 @@ t,tc,ts,graph = FastC.load(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', split='single')
 
 # Numerics
 numb={"temporal_scheme": "implicit",
-                "ss_iteration":3}
+      "ss_iteration":3}
 numz={"time_step": 0.0007,
-                "scheme":"roe_min",
-                "time_step_nature":"local",
-                "cfl":4.}
+      "scheme":"roe_min",
+      "time_step_nature":"local",
+      "cfl":4.}
 
 FastC._setNum2Zones(t, numz); FastC._setNum2Base(t, numb)
 
