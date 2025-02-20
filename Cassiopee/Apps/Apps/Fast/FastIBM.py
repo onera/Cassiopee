@@ -177,8 +177,9 @@ def _controlOutletPressureMachProbe(tc,dctProbes,controlProbeName,values4gain,it
 
     if Cmpi.rank == proc:
         print("   iteration {:06d}: adjusting back pressure...".format(it), end='')
-        time      = numpy.concatenate([node[1] for node in Internal.getNodesFromName(probe_tmp,'time')])
-        mach      = numpy.concatenate([node[1] for node in Internal.getNodesFromName(probe_tmp,'Mach')])
+        time      = numpy.concatenate([Internal.getNodeFromName(z,'time')[1] for z in probe_tmp._probeZones])
+        mach      = numpy.concatenate([Internal.getNodeFromName(z,'Mach')[1] for z in probe_tmp._probeZones])
+
         select    = (time >= 0.)  # select values that have been recorded: array is prefilled with -1
         time      = time[select]
         mach      = mach[select]
@@ -223,7 +224,7 @@ def initPointProbes(t, probe_in, fields, bufferSize=100, append=False, historyDi
     if isinstance(probe_in, str): probes = C.convertFile2PyTree(probe_in)
     else: probes = Internal.copyTree(probe_in)
 
-    fields = ['centers:'+fname for fname in fields if 'centers' not in fname] #extraction from cell-centered t
+    fields = ['centers:'+fname if 'centers' not in fname else fname for fname in fields] #extraction from cell-centered t
 
     dictOfProbes = {}
     for z in Internal.getZones(probes):
@@ -253,7 +254,7 @@ def initPointProbes(t, probe_in, fields, bufferSize=100, append=False, historyDi
     return dictOfProbes
 
 def _updatePointProbes(t, dictOfProbes, it, fields):
-    fields = ['centers:'+fname for fname in fields if 'centers' not in fname] #extraction from cell-centered t
+    fields = ['centers:'+fname if 'centers' not in fname else fname for fname in fields] #extraction from cell-centered t
 
     if 'centers:Mach' in fields: P._computeVariables(t, ['centers:Mach'])
     if 'centers:Pressure' in fields: P._computeVariables(t, ['centers:Pressure'])
