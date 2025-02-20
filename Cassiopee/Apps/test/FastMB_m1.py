@@ -1,5 +1,6 @@
 # - Fast.MB -
-import Apps.Fast.MB as App
+import Apps.Fast.MB as Apps_MB
+import Apps.Fast.Common as Apps_Common
 import KCore.test as test
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -8,7 +9,7 @@ test.TOLERANCE = 2.e-5
 
 LOCAL = test.getLocal()
 
-myApp = App.MB()
+myApp = Apps_Common.Common()
 myApp.set(format='single')
 myApp.set(numb={"temporal_scheme": "implicit",
                 "ss_iteration":3})
@@ -18,7 +19,7 @@ myApp.set(numz={"time_step": 0.0007,
                 "cfl":4.})
 
 if Cmpi.rank == 0: # prep en seq pour l'instant
-    t, tc = myApp.prepare('naca.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=Cmpi.size)
+    t, tc = Apps_MB.prepare('naca.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=Cmpi.size)
     test.testT(tc, 2)
 Cmpi.barrier()
 
