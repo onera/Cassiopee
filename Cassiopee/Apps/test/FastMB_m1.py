@@ -10,15 +10,6 @@ test.TOLERANCE = 2.e-5
 
 LOCAL = test.getLocal()
 
-# myApp = Apps_Common.Common()
-# myApp.set(format='single')
-# myApp.set(numb={"temporal_scheme": "implicit",
-#                 "ss_iteration":3})
-# myApp.set(numz={"time_step": 0.0007,
-#                 "scheme":"roe_min",
-#                 "time_step_nature":"local",
-#                 "cfl":4.})
-
 if Cmpi.rank == 0: # prep en seq pour l'instant
     t, tc = Apps_MB.prepare('naca.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', NP=Cmpi.size)
     test.testT(tc, 2)
