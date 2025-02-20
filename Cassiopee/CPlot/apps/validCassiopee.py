@@ -996,7 +996,7 @@ def buildTestList(sessionName=None, modules=[]):
     Listbox.delete(0, 'end')
     if not modules:
         modules = getModules()
-    
+
     if sessionName is not None:
         # Read last sessionLog conditionally
         ncolumns = 8
