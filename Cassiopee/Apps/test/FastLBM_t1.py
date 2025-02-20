@@ -1,5 +1,5 @@
 # - PSEUDO ISENTROPIC VORTEX MULTIBLOCK (pyTree) -
-import Apps.Fast.LBM as App
+import Apps.Fast.LBM as Apps_LBM
 import Connector.PyTree as X
 import Converter.Internal as Internal
 import Converter.PyTree as C
@@ -11,7 +11,6 @@ import Transform.PyTree as T
 import math
 import numpy
 
-myApp = App.LBM(format='single')
 VARSMACRO = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
 
 # Geometry and mesh
@@ -52,7 +51,7 @@ z_0 = C.getMeanValue(a1,'CoordinateZ')
 zmean = C.getMeanValue(a1,'CoordinateZ')
 a1 = T.splitNParts(a1,8)
 t = C.newPyTree(['Base',a1])
-t,tc = myApp.prepare(t, t_out=None, tc_out=None, NP=0, translation=[(Nx-1)*dx, (Ny-1)*dx,(Nz-1)*dx],NG=NG)
+t,tc = Apps_LBM.prepare(t, t_out=None, tc_out=None, NP=0, translation=[(Nx-1)*dx, (Ny-1)*dx,(Nz-1)*dx],NG=NG)
 
 #-------------------------
 # Initialization
@@ -107,8 +106,6 @@ numz["LBM_coll_model"]      =colop_select
 numz["LBM_relax_time"]      =0.5
 
 
-myApp.set(numb=numb)
-myApp.set(numz=numz)
 FastC._setNum2Zones(t, numz); FastC._setNum2Base(t, numb)
 
 (t, tc, metrics)  = FastLBM.warmup(t, tc,nghost=NG,flag_initprecise=0)
