@@ -226,8 +226,6 @@ def initPointProbes(t, probe_in, fields, bufferSize=100, append=False, historyDi
 
     fields = ['centers:'+fname if 'centers' not in fname else fname for fname in fields] #extraction from cell-centered t
 
-    print(fields)
-
     dictOfProbes = {}
     for z in Internal.getZones(probes):
         name = z[0]
