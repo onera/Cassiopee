@@ -689,7 +689,7 @@ def runSingleUnitaryTest(no, module, test, update=False):
 
     # Recupere le tag local
     tag = TESTMETA[module+'/'+test]['tag']
-    
+
     # update status
     if success == 0: status = 'OK'
     elif success == 2: status = 'MEMLEAK'
@@ -792,7 +792,7 @@ def runSingleCFDTest(no, module, test, update=False):
 
     # Recupere le tag local
     tag = TESTMETA[module+'/'+test]['tag']
-    
+
     # update status
     if success == 0: status = 'OK'
     elif success == 2: status = 'MEMLEAK'
