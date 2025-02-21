@@ -45,20 +45,10 @@ List of functions
     OCC.getNbEdges
     OCC.getNbFaces
     OCC.getFaceArea
+    OCC._translate
+    OCC._rotate
     OCC._splitFaces
     OCC._mergeFaces
-
-.. **-- CAD functions**
-
-.. .. autosummary::
-
-..    OCC.PyTree.CAD
-..    OCC.PyTree.Edge
-..    OCC.PyTree.Face    
-..    OCC.PyTree.Face.valueAt
-..    OCC.PyTree.Face._projectOn
-..    OCC.PyTree.Edge.valueAt
-..    OCC.PyTree.Edge._projectOn
 
 
 Contents
@@ -139,6 +129,8 @@ CAD manipulation
 
     .. literalinclude:: ../build/Examples/OCC/readCAD.py
 
+------------------------------------------
+
 .. py:function:: OCC.writeCAD(hook, fileName, format='fmt_step')
 
     Write a CAD hook to a file.
@@ -156,6 +148,8 @@ CAD manipulation
 
     .. literalinclude:: ../build/Examples/OCC/writeCAD.py
 
+------------------------------------------
+
 .. py:function:: OCC.getNbEdges(hook)
 
     Return the number of edges in a CAD hook.
@@ -170,6 +164,8 @@ CAD manipulation
 
     .. literalinclude:: ../build/Examples/OCC/getNbEdges.py
 
+------------------------------------------
+
 .. py:function:: OCC.getNbFaces(hook)
 
     Return the number of faces in a CAD hook.
@@ -183,6 +179,46 @@ CAD manipulation
     * `Get the number of faces <Examples/OCC/getNbFaces.py>`_:
 
     .. literalinclude:: ../build/Examples/OCC/getNbFaces.py
+
+------------------------------------------
+
+.. py:function:: OCC._translate(hook, vector)
+
+    Translate a CAD hook by a given vector.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param vector: translation vector (dx, dy, dz)
+    :type vector: tuple of floats
+
+    *Example of use:*
+
+    * `Translate a CAD <Examples/OCC/translate.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/translate.py
+
+------------------------------------------
+
+.. py:function:: OCC._rotate(hook, Xc, axis, angle)
+
+    Rotate a CAD hook around a given axis by a given angle.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param Xc: rotation center (x, y, z)
+    :type Xc: tuple of floats
+    :param axis: rotation axis
+    :type axis: tuple of floats
+    :param angle: rotation angle in degrees
+    :type angle: float
+
+    *Example of use:*
+
+    * `Rotate a CAD <Examples/OCC/rotate.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/rotate.py
+
+------------------------------------------
 
 .. py:function:: OCC._splitFaces(hook, area)
 
@@ -199,6 +235,8 @@ CAD manipulation
 
     .. literalinclude:: ../build/Examples/OCC/splitFaces.py
 
+------------------------------------------
+
 .. py:function:: OCC._mergeFaces(hook, listFaces=[])
 
     Merge faces in a CAD hook.
@@ -213,6 +251,8 @@ CAD manipulation
     * `Merge faces <Examples/OCC/mergeFaces.py>`_:
 
     .. literalinclude:: ../build/Examples/OCC/mergeFaces.py
+
+------------------------------------------
 
 .. py:function:: OCC.getFaceArea(hook, listFaces=[])
 
@@ -230,30 +270,6 @@ CAD manipulation
 
     .. literalinclude:: ../build/Examples/OCC/getFaceArea.py
 
-
-.. CAD functions
-.. ----------------------------
-
-.. .. py:function:: OCC.PyTree.CAD(fileName, format='fmt_iges')
-
-    Read a CAD and return a CAD object correponding to the CAD top tree.
-
-    :param fileName: CAD file name
-    :type fileName: string
-    :param format: file format ('fmt_iges' or 'fmt_step')
-    :type format: string
-    
-    *Example of use:*
-
-.. .. py:function:: OCC.PyTree._projectOn(a)
-
-    Project a on all CAD faces.
-
-    Exists also as _project that modifies a and returns None.
-
-    :param a: input data
-    :type a: zone, list of zones, base, pyTree
-    :rtype: identical to input
 
     
 

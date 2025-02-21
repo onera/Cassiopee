@@ -1254,7 +1254,19 @@ def getFileAndFormat(hook):
 # Return the area of specified faces
 def getFaceArea(hook, listFaces=[]):
     """Return the area of given faces."""
-    return occ.getFaceArea(hook, listFaces)
+    return OCC.occ.getFaceArea(hook, listFaces)
+
+# Translate
+def _translate(hook, vector, listFaces=[]):
+    """Translate all or given faces."""
+    OCC.occ.translate(hook, vector, listFaces)
+    return None
+
+# Rotate
+def _rotate(hook, Xc, axis, angle, listFaces=[]):
+    """Rotate all or given faces."""
+    OCC.occ.rotate(hook, Xc, axis, angle, listFaces)
+    return None
 
 # sew a set of faces
 # faces: face list numbers

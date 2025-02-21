@@ -66,7 +66,7 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
       const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
       builder.Add(compound, F);
     }
-    BRepBuilderAPI_Sewing sewer(0.5);
+    BRepBuilderAPI_Sewing sewer(1.e-6);
     sewer.Add(compound);
     sewer.Perform();
     shp = new TopoDS_Shape(sewer.SewedShape());
@@ -112,7 +112,7 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
     printf("number of faces in unified=%d\n", sf.Extent());
     for (E_Int i = 0; i < sf.Extent(); i++) builder.Add(compound, sf(i+1));
 
-    BRepBuilderAPI_Sewing sewer(0.5);
+    BRepBuilderAPI_Sewing sewer(1.e-6);
     sewer.Add(compound);
     sewer.Perform();
     newshp = new TopoDS_Shape(sewer.SewedShape());

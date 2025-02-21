@@ -28,6 +28,7 @@
 #include <gp_Pnt.hxx>
 #include <gp_Dir.hxx>
 #include "BRep_Builder.hxx"
+#include <BRepBuilderAPI_Sewing.hxx>
 
 //=====================================================================
 // Rotate the full shape or some faces
@@ -111,7 +112,10 @@ PyObject* K_OCC::rotate(PyObject* self, PyObject* args)
         builder2.Add(shc2, F);
       }
     }
-    *newshp = shc2;
+    BRepBuilderAPI_Sewing sewer(1.e-6);
+    sewer.Add(shc2);
+    sewer.Perform();
+    *newshp = sewer.SewedShape();
   }
 
   // Rebuild the hook

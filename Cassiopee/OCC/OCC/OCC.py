@@ -17,8 +17,9 @@ __all__ = ['convertCAD2Arrays',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
            'identifyTags__',
            'readCAD', 'writeCAD',
-           'getNbEdges', 'getNbFaces', 'getFileAndFormat',
-           'getFaceArea', '_splitFaces', '_mergeFaces']
+           'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea', 
+           '_translate', '_rotate',
+           '_splitFaces', '_mergeFaces']
 
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
@@ -732,6 +733,18 @@ def getFileAndFormat(hook):
 def getFaceArea(hook, listFaces=[]):
     """Return the area of given faces."""
     return occ.getFaceArea(hook, listFaces)
+
+# Translate
+def _translate(hook, vector, listFaces=[]):
+    """Translate all or given faces."""
+    occ.translate(hook, vector, listFaces)
+    return None
+
+# Rotate
+def _rotate(hook, Xc, axis, angle, listFaces=[]):
+    """Rotate all or given faces."""
+    occ.rotate(hook, Xc, axis, angle, listFaces)
+    return None
 
 # sew a set of faces
 # faces: face list numbers
