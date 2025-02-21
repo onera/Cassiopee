@@ -23,7 +23,17 @@ if Cmpi.rank == 0: test.testT(t,1)
 Cmpi.barrier()
 
 t,tc = myApp.compute(LOCAL+'/t.cgns',LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=100)
+
 if Cmpi.rank == 0:
+    ####
+    # The following lines are to avoid regression since the removal of sortByName in FastS warmup
+    ####
+    Internal._sortByName(t, recursive=False)
+    cgnslibver = Internal.getNodeByType(t, 'CGNSLibraryVersion_t')
+    Internal._rmNodesByType(t, 'CGNSLibraryVersion_t')
+    Internal.addChild(t, cgnslibver, 0)
+    ####
+
     Internal._rmNodesByName(t, '.Solver#Param')
     Internal._rmNodesByName(t, '.Solver#ownData')
     Internal._rmNodesByName(t, '.Solver#dtloc')
@@ -34,5 +44,6 @@ t = T.subzone(t,(1,1,1),(-1,-1,1))
 for nob in range(len(t[2])):
     if t[2][nob][0] != 'CARTESIAN' and t[2][nob][3] == 'CGNSBase_t':
         Internal._rmGhostCells(t,t[2][nob],2, adaptBCs=1)
+
 if Cmpi.rank == 0: test.testT(t,3)
 Cmpi.barrier()
