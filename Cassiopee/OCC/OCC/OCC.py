@@ -17,7 +17,7 @@ __all__ = ['convertCAD2Arrays',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
            'identifyTags__',
            'readCAD', 'writeCAD',
-           'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea', 
+           'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
            '_translate', '_rotate',
            '_splitFaces', '_mergeFaces']
 
