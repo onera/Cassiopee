@@ -252,13 +252,14 @@ Actions
     panoramic views of the data.
     Accepts the same argument as CPlot.display.
     If stereo=0, no stereo.
-    If stereo=1, ODS stereo (offscreen=1 or 7).
-    If stereo=3, ODS stereo (other offscreen).
+    If stereo=1, ODS stereo (only for offscreen=1 or 7).
 
     :param a: input pyTree
     :type a: pyTree
     :param stereo: stereo type.
-    :type stereo: 0,1,2
+    :type stereo: 0, 1, 2
+    :param offscreen: renderer: 1 (osmesa), 2 (openGL)
+    :type offscreen: 1, 2
 
     *Example of use:*
 

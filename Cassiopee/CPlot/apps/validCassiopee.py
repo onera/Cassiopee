@@ -601,6 +601,7 @@ def runSingleUnitaryTest(no, module, test, update=False):
 
     m1 = expTest1.search(test) # seq (True) ou distribue (False)
 
+    nthreads = KCore.kcore.getOmpMaxThreads()
     nthreads = int(Threads.get())
     bktest = "bk_{0}".format(test) # backup
 
@@ -721,6 +722,7 @@ def runSingleCFDTest(no, module, test, update=False):
         try: import mpi4py
         except: m1 = None
 
+    nthreads = KCore.kcore.getOmpMaxThreads()
     nthreads = int(Threads.get())
 
     if mySystem == 'mingw' or mySystem == 'windows':

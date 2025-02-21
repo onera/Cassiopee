@@ -10,4 +10,3 @@ CPlot.display(A); time.sleep(1)
 for i in range(10):
     b = G.cart( (i,0,0), (1,1,1), (30,30,30) )
     CPlot.replace(A, 0, b); CPlot.render(); time.sleep(0.1)
-
