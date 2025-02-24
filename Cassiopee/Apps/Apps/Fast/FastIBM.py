@@ -6,7 +6,7 @@ from Geom.IBM import setSnear, _setSnear, setDfar, _setDfar, setIBCType, _setIBC
 
 from Generator.IBMmodelHeight import computeModelisationHeight, computeSnearOpt
 
-from Post.IBM import extractPressureGradients, extractPressureHighOrder, extractYplusAtImagePoints, prepareSkinReconstruction, computeSkinVariables, _computeSkinVariables, computeAerodynamicLoads, computeAerodynamicCoefficients
+from Post.IBM import extractPressureGradients, extractPressureHighOrder, extractYplusAtImagePoints, prepareSkinReconstruction, computeSkinVariables, _computeSkinVariables, computeAerodynamicLoads, computeAerodynamicCoefficients, extractIBMWallFields
 
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi

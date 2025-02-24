@@ -19,6 +19,21 @@ t, tc = X_IBM.prepareIBMData(bodySurfaceFile, None         , None     ,
                              snears=snears  , dfars=dfars  , vmin=vmin,
                              check=False    , frontType=1  , cartesian=False)
 
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+for b in Internal.getBases(tc):
+    for z in Internal.getZones(b):
+        pos = 0
+        z2 = Internal.copyRef(z)
+        for zs in z2[2]:
+            if 'ID' in zs[0] or 'IBCD' in zs[0]:
+                Internal.addChild(z, zs, pos)
+                pos +=2
+            else:
+                pos += 1
+####
+
 test.testT(t ,1)
 test.testT(tc,2)
 #C.convertPyTree2File(t,LOCAL+'/t2D_checking.cgns')

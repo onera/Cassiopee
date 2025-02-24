@@ -10,6 +10,54 @@ tb = FastIBM.naca0012(snear=0.005, alpha=0.)
 t,tc = FastIBM.prepareIBMData(tb, None, None, vmin=21, expand=3, frontType=1)
 
 if Cmpi.rank==0:
+    ####
+    # The following lines are to avoid regression since the bug fix for duplicate information in tc
+    ####
+    dictOfDoublons = {
+        'CartX0'    :  ['ID_Cart.28X1', 'ID_CartX1'],
+        'Cart.1X0'  :['ID_Cart.2X0', 'ID_Cart.15X0', 'ID_Cart.4X0'],
+        'Cart.2X0'  :['ID_Cart.11X0', 'ID_Cart.10X0', 'ID_Cart.1X0', 'ID_Cart.14X0'],
+        'Cart.4X0'  :['ID_Cart.15X0', 'ID_Cart.1X0', 'ID_Cart.9X0', 'IBCD_3_Cart.4X0', 'ID_Cart.11X0'],
+        'Cart.8X0'  :['ID_Cart.8X1', 'ID_Cart.27X1', 'ID_Cart.15X0'],
+        'Cart.11X0' :['ID_Cart.2X0', 'ID_Cart.10X0', 'ID_Cart.4X0'],
+        'Cart.19X0' :['ID_Cart.25X1', 'ID_Cart.6X0'],
+        'Cart.13X1' :['ID_Cart.10X0', 'ID_Cart.14X0', 'ID_Cart.12X1'],
+        'Cart.22X1' :['ID_CartX1'],
+        'Cart.26X1' :['ID_Cart.3X1', 'ID_Cart.29X1', 'ID_Cart.27X1'],
+        'Cart.28X1' :['ID_CartX0', 'ID_Cart.5X0', 'ID_CartX1', 'ID_Cart.6X0'],
+        'Cart.8X1'  :['ID_Cart.15X0', 'ID_Cart.8X0'],
+        'Cart.11X1' :['ID_Cart.20X1', 'ID_Cart.31X1', 'ID_Cart.12X1'],
+        'Cart.14X0' :['ID_Cart.2X0', 'ID_Cart.10X0', 'ID_Cart.13X1'],
+        'Cart.15X0' :['ID_Cart.4X0', 'ID_Cart.8X0', 'ID_Cart.1X0', 'ID_Cart.8X1'],
+        'Cart.25X1' :['ID_Cart.2X1', 'ID_Cart.29X1', 'ID_Cart.3X1', 'ID_Cart.19X0'],
+        'Cart.5X0'  :['ID_Cart.6X0', 'ID_Cart.28X1'],
+        'Cart.0X1'  :['ID_Cart.24X1', 'ID_Cart.1X1', 'ID_Cart.21X1'],
+        'Cart.12X0' :['ID_Cart.15X1'],
+        'Cart.14X1' :['ID_Cart.17X0', 'ID_Cart.30X1'],
+        'Cart.15X1' :['ID_Cart.9X1', 'ID_Cart.35X1', 'ID_Cart.12X0', 'ID_Cart.33X1'],
+        'Cart.17X0' :['ID_Cart.30X1', 'ID_Cart.14X1', 'ID_Cart.13X0', 'ID_Cart.18X1', 'ID_Cart.16X0'],
+        'Cart.20X0' :['ID_Cart.23X1', 'ID_Cart.35X1', 'ID_Cart.17X1'],
+        'Cart.21X1' :['ID_Cart.9X1', 'ID_Cart.0X1', 'ID_Cart.10X1', 'ID_Cart.1X1'],
+        'Cart.30X1' :['ID_Cart.14X1', 'ID_Cart.17X0', 'ID_Cart.18X1', 'ID_Cart.13X0'],
+        'Cart.33X1' :['ID_Cart.9X1', 'ID_Cart.35X1', 'ID_Cart.17X1', 'ID_Cart.15X1', 'ID_Cart.32X1'],
+        'Cart.34X1' :['ID_Cart.7X0', 'ID_Cart.18X0', 'ID_Cart.10X1', 'ID_Cart.32X1'],
+        'Cart.4X1'  :['ID_Cart.19X1', 'ID_Cart.5X1'],
+        'Cart.5X1'  :['ID_Cart.19X1', 'ID_Cart.4X1', 'ID_Cart.0X0']
+    }
+
+    for b in Internal.getBases(tc):
+        for z in Internal.getZones(b):
+            if z[0] in dictOfDoublons:
+                pos = 0
+                z2 = Internal.copyRef(z)
+                for zs in z2[2]:
+                    if ('ID' in zs[0] or 'IBCD' in zs[0]) and zs[0] in dictOfDoublons[z[0]]:
+                        Internal.addChild(z, zs, pos)
+                        pos +=2
+                    else:
+                        pos += 1
+    ####
+
     test.testT(t , 1)
     test.testT(tc, 2)
 

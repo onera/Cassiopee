@@ -831,7 +831,8 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
             baseNameRcv = baseNames[zrname]
             dnrZones = []
             for zdname in interDict[zrname]:
-                zd = Internal.getNodeFromName2(aD, zdname)
+                zd = Internal.copyRef(Internal.getNodeFromName2(aD, zdname))
+                # zd = Internal.getNodeFromName2(aD, zdname)
                 baseNameDnr = baseNames[zd[0]]
                 if sameBase == 0:
                     if baseNameDnr != baseNameRcv: dnrZones.append(zd)
