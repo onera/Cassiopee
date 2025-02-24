@@ -1383,7 +1383,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
     for zc in Internal.getZones(tc):
         proc = Cmpi.getProc(zc)
         if proc == -1: Cmpi._setProc(zc, 0)
-        
+
     tbbc = Cmpi.createBBoxTree(tc)
 
     interpDataType = 0 if cartesian else 1

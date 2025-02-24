@@ -19,11 +19,11 @@ if Cmpi.rank==0:
     # The following lines are to avoid regression since the bug fix for duplicate information in tc
     ####
     dictOfDoublons = {
-    'Cart.2X1':['ID_Cart.4X0', 'ID_CartX0', 'ID_Cart.3X1'],
-    'Cart.3X1':['ID_Cart.4X0', 'ID_Cart.2X1'],
-    'Cart.3X0':['ID_Cart.5X0', 'ID_Cart.1X0'],
-    'Cart.6X0':['ID_Cart.0X0', 'ID_Cart.0X1', 'ID_Cart.5X0'],
-    'Cart.1X1':['IBCD_3_Cart.1X1']
+        'Cart.2X1':['ID_Cart.4X0', 'ID_CartX0', 'ID_Cart.3X1'],
+        'Cart.3X1':['ID_Cart.4X0', 'ID_Cart.2X1'],
+        'Cart.3X0':['ID_Cart.5X0', 'ID_Cart.1X0'],
+        'Cart.6X0':['ID_Cart.0X0', 'ID_Cart.0X1', 'ID_Cart.5X0'],
+        'Cart.1X1':['IBCD_3_Cart.1X1']
     }
 
     for b in Internal.getBases(tc):
@@ -38,6 +38,6 @@ if Cmpi.rank==0:
                     else:
                         pos += 1
     ####
-                        
+
     test.testT(t , 1)
     test.testT(tc, 2)

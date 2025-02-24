@@ -60,7 +60,7 @@ for b in Internal.getBases(tc):
             else:
                 pos += 1
 ####
-                
+
 test.testT(t , 1)
 test.testT(tc, 2)
 

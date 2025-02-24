@@ -57,7 +57,7 @@ for b in Internal.getBases(tc):
             else:
                 pos += 1
 ####
-                
+
 test.testT(tc,1)
 C.__ZoneNameServer__ = {}; C.__BCNameServer__ = {}; C.__BaseNameServer__ = {}
 _initYplusTargetPoints(tc)
@@ -78,5 +78,5 @@ for b in Internal.getBases(tc):
             else:
                 pos += 1
 ####
-                
+
 test.testT(tc,2)

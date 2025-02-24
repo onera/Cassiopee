@@ -80,7 +80,7 @@ for b in Internal.getBases(tc):
             if 'IBCD' in zs[0]:
                 rcvzoneL = zs[0].split('_')[-1]
                 dictOfIBCRZones[rcvzoneL].append(zs[0])
-                listOfIBCRZonesL = list(dictOfIBCRZones[rcvzoneL]) 
+                listOfIBCRZonesL = list(dictOfIBCRZones[rcvzoneL])
                 pos += 1
                 for zname in dictOfIBCRZones[rcvzoneL]:
                     listOfIBCRZonesL.append(zname)
