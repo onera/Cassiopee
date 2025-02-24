@@ -460,7 +460,7 @@ if __name__ == '__main__':
     elif scriptArgs.valid:
         mode = "overview"
         if scriptArgs.prod:
-            findRef = False if scriptArgs.logs == "latest" else True 
+            findRef = False if scriptArgs.logs == "latest" else True
             scriptArgs.logs = findLogs(scriptArgs.prod, findRef=findRef)
             if not(
                 isinstance(scriptArgs.logs, list) and
