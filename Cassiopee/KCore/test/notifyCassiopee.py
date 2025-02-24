@@ -78,13 +78,14 @@ def readGitInfo(filename):
     return gitInfo
 
 # Find a two session logs of validCassiopee for a given production
-def findLogs(prodname):
+def findLogs(prodname, findRef=True):
     validDataFolder = "/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{}".format(prodname)
     if not os.access(validDataFolder, os.R_OK):
         raise Exception("Session logs can't be retrieved in {}".format(validDataFolder))
 
     logs = None
-    refLogs = sorted(glob(os.path.join(validDataFolder, "REF-session-*.log")))
+    refLogs = []
+    if findRef: refLogs = sorted(glob(os.path.join(validDataFolder, "REF-session-*.log")))
     sessionLogs = sorted(glob(os.path.join(validDataFolder, "session-*.log")))
     if refLogs: logs = [refLogs[-1], sessionLogs[-1]]
     elif len(sessionLogs) > 1: logs = sessionLogs[-2:]
@@ -458,20 +459,21 @@ if __name__ == '__main__':
         messageSubject, messageText = checkCheckoutStatus(sendEmail=scriptArgs.email)
     elif scriptArgs.valid:
         mode = "overview"
-        if scriptArgs.logs:
-            scriptArgs.logs = scriptArgs.logs.split(' ')
-            if len(scriptArgs.logs) != 2:
-                raise Exception("Two session logs must be provided using the "
-                                "flag -l or --logs")
-            mode = "compare"
-        elif scriptArgs.prod:
-            scriptArgs.logs = findLogs(scriptArgs.prod)
+        if scriptArgs.prod:
+            findRef = False if scriptArgs.logs == "latest" else True 
+            scriptArgs.logs = findLogs(scriptArgs.prod, findRef=findRef)
             if not(
                 isinstance(scriptArgs.logs, list) and
                 len(scriptArgs.logs) == 2
             ):
                 raise Exception("Two session logs were not found for "
                                 "prod. {}".format(scriptArgs.prod))
+            mode = "compare"
+        elif scriptArgs.logs:
+            scriptArgs.logs = scriptArgs.logs.split(' ')
+            if len(scriptArgs.logs) != 2:
+                raise Exception("Two session logs must be provided using the "
+                                "flag -l or --logs")
             mode = "compare"
 
         if mode == "overview":
