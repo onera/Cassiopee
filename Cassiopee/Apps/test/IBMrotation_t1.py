@@ -179,5 +179,20 @@ Internal._rmNodesByName(t, '.Solver#ownData')
 Internal._rmNodesByName(tc, '.Solver#Param')
 Internal._rmNodesByName(tc, '.Solver#ownData')
 
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+for b in Internal.getBases(tc):
+    for z in Internal.getZones(b):
+        pos = 0
+        z2 = Internal.copyRef(z)
+        for zs in z2[2]:
+            if 'ID' in zs[0] or 'IBCD' in zs[0]:
+                Internal.addChild(z, zs, pos)
+                pos +=2
+            else:
+                pos += 1
+####
+
 test.testT(t, 1)
 test.testT(tc, 2)

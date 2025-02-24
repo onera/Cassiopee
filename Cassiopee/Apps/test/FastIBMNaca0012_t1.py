@@ -8,6 +8,21 @@ import KCore.test as test
 tb = FastIBM.naca0012(snear=0.005, alpha=0.)
 t,tc = FastIBM.prepareIBMData(tb, None, None, vmin=21, expand=3, frontType=1)
 
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+for b in Internal.getBases(tc):
+    for z in Internal.getZones(b):
+        pos = 0
+        z2 = Internal.copyRef(z)
+        for zs in z2[2]:
+            if 'ID' in zs[0] or 'IBCD' in zs[0]:
+                Internal.addChild(z, zs, pos)
+                pos +=2
+            else:
+                pos += 1
+####
+
 test.testT(t , 1)
 test.testT(tc, 2)
 

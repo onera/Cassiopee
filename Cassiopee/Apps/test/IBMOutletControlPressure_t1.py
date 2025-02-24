@@ -66,6 +66,31 @@ test.testT(tb,1)
 t,tc=X_IBM.prepareIBMData(tb         , None   , None   ,
                           snears=0.01, dfars=0, vmin=11, cartesian=False)
 
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+for b in Internal.getBases(tc):
+    for z in Internal.getZones(b):
+        pos = 0
+        z2 = Internal.copyRef(z)
+        dictOfIBCDZones = {zs[0]: Internal.copyRef(zs) for zs in z2[2] if 'IBCD' in zs[0]}
+        dictOfIBCRZones = {zs[0].split('_')[-1]: [] for zs in z2[2] if 'IBCD' in zs[0]}
+        rcvzone = ''
+        for zs in z2[2]:
+            if 'IBCD' in zs[0]:
+                rcvzoneL = zs[0].split('_')[-1]
+                dictOfIBCRZones[rcvzoneL].append(zs[0])
+                listOfIBCRZonesL = list(dictOfIBCRZones[rcvzoneL]) 
+                pos += 1
+                for zname in dictOfIBCRZones[rcvzoneL]:
+                    listOfIBCRZonesL.append(zname)
+                    Internal.addChild(z, dictOfIBCDZones[zname], pos)
+                    pos +=1
+                dictOfIBCRZones[rcvzoneL] = list(listOfIBCRZonesL)
+            else:
+                pos += 1
+####
+
 [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
  ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
  Mus, Cs, Ts, Pr] = C.getState(tc)

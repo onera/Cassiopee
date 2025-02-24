@@ -1309,7 +1309,7 @@ def buildFrontIBM(t, tc, tb=None, dimPb=3, frontType=1, cartesian=True, twoFront
         C._cpVars(t,'centers:cellNFront_2',tc,'cellNFront_2')
         Xmpi._setInterpTransfers(t, tc, variables=['cellNFront_2'], cellNVariable='cellNFront_2', compact=0)
 
-    if frontType == 2: _pushBackImageFront2__(t, tc, tbbc, interpDataType=interpDataType, cartesian=cartesian)
+    if frontType == 2: _pushBackImageFront2__(t, tc, tbbc, cartesian=cartesian)
 
     C._rmVars(t,['centers:cellNFront'])
     if twoFronts: C._rmVars(t,['centers:cellNFront_2', 'centers:cellNIBC_2'])
@@ -1380,6 +1380,10 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
 
+    for zc in Internal.getZones(tc):
+        proc = Cmpi.getProc(zc)
+        if proc == -1: Cmpi._setProc(zc, 0)
+        
     tbbc = Cmpi.createBBoxTree(tc)
 
     interpDataType = 0 if cartesian else 1
@@ -1544,6 +1548,8 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
 
     if dictOfCorrectedPtsByIBCType!={}:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
+            if '#' in ibcTypeL: ibcNameL = 'IBCD_'+'_'.join(ibcTypeL.split('#')) #ibctype with familyname
+            else: ibcNameL = 'IBCD_'+ibcTypeL #regular ibctype
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
             allInterpPts = dictOfInterpPtsByIBCType[ibcTypeL]
@@ -1553,7 +1559,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                     zrname = zrcv[0]
                     dnrZones = []
                     for zdname in interDictIBM[zrname]:
-                        zd = Internal.getNodeFromName2(tc, zdname)
+                        zd = Internal.copyRef(Internal.getNodeFromName2(tc, zdname))
                         if zd is None: print('!!!Zone None', zrname, zdname)
                         else: dnrZones.append(zd)
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr],
@@ -1568,7 +1574,9 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                         IDs = []
                         for i in zd[2]:
                             if i[0][0:4] == 'IBCD':
-                                if Internal.getValue(i)==zrname: IDs.append(i)
+                                #where i[0] == 'IBCD_#ibctype_#familyname_#zname' or 'IBCD_#ibctype_#zname'
+                                if ibcNameL == '_'.join(i[0].split('_')[:-1]) and Internal.getValue(i)==zrname:
+                                    IDs.append(i) #add only ibcd zones related to local ibcType to avoid doublons
 
                         if IDs != []:
                             if destProc == Cmpi.rank:
@@ -1582,6 +1590,8 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
 
     if dictOfCorrectedPtsByIBCType2!={}:
         for ibcTypeL in dictOfCorrectedPtsByIBCType2:
+            if '#' in ibcTypeL: ibcNameL = '2_IBCD_'+'_'.join(ibcTypeL.split('#'))
+            else: ibcNameL = '2_IBCD_'+ibcTypeL
             allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
             allWallPts2      = dictOfWallPtsByIBCType2[ibcTypeL]
             allInterpPts2    = dictOfInterpPtsByIBCType2[ibcTypeL]
@@ -1591,8 +1601,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                     zrname   = zrcv[0]
                     dnrZones = []
                     for zdname in interDictIBM2[zrname]:
-                        zd = Internal.getNodeFromName2(tc, zdname)
-                        #if zd is not None: dnrZones.append(zd)
+                        zd = Internal.copyRef(Internal.getNodeFromName2(tc, zdname))
                         if zd is None: print('!!!Zone None', zrname, zdname)
                         else: dnrZones.append(zd)
                     XOD._setIBCDataForZone2__(zrcv, dnrZones, allCorrectedPts2[nozr], allWallPts2[nozr], None, allInterpPts2[nozr],
@@ -1607,7 +1616,8 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                         IDs = []
                         for i in zd[2]:
                             if i[0][0:6] == '2_IBCD':
-                                if Internal.getValue(i)==zrname: IDs.append(i)
+                                if ibcNameL == '_'.join(i[0].split('_')[:-1]) and Internal.getValue(i)==zrname:
+                                    IDs.append(i) #add only ibcd zones related to local ibcType to avoid doublons
 
                         if IDs != []:
                             if destProc == Cmpi.rank:
