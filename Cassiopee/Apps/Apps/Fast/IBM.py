@@ -2047,9 +2047,9 @@ class IBM(Common):
                 if h < hmin_loc : hmin_loc = h
             hmin_loc = Cmpi.allgather(hmin_loc)
             if Cmpi.size > 1 :
-              hmin=1e30
-              for h in hmin_loc: 
-                if h < hmin : hmin = h
+                hmin=1e30
+                for h in hmin_loc:
+                    if h < hmin : hmin = h
 
             ## go from dx to dx/dx_min
             Nlevels=1
