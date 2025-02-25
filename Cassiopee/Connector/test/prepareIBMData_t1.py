@@ -3,7 +3,7 @@ import Converter.PyTree as C
 import Connector.IBM as X_IBM
 import KCore.test as test
 
-tb = C.convertFile2PyTree('../../Apps/test/naca1DNS.cgns')
+tb = C.convertFile2PyTree('naca1DNS.cgns')
 
 # Prepare
 vmin      = 42

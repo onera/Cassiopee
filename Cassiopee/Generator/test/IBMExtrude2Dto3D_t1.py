@@ -9,7 +9,7 @@ import KCore.test as test
 import sys
 
 LOCAL           = test.getLocal()
-bodySurfaceFile = '../../Apps/test/naca1DNS.cgns'
+bodySurfaceFile = '../../Connector/test/naca1DNS.cgns'
 
 # Prepare
 vmin      = 42

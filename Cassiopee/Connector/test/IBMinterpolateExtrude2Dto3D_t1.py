@@ -12,7 +12,7 @@ import numpy
 
 
 LOCAL           = test.getLocal()
-bodySurfaceFile = '../../Apps/test/naca1DNS.cgns'
+bodySurfaceFile = 'naca1DNS.cgns'
 
 # Prepare
 vmin      = 42
