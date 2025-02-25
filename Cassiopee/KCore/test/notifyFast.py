@@ -398,7 +398,7 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
     baseStateMsg = ""
     tlog, tlog2 = getTimeFromLog(logFiles[1])
     messageSubject = "[validFast - {}] {} - State: {}".format(prod, tlog,
-                                                                   baseState)
+                                                              baseState)
     messageText = header + compStr + baseStateMsg
 
     if showTestLogs:
