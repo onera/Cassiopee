@@ -1998,310 +1998,6 @@ class IBM(Common):
         return t
 
 
-    def buildConservativeFlux__(self, t, tc):
-
-        ## determine dx=dy for each zone & store per zone
-        levelZone_loc={}
-        hmin = 1.e30
-        for z in Internal.getZones(t):
-            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-            levelZone_loc[z[0]]=h
-            if h < hmin : hmin = h
-
-        ## go from dx to dx/dx_min
-        Nlevels=1
-        for i in levelZone_loc:
-            levelZone_loc[i]= math.log( int(levelZone_loc[i]/hmin + 0.00000001)  , 2)
-            if levelZone_loc[i] +1  > Nlevels : Nlevels = int(levelZone_loc[i]) +1
-
-        ## partage des info level en mpi
-        levelZone = Cmpi.allgather(levelZone_loc)
-
-        for z in Internal.getZones(tc):
-
-            zd_t  = Internal.getNodeFromName(t, z[0])
-            #tmp1  = Internal.getNodeFromName(zd_t, 'ConservativeFlux')
-            #if tmp1 ==None:
-            #   Internal.createUniqueChild(zd_t, 'ConservativeFlux', 'UserDefinedData_t')
-            #   tmp1  = Internal.getNodeFromName(zd_t, 'ConservativeFlux')
-
-            levelD = levelZone[z[0]]
-            subRegions =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
-            for s in subRegions:
-                zRname = Internal.getValue(s)
-                levelR = levelZone[zRname]
-                if levelR > levelD:
-
-                    #print("raccord conservatif: levelRD", levelR , levelD,'zRD', zRname, z[0])
-                    zR  =  Internal.getNodeFromName2(tc,zRname)
-                    zr_t= Internal.getNodeFromName(t, zRname)
-                    dimD   = Internal.getZoneDim(z)
-                    dimR   = Internal.getZoneDim(zR)
-                    dimPb  = dimR[4]
-                    sh =[ dimR[1],dimR[2],dimR[3] ]
-                    shD=[ dimD[1],dimD[2],dimD[3] ]
-                    print("dimR", dimR, "dimD", dimD)
-                    ptList = Internal.getNodeFromName1(s, 'PointList')[1]
-                    ptListD= Internal.getNodeFromName1(s, 'PointListDonor')[1]
-                    lmin = numpy.amin(ptListD)
-                    min_l= numpy.argmin(ptListD, axis=0)
-                    kmin =  lmin//(sh[0]*sh[1])
-                    jmin =  (lmin -kmin*sh[0]*sh[1])//sh[0]
-                    imin =  lmin -kmin*sh[0]*sh[1] -jmin*sh[0]
-                    lmax = numpy.amax(ptListD)
-                    kmax =  lmax//(sh[0]*sh[1])
-                    jmax =  (lmax -kmax*sh[0]*sh[1])//sh[0]
-                    imax =  lmax -kmax*sh[0]*sh[1] -jmax*sh[0]
-
-                    lminD = ptList[min_l]
-
-                    kminD =  lminD//(shD[0]*shD[1])
-                    jminD =  (lminD -kminD*shD[0]*shD[1])//shD[0]
-                    iminD =  lminD -kminD*shD[0]*shD[1] -jminD*shD[0]
-
-                    win     = numpy.empty( (6,6), Internal.E_NpyInt)
-                    winD    = numpy.empty( (6,6), Internal.E_NpyInt)
-                    win[0,:]=100000 ;win[2,:]=100000 ;win[4,:]=100000
-                    win[1,:]=-1 ;win[3,:]=-1 ;win[5,:]=-1
-
-                    sz = (imax-imin+1)*(jmax-jmin+1)*(kmax-kmin+1)
-                    if sz == -2*numpy.size(ptListD): #on skippe cette possibilité
-                        k1= kmin+1
-                        k2= kmax+2
-                        k1D = kminD+1
-                        k2D = kminD+(kmax-kmin+1)*2
-                        if dimPb==2: k1=1; k2=2; k1D=1; k2D=2
-
-                        if (imax-imin+1)==2:
-                            if imin==0:
-                                idir= 0
-                                name= 'imin'
-                                #win[0,idir]=2;  win[1,idir]=2;  winD[0,idir]=iminD+3; winD[1,idir]=iminD+3
-                                win[0,idir]=1;  win[1,idir]=1;  winD[0,idir]=dimD[1]; winD[1,idir]= dimD[1]
-                            else:
-                                idir= 1
-                                name= 'imax'
-                                #win[0,idir]=dimR[1]-2;  win[1,idir]=dimR[1]-2;  winD[0,idir]=iminD; winD[1,idir]=iminD
-                                win[0,idir]=dimR[1];  win[1,idir]=dimR[1];  winD[0,idir]=1; winD[1,idir]=1
-
-                            #win[2,idir]=jmin;    win[3,idir]=jmax;                     win[4,idir]=k1;   win[5,idir]=k2
-                            #winD[2,idir]=jminD; winD[3,idir]=jminD+(jmax-jmin)*2+ 1 ; winD[4,idir]=k1D; winD[5,idir]=k2D
-                            win[ 2,idir]=jmin+1 ;  win[3,idir]=jmax+2;                  win[4,idir]=k1;  win[5,idir]=k2
-                            winD[2,idir]=jminD+1; winD[3,idir]=jminD+1+(imax-imin+1)*2 ; winD[4,idir]=k1D;winD[5,idir]=k2D
-                        elif (jmax-jmin+1)==2:
-                            if jmin==0:
-                                idir= 2
-                                name= 'jmin'
-                                #win[2,idir]=2;  win[3,idir]=2;  winD[2,idir]=jminD+3; winD[3,idir]=jminD+3
-                                win[2,idir]=1;  win[3,idir]=1;  winD[2,idir]=dimD[2]; winD[3,idir]=dimD[2]
-                            else:
-                                idir= 3
-                                name= 'jmax'
-                                #win[2,idir]=dimR[2]-2;  win[3,idir]=dimR[2]-2;  winD[2,idir]=jminD; winD[3,idir]=jminD
-                                win[2,idir]=dimR[2];  win[3,idir]=dimR[2];  winD[2,idir]=1; winD[3,idir]=1
-
-                            #win[0,idir]=imin;    win[1,idir]=imax;                     win[4,idir]=k1;   win[5,idir]=k2
-                            #winD[0,idir]=iminD; winD[1,idir]=iminD+(imax-imin)*2+ 1 ; winD[4,idir]=k1D; winD[5,idir]=k2D
-                            win[0 ,idir]=imin+1 ;  win[1,idir]=imax+2;                  win[4,idir]=k1;  win[5,idir]=k2
-                            winD[0,idir]=iminD+1; winD[1,idir]=iminD+1+(imax-imin+1)*2 ; winD[4,idir]=k1D;winD[5,idir]=k2D
-                        elif (kmax-kmin+1)==2:
-                            if kmin==0:
-                                idir= 4
-                                name= 'kmin'
-                                #win[4,idir]=2;  win[5,idir]=2;  winD[4,idir]=jminD+3; winD[5,idir]=jminD+3
-                                win[4,idir]=1;  win[5,idir]=1;  winD[4,idir]=dimD[3]; winD[5,idir]=dimD[3]
-                            else:
-                                idir= 5
-                                name= 'kmax'
-                                #win[4,idir]=dimR[3]-2;  win[5,idir]=dimR[3]-2;  winD[4,idir]=jminD; winD[5,idir]=jminD
-                                win[4,idir]=dimR[3];  win[5,idir]=dimR[3];  winD[4,idir]=1; winD[5,idir]=1
-
-                            #win[0,idir]=imin;    win[1,idir]=imax;                     win[2,idir]=jmin;  win[3,idir]=jmax
-                            #winD[0,idir]=iminD; winD[1,idir]=iminD+(imax-imin)*2+ 1 ; winD[2,idir]=kminD;winD[3,idir]=jminD+(jmax-jmin)*2+ 1
-                            win[0 ,idir]=imin+1 ;  win[1,idir]=imax+2;                  win[2,idir]=jmin+1;  win[3,idir]=jmax+2
-                            winD[0,idir]=iminD+1; winD[1,idir]=iminD+1+(imax-imin+1)*2 ; winD[2,idir]=kminD+1;winD[3,idir]=jminD+(jmax-jmin+1)*2
-
-                        name1="#Flux_"+zRname+'_'+name
-                        #Internal.createUniqueChild(tmp1 ,name1, 'UserDefinedData_t')
-                        #tmp   = Internal.getNodeFromName1(tmp1,name1)
-                        #Internal.setValue(tmp,zRname)
-                        #print('min ', imin,jmin,kmin, 'max ', imax, jmax,kmax, k1,k2)
-                        #print('minD', iminD,jminD,kminD, k1D, k2D)
-                        print("raccord conservatif: zD=", z[0], name1, 'win:', win[:,idir], 'winD:', winD[:,idir], 'taille win:', sz//2, 'min', imin,jmin,kmin)
-                        #Internal.createUniqueChild( tmp, 'PointRange', 'DataArray_t', winD[:,idir])
-                        #Internal.createUniqueChild( tmp, 'PointRangeDonor', 'DataArray_t', win[:,idir])
-
-                        C._addBC2Zone(zr_t, 'Flux_'+zd_t[0]+'_'+name, 'BCFluxOctreeC', wrange=win[:,idir])
-                        if name[2]=='i':
-                            name2= name[0:2]+'ax'
-                        else:
-                            name2= name[0:2]+'in'
-                        C._addBC2Zone(zd_t, 'Flux_'+zr_t[0]+'_'+name2, 'BCFluxOctreeF', wrange=winD[:,idir])
-
-                    else:
-
-                        #print("lmin", lmin, kmin,jmin,imin, "lmax", lmax, kmax,jmax,imax, 'ptLsiz ', numpy.size(ptListD), 'sz_fen ', sz,  zRname, z[0])
-
-                        s1 = max( dimR[1],dimR[2])
-                        s2 = max( dimR[1],dimR[3])
-                        #fens   = numpy.zeros( (s1*s2,6), Internal.E_NpyInt)
-                        c0=0; c1=0; c2=0; c3=0; c4=0; c5=0
-                        count = numpy.zeros( 6, Internal.E_NpyInt)
-                        lmin  = numpy.zeros( 6, Internal.E_NpyInt)
-                        for l in range( numpy.size(ptListD)):
-                            #i,j,k receveur
-                            k =  ptListD[l]//(sh[0]*sh[1])
-                            j = (ptListD[l] -k*sh[0]*sh[1])//sh[0]
-                            i =  ptListD[l] -k*sh[0]*sh[1] -j*sh[0]
-                            if dimPb==2:
-                                if i==1 and j > 1 and j < dimR[2]-2:  #flux en imin
-                                    idir=0
-                                    if j < win[2,idir]: win[2,idir]=j; lmin[idir]= ptList[l]
-                                    if j > win[3,idir]: win[3,idir]=j
-                                    count[idir]+=1
-                                elif i==dimR[1]-2 and j > 1 and j < dimR[2]-2: #flux en imax
-                                    idir=1
-                                    if j < win[2,idir]: win[2,idir]=j; lmin[idir]= ptList[l]
-                                    if j > win[3,idir]: win[3,idir]=j
-                                    count[idir]+=1
-                                elif j==1 and i > 1 and i < dimR[1]-2: #flux en jmin
-                                    idir=2
-                                    if i < win[0,idir]: win[0,idir]=i; lmin[idir]= ptList[l]
-                                    if i > win[1,idir]: win[1,idir]=i
-                                    count[idir]+=1
-                                elif j== dimR[2]-2 and i > 1 and i < dimR[1]-2: #flux en jmax
-                                    idir=3
-                                    if i < win[0,idir]: win[0,idir]=i; lmin[idir]= ptList[l]
-                                    if i > win[1,idir]: win[1,idir]=i
-                                    count[idir]+=1
-                                #print('ij, count', i,j ,'count',count[0:4], 'lmin', lmin[0:4])
-                            else:  #Pb 3D
-                                if j > 1 and j < dimR[2]-1 and k > 1 and k < dimR[3]-2:
-
-                                    if   i ==1        : idir=0
-                                    elif i ==dimR[1]-2: idir=1
-                                    else: idir=-1
-                                    if idir !=-1:
-                                        if j < win[2,idir]: win[2,idir]=j
-                                        if j > win[3,idir]: win[3,idir]=j
-                                        if k < win[4,idir]: win[4,idir]=k
-                                        if k > win[5,idir]: win[5,idir]=k
-                                        if win[4,idir]==k and win[2,idir]==j: lmin[idir]= ptList[l]
-                                        count[idir]+=1
-                                elif i > 1 and i < dimR[1]-2 and k > 1 and k < dimR[3]-2: #flux en jmin
-                                    if   j ==1        : idir=2
-                                    elif j ==dimR[2]-2: idir=3
-                                    else: idir=-1
-                                    if idir !=-1:
-                                        if i < win[0,idir]: win[0,idir]=i
-                                        if i > win[1,idir]: win[1,idir]=i
-                                        if k < win[4,idir]: win[4,idir]=k
-                                        if k > win[5,idir]: win[5,idir]=k
-                                        if win[4,idir]==k and win[0,idir]==i: lmin[idir]= ptList[l]
-                                        count[idir]+=1
-                                elif j > 1 and j < dimR[2]-2 and i > 1 and i < dimR[1]-2: #flux en kmin
-                                    if   k ==1        : idir=4
-                                    elif k ==dimR[3]-2: idir=5
-                                    else: idir=-1
-                                    if idir !=-1:
-                                        if i < win[0,idir]: win[0,idir]=i
-                                        if i > win[1,idir]: win[1,idir]=i
-                                        if j < win[2,idir]: win[2,idir]=j
-                                        if j > win[3,idir]: win[3,idir]=j
-                                        if win[2,idir]==j and win[0,idir]==i: lmin[idir]= ptList[l]
-                                        count[idir]+=1
-
-                        win[0,:]+=1
-                        win[1,:]+=2
-                        win[2,:]+=1
-                        win[3,:]+=2
-
-                        if dimPb==2:
-                            win[4,:]=1
-                            win[5,:]=2
-
-                        idirs=[]
-                        for i in range(6):
-                            if count[i] !=0: idirs.append(i)
-                        for idir in idirs:
-
-                            kminD =  lmin[idir]//(shD[0]*shD[1])
-                            jminD =  (lmin[idir] -kminD*shD[0]*shD[1])//shD[0]
-                            iminD =  lmin[idir] -kminD*shD[0]*shD[1] -jminD*shD[0]
-                            k1D = kminD+1
-                            k2D = kminD+(kmax-kmin+1)*2
-                            if dimPb==2: k1D=1; k2D=2
-
-                            if idir < 2:
-                                sz=(win[3,idir]-win[2,idir])*(win[5,idir]-win[4,idir])
-                                i1 =dimR[1]
-                                i1D=1
-                                name='imax'
-                                if idir==0:
-                                    i1 =1
-                                    i1D= dimD[1]
-                                    name='imin'
-                                win[0:2 ,idir]=i1
-                                winD[0:2,idir]=i1D
-                                winD[2,idir]  =jminD+1
-                                winD[3,idir]  =jminD+1+(win[3,idir]-win[2,idir])*2
-                                winD[4,idir]  =k1D
-                                winD[5,idir]  =k2D
-                            elif idir < 4:
-                                sz=(win[1,idir]-win[0,idir])*(win[5,idir]-win[4,idir])
-                                j1 =dimR[2]
-                                j1D=1
-                                name='jmax'
-                                if idir==2:
-                                    j1 =1
-                                    j1D= dimD[2]
-                                    name='jmin'
-                                win[2:4 ,idir]=j1
-                                winD[2:4,idir]=j1D
-                                winD[0,idir]  =iminD+1
-                                winD[1,idir]  =iminD+1+(win[1,idir]-win[0,idir])*2
-                                winD[4,idir]  =k1D
-                                winD[5,idir]  =k2D
-                            else:
-                                sz=(win[1,idir]-win[0,idir])*(win[3,idir]-win[2,idir])
-                                k1 =dimR[3]
-                                k1D=1
-                                name='kmax'
-                                if idir==4:
-                                    k1 =1
-                                    k1D= dimD[3]
-                                    name='kmin'
-                                win[4:6 ,idir]=k1
-                                winD[4:6,idir]=k1D
-                                winD[0,idir]  =iminD+1
-                                winD[1,idir]  =iminD+1+(win[1,idir]-win[0,idir])*2
-                                winD[2,idir]  =jminD+1
-                                winD[3,idir]  =jminD+1+(win[3,idir]-win[2,idir])*2
-
-                            if sz== count[idir]:
-                                name1="#Flux_"+zRname+'_'+name
-                                #Internal.createUniqueChild(tmp1 ,name1, 'UserDefinedData_t')
-                                #tmp   = Internal.getNodeFromName1(tmp1,name1)
-                                #Internal.setValue(tmp,zRname)
-                                #print('min ', imin,jmin,kmin, 'max ', imax, jmax,kmax, k1,k2)
-                                #print('minD', iminD,jminD,kminD, k1D, k2D)
-                                print("raccord conservatif: zD=", z[0], name1, 'win:', win[:,idir], 'winD:', winD[:,idir], 'taille win:', count[idir] )
-                                #print("raccord conservatif: zD=", z[0], name1,  win[:,idir], 'taille win:', count[idir])
-                                #Internal.createUniqueChild(tmp,'PointRange', 'DataArray_t', winD[:,idir])
-                                #Internal.createUniqueChild( tmp, 'PointRangeDonor', 'DataArray_t', win[:,idir])
-
-                                C._addBC2Zone(zr_t, 'Flux_'+zd_t[0]+'_'+name, 'BCFluxOctreeC', wrange=win[:,idir])
-                                if name[2]=='i':
-                                    name2= name[0:2]+'ax'
-                                else:
-                                    name2= name[0:2]+'in'
-                                C._addBC2Zone(zd_t, 'Flux_'+zr_t[0]+'_'+name2, 'BCFluxOctreeF', wrange=winD[:,idir])
-
-                            else: print("Error: build flux conservative octree"+name, sz, count[idir],  win[:,idir])
-                            #stop
-
-
-
     def setInterpDataAndSetInterpTransfer__(self, t):
 
         # setInterpData - Chimere
@@ -2342,22 +2038,27 @@ class IBM(Common):
             ##  etape3 : interp ordre5 nature 0 entre grille de niveau N (Receveur) et N-1, N+1 (Donneur)
 
             ## determine dx=dy for each zone & store per zone
-            levelZone_loc={}
-            hmin = 1.e30
+            ## determine dx=dy for each zone & store per zone
+            levelZone={}
+            hmin_loc = 1.e30
             for z in Internal.getZones(t):
                 h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-                #print("dx=",h)
-                levelZone_loc[z[0]]=h
-                if h < hmin : hmin = h
+                levelZone[z[0]]=h
+                if h < hmin_loc : hmin_loc = h
+            hmin_loc = Cmpi.allgather(hmin_loc)
+            if Cmpi.size > 1 :
+                hmin=1e30
+                for h in hmin_loc:
+                    if h < hmin : hmin = h
 
             ## go from dx to dx/dx_min
             Nlevels=1
-            for i in levelZone_loc:
-                levelZone_loc[i]= math.log( int(levelZone_loc[i]/hmin + 0.00000001)  , 2)
-                if levelZone_loc[i] +1  > Nlevels : Nlevels = int(levelZone_loc[i]) +1
+            for i in levelZone:
+                levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001)  , 2)
+                if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
 
             ## partage des info level en mpi
-            levelZone = Cmpi.allgather(levelZone_loc)
+            levelZone = Cmpi.allgather(levelZone)
 
             #
             #etape1: calcul interpolation entre grille de meme niveau (ordre2, nature1, pas d'extrap)a
@@ -3228,7 +2929,7 @@ class IBM(Common):
         ##OUT - tbbc                  :pytree of the bounding box of tc
         tc=self.setInterpDataAndSetInterpTransfer__(t)
 
-        if self.input_var.conservativeFlux: self.buildConservativeFlux__(t, tc)
+        if self.input_var.conservativeFlux: X_IBM._buildConservativeFlux(t, tc)
 
         ## ================================================
         ## ======= Specific treatment for front 2 =========
