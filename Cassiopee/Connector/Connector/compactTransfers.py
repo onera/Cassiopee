@@ -189,14 +189,15 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                 for c4, bc in enumerate(bcs):
                     bcname = bc[0].split('_')
                     btype = Internal.getValue(bc)
-                    if 'BCFluxOctreeF' == btype and bcname[1] == zRname: nbfluCons+=1 #flux donneur(Fine)
-                    if 'BCFluxOctreeC' == btype:                                      #flux receveur (Coarse)
-                        if   bcname[2][0:5]=='imin': idir_tg=2
-                        elif bcname[2][0:5]=='imax': idir_tg=1
-                        elif bcname[2][0:5]=='jmin': idir_tg=4
-                        elif bcname[2][0:5]=='jmax': idir_tg=3
-                        elif bcname[2][0:5]=='kmin': idir_tg=6
-                        elif bcname[2][0:5]=='kmax': idir_tg=5
+                    if 'BCFluxOctreeF' == btype and bcname[1]==zRname: nbfluCons+=1 #flux donneur(Fine)
+                    if 'BCFluxOctreeC' == btype:                                    #flux receveur (Coarse)
+                        idir_tg=-10
+                        if   bcname[2][0:4]=='imin': idir_tg=2
+                        elif bcname[2][0:4]=='imax': idir_tg=1
+                        elif bcname[2][0:4]=='jmin': idir_tg=4
+                        elif bcname[2][0:4]=='jmax': idir_tg=3
+                        elif bcname[2][0:4]=='kmin': idir_tg=6
+                        elif bcname[2][0:4]=='kmax': idir_tg=5
                         bc_info.append( [ bcname[1], idir_tg, c4 ] )
                 infoZoneList[zd[0]] = [ c , bc_info ] #[ No zoneD, bcs(conservatif)]
 
