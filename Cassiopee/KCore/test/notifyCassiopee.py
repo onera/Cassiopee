@@ -321,6 +321,10 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
 
     # Get prod name
     prod = getProd(logFiles[1])
+    
+    # Delete tests that were not run
+    refSession = [test for test in refSession if test[-1] != '...']
+    newSession = [test for test in newSession if test[-1] != '...']
 
     # Draw a one-to-one correspondance between tests of each session
     # (module + testname)
