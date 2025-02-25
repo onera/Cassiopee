@@ -238,7 +238,7 @@ def checkCheckoutStatus(sendEmail=False):
     if not any('FAILED' in log_machine for log_machine in log_entries):
         if sendEmail: sys.exit(0)
         else:
-            messageSubject = "[Checkout Cassiopee] State: OK"
+            messageSubject = "[Checkout Fast] State: OK"
             messageText = ""
             return messageSubject, messageText
 
@@ -250,7 +250,7 @@ def checkCheckoutStatus(sendEmail=False):
     gitInfo = "Git origin: {}\nGit branch: {}\nCommit hash: {}".format(
         gitOrigin, gitBranch, gitHash)
 
-    messageSubject = "[Checkout Cassiopee] State: FAILED"
+    messageSubject = "[Checkout Fast] State: FAILED"
     messageText = "Pulling updates for Cassiopee, Fast and all "\
         "PModules:\n{}\n\n{}\n\n".format(52*'-', gitInfo)
     messageText += '{:^20} | {:^15} | {:^30} | {:^10}\n{}\n'.format(
@@ -283,8 +283,7 @@ def checkValidStatus():
     gitInfo = "Git origin: {}".format(gitOrigin)
 
     vnvState = 'OK'
-    messageText = "Non-regression testing of Cassiopee, Fast and all "\
-        "PModules:\n{}\n\n{}\n\n".format(58*'-', gitInfo)
+    messageText = "Non-regression testing of Fast:\n{}\n\n{}\n\n".format(30*'-', gitInfo)
     messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
         "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
     for log_machine in log_entries:
@@ -298,11 +297,11 @@ def checkValidStatus():
             prod, gitBranch, gitHash, date, status)
         if 'FAILED' in log_machine: vnvState = 'FAILED'
 
-    messageSubject = "[V&V Cassiopee] State: {}".format(vnvState)
+    messageSubject = "[V&V Fast] State: {}".format(vnvState)
     if vnvState == 'FAILED':
         messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
-            'please contact the maintainer:\nbenjamin.constant@onera.fr'\
-            'nor list remaining issues with:\n'\
+            'please contact the maintainer:\nbenjamin.constant@onera.fr\n'\
+            'or list remaining issues with:\n'\
             'notifyFast --valid --prod=your_prod_name --full'
 
     return messageSubject, messageText
