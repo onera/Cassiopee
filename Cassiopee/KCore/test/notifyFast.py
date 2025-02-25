@@ -272,7 +272,7 @@ def checkCheckoutStatus(sendEmail=False):
 # Check valid status
 def checkValidStatus():
     log_entries = []
-    with open('/stck/cassiope/git/logs/validation_status.txt', 'r') as f:
+    with open('/stck/cassiope/git/logs/validationFast_status.txt', 'r') as f:
         for line in f:
             log_entries.append(line.strip().split(' - '))
     log_entries.sort(key=lambda x: x[3], reverse=True)
@@ -317,6 +317,10 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
 
     # Get prod name
     prod = getProd(logFiles[1])
+    
+    # Delete tests that were not run
+    refSession = [test for test in refSession if test[-1] != '...']
+    newSession = [test for test in newSession if test[-1] != '...']
 
     # Draw a one-to-one correspondance between tests of each session
     # (module + testname)
@@ -421,8 +425,8 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
             else: exitStatus = 2
         else: exitStatus = 1
 
-        # Amend state of the base in logs/validation_status.txt
-        logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
+        # Amend state of the base in logs/validationFast_status.txt
+        logAllValids = "/stck/cassiope/git/logs/validationFast_status.txt"
         entry = "{} - {} - {} - {} - {}\n".format(prod, gitInfo['Git branch'],
                                                   gitInfo['Commit hash'], tlog2,
                                                   baseState)
