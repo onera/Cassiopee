@@ -4250,7 +4250,7 @@ def _buildConservativeFlux(t, tc, verbose=0):
                 if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
 
     ## partage des info level en mpi
-    levelZone = Cmpi.allgather(levelZone)[0]
+    levelZone = Cmpi.allgatherDict(levelZone)
 
 
     #construction arbre skeleton global (tcs) pour calcul graph
@@ -4273,7 +4273,7 @@ def _buildConservativeFlux(t, tc, verbose=0):
     dimR_loc={}
     for z in Internal.getZones(tc):
         dimR_loc[ z[0] ] = Internal.getZoneDim(z) # taille en centre
-    dimR_loc = Cmpi.allgather(dimR_loc)[0]
+    dimR_loc = Cmpi.allgatherDict(dimR_loc)
 
     for z in Internal.getZones(tc):
 
