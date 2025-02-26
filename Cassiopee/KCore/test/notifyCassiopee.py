@@ -206,8 +206,8 @@ def checkInstallStatus():
     gitInfo = "Git origin: {}".format(gitOrigin)
 
     baseState = 'OK'
-    messageText = "Installation of Cassiopee, Fast and all "\
-        "PModules:\n{}\n\n{}\n\n".format(48*'-', gitInfo)
+    messageText = "Installation of Cassiopee and all "\
+        "PModules:\n{}\n\n{}\n\n".format(42*'-', gitInfo)
     messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
         "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
     for log_machine in log_entries:
@@ -254,8 +254,8 @@ def checkCheckoutStatus(sendEmail=False):
         gitOrigin, gitBranch, gitHash)
 
     messageSubject = "[Checkout Cassiopee] State: FAILED"
-    messageText = "Pulling updates for Cassiopee, Fast and all "\
-        "PModules:\n{}\n\n{}\n\n".format(52*'-', gitInfo)
+    messageText = "Pulling updates for Cassiopee and all "\
+        "PModules:\n{}\n\n{}\n\n".format(46*'-', gitInfo)
     messageText += '{:^20} | {:^15} | {:^30} | {:^10}\n{}\n'.format(
         "PROD.", "PCKG.", "DATE", "STATUS", 85*'-')
     for log_machine in log_entries:
@@ -287,8 +287,8 @@ def checkValidStatus():
     gitInfo = "Git origin: {}".format(gitOrigin)
 
     vnvState = 'OK'
-    messageText = "Non-regression testing of Cassiopee, Fast and all "\
-        "PModules:\n{}\n\n{}\n\n".format(58*'-', gitInfo)
+    messageText = "Non-regression testing of Cassiopee and all "\
+        "PModules:\n{}\n\n{}\n\n".format(52*'-', gitInfo)
     messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
         "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
     for log_machine in log_entries:

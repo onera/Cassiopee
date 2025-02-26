@@ -696,7 +696,7 @@ else if ($MAC == "juno") then
         unsetenv I_MPI_TCP_NETMASK
         unsetenv I_MPI_HYDRA_BOOTSTRAP_EXEC_EXTRA_ARGS I_MPI_HYDRA_BOOTSTRAP HYDRA_BOOTSTRAP
         unsetenv SLURM*
-        setenv OMP_PLACES cores
+        unsetenv OMP_PLACES
         setenv PYTHONEXE python3
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
@@ -728,7 +728,7 @@ else if ($MAC == "juno_gcc") then
         unsetenv OMP_PLACES
         setenv ASAN_OPTIONS verify_asan_link_order=false
         setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
-        setenv ASAN_LIB /opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+        setenv ASAN_LIB /opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
         
 else if ($MAC == "juno_gpu") then
 #----------------------------- juno gpu ------------------------------------
