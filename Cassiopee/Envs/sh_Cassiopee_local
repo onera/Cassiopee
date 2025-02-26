@@ -615,7 +615,7 @@ elif [ "$MAC" = "juno_gcc" ]; then
     unset OMP_PLACES
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
-    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
 
 elif [ "$MAC" = "juno_gpu" ]; then
 #----------------------------- juno gpu ------------------------------------
