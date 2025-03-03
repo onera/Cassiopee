@@ -832,8 +832,9 @@ def checkZoneFamily(t):
     for b in bases:
         zones = Internal.getZones(b)
         for z in zones:
-            f = Internal.getNodeFromType1(z, 'FamilyName_t')
-            if f is not None: # zone taggee
+            fs = Internal.getNodesFromType1(z, 'FamilyName_t')
+            fs += Internal.getNodesFromType1(z, 'AdditionalFamilyName_t')
+            for f in fs: # zone taggee
                 name = Internal.getValue(f)
                 # Check for family
                 ref = Internal.getNodeFromName1(b, name)
