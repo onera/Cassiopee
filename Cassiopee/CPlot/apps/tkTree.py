@@ -623,7 +623,7 @@ class Node:
             if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
             isFamilyBC = Internal.getNodeFromType1(pid, 'FamilyBC_t')
             if isFamilyBC is not None: return
-            
+
             activated = []
             active = -2
             dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
@@ -871,7 +871,7 @@ class Node:
             v = Internal.getValue(pid)
             CTK.TXT.insert('START', v+'\n')
 
-        elif pid[3] == 'Family_t':    
+        elif pid[3] == 'Family_t':
             isFamilyBC = Internal.getNodeFromType1(pid, 'FamilyBC_t')
             if isFamilyBC is not None:
                 CTK.TXT.insert('START', 'Family '+pid[0]+' is a familyBC.\n')
