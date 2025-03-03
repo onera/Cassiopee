@@ -517,3 +517,78 @@ def printStats(t, useCom='match', mode='nodes'):
     print("Info: external com ratio=%f%%"%(volRatio*100))
     if empty == 1: print("Warning: at least one processor is empty!")
     return (varMin, varMax, varRMS, volRatio, empty)
+
+
+#==================================================================================
+# Efficient distribute
+#==================================================================================
+def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
+    import Converter.Mpi as Cmpi
+    NPTS   = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    NCELLS = numpy.zeros(NP, dtype=Internal.E_NpyInt)
+    ##Done by zone for flexibility
+    for z in Internal.getZones(ts):
+        proc_num        = Cmpi.getProc(z)
+        NPTS[proc_num] += C.getNPts(z)
+        if not isAtCenter: NCELLS[proc_num] += C.getNCells(z)
+        else:              NCELLS[proc_num]  = NPTS[proc_num]
+
+    NPTS     = Cmpi.allreduce(NPTS  ,op=Cmpi.SUM)
+    NCELLS   = Cmpi.allreduce(NCELLS,op=Cmpi.SUM)
+    NptsTot  = numpy.sum(NPTS)
+    NcellsTot= numpy.sum(NCELLS)
+    ncells_percent=[]
+    if Cmpi.rank == 0:
+        for i in range(NP):
+            ncells_percent.append(NCELLS[i]/NcellsTot*100.)
+            if isAtCenter: print('Rank {} has {} cells & {} % of cells'.format(i,int(NCELLS[i]),round(ncells_percent[i],2)))
+            else:          print('Rank {} has {} points & {} cells & {} % of cells'.format(i,int(NPTS[i]),int(NCELLS[i]),round(ncells_percent[i],2)))
+
+        if isAtCenter:   print('All points: {} million cells'.format(NcellsTot/1.e6))
+        else:            print('All points: {} million points & {} million cells'.format(NptsTot/1.e6,NcellsTot/1.e6))
+        print('Range of % of cells: {} - {}'.format(round(min(ncells_percent),2),round(max(ncells_percent),2)))
+
+    return None
+
+
+def _write2pathLocal__(tsLocal, tLocal):
+    import Converter.Mpi as Cmpi
+    import Converter.Filter as Filter
+    paths = []; ns = []
+    bases = Internal.getBases(tsLocal)
+    for b in bases:
+        zones = Internal.getZones(b)
+        for z in zones:
+            nodes = Internal.getNodesFromName2(z, 'proc')
+            for n in nodes:
+                p = 'CGNSTree/%s/%s/.Solver#Param/proc'%(b[0],z[0])
+                paths.append(p); ns.append(n)
+    Filter.writeNodesFromPaths(tLocal, paths, ns, maxDepth=0, mode=1)
+    
+
+def _distributeSkeletonTree(tIn, tcIn, NP, algorithm='graph', tc2In=None, useCom='ID'):
+    """Distribute t and tc PyTrees over NP processors. If t & tc are the file names this function efficient loads, distributes, and write the new distributed files. This approach is the recommended one. 
+    Usage: _distributeSkeletonTree(t, tc, NP, algorithm='graph', tc2In=None, useCom='all')"""
+    import Converter.Mpi as Cmpi    
+    
+    if isinstance(tcIn, str): tcs = Cmpi.convertFile2SkeletonTree(tcIn, maxDepth=3)
+    else:                     tcs = tcIn
+
+    if isinstance(tIn, str): ts = Cmpi.convertFile2SkeletonTree(tIn, maxDepth=3)
+    else:                    ts = tIn
+    
+    stats = _distribute(tcs, NP, algorithm=algorithm, useCom=useCom)
+    _copyDistribution(ts, tcs)
+    
+    if isinstance(tcIn, str): _write2pathLocal__(tcs, tcIn)
+    if isinstance(tIn, str): _write2pathLocal__(ts, tIn)
+
+    if tc2In is not None:
+        if isinstance(tc2In, str): tc2s = Cmpi.convertFile2SkeletonTree(tc2In, maxDepth=3)
+        else:                      tc2s = tc2In
+        _copyDistribution(tc2s, tcs)
+
+        if isinstance(tc2In, str): _write2pathLocal__(tc2s, tc2In)
+
+    _checkNcellsNptsPerProc(ts,NP)
+    return None
