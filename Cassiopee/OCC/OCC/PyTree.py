@@ -562,7 +562,7 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None):
         b[2].append(z)
 
     _updateEdgesFaceList__(t)
-    _addOCAFCompoundNames(hook, t)
+    #_addOCAFCompoundNames(hook, t)
     _setLonelyEdgesColor(t)
 
     return t
