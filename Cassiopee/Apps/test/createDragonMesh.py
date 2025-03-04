@@ -5,7 +5,7 @@ import Geom.PyTree as D
 
 s = D.sphere((0,0,0),1,N=30)
 dictOfParams={}
-dictOfParams['hWall']=1e-3 # hauteur premiere maille
+dictOfParams['hWall']=1.e-3 # hauteur premiere maille
 dictOfParams['h_factor']=4
 dictOfParams['h_ext_factor']=4 #facteur*hauteur de la couche externe de prismes, -1
 
