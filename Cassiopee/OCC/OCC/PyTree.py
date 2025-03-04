@@ -562,6 +562,7 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None):
         b[2].append(z)
 
     _updateEdgesFaceList__(t)
+    _addOCAFCompoundNames(hook, t)
     _setLonelyEdgesColor(t)
 
     return t
@@ -1429,6 +1430,23 @@ def identifyTags__(a):
     array = C.getFields(Internal.__FlowSolutionNodes__, a, "__tag__", api=3)[0]
     return OCC.identifyTags__(array)
 
+# add family name on faces taken from OCAF compounds
+def _addOCAFCompoundNames(hook, t):
+    ret = OCC.occ.getFaceNameInOCAF(hook)
+    pos = getAllPos(t)
+    r = len(ret)//2
+    b = Internal.getNodeFromName1(t, 'FACES')
+    for i in range(r):
+        name = ret[2*i]
+        fl = ret[2*i+1]
+        for f in fl:
+            try:
+                z = getFace(t, pos, f)
+                C._tagWithFamily(z, name, add=True)
+            except: pass
+        C._addFamily2Base(b, name)
+    return None
+
 def getComponents(t):
     """Return the number of components in t, taggings faces with component number."""
     import Transform.PyTree as T
@@ -1461,6 +1479,6 @@ def getComponents(t):
         faces = tags[k]
         for f in faces:
             z = getFace(t, pos, f)
-            C._tagWithFamily(z, 'Component%02d'%k)
+            C._tagWithFamily(z, 'Component%02d'%k, add=True)
 
     return a

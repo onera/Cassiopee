@@ -97,7 +97,7 @@ E_Int __getParamHmax(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints, E_Floa
     for (E_Int i = 0; i < nbPoints; i++) ue[i] = i*(u1-u0)/(nbPoints-1)+u0;
     printf("Warning: regular param used on edge.\n");
   }
-  printf("L=%f hmax=%f nbPoints=" SF_D_ "\n", L, hmax, nbPoints); fflush(stdout);
+  //printf("L=%f hmax=%f nbPoints=" SF_D_ "\n", L, hmax, nbPoints); fflush(stdout);
   return 0;
 }
 

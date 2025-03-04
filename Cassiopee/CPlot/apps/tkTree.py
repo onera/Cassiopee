@@ -627,8 +627,10 @@ class Node:
             activated = []
             active = -2
             dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
+            nzones = 0
             for base in Internal.getBases(CTK.t):
                 zones = C.getFamilyZones(base, pid[0])
+                nzones += len(zones)
                 for z in zones:
                     #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
                     noz = dnz[base[0]][z[0]]
@@ -636,9 +638,9 @@ class Node:
                     if active == 1: activated.append( (noz, 0) )
                     else: activated.append( (noz, 1) )
             if active == 1:
-                CTK.TXT.insert('START', 'Family '+pid[0]+' deactivated.\n')
+                CTK.TXT.insert('START', 'Family %s deactivated.\n'%pid[0])
             elif active == 0:
-                CTK.TXT.insert('START', 'Family '+pid[0]+' activated.\n')
+                CTK.TXT.insert('START', 'Family %s activated (%d zones).\n'%(pid[0], nzones))
             CPlot.setActiveZones(activated)
 
     def PVT_clickMultipleSelect(self, event):
@@ -880,8 +882,10 @@ class Node:
                 selected = []
                 s = -1
                 dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
+                nzones = 0
                 for base in Internal.getBases(CTK.t):
                     zones = C.getFamilyZones(base, pid[0])
+                    nzones += len(zones)
                     for z in zones:
                         noz = dnz[base[0]][z[0]]
                         if s == -1:
@@ -893,9 +897,9 @@ class Node:
                 if clear: CPlot.unselectAllZones()
                 CPlot.setSelectedZones(selected)
                 if s == 1:
-                    CTK.TXT.insert('START', 'Family of zones '+pid[0]+' selected.\n')
+                    CTK.TXT.insert('START', 'Family %s selected (%d zones).\n'%(pid[0], nzones))
                 else:
-                    CTK.TXT.insert('START', 'Family of zones '+pid[0]+' unselected.\n')
+                    CTK.TXT.insert('START', 'Family %s unselected.\n'%pid[0])
 
         elif pid[3] == 'Descriptor_t':
             v = Internal.getValue(pid)
