@@ -523,6 +523,7 @@ def printStats(t, useCom='match', mode='nodes'):
 # Efficient distribute
 #==================================================================================
 def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
+    ## Calculate and prints the number of cells & points for each proc. Provides a human-readable summary of the MPI distribution.
     import Converter.Mpi as Cmpi
     NPTS   = numpy.zeros(NP, dtype=Internal.E_NpyInt)
     NCELLS = numpy.zeros(NP, dtype=Internal.E_NpyInt)
@@ -552,6 +553,7 @@ def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
 
 
 def _write2pathLocal__(tsLocal, tLocal):
+    ##Modifies the .Solver#Param/proc only in the files
     import Converter.Mpi as Cmpi
     import Converter.Filter as Filter
     paths = []; ns = []
@@ -564,31 +566,18 @@ def _write2pathLocal__(tsLocal, tLocal):
                 p = 'CGNSTree/%s/%s/.Solver#Param/proc'%(b[0],z[0])
                 paths.append(p); ns.append(n)
     Filter.writeNodesFromPaths(tLocal, paths, ns, maxDepth=0, mode=1)
-    
 
-def _distributeSkeletonTree(tIn, tcIn, NP, algorithm='graph', tc2In=None, useCom='ID'):
-    """Distribute t and tc PyTrees over NP processors. If t & tc are the file names this function efficient loads, distributes, and write the new distributed files. This approach is the recommended one. 
-    Usage: _distributeSkeletonTree(t, tc, NP, algorithm='graph', tc2In=None, useCom='all')"""
-    import Converter.Mpi as Cmpi    
-    
-    if isinstance(tcIn, str): tcs = Cmpi.convertFile2SkeletonTree(tcIn, maxDepth=3)
-    else:                     tcs = tcIn
 
-    if isinstance(tIn, str): ts = Cmpi.convertFile2SkeletonTree(tIn, maxDepth=3)
-    else:                    ts = tIn
-    
-    stats = _distribute(tcs, NP, algorithm=algorithm, useCom=useCom)
-    _copyDistribution(ts, tcs)
-    
-    if isinstance(tcIn, str): _write2pathLocal__(tcs, tcIn)
-    if isinstance(tIn, str): _write2pathLocal__(ts, tIn)
-
-    if tc2In is not None:
-        if isinstance(tc2In, str): tc2s = Cmpi.convertFile2SkeletonTree(tc2In, maxDepth=3)
-        else:                      tc2s = tc2In
-        _copyDistribution(tc2s, tcs)
-
-        if isinstance(tc2In, str): _write2pathLocal__(tc2s, tc2In)
-
-    _checkNcellsNptsPerProc(ts,NP)
+def _distributeSkeletonTree(tIn, NP, algorithm='graph', useCom='ID'):
+    """Distribute PyTrees over NP processors. t is a list with the file names.
+    Usage: _distributeSkeletonTree(t=[], NP, algorithm='graph', useCom='all')"""
+    import Converter.Mpi as Cmpi
+    fileNameLength = len(tIn)
+    for fileName in tIn:
+        ts    = Cmpi.convertFile2SkeletonTree(fileName, maxDepth=3)
+        stats = _distribute(ts, NP, algorithm=algorithm, useCom=useCom)
+        _write2pathLocal__(ts, fileName)
+        if fileName==tIn[0]: tcs = Internal.copyTree(ts)
+        if fileNameLength>1 and fileName!=tIn[0]: _copyDistribution(ts, tcs)
+    _checkNcellsNptsPerProc(tcs,NP)
     return None
