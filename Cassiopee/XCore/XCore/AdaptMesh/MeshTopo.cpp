@@ -28,8 +28,12 @@
 inline
 E_Int Mesh_is_face_aligned_with_vec3(Mesh *M, E_Int fid, E_Float *vec3)
 {
-    E_Int nn, pn[8];
-    Mesh_get_fpoints(M, fid, nn, pn);
+    E_Int pn[4];
+    E_Int *face = Mesh_get_face(M, fid);
+    E_Int *frange = Mesh_get_frange(M, fid);
+    for (E_Int i = 0; i < M->fstride[fid]; i++) {
+        pn[i] = face[2*i];
+    }
 
     // Compute normal to the triangle formed by the first 3 points
     E_Float e0[3] = { M->X[pn[1]] - M->X[pn[0]],
@@ -68,7 +72,7 @@ E_Int set_HEXA_for_2D(E_Int cid, Mesh *M)
     }
 
     if (start == M->cstride[cid]) {
-        merr("Cell " SF_D_ " is not aligned with 2D vector.", cid);
+        merr("%d -> Cell " SF_D_ " is not aligned with 2D vector.", M->pid, cid);
         assert(0);
         return 1;
     }
