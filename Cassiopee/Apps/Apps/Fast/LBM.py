@@ -1,11 +1,8 @@
 # Class for FastLBM prepare
-import FastC.PyTree as FastC
 import Converter.PyTree as C
-import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
-from Apps.Fast.Common import Common
 import numpy
 try: range = xrange
 except: pass
@@ -21,7 +18,6 @@ def prepare(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single'
     # sequential prep
     if rank == 0: ret = prepare0(t_case, t_out, tc_out, translation, NP, format, NG=NG)
     return ret
-
 
 def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single',NG=1):
     if isinstance(t_case, str): t = C.convertFile2PyTree(t_case)
@@ -344,28 +340,3 @@ def prepareNonUniform0(t_case, t_out, tc_out, zones_dict={}, translation=[0.,0.,
         Internal.createChild(z, 'ZoneRind', 'Rind_t',value=rindplanes, children=[])
 
     return t, tc
-
-#====================================================================================
-class LBM(Common):
-    """Preparation et caculs avec le module FastLBM."""
-    def __init__(self, format=None, numb=None, numz=None):
-        Common.__init__(self, format, numb, numz)
-        self.__version__ = "0.0"
-        self.authors = ["stephanie.peron@onera.fr"]
-        self.cartesian = True
-
-    # Prepare
-    def prepare(self, t_case, t_out=None, tc_out=None, NP=0, translation=[0.,0.,0.],NG=1):
-        #if NP is None: NP = Cmpi.size
-        #if NP == 0: print('Preparing for a sequential computation.')
-        #else: print('Preparing for a computation on %d processors.'%NP)
-        ret = prepare(t_case, t_out, tc_out, translation=translation, NP=NP, format=self.data['format'],NG=NG)
-        return ret
-
-    # Prepare for non uniform grids (overset and/or grid refinement)
-    def prepareNonUniform(self, t_case, t_out=None, tc_out=None, NP=0, zones_dict={}, translation=[0.,0.,0.],NG=1):
-        #if NP is None: NP = Cmpi.size
-        #if NP == 0: print('Preparing for a sequential computation.')
-        #else: print('Preparing for a computation on %d processors.'%NP)
-        ret = prepareNonUniform(t_case, t_out, tc_out, zones_dict=zones_dict, translation=translation, NP=NP, format=self.data['format'],NG=NG)
-        return ret

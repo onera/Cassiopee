@@ -3480,9 +3480,9 @@ def _convertArray2NGon(t, recoverBC=True, api=1):
             else: gbcs.append(getBCs(z, extrapFlow=False))
     else: _deleteZoneBC__(t)
     _deleteGridConnectivity__(t)
-    _TZA1(t, 'both', 'nodes', True, Converter.convertArray2NGon)
-    #_TZAX(api, t, 'both', 'nodes', True, Converter.convertArray2NGon, api)
-    Internal._fixNGon(t)
+    #_TZA1(t, 'both', 'nodes', True, Converter.convertArray2NGon)
+    _TZAX(api, t, 'both', 'nodes', True, Converter.convertArray2NGon, api)
+    Internal._fixNGon(t, api=api)
 
     # Recover BCs for NGon
     if recoverBC:

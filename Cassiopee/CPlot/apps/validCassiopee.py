@@ -288,7 +288,7 @@ def check_output(cmd, shell, stderr):
                                    shell=shell, preexec_fn=ossid)
 
         # max accepted time is between 2 to 6 minutes
-        nthreads = float(KCore.kcore.getOmpMaxThreads())
+        nthreads = float(Threads.get())
         timeout = (100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
         stdout, stderr = PROCESS.communicate(None, timeout=timeout)
 
@@ -324,17 +324,20 @@ def ljust(text, size):
 #==============================================================================
 def buildString(module, test, CPUtime='...', coverage='...%', status='...',
                 tag=' '):
-    global TESTMETA, TESTMETA_UPDATE
+    global TESTMETA_UPDATE
     testName = module+'/'+test
     refDate = '...'
     if testName not in TESTMETA:
         TESTMETA_UPDATE = True
-        TESTMETA[testName] = newMetadata()
-    elif TESTMETA[testName].get('ref', []):
-        refDate = TESTMETA[module+'/'+test]['ref'][0].get('date', '...')
-    refCoverage = TESTMETA[module+'/'+test].get('coverage', '...%')
-    refCPUtime = TESTMETA[module+'/'+test].get('time', '...')
-    refTag = TESTMETA[module+'/'+test].get('tag', ' ')
+        refCoverage = '...%'
+        refCPUtime = '...'
+        refTag = ' '
+    else:
+        if TESTMETA[testName].get('ref', []):
+            refDate = TESTMETA[testName]['ref'][0].get('date', '...')
+        refCoverage = TESTMETA[testName].get('coverage', '...%')
+        refCPUtime = TESTMETA[testName].get('time', '...')
+        refTag = TESTMETA[testName].get('tag', ' ')
 
     execTime = '../../.. ..h..'
     if status != '...': # Not First call
@@ -602,6 +605,7 @@ def runSingleUnitaryTest(no, module, test, update=False):
     m1 = expTest1.search(test) # seq (True) ou distribue (False)
 
     nthreads = KCore.kcore.getOmpMaxThreads()
+    nthreads = int(Threads.get())
     bktest = "bk_{0}".format(test) # backup
 
     if mySystem == 'mingw' or mySystem == 'windows':
@@ -680,11 +684,11 @@ def runSingleUnitaryTest(no, module, test, update=False):
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
 
+    if update or (module+'/'+test not in TESTMETA):  # Update test metadata
+        updateTestMetadata(module, test, CPUtime)
+
     # Recupere le tag local
     tag = TESTMETA[module+'/'+test]['tag']
-
-    if update:  # Update test metadata
-        updateTestMetadata(module, test, CPUtime)
 
     # update status
     if success == 0: status = 'OK'
@@ -722,6 +726,7 @@ def runSingleCFDTest(no, module, test, update=False):
         except: m1 = None
 
     nthreads = KCore.kcore.getOmpMaxThreads()
+    nthreads = int(Threads.get())
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
@@ -782,11 +787,11 @@ def runSingleCFDTest(no, module, test, update=False):
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
 
+    if update or (module+'/'+test not in TESTMETA):  # Update test metadata
+        updateTestMetadata(module, test, CPUtime)
+
     # Recupere le tag local
     tag = TESTMETA[module+'/'+test]['tag']
-
-    if update:  # Update test metadata
-        updateTestMetadata(module, test, CPUtime)
 
     # update status
     if success == 0: status = 'OK'
@@ -990,19 +995,22 @@ def rmFile(path, fileName):
 # Construit la liste des tests
 # Update TESTS et la listBox
 #==============================================================================
-def buildTestList(loadSession=False, modules=[]):
+def buildTestList(sessionName=None, modules=[]):
     global TESTS
     TESTS = []
     Listbox.delete(0, 'end')
     if not modules:
         modules = getModules()
-    # Read last sessionLog conditionally
-    ncolumns = 8
-    logname = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], "session-*.log")))
-    if len(logname): logname = logname[-1]
-    else: loadSession = False
 
-    if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
+    if sessionName is not None:
+        # Read last sessionLog conditionally
+        ncolumns = 8
+        logname = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], "{}-*.log".format(sessionName))))
+        if len(logname): logname = logname[-1]
+        else: sessionName = None
+
+    if (sessionName is not None and os.access(logname, os.R_OK) and
+            os.path.getsize(logname) > 0):
         print("Loading last session: {}".format(logname))
         with open(logname, "r") as g:
             sessionLog = [line.rstrip().split(':') for line in g.readlines()]
@@ -1050,7 +1058,7 @@ def buildTestList(loadSession=False, modules=[]):
     for m in modules:
         tests = getTests(m)
         for t in tests:
-            if loadSession and arr.size:
+            if sessionName is not None and arr.size:
                 testArr = arr[np.logical_and(arr[:,0] == m, arr[:,1] == t)]
                 if testArr.size:
                     # Args are CPU time, Coverage, Status, and Tag if present
@@ -1066,7 +1074,7 @@ def buildTestList(loadSession=False, modules=[]):
                 s = buildString(m, t)
             TESTS.append(s)
             Listbox.insert('end', s)
-    if loadSession and arr.size: writeSessionLog()
+    if sessionName is not None and arr.size: writeSessionLog()
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
 
@@ -1512,7 +1520,7 @@ def notifyValidOK():
         sys.exit()
 
 #==============================================================================
-def Quit(event=None):
+def Quit(event=None, sessionName="session"):
     import os
     import shutil
     logname = os.path.join(VALIDDIR['LOCAL'], "session.log")
@@ -1520,7 +1528,7 @@ def Quit(event=None):
     # permissions
     if os.access(VALIDDIR['LOCAL'], os.W_OK) and (not os.path.getsize(logname) == 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
-        dst = os.path.join(VALIDDIR['LOCAL'], "session-{}.log".format(now))
+        dst = os.path.join(VALIDDIR['LOCAL'], "{}-{}.log".format(sessionName, now))
         print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
     # Write test metadata
@@ -1548,7 +1556,8 @@ def tagSelection(event=None):
         tag = splits[6].strip()
         if not tag: tag = '*'
         else: tag = tagSymbols[(tagSymbols.index(tag)+1)%ntags]
-        TESTMETA[module+'/'+test]['tag'] = tag
+        if module+'/'+test in TESTMETA:
+            TESTMETA[module+'/'+test]['tag'] = tag
         splits[6] = ' {} '.format(tag)
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
@@ -1571,7 +1580,8 @@ def untagSelection(event=None):
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
-        TESTMETA[module+'/'+test]['tag'] = ' '
+        if module+'/'+test in TESTMETA:
+            TESTMETA[module+'/'+test]['tag'] = ' '
         splits[6] = ' '*3
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
@@ -1695,6 +1705,9 @@ def parseArgs():
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
                         help="Run selected tests")
+    parser.add_argument("-s", "--session-name", type=str, default='session',
+                        dest="sessionName",
+                        help="Name of the session file. Default: session")
     parser.add_argument("--update", action="store_true",
                         help="Update local database")
 
@@ -1702,8 +1715,8 @@ def parseArgs():
     return parser.parse_args()
 
 # Purge session logs by date down to the last n most recent
-def purgeSessionLogs(n):
-    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], 'session-*.log')))
+def purgeSessionLogs(n, sessionName="session"):
+    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], '{}-*.log'.format(sessionName))))
     if len(lognames) > n:
         for log in lognames[:-n]: os.remove(log)
     return None
@@ -1801,7 +1814,7 @@ if __name__ == '__main__':
         viewTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='View', menu=viewTab)
 
-        loadSessionWithArgs = partial(buildTestList, True)
+        loadSessionWithArgs = partial(buildTestList, "session")
         fileTab.add_command(label='Load last session', command=loadSessionWithArgs)
         fileTab.add_command(label='Purge session', command=buildTestList)
         fileTab.add_command(label='Export to text file', command=export2Text)
@@ -1944,12 +1957,13 @@ if __name__ == '__main__':
         TextThreads = NoDisplayEntry()
         getThreads()
 
+        sessionName = vcargs.sessionName if vcargs.loadSession else None
         if (os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and
                 vcargs.global_db and not (vcargs.update or isDBAdmin())):
-            ierr = setupGlobal(loadSession=vcargs.loadSession)
+            ierr = setupGlobal(sessionName=sessionName)
             if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
-        else: setupLocal(loadSession=vcargs.loadSession)
-        purgeSessionLogs(vcargs.purge)
+        else: setupLocal(sessionName=sessionName)
+        purgeSessionLogs(n=vcargs.purge, sessionName=vcargs.sessionName)
         if vcargs.filters:
             Filter.set(vcargs.filters)
             filterTestList()
@@ -1960,4 +1974,4 @@ if __name__ == '__main__':
                 updateASANOptions()
             selectAll()
             runTests(update=vcargs.update)
-            Quit()
+            Quit(sessionName=vcargs.sessionName)

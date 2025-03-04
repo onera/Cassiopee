@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <cmath>
 
 #include "Fld/FldFortranVecP.h"
 #include "Def/DefFunction.h"

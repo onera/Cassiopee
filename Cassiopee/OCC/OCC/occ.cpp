@@ -37,6 +37,7 @@ static PyMethodDef Pyocc [] =
   {"printOCAF", K_OCC::printOCAF, METH_VARARGS},
   {"printShapeOCAF", K_OCC::printShapeOCAF, METH_VARARGS},
   {"getFaceNameInOCAF", K_OCC::getFaceNameInOCAF, METH_VARARGS},
+  {"getFaceNameInOCAF2", K_OCC::getFaceNameInOCAF2, METH_VARARGS},
   
   {"bottle", K_OCC::bottle, METH_VARARGS},
   {"addSphere", K_OCC::addSphere, METH_VARARGS},
@@ -82,6 +83,7 @@ static PyMethodDef Pyocc [] =
   {"removeFaces", K_OCC::removeFaces, METH_VARARGS},
   {"fillHole", K_OCC::fillHole, METH_VARARGS},
   {"addFillet", K_OCC::addFillet, METH_VARARGS},
+  {"mergeFaces", K_OCC::mergeFaces, METH_VARARGS},
 
   {"translate", K_OCC::translate, METH_VARARGS},
   {"scale", K_OCC::scale, METH_VARARGS},

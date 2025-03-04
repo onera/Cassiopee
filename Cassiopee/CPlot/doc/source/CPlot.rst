@@ -39,7 +39,7 @@ List of functions
    CPlot.add
    CPlot.replace
    CPlot.finalizeExport
-
+   CPlot.PyTree.display360
 
 **-- Set / Get functions**
 
@@ -223,7 +223,7 @@ Actions
     :type renderTags: list of strings
     :param frameBuffer: the number of the frame buffer we are rendering to for offscreen rendering
     :type frameBuffer: int
-    :param offscreen: 0:  rendering, 1: offscreen rendering (osmesa), 2: offscreen rendering (openGL), 3: partial composite offscreen rendering (openGL), 4: final composite offscreen rendering (openGL), 5: partial composite offscreen rendering (osmesa), 6: final composite offscreen rendering (osmesa), 7: parallel offscreen rendering (osmesa) (default: 0)
+    :param offscreen: 0: direct rendering, 1: offscreen rendering (osmesa), 2: offscreen rendering (openGL), 3: partial composite offscreen rendering (openGL), 4: final composite offscreen rendering (openGL), 5: partial composite offscreen rendering (osmesa), 6: final composite offscreen rendering (osmesa), 7: parallel offscreen rendering (osmesa) (default: 0)
     :type offscreen: int
 
     *Example of use:*
@@ -243,6 +243,33 @@ Actions
     * `Display offscreen with osmesa (pyTree) <Examples/CPlot/displayOffScreenPT.py>`_:
 
     .. literalinclude:: ../build/Examples/CPlot/displayOffScreenPT.py
+
+------------------------------------------
+
+.. py:function:: CPlot.PyTree.display360(a, stereo=0, offscreen=1, ...)
+    
+    Display a 360-degree view of the pyTree. This function is useful for creating
+    panoramic views of the data.
+    Accepts the same argument as CPlot.display.
+    If stereo=0, no stereo.
+    If stereo=1, ODS stereo (only for offscreen=1 or 7).
+
+    :param a: input pyTree
+    :type a: pyTree
+    :param stereo: stereo type.
+    :type stereo: 0, 1, 2
+    :param offscreen: renderer: 1 (osmesa), 2 (openGL)
+    :type offscreen: 1, 2
+
+    *Example of use:*
+
+    * `Display 360 view (pyTree) <Examples/CPlot/display360PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/display360PT.py
+
+    * `Display 360 view stereo (pyTree) <Examples/CPlot/display360sPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/display360sPT.py
 
 ------------------------------------------
 

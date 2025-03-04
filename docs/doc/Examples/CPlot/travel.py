@@ -23,4 +23,3 @@ for i in range(1300):
     elif i < 400: CPlot.travelRight(0.001, N=3)
     elif i < 600: CPlot.travelUp(0.001, N=3)
     elif i < 800: CPlot.travelIn(0.001, N=3)
-

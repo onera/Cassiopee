@@ -7,7 +7,6 @@ import CPlot.PyTree as CPlot
 offscreen = 1
 
 # Create model
-#a = G.cart((-4,-4,-4), (1,1,1), (9,9,9))
 a = D.sphere((0,0,0), 1., 50)
 C._initVars(a, '{f}={CoordinateZ}')
 

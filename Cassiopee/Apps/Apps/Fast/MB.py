@@ -9,7 +9,6 @@ import Converter.PyTree as C
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
-from Apps.Fast.Common import Common
 
 #================================================================================
 # Multibloc prepare (avec split)
@@ -282,25 +281,6 @@ def post0(t_in, t_out, wall_out, format='single'):
     return a, w
 
 #====================================================================================
-class MB(Common):
-    """Preparation et calculs avec le module FastS."""
-    def __init__(self, format=None, numb=None, numz=None):
-        Common.__init__(self, format, numb, numz)
-        self.__version__ = "0.0"
-        self.authors = ["ash@onera.fr"]
-
-    # Prepare
-    def prepare(self, t_case, t_out, tc_out, NP):
-        if NP == 0: print('Preparing for a sequential computation.')
-        else: print('Preparing for a computation on %d processors.'%NP)
-        return prepare(t_case, t_out, tc_out, NP, self.data['format'])
-
-    # post-processing: extrait la solution aux neouds + le champs sur les surfaces
-    def post(self, t_in, t_out, wall_out):
-        return post(t_in, t_out, wall_out, self.data['format'])
-
-
-
 def calc_cp_cf(t,h,listzones,isRANS=False,wallType='BCWall',mode=None):
     h._loadZones(t, znp=listzones)
 

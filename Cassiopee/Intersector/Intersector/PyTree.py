@@ -1,4 +1,4 @@
-"""Grid generation module.
+"""Grid intersection module.
 """
 #
 # Python Interface to create PyTrees defining meshes
@@ -22,7 +22,6 @@ try:
     import Transform.PyTree as T
     import Generator.PyTree as G
     import Post.PyTree as P
-    import Connector.PyTree as X
 except:
     raise ImportError("Intersector.PyTree: requires Converter.PyTree module.")
 
@@ -47,7 +46,6 @@ def nb_cells(a):
     zones = Internal.getNodesFromType2(a, 'Zone_t')
     for z in zones:
         dim = Internal.getZoneDim(z)
-        np = dim[1]
         ncells = dim[2]
         ncellsTot += ncells
     return ncellsTot
@@ -81,7 +79,6 @@ def nb_faces(t):
 def updateNugaData(field, oid):
     new_fld = numpy.empty(len(oid), Internal.E_NpyInt)
     i = -1
-    #print(oid)
     for oi in oid:
         i += 1
         new_fld[i] = field[oi]
@@ -116,12 +113,12 @@ def getZoneNSTypeAndDim(z):
     d = dims[4]
     if d == 2:
         if dims[3] == 'NGON': return ('NGON_CASSIOPEE', 2)
-        else : return ('BASIC', 2)
+        else: return ('BASIC', 2)
     else: # 3D
         #print(nb_cells(z))
         if dims[3] == 'NGON' and nb_cells(z) == 1: return ('NGON_NUGA',2)
         elif dims[3] == 'NGON': return ('NGON', 3)
-        else : return ('BASIC', 3)
+        else: return ('BASIC', 3)
 
 #==============================================================================
 # InputType: XXX
@@ -244,7 +241,7 @@ def computeMeshAssemblyParameters(t):
 
 # GOAL : Computes the minimum cell volume in a liste of zones
 
-# IN: t             : 3D NGON mesh
+# IN: t: 3D NGON mesh
 
 # OUT: returns the tolerance and the max bounding box size
 #==============================================================================
@@ -577,7 +574,7 @@ def getBCPtListOfType(z, typesList, families=[]):
     ptList = []
     for n in nodes:
         ptlnod = Internal.getNodesFromType(n, 'IndexArray_t')
-        if ptlnod == [] : continue
+        if ptlnod == []: continue
         x = ptlnod[0][1]
         #print(x)
         if type(x[0]) is numpy.ndarray: # ptlnod[0][1] is a list with one ptlist : [ [...] ]
@@ -585,7 +582,7 @@ def getBCPtListOfType(z, typesList, families=[]):
         else: # # ptlnod[0][1] is directly the ptlist : [...]
             ptList.append(x)
 
-    if (ptList != []) : ptList = numpy.concatenate(ptList).ravel() # create a single list
+    if ptList != []: ptList = numpy.concatenate(ptList).ravel() # create a single list
 
     return ptList
 
@@ -596,7 +593,7 @@ def updateJoinsPointLists2(z, zones, jzids, ptLists):
     # zone name to id
     name2id = dict()
     i = 0
-    for zz in zones :
+    for zz in zones:
         name2id[zz[0]] = i
         #print('zone ' + z[0] + ' has ' + str(i))
         i += 1
@@ -604,7 +601,7 @@ def updateJoinsPointLists2(z, zones, jzids, ptLists):
     #print('processed zone  : ' + z[0])
 
     joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-    zname=z[0]
+    zname = z[0]
 
     # update the Join pointlist and synchronize with other zones (their pointListDonnor)
     for j in joins:
@@ -616,12 +613,12 @@ def updateJoinsPointLists2(z, zones, jzids, ptLists):
         joinsD = Internal.getNodesFromType(dz, 'GridConnectivity_t')
         for jd in joinsD:
             dname = "".join(Internal.getValue(jd))
-            if (dname != zname) : continue
+            if dname != zname: continue
             ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
 
             PG0 = ptl[1][0][0] # first polygon in the poitn list
             PG0D = ptlD[1][0][0] # first polygon in the poitn list
-            if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
+            if PG0 != PG0D: continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
 
             id = name2id[donnorName]
 

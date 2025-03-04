@@ -1,0 +1,10 @@
+#! /bin/sh
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/notifyCassiopee.py"
+then
+    python "$CASSIOPEE/Dist/bin/$ELSAPROD/notifyCassiopee.py" "$@"
+else
+    python "$CASSIOPEE/Dist/bin/$ELSAPROD/notifyCassiopee.pyc" "$@"
+fi

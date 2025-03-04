@@ -21,12 +21,19 @@
 #include "TDF_Label.hxx"
 #include "TDF_LabelSequence.hxx"
 #include "TDF_Tool.hxx"
+#include "TDF_AttributeIterator.hxx"
+#include "TDF_Attribute.hxx"
+#include "TDF_ChildIterator.hxx"
+#include "TDF_TagSource.hxx"
+
 #include "XCAFDoc_ShapeTool.hxx"
 #include "XCAFDoc_DocumentTool.hxx"
+#include "XCAFDoc_ShapeMapTool.hxx"
+
 #include "TDocStd_Document.hxx"
+#include "TDocStd_XLink.hxx"
 #include "TDataStd_Name.hxx"
 #include "TDataStd_AsciiString.hxx"
-#include "TDF_ChildIterator.hxx"
 #include <iostream>
 
 #include "TNaming_UsedShapes.hxx"
@@ -44,128 +51,176 @@
 #include "TDataStd_RealArray.hxx"
 #include "TDataStd_RealList.hxx"
 
+#include "TopTools_IndexedMapOfShape.hxx"
+#include "TopoDS_Shape.hxx"
 
+//=======================================
 // recursive iteration through labels
+// print label attributes
+//=======================================
 void iterateLabels(const TDF_Label& label) 
 {
   // print label entry
-  TCollection_AsciiString es;
-  TDF_Tool::Entry(label, es); // retourne l'entry de la label (3:0:3 indiquant sa position dans la hierarchie)
-  std::cout  <<  "Info: Label entry: " << es.ToCString() << std::endl;
+  TCollection_AsciiString entry;
+  TDF_Tool::Entry(label, entry); // retourne l'entry de la label (3:0:3 indiquant sa position dans la hierarchie)
+  std::cout  <<  "Info: Label entry: " << entry.ToCString() << std::endl;
 
-  // Number of attributes
+  // Number of attributes of label
   E_Int n = TDF_Tool::NbAttributes(label);
   std::cout  <<  "Info: number of attached attributes: " << n << std::endl;
 
-  // Name String attributes
+  // iterate all attributes and print attribute
+  TDF_AttributeIterator it = label;
+  E_Int ni = 0;
+  while (it.More()) 
+  {
+    Handle(TDF_Attribute) attr = it.Value();
+    std::cout << "Info: attribute "<< ni << ": " << attr << std::endl;
+    it.Next();
+    ni++;
+  }
+
+  // extract TDataStd_Name attribute
   Handle(TDataStd_Name) nameAttr;
   if (label.FindAttribute(TDataStd_Name::GetID(), nameAttr))
   {
     TCollection_ExtendedString name = nameAttr->Get();
-    std::cout << ">>>>: Label string: " << name << std::endl;
+    std::cout << ">>>>: Label name: " << name << std::endl;
   }
 
-  // NamedShape attribute
+  // extract TNaming_NamedShape attribute
   Handle(TNaming_NamedShape) tnnsAttr;
   if (label.FindAttribute(TNaming_NamedShape::GetID(), tnnsAttr))
   {
-    std::cout << ">>>>: TNaming_NamedShape " << std::endl;
-    std::cout << ">>>>: TNaming_NamedShape Version " << tnnsAttr->Version() << std::endl;
+    std::cout << ">>>>: Found TNaming_NamedShape " << std::endl;
+    std::cout << ">>>>: TNaming_NamedShape Version: " << tnnsAttr->Version() << std::endl;
     TNaming_Evolution evo = tnnsAttr->Evolution();
     if (evo == TNaming_PRIMITIVE)
       std::cout << ">>>>: Evolution PRIMITIVE"<< std::endl;
 
   }
 
-  // UsedShapes attribute
+  // extract TNaming_UsedShapes attribute
   Handle(TNaming_UsedShapes) tnusAttr;
   if (label.FindAttribute(TNaming_UsedShapes::GetID(), tnusAttr))
   {
-    std::cout << ">>>>: TNaming_UsedShapes " << std::endl;
+    std::cout << ">>>>: Found TNaming_UsedShapes " << std::endl;
   }
 
-  // Asciistring attribute
+  // extract TDataStd_Asciistring attribute
   Handle(TDataStd_AsciiString) tasAttr;
   if (label.FindAttribute(TDataStd_AsciiString::GetID(), tasAttr))
   {
     std::cout << ">>>>: Ascii string " << tasAttr->Get() << std::endl;
   }
 
-  // Reference (parametre?)
+  // extract TDF_Reference (parametre?)
   Handle(TDF_Reference) ref;
   if (label.FindAttribute(TDF_Reference::GetID(), ref))
   {
     std::cout << ">>>>: reference detected " << std::endl;
   }
 
-  // Comment
+  // extract TDataStd_Comment
   Handle(TDataStd_Comment) attComment;
   if (label.FindAttribute(TDataStd_Comment::GetID(), attComment))
   {
     std::cout << ">>>>: comment detected " << std::endl;
   }
 
-  // Expression
+  // extract TDataStd_Expression
   Handle(TDataStd_Expression) attExpression;
   if (label.FindAttribute(TDataStd_Expression::GetID(), attExpression))
   {
     std::cout << ">>>>: expression detected " << std::endl;
   }
 
-  // ExtStringArray
+  // extract TDataStd_ExtStringArray
   Handle(TDataStd_ExtStringArray) attExtStringArray;
   if (label.FindAttribute(TDataStd_Expression::GetID(), attExtStringArray))
   {
     std::cout << ">>>>: extStringArray detected "  << std::endl;
   }
 
-  // ExtStringList
+  // extract TDataStd_ExtStringList
   Handle(TDataStd_ExtStringList) attExtStringList;
   if (label.FindAttribute(TDataStd_Expression::GetID(), attExtStringList))
   {
-    std::cout << ">>>>: extStringList detected "  << std::endl;
+    std::cout << ">>>>: ExtStringList detected "  << std::endl;
   }
 
-  // Integer
+  // extract TDataStd_Integer
   Handle(TDataStd_Integer) attInteger;
   if (label.FindAttribute(TDataStd_Integer::GetID(), attInteger))
   {
-    std::cout << ">>>>: integer detected "  << std::endl;
+    std::cout << ">>>>: Integer detected "  << std::endl;
   }
 
-  // IntegerArray
+  // extract TDataStd_IntegerArray
   Handle(TDataStd_IntegerArray) attIntegerArray;
   if (label.FindAttribute(TDataStd_IntegerArray::GetID(), attIntegerArray))
   {
-    std::cout << ">>>>: integerArray detected "  << std::endl;
+    std::cout << ">>>>: IntegerArray detected "  << std::endl;
   }
 
-  // IntegerList
+  // extract TDataStd_IntegerList
   Handle(TDataStd_IntegerList) attIntegerList;
   if (label.FindAttribute(TDataStd_IntegerArray::GetID(), attIntegerList))
   {
-    std::cout << ">>>>: integerList detected "  << std::endl;
+    std::cout << ">>>>: IntegerList detected "  << std::endl;
   }
 
-  // Real
+  // extract TDataStd_Real
   Handle(TDataStd_Real) attReal;
   if (label.FindAttribute(TDataStd_Real::GetID(), attReal))
   {
-    std::cout << ">>>>: real detected "  << std::endl;
+    std::cout << ">>>>: Real detected "  << std::endl;
   }
 
-  // RealArray
+  // extract TDataStd_RealArray
   Handle(TDataStd_RealArray) attRealArray;
   if (label.FindAttribute(TDataStd_RealArray::GetID(), attRealArray))
   {
-    std::cout << ">>>>: realArray detected "  << std::endl;
+    std::cout << ">>>>: RealArray detected "  << std::endl;
   }
 
-  // RealList
+  // extract TDataStd_RealList
   Handle(TDataStd_RealList) attRealList;
   if (label.FindAttribute(TDataStd_RealArray::GetID(), attRealList))
   {
-    std::cout << ">>>>: realList detected "  << std::endl;
+    std::cout << ">>>>: RealList detected "  << std::endl;
+  }
+
+  // extract TDocStd_XLink
+  Handle(TDocStd_XLink) xlink;
+  if (label.FindAttribute(TDocStd_XLink::GetID(), xlink))
+  {
+    //TCollection_AsciiString linkPath = xlink->Path();
+    TCollection_AsciiString linkEntry = xlink->LabelEntry();
+    std::cout << ">>>>: link name: " << linkEntry << std::endl;
+    //std::cout << "Info: xlink: " << xlink->Dump(std::cout);
+  }
+
+  // extract TDF_TagSource source
+  Handle(TDF_TagSource) tsource;
+  if (label.FindAttribute(TDF_TagSource::GetID(), tsource))
+  {
+    std::cout << ">>>>: tag source: " << tsource->Get() << std::endl;
+  }
+
+  // extract shapes in label (similar to shape tools)
+  Handle(XCAFDoc_ShapeMapTool) shapeMapTool;
+  Handle(TDF_Attribute) attr;
+  if (label.FindAttribute(XCAFDoc_ShapeMapTool::GetID(), attr))
+  {
+    //shapeMapTool = Handle(XCAFDoc_ShapeMapTool::DownCast(attr));
+    //const TopTools_IndexedMapOfShape& shapeMap = shapeMapTool->GetMap();
+    //std::cout << ">>>>: shapeMapTool detected of size " << shapeMap.Extent() << std::endl;
+    //for (int i = 1; i <= shapeMap.Extent(); ++i) 
+    //{
+    //  const TopoDS_Shape& shape = shapeMap(i);
+    //  std::cout << "Shape " << i << ": " << shape.TShape()->DynamicType()->Name() << std::endl;
+    //}
   }
 
   // Iterate through child labels
@@ -241,14 +296,12 @@ PyObject* K_OCC::printShapeOCAF(PyObject* self, PyObject* args)
     TDF_Tool::Entry(label, es); // retourne l'entry de la label (3:0:3 indiquant sa position dans la hierarchie)
     std::cout  <<  "Info: Label entry: " << es.ToCString()  <<  std::endl;
 
-    Handle(TDataStd_Name) NAME = new TDataStd_Name(); 
-    if (label.FindAttribute(TDataStd_Name::GetID(), NAME)) // retourne tous les attributs de type string
+    Handle(TDataStd_Name) name = new TDataStd_Name(); 
+    if (label.FindAttribute(TDataStd_Name::GetID(), name)) // retourne tous les attributs de type string
     { 
-      TCollection_ExtendedString labelName = NAME->Get();
-      std::cout << "Info: Label name: " << labelName << std::endl;
+      TCollection_ExtendedString labelName = name->Get();
+      std::cout << "Info: shape name: " << labelName << std::endl;
     } 
-    else 
-    { /*printf("no string attribute\n");*/ } 
   }
 
   Py_INCREF(Py_None);
