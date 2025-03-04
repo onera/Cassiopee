@@ -67,20 +67,20 @@ installDict = {
                [] # NvccAdditionalOptions
                ],
     ###############################################################################
-    'msys64': [ 'Windows win64+msys2 (CB-Onera/Github)',
-                'gfortran', # f77compiler
-                'gfortran', # f90compiler
-                'gcc', # Cppcompiler
-                ['-Wno-attributes', '-DSIMD=AVX2'], # CppAdditionalOptions
-                [], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                ['d:/benoit/AppData/Local/msys2/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'd:/benoit/AppData/Local/msys2/mingw64/include/OpenBLAS'], # additionalIncludePaths
-                ['gomp', 'gfortran'], # additionalLibs
-                ['d:/benoit/AppData/Local/msys2/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'], # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
+    'msys2': [ 'Windows win64+msys2',
+               'gfortran', # f77compiler
+               'gfortran', # f90compiler
+               'gcc', # Cppcompiler
+               ['-Wno-attributes'], # CppAdditionalOptions
+               [], # f77AdditionalOptions
+               True, # useOMP
+               False, # static
+               [], # additionalIncludePaths
+               ['gomp', 'gfortran'], # additionalLibs
+               [], # additionalLibPaths
+               False, # useCuda
+               [] # NvccAdditionalOptions
+               ],
     ###############################################################################
     'WDAAA161Z': [ 'Windows win64+msys2 (CB-Onera)',
                    'gfortran', # f77compiler

@@ -51,8 +51,8 @@ X_IBM.prepareIBMData(tb               , tFile        , tcFile   , tbox=tboffset,
                      snears=snears    , dfars=dfars  , vmin=vmin,
                      check=False       , frontType=1  , cartesian=False)
 App._distribute(tFile, tcFile, NP=Cmpi.size)
-t       = Fast.loadTree(os.path.basename(tFile), directory=LOCAL, split='single',  mpirun=True)
-tc,graph= Fast.loadFile(tcFile, split='single',  mpirun=True, graph=True)
+t       = Fast.loadTree(tFile, split='single')
+tc,graph= Fast.loadFile(tcFile, split='single', graph=True)
 
 if Cmpi.rank == 0:
     test.testT(t , 1)
@@ -109,10 +109,12 @@ for it in range(NIT):
 
 if Cmpi.rank == 0:
     Internal._rmNodesFromType(t, 'Rind_t')
+    Internal._rmNodesFromName(t, 'Parameter_int')
     Internal._rmNodesByName(t, '.Solver#Param')
     Internal._rmNodesByName(t, '.Solver#ownData')
     Internal._rmNodesByName(t, '.Solver#dtloc')
     Internal._rmNodesFromType(tc, 'Rind_t')
+    Internal._rmNodesFromName(tc, 'Parameter_int')
     Internal._rmNodesByName(tc, '.Solver#Param')
     Internal._rmNodesByName(tc, '.Solver#ownData')
     Internal._rmNodesByName(tc, '.Solver#dtloc')

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,6 +18,7 @@
 */
 
 #include "occ.h"
+
 // IGES/STEP
 #include "IGESControl_Reader.hxx" 
 #include "STEPControl_Reader.hxx"
@@ -33,6 +34,10 @@
 #include "STEPCAFControl_Reader.hxx"
 #include "XCAFDoc_DocumentTool.hxx"
 #include "TDocStd_Document.hxx"
+#include "XCAFApp_Application.hxx"
+
+#include "XmlDrivers.hxx"
+#include "XmlXCAFDrivers.hxx"
 
 // ============================================================================
 /* Convert CAD to OpenCascade hook */
@@ -67,11 +72,15 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     *shp = reader.OneShape();
 
     // Read document
+    Handle(XCAFApp_Application) app = XCAFApp_Application::GetApplication(); // init app at first call
     IGESCAFControl_Reader reader2;
     reader2.ReadFile(fileName);
-    doc = new TDocStd_Document("MDTV-Standard");
+    //doc = new TDocStd_Document("MDTV-Standard");
+    doc = new TDocStd_Document("XmlXCAF");
+    
     Handle(TDocStd_Document) doc2 = doc;
     reader2.Transfer(doc2);
+    app->InitDocument(doc2);
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
   {
@@ -82,11 +91,18 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     *shp = reader.OneShape();
     
     // Read document
+    Handle(XCAFApp_Application) app = XCAFApp_Application::GetApplication(); // init app at first call
     STEPCAFControl_Reader reader2;
     reader2.ReadFile(fileName);
-    doc = new TDocStd_Document("MDTV-Standard");
+    //doc = new TDocStd_Document("MDTV-Standard");
+    doc = new TDocStd_Document("XmlXCAF");
+
     Handle(TDocStd_Document) doc2 = doc;
-    reader2.Transfer(doc2);    
+    reader2.Transfer(doc2);
+    app->InitDocument(doc2);
+    //XmlXCAFDrivers::DefineFormat(app); // register driver
+    //PCDM_StoreStatus status = app->SaveAs(doc2, "toto.xml");
+    //if (status != PCDM_SS_OK) printf("can not write document\n");
   }
   
   // Extract surfaces

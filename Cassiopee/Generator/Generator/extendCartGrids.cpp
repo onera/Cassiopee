@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,8 +39,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
    return NULL;
   }
   if (ext == 0) return arrays;
-  if (optimized != 0 && optimized != 1)
-  {printf("Warning: extendCartGrids: optimized is set to 1.\n"); optimized = 1;}
+  if (optimized != 0 && optimized != 1 && optimized != -1) 
+  { printf("Warning: extendCartGrids: optimized is set to 1.\n"); optimized = 1; }
 
   // Extract infos from arrays
   vector<E_Int> resl;
@@ -107,8 +107,9 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   }
 
   // Determination des extensions pour chq zone a partir de l'octree
-  E_Int extg = ext; E_Int extf = ext;
-  if (optimized == 1) {extg = ext-1;}
+  E_Int extg = ext; E_Int extf = ext; E_Int extff = ext;
+  if (optimized == 1) {extg = ext-1; extff = extg;}
+  if (optimized ==-1) {extg = ext+1;}
 
   FldArrayI extension(nzones, 6); extension.setAllValuesAtNull();
   vector<E_Int> indicesBB;
@@ -201,7 +202,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext1[v1] = K_FUNC::E_max(ext1[v1],extf); 
-            ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
+            ext2[v2] = K_FUNC::E_max(ext2[v2],extff);
+            //ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -272,7 +274,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext2[v1] = K_FUNC::E_max(ext2[v1],extf); 
-            ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
+            ext1[v2] = K_FUNC::E_max(ext1[v2],extff);
+            //ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -322,9 +325,9 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
                                         face.begin(3), cnf, xp, yp, zp,
                                         p0, p1, p2, p);
         dx = xp-xt1[indA1]; dy = yp-yt1[indA1]; dz = zp-zt1[indA1];
-        if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
-        {found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
-        if ( found1 == 1 ) goto finjmin2;
+        if (ret > -1 && dx*dx + dy*dy + dz*dz <= tol2) 
+        { found1 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
+        if (found1 == 1) goto finjmin2;
 
         // projeter le pt B sur la facette opposee
         ret = K_COMPGEOM::projectOrtho( xt1[indB1], yt1[indB1], zt1[indB1], 
@@ -332,12 +335,12 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
                                         face.begin(3), cnf, xp, yp, zp,
                                         p0, p1, p2, p);
         dx = xp-xt1[indB1]; dy = yp-yt1[indB1]; dz = zp-zt1[indB1];
-        if ( ret > -1 && dx*dx + dy*dy + dz*dz <= tol2 ) 
-        { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2);}
-        if ( found2 == 1) goto finjmin2;
+        if (ret > -1 && dx*dx + dy*dy + dz*dz <= tol2) 
+        { found2 = 1; dhmax = K_FUNC::E_max(dhmax,s2); }
+        if (found2 == 1) goto finjmin2;
         finjmin2:;
 
-        if ( found1+found2 > 0 ) 
+        if (found1+found2 > 0) 
         {
           vector<E_Int>& dejaVu1 = dejaVu[v1]; dejaVu1.push_back(v2);
           vector<E_Int>& dejaVu2 = dejaVu[v2]; dejaVu2.push_back(v1);
@@ -345,7 +348,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext3[v1] = K_FUNC::E_max(ext3[v1],extf); 
-            ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
+            ext4[v2] = K_FUNC::E_max(ext4[v2],extff);
+            //ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -416,7 +420,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext4[v1] = K_FUNC::E_max(ext4[v1],extf); 
-            ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
+            ext3[v2] = K_FUNC::E_max(ext3[v2],extff);
+            //ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -534,7 +539,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext1[v1] = K_FUNC::E_max(ext1[v1],extf); 
-            ext2[v2] = K_FUNC::E_max(ext2[v2],extg);
+            ext2[v2] = K_FUNC::E_max(ext2[v2],extff);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -633,7 +638,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext2[v1] = K_FUNC::E_max(ext2[v1],extf); 
-            ext1[v2] = K_FUNC::E_max(ext1[v2],extg);
+            ext1[v2] = K_FUNC::E_max(ext1[v2],extff);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -734,7 +739,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext3[v1] = K_FUNC::E_max(ext3[v1],extf); 
-            ext4[v2] = K_FUNC::E_max(ext4[v2],extg);
+            ext4[v2] = K_FUNC::E_max(ext4[v2],extff);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -832,7 +837,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext4[v1] = K_FUNC::E_max(ext4[v1],extf); 
-            ext3[v2] = K_FUNC::E_max(ext3[v2],extg);
+            ext3[v2] = K_FUNC::E_max(ext3[v2],extff);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -929,7 +934,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext5[v1] = K_FUNC::E_max(ext5[v1],extf); 
-            ext6[v2] = K_FUNC::E_max(ext6[v2],extg);
+            ext6[v2] = K_FUNC::E_max(ext6[v2],extff);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {
@@ -1027,7 +1032,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           if ( K_FUNC::fEqualZero(diff,tol2) == true ) //F/F : 3/2 if possible
           {
             ext6[v1] = K_FUNC::E_max(ext6[v1],extf); 
-            ext5[v2] = K_FUNC::E_max(ext5[v2],extg);
+            ext5[v2] = K_FUNC::E_max(ext5[v2],extff);
           }
           else if ( s1 < dhmax - tol2) // current grid is finer than all its opposite grids
           {

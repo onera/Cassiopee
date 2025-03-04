@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -38,8 +38,8 @@ ShaderManager::ShaderManager()
 ShaderManager::~ShaderManager()
 {
     deactivate();
-    for ( std::vector<Shader *>::iterator itShad = _shaderList.begin();
-          itShad != _shaderList.end(); itShad++ ) {
+    for ( std::vector<Shader *>::iterator itShad = _shaderList.begin(); itShad != _shaderList.end(); itShad++ ) 
+    {
         delete ( *itShad );
     }
 }
@@ -107,7 +107,8 @@ Shader* ShaderManager::addFromFile( const char *geomFile, const char *vertexFile
             delete shad;
             return nullptr;
         }
-    } catch ( std::runtime_error &err ) {
+    } catch ( std::runtime_error &err ) 
+    {
         std::cerr << "Failed to load shader : " << err.what() << std::endl;
         return nullptr;
     }
@@ -156,7 +157,8 @@ Shader* ShaderManager::addFromFile( const char* vertexFile,
             delete shad;
             return nullptr;
         }
-    } catch ( std::runtime_error &err ) {
+    } catch ( std::runtime_error &err ) 
+    {
         std::cerr << "Failed to load shader : " << err.what() << std::endl;
         return nullptr;
     }
@@ -193,8 +195,10 @@ unsigned short ShaderManager::getId(Shader* shad) const
 bool ShaderManager::eraseShader( Shader *obj )
 {
     std::vector<Shader *>::iterator it = _shaderList.begin();
-    while ( it != _shaderList.end() ) {
-        if ( ( *it ) == obj ) {
+    while ( it != _shaderList.end() ) 
+    {
+        if ( ( *it ) == obj ) 
+        {
             _shaderList.erase( it );
             delete obj;
             return true;
@@ -205,7 +209,8 @@ bool ShaderManager::eraseShader( Shader *obj )
 //=============================================================================
 void ShaderManager::set_tesselation( unsigned short idTess )
 {
-    if ( idTess == 0 ) {
+    if ( idTess == 0 ) 
+    {
         unset_tesselation();
         return;
     }
@@ -224,7 +229,8 @@ bool ShaderManager::has_tesselation() const
 // ----------------------------------------------------------------------------
 void ShaderManager::activate( unsigned short id )
 {
-        if ( m_previous_shader != nullptr ) {
+        if ( m_previous_shader != nullptr ) 
+        {
             m_previous_shader->end();
             m_previous_shader = nullptr;
         }
@@ -246,9 +252,11 @@ void ShaderManager::activate( Shader *shad )
     _currentActiveShader = 0;
     unsigned short id = 0;
     std::vector<Shader *>::iterator it = _shaderList.begin();
-    while ( it != _shaderList.end() ) {
+    while ( it != _shaderList.end() ) 
+    {
         id++;
-        if ( ( *it ) == shad ) {
+        if ( ( *it ) == shad ) 
+        {
             activate( id );
             _currentActiveShader = id;
             m_previous_shader = shad;

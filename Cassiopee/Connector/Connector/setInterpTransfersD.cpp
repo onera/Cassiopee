@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2024 Onera.
+  Copyright 2013-2025 Onera.
 
   This file is part of Cassiopee.
 
@@ -530,6 +530,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
   // 2eme pass_inst: les raccord instationnaire
   E_Int nbRcvPts_mx = 0;
   E_Int ibcTypeMax  = 0;
+  E_Int ntab_int    =18;
 
   E_Int count_rac   = 0;
   for  (E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
@@ -545,7 +546,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
       for ( E_Int irac = irac_deb; irac < irac_fin; irac++ ) {
 	E_Int shift_rac = ech + 4 + timelevel * 2 + irac;
-	E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 + 1];
+	E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10];
 
 	if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
 
@@ -561,7 +562,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 	if(exploc == 1)// Si on est en explicit local, on va autoriser les transferts entre certaines zones seulement en fonction de la ss-ite courante
 
 	  {
-	    E_Int debut_rac = ech + 4 + timelevel*2 + 1 + nrac*16 + 27*irac;
+	    E_Int debut_rac = ech + 4 + timelevel*2 + nrac*ntab_int + 27*irac;
 
 	    E_Int levelD = ipt_param_int[debut_rac + 25];
 	    E_Int levelR = ipt_param_int[debut_rac + 24];
@@ -589,7 +590,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 		else {continue;}
 	      }
 	    // Le pas de temps de la zone donneuse est egal a celui de la zone receveuse (cas du deuxieme passage)
-	    else if (levelD ==  ipt_param_int[debut_rac +24] and num_passage == 2)
+	    else if (levelD ==  levelR and num_passage == 2)
 	      {
 		if (nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==1) { autorisation_transferts[pass_inst][irac_auto]=1; }
 		else {continue;}
@@ -609,9 +610,9 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 	if      ( TypeTransfert == 0 && ibc == 1 ) { continue;}
 	else if ( TypeTransfert == 1 && ibc == 0 ) { continue;}
 
-	E_Int nvars_loc = ipt_param_int[shift_rac + nrac * 13 + 1];  //nbre variable a transferer pour rans/LES
+	E_Int nvars_loc = ipt_param_int[shift_rac + nrac * 13 ];  //nbre variable a transferer pour rans/LES
 
-	E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
+	E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5   ];
         E_Int overset  =  ipt_param_intD[NoD][LBM_OVERSET];        //flag pour overset en LBM recuper� sur param_int donneuse
 
         if      (nvars_loc==19 && overset==0) nvars_loc = nvars_loc + 5;
@@ -797,13 +798,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                     if ( 1-ibc != ipass_typ ) continue;
 
                      //printf("ipass= %d, irac= %d, ibc=  %d, envoie vers: %d, size_rac= %d \n", ipass, irac, ibc,
-                     //ipt_param_int[ ech ], ipt_param_int[ shift_rac + nrac*10 +1 ]);
+                     //ipt_param_int[ ech ], ipt_param_int[ shift_rac + nrac*10 ]);
 
-                    E_Int NoD       = ipt_param_int[shift_rac + nrac * 5     ];
-                    E_Int loc       = ipt_param_int[shift_rac + nrac * 9  + 1];  //+1 a cause du nrac mpi
-                    E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 + 1];
-                    E_Int nvars_loc = ipt_param_int[shift_rac + nrac * 13 + 1];  // neq fonction raccord rans/LES
-                    E_Int rotation  = ipt_param_int[shift_rac + nrac * 14 + 1];  // flag pour periodicite azymuthal
+                    E_Int NoD       = ipt_param_int[shift_rac + nrac * 5  ];
+                    E_Int loc       = ipt_param_int[shift_rac + nrac * 9  ]; 
+                    E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 ];
+                    E_Int nvars_loc = ipt_param_int[shift_rac + nrac * 13 ];  // neq fonction raccord rans/LES
+                    E_Int rotation  = ipt_param_int[shift_rac + nrac * 14 ];  // flag pour periodicite azymuthal
 
                     // COUPLAGE NS LBM - Recupere les solveurs des zones R et D
                     E_Int solver_D=2; E_Int solver_R=2;
@@ -956,7 +957,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 		      noi     = shiftDonor;  // compteur sur le tableau d indices donneur
 		      indCoef = ( pt_deb - ideb ) * sizecoefs + shiftCoef;
 
-		      E_Int NoR = ipt_param_int[shift_rac + nrac * 11 + 1]; 
+		      E_Int NoR = ipt_param_int[shift_rac + nrac*11]; 
 			
 		      if (isWireModel==1){
 			if (ibcType==141){
@@ -1075,18 +1076,18 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 	  if (autorisation_transferts[pass_inst][irac_auto]==1)
             {
 	      E_Int shift_rac = ech + 4 + timelevel * 2 + irac;
-	      E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 + 1];
+	      E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac*10];
 
 	      E_Int nbRcvPts_loc = nbRcvPts;
 	      E_Int NoD          = ipt_param_int[ shift_rac + nrac*5 ];
 
-	      E_Int ibcType = ipt_param_int[shift_rac + nrac * 3];
+	      E_Int ibcType = ipt_param_int[shift_rac + nrac*3];
 	      E_Int ibc = 1; 
 	      if (ibcType < 0) ibc = 0;
 	      if      ( TypeTransfert == 0 && ibc == 1 ) { continue; } 
 	      else if ( TypeTransfert == 1 && ibc == 0 ) { continue; }
 
-              E_Int nvars_loc = ipt_param_int[shift_rac + nrac * 13 + 1];
+              E_Int nvars_loc = ipt_param_int[shift_rac + nrac*13];
               if (nvars_loc==19) nvars_loc = 24;
 
               if ( nvars_loc == 5 || nvars_loc == 6 )
@@ -1094,13 +1095,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 	         PyObject* info = PyList_New( 0 );
 
 	         PyObject* Nozone;
-	         Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac * 11 + 1] );
+	         Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac*11] );
 	         PyList_Append( info, Nozone );  // No Zone receuveuse
 
                  PyList_Append( info, list_tpl[count_rac] );
                  Py_DECREF( list_tpl[count_rac] );  // tableau data
 
-	         E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac * 12 + 1];
+	         E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac*12];
 	         E_Int*    ipt_listRcv = ipt_param_int + PtlistDonor;
 	         PyObject* listRcv     = K_NUMPY::buildNumpyArray( ipt_listRcv, nbRcvPts_loc, 1, 1 );
 
@@ -1114,8 +1115,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
               {
                  // ON DOIT GERER DEUX JEUX DE VARIABLES
                    PyObject* Nozone;
-                   Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac * 11 + 1] );
-                   E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac * 12 + 1];
+                   Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac*11] );
+                   E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac*12 ];
                    E_Int*    ipt_listRcv = ipt_param_int + PtlistDonor;
                    PyObject* listRcv     = K_NUMPY::buildNumpyArray( ipt_listRcv, nbRcvPts_loc, 1, 1 );
 
@@ -1142,8 +1143,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
               {
                    // ON DOIT GERER DEUX JEUX DE VARIABLES
                    PyObject* Nozone;
-                   Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac * 11 + 1] );
-                   E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac * 12 + 1];
+                   Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac*11] );
+                   E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac*12 ];
                    E_Int*    ipt_listRcv = ipt_param_int + PtlistDonor;
                    PyObject* listRcv     = K_NUMPY::buildNumpyArray( ipt_listRcv, nbRcvPts_loc, 1, 1 );
 
@@ -1366,7 +1367,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
   E_Int nbRcvPts_mx = 0;
   E_Int ibcTypeMax  = 0;
   E_Int count_rac   = 0;
-
+  E_Int ntab_int    =18;
 
 
 
@@ -1383,13 +1384,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 
       for ( E_Int irac = irac_deb; irac < irac_fin; irac++ ) {
 	E_Int shift_rac = ech + 4 + timelevel * 2 + irac;
-	E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 + 1];
+	E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac*10];
 
 	if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
 
 	if( ipt_param_int[shift_rac+nrac*3] > ibcTypeMax)  ibcTypeMax =  ipt_param_int[shift_rac+nrac*3];
 
-	E_Int ibcType = ipt_param_int[shift_rac + nrac * 3];
+	E_Int ibcType = ipt_param_int[shift_rac + nrac*3];
 	E_Int ibc = 1;
 	if ( ibcType < 0) ibc = 0;
 
@@ -1400,7 +1401,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 
           {
 
-	    E_Int debut_rac = ech + 4 + timelevel*2 + 1 + nrac*16 + 27*irac;
+	    E_Int debut_rac = ech + 4 + timelevel*2 + nrac*ntab_int + 27*irac;
 
 	    E_Int levelD = ipt_param_int[debut_rac + 25];
 	    E_Int levelR = ipt_param_int[debut_rac + 24];
@@ -1428,7 +1429,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 		else {continue;}
 	      }
 	    // Le pas de temps de la zone donneuse est egal a celui de la zone receveuse (cas du deuxieme passage)
-	    else if (levelD ==  ipt_param_int[debut_rac +24] and num_passage == 2)
+	    else if (levelD == levelR and num_passage == 2)
 	      {
 		if (nstep%cyclD==cyclD/2 and (nstep/cyclD)%2==1) { autorisation_transferts[pass_inst][irac_auto]=1; }
 		else {continue;}
@@ -1447,7 +1448,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 	  continue;
 	}
 
-	E_Int nvars_loc            = ipt_param_int[shift_rac + nrac * 13 + 1];  //nbre variable a transferer pour rans/LES
+	E_Int nvars_loc            = ipt_param_int[shift_rac + nrac*13];  //nbre variable a transferer pour rans/LES
 
 	if ( strcmp( varname, "Density" ) == 0 ) {
 	  if ( nvars_loc == 5 )
@@ -1554,14 +1555,14 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 
 
                     // printf("ipass= %d, irac= %d, ibc=  %d, envoie vers: %d, size_rac= %d \n", ipass, irac, ibc,
-                    // ipt_param_int[ ech ], ipt_param_int[ shift_rac + nrac*10 +1 ]);
+                    // ipt_param_int[ ech ], ipt_param_int[ shift_rac + nrac*10 ]);
                     if ( 1-ibc!= ipass_typ ) continue;
 
-                    E_Int NoD       = ipt_param_int[shift_rac + nrac * 5     ];
-                    E_Int loc       = ipt_param_int[shift_rac + nrac * 9  + 1];  //+1 a cause du nrac mpi
-                    E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 + 1];
-                    E_Int nvars_loc = ipt_param_int[shift_rac + nrac * 13 + 1];  // neq fonction raccord rans/LES
-                    E_Int rotation  = ipt_param_int[shift_rac + nrac * 14 + 1];  // flag pour periodicite azymuthal
+                    E_Int NoD       = ipt_param_int[shift_rac + nrac*5  ];
+                    E_Int loc       = ipt_param_int[shift_rac + nrac*9  ];
+                    E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac*10 ];
+                    E_Int nvars_loc = ipt_param_int[shift_rac + nrac*13 ];  // neq fonction raccord rans/LES
+                    E_Int rotation  = ipt_param_int[shift_rac + nrac*14 ];  // flag pour periodicite azymuthal
 
 
                     E_Int  meshtype = ipt_ndimdxD[NoD + nidomD * 6];
@@ -1602,13 +1603,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
                     ////
                     ////
                     E_Int pos;
-                    pos               = ipt_param_int[shift_rac + nrac * 7];
+                    pos               = ipt_param_int[shift_rac + nrac*7];
                     E_Int* ntype      = ipt_param_int + pos;
                     pos               = pos + 1 + ntype[0];
                     E_Int* types      = ipt_param_int + pos;
-                    pos               = ipt_param_int[shift_rac + nrac * 6];
+                    pos               = ipt_param_int[shift_rac + nrac*6];
                     E_Int* donorPts   = ipt_param_int + pos;
-                    pos               = ipt_param_int[shift_rac + nrac * 8];
+                    pos               = ipt_param_int[shift_rac + nrac*8];
                     E_Float* ptrCoefs = ipt_param_real + pos;
 
                     E_Int    nbInterpD = ipt_param_int[shift_rac + nrac];
@@ -1666,13 +1667,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 		      noi     = shiftDonor;  // compteur sur le tableau d indices donneur
 		      indCoef = ( pt_deb - ideb ) * sizecoefs + shiftCoef;
 
-		      //E_Int NoR = ipt_param_int[shift_rac + nrac * 11 + 1];
+		      //E_Int NoR = ipt_param_int[shift_rac + nrac*11 ];
 
 
 
 		      //if (ipt_param_int[ech]==0) printf("No rac= %d , NoR= %d, NoD= %d, Ntype= %d, ptdeb= %d, ptfin= %d, NptD= %d, neq= %d, skip= %d, rank= %d, dest= %d,  thread= %d\n",
 		      //irac, NoR,NoD, ntype[ 1 + ndtyp],pt_deb,pt_fin ,
-		      //ipt_param_int[ shift_rac + nrac*10+1  ], ipt_param_int[ shift_rac + nrac*13+1  ], ipt_param_int[ shift_rac + nrac*15+1  ],
+		      //ipt_param_int[ shift_rac + nrac*10  ], ipt_param_int[ shift_rac + nrac*13  ], ipt_param_int[ shift_rac + nrac*15  ],
 		      //rank, ipt_param_int[ ech  ], ithread );
 
 
@@ -1771,12 +1772,12 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 	    {
 
 	      E_Int shift_rac = ech + 4 + timelevel * 2 + irac;
-	      E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac * 10 + 1];
+	      E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac*10];
 	      //E_Int NoD       = ipt_param_int[shift_rac + nrac * 5     ];
 	      if ( nbRcvPts > nbRcvPts_mx ) nbRcvPts_mx = nbRcvPts;
 
 
-	      E_Int ibcType = ipt_param_int[shift_rac + nrac * 3];
+	      E_Int ibcType = ipt_param_int[shift_rac + nrac*3];
 	      E_Int ibc = 1;
 	      if (ibcType < 0) ibc = 0;
 	      if      ( TypeTransfert == 0 && ibc == 1 ) { continue; }
@@ -1788,7 +1789,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 	      PyObject* infoGrad = PyList_New( 0 );
 
 	      PyObject* Nozone;
-	      Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac * 11 + 1] );
+	      Nozone = PyInt_FromLong( ipt_param_int[shift_rac + nrac*11] );
 	      PyList_Append( info, Nozone );  // No Zone receuveuse
 	      PyList_Append( infoGrad, Nozone );  // No Zone receuveuse
 
@@ -1798,7 +1799,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
 	      PyList_Append( infoGrad, list_tplGrad[count_rac] );
 	      Py_DECREF( list_tplGrad[count_rac] );  // tableau data
 
-	      E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac * 12 + 1];
+	      E_Int     PtlistDonor = ipt_param_int[shift_rac + nrac*12];
 	      E_Int*    ipt_listRcv = ipt_param_int + PtlistDonor;
 	      PyObject* listRcv     = K_NUMPY::buildNumpyArray( ipt_listRcv, nbRcvPts, 1, 1 );
 

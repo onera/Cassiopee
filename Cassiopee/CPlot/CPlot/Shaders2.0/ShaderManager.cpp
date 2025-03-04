@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -37,7 +37,8 @@ ShaderManager::~ShaderManager()
 {
     deactivate();
     for ( std::vector<Shader *>::iterator itShad = _shaderList.begin();
-          itShad != _shaderList.end(); itShad++ ) {
+          itShad != _shaderList.end(); itShad++ ) 
+    {
         delete ( *itShad );
     }
 }
@@ -160,8 +161,10 @@ unsigned short ShaderManager::getId(Shader* shad) const
 bool ShaderManager::eraseShader(Shader* obj)
 {
     std::vector<Shader *>::iterator it = _shaderList.begin();
-    while ( it != _shaderList.end() ) {
-        if ( ( *it ) == obj ) {
+    while ( it != _shaderList.end() ) 
+    {
+        if ( ( *it ) == obj ) 
+        {
             _shaderList.erase( it );
             delete obj;
             return true;
@@ -194,7 +197,8 @@ void ShaderManager::activate(unsigned short id)
 // ----------------------------------------------------------------------------
 void ShaderManager::activate( unsigned short id )
 {
-        if ( m_previous_shader != nullptr ) {
+        if ( m_previous_shader != nullptr ) 
+        {
             m_previous_shader->end();
             m_previous_shader = nullptr;
         }
@@ -216,9 +220,11 @@ void ShaderManager::activate(Shader* shad)
     _currentActiveShader = 0;
     unsigned short id = 0;
     std::vector<Shader *>::iterator it = _shaderList.begin();
-    while ( it != _shaderList.end() ) {
+    while ( it != _shaderList.end() ) 
+    {
         id++;
-        if ( ( *it ) == shad ) {
+        if ( ( *it ) == shad ) 
+        {
             activate( id );
             _currentActiveShader = id;
             m_previous_shader = shad;

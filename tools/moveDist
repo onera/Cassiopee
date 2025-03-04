@@ -74,44 +74,42 @@ CASSIOPEE=${CASSIOPEE%/}
 mkdir -p $DEST_PROD_PATH
 DEST_CAS_PATH=$(dirname $(dirname $(dirname $DEST_PROD_PATH)))
 
-if [ "$PYTHONEXE" = "python3" ]; then
-  pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
-  alias python=python3
-else
-  pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
-fi
-pylib="lib"
+# Get the path to the site-packages folder
+cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
+SITE_PACKAGES_PATH=$(find . -maxdepth 2 -type d -name "python*" | sort -V | tail -1)
 case $ELSAPROD in
   ubuntu*)
-    pylib="local/"$pylib
-    pysite="dist-packages"
+    SITE_PACKAGES_PATH=$SITE_PACKAGES_PATH"/dist-packages"
     ;;
   *)
-    pysite="site-packages"
+    SITE_PACKAGES_PATH=$SITE_PACKAGES_PATH"/site-packages"
     ;;
 esac
-pylvs="$pylib/$pyversion/$pysite"
+SITE_PACKAGES_PATH="${SITE_PACKAGES_PATH#./}"
+PYLIB_PATH=$(dirname $SITE_PACKAGES_PATH)
+PYVERSION=$(basename $PYLIB_PATH)
+PYLIB_PATH=$(dirname $PYLIB_PATH)
 
-new_pylib="lib"
+NEW_PYLIB_PATH="lib"
 case $NEW_ELSAPROD in
   ubuntu*)
-    new_pylib="local/"$new_pylib
-    pysite="dist-packages"
+    NEW_PYLIB_PATH="local/"$NEW_PYLIB_PATH
+    PYSITE_FOLDER="dist-packages"
     ;;
   *)
-    pysite="site-packages"
+    PYSITE_FOLDER="site-packages"
     ;;
 esac
-new_pylvs="$new_pylib/$pyversion/$pysite"
+NEW_SITE_PACKAGES_PATH="$NEW_PYLIB_PATH/$PYVERSION/$PYSITE_FOLDER"
 
 
 if [ $MODULE = "all" ]; then
   # Copy all modules to their destination
   cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
-  tar cvf all.tar .
+  tar --exclude='all.tar' -cvf all.tar .
   mv all.tar $DEST_PROD_PATH
   cd $DEST_PROD_PATH
-  tar xvf all.tar
+  tar -xvf all.tar
   rm all.tar
   if [ -L lib64 ]; then
     rm lib64
@@ -121,20 +119,20 @@ if [ $MODULE = "all" ]; then
   fi
 
   # Edit installPath (replace $CASSIOPEE by $DEST_CAS_PATH and edit prod. name)
-  cd "$pylvs/KCore"
-  cp "$CASSIOPEE/Dist/bin/$ELSAPROD/$pylvs/KCore/installPath.py" .
+  cd "$DEST_PROD_PATH/$SITE_PACKAGES_PATH/KCore"
+  cp "$CASSIOPEE/Dist/bin/$ELSAPROD/$SITE_PACKAGES_PATH/KCore/installPath.py" .
   s1=$(sed 's/[\/&]/\\&/g' <<< "$CASSIOPEE")
   s2=$(sed 's/[\/&]/\\&/g' <<< "$DEST_CAS_PATH")
   sed -i "s/$s1/$s2/g" installPath.py
   if [ "$ELSAPROD" != "$NEW_ELSAPROD" ]; then
-    s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$pylvs")
-    s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$new_pylvs")
+    s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$SITE_PACKAGES_PATH")
+    s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$NEW_SITE_PACKAGES_PATH")
     sed -i "s/$s1/$s2/g" installPath.py
-    s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$pylib")
-    s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$new_pylib")
+    s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$PYLIB_PATH")
+    s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$NEW_PYLIB_PATH")
     sed -i "s/$s1/$s2/g" installPath.py
   fi
-  more installPath.py
+  cat installPath.py
 
   # Copy environment files
   cp "$CASSIOPEE"/Dist/env_* "$DEST_PROD_PATH"/../..
@@ -142,19 +140,19 @@ if [ $MODULE = "all" ]; then
   cd $CWD
 else
   # Copy a single module to its destination
-  cd "$CASSIOPEE/Dist/bin/$ELSAPROD/$pylvs"
+  cd "$CASSIOPEE/Dist/bin/$ELSAPROD/$SITE_PACKAGES_PATH"
   tar cvf $MODULE.tar $MODULE
   mv $MODULE.tar $DEST_PROD_PATH
   cd $DEST_PROD_PATH
-  mkdir -p $pylvs
+  mkdir -p $SITE_PACKAGES_PATH
   if [ -L lib64 ]; then
     rm lib64
     ln -s lib lib64
   else
     ln -s lib lib64
   fi
-  mv $MODULE.tar $pylvs
-  cd $pylvs
+  mv $MODULE.tar $SITE_PACKAGES_PATH
+  cd $SITE_PACKAGES_PATH
   tar xvf $MODULE.tar
   rm $MODULE.tar
   cd $CWD

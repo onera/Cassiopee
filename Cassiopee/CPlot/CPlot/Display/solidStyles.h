@@ -18,13 +18,13 @@
     case 2:
       // Couleur uniforme blanche
       color1[0] = 1.; color1[1] = 1.; color1[2] = 1.;
-      color2[0] = 1.;  color2[1] = 1.;  color2[2] = 1;
+      color2[0] = 1.; color2[1] = 1.; color2[2] = 1;
       break;
 
     case 3:
       // Couleur uniforme cyan
       color1[0] = 0.9; color1[1] = 1.; color1[2] = 1.;
-      color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1;
+      color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1;
       break;
 
     case 4:

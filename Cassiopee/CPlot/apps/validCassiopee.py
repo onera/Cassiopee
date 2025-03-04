@@ -164,6 +164,10 @@ class NoDisplayScrollbar:
 #==============================================================================
 # Get installation paths of Cassiopee, Fast and all PModules
 #==============================================================================
+def isDBAdmin():
+    import getpass
+    return getpass.getuser() == "cassiope"
+
 def getInstallPaths():
     try:
         # Check installPath
@@ -1743,6 +1747,7 @@ def updateASANLabel(entry_index):
 # Set message in the title bar
 #==============================================================================
 def setGUITitleBar(loc='GLOBAL'):
+    if not INTERACTIVE: return
     # Machine name
     machine = socket.gethostname()
     title = '*Cassiopee* valid {} : {} @ {}'.format(loc, os.getenv("ELSAPROD"),
@@ -1916,8 +1921,10 @@ if __name__ == '__main__':
         CTK.infoBulle(parent=UpdateButton,
                       text='Update tests (replace data base files).')
         CTK.infoBulle(parent=TextThreads, text='Number of threads.')
-        ierr = setupGlobal()  # Comparison is made against the global valid
-        if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
+        if isDBAdmin(): setupLocal()  # Local valid for the DB admin 'cassiope'
+        else:
+            ierr = setupGlobal()  # Comparison is made against the global valid
+            if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
         TK.mainloop()
     else:
         # --- Command line execution ---
@@ -1937,8 +1944,10 @@ if __name__ == '__main__':
         TextThreads = NoDisplayEntry()
         getThreads()
 
-        if os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and vcargs.global_db:
-            setupGlobal(loadSession=vcargs.loadSession)
+        if (os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and
+                vcargs.global_db and not (vcargs.update or isDBAdmin())):
+            ierr = setupGlobal(loadSession=vcargs.loadSession)
+            if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
         else: setupLocal(loadSession=vcargs.loadSession)
         purgeSessionLogs(vcargs.purge)
         if vcargs.filters:

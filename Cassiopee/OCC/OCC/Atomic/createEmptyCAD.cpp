@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,6 +23,21 @@
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
+
+#include "TDocStd_Document.hxx"
+#include "XCAFApp_Application.hxx"
+#include "TColStd_SequenceOfAsciiString.hxx"
+
+/*
+#include <TDocStd_Application.hxx>
+#include <TDocStd_Document.hxx>
+#include <TDF_Label.hxx>
+#include <TDF_LabelSequence.hxx>
+#include <TNaming_NamedShape.hxx>
+#include <XmlOcafDrivers.hxx>
+#include <TopoDS_Shape.hxx>
+#include <BRepPrimAPI_MakeBox.hxx>
+*/
 
 // ============================================================================
 /* Convert CAD to OpenCascade hook */
@@ -51,6 +66,13 @@ PyObject* K_OCC::createEmptyCAD(PyObject* self, PyObject* args)
   char* fileFmtC = new char [l+1];
   strcpy(fileFmtC, fileFmt);
 
+  // Document
+  Handle(XCAFApp_Application) app = XCAFApp_Application::GetApplication(); // init app at first call
+  TDocStd_Document* doc = NULL;
+  //doc = new TDocStd_Document("MDTV-Standard");
+  doc = new TDocStd_Document("XmlXCAF");
+  app->InitDocument(doc);
+
   // capsule 
   PyObject* hook;
   E_Int sizePacket = 6;
@@ -60,7 +82,7 @@ PyObject* K_OCC::createEmptyCAD(PyObject* self, PyObject* args)
   packet[2] = edges; // the edge map
   packet[3] = fileNameC; // CAD file name
   packet[4] = fileFmtC; // CAD file format
-  packet[5] = NULL; // document
+  packet[5] = doc; // document
 
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);

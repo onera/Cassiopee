@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -57,32 +57,18 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
       return NULL;
   }
 
-  ni = ni-1;
-  nj = nj-1;
-  nk = nk-1;
   E_Int i, j, k;
   E_Int compt=0;
-  //E_Int imin=ni;
-  //E_Int imax=1;
-  //E_Int jmin=nj;
-  //E_Int jmax=1;
-  //E_Int kmin=nk;
-  //E_Int kmax=1;
   E_Int indCoef=0;
   E_Float a;
   E_Float b;
   E_Float xc;
   E_Float yc;
   E_Float zc;
-  //E_Float S=0.0;
   E_Float tab[8][3];
   E_Int tab_[8];
-  //E_Int dirD;
  
  /// Recuperation du tableau de stockage des valeurs
-  //PyObject* indiceslist = PyList_GetItem(indiceslist,0); FldArrayF* drodm;
-  //K_NUMPY::getFromNumpyArray(drodmArray, drodm, true); E_Float* iptdrodm = drodm->begin();
-
   FldArrayI* ind_list;
   K_NUMPY::getFromNumpyArray(indiceslist, ind_list, true); E_Int* ipt_ind_list = ind_list->begin();
 
@@ -95,13 +81,8 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
   //cout << "nb_ind= " << nb_ind << endl;
 
  for (E_Int ind = 0 ; ind < nb_ind ; ind++)
-
    {
-
-     //cout << "type= " << int(ipt_typ[ind]) << endl;
-
    if (ipt_typ[ind]==22)
-
      {
       
       	  k = floor(ipt_ind_list[ind]/(ni*nj)) + 1;
@@ -109,8 +90,7 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
 	  j = floor(j/ni) + 1;
 	  i = ipt_ind_list[ind] -  (k-1)*ni*nj - (j-1)*ni + 1;
 
-
-
+          //donneur (i=2)  = ghost  car (i,j,k) = fortran
 	  if (i == 2 and j > 2 and j < nj- 2) // bande imin 
 	    {
 	      a = ipt_coefflist[indCoef]   ;
@@ -297,13 +277,9 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
 
 	     }	  
 
-	   // if (compt==0)
-	   // {
-	   //   cout <<"Danger"<< endl;
-	   // }
 
-
-	   if (compt == 1 or compt == 2 or compt == 3 or compt == 4 or compt == 5 or compt == 6 or compt == 7) // On corrige les coeffs des molecules qui contiennent les deux types de cellules
+           // On corrige les coeffs des molecules qui contiennent les deux types de cellules
+	   if (compt == 1 or compt == 2 or compt == 3 or compt == 4 or compt == 5 or compt == 6 or compt == 7)
 	     {
 	       for ( j=0; j < 8; j++)
 	   	 {

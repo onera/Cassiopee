@@ -455,7 +455,7 @@ def writeSetupCfg():
         if a: os.remove("./setup.cfg")
     elif Cppcompiler == 'icc' or Cppcompiler == 'icpc':
         p = open("./setup.cfg", 'w')
-        p.write('[build_ext]\ncompiler=intel\n')
+        p.write('[build_ext]\ncompiler=unix\n')
         p.close()
     elif Cppcompiler == 'icx' or Cppcompiler == 'icpx':
         p = open("./setup.cfg", 'w')
@@ -896,8 +896,10 @@ def getCArgs():
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
         if DEBUG:
             options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
-            options += ['-ggdb', '-fsanitize=address']
-            if mySystem[0] == 'mingw': options.remove('-fsanitize=address') # no asan on mingw
+            options += ['-ggdb']
+            if mySystem[0] != 'mingw': # no asan on mingw
+                options += ['-fsanitize=address']
+                #options += ['-fsanitize=thread']
         else: options += ['-DNDEBUG', '-O3', '-Wall', '-Werror=return-type']
         if useOMP() == 1: options += ['-fopenmp']
         if useStatic() == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -980,10 +982,8 @@ def getCppArgs():
     opt = getCArgs()
     try: from KCore.config import Cppcompiler
     except: from config import Cppcompiler
-    if Cppcompiler == "icl.exe":
-        opt += ["/std=c++11"]
-    else:
-        opt += ["-std=c++11"]
+    if Cppcompiler == "icl.exe": opt += ["/std=c++11"]
+    else: opt += ["-std=c++11"]
     return opt
 
 #==============================================================================
@@ -1437,13 +1437,13 @@ def checkElsa():
             a2 = os.access(kvar+"/Kernel/lib/"+pvar+'/elsA.x', os.F_OK)
             b1 = os.access(kvar+"/Dist/include", os.F_OK)
             b2 = os.access(kvar+"/Dist/bin/"+pvar+'/elsAc.x', os.F_OK)
-            if (a1 and a2):
+            if a1 and a2:
                 elsA = True
                 elsAUseMpi = True
                 elsAIncDir = kvar + "/Kernel/include"
                 elsALibDir = kvar + "/Kernel/lib/" + pvar
 
-            elif (b1 and b2):
+            elif b1 and b2:
                 elsA = True
                 elsAUseMpi = True
                 elsAIncDir = kvar + "/Dist/include"
@@ -2161,7 +2161,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
 
     # gcc (stdc++, gomp)
     if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0:
-        os.environ['CC'] = 'gcc' # forced in 2.6 to overide setup.cfg
+        os.environ['CC'] = 'gcc'
         os.environ['CXX'] = 'g++'
         from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
@@ -2179,6 +2179,10 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             if l is None:
                 l = checkLibFile__('libasan.a', additionalLibPaths)
             if l is not None: libs += ["asan"]
+            #l = checkLibFile__('libtsan.so*', additionalLibPaths)
+            #if l is None:
+            #    l = checkLibFile__('libtsan.a', additionalLibPaths)
+            #if l is not None: libs += ["tsan"]
 
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)
@@ -2190,6 +2194,12 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
 
     # icc (stdc++, guide ou iomp5)
     if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
+        os.environ['CC'] = 'icc' # forced to overide setup.cfg
+        os.environ['CXX'] = 'icpc'
+        from distutils import sysconfig
+        cflags = sysconfig.get_config_var('CFLAGS')
+        sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
+        sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libstdc++.a', additionalLibPaths)

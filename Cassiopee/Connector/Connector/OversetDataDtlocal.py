@@ -175,33 +175,8 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
     nzonesDnrL = nzonesDnr
     nozr = -1
 
-    #dico={}
-    #for z in zonesRcv:
-    # listofjoins = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-    # if listofjoins is not None:
-    #    prange_list=[]
-    #    for join in listofjoins:
-    #        prange = Internal.getNodeFromName1(join,'PointRange')[1]
-    #        for i in range(3):
-    #            if prange[i,1] == prange[i,0] and prange[i,1] != 1:
-    #                  prange[i,1] =  prange[i,1]-1
-    #                  prange[i,0] =  prange[i,0]-1
-    #            elif prange[i,1] != prange[i,0] and prange[i,1] != 1 :
-    #                  prange[i,1] =  prange[i,1]-1
-    #        prange=numpy.reshape(prange,6)
-    #        #print prange
-    #        prange_list.append(prange)
-    #    dico[z[0]] = prange_list
-    #print dico.get('cart.0')
-
     for z in zonesRcv:
         dim_ = Internal.getZoneDim(z)
-        #if nodes is not None:
-        #nodesname = nodes[0][0][0:6]
-        #if nodesname == 'nmatch':
-        #print 'ok'
-        #print nodes[0]
-
 
         nozr += 1
         if loc == 'nodes': cellNPresent = C.isNamePresent(z, 'cellN')
@@ -335,40 +310,29 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                                                               resInterp[2][noz], numpy.array([],numpy.float64), \
                                                               extrapPts, resInterp[5], tag='Donor', loc=locR, EXDir=EXdir)
 
+                            dim__       = Internal.getZoneDim(zonesDnr[noz])
+                            prange      = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                            prangedonor = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                            profondeur  = numpy.zeros(1,dtype=Internal.E_NpyInt)
+                            dirR        = numpy.zeros(1,dtype=Internal.E_NpyInt)
+                            dirD        = numpy.zeros(1,dtype=Internal.E_NpyInt)
 
+                            prange    = numpy.reshape(prange,(3,2))
+                            prangebis = numpy.reshape(prange,6)
 
-                            dim__ = Internal.getZoneDim(zonesDnr[noz])
-                            prange = numpy.zeros(6,dtype=Internal.E_NpyInt)
-                            dirR=numpy.zeros(1,dtype=Internal.E_NpyInt)
                             leveldnr = niveaux_temps[zonesDnr[noz][0]]
 
-                            #print('donneur= ', zonesDnr[noz][0],noz)
-                            #print 'donneur= ', zonesRcv[noz][0],noz
-                            #print('receveur= ', z[0])
-                            #connector.indiceToCoordbis(resInterp[0][noz],prange,dirR,resInterp[0][noz].size,resInterp[2][noz][0],dim_[1],dim_[2],dim_[3])
-
-                            prange=numpy.reshape(prange,(3,2))
-                            #print prange
-                            #dirR = GhostCells.getDirBorderStruct__(prange,dimPb)
-                            #print dirR
-                            prangebis=numpy.reshape(prange,6)
-                            #print(prange)
                             info = zonesDnr[noz][2][len(zonesDnr[noz][2])-1]
                             info[2].append(['PointRange', prangebis , [], 'IndexArray_t'])
 
                             transfo=getTransfo(zonesDnr[noz],z)
 
+                            #resInterp[1]: pointList des point donneur
+                            #resInterp[2]: type interp
+                            #resInterp[3]: coef interp
+                            connector.indiceToCoord2(resInterp[1][noz],prangedonor,transfo,profondeur,dirD,resInterp[2][noz],dirR[0],resInterp[2][noz].size,dim__[1],dim__[2],dim__[3])
 
-                            prangedonor = numpy.zeros(6,dtype=Internal.E_NpyInt)
-                            profondeur=numpy.zeros(1,dtype=Internal.E_NpyInt)
-                            dirD=numpy.zeros(1,dtype=Internal.E_NpyInt)
-                            connector.indiceToCoord2(resInterp[1][noz],prangedonor,transfo,profondeur,dirD,resInterp[2][noz],dirR[0],resInterp[2][noz].size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
-
-                            #print('dirR= ',dirR)
-                            #print 'dimPb= ',dimPb
-                            #print resInterp[3][noz]
-
-                            connector.correctCoeffList(resInterp[1][noz],resInterp[3][noz],resInterp[2][noz],resInterp[2][noz].size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
+                            connector.correctCoeffList(resInterp[1][noz],resInterp[3][noz],resInterp[2][noz],resInterp[2][noz].size,dim__[1],dim__[2],dim__[3])
 
                             ### Determination du point pivot symetrique dans zoneR du point (imin,jmin,kmin) de la zoneD
                             pt_pivot=numpy.array(prange[0:3,0]) # Point (imin,jmin,kmin) de la zone R
@@ -384,7 +348,7 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
 
                             info[2].append(['PointRangeDonor', prangedonor , [], 'IndexArray_t'])
 
-                            info[2].append(['DirDonneur', dirD , [], 'IndexArray_t'])
+                            info[2].append(['DirDonneur', dirD , [], 'IndexArray_t']) #imin=1, imax=-1,jmin=2, jmax=-2...kmax=-3
                             info[2].append(['DirReceveur', dirR , [], 'IndexArray_t'])
                             info[2].append(['Transform', transfo , [], 'IndexArray_t'])
                             info[2].append(['PointPivot', pt_pivot , [], 'IndexArray_t'])
@@ -396,19 +360,10 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                             NMratio[0] = int(round(float(dim_[abs(transfo[0])])/float(dim__[1]+1)))
                             NMratio[1] = int(round(float(dim_[abs(transfo[1])])/float(dim__[2]+1)))
                             NMratio[2] = int(round(float(dim_[abs(transfo[2])])/float(dim__[3]+1)))
-                            #print dim_[abs(transfo[0])], dim__[1]+1
-                            #print dim_[abs(transfo[1])], dim__[2]+1
-                            #print dim_[abs(transfo[2])], dim__[3]+1
-                            #print profondeur
                             NMratio[abs(dirD)-1]=1
-                            #print('NMratio= ',NMratio)
 
                             info[2].append(['NMratio', NMratio , [], 'IndexArray_t'])
                             info[2].append(['DnrZoneName', zonesDnr[noz][0] , [], 'IndexArray_t'])
-
-
-
-
 
     if storage != 'direct':
         OversetData._adaptForRANSLES__(tR, aD)
@@ -879,32 +834,20 @@ def setInterpDataForGhostCells2__(tR, tD, storage='direct', loc='nodes'):
                     sol    = Internal.getNodeFromName1(node,  'niveaux_temps')
                     leveldnr  = Internal.getValue(sol)[0][0][0]
 
-
+                    info = zdonorp[2][len(zdonorp[2])-1]
                     if storage == 'direct':
                         info = zp[2][len(zp[2])-1]
-                        info[2].append(['PointRange',      prange , [], 'IndexArray_t'])
-                        info[2].append(['PointRangeDonor',      prangedonor , [], 'IndexArray_t'])
-                        info[2].append(['DirReceveur',      dirR , [], 'IndexArray_t'])
-                        info[2].append(['DirDonneur',      dirD , [], 'IndexArray_t'])
-                        info[2].append(['Transform',      transfo_inv , [], 'IndexArray_t'])
-                        info[2].append(['PointPivot',      pt_pivot , [], 'IndexArray_t'])
-                        info[2].append(['Profondeur',      profondeur , [], 'IndexArray_t'])
-                        info[2].append(['NMratio',      NMratio , [], 'IndexArray_t'])
-                        info[2].append(['LevelZRcv', levelrcv , [], 'IndexArray_t'])
-                        info[2].append(['LevelZDnr', leveldnr , [], 'IndexArray_t'])
 
-                    else:
-                        info = zdonorp[2][len(zdonorp[2])-1]
-                        info[2].append(['PointRange',      prange , [], 'IndexArray_t'])
-                        info[2].append(['PointRangeDonor',     prangedonor , [], 'IndexArray_t'])
-                        info[2].append(['DirReceveur',      dirR , [], 'IndexArray_t'])
-                        info[2].append(['DirDonneur',      dirD , [], 'IndexArray_t'])
-                        info[2].append(['Transform',      transfo_inv , [], 'IndexArray_t'])
-                        info[2].append(['PointPivot',      pt_pivot , [], 'IndexArray_t'])
-                        info[2].append(['Profondeur',      profondeur , [], 'IndexArray_t'])
-                        info[2].append(['NMratio',      NMratio , [], 'IndexArray_t'])
-                        info[2].append(['LevelZRcv', levelrcv , [], 'IndexArray_t'])
-                        info[2].append(['LevelZDnr', leveldnr , [], 'IndexArray_t'])
+                    info[2].append(['PointRange',      prange      , [], 'IndexArray_t'])
+                    info[2].append(['PointRangeDonor', prangedonor , [], 'IndexArray_t'])
+                    info[2].append(['DirReceveur',     dirR        , [], 'IndexArray_t'])
+                    info[2].append(['DirDonneur',      dirD        , [], 'IndexArray_t'])
+                    info[2].append(['Transform',       transfo_inv , [], 'IndexArray_t'])
+                    info[2].append(['PointPivot',      pt_pivot    , [], 'IndexArray_t'])
+                    info[2].append(['Profondeur',      profondeur  , [], 'IndexArray_t'])
+                    info[2].append(['NMratio',         NMratio     , [], 'IndexArray_t'])
+                    info[2].append(['LevelZRcv',       levelrcv    , [], 'IndexArray_t'])
+                    info[2].append(['LevelZDnr',       leveldnr    , [], 'IndexArray_t'])
 
     if storage == 'direct': return aR
     else: return aD

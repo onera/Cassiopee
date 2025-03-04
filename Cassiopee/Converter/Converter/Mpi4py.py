@@ -25,6 +25,7 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
 
 from mpi4py import MPI
 import numpy
+import os
 
 COMM_WORLD = MPI.COMM_WORLD
 KCOMM = COMM_WORLD
@@ -441,6 +442,11 @@ def gatherZones(zones, root=0):
 def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
                              maxDepth=-1, links=None):
     """Read a file and return a skeleton tree."""
+    if rank == 0: exists = int(os.path.exists(fileName))
+    else: exists = 1
+    exists = bcast(exists, root=0)
+    if not exists: raise IOError("convertFile2SkeletonTree: file %s not found."%fileName)
+
     if rank == 0: t = Distributed.convertFile2SkeletonTree(fileName, format, maxFloatSize, maxDepth, None, links)
     else: t = None
     t = KCOMM.bcast(t)
@@ -456,6 +462,11 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
 #==============================================================================
 def convertFile2PyTree(fileName, format=None, proc=None):
     """Read a file and return a full tree or partial tree."""
+    if rank == 0: exists = int(os.path.exists(fileName))
+    else: exists = 1
+    exists = bcast(exists, root=0)
+    if not exists: raise IOError("convertFile2PyTree: file %s not found."%fileName)
+
     if proc is None: # load full tree on all procs
         if rank == 0: t = C.convertFile2PyTree(fileName, format)
         else: t = None
