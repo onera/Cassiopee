@@ -57,54 +57,46 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
 
   TopoDS_Shape* shp = new TopoDS_Shape();
   
-  TDocStd_Document* doc = NULL;
+  //static Handle(TDocStd_Document) doc2 = new TDocStd_Document("MDTV-Standard");
+  static Handle(TDocStd_Document) doc2 = new TDocStd_Document("XmlXCAF"); // static to avoid transcient
 
   if (strcmp(fileFmt, "fmt_iges") == 0)
   {
+    // simple read
     IGESControl_Reader reader;
     reader.ReadFile(fileName);
-    
-    // Transfer all
     reader.ClearShapes();
     reader.TransferRoots();
-    
-    // get shape
     *shp = reader.OneShape();
 
-    // Read document
+    // document read
     Handle(XCAFApp_Application) app = XCAFApp_Application::GetApplication(); // init app at first call
     IGESCAFControl_Reader reader2;
     reader2.ReadFile(fileName);
-    //doc = new TDocStd_Document("MDTV-Standard");
-    doc = new TDocStd_Document("XmlXCAF");
-    
-    Handle(TDocStd_Document) doc2 = doc;
     reader2.Transfer(doc2);
     app->InitDocument(doc2);
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
   {
-    // Read the file
+    // simple read
     STEPControl_Reader reader;
     reader.ReadFile(fileName);
     reader.TransferRoots();
     *shp = reader.OneShape();
     
-    // Read document
+    // document read
     Handle(XCAFApp_Application) app = XCAFApp_Application::GetApplication(); // init app at first call
     STEPCAFControl_Reader reader2;
     reader2.ReadFile(fileName);
-    //doc = new TDocStd_Document("MDTV-Standard");
-    doc = new TDocStd_Document("XmlXCAF");
-
-    Handle(TDocStd_Document) doc2 = doc;
     reader2.Transfer(doc2);
     app->InitDocument(doc2);
     //XmlXCAFDrivers::DefineFormat(app); // register driver
     //PCDM_StoreStatus status = app->SaveAs(doc2, "toto.xml");
     //if (status != PCDM_SS_OK) printf("can not write document\n");
   }
-  
+
+  TDocStd_Document* doc = doc2.get();
+
   // Extract surfaces
   TopTools_IndexedMapOfShape* surfs = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*shp, TopAbs_FACE, *surfs);
