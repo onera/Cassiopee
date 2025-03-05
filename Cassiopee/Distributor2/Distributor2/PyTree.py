@@ -570,9 +570,10 @@ def _distributeSkeletonTree(tIn, NP, algorithm='graph', useCom='ID'):
     fileNameLength = len(tIn)
     for fileName in tIn:
         ts    = Cmpi.convertFile2SkeletonTree(fileName, maxDepth=3)
-        stats = _distribute(ts, NP, algorithm=algorithm, useCom=useCom)
-        _write2pathLocal__(ts, fileName)
-        if fileName==tIn[0]: tcs = Internal.copyTree(ts)
+        if fileName==tIn[0]:
+            stats = _distribute(ts, NP, algorithm=algorithm, useCom=useCom)
+            tcs = Internal.copyTree(ts)
         if fileNameLength>1 and fileName!=tIn[0]: _copyDistribution(ts, tcs)
-    _checkNcellsNptsPerProc(tcs, NP)
+        _write2pathLocal__(ts, fileName)
+    _checkNcellsNptsPerProc(tcs,NP)
     return None
