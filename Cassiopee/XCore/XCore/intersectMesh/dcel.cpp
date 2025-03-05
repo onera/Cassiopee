@@ -745,7 +745,7 @@ void Dcel::triangulate(const Smesh &Mf, const Smesh &Sf)
         }
     }
 
-    printf("Total faces: %lu\n", F.size());
+    printf("Total faces: %zu\n", F.size());
     printf("Non-convex count: %d\n", non_convex_count);
     write_ngon("non_convex.im", non_convex_faces);
 
@@ -939,7 +939,7 @@ void Dcel::triangulate(const Smesh &Mf, const Smesh &Sf)
         VNode_free_list(convex);
     }
 
-    //printf("Total faces: %lu\n", F.size());
+    //printf("Total faces: %zu\n", F.size());
 }
 
 void Dcel::update_hedge_faces(std::vector<Face *> &new_F)
