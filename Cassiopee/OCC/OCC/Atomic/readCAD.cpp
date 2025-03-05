@@ -95,7 +95,9 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
     //if (status != PCDM_SS_OK) printf("can not write document\n");
   }
 
-  TDocStd_Document* doc = doc2.get();
+  //TDocStd_Document* doc = doc2.get();
+  TDocStd_Document* doc = doc2.operator->();
+  
 
   // Extract surfaces
   TopTools_IndexedMapOfShape* surfs = new TopTools_IndexedMapOfShape();

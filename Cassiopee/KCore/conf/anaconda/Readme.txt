@@ -1,1 +1,0 @@
-conda-build <package>
