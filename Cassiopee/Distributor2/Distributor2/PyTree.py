@@ -306,32 +306,27 @@ def getProcList(t, NProc=None, sort=False):
                 procList[Internal.getValue(proc)].append(z[0])
 
     else:
-        # On trie les zones par taille decroissant pour chaque base pour etre conforme avec
-        # mode openmp (see reorder dans Fast.Internal)
-        bases = Internal.getNodesFromType1(t,'CGNSBase_t')
+        # On trie les zones par taille decroissante
+        bases = Internal.getNodesFromType1(t, 'CGNSBase_t')
         for base in bases:
-            zones = Internal.getNodesFromType1(base,'Zone_t')
+            zones = Internal.getNodesFromType1(base, 'Zone_t')
+
             # calcul taille de la zone
-            size_zone =[]
+            sizeZone = []
             for z in zones:
                 dim = Internal.getZoneDim(z)
                 if dim[0] == 'Structured':
                     if dim[3] == 1: kfic = 0
-                    else          : kfic = 2
+                    else: kfic = 2
                     ndimdx = (dim[1]-4)*(dim[2]-4)*(dim[3]-kfic)
                 else: ndimdx = dim[2]
-                size_zone.append(ndimdx)
+                sizeZone.append( (z,ndimdx) )
 
-            # Tri les zone par taille decroissante
-            new_zones = []
-            for z in range(len(size_zone)):
-                vmax    = max(size_zone)
-                pos_max = size_zone.index(vmax)
-                new_zones.append(zones[pos_max])
-                size_zone.pop(pos_max)
-                zones.pop(pos_max)
+            # Tri les zones par taille decroissante
+            newZones = sorted(sizeZone, key=lambda x: x[1], reverse=True)
 
-            for z in new_zones:
+            for z in newZones:
+                z = z[0]
                 proc = Internal.getNodeFromName2(z, 'proc')
                 if proc is not None:
                     procList[Internal.getValue(proc)].append(z[0])
@@ -349,6 +344,7 @@ def copyDistribution(a, b):
     return o
 
 def _copyDistribution(a, b):
+    """Copy distribution of a in b."""
     procs = getProcDict(b)
     zones = Internal.getZones(a)
     for z in zones:
@@ -378,10 +374,10 @@ def addProcNode(t, proc):
     return tp
 
 def _addProcNode(t, proc):
+    """Add a "proc" node to zones with the given proc value."""
     zones = Internal.getZones(t)
     for z in zones:
-        Internal.createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t',
-                                   value=None)
+        Internal.createUniqueChild(z, '.Solver#Param', 'UserDefinedData_t', value=None)
         n = Internal.getNodeFromName1(z, '.Solver#Param')
         Internal.createUniqueChild(n, 'proc', 'DataArray_t', value=proc)
     return None
@@ -479,8 +475,8 @@ def stats(t, useCom='match', mode='nodes'):
         varMax = max(varMax, v)
         varRMS = varRMS + v*v
 
-    varMin = varMin / meanPtsPerProc;
-    varMax = varMax / meanPtsPerProc;
+    varMin = varMin / meanPtsPerProc
+    varMax = varMax / meanPtsPerProc
     varRMS = numpy.sqrt(varRMS) / (NProc*meanPtsPerProc);
     volRatio = 0.
 
@@ -512,22 +508,22 @@ def stats(t, useCom='match', mode='nodes'):
 # print stats from tree
 #==================================================================================
 def printStats(t, useCom='match', mode='nodes'):
+    """Print stats from tree distribution."""
     (varMin, varMax, varRMS, volRatio, empty) = stats(t, useCom, mode)
     print("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%"%(100*varMin, 100*varMax, 100*varRMS))
     print("Info: external com ratio=%f%%"%(volRatio*100))
     if empty == 1: print("Warning: at least one processor is empty!")
     return (varMin, varMax, varRMS, volRatio, empty)
 
-
 #==================================================================================
-# Efficient distribute
+# distribute pytrees in files
 #==================================================================================
 def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
-    ## Calculate and prints the number of cells & points for each proc. Provides a human-readable summary of the MPI distribution.
+    # Calculate and prints the number of cells & points for each proc. Provides a human-readable summary of the MPI distribution.
     import Converter.Mpi as Cmpi
     NPTS   = numpy.zeros(NP, dtype=Internal.E_NpyInt)
     NCELLS = numpy.zeros(NP, dtype=Internal.E_NpyInt)
-    ##Done by zone for flexibility
+    # Done by zone for flexibility
     for z in Internal.getZones(ts):
         proc_num        = Cmpi.getProc(z)
         NPTS[proc_num] += C.getNPts(z)
@@ -553,8 +549,7 @@ def _checkNcellsNptsPerProc(ts, NP, isAtCenter=False):
 
 
 def _write2pathLocal__(tsLocal, tLocal):
-    ##Modifies the .Solver#Param/proc only in the files
-    import Converter.Mpi as Cmpi
+    # Modifies the .Solver#Param/proc only in the files
     import Converter.Filter as Filter
     paths = []; ns = []
     bases = Internal.getBases(tsLocal)
@@ -579,5 +574,5 @@ def _distributeSkeletonTree(tIn, NP, algorithm='graph', useCom='ID'):
         _write2pathLocal__(ts, fileName)
         if fileName==tIn[0]: tcs = Internal.copyTree(ts)
         if fileNameLength>1 and fileName!=tIn[0]: _copyDistribution(ts, tcs)
-    _checkNcellsNptsPerProc(tcs,NP)
+    _checkNcellsNptsPerProc(tcs, NP)
     return None
