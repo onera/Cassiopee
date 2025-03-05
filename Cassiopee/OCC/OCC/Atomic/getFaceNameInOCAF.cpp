@@ -84,7 +84,7 @@ PyObject* K_OCC::getFaceNameInOCAF(PyObject* self, PyObject* args)
   //TopExp_Explorer explorer1(*topShape, TopAbs_FACE);
   //for (; explorer1.More(); explorer1.Next()) { faces1.Add(explorer1.Current()); }
 
-  printf("Top shape has %d faces \n", faces1.Extent());
+  //printf("Top shape has %d faces \n", faces1.Extent());
 
   std::vector<E_Int> dejavu(faces1.Extent());
   for (size_t i = 0; i < dejavu.size(); i++) dejavu[i] = 0;
