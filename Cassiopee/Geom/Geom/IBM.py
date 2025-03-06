@@ -12,7 +12,16 @@ varsDeleteIBM = ['utau','StagnationEnthalpy','StagnationPressure',
                  'gradxVelocityX','gradyVelocityX','gradzVelocityX',
                  'gradxVelocityY','gradyVelocityY','gradzVelocityY',
                  'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
-                 'KCurv'         ,'yplus']
+                 'KCurv'         ,'yplus'         ,
+                 't11_model'     ,'t12_model'     ,'t22_model',
+                 't13_model'     ,'t23_model'     ,'t33_model']
+varsDeleteIBMRotTmp=['CoordinateX_PC#Init','CoordinateX_PC#Init','CoordinateX_PC#Init',
+                     'CoordinateX_PW#Init','CoordinateX_PW#Init','CoordinateX_PW#Init',
+                     'CoordinateX_PI#Init','CoordinateX_PI#Init','CoordinateX_PI#Init',
+                     'MotionType','omega',
+                     'transl_speedX','transl_speedY','transl_speedZ',
+                     'axis_pntX'    ,'axis_pntY'    ,'axis_pntZ'    ,
+                     'axis_vctX'    ,'axis_vctY'    ,'axis_vctZ'    ]
 #==============================================================================
 # Creation of a case with a symmetry plane
 #==============================================================================
@@ -423,11 +432,18 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, 
 #==============================================================================
 # Add variables to the IBC
 #==============================================================================
-def _addVariablesTcIbc(zsr, ibctype, nIBC):
+def _addVariablesTcIbc(zsr, ibctype, nIBC, nsModel='NSLaminar'):
     Nlength = numpy.zeros((nIBC),numpy.float64)
-    if ibctype in [2, 3, 6, 10, 11]:
+    if ibctype in [2, 3, 6, 10, 11, 31, 32, 331, 332]:
         zsr[2].append(['utau' , copy.copy(Nlength), [], 'DataArray_t'])
         zsr[2].append(['yplus', copy.copy(Nlength), [], 'DataArray_t'])
+        if ibctype in [331, 332] and nsModel=='NSLaminar':
+            zsr[2].append(['t11_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t12_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t22_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t13_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t23_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t33_model' , copy.copy(Nlength), [], 'DataArray_t'])
 
     if ibctype == 5:
         Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=copy.copy(Nlength))
@@ -474,6 +490,9 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
     """Change the IBC type in a connectivity tree from oldIBCType to newIBCType.
     Usage: changeIBCType(tc, oldIBCType, newIBCType)"""
     for z in Internal.getZones(tc):
+        govEqn     = Internal.getNodeFromName(z, 'GoverningEquations')
+        nsModel    = 'NSLaminar'
+        if govEqn: nsModel = Internal.getValue(govEqn)
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
             nameSubRegion = zsr[0]
@@ -487,7 +506,7 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
                     for var_local in varsDeleteIBM:
                         Internal._rmNodesByName(zsr, var_local)
 
-                    _addVariablesTcIbc(zsr, newIBCType, nIBC)
+                    _addVariablesTcIbc(zsr, newIBCType, nIBC, nsModel)
 
     return None
 
