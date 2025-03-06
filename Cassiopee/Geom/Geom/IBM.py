@@ -493,7 +493,6 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
         govEqn     = Internal.getNodeFromName(z, 'GoverningEquations')
         nsModel    = 'NSLaminar'
         if govEqn: nsModel = Internal.getValue(govEqn)
-        print(nsModel)
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
             nameSubRegion = zsr[0]
