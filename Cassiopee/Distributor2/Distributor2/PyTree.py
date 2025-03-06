@@ -569,11 +569,11 @@ def _distributeSkeletonTree(tIn, NP, algorithm='graph', useCom='ID'):
     import Converter.Mpi as Cmpi
     fileNameLength = len(tIn)
     for fileName in tIn:
-        ts    = Cmpi.convertFile2SkeletonTree(fileName, maxDepth=3)
-        if fileName==tIn[0]:
+        ts = Cmpi.convertFile2SkeletonTree(fileName, maxDepth=3)
+        if fileName == tIn[0]:
             stats = _distribute(ts, NP, algorithm=algorithm, useCom=useCom)
             tcs = Internal.copyTree(ts)
         if fileNameLength>1 and fileName!=tIn[0]: _copyDistribution(ts, tcs)
         _write2pathLocal__(ts, fileName)
-    _checkNcellsNptsPerProc(tcs,NP)
+    _checkNcellsNptsPerProc(tcs, NP)
     return None
