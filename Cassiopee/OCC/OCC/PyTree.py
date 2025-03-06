@@ -1432,7 +1432,10 @@ def identifyTags__(a):
 
 # add family name on faces taken from OCAF compounds
 def _addOCAFCompoundNames(hook, t):
-    ret = OCC.occ.getFaceNameInOCAF(hook)
+    
+    # FACES
+    #ret = OCC.occ.getFaceNameInOCAF(hook)
+    ret = OCC.occ.getFaceNameInOCAF2(hook)
     pos = getAllPos(t)
     r = len(ret)//2
     b = Internal.getNodeFromName1(t, 'FACES')
@@ -1445,6 +1448,22 @@ def _addOCAFCompoundNames(hook, t):
                 C._tagWithFamily(z, name, add=True)
             except: pass
         C._addFamily2Base(b, name)
+    
+    # EDGES
+    ret = OCC.occ.getEdgeNameInOCAF2(hook)
+    pos = getAllPos(t)
+    r = len(ret)//2
+    b = Internal.getNodeFromName1(t, 'EDGES')
+    for i in range(r):
+        name = 'E#'+ret[2*i]
+        fl = ret[2*i+1]
+        for f in fl:
+            try:
+                z = getEdge(t, pos, f)
+                C._tagWithFamily(z, name, add=True)
+            except: pass
+        C._addFamily2Base(b, name)
+    
     return None
 
 def getComponents(t):
