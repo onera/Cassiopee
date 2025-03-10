@@ -691,7 +691,7 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
 # main function
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
                     tbox=None, snearsf=None, check=False, to=None,
-                    ext=2, expand=3, octreeMode=0):
+                    ext=2, optimized=1, expand=3, octreeMode=0):
     """Generates the full Cartesian mesh for IBMs."""
     import KCore.test as test
     # refinementSurfFile: surface meshes describing refinement zones
@@ -861,7 +861,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
     if symmetry==0: extBnd = 0
     else: extBnd = ext-1 # nb de ghost cells = ext-1
-    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=1, extBnd=extBnd)
+    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=extBnd)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):
         Internal.newRind(value=rinds[noz], parent=zones[noz])
