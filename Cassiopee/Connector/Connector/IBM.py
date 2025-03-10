@@ -473,7 +473,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
     C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})')# vaut -3, 0, 1, 2 initialement  #__
     Cmpi.barrier()
     _redispatch__(t=t)
-    if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')   
+    if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
     #===================
     # STEP 4 : INTERP DATA CHIM
     #===================
@@ -1137,7 +1137,7 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
         if tbFilament:
             T._addkplane(tbFilament)
             T._contract(tbFilament, (0,0,0), (1,0,0), (0,1,0), 0.01)
-    
+
     X._applyBCOverlaps(t, depth=depth, loc='centers', val=2, cellNName='cellN')
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')
     C._initVars(t, 'centers:cellN', 1.)
