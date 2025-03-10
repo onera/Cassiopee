@@ -10,7 +10,7 @@ a = G.cart( (0,0,0), (1,1,1), (5,5,5) )
 CPlot.display(a, mode=0, export='export.ppm'); time.sleep(1)
 # Bitmap postscript
 CPlot.display(a, mode=0, export='export.ps'); time.sleep(1)
-# PNG 
+# PNG
 CPlot.display(a, mode=0, export='export.png'); time.sleep(1)
 # MPEG
 for i in range(200):

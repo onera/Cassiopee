@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -52,7 +52,7 @@ PyObject* K_OCC::freeHook(PyObject* self, PyObject* args)
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
   char* fileName = (char*)packet[3];
   char* fileFmt = (char*)packet[4];
-  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  //TDocStd_Document* doc = (TDocStd_Document*)packet[5];
 
   delete shp;
   delete edges;

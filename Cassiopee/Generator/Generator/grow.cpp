@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -196,84 +196,84 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
     // Coordonnees
     E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF coord(npts, nfld, coordp, true);
-     for (E_Int nv = 1; nv <= nfld; nv++)
-     {
-       E_Float* coordp0 = coord.begin(nv);
-       E_Float* fp = f->begin(nv);
-       for (E_Int ind = 0; ind < nt; ind++)
-       {
-         coordp0[ind] = fp[ind];
-         coordp0[ind+nt] = fp[ind];
-       }
-     }
-     E_Float* coordx = coord.begin(posx);
-     E_Float* coordy = coord.begin(posy);
-     E_Float* coordz = coord.begin(posz);
-     E_Float* fx = f->begin(posx);
-     E_Float* fy = f->begin(posy);
-     E_Float* fz = f->begin(posz);
-     E_Float* fvx = fv->begin(1);
-     E_Float* fvy = fv->begin(2);
-     E_Float* fvz = fv->begin(3);
-     for (E_Int ind = 0; ind < nt; ind++)
-     {
-       coordx[ind+nt] = fx[ind] + fvx[ind];
-       coordy[ind+nt] = fy[ind] + fvy[ind];
-       coordz[ind+nt] = fz[ind] + fvz[ind];
-     }
-     // Connectivite
-     E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-     FldArrayI connect(nelts, nvert, cnnp, true);
+    for (E_Int nv = 1; nv <= nfld; nv++)
+    {
+      E_Float* coordp0 = coord.begin(nv);
+      E_Float* fp = f->begin(nv);
+      for (E_Int ind = 0; ind < nt; ind++)
+      {
+        coordp0[ind] = fp[ind];
+        coordp0[ind+nt] = fp[ind];
+      }
+    }
+    E_Float* coordx = coord.begin(posx);
+    E_Float* coordy = coord.begin(posy);
+    E_Float* coordz = coord.begin(posz);
+    E_Float* fx = f->begin(posx);
+    E_Float* fy = f->begin(posy);
+    E_Float* fz = f->begin(posz);
+    E_Float* fvx = fv->begin(1);
+    E_Float* fvy = fv->begin(2);
+    E_Float* fvz = fv->begin(3);
+    for (E_Int ind = 0; ind < nt; ind++)
+    {
+      coordx[ind+nt] = fx[ind] + fvx[ind];
+      coordy[ind+nt] = fy[ind] + fvy[ind];
+      coordz[ind+nt] = fz[ind] + fvz[ind];
+    }
+    // Connectivite
+    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
+    FldArrayI connect(nelts, nvert, cnnp, true);
 
-     // Connectivite
-     if (nvert == 6) // PENTA
-     {
-       E_Int* cn10 = cn->begin(1);
-       E_Int* cn20 = cn->begin(2);
-       E_Int* cn30 = cn->begin(3);
+    // Connectivite
+    if (nvert == 6) // PENTA
+    {
+      E_Int* cn10 = cn->begin(1);
+      E_Int* cn20 = cn->begin(2);
+      E_Int* cn30 = cn->begin(3);
 
-       for (E_Int ind = 0; ind < nelts; ind++)
-       {
-         connect(ind, 1) = cn10[ind];
-         connect(ind, 2) = cn20[ind];
-         connect(ind, 3) = cn30[ind];
-         connect(ind, 4) = cn10[ind] + nt;
-         connect(ind, 5) = cn20[ind] + nt;
-         connect(ind, 6) = cn30[ind] + nt;
-       }
-     }
-     else if (nvert == 8) // HEXA
-     {
-       E_Int* cn10 = cn->begin(1);
-       E_Int* cn20 = cn->begin(2);
-       E_Int* cn30 = cn->begin(3);
-       E_Int* cn40 = cn->begin(4);
+      for (E_Int ind = 0; ind < nelts; ind++)
+      {
+        connect(ind, 1) = cn10[ind];
+        connect(ind, 2) = cn20[ind];
+        connect(ind, 3) = cn30[ind];
+        connect(ind, 4) = cn10[ind] + nt;
+        connect(ind, 5) = cn20[ind] + nt;
+        connect(ind, 6) = cn30[ind] + nt;
+      }
+    }
+    else if (nvert == 8) // HEXA
+    {
+      E_Int* cn10 = cn->begin(1);
+      E_Int* cn20 = cn->begin(2);
+      E_Int* cn30 = cn->begin(3);
+      E_Int* cn40 = cn->begin(4);
 
-       for (E_Int ind = 0; ind < nelts; ind++)
-       {
-         connect(ind, 1) = cn10[ind];
-         connect(ind, 2) = cn20[ind];
-         connect(ind, 3) = cn30[ind];
-         connect(ind, 4) = cn40[ind];
-         connect(ind, 5) = cn10[ind] + nt;
-         connect(ind, 6) = cn20[ind] + nt;
-         connect(ind, 7) = cn30[ind] + nt;
-         connect(ind, 8) = cn40[ind] + nt;
-       }
-     }
-     else if (nvert == 4) // QUAD
-     {
-       E_Int* cn10 = cn->begin(1);
-       E_Int* cn20 = cn->begin(2);
-       for (E_Int ind = 0; ind < nelts; ind++)
-       {
-         connect(ind, 1) = cn10[ind];
-         connect(ind, 2) = cn20[ind];
-         connect(ind, 3) = cn10[ind] + nt;
-         connect(ind, 4) = cn20[ind] + nt;
-       }
-     }
-     RELEASESHAREDB(res, array, f, cn); RELEASESHAREDB(resv, vect, fv, cnv);
-     return tpl;
+      for (E_Int ind = 0; ind < nelts; ind++)
+      {
+        connect(ind, 1) = cn10[ind];
+        connect(ind, 2) = cn20[ind];
+        connect(ind, 3) = cn30[ind];
+        connect(ind, 4) = cn40[ind];
+        connect(ind, 5) = cn10[ind] + nt;
+        connect(ind, 6) = cn20[ind] + nt;
+        connect(ind, 7) = cn30[ind] + nt;
+        connect(ind, 8) = cn40[ind] + nt;
+      }
+    }
+    else if (nvert == 4) // QUAD
+    {
+      E_Int* cn10 = cn->begin(1);
+      E_Int* cn20 = cn->begin(2);
+      for (E_Int ind = 0; ind < nelts; ind++)
+      {
+        connect(ind, 1) = cn10[ind];
+        connect(ind, 2) = cn20[ind];
+        connect(ind, 3) = cn10[ind] + nt;
+        connect(ind, 4) = cn20[ind] + nt;
+      }
+    }
+    RELEASESHAREDB(res, array, f, cn); RELEASESHAREDB(resv, vect, fv, cnv);
+    return tpl;
   }
 }

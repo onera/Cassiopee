@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2024 Onera.
+  Copyright 2013-2025 Onera.
 
   This file is part of Cassiopee.
 
@@ -903,6 +903,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   }
 
 
+
   E_Int nbcomIBC = ipt_param_int[2];
   E_Int nbcomID  = ipt_param_int[3+nbcomIBC];
 
@@ -960,6 +961,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   size_autorisation = K_FUNC::E_max(size_autorisation , nrac_inst+1);
   E_Int autorisation_transferts[pass_inst_fin][size_autorisation];
 
+  E_Int ntab_int =18;
+
   // printf("nrac = %d, nrac_inst = %d, level= %d, it_target= %d , nitrun= %d \n",  nrac, nrac_inst, timelevel,it_target, NitRun);
   //on dimension tableau travail pour IBC
   E_Int nbRcvPts_mx =0; E_Int ibcTypeMax=0;
@@ -972,7 +975,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
     for  (E_Int irac=irac_deb; irac< irac_fin; irac++)
     {
       E_Int shift_rac =  ech + 4 + timelevel*2 + irac;
-      if (ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
+      if (ipt_param_int[ shift_rac+ nrac*10 ] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 ];
 
       if (ipt_param_int[shift_rac+nrac*3] > ibcTypeMax) ibcTypeMax =  ipt_param_int[shift_rac+nrac*3];
 
@@ -981,7 +984,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
       if (exploc == 1)  //if(rk==3 && exploc == 2) // Si on est en explicit local, on va autoriser les transferts entre certaines zones seulement en fonction de la ss-ite courante
       {
-        E_Int debut_rac = ech + 4 + timelevel*2 + 1 + nrac*16 + 27*irac;
+        E_Int debut_rac = ech + 4 + timelevel*2 + nrac*ntab_int + 27*irac;
         E_Int levelD = ipt_param_int[debut_rac + 25];
         E_Int levelR = ipt_param_int[debut_rac + 24];
         E_Int cyclD  = nitmax/levelD;
@@ -1010,7 +1013,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
           else {continue;}
         }
         // Le pas de temps de la zone donneuse est egal a celui de la zone receveuse (cas du deuxieme passage)
-        else if (levelD == ipt_param_int[debut_rac +24] && num_passage == 2)
+        else if (levelD == levelR && num_passage == 2)
         {
           if (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1)
             { autorisation_transferts[pass_inst][irac_auto]=1; }
@@ -1089,11 +1092,11 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
             if (ibcType < 0) ibc = 0;
             if(1-ibc != ipass_typ)  continue;
 
-            E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
-            E_Int loc      =  ipt_param_int[ shift_rac + nrac*9  +1 ]; //+1 a cause du nrac mpi
-            E_Int NoR      =  ipt_param_int[ shift_rac + nrac*11 +1 ];
-            E_Int nvars_loc=  ipt_param_int[ shift_rac + nrac*13 +1 ]; //neq fonction raccord rans/LES
-            E_Int rotation =  ipt_param_int[ shift_rac + nrac*14 +1 ]; //flag pour periodicite azimutale
+            E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5  ];
+            E_Int loc      =  ipt_param_int[ shift_rac + nrac*9  ]; 
+            E_Int NoR      =  ipt_param_int[ shift_rac + nrac*11 ];
+            E_Int nvars_loc=  ipt_param_int[ shift_rac + nrac*13 ]; //neq fonction raccord rans/LES
+            E_Int rotation =  ipt_param_int[ shift_rac + nrac*14 ]; //flag pour periodicite azimutale
 
             // COUPLAGE NS LBM - Recupere les solveurs des zones R et D
             E_Int solver_D=2; E_Int solver_R=2;
@@ -1211,14 +1214,14 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
             ////
             ////
 
-            E_Int nbRcvPts = ipt_param_int[ shift_rac +  nrac*10 + 1 ];
+            E_Int nbRcvPts = ipt_param_int[ shift_rac +  nrac*10 ];
 
             E_Int pos;
-            pos  = ipt_param_int[ shift_rac + nrac*7 ]     ; E_Int* ntype      = ipt_param_int  + pos;
-            pos  = pos +1 + ntype[0]                       ; E_Int* types      = ipt_param_int  + pos;
-            pos  = ipt_param_int[ shift_rac + nrac*6      ]; E_Int* donorPts   = ipt_param_int  + pos;
-            pos  = ipt_param_int[ shift_rac + nrac*12 + 1 ]; E_Int* rcvPts     = ipt_param_int  + pos;   // donor et receveur inverser car storage donor
-            pos  = ipt_param_int[ shift_rac + nrac*8      ]; E_Float* ptrCoefs = ipt_param_real + pos;
+            pos  = ipt_param_int[ shift_rac + nrac*7 ]; E_Int* ntype      = ipt_param_int  + pos;
+            pos  = pos +1 + ntype[0]                  ; E_Int* types      = ipt_param_int  + pos;
+            pos  = ipt_param_int[ shift_rac + nrac*6 ]; E_Int* donorPts   = ipt_param_int  + pos;
+            pos  = ipt_param_int[ shift_rac + nrac*12]; E_Int* rcvPts     = ipt_param_int  + pos;   // donor et receveur inverser car storage donor
+            pos  = ipt_param_int[ shift_rac + nrac*8 ]; E_Float* ptrCoefs = ipt_param_real + pos;
 
             E_Int nbInterpD = ipt_param_int[ shift_rac +  nrac ]; E_Float* xPC=NULL; E_Float* xPI=NULL; E_Float* xPW=NULL; E_Float* densPtr=NULL;
             if (ibc == 1)
@@ -1555,6 +1558,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
   size_autorisation = K_FUNC::E_max(size_autorisation , nrac_inst+1);
 
   E_Int autorisation_transferts[pass_inst_fin][size_autorisation];
+  E_Int ntab_int =18;
 
   // printf("nrac = %d, nrac_inst = %d, level= %d, it_target= %d , nitrun= %d \n",  nrac, nrac_inst, timelevel,it_target, NitRun);
   //on dimension tableau travail pour IBC
@@ -1568,7 +1572,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
     for  (E_Int irac=irac_deb; irac< irac_fin; irac++)
     {
       E_Int shift_rac =  ech + 4 + timelevel*2 + irac;
-      if (ipt_param_int[ shift_rac+ nrac*10 + 1] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10 + 1];
+      if (ipt_param_int[ shift_rac+ nrac*10 ] > nbRcvPts_mx) nbRcvPts_mx = ipt_param_int[ shift_rac+ nrac*10];
 
       if (ipt_param_int[shift_rac+nrac*3] > ibcTypeMax)  ibcTypeMax =  ipt_param_int[shift_rac+nrac*3];
 
@@ -1578,7 +1582,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
 
       if (exploc == 1)  //if(rk==3 && exploc == 2) // Si on est en explicit local, on va autoriser les transferts entre certaines zones seulement en fonction de la ss-ite courante
       {
-        E_Int debut_rac = ech + 4 + timelevel*2 + 1 + nrac*16 + 27*irac;
+        E_Int debut_rac = ech + 4 + timelevel*2 + nrac*ntab_int + 27*irac;
         E_Int levelD = ipt_param_int[debut_rac + 25];
         E_Int levelR = ipt_param_int[debut_rac + 24];
         E_Int cyclD  = nitmax/levelD;
@@ -1607,7 +1611,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
           else {continue;}
         }
         // Le pas de temps de la zone donneuse est egal a celui de la zone receveuse (cas du deuxieme passage)
-        else if (levelD == ipt_param_int[debut_rac +24] && num_passage == 2)
+        else if (levelD == levelR && num_passage == 2)
         {
           if (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1)
             { autorisation_transferts[pass_inst][irac_auto]=1; }
@@ -1687,11 +1691,11 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
             if (ibcType < 0) ibc = 0;
             if(1-ibc != ipass_typ)  continue;
 
-            E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
-            E_Int loc      =  ipt_param_int[ shift_rac + nrac*9  +1 ]; //+1 a cause du nrac mpi
-            E_Int NoR      =  ipt_param_int[ shift_rac + nrac*11 +1 ];
-            E_Int nvars_loc=  ipt_param_int[ shift_rac + nrac*13 +1 ]; //neq fonction raccord rans/LES
-            E_Int rotation =  ipt_param_int[ shift_rac + nrac*14 +1 ]; //flag pour periodicite azimutale
+            E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5  ];
+            E_Int loc      =  ipt_param_int[ shift_rac + nrac*9  ]; 
+            E_Int NoR      =  ipt_param_int[ shift_rac + nrac*11 ];
+            E_Int nvars_loc=  ipt_param_int[ shift_rac + nrac*13 ]; //neq fonction raccord rans/LES
+            E_Int rotation =  ipt_param_int[ shift_rac + nrac*14 ]; //flag pour periodicite azimutale
 
             //printf("irac=  %d, nvar_loc= %d,  ithread= %d \n",irac , nvars_loc, ithread );
 
@@ -1737,14 +1741,14 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
             ////
             ////
 
-            E_Int nbRcvPts = ipt_param_int[ shift_rac +  nrac*10 + 1 ];
+            E_Int nbRcvPts = ipt_param_int[ shift_rac +  nrac*10];
 
             E_Int pos;
-            pos  = ipt_param_int[ shift_rac + nrac*7 ]     ; E_Int* ntype      = ipt_param_int  + pos;
-            pos  = pos +1 + ntype[0]                       ; E_Int* types      = ipt_param_int  + pos;
-            pos  = ipt_param_int[ shift_rac + nrac*6      ]; E_Int* donorPts   = ipt_param_int  + pos;
-            pos  = ipt_param_int[ shift_rac + nrac*12 + 1 ]; E_Int* rcvPts     = ipt_param_int  + pos;   // donor et receveur inverser car storage donor
-            pos  = ipt_param_int[ shift_rac + nrac*8      ]; E_Float* ptrCoefs = ipt_param_real + pos;
+            pos  = ipt_param_int[ shift_rac + nrac*7 ]; E_Int* ntype      = ipt_param_int  + pos;
+            pos  = pos +1 + ntype[0]                  ; E_Int* types      = ipt_param_int  + pos;
+            pos  = ipt_param_int[ shift_rac + nrac*6 ]; E_Int* donorPts   = ipt_param_int  + pos;
+            pos  = ipt_param_int[ shift_rac + nrac*12]; E_Int* rcvPts     = ipt_param_int  + pos;   // donor et receveur inverser car storage donor
+            pos  = ipt_param_int[ shift_rac + nrac*8 ]; E_Float* ptrCoefs = ipt_param_real + pos;
             //printf("%d %d\n", ibcType, pos);
 
             E_Int nbInterpD = ipt_param_int[ shift_rac +  nrac ]; E_Float* xPC=NULL; E_Float* xPI=NULL; E_Float* xPW=NULL; E_Float* densPtr=NULL;

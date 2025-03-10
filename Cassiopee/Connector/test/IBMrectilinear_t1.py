@@ -62,6 +62,21 @@ t,tc=X_IBM.prepareIBMData(tb         , None      , None     , tbox=tbOneOver,
                           snears=0.01, dfars=dfar, vmin=vmin, cartesian=False)
 os.remove(FileNameOneOver)
 
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+for b in Internal.getBases(tc):
+    for z in Internal.getZones(b):
+        pos = 0
+        z2 = Internal.copyRef(z)
+        for zs in z2[2]:
+            if 'ID' in zs[0] or 'IBCD' in zs[0]:
+                Internal.addChild(z, zs, pos)
+                pos +=2
+            else:
+                pos += 1
+####
+
 ##NON-REGRESSION CHECK
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')

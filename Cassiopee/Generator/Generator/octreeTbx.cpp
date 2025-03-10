@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -406,41 +406,41 @@ void K_GENERATOR::modifyIndicator(
         et2 = voisins[noet]; dh2 = dhtp[et2];
         indic1 = indict[et1]; indic2 = indict[et2]; 
 
-        if (indic1 != indic2) 
+        if (K_FUNC::fEqual(indic1, indic2) == false) // indic1 != indic2
         {       
-          if (indic1 > 0. && indic2 == 0.) 
+          if (indic1 > 0. && K_FUNC::fEqualZero(indic2) == true) 
           {
             if (K_FUNC::fEqualZero(2.*dh1-dh2, eps) == true) 
             { indict[et2] = 1.; ok = 0; }
           }
+          else if (K_FUNC::fEqualZero(indic1) == true && indic2 > 0.)
+          {
+            if (K_FUNC::fEqualZero(dh1-2.*dh2, eps) == true) 
+            { indict[et1] = 1.; ok = 0; }
+          }
+          else if (K_FUNC::fEqualZero(indic1) == true && indic2 < 0.)
+          {
+            if (K_FUNC::fEqualZero(2.*dh1-dh2, eps) == true) 
+            { indict[et2] = 0.; ok = 0; }
+          }
+          else if (indic1 < 0. && K_FUNC::fEqualZero(indic2) == true)
+          {
+            if (K_FUNC::fEqualZero(dh1-2.*dh2, eps) == true) 
+            { indict[et1] = 0.; ok = 0; }
+          }
           else if (indic1 > 0. && indic2 < 0.) 
           {
             if (K_FUNC::fEqualZero(dh1-dh2, eps) == true) 
-            {indict[et2] = 0.; ok = 0;}
+            { indict[et2] = 0.; ok = 0; }
             else if (K_FUNC::fEqualZero(2.*dh1-dh2, eps) == true) 
-            {indict[et2] = 1.; ok = 0;}
-          }
-          else if (indic1 == 0. && indic2 > 0.)
-          {
-            if (K_FUNC::fEqualZero(dh1-2.*dh2, eps) == true) 
-            {indict[et1] = 1.;ok = 0;}
-          }
-          else if (indic1 == 0. && indic2 < 0.)
-          {
-             if (K_FUNC::fEqualZero(2.*dh1-dh2, eps) == true) 
-             {indict[et2] = 0.; ok = 0;}
+            { indict[et2] = 1.; ok = 0; }
           }
           else if (indic1 < 0. && indic2 > 0.)
           {
             if (K_FUNC::fEqualZero(dh1-dh2, eps) == true) 
-            {indict[et1] = 0.;ok = 0;}
+            { indict[et1] = 0.; ok = 0; }
             else if (K_FUNC::fEqualZero(dh1-2.*dh2, eps) == true) 
-            {indict[et1] = 1.; ok = 0;}
-          }
-          else if (indic1 < 0. && indic2 == 0.)
-          {
-            if (K_FUNC::fEqualZero(dh1-2.*dh2, eps) == true) 
-            { indict[et1] = 0.; ok = 0;}
+            { indict[et1] = 1.; ok = 0; }
           }
         }
       }
@@ -483,8 +483,7 @@ void K_GENERATOR::getValidNgbrsForMerge(
   E_Float xA2, yA2, zA2;
   for (E_Int et2 = 0; et2 < nelts; et2++)
   {
-    if (et2 != et && indict[et2] == -1. && dejaVu[et2] == 0 && 
-        K_FUNC::fEqualZero(dht[et2]-dh,eps) == true) 
+    if (et2 != et && K_FUNC::fEqual(indict[et2], -1.) == true && dejaVu[et2] == 0 && K_FUNC::fEqualZero(dht[et2]-dh,eps) == true)
     {
       indA2 = cn1[et2]-1; xA2 = xt[indA2]; yA2 = yt[indA2]; zA2 = zt[indA2];
       if (xA2 > xmin-eps && xA2 < xmax-eps && 
@@ -566,7 +565,7 @@ K_GENERATOR::mergeOctreeElement(E_Int et, E_Int npts, E_Float indic,
       indico[eto] = K_FUNC::E_min(0.,indic+1);
       eto++;
       for (E_Int v = 0; v < ncandidats; v++)
-      {E_Int et2 = candidats[v]; dejaVu[et2] = 1;}
+      { E_Int et2 = candidats[v]; dejaVu[et2] = 1; }
       dejaVu[et] = 1;
       return 1;
     }
@@ -607,7 +606,7 @@ K_GENERATOR::mergeOctreeElement(E_Int et, E_Int npts, E_Float indic,
       indico[eto] = K_FUNC::E_min(0.,indic+1);
       eto++;
       for (E_Int v = 0; v < ncandidats; v++)
-      {E_Int et2 = candidats[v]; dejaVu[et2] = 1;}
+      { E_Int et2 = candidats[v]; dejaVu[et2] = 1; }
       dejaVu[et] = 1;
       return 1;
     }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -101,7 +101,7 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
     }
 
     assert(seed == nc);
-    printf("Connex parts: %lu\n", clists.size());
+    printf("Connex parts: %zu\n", clists.size());
     {
         E_Int size = 0;
         for (const auto &clist : clists) size += clist.size();
@@ -236,7 +236,7 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         dims[0] = (npy_intp)nc;
         PyArrayObject *ct = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
         E_Float *ptr = (E_Float *)PyArray_DATA(ct);
-        for (size_t i = 0; i < nc; i++) ptr[i] = ctag[clist[i]];
+        for (E_Int i = 0; i < nc; i++) ptr[i] = ctag[clist[i]];
 
         dims[0] = (npy_intp)np;
         PyArrayObject *pt = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);

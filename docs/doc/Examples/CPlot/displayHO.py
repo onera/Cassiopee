@@ -107,7 +107,7 @@ t[2][6][2] += Internal.getZones(tsph03)
 t[2][7][2] += Internal.getZones(tsph13)
 
 for shader in ["Chrome","Glass", "Wood", 'Marble', 'XRay', 'Metal', 'Granite', 'Brick', 'Cloud', 'Gooch']:
-    s = CPlot.addRender2Zone(t, material=shader, color='White')    
+    s = CPlot.addRender2Zone(t, material=shader, color='White')
     CPlot.display(s, mode="Render")
     l = ''
     while l != 'n':

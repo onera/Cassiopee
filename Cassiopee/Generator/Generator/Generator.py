@@ -2454,7 +2454,7 @@ def quad2Pyra(array, hratio=1.):
     Usage: quad2Pyra(array, hratio)"""
     return generator.quad2Pyra(array, hratio)
 
-def getMeshFieldInfo(array, field, critValue, verbose):
+def getMeshFieldInfo___(array, field, critValue, verbose):
     fmin  = 1.e32
     fsum  = 0
     fmax  = -1.
@@ -2496,10 +2496,10 @@ def checkMesh(array, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., add
 
     #addGC: dummy argument to match the pyTree function
 
-    vmin,vmax,vmean,vcrit = getMeshFieldInfo(array, 'vol', critVol, verbose)
-    omin,omax,omean,ocrit = getMeshFieldInfo(array, 'orthogonality', critOrtho, verbose)
-    rmin,rmax,rmean,rcrit = getMeshFieldInfo(array, 'regularity', critReg, verbose)
-    amin,amax,amean,acrit = getMeshFieldInfo(array, 'regularityAngle', critAngReg, verbose)
+    vmin,vmax,vmean,vcrit = getMeshFieldInfo__(array, 'vol', critVol, verbose)
+    omin,omax,omean,ocrit = getMeshFieldInfo__(array, 'orthogonality', critOrtho, verbose)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(array, 'regularity', critReg, verbose)
+    amin,amax,amean,acrit = getMeshFieldInfo__(array, 'regularityAngle', critAngReg, verbose)
 
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,

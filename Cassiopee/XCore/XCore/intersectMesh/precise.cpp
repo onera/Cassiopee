@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -72,7 +72,7 @@ Expansion linear_sum(const Expansion &e, const Expansion &f)
     Expansion h(m + n);
     auto g = merge_and_sort(e, f);
     CompensatedSum Q = fast_two_sum(g[1], g[0]);
-    for (int i = 2; i < m + n; i++) {
+    for (size_t i = 2; i < m + n; i++) {
         CompensatedSum R = fast_two_sum(g[i], Q.y);
         h[i-2] = R.y;
         Q = two_sum(Q.x, R.x);

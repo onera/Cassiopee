@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -54,12 +54,14 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   // Acces universel sur BE/ME
   E_Int nc = cnl->getNConnect();
   E_Int elOffset = 0, fcOffset = 0; // element and face offsets for ME
+  E_Int sizeFNOffset = 0, sizeEFOffset = 0; // connectivity offsets
   // Acces universel aux eltTypes
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
-  // Number of elements, faces, faces per element, and vertices per face
-  // for each connectivity
-  std::vector<E_Int> nelts(nc), nfaces(nc), nf(nc), nv(nc);
+  // Number of elements, faces, and vertices per connectivity
+  std::vector<E_Int> nepc(nc), nfpc(nc), nvpc(nc);
+  // Number of faces per element and vertices per face for each connectivity
+  std::vector<E_Int> nf(nc), nv(nc);
   // Total number of elements and faces for all connectivities
   E_Int ntotelts = 0, ntotfaces = 0;
   E_Int sizeFN = 0, sizeEF = 0;
@@ -84,60 +86,62 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
       RELEASESHAREDU(array, f, cnl); return NULL;  
     }
 
-    nelts[ic] = cm.getSize();
-    ntotelts += nelts[ic];
+    nepc[ic] = cm.getSize();
 
     if (strcmp(eltTypConn, "BAR") == 0) // peut avoir des T-Branches
     {
       // 1 sommet par face, 2 faces par elt
       nv[ic] = 1; nf[ic] = 2;
-      nfaces[ic] = nf[ic]*nelts[ic];
-      sizeFN += nfaces[ic]*(nv[ic]+shift);
+      nfpc[ic] = nf[ic]*nepc[ic];
+      nvpc[ic] = nv[ic]*nfpc[ic];
     }
     else if (strcmp(eltTypConn, "TRI") == 0)
     {
       // 2 sommets par face, 3 faces par elt
       nv[ic] = 2; nf[ic] = 3;
-      nfaces[ic] = nf[ic]*nelts[ic];
-      sizeFN += nfaces[ic]*(nv[ic]+shift);
+      nfpc[ic] = nf[ic]*nepc[ic];
+      nvpc[ic] = nv[ic]*nfpc[ic];
     }
     else if (strcmp(eltTypConn, "QUAD") == 0)
     {
       // 2 sommets par face, 4 faces par elt
       nv[ic] = 2; nf[ic] = 4;
-      nfaces[ic] = nf[ic]*nelts[ic];
-      sizeFN += nfaces[ic]*(nv[ic]+shift);
+      nfpc[ic] = nf[ic]*nepc[ic];
+      nvpc[ic] = nv[ic]*nfpc[ic];
     }
     else if (strcmp(eltTypConn, "TETRA") == 0)
     {
       // 3 sommets par face, 4 faces par elt
       nv[ic] = 3; nf[ic] = 4;
-      nfaces[ic] = nf[ic]*nelts[ic];
-      sizeFN += nfaces[ic]*(nv[ic]+shift);
+      nfpc[ic] = nf[ic]*nepc[ic];
+      nvpc[ic] = nv[ic]*nfpc[ic];
     }
     else if (strcmp(eltTypConn, "HEXA") == 0)
     {
       // 4 sommets par face, 6 faces par elt
       nv[ic] = 4; nf[ic] = 6;
-      nfaces[ic] = nf[ic]*nelts[ic];
-      sizeFN += nfaces[ic]*(nv[ic]+shift);
+      nfpc[ic] = nf[ic]*nepc[ic];
+      nvpc[ic] = nv[ic]*nfpc[ic];
     }
     else if (strcmp(eltTypConn, "PENTA") == 0)
     {
       // 3 quad et 2 tri par elt, 5 faces par elt
       nv[ic] = -1; nf[ic] = 5;
-      nfaces[ic] = nf[ic]*nelts[ic]; 
-      sizeFN += nelts[ic]*(3*(4+shift)+2*(3+shift)); 
+      nfpc[ic] = nf[ic]*nepc[ic];
+      nvpc[ic] = 18*nepc[ic];
     }
     else if (strcmp(eltTypConn, "PYRA") == 0)
     {
       // 1 quad et 4 tri par elt, 5 faces par elt
       nv[ic] = -1; nf[ic] = 5;
-      nfaces[ic] = nf[ic]*nelts[ic]; 
-      sizeFN += nelts[ic]*(1*(4+shift)+4*(3+shift));
+      nfpc[ic] = nf[ic]*nepc[ic]; 
+      nvpc[ic] = 16*nepc[ic];
     }
-    ntotfaces += nfaces[ic];
-    sizeEF += nelts[ic]*(nf[ic]+shift);
+
+    ntotfaces += nfpc[ic];
+    ntotelts += nepc[ic];
+    sizeFN += nvpc[ic] + shift*nfpc[ic];
+    sizeEF += nfpc[ic] + shift*nepc[ic];
   }
 
   // Build an empty NGON connectivity
@@ -177,83 +181,83 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
       {
         E_Int v1, v2;
 #pragma omp for
-        for (E_Int et = 0; et < nelts[ic]; et++)
+        for (E_Int et = 0; et < nepc[ic]; et++)
         {
           v1 = cm(et,1); v2 = cm(et,2); 
           // connectivite face/noeuds
-          c1 = fcOffset + (2+2*shift)*et;
+          c1 = sizeFNOffset + (2+2*shift)*et;
           ngon2[c1] = 1; ngon2[c1+shift] = v1; // face 1
           ngon2[c1+shift+1] = 1; ngon2[c1+2*shift+1] = v2; // face 2
           // connectivite elt/faces
-          c2 = elOffset + (shift+2)*et; nof = 1 + fcOffset + nf[ic]*et;
-          nface2[c2] = 2; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1;
+          c2 = sizeEFOffset + (shift+2)*et; nof = shift + fcOffset + nf[ic]*et;
+          nface2[c2] = 2; nface2[c2+shift] = nof+1-shift; nface2[c2+shift+1] = nof+2-shift;
         }
       }
       else if (strcmp(eltTypConn, "TRI") == 0) 
       {
         E_Int v1, v2, v3;
 #pragma omp for
-        for (E_Int et = 0; et < nelts[ic]; et++)
+        for (E_Int et = 0; et < nepc[ic]; et++)
         {
           v1 = cm(et,1); v2 = cm(et,2); v3 = cm(et,3);
           // connectivite face/noeuds
-          c1 = fcOffset + (3*shift+6)*et;
+          c1 = sizeFNOffset + (3*shift+6)*et;
           ngon2[c1] = 2; ngon2[c1+shift] = v1; ngon2[c1+shift+1] = v2; // face 1
           ngon2[c1+shift+2] = 2; ngon2[c1+2*shift+2] = v2; ngon2[c1+2*shift+3] = v3; // face 2
           ngon2[c1+2*shift+4] = 2; ngon2[c1+3*shift+4] = v3; ngon2[c1+3*shift+5] = v1; // face 3
           // connectivite elt/faces
-          c2 = elOffset + (shift+3)*et; nof = 1 + fcOffset + nf[ic]*et;
-          nface2[c2] = 3; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1; nface2[c2+shift+2] = nof+2;   
+          c2 = sizeEFOffset + (shift+3)*et; nof = shift + fcOffset + nf[ic]*et;
+          nface2[c2] = 3; nface2[c2+shift] = nof+1-shift; nface2[c2+shift+1] = nof+2-shift; nface2[c2+shift+2] = nof+3-shift;   
         }
       }
       else if (strcmp(eltTypConn, "QUAD") == 0) 
       {
         E_Int v1, v2, v3, v4;
 #pragma omp for
-        for (E_Int et = 0; et < nelts[ic]; et++)
+        for (E_Int et = 0; et < nepc[ic]; et++)
         {
           v1 = cm(et,1); v2 = cm(et,2); v3 = cm(et,3); v4 = cm(et,4);
           // connectivite face/noeuds
-          c1 = fcOffset + (4*shift+8)*et;
+          c1 = sizeFNOffset + (4*shift+8)*et;
           ngon2[c1] = 2; ngon2[c1+shift] = v1; ngon2[c1+shift+1] = v2; // face 1
           ngon2[c1+shift+2] = 2; ngon2[c1+2*shift+2] = v2; ngon2[c1+2*shift+3] = v3; // face 2
           ngon2[c1+2*shift+4] = 2; ngon2[c1+3*shift+4] = v3; ngon2[c1+3*shift+5] = v4; // face 3
           ngon2[c1+3*shift+6] = 2; ngon2[c1+4*shift+6] = v4; ngon2[c1+4*shift+7] = v1; // face 4
           // connectivite elt/faces
-          c2 = elOffset + (shift+4)*et; nof = 1 + fcOffset + nf[ic]*et;
-          nface2[c2] = 4; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1;
-          nface2[c2+shift+2] = nof+2; nface2[c2+shift+3] = nof+3;      
+          c2 = sizeEFOffset + (shift+4)*et; nof = shift + fcOffset + nf[ic]*et;
+          nface2[c2] = 4; nface2[c2+shift] = nof+1-shift; nface2[c2+shift+1] = nof+2-shift;
+          nface2[c2+shift+2] = nof+3-shift; nface2[c2+shift+3] = nof+4-shift;      
         }
       }
       else if (strcmp(eltTypConn, "TETRA") == 0) 
       {
         E_Int v1, v2, v3, v4;
 #pragma omp for
-        for (E_Int et = 0; et < nelts[ic]; et++)
+        for (E_Int et = 0; et < nepc[ic]; et++)
         {
           v1 = cm(et,1); v2 = cm(et,2); v3 = cm(et,3); v4 = cm(et,4);
           // connectivite face/noeuds
-          c1 = fcOffset + (4*shift+12)*et;  
+          c1 = sizeFNOffset + (4*shift+12)*et;  
           ngon2[c1] = 3; ngon2[c1+shift] = v1; ngon2[c1+shift+1] = v2; ngon2[c1+shift+2] = v3;// face 1
           ngon2[c1+shift+3] = 3; ngon2[c1+2*shift+3] = v1; ngon2[c1+2*shift+4] = v2; ngon2[c1+2*shift+5] = v4;// face 2
           ngon2[c1+2*shift+6] = 3; ngon2[c1+3*shift+6] = v2; ngon2[c1+3*shift+7] = v3; ngon2[c1+3*shift+8] = v4;// face 3
           ngon2[c1+3*shift+9] = 3; ngon2[c1+4*shift+9] = v3; ngon2[c1+4*shift+10] = v1; ngon2[c1+4*shift+11] = v4;// face 4
           // connectivite elt/faces
-          c2 = elOffset + (shift+4)*et; nof = 1 + fcOffset + nf[ic]*et;
-          nface2[c2] = 4; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1;
-          nface2[c2+shift+2] = nof+2; nface2[c2+shift+3] = nof+3;      
+          c2 = sizeEFOffset + (shift+4)*et; nof = shift + fcOffset + nf[ic]*et;
+          nface2[c2] = 4; nface2[c2+shift] = nof+1-shift; nface2[c2+shift+1] = nof+2-shift;
+          nface2[c2+shift+2] = nof+3-shift; nface2[c2+shift+3] = nof+4-shift;      
         }
       }
       else if (strcmp(eltTypConn, "HEXA") == 0) 
       {
         E_Int v1, v2, v3, v4, v5, v6, v7, v8;
 #pragma omp for
-        for (E_Int et = 0; et < nelts[ic]; et++)
+        for (E_Int et = 0; et < nepc[ic]; et++)
         {
           v1 = cm(et,1); v2 = cm(et,2); v3 = cm(et,3); v4 = cm(et,4);
           v5 = cm(et,5); v6 = cm(et,6); v7 = cm(et,7); v8 = cm(et,8);
           // connectivite face/noeuds
-          c1 = fcOffset + (6*shift+24)*et; 
+          c1 = sizeFNOffset + (6*shift+24)*et; 
           ngon2[c1] = 4; ngon2[c1+shift] = v1; ngon2[c1+shift+1] = v2; ngon2[c1+shift+2] = v3; ngon2[c1+shift+3] = v4;// face 1
           ngon2[c1+shift+4] = 4; ngon2[c1+2*shift+4] = v5; ngon2[c1+2*shift+5] = v6; ngon2[c1+2*shift+6] = v7; ngon2[c1+2*shift+7] = v8;// face 2
           ngon2[c1+2*shift+8] = 4; ngon2[c1+3*shift+8] = v1; ngon2[c1+3*shift+9] = v2; ngon2[c1+3*shift+10] = v6; ngon2[c1+3*shift+11] = v5;// face 3
@@ -261,104 +265,110 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
           ngon2[c1+4*shift+16] = 4; ngon2[c1+5*shift+16] = v1; ngon2[c1+5*shift+17] = v4; ngon2[c1+5*shift+18] = v8; ngon2[c1+5*shift+19] = v5;// face 5
           ngon2[c1+5*shift+20] = 4; ngon2[c1+6*shift+20] = v2; ngon2[c1+6*shift+21] = v3; ngon2[c1+6*shift+22] = v7; ngon2[c1+6*shift+23] = v6;// face 6
           // connectivite elt/faces
-          c2 = elOffset + (shift+6)*et; nof = 1 + fcOffset + nf[ic]*et;
-          nface2[c2] = 6; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1; nface2[c2+shift+2] = nof+2;
-          nface2[c2+shift+3] = nof+3; nface2[c2+shift+4] = nof+4; nface2[c2+shift+5] = nof+5;
+          c2 = sizeEFOffset + (shift+6)*et; nof = shift + fcOffset + nf[ic]*et;
+          nface2[c2] = 6; nface2[c2+shift] = nof+1-shift; nface2[c2+shift+1] = nof+2-shift; nface2[c2+shift+2] = nof+3-shift;
+          nface2[c2+shift+3] = nof+4-shift; nface2[c2+shift+4] = nof+5-shift; nface2[c2+shift+5] = nof+6-shift;
         }
       }
       else if (strcmp(eltTypConn, "PENTA") == 0) 
       {
         E_Int v1, v2, v3, v4, v5, v6;
 #pragma omp for
-        for (E_Int et = 0; et < nelts[ic]; et++)
+        for (E_Int et = 0; et < nepc[ic]; et++)
         {
           v1 = cm(et,1); v2 = cm(et,2); v3 = cm(et,3);
           v4 = cm(et,4); v5 = cm(et,5); v6 = cm(et,6);
           // connectivite face/noeuds
-          c1 = fcOffset + (5*shift+18)*et;
+          c1 = sizeFNOffset + (5*shift+18)*et;
           ngon2[c1] = 3; ngon2[c1+shift] = v1; ngon2[c1+shift+1] = v2; ngon2[c1+shift+2] = v3;// face 1 TRI
           ngon2[c1+shift+3] = 3; ngon2[c1+2*shift+3] = v4; ngon2[c1+2*shift+4] = v5; ngon2[c1+2*shift+5] = v6;// face 2 TRI
           ngon2[c1+2*shift+6] = 4; ngon2[c1+3*shift+6] = v1; ngon2[c1+3*shift+7] = v2; ngon2[c1+3*shift+8] = v5; ngon2[c1+3*shift+9] = v4;// face 3 : QUAD
           ngon2[c1+3*shift+10] = 4; ngon2[c1+4*shift+10] = v2; ngon2[c1+4*shift+11] = v3; ngon2[c1+4*shift+12]= v6; ngon2[c1+4*shift+13] = v5;// face 4 : QUAD
           ngon2[c1+4*shift+14] = 4; ngon2[c1+5*shift+14] = v3; ngon2[c1+5*shift+15] = v1; ngon2[c1+5*shift+16] = v4; ngon2[c1+5*shift+17] = v6;// face 5 : QUAD
           // connectivite elt/faces
-          c2 = elOffset + (shift+5)*et; nof = 1 + fcOffset + nf[ic]*et;
-          nface2[c2] = 5; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1; nface2[c2+shift+2] = nof+2;
-          nface2[c2+shift+3] = nof+3; nface2[c2+shift+4] = nof+4;      
+          c2 = sizeEFOffset + (shift+5)*et; nof = shift + fcOffset + nf[ic]*et;
+          nface2[c2] = 5; nface2[c2+shift] = nof+1-shift; nface2[c2+shift+1] = nof+2-shift; nface2[c2+shift+2] = nof+3-shift;
+          nface2[c2+shift+3] = nof+4-shift; nface2[c2+shift+4] = nof+5-shift;      
         }
       }
       else if (strcmp(eltTypConn, "PYRA") == 0) 
       {
         E_Int v1, v2, v3, v4, v5;
 #pragma omp for
-        for (E_Int et = 0; et < nelts[ic]; et++)
+        for (E_Int et = 0; et < nepc[ic]; et++)
         {
           v1 = cm(et,1); v2 = cm(et,2); v3 = cm(et,3);
           v4 = cm(et,4); v5 = cm(et,5);
           // connectivite face/noeuds
-          c1 = fcOffset + (5*shift+16)*et;
+          c1 = sizeFNOffset + (5*shift+16)*et;
           ngon2[c1] = 4; ngon2[c1+shift] = v1; ngon2[c1+shift+1] = v2; ngon2[c1+shift+2] = v3; ngon2[c1+shift+3] = v4; // face 1: QUAD
           ngon2[c1+shift+4] = 3; ngon2[c1+2*shift+4] = v1; ngon2[c1+2*shift+5] = v2; ngon2[c1+2*shift+6] = v5;// face 2: TRI
           ngon2[c1+2*shift+7] = 3; ngon2[c1+3*shift+7] = v2; ngon2[c1+3*shift+8] = v3; ngon2[c1+3*shift+9] = v5;// face 3: TRI
           ngon2[c1+3*shift+10] = 3; ngon2[c1+4*shift+10] = v3; ngon2[c1+4*shift+11] = v4; ngon2[c1+4*shift+12] = v5;// face 4: TRI
           ngon2[c1+4*shift+13] = 3; ngon2[c1+5*shift+13] = v4; ngon2[c1+5*shift+14] = v1; ngon2[c1+5*shift+15] = v5;// face 5: TRI
           // connectivite elt/faces
-          c2 = elOffset + (shift+5)*et; nof = 1 + fcOffset + nf[ic]*et;
-          nface2[c2] = 5; nface2[c2+shift] = nof; nface2[c2+shift+1] = nof+1; nface2[c2+shift+2] = nof+2;
-          nface2[c2+shift+3] = nof+3; nface2[c2+shift+4] = nof+4;      
+          c2 = sizeEFOffset + (shift+5)*et; nof = shift + fcOffset + nf[ic]*et;
+          nface2[c2] = 5; nface2[c2+shift] = nof+1-shift; nface2[c2+shift+1] = nof+2-shift; nface2[c2+shift+2] = nof+3-shift;
+          nface2[c2+shift+3] = nof+4-shift; nface2[c2+shift+4] = nof+5-shift;      
         }
       }
 
       // Start offset indices
       if (api == 2 || api == 3) // array2 ou array3
       {
-        E_Int c = 0;
+        E_Int c = 0, d = 0;
         if (strcmp(eltTypConn, "PENTA") == 0)
         {
 #pragma omp for
-          for (E_Int i = 0; i < nelts[ic]; i += nf[ic])
+          for (E_Int i = 0; i < nepc[ic]; i++)
           {
-            c = fcOffset + i;
-            indPG2[c] = (4+shift)*c; c++;
-            indPG2[c] = (4+shift)*c; c++;
-            indPG2[c] = (4+shift)*c; c++;
-            indPG2[c] = (3+shift)*c; c++;
-            indPG2[c] = (3+shift)*c;
+            c = fcOffset + i*5;
+            d = sizeFNOffset + i*(18+5*shift);
+            indPG2[c] = d;
+            indPG2[c+1] = d + (3+shift);
+            indPG2[c+2] = d + (6+2*shift);
+            indPG2[c+3] = d + (10+3*shift);
+            indPG2[c+4] = d + (14+4*shift);
           }
         }
         else if (strcmp(eltTypConn, "PYRA") == 0)
         {
 #pragma omp for
-          for (E_Int i = 0; i < nelts[ic]; i += nf[ic])
+          for (E_Int i = 0; i < nepc[ic]; i++)
           {
-            c = fcOffset + i;
-            indPG2[c] = (4+shift)*c; c++;
-            indPG2[c] = (3+shift)*c; c++;
-            indPG2[c] = (3+shift)*c;
+            c = fcOffset + i*5;
+            d = sizeFNOffset + i*(16+5*shift);
+            indPG2[c] = d;
+            indPG2[c+1] = d + (4+shift);
+            indPG2[c+2] = d + (7+2*shift);
+            indPG2[c+3] = d + (10+3*shift);
+            indPG2[c+4] = d + (13+4*shift);
           }
         }
         else
         {
 #pragma omp for
-          for (E_Int i = 0; i < nfaces[ic]; i++)
+          for (E_Int i = 0; i < nfpc[ic]; i++)
           {
             c = fcOffset + i;
-            indPG2[c] = (nv[ic]+shift)*c;
+            indPG2[c] = sizeFNOffset + (nv[ic]+shift)*i;
           }
         }
 
 #pragma omp for
-        for (E_Int i = 0; i < nelts[ic]; i++)
+        for (E_Int i = 0; i < nepc[ic]; i++)
         {
           c = elOffset + i;
-          indPH2[c] = (nf[ic]+shift)*c;
+          indPH2[c] = sizeEFOffset + (nf[ic]+shift)*i;
         } 
       }
     }
 
-    // Increment element and face offsets
-    elOffset += nelts[ic];
-    fcOffset += nfaces[ic];
+    // Increment offsets
+    fcOffset += nfpc[ic];
+    elOffset += nepc[ic];
+    sizeFNOffset += nvpc[ic] + shift*nfpc[ic];
+    sizeEFOffset += nfpc[ic] + shift*nepc[ic];
   }
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];

@@ -1,6 +1,6 @@
 #define OPT_VERSION
 /*
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 

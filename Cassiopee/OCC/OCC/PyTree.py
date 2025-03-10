@@ -562,14 +562,21 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None):
         b[2].append(z)
 
     _updateEdgesFaceList__(t)
+    _addOCAFCompoundNames(hook, t)
     _setLonelyEdgesColor(t)
 
     return t
 
 # the first version of parallel CAD split and TRI meshing
-def meshAllPara(hook, area, hmin=-1, hmax=-1., hausd=-1.):
+def meshAllPara(hook, hmin=-1, hmax=-1., hausd=-1.):
     import Distributor2
     import Distributor2.PyTree as D2
+
+    # total area of top shape
+    areaTot = OCC.occ.getFaceArea(hook, [])
+
+    # area per proc
+    area = areaTot / Cmpi.size
 
     # split CAD with max area
     OCC.occ.splitFaces(hook, area)
@@ -582,7 +589,7 @@ def meshAllPara(hook, area, hmin=-1, hmax=-1., hausd=-1.):
 
     arrays = []; weights = []
     for i in range(nfaces):
-        area = OCC.occ.getFaceArea(hook, i+1)
+        area = OCC.occ.getFaceArea(hook, [i+1])
         arrays.append(['x',None,1,1,1])
         weights.append(area)
 
@@ -1181,10 +1188,6 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
     Internal.createNode('InterpolantsType', 'DataArray_t', value=data, parent=zsr)
     return None
 
-#=============================================================================
-# CAD fixing
-#=============================================================================
-
 # return ordered edgeList with possible negative number (meaning to be reversed)
 # edges: list of arrays
 # return edgeList: list of edge numbers in CAD
@@ -1221,31 +1224,17 @@ def orderEdgeList(edges, tol=1.e-10):
         outno.append(no)
     return outno
 
-# sew a set of faces
-# faces: face list numbers
-def _sewing(hook, faces, tol=1.e-6):
-    OCC.occ.sewing(hook, faces, tol)
-    return None
+#=============================================================================
+# CAD fixing
+#=============================================================================
+def readCAD(fileName, format='fmt_step'):
+    """Read CAD file and return CAD hook."""
+    h = OCC.occ.readCAD(fileName, format)
+    return h
 
-# add fillet from edges with given radius
-def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
-    OCC.occ.addFillet(hook, edges, radius, new2OldEdgeMap, new2OldFaceMap)
-    return None
-
-# edgeMap and faceMap are new2old maps
-def _removeFaces(hook, faces, new2OldEdgeMap=[], new2OldFaceMap=[]):
-    OCC.occ.removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
-    return None
-
-# fill hole from edges
-# edges: edge list numbers (must be ordered)
-def _fillHole(hook, edges, faces=[], continuity=0):
-    OCC.occ.fillHole(hook, edges, faces, continuity)
-    return None
-
-# trim two set of surfaces
-def _trimFaces(hook, faces1, faces2):
-    OCC.occ.trimFaces(hook, faces1, faces2)
+def writeCAD(hook, fileName, format='fmt_step'):
+    """Write CAD file."""
+    OCC.occ.writeCAD(hook, fileName, format)
     return None
 
 # Return the number of edges in CAD hook
@@ -1260,7 +1249,66 @@ def getNbFaces(hook):
 
 # Return the file and format used to load CAD in hook
 def getFileAndFormat(hook):
+    """Return file and format of associated CAD file."""
     return OCC.occ.getFileAndFormat(hook)
+
+# Return the area of specified faces
+def getFaceArea(hook, listFaces=[]):
+    """Return the area of given faces."""
+    return OCC.occ.getFaceArea(hook, listFaces)
+
+# Translate
+def _translate(hook, vector, listFaces=[]):
+    """Translate all or given faces."""
+    OCC.occ.translate(hook, vector, listFaces)
+    return None
+
+# Rotate
+def _rotate(hook, Xc, axis, angle, listFaces=[]):
+    """Rotate all or given faces."""
+    OCC.occ.rotate(hook, Xc, axis, angle, listFaces)
+    return None
+
+# sew a set of faces
+# faces: face list numbers
+def _sewing(hook, listFaces=[], tol=1.e-6):
+    """Sew some faces (suppress redundant edges)."""
+    OCC.occ.sewing(hook, listFaces, tol)
+    return None
+
+# add fillet from edges with given radius
+def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
+    OCC.occ.addFillet(hook, edges, radius, new2OldEdgeMap, new2OldFaceMap)
+    return None
+
+# edgeMap and faceMap are new2old maps
+def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+    """Remove given faces."""
+    OCC.occ.removeFaces(hook, listFaces, new2OldEdgeMap, new2OldFaceMap)
+    return None
+
+# fill hole from edges
+# edges: edge list numbers (must be ordered)
+def _fillHole(hook, edges, faces=[], continuity=0):
+    OCC.occ.fillHole(hook, edges, faces, continuity)
+    return None
+
+# trim two set of surfaces
+def _trimFaces(hook, faces1, faces2):
+    OCC.occ.trimFaces(hook, faces1, faces2)
+    return None
+
+# split faces
+def _splitFaces(hook, area):
+    """Split all faces to be less than area."""
+    OCC.occ.splitFaces(hook, area)
+    return None
+
+# merge faces
+def _mergeFaces(hook, listFaces=[]):
+    """Merge some faces."""
+    OCC.occ.mergeFaces(hook, listFaces)
+    return None
 
 # IN: new2old: new2old map
 # IN: Nold: size of old entities
@@ -1382,6 +1430,42 @@ def identifyTags__(a):
     array = C.getFields(Internal.__FlowSolutionNodes__, a, "__tag__", api=3)[0]
     return OCC.identifyTags__(array)
 
+# add family name on faces taken from OCAF compounds
+def _addOCAFCompoundNames(hook, t):
+
+    # FACES
+    #ret = OCC.occ.getFaceNameInOCAF(hook)
+    ret = OCC.occ.getFaceNameInOCAF2(hook)
+    pos = getAllPos(t)
+    r = len(ret)//2
+    b = Internal.getNodeFromName1(t, 'FACES')
+    for i in range(r):
+        name = ret[2*i]
+        fl = ret[2*i+1]
+        for f in fl:
+            try:
+                z = getFace(t, pos, f)
+                C._tagWithFamily(z, name, add=True)
+            except: pass
+        C._addFamily2Base(b, name)
+
+    # EDGES
+    ret = OCC.occ.getEdgeNameInOCAF2(hook)
+    pos = getAllPos(t)
+    r = len(ret)//2
+    b = Internal.getNodeFromName1(t, 'EDGES')
+    for i in range(r):
+        name = 'E#'+ret[2*i]
+        fl = ret[2*i+1]
+        for f in fl:
+            try:
+                z = getEdge(t, pos, f)
+                C._tagWithFamily(z, name, add=True)
+            except: pass
+        C._addFamily2Base(b, name)
+
+    return None
+
 def getComponents(t):
     """Return the number of components in t, taggings faces with component number."""
     import Transform.PyTree as T
@@ -1414,6 +1498,6 @@ def getComponents(t):
         faces = tags[k]
         for f in faces:
             z = getFace(t, pos, f)
-            C._tagWithFamily(z, 'Component%02d'%k)
+            C._tagWithFamily(z, 'Component%02d'%k, add=True)
 
     return a

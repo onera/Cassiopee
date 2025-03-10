@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -74,24 +74,24 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
 
   vector<FldArrayF*> vectOfCartGrids;
-  /* Etape 1 : detection du niveau le plus fin*/ 
-  //calcul de dh
+  /* Etape 1 : detection du niveau le plus fin */ 
+  // calcul de dh
   E_Int nelts = cn->getSize(); E_Int nvert = cn->getNfld();
   E_Int* cnt1 = cn->begin(1); E_Int* cnt2 = cn->begin(2);
-  FldArrayF dht(nelts); E_Float dhmin = K_CONST::E_MAX_FLOAT;E_Float dhmax = 0.;
-  E_Float* xo = f->begin(posx);   E_Float* yo = f->begin(posy); E_Float* zo = f->begin(posz); 
+  FldArrayF dht(nelts); E_Float dhmin = K_CONST::E_MAX_FLOAT; E_Float dhmax = 0.;
+  E_Float* xo = f->begin(posx); E_Float* yo = f->begin(posy); E_Float* zo = f->begin(posz); 
   for (E_Int et = 0; et < nelts; et++)
   {
     E_Int ind1 = cnt1[et]-1; E_Int ind2 = cnt2[et]-1;
     dht[et] = xo[ind2]-xo[ind1]; dhmin = K_FUNC::E_min(dhmin, dht[et]);
     dhmax = K_FUNC::E_max(dhmax, dht[et]);
-  }  
-  //niveau le plus fin 
+  }
+  // niveau le plus fin 
   ni = vmin; nj = vmin; nk = vmin; if ( dim == 2 ) nk = 1;
   E_Int ninj = ni*nj; E_Int ninjnk = ninj*nk;
   E_Int ind1, ind2, ind;
   E_Float xmin, ymin, xmax, ymax, zmin, zmax, dh;
-  E_Float vmini = 1./(vmin-1);
+  E_Float vmini = 1./(vmin-1.);
   FldArrayF indic(nelts); indic.setAllValuesAtNull();
   E_Float* indict = indic.begin();
   for (E_Int et = 0; et < nelts; et++)
@@ -114,6 +114,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
       vectOfCartGrids.push_back(coord);       
     }
   }
+
   /*---------------------*/
   /* niveau l quelconque */
   /*---------------------*/
@@ -130,7 +131,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
     FldArrayIS dejaVu(nelts); dejaVu.setAllValuesAt(0);
     fo.malloc(npts, 3); cno.malloc(nelts, nvert); 
     E_Float* indicto = indico.begin();
-    // calcul de la bbox de l octree
+    // calcul de la bbox de l'octree
     E_Float* xt = f2.begin(1); E_Float* yt = f2.begin(2); E_Float* zt = f2.begin(3); 
     xmin = K_CONST::E_MAX_FLOAT; xmax =-K_CONST::E_MAX_FLOAT;
     ymin = K_CONST::E_MAX_FLOAT; ymax =-K_CONST::E_MAX_FLOAT;
@@ -146,11 +147,12 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
       zmin = K_FUNC::E_min(zmin,zmint[et]); zmax = K_FUNC::E_max(zmax,zmaxt[et]);
     }
 
-    //fusion des elements de niveau l-1
+    // fusion des elements de niveau l-1
     E_Int no = 0; E_Int eto = 0; 
     for (E_Int et = 0; et < nelts; et++)
     {
-      if (dejaVu[et] == 0 && indico[et] == -1.) 
+      //if (dejaVu[et] == 0 && indico[et] == -1.)
+      if (dejaVu[et] == 0 && K_FUNC::fEqual(indico[et], -1.) == true)
       {
         mergeOctreeElement(et, npts, indico[et], cn2, xmin, ymin, zmin, xmax, ymax, zmax,
 			   xt, yt, zt, dht.begin(1), indicto,
@@ -158,6 +160,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
       }
     }
     indico.setAllValuesAt(-1.);
+
     // elements restants
     for (E_Int et = 0; et < nelts; et++)
     {
@@ -171,18 +174,18 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
           if ( no == fo.getSize() ) fo.reAllocMat(fo.getSize()+npts,3);
         }
         if ( K_FUNC::fEqualZero(dht[et]-dhloc) == false) indico[eto] = 0.;
-        eto++; 
-        if (eto == cno.getSize()){cno.reAllocMat(cno.getSize()+nelts,nvert); indico.resize(indico.getSize()+nelts);}
+        eto++;
+        if (eto == cno.getSize()){cno.reAllocMat(cno.getSize()+nelts,nvert); indico.reAlloc(indico.getSize()+nelts);}
       }
     }
-    fo.reAllocMat(no,3); cno.reAllocMat(eto,nvert); indico.resize(eto);
+    fo.reAllocMat(no,3); cno.reAllocMat(eto,nvert); indico.reAlloc(eto);
 
     // construction des grilles cartesiennes a partir du niveau l
     E_Int neltso = eto; E_Int* cno1 = cno.begin(1); E_Int* cno2 = cno.begin(2);
     xo = fo.begin(1); yo = fo.begin(2); zo = fo.begin(3);
     for (E_Int eto = 0; eto < neltso; eto++)
     {
-      if ( indico[eto] == -1. )
+      if (K_FUNC::fEqual(indico[eto], -1.) == true)
       {
         FldArrayF* coord = new FldArrayF(ninjnk,3); 
         E_Float* xt = coord->begin(1); E_Float* yt = coord->begin(2); E_Float* zt = coord->begin(3);
@@ -201,7 +204,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
     }
 
     cn2 = cno; f2 = fo;
-    //calcul de dh
+    // calcul de dh
     dht.resize(neltso); dhmin = K_CONST::E_MAX_FLOAT; dhmax = 0.;
     for (E_Int eto = 0; eto < neltso; eto++)
     {
@@ -209,12 +212,13 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
       dht[eto] = xo[ind2]-xo[ind1]; dhmin = K_FUNC::E_min(dhmin, dht[eto]);
       dhmax = K_FUNC::E_max(dhmax, dht[eto]);
     } 
-    dhloc = dhmin; // pas d espace du niveau courant
+    dhloc = dhmin; // pas d'espace du niveau courant
     level++;
   }// while dhloc < dhmax 
 
-  //dernier  niveau
+  // dernier  niveau
   E_Int* cno1 = cno.begin(1); E_Int* cno2 = cno.begin(2);
+
   for (E_Int eto = 0; eto < cno.getSize(); eto++)
   {
     FldArrayF* coord = new FldArrayF(ninjnk,3); 
@@ -231,7 +235,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
         }
     vectOfCartGrids.push_back(coord);       
   }
-  
+
   /* sortie */
   RELEASESHAREDU(octree, f, cn); 
   PyObject* l = PyList_New(0);

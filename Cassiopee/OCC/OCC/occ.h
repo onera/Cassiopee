@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -35,6 +35,9 @@ namespace K_OCC
 
   PyObject* printOCAF(PyObject* self, PyObject* args);
   PyObject* printShapeOCAF(PyObject* self, PyObject* args);
+  PyObject* getFaceNameInOCAF(PyObject* self, PyObject* args);
+  PyObject* getFaceNameInOCAF2(PyObject* self, PyObject* args);
+  PyObject* getEdgeNameInOCAF2(PyObject* self, PyObject* args);
 
   PyObject* bottle(PyObject* self, PyObject* args);
   PyObject* addSphere(PyObject* self, PyObject* args);
@@ -80,6 +83,7 @@ namespace K_OCC
   PyObject* removeFaces(PyObject* self, PyObject* args);
   PyObject* fillHole(PyObject* self, PyObject* args);
   PyObject* addFillet(PyObject* self, PyObject* args);
+  PyObject* mergeFaces(PyObject* self, PyObject* args);
 
   PyObject* translate(PyObject* self, PyObject* args);
   PyObject* scale(PyObject* self, PyObject* args);

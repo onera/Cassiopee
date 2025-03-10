@@ -5,30 +5,28 @@ Editor:
 -------
 - indent with spaces (2 or 4 depending on file complexity). Dont use tabs.
 - use utf8/lf encoding
-- respect typo for commas: t1, t2, a3.
-- respect type for two points: a:
+- respect typo for commas: `t1, t2, a3`.
+- respect type for two points: `a:`
 
 Python Functions:
 -----------------
 - no snake (my_function) in function names or arguments. Use Camel (myFunction).
 - short comment string in function header
 - function must have a test before commit
-- in place function starts with _ and return None
-- internal functions ends with __
-- function must have a copyRef counter part that calls in place function
+- in place function starts with `_` and return None
+- internal functions ends with `__`
+- function must have a copyRef counterpart that calls in place function
 - no IO in function (must work on input t and return t or a copy of t)
 - try to unify argument names with existing functions
-- complexifying an existing function, adding argument or modifying argument sense must be discussed
-- check that function performs correctly on FlowSolutionNodes, FlowSolution#Centers, ZoneBC and ZoneGridConnectivity
-- if the function is fully operational, write doc
-- always pass full global validCassiopee before commit
-
-
+- complexifying an existing function, ie adding an argument or modifying the meaning of an argument, must be discussed
+- check that a function performs correctly on `FlowSolutionNodes`, `FlowSolution#Centers`, `ZoneBC` and `ZoneGridConnectivity`
+- if a function is fully operational, write the doc
+- always run validCassiopee in full against the global test database before commit
 
 Tests:
 ------
 - no snake in test file name.
-- first line of test shoud be # - functionName (pyTree) -
+- first line of test shoud be `# - functionName (pyTree) -`
 - seq tests finishes by _t1, _t2.
 - parallel test finishes by _m1, _m2 and are run on 2 procs.
 - in tests, dont use input files, create the test case in the script.
@@ -36,8 +34,7 @@ Tests:
 
 OpenMP:
 -------
-- when a computationaly intensive loops exist, if the treatment is independant, you must use
-omp for parallelisation. For example :
+- for computationally intensive loops, use omp parallelisation wherever possible. For example:
 
 ```c
 #pragma omp parallel
@@ -54,9 +51,9 @@ omp for parallelisation. For example :
 }
 ```
 
-- the pragma omp parallel creates threads and as a slight cost.
-- the pragma omp for only split the for loop into equal pieces
-- for more complex creation, you can access the thread id like this:
+- the `pragma omp parallel` clause creates threads and has a slight cost: group `pragma omp for` clauses within its scope if possible.
+- the `pragma omp for` clause splits the for loop into equal chunks
+- in more complex cases, you can get the thread id and number of threads as:
 
 ```c
 #pragma omp parallel

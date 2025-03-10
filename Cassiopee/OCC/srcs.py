@@ -40,6 +40,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/freeHook.cpp',
 
         'OCC/Atomic/printOCAF.cpp',
+        'OCC/Atomic/getFaceNameInOCAF.cpp',
 
         'OCC/Atomic/bottle.cpp',
         'OCC/Atomic/addSphere.cpp',
@@ -68,6 +69,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/removeFaces.cpp',
         'OCC/Atomic/fillHole.cpp',
         'OCC/Atomic/addFillet.cpp',
+        'OCC/Atomic/mergeFaces.cpp',
 
         'OCC/Atomic/translate.cpp',
         'OCC/Atomic/scale.cpp',

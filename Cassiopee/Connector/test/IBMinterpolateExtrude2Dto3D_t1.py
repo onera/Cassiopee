@@ -12,7 +12,7 @@ import numpy
 
 
 LOCAL           = test.getLocal()
-bodySurfaceFile = '../../Apps/test/naca1DNS.cgns'
+bodySurfaceFile = 'naca1DNS.cgns'
 
 # Prepare
 vmin      = 42
@@ -51,6 +51,21 @@ for t in [t3D,tb3D]:
 
 # Interpolation 3D
 t3D, tc3D      = X_IBM.prepareIBMDataExtrude(tb3D, None, None, t3D, extrusion=extrusion)
+
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+for b in Internal.getBases(tc3D):
+    for z in Internal.getZones(b):
+        pos = 0
+        z2 = Internal.copyRef(z)
+        for zs in z2[2]:
+            if 'ID' in zs[0] or 'IBCD' in zs[0]:
+                Internal.addChild(z, zs, pos)
+                pos +=2
+            else:
+                pos += 1
+####
 
 Internal._rmNodesByName(t3D, 'FlowEquationSet')
 Internal._rmNodesByName(t3D, 'ReferenceState')

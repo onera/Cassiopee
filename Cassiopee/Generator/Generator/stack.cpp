@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -77,29 +77,86 @@ PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
   }
   else if (nu >= 2) // concatenate all unstructs
   {
-    /* A finir
     char outEltType[10]; E_Int nf = 1;
     if (strcmp(eltType[0], "BAR") == 0) { strcpy(outEltType, "QUAD"); nf=4; }
     if (strcmp(eltType[0], "QUAD") == 0) { strcpy(outEltType, "HEXA"); nf=8; }
     if (strcmp(eltType[0], "TRI") == 0) { strcpy(outEltType, "PENTA"); nf=6; }
   
     E_Int nfld = unstructF[0]->getNfld();
-    E_Int nv = unstructF[0]->getSize(); // same nvertex for all
     E_Int ne = cn[0]->getSize();
     E_Int nv1 = 0;
-    E_Int ne1 = 0;
     for (E_Int p = 0; p < nu; p++) nv1 += unstructF[p]->getSize();
-    ne1 = (nu-1)*cn[0]->getSize();
+    
+    E_Int nv0 = unstructF[0]->getSize();
+    E_Int ne1 = (nu-1)*cn[0]->getSize();
 
-    tpl = K_ARRAY::buildArray(nfld, unstructVarString[0], nv1, ne1, -1, 
-                              outEltType);
+    tpl = K_ARRAY::buildArray(nfld, unstructVarString[0], nv1, ne1, -1, outEltType);
     E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
     E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
     FldArrayF coord(nv1, nfld, coordp, true);
-    //FldArrayI cni();
-    */
+    FldArrayI cno(ne1, nf, cnp, true);
+    for (E_Int p = 0; p < nu; p++)
+    {
+      for (E_Int n = 1; n <= nfld; n++)
+      {
+        E_Float* f1p = unstructF[p]->begin(n);
+        E_Float* coordp = coord.begin(n);
+        for (E_Int i = 0; i < nv0; i++)
+        {
+          coordp[i+nv0*p] = f1p[i];
+        }
+      }
+    }
+    
+    for (E_Int p = 0; p < nu-1; p++)
+    {
+      if (strcmp(eltType[0], "BAR") == 0)
+      {
+        FldArrayI& cn0 = *cn[p];
+        FldArrayI& cn1 = *cn[p+1];
+        for (E_Int i = 0; i < ne; i++)
+        {
+          cno(i+ne*p,1) = cn0(i,1)+nv0*p;
+          cno(i+ne*p,2) = cn0(i,2)+nv0*p;
+          cno(i+ne*p,3) = cn1(i,2)+nv0*(p+1);
+          cno(i+ne*p,4) = cn1(i,1)+nv0*(p+1);
+        }
+      }
+      else if (strcmp(eltType[0], "QUAD") == 0)
+      {
+        FldArrayI& cn0 = *cn[p];
+        FldArrayI& cn1 = *cn[p+1];
+
+        for (E_Int i = 0; i < ne; i++)
+        {
+          cno(i+ne*p,1) = cn0(i,1)+nv0*p;
+          cno(i+ne*p,2) = cn0(i,2)+nv0*p;
+          cno(i+ne*p,3) = cn0(i,3)+nv0*p;
+          cno(i+ne*p,4) = cn0(i,4)+nv0*p;
+          cno(i+ne*p,5) = cn1(i,1)+nv0*(p+1);
+          cno(i+ne*p,6) = cn1(i,2)+nv0*(p+1);
+          cno(i+ne*p,7) = cn1(i,3)+nv0*(p+1);
+          cno(i+ne*p,8) = cn1(i,4)+nv0*(p+1);
+        }
+      }
+      else if (strcmp(eltType[0], "TRI") == 0)
+      {
+        FldArrayI& cn0 = *cn[p];
+        FldArrayI& cn1 = *cn[p+1];
+
+        for (E_Int i = 0; i < ne; i++)
+        {
+          cno(i+ne*p,1) = cn0(i,1)+nv0*p;
+          cno(i+ne*p,2) = cn0(i,2)+nv0*p;
+          cno(i+ne*p,3) = cn0(i,3)+nv0*p;
+          cno(i+ne*p,4) = cn1(i,1)+nv0*(p+1);
+          cno(i+ne*p,5) = cn1(i,2)+nv0*(p+1);
+          cno(i+ne*p,6) = cn1(i,3)+nv0*(p+1);     
+        }
+      }
+    }
   }
-  
+    
   for (E_Int noz = 0; noz < ns; noz++)
     RELEASESHAREDS(objs[noz], structF[noz]);
   for (E_Int noz = 0; noz < nu; noz++)

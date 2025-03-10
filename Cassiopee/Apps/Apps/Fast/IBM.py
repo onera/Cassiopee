@@ -1208,11 +1208,11 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
 #====================================================================================
 # Redistrib on NP processors
 #====================================================================================
-def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None):
+def _distribute(t_in, tc_in, NP, algorithm='graph', tc2_in=None, useCom='ID'):
     if isinstance(tc_in, str):
         tcs = Cmpi.convertFile2SkeletonTree(tc_in, maxDepth=3)
     else: tcs = tc_in
-    stats = D2._distribute(tcs, NP, algorithm=algorithm, useCom='ID')
+    stats = D2._distribute(tcs, NP, algorithm=algorithm, useCom=useCom)
     if isinstance(tc_in, str):
         paths = []; ns = []
         bases = Internal.getBases(tcs)
@@ -1402,6 +1402,7 @@ class IBM_Input:
         self.wallAdapt                 = None
         self.yplus                     = 100.
         self.yplusAdapt                = 100.
+        self.conservativeFlux          = False
 
 class IBM(Common):
     """Prepare IBM for FastS"""
@@ -1581,11 +1582,12 @@ class IBM(Common):
         zones  = Internal.getZones(t)
         coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
 
-        #print("extension LOCAL=", ext_local)
-        #coords, rinds = Generator.extendCartGrids(coords, ext=ext_local, optimized=1, extBnd=0)
+        #C.convertPyTree2File(zones,'verifOctree.cgns')
+        #print("extension LOCAL=", ext_local, 'optimized=',self.input_var.optimized )
         coords, rinds = Generator.extendCartGrids(coords, ext=ext_local, optimized=self.input_var.optimized, extBnd=0)
 
         C.setFields(coords, zones, 'nodes')
+
         for noz in range(len(zones)):
             #print("Rind", rinds[noz], "No zone=", noz)
             Internal.newRind(value=rinds[noz], parent=zones[noz])
@@ -2036,22 +2038,27 @@ class IBM(Common):
             ##  etape3 : interp ordre5 nature 0 entre grille de niveau N (Receveur) et N-1, N+1 (Donneur)
 
             ## determine dx=dy for each zone & store per zone
-            levelZone_loc={}
-            hmin = 1.e30
+            ## determine dx=dy for each zone & store per zone
+            levelZone={}
+            hmin_loc = 1.e30
             for z in Internal.getZones(t):
                 h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-                #print("dx=",h)
-                levelZone_loc[z[0]]=h
-                if h < hmin : hmin = h
+                levelZone[z[0]]=h
+                if h < hmin_loc : hmin_loc = h
+            hmin_loc = Cmpi.allgather(hmin_loc)
+            if Cmpi.size > 1 :
+                hmin=1e30
+                for h in hmin_loc:
+                    if h < hmin : hmin = h
 
             ## go from dx to dx/dx_min
             Nlevels=1
-            for i in levelZone_loc:
-                levelZone_loc[i]= math.log( int(levelZone_loc[i]/hmin + 0.00000001)  , 2)
-                if levelZone_loc[i] +1  > Nlevels : Nlevels = int(levelZone_loc[i]) +1
+            for i in levelZone:
+                levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001)  , 2)
+                if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
 
             ## partage des info level en mpi
-            levelZone = Cmpi.allgather(levelZone_loc)
+            levelZone = Cmpi.allgather(levelZone)
 
             #
             #etape1: calcul interpolation entre grille de meme niveau (ordre2, nature1, pas d'extrap)a
@@ -2190,14 +2197,17 @@ class IBM(Common):
                             if Internal.getValue(i) == zrname: IDs.append(i)
 
                     if IDs != []:
-                        if destProc == self.rank:
-                            zD = Internal.getNodeFromName2(tc, zdname)
-                            zD[2] += IDs
-                        else:
+                        if destProc != self.rank:
                             if destProc not in datas: datas[destProc] = [[zdname,IDs]]
                             else: datas[destProc].append([zdname,IDs])
+                        #else:
+                        # En local rien a faire, les raccord sont deja dans zone donneuse tc apres X._setInterpData
+                        #  zD = Internal.getNodeFromName2(tc, zdname)
+                        #  zD[2] += IDs
                     else:
                         if destProc not in datas: datas[destProc] = []
+            '''
+            '''
         #Fin Interp classique
 
 
@@ -2919,6 +2929,8 @@ class IBM(Common):
         ##OUT - tbbc                  :pytree of the bounding box of tc
         tc=self.setInterpDataAndSetInterpTransfer__(t)
 
+        if self.input_var.conservativeFlux: X_IBM._buildConservativeFlux(t, tc)
+
         ## ================================================
         ## ======= Specific treatment for front 2 =========
         ## ================================================
@@ -3229,7 +3241,7 @@ def computeSnearOpt(Re=None, tb=None, Lref=1., q=1.2, yplus=300., Cf_law='ANSYS'
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfars=10.,
              tbox=None, snearsf=None, yplus=100.,
              vmin=21, check=False, format='single', frontType=1, recomputeDist=False,
-             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, check_snear=False):
+             expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, check_snear=False, conservativeFlux=False):
     prep_local=IBM()
     prep_local.input_var.snears                 =snears
     prep_local.input_var.dfars                  =dfars
@@ -3247,6 +3259,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfars=10.,
     prep_local.input_var.initWithBBox           =initWithBBox
     prep_local.input_var.wallAdapt              =wallAdapt
     prep_local.input_var.dfarDir                =dfarDir
+    prep_local.input_var.conservativeFlux       =conservativeFlux
 
     t,tc = prep_local.prepare(t_case, t_out, tc_out)
 
@@ -3260,7 +3273,8 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=10.,
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0,
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
-             height_in=-1.0,isFilamentOnly=False, cleanCellN=True, check_snear=False, generateCartesianMeshOnly=False, tbOneOver=None):
+             height_in=-1.0,isFilamentOnly=False, cleanCellN=True, check_snear=False, generateCartesianMeshOnly=False,
+             tbOneOver=None, conservativeFlux=False):
     prep_local=IBM()
     prep_local.input_var.t_in                   =t_in
     prep_local.input_var.to                     =to
@@ -3300,6 +3314,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=10.,
     prep_local.input_var.cleanCellN             =cleanCellN
     prep_local.input_var.generateCartesianMeshOnly  = generateCartesianMeshOnly
     prep_local.input_var.tbOneOver              = tbOneOver
+    prep_local.input_var.conservativeFlux       =conservativeFlux
 
     t,tc = prep_local.prepare(t_case, t_out, tc_out)
     return t, tc

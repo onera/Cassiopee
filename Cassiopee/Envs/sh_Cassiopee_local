@@ -13,9 +13,6 @@ fi
 ulimit -s unlimited
 
 # Compilation on different machines:
-# cephee: x86 processors, intel compilers -> cp
-# Linux ubuntu: distribution Linux Ubuntu, g++, gfortran -> ub
-# stelvio: x86 processors, intel compilers -> stv
 
 # Detect machine (shortest first)
 KC=$(uname -n)
@@ -170,6 +167,15 @@ elif [ "$MAC" = "azure" ]; then
     export OMP_NUM_THREADS=4
     export PYTHONEXE=python3
     export PRODMODE=2
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+
+elif [ "$MAC" = "linux" ]; then
+#------------------------ generic linux --------------------------------------
+    export ELSAPROD=linux
+    export ELSAPROD=$ELSAPROD$EXT
+    export OMP_NUM_THREADS=4
+    export PYTHONEXE=python3
+    export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
 
 elif [ "$MAC" = "visio" ]; then
@@ -609,7 +615,7 @@ elif [ "$MAC" = "juno_gcc" ]; then
     unset OMP_PLACES
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
-    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
 
 elif [ "$MAC" = "juno_gpu" ]; then
 #----------------------------- juno gpu ------------------------------------

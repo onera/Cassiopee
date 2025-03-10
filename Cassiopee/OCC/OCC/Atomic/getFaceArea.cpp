@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,14 +30,16 @@
 
 #include "ShapeAnalysis.hxx"
 
+#include "GProp_GProps.hxx"
+#include "BRepGProp.hxx"
+
 // ============================================================================
 /* Return the face area of given face */
 // ============================================================================
 PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
 {
-  PyObject* hook;
-  E_Int noFace;
-  if (!PYPARSETUPLE_(args, O_ I_, &hook, &noFace)) return NULL;
+  PyObject* hook; PyObject* listFaces;
+  if (!PYPARSETUPLE_(args, O_ O_, &hook, &listFaces)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -51,9 +53,12 @@ PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
   //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopExp_Explorer expl;
 
-  E_Float area = 0.;
+  E_Int nfaces = PyList_Size(listFaces);
+
   //const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
 
+  // By wire
+  /*
   for (expl.Init(surfaces(noFace), TopAbs_WIRE); expl.More(); expl.Next())
   {
     const TopoDS_Wire& W = TopoDS::Wire(expl.Current());
@@ -61,6 +66,31 @@ PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
     //printf("wire surface=%f\n", surface);	
     area = std::max(area, surface);
   }
-  
+  printf("area1=%g\n", area);
+  */
+
+  // By face
+  E_Float area = 0.;
+  if (nfaces == 0) // all faces of topshape
+  {
+    for (E_Int i=1; i <= surfaces.Extent(); i++)
+    {
+      GProp_GProps props;
+      BRepGProp::SurfaceProperties(surfaces(i), props);
+      area += props.Mass();
+    }
+  }
+  else
+  {
+    for (E_Int no = 0; no < nfaces; no++)
+    {
+      PyObject* noFaceO = PyList_GetItem(listFaces, no);
+      E_Int noFace = PyInt_AsLong(noFaceO);
+
+      GProp_GProps props;
+      BRepGProp::SurfaceProperties(surfaces(noFace), props);
+      area += props.Mass();
+    }
+  }
   return Py_BuildValue("d", area);
 } 

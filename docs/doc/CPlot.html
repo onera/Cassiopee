@@ -79,6 +79,9 @@ documentation).</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#.CPlot.finalizeExport" title=".CPlot.finalizeExport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPlot.finalizeExport</span></code></a></p></td>
 <td><p>Finalize export.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#.CPlot.PyTree.display360" title=".CPlot.PyTree.display360"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPlot.PyTree.display360</span></code></a></p></td>
+<td><p>Display for 360 images.</p></td>
+</tr>
 </tbody>
 </table>
 <p><strong>&#8211; Set / Get functions</strong></p>
@@ -192,6 +195,7 @@ documentation).</p>
 <li><p><strong>2</strong> or <strong>Shift+2</strong>: display fields (switch variable - next and previous).</p></li>
 <li><p><strong>3</strong>: set render mode.</p></li>
 <li><p><strong>Space bar</strong>: toggle select all zones.</p></li>
+<li><p><strong>&lt; &gt;</strong>: toggle ambiguous selections.</p></li>
 <li><p><strong>m</strong> or <strong>M</strong>: toggle between 2D and 3D mode.</p></li>
 <li><p><strong>z</strong> or <strong>Z</strong>: select zones one by one.</p></li>
 <li><p><strong>a</strong> or <strong>A</strong>: activate(show)/deactivate(hide) a selected zone.</p></li>
@@ -223,7 +227,7 @@ if you only have a CPU.</p>
 <li><p><strong>vectorField1</strong><strong>,</strong><strong>2</strong><strong>,</strong><strong>3</strong> (<em>int</em><em> or </em><em>string</em>) &#8211; vector field number or vector field name</p></li>
 <li><p><strong>displayInfo</strong> (<em>int</em>) &#8211; 0 means no info display (default: 1)</p></li>
 <li><p><strong>displayIsoLegend</strong> (<em>int</em>) &#8211; 0 means no iso legend display (default: 0)</p></li>
-<li><p><strong>meshStyle</strong> (<em>int</em>) &#8211; 0: white solid and red wireframe, 1: colored wireframe, 2: colored solid and wireframe, 3: cyan solid and black wireframe (default: 2)</p></li>
+<li><p><strong>meshStyle</strong> (<em>int</em>) &#8211; 0: white solid and red wireframe, 1: colored wireframe, 2: colored solid and wireframe, 3: cyan solid and black wireframe, 4: colored solid and black wireframe (default: 2)</p></li>
 <li><p><strong>solidStyle</strong> (<em>int</em>) &#8211; 0: blue, 1: colored by zone, 3: white, 4: colored by zone outlined (default: 0)</p></li>
 <li><p><strong>scalarStyle</strong> (<em>int</em>) &#8211; 0: banded, 1: banded+mesh, 2: lines, 3: lines+mesh (default: 0)</p></li>
 <li><p><strong>vectorStyle</strong> (<em>int</em>) &#8211; 0: RGB, 1: arrows, 2: lines (default: 0)</p></li>
@@ -260,7 +264,7 @@ if you only have a CPU.</p>
 <li><p><strong>zoneNames</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; optional list of zone names (same size as arrays, struct zones, then unstruct zones)</p></li>
 <li><p><strong>renderTags</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; optional list of render tags (same size as arrays, struct zones, then unstruct zones)</p></li>
 <li><p><strong>frameBuffer</strong> (<em>int</em>) &#8211; the number of the frame buffer we are rendering to for offscreen rendering</p></li>
-<li><p><strong>offscreen</strong> (<em>int</em>) &#8211; 0:  rendering, 1: offscreen rendering (osmesa), 2: offscreen rendering (openGL), 3: partial composite offscreen rendering (openGL), 4: final composite offscreen rendering (openGL), 5: partial composite offscreen rendering (osmesa), 6: final composite offscreen rendering (osmesa), 7: parallel offscreen rendering (osmesa) (default: 0)</p></li>
+<li><p><strong>offscreen</strong> (<em>int</em>) &#8211; 0: direct rendering, 1: offscreen rendering (osmesa), 2: offscreen rendering (openGL), 3: partial composite offscreen rendering (openGL), 4: final composite offscreen rendering (openGL), 5: partial composite offscreen rendering (osmesa), 6: final composite offscreen rendering (osmesa), 7: parallel offscreen rendering (osmesa) (default: 0)</p></li>
 </ul>
 </dd>
 </dl>
@@ -355,6 +359,76 @@ if you only have a CPU.</p>
 
 <hr class="docutils" />
 <dl class="py function">
+<dt class="sig sig-object py" id=".CPlot.PyTree.display360">
+<span class="sig-prename descclassname"><span class="pre">CPlot.PyTree.</span></span><span class="sig-name descname"><span class="pre">display360</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stereo=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offscreen=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">...</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Display a 360-degree view of the pyTree. This function is useful for creating
+panoramic views of the data.
+Accepts the same argument as CPlot.display.
+If stereo=0, no stereo.
+If stereo=1, ODS stereo (only for offscreen=1 or 7).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree</em>) &#8211; input pyTree</p></li>
+<li><p><strong>stereo</strong> (<em>0</em><em>, </em><em>1</em><em>, </em><em>2</em>) &#8211; stereo type.</p></li>
+<li><p><strong>offscreen</strong> (<em>1</em><em>, </em><em>2</em>) &#8211; renderer: 1 (osmesa), 2 (openGL)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/CPlot/display360PT.py">Display 360 view (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - display360 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">CPlot.PyTree</span> <span class="k">as</span> <span class="nn">CPlot</span>
+
+<span class="n">offscreen</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># Create model</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{f}</span><span class="s1">=</span><span class="si">{CoordinateZ}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="c1"># Initial view of model</span>
+<span class="n">posCam</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">posEye</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">dirCam</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">CPlot</span><span class="o">.</span><span class="n">display360</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;Mesh&quot;</span><span class="p">,</span> <span class="n">posCam</span><span class="o">=</span><span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="o">=</span><span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="o">=</span><span class="n">dirCam</span><span class="p">,</span>
+                 <span class="n">offscreen</span><span class="o">=</span><span class="n">offscreen</span><span class="p">,</span>
+                 <span class="n">export</span><span class="o">=</span><span class="s1">&#39;image360.png&#39;</span><span class="p">,</span> <span class="n">exportResolution</span><span class="o">=</span><span class="s1">&#39;4096x2048&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/CPlot/display360sPT.py">Display 360 view stereo (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - display360 (pyTree) -</span>
+<span class="c1"># stereo version</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">CPlot.PyTree</span> <span class="k">as</span> <span class="nn">CPlot</span>
+
+<span class="n">offscreen</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># Create model</span>
+<span class="c1">#a = G.cart((-4,-4,-4), (1,1,1), (9,9,9))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{f}</span><span class="s1">=</span><span class="si">{CoordinateZ}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="c1"># Initial view of model</span>
+<span class="n">posCam</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">posEye</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">dirCam</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">CPlot</span><span class="o">.</span><span class="n">display360</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;Mesh&quot;</span><span class="p">,</span> <span class="n">posCam</span><span class="o">=</span><span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="o">=</span><span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="o">=</span><span class="n">dirCam</span><span class="p">,</span>
+                 <span class="n">offscreen</span><span class="o">=</span><span class="n">offscreen</span><span class="p">,</span> <span class="n">type360</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">stereo</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stereoDist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                 <span class="n">export</span><span class="o">=</span><span class="s1">&#39;image360.png&#39;</span><span class="p">,</span> <span class="n">exportResolution</span><span class="o">=</span><span class="s1">&#39;4096x2048&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
 <dt class="sig sig-object py" id=".CPlot.render">
 <span class="sig-prename descclassname"><span class="pre">CPlot.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><p>Force rendering. Must be used after functions that don&#8217;t render (ex: add, delete, &#8230;).</p>
@@ -429,7 +503,7 @@ of zone names if zoneNames argument has been provided before to display function
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
 
 <span class="n">CPlot</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">t</span><span class="p">);</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">CPlot</span><span class="o">.</span><span class="n">delete</span><span class="p">([</span><span class="s1">&#39;Base/cartTetra&#39;</span><span class="p">]);</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">render</span><span class="p">();</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">CPlot</span><span class="o">.</span><span class="n">delete</span><span class="p">([</span><span class="s1">&#39;Base\cartTetra&#39;</span><span class="p">]);</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">render</span><span class="p">();</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -541,7 +615,6 @@ This function does not render.</p>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">(</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span> <span class="p">)</span>
     <span class="n">CPlot</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">render</span><span class="p">();</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -601,7 +674,7 @@ for offscreen=6 (clear buffer for next image).</p>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="mf">1.</span><span class="p">)</span>
     <span class="n">CPlot</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">offscreen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">bgColor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">meshStyle</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-              <span class="n">solidStyle</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">posCam</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">export</span><span class="o">=</span><span class="s1">&#39;one</span><span class="si">%d</span><span class="s1">.png&#39;</span><span class="o">%</span><span class="n">i</span><span class="p">)</span>
+                  <span class="n">solidStyle</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">posCam</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">export</span><span class="o">=</span><span class="s1">&#39;one</span><span class="si">%d</span><span class="s1">.png&#39;</span><span class="o">%</span><span class="n">i</span><span class="p">)</span>
     <span class="n">CPlot</span><span class="o">.</span><span class="n">finalizeExport</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># wait for end of file write</span>
 <span class="kn">import</span> <span class="nn">os</span><span class="p">;</span> <span class="n">os</span><span class="o">.</span><span class="n">_exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -1092,7 +1165,6 @@ it when dragging.</p>
 
 <span class="n">CPlot</span><span class="o">.</span><span class="n">changeBlanking</span><span class="p">();</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">CPlot</span><span class="o">.</span><span class="n">changeBlanking</span><span class="p">();</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1452,7 +1524,6 @@ N is the number of check points.</p>
     <span class="k">elif</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">:</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">travelRight</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">600</span><span class="p">:</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">travelUp</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">800</span><span class="p">:</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">travelIn</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1483,7 +1554,6 @@ N is the number of check points.</p>
     <span class="k">elif</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">:</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">travelRight</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">600</span><span class="p">:</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">travelUp</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">800</span><span class="p">:</span> <span class="n">CPlot</span><span class="o">.</span><span class="n">travelIn</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>

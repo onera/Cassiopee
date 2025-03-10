@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -61,10 +61,6 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
       return NULL;
   }
 
-  ni=ni-1;
-  nj=nj-1;
-  nk=nk-1;
-
   //cout <<"ni= "<< ni <<" "<<"nj= "<<nj<<" "<<"nk= " << nk << endl;
 
   E_Int i, j, k;
@@ -77,12 +73,8 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
   E_Int li;
   E_Int lj;
   E_Int lk;
-  // E_Int dirD;
  
  /// Recuperation du tableau de stockage des valeurs
-  //PyObject* indiceslist = PyList_GetItem(indiceslist,0); FldArrayF* drodm;
-  //K_NUMPY::getFromNumpyArray(drodmArray, drodm, true); E_Float* iptdrodm = drodm->begin();
-
   FldArrayI* ind_list;
   K_NUMPY::getFromNumpyArray(indiceslist,ind_list, true); E_Int* ipt_ind_list = ind_list->begin();
 
@@ -101,84 +93,27 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
   FldArrayI* typ_;
   K_NUMPY::getFromNumpyArray(typ,typ_, true);  E_Int* ipt_typ = typ_->begin();
 
-  //  for (E_Int i=0; i < 3; i++)
-  //  {
-  //   if ( abs(ipt_transfo[i]) == abs(dir))
-  //	{
-	  
-  //	  ipt_dirD[0] = (i+1) * (-dir/abs(dir))*(ipt_transfo[i]/abs(ipt_transfo[i]));
-
-  //	}
-
-  // }
-
-
-
-   
+   //
+   //Determination fenetre donneur
+   //
    for (E_Int ind = 0 ; ind < nb_ind ; ind++)
     {
-
-      //cout << ipt_typ[ind]  << endl;
-      if (ipt_typ[ind]==22)
-
+      if (ipt_typ[ind]==22) // interp ordre 2 2D
 	{
-
 	  k = floor(ipt_ind_list[ind]/(ni*nj)) + 1;
    	  j =  ipt_ind_list[ind] - (k-1)*ni*nj;
 	  j = floor(j/ni) + 1;
 	  i = ipt_ind_list[ind] - (k-1)*ni*nj - (j-1)*ni + 1;
 
-	  if (i < imin){ imin=i;}
-	  if (i > imax){ imax=i;}
-	  if (j < jmin){ jmin=j;}
-	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+1)/(ni*nj)) + 1;
-   	  j =  ipt_ind_list[ind]+1 - (k-1)*ni*nj;
-	  j = floor(j/ni) + 1;
-	  i = ipt_ind_list[ind]+1 - (k-1)*ni*nj - (j-1)*ni + 1;
-
-	  if (i < imin){ imin=i;}
-	  if (i > imax){ imax=i;}
-	  if (j < jmin){ jmin=j;}
-	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+ni)/(ni*nj)) + 1;
-   	  j =  ipt_ind_list[ind]+ni - (k-1)*ni*nj;
-	  j = floor(j/ni) + 1;
-	  i = ipt_ind_list[ind]+ni - (k-1)*ni*nj - (j-1)*ni + 1;
-
-	  if (i < imin){ imin=i;}
-	  if (i > imax){ imax=i;}
-	  if (j < jmin){ jmin=j;}
-	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+ni+1)/(ni*nj)) + 1;
-   	  j =  ipt_ind_list[ind]+ni+1 - (k-1)*ni*nj;
-	  j = floor(j/ni) + 1;
-	  i = ipt_ind_list[ind]+ni+1 - (k-1)*ni*nj - (j-1)*ni + 1;
-
-	  if (i < imin){ imin=i;}
-	  if (i > imax){ imax=i;}
-	  if (j < jmin){ jmin=j;}
-	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-
+	  if (i   < imin){ imin=i;  }
+	  if (i+1 > imax){ imax=i+1;}
+	  if (j   < jmin){ jmin=j;  }
+	  if (j+1 > jmax){ jmax=j+1;}
+   	  if (k   < kmin){ kmin=k;  }
+   	  if (k   > kmax){ kmax=k;  }
 	}
-
-
-      else if (ipt_typ[ind]==1)
-
+      else if (ipt_typ[ind]==1) //abutting
 	{
-
 	  k = floor(ipt_ind_list[ind]/(ni*nj)) + 1;
    	  j =  ipt_ind_list[ind] - (k-1)*ni*nj;
  	  j = floor(j/ni) + 1;
@@ -190,322 +125,117 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
 	  if (j > jmax){ jmax=j;}
    	  if (k < kmin){ kmin=k;}
    	  if (k > kmax){ kmax=k;}
-
 	}
-
-      else if (ipt_typ[ind]==2)
-
+      else if (ipt_typ[ind]==2) // interp ordre 2 3D
 	{  
-
-
 	  k = floor(ipt_ind_list[ind]/(ni*nj)) + 1;
    	  j =  ipt_ind_list[ind] - (k-1)*ni*nj;
 	  j = floor(j/ni)+1;
     	  i = ipt_ind_list[ind] - (k-1)*ni*nj - (j-1)*ni + 1;
 
-   	  if (i < imin){ imin=i;}
-   	  if (i > imax){ imax=i;}
-   	  if (j < jmin){ jmin=j;}
-   	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+1)/(ni*nj)) + 1;
-   	  j =  ipt_ind_list[ind]+1 - (k-1)*ni*nj;
-	  j = floor(j/ni)+1;
-    	  i =  ipt_ind_list[ind]+1 - (k-1)*ni*nj - (j-1)*ni + 1;
-
-   	  if (i < imin){ imin=i;}
-   	  if (i > imax){ imax=i;}
-   	  if (j < jmin){ jmin=j;}
-   	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+ni)/(ni*nj)) + 1;
-   	  j = ipt_ind_list[ind]+ni - (k-1)*ni*nj;
-	  j = floor(j/ni)+1;
-    	  i = ipt_ind_list[ind]+ni - (k-1)*ni*nj -  (j-1)*ni + 1;
-
-   	  if (i < imin){ imin=i;}
-   	  if (i > imax){ imax=i;}
-   	  if (j < jmin){ jmin=j;}
-   	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+ni+1)/(ni*nj)) + 1;
-   	  j = ipt_ind_list[ind]+ni+1 - (k-1)*ni*nj;
-	  j = floor(j/ni)+1;
-    	  i = ipt_ind_list[ind]+ni+1 - (k-1)*ni*nj - (j-1)*ni + 1;
-
-   	  if (i < imin){ imin=i;}
-   	  if (i > imax){ imax=i;}
-   	  if (j < jmin){ jmin=j;}
-   	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+ni*nj)/(ni*nj)) + 1;
-   	  j = ipt_ind_list[ind]+ni*nj - (k-1)*ni*nj;
-	  j = floor(j/ni)+1;
-    	  i = ipt_ind_list[ind]+ni*nj - (k-1)*ni*nj - (j-1)*ni + 1;
-
-   	  if (i < imin){ imin=i;}
-   	  if (i > imax){ imax=i;}
-   	  if (j < jmin){ jmin=j;}
-   	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+ni*nj+1)/(ni*nj)) + 1;
-   	  j = ipt_ind_list[ind]+ni*nj+1 - (k-1)*ni*nj;
-	  j = floor(j/ni)+1;
-    	  i = ipt_ind_list[ind]+ni*nj+1 - (k-1)*ni*nj -  (j-1)*ni + 1;
-
-   	  if (i < imin){ imin=i;}
-   	  if (i > imax){ imax=i;}
-   	  if (j < jmin){ jmin=j;}
-   	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+ni*nj+ni)/(ni*nj)) + 1;
-   	  j = ipt_ind_list[ind]+ni*nj+ni - (k-1)*ni*nj;
-	  j = floor(j/ni)+1;
-    	  i = ipt_ind_list[ind]+ni*nj+ni - (k-1)*ni*nj - (j-1)*ni + 1;
-
-   	  if (i < imin){ imin=i;}
-   	  if (i > imax){ imax=i;}
-   	  if (j < jmin){ jmin=j;}
-   	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
-
-	  k = floor((ipt_ind_list[ind]+ni*nj+ni+1)/(ni*nj)) + 1;
-   	  j = ipt_ind_list[ind]+ni*nj+ni+1 - (k-1)*ni*nj;
-	  j = floor(j/ni)+1;
-    	  i = ipt_ind_list[ind]+ni*nj+ni+1 - (k-1)*ni*nj - (j-1)*ni + 1;
-
-   	  if (i < imin){ imin=i;}
-   	  if (i > imax){ imax=i;}
-   	  if (j < jmin){ jmin=j;}
-   	  if (j > jmax){ jmax=j;}
-   	  if (k < kmin){ kmin=k;}
-   	  if (k > kmax){ kmax=k;}
- 
+   	  if (i   < imin){ imin=i;  }
+   	  if (i+1 > imax){ imax=i+1;}
+   	  if (j   < jmin){ jmin=j;  }
+   	  if (j+1 > jmax){ jmax=j+1;}
+   	  if (k   < kmin){ kmin=k;  }
+   	  if (k+1 > kmax){ kmax=k+1;}
 	}
-
     }
 
    if (imin < 3 or jmin < 3){cout << "danger_min" << endl;}
    if (jmax > nj-2 or imax > ni-2){cout << "danger_max" << endl;}
 
-
-   //cout <<"indices pas corriges= "<< imin <<" "<< imax <<" "<<jmin<<" "<<jmax<<  endl;
-
-
+   //epaisseur couche donneuse
    li = imax - imin;
    lj = jmax - jmin;
    lk = kmax - kmin;
 
-
-   // Correction des indices
+   // Correction des indices: c --> fortran Fast??
    kmin=kmin-2;
-   if (kmin == -1 or kmin== 0)
-     {
-       kmin = 1;
-     }
-   //kmax = kmin + lk;
+   if (kmin == -1 or kmin== 0) { kmin = 1; }
+   
    ///proposition
    kmax = kmax - 2;
-   if (kmax > nk-4)
-     {
-       kmax = nk -4;
-     } 
-   if (kmax <= 0)
-     {
-       kmax = 1;
-     } 
-
+   if (kmax > nk-4) { kmax = nk-4;} 
+   if (kmax <= 0  ) { kmax = 1; } 
 
    jmin=jmin-2;
-   if (jmin == -1 or jmin== 0)
-     {
-       jmin = 1;
-     }
-   //jmax = jmin + lj;
+   if (jmin == -1 or jmin== 0) { jmin = 1; }
    ///proposition
    jmax = jmax - 2;
-   if (jmax > nj - 4)
-     {
-       jmax = nj -4;
-     } 
-   if (jmax <= 0)
-     {
-       jmax = 1;
-     } 
+   if (jmax > nj - 4) { jmax = nj -4;} 
+   if (jmax <= 0    ) { jmax = 1; } 
 
    imin=imin-2;
-   if (imin == -1 or imin== 0)
-     {
-       imin = 1;
-     }
-   //imax = imin + li;
+   if (imin == -1 or imin== 0) { imin = 1; }
+
    ///proposition
    imax = imax - 2;
-   if (imax > ni-4)
-     {
-       imax = ni -4;
-     } 
-   if (imax <= 0)
-     {
-       imax = 1;
-     } 
+   if (imax > ni-4) { imax = ni -4;} 
+   if (imax <= 0  ) { imax = 1; } 
 
    cout <<"indices corriges= "<< imin <<" "<< imax <<" "<<jmin<<" "<<jmax<<" "<<kmin<<" "<<kmax<<  endl;
 
+   //on determine si fenetre donneuse est en imin , imax,.....
    if (nk == 1) // 2D
-
      {
-
-       if (lj >= li and imax > (ni-1)/2)  // dirR = +1
-	{
-	  ipt_dirD[0] = 1;
-	}
-      else if (lj >= li and imin < (ni-1)/2)  // dirR = -1
-	{
-	  ipt_dirD[0] = -1;
-	}
-      else if (li >= lj and jmax > (nj-1)/2)  // dirR = +2
-	{
-	  ipt_dirD[0] = 2;
-	}
-      else if (li >= lj and jmin < (nj-1)/2)  // dirR = -2
-	{
-	  ipt_dirD[0] = -2;
-	}
-
+      if      (lj >= li and imax > (ni-1)/2)
+        { ipt_dirD[0] = 1;
+          ipt_profondeur[0] = imax - imin ;
+          imin = imax;
+        } 
+      else if (lj >= li and imin < (ni-1)/2)
+        { ipt_dirD[0] =-1;
+          ipt_profondeur[0] = imax - imin ;
+          imax = imin;
+        } 
+      else if (li >= lj and jmax > (nj-1)/2)
+        { ipt_dirD[0] = 2;
+          ipt_profondeur[0] = jmax - jmin ;
+          jmin = jmax;
+        } 
+      else if (li >= lj and jmin < (nj-1)/2)
+        { ipt_dirD[0] =-2;
+          ipt_profondeur[0] = jmax - jmin ;
+          jmax = jmin;
+        } 
      }
-
    else //3D
-
      {
-
-      if (lk == min(min(li,lj),lk) and kmax > (nk-1)/2)  // dirR = +3
-	{
-	  ipt_dirD[0] = 3;
-	}
-      else if (lk == min(min(li,lj),lk) and kmin < (nk-1)/2)  // dirR = -3
-	{
-	  ipt_dirD[0] = -3;
-	}
-      else if (lj == min(min(li,lj),lk) and jmax > (nj-1)/2)  // dirR = +2
-	{
-	  ipt_dirD[0] = 2;
-	}
-      else if (lj == min(min(li,lj),lk) and jmin < (nj-1)/2)  // dirR = -2
-	{
-	  ipt_dirD[0] = -2;
-	}
-      else if (li == min(min(li,lj),lk) and imax > (ni-1)/2)  // dirR = +2
-	{
-	  ipt_dirD[0] = 1;
-	}
-      else if (li == min(min(li,lj),lk) and imin < (ni-1)/2)  // dirR = -2
-	{
-	  ipt_dirD[0] = -1;
-	}
-
-
-
+      if      (lk == min(min(li,lj),lk) and kmax > (nk-1)/2)
+        { ipt_dirD[0] = 3;
+          ipt_profondeur[0] = kmax - kmin ;
+          kmin = kmax;
+        } 
+      else if (lk == min(min(li,lj),lk) and kmin < (nk-1)/2)
+        { ipt_dirD[0] =-3;
+          ipt_profondeur[0] = kmax - kmin ;
+          kmax = kmin;
+        } 
+      else if (lj == min(min(li,lj),lk) and jmax > (nj-1)/2)
+        { ipt_dirD[0] = 2;
+          ipt_profondeur[0] = jmax - jmin ;
+          jmin = jmax;
+        } 
+      else if (lj == min(min(li,lj),lk) and jmin < (nj-1)/2)
+        { ipt_dirD[0] =-2;
+          ipt_profondeur[0] = jmax - jmin ;
+          jmax = jmin;
+        } 
+      else if (li == min(min(li,lj),lk) and imax > (ni-1)/2)
+        { ipt_dirD[0] = 1;
+          ipt_profondeur[0] = imax - imin ;
+          imin = imax;
+        } 
+      else if (li == min(min(li,lj),lk) and imin < (ni-1)/2)
+        { ipt_dirD[0] =-1;
+          ipt_profondeur[0] = imax - imin ;
+          imax = imin;
+        } 
      }
       
-    cout <<"dirD= "<< ipt_dirD[0] <<  endl;
-
- if (ipt_dirD[0]==1)
-   {
-     ipt_profondeur[0] = imax - imin ;
-     imin = imax;
-   }
- else if (ipt_dirD[0]==-1)
-   {
-     ipt_profondeur[0] = imax - imin ;
-     imax = imin;
-   }
- else if (ipt_dirD[0]==2)
-   {
-     ipt_profondeur[0] = jmax - jmin ;
-     jmin = jmax;
-   }
- else if (ipt_dirD[0]==-2)
-   {
-     ipt_profondeur[0] = jmax - jmin ;
-     jmax = jmin;
-   }
- else if (ipt_dirD[0]==3)
-   {
-     ipt_profondeur[0] = kmax - kmin ;
-     kmin = kmax;
-   }
- else if (ipt_dirD[0]==-3)
-   {
-     ipt_profondeur[0] = kmax - kmin ;
-     kmax = kmin;
-   }
-
- cout << "profondeur= " << ipt_profondeur[0] << endl;
- /*
-   kmax=kmax-2;
-   if (kmax == nk-2 or kmax == nk-3)
-     {
-       kmax = nk -4;
-     }
-   if (kmax <= 0)
-     {
-       kmax = 1;
-     }
-
-   kmin=kmin-2;
-   if (kmin == -1 or kmin== 0)
-     {
-       kmin = 1;
-     }
-
-   jmax=jmax-2;
-   if (jmax == nj-2 or jmax== nj-3)
-     {
-       jmax = nj -4;
-     }
-   if (jmax <= 0)
-     {
-       jmax = 1;
-     }
-
-
-   jmin=jmin-2;
-   if (jmin == -1 or jmin== 0)
-     {
-       jmin = 1;
-     }
-
-   imax=imax-2;
-   if (imax == ni-2 or imax== ni-3)
-     {
-       imax = ni -4;
-     }
-   if (imax <= 0)
-     {
-       imax = 1;
-     }
-
-   imin=imin-2;
-   if (imin == -1 or imin== 0)
-     {
-       imin = 1;
-     }
-
- */
+  cout <<"dirD= "<< ipt_dirD[0] <<  endl;
+  cout << "profondeur= " << ipt_profondeur[0] << endl;
       
   ipt_rangedonor[0]=imin;
   ipt_rangedonor[1]=imax;

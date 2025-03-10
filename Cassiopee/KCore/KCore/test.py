@@ -277,8 +277,8 @@ def checkObject_(objet, refObjet, reference):
 #=============================================================================
 def testO(objet, number=1):
     """Test python object."""
-    # perform some sort on dict to be predictible
     if isinstance(objet, dict):
+        # perform some sort on dict to be predictible
         from collections import OrderedDict
         objet = OrderedDict(sorted(objet.items(), key=lambda t: t[0]))
 
@@ -366,7 +366,29 @@ def checkTree__(node1, node2):
     if GEOMETRIC_DIFF and node1[0] in ['NGonElements', 'NFaceElements']:
         return 1
     if len(node1[2]) != len(node2[2]):
+        childNames1 = [n[0] for n in node1[2]]
+        childNames2 = [n[0] for n in node2[2]]
+        childNamesSet1 = set(childNames1)
+        childNamesSet2 = set(childNames2)
+        diffSet12 = childNamesSet1 - childNamesSet2
+        diffSet21 = childNamesSet2 - childNamesSet1
         print('DIFF: longueur des fils differente pour le noeud: %s.'%node1[0])
+        if len(diffSet12) > 0:
+            print('  - Noms des noeuds de courant qui ne sont pas dans '\
+                  'ref:\n{}.'.format(', '.join(f'{i}' for i in diffSet12)))
+        if len(diffSet21) > 0:
+            print('  - Noms des noeuds de ref qui ne sont pas dans '\
+                  'courant:\n{}.'.format(', '.join(f'{i}' for i in diffSet21)))
+        if len(diffSet12) == 0 and len(diffSet21) == 0:
+            from collections import Counter
+            if len(childNamesSet1) != len(childNames1):
+                doublons = set(i for i, count in Counter(childNames1).items() if count > 1)
+                print('  - Noeuds doublons detectes dans courant: {}.'.format(
+                      ', '.join(f'{i}' for i in doublons)))
+            if len(childNamesSet2) != len(childNames2):
+                doublons = set(i for i, count in Counter(childNames2).items() if count > 1)
+                print('  - Noeuds doublons detectes dans ref: {}.'.format(
+                      ', '.join(f'{i}' for i in doublons)))
         return 0
     if GEOMETRIC_DIFF and node1[0] in ['ElementRange', 'ElementConnectivity']:
         return 1

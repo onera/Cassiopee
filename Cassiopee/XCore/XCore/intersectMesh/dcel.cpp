@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -248,9 +248,9 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
                         next_pos[1] = cur_pos[1] + t * proj[1];
                         next_pos[2] = cur_pos[2] + t * proj[2];
 
-                        if (eid_s == 80) {
-                            point_write("x.im", next_pos[0], next_pos[1], next_pos[2]);
-                        }
+                        //if (eid_s == 80) {
+                        //    point_write("x.im", next_pos[0], next_pos[1], next_pos[2]);
+                        //}
 
                         // Create a new intersection vertex
                         Vertex tmp(next_pos[0], next_pos[1], next_pos[2]);
@@ -288,10 +288,10 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
                         next_pos[2] = Mf.Z[last_vertex];
                         const auto &pf = Mf.P2F[last_vertex];
 
-                        if (eid_s == 80) {
-                            Mf.write_ngon("pf.im", pf);
-                            point_write("x.im", next_pos[0], next_pos[1], next_pos[2]);
-                        }
+                        //if (eid_s == 80) {
+                        //    Mf.write_ngon("pf.im", pf);
+                        //    point_write("x.im", next_pos[0], next_pos[1], next_pos[2]);
+                        //}
 
                         next_fid = Mf.deduce_face(pf,
                             next_pos[0], next_pos[1], next_pos[2],
@@ -314,6 +314,7 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
                 }
             }
             if (!hit) {
+                fprintf(stderr, "Failed to hit. Hit data:\n");
                 for (const auto &hd : hitData) {
                     printf("t = %.12e | s = %.12e\n", hd.t, hd.s);
                 }
@@ -744,7 +745,7 @@ void Dcel::triangulate(const Smesh &Mf, const Smesh &Sf)
         }
     }
 
-    printf("Total faces: %lu\n", F.size());
+    printf("Total faces: %zu\n", F.size());
     printf("Non-convex count: %d\n", non_convex_count);
     write_ngon("non_convex.im", non_convex_faces);
 
@@ -938,7 +939,7 @@ void Dcel::triangulate(const Smesh &Mf, const Smesh &Sf)
         VNode_free_list(convex);
     }
 
-    //printf("Total faces: %lu\n", F.size());
+    //printf("Total faces: %zu\n", F.size());
 }
 
 void Dcel::update_hedge_faces(std::vector<Face *> &new_F)

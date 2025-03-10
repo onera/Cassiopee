@@ -896,7 +896,7 @@ def setPrefs():
             elif val == 'Multicolor wireframes': style = 1
             elif val == 'Multicolor wires+solid': style = 2
             elif val == 'Black wires+solid': style = 3
-            elif val == 'Multicolor wires+solid2': style = 4
+            elif val == 'Black wires+solid2': style = 4
             else: style = 0
             CPlot.setState(meshStyle=style)
         elif i == 'tkViewSolidStyle':

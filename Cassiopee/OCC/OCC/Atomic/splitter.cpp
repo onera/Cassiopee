@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -71,7 +71,7 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   
   TopoDS_Shape* newshp = new TopoDS_Shape();
 
-  printf("splitting top shape\n");
+  printf("INFO: splitting top shape.\n");
 
   // Closed Shape Divide
   //ShapeUpgrade_ShapeDivideClosed splitter(*shp);

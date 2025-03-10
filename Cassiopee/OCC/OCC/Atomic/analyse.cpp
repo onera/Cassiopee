@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,7 +39,7 @@
 E_Float __getLength(const TopoDS_Edge& E);
 
 //=====================================================================
-// Return min / max / mean length of all edges
+// Return min / max / mean length of all edges in topShape
 //=====================================================================
 PyObject* K_OCC::analyseEdges(PyObject* self, PyObject* args)
 {

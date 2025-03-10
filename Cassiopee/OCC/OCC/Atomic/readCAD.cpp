@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2024 Onera.
+    Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,6 +18,7 @@
 */
 
 #include "occ.h"
+
 // IGES/STEP
 #include "IGESControl_Reader.hxx" 
 #include "STEPControl_Reader.hxx"
@@ -33,6 +34,19 @@
 #include "STEPCAFControl_Reader.hxx"
 #include "XCAFDoc_DocumentTool.hxx"
 #include "TDocStd_Document.hxx"
+#include "XCAFApp_Application.hxx"
+
+#include "XmlDrivers.hxx"
+#include "XmlXCAFDrivers.hxx"
+
+#include "TDF_Label.hxx"
+#include "TDF_LabelSequence.hxx"
+#include "TDF_Tool.hxx"
+#include "TDataStd_Name.hxx"
+
+#include "XCAFDoc_ShapeTool.hxx"
+#include "XCAFDoc_ShapeMapTool.hxx"
+#include "Standard_Version.hxx"
 
 // ============================================================================
 /* Convert CAD to OpenCascade hook */
@@ -52,42 +66,74 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
 
   TopoDS_Shape* shp = new TopoDS_Shape();
   
-  TDocStd_Document* doc = NULL;
+  //static Handle(TDocStd_Document) doc2 = new TDocStd_Document("MDTV-Standard");
+  static Handle(TDocStd_Document) doc2 = new TDocStd_Document("XmlXCAF"); // static to avoid transcient
+  Handle(XCAFApp_Application) app = XCAFApp_Application::GetApplication(); // init app at first call
 
   if (strcmp(fileFmt, "fmt_iges") == 0)
   {
-    IGESControl_Reader reader;
-    reader.ReadFile(fileName);
-    
-    // Transfer all
-    reader.ClearShapes();
-    reader.TransferRoots();
-    
-    // get shape
-    *shp = reader.OneShape();
+    // simple read
+    //IGESControl_Reader reader;
+    //reader.ReadFile(fileName);
+    //reader.ClearShapes();
+    //reader.TransferRoots();
+    //*shp = reader.OneShape();
 
-    // Read document
+    // document read
     IGESCAFControl_Reader reader2;
     reader2.ReadFile(fileName);
-    doc = new TDocStd_Document("MDTV-Standard");
-    Handle(TDocStd_Document) doc2 = doc;
     reader2.Transfer(doc2);
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
   {
-    // Read the file
-    STEPControl_Reader reader;
-    reader.ReadFile(fileName);
-    reader.TransferRoots();
-    *shp = reader.OneShape();
+    // simple read
+    //STEPControl_Reader reader;
+    //reader.ReadFile(fileName);
+    //reader.TransferRoots();
+    //*shp = reader.OneShape();
     
-    // Read document
+    // document read
     STEPCAFControl_Reader reader2;
     reader2.ReadFile(fileName);
-    doc = new TDocStd_Document("MDTV-Standard");
-    Handle(TDocStd_Document) doc2 = doc;
-    reader2.Transfer(doc2);    
+    reader2.Transfer(doc2);
   }
+
+  // init app
+  app->InitDocument(doc2);
+
+  // get shapes
+  Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(doc2->Main());
+  TDF_LabelSequence labels;
+
+  // get shape
+  shapeTool->GetFreeShapes(labels);
+  if (labels.Length() == 1)
+  {
+    TDF_Label label = labels.Value(1);
+    *shp = shapeTool->GetShape(label);
+  }
+  else // build an assembly
+  {
+    TDF_Label assemblyLabel = shapeTool->NewShape();
+    for (Standard_Integer i = 1; i <= labels.Length(); i++)
+    {
+      TDF_Label label = labels.Value(i);
+      shapeTool->AddComponent(assemblyLabel, label, TopLoc_Location());
+    }
+#if OCC_VERSION_MAJOR < 7
+    shapeTool->UpdateAssembly(assemblyLabel);
+#else
+    shapeTool->UpdateAssemblies();
+#endif
+    *shp = shapeTool->GetShape(assemblyLabel);
+  }
+
+  //XmlXCAFDrivers::DefineFormat(app); // register driver
+  //PCDM_StoreStatus status = app->SaveAs(doc2, "toto.xml");
+  //if (status != PCDM_SS_OK) printf("can not write document\n");
+
+  //TDocStd_Document* doc = doc2.get();
+  TDocStd_Document* doc = doc2.operator->();
   
   // Extract surfaces
   TopTools_IndexedMapOfShape* surfs = new TopTools_IndexedMapOfShape();

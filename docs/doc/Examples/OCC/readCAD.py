@@ -1,4 +1,4 @@
 # - readCAD (array) -
 import OCC
 
-hook = OCC.occ.readCAD("cube.step", "fmt_step")
+hook = OCC.readCAD("cube.step", "fmt_step")

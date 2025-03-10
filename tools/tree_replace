@@ -14,4 +14,4 @@ if [ "$PYTHONEXE" != "" ]; then
     alias python=$PYTHONEXE
 fi
 # launch command
-tree_replace.py $1 "$2" "$3"
+python $CASSIOPEE/tools/tree_replace.py $1 "$2" "$3"

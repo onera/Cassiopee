@@ -18,3 +18,6 @@ t, stats = D2.distribute(t, 3)
 
 procList = D2.getProcList(t)
 test.testO(procList, 1)
+
+procList2 = D2.getProcList(t, sort=True)
+test.testO(procList2, 2)

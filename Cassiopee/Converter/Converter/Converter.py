@@ -723,6 +723,7 @@ def convertExt2Format__(fileName):
     elif extension == '.bstl': format = 'bin_stl'
     elif extension == '.selig': format = 'fmt_selig'
     elif extension == '.gltf': format = 'bin_gltf'
+    elif extension == '.glb': format = 'bin_gltf'
     elif extension == '.fig': format = 'fmt_xfig'
     elif extension == '.svg': format = 'fmt_svg'
     elif extension == '.pov': format = 'fmt_pov'

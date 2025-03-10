@@ -106,14 +106,13 @@ class Node:
             sw.tag_bind(self.indic, '<Button-1>', self.PVT_click)
             sw.tag_bind(self.symbol, '<Button-1>', self.PVT_click)
             sw.tag_bind(self.label, '<Button-1>', self.PVT_clickSelect)
-            sw.tag_bind(self.label, '<Control-Shift-Button-1>',
-                        self.PVT_clickMultipleSelect)
-            sw.tag_bind(self.label, '<Double-Button-1>',
-                        self.PVT_clickEdit)
+            sw.tag_bind(self.label, '<Control-Shift-Button-1>', self.PVT_clickMultipleSelect)
+            sw.tag_bind(self.label, '<Double-Button-1>', self.PVT_clickEdit)
             sw.tag_bind(self.label, '<Button-3>', self.PVT_clickRight)
         else:
             sw.tag_bind(self.symbol, '<Button-1>', self.PVT_clickSelect)
             sw.tag_bind(self.label, '<Button-1>', self.PVT_clickSelect)
+            sw.tag_bind(self.label, '<Control-Shift-Button-1>', self.PVT_clickMultipleSelect)
             sw.tag_bind(self.label, '<Double-Button-1>', self.PVT_clickEdit)
             sw.tag_bind(self.label, '<Button-3>', self.PVT_clickRight)
         # For editing
@@ -624,26 +623,24 @@ class Node:
             if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
             isFamilyBC = Internal.getNodeFromType1(pid, 'FamilyBC_t')
             if isFamilyBC is not None: return
-            nodes = C.getFamilyZones(CTK.t, pid[0])
-            zones = []
-            for n in nodes: # ne garde que les zones
-                if n[3] == 'Zone_t': zones.append(n)
 
             activated = []
             active = -2
             dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
-            for z in zones:
-                base, c = Internal.getParentOfNode(CTK.t, z)
-                #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
-                noz = dnz[base[0]][z[0]]
-                if active == -2:
-                    active = CPlot.getActiveStatus(noz)
-                if active == 1: activated.append( (noz, 0) )
-                else: activated.append( (noz, 1) )
+            nzones = 0
+            for base in Internal.getBases(CTK.t):
+                zones = C.getFamilyZones(base, pid[0])
+                nzones += len(zones)
+                for z in zones:
+                    #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
+                    noz = dnz[base[0]][z[0]]
+                    if active == -2: active = CPlot.getActiveStatus(noz)
+                    if active == 1: activated.append( (noz, 0) )
+                    else: activated.append( (noz, 1) )
             if active == 1:
-                CTK.TXT.insert('START', 'Family '+pid[0]+' deactivated.\n')
+                CTK.TXT.insert('START', 'Family %s deactivated.\n'%pid[0])
             elif active == 0:
-                CTK.TXT.insert('START', 'Family '+pid[0]+' activated.\n')
+                CTK.TXT.insert('START', 'Family %s activated (%d zones).\n'%(pid[0], nzones))
             CPlot.setActiveZones(activated)
 
     def PVT_clickMultipleSelect(self, event):
@@ -677,7 +674,6 @@ class Node:
             if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
             bases = Internal.getBases(pid)
             s = -1
-
             for b in bases:
                 baseName = b[0]
                 nodes = Internal.getNodesFromType1(b, 'Zone_t')
@@ -883,34 +879,27 @@ class Node:
                 CTK.TXT.insert('START', 'Family '+pid[0]+' is a familyBC.\n')
             else: # Zone family
                 if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
-                nodes = C.getFamilyZones(CTK.t, pid[0])
-                zones = []
-                for n in nodes: # ne garde que les zones
-                    if n[3] == 'Zone_t': zones.append(n)
-
                 selected = []
-                s = 1
+                s = -1
                 dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
-                if zones != []:
-                    z = zones[0]
-                    base, c = Internal.getParentOfNode(CTK.t, z)
-                    #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
-                    noz = dnz[base[0]][z[0]]
-                    s = CPlot.getSelectedStatus(noz)
-                    if s == 0: s = 1
-                    else: s = 0
-                if clear: s = 1 # force select
-                for z in zones:
-                    base, c = Internal.getParentOfNode(CTK.t, z)
-                    #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
-                    noz = dnz[base[0]][z[0]]
-                    selected.append((noz, s))
+                nzones = 0
+                for base in Internal.getBases(CTK.t):
+                    zones = C.getFamilyZones(base, pid[0])
+                    nzones += len(zones)
+                    for z in zones:
+                        noz = dnz[base[0]][z[0]]
+                        if s == -1:
+                            s = CPlot.getSelectedStatus(noz)
+                            if s == 0: s = 1
+                            else: s = 0
+                            if clear: s = 1 # force select
+                        selected.append((noz, s))
                 if clear: CPlot.unselectAllZones()
                 CPlot.setSelectedZones(selected)
                 if s == 1:
-                    CTK.TXT.insert('START', 'Family of zones '+pid[0]+' selected.\n')
+                    CTK.TXT.insert('START', 'Family %s selected (%d zones).\n'%(pid[0], nzones))
                 else:
-                    CTK.TXT.insert('START', 'Family of zones '+pid[0]+' unselected.\n')
+                    CTK.TXT.insert('START', 'Family %s unselected.\n'%pid[0])
 
         elif pid[3] == 'Descriptor_t':
             v = Internal.getValue(pid)

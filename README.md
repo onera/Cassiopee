@@ -1,8 +1,8 @@
-# Cassiopee 4
+# Cassiopee
 
-**C**omputational **F**luid **D**ynamics pre- and post-processing python modules.
+Computational Fluid Dynamics pre- and post-processing python modules.
 
--- Under construction --
+- [Release Notes](https://onera.github.io/Cassiopee/ReleaseNotes.html)
 
 - [Documentation](https://onera.github.io/Cassiopee)
 
