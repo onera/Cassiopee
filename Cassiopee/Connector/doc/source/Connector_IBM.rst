@@ -56,7 +56,7 @@ Contents
 Main functions
 --------------
 
-.. py:function:: Connector.IBM.dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1., correctionMultiCorpsF42=False, heightMaxF42=-1.)
+.. py:function:: Connector.IBM.dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1., correctionMultiCorpsF42=False, heightMax=-1.)
 
     Compute the wall distance for IBM pre-processing. Exists also as in-place (_dist2wallIBM). 
     
@@ -78,8 +78,8 @@ Main functions
     :type Lref: float
     :param correctionMultiCorpsF42: if True, computes the wall distance w.r.t each body that is not a symmetry plane (frontType 42)
     :type correctionMultiCorpsF42: boolean
-    :param heightMaxF42: if heightMaxF42 > 0: uses a maximum modeling height to speed up individual wall distance calculations when correctionMultiCorpsF42 is active (frontType 42)
-    :type heightMaxF42: float
+    :param heightMax: if heightMax > 0: uses a maximum modeling height to speed up individual wall distance calculations when correctionMultiCorpsF42 is active (frontType 42). Is also used when the image points are shift outwards with frontType 1.
+    :type heightMax: float
 
     *Example of use:*
     
@@ -89,7 +89,7 @@ Main functions
 
 ---------------------------------------
 
-.. py:function:: Connector.IBM.blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False, correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.)
+.. py:function:: Connector.IBM.blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False, correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMax=-1.)
 
     Blank the computational tree by IBC bodies for IBM pre-processing. Exists also as in-place (_blankingIBM). 
     
@@ -123,8 +123,8 @@ Main functions
     :type blankingF42: boolean
     :param wallAdaptF42: use a previous computation to adapt the positioning of IB target points around the geometry according to a target yplus (frontType 42)
     :type wallAdaptF42: cloud of IB target points with yplus information
-    :param heightMaxF42: if heightMaxF42 > 0: maximum modeling height for the location of IB target points around the geometry (frontType 42)
-    :type heightMaxF42: float
+    :param heightMax: if heightMax > 0: maximum modeling height for the location of IB target points around the geometry (frontType 42)
+    :type heightMax: float
 
     *Example of use:*
     
