@@ -1518,7 +1518,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
     # Test if field exist
     zones = Internal.getZones(t)
     if len(zones) == 0: return None
-        
+
     cont = Internal.getNodeFromName1(zones[0], Internal.__FlowSolutionCenters__)
     if cont is None:
         raise ValueError("_computeGrad2: no field detected (check container).")
