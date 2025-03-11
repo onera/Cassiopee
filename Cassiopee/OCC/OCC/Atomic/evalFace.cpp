@@ -30,11 +30,11 @@
 void evalFace__(E_Int npts, E_Float* u, E_Float* v, const TopoDS_Face& F,
                 E_Float* x, E_Float* y, E_Float* z)
 {
-  Handle(Geom_Surface) face = BRep_Tool::Surface(F);
 #pragma omp parallel
   {
+    Handle(Geom_Surface) face = BRep_Tool::Surface(F);
     gp_Pnt Pt;
-#pragma omp for 
+    #pragma omp for 
     for (E_Int i = 0; i < npts; i++)
     {
       face->D0(u[i], v[i], Pt);
@@ -50,7 +50,7 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   PyObject* hook;
   PyObject* arrayUV;
   E_Int faceNo; // No de la face 
-  if (!PYPARSETUPLE_(args, OO_ I_, &hook, &arrayUV, &faceNo)) return NULL;  
+  if (!PYPARSETUPLE_(args, OO_ I_, &hook, &arrayUV, &faceNo)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

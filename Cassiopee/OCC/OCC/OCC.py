@@ -15,7 +15,7 @@ __all__ = ['convertCAD2Arrays',
            'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
-           'identifyTags__',
+           'meshAllFacesTri', 'meshFaceWithMetric', 'identifyTags__',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
            '_translate', '_rotate',
@@ -522,7 +522,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     # save edges
     edgesSav = []
     for e in edges: edgesSav.append(Converter.copy(e))
-
+        
     # must close in uv space
     edges = switch2UV2(edges)
     T = _scaleUV(edges)
@@ -530,6 +530,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     edges = Transform.join(edges)
     edges = Generator.close(edges, 1.e-10)
     _unscaleUV([edges], T)
+    
     pt = edges[1]
     edges = occ.evalFace(hook, edges, i)
     edges = Converter.addVars(edges, ['u','v'])
@@ -537,7 +538,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     edges[1][4,:] = pt[4,:]
 
     if edges[2].shape[1] == 0: return True # pass
-
+    
     # supprime les edges collapsed
     #edges2 = Generator.close(edges, 1.e-6)
 
@@ -564,7 +565,7 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     # save edges
     edgesSav = []
     for e in edges: edgesSav.append(Converter.copy(e))
-
+    
     # Passage des edges dans espace uv
     edges = switch2UV(edges)
     T = _scaleUV(edges)
@@ -613,7 +614,7 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
 # IN: hList: list of (hmin, hmax, hausd) for each face to mesh
 #==================================================================
 def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
-    nbFaces = occ.getNbFaces(hook)
+    nbFaces = len(faceList)
     FAILED1 = []; FAILED2 = []; dfaces = []
     for c, i in enumerate(faceList):
 
@@ -636,7 +637,7 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
         if metric:
             hsize = hList[c]
             SUCCESS = meshFaceWithMetric(hook, i, edges, hsize[0], hsize[1], hsize[2], dfaces, FAILED1)
-
+            
         if not SUCCESS: # TRIMESH sans metric
             edges = edgesSav
             SUCCESS = meshFaceInUV(hook, i, edges, 1., dfaces, FAILED2)
@@ -656,7 +657,7 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
 # mesh STRUCT given CAD faces from discrete edges U
 #==================================================================
 def meshAllFacesStruct(hook, dedges, faceList=[]):
-    nbFaces = occ.getNbFaces(hook)
+    nbFaces = len(faceList)
     FAILED1 = []; dfaces = []
     nloct = []; nofacet = [] # nbre de grilles pour la face c; no de la face
     for c, i in enumerate(faceList):
@@ -790,3 +791,8 @@ def _mergeFaces(hook, listFaces=[]):
 # identify tag component
 def identifyTags__(a):
     return occ.identifyTags(a)
+
+# print OCAF document
+def printOCAF(h):
+    """Print OCAF document."""
+    occ.printOCAF(h)

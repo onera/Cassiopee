@@ -1501,3 +1501,8 @@ def getComponents(t):
             C._tagWithFamily(z, 'Component%02d'%k, add=True)
 
     return a
+
+# print OCAF document
+def printOCAF(h):
+    """Print OCAF document."""
+    OCC.occ.printOCAF(h)

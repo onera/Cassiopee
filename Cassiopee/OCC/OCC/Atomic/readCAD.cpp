@@ -107,6 +107,7 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
 
   // get shape
   shapeTool->GetFreeShapes(labels);
+  //printf("freeshapes length=%d\n", labels.Length());
   if (labels.Length() == 1)
   {
     TDF_Label label = labels.Value(1);
