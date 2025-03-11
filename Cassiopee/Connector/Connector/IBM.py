@@ -197,6 +197,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         if Cmpi.rank==0:
             print('ERROR: shiftIPpntF1 (%d) and heightMax (%g) have been specified. Please choose shiftIPpntF1 or heightMax but not both.'%(shiftIPpntF1,heightMax), flush=True)
             print('ERROR: Exiting...',flush=True)
+	    exit()	
 
     ## Note: cartesian = True is left as an input argument to avoid regressing  during the non-regression test.
     ##       In the near future the ref. values for the non-regression tests will be updated with cartesian=True.
