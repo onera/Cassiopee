@@ -197,7 +197,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         if Cmpi.rank==0:
             print('ERROR: shiftIPpntF1 (%d) and heightMax (%g) have been specified. Please choose shiftIPpntF1 or heightMax but not both.'%(shiftIPpntF1,heightMax), flush=True)
             print('ERROR: Exiting...',flush=True)
-        
+
     ## Note: cartesian = True is left as an input argument to avoid regressing  during the non-regression test.
     ##       In the near future the ref. values for the non-regression tests will be updated with cartesian=True.
     ##       At this point, cartesian=True input argument can be deleted.
@@ -933,6 +933,7 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
                 C._initVars(t,'{centers:cellNshiftIP}={centers:cellN}')
                 if shiftIPpntF1>0 : X._setHoleInterpolatedPoints(t,depth=depth+shiftIPpntF1,dir=0,loc='centers',cellNName='cellNshiftIP',addGC=False)
                 if heightMax>0.:
+                    C._initVars(t,'{centers:cellNMin}={centers:cellN}')
                     X._setHoleInterpolatedPoints(t,depth=depth,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
                     C._initVars(t,'{centers:cellNshiftIP}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(heightMax,heightMax))
                     C._initVars(t, '{centers:cellNshiftIP} = maximum({centers:cellNshiftIP}, {centers:cellNMin})')
@@ -1170,7 +1171,9 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
                 isShiftIPpntF1=1
                 break
         isShiftIPpntF1 = Cmpi.allreduce(isShiftIPpntF1, op=Cmpi.MAX)
-        if isShiftIPpntF1==1: C._initVars(t,'{centers:cellNFront}=logical_and({centers:cellNshiftIP}>0.5, {centers:cellNshiftIP}<1.5)')
+        if isShiftIPpntF1==1:
+            C._initVars(t,'{centers:cellNFront}=logical_and({centers:cellNshiftIP}>0.5, {centers:cellNshiftIP}<1.5)')
+            C._rmVars(t,['centers:cellNshiftIP'])
 
         if isWireModel:
             C._initVars(t,'{centers:cellNFrontFilWMM}={centers:cellNFilWMM}*({centers:cellNFilWMM}>0.5)+1*({centers:cellNFilWMM}<0.5)')
