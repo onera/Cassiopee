@@ -339,7 +339,7 @@ void COLLIDER::__create_tree(const ACoordinate_t& coords, const AConnectivity_t&
 {
 
 #ifdef COLLIDE_DBG
-  DELAUNAY::chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
   

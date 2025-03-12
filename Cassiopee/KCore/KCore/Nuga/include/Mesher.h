@@ -32,14 +32,14 @@
 #include "Nuga/include/macros.h"
 #include "Nuga/include/Edge.h"
 #ifdef E_TIME
-#include "chrono.h"
+#include "Nuga/include/chrono.h"
 #endif
 #include "Nuga/include/DelaunayMath.h"
 #include "Nuga/include/IdTool.h"
+#include "Nuga/include/random.h"
 #include <list>
 #include <deque>
 #include <set>
-#include "Nuga/include/random.h"
 
 #if defined(DEBUG_METRIC)
 #include "iodata.h"
@@ -789,7 +789,7 @@ namespace DELAUNAY
     Refiner<MetricType> saturator(*_metric, mode.growth_ratio, mode.nb_smooth_iter, mode.symmetrize);
 
 #ifdef E_TIME
-    chrono c;
+    NUGA::chrono c;
 #endif
 
     float constrained = 0.;
@@ -836,7 +836,7 @@ namespace DELAUNAY
       nb_refine_nodes = refine_nodes.size();
       carry_on = (nb_refine_nodes != 0);
 
-      std::shuffle (ALL(refine_nodes), _random.gen);
+      std::shuffle(ALL(refine_nodes), _random.gen);
 
       _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
 
