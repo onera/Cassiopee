@@ -1006,9 +1006,18 @@ E_Int __getParamExt(const TopoDS_Edge& E, E_Int nbPoints, E_Float* uext, E_Float
   GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
   Standard_Real u0 = geomAdap.FirstParameter();
   Standard_Real u1 = geomAdap.LastParameter();
+
+  if (BRep_Tool::Degenerated(E))
+  { 
+    nbPoints = 2;
+    ue = new E_Float [nbPoints];
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
+    return 1; 
+  }
+
   ue = new E_Float [nbPoints];
   
-  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
+  E_Float L = (E_Float)GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
   E_Float abscissa = 0.;
   for (E_Int i = 0; i < nbPoints; i++)
   {
