@@ -609,7 +609,7 @@ def meshFaceWithPointedHat(hook, i, edges, mesh):
             lmax = l
             X = Generator.barycenter(e)
             a = Generator.pointedHat(e, X)
-    
+
     a = Converter.convertArray2Tetra(a)
     a = Generator.close(a, 1.e-10)
     _unscaleUV([a], T)
