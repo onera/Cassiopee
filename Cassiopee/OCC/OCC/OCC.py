@@ -8,6 +8,7 @@ from . import occ
 import Converter
 import Transform
 import Generator
+import Geom
 import KCore
 
 __all__ = ['convertCAD2Arrays',
@@ -578,7 +579,6 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
         _unscaleUV([a], T)
         o = occ.evalFace(hook, a, i)
         _enforceEdgesInFace(o, edgesSav)
-        a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             o = Transform.reorder(o, (-1,))
         mesh.append(o)
@@ -586,10 +586,40 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     except Exception as e:
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i)
-        mesh.append(None)
         FAILED.append(i)
 
     return SUCCESS
+
+# pointed hat mesh face in UV space
+def meshFaceWithPointedHat(hook, i, edges, mesh):
+
+    # save edges
+    #edgesSav = []
+    #for e in edges: edgesSav.append(Converter.copy(e))
+
+    # Passage des edges dans espace uv
+    edges = switch2UV(edges)
+    T = _scaleUV(edges)
+
+    # Maillage l'edge le plus long par pointedhat (no fail)
+    lmax = -1.
+    for e in edges:
+        l = Geom.getLength(e)
+        if l > lmax:
+            lmax = l
+            X = Generator.barycenter(e)
+            a = Generator.pointedHat(e, X)
+    
+    a = Converter.convertArray2Tetra(a)
+    a = Generator.close(a, 1.e-10)
+    _unscaleUV([a], T)
+    o = occ.evalFace(hook, a, i)
+    #_enforceEdgesInFace(o, edgesSav)
+    if occ.getFaceOrientation(hook, i) == 0:
+        o = Transform.reorder(o, (-1,))
+    mesh.append(o)
+
+    return True
 
 # mesh all CAD edges with hmin, hmax, hausd
 def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
@@ -642,12 +672,17 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
             edges = edgesSav
             SUCCESS = meshFaceInUV(hook, i, edges, 1., dfaces, FAILED2)
 
+        if not SUCCESS: # pointed hat
+            edges = edgesSav
+            #dfaces.append(None)
+            SUCCESS = meshFaceWithPointedHat(hook, i, edges, dfaces)
+
     FAIL1 = len(FAILED1)
     print("METRICFAILURE = %d / %d"%(FAIL1, nbFaces))
     for f in FAILED1:
         print("METRICFAILED on face = %03d_edgeUV.plt"%f)
     FAIL2 = len(FAILED2)
-    print("FINAL FAILURE = %d / %d"%(FAIL2,nbFaces))
+    print("FINAL FAILURE = %d / %d"%(FAIL2, nbFaces))
     for f in FAILED2:
         print("FINAL FAILED on face = %03d_edgeUV.plt"%f)
 

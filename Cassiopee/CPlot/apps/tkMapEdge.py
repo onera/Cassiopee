@@ -1100,7 +1100,6 @@ def remeshCAD(edges):
         if zdim[0] != 'Structured': continue
         if zdim[4] != 1: continue
         CAD = Internal.getNodeFromName1(e, 'CAD')
-        no = Internal.getNodeFromName1(CAD, 'no')
         if CAD is None: continue
         D._getCurvilinearAbscissa(e)
         valids.append(e)
