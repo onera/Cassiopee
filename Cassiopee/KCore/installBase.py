@@ -278,19 +278,19 @@ installDict = {
                  ],
     ###############################################################################
     'ld_spack': [ 'Poste grand calcul Onera-ld (Onera)',
-                   'gfortran', # f77compiler
-                   'gfortran', # f90compiler
-                   'gcc', # Cppcompiler
-                   ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   [], # additionalIncludePaths
-                   [], # additionalLibs
-                   [],  # additionalLibPaths
-                   False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
+                  'gfortran', # f77compiler
+                  'gfortran', # f90compiler
+                  'gcc', # Cppcompiler
+                  ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
+                  [], # f77AdditionalOptions
+                  True, # useOMP
+                  False, # static
+                  [], # additionalIncludePaths
+                  [], # additionalLibs
+                  [],  # additionalLibPaths
+                  False, # useCuda
+                  [] # NvccAdditionalOptions
+                  ],
     ###############################################################################
     'eos8': [ 'Poste grand calcul Onera-ld (Onera) avec Centos8',
               'ifort', # f77compiler
