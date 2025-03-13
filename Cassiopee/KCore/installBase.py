@@ -277,7 +277,7 @@ installDict = {
                  [] # NvccAdditionalOptions
                  ],
     ###############################################################################
-    'eos814_r8': [ 'Poste grand calcul Onera-ld (Onera) avec Centos8',
+    'ld_spack': [ 'Poste grand calcul Onera-ld (Onera)',
                    'gfortran', # f77compiler
                    'gfortran', # f90compiler
                    'gcc', # Cppcompiler
