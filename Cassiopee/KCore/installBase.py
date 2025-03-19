@@ -277,10 +277,25 @@ installDict = {
                  [] # NvccAdditionalOptions
                  ],
     ###############################################################################
-    'ld_spack': [ 'Poste grand calcul Onera-ld (Onera)',
+    'ld_spack1': [ 'Poste grand calcul Onera-ld (Onera)',
                   'gfortran', # f77compiler
                   'gfortran', # f90compiler
                   'gcc', # Cppcompiler
+                  ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
+                  [], # f77AdditionalOptions
+                  True, # useOMP
+                  False, # static
+                  [], # additionalIncludePaths
+                  [], # additionalLibs
+                  [],  # additionalLibPaths
+                  False, # useCuda
+                  [] # NvccAdditionalOptions
+                  ],
+    ###############################################################################
+    'ld_spack2': [ 'Poste grand calcul Onera-ld (Onera)',
+                  'ifort', # f77compiler
+                  'ifort', # f90compiler
+                  'icc', # Cppcompiler
                   ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
                   [], # f77AdditionalOptions
                   True, # useOMP
