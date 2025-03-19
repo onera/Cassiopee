@@ -123,22 +123,6 @@ else if ($MAC == "ld") then
         setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
         setenv ASAN_LIB /opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
-else if ($MAC == "ld_spack") then
-#-------------------------- ld spack + python 3.10 -----------------------------
-        setenv ELSAPROD ld_spack
-        setenv ELSAPROD "$ELSAPROD$EXT"
-        module purge
-        setenv PATH "/tmp_user/ldaaa2323z/benoit/spack_installed/install/bin":"/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/test/.spack-env/view/bin":"/tmp_user/ldaaa2323z/benoit/spack/bin":"/usr/local/sbin":"/usr/bin:/usr/sbin:/usr/local/bin"
-        setenv LD_LIBRARY_PATH /tmp_user/ldaaa2323z/benoit/spack_installed/install/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install/lib64:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/test/.spack-env/view/lib:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/test/.spack-env/view/lib64
-        setenv PYTHONPATH /tmp_user/ldaaa2323z/benoit/spack_installed/install/lib/python3.10/site-packages:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/test/.spack-env/view/lib/python3.10/site-packages
-        setenv PRODMODE 1
-        # Set next line only if python is not python
-        setenv PYTHONEXE python3
-        # Number of threads
-        set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
-        @ ncpu++
-        setenv OMP_NUM_THREADS $ncpu
-
 else if ($MAC == "ld_python2") then
 #----------------------------- ld centos 7 -------------------------------------
         setenv ELSAPROD x86_r8
