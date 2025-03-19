@@ -1030,7 +1030,7 @@ namespace NUGA
       acrd_t acrd1(sub.m_crd), acrd2(cutter.m_crd);
 
       E_Int ret = NUGA::INTERSECT::isolated_clip(acrd1, sub, inward1, acrd2, cutter, ps_min, RTOL, result, contact, true_clip, dbg);
-      if (!result.empty())bits.push_back(result);
+      if (!result.empty()) bits.push_back(result);
       return ret;
     }
 
