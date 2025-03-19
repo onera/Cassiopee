@@ -278,34 +278,34 @@ installDict = {
                  ],
     ###############################################################################
     'ld_spack1': [ 'Poste grand calcul Onera-ld (Onera)',
-                  'gfortran', # f77compiler
-                  'gfortran', # f90compiler
-                  'gcc', # Cppcompiler
-                  ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
-                  [], # f77AdditionalOptions
-                  True, # useOMP
-                  False, # static
-                  [], # additionalIncludePaths
-                  [], # additionalLibs
-                  [],  # additionalLibPaths
-                  False, # useCuda
-                  [] # NvccAdditionalOptions
-                  ],
+                   'gfortran', # f77compiler
+                   'gfortran', # f90compiler
+                   'gcc', # Cppcompiler
+                   ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
+                   [], # f77AdditionalOptions
+                   True, # useOMP
+                   False, # static
+                   [], # additionalIncludePaths
+                   [], # additionalLibs
+                   [],  # additionalLibPaths
+                   False, # useCuda
+                   [] # NvccAdditionalOptions
+                   ],
     ###############################################################################
     'ld_spack2': [ 'Poste grand calcul Onera-ld (Onera)',
-                  'ifort', # f77compiler
-                  'ifort', # f90compiler
-                  'icc', # Cppcompiler
-                  ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
-                  [], # f77AdditionalOptions
-                  True, # useOMP
-                  False, # static
-                  [], # additionalIncludePaths
-                  [], # additionalLibs
-                  [],  # additionalLibPaths
-                  False, # useCuda
-                  [] # NvccAdditionalOptions
-                  ],
+                   'ifort', # f77compiler
+                   'ifort', # f90compiler
+                   'icc', # Cppcompiler
+                   ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
+                   [], # f77AdditionalOptions
+                   True, # useOMP
+                   False, # static
+                   [], # additionalIncludePaths
+                   [], # additionalLibs
+                   [],  # additionalLibPaths
+                   False, # useCuda
+                   [] # NvccAdditionalOptions
+                   ],
     ###############################################################################
     'eos8': [ 'Poste grand calcul Onera-ld (Onera) avec Centos8',
               'ifort', # f77compiler
