@@ -177,11 +177,11 @@ namespace DELAUNAY
     sz = (size_type) tmp.size();
     //printf("filter sz=%d\n", sz); fflush(stdout);
 
-    for (size_type i = 0; i < sz; ++i)
+    for (size_type i = 0; i < sz; ++i) // pour chaque point
     {
       Ni = tmp[i];
       const typename MetricType::value_type& Mi = _metric[Ni];
-      Ri = coeff * _metric.getRadius(Ni); //fixme
+      Ri = coeff * _metric.getRadius(Ni); // why?
 
       for (size_type j = 0; j < 2; ++j)
       {
@@ -190,7 +190,7 @@ namespace DELAUNAY
       }
 
       nodes.clear();
-      filter_tree.getInBox(mBox, MBox, nodes);
+      filter_tree.getInBox(mBox, MBox, nodes); // noeuds de filter_tree dans la box
 
       bool discard = false;
       nb_nodes = (size_type)nodes.size();
@@ -198,15 +198,13 @@ namespace DELAUNAY
 
       for (size_type n = 0; (n < nb_nodes) && !discard; ++n)
       {
-        if (IS_IN(box_nodes, nodes[n]))// skip box nodes
+        if (IS_IN(box_nodes, nodes[n])) // skip box nodes
           continue;
 
         const typename MetricType::value_type& Mn = _metric[nodes[n]];
-
         E_Float dmi = _metric.lengthEval(Ni, Mi, nodes[n], Mi);
         E_Float dmn = _metric.lengthEval(Ni, Mn, nodes[n], Mn);
         discard = (dmi < coeff) || (dmn < coeff); // Regarding Mi or Mn metric
-
         
 #ifdef DEBUG_METRIC
         /*if (discard && Ni == 19551)
@@ -233,7 +231,7 @@ namespace DELAUNAY
 
       if (!discard)
       {
-        refine_nodes.push_back(Ni);
+        refine_nodes.push_back(Ni); // reserve + resize
         filter_tree.insert(Ni);
       }
     }

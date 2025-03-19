@@ -782,7 +782,7 @@ namespace DELAUNAY
     std::vector<size_type> refine_nodes;
 
     coord_access_type posAcc(pos);
-    tree_type filter_tree(posAcc); // fixme : should be only triangulation nodes.
+    tree_type filter_tree(posAcc);
 
     size_type Ni, nb_refine_nodes;
 
@@ -811,11 +811,12 @@ namespace DELAUNAY
     }
 #endif
 
+      // genere des points dans refine_nodes
       saturator.computeRefinePoints(iter, *_data, _box_nodes, _data->hardEdges, refine_nodes, _N0);
-
 
 #ifdef E_TIME
       std::cout << "__compute_refine_points : " << c.elapsed() << std::endl;
+      std::cout << "nb proposed refined points : " << refine_nodes.size() << std::endl;
       c.start();
 #endif
 #ifdef DEBUG_METRIC
@@ -826,16 +827,23 @@ namespace DELAUNAY
     }
     //if (iter == 5) saturator._debug = true;
 #endif
-      saturator.filterRefinePoints(*_data, _box_nodes, refine_nodes, filter_tree);
 
+      // must be here!
+      //std::shuffle(ALL(refine_nodes), _random.gen);
+
+      // filtre refine_nodes
+      saturator.filterRefinePoints(*_data, _box_nodes, refine_nodes, filter_tree);
 #ifdef E_TIME
       std::cout << "__filter_refine_points : " << c.elapsed() << std::endl;
+      std::cout << "nb points to insert : " << refine_nodes.size() << std::endl;
       c.start();
 #endif
 
+      // insere les noeuds resultants
       nb_refine_nodes = refine_nodes.size();
       carry_on = (nb_refine_nodes != 0);
 
+      // must not be here!
       std::shuffle(ALL(refine_nodes), _random.gen);
 
       _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
@@ -866,7 +874,7 @@ namespace DELAUNAY
 
 #ifdef E_TIME
       std::cout << "compacting : " << c.elapsed() << std::endl;
-      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
 #endif
       ++iter;
 
