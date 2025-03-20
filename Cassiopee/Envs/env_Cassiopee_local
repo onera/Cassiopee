@@ -671,6 +671,13 @@ else if ($MAC == "juno_coda") then
         setenv ELSAPROD "$ELSAPROD$EXT"
         # Number of threads
         setenv OMP_NUM_THREADS 48
+        # modules
+        module purge
+        source /stck/rhea/dist/juno_v2024_08/source.sh --env coda_users
+        module load lapack/3.9.1-gnu831
+        module load occt/7.6.1-gnu831
+        module load subversion/1.14.1-gnu831
+        module load emacs/27.2-gnu831
         setenv PYTHONEXE python3
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1

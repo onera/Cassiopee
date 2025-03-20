@@ -676,6 +676,7 @@ elif [ "$MAC" = "juno_coda" ]; then
     # Nbre de threads
     export OMP_NUM_THREADS=48
     # modules
+    . /etc/profile.d/modules-onera.sh
     module purge
     source /stck/rhea/dist/juno_v2024_08/source.sh --env coda_users
     module load lapack/3.9.1-gnu831
