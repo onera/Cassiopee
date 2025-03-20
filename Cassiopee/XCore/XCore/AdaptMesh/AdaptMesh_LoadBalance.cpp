@@ -47,9 +47,6 @@ PyObject *K_XCORE::AdaptMesh_LoadBalance(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    if (M->pid == 0) puts("Setting mesh orientation...");
-    Mesh_set_orientation(M);
-
     if (M->pid == 0) puts("OK LoadBalance.");
 
     return Py_None;

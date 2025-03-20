@@ -80,6 +80,9 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
 
     Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
 
+    if (M->pid == 0) puts("Setting mesh orientation...");
+    Mesh_set_orientation(M);
+
     if (M->pid == 0) puts("Adapting...");
 
     // Isolate cells/faces/edges to be refined
@@ -106,8 +109,6 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
     if (M->pid == 0) puts("    Refining...");
     Mesh_refine(M, ref_cells, ref_faces, ref_edges);
 
-    print_postrefinement_data(M);
-
     if (M->pid == 0) puts("    Updating global cell ids...");
     Mesh_update_global_cell_ids(M);
 
@@ -119,6 +120,8 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("    Updating global face ids...");
     Mesh_update_global_face_ids(M);
+
+    print_postrefinement_data(M);
 
     if (M->pid == 0) puts("    Conformizing face edges...");
     Mesh_conformize_face_edge(M);
