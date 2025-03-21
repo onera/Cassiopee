@@ -22,10 +22,8 @@ test.testA([res], 4)
 
 # cas liste de dfar
 s = D.sphere((0,0,0), 1., 100); snear = 0.1
-s2 = D.sphere((8,8,8),1, 100); 
+s2 = D.sphere((8,8,8),1, 100);
 res = G.octree([s,s2], [snear,snear], dfarList=[12.,0.], dfar=-1., balancing=1)
 test.testA([res],5)
 res = G.octree([s,s2], [snear,snear], dfarList=[12.,5.], dfar=-1., balancing=1)
 test.testA([res],6)
-
-

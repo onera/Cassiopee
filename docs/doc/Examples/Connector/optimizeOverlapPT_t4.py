@@ -5,12 +5,12 @@ import Converter.PyTree as C
 import KCore.test as test
 
 H = 1.; NK = 4*int(H)+1
-a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., H, (11,11,NK)) 
+a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., H, (11,11,NK))
 t = C.newPyTree(['Base','Base2']); t[2][1][2] += [a]
 t = X.connectMatchPeriodic(t,rotationCenter=[0.,0.,0.], translation=[0.,0.,H])
 
 H2 = 4*H; NK = 2*int(H2)+1
-b = G.cylinder((0.,0.,-H), 0.1, 1., -30., 120., 3*H, (11,11,NK)) 
+b = G.cylinder((0.,0.,-H), 0.1, 1., -30., 120., 3*H, (11,11,NK))
 t[2][2][2] += [b]
 
 # Same as first test, but now using an intersection dictionnary
@@ -22,12 +22,12 @@ t = X.optimizeOverlap(t)
 test.testT(t,1)
 # Periodicite par rotation
 H = 1.; NK = 4*int(H)+1
-a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., H, (11,11,NK)) 
+a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., H, (11,11,NK))
 t = C.newPyTree(['Base','Base2']); t[2][1][2] += [a]
 t = X.connectMatchPeriodic(t, rotationCenter=[0.,0.,0.],
                            rotationAngle=[0.,0.,90.])
 H2 = 4*H; NK = 2*int(H2)+1
-b = G.cylinder((0.,0.,-H), 0.1, 1., -30., 120., 3*H, (11,11,NK)) 
+b = G.cylinder((0.,0.,-H), 0.1, 1., -30., 120., 3*H, (11,11,NK))
 t[2][2][2] += [b]
 # Same as second test, but now using an intersection dictionnary
 InterDict = X.getIntersectingDomains(t, method='hybrid')
@@ -53,11 +53,9 @@ C._addState(t[2][1], 'EquationDimension',2)
 t = X.connectMatchPeriodic(t,translation=(0,0,1))
 # Same as third test, but now using an Intersection Dictionnary
 InterDict = X.getIntersectingDomains(t, method='hybrid')
-t3 = X.optimizeOverlap(t, double_wall=1, priorities=['Base2',0,'Base',1], 
+t3 = X.optimizeOverlap(t, double_wall=1, priorities=['Base2',0,'Base',1],
                        intersectionsDict=interDict)
 test.testT(t3,6)
 # Third test:
 t = X.optimizeOverlap(t, double_wall=1, priorities=['Base2',0,'Base',1])
 test.testT(t,3)
-
-

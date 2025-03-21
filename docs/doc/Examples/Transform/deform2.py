@@ -20,7 +20,7 @@ import time
 # C.convertArrays2File([a,b], 'out.plt')
 
 # Morceau de sphere
-#A = D.sphereYinYang((0,0,0), 1., N=20) 
+#A = D.sphereYinYang((0,0,0), 1., N=20)
 #a = A[0]
 
 # Sphere a probleme

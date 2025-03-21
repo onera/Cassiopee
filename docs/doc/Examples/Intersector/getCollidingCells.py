@@ -11,9 +11,8 @@ t1 = C.convertArray2NGon(t1); t1 = G.close(t1)
 t2 = G.cart((1.,1.5,3.), (1,1,1), (10,10,10))
 t2 = C.convertArray2NGon(t2); t2 = G.close(t2)
 
-res = XOR.getCollidingCells(t1, t2, RTOL = 0.05)
+res = XOR.getCollidingCells(t1, t2, RTOL=0.05)
 
 m = XOR.getCells(t1, res[0], are_face_ids=False)
 
 C.convertArrays2File([m], "out.plt")
-

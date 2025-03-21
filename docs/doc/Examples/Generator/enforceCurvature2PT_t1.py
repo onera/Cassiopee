@@ -4,7 +4,7 @@ import Geom.PyTree as D
 import Generator.PyTree as G
 import KCore.test as test
 
-# Cas 1 : courbure constante 
+# Cas 1 : courbure constante
 a = D.circle((0,0,0),0.1,N=51)
 ni = 101; db = G.cart((0,0,0),(1./(ni-1),1,1),(ni,1,1))
 db = C.addBC2Zone(db, 'wall1', 'BCWall', 'jmin')

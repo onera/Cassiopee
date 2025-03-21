@@ -20,7 +20,7 @@ a = G.cart((0.,0.,0.),(h,h,h),(N,N,1))
 sphere = D.sphere((N*h/2.,N*h/2.,0), 1., 100)
 sphere = C.convertArray2Tetra(sphere)
 sphere = G.close(sphere)
-t = C.newPyTree(['Base',a]) 
+t = C.newPyTree(['Base',a])
 C._initVars(t,'cellN', 1)
 t = X.blankCellsTri(t, [[sphere]], numpy.array([[1]]), blankingType='node_in')
 # Condition aux limites
@@ -51,4 +51,3 @@ t = X.setHoleInterpolatedPoints(t,depth=1,loc='nodes')
 C._initVars(t,'{flag}=({cellN}>1.)')
 t = DTW.distance2WallsEikonal(t,sphere,DEPTH=DEPTH,nitmax=10,algo=alg)
 C.convertPyTree2File(t, 'out2.cgns')
-

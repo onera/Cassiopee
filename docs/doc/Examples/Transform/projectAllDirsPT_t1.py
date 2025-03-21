@@ -50,7 +50,7 @@ test.testT(t,4)
 # sur un arbre
 t = C.newPyTree(['Base',2,a])
 tp = C.newPyTree(['Proj',2,b])
-t = G.getNormalMap(t) 
+t = G.getNormalMap(t)
 t = C.center2Node(t,['centers:sx','centers:sy','centers:sz'])
 t2 = T.projectAllDirs(t, tp, ['sx','sy','sz']); c[0] = 'projection'
 test.testT(t2,5)

@@ -11,7 +11,7 @@ C._addState(t, adim='adim1')
 C._initVars(t,'{VelocityX}=0.2*{CoordinateX}**2')
 C._initVars(t,'{VelocityY}=0.3*{CoordinateY}*{CoordinateX}')
 C._initVars(t,'VelocityZ', 0.)
-for var in ['VelocityX','VelocityY','VelocityZ']: 
+for var in ['VelocityX','VelocityY','VelocityZ']:
     t = P.computeGrad(t,var)
     t = C.node2Center(t,var)
 C._initVars(t,'centers:Density', 1.)

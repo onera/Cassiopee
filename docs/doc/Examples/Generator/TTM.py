@@ -4,7 +4,7 @@ import Generator as G
 import Geom as D
 
 P0 = (0,0,0); P1 = (5,0,0); P2 = (0,7,0); P3 = (5,7,0)
-    
+
 # Geometry
 d1 = D.line(P0, P1); d2 = D.line(P2, P3)
 pts = C.array('x,y,z', 5, 1, 1)
@@ -22,7 +22,7 @@ x[1] = 3.; y[ 1 ] = 2.; z[ 1 ] = 0.
 x[2] = 2.; y[ 2 ] = 3.; z[ 2 ] = 0.
 x[3] = 6.; y[ 3 ] = 5.; z[ 3 ] = 0.
 x[4] = 5.; y[ 4 ] = 7.; z[ 4 ] = 0.
-b2 = D.bezier( pts ) 
+b2 = D.bezier( pts )
 C.convertArrays2File([d1, d2, b1, b2], 'geom.plt')
 
 # Regular discretision of each line

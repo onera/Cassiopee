@@ -8,4 +8,3 @@ a = G.cartTetra((0,0,0), (1,1.,1), (20,20,20))
 C._addVars(a,'Density'); C._addVars(a,'centers:cellN')
 b = P.exteriorFaces(a)
 test.testT(b, 1)
-

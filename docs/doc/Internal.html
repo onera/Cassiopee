@@ -888,7 +888,7 @@ a numpy array but it is always stored as a numpy array in node[1].</p>
 <span class="n">Internal</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="mf">1.</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
 <span class="c1">#&gt;&gt; [&#39;node1&#39;, array([ 1.]), [], &#39;DataArray_t&#39;]</span>
 
-<span class="c1"># Set a numpy array in node </span>
+<span class="c1"># Set a numpy array in node</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span> <span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
 <span class="c1">#&gt;&gt; [&#39;node1&#39;, array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]), [], &#39;DataArray_t&#39;]</span>
 
@@ -1030,7 +1030,7 @@ nodes with the same name, consider using createUniqueChild.</p>
 
 <span class="n">node</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s1">&#39;myNode&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[])</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">createChild</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;childName&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> 
+<span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
 <span class="c1">#&gt;&gt; [&#39;myNode&#39;, array([ 1.]), [[&#39;childName&#39;, array([ 2.]), [], &#39;DataArray_t&#39;]], &#39;DataArray_t&#39;]</span>
 </pre></div>
 </div>
@@ -1072,7 +1072,7 @@ and newly created or modified child node is returned.</p>
 <span class="n">node</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s1">&#39;myNode&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">createUniqueChild</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;childName&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">2.</span><span class="p">)</span>
 <span class="c1"># Since childName node already exists. Only the value will be set.</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">createUniqueChild</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;childName&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">3.</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">createUniqueChild</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;childName&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">3.</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
 <span class="c1">#&gt;&gt; [&#39;myNode&#39;, array([ 1.]), [[&#39;childName&#39;, array([ 3.]), [], &#39;DataArray_t&#39;]], &#39;DataArray_t&#39;]</span>
 </pre></div>
 </div>
@@ -1240,7 +1240,7 @@ numpy array. It differs from node[1], which is always a numpy array.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getVal (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 
-<span class="c1"># getVal returns always numpys </span>
+<span class="c1"># getVal returns always numpys</span>
 <span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getVal</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
 <span class="c1"># &gt;&gt; [[10  2  0]]</span>
@@ -2673,7 +2673,7 @@ If level=-20, all previous checks are performed.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/copyRefPT.py">Copy pyTree with references (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyRef (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyRef (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -2707,7 +2707,7 @@ If level=-20, all previous checks are performed.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/copyTreePT.py">Copy pyTree (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyTree (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyTree (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
@@ -2715,7 +2715,7 @@ If level=-20, all previous checks are performed.</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
 
-<span class="c1"># t2 is a full copy of t (values/numpys are also copied) </span>
+<span class="c1"># t2 is a full copy of t (values/numpys are also copied)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">copyTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2783,7 +2783,7 @@ Wildcards are accepted.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/copyNodePT.py">Copy node (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyNode (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyNode (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newDataArray</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
@@ -3716,7 +3716,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newGridCoordinates</span><span class="p">()</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newDataClass</span><span class="p">(</span><span class="s1">&#39;Dimensional&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newDimensionalExponents</span><span class="p">(</span><span class="n">massExponent</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">lengthExponent</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">timeExponent</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">temperatureExponent</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">angleExponent</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newDimensionalExponents</span><span class="p">(</span><span class="n">massExponent</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">lengthExponent</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">timeExponent</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">temperatureExponent</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">angleExponent</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3759,7 +3759,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newDiscreteData</span><span class="p">(</span><span class="s1">&#39;DiscreteData&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newDataClass</span><span class="p">(</span><span class="s1">&#39;NondimensionalParameter&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newDataConversion</span><span class="p">(</span><span class="n">conversionScale</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">conversionOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newDataConversion</span><span class="p">(</span><span class="n">conversionScale</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">conversionOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3835,8 +3835,8 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;GridLocation&#39;,array(&#39;CellCenter&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;GridLocation_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newBC</span><span class="p">(</span><span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">)</span> 
-<span class="n">Internal</span><span class="o">.</span><span class="n">newGridLocation</span><span class="p">(</span><span class="s1">&#39;Vertex&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newBC</span><span class="p">(</span><span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">newGridLocation</span><span class="p">(</span><span class="s1">&#39;Vertex&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3913,7 +3913,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;PointList&#39;,array(shape=(5,),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexArray_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newBC</span><span class="p">(</span><span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">)</span> 
+<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newBC</span><span class="p">(</span><span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newPointList</span><span class="p">(</span><span class="s1">&#39;PointList&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">101</span><span class="p">,</span><span class="mi">51</span><span class="p">,</span><span class="mi">22</span><span class="p">,</span><span class="mi">1036</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -3952,8 +3952,8 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newBC</span><span class="p">(</span><span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">)</span> 
-<span class="n">Internal</span><span class="o">.</span><span class="n">newPointRange</span><span class="p">(</span><span class="s1">&#39;PointRange&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">71</span><span class="p">,</span><span class="mi">29</span><span class="p">,</span><span class="mi">29</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newBC</span><span class="p">(</span><span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">newPointRange</span><span class="p">(</span><span class="s1">&#39;PointRange&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">71</span><span class="p">,</span><span class="mi">29</span><span class="p">,</span><span class="mi">29</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4591,7 +4591,7 @@ If parent is not None, attach it to parent node.</p>
 
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newFlowSolution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;FlowSolution&#39;</span><span class="p">,</span> <span class="n">gridLocation</span><span class="o">=</span><span class="s1">&#39;Vertex&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newFlowSolution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;FlowSolution&#39;</span><span class="p">,</span> <span class="n">gridLocation</span><span class="o">=</span><span class="s1">&#39;Vertex&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4629,7 +4629,7 @@ If parent is not None, attach it to parent node.</p>
 
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newZoneGridConnectivity</span><span class="p">(</span><span class="s1">&#39;ZoneGridConnectivity&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newZoneGridConnectivity</span><span class="p">(</span><span class="s1">&#39;ZoneGridConnectivity&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4676,7 +4676,7 @@ If parent is not None, attach it to parent node.</p>
 
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZoneGridConnectivity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ZoneGridConnectivity&#39;</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newGridConnectivity1to1</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Match&#39;</span><span class="p">,</span> <span class="n">donorName</span><span class="o">=</span><span class="s1">&#39;blk1&#39;</span><span class="p">,</span> <span class="n">pointRange</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">33</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">69</span><span class="p">],</span> <span class="n">pointRangeDonor</span><span class="o">=</span><span class="p">[</span><span class="mi">51</span><span class="p">,</span><span class="mi">51</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">33</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">69</span><span class="p">],</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newGridConnectivity1to1</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Match&#39;</span><span class="p">,</span> <span class="n">donorName</span><span class="o">=</span><span class="s1">&#39;blk1&#39;</span><span class="p">,</span> <span class="n">pointRange</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">33</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">69</span><span class="p">],</span> <span class="n">pointRangeDonor</span><span class="o">=</span><span class="p">[</span><span class="mi">51</span><span class="p">,</span><span class="mi">51</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">33</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">69</span><span class="p">],</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4717,7 +4717,7 @@ If parent is not None, attach it to parent node.</p>
 
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZoneGridConnectivity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ZoneGridConnectivity&#39;</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newGridConnectivity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Match&#39;</span><span class="p">,</span> <span class="n">donorName</span><span class="o">=</span><span class="s1">&#39;blk1&#39;</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="s1">&#39;Abutting1to1&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newGridConnectivity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Match&#39;</span><span class="p">,</span> <span class="n">donorName</span><span class="o">=</span><span class="s1">&#39;blk1&#39;</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="s1">&#39;Abutting1to1&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4755,7 +4755,7 @@ If parent is not None, attach it to parent node.</p>
 
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newGridConnectivity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Match&#39;</span><span class="p">,</span> <span class="n">donorName</span><span class="o">=</span><span class="s1">&#39;blk1&#39;</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newGridConnectivityType</span><span class="p">(</span><span class="n">ctype</span><span class="o">=</span><span class="s1">&#39;Abutting1to1&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newGridConnectivityType</span><span class="p">(</span><span class="n">ctype</span><span class="o">=</span><span class="s1">&#39;Abutting1to1&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4833,7 +4833,7 @@ If parent is not None, attach it to parent node.</p>
 
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newGridConnectivityProperty</span><span class="p">()</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newPeriodic</span><span class="p">(</span><span class="n">rotationCenter</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="n">rotationAngle</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="n">translation</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newPeriodic</span><span class="p">(</span><span class="n">rotationCenter</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="n">rotationAngle</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="n">translation</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4890,7 +4890,7 @@ If parent is not None, attach it to parent node.</p>
 
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newZoneSubRegion</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;SubRegion&#39;</span><span class="p">,</span> <span class="n">pointRange</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">gridLocation</span><span class="o">=</span><span class="s1">&#39;FaceCenter&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newZoneSubRegion</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;SubRegion&#39;</span><span class="p">,</span> <span class="n">pointRange</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">gridLocation</span><span class="o">=</span><span class="s1">&#39;FaceCenter&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4930,7 +4930,7 @@ If parent is not None, attach it to parent node.</p>
 
 <span class="c1"># Attach it to a parent node</span>
 <span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZoneGridConnectivity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ZoneGridConnectivity&#39;</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">newOversetHoles</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;OversetHoles&#39;</span><span class="p">,</span> <span class="n">pointList</span><span class="o">=</span><span class="p">[</span><span class="mi">22</span><span class="p">,</span><span class="mi">1036</span><span class="p">,</span><span class="mi">101</span><span class="p">,</span><span class="mi">43</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> 
+<span class="n">Internal</span><span class="o">.</span><span class="n">newOversetHoles</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;OversetHoles&#39;</span><span class="p">,</span> <span class="n">pointList</span><span class="o">=</span><span class="p">[</span><span class="mi">22</span><span class="p">,</span><span class="mi">1036</span><span class="p">,</span><span class="mi">101</span><span class="p">,</span><span class="mi">43</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

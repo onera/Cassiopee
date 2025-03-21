@@ -1,4 +1,4 @@
-# - streamRibbon (pyTree) - 
+# - streamRibbon (pyTree) -
 import Converter.PyTree as C
 import Post.PyTree as P
 import Generator.PyTree as G
@@ -12,6 +12,6 @@ t = C.newPyTree(['Base','StreamR']); t[2][1][2] = [m1,m2]
 t = C.initVars(t, 'vx', 1.)
 t = C.initVars(t, 'vy', F, ['CoordinateX'])
 t = C.initVars(t, 'vz', 0.)
-x0=0.1; y0=5.; z0=0.5 
+x0=0.1; y0=5.; z0=0.5
 p = P.streamRibbon(t, (x0,y0,z0),(0.,0.2,0.),['vx','vy','vz'])
 C.convertPyTree2File(p, "out.cgns")

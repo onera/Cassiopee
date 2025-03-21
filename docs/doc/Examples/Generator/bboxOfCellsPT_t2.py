@@ -67,4 +67,3 @@ t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = G.bboxOfCells(t)
 test.testT(t,7)
-

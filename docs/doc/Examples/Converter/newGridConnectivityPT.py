@@ -8,4 +8,4 @@ n = Internal.newGridConnectivity(name='Match', donorName='blk1', ctype='Abutting
 
 # Attach it to a parent node
 d = Internal.newZoneGridConnectivity(name='ZoneGridConnectivity')
-Internal.newGridConnectivity(name='Match', donorName='blk1', ctype='Abutting1to1', parent=d) 
+Internal.newGridConnectivity(name='Match', donorName='blk1', ctype='Abutting1to1', parent=d)

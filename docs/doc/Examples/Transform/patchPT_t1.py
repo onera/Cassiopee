@@ -45,7 +45,7 @@ test.testT(t, 2)
 
 # multi-zone 3D
 a = D.sphere6((0,0,0), 1, N=20,)
-d = G.cart((0.1,0.,0.), (0.1,1,1),(5,1,1)) 
+d = G.cart((0.1,0.,0.), (0.1,1,1),(5,1,1))
 a = G.addNormalLayers(a, d)
 t = C.newPyTree(['Base',3,a])
 t2 = T.subzone(t,(1,1,2),(-1,-1,4))

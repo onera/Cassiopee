@@ -7,4 +7,4 @@ n = Internal.newOversetHoles(name='OversetHoles', pointRange=None, pointList=Non
 
 # Attach it to a parent node
 d = Internal.newZoneGridConnectivity(name='ZoneGridConnectivity')
-Internal.newOversetHoles(name='OversetHoles', pointList=[22,1036,101,43], parent=d) 
+Internal.newOversetHoles(name='OversetHoles', pointList=[22,1036,101,43], parent=d)

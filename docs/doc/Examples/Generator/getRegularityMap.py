@@ -1,4 +1,4 @@
-# - getRegularityMap (array) - 
+# - getRegularityMap (array) -
 import Generator as G
 import Converter as C
 

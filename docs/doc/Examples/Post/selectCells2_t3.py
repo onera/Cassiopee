@@ -8,7 +8,7 @@ def F(x, y, z):
     if (x+2*y+z > 20.): return True
     else: return False
 
-# List 
+# List
 a    = G.cart( (0,0,0), (1,1,1), (11,11,11) )
 taga = C.initVars(a, 'tag', F, ['x','y','z'])
 taga = C.extractVars(taga,['tag'])

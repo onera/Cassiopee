@@ -49,4 +49,3 @@ C._initVars(a,'{var1}={centers:CoordinateX}+2.*{centers:CoordinateY}+{centers:Co
 C._initVars(a,'{centers:var2}={centers:CoordinateX}')
 a = P.selectCells(a, '{var1}>15.')
 test.testT(a,5)
-

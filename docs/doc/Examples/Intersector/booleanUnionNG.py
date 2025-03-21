@@ -18,6 +18,6 @@ C.convertArrays2File([x], 'boolNGunion01.plt')
 
 #~ x = XOR.booleanUnion(M1, M2, tol, preserve_right=1, solid_right=0)
 #~ C.convertArrays2File([x], 'boolNGunion10.plt')
-#~ 
+#~
 #~ x = XOR.booleanUnion(M1, M2, tol, preserve_right=0, solid_right=0)
 #~ C.convertArrays2File([x], 'boolNGunion00.plt')

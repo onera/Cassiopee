@@ -9,12 +9,12 @@ import time
 import KCore.test as test
 
 a = D.triangle((0,0,0), (0,1,0), (1, 0, 0))
-d = G.cart((1,0.,0.), (1,1,1),(2,1,1)) 
+d = G.cart((1,0.,0.), (1,1,1),(2,1,1))
 a = G.addNormalLayers(a, d)
 a = C.convertArray2NGon(a)
 a = G.close(a)
 
-b = G.cart((0.2,0.2,-0.2), (0.01,0.01,-0.01),(25,25,25)) 
+b = G.cart((0.2,0.2,-0.2), (0.01,0.01,-0.01),(25,25,25))
 b = C.convertArray2NGon(b)
 b = G.close(b)
 #C.convertPyTree2File(b,'z_nonreg6_source.cgns')

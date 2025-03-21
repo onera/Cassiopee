@@ -11,7 +11,7 @@ a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,50,30))
 res = X.connectMatch(a,a,sameZone=1)
 test.testO(res,1)
 
-# 3D raccord i = 1 partiel profil NACA 
+# 3D raccord i = 1 partiel profil NACA
 msh = D.naca(12., 5001)
 msh2 = D.line((1.,0.,0.),(2.,0.,0.),5001); msh = T.join(msh, msh2)
 msh2 = D.line((2.,0.,0.),(1.,0.,0.),5001); msh = T.join(msh2, msh)

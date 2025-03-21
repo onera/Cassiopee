@@ -29,5 +29,3 @@ c = [c1,c2,c3]; c = C.convertArray2Hexa(c)
 c = T.join(c)
 x = T.splitManifold(c)
 test.testA(x,2)
-
-

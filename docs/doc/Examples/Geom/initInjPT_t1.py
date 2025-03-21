@@ -5,7 +5,7 @@ import Generator.PyTree as G
 import Geom.IBM as D_IBM
 import Geom.PyTree as D
 import KCore.test as test
-import numpy 
+import numpy
 
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,11,12))
 a = C.node2Center(a)
@@ -27,7 +27,7 @@ for z in Internal.getZones(a):
         zsr[2].append(['diry', Nlength, [], 'DataArray_t'])
         zsr[2].append(['dirz', Nlength, [], 'DataArray_t'])
 
-        
+
         Internal._createChild(zsr, 'FamilyName', 'FamilyName_t', value='CART_LOCAL')
 
 a=D_IBM.initInj(a,'CART_LOCAL',10,20,injDir=[0.5,0.5,0.])

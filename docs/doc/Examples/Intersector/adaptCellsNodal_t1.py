@@ -2,7 +2,7 @@
 import Intersector as XOR
 import Converter as C
 import Generator as G
-import Converter.Internal as I 
+import Converter.Internal as I
 import numpy
 import KCore.test as test
 
@@ -28,7 +28,7 @@ n = C.getNPts(aTH4)
 nodal_vals = numpy.empty((n,), dtype=I.E_NpyInt)
 nodal_vals[:] = 2
 
-m = XOR.adaptCells(aTH4, nodal_vals, sensor_type = 2, smoothing_type = 1)
+m = XOR.adaptCells(aTH4, nodal_vals, sensor_type=2, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 #C.convertArrays2File([m], 'out1.plt')

@@ -17,4 +17,3 @@ data = [ [nodes, densa ] ]
 
 res = P.integNorm([nodes],[densa],[])
 print(res)
-

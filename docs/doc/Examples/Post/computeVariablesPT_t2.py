@@ -5,7 +5,7 @@ import Post.PyTree as P
 import Generator.PyTree as G
 import KCore.test as test
 
-def initDensity(x,y,z): return 1. 
+def initDensity(x,y,z): return 1.
 def initMomentum(x,y,z): return 0.1+3*x + 5*y +2*z
 def initEnergy(x,y,z): return 1e5+1.5*x*x + y*y + 3.*z*z
 #-----

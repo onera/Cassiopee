@@ -4,7 +4,7 @@ import Converter.PyTree as C
 import Generator.PyTree as G
 
 ni = 10; nj = 10
-a = G.cart((0,0,0), (1,1,1), (ni,nj,1)); 
+a = G.cart((0,0,0), (1,1,1), (ni,nj,1));
 C._initVars(a,'weight',1.)
 C.setValue(a,'weight',(7,1,1), 7.)
 C.setValue(a,'weight',(9,5,1), 9.)

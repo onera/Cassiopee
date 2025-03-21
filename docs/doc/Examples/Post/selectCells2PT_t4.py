@@ -11,7 +11,7 @@ def F(x, y, z):
     if (x+2*y+z > 20.): return True
     else: return False
 
-# Test tag aux noeuds - sans champ en centre 
+# Test tag aux noeuds - sans champ en centre
 a = G.cartNGon( (0,0,0), (1,1,1), (21,11,11) )
 
 a = Internal.createElsaHybrid(a,method=1,methodPE=1)
@@ -22,7 +22,7 @@ b = P.selectCells2(a, 'tag')
 test.testT(a,1)
 
 
-# Test tag aux noeuds - avec champ en centre 
+# Test tag aux noeuds - avec champ en centre
 a = G.cartNGon( (0,0,0), (1,1,1), (21,11,11) )
 
 a = Internal.createElsaHybrid(a,method=1,methodPE=1)
@@ -34,7 +34,7 @@ b = P.selectCells2(a, 'tag')
 test.testT(a,2)
 
 
-# Test tag aux centres - sans champ en centre 
+# Test tag aux centres - sans champ en centre
 a = G.cartNGon( (0,0,0), (1,1,1), (21,11,11) )
 
 a = Internal.createElsaHybrid(a,method=1,methodPE=1)
@@ -45,7 +45,7 @@ b = P.selectCells2(a, 'centers:tag')
 test.testT(a,3)
 
 
-# Test tag aux centres - avec champ en centre 
+# Test tag aux centres - avec champ en centre
 a = G.cartNGon( (0,0,0), (1,1,1), (21,11,11) )
 
 a = Internal.createElsaHybrid(a,method=1,methodPE=1)
@@ -56,4 +56,3 @@ C._initVars(a,'{var2}=1.')
 a = C.initVars(a, 'centers:tag', F, ['centers:CoordinateX','centers:CoordinateY','centers:CoordinateZ'])
 b = P.selectCells2(a, 'centers:tag')
 test.testT(a,4)
-

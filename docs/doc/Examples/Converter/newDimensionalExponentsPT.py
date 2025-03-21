@@ -9,4 +9,4 @@ n = Internal.newDimensionalExponents(massExponent=0., lengthExponent=1., timeExp
 # Attach it to a parent node
 d = Internal.newGridCoordinates()
 Internal.newDataClass('Dimensional', parent=d)
-Internal.newDimensionalExponents(massExponent=0., lengthExponent=1., timeExponent=0., temperatureExponent=0., angleExponent=0., parent=d) 
+Internal.newDimensionalExponents(massExponent=0., lengthExponent=1., timeExponent=0., temperatureExponent=0., angleExponent=0., parent=d)

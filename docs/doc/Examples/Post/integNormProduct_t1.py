@@ -54,4 +54,3 @@ res = P.integNormProduct([m], [c], [])
 out = C.array('res', 1, 1, 1)
 out[1][0][0] = res
 test.testA([out], 4)
-

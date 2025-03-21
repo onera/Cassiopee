@@ -1,7 +1,7 @@
 # - getVal (pyTree) -
 import Converter.Internal as Internal
 
-# getVal returns always numpys 
+# getVal returns always numpys
 z = Internal.newZone('Zone', zsize=[[10, 2, 0]], ztype='Structured')
 print(Internal.getVal(z))
 # >> [[10  2  0]]

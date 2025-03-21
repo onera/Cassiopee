@@ -3,7 +3,7 @@ import Converter as C
 import Generator as G
 import KCore.test as test
 
-# 2D : QUAD -> TRI 
+# 2D : QUAD -> TRI
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
 b = C.convertArray2Tetra(a)
 test.testA([b], 1)

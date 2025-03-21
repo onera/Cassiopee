@@ -10,7 +10,7 @@ C._initVars(b, 'centers:G', 2.)
 
 print(C.getVarNames([a, b]))
 #>> [['x', 'y', 'z', 'F'], ['x', 'y', 'z', 'G']]
- 
+
 print(C.isNamePresent(a, 'F'))
 #>> 1
 print(C.isNamePresent([a, b], 'F'))

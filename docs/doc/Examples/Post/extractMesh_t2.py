@@ -13,7 +13,7 @@ def F(x,y,z):
     elif deg == 3 : return x*x*y + 2.*y*y*y + 3*z
     elif deg == 4 : return x*x*x*x + 2.*y*y*y*y +z*z
     else : return 2*x*x*x*x*x + 2.*y*y*z + z*z
-        
+
 # Maillage en noeuds
 ni = 101; nj = 101; nk = 11
 m = G.cart((-5,-5,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))

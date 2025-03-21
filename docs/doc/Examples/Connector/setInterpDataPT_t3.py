@@ -1,4 +1,4 @@
-# - setInterpData (pyTree) - 
+# - setInterpData (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Connector.PyTree as X

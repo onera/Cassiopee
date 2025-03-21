@@ -1,4 +1,4 @@
-# - getAngleRegularityMap (pyTree) - 
+# - getAngleRegularityMap (pyTree) -
 import Generator.PyTree as G
 import Transform.PyTree as T
 import KCore.test as test

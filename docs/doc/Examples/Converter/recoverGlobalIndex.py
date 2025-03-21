@@ -15,4 +15,3 @@ C._recoverGlobalIndex(a, b[1])
 a = C.rmVars(a, 'globalIndex')
 
 C.convertArrays2File(a, 'out.plt')
-

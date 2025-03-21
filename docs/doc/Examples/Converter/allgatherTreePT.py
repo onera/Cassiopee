@@ -20,4 +20,3 @@ t = Cmpi.readZones(t, 'test.cgns', rank=Cmpi.rank)
 t = Cmpi.convert2PartialTree(t)
 t = Cmpi.allgatherTree(t) # full tree on every processors
 if Cmpi.rank == 0: Internal.printTree(t)
-
