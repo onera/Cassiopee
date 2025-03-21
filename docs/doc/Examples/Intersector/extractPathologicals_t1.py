@@ -18,4 +18,3 @@ m = XOR.booleanMinus(M1, M2, tol, preserve_right=1, solid_right=1, agg_mode=1)
 m=XOR.extractPathologicalCells(m, 2) # ask for 2 level of neighgbors
 
 test.testA(m,1)
-

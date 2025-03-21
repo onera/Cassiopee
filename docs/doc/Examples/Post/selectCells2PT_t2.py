@@ -5,12 +5,12 @@ import Generator.PyTree as G
 import Post.PyTree as P
 import KCore.test as test
 
-def F(x, y, z): return x+2*y+z 
+def F(x, y, z): return x+2*y+z
 
 def F2(x):
     if (x > 15.): return True
     else: return False
-    
+
 # test sur une zone + tag aux centres
 a = G.cart((0,0,0),(1,1,1),(11,11,11))
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'imin')

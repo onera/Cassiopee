@@ -21,4 +21,3 @@ p2 = D.polyline([(2.1,-0.1,0), (4,-2,0), (3,-3,0)])
 s2 = D.spline(p2, N=10)
 out = D.connect1D([s1,s2], sharpness=0, lengthFactor=0.5)
 test.testA([out], 3)
-

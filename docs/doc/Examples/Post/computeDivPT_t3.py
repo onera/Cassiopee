@@ -29,4 +29,3 @@ b = C.addBC2Zone(b, 'match2', 'BCMatch', 'imin', a, 'imax',
 t = C.newPyTree(['Base',2]); t[2][1][2] += [a,b]
 t = P.computeDiv(t, 'fld')
 test.testT(t,1)
-

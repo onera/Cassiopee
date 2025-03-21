@@ -17,7 +17,7 @@ ret = faces[faces<0.].shape[0]
 a = G.cart((100000,0,0), (1,1.e-8,1), (N,N,N))
 b = T.subzone(a, (1,1,1), (N,N//2,1))
 hook = C.createHook(a, function='faceCenters')
-faces = C.identifyElements(hook,b,tol=eps) 
+faces = C.identifyElements(hook,b,tol=eps)
 ret = faces[faces<0.].shape[0]
 #if ret != 0.: print 'identifyElements/faces (structured) FAILED: FPU is not correct [STRUCT/FACES]. Check compilation options.'
 

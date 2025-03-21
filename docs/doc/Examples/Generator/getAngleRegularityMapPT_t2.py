@@ -1,4 +1,4 @@
-# - getAngleRegularityMap (pyTree) - 
+# - getAngleRegularityMap (pyTree) -
 import Generator.PyTree as G
 import Connector.PyTree as X
 import Geom.PyTree as D

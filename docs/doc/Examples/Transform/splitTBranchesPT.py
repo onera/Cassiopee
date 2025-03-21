@@ -11,4 +11,3 @@ c = [c1,c2,c3]; c = C.convertArray2Hexa(c)
 c = T.join(c)
 res = T.splitTBranches(c)
 C.convertPyTree2File(res, "out.cgns")
-

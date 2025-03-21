@@ -31,7 +31,7 @@ test.testA([a], 3)
 # Structure (i-array)
 a = D.line((0,0,0),(10,1,0))
 a = G.addNormalLayers(a, d, niter=4)
-test.testA([a], 4)                                       
+test.testA([a], 4)
 #
 # list of arrays
 #

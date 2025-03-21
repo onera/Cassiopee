@@ -8,5 +8,5 @@ test.testT(n, 1)
 
 # Attach it to a parent node
 d = Internal.newZoneBC()
-Internal.newBC('BC', [1,45,1,21,1,1], 'BCWall', parent=d) 
+Internal.newBC('BC', [1,45,1,21,1,1], 'BCWall', parent=d)
 test.testT(d, 2)

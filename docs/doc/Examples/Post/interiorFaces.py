@@ -10,7 +10,7 @@ b = P.interiorFaces(a)
 C.convertArrays2File([a,b], 'out1.plt')
 
 # Get interior faces in strict sense:
-# faces having only interior nodes 
+# faces having only interior nodes
 a = G.cartTetra((0,0,0), (1,1.,1), (20,3,1))
 b = P.interiorFaces(a,1)
 C.convertArrays2File([a,b], 'out2.plt')

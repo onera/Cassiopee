@@ -8,5 +8,3 @@ a = G.cart((0,0,0),(1,1,1),(ni,nj,nk))
 a = C.convertArray2NGon(a); a = G.close(a)
 res = T.dual(a)
 C.convertArrays2File([res],'out.tp')
-
-

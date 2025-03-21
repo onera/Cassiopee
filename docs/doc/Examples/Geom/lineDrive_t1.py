@@ -18,7 +18,7 @@ c = D.lineDrive(a, b)
 test.testA([c], 2)
 
 # 2D structure
-a = G.cylinder((0,0,0), 1, 2, 360, 0, 1, (50,21,1)) 
+a = G.cylinder((0,0,0), 1, 2, 360, 0, 1, (50,21,1))
 a = C.addVars(a, 'var')
 b = D.line((0,0,0), (0,0.,1.))
 c = D.lineDrive(a, b)

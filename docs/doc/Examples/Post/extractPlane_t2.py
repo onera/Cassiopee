@@ -18,4 +18,3 @@ m = T.rotate(m , (0,0,0), (1,0,0), 35.)
 m = C.convertArray2Tetra(m)
 a = P.extractPlane([m], (0.5, 1., 0., 1))
 test.testA([a], 1)
-

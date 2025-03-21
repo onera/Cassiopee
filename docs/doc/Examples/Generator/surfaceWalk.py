@@ -1,4 +1,4 @@
-# - surfaceWalk (array) 
+# - surfaceWalk (array)
 import Converter as C
 import Geom as D
 import Transform as T

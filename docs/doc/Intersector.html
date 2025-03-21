@@ -375,7 +375,6 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">booleanUnion</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -522,7 +521,6 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">booleanMinus</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -661,10 +659,9 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <span class="c1">#s = XOR.reorientExternalFaces(s)</span>
 
 <span class="c1"># Boolean operation</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -695,13 +692,10 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <span class="c1">#s = XOR.reorientExternalFaces(s)</span>
 
 <span class="c1"># Boolean operation</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
- 
+<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
+
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">]);</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;diffs.cgns&#39;</span><span class="p">)</span>
-
-
-
 </pre></div>
 </div>
 </dd></dl>
@@ -768,7 +762,6 @@ When output_type is 2, the fields defined at center are transferred in the outpu
 <span class="n">XOR</span><span class="o">.</span><span class="n">_XcellN</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">priorities</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -825,7 +818,6 @@ When output_type is 2, the fields defined at center are transferred in the outpu
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s1">&#39;xout.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -862,27 +854,26 @@ When output_type is 2, the fields defined at center are transferred in the outpu
 
 <span class="c1">## dynamic adaptation</span>
 <span class="n">hmsh</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">createHMesh</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor_type</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor_type</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 <span class="n">XOR</span><span class="o">.</span><span class="n">deleteHMesh</span><span class="p">(</span><span class="n">hmsh</span><span class="p">);</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="s1">&#39;out3.cgns&#39;</span><span class="p">)</span>
 
 <span class="n">hmsh</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">createHMesh</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor_type</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">smoothing_type</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor_type</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">smoothing_type</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="n">cm</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="s1">&#39;out4.cgns&#39;</span><span class="p">)</span>
 
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor_type</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># applied to existing hmesh with the geometrical sensor</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor_type</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># applied to existing hmesh with the geometrical sensor</span>
 
 <span class="n">cm</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
 
 <span class="n">XOR</span><span class="o">.</span><span class="n">deleteHMesh</span><span class="p">(</span><span class="n">hmsh</span><span class="p">);</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="s1">&#39;out5.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <p><em>Tips and Notes:</em></p>
@@ -954,7 +945,6 @@ When output_type is 2, the fields defined at center are transferred in the outpu
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">triangulateExteriorFaces</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1048,7 +1038,6 @@ When output_type is 2, the fields defined at center are transferred in the outpu
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">convexifyFaces</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1071,7 +1060,6 @@ When output_type is 2, the fields defined at center are transferred in the outpu
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">convexifyFaces</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1097,7 +1085,7 @@ Periodicity can be defined either by rotation or translation.</p>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - concatenate (PyTree) -</span>
 
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span>   <span class="k">as</span> <span class="nn">C</span> 
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span>   <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span>   <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.PyTree</span>   <span class="k">as</span> <span class="nn">X</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span>   <span class="k">as</span> <span class="nn">T</span>
@@ -1130,8 +1118,6 @@ Periodicity can be defined either by rotation or translation.</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatchPeriodic</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">translation</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">9.</span><span class="p">])</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1171,10 +1157,9 @@ Periodicity can be defined either by rotation or translation.</p>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">booleanMinus</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">M2</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">solid_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1">#full agg to convexify afterward</span>
 <span class="c1">#C.convertArrays2File([m], &#39;i.plt&#39;)</span>
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">prepareCellsSplit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_set</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">split_policy</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">PH_conc_threshold</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span> <span class="o">=</span> <span class="mf">1.e-2</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">prepareCellsSplit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_set</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">split_policy</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">PH_conc_threshold</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span><span class="o">=</span><span class="mf">1.e-2</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1194,10 +1179,9 @@ Periodicity can be defined either by rotation or translation.</p>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">booleanMinus</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">M2</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">solid_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1">#full agg to convexify afterward</span>
 <span class="c1">#C.convertArrays2File([m], &#39;i.plt&#39;)</span>
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">prepareCellsSplit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_set</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">split_policy</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">PH_conc_threshold</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span> <span class="o">=</span> <span class="mf">1.e-2</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">prepareCellsSplit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_set</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">split_policy</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">PH_conc_threshold</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span><span class="o">=</span><span class="mf">1.e-2</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1240,11 +1224,10 @@ Periodicity can be defined either by rotation or translation.</p>
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">booleanMinus</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">M2</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">solid_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">simplifyCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">prepareCellsSplit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_set</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">split_policy</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">PH_conc_threshold</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span> <span class="o">=</span> <span class="mf">1.e-8</span><span class="p">)</span>
-<span class="n">m</span><span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">splitNonStarCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_conc_threshold</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span> <span class="o">=</span> <span class="mf">1.e-8</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">prepareCellsSplit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_set</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">split_policy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PH_conc_threshold</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span><span class="o">=</span><span class="mf">1.e-8</span><span class="p">)</span>
+<span class="n">m</span><span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">splitNonStarCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_conc_threshold</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span><span class="o">=</span><span class="mf">1.e-8</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1265,11 +1248,10 @@ Periodicity can be defined either by rotation or translation.</p>
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">booleanMinus</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">M2</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">solid_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">simplifyCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">prepareCellsSplit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_set</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">split_policy</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">PH_conc_threshold</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span> <span class="o">=</span> <span class="mf">1.e-8</span><span class="p">)</span>
-<span class="n">m</span><span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">splitNonStarCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_conc_threshold</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span> <span class="o">=</span> <span class="mf">1.e-8</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">prepareCellsSplit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_set</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">split_policy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PH_conc_threshold</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span><span class="o">=</span><span class="mf">1.e-8</span><span class="p">)</span>
+<span class="n">m</span><span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">splitNonStarCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">PH_conc_threshold</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">PH_cvx_threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">PG_cvx_threshold</span><span class="o">=</span><span class="mf">1.e-8</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1311,7 +1293,6 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">simplifyCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1334,7 +1315,6 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">simplifyCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1387,11 +1367,10 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="c1">#s = XOR.reorientExternalFaces(s)</span>
 
 <span class="c1"># Boolean operation</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;diffsurf.plt&#39;</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateSmallCells</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">vratio</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;agg.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1422,15 +1401,12 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="c1">#s = XOR.reorientExternalFaces(s)</span>
 
 <span class="c1"># Boolean operation</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateSmallCells</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">vratio</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">]);</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;diffs.cgns&#39;</span><span class="p">)</span>
-
-
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1467,7 +1443,6 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateNonStarCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1490,7 +1465,6 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateNonStarCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1526,7 +1500,7 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">t2</span><span class="p">);</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
 <span class="c1"># test 1 : volume/volume</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="c1"># create a list of polygon list (t1), one list per zone</span>
 
@@ -1539,7 +1513,7 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">t2</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">exteriorFaces</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">convertNGON2DToNGON3D</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
@@ -1563,13 +1537,13 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">t2</span><span class="p">);</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
 <span class="c1"># test 1 : volume/volume</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="c1"># create a list of polygon list (t1), one list per zone</span>
 <span class="n">nb_zones</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
 <span class="n">t1zones_pgids</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_zones</span><span class="p">):</span>
-  <span class="n">t1zones_pgids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">t1zones_pgids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t1zones_pgids</span><span class="p">)</span>
 
@@ -1580,11 +1554,11 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">t2</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">exteriorFaces</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">convertNGON2DToNGON3D</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="n">t1zones_pgids</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_zones</span><span class="p">):</span>
-  <span class="n">t1zones_pgids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">t1zones_pgids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t1zones_pgids</span><span class="p">)</span>
 
@@ -1615,7 +1589,7 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Intersector/closeCells.py">closeCells (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - triangulateExteriorFaces (array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - closeCells (array) -</span>
 <span class="kn">import</span> <span class="nn">Intersector</span> <span class="k">as</span> <span class="nn">XOR</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 
@@ -1624,7 +1598,6 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1640,7 +1613,6 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <p><em>Tips and Notes:</em></p>
@@ -1682,7 +1654,6 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="c1"># optional : to close the polyhedral cells</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -1724,7 +1695,7 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <li><p><a class="reference external" href="Examples/Intersector/adaptCellsDynPT.py">createHMesh</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dynamic adaptation</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Intersector.PyTree</span> <span class="k">as</span> <span class="nn">XOR</span>
@@ -1742,7 +1713,7 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">senso</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">createSensor</span><span class="p">(</span><span class="n">hmsh</span><span class="p">)</span>
 <span class="n">XOR</span><span class="o">.</span><span class="n">assignData2Sensor</span><span class="p">(</span><span class="n">senso</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
 
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
@@ -1771,7 +1742,7 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <li><p><a class="reference external" href="Examples/Intersector/adaptCellsDynPT.py">deleteHMesh</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dynamic adaptation</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Intersector.PyTree</span> <span class="k">as</span> <span class="nn">XOR</span>
@@ -1789,7 +1760,7 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">senso</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">createSensor</span><span class="p">(</span><span class="n">hmsh</span><span class="p">)</span>
 <span class="n">XOR</span><span class="o">.</span><span class="n">assignData2Sensor</span><span class="p">(</span><span class="n">senso</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
 
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
@@ -1822,7 +1793,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <li><p><a class="reference external" href="Examples/Intersector/adaptCellsDynPT.py">conformizeHMesh</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dynamic adaptation</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Intersector.PyTree</span> <span class="k">as</span> <span class="nn">XOR</span>
@@ -1840,7 +1811,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">senso</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">createSensor</span><span class="p">(</span><span class="n">hmsh</span><span class="p">)</span>
 <span class="n">XOR</span><span class="o">.</span><span class="n">assignData2Sensor</span><span class="p">(</span><span class="n">senso</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
 
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
@@ -1874,7 +1845,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <li><p><a class="reference external" href="Examples/Intersector/adaptCellsDynPT.py">createSensor</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dynamic adaptation</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Intersector.PyTree</span> <span class="k">as</span> <span class="nn">XOR</span>
@@ -1892,7 +1863,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">senso</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">createSensor</span><span class="p">(</span><span class="n">hmsh</span><span class="p">)</span>
 <span class="n">XOR</span><span class="o">.</span><span class="n">assignData2Sensor</span><span class="p">(</span><span class="n">senso</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
 
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
@@ -1924,7 +1895,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <li><p><a class="reference external" href="Examples/Intersector/adaptCellsDynPT.py">assignData2Sensor</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dynamic adaptation</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Intersector.PyTree</span> <span class="k">as</span> <span class="nn">XOR</span>
@@ -1942,7 +1913,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">senso</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">createSensor</span><span class="p">(</span><span class="n">hmsh</span><span class="p">)</span>
 <span class="n">XOR</span><span class="o">.</span><span class="n">assignData2Sensor</span><span class="p">(</span><span class="n">senso</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
 
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
@@ -1971,7 +1942,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <li><p><a class="reference external" href="Examples/Intersector/adaptCellsDynPT.py">deleteSensor</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dynamic adaptation</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Intersector.PyTree</span> <span class="k">as</span> <span class="nn">XOR</span>
@@ -1989,7 +1960,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">senso</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">createSensor</span><span class="p">(</span><span class="n">hmsh</span><span class="p">)</span>
 <span class="n">XOR</span><span class="o">.</span><span class="n">assignData2Sensor</span><span class="p">(</span><span class="n">senso</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
 
-<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span> <span class="o">=</span> <span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">adaptCells</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">hmesh</span><span class="o">=</span><span class="n">hmsh</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="n">senso</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">conformizeHMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">hmsh</span><span class="p">)</span>
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">closeCells</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
@@ -2154,7 +2125,6 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">m</span><span class="o">=</span><span class="n">XOR</span><span class="o">.</span><span class="n">extractPathologicalCells</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># ask for 2 level of neighgbors</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -2281,7 +2251,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">t2</span><span class="p">);</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
 <span class="c1"># test 1 : volume/volume</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="c1"># create a list of polygon list (t1), one list per zone</span>
 
@@ -2294,7 +2264,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">t2</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">exteriorFaces</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">convertNGON2DToNGON3D</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
@@ -2318,13 +2288,13 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">t2</span><span class="p">);</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
 <span class="c1"># test 1 : volume/volume</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="c1"># create a list of polygon list (t1), one list per zone</span>
 <span class="n">nb_zones</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
 <span class="n">t1zones_pgids</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_zones</span><span class="p">):</span>
-  <span class="n">t1zones_pgids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">t1zones_pgids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t1zones_pgids</span><span class="p">)</span>
 
@@ -2335,11 +2305,11 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">t2</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">exteriorFaces</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">convertNGON2DToNGON3D</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="n">t1zones_pgids</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_zones</span><span class="p">):</span>
-  <span class="n">t1zones_pgids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">t1zones_pgids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t1zones_pgids</span><span class="p">)</span>
 
@@ -2387,12 +2357,11 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">t2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">3.</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">t2</span><span class="p">);</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getCollidingCells</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getCollidingCells</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getCells</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">are_face_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">m</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -2411,7 +2380,7 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">t2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">3.</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">t2</span><span class="p">);</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getCollidingCells</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getCollidingCells</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
 
 <span class="p">[</span><span class="n">ids_in1</span><span class="p">,</span><span class="n">ids_in2</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -2538,13 +2507,12 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="c1">#s = XOR.reorientExternalFaces(s)</span>
 
 <span class="c1"># Boolean operation</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
 
 <span class="n">xa</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateSmallCells</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffMesh</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">xa</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;diffM.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -2575,13 +2543,12 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="c1">#s = XOR.reorientExternalFaces(s)</span>
 
 <span class="c1"># Boolean operation</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffSurf</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">preserve_right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">agg_mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># agg_mode=2 : full mode aggregation</span>
 
 <span class="n">xa</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateSmallCells</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">diffMesh</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">xa</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;diffM.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -2610,9 +2577,6 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 
 <span class="n">err</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">checkCellsClosure</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-
-
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -2782,6 +2746,22 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
   background-color: rgb(26,85,85);
 }
 
+#myImg {
+  position: fixed;
+  top: 50px;
+  left: 50px;
+  z-index: 99;
+  padding: 15px;
+  width: 200px;
+}
+
+#myImg img {
+  height: auto;
+  width: 90%;
+  border: none;
+  border-radius: 0px;
+}
+
 #myImg:hover {
   opacity: 50%;
 }
@@ -2791,25 +2771,10 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 
 <button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
 
+<a href="../index.html" id="myImg"><img src="../Images/CassiopeeLogo.png"></a>
+
+
 <script>
-const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
-
-const link = document.createElement('a');
-link.href = "../index.html";
-
-const newImage = document.createElement('img');
-newImage.src = '../Images/CassiopeeLogo.png';
-newImage.id = 'myImg';
-newImage.style.width = '80%';
-newImage.style.height = 'auto';
-newImage.style.border = 'none';
-newImage.style.borderRadius = '0px';
-newImage.style.marginLeft = '18px';
-newImage.style.marginBottom = '50px';
-
-// Append the image to the div
-link.appendChild(newImage);
-targetDiv.prepend(link);
 
 // When the user scrolls down 20px from the top of the document, show the button
 window.onscroll = scrollFunction;
@@ -2837,12 +2802,10 @@ function resizeFunction() {
         document.getElementById("myBtn").style.visibility = "visible";
         document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
         document.getElementsByClassName("body")[0].style.maxWidth = "135%";
-        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
     } else {
         document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
         document.getElementsByClassName("body")[0].style.marginLeft = "130px";
         document.getElementsByClassName("body")[0].style.maxWidth = "80%";
-        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
     }
 }
 

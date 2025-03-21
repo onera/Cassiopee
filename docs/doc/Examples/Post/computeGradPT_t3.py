@@ -9,7 +9,7 @@ def F(x,y):
 def celln(y):
     if ( y > 5. ): return True
     else: return False
-    
+
 #-------------------------------
 # 2D structure + raccords match
 #-------------------------------
@@ -27,4 +27,3 @@ b = C.addBC2Zone(b, 'match2', 'BCMatch', 'imin', a, 'imax',
 t = C.newPyTree(['Base',2]); t[2][1][2] += [a,b]
 t = P.computeGrad(t, 'Density')
 test.testT(t,1)
-

@@ -37,4 +37,4 @@ sol = []
 for i in ref :
     i = T.subzone(i,(1,1,1),(i[2],i[3],1))
     sol.append(i)
-C.convertArrays2File(sol, "ref.plt", "bin_tp")    
+C.convertArrays2File(sol, "ref.plt", "bin_tp")

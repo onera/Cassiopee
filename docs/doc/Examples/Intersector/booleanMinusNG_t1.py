@@ -19,6 +19,6 @@ test.testA([x],2)
 
 #~ x = XOR.booleanMinus(M1, M2, tol, preserve_right=1, solid_right=0)
 #~ test.testA([x],3)
-#~ 
+#~
 #~ x = XOR.booleanMinus(M1, M2, tol, preserve_right=0, solid_right=0)
 #~ test.testA([x],4)

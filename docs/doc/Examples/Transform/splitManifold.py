@@ -30,5 +30,3 @@ C.convertArrays2File([c], 'B.plt')
 x = T.splitManifold(c)
 
 C.convertArrays2File(x, 'outB.plt')
-
-

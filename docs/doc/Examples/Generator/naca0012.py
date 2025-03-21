@@ -53,5 +53,3 @@ msh = G.close(msh, 1.e-6)
 
 msh = T.addkplane(msh)
 C.convertArrays2File([msh], "new.plt", "bin_tp")
-
-

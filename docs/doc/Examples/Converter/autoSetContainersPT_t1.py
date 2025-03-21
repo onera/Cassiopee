@@ -12,4 +12,3 @@ Internal.__FlowSolutionCenters__ = 'FlowSolution#Centers'
 t = C.newPyTree(['Base',a])
 Internal.autoSetContainers(t)
 test.testO([Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__])
-

@@ -32,7 +32,7 @@ if r is not None: test.testA(r,2)
 # Basic test cas 3
 #=============================================================================
 m3 = G.cart((10,0,0), (10.*sqrt(2)/(ni-1),10.*sqrt(2)/(nj-1),1), (ni,nj,1))
-m3 = T.rotate(m3, (10,0,0), (0,0,1), 45.) 
+m3 = T.rotate(m3, (10,0,0), (0,0,1), 45.)
 m3 = C.addVars(m3, 'ro')
 
 c3 = C.array('cellN', ni-1, nj-1, 1)

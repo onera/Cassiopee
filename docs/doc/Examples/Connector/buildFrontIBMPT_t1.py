@@ -6,7 +6,7 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import KCore.test as test
 
-# --- Front Type = 1 
+# --- Front Type = 1
 N = 50; h = 1./(N-1)
 c = G.cylinder((0.,0.,0.), 0.2, 1., 360., 0., 10., (2*N,1,1)); c[0] = 'cyl'
 DIBM._setIBCType(c, 'Musker')

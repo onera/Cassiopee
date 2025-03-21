@@ -11,7 +11,7 @@ def F(x): return M.cos(x)
 n = (0.,0.2,0.)
 pt = (0.55,0.5,0.)
 #pt = (0.1,5,0) # ne marche pas
-pt = (5,5,0) # ne marche pas 
+pt = (5,5,0) # ne marche pas
 vect = ['rou','rov','row']
 # Maillage en noeuds
 # 3D
@@ -36,7 +36,7 @@ test.testA([p], 1)
 
 # 3D non struct
 m2 = C.convertArray2Tetra(m)
-p = P.streamRibbon(m2, pt, n, vect) 
+p = P.streamRibbon(m2, pt, n, vect)
 test.testA([p], 2)
 
 # Mixte

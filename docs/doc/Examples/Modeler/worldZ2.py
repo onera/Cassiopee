@@ -108,7 +108,7 @@ allObjects += staticZMap+staticNeutral
 #pos = [(zmap[2]/2,zmap[3]/2,0), (zmap[2]/2+1,zmap[2]/2,0), 1., 1., 0]
 pos = [(0,25,0), (1,25,0),1,0.3,0]
 pos = World.placeViewer(zmap, pos)
-CPlot.display(allObjects, displayInfo=0, bgColor=1, shadow=0, posCam=pos[0], 
+CPlot.display(allObjects, displayInfo=0, bgColor=1, shadow=0, posCam=pos[0],
               posEye=pos[1], meshStyle=3) #, stereo=2, stereoDist=0.3)
 
 CPlot.setState(activateShortCuts=0)
@@ -118,11 +118,11 @@ t = 0
 while 1 != 2:
     World.getKeys(kstate)
     if kstate['forward'] == 1: # forward
-        pos = World.moveForward(zmap, pos, 0.3)    
+        pos = World.moveForward(zmap, pos, 0.3)
     if kstate['backward'] == 1: #backward
-        pos = World.moveBackward(zmap, pos, 0.3) 
+        pos = World.moveBackward(zmap, pos, 0.3)
     if kstate['left'] == 1: # left
-        pos = World.turnLeft(zmap, pos, 5.)   
+        pos = World.turnLeft(zmap, pos, 5.)
     if kstate['right'] == 1: # right
         pos = World.turnRight(zmap, pos, 5.)
     if kstate['jump'] == 1: # jump

@@ -101,7 +101,3 @@ res = P.integMomentNorm([a2],[densa],[], (0.,1.,0.5))
 ## if math.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMoment, ni=1"
 print(res, res2)
-
-
-
-

@@ -11,7 +11,7 @@ m = C.fillEmptyBCWith(m, 'nref','BCFarfield')
 
 # Create receptor mesh
 a = D.sphere((0,0,0),0.1)
-# Structure 
+# Structure
 hookN = C.createGlobalHook([m],'nodes')
 hookC = None
 a2 = C.identifySolutions(a,m,hookN,hookC,tol=1000.)

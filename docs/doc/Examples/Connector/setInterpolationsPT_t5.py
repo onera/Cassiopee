@@ -16,7 +16,7 @@ b = C.addBC2Zone(b,'overlap','BCOverlap','kmax')
 # 1 seule base, pas d'extrapolation
 t = C.newPyTree(['Base']); t[2][1][2].append(a); t[2][1][2].append(b)
 t = X.applyBCOverlaps(t, depth=2)
-t = X.setInterpolations(t, loc='cell',storage='direct', sameBase = 1)
+t = X.setInterpolations(t, loc='cell',storage='direct', sameBase=1)
 test.testT(t,1)
 
 # 1 seule base, extrapolations

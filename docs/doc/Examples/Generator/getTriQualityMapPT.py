@@ -9,4 +9,3 @@ a = G.close(a)
 t = C.newPyTree(['Base',2,a])
 t = G.getTriQualityMap(t)
 C.convertPyTree2File(t, 'out.cgns')
-

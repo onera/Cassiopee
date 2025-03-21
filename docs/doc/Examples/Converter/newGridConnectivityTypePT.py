@@ -7,4 +7,4 @@ n = Internal.newGridConnectivityType(ctype='Abutting1to1'); Internal.printTree(n
 
 # Attach it to a parent node
 d = Internal.newGridConnectivity(name='Match', donorName='blk1', ctype=None)
-Internal.newGridConnectivityType(ctype='Abutting1to1', parent=d) 
+Internal.newGridConnectivityType(ctype='Abutting1to1', parent=d)

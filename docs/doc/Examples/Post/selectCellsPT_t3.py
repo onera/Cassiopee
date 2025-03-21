@@ -7,7 +7,7 @@ def F(x, y, z):
     if (x + 2*y + z > 20.): return True
     else: return False
 
-# Struct 
+# Struct
 a = G.cart((0,0,0), (1,1,1), (11,11,11) )
 C._initVars(a,'{Density}={CoordinateX}')
 C._initVars(a,'{centers:var1}={centers:CoordinateX}+2.*{centers:CoordinateY}+{centers:CoordinateZ}')
@@ -32,4 +32,3 @@ C._initVars(a,'{centers:var1}={centers:CoordinateX}+2.*{centers:CoordinateY}+{ce
 C._initVars(a,'{centers:var2}={centers:CoordinateX}')
 a = P.selectCells(a, '{centers:var1}>15.')
 test.testT(a,3)
-

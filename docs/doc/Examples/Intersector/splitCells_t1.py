@@ -18,4 +18,3 @@ m = XOR.prepareCellsSplit(m, PH_set=0, split_policy=0, PH_conc_threshold=1./3., 
 m = XOR.splitNonStarCells(m, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=1.e-8)
 
 test.testA([m],1)
-

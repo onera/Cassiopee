@@ -16,20 +16,20 @@ m = XOR.booleanMinus(M1, M2, tol, preserve_right=1, solid_right=1, agg_mode=2) #
 
 PG_threshold = 1.e-2
 
-m = XOR.prepareCellsSplit(m, PH_set = 0, split_policy = 0, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = PG_threshold)
+m = XOR.prepareCellsSplit(m, PH_set=0, split_policy=0, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=PG_threshold)
 test.testA([m],1)
 
-m = XOR.prepareCellsSplit(m, PH_set = 0, split_policy = 1, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = PG_threshold)
+m = XOR.prepareCellsSplit(m, PH_set=0, split_policy=1, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=PG_threshold)
 test.testA([m],2)
 
-m = XOR.prepareCellsSplit(m, PH_set = 0, split_policy = 2, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = PG_threshold)
+m = XOR.prepareCellsSplit(m, PH_set=0, split_policy=2, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=PG_threshold)
 test.testA([m],3)
 
-m = XOR.prepareCellsSplit(m, PH_set = 1, split_policy = 0, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = PG_threshold)
+m = XOR.prepareCellsSplit(m, PH_set=1, split_policy=0, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=PG_threshold)
 test.testA([m],4)
 
-m = XOR.prepareCellsSplit(m, PH_set = 1, split_policy = 1, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = PG_threshold)
+m = XOR.prepareCellsSplit(m, PH_set=1, split_policy=1, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=PG_threshold)
 test.testA([m],5)
 
-m = XOR.prepareCellsSplit(m, PH_set = 1, split_policy = 2, PH_conc_threshold = 1./3., PH_cvx_threshold = 0.05, PG_cvx_threshold = PG_threshold)
+m = XOR.prepareCellsSplit(m, PH_set=1, split_policy=2, PH_conc_threshold=1./3., PH_cvx_threshold=0.05, PG_cvx_threshold=PG_threshold)
 test.testA([m],6)

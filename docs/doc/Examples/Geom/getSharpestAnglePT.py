@@ -5,7 +5,7 @@ import Transform.PyTree as T
 import Geom.PyTree as D
 
 N = 10
-d1 = G.cart((0.,0.,0.), (0.05,1,1),(N,1,4)) 
+d1 = G.cart((0.,0.,0.), (0.05,1,1),(N,1,4))
 d2 = G.cart((0.,0.,0.), (1.,0.001,1),(1,10*N,4))
 d2 = T.rotate(d2,(0.,0.,0.),(0.,0.,1.),30.)
 s = T.join(d1,d2)

@@ -86,7 +86,7 @@ C._initVars(d,'{F}={CoordinateX}')
 C._initVars(d,'{centers:G}={centers:CoordinateY}')
 facesL=[]
 for k in range(ni1):
-    for j in range(ni1): 
+    for j in range(ni1):
         facesL.append(j*N+k*N*ni1)
 d2 = T.subzone(d, facesL, type='faces')
 test.testT(d2,9)

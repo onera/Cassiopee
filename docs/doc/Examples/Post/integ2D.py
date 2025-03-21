@@ -53,5 +53,5 @@ resn1 = P.integNorm([m1], [c1], [])
 print('integ norm:', resn1)
 
 #res3 = P.integNormProduct([m1],[c1],[])
-#print(res3)              
+#print(res3)
 #print(res1, res2, res3)

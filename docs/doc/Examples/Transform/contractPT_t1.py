@@ -4,21 +4,21 @@ import Generator.PyTree as G
 import Converter.PyTree as C
 import KCore.test as test
 
-# Structure 3D 
+# Structure 3D
 a = G.cart((0,0,0), (1,1,1), (10,10,3))
 C._addVars(a, 'Density'); C._initVars(a, 'centers:cellN', 1)
 a = C.addBC2Zone(a, 'wall','BCWall','imin')
 a = C.addBC2Zone(a, 'overlap','BCOverlap','jmin')
-a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin', [1,2,3]) 
+a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin', [1,2,3])
 a = T.contract(a, (0.,0.,0.), (1,0,0), (0,1,0), 0.1)
 test.testT(a,1)
 
-# Structure 2D 
+# Structure 2D
 a = G.cart((0,0,0), (1,1,1), (10,10,1))
 C._addVars(a, 'Density'); C._initVars(a, 'centers:cellN', 1)
 a = C.addBC2Zone(a, 'wall','BCWall','imin')
 a = C.addBC2Zone(a, 'overlap','BCOverlap','jmin')
-a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin', [1,2]) 
+a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin', [1,2])
 a = T.contract(a, (0.,0.,0.), (1,0,0), (0,1,0), 0.1)
 test.testT(a,2)
 

@@ -1,4 +1,4 @@
-# - setPrescribedMotion3 (pyTree) - 
+# - setPrescribedMotion3 (pyTree) -
 # Motion defined by a constant rotation and translation speed
 import RigidMotion.PyTree as R
 import Converter.PyTree as C

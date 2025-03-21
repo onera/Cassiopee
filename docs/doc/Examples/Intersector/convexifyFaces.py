@@ -16,4 +16,3 @@ m = XOR.booleanMinus(M1, M2, tol, preserve_right=1, solid_right=1, agg_mode=2) #
 m = XOR.convexifyFaces(m)
 
 C.convertArrays2File([m], 'out.plt')
-

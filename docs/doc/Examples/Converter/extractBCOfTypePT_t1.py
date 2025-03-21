@@ -65,7 +65,7 @@ ext = C.extractBCOfType(a, 'BCWall')
 test.testT(ext, 6)
 
 # BC sur un BE + connectivite QUAD de boundary
-a = G.cartHexa((0,0,0), (1,1,1), (10,10,10)) 
+a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
 b = G.cartHexa((0,0,0), (1,1,1), (10,10,1))
 C._addBC2Zone(a, 'wall', 'BCWall', subzone=b)
 bc = Internal.getNodeFromType(a,'BC_t')

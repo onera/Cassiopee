@@ -19,7 +19,7 @@ t = C.initVars(t, '{centers:M}={centers:CoordinateX}')
 t = X.connectMatch(t, dim=3)
 t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
 
-dico = C.extractAllBCMatch(t,['centers:G','centers:H','centers:M']) 
+dico = C.extractAllBCMatch(t,['centers:G','centers:H','centers:M'])
 
 for z in Internal.getZones(t):
     indR, fld = C.computeBCMatchField(z,dico)

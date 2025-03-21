@@ -9,12 +9,12 @@ import time
 import KCore.test as test
 
 a = D.triangle((0,0,0), (0,1,0), (1, 0, 0))
-d = G.cart((1,0.,0.), (1,1,1),(2,1,1)) 
+d = G.cart((1,0.,0.), (1,1,1),(2,1,1))
 a = G.addNormalLayers(a, d)
 a = C.convertArray2NGon(a)
 a = G.close(a)
 
-b = G.cart((0.2,0.2,-0.5), (0.01,0.01,0.01),(5,5,5)) 
+b = G.cart((0.2,0.2,-0.5), (0.01,0.01,0.01),(5,5,5))
 b = C.convertArray2NGon(b)
 b = G.close(b)
 
@@ -44,4 +44,3 @@ I._rmNodesByName(m2, 'rid')
 
 #C.convertPyTree2File(m2, 'PT_t4_2.cgns')
 test.testT(m2,2)
-
