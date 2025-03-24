@@ -693,3 +693,23 @@ PyObject *Mesh_export_karray(Mesh *M, E_Int conformize)
 
     return export_BE_mesh(M);
 }
+
+void write_points(const char *fname, const std::vector<point> &P)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%zu\n", P.size());
+    for (auto p : P) fprintf(fh, "%f %f %f\n", p.x, p.y, p.z);
+    fclose(fh);
+}
+
+void write_point(const char *fname, E_Float x, E_Float y, E_Float z)
+{
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "1\n");
+    fprintf(fh, "%f %f %f\n", x, y, z);
+    fclose(fh);
+}

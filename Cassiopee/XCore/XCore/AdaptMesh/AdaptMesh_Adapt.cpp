@@ -55,7 +55,7 @@ void print_postrefinement_data(Mesh *M)
         printf("    Total faces after refinement: " SF_D_ "\n", gnf);
     }
 
-    if (M->npc == 1) return;
+    //if (M->npc == 1) return;
 
     E_Float balanced = gnc / (E_Float) M->npc;
     E_Float my_imbalance = fabs((M->nc - balanced) / (E_Float)balanced * 100.0);
@@ -82,6 +82,8 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("Setting mesh orientation...");
     Mesh_set_orientation(M);
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     if (M->pid == 0) puts("Adapting...");
 
