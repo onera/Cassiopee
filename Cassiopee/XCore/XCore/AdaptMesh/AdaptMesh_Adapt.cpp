@@ -61,7 +61,7 @@ void print_postrefinement_data(Mesh *M)
     E_Float my_imbalance = fabs((M->nc - balanced) / (E_Float)balanced * 100.0);
     E_Float max_imbalance;
     MPI_Allreduce(&my_imbalance, &max_imbalance, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-    if (M->pid == 0) printf("    Max cell imbalance: %.2f%%\n", max_imbalance);
+    //if (M->pid == 0) printf("    Max cell imbalance: %.2f%%\n", max_imbalance);
 }
 
 PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)

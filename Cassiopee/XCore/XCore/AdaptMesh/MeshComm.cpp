@@ -145,30 +145,6 @@ E_Int *map_cell_graph(Mesh *M, E_Int *cwgts)
     return cmap;
 }
 
-struct xyz {
-    E_Float x, y, z;
-
-    bool operator==(const xyz &p) const
-    {
-        return (x == p.x && y == p.y && z == p.z);
-    }
-
-    /*
-    bool operator<(const xyz &p) const {
-        return (x < p.x) ||
-            (x == p.x && y < p.y) ||
-            (x == p.x && y == p.y && z < p.z);
-    }
-    */
-};
-
-struct xyzHash {
-    std::size_t operator()(const xyz& p) const {
-        std::hash<double> hashFn;
-        return hashFn(p.x) ^ (hashFn(p.y) << 1) ^ (hashFn(p.z) << 2);
-    }
-};
-
 // TODO(Imad): point redistribution is not robust.
 
 #define TOL 1e-10
@@ -180,35 +156,34 @@ int sign(E_Float x)
     return 0;
 }
 
-bool pt_eq(E_Float *x, E_Float *y, E_Float *z, E_Int i, E_Int j)
-{
-    if (sign(x[i] - x[j])) return false;
-    if (sign(y[i] - y[j])) return false;
-    if (sign(z[i] - z[j])) return false;
-    return true;
-}
+struct xyz {
+    E_Float x, y, z;
+
+    bool operator<(const xyz &p) const {
+        if (sign(x-p.x) < 0) return true;
+        if (sign(x-p.x) == 0 && sign(y-p.y) < 0) return true;
+        if (sign(x-p.x) == 0 && sign(y-p.y) == 0 && sign(z-p.z) < 0) return true;
+        return false;
+    }
+};
 
 static
 E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 {
+    /*
     if (M->pid == 0) puts("Verifying mesh integrity...");
-
     Mesh_set_orientation(M);
-
     if (M->mode_2D) {
         for (E_Int cid = 0; cid < M->nc; cid++) H18_reorder(cid, M);
     } else {
         for (E_Int cid = 0; cid < M->nc; cid++) H27_reorder(cid, M);
     }
-
     MPI_Barrier(MPI_COMM_WORLD);
-
     if (M->pid == 0) {
         puts("Mesh integrity OK");
         fflush(stdout);
     }
-
-    MPI_Barrier(MPI_COMM_WORLD);
+    */
 
     // Allocate contiguous count arrays
 
@@ -493,6 +468,8 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     E_Int *sfaces = IntArray(sdist[M->npc]);
     E_Int *rfaces = IntArray(rdist[M->npc]);
 
+    std::map<E_Int, E_Int> pts;
+
     for (E_Int i = 0; i < M->npc; i++) {
         E_Int *pf = &sfids[sfdist[i]];
 
@@ -500,9 +477,8 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 
         // Send the points numbered from 0 to np-1
         // TODO(Imad): maybe cache this?
-        std::map<E_Int, E_Int> pts;
-        //pts[-1] = -1;
-        //spcount[i] = 0;
+        pts.clear();
+        pts[-1] = -1;
         E_Int count = 0;
 
         for (E_Int j = 0; j < sfcount[i]; j++) {
@@ -513,11 +489,6 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 
             for (E_Int k = 0; k < 8; k++) {
                 E_Int lp = face[k];
-
-                if (lp == -1) {
-                    *ptr++ = -1;
-                    continue;
-                }
 
                 auto it = pts.find(lp);
 
@@ -538,33 +509,7 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
                   rfaces, rcount, rdist, XMPI_INT,
                   MPI_COMM_WORLD);
 
-    /*
-    printf("Local:\n");
-    for (E_Int i = 0; i < M->nf; i++) {
-        E_Int *face = Mesh_get_face(M, i);
-        E_Int *frange = Mesh_get_frange(M, i);
-        for (E_Int j = 0; j < M->fstride[i]; j++) {
-            E_Int *pn = face + 2*j;
-            for (E_Int k = 0; k < frange[j]; k++) {
-                printf("%d ", pn[k]);
-            }
-        }
-        puts("");
-    }
-
-    printf("Received:\n");
-    for (E_Int i = 0; i < nf; i++) {
-        E_Int *face = rfaces + 8*i;
-        E_Int *frange = rfrange + 4*i;
-        for (E_Int j = 0; j < rfstride[i]; j++) {
-            E_Int *pn = face + 2*j;
-            for (E_Int k = 0; k < frange[j]; k++)
-                printf("%d ", pn[k]);
-        }
-        puts("");
-    }
-    getchar();
-    */
+    if (M->pid == 0) puts("Distributing points...");
 
     MPI_Alltoall(spcount, 1, MPI_INT, rpcount, 1, MPI_INT, MPI_COMM_WORLD);
 
@@ -589,7 +534,8 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 
         E_Int *ptr = &sfaces[sdist[i]];
 
-        std::map<E_Int, E_Int> pts;
+        pts.clear();
+        pts[-1] = -1;
         E_Int count = 0;
 
         for (E_Int j = 0; j < sfcount[i]; j++) {
@@ -600,10 +546,6 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 
             for (E_Int k = 0; k < 8; k++) {
                 E_Int lp = face[k];
-
-                if (lp == -1) {
-                    continue;
-                }
 
                 auto it = pts.find(lp);
 
@@ -618,17 +560,6 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 
         assert(spcount[i] == count);
     }
-
-    /*
-    // No duplicates should be found in sx, sy and sz
-    for (E_Int i = 0; i < spdist[M->npc]; i++) {
-        for (E_Int j = i+1; j < spdist[M->npc]; j++) {
-            if (sx[i] == sx[j] && sy[i] == sy[j] && sz[i] == sz[j]) {
-                assert(0);
-            }
-        }
-    }
-    */
     
     MPI_Alltoallv(sx, spcount, spdist, MPI_DOUBLE,
                   rx, rpcount, rpdist, MPI_DOUBLE,
@@ -657,136 +588,54 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
         accum += rpcount[i];
     }
 
-    std::map<E_Int, E_Int> dups;
-    E_Int np = rpdist[M->npc]; // with dups
-    for (E_Int i = 0; i < np; i++) {
-        if (dups.find(i) != dups.end()) continue;
+    if (M->pid == 0) puts("Eliminating duplicate points...");
 
-        for (E_Int j = i+1; j < np; j++) {
-            if (pt_eq(rx, ry, rz, i, j)) {
-                dups[j] = i;
-                //printf("%d -> %d and %d are dups!\n", M->pid, i, j);
+    std::map<E_Int, E_Int> dups;
+    E_Int np = 0;
+    pts.clear();
+
+    {
+        std::map<xyz, E_Int> cloud;
+        for (E_Int i = 0; i < rpdist[M->npc]; i++) {
+            xyz crd = {rx[i], ry[i], rz[i]};
+            auto it = cloud.find(crd);
+            if (it == cloud.end()) {
+                cloud[crd] = i;
+                pts[i] = np;
+                np++;
+            } else {
+                dups[i] = it->second;
             }
         }
     }
-    //printf("%d -> Dups: %lu\n", M->pid, dups.size());
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    if (M->pid == 0) puts("Renumbering points...");
 
-    E_Float *X = FloatArray(np-dups.size());
-    E_Float *Y = FloatArray(np-dups.size());
-    E_Float *Z = FloatArray(np-dups.size());
-    
-    np = 0;
-    std::map<E_Int, E_Int> new_pids;
+    E_Float *X = FloatArray(np);
+    E_Float *Y = FloatArray(np);
+    E_Float *Z = FloatArray(np);
+
+    pts[-1] = -1;
+    dups[-1] = -1;
+
     for (E_Int i = 0; i < rdist[M->npc]; i++) {
         E_Int lp = rfaces[i];
-        if (lp == -1) continue;
 
         auto it = dups.find(lp);
 
         if (it == dups.end()) {
 
-            // Was it already encountered?
-            auto search = new_pids.find(lp);
-
-            if (search == new_pids.end()) {
-                rfaces[i] = np;
-                X[np] = rx[lp];
-                Y[np] = ry[lp];
-                Z[np] = rz[lp];
-                new_pids[lp] = np;
-                np++;
-            } else {
-                rfaces[i] = search->second;
-            }
-
+            E_Int new_pid = pts.at(lp);
+            rfaces[i] = new_pid;
+            X[new_pid] = rx[lp];
+            Y[new_pid] = ry[lp];
+            Z[new_pid] = rz[lp];
             
         } else {
-            //assert(0);
-            auto search = new_pids.find(it->second);
-            assert(search != new_pids.end());
-            rfaces[i] = search->second;
+            
+            rfaces[i] = pts.at(it->second);
         }
     }
-
-    /*
-    // Sender
-    {
-        auto it = M->g2lc.find(8);
-        if (it != M->g2lc.end()) {
-            printf("%d -> I have it\n", M->pid);
-            E_Int lc = it->second;
-            E_Int *cell = Mesh_get_cell(M, lc);
-            E_Int *crange = Mesh_get_crange(M, lc);
-            for (E_Int i = 0; i < M->cstride[lc]; i++) {
-                E_Int *pf = cell + 4*i;
-                for (E_Int j = 0; j < crange[i]; j++) {
-                    E_Int lf = pf[j];
-                    printf("%d -> ", M->l2gf[lf]);
-
-                    E_Int *face = Mesh_get_face(M, lf);
-                    E_Int *frange = Mesh_get_frange(M, lf);
-                    for (E_Int k = 0; k < M->fstride[lf]; k++) {
-                        E_Int *pn = face + 2*k;
-                        for (E_Int l = 0; l < frange[k]; l++) {
-                            printf("%d ", pn[l]);
-                        }
-                    }
-                    puts("");
-                }
-            }
-        }
-    }
-
-    // Receiver
-    {
-        auto it = g2lc.find(8);
-        if (it != g2lc.end()) {
-            printf("%d -> I received it\n", M->pid);
-            E_Int lc = it->second;
-            E_Int *cell = rcells + 24*lc;
-            E_Int *crange = rcrange + 6*lc;
-            for (E_Int i = 0; i < rcstride[lc]; i++) {
-                E_Int *pf = cell + 4*i;
-                for (E_Int j = 0; j < crange[i]; j++) {
-                    E_Int gf = pf[j];
-                    printf("%d -> ", gf);
-
-                    E_Int lf = g2lf.at(gf);
-
-                    E_Int *face = rfaces + lf*8;
-                    E_Int *frange = rfrange + lf*4;
-                    for (E_Int k = 0; k < rfstride[lf]; k++) {
-                        E_Int *pn = face + 2*k;
-                        for (E_Int l = 0; l < frange[k]; l++) {
-                            printf("%d ", pn[l]);
-                        }
-                    }
-                    puts("");
-                }
-            }
-        }
-    }
-    */
-
-    /*
-    for (E_Int i = 0; i < rdist[M->npc]; i++) printf("%d ", rfaces[i]);
-    puts("");
-    //getchar();
-
-    for (E_Int i = 0; i < nf; i++) {
-        E_Int *face = rfaces + 8*i;
-        E_Int *frange = rfrange + 4*i;
-        for (E_Int j = 0; j < rfstride[i]; j++) {
-            E_Int *pn = face + 2*j;
-            for (E_Int k = 0; k < frange[j]; k++)
-                printf("%d ", pn[k]);
-        }
-        puts("");
-    }
-    //getchar();
-    */
 
     // Init temp owner and neigh
 
@@ -1534,41 +1383,7 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     M->flevel = rflvl;
     M->ftype = rftyp;
 
-
-    /* Check */
-
     /*
-    {
-        for (int cid = 0; cid < M->nc; cid++) {
-            if (M->l2gc[cid] == 8) {
-                printf("hello from pid %d\n", M->pid);
-                E_Int *cell = Mesh_get_cell(M, cid);
-                E_Int *crange = Mesh_get_crange(M, cid);
-                for (E_Int i = 0; i < M->cstride[cid]; i++) {
-                    E_Int *pf = cell + 4*i;
-                    assert(crange[i] == 1);
-                    for (E_Int j = 0; j < crange[i]; j++) {
-                        E_Int fid = pf[j];
-                        printf("fid: %d -> ", fid);
-                        E_Int *face = Mesh_get_face(M, fid);
-                        E_Int *frange = Mesh_get_frange(M, fid);
-                        assert(M->fstride[fid] == 4);
-                        for (E_Int k = 0; k < M->fstride[fid]; k++) {
-                            E_Int *pn = face + 2*k;
-                            assert(frange[k] == 1);
-                            for (E_Int l = 0; l < frange[k]; l++) {
-                                printf("%d ", pn[l]);
-                            }
-                        }
-                        puts("");
-                    }
-                }
-                puts("");
-            }
-        }
-    }
-    */
-
     if (M->pid == 0) puts("Verifying mesh integrity after balancing...");
     Mesh_set_orientation(M);
     if (M->mode_2D) {
@@ -1578,6 +1393,7 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if (M->pid == 0) puts("Mesh integrity OK.");
+    */
 
     // Clean-up
 
