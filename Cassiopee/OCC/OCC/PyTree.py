@@ -623,13 +623,16 @@ def _remeshTreeFromEdges(hook, t, edges):
             faceList.update(facel)
     faceList = list(faceList)
 
+    be = Internal.getNodeFromName1(t, 'EDGES')
+    [pose, posei] = getPosEdges(t)
+
     # build hList from CAD/hsize
     hList = []
     b = Internal.getNodeFromName1(t, 'FACES')
     if b is None: faceList = [] # forced when no FACES
-    be = Internal.getNodeFromName1(t, 'EDGES')
+    else: [posf, posfi] = getPosFaces(t)
     for f in faceList:
-        z = b[2][f-1]
+        z = b[2][posf[f]]
         CAD = Internal.getNodeFromName1(z, 'CAD')
         hsize = Internal.getNodeFromName1(CAD, 'hsize')
         hsize = hsize[1]
@@ -639,7 +642,7 @@ def _remeshTreeFromEdges(hook, t, edges):
         edgeList = edgeList[1]
         fedges = []
         for e in edgeList:
-            ze = be[2][e-1]
+            ze = be[2][pose[e]]
             fedges.append(ze)
         a = G.getMaxLength(fedges)
         hmine = C.getMinValue(a, 'centers:MaxLength')
@@ -676,9 +679,8 @@ def _remeshTreeFromEdges(hook, t, edges):
 
     # replace faces in t
     b = Internal.getNodeFromName1(t, 'FACES')
-    if b is not None: pos, posi = getPosFaces(t)
     for c, f in enumerate(faceList):
-        cd = pos[f]
+        cd = posf[f]
         zp = b[2][cd]
         cad = Internal.getNodeFromName1(zp, 'CAD')
         noface = getNo(zp)
@@ -1432,7 +1434,10 @@ def identifyTags__(a):
 
 # add family name on faces taken from OCAF compounds
 def _addOCAFCompoundNames(hook, t):
-    ret = OCC.occ.getFaceNameInOCAF(hook)
+
+    # FACES
+    #ret = OCC.occ.getFaceNameInOCAF(hook)
+    ret = OCC.occ.getFaceNameInOCAF2(hook)
     pos = getAllPos(t)
     r = len(ret)//2
     b = Internal.getNodeFromName1(t, 'FACES')
@@ -1445,6 +1450,22 @@ def _addOCAFCompoundNames(hook, t):
                 C._tagWithFamily(z, name, add=True)
             except: pass
         C._addFamily2Base(b, name)
+
+    # EDGES
+    ret = OCC.occ.getEdgeNameInOCAF2(hook)
+    pos = getAllPos(t)
+    r = len(ret)//2
+    b = Internal.getNodeFromName1(t, 'EDGES')
+    for i in range(r):
+        name = 'E#'+ret[2*i]
+        fl = ret[2*i+1]
+        for f in fl:
+            try:
+                z = getEdge(t, pos, f)
+                C._tagWithFamily(z, name, add=True)
+            except: pass
+        C._addFamily2Base(b, name)
+
     return None
 
 def getComponents(t):
@@ -1482,3 +1503,8 @@ def getComponents(t):
             C._tagWithFamily(z, 'Component%02d'%k, add=True)
 
     return a
+
+# print OCAF document
+def printOCAF(h):
+    """Print OCAF document."""
+    OCC.occ.printOCAF(h)

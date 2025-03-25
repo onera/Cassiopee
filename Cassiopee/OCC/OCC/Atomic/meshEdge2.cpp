@@ -43,6 +43,8 @@
 #include "GeomLProp_SLProps.hxx"
 #include <Precision.hxx>
 
+#include <TopLoc_Location.hxx>
+
 // ultimate (best) functions
 
 // ============================================================================
@@ -63,8 +65,12 @@ E_Int __getUniform(const TopoDS_Edge& E, E_Int nbPoints, E_Float*& ue)
   }
   GCPnts_UniformAbscissa param(geomAdap, int(nbPoints), u0, u1);
   ue = new E_Float [nbPoints];
-  for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
-  return 0;
+  #pragma omp parallel
+  {
+    #pragma omp for
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
+  }
+    return 0;
 }
 
 // ============================================================================
@@ -88,14 +94,19 @@ E_Int __getParamHmax(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints, E_Floa
   nbPoints = std::max(nbPoints, E_Int(3));
   GCPnts_UniformAbscissa param(geomAdap, int(nbPoints), u0, u1);
   ue = new E_Float [nbPoints];
-  try // that fails some times
+  #pragma omp parallel
   {
-    for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
-  }
-  catch (const Standard_Failure& theErr)
-  {
-    for (E_Int i = 0; i < nbPoints; i++) ue[i] = i*(u1-u0)/(nbPoints-1)+u0;
-    printf("Warning: regular param used on edge.\n");
+    try // that fails some times
+    {
+      #pragma omp for
+      for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
+    }
+    catch (const Standard_Failure& theErr)
+    {
+      #pragma omp for
+      for (E_Int i = 0; i < nbPoints; i++) ue[i] = i*(u1-u0)/(nbPoints-1)+u0;
+      printf("Warning: regular param used on edge.\n");
+    }
   }
   //printf("L=%f hmax=%f nbPoints=" SF_D_ "\n", L, hmax, nbPoints); fflush(stdout);
   return 0;
@@ -752,8 +763,6 @@ E_Int __getParamHminHmaxHausdF5(const TopoDS_Edge& E, E_Float hmin, E_Float hmax
   GeomAdaptor_Curve geomAdap(C0.Curve());
   Standard_Real u0 = geomAdap.FirstParameter();
   Standard_Real u1 = geomAdap.LastParameter();
-  //printf("===============edge =========================\n");
-  //printf("edge u0=%g u1=%g\n", u0, u1);
   if (BRep_Tool::Degenerated(E))
   { 
     nbPoints = 2;
@@ -997,9 +1006,18 @@ E_Int __getParamExt(const TopoDS_Edge& E, E_Int nbPoints, E_Float* uext, E_Float
   GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
   Standard_Real u0 = geomAdap.FirstParameter();
   Standard_Real u1 = geomAdap.LastParameter();
+
+  if (BRep_Tool::Degenerated(E))
+  { 
+    nbPoints = 2;
+    ue = new E_Float [nbPoints];
+    for (E_Int i = 0; i < nbPoints; i++) ue[i] = u0;
+    return 1; 
+  }
+
   ue = new E_Float [nbPoints];
   
-  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
+  E_Float L = (E_Float)GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
   E_Float abscissa = 0.;
   for (E_Int i = 0; i < nbPoints; i++)
   {
@@ -1027,21 +1045,25 @@ E_Int __meshEdge(const TopoDS_Edge& E,
                  K_FLD::FldArrayF& coords,
                  E_Boolean reverse)
 {
-  BRepAdaptor_Curve C0(E);
   E_Float* px = coords.begin(1);
   E_Float* py = coords.begin(2);
   E_Float* pz = coords.begin(3);
   E_Float* pu = coords.begin(4);
 
-  E_Float u; gp_Pnt Pt;
-  for (E_Int i = 0; i < nbPoints; i++)
+#pragma omp parallel
   {
-    u = ue[i];
-    C0.D0(u, Pt);
-    if (reverse)
-    { px[nbPoints-i-1] = Pt.X(); py[nbPoints-i-1] = Pt.Y(); pz[nbPoints-i-1] = Pt.Z(); pu[nbPoints-i-1] = u; }
-    else
-    { px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z(); pu[i] = u; }
+    E_Float u; gp_Pnt Pt;
+    BRepAdaptor_Curve C0(E);
+    #pragma omp for
+    for (E_Int i = 0; i < nbPoints; i++)
+    {
+      u = ue[i];
+      C0.D0(u, Pt);
+      if (reverse)
+      { px[nbPoints-i-1] = Pt.X(); py[nbPoints-i-1] = Pt.Y(); pz[nbPoints-i-1] = Pt.Z(); pu[nbPoints-i-1] = u; }
+      else
+      { px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z(); pu[i] = u; }
+    }
   }
   return 0;
 }
@@ -1054,14 +1076,16 @@ E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
                        K_FLD::FldArrayF& coords,
                        E_Boolean reverse)
 {
+
   BRepAdaptor_Curve C0(E);
-  Handle(Geom_Surface) surf = BRep_Tool::Surface(F);
   Standard_Real aFirst = C0.FirstParameter(), aEnd=C0.LastParameter();
   Standard_Real pFirst = aFirst, pEnd=aEnd;
+
+  Handle(Geom_Surface) surf = BRep_Tool::Surface(F);
   Handle(Geom_Curve) aCurve = BRep_Tool::Curve(E, aFirst, aEnd);
   Handle(Geom2d_Curve) pCurve = BRep_Tool::CurveOnSurface(E, F, pFirst, pEnd);
-  
-  GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
+
+  //GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
   //Standard_Real u0 = geomAdap.FirstParameter();
   //Standard_Real u1 = geomAdap.LastParameter();
   E_Float* px = coords.begin(1);
@@ -1078,26 +1102,30 @@ E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
   // degenerated
   if (BRep_Tool::Degenerated(E))
   {
-    gp_Pnt Pt; gp_Pnt2d Puv; 
-    E_Float u = pFirst;
-    C0.D0(u, Pt);
+    gp_Pnt Pt;  
+    C0.D0(pFirst, Pt);
 
-    for (E_Int i = 0; i < nbPoints; i++)
+    #pragma omp parallel
     {
-      u = i*1./(nbPoints-1);
-      u = u*(pEnd-pFirst)+pFirst;
-      pCurve->D0(u, Puv);
-      if (reverse)
+      E_Float u; gp_Pnt2d Puv;
+      #pragma omp for
+      for (E_Int i = 0; i < nbPoints; i++)
       {
-        //px[nbPoints-i-1] = Pt.X(); py[nbPoints-i-1] = Pt.Y(); pz[nbPoints-i-1] = Pt.Z();
-        px[nbPoints-i-1] = pex[i]; py[nbPoints-i-1] = pey[i]; pz[nbPoints-i-1] = pez[i];
-        pu[nbPoints-i-1] = Puv.X(); pv[nbPoints-i-1] = Puv.Y();
-      }
-      else
-      {
-        //px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
-        px[i] = pex[i]; py[i] = pey[i]; pz[i] = pez[i];
-        pu[i] = Puv.X(); pv[i] = Puv.Y();
+        u = i*1./(nbPoints-1);
+        u = u*(pEnd-pFirst)+pFirst;
+        pCurve->D0(u, Puv);
+        if (reverse)
+        {
+          //px[nbPoints-i-1] = Pt.X(); py[nbPoints-i-1] = Pt.Y(); pz[nbPoints-i-1] = Pt.Z();
+          px[nbPoints-i-1] = pex[i]; py[nbPoints-i-1] = pey[i]; pz[nbPoints-i-1] = pez[i];
+          pu[nbPoints-i-1] = Puv.X(); pv[nbPoints-i-1] = Puv.Y();
+        }
+        else
+        {
+          //px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
+          px[i] = pex[i]; py[i] = pey[i]; pz[i] = pez[i];
+          pu[i] = Puv.X(); pv[i] = Puv.Y();
+        }
       }
     }
     return 1;
@@ -1105,23 +1133,29 @@ E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
   
   // non degenerated    
   {
-    gp_Pnt Pt; gp_Pnt2d Puv; E_Float u;
-    for (E_Int i = 1; i <= nbPoints; i++)
+    #pragma omp parallel
     {
-      u = peu[i-1];
-      C0.D0(u, Pt);
-      pCurve->D0(u, Puv);
-      if (reverse)
-      { 
-        //px[nbPoints-i] = Pt.X(); py[nbPoints-i] = Pt.Y(); pz[nbPoints-i] = Pt.Z();
-        px[nbPoints-i] = pex[i-1]; py[nbPoints-i] = pey[i-1]; pz[nbPoints-i] = pez[i-1];
-        pu[nbPoints-i] = Puv.X(); pv[nbPoints-i] = Puv.Y(); 
-      }
-      else
+      gp_Pnt Pt; gp_Pnt2d Puv; E_Float u;
+      BRepAdaptor_Curve C0l(E);
+
+      #pragma omp for
+      for (E_Int i = 1; i <= nbPoints; i++)
       {
-        //px[i-1] = Pt.X(); py[i-1] = Pt.Y(); pz[i-1] = Pt.Z();
-        px[i-1] = pex[i-1]; py[i-1] = pey[i-1]; pz[i-1] = pez[i-1];
-        pu[i-1] = Puv.X(); pv[i-1] = Puv.Y(); 
+        u = peu[i-1];
+        C0l.D0(u, Pt);
+        pCurve->D0(u, Puv);
+        if (reverse)
+        { 
+          //px[nbPoints-i] = Pt.X(); py[nbPoints-i] = Pt.Y(); pz[nbPoints-i] = Pt.Z();
+          px[nbPoints-i] = pex[i-1]; py[nbPoints-i] = pey[i-1]; pz[nbPoints-i] = pez[i-1];
+          pu[nbPoints-i] = Puv.X(); pv[nbPoints-i] = Puv.Y(); 
+        }
+        else
+        {
+          //px[i-1] = Pt.X(); py[i-1] = Pt.Y(); pz[i-1] = Pt.Z();
+          px[i-1] = pex[i-1]; py[i-1] = pey[i-1]; pz[i-1] = pez[i-1];
+          pu[i-1] = Puv.X(); pv[i-1] = Puv.Y(); 
+        }
       }
     }
   }
@@ -1275,6 +1309,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
   TopExp_Explorer expl;
 
   const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+  
   // outer wire
   const TopoDS_Wire& OW = ShapeAnalysis::OuterWire(F);
   
@@ -1348,8 +1383,6 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
     //for (expl2.Init(W, TopAbs_EDGE); expl2.More(); expl2.Next())
     for (expl2.Init(W, F); expl2.More(); expl2.Next())
     {
-      //printf("getting edges of wire\n");
-      
       const TopoDS_Edge& E = TopoDS::Edge(expl2.Current());
 
       // Get the edge in the list of discretized edges
@@ -1357,7 +1390,8 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
       for (eno = 1; eno <= edges.Extent(); eno++)
       {
         const TopoDS_Edge& El = TopoDS::Edge(edges(eno));
-        if (El.TShape() == E.TShape()) break;
+        //if (El.TShape() == E.TShape()) break; // not sufficient (location)
+        if (El.IsSame(E)) break;
       }
 
       // Extract discrete edge

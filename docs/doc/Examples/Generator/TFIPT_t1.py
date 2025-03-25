@@ -4,13 +4,13 @@ import Geom.PyTree as D
 import KCore.test as test
 
 P0 = (0,0,0); P1 = (5,0,0); P2 = (0,7,0); P3 = (5,7,0)
-    
+
 # Geometrie
 d1 = D.line(P0, P1); d2 = D.line(P2, P3)
 pts = D.polyline([(0.,0.,0.),(-2,2,0),(-3,3,0.),(2,5,0.),(0.,7,0.)])
 b1 = D.bezier(pts)
 pts = D.polyline([(5.,0.,0.),( 3,2,0),( 2,3,0.),(6,5,0.),(5.,7.,0.)])
-b2 = D.bezier( pts ) 
+b2 = D.bezier( pts )
 
 # Discretisation reguliere de chaque ligne
 Ni = 20; Nj = 10

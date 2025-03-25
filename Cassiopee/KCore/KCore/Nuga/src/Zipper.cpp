@@ -51,7 +51,7 @@ Zipper::setMates
  const K_FLD::IntArray& connectE2, std::vector<E_Int>& nmates)
 {
 #ifdef E_TIME
-  DELAUNAY::chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
   nmates.resize(posT3.cols(), UNKNO);

@@ -9,8 +9,7 @@ OCC: interface to open-cascade
 Preamble
 ########
 
-OCC performs reading of IGES or STEP files with open-cascade. It returns
-a triangular mesh.
+OCC performs CAD operations and meshing using open-cascade. 
 
 To use the module with the Converter.array interface::
 

@@ -183,8 +183,8 @@ def _computeMeshInfo(t):
 
 def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
                    snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, octreeMode=0,
-                   IBCType=1, verbose=True, expand=3,
-                   check=False, twoFronts=False, cartesian=True,
+                   IBCType=1, verbose=True, expand=3, ext=-1, optimized=1,
+                   check=False, twoFronts=False, cartesian=True, cleanCellN=True,
                    yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
 
     import Generator.IBM as G_IBM
@@ -232,6 +232,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     if dimPb is None: raise ValueError('prepareIBMData: EquationDimension is missing in input geometry tree.')
     dimPb = Internal.getValue(dimPb)
     if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.)
+    else: cleanCellN = True
 
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
     if model is None: raise ValueError('prepareIBMData: GoverningEquations is missing in input geometry tree.')
@@ -248,6 +249,8 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     if frontType == 42 and tbox is None:
         print("Info: prepareIBMData: frontType 42 is used, but no tbox has been provided to ensure that the near-wall resolution is sufficiently propagated. Forcing expand=4.")
         expand = 4
+
+    if ext == -1: ext = depth+1
 
     #===================
     # STEP 0 : GET FILAMENT BODIES
@@ -267,7 +270,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         if verbose: pt0 = python_time.time(); printTimeAndMemory__('generate Cartesian mesh', time=-1)
         test.printMem("Info: prepareIBMData: generate Cartesian mesh [start]")
         t = G_IBM.generateIBMMesh(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
-                                  snearsf=snearsf, check=check, to=to, ext=depth+1,
+                                  snearsf=snearsf, check=check, to=to, ext=ext, optimized=optimized,
                                   expand=expand, dfarDir=dfarDir, octreeMode=octreeMode)
         Internal._rmNodesFromName(tb,"SYM")
 
@@ -287,7 +290,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute wall distance', time=-1)
     _dist2wallIBM(t, tb, dimPb=dimPb, frontType=frontType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                   correctionMultiCorpsF42=correctionMultiCorpsF42, heightMaxF42=heightMaxF42,
-                  tbFilament=tbFilament)
+                  tbFilament=tbFilament, cleanCellN=cleanCellN)
     if verbose: printTimeAndMemory__('compute wall distance', time=python_time.time()-pt0)
 
     #===================
@@ -298,7 +301,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
                  Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts,
                  heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42,
                  wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
-                 tbFilament=tbFilament)
+                 tbFilament=tbFilament, cleanCellN=cleanCellN)
     ##Keep for now to check
     #filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament,
     #isWireModel=isWireModel)
@@ -340,7 +343,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1)
 
     t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, tbCurvi=tbCurvi, dimPb=dimPb, twoFronts=twoFronts,
-                               tbFilament=tbFilament)
+                               tbFilament=tbFilament, cleanCellN=cleanCellN)
 
     _redispatch__(t=t, tc=tc, tc2=tc2)
 
@@ -432,12 +435,9 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
     tb, tbFilament              = D_IBM.determineClosedSolidFilament__(tb)
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
 
-
-    if extrusion=='cyl': cartesian = False                                            #__
-    C._initVars(t, 'centers:cellN', 1.)                                               #  |modification needed for extrude
-    C._initVars(t, 'centers:cellNChim', 1.)                                           #  |
-    X._applyBCOverlaps(t, depth=depth, loc='centers', val=2, cellNName='cellNChim')   #  |
-    C._initVars(t, 'centers:cellN', 1.)                                               #__
+    if extrusion=='cyl': cartesian = False
+    cellN = Internal.getNodeFromName(t, 'cellN')
+    if cellN is not None: C._initVars(t, '{centers:cellN}=minimum(1, {centers:cellN})') # modification needed for extrude
 
     #===================
     # STEP 1 : GENERATE MESH
@@ -469,7 +469,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
             for k in [0,1, sh[2]-2, sh[2]-1]:                                                        #  |
                 for j in range(sh[1]):                                                               #  |
                     for i in range(sh[0]):                                                           #  |
-                        if  cellN[i,j,k] >0:  cellN[i,j,k] =1                                        #  |
+                        if  cellN[i,j,k] != 0:  cellN[i,j,k] =1                                      #  |
     C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})')# vaut -3, 0, 1, 2 initialement  #__
     Cmpi.barrier()
     _redispatch__(t=t)
@@ -727,12 +727,12 @@ prepareIBMDataPara = prepareIBMData
 # OUT: (optional) centers:TurbulentDistance_body%i fields
 #=========================================================================
 def dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.,
-                 correctionMultiCorpsF42=False, heightMaxF42=-1., tbFilament=None):
+                 correctionMultiCorpsF42=False, heightMaxF42=-1., tbFilament=None, cleanCellN=True):
     """Compute the wall distance for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _dist2wallIBM(t, tb, dimPb=dimPb, frontType=frontType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                   correctionMultiCorpsF42=correctionMultiCorpsF42, heightMaxF42=heightMaxF42,
-                  tbFilament=tbFilament)
+                  tbFilament=tbFilament, cleanCellN=cleanCellN)
     return tp
 
 def _dist2wallIBMFilamentWMM__(t, tb2, tbsave, dimPb):
@@ -768,7 +768,7 @@ def _dist2wallIBMFilamentWMM__(t, tb2, tbsave, dimPb):
     return None
 
 def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.,
-                  correctionMultiCorpsF42=False, heightMaxF42=-1., tbFilament=None):
+                  correctionMultiCorpsF42=False, heightMaxF42=-1., tbFilament=None, cleanCellN=True):
     """Compute the wall distance for IBM pre-processing."""
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
@@ -854,6 +854,8 @@ def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.
         C._initVars(t, '{centers:TurbulentDistance}={centers:TurbulentDistance_ori}')
         C._rmVars(t, ['centers:TurbulentDistance_ori'])
 
+    if not cleanCellN: C._initVars(t, '{centers:TurbulentDistanceAllBC}={centers:TurbulentDistance}')
+
     return None
 
 #=========================================================================
@@ -882,7 +884,7 @@ def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.
 #=========================================================================
 def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1.,
                    correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
-                   tbFilament=None):
+                   tbFilament=None, cleanCellN=True):
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
 
@@ -901,10 +903,16 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
         if snearl is not None:  snear_min = min(snear_min,snearl)
     snear_min = Cmpi.allreduce(snear_min, op=Cmpi.MIN)
 
-    if not isFilamentOnly: _blankByIBCBodies(t, tb, 'centers', dimPb) #cellN -> 0 outside domain ; 1 inside domain
+    cellNIBC_blank = Internal.getNodeFromName(t, 'cellNIBC_blank')
+    if cellNIBC_blank is None:
+        if not isFilamentOnly: _blankByIBCBodies(t, tb, 'centers', dimPb) #cellN -> 0 outside domain ; 1 inside domain
+        if not cleanCellN: C._initVars(t, '{centers:cellNIBC_blank}={centers:cellN}')
+    else:
+        print("Info: blankingIBM: cellNIBC_blank field found in t. blankByIBCBodies is skipped.")
+        C._initVars(t, '{centers:cellN}={centers:cellNIBC_blank}')
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
-    if not isFilamentOnly and  not isSkipDist: _signDistance(t)
+    if not isFilamentOnly and not isSkipDist: _signDistance(t)
     C._initVars(t,'{centers:cellN}={centers:cellNIBC}')
 
     if tbFilament:
@@ -912,118 +920,124 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
         C._initVars(t,'{centers:cellNFilWMM}={centers:cellN}')
 
     # determination des pts IBC
-    if frontType != 42:
-        if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-depth,dir=0,loc='centers',cellNName='cellN',addGC=False)
-        elif IBCType == 1:
-            X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
-            if frontType < 2:
-                X._setHoleInterpolatedPoints(t,depth=depth,dir=0,loc='centers',cellNName='cellN',addGC=False)
+    cellNIBC_hole = Internal.getNodeFromName(t, 'cellNIBC_hole')
+    if cellNIBC_hole is None:
+        if frontType != 42:
+            if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-depth,dir=0,loc='centers',cellNName='cellN',addGC=False)
+            elif IBCType == 1:
+                X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellN',addGC=False) # pour les gradients
+                if frontType < 2:
+                    X._setHoleInterpolatedPoints(t,depth=depth,dir=0,loc='centers',cellNName='cellN',addGC=False)
+                else:
+                    depthL = depth+1
+                    X._setHoleInterpolatedPoints(t,depth=depthL,dir=0,loc='centers',cellNName='cellN',addGC=False)
+                    #cree des pts extrapoles supplementaires
+                    # _blankClosestTargetCells(t,cellNName='cellN', depth=depthL)
             else:
-                depthL = depth+1
-                X._setHoleInterpolatedPoints(t,depth=depthL,dir=0,loc='centers',cellNName='cellN',addGC=False)
-                #cree des pts extrapoles supplementaires
-                # _blankClosestTargetCells(t,cellNName='cellN', depth=depthL)
+                raise ValueError('prepareIBMData: not valid IBCType. Check model.')
         else:
-            raise ValueError('prepareIBMData: not valid IBCType. Check model.')
+            # F42: tracking of IB points using distance information
+            # the classical algorithm (front 1) is first used to ensure a minimum of two rows of target points around the geometry
+            C._initVars(t,'{centers:cellNMin}={centers:cellNIBC}')
+            if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-depth,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
+            elif IBCType == 1: X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
+            X._setHoleInterpolatedPoints(t,depth=depth,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
+
+            for z in Internal.getZones(t):
+                if Internal.getNodeFromName(z, 'SaveF1'):
+                    Internal._rmNode(z, Internal.getNodeFromName(z, '.Solver#defineTMP'))
+                    continue
+
+                h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+                if yplus > 0.:
+                    height = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+                else:
+                    height = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
+                    yplus  = G_IBM_Height.computeYplus(Re=Reynolds, height=height, L=Lref)
+                if heightMaxF42 > 0.:
+                    if height > heightMaxF42:
+                        height = heightMaxF42
+                        #print("Snear min (SM) = %g || Wall Modeling Height (WMH) = %g || WMH/SM = %g"%(snear_min,height,height/snear_min))
+                C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
+
+                if correctionMultiCorpsF42:
+                    # Prevent different body modeling from overlapping -> good projection of image points in the wall normal direction
+
+                    cptBody = 1
+                    for body in Internal.getNodesFromType(tb,'Zone_t'):
+                        if body[0] != "sym" and ("closure" not in body[0]):
+                            cptBody += 1
+
+                    epsilon_dist = 2*(abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0)))
+                    max_dist     = 2*0.1*Lref
+
+                    # Try to find the best route between two adjacent bodies by finding optimal iso distances
+                    def correctionMultiCorps(cellN, cellNF):
+                        if cellN == 2 and cellNF == 2: return 1
+                        return cellN
+
+                    def findIsoFront(cellNFront, Dist_1, Dist_2):
+                        if Dist_1 < max_dist and Dist_2 < max_dist:
+                            if abs(Dist_1-Dist_2) < epsilon_dist: return 2
+                        return max(cellNFront,1)
+
+                    for i in range(1, cptBody):
+                        for j in range(1, cptBody):
+                            if j != i:
+                                C._initVars(z, 'centers:cellNFrontIso', findIsoFront, ['centers:cellNFrontIso', 'centers:TurbulentDistance_body%i'%i, 'centers:TurbulentDistance_body%i'%j])
+
+                    C._initVars(z, 'centers:cellN', correctionMultiCorps, ['centers:cellN', 'centers:cellNFrontIso'])
+
+                    for i in range(1, cptBody):
+                        C._rmVars(z,['centers:cellN_body%i'%i, 'centers:TurbulentDistance_body%i'%i])
+
+            if wallAdaptF42 is not None:
+                # Use previous computation to adapt the positioning of IB points around the geometry (impose y+PC <= y+ref)
+                # Warning: the wallAdapt file has to be obtained with TIBM.createWallAdapt(tc)
+                C._initVars(t,'{centers:yplus}=100000.')
+                if isinstance(wallAdaptF42, str): w = C.convertFile2PyTree(wallAdaptF42)
+                else: w = wallAdaptF42
+                zones = Internal.getZones(t)
+                total = len(zones)
+                cpt = 1
+                for z in zones:
+                    print("Info: blankingIBM: modeling height adaptation: zone %d / %d"%(cpt, total))
+                    cellN = Internal.getNodeFromName(z, 'cellN')[1]
+                    if 2 in cellN:
+                        hloc = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
+                        zname = z[0]
+                        zd = Internal.getNodeFromName(w, zname)
+                        if zd is not None:
+                            yplus_w = Internal.getNodeFromName(zd, 'yplus')[1]
+                            listIndices = Internal.getNodeFromName(zd, 'PointListDonor')[1]
+
+                            n = numpy.shape(yplus_w)[0]
+                            yplusA = Converter.array('yplus', n, 1, 1)
+                            yplusA[1][:] = yplus_w
+
+                            C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
+                            C._initVars(z,'{centers:yplus}={centers:yplus}*(1-%20.16g/{centers:TurbulentDistance})'%(hloc)) #safety measure
+
+                    cpt += 1
+
+                C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
+
+            # final security gate, we ensure that we have at least to layers of target points
+            C._initVars(t, '{centers:cellN} = maximum({centers:cellN}, {centers:cellNMin})')
+            C._rmVars(t,['centers:yplus', 'centers:cellNMin'])
+
+            # propagate max yplus between procs
+            yplus = numpy.array([float(yplus)])
+            yplus = Cmpi.allreduce(yplus, op=Cmpi.MAX)[0]
+
+            # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
+            if blankingF42:
+                if wallAdaptF42 is None: X._maximizeBlankedCells(t, depth=2, addGC=False)
+                else: print("Info: blankingIBM: blankingF42 cannot operate with a local modeling height")
+        if not cleanCellN: C._initVars(t, '{centers:cellNIBC_hole}={centers:cellN}')
     else:
-        # F42: tracking of IB points using distance information
-        # the classical algorithm (front 1) is first used to ensure a minimum of two rows of target points around the geometry
-        C._initVars(t,'{centers:cellNMin}={centers:cellNIBC}')
-        if IBCType == -1: X._setHoleInterpolatedPoints(t,depth=-depth,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
-        elif IBCType == 1: X._setHoleInterpolatedPoints(t,depth=1,dir=1,loc='centers',cellNName='cellNMin',addGC=False) # pour les gradients
-        X._setHoleInterpolatedPoints(t,depth=depth,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
-
-        for z in Internal.getZones(t):
-            if Internal.getNodeFromName(z, 'SaveF1'):
-                Internal._rmNode(z, Internal.getNodeFromName(z, '.Solver#defineTMP'))
-                continue
-
-            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-            if yplus > 0.:
-                height = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
-            else:
-                height = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # meilleur compromis entre hauteur entre le snear et la hauteur de modelisation
-                yplus  = G_IBM_Height.computeYplus(Re=Reynolds, height=height, L=Lref)
-            if heightMaxF42 > 0.:
-                if height > heightMaxF42:
-                    height = heightMaxF42
-                    #print("Snear min (SM) = %g || Wall Modeling Height (WMH) = %g || WMH/SM = %g"%(snear_min,height,height/snear_min))
-            C._initVars(z,'{centers:cellN}=({centers:TurbulentDistance}>%20.16g)+(2*({centers:TurbulentDistance}<=%20.16g)*({centers:TurbulentDistance}>0))'%(height,height))
-
-            if correctionMultiCorpsF42:
-                # Prevent different body modeling from overlapping -> good projection of image points in the wall normal direction
-
-                cptBody = 1
-                for body in Internal.getNodesFromType(tb,'Zone_t'):
-                    if body[0] != "sym" and ("closure" not in body[0]):
-                        cptBody += 1
-
-                epsilon_dist = 2*(abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0)))
-                max_dist     = 2*0.1*Lref
-
-                # Try to find the best route between two adjacent bodies by finding optimal iso distances
-                def correctionMultiCorps(cellN, cellNF):
-                    if cellN == 2 and cellNF == 2: return 1
-                    return cellN
-
-                def findIsoFront(cellNFront, Dist_1, Dist_2):
-                    if Dist_1 < max_dist and Dist_2 < max_dist:
-                        if abs(Dist_1-Dist_2) < epsilon_dist: return 2
-                    return max(cellNFront,1)
-
-                for i in range(1, cptBody):
-                    for j in range(1, cptBody):
-                        if j != i:
-                            C._initVars(z, 'centers:cellNFrontIso', findIsoFront, ['centers:cellNFrontIso', 'centers:TurbulentDistance_body%i'%i, 'centers:TurbulentDistance_body%i'%j])
-
-                C._initVars(z, 'centers:cellN', correctionMultiCorps, ['centers:cellN', 'centers:cellNFrontIso'])
-
-                for i in range(1, cptBody):
-                    C._rmVars(z,['centers:cellN_body%i'%i, 'centers:TurbulentDistance_body%i'%i])
-
-        if wallAdaptF42 is not None:
-            # Use previous computation to adapt the positioning of IB points around the geometry (impose y+PC <= y+ref)
-            # Warning: the wallAdapt file has to be obtained with TIBM.createWallAdapt(tc)
-            C._initVars(t,'{centers:yplus}=100000.')
-            if isinstance(wallAdaptF42, str): w = C.convertFile2PyTree(wallAdaptF42)
-            else: w = wallAdaptF42
-            zones = Internal.getZones(t)
-            total = len(zones)
-            cpt = 1
-            for z in zones:
-                print("Info: blankingIBM: modeling height adaptation: zone %d / %d"%(cpt, total))
-                cellN = Internal.getNodeFromName(z, 'cellN')[1]
-                if 2 in cellN:
-                    hloc = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
-                    zname = z[0]
-                    zd = Internal.getNodeFromName(w, zname)
-                    if zd is not None:
-                        yplus_w = Internal.getNodeFromName(zd, 'yplus')[1]
-                        listIndices = Internal.getNodeFromName(zd, 'PointListDonor')[1]
-
-                        n = numpy.shape(yplus_w)[0]
-                        yplusA = Converter.array('yplus', n, 1, 1)
-                        yplusA[1][:] = yplus_w
-
-                        C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
-                        C._initVars(z,'{centers:yplus}={centers:yplus}*(1-%20.16g/{centers:TurbulentDistance})'%(hloc)) #safety measure
-
-                cpt += 1
-
-            C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
-
-        # final security gate, we ensure that we have at least to layers of target points
-        C._initVars(t, '{centers:cellN} = maximum({centers:cellN}, {centers:cellNMin})')
-        C._rmVars(t,['centers:yplus', 'centers:cellNMin'])
-
-        # propagate max yplus between procs
-        yplus = numpy.array([float(yplus)])
-        yplus = Cmpi.allreduce(yplus, op=Cmpi.MAX)[0]
-
-        # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
-        if blankingF42:
-            if wallAdaptF42 is None: X._maximizeBlankedCells(t, depth=2, addGC=False)
-            else: print("Info: blankingIBM: blankingF42 cannot operate with a local modeling height")
+        print("Info: blankingIBM: cellNIBC_hole field found in t. Determination of IBC points is skipped.")
+        C._initVars(t, '{centers:cellN}={centers:cellNIBC_hole}')
 
     if tbFilament:
         tbFilamentWMM   = []
@@ -1100,19 +1114,19 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
 
 def blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
                 correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
-                tbFilament=None):
+                tbFilament=None, cleanCellN=True):
     """Blank the computational tree by IBC bodies for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth,
                  Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts,
                  heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42,
                  wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
-                 tbFilament=tbFilament)
+                 tbFilament=tbFilament, cleanCellN=cleanCellN)
     return tp
 
 def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
                  correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
-                 tbFilament=None):
+                 tbFilament=None, cleanCellN=True):
     """Blank the computational tree by IBC bodies for IBM pre-processing."""
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
@@ -1132,7 +1146,7 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
                    Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                    heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42,
                    wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
-                   tbFilament=tbFilament)
+                   tbFilament=tbFilament, cleanCellN=cleanCellN)
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
     if IBCType == -1:
@@ -1167,6 +1181,11 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
                                           Internal.__FlowSolutionCenters__)
 
     C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})') # vaut -3, 0, 1, 2 initialement
+
+    if cleanCellN:
+        vars = ['centers:TurbulentDistanceAllBC','centers:TurbulentDistanceWallBC', 'centers:cellNIBC_hole']
+        C._rmVars(t, vars)
+
     return None
 
 #=========================================================================
@@ -1796,7 +1815,7 @@ def _tInitialize__(t, tinit=None, model='NSTurbulent', isWireModel=False):
                 C._initVars(z,'{centers:'+v_local+'_WM}=0.')
     return None
 
-def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False, tbFilament=None):
+def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False, tbFilament=None, cleanCellN=True):
     """Initialize the computational and connectivity trees for IBM pre-processing."""
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
@@ -1811,6 +1830,7 @@ def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False,
 
     if model != 'Euler':
         _recomputeDistForViscousWall__(t, tb, tbCurvi=tbCurvi, dimPb=dimPb, tbFilament=tbFilament)
+        # if not cleanCellN: C._initVars(t, '{centers:TurbulentDistanceWallBC}={centers:TurbulentDistance}')
 
     tc2 = Internal.copyTree(tc) if twoFronts or isWireModel else None
 

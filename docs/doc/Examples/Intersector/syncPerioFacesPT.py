@@ -1,6 +1,6 @@
 # - concatenate (PyTree) -
 
-import Converter.PyTree   as C 
+import Converter.PyTree   as C
 import Generator.PyTree   as G
 import Connector.PyTree   as X
 import Transform.PyTree   as T
@@ -33,5 +33,3 @@ a = XOR.syncMacthPeriodicFaces(a, translation=[0.,0.,9.])
 a = X.connectMatchPeriodic(a, translation=[0.,0.,9.])
 
 C.convertPyTree2File(a, 'out.cgns')
-
-

@@ -8,7 +8,7 @@ import Dist2Walls.PyTree as DTW
 import Transform.PyTree as T
 
 a = G.cart((-1,-1,-1),(0.01,0.01,1),(201,201,3))
-s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (30,30,5)) 
+s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (30,30,5))
 s = C.convertArray2Tetra(s); s = T.join(s); s = P.exteriorFaces(s)
 t = C.newPyTree(['Base',a])
 # Blanking

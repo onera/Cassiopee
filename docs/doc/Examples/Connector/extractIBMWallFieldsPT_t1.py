@@ -22,7 +22,7 @@ t = C.newPyTree(['Base', a])
 
 # Blanking
 bodies = [[s]]
-BM = numpy.array([[1]],numpy.int32)
+BM = numpy.array([[1]],Internal.E_NpyInt)
 t = X.blankCells(t,bodies,BM,blankingType='center_in')
 X._setHoleInterpolatedPoints(t,depth=-2)
 # Dist2Walls

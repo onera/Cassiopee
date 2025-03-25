@@ -190,7 +190,7 @@ recognised. Naming convention is described in the following table.</p>
 </tr>
 <tr class="row-even"><td><p>Cell nature field (0:blanked, 1:discretised, 2:interpolated)</p></td>
 <td></td>
-<td><p>cellN, cellnf</p></td>
+<td><p>cellN, celln</p></td>
 </tr>
 <tr class="row-odd"><td><p>Cell nature field (0:blanked, 1:discretised, -Id interp block)</p></td>
 <td></td>
@@ -620,7 +620,7 @@ ind is a vertex index (ind starts at 0 and (i,j,k) start at 1).</p>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
-<span class="c1"># Structured array    </span>
+<span class="c1"># Structured array</span>
 <span class="n">Ni</span> <span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="n">Nj</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">Nk</span> <span class="o">=</span> <span class="mi">20</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">0.5</span><span class="o">/</span><span class="p">(</span><span class="n">Nj</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Nk</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="p">(</span><span class="n">Ni</span><span class="p">,</span><span class="n">Nj</span><span class="p">,</span><span class="n">Nk</span><span class="p">))</span>
 <span class="c1"># Get variable values contained in a (x,y,z) in point (10,1,1)</span>
@@ -628,7 +628,7 @@ ind is a vertex index (ind starts at 0 and (i,j,k) start at 1).</p>
 <span class="c1">#&gt;&gt; [0.23076923076923075, 0.0, 0.0]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span> <span class="c1"># It is the same point!</span>
 <span class="c1">#&gt;&gt; [0.23076923076923075, 0.0, 0.0]</span>
-                
+
 <span class="c1"># Unstructured array</span>
 <span class="n">Ni</span> <span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="n">Nj</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">Nk</span> <span class="o">=</span> <span class="mi">20</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartTetra</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">0.5</span><span class="o">/</span><span class="p">(</span><span class="n">Nj</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Nk</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="p">(</span><span class="n">Ni</span><span class="p">,</span><span class="n">Nj</span><span class="p">,</span><span class="n">Nk</span><span class="p">))</span>
@@ -992,16 +992,16 @@ connectivity. If boundary=1, b will be a BC connectivity in a
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span> 
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">mergeConnectivity</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="c1"># c contains now a volume HEXA connectivity and a QUAD boundary connectivity.</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s1">&#39;out0.cgns&#39;</span><span class="p">)</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span> 
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartTetra</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">mergeConnectivity</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="c1"># c is now a multiple-element zone containing a volume HEXA connectivity and </span>
+<span class="c1"># c is now a multiple-element zone containing a volume HEXA connectivity and</span>
 <span class="c1"># a volume TETRA connectivity.</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
@@ -1350,8 +1350,8 @@ returns None.</p>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWallInviscid&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span> 
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span> 
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wall2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;loin&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:LOIN&#39;</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">)</span>
@@ -1402,8 +1402,8 @@ returns None.</p>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span> 
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span> 
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wall2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;loin&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:LOIN&#39;</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">)</span>
@@ -1456,7 +1456,6 @@ returns None.</p>
 <span class="n">C</span><span class="o">.</span><span class="n">_initBCDataSet</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">{var3}</span><span class="s1">=3.&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">rmBCDataVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;var1&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">rmBCDataVars</span><span class="p">(</span><span class="n">a</span><span class="p">,[</span><span class="s1">&#39;var2&#39;</span><span class="p">,</span><span class="s1">&#39;var3&#39;</span><span class="p">])</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1724,7 +1723,6 @@ Exists also as in place version (_recoverBCs) that modifies t and returns None.<
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;variables = &#39;</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;fields = &#39;</span><span class="p">,</span>  <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;indices = &#39;</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -1956,7 +1954,7 @@ returns None.</p>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-<span class="n">C</span><span class="o">.</span><span class="n">_tagWithFamily</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">)</span> 
+<span class="n">C</span><span class="o">.</span><span class="n">_tagWithFamily</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">_tagWithFamily</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">)</span>
 
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
@@ -2405,7 +2403,7 @@ contain varName.</p>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">getVarNames</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">]))</span>
 <span class="c1">#&gt;&gt; [[&#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;F&#39;], [&#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;G&#39;]]</span>
- 
+
 <span class="nb">print</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">isNamePresent</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">))</span>
 <span class="c1">#&gt;&gt; 1</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">isNamePresent</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">],</span> <span class="s1">&#39;F&#39;</span><span class="p">))</span>
@@ -2668,7 +2666,7 @@ or a list of strings.</p>
 <span class="c1"># Var defined by a string</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">extractVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">)</span>
 <span class="c1"># Vars defined by a list</span>
-<span class="n">r</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">extractVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">])</span> 
+<span class="n">r</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">extractVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2760,7 +2758,7 @@ If split=&#8217;withBarycenters&#8217;, barycenters of elements and faces are ad
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
-<span class="c1"># 2D: triangles </span>
+<span class="c1"># 2D: triangles</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out1.plt&#39;</span><span class="p">)</span>
@@ -2778,7 +2776,7 @@ If split=&#8217;withBarycenters&#8217;, barycenters of elements and faces are ad
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
-<span class="c1"># 2D: quads -&gt; triangles </span>
+<span class="c1"># 2D: quads -&gt; triangles</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out1.plt&#39;</span><span class="p">)</span>
@@ -2796,7 +2794,7 @@ If split=&#8217;withBarycenters&#8217;, barycenters of elements and faces are ad
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
-<span class="c1"># 2D : triangles </span>
+<span class="c1"># 2D : triangles</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 
@@ -3460,7 +3458,7 @@ Exists also as in place version (_addGhostCells) that modifies a and returns Non
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/signNGonFacesPT.py">Sign NGon faces (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - signNGonFaces (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - signNGonFaces (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
@@ -3490,7 +3488,7 @@ Always checks the validity of input mesh. Raises error if mesh is invalid.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/makeParentElementsPT.py">Construct parent elements array from NFACE connectivity (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - signNGonFaces (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - signNGonFaces (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
@@ -3527,7 +3525,7 @@ return the differences.</p>
 <li><p><a class="reference external" href="Examples/Converter/diffArrays.py">Difference between two solutions (array)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - diffArrays (array) -</span>
-<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>   
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
@@ -3546,7 +3544,7 @@ return the differences.</p>
 <li><p><a class="reference external" href="Examples/Converter/diffArraysPT.py">Difference between two solutions (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - diffArrays (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>   
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
@@ -3823,7 +3821,7 @@ value of F for the 30% lowest values.</p>
 <li><p><a class="reference external" href="Examples/Converter/normL2.py">Get the L2 norm of F (array)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - normL2 (array) -</span>
-<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>    
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
@@ -3845,7 +3843,7 @@ value of F for the 30% lowest values.</p>
 <li><p><a class="reference external" href="Examples/Converter/normL2PT.py">Get the L2 norm of F (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - normL2 (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>    
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
@@ -5269,7 +5267,6 @@ the corresponing distance.</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">rmVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;globalIndex&#39;</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -5292,7 +5289,6 @@ the corresponing distance.</p>
 <span class="n">C</span><span class="o">.</span><span class="n">_rmVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;globalIndex&#39;</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>

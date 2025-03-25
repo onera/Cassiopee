@@ -60,7 +60,7 @@ val = P.extractPoint([a], [(0.1,0.1,0.1), (0.2,0.2,0.3)], 2)
 ni = 11; nj = 11; nk = 11;
 a = G.cart((0,0,0), (1./(ni-1),1./(nj-1),1./(nk-1)), (ni,nj,nk))
 
-val0 = F(0.55,0.38,0.12)  
+val0 = F(0.55,0.38,0.12)
 
 # init by function
 C._addVars(a, 'F')

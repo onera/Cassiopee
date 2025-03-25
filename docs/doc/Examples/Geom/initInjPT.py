@@ -22,7 +22,7 @@ for z in Internal.getZones(a):
         zsr[2].append(['dirx', Nlength, [], 'DataArray_t'])
         zsr[2].append(['diry', Nlength, [], 'DataArray_t'])
         zsr[2].append(['dirz', Nlength, [], 'DataArray_t'])
-        
+
         Internal._createChild(zsr, 'FamilyName', 'FamilyName_t', value='CART_LOCAL')
 
 a = D_IBM.initInj(a,'CART_LOCAL',10,20,injDir=[0.5,0.5,0.])

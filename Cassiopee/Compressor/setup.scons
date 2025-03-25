@@ -32,9 +32,11 @@ libraryDirs += paths; libraries += libs
 
 ADDITIONALCFLAGS = ["-DZFP_INT64='long long'","-DZFP_INT64_SUFFIX='ll'","-DZFP_UINT64='unsigned long long'","-DZFP_UINT64_SUFFIX='ull'"]
 # Attention a renommer Compressor/zstd/common/bitstream.h en zstd_bitstream.h
-additionalIncludePaths += ["Compressor/zstd", "Compressor/zstd/common"]
-additionalIncludePaths += ["Compressor/sz/include"]
-additionalIncludePaths += ["Compressor/zfp/include"]
+addIncludes = ["Compressor/zstd", "Compressor/zstd/common"]
+addIncludes += ["Compressor/sz/include"]
+addIncludes += ["Compressor/zfp/include"]
+
+additionalIncludePaths = addIncludes + additionalIncludePaths # intentional prepend
 
 # Env =========================================================================
 import srcs

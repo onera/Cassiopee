@@ -2,7 +2,7 @@
 # adapts a cells with respect to b points
 import Intersector as XOR
 import Converter as C
-import Converter.Internal as I 
+import Converter.Internal as I
 import Generator as G
 import numpy
 import KCore.test as test

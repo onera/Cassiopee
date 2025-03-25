@@ -26,4 +26,3 @@ s2 = C.convertArray2Tetra(s2); s2 = G.close(s2)
 
 x = XOR.booleanIntersection(s1, s2, tol=0.)
 test.testA([x], 2)
-

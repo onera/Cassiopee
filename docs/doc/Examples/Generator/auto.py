@@ -1,5 +1,5 @@
 #==============================================================================
-# - The *Cassiopee* Project - 
+# - The *Cassiopee* Project -
 # Template file for automatic mesh generation
 # (c) 2005-2009 by ONERA
 # Input : a geometry 1D curve
@@ -52,7 +52,7 @@ for x in mshList:
 #   if (hj > hi*l):
 #       print("Warning, mesh generator may be unstable because")
 #       print("cell height is greater than cell length")
-    temp1 = x 
+    temp1 = x
     angleLeft = 180.
     angleRight = 180.
 
@@ -70,7 +70,7 @@ for x in mshList:
         temp1 = T.join( temp2, temp1 )
         curv = D.getCurvatureAngle( temp1 )
         angleLeft = curv[1][0][niv-dn+1]
-        
+
     if (c < n-1):
         # Right extension
         ln1 = distrib[1][0][ni-1]; ln2 = distrib[1][0][ni-2];
@@ -92,4 +92,3 @@ for x in mshList:
     temp1 = G.hyper2D3(temp1, distrib, "C", angleLeft, angleRight)
     C.convertArrays2File([temp1], "mesh"+repr(c)+".plt", "bin_tp")
     c += 1
-         

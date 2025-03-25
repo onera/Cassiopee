@@ -15,4 +15,3 @@ C._recoverGlobalIndex(a, b[1])
 C._rmVars(a, 'globalIndex')
 
 C.convertPyTree2File(a, 'out.cgns')
-

@@ -64,7 +64,7 @@ NodeAssociator::make_pairs
   OneSurface.clear();
 
 #ifdef E_TIME
-  DELAUNAY::chrono c, glob;
+  NUGA::chrono c, glob;
   c.start();
   glob.start();
 #endif
@@ -137,7 +137,7 @@ NodeAssociator::__make_pairs
   K_FLD::ArrayAccessor<K_FLD::FloatArray> posAcc(posB);
 
 #ifdef E_TIME
-  DELAUNAY::chrono cc;
+  NUGA::chrono cc;
   cc.start();
   std::cout << "building trees" << std::endl;
 #endif

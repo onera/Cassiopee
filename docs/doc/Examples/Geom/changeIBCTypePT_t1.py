@@ -4,7 +4,7 @@ import Converter.PyTree as C
 import Generator.PyTree as G
 import Geom.IBM as D_IBM
 import KCore.test as test
-import numpy 
+import numpy
 
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,11,12))
 a = C.node2Center(a)
@@ -25,3 +25,11 @@ for z in Internal.getZones(a):
 
 D_IBM._changeIBCType(a,2,3)
 test.testT(a, 1)
+
+C.addState2Node__(a, 'GoverningEquations', 'NSLaminar')
+D_IBM._changeIBCType(a,3,331)
+test.testT(a, 2)
+
+C.addState2Node__(a, 'GoverningEquations', 'NSTurbulent')
+D_IBM._changeIBCType(a,331,332)
+test.testT(a, 3)

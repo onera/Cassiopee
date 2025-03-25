@@ -9,7 +9,7 @@ def F(x,y,z):
     deg = 1
     if deg == 0 :
         return 10.
-    elif deg == 1 : 
+    elif deg == 1 :
         return x + 2.*y + 3.*z
     elif deg == 2 :
         return x*x + 2.*y*y + 3*z
@@ -23,7 +23,7 @@ def F(x,y,z):
         print('Error : unknown degree of polynomials')
         import sys
         sys.exit()
-        
+
 # Maillage en noeuds
 ni = 101; nj = 101; nk = 11
 m = G.cylinder((0,0,0), 1., 10.,45., 145., 1., (ni,nj,nk))

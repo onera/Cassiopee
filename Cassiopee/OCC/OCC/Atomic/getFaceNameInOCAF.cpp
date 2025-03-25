@@ -45,6 +45,7 @@
 #include <BRepAlgoAPI_Common.hxx>
 
 #include <TopLoc_Location.hxx>
+#include "Standard_Version.hxx"
 
 //=====================================================================
 // Get face names
@@ -76,15 +77,14 @@ PyObject* K_OCC::getFaceNameInOCAF(PyObject* self, PyObject* args)
   Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(doc->Main());
   shapeTool->GetShapes(labels);
 
-  PyObject* out = NULL;
-  out = PyList_New(0);
+  PyObject* out = PyList_New(0);
 
   TopTools_IndexedMapOfShape faces1 = TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*topShape, TopAbs_FACE, faces1);
   //TopExp_Explorer explorer1(*topShape, TopAbs_FACE);
   //for (; explorer1.More(); explorer1.Next()) { faces1.Add(explorer1.Current()); }
 
-  printf("Top shape has %d faces \n", faces1.Extent());
+  //printf("Top shape has %d faces \n", faces1.Extent());
 
   std::vector<E_Int> dejavu(faces1.Extent());
   for (size_t i = 0; i < dejavu.size(); i++) dejavu[i] = 0;
@@ -92,11 +92,11 @@ PyObject* K_OCC::getFaceNameInOCAF(PyObject* self, PyObject* args)
   for (Standard_Integer i = 1; i <= labels.Length(); i++)
   {
     TDF_Label label = labels.Value(i);
-    Handle(TDataStd_Name) NAME = new TDataStd_Name();
+    Handle(TDataStd_Name) name = new TDataStd_Name();
 
-    if (label.FindAttribute(TDataStd_Name::GetID(), NAME)) // retourne tous les attributs de type string
+    if (label.FindAttribute(TDataStd_Name::GetID(), name)) // retourne tous les attributs de type string
     { 
-      TCollection_ExtendedString labelName = NAME->Get();
+      TCollection_ExtendedString labelName = name->Get();
       std::cout << "Info: label name: " << labelName << std::endl;
 
       for (size_t i = 0; i < dejavu.size(); i++) dejavu[i] = 0;
@@ -225,6 +225,8 @@ PyObject* K_OCC::getFaceNameInOCAF(PyObject* self, PyObject* args)
 }
 
 //====================================================================================
+// Identify faces from component orders, return [names, [face no]] 
+//====================================================================================
 PyObject* K_OCC::getFaceNameInOCAF2(PyObject* self, PyObject* args)
 {
   PyObject* hook;
@@ -244,83 +246,141 @@ PyObject* K_OCC::getFaceNameInOCAF2(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  TopoDS_Shape* topShape = (TopoDS_Shape*)packet[0];
+  // Get labels corresponding to shapes
+  TDF_LabelSequence labels;
+  Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(doc->Main());
+  shapeTool->GetShapes(labels);
+
+  PyObject* out = PyList_New(0);
+
+  E_Int istart = 1; E_Int iend = 1;
+  for (Standard_Integer i = 1; i <= labels.Length(); i++)
+  {
+    TDF_Label label = labels.Value(i);
+    TopoDS_Shape shp = shapeTool->GetShape(label);
+    TopTools_IndexedMapOfShape faces = TopTools_IndexedMapOfShape();
+    TopExp::MapShapes(shp, TopAbs_FACE, faces);
+
+    Handle(TDataStd_Name) name = new TDataStd_Name();
+    if (label.FindAttribute(TDataStd_Name::GetID(), name)) // retourne tous les attributs de type string
+    { 
+      TCollection_ExtendedString labelName = name->Get();
+      //std::cout << "Info: label name: " << labelName << std::endl;
+
+      iend = istart + faces.Extent()-1;
+        
+      // export
+      PyObject* plist = PyList_New(iend - istart + 1);
+      PyObject* num;
+      for (E_Int j = istart; j <= iend; j++) 
+      { 
+        num = PyLong_FromLong(j);
+        PyList_SetItem(plist, j - istart, num); 
+      }
+      TCollection_AsciiString asciiStr(labelName);
+      const char* name = asciiStr.ToCString(); // component name
+      // clean for non utf8 chars
+      E_Int size = strlen(name);
+      char* nname = new char [size+1];
+      E_Int c = 0;
+      for (E_Int j = 0; j < size; j++)
+      {
+        unsigned int t = (unsigned int)name[j];
+        if (t >= 31 && t <= 128) { nname[c] = name[j]; c++; }
+      }
+      nname[c] = '\0';
+      PyObject* pystring = PyUnicode_FromString(nname);
+      delete [] nname;
+      PyList_Append(out, pystring); Py_DECREF(pystring);
+      PyList_Append(out, plist); Py_DECREF(plist);
+
+      if (shapeTool->IsAssembly(label) == false && shapeTool->IsCompound(label) == false)
+      {        
+        istart = iend+1;
+      }
+    }
+  }
+
+  return out;
+}
+
+//====================================================================================
+// Identify edges from component orders, return [names, [face no]] 
+//====================================================================================
+PyObject* K_OCC::getEdgeNameInOCAF2(PyObject* self, PyObject* args)
+{
+  PyObject* hook;
+  if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  if (doc == NULL) 
+  {
+    PyErr_SetString(PyExc_TypeError, "getFaceNameInOCAF: no OCAF document.");
+    return NULL;
+  }
   
   // Get labels corresponding to shapes
   TDF_LabelSequence labels;
   Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(doc->Main());
   shapeTool->GetShapes(labels);
 
-  TopTools_IndexedMapOfShape faces = TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*topShape, TopAbs_FACE, faces);
+  PyObject* out = PyList_New(0);
 
+  E_Int istart = 1; E_Int iend = 1;
   for (Standard_Integer i = 1; i <= labels.Length(); i++)
   {
     TDF_Label label = labels.Value(i);
+    TopoDS_Shape shp = shapeTool->GetShape(label);
+    TopTools_IndexedMapOfShape edges = TopTools_IndexedMapOfShape();
+    TopExp::MapShapes(shp, TopAbs_EDGE, edges);
+
     Handle(TDataStd_Name) name = new TDataStd_Name();
     if (label.FindAttribute(TDataStd_Name::GetID(), name)) // retourne tous les attributs de type string
     { 
       TCollection_ExtendedString labelName = name->Get();
-      std::cout << "Info: label name: " << labelName << std::endl;
-    }
+      //std::cout << "Info: label name: " << labelName << std::endl;
 
-    Handle(XCAFDoc_ShapeMapTool) shapeMapTool;
-    Handle(TDF_Attribute) attr;
-    if (label.FindAttribute(XCAFDoc_ShapeMapTool::GetID(), attr))
-    {
-      //shapeMapTool = Handle(XCAFDoc_ShapeMapTool::DownCast(attr));
-
-      //for (E_Int i = 1; i <= faces.Extent(); i++)
-      //{
-      //  TopoDS_Face F = TopoDS::Face(faces(i));
-      //  bool ret = shapeMapTool->IsSubShape(faces(i));
-      //  printf("found face %d = %d\n", i, ret);
-      //}
-    }
-  }
-
-  for (E_Int i = 1; i <= faces.Extent(); i++)
-  {
-    TopoDS_Face F = TopoDS::Face(faces(i));
-    
-    // Essai avec FindShape pour retrouver la label d'une face
-    /*
-    TDF_Label label = shapeTool->FindShape(F);
-    Handle(TDataStd_Name) name = new TDataStd_Name();
-    if (label.FindAttribute(TDataStd_Name::GetID(), name))
-    { 
-      TCollection_ExtendedString labelName = name->Get();
-      std::cout << "Info: label name: " << labelName << std::endl;
-    }*/
-
-    // Essai avec findComponent
-    /*
-    TDF_LabelSequence labels;
-    shapeTool->FindComponent(F, labels);
-    for (Standard_Integer i = 1; i <= labels.Length(); i++)
-    {
-      TDF_Label label = labels.Value(i);
-      Handle(TDataStd_Name) name = new TDataStd_Name();
-      if (label.FindAttribute(TDataStd_Name::GetID(), name))
+      iend = istart + edges.Extent()-1;
+      
+      // export
+      PyObject* plist = PyList_New(iend - istart + 1);
+      PyObject* num;
+      for (E_Int j = istart; j <= iend; j++) 
       { 
-        TCollection_ExtendedString labelName = name->Get();
-        std::cout << "Info: label name: " << labelName << std::endl;
+        num = PyLong_FromLong(j);
+        PyList_SetItem(plist, j - istart, num); 
       }
-    }*/
+      TCollection_AsciiString asciiStr(labelName);
+      const char* name = asciiStr.ToCString(); // component name
+      // clean for non utf8 chars
+      E_Int size = strlen(name);
+      char* nname = new char [size+1];
+      E_Int c = 0;
+      for (E_Int j = 0; j < size; j++)
+      {
+        unsigned int t = (unsigned int)name[j];
+        if (t >= 31 && t <= 128) { nname[c] = name[j]; c++; }
+      }
+      nname[c] = '\0';
+      PyObject* pystring = PyUnicode_FromString(nname);
+      delete [] nname;
 
-    // Essai avec FindMainShape
-    /*
-    TDF_Label label = shapeTool->FindMainShape(F);
-    Handle(TDataStd_Name) name = new TDataStd_Name();
-    if (label.FindAttribute(TDataStd_Name::GetID(), name))
-    { 
-      TCollection_ExtendedString labelName = name->Get();
-      std::cout << "Info: label name: " << labelName << std::endl;
+      PyList_Append(out, pystring); Py_DECREF(pystring);
+      PyList_Append(out, plist); Py_DECREF(plist);
+
+      if (shapeTool->IsAssembly(label) == false && shapeTool->IsCompound(label) == false)
+      {        
+        istart = iend+1;
+      }
     }
-    */
   }
 
-  // Essai avec isSubShape
-
-  return Py_None;
+  return out;
 }

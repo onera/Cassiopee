@@ -1,4 +1,4 @@
-# - copyNode (pyTree) - 
+# - copyNode (pyTree) -
 import Converter.Internal as Internal
 import KCore.test as test
 

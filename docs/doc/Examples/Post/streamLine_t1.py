@@ -34,7 +34,7 @@ test.testA([p], 1)
 x0 = 5.; y0 = 5.; z0 = 0.
 p = P.streamLine(s, (x0,y0,z0),['rou','rov','row'], N=200)
 test.testA([p], 2)
-    
+
 # 3D non struct
 m2 = C.convertArray2Tetra(m)
 p = P.streamLine(m2,(x0,y0,z0),['rou','rov','row'])

@@ -24,10 +24,9 @@ s = XOR.convertNGON2DToNGON3D(s)
 #s = XOR.reorientExternalFaces(s)
 
 # Boolean operation
-x = XOR.diffSurf(t, s, tol = 0., preserve_right=1, agg_mode=2) # agg_mode=2 : full mode aggregation
+x = XOR.diffSurf(t, s, tol=0., preserve_right=1, agg_mode=2) # agg_mode=2 : full mode aggregation
 
 xa = XOR.agglomerateSmallCells(x, 0., 10.)
 
 x = XOR.diffMesh(x,xa)
 test.testT(x, 1)
-

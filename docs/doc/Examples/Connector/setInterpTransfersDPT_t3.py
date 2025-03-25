@@ -10,7 +10,7 @@ import Converter.Internal as Internal
 import KCore.test as test
 
 a = G.cart((-1,-1,-1),(0.04,0.04,1),(51,51,3))
-s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (15,15,5)) 
+s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (15,15,5))
 s = C.convertArray2Tetra(s); s = T.join(s); s = P.exteriorFaces(s)
 t = C.newPyTree(['Base']); t[2][1][2] = [a]
 # Blanking

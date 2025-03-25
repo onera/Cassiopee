@@ -12,4 +12,3 @@ s2 = C.convertArray2Tetra(s2); s2 = G.close(s2)
 
 x = XOR.booleanMinus(s1, s2, tol=0.)
 C.convertArrays2File([x], 'out.plt')
-

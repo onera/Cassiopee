@@ -36,4 +36,3 @@ t = C.newPyTree(['Base',a])
 t[2][1] = C.addState(t[2][1], 'EquationDimension', 3)
 t2 = DW.distance2Walls(t, bodies, type='mininterf', loc='centers')
 test.testT(t2,2)
-

@@ -26,4 +26,3 @@ s = D.sphere((0,0,0), 1., N=100); snear = 0.5
 res = G.octree([s], [snear], dfar=5., balancing=1)
 res1 = G.octree2Struct(res, vmin=5, ext=1, AMR=1)
 test.testT(res1,4)
-

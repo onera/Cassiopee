@@ -4,10 +4,10 @@ import Converter as C
 import Transform as T
 
 xo = 0.; yo = 0.; zo = 0.
-ni = 21; nj = 35; nk = 40 
+ni = 21; nj = 35; nk = 40
 hi = 1./(ni-1); hj = 1./(nj-1); hk = 1./(nk-1)
 
-# grilles z = cste 
+# grilles z = cste
 fkmin = G.cart((xo,yo,zo), (hi,hj,1.), (ni,nj,1))
 fkmax = T.translate(fkmin, (0.,0.,1.))
 

@@ -48,7 +48,7 @@ mc = C.node2Center(m)
 mc = C.initVars(mc,'{Density}=2*{x}+{x}*{y}')
 mc = C.extractVars(mc,['Density'])
 mc = P.computeGrad2(m,mc)
-test.testA([mc],3) 
+test.testA([mc],3)
 
 ni = 10; nj = 30; nk = 1
 m = G.cartNGon((0,0,0), (10./(ni-1),1,1), (ni,nj,nk))

@@ -38,4 +38,3 @@ C._initVars(t, 'centers:cellN', 1.)
 t = X.blankCellsTri(t, [[s1]], [], blankingType="cell_intersect", tol=1.e-12)
 #C.convertPyTree2File(t, 'out2.cgns')
 test.testT(t,2)
-

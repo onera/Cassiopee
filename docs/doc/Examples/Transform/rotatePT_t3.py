@@ -15,7 +15,7 @@ T._rotate(z, (0,0,0), (0,0,1), 32.)
 test.testT(z, 2)
 
 # ME
-a = G.cartHexa((0,0,0), (1,1,1), (10,10,10)) 
+a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
 b = G.cartTetra((9,0,0), (1,1,1), (10,10,10))
 z = C.mergeConnectivity(a, b, boundary=0)
 T._rotate(z, (0,0,0), (0,0,1), 32.)

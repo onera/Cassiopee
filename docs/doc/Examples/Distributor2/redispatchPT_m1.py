@@ -32,7 +32,7 @@ a = Cmpi.convertFile2SkeletonTree(LOCAL+'/in.cgns')
 a = Cmpi.readZones(a, LOCAL+'/in.cgns', rank=Cmpi.rank)
 
 # equilibrage 2 (a partir d'un squelette charge)
-(a, dic) = D2.distribute(a, NProc=Cmpi.size, algorithm='gradient1', 
+(a, dic) = D2.distribute(a, NProc=Cmpi.size, algorithm='gradient1',
                          useCom='match')
 Cmpi._convert2PartialTree(a)
 D2mpi._redispatch(a)

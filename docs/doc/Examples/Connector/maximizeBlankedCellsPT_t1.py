@@ -8,7 +8,7 @@ def F(x,y):
     if (x+y<1): return 1
     else: return 2
 
-# CAS 2D 
+# CAS 2D
 Ni = 50; Nj = 50
 a = G.cart((0,0,0),(1./(Ni-1),1./(Nj-1),1),(Ni,Nj,1))
 C._initVars(a,'cellN', F,['CoordinateX','CoordinateY'])
@@ -24,7 +24,7 @@ test.testT(t2,2)
 t2 = X.maximizeBlankedCells(t, depth=2, dir=1)
 test.testT(t2,21)
 
-# CAS 3D 
+# CAS 3D
 Ni = 50; Nj = 50; Nk = 20
 a = G.cart((0,0,0),(1./(Ni-1),1./(Nj-1),1./(Nk-1)),(Ni,Nj,Nk))
 a = C.initVars(a,'cellN', F,['CoordinateX','CoordinateY'])

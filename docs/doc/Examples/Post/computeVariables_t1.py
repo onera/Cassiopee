@@ -17,13 +17,13 @@ m = C.addVars([m,c])
 A = [m]
 vars = ['Pressure', 'Mach', 'Entropy', 'Enthalpy',
         'VelocityX', 'VelocityY', 'VelocityZ',
-        'Temperature', 'ViscosityMolecular', 
+        'Temperature', 'ViscosityMolecular',
         'PressureStagnation', 'TemperatureStagnation',
         'PressureDynamic']
 sol = P.computeVariables(m, vars)
 test.testA([sol], 1)
 
-# test sur une liste 
+# test sur une liste
 ni = 20; nj = 10
 m = G.cart((0,0,0), (5./(ni-1),10./(nj-1),1), (ni,nj,2))
 c = C.array('ro,rou, rov,row,roE', ni, nj, 2)
@@ -37,7 +37,7 @@ A.append(m)
 vars = ['Pressure', 'Mach']
 sol = P.computeVariables(A, vars)
 test.testA(sol, 2)
-# 
+#
 vars = ['PressureStagnation','TemperatureStagnation','PressureDynamic']
 sol = P.computeVariables(A, vars)
 test.testA(sol, 3)
@@ -55,7 +55,7 @@ m = C.addVars([m,c])
 A = [m]
 vars = ['Pressure', 'Mach', 'Entropy', 'Enthalpy',
         'VelocityX', 'VelocityY', 'VelocityZ',
-        'Temperature', 'ViscosityMolecular', 
+        'Temperature', 'ViscosityMolecular',
         'PressureStagnation', 'TemperatureStagnation',
         'PressureDynamic']
 sol = P.computeVariables(m, vars)

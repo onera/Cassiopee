@@ -8,4 +8,3 @@ b = D.line((1,0,0), (2,1,0), N=30)
 a = T.join([a,b])
 a = D.refine(a, N=30)
 C.convertArrays2File(a, 'out.plt')
-

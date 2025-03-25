@@ -5509,7 +5509,7 @@ def extractAllBCMatch(t, varList=None):
                 zdonor = Internal.getNodeFromName2(t, zname)
 
                 # Extraction BCMatch pour la zone donneuse
-                [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
+                [indR,fldD]  = extractBCMatch(zdonor, gc, dim, varList)
                 key          = z[0]+"/"+gc[0]
                 if fldD is not None: allMatch[key] = [indR,fldD]
 
@@ -5690,11 +5690,11 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
     # Type de la zone
     # ================
-    if dim[0]=='Structured': zoneType=1
+    if dim[0] == 'Structured': zoneType=1
     else:
         zoneType = 2; eltName = dim[3]
         if eltName=='NGON': pass
-        else: raise ValueError("extractBCMatch: not yet implement for basic elements.")
+        else: raise ValueError("extractBCMatch: not yet implemented for basic elements.")
 
     fields = []
 
@@ -5722,13 +5722,12 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
                     raise TypeError("extractBCMatch: expected variables at centers location.")
             else:
                 var = 'centers:'+var
-            fld = getField(var,zdonor)[0]
+            fld = getField(var, zdonor)[0]
 
-            if fld != []:
-                fields.append(fld)
+            if fld != []: fields.append(fld)
 
-        if fields != [] :
-            if zoneType==1: connects = []
+        if fields != []:
+            if zoneType == 1: connects = []
             else: connects = Internal.getElementNodes(zdonor)
 
             fields = Internal.convertDataNodes2Array2(fields, dim, connects, loc=1)
@@ -5742,13 +5741,13 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 
             # Infos raccord
             # =============
-            prr   = Internal.getNodeFromName1(gc,'PointRange')
-            prd   = Internal.getNodeFromName1(gc,'PointRangeDonor')
-            tri   = Internal.getNodeFromName1(gc,'Transform')
-            tri   = Internal.getValue(tri)
+            prr = Internal.getNodeFromName1(gc, 'PointRange')
+            prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
+            tri = Internal.getNodeFromName1(gc, 'Transform')
+            tri = Internal.getValue(tri)
 
-            wr    = Internal.range2Window(prr[1])
-            wd    = Internal.range2Window(prd[1])
+            wr = Internal.range2Window(prr[1])
+            wd = Internal.range2Window(prd[1])
 
             iminR = wr[0] ; imaxR = wr[1]
             jminR = wr[2] ; jmaxR = wr[3]
@@ -5767,12 +5766,12 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
                 print("Warning: extractBCMatch: Not a coincident match: ", gc[0])
                 return [indR,fldD]
 
-            niR   = dimzR[1]-1
-            njR   = dimzR[2]-1
-            nkR   = dimzR[3]-1
+            niR = dimzR[1]-1
+            njR = dimzR[2]-1
+            nkR = dimzR[3]-1
 
-            t1    = tri[0]
-            t2    = tri[1]
+            t1 = tri[0]
+            t2 = tri[1]
 
             if len(tri) == 3: t3 = tri[2]
             else: t3 = 0
@@ -5792,10 +5791,8 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
         varL = []
         for var in varList:
             spl = var.split(':')
-            if len(spl) !=1:
-                varL.append(spl[1])
-            else:
-                varL.append(spl[0])
+            if len(spl) != 1: varL.append(spl[1])
+            else: varL.append(spl[0])
 
         indR = Internal.getNodeFromName1(gc, 'PointList')
         indD = Internal.getNodeFromName1(gc, 'PointListDonor')
@@ -5811,9 +5808,6 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
                                                      Internal.__FlowSolutionNodes__,
                                                      Internal.__FlowSolutionCenters__)
 
-    # print("len(indR): ", len(indR))
-    # print("len(fldD): ", len(fldD[1][0]) )
-
     return [indR,fldD]
 
 # ===================================================================================
@@ -5822,8 +5816,8 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
 # Le champs en centre est extrapole sur les centres des faces et pondere (via l'algo
 # superMesh qui permet de decouper les faces)
 # ===================================================================================
-def extractAllBCMatchTNC(t,variables=None):
-    zones       = Internal.getZones(t)
+def extractAllBCMatchTNC(t, variables=None):
+    zones = Internal.getZones(t)
     allMatchTNC = {}
 
     # Variables a extraire
@@ -5833,7 +5827,7 @@ def extractAllBCMatchTNC(t,variables=None):
         else: varList = variables
     else:
         varList = []
-        FS = Internal.getNodeFromName1(zones[0],Internal.__FlowSolutionCenters__)
+        FS = Internal.getNodeFromName1(zones[0], Internal.__FlowSolutionCenters__)
         for fs in FS[2]:
             if Internal.getType(fs) == 'DataArray_t':
                 varList.append(Internal.getName(fs))
@@ -5844,33 +5838,31 @@ def extractAllBCMatchTNC(t,variables=None):
         if not isXZone(zoneA):
             indRzA = []
             fldDzA = []
-            dim    = Internal.getZoneDim(zoneA)
+            dim = Internal.getZoneDim(zoneA)
 
             if dim[0] != 'Structured':
                 print("extractAllBCMatchTNC: not ready for unstructured grid.")
                 return {}
 
-            gcs  = Internal.getNodesFromType2(zoneA, 'GridConnectivity_t')     # TNC
+            gcs = Internal.getNodesFromType2(zoneA, 'GridConnectivity_t')     # TNC
             gcs += Internal.getNodesFromType2(zoneA, 'GridConnectivity1to1_t') # near-match
 
             for gcA in gcs:
 
-                if (Internal.getNodeFromName1(gcA, '.Solver#Property') == None ):
-                    continue
-                else:
-                    print("TNC or near-field match found: ", gcA[0])
+                if Internal.getNodeFromName1(gcA, '.Solver#Property') is None: continue
+                else: print("TNC or near-field match found: ", gcA[0])
 
-                zname  = Internal.getValue(gcA)
-                zoneB  = Internal.getNodeFromName(t,zname) # A MODIFIER POUR TNC
+                zname = Internal.getValue(gcA)
+                zoneB = Internal.getNodeFromName(t,zname) # A MODIFIER POUR TNC
 
-                gcBs   = Internal.getNodesFromType2(zoneB, 'GridConnectivity_t')
-                gcBs  += Internal.getNodesFromType2(zoneB, 'GridConnectivity1to1_t')
+                gcBs = Internal.getNodesFromType2(zoneB, 'GridConnectivity_t')
+                gcBs += Internal.getNodesFromType2(zoneB, 'GridConnectivity1to1_t')
 
                 for gcB in gcBs:
                     zname = Internal.getValue(gcB)
                     if zname == zoneA[0]: break
 
-                key    = zoneA[0]+"/"+gcA[0]
+                key = zoneA[0]+"/"+gcA[0]
 
                 [indR,fldD] = computeBCMatchTNC(zoneA,zoneB,gcA, gcB, varList)
 
@@ -5880,7 +5872,7 @@ def extractAllBCMatchTNC(t,variables=None):
     return allMatchTNC
 
 
-def extractMatchOfName(t,bndName,reorder=True,extrapFlow=True):
+def extractMatchOfName(t, bndName, reorder=True, extrapFlow=True):
     """Return match surfaces of given name as zones (in analogy with
     C.extractBCOfType for BCs).
     """
@@ -5903,7 +5895,7 @@ def extractMatchOfName(t,bndName,reorder=True,extrapFlow=True):
 # ** ATTENTION : Code non fonctionnel pour le moment. **
 # Interpolation des champs sur les raccords de type no-match
 # ===================================================================================
-def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
+def computeBCMatchTNC(zoneA, zoneB, gcA, gcB, varList):
 
     try: import Transform.PyTree as T
     except: raise ImportError("computeBCMatchTNC: requires Transform module.")
@@ -5914,8 +5906,7 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
     # ================
     dim = Internal.getZoneDim(zoneB)
 
-    if dim[0] == 'Structured':
-        zoneType = 1
+    if dim[0] == 'Structured': zoneType = 1
     else:
         zoneType = 2; eltName = dim[3]
         if eltName == 'NGON':
@@ -5923,15 +5914,15 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
         else:
             raise ValueError("computeBCMatchTNC: not yet implement for basic elements.")
 
-    prr   = Internal.getNodeFromName1(gcA,'PointRange')
-    wrA   = Internal.range2Window(prr[1])
+    prr = Internal.getNodeFromName1(gcA,'PointRange')
+    wrA = Internal.range2Window(prr[1])
 
     iminA = wrA[0] ; imaxA = wrA[1]
     jminA = wrA[2] ; jmaxA = wrA[3]
     kminA = wrA[4] ; kmaxA = wrA[5]
 
-    prr   = Internal.getNodeFromName1(gcB,'PointRange')
-    wrB   = Internal.range2Window(prr[1])
+    prr = Internal.getNodeFromName1(gcB, 'PointRange')
+    wrB = Internal.range2Window(prr[1])
 
     iminB = wrB[0] ; imaxB = wrB[1]
     jminB = wrB[2] ; jmaxB = wrB[3]
@@ -5946,9 +5937,9 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
     XOR._convertNGON2DToNGON3D(surfA) # convert to ngon format expected by XOR (faces/nodes)
     XOR._convertNGON2DToNGON3D(clipB) # convert to ngon format expected by XOR (faces/nodes)
 
-    hook  = createHook(zoneA, function='faceCenters')
-    indR  = identifyFaces(hook, surfA) # indice des faces dans le maillage vol.
-    indR  = indR-1 # shift
+    hook = createHook(zoneA, function='faceCenters')
+    indR = identifyFaces(hook, surfA) # indice des faces dans le maillage vol.
+    indR = indR-1 # shift
 
     (ancA, ancB, weight, isMatch) = XOR.superMesh2(surfA, clipB, tol=-1.e-4, proj_on_first=True)
 
@@ -5960,15 +5951,12 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
         # on verifie qu'on cherche des variables aux centres
         spl = var.split(':')
         if len(spl) != 1:
-            if spl[0] != 'centers':
-                raise TypeError("computeBCMatchTNC: expected variables at centers location.")
-        else:
-            var = 'centers:'+var
+            if spl[0] != 'centers': raise TypeError("computeBCMatchTNC: expected variables at centers location.")
+        else: var = 'centers:'+var
 
         fld = getField(var, clipB0)[0]
 
-        if fld != []:
-            fields.append(fld)
+        if fld != []: fields.append(fld)
 
         if fields != []:
             if zoneType == 1: connects = []
@@ -5981,13 +5969,12 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
 
         return [indR, fx]
 
-
-
-# ===================================================================================
+# ===========================================================================================================
 # Extract fields at face centers defining a BC
 # If varList is None -> variables defined at cell centers are extracted
 # If a variable is defined in a BCDataSet, it is used, else Oth order extrapolation elsewhere
 # returns a list of var names, corresponding fields defined by numpy arrays and the numpy array of bc indices
+# ===========================================================================================================
 def extractBCFields(z, varList=None):
     """Extract fields on BCs."""
     typeZ = Internal.typeOfNode(z)
@@ -5998,24 +5985,23 @@ def extractBCFields(z, varList=None):
         zp = Internal.getZones(zp)[0]
         print('Warning: valid for only one zone. Zone %s is selected.'%(zp[0]))
 
-
     if varList is None:
-        varList=[]
+        varList = []
         FS = Internal.getNodeFromName1(zp,Internal.__FlowSolutionCenters__)
         for fs in FS[2]:
-            if Internal.getType(fs)=='DataArray_t':
+            if Internal.getType(fs) == 'DataArray_t':
                 varList.append(Internal.getName(fs))
 
     dimZone = Internal.getZoneDim(zp)
     PE = None
-    if dimZone[0]=='Structured': zoneType=1
+    if dimZone[0] == 'Structured': zoneType=1
     else:
         zoneType = 2; eltName = dimZone[3]
         if eltName == 'NGON': pass
         else: raise ValueError("extractBCFields: not yet implement for basic elements.")
 
-    bcnodes = Internal.getNodesFromType2(zp,'BC_t')
-    allFields=[];allIndices=[]; allVars=[]
+    bcnodes = Internal.getNodesFromType2(zp, 'BC_t')
+    allFields=[]; allIndices=[]; allVars=[]
     for bc in bcnodes:
         fieldsL=[]; varsL=[]; indicesL=[]
 
@@ -6044,19 +6030,18 @@ def extractBCFields(z, varList=None):
 
         #3. no BCDataSet or variable not in BCDataSet -> Oth order extrapolation
         if len(varsL) < len(varList):
-            varsE=[]
+            varsE = []
             for var in varList:
                 if var not in varsL: varsE.append(var)
 
-
-            if zoneType==2:
+            if zoneType == 2:
                 if eltName =='NGON':
                     PE = Internal.getNodeFromName2(zp, 'ParentElements')
                     if PE is None: Internal._adaptNFace2PE(zp, remove=False)
                 else:
                     raise TypeError('extractBCFields: basic elements not yet implemented.')
 
-            locI = 1# volume fields located at centers
+            locI = 1 # volume fields located at centers
             fieldsL += Converter.converter.extractBCFields(zp, indicesL, varsE, locI,
                                                            Internal.__GridCoordinates__,
                                                            Internal.__FlowSolutionNodes__,

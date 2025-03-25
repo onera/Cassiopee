@@ -14,7 +14,7 @@ res = P.integ(m,'vx') + P.integ(m,'centers:vy')
 test.testO(res,1)
 
 # 1D
-ni = 30 
+ni = 30
 m = G.cart((0,0,0), (10./(ni-1),1,1), (ni,1,1))
 m = C.initVars(m, 'vx', 1.)
 m = C.initVars(m, 'centers:vy', 2.)
@@ -32,7 +32,7 @@ res = P.integ(m,'vx') + P.integ(m,'centers:vy')
 test.testO(res,3)
 
 # BAR
-ni = 30 
+ni = 30
 m = G.cart((0,0,0), (10./(ni-1),1,1), (ni,1,1))
 m = C.convertArray2Tetra(m)
 m = C.initVars(m, 'vx', 1.)
