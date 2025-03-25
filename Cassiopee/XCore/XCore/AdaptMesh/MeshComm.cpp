@@ -18,30 +18,11 @@
 */
 #include <numeric>
 #include <limits>
+#include <unordered_map>
 
 #include "Mesh.h"
 #include "common/mem.h"
 #include "scotch/ptscotch.h"
-
-#define TOL 1e-12
-
-static inline
-int Sign(E_Float x)
-{
-    if (x < TOL) return -1;
-    if (x > TOL) return 1;
-    return 0;
-}
-
-static inline
-int same_point(E_Float xi, E_Float yi, E_Float zi, E_Float xj, E_Float yj, E_Float zj)
-{
-    //return (xi == xj) && (yi == yj) && (zi == zj);
-    if (fabs(xi - xj) > TOL) return 0;
-    if (fabs(yi - yj) > TOL) return 0;
-    if (fabs(zi - zj) > TOL) return 0;
-    return 1;
-}
 
 static
 E_Int *compute_cell_weights(Mesh *M)
@@ -164,13 +145,14 @@ E_Int *map_cell_graph(Mesh *M, E_Int *cwgts)
     return cmap;
 }
 
-#define TOL 1e-12
+// TODO(Imad): point redistribution is not robust.
 
-static inline
-E_Int cmp_sign(E_Float x)
+#define TOL 1e-10
+
+int sign(E_Float x)
 {
-    if (x > TOL) return 1;
     if (x < -TOL) return -1;
+    if (x > TOL) return 1;
     return 0;
 }
 
@@ -178,28 +160,30 @@ struct xyz {
     E_Float x, y, z;
 
     bool operator<(const xyz &p) const {
-        E_Int sx = cmp_sign(x - p.x);
-        E_Int sy = cmp_sign(y - p.y);
-        E_Int sz = cmp_sign(z - p.z);
-
-        return (sx < 0) ||
-               (sx == 0 && sy < 0) ||
-               (sx == 0 && sy == 0 && sz < 0);
+        if (sign(x-p.x) < 0) return true;
+        if (sign(x-p.x) == 0 && sign(y-p.y) < 0) return true;
+        if (sign(x-p.x) == 0 && sign(y-p.y) == 0 && sign(z-p.z) < 0) return true;
+        return false;
     }
 };
 
 static
 E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 {
+    /*
     if (M->pid == 0) puts("Verifying mesh integrity...");
-
     Mesh_set_orientation(M);
-
+    if (M->mode_2D) {
+        for (E_Int cid = 0; cid < M->nc; cid++) H18_reorder(cid, M);
+    } else {
+        for (E_Int cid = 0; cid < M->nc; cid++) H27_reorder(cid, M);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
     if (M->pid == 0) {
         puts("Mesh integrity OK");
         fflush(stdout);
     }
-
+    */
 
     // Allocate contiguous count arrays
 
@@ -251,6 +235,7 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     int *rnamedist = dists + 15 * dist_size;
     int *stypedist = dists + 16 * dist_size;
     int *rtypedist = dists + 17 * dist_size;
+
 
     // Redistribute cells
 
@@ -471,7 +456,7 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
                   rfrange, rcount, rdist, XMPI_INT,
                   MPI_COMM_WORLD);
     
-    // Send faces
+    // Send faces and count points to be exchanged
 
     for (E_Int i = 0; i < M->npc; i++) {
         scount[i] = 8*sfcount[i];
@@ -483,10 +468,18 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     E_Int *sfaces = IntArray(sdist[M->npc]);
     E_Int *rfaces = IntArray(rdist[M->npc]);
 
+    std::map<E_Int, E_Int> pts;
+
     for (E_Int i = 0; i < M->npc; i++) {
         E_Int *pf = &sfids[sfdist[i]];
 
         E_Int *ptr = &sfaces[sdist[i]];
+
+        // Send the points numbered from 0 to np-1
+        // TODO(Imad): maybe cache this?
+        pts.clear();
+        pts[-1] = -1;
+        E_Int count = 0;
 
         for (E_Int j = 0; j < sfcount[i]; j++) {
             E_Int gfid = pf[j];
@@ -494,202 +487,153 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
 
             E_Int *face = Mesh_get_face(M, lfid);
 
-            for (E_Int k = 0; k < 8; k++) *ptr++ = face[k];
+            for (E_Int k = 0; k < 8; k++) {
+                E_Int lp = face[k];
+
+                auto it = pts.find(lp);
+
+                if (it == pts.end()) {
+                    *ptr++ = count;
+                    pts[lp] = count;
+                    count++;
+                } else {
+                    *ptr++ = it->second;
+                }
+            }
         }
+
+        spcount[i] = count;
     }
   
     MPI_Alltoallv(sfaces, scount, sdist, XMPI_INT,
                   rfaces, rcount, rdist, XMPI_INT,
                   MPI_COMM_WORLD);
-    
-    // Request points
 
     if (M->pid == 0) puts("Distributing points...");
 
-    // TODO(Imad): rethink this part.
-
-    if (M->pid == 0) puts("    Counting points...");
-
-    for (E_Int i = 0; i < M->npc; i++) {
-        E_Int *pn = &rfaces[rdist[i]];
-
-        std::set<E_Int> points;
-        points.insert(-1); // Same trick
-
-        for (E_Int j = 0; j < rcount[i]; j++) {
-            E_Int lpid = pn[j];
-
-            //if (lpid == -1) continue;
-
-            if (points.find(lpid) == points.end()) {
-                rpcount[i]++;
-                points.insert(lpid);
-            }
-        }
-    }
-
-    MPI_Alltoall(rpcount, 1, MPI_INT, spcount, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(spcount, 1, MPI_INT, rpcount, 1, MPI_INT, MPI_COMM_WORLD);
 
     for (E_Int i = 0; i < M->npc; i++) {
         spdist[i+1] = spdist[i] + spcount[i];
         rpdist[i+1] = rpdist[i] + rpcount[i];
     }
 
-    E_Int *spoints = IntArray(spdist[M->npc]);
-    E_Int *rpoints = IntArray(rpdist[M->npc]);
-
-    ptr = rpoints;
-
-    std::vector<std::map<E_Int, E_Int>> pmap(M->npc);
-
-    E_Int np = 0;
-
-    if (M->pid == 0) puts("    Exchanging point ids...");
-
-    for (E_Int i = 0; i < M->npc; i++) {
-        E_Int *pn = &rfaces[rdist[i]];
-
-        auto &map = pmap[i];
-        map[-1] = -1;
-
-        for (E_Int j = 0; j < rcount[i]; j++) {
-            E_Int lpid = pn[j];
-
-            //if (lpid == -1) continue;
-
-            if (map.find(lpid) == map.end()) {
-                *ptr++ = lpid;
-                map[lpid] = np++;
-            }
-        }
-    }
-
-    assert(ptr - rpoints == rpdist[M->npc]);
-
-    MPI_Alltoallv(rpoints, rpcount, rpdist, XMPI_INT,
-                  spoints, spcount, spdist, XMPI_INT,
-                  MPI_COMM_WORLD);
-    
-    assert(rpdist[M->npc] == np);
-    
-    XFREE(rpoints);
-
-    // Send coordinates
-
-    if (M->pid == 0) puts("    Exchanging point coordinates...");
-
     E_Float *sx = FloatArray(spdist[M->npc]);
     E_Float *sy = FloatArray(spdist[M->npc]);
     E_Float *sz = FloatArray(spdist[M->npc]);
-
     E_Float *rx = FloatArray(rpdist[M->npc]);
     E_Float *ry = FloatArray(rpdist[M->npc]);
     E_Float *rz = FloatArray(rpdist[M->npc]);
 
+    E_Float *px = sx;
+    E_Float *py = sy;
+    E_Float *pz = sz;
+
     for (E_Int i = 0; i < M->npc; i++) {
-        E_Int *pn = &spoints[spdist[i]];
-        
-        E_Float *psx = &sx[spdist[i]];
-        E_Float *psy = &sy[spdist[i]];
-        E_Float *psz = &sz[spdist[i]];
+        E_Int *pf = &sfids[sfdist[i]];
 
-        for (E_Int j = 0; j < spcount[i]; j++) {
-            E_Int lpid = pn[j];
-            assert(lpid != -1);
-            
-            *psx++ = M->X[lpid];
-            *psy++ = M->Y[lpid];
-            *psz++ = M->Z[lpid];
+        E_Int *ptr = &sfaces[sdist[i]];
+
+        pts.clear();
+        pts[-1] = -1;
+        E_Int count = 0;
+
+        for (E_Int j = 0; j < sfcount[i]; j++) {
+            E_Int gfid = pf[j];
+            E_Int lfid = M->g2lf.at(gfid);
+
+            E_Int *face = Mesh_get_face(M, lfid);
+
+            for (E_Int k = 0; k < 8; k++) {
+                E_Int lp = face[k];
+
+                auto it = pts.find(lp);
+
+                if (it == pts.end()) {
+                    *px++ = M->X[lp];
+                    *py++ = M->Y[lp];
+                    *pz++ = M->Z[lp];
+                    pts[lp] = count++;
+                }
+            }
         }
-    }
 
+        assert(spcount[i] == count);
+    }
+    
     MPI_Alltoallv(sx, spcount, spdist, MPI_DOUBLE,
                   rx, rpcount, rpdist, MPI_DOUBLE,
                   MPI_COMM_WORLD);
-    
+
     MPI_Alltoallv(sy, spcount, spdist, MPI_DOUBLE,
                   ry, rpcount, rpdist, MPI_DOUBLE,
                   MPI_COMM_WORLD);
-
+    
     MPI_Alltoallv(sz, spcount, spdist, MPI_DOUBLE,
                   rz, rpcount, rpdist, MPI_DOUBLE,
                   MPI_COMM_WORLD);
 
-    // Renumber the ngon
+    // Shift the point indices
 
-    if (M->pid == 0) puts("    Updating face points...");
-
+    E_Int accum = 0;
     for (E_Int i = 0; i < M->npc; i++) {
         E_Int *pn = &rfaces[rdist[i]];
 
-        const auto &map = pmap[i];
-
         for (E_Int j = 0; j < rcount[i]; j++) {
-            E_Int pt = pn[j];
-            if (pt == -1) continue;
-            pn[j] = map.at(pn[j]);
+            if (pn[j] != -1) {
+                pn[j] += accum;
+            }
+        }
+
+        accum += rpcount[i];
+    }
+
+    if (M->pid == 0) puts("Eliminating duplicate points...");
+
+    std::map<E_Int, E_Int> dups;
+    E_Int np = 0;
+    pts.clear();
+
+    {
+        std::map<xyz, E_Int> cloud;
+        for (E_Int i = 0; i < rpdist[M->npc]; i++) {
+            xyz crd = {rx[i], ry[i], rz[i]};
+            auto it = cloud.find(crd);
+            if (it == cloud.end()) {
+                cloud[crd] = i;
+                pts[i] = np;
+                np++;
+            } else {
+                dups[i] = it->second;
+            }
         }
     }
 
-    // Eliminate duplicate points
+    if (M->pid == 0) puts("Renumbering points...");
 
-    // np is the number of received points, including possible duplicates
+    E_Float *X = FloatArray(np);
+    E_Float *Y = FloatArray(np);
+    E_Float *Z = FloatArray(np);
 
-    if (M->pid == 0) puts("    Isolating duplicate points...");
-    std::map<E_Int, E_Int> dup_to_unique;
-    std::map<xyz, E_Int> points;
+    pts[-1] = -1;
+    dups[-1] = -1;
 
-    for (E_Int i = 0; i < np; i++) {
-        xyz point = {rx[i], ry[i], rz[i]};
-        auto it = points.find(point);
-        if (it == points.end()) {
-            points[point] = i;
+    for (E_Int i = 0; i < rdist[M->npc]; i++) {
+        E_Int lp = rfaces[i];
+
+        auto it = dups.find(lp);
+
+        if (it == dups.end()) {
+
+            E_Int new_pid = pts.at(lp);
+            rfaces[i] = new_pid;
+            X[new_pid] = rx[lp];
+            Y[new_pid] = ry[lp];
+            Z[new_pid] = rz[lp];
+            
         } else {
-            dup_to_unique[i] = it->second;
-        }
-    }
-
-    std::map<E_Int, E_Int> new_pids;
-    E_Int unique_np = 0;
-
-    if (M->pid == 0) puts("    Renumbering points...");
-
-    for (E_Int i = 0; i < np; i++) {
-        auto it = dup_to_unique.find(i);
-        if (it == dup_to_unique.end()) {
-            new_pids[i] = unique_np++;
-        }
-    }
-
-    if (M->pid == 0) puts("    Building point coordinates...");
-
-    E_Float *X = FloatArray(unique_np);
-    E_Float *Y = FloatArray(unique_np);
-    E_Float *Z = FloatArray(unique_np);
-
-    for (E_Int i = 0; i < np; i++) {
-        auto it = dup_to_unique.find(i);
-        if (it == dup_to_unique.end()) {
-            E_Int new_pid = new_pids[i];
-            X[new_pid] = rx[i];
-            Y[new_pid] = ry[i];
-            Z[new_pid] = rz[i];
-        }
-    }
-
-    // Renumber ngon
-
-    new_pids[-1] = -1; // Same trick
-
-    for (E_Int i = 0; i < 8*nf; i++) {
-        E_Int pid = rfaces[i];
-        auto it = dup_to_unique.find(pid);
-        if (it == dup_to_unique.end()) {
-            // unique point
-            rfaces[i] = new_pids.at(pid);
-        } else {
-            // dup point
-            rfaces[i] = new_pids.at(it->second);
+            
+            rfaces[i] = pts.at(it->second);
         }
     }
 
@@ -1360,7 +1304,7 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     
     Mesh_reset_parallel_data(M);
 
-    M->np = unique_np;
+    M->np = np;
     M->X = X;
     M->Y = Y;
     M->Z = Z;
@@ -1439,6 +1383,18 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     M->flevel = rflvl;
     M->ftype = rftyp;
 
+    /*
+    if (M->pid == 0) puts("Verifying mesh integrity after balancing...");
+    Mesh_set_orientation(M);
+    if (M->mode_2D) {
+        for (E_Int cid = 0; cid < M->nc; cid++) H18_reorder(cid, M);
+    } else {
+        for (E_Int cid = 0; cid < M->nc; cid++) H27_reorder(cid, M);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (M->pid == 0) puts("Mesh integrity OK.");
+    */
+
     // Clean-up
 
     if (M->pid == 0) puts("Cleaning-up...");
@@ -1473,7 +1429,6 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     XFREE(sx);
     XFREE(sy);
     XFREE(sz);
-    XFREE(spoints);
     
     XFREE(sfids);
     XFREE(sfaces);

@@ -69,6 +69,33 @@ E_Int Q9_refine(E_Int quad, Mesh *M)
     // Make centroid
     E_Float fc[3] = {0, 0, 0};
 
+    /*
+    // Flip to make computation consistent (without FP errors)
+    {
+        auto it = M->face_to_ppatch.find(quad);
+        if (it != M->face_to_bpatch.end()) {
+            PPatch *P = &M->pps[it->second];
+            if (P->nei < M->pid) {
+                E_Int nodes[4];
+                for (int i = 0; i < 4; i++) nodes[i] = NODES[i];
+                std::reverse(nodes+1, nodes+4);
+                for (E_Int i = 0; i < 4; i++) {
+                    fc[0] += M->X[nodes[i]];
+                    fc[1] += M->Y[nodes[i]];
+                    fc[2] += M->Z[nodes[i]];
+                }
+            }
+        }
+        else {
+            for (E_Int i = 0; i < 4; i++) {
+                fc[0] += M->X[NODES[i]];
+                fc[1] += M->Y[NODES[i]];
+                fc[2] += M->Z[NODES[i]];
+            }
+        }
+    }
+    */
+
     for (E_Int i = 0; i < 4; i++) {
         fc[0] += M->X[NODES[i]];
         fc[1] += M->Y[NODES[i]];

@@ -55,13 +55,13 @@ void print_postrefinement_data(Mesh *M)
         printf("    Total faces after refinement: " SF_D_ "\n", gnf);
     }
 
-    if (M->npc == 1) return;
+    //if (M->npc == 1) return;
 
     E_Float balanced = gnc / (E_Float) M->npc;
     E_Float my_imbalance = fabs((M->nc - balanced) / (E_Float)balanced * 100.0);
     E_Float max_imbalance;
     MPI_Allreduce(&my_imbalance, &max_imbalance, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-    if (M->pid == 0) printf("    Max cell imbalance: %.2f%%\n", max_imbalance);
+    //if (M->pid == 0) printf("    Max cell imbalance: %.2f%%\n", max_imbalance);
 }
 
 PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
@@ -79,6 +79,11 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
     }
 
     Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
+
+    if (M->pid == 0) puts("Setting mesh orientation...");
+    Mesh_set_orientation(M);
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     if (M->pid == 0) puts("Adapting...");
 
@@ -106,8 +111,6 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
     if (M->pid == 0) puts("    Refining...");
     Mesh_refine(M, ref_cells, ref_faces, ref_edges);
 
-    print_postrefinement_data(M);
-
     if (M->pid == 0) puts("    Updating global cell ids...");
     Mesh_update_global_cell_ids(M);
 
@@ -119,6 +122,8 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("    Updating global face ids...");
     Mesh_update_global_face_ids(M);
+
+    print_postrefinement_data(M);
 
     if (M->pid == 0) puts("    Conformizing face edges...");
     Mesh_conformize_face_edge(M);

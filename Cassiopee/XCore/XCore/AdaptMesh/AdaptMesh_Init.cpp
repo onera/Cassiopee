@@ -73,6 +73,9 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     // Init Mesh
 
     Mesh *M = Mesh_from_Karray(&karray);
+    //printf("Initial cells: %d\n", M->nc);
+    //printf("Initial faces: %d\n", M->nf);
+    //printf("Initial points: %d\n", M->np);
  
     // Init global-to-local ids maps
     for (E_Int i = 0; i < M->nf; i++) M->g2lf[fgids[i]-1] = i;

@@ -170,7 +170,7 @@ void Mesh_make_edge_connectivity(Mesh *M)
 
 void Mesh_update_global_cell_ids(Mesh *M)
 {
-    if (M->npc == 1) return;
+    //if (M->npc == 1) return;
 
     E_Int new_cells = M->nc - M->nc_old;
 
@@ -364,7 +364,7 @@ void Mesh_update_bpatches(Mesh *M)
 
 void Mesh_update_global_face_ids(Mesh *M)
 {
-    if (M->npc == 1) return;
+    //if (M->npc == 1) return;
 
     M->l2gf = (E_Int *)XRESIZE(M->l2gf, M->nf * sizeof(E_Int)); 
     for (E_Int i = M->nf_old; i < M->nf; i++) M->l2gf[i] = -1; 
@@ -534,12 +534,16 @@ void Mesh_make_cell_cells(Mesh *M)
     assert(M->owner);
     assert(M->neigh);
 
+    //XFREE(M->owner);
+    //XFREE(M->neigh);
+    //Mesh_set_orientation(M);
+
     assert(M->xneis == NULL);
     assert(M->cneis == NULL);
 
     M->xneis = IntArray(M->nc + 1);
 
-    // E_Internal faces
+    // Internal faces
     E_Int nif = 0;
 
     for (E_Int i = 0; i < M->nf; i++) {
@@ -599,6 +603,15 @@ void Mesh_make_cell_cells(Mesh *M)
             M->cneis[M->xneis[own] + count[own]++] = P->pn[j];
         }
     }
+
+    /*
+    for (E_Int cid = 0; cid < M->nc; cid++) {
+        for (E_Int j = M->xneis[cid]; j < M->xneis[cid+1]; j++) {
+            printf("%d ", M->cneis[j]);
+        }
+        puts("");
+    }
+    */
     
     XFREE(count);
 }
