@@ -16,7 +16,7 @@ def Func(x, y, z):
     return x2+y2 > a1 and x2+y2 < a2
 
 if Cmpi.rank == 0:
-    a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(4,3,2))
+    a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
     a = C.convertArray2NGon(a)
     a = C.fillEmptyBCWith(a, 'wall', 'BCWall', dim=3)
     I._adaptNGon32NGon4(a)
@@ -33,7 +33,7 @@ normal2D = None
 
 AM = X.AdaptMesh_Init(t, normal2D, comm, gcells, gfaces)
 
-itermax = 7 
+itermax = 7 # 7 
 
 for iter in range(itermax):
     if Cmpi.rank == 0:
@@ -41,19 +41,28 @@ for iter in range(itermax):
     
     C._initVars(t, 'centers:F', Func, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
     f = I.getNodeFromName(t, 'F')[1]
-    #REF = np.empty(len(f), dtype=I.E_NpyInt)
-    #REF[:] = f.astype(int)
-    REF = f.astype(dtype=np.int32)
+    REF = f.astype(dtype=I.E_NpyInt)
     
     X.AdaptMesh_AssignRefData(AM, REF)
 
-    #X.AdaptMesh_LoadBalance(AM)
+    '''
+    t = X.AdaptMesh_ExtractMesh(AM, conformize=1)
+    I._adaptNGon42NGon3(t)
+    Cmpi.convertPyTree2File(t, "unbalanced%d.cgns"%iter)
+    '''
+
+    X.AdaptMesh_LoadBalance(AM)
     
+    '''
+    t = X.AdaptMesh_ExtractMesh(AM, conformize=1)
+    I._adaptNGon42NGon3(t)
+    Cmpi.convertPyTree2File(t, "balanced%d.cgns"%iter)
+    '''
+
     X.AdaptMesh_Adapt(AM)
 
     t = X.AdaptMesh_ExtractMesh(AM, conformize=1)
+    I._adaptNGon42NGon3(t)
+    Cmpi.convertPyTree2File(t, "refined%d.cgns"%iter)
 
 X.AdaptMesh_Exit(AM)
-
-Cmpi.convertPyTree2File(t, "refined"+str(Cmpi.size)+".cgns")
-
