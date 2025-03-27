@@ -351,8 +351,6 @@ Distributor2.distribute or setProc.</p>
 <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">]</span>
 <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
 <span class="n">Distributed</span><span class="o">.</span><span class="n">writeZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.adf&#39;</span><span class="p">,</span> <span class="n">proc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-
 </pre></div>
 </div>
 </dd></dl>
@@ -383,10 +381,10 @@ partial tree (<strong>P</strong>) to a file (adf or hdf).</p>
 <span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
-<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
     <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart0&#39;</span>
-<span class="k">else</span><span class="p">:</span> 
+<span class="k">else</span><span class="p">:</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
     <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart1&#39;</span>
 
@@ -879,7 +877,6 @@ All processors then see the same tree.</p>
 <span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convert2PartialTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allgatherTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="c1"># full tree on every processors</span>
 <span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -966,7 +963,7 @@ Otherwise, the zone with its coordinates is moved to node.</p>
 
 <span class="c1"># Reread in parallel</span>
 <span class="n">sk</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;gradient0&#39;</span><span class="p">,</span> 
+<span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;gradient0&#39;</span><span class="p">,</span>
                                     <span class="n">useCom</span><span class="o">=</span><span class="s1">&#39;match&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
 

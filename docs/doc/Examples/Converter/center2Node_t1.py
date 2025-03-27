@@ -8,7 +8,7 @@ def F(x,y):
 def H(x,y):
     if (x+y > 5): return 0
     else: return 1
-    
+
 # Structure 3D
 ni = 30; nj = 40; nk = 10
 a = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))

@@ -5,7 +5,7 @@ import Post as P
 
 # Node mesh and field
 m = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
-c1 = C.array('ro', 100, 162, 'TRI') 
+c1 = C.array('ro', 100, 162, 'TRI')
 c = C.initVars(c1, 'ro', 1.)
 res = P.integNorm([m], [c], []); print('res1 = %f'%res)
 

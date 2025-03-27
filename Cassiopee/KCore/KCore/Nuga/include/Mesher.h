@@ -32,14 +32,14 @@
 #include "Nuga/include/macros.h"
 #include "Nuga/include/Edge.h"
 #ifdef E_TIME
-#include "chrono.h"
+#include "Nuga/include/chrono.h"
 #endif
 #include "Nuga/include/DelaunayMath.h"
 #include "Nuga/include/IdTool.h"
+#include "Nuga/include/random.h"
 #include <list>
 #include <deque>
 #include <set>
-#include "Nuga/include/random.h"
 
 #if defined(DEBUG_METRIC)
 #include "iodata.h"
@@ -782,14 +782,14 @@ namespace DELAUNAY
     std::vector<size_type> refine_nodes;
 
     coord_access_type posAcc(pos);
-    tree_type filter_tree(posAcc); // fixme : should be only triangulation nodes.
+    tree_type filter_tree(posAcc);
 
     size_type Ni, nb_refine_nodes;
 
     Refiner<MetricType> saturator(*_metric, mode.growth_ratio, mode.nb_smooth_iter, mode.symmetrize);
 
 #ifdef E_TIME
-    chrono c;
+    NUGA::chrono c;
 #endif
 
     float constrained = 0.;
@@ -811,11 +811,12 @@ namespace DELAUNAY
     }
 #endif
 
+      // genere des points dans refine_nodes
       saturator.computeRefinePoints(iter, *_data, _box_nodes, _data->hardEdges, refine_nodes, _N0);
-
 
 #ifdef E_TIME
       std::cout << "__compute_refine_points : " << c.elapsed() << std::endl;
+      std::cout << "nb proposed refined points : " << refine_nodes.size() << std::endl;
       c.start();
 #endif
 #ifdef DEBUG_METRIC
@@ -826,17 +827,24 @@ namespace DELAUNAY
     }
     //if (iter == 5) saturator._debug = true;
 #endif
-      saturator.filterRefinePoints(*_data, _box_nodes, refine_nodes, filter_tree);
 
+      // must be here!
+      //std::shuffle(ALL(refine_nodes), _random.gen);
+
+      // filtre refine_nodes
+      saturator.filterRefinePoints(*_data, _box_nodes, refine_nodes, filter_tree);
 #ifdef E_TIME
       std::cout << "__filter_refine_points : " << c.elapsed() << std::endl;
+      std::cout << "nb points to insert : " << refine_nodes.size() << std::endl;
       c.start();
 #endif
 
+      // insere les noeuds resultants
       nb_refine_nodes = refine_nodes.size();
       carry_on = (nb_refine_nodes != 0);
 
-      std::shuffle (ALL(refine_nodes), _random.gen);
+      // must not be here!
+      std::shuffle(ALL(refine_nodes), _random.gen);
 
       _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
 
@@ -866,7 +874,7 @@ namespace DELAUNAY
 
 #ifdef E_TIME
       std::cout << "compacting : " << c.elapsed() << std::endl;
-      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
 #endif
       ++iter;
 

@@ -323,6 +323,8 @@ inline E_Int Mesh_face_is_bface(Mesh *M, E_Int lfid)
     return M->face_to_bpatch.find(lfid) != M->face_to_bpatch.end();
 }
 
+E_Int Mesh_build_pe(Mesh *M);
+
 void Mesh_make_cell_cells(Mesh *M);
 
 inline E_Int Mesh_get_reorient(Mesh *M, E_Int face, E_Int cell, E_Int normalIn)
@@ -442,6 +444,14 @@ void Mesh_update_face_range_and_stride(Mesh *M, E_Int quad, E_Int fpos, E_Int nc
     }
 }
 
+struct point {
+    E_Float x, y, z;
+};
+
+void write_points(const char *fname, const std::vector<point> &points);
+
+void write_point(const char *fname, E_Float x, E_Float y, E_Float z);
+
 inline
 void Mesh_refine_or_get_edge_center(Mesh *M, E_Int p, E_Int q, E_Int &node)
 {
@@ -451,6 +461,12 @@ void Mesh_refine_or_get_edge_center(Mesh *M, E_Int p, E_Int q, E_Int &node)
         M->X[M->np] = 0.5 * (M->X[p] + M->X[q]);
         M->Y[M->np] = 0.5 * (M->Y[p] + M->Y[q]);
         M->Z[M->np] = 0.5 * (M->Z[p] + M->Z[q]);
+        /*if (M->np == 29) {
+            write_point("p", M->X[p], M->Y[p], M->Z[p]);
+            write_point("q", M->X[q], M->Y[q], M->Z[q]);
+            write_point("c", M->X[29], M->Y[29], M->Z[29]);
+            write_point("o", M->X[9], M->Y[9], M->Z[9]);
+        }*/
         node = M->np;
         M->ecenter[E] = M->np;
         M->np++;

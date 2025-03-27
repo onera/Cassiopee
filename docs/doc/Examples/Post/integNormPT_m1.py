@@ -26,4 +26,3 @@ if Cmpi.rank == 0:
 
 res1 = Pmpi.integNorm(t, 'vx')
 if Cmpi.rank == 0: test.testO(res1[0], 2)
-

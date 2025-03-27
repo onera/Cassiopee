@@ -14,4 +14,3 @@ b = G.cartNGon((-0.5,-0.5,-0.5),(0.05,0.05,0.1), (10,10,1))
 b = C.initVars(b,'F',1)
 c = T.projectOrtho([b], [a])
 test.testA([a,b]+c, 1)
-

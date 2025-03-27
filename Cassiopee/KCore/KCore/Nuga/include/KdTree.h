@@ -110,11 +110,11 @@ class KdTree {
 
     /// Underneath algorithm for creating a tree with a set of nodes (balanced construction).
     template <typename InputIterator>
-    E_Int __insert(InputIterator begin,InputIterator end, size_type depth);
+    E_Int __insert(InputIterator begin, InputIterator end, size_type depth);
     template <typename InputIterator>
-    void __insert_omp(InputIterator begin,InputIterator end, size_type depth);
+    void __insert_omp(InputIterator begin, InputIterator end, size_type depth);
     template <typename InputIterator>
-    E_Int __set_tree(InputIterator begin,InputIterator end);
+    E_Int __set_tree(InputIterator begin, InputIterator end);
 
     /// Underneath algorithm for the getClosest method.
     void __seek_closest(const E_Float *pt, size_type cur_col, size_type axis, E_Float& d2, size_type& m) const;

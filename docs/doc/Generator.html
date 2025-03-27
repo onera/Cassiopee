@@ -509,7 +509,6 @@ containing grid information (coordinates must be defined).</p>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
-    
 </pre></div>
 </div>
 <ul class="simple">
@@ -643,7 +642,6 @@ containing grid information (coordinates must be defined).</p>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartPyra</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.tp&#39;</span><span class="p">)</span>
-    
 </pre></div>
 </div>
 <ul class="simple">
@@ -734,7 +732,7 @@ containing grid information (coordinates must be defined).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - cylinder (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span> 
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -744,7 +742,7 @@ containing grid information (coordinates must be defined).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - cylinder (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span> 
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -788,7 +786,6 @@ containing grid information (coordinates must be defined).</p>
 <span class="n">z</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">cyl</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder2</span><span class="p">(</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">teta</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">cyl</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -944,7 +941,7 @@ box is kept in the final triangulation.</p>
 <span class="n">A</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">text1D</span><span class="p">(</span><span class="s1">&#39;CASSIOPEE&#39;</span><span class="p">)</span>
 <span class="n">A</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">A</span><span class="p">);</span> <span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
 <span class="c1"># Triangulation respecting given contour</span>
-<span class="n">tri</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">constrainedDelaunay</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> 
+<span class="n">tri</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">constrainedDelaunay</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">tri</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1096,8 +1093,8 @@ box is kept in the final triangulation.</p>
 <li><p><strong>c</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; triangulated surface mesh</p></li>
 <li><p><strong>maxh</strong> (<em>float</em>) &#8211; max cell size of generated mesh [tetgen]</p></li>
 <li><p><strong>grading</strong> (<em>float</em>) &#8211; max adjacent cell ratio [tetgen]</p></li>
-<li><p><strong>optionString</strong> (<em>string</em>) &#8211; string of options identical to tetgen [tetgen]</p></li>
 <li><p><strong>algo</strong> (<em>integer</em><em> (</em><em>0</em><em> or </em><em>1</em><em>)</em>) &#8211; choice parameter between netgen and tetgen</p></li>
+<li><p><strong>optionString</strong> (<em>string</em>) &#8211; string of options identical to tetgen [tetgen]</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1190,7 +1187,7 @@ TRI mesh is built from imin, jmin, diag boundaries. Each boundary is a structure
 <span class="c1"># TFI 2D structured</span>
 <span class="c1">#------------------</span>
 <span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-    
+
 <span class="c1"># Geometrie</span>
 <span class="n">d1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P1</span><span class="p">);</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P2</span><span class="p">,</span> <span class="n">P3</span><span class="p">)</span>
 
@@ -1210,7 +1207,7 @@ TRI mesh is built from imin, jmin, diag boundaries. Each boundary is a structure
 <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.</span><span class="p">;</span> <span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3.</span><span class="p">;</span> <span class="n">z</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
 <span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mf">6.</span><span class="p">;</span> <span class="n">y</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.</span><span class="p">;</span> <span class="n">z</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
 <span class="n">x</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.</span><span class="p">;</span> <span class="n">y</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">7.</span><span class="p">;</span> <span class="n">z</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
-<span class="n">b2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">bezier</span><span class="p">(</span> <span class="n">pts</span> <span class="p">)</span> 
+<span class="n">b2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">bezier</span><span class="p">(</span> <span class="n">pts</span> <span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">],</span> <span class="s2">&quot;geom.plt&quot;</span><span class="p">)</span>
 
@@ -1232,10 +1229,10 @@ TRI mesh is built from imin, jmin, diag boundaries. Each boundary is a structure
 <span class="c1"># TFI 3D structured</span>
 <span class="c1">#------------------</span>
 <span class="n">xo</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span> <span class="n">yo</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span> <span class="n">zo</span> <span class="o">=</span> <span class="mf">0.</span>
-<span class="n">nx</span> <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="n">ny</span> <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="n">nz</span> <span class="o">=</span> <span class="mi">21</span> 
+<span class="n">nx</span> <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="n">ny</span> <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="n">nz</span> <span class="o">=</span> <span class="mi">21</span>
 <span class="n">hx</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">hy</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">ny</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">hz</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
-<span class="c1"># z = cste </span>
+<span class="c1"># z = cste</span>
 <span class="n">fzmin</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">xo</span><span class="p">,</span><span class="n">yo</span><span class="p">,</span><span class="n">zo</span><span class="p">),</span> <span class="p">(</span><span class="n">hx</span><span class="p">,</span><span class="n">hy</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">fzmax</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">fzmin</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">))</span>
 
@@ -1272,10 +1269,10 @@ TRI mesh is built from imin, jmin, diag boundaries. Each boundary is a structure
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 
 <span class="c1"># Geometry</span>
-<span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>    
+<span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">Ni</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="n">Nj</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">d1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span><span class="n">Ni</span><span class="p">);</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P2</span><span class="p">,</span> <span class="n">P3</span><span class="p">,</span><span class="n">Ni</span><span class="p">)</span>
-<span class="n">d3</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span><span class="n">Nj</span><span class="p">);</span> <span class="n">d4</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">P3</span><span class="p">,</span><span class="n">Nj</span><span class="p">)</span> 
+<span class="n">d3</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span><span class="n">Nj</span><span class="p">);</span> <span class="n">d4</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">P3</span><span class="p">,</span><span class="n">Nj</span><span class="p">)</span>
 <span class="n">m</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">TFI</span><span class="p">([</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">,</span> <span class="n">d3</span><span class="p">,</span> <span class="n">d4</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
@@ -1312,7 +1309,7 @@ TRI mesh is built from imin, jmin, diag boundaries. Each boundary is a structure
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
 
 <span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-    
+
 <span class="c1"># 3 curves (dont need to be lines)</span>
 <span class="n">d1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
 <span class="n">d2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
@@ -1330,7 +1327,7 @@ TRI mesh is built from imin, jmin, diag boundaries. Each boundary is a structure
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 
 <span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-    
+
 <span class="c1"># 3 curves (dont need to be lines)</span>
 <span class="n">d1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
 <span class="n">d2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
@@ -1381,7 +1378,7 @@ TRI mesh is built from imin, jmin, diag boundaries. Each boundary is a structure
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
- 
+
 <span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">41</span><span class="p">)</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">TFIO</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
@@ -1417,7 +1414,7 @@ N1, the number of points of a1 and N2, the number of points of a2 must be odd.</
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
- 
+
 <span class="n">a1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">tetas</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tetae</span><span class="o">=</span><span class="mf">180.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">41</span><span class="p">)</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">N</span><span class="o">=</span><span class="mi">21</span><span class="p">)</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">TFIHalfO</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span>
@@ -1431,7 +1428,7 @@ N1, the number of points of a1 and N2, the number of points of a2 must be odd.</
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
- 
+
 <span class="n">a1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">tetas</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tetae</span><span class="o">=</span><span class="mf">180.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">41</span><span class="p">)</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">N</span><span class="o">=</span><span class="mi">21</span><span class="p">)</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">TFIHalfO</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span>
@@ -1467,7 +1464,7 @@ N1, the number of points of a1 and N2, the number of points of a2 must be odd.</
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
- 
+
 <span class="n">a1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">tetas</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tetae</span><span class="o">=</span><span class="mf">180.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">41</span><span class="p">)</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">N</span><span class="o">=</span><span class="mi">21</span><span class="p">)</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">TFIMono</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span>
@@ -1481,7 +1478,7 @@ N1, the number of points of a1 and N2, the number of points of a2 must be odd.</
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
- 
+
 <span class="n">a1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">tetas</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tetae</span><span class="o">=</span><span class="mf">180.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">41</span><span class="p">)</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">N</span><span class="o">=</span><span class="mi">21</span><span class="p">)</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">TFIMono</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span>
@@ -1516,7 +1513,7 @@ N1, the number of points of a1 and N2, the number of points of a2 must be odd.</
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
 
 <span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P4</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-    
+
 <span class="c1"># 5 curves (dont need to be lines)</span>
 <span class="n">d1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
 <span class="n">d2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
@@ -1537,7 +1534,7 @@ N1, the number of points of a1 and N2, the number of points of a2 must be odd.</
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 
 <span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P4</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-    
+
 <span class="c1"># 5 curves (dont need to be lines)</span>
 <span class="n">d1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
 <span class="n">d2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
@@ -1727,7 +1724,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
     <span class="nb">min</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">getMinValue</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s1">&#39;vol&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">min</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;negative volume detected.&#39;</span><span class="p">)</span>
-        
+
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1880,7 +1877,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/surfaceWalk.py">2D mesh extrusion from a curve and walking on a surface (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - surfaceWalk (array) </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - surfaceWalk (array)</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
@@ -1907,7 +1904,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/surfaceWalkPT.py">2D mesh extrusion from a curve and walking on a surface (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - surfaceWalk (pyTree) </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - surfaceWalk (pyTree)</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span>  <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span>  <span class="k">as</span> <span class="nn">T</span>
@@ -1968,7 +1965,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/collarMesh.py">3D collar mesh between two surfaces (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - collarMesh (array) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - collarMesh (array) -</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
@@ -1985,7 +1982,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/collarMeshPT.py">3D collar mesh between two surfaces (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - collarMesh (pyTree) </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - collarMesh (pyTree)</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
@@ -2037,7 +2034,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
 <span class="n">h</span> <span class="o">=</span> <span class="mf">1.e-1</span><span class="c1"># Step of finest Cartesian grid</span>
 <span class="n">Dfar</span> <span class="o">=</span> <span class="mf">10.</span><span class="c1"># Extension of far boundaries</span>
-<span class="n">nlvl</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span> <span class="c1"># Nb of points per level, except the 4th level (automatic) </span>
+<span class="n">nlvl</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span> <span class="c1"># Nb of points per level, except the 4th level (automatic)</span>
 <span class="n">cartGrids</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">gencartmb</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="n">h</span><span class="p">,</span> <span class="n">Dfar</span><span class="p">,</span> <span class="n">nlvl</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">cartGrids</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
@@ -2206,7 +2203,7 @@ Exists also as in place version (_adaptOctree) that modifies a and returns None.
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/adaptOctree.py">Adaptation of an octree grid wrt. indicator (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptOctree (array) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptOctree (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
@@ -2222,7 +2219,7 @@ Exists also as in place version (_adaptOctree) that modifies a and returns None.
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/adaptOctreePT.py">Adaptation of an octree grid wrt. indicator (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptOctree (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptOctree (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
@@ -2267,7 +2264,7 @@ Exists also as in place version (_expandLayer) that modifies a and returns None.
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>              
+<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">o</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">octree</span><span class="p">([</span><span class="n">s</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">],</span> <span class="n">dfar</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">balancing</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">o2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">expandLayer</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">o</span><span class="p">,</span> <span class="n">o2</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
@@ -2281,7 +2278,7 @@ Exists also as in place version (_expandLayer) that modifies a and returns None.
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>              
+<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">o</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">octree</span><span class="p">([</span><span class="n">s</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">],</span> <span class="n">dfar</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">balancing</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">o2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">expandLayer</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">o2</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
@@ -2380,16 +2377,22 @@ When used in parallel, the set of grids is distributed.</p>
 <h3>Operations on meshes</h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="Generator.close">
-<span class="sig-prename descclassname"><span class="pre">Generator.</span></span><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppressDegeneratedNGons</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Generator.</span></span><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmOverlappingPts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmOrphanPts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmDuplicatedFaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmDuplicatedElts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmDegeneratedFaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmDegeneratedElts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Close a mesh defined by array a. Points of that mesh which are distant of tol maximum to one another are merged. For unstructured zones, connectivity is
-cleaned (removal of unreferenced vertices, multiply defined elements and faces)</p>
+cleaned (removal of unreferenced and duplicated vertices, multiply-defined or totally degenerated faces and elements). If indices=[], the vertex indirection table following mesh cleaning is returned.</p>
 <p>Exists also as in place version (_close) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>a</strong> (<em>array</em><em> or </em><em>pyTree</em>) &#8211; input mesh</p></li>
 <li><p><strong>tol</strong> (<em>float</em>) &#8211; merging points tolerance</p></li>
-<li><p><strong>suppressDegeneratedNGons</strong> (<em>boolean</em>) &#8211; enables the removal of degenerated ngons</p></li>
+<li><p><strong>rmOverlappingPts</strong> (<em>boolean</em>) &#8211; whether to remove overlapping points within a radius of tol</p></li>
+<li><p><strong>rmOrphanPts</strong> (<em>boolean</em>) &#8211; whether to remove orphan (unreferenced) points</p></li>
+<li><p><strong>rmDuplicatedFaces</strong> (<em>boolean</em>) &#8211; whether to remove duplicated faces</p></li>
+<li><p><strong>rmDuplicatedElts</strong> (<em>boolean</em>) &#8211; whether to remove duplicated elements</p></li>
+<li><p><strong>rmDegeneratedFaces</strong> (<em>boolean</em>) &#8211; whether to remove degenerated faces</p></li>
+<li><p><strong>rmDegeneratedElts</strong> (<em>boolean</em>) &#8211; whether to remove degenerated elements</p></li>
+<li><p><strong>indices</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>]</em>) &#8211; vertex indirection table following mesh cleaning</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -2407,7 +2410,7 @@ cleaned (removal of unreferenced vertices, multiply defined elements and faces)<
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span> 
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mf">1.e-3</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
@@ -2482,14 +2485,14 @@ cleaned (removal of unreferenced vertices, multiply defined elements and faces)<
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
 
-<span class="n">a1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span> <span class="n">a1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart1&#39;</span> 
+<span class="n">a1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span> <span class="n">a1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart1&#39;</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">9</span><span class="o">+</span><span class="mf">1.e-2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span> <span class="n">a2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart2&#39;</span>
 <span class="n">a3</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mf">5.01</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">19</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span> <span class="n">a3</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart3&#39;</span>
 <span class="n">a4</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mf">9.0001</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span> <span class="n">a4</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart4&#39;</span>
 <span class="n">a5</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">9.01</span><span class="p">,</span><span class="mf">9.0002</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span> <span class="n">a5</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart5&#39;</span>
 <span class="n">zones</span> <span class="o">=</span> <span class="p">[</span><span class="n">a1</span><span class="p">,</span><span class="n">a2</span><span class="p">,</span><span class="n">a3</span><span class="p">,</span><span class="n">a4</span><span class="p">,</span><span class="n">a5</span><span class="p">]</span>
 
-<span class="c1"># Close une liste de maillages sur leurs frontieres </span>
+<span class="c1"># Close une liste de maillages sur leurs frontieres</span>
 <span class="n">zones2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">)</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">zones2</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
@@ -3011,7 +3014,7 @@ Can stack 2D meshes with same topology into 3D meshes.</p>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 
-<span class="n">d</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> 
+<span class="n">d</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">addNormalLayers</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
@@ -3048,7 +3051,7 @@ Can stack 2D meshes with same topology into 3D meshes.</p>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
 
 <span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-    
+
 <span class="c1"># Geometry</span>
 <span class="n">d1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P1</span><span class="p">);</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P2</span><span class="p">,</span> <span class="n">P3</span><span class="p">)</span>
 <span class="n">pts</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s1">&#39;x,y,z&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -3066,7 +3069,7 @@ Can stack 2D meshes with same topology into 3D meshes.</p>
 <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.</span><span class="p">;</span> <span class="n">y</span><span class="p">[</span> <span class="mi">2</span> <span class="p">]</span> <span class="o">=</span> <span class="mf">3.</span><span class="p">;</span> <span class="n">z</span><span class="p">[</span> <span class="mi">2</span> <span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
 <span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mf">6.</span><span class="p">;</span> <span class="n">y</span><span class="p">[</span> <span class="mi">3</span> <span class="p">]</span> <span class="o">=</span> <span class="mf">5.</span><span class="p">;</span> <span class="n">z</span><span class="p">[</span> <span class="mi">3</span> <span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
 <span class="n">x</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.</span><span class="p">;</span> <span class="n">y</span><span class="p">[</span> <span class="mi">4</span> <span class="p">]</span> <span class="o">=</span> <span class="mf">7.</span><span class="p">;</span> <span class="n">z</span><span class="p">[</span> <span class="mi">4</span> <span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
-<span class="n">b2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">bezier</span><span class="p">(</span> <span class="n">pts</span> <span class="p">)</span> 
+<span class="n">b2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">bezier</span><span class="p">(</span> <span class="n">pts</span> <span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">],</span> <span class="s1">&#39;geom.plt&#39;</span><span class="p">)</span>
 
 <span class="c1"># Regular discretision of each line</span>
@@ -3093,7 +3096,7 @@ Can stack 2D meshes with same topology into 3D meshes.</p>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 
 <span class="n">P0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="n">P3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-    
+
 <span class="c1"># Geometry</span>
 <span class="n">d1</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span><span class="n">P1</span><span class="p">);</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P2</span><span class="p">,</span><span class="n">P3</span><span class="p">)</span>
 <span class="n">d3</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span><span class="n">P2</span><span class="p">);</span> <span class="n">d4</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span><span class="n">P3</span><span class="p">)</span>
@@ -3162,7 +3165,7 @@ Can stack 2D meshes with same topology into 3D meshes.</p>
 <span class="n">celln</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">celln</span><span class="p">,</span> <span class="s1">&#39;cellN&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
 
 <span class="c1"># Masquage</span>
-<span class="n">cellno</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">blankCells</span><span class="p">([</span><span class="n">b</span><span class="p">],</span> <span class="p">[</span><span class="n">celln</span><span class="p">],</span> <span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">blankingType</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> 
+<span class="n">cellno</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">blankCells</span><span class="p">([</span><span class="n">b</span><span class="p">],</span> <span class="p">[</span><span class="n">celln</span><span class="p">],</span> <span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">blankingType</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;cellN&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addVars</span><span class="p">([</span><span class="n">b</span><span class="p">,</span> <span class="n">cellno</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
 
@@ -3263,7 +3266,7 @@ Can stack 2D meshes with same topology into 3D meshes.</p>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 
 <span class="c1"># Same with smooth</span>
-<span class="c1">#c = T.smooth(c, eps=0.5, niter=5, </span>
+<span class="c1">#c = T.smooth(c, eps=0.5, niter=5,</span>
 <span class="c1">#             fixedConstraints=s)</span>
 <span class="c1">#            #projConstraints=s)C</span>
 
@@ -3364,7 +3367,6 @@ Can stack 2D meshes with same topology into 3D meshes.</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">fittingPlaster</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">bumpFactor</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -3646,7 +3648,6 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">12.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">1.</span><span class="p">),(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">bbox</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">bbox</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">]))</span>
-
 </pre></div>
 </div>
 <ul class="simple">
@@ -3656,7 +3657,6 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">1.</span><span class="p">),(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">bbox</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
-
 </pre></div>
 </div>
 </dd></dl>
@@ -4095,7 +4095,7 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getOrthogonalityMap.py">Computation of cells orthogonality (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getOrthogonalityMap (array) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getOrthogonalityMap (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 
@@ -4109,7 +4109,7 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getOrthogonalityMapPT.py">Computation of cells orthogonality (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getOrthogonalityMap (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getOrthogonalityMap (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 
@@ -4144,7 +4144,7 @@ Exists also as parallel distributed version (G.Mpi.getRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getRegularityMap.py">Computation of cells regularity with respect to volumes (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getRegularityMap (array) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getRegularityMap (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 
@@ -4159,7 +4159,7 @@ Exists also as parallel distributed version (G.Mpi.getRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getRegularityMapPT.py">Computation of cells regularity with respect to volumes (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getRegularityMapPT (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getRegularityMapPT (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 
@@ -4196,7 +4196,7 @@ Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getAngleRegularityMap.py">Computation of cells regularity with respect to angles (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getAngleRegularityMap (array) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getAngleRegularityMap (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
@@ -4212,7 +4212,7 @@ Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getAngleRegularityMapPT.py">Computation of cells regularity with respect to angles (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getAngleRegularityMap (pyTree) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getAngleRegularityMap (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
@@ -4246,7 +4246,7 @@ Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getTriQualityMap.py">Computation of triangles quality (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getTriQualitylityMap (array) - </span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getTriQualitylityMap (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
@@ -4272,7 +4272,6 @@ Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).</p>
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getTriQualityMap</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-
 </pre></div>
 </div>
 </dd></dl>

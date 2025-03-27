@@ -31,6 +31,3 @@ t = C.newPyTree(['Base']); t[2][1][2]+=[a]
 res = T.breakElements(t)
 t = C.newPyTree(['Base']); t[2][1][2]+=res
 test.testT(t,4)
-
-
-

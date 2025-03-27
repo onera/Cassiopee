@@ -18,4 +18,3 @@ Cmpi.barrier()
 h = Filter.Handle(LOCAL+'/case1.cgns')
 a = h.loadAndDistribute()
 if Cmpi.rank == 0: test.testT(a, 1)
-

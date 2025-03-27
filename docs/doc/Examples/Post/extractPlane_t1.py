@@ -24,4 +24,3 @@ test.testA([p],2)
 m2 = C.convertArray2Hexa(m)
 p = P.extractPlane([m2],(0.,0.,1.,-0.5))
 test.testA([p],3)
-

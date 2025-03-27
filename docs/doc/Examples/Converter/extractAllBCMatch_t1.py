@@ -23,4 +23,3 @@ test.testO(dico, 1)
 
 dico = C.extractAllBCMatch(t)
 test.testO(dico, 2)
-

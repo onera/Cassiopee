@@ -32,6 +32,3 @@ a = C.convertArray2Tetra(a)
 a = T.subzone(a, [0], type='elements')
 a = C.convertLO2HO(a, 0)
 test.testT(a, 5)
-
-
-

@@ -39,7 +39,7 @@ for i in range(20):
     probe.extract(tcs, time)
 probe.flush()
 
-if Cmpi.rank == 0: 
+if Cmpi.rank == 0:
     test.testT(probe._probeZones, 1)
     test.testT(probe._ts, 4)
 Cmpi.barrier()

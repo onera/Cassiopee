@@ -22,7 +22,7 @@ z = C.initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:Coordina
 
 XOR._setZonesAndJoinsUId(z)
 
-m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type = 1, subdiv_type=0, hmesh=None)
+m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type=1, subdiv_type=0, hmesh=None)
 
 m = XOR.closeCells(m)
 
@@ -33,9 +33,9 @@ I._rmNodesByName(m, 'rid')
 test.testT(m,1)
 
 ## HEXA dynamic adaptation
-hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision 
+hmsh = XOR.createHMesh(z, 0) # 0 : ISOTROPIC subdivision
 
-m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type = 1, subdiv_type=0, hmesh=hmsh)
+m = XOR.adaptCellsNodal(z, [nodal_vals], smoothing_type=1, subdiv_type=0, hmesh=hmsh)
 m = XOR.conformizeHMesh(m, hmsh)
 m = XOR.closeCells(m)            # close cells (adding point on lateral faces)
 
@@ -59,7 +59,7 @@ nodal_vals[:] = 2
 
 XOR._setZonesAndJoinsUId(zTH4)
 
-m = XOR.adaptCellsNodal(zTH4, [nodal_vals], smoothing_type = 1, subdiv_type=0)
+m = XOR.adaptCellsNodal(zTH4, [nodal_vals], smoothing_type=1, subdiv_type=0)
 
 m = XOR.closeCells(m)
 
@@ -68,5 +68,3 @@ I._rmNodesByName(m, 'rid')
 
 #C.convertPyTree2File(m, 'nodalPT_t1_3.cgns')
 test.testT(m,3)
-
-

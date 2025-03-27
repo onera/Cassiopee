@@ -34,7 +34,7 @@ PyObject *K_XCORE::AdaptMesh_LoadBalance(PyObject *self, PyObject *args)
 
     Mesh *M = (Mesh *)PyCapsule_GetPointer(MESH, "AdaptMesh");
 
-    if (M->npc == 1) return Py_None;
+    //if (M->npc == 1) return Py_None;
 
     // Make global cell-cell connectivity
     Mesh_make_cell_cells(M);
@@ -46,9 +46,6 @@ PyObject *K_XCORE::AdaptMesh_LoadBalance(PyObject *self, PyObject *args)
         RAISE("Failed to load-balance the mesh.");
         return NULL;
     }
-
-    if (M->pid == 0) puts("Setting mesh orientation...");
-    Mesh_set_orientation(M);
 
     if (M->pid == 0) puts("OK LoadBalance.");
 

@@ -78,5 +78,3 @@ t = C.addBC2Zone(t,'overlap','BCOverlap','kmax')
 t = C.initVars(t,'F',1.); t = C.initVars(t,'centers:G',2.)
 res = T.merge(t,dir=2)
 t[2][1][2] = res; test.testT(t,8)
-
-

@@ -78,19 +78,7 @@ endif
 
 # ----------------------------- Prods ------------------------------------------
 
-if ($MAC == "ld_pgi") then
-#------------------------------- ld+PGI ---------------------------------------
-        setenv ELSAPROD pgi_r8
-        setenv ELSAPROD "$ELSAPROD$EXT"
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module load python/2.7.8
-        module load hdf5/1.8.8
-        # Nombre de threads
-        setenv OMP_NUM_THREADS 8
-
-else if ($MAC == "ld_eos8") then
+if ($MAC == "ld_eos8") then
 #-------------------------- ld centos 8 + python 3 -----------------------------
         setenv ELSAPROD eos8_r8
         setenv ELSAPROD "$ELSAPROD$EXT"
@@ -135,45 +123,6 @@ else if ($MAC == "ld") then
         setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
         setenv ASAN_LIB /opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
-else if ($MAC == "eos814") then
-#-------------------------- ld centos 8 + python 3.8 -----------------------------
-        setenv ELSAPROD eos814_r8
-        setenv ELSAPROD "$ELSAPROD$EXT"
-        module purge
-        module load occt/7.6.1-gnu831
-        #module load gcc/10.2.0
-        module load gcc/12.1.0
-        module load python/3.8.14-gnu831
-        #module load intel/21.2.0
-        #module load impi/21.2.0
-        module load hdf5/1.8.17-intel2120
-        unsetenv I_MPI_PMI_LIBRARY
-        setenv PRODMODE 1
-        # Set next line only if python is not python
-        setenv PYTHONEXE python3
-        # Number of threads
-        set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
-        @ ncpu++
-        setenv OMP_NUM_THREADS $ncpu
-
-else if ($MAC == "ld_prev") then
-#-------------------------- ld centos 7 + python 3 -----------------------------
-        setenv ELSAPROD x86_r8
-        setenv ELSAPROD "$ELSAPROD$EXT"
-        # Modules
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module load python/3.6.1
-        setenv PYTHONEXE python3
-        module load intel/17.0.4
-        module load impi/17
-        module load hdf5/1.8.8-intel-15
-        # Number of threads
-        set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
-        @ ncpu++
-        setenv OMP_NUM_THREADS $ncpu
-
 else if ($MAC == "ld_python2") then
 #----------------------------- ld centos 7 -------------------------------------
         setenv ELSAPROD x86_r8
@@ -186,26 +135,6 @@ else if ($MAC == "ld_python2") then
         module load intel/17.0.4
         module load impi/17
         module load hdf5/1.8.8-intel-15
-        # Number of threads
-        set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
-        @ ncpu++
-        setenv OMP_NUM_THREADS $ncpu
-        #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7],explicit"
-        # Pour utilisation MKL+numpy
-        #setenv LD_PRELOAD /opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_avx2.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_def.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_core.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_lp64.so:/opt/tools/intel/studio/2017/mkl/lib/intel64/libmkl_intel_thread.so:/opt/tools/intel/studio/2017/lib/intel64/libiomp5.so
-
-else if ($MAC == "eos") then
-#----------------------------- eos -------------------------------------
-        setenv ELSAPROD x86_r8
-        setenv ELSAPROD "$ELSAPROD$EXT"
-        # Modules
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module load python/2.7.8
-        module load intel/17.0.4
-        module unload impi/17
-        module load hdf5/1.8.8
         # Number of threads
         set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
         @ ncpu++
@@ -418,24 +347,7 @@ else if ($MAC == "jean-zay") then
         setenv PYTHONEXE python3
         # Number of threads
         setenv OMP_NUM_THREADS 28
-
-else if ($MAC == "eos") then
-#-------------------------------- ld (centos6) -----------------------------------------
-        ELSAPROD x86_r8
-        setenv ELSAPROD "$ELSAPROD$EXT"
-        # Modules
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module load intel/13.1.3
-        module load impi/13
-        module load hdf5/1.8.8
-        # Number of threads
-        set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
-        @ ncpu++
-        setenv OMP_NUM_THREADS $ncpu
-        #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7],explicit"
-
+        
 else if ($MAC == "spiro") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_r8
@@ -759,6 +671,13 @@ else if ($MAC == "juno_coda") then
         setenv ELSAPROD "$ELSAPROD$EXT"
         # Number of threads
         setenv OMP_NUM_THREADS 48
+        # modules
+        module purge
+        source /stck/rhea/dist/juno_v2024_08/source.sh --env coda_users
+        module load lapack/3.9.1-gnu831
+        module load occt/7.6.1-gnu831
+        module load subversion/1.14.1-gnu831
+        module load emacs/27.2-gnu831
         setenv PYTHONEXE python3
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1

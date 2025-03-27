@@ -14,4 +14,3 @@ c2 = C.convertArray2Tetra(c2); c2 = G.close(c2)
 
 x = XOR.booleanMinus(c1, c2, tol=0.)
 test.testA([x],1)
-

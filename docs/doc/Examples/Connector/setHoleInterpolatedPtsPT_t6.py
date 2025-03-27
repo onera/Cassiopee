@@ -53,4 +53,3 @@ test.testT(t2,5)
 tp = Internal.copyTree(t)
 t2 = X.setHoleInterpolatedPoints(tp, depth=3, dir=2, loc='centers')
 test.testT(t2,6)
-

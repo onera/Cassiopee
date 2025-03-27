@@ -1,4 +1,4 @@
-# - fillEmptyBC (pyTree) - 
+# - fillEmptyBC (pyTree) -
 # Non structure NGON
 import Converter.PyTree as C
 import Generator.PyTree as G

@@ -19,6 +19,3 @@ a = G.cartNGon((0,0,0),(1,1,1),(10,10,2))
 a = C.addBC2Zone(a, 'wall', 'BCWall', faceList=[1,2])
 (BCs,BCNames,BCTypes) = C.getBCs(a)
 test.testO(BCNames, 3)
-
-
-

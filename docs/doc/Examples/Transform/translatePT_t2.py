@@ -30,4 +30,3 @@ test.testT(a, 4)
 a = G.cartNGon((0,0,0), (1,1,1), (5,5,5), api=3)
 T._translate(a, (1,0,0))
 test.testT(a, 5)
-

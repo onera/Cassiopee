@@ -10,7 +10,7 @@ b = G.cart((0.4,1.2,-0.3),(0.04,0.04,0.1),(11,11,21))
 a = X.connectMatchPeriodic(a,rotationCenter=[0.,0.,0.],rotationAngle=[0.,0.,120.])
 C._fillEmptyBCWith(a,"wall","BCWall")
 C._addBC2Zone(a,'overlapdd','BCOverlap','kmin',zoneDonor=[b],rangeDonor='doubly_defined')#dd
-# 
+#
 C._addBC2Zone(b,'overlap','BCOverlap','kmax')
 C._fillEmptyBCWith(b,"wall","BCWall")
 for rangel in ['imin','imax','jmin','jmax']:
@@ -25,8 +25,8 @@ test.testT(t,1)
 #
 b = T.rotate(b,(0,0,0),(0,0,1),30.)
 import Converter.elsAProfile as CE
-CE._addPeriodicDataInSolverParam(b,rotationCenter=[0.,0.,0.], 
-                                 rotationAngle=[0.,0.,1.], 
+CE._addPeriodicDataInSolverParam(b,rotationCenter=[0.,0.,0.],
+                                 rotationAngle=[0.,0.,1.],
                                  NAzimutalSectors=10, isChimera=True)
 #
 t = C.newPyTree(['Base',a,'Base2',b])

@@ -11,7 +11,7 @@ a = G.cart((0,0,0), (1./(ni-1),1./(nj-1),1.), (ni,nj,nk))
 # Create a function
 def F(x,y,z):
     return 2*x + 2.*y + z
-   
+
 ref = [F(0.55,0.38,0.)]
 # init by function
 a = C.initVars(a, 'F', F, ['x','y','z'])

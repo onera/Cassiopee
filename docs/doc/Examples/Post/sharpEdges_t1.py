@@ -1,4 +1,4 @@
-# - sharpEdges (array) - 
+# - sharpEdges (array) -
 import Converter as C
 import Generator as G
 import Post as P

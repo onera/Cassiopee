@@ -7,9 +7,9 @@ P0 = (0,0,1)
 P1 = (5,0,1)
 P2 = (0,7,1)
 P3 = (5,7,1)
-    
+
 # Geometrie
-d1 = D.line(P0, P1) 
+d1 = D.line(P0, P1)
 d2 = D.line(P2, P3)
 
 P0 = ( 0,0,1); P1 = (-2,2,1); P2 = (-3,3,1); P3 = (2,5,1); P4 = ( 0,7,1)
@@ -18,7 +18,7 @@ b1 = D.bezier(pts)
 
 P0 = (5,0,1); P1 = (3,2,1); P2 = (2,3,1); P3 = (6,5,1); P4 = (5,7,1)
 pts = D.polyline([P0,P1,P2,P3,P4])
-b2 = D.bezier(pts) 
+b2 = D.bezier(pts)
 
 # Discretisation reguliere de chaque ligne
 Ni = 20; Nj = 10

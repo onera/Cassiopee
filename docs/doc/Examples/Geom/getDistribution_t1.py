@@ -27,4 +27,3 @@ b = T.subzone(a, (1,1,1), (50,1,1) )
 c = T.subzone(a, (50,1,1), (100,1,1) )
 c2 = D.getDistribution([b,c])
 test.testA(c2,3)
-

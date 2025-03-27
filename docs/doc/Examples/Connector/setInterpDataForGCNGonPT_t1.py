@@ -12,7 +12,7 @@ t = C.newPyTree(['Base',a,b])
 t = X.connectMatch(t)
 
 Internal._adaptNFace2PE(t, remove=False)
-t = GC.addGhostCellsNG(t, nlayers=2) 
+t = GC.addGhostCellsNG(t, nlayers=2)
 tc = C.node2Center(t)
 Internal._rmNodesFromType(tc,'GridCoordinates_t')
 Internal._rmNodesFromType(tc,'Elements_t')

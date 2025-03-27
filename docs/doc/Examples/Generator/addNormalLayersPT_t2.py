@@ -4,8 +4,8 @@ import Converter.PyTree as C
 import Geom.PyTree as D
 import KCore.test as test
 
-# sur une zone structuree 
-d = G.cart((0.1,0.,0.), (0.1,1,1),(2,1,1)) 
+# sur une zone structuree
+d = G.cart((0.1,0.,0.), (0.1,1,1),(2,1,1))
 a = D.sphere((0,0,0), 1, 50 )
 a = G.addNormalLayers(a, d, niter=2)
 test.testT(a,1)
@@ -23,7 +23,7 @@ a = G.addNormalLayers(a, d, niter=2)
 test.testT(a,3)
 
 # sur une liste de zones structurees
-d = G.cart((0.,0.,0.), (0.1,1,1),(3,1,1)) 
+d = G.cart((0.,0.,0.), (0.1,1,1),(3,1,1))
 a = D.sphere6((0,0,0), 1, 20 )
 a = C.initVars(a, 'Density',2.); a = C.initVars(a, 'centers:cellN',1.)
 a = G.addNormalLayers(a, d, niter=2)

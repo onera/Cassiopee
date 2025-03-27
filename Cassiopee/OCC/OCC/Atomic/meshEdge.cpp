@@ -830,7 +830,9 @@ PyObject* K_OCC::meshEdgesByFace2(PyObject* self, PyObject* args)
     for (noedge=1; noedge <= edges.Extent(); noedge++)
     {
         const TopoDS_Edge& El = TopoDS::Edge(edges(noedge));
-        if (El.TShape() == E.TShape()) break;
+        //if (El.TShape() == E.TShape()) break;
+        if (El.IsSame(E)) break;
+        
     }
     ge = PyList_GetItem(globalEdges, noedge-1);
     E_Int ni, nj, nk;
@@ -1116,7 +1118,8 @@ PyObject* K_OCC::getEdgeNoByFace(PyObject* self, PyObject* args)
       for (i=1; i <= edges.Extent(); i++)
       {
         const TopoDS_Edge& El = TopoDS::Edge(edges(i));
-        if (El.TShape() == E.TShape()) break;
+        //if (El.TShape() == E.TShape()) break;
+        if (El.IsSame(E)) break;
       }
 
       if (forientation == TopAbs_FORWARD)

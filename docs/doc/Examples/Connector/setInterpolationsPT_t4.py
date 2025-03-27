@@ -25,4 +25,3 @@ t2 = X.applyBCOverlaps(t, depth=1)
 t2 = X.setInterpolations(t2, loc='face', double_wall=1, storage='inverse')
 t2 = X.setInterpolations(t2, loc='cell', double_wall=1, storage='inverse')
 test.testT(t2,2)
-

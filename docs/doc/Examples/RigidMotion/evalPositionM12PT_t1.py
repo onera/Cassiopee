@@ -1,4 +1,4 @@
-# - evalPositionM1 pour motion 2 (pyTree) - 
+# - evalPositionM1 pour motion 2 (pyTree) -
 # Rotor motion
 import RigidMotion.PyTree as R
 import Generator.PyTree as G
@@ -40,7 +40,7 @@ bet_pnt = dictBlade["bet_pnt"]
 bet_vct = dictBlade["bet_vct"]
 bet0 = dictBlade["bet0"]
 betc = (dictBlade["bet1c"],)
-bets = (dictBlade["bet1s"],)    
+bets = (dictBlade["bet1s"],)
 tet_pnt = dictBlade["tet_pnt"]
 tet_vct = dictBlade["tet_vct"]
 tet0 = dictBlade["tet0"]
@@ -68,8 +68,8 @@ R._setPrescribedMotion2(a, 'Motion_Blade1', transl_speed=transl_speed,
                         pre_con_pnt=pre_con_pnt, pre_con_vct=pre_con_vct, pre_con_ang=pre_con_ang)
 
 b = R.evalPosition(a, time=time0); b[0]='moved'
-coords = [Internal.getNodeFromName(b, 'CoordinateX')[1], 
-          Internal.getNodeFromName(b, 'CoordinateY')[1], 
+coords = [Internal.getNodeFromName(b, 'CoordinateX')[1],
+          Internal.getNodeFromName(b, 'CoordinateY')[1],
           Internal.getNodeFromName(b, 'CoordinateZ')[1]]
 coords0 = R.evalPositionM1(coords, b, time=time0)
 c = Internal.copyRef(b); c[0] = 'back'

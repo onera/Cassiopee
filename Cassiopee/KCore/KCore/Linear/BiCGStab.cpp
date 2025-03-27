@@ -30,14 +30,15 @@ E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
   E_Float bnorm2 = K_MATH::norm(b, n);
   if (K_MATH::feq(bnorm2, 0.0)) bnorm2 = 1.0;
 
-  E_Float *r = (E_Float *)calloc(n, sizeof(E_Float));
-  E_Float *Ax = (E_Float *)calloc(n, sizeof(E_Float));
+  E_Float* r = (E_Float*)calloc(n, sizeof(E_Float));
+  E_Float* Ax = (E_Float*)calloc(n, sizeof(E_Float));
 
   K_MATH::sqrmat_dot_vec(A, x, n, Ax);
   for (E_Int i = 0; i < n; i++) r[i] = b[i] - Ax[i];
 
   E_Float err = K_MATH::norm(r, n);
-  if (err < tol) {
+  if (err < tol) 
+  {
     free(r);
     free(Ax);
     return converged;
@@ -46,20 +47,22 @@ E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
   E_Float omega, rho, beta, rho0, alpha;
   omega = rho = beta = rho0 = alpha = 1.;
 
-  E_Float *rhat = (E_Float *)calloc(n, sizeof(E_Float));
+  E_Float* rhat = (E_Float *)calloc(n, sizeof(E_Float));
   memcpy(rhat, r, n*sizeof(E_Float));
 
-  E_Float *p = (E_Float *)calloc(n, sizeof(E_Float));
-  E_Float *v = (E_Float *)calloc(n, sizeof(E_Float));
-  E_Float *s = (E_Float *)calloc(n, sizeof(E_Float));
-  E_Float *t = (E_Float *)calloc(n, sizeof(E_Float));
+  E_Float* p = (E_Float*)calloc(n, sizeof(E_Float));
+  E_Float* v = (E_Float*)calloc(n, sizeof(E_Float));
+  E_Float* s = (E_Float*)calloc(n, sizeof(E_Float));
+  E_Float* t = (E_Float*)calloc(n, sizeof(E_Float));
 
   // TODO(Imad): maxiter should be exactly n theoretically...
   E_Int maxiter = n*10;
-  for (E_Int i = 1; i <= maxiter; i++) {
+  for (E_Int i = 1; i <= maxiter; i++) 
+  {
     rho = K_MATH::dot(rhat, r, n);
 
-    if (K_MATH::feq(rho, 0.0)) {
+    if (K_MATH::feq(rho, 0.0)) 
+    {
       converged = 0;
       break;
     }

@@ -1,4 +1,4 @@
-# - setInterpData (pyTree) - 
+# - setInterpData (pyTree) -
 # donneur NGON + leastsquare
 import Converter.PyTree as C
 import Generator.PyTree as G

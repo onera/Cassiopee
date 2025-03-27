@@ -151,7 +151,7 @@ namespace NUGA
       // for nodal tolerance
       K_FLD::FloatArray L;
       NUGA::MeshTool::computeIncidentEdgesSqrLengths(acrd1.array(), *subj.pgs(), L);
-      if( L.cols() == 0) return 1;
+      if (L.cols() == 0) return 1;
 
       //E_Int nb_faces1 = subj.nb_faces();
       E_Int &nb_faces2 = cutter.nb_faces();

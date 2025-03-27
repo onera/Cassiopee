@@ -11,4 +11,3 @@ t = C.newPyTree(['Base']); t[2][1][2] += [a, b]
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.fillMissingVariables(t)
 test.testT(t,1)
-

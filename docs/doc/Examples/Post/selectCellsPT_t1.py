@@ -7,7 +7,7 @@ import KCore.test as test
 def F(x, y, z):
     if (x + 2*y + z > 20.): return True
     else: return False
-    
+
 # CAS 1D
 a = G.cart((0,0,0), (1,1,1), (30,1,1) )
 C._addVars(a, 'Density'); C._addVars(a, 'centers:cellN')

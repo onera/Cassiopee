@@ -1137,7 +1137,6 @@ def checkElementNodes(t):
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
-                        print(z[0], minv, maxv, npts)
                         errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
             if iNFace != -1: # NFace exist
                 c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')

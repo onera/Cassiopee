@@ -19,18 +19,18 @@ for z in Internal.getZones(a):
     for zsr in subRegions:
         Internal._createChild(zsr, 'ZoneRole', 'DataArray_t', value='Donor')
         Internal._createChild(zsr, 'GridLocation', 'GridLocation_t', value='CellCenter')
-        
+
         zsr[2].append(['CoordinateX_PW', copy.copy(Nlength)+13, [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PW', copy.copy(Nlength)+13, [], 'DataArray_t'])
         zsr[2].append(['CoordinateZ_PW', copy.copy(Nlength)+13, [], 'DataArray_t'])
-        
+
         zsr[2].append(['CoordinateX_PC', copy.copy(Nlength)+14, [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PC', copy.copy(Nlength)+14, [], 'DataArray_t'])
         zsr[2].append(['CoordinateZ_PC', copy.copy(Nlength)+14, [], 'DataArray_t'])
-        
+
         zsr[2].append(['CoordinateX_PI', copy.copy(Nlength)+15, [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PI', copy.copy(Nlength)+15, [], 'DataArray_t'])
         zsr[2].append(['CoordinateZ_PI', copy.copy(Nlength)+15, [], 'DataArray_t'])
-        
+
 a=P_IBM.extractIBMInfo(a)
 C.convertPyTree2File(a,'out.cgns')

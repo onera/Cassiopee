@@ -19,4 +19,3 @@ def g(t):
 a1 = D.curve(f)
 b1 = D.getDistribution(a1)
 test.testT(b1, 2)
-

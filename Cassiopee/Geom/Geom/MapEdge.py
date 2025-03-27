@@ -70,8 +70,10 @@ def uniformize__(a, N, h, factor, density, sharpAngle):
             c = G.map(i, distrib) # c is STRUCT
             out.append(c)
     if ntype == 1: out = C.convertArray2Hexa(out)
-    if len(out) > 1: b = T.join(out)
-    else: b = out[0]
+    lout = len(out)
+    if lout > 1: b = T.join(out)
+    elif lout == 1: b = out[0]
+    else: b = a # full degenerated
     if ntype == 1: b = G.close(b) # because of closed BARs
     return b
 

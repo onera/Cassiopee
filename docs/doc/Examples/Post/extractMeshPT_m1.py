@@ -1,4 +1,4 @@
-# - extractMesh (pyTree) - 
+# - extractMesh (pyTree) -
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import Post.Mpi as Pmpi

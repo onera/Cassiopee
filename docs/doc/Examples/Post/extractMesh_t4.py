@@ -25,10 +25,9 @@ a = C.convertArray2Tetra(a)
 # sur une liste - ordre 2 seulement
 a2 = P.extractMesh([m], [a])
 test.testA(a2,1)
-    
+
 # Extrait la solution sur le maillage d'extraction
 for i in [2,3,5]:
     print('Computing order %d...'%i)
     a2 = P.extractMesh([m], a, i)
     test.testA([a2], i)
-

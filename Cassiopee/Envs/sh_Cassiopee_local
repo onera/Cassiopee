@@ -120,6 +120,40 @@ elif [ "$MAC" = "ld" ]; then
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
+elif [ "$MAC" = "ld_spack1" ]; then
+#------------------------------- ld spack1 + python 3.10 ----------------------------------
+    export ELSAPROD=ld_spack1
+    export ELSAPROD=$ELSAPROD$EXT
+    . /etc/profile.d/modules-onera.sh
+    module purge
+    export PATH="/tmp_user/ldaaa2323z/benoit/spack_installed/install/bin":"/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/test/.spack-env/view/bin":"/tmp_user/ldaaa2323z/benoit/spack/bin":"/usr/local/sbin":"/usr/bin:/usr/sbin:/usr/local/bin"
+    export LD_LIBRARY_PATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install/lib64:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/test/.spack-env/view/lib:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/test/.spack-env/view/lib64
+    export PYTHONPATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install/lib/python3.10/site-packages:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/test/.spack-env/view/lib/python3.10/site-packages
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export PYTHONEXE=python3
+    # Nbre de threads
+    ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
+    ncpu=$((ncpu + 1))
+    export OMP_NUM_THREADS=$ncpu
+
+elif [ "$MAC" = "ld_spack2" ]; then
+#------------------------------- ld spack2 + python 3.9 ----------------------------------
+    export ELSAPROD=ld_spack2
+    export ELSAPROD=$ELSAPROD$EXT
+    . /etc/profile.d/modules-onera.sh
+    module purge
+    export PATH="/tmp_user/ldaaa2323z/benoit/spack_installed/install2/bin":"/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/bin":"/tmp_user/ldaaa2323z/benoit/spack/bin":"/usr/local/sbin":"/usr/bin:/usr/sbin:/usr/local/bin"
+    export LD_LIBRARY_PATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib64:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/lib:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/lib64
+    export PYTHONPATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib/python3.9/site-packages:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/lib/python3.9/site-packages
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export PYTHONEXE=python3
+    # Nbre de threads
+    ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
+    ncpu=$((ncpu + 1))
+    export OMP_NUM_THREADS=$ncpu
+    
 elif [ "$MAC" = "ld_python2" ]; then
 #------------------------------- ld centos 7 -----------------------------------
     export ELSAPROD=x86_r8
@@ -642,6 +676,7 @@ elif [ "$MAC" = "juno_coda" ]; then
     # Nbre de threads
     export OMP_NUM_THREADS=48
     # modules
+    . /etc/profile.d/modules-onera.sh
     module purge
     source /stck/rhea/dist/juno_v2024_08/source.sh --env coda_users
     module load lapack/3.9.1-gnu831
@@ -791,7 +826,6 @@ elif [ "$MAC" = "adastra_cpu" ]; then
     #module load PrgEnv-cray
     #module load cray-mpich/8.1.28
     #module load cray-libsci/23.05.1.4
-
     #module load CCE-CPU-3.1.0
 
     # CPU GCC

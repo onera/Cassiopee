@@ -18,7 +18,7 @@ test.testT(a2,1)
 a2 = G.enforceX(a, 0.3, 0.001, 13,25)
 test.testT(a2,2)
 
-# 3D 
+# 3D
 Ni = 50; Nj = 50; Nk = 2
 a = G.cart((0,0,0), (1./(Ni-1), 0.5/(Nj-1),1), (Ni,Nj,Nk))
 a = C.addBC2Zone(a, 'overlap1','BCOverlap','imin')

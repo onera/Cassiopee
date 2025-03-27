@@ -26,6 +26,10 @@
 #include "IO/io.h"
 #endif
 
+#ifdef E_TIME
+#include "Nuga/include/chrono.h"
+#endif
+
 namespace DELAUNAY
 {
 
@@ -88,7 +92,7 @@ E_Int
 Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy)
 {
 #ifdef E_TIME
-  chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
 
@@ -143,7 +147,7 @@ Kernel<T>::__getCavity
 {
 
 #ifdef E_TIME
-  chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
 
@@ -232,7 +236,7 @@ Kernel<T>::__getInitialCavity
   base.clear();
 
 #ifdef E_TIME
-  chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
 

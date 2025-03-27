@@ -1,4 +1,4 @@
-# - getAngleRegularityMap (array) - 
+# - getAngleRegularityMap (array) -
 import Generator as G
 import Converter as C
 import Transform as T

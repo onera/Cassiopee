@@ -8,6 +8,7 @@ from . import occ
 import Converter
 import Transform
 import Generator
+import Geom
 import KCore
 
 __all__ = ['convertCAD2Arrays',
@@ -15,7 +16,7 @@ __all__ = ['convertCAD2Arrays',
            'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
-           'identifyTags__',
+           'meshAllFacesTri', 'meshFaceWithMetric', 'identifyTags__',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
            '_translate', '_rotate',
@@ -530,6 +531,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     edges = Transform.join(edges)
     edges = Generator.close(edges, 1.e-10)
     _unscaleUV([edges], T)
+
     pt = edges[1]
     edges = occ.evalFace(hook, edges, i)
     edges = Converter.addVars(edges, ['u','v'])
@@ -577,7 +579,6 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
         _unscaleUV([a], T)
         o = occ.evalFace(hook, a, i)
         _enforceEdgesInFace(o, edgesSav)
-        a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             o = Transform.reorder(o, (-1,))
         mesh.append(o)
@@ -585,10 +586,40 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     except Exception as e:
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i)
-        mesh.append(None)
         FAILED.append(i)
 
     return SUCCESS
+
+# pointed hat mesh face in UV space
+def meshFaceWithPointedHat(hook, i, edges, mesh):
+
+    # save edges
+    #edgesSav = []
+    #for e in edges: edgesSav.append(Converter.copy(e))
+
+    # Passage des edges dans espace uv
+    edges = switch2UV(edges)
+    T = _scaleUV(edges)
+
+    # Maillage l'edge le plus long par pointedhat (no fail)
+    lmax = -1.
+    for e in edges:
+        l = Geom.getLength(e)
+        if l > lmax:
+            lmax = l
+            X = Generator.barycenter(e)
+            a = Generator.pointedHat(e, X)
+
+    a = Converter.convertArray2Tetra(a)
+    a = Generator.close(a, 1.e-10)
+    _unscaleUV([a], T)
+    o = occ.evalFace(hook, a, i)
+    #_enforceEdgesInFace(o, edgesSav)
+    if occ.getFaceOrientation(hook, i) == 0:
+        o = Transform.reorder(o, (-1,))
+    mesh.append(o)
+
+    return True
 
 # mesh all CAD edges with hmin, hmax, hausd
 def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
@@ -613,7 +644,7 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
 # IN: hList: list of (hmin, hmax, hausd) for each face to mesh
 #==================================================================
 def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
-    nbFaces = occ.getNbFaces(hook)
+    nbFaces = len(faceList)
     FAILED1 = []; FAILED2 = []; dfaces = []
     for c, i in enumerate(faceList):
 
@@ -641,12 +672,17 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
             edges = edgesSav
             SUCCESS = meshFaceInUV(hook, i, edges, 1., dfaces, FAILED2)
 
+        if not SUCCESS: # pointed hat
+            edges = edgesSav
+            #dfaces.append(None)
+            SUCCESS = meshFaceWithPointedHat(hook, i, edges, dfaces)
+
     FAIL1 = len(FAILED1)
     print("METRICFAILURE = %d / %d"%(FAIL1, nbFaces))
     for f in FAILED1:
         print("METRICFAILED on face = %03d_edgeUV.plt"%f)
     FAIL2 = len(FAILED2)
-    print("FINAL FAILURE = %d / %d"%(FAIL2,nbFaces))
+    print("FINAL FAILURE = %d / %d"%(FAIL2, nbFaces))
     for f in FAILED2:
         print("FINAL FAILED on face = %03d_edgeUV.plt"%f)
 
@@ -656,7 +692,7 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
 # mesh STRUCT given CAD faces from discrete edges U
 #==================================================================
 def meshAllFacesStruct(hook, dedges, faceList=[]):
-    nbFaces = occ.getNbFaces(hook)
+    nbFaces = len(faceList)
     FAILED1 = []; dfaces = []
     nloct = []; nofacet = [] # nbre de grilles pour la face c; no de la face
     for c, i in enumerate(faceList):
@@ -790,3 +826,8 @@ def _mergeFaces(hook, listFaces=[]):
 # identify tag component
 def identifyTags__(a):
     return occ.identifyTags(a)
+
+# print OCAF document
+def printOCAF(h):
+    """Print OCAF document."""
+    occ.printOCAF(h)

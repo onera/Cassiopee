@@ -1,4 +1,4 @@
-# - evalPosition (pyTree) - 
+# - evalPosition (pyTree) -
 import RigidMotion.PyTree as R
 import KCore.test as test
 import Generator.PyTree as G
@@ -38,7 +38,7 @@ bet_pnt = dictBlade["bet_pnt"]
 bet_vct = dictBlade["bet_vct"]
 bet0 = dictBlade["bet0"]
 betc = (dictBlade["bet1c"],)
-bets = (dictBlade["bet1s"],)    
+bets = (dictBlade["bet1s"],)
 tet_pnt = dictBlade["tet_pnt"]
 tet_vct = dictBlade["tet_vct"]
 tet0 = dictBlade["tet0"]
@@ -68,5 +68,3 @@ R._setPrescribedMotion2(a, 'Motion_Blade1', transl_speed=transl_speed,
 R._evalPosition(a, time=0.01)
 R._evalGridSpeed(a, time=0.01)
 test.testT(a)
-
-

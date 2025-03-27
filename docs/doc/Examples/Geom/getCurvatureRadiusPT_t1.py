@@ -15,7 +15,7 @@ test.testT(t, 1)
 a = D.line((0,0,0), (1,0,0), 3)
 rad = D.getCurvatureRadius(a)
 t = C.newPyTree(['Base',1]); t[2][1][2].append(rad)
-test.testT(t,2)  
+test.testT(t,2)
 
 # bezier
 pts = D.polyline([(6,0.01,1), (5.4,0.036,1), (4.8,0.064,1), (2.5,0.21,1),
