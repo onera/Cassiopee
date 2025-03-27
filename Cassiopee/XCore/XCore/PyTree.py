@@ -453,6 +453,12 @@ def splitConnex(m):
 def icapsuleInit2():
     return xcore.icapsule_init2()
 
+def icapsuleAdapt2(IC):
+    return xcore.icapsule_adapt2(IC)
+
+def icapsuleIntersect2(IC):
+    return xcore.icapsule_intersect2(IC)
+
 def icapsuleSetMaster(IC, m):
     zones = I.getNodesFromType(m, 'Zone_t')
     if len(zones) != 1: raise ValueError('Master should be one zone.')
