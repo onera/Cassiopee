@@ -55,11 +55,6 @@ namespace K_XCORE
     PyObject *AdaptMesh_ExtractCellLevels(PyObject *self, PyObject *args);
     PyObject *AdaptMesh_ExtractCellRanges(PyObject *self, PyObject *args);
     PyObject *AdaptMesh_ExtractHaloCellLevels(PyObject *self, PyObject *args);
-    PyObject *AdaptMesh_TagFaces(PyObject *self, PyObject *args);
-    PyObject *AdaptMesh_TriangulateFaces(PyObject *self, PyObject *args);
-    PyObject *AdaptMesh_GeneratePrisms(PyObject *self, PyObject *args);
-    PyObject *AdaptMesh_AdaptGeom(PyObject *self, PyObject *args);
-    PyObject *AdaptMesh_ExtractTaggedFaces(PyObject *self, PyObject *args);
 
     PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
 
@@ -77,17 +72,12 @@ namespace K_XCORE
 
     PyObject *split_connex(PyObject *self, PyObject *args);
 
-
     PyObject *icapsule_init(PyObject *self, PyObject *args);
     PyObject *icapsule_adapt(PyObject *self, PyObject *args);
     PyObject *icapsule_intersect(PyObject *self, PyObject *args);
     PyObject *icapsule_extract_master(PyObject *self, PyObject *args);
     PyObject *icapsule_extract_slave(PyObject *self, PyObject *args);
     PyObject *icapsule_extract_slaves(PyObject *self, PyObject *args);
-
-    PyObject *write_im(PyObject *self, PyObject *args);
-    PyObject *write_bim(PyObject *self, PyObject *args);
-    PyObject *write_bim_s(PyObject *self, PyObject *args);
 
     PyObject *triangulate_skin(PyObject *self, PyObject *args);
 
