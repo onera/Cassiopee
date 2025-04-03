@@ -944,6 +944,7 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
     G._getVolumeMap(to)
     volmin0 = C.getMinValue(to, 'centers:vol')
     # volume minimum au dela duquel on ne peut pas raffiner
+    if minSneartb>1.0e09: minSneartb=min(snearsf)
     volmin0 *= (min(1.0,min(snearsf)/minSneartb)**(dim))
     while end == 0:
         # Do not refine inside obstacles
