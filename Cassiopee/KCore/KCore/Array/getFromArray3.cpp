@@ -235,7 +235,7 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
           E_Int sizeNFace = PyArray_SIZE(ac2);
           E_Int* pt = (E_Int*)PyArray_DATA(ac3);
           E_Int ngon = 2;
-          if (pt[nfaces-1] == sizeNGon) { nfaces -= 1; nelts -= 1; ngon = 3; }
+          if (nfaces > 0 && pt[nfaces-1] == sizeNGon) { nfaces -= 1; nelts -= 1; ngon = 3; }
           c = new FldArrayI(nfaces, nelts, (E_Int*)PyArray_DATA(ac1), (E_Int*)PyArray_DATA(ac2),
                             (E_Int*)PyArray_DATA(ac3), (E_Int*)PyArray_DATA(ac4), sizeNGon, sizeNFace);
           c->setNGon(ngon);
