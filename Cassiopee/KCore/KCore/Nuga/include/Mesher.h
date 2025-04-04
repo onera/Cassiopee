@@ -829,7 +829,7 @@ namespace DELAUNAY
 #endif
 
       // must be here!
-      //std::shuffle(ALL(refine_nodes), _random.gen);
+      std::shuffle(ALL(refine_nodes), _random.gen);
 
       // filtre refine_nodes
       saturator.filterRefinePoints(*_data, _box_nodes, refine_nodes, filter_tree);
@@ -844,7 +844,7 @@ namespace DELAUNAY
       carry_on = (nb_refine_nodes != 0);
 
       // must not be here!
-      std::shuffle(ALL(refine_nodes), _random.gen);
+      //std::shuffle(ALL(refine_nodes), _random.gen);
 
       _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
 
