@@ -43,11 +43,6 @@ static PyMethodDef Pyxcore [] =
     {"AdaptMesh_ExtractCellLevels", K_XCORE::AdaptMesh_ExtractCellLevels, METH_VARARGS},
     {"AdaptMesh_ExtractCellRanges", K_XCORE::AdaptMesh_ExtractCellRanges, METH_VARARGS},
     {"AdaptMesh_ExtractHaloCellLevels", K_XCORE::AdaptMesh_ExtractHaloCellLevels, METH_VARARGS},
-    {"AdaptMesh_TagFaces", K_XCORE::AdaptMesh_TagFaces, METH_VARARGS},
-    {"AdaptMesh_TriangulateFaces", K_XCORE::AdaptMesh_TriangulateFaces, METH_VARARGS},
-    {"AdaptMesh_GeneratePrisms", K_XCORE::AdaptMesh_GeneratePrisms, METH_VARARGS},
-    {"AdaptMesh_AdaptGeom", K_XCORE::AdaptMesh_AdaptGeom, METH_VARARGS},
-    {"AdaptMesh_ExtractTaggedFaces", K_XCORE::AdaptMesh_ExtractTaggedFaces, METH_VARARGS},
 
     {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
 
@@ -72,10 +67,6 @@ static PyMethodDef Pyxcore [] =
     {"icapsule_extract_master", K_XCORE::icapsule_extract_master, METH_VARARGS},
     {"icapsule_extract_slave", K_XCORE::icapsule_extract_slave, METH_VARARGS},
     {"icapsule_extract_slaves", K_XCORE::icapsule_extract_slaves, METH_VARARGS},
-
-    {"write_im", K_XCORE::write_im, METH_VARARGS},
-    {"write_bim", K_XCORE::write_bim, METH_VARARGS},
-    {"write_bim_s", K_XCORE::write_bim_s, METH_VARARGS},
 
     {"triangulate_skin", K_XCORE::triangulate_skin, METH_VARARGS},
 

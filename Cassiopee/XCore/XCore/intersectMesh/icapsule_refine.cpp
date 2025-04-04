@@ -34,13 +34,15 @@ std::vector<PointLoc> Smesh::project(const Smesh &Mf,
         E_Float mx = Mf.X[mpid];
         E_Float my = Mf.Y[mpid];
         E_Float mz = Mf.Z[mpid];
-        std::vector<PointLoc> mlocs; // to parse
-        ray_intersect_BVH(mx, my, mz, N[0], N[1], N[2], root_node_idx, mlocs);
+        HitData hit_data;
+        Ray ray(mx, my, mz, N[0], N[1], N[2], Ray::Policy::BOTH);
+        intersect_ray(ray, root_node_idx, hit_data);
+
         PointLoc ploc;
-        E_Float min_abs_t = EFLOATMAX;
-        for (const auto &mloc : mlocs) {
-            if (fabs(mloc.t) < min_abs_t) {
-                min_abs_t = fabs(mloc.t);
+        E_Float t_abs_min = EFLOATMAX;
+        for (const auto &mloc : hit_data.locs) {
+            if (fabs(mloc.t) < t_abs_min) {
+                t_abs_min = fabs(mloc.t);
                 ploc = mloc;
             }
         }

@@ -28,14 +28,19 @@ struct Vec3 {
 };
 
 struct Ray {
+    enum Policy {
+        FORWARD = 0, BOTH,
+    };
+
     E_Float o[3];
     E_Float d[3];
     E_Int kx, ky, kz;
     E_Float Sx, Sy, Sz;
     E_Float inv_dx, inv_dy, inv_dz;
+    Policy policy;
 
-    Ray(Point O, Vec3 D);
-    Ray(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy, E_Float dz);
+    Ray(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy, E_Float dz,
+        Policy policy);
 
     bool intersect_AABB(const AABB &box) const;
 
@@ -47,19 +52,3 @@ struct Ray {
 E_Int ray_point_orient(const E_Float o[3], const E_Float d[3],
     const E_Float fN[3], E_Float px, E_Float py, E_Float pz);
 
-bool ray_AABB_intersect(E_Float ox, E_Float oy, E_Float oz,
-    E_Float dx, E_Float dy, E_Float dz,
-    const AABB &box);
-
-E_Int MollerTrumbore(E_Float px, E_Float py, E_Float pz, E_Float dx, E_Float dy,
-    E_Float dz, E_Float ax, E_Float ay, E_Float az, E_Float bx, E_Float by, E_Float bz,
-    E_Float cx, E_Float cy, E_Float cz, TriangleIntersection &TI);
-
-bool MollerTrumboreAnyDir(
-    E_Float px, E_Float py, E_Float pz,
-    E_Float dx, E_Float dy, E_Float dz,
-    E_Float ax, E_Float ay, E_Float az,
-    E_Float bx, E_Float by, E_Float bz,
-    E_Float cx, E_Float cy, E_Float cz,
-    E_Float &u, E_Float &v, E_Float &w, E_Float &t,
-    E_Float &x, E_Float &y, E_Float &z);
