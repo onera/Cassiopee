@@ -904,13 +904,6 @@ generateIBMMeshPara = generateIBMMesh
 # only in buildOctree
 def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
     tbSolid = Internal.rmNodesByName(tb, 'IBCFil*')
-    minSneartb = 1.0e10
-    for s in Internal.getZones(tbSolid):
-        sdd = Internal.getNodeFromName1(s, ".Solver#define")
-        if sdd is not None:
-            snearl = Internal.getNodeFromName1(sdd, "snear")
-            if snearl is not None:
-                minSneartb=min(minSneartb,Internal.getValue(snearl)*(vmin-1))
 
     if dim == 2:
         tbSolid = T.addkplane(tbSolid)
@@ -944,7 +937,9 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
     G._getVolumeMap(to)
     volmin0 = C.getMinValue(to, 'centers:vol')
     # volume minimum au dela duquel on ne peut pas raffiner
-    if minSneartb>1.0e09: minSneartb=min(snearsf)
+    snears = Internal.getNodesFromName(tbSolid, 'snear')
+    if snears != []: minSneartb= min(snears, key=lambda x: x[1])[1][0]*(vmin-1)
+    else: minSneartb= min(snearsf)
     volmin0 *= (min(1.0,min(snearsf)/minSneartb)**(dim))
     while end == 0:
         # Do not refine inside obstacles
