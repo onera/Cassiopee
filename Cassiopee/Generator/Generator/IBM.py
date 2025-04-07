@@ -931,7 +931,7 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
                     if snearl is not None:
                         snearl = Internal.getValue(snearl)
                         snearsf.append(snearl*(vmin-1))
-    
+
     to = C.newPyTree(['Base', o])
     end = 0
     G._getVolumeMap(to)
