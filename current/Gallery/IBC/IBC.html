@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Gallery</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body leftmargin="100">
+<hr>
+<h1>Pre-processing for immersed boundary conditions</h1>
+<hr>
+Cassiop&eacute;e functions enable to perform the pre-processing for immersed boundary conditions (IBC). Cassiopee helps finding the IBC corrected points
+and interpolation points and their donor information 
+(interpolation cells and coefficients).<br><br>
+
+
+Given a close surface and a input mesh (generally an octree), the algorithm
+is the following:<br>
+
+- The input mesh is blanked using Connector.blankCells in order to determine cells lying inside the surface.<br>
+
+- Then a fringe of n layers of cells is built using Connector.setHoleInterpolatedPts, starting from the outter layer of blanked cells. The cell centers are the IBC points. <br>
+
+- The normals to the IBC points is then computed as the gradient of the distance function using Dist2Walls.distance2Walls and Post.computeGrad.<br>
+
+- A second fringe of points is built by shifting the IBC points of &#948 .<strong>n</strong>, where &#948 is given.<br><br>
+
+These points are interpolated from the original mesh. The donor information is provided by Connector.setInterpolations for the points of the &#948 front
+for use with the solver.
+
+<hr>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="lagoon1.png"><img border="0" src="lagoon1_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      Landing gear surface (closed and watertight).<br><br>
+
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="lagoon0.png"><img border="0" src="lagoon0_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      Blanked points of the original mesh.<br><br>
+
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="lagoon2.png"><img border="0" src="lagoon2_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      Closeup view of IBC points near the surface.<br><br>
+
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="lagoon3.png"><img border="0" src="lagoon3_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      Closeup view of &#948 points .<br><br>
+
+      <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+      <table border="1", width="90%", height="40">
+      <tr>
+      <td>
+      <font size="-1" face="sans-serif">
+      <strong>More:</strong>  
+      <a href="../Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Tutorials/Tutorials.html">Tutorials</a> -
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a> -
+      <br>
+      </td>
+      </tr>
+      </table>
+      </div> 
+
+      <hr>
+
+</body>
+</html>

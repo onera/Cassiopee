@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>Python: basic python programming with array interface</h1>
+<hr>
+
+   This tutorial shows some basics using Cassiopee array API.
+   The Cassiopee array interface is really close to the numpy interface.<br>
+<hr>
+
+<br>
+We need first to provide access to the module functions 
+(here <span style="font-family: courier new,monospace;">Converter</span>
+and <span style="font-family: courier new,monospace;">Generator</span>):
+<div class="code">
+      import Converter as C<br>
+      import Generator as G
+</div>
+<br>
+
+  Create a structured array corresponding to a regular Cartesian grid:
+<div class="code">
+     a = G.cart( (0,0,0), (1,1,1), (10,11,12) )
+</div>
+<br>
+
+  a is then a structured Cassiopee array: ['x,y,z', n, ni, nj, nk]. <br>
+  This is basically a python list containing a string describing the 
+  variables, a numpy storing the data, and 3 integers denoting the
+  number of points in each direction.<br> 
+  You can easily access the numpy with:
+
+<div class="code">
+   n = a[1]
+</div>
+   This numpy array can be then classically manipulated with numpy functions.
+<br>
+
+   Convert the previous array as an HEXA unstructured array:
+<div class="code">
+   b = C.convertArray2Hexa(a)
+</div>
+   It should be noted that Cassiopee array functions always return
+   a copy of the input array.<br>
+   b is then a unstructured Cassiopee array: ['x,y,z', n, c, 'HEXA']. <br>
+   This is also a python list containing a string describing the 
+   variables, a numpy storing the data, a numpy storing
+  the connectivity and a string desiging the type of elements.
+
+   <br><br>     
+   <a href="tuto1.py">[Download python script].</a><br>
+     
+   <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+
+     <table border="1", width="90%", height="40">
+     <tr>
+     <td>
+     <font size="-1" face="sans-serif">
+     <strong>More:</strong>
+     <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+     <br>
+
+     </td>
+     </tr>
+     </table>
+     </div> 
+
+     <hr>
+</body>
+</html>
+

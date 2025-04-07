@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://onera.github.io/Cassiopee/current/developers/Git/contributing/">
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>Contributing to the Cassiopee Github repository - Cassiopee</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../../css/version-select.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">Cassiopee</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../cloningCassiopee/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../Install/msys2/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#contributing-to-the-cassiopee-github-repository" class="nav-link">Contributing to the Cassiopee Github repository</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#tldr" class="nav-link">TLDR</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#forking-the-upstream-repository" class="nav-link">Forking the upstream repository</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#synchronising-your-fork-from-the-dev-branch-of-the-upstream-repository" class="nav-link">Synchronising your fork from the dev branch of the upstream repository</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#stashing" class="nav-link">Stashing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#synchronising-your-local-and-working-directories-from-your-remote-fork" class="nav-link">Synchronising your local and working directories from your remote fork</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#synchronising-your-local-and-working-directories-and-your-remote-fork-from-the-upstream-repo" class="nav-link">Synchronising your local and working directories, and your remote fork, from the upstream repo</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#committing-and-pushing-to-your-remote-fork" class="nav-link">Committing and pushing to your remote fork</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#submitting-changes-to-the-upstream-repository" class="nav-link">Submitting changes to the upstream repository</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="contributing-to-the-cassiopee-github-repository">Contributing to the Cassiopee Github repository</h1>
+<h2 id="tldr">TLDR</h2>
+<p>To contribute, you need to create a <code>Pull Request</code> from your remote fork webpage: https://github.com/github_username/Cassiopee/. Click on the <em>Contribute</em> button and follow the instructions (give a title to your PR, describe the modifications and review your changes)</p>
+<p><br> </br></p>
+<h2 id="forking-the-upstream-repository">Forking the upstream repository</h2>
+<ul>
+<li>To create your own fork of Cassiopee, please read this <a href="https://github.com/onera/Cassiopee/blob/main/docs/developers/Git/cloning-cassiopee.md#clone-or-fork-cassiopee">section</a>  </li>
+</ul>
+<p><br> </br></p>
+<h2 id="synchronising-your-fork-from-the-dev-branch-of-the-upstream-repository">Synchronising your fork from the dev branch of the upstream repository</h2>
+<ul>
+<li>
+<p>From your remote fork webpage (https://github.com/github_username/Cassiopee/), click on the <em>Sync fork</em> button</p>
+</li>
+<li>
+<p>From a terminal window, follow the instructions given at the end of this <a href="https://github.com/onera/Cassiopee/blob/main/docs/developers/Git/cloning-cassiopee.md#clone-or-fork-cassiopee">paragraph</a></p>
+</li>
+</ul>
+<p><br> </br></p>
+<h2 id="stashing">Stashing</h2>
+<p>Pulling updates will fail if you have local changes. You can first check the state of your local/working directories with</p>
+<pre><code class="language-sh">git status
+</code></pre>
+<p>and if anything is listed, please consider stashing it (ie, saving it). Below is a cheat sheet on stashing</p>
+<pre><code class="language-sh">git stash list  # list all stashes in antichronological order of insertion in the stashing stack
+
+git stash push -m &quot;stashing message to help you remember what this stash is about&quot;  # save your local changes in your local stashing stack
+
+git stash apply stash@{stash_id}  # reinstate the modifications saved in `stash_id` in your working directory. stash_id 0 is the most recent.
+
+git stash drop stash@{stash_id}  # delete stash stash_id - other stashes may be reindexed
+
+git stash pop stash@{stash_id}  # combine git stash apply and git stash drop in one command
+</code></pre>
+<p><br> </br></p>
+<h2 id="synchronising-your-local-and-working-directories-from-your-remote-fork">Synchronising your local and working directories from your remote fork</h2>
+<p>To synchronise your local directory only:</p>
+<pre><code class="language-sh">git fetch origin dev
+</code></pre>
+<p>To synchronise your working directory from your local directory:</p>
+<pre><code class="language-sh">git merge
+</code></pre>
+<p>To synchronise both directories at once:</p>
+<pre><code class="language-sh">git pull origin dev
+</code></pre>
+<p><br> </br></p>
+<h2 id="synchronising-your-local-and-working-directories-and-your-remote-fork-from-the-upstream-repo">Synchronising your local and working directories, and your remote fork, from the upstream repo</h2>
+<pre><code class="language-sh">git pull upstream dev
+git push origin dev
+</code></pre>
+<p><br> </br></p>
+<h2 id="committing-and-pushing-to-your-remote-fork">Committing and pushing to your remote fork</h2>
+<ol>
+<li>Committing will commit your local modifications to your local directory from your working directory. 
+First inspect the files that are modified:</li>
+</ol>
+<pre><code class="language-sh">git status
+</code></pre>
+<p>To see the differences, run:</p>
+<pre><code class="language-sh">git diff &lt;file&gt;
+</code></pre>
+<p>or if you'd wish to use a diff tool instead such as <code>meld</code>, type the following command just once</p>
+<pre><code class="language-sh">git config --global diff.tool meld
+git config --global --add difftool.prompt false
+</code></pre>
+<p>Then, inspect a file using</p>
+<pre><code class="language-sh">git difftool &lt;file&gt;
+</code></pre>
+<p>or all changes in the root directory with <code>meld</code></p>
+<pre><code class="language-sh">meld $CASSIOPEE
+</code></pre>
+<ol>
+<li>You can then add files and/or folders</li>
+</ol>
+<pre><code class="language-sh">git add &lt;file1&gt; &lt;file2&gt; &lt;folder1&gt; &lt;file3&gt;
+</code></pre>
+<p>or add all modified files/folders to your future commit:</p>
+<pre><code class="language-sh">git add -u
+</code></pre>
+<p>You are now ready to commit to your local repo - provide a meaningful description of the changes:</p>
+<pre><code class="language-sh">git commit -m &quot;Module name: message&quot;
+</code></pre>
+<ol>
+<li>Pushing will udpate your remote fork  </li>
+</ol>
+<pre><code class="language-sh">git push
+</code></pre>
+<p><br> </br></p>
+<h2 id="submitting-changes-to-the-upstream-repository">Submitting changes to the upstream repository</h2>
+<p>Finally, to propose your modifications to the <code>dev</code> branch of the upstream/official repository, you have to 
+create a Pull Request. Go to the webpage of your remote fork: https://github.com/github_username/Cassiopee/, click on the <em>Contribute</em> button and follow the instructions (give a title to your PR, describe the modifications and review your changes).</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+        <script src="../../../js/version-select.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

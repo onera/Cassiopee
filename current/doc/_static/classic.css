@@ -1,0 +1,299 @@
+/*
+ * classic.css_t
+ * ~~~~~~~~~~~~~
+ *
+ * Sphinx stylesheet -- classic theme.
+ *
+ * :copyright: Copyright 2007-2023 by the Sphinx team, see AUTHORS.
+ * :license: BSD, see LICENSE for details.
+ *
+ */
+
+@import url("basic.css");
+
+/* -- page layout ----------------------------------------------------------- */
+
+html {
+    /* CSS hack for macOS's scrollbar (see #1125) */
+    background-color: var(--background-color);
+}
+
+hr {
+    border: 1px solid var(--border-color);
+    margin-bottom: 5%;
+    margin-top: 5%;
+}
+
+body {
+    font-family: sans-serif;
+    font-size: 100%;
+    background-color: var(--background-color);
+    color: var(--font-color);
+    margin: 0;
+    padding: 0;
+    margin-top: 30px;
+}
+
+div.document {
+    display: flex;
+    background-color: var(--background-color);
+}
+
+div.documentwrapper {
+    float: left;
+    width: 100%;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 230px;
+}
+
+div.body {
+    background-color: var(--background-color);
+    color: var(--font-color);
+    padding-right: 100px;
+    margin: 0 0 0 135px;
+}
+
+div.footer {
+    color: var(--font-color);
+    width: 100%;
+    padding: 9px 0 9px 0;
+    text-align: center;
+    font-size: 75%;
+}
+
+div.related {
+    background-color: var(--background-color);
+    line-height: 30px;
+    color: var(--font-color);
+}
+
+div.sphinxsidebar h3 {
+    font-family: 'Trebuchet MS', sans-serif;
+    color: var(--font-color);
+    font-size: 160%;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+}
+
+div.sphinxsidebar h4 {
+    font-family: 'Trebuchet MS', sans-serif;
+    color: var(--font-color);
+    font-size: 1.3em;
+    font-weight: normal;
+    margin: -5px 0 0 0;
+    padding: 0;
+}
+
+div.sphinxsidebar p {
+    color: var(--font-color);
+}
+
+div.sphinxsidebar p.topless {
+    margin: 5px 10px 10px 10px;
+}
+
+div.sphinxsidebar ul {
+    margin: 10px;
+    padding: 0;
+    color: var(--font-color);
+    font-size: 100%;
+    margin-bottom: 40px;
+}
+
+div.sphinxsidebar ul ul li {
+    list-style: circle;
+}
+
+/* -- hyperlink styles ------------------------------------------------------ */
+
+a {
+    text-decoration: none;
+}
+a:link, a:visited {
+color: var(--link-color);
+}
+a:hover, a:active {
+color: red;
+}
+a strong {
+text-decoration: underline;
+}
+
+
+
+/* -- body styles ----------------------------------------------------------- */
+
+div.body h1,
+div.body h2,
+div.body h3,
+div.body h4,
+div.body h5,
+div.body h6 {
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight: bold;
+    color: var(--font-color);
+    margin: 20px -20px 10px -20px;
+    padding: 3px 0 3px 10px;
+    border-radius: var(--border-radius);
+}
+
+div.body h1 { margin-top: 0; font-size: 200%; }
+div.body h2 { font-size: 160%; }
+div.body h3 { font-size: 140%; }
+div.body h4 { font-size: 120%; }
+div.body h5 { font-size: 110%; }
+div.body h6 { font-size: 100%; }
+
+a.headerlink {
+    color: #c60f0f;
+    font-size: 0.8em;
+    padding: 0 4px 0 4px;
+    text-decoration: none;
+}
+
+a.headerlink:hover {
+    background-color: #c60f0f;
+    color: white;
+}
+
+div.body p, div.body dd, div.body li, div.body blockquote {
+    text-align: left;
+    line-height: 130%;
+}
+
+#name-standardisation table p {
+    text-align: center;
+    line-height: 130%;
+}
+
+#list-of-functions td {
+    width: 50%;
+}
+
+div.admonition p.admonition-title + p {
+    display: inline;
+}
+
+div.admonition p {
+    margin-bottom: 5px;
+}
+
+div.admonition pre {
+    margin-bottom: 5px;
+}
+
+div.admonition ul, div.admonition ol {
+    margin-bottom: 5px;
+}
+
+div.note {
+    padding: 4px;
+    border: 2px solid #d19a66;
+    background-color: rgb(209, 154, 102, 0.2);
+    border-radius: var(--border-radius);
+    width: 95%;
+}
+
+.note .admonition-title {
+    color: #d19a66;
+    margin-left: 10px;
+}
+
+div.seealso {
+    padding: 4px;
+    border: 2px solid #c678dd;
+    background-color: rgb(198, 120, 221, 0.2);
+    border-radius: var(--border-radius);
+    width: 95%;
+}
+
+.seealso .admonition-title {
+    color: #c678dd;
+    margin-left: 10px;
+}
+
+nav.contents,
+aside.topic,
+div.topic {
+    background-color: #eee;
+}
+
+div.warning {
+    padding: 4px;
+    border: 2px solid #c12e3a;
+    background-color: rgb(193, 46, 58, 0.2);
+    border-radius: var(--border-radius);
+    width: 95%;
+}
+
+.warning .admonition-title {
+    color: #c12e3a;
+    margin-left: 10px;
+}
+
+p.admonition-title {
+    display: inline;
+}
+
+p.admonition-title:after {
+    content: ":";
+}
+
+pre {
+    padding: 5px;
+    background-color: unset;
+    color: unset;
+    line-height: 120%;
+    border-left: none;
+    border-right: none;
+}
+
+code {
+    background-color: #ecf0f3;
+    padding: 0 1px 0 1px;
+    font-size: 0.95em;
+}
+
+th, dl.field-list > dt {
+    padding: 10px;
+    border: var(--border);
+
+    border-radius: var(--border-radius);
+    margin-bottom: 3px;
+}
+
+th, dl.field-list > dd {
+    padding: 10px;
+    border-radius: var(--border-radius);
+    margin-bottom: 3px;
+}
+
+.warning code {
+    background: #efc2c2;
+}
+
+.note code {
+    background: #d6d6d6;
+}
+
+.viewcode-back {
+    font-family: sans-serif;
+}
+
+div.viewcode-block:target {
+    background-color: #f4debf;
+    border-top: 1px solid #ac9;
+    border-bottom: 1px solid #ac9;
+}
+
+div.code-block-caption {
+    color: var(--font-color);
+    background-color: var(--background-color);
+}
+
+#myBtn {
+    box-shadow: none;
+}

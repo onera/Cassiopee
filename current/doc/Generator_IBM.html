@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Generator.IBM: mesh generation module for IBMs &#8212; Generator 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Generator.html">Generator 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Generator.IBM: mesh generation module for IBMs</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="generator-ibm-mesh-generation-module-for-ibms">
+<h1>Generator.IBM: mesh generation module for IBMs</h1>
+<p>Specific mesh generation functions for immersed boundaries (IB).</p>
+<p>All of these functions can be executed in both sequential and parallel contexts.</p>
+<span class="target" id="module-Generator.IBM"></span><section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; IBM automatic grid generation</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.IBM.Generator.IBM.buildOctree" title="Generator.IBM.Generator.IBM.buildOctree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.IBM.buildOctree</span></code></a></p></td>
+<td><p>Builds an octree from the surface definitions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.IBM.Generator.IBM.generateIBMMesh" title="Generator.IBM.Generator.IBM.generateIBMMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.IBM.generateIBMMesh</span></code></a></p></td>
+<td><p>Generates the full Cartesian mesh for IBMs.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Generator.IBM.Generator.IBM.generateIBMMesh">
+<span class="sig-prename descclassname"><span class="pre">Generator.IBM.</span></span><span class="sig-name descname"><span class="pre">generateIBMMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snears</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">octreeMode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Generates the full Cartesian mesh (octree/quadtree-based) for IBMs. The algorithm is divided into three main steps. It starts with the sequential octree generation from the surface definitions, through optional local adaptations from the refinement zones defined in tbox, to the resulting Cartesian mesh. The methodology is introduced and detailed in Peron and Benoit [2013, <a class="reference external" href="https://doi.org/10.1016/j.jcp.2012.07.029">https://doi.org/10.1016/j.jcp.2012.07.029</a>], and recalled in Constant [2023, <a class="reference external" href="http://dx.doi.org/10.13140/RG.2.2.35378.21449">http://dx.doi.org/10.13140/RG.2.2.35378.21449</a>]. The resulting mesh is a collection of overset isotropic grids with minimal overlap.</p>
+<p>This function encapsulates the Generator.buildOctree function. For more details about the octree creation step, see the documentation of this function. If the octree has already been built, the user can also pass the octree as an input parameter (to).</p>
+<p>This function fully operates in a distributed parallel environment and automatically splits the resulting Cartesian mesh into NP subzones, where NP is the number of MPI processes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>vmin</strong> (<em>integer</em>) &#8211; minimum number of cells per direction for each octree level</p></li>
+<li><p><strong>snears</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em>) &#8211; minimum cell spacing(s) near the bodies</p></li>
+<li><p><strong>dfars</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em>) &#8211; extent(s) of the domain from the bodies</p></li>
+<li><p><strong>tbox</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; refinement bodies</p></li>
+<li><p><strong>to</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input octree if already created</p></li>
+<li><p><strong>octreeMode</strong> (<em>0</em><em> or </em><em>1</em>) &#8211; octree generation mode</p></li>
+<li><p><strong>check</strong> (<em>boolean</em>) &#8211; if True: write octree.cgns locally</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>block-structured mesh tree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Generator/generateIBMMeshPT.py">Generates the full Cartesian mesh for IBMs (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - generateIBMMesh (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Generator.IBM</span> <span class="k">as</span> <span class="nn">G_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D_IBM</span><span class="o">.</span><span class="n">setDfar</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D_IBM</span><span class="o">.</span><span class="n">setSnear</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">G_IBM</span><span class="o">.</span><span class="n">generateIBMMesh</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">octreeMode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Generator.IBM.Generator.IBM.buildOctree">
+<span class="sig-prename descclassname"><span class="pre">Generator.IBM.</span></span><span class="sig-name descname"><span class="pre">buildOctree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snears</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">octreeMode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Builds an octree (3D) or quadtree (2D) tree from the surface definitions stored in tb. This function is inherently sequential, and the geometry file must be shared among all processors when running in parallel. The resulting octree (or quadtree) is balanced to respect a maximum ratio of 2 between adjacent leaf nodes. By default, the current balancing mode also respects the same condition on nodes connected by one vertice.</p>
+<p>Since this function, which is based on the Generator.PyTree.octree() function, is primarily used to automatically generate Cartesian grids around immersed boundaries, a final expansion of the lowest level leaf nodes is performed so that the minimum spacing imposed near the wall is sufficiently propagated in the wall normal direction. Local refinement zones stored in the tbox argument can be used to further refine the octree.</p>
+<p>This function takes into account three main parameters which are vmin, snears and dfars.</p>
+<ul class="simple">
+<li><p>vmin is a global parameter that controls the minimum number of cells per direction for each octree level. For example, a small vmin value will result in a small number of points against a large number of elementary Cartesian blocks, as well as more frequent resolution changes from the wall boundaries. Empirically, one should use vmin values between 7 and 21.</p></li>
+<li><p>snears defines the minimum near-wall spacing. This argument can be passed globally as a float, or locally as a list of floats whose size must be equal to the number of zones in the tb file. Note that these values will eventually be overwritten by any snears values found in each subzone of the geometry pytree (see Geom.IBM.setSnear).</p></li>
+<li><p>The dfars argument specifies the global domain extent from the geometry bounding boxes. Like snears, this argument can be a float or a list of floats, and local values found in tb will eventually overwrite the values passed as argument (see Geom.IBM.setDfar).</p></li>
+</ul>
+<p>Since the octree is created by recursively subdividing cubes into octants, only the final snear or dfar values can be exact. The parameter octreeMode allows the user to generate an octree by fixing one or the other. By default, octreeMode is set to 0 and the domain extent is fixed. The subdivision step ends when the minimum near-wall spacing is close enough to the minimum snear value specified by the user. Note that  in some cases the actual snear can be up to 20% lower or higher than the expected snear value(s). When octreeMode is set to 1, the minimum near-wall spacing is fixed and the domain extent is finally modified to get as close as possible to the desired dfars values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>vmin</strong> (<em>integer</em>) &#8211; minimum number of cells per direction for each octree level</p></li>
+<li><p><strong>snears</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em>) &#8211; minimum cell spacing(s) near the bodies</p></li>
+<li><p><strong>dfars</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>floats</em>) &#8211; extent(s) of the domain from the bodies</p></li>
+<li><p><strong>tbox</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; refinement bodies</p></li>
+<li><p><strong>octreeMode</strong> (<em>0</em><em> or </em><em>1</em>) &#8211; octree generation mode</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>monozone octree (3D) or quadtree (2D), Quad (2D) or Hex (3D) type</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Generator/buildOctreePT.py">Builds an octree from the surface definitions (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - buildOctree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Generator.IBM</span> <span class="k">as</span> <span class="nn">G_IBM</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+
+<span class="n">to</span> <span class="o">=</span> <span class="n">G_IBM</span><span class="o">.</span><span class="n">buildOctree</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">snears</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">dfars</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span> <span class="n">tbox</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">octreeMode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">to</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Generator.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Generator.IBM: mesh generation module for IBMs</a><ul>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Generator_IBM.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Generator.html">Generator 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Generator.IBM: mesh generation module for IBMs</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

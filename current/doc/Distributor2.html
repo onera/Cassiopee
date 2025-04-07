@@ -1,0 +1,748 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Distributor2: distribution of grids on processors &#8212; Distributor2 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Distributor2 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Distributor2: distribution of grids on processors</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="distributor2-distribution-of-grids-on-processors">
+<h1>Distributor2: distribution of grids on processors</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>This module provides functions to distribute blocks on a given
+number of processors. At the end of the process, each block
+will have a number corresponding to the processor it must be affected
+to for a balanced computation, depending on given criterias. This
+module doesn&#8217;t perform splitting (see the Transform module for
+that).</p>
+<p>This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.</p>
+<p>For use with the array interface, you have to import Distributor2 module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Distributor2</span> <span class="k">as</span> <span class="nn">D2</span>
+</pre></div>
+</div>
+<p>For use with the pyTree interface:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+</pre></div>
+</div>
+<span class="target" id="module-Distributor2"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Automatic load balance</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Distributor2.distribute" title="Distributor2.distribute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.distribute</span></code></a></p></td>
+<td><p>Distribute zones over NProc processors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Distributor2.PyTree.distribute" title="Distributor2.PyTree.distribute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.PyTree.distribute</span></code></a></p></td>
+<td><p>Distribute a pyTree over processors.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Various operations</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Distributor2.PyTree.addProcNode" title="Distributor2.PyTree.addProcNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.PyTree.addProcNode</span></code></a></p></td>
+<td><p>Add a &quot;proc&quot; node to zones with the given proc value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Distributor2.PyTree.getProc" title="Distributor2.PyTree.getProc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.PyTree.getProc</span></code></a></p></td>
+<td><p>Return the value of proc node.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Distributor2.PyTree.getProcDict" title="Distributor2.PyTree.getProcDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.PyTree.getProcDict</span></code></a></p></td>
+<td><p>Return the proc of a zone in a dictionary proc['zoneName'].</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Distributor2.PyTree.getProcList" title="Distributor2.PyTree.getProcList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.PyTree.getProcList</span></code></a></p></td>
+<td><p>Return the list of zones for each proc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Distributor2.PyTree.copyDistribution" title="Distributor2.PyTree.copyDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.PyTree.copyDistribution</span></code></a></p></td>
+<td><p>Copy distribution of a in b.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Distributor2.PyTree.printProcStats" title="Distributor2.PyTree.printProcStats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.PyTree.printProcStats</span></code></a></p></td>
+<td><p>Print stats dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Distributor2.Mpi.redispatch" title="Distributor2.Mpi.redispatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Distributor2.Mpi.redispatch</span></code></a></p></td>
+<td><p>Redistribute tree from graph.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.distribute">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.</span></span><span class="sig-name descname"><span class="pre">distribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NProc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prescribed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perfo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'graph'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nodes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nghost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Distribute automatically the blocks amongst NProc processors.</p>
+<ul class="simple">
+<li><p>prescribed is a list of blocks that are forced to be on a given processor.</p></li>
+</ul>
+<p>For instance, prescribed[2] = 0 means that block 2 MUST be affected to processor 0.</p>
+<p>Prescribed is ignored for algorithm=&#8221;graph&#8221;.</p>
+<ul class="simple">
+<li><p>perfo is a tuple or a tuple list for each processor.</p></li>
+</ul>
+<p>Each tuple describes the relative weight of solver CPU time regarding the communication speed and latence (solverWeight, latenceWeight, comSpeedWeight).</p>
+<ul class="simple">
+<li><p>weight is a list of weight for each block indicating the relative cost for solving each block.</p></li>
+<li><p>com is a ixj matrix describing the volume of points exchanged between bloc i and bloc j.</p></li>
+<li><p>algorithm can be chosen in: &#8216;gradient&#8217;, &#8216;genetic&#8217;, &#8216;fast&#8217;, &#8216;graph&#8217;</p></li>
+<li><p>mode=&#8217;node&#8217;, &#8216;cells&#8217;: optimize distribution of block considering node (cells) numbers.</p></li>
+<li><p>nghost: take into account ghost cells (only for structured grids)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>N</strong> (<em>int</em>) &#8211; number of processors</p></li>
+<li><p><strong>prescribed</strong> (<em>list</em><em> of </em><em>ints</em>) &#8211; list of prescribed blocks</p></li>
+<li><p><strong>perfo</strong> (<em>list</em><em> of </em><em>tuples</em>) &#8211; list of performance for each processor</p></li>
+<li><p><strong>weight</strong> (<em>list</em><em> of </em><em>floats</em>) &#8211; list of weight for each block</p></li>
+<li><p><strong>algorithm</strong> (<em>string</em>) &#8211; [&#8216;gradient&#8217;, &#8216;genetic&#8217;, &#8216;fast&#8217;, &#8216;graph&#8217;]</p></li>
+<li><p><strong>nghost</strong> (<em>int</em>) &#8211; number of ghost cells present in the mesh</p></li>
+</ul>
+</dd>
+</dl>
+<p>The function output is a stats dictionary.
+stat[&#8216;distrib&#8217;] is a vector describing the attributed processor for each
+block, stats[&#8216;meanPtsPerProc&#8217;] is the mean number of points per proc,
+stats[&#8216;varMin&#8217;] is the minimum variation of number of points,
+stats[&#8216;varMax&#8217;] is the maximum variation of number of points,
+stats[&#8216;varRMS&#8217;] is the mean variation of number of points,
+stats[&#8216;nptsCom&#8217;] is the number of points exchanged between processors for
+communication, stats[&#8216;comRatio&#8217;] is the ratio between the number of points exchanged between
+processors in this configuration divided by the total number of matching/overlap boundary points,
+stats[&#8216;adaptation&#8217;] is the value of the optimized function.</p>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/distribute.py">Distribute arrays (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - distribute (array) -</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Distributor2</span> <span class="k">as</span> <span class="nn">D2</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">Converter.Internal</span> <span class="kn">import</span> <span class="n">E_NpyInt</span>
+
+<span class="c1"># Distribution sans communication entre blocs</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">arrays</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">(</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="p">)</span>
+    <span class="n">arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">5</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+<span class="c1"># Distribution avec des perfos differentes pour chaque proc</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">perfo</span><span class="o">=</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)]);</span> <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+<span class="c1"># Distribution avec forcage du bloc 0 sur le proc 1, du bloc 2 sur le proc 3</span>
+<span class="c1"># -1 signifie que le bloc est a equilibrer</span>
+<span class="n">prescribed</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+<span class="n">prescribed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">prescribed</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">prescribed</span><span class="o">=</span><span class="n">prescribed</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+<span class="c1"># Distribution avec communications entre blocs, perfos identique pour tous</span>
+<span class="c1"># les procs</span>
+<span class="n">volCom</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">E_NpyInt</span><span class="p">)</span>
+<span class="n">volCom</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="c1"># Le bloc 0 echange 100 pts avec le bloc 1</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">com</span><span class="o">=</span><span class="n">volCom</span><span class="p">,</span> <span class="n">perfo</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.1</span><span class="p">));</span> <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+<span class="c1"># Distribution avec des solveurs differents pour les blocs (le solveur est 2</span>
+<span class="c1"># fois plus couteux pour les bloc 2 et 4)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">3</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.PyTree.distribute">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.PyTree.</span></span><span class="sig-name descname"><span class="pre">distribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NProc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prescribed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perfo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useCom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'match'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'graph'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nodes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nghost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Distribute automatically the blocks amongst NProc processors.</p>
+<p>With the pyTree interface, the user-defined node .Solver#Param/proc
+is updated with the attributed processor number.</p>
+<p>If useCom=0, only the grid number of points is taken into account.
+If useCom=&#8217;match&#8217;, only match connectivities are taken into account.
+if useCom=&#8217;overlap&#8217;, only overlap connectivities are taken into account.
+if useCom=&#8217;bbox&#8217;, overlap between zone bbox is taken into account.
+if useCom=&#8217;ID&#8217;, ID (interpolation or match) and IBCD (IBM points) are taken into account.
+If useCom=&#8217;all&#8217;, matching and overlap communications are taken into account.</p>
+<p>When using distributed trees, prescribed must be a dictionary containing
+the zones names as key, and the prescribed proc as value.
+weight is also a dictionary where the keys are the zone names and the weight as the value.
+It is not mandatory to assign a weight to all the zones of the pyTree. Default value is assumed to be 1,
+only different weight values can be assigned to zones.
+t can be either a skeleton or a loaded skeleton pyTree for useCom=0 or useCom=&#8217;match&#8217;,
+but must be a loaded skeleton tree only for the other settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>N</strong> (<em>int</em>) &#8211; number of processors</p></li>
+<li><p><strong>prescribed</strong> (<em>dictionary</em>) &#8211; dictionary of prescribed block (optional)</p></li>
+<li><p><strong>perfo</strong> (<em>list</em><em> of </em><em>tuples</em>) &#8211; list of perfo for each processor (optional)</p></li>
+<li><p><strong>weight</strong> (<em>dictionary</em>) &#8211; dictionary of weights for block (optional)</p></li>
+<li><p><strong>useCom</strong> (<em>[</em><em>'0</em><em>, </em><em>'all'</em><em>, </em><em>'match'</em><em>, </em><em>'overlap'</em><em>, </em><em>'bbox'</em><em>, </em><em>'ID'</em><em>]</em>) &#8211; tell what to use to measure communication volumes</p></li>
+<li><p><strong>algorithm</strong> (<em>string</em>) &#8211; [&#8216;gradient&#8217;, &#8216;genetic&#8217;, &#8216;fast&#8217;, &#8216;graph&#8217;]</p></li>
+<li><p><strong>nghost</strong> (<em>int</em>) &#8211; number of ghost cells present in the mesh</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/distributePT.py">Distribute zones (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - distribute (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># Distribute on 3 processors</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<section id="various-operations">
+<h3>Various operations</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.PyTree.addProcNode">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.PyTree.</span></span><span class="sig-name descname"><span class="pre">addProcNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NProc</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a &#8220;.Solver#Param/proc&#8221; node to all zones of a with given value.
+Exists also as in place version (_addProcNode) that modifies
+a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>NProc</strong> (<em>int</em>) &#8211; proc to be set</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/addProcNodePT.py">Add a proc node (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addProcNode (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">D2</span><span class="o">.</span><span class="n">_addProcNode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [&#39;cart&#39;,array(shape=(3, 3),dtype=&#39;int32&#39;,order=&#39;F&#39;),[3 sons],&#39;Zone_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;ZoneType&#39;,array(&#39;b&#39;Structured&#39;&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;ZoneType_t&#39;]</span>
+<span class="c1">#&gt;&gt;   | ...</span>
+<span class="c1">#&gt;&gt;   |_[&#39;.Solver#Param&#39;,None,[1 son],&#39;UserDefinedData_t&#39;]</span>
+<span class="c1">#&gt;&gt;       |_[&#39;proc&#39;,array([12],dtype=&#39;int32&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.PyTree.getProc">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.PyTree.</span></span><span class="sig-name descname"><span class="pre">getProc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return the proc value of a zone or a list of zones.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the affected proc of zone</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int or list of ints (for multiple zones)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/getProcPT.py">Get proc of a zone (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getProc (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">addProcNode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+<span class="n">proc</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">getProc</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">proc</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; 12</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.PyTree.getProcDict">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.PyTree.</span></span><span class="sig-name descname"><span class="pre">getProcDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefixByBase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return a dictionary where procDict[&#8216;zoneName&#8217;] is the no
+of proc affected to zone &#8216;zoneName&#8217;.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>prefixByBase</strong> (<em>boolean</em>) &#8211; if true, add base prefix to zone name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the dictionary of zone/proc.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dictionary</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/getProcDictPT.py">Return the dictionary of zones/proc (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getProcDict (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">getProcDict</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">zoneNames</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">getZoneNames</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">prefixByBase</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">zoneNames</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">proc</span><span class="p">[</span><span class="n">z</span><span class="p">])</span>
+
+<span class="c1"># - or with base prefix -</span>
+<span class="n">proc</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">getProcDict</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">prefixByBase</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">zoneNames</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">getZoneNames</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">prefixByBase</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">zoneNames</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">proc</span><span class="p">[</span><span class="n">z</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.PyTree.getProcList">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.PyTree.</span></span><span class="sig-name descname"><span class="pre">getProcList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NProc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return procList where procList[proc] is a list of zone names
+attributed to the proc processor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the affected proc of zone</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int or list of ints</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/getProcListPT.py">Return the list of zones affected to a proc (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getProcList (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="n">procList</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">getProcList</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">procList</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.PyTree.copyDistribution">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.PyTree.</span></span><span class="sig-name descname"><span class="pre">copyDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Copy the distribution from b to a matching zones by their name.
+Exists also as in place version (_copyDistribution) that modifies
+a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>b</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; original data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modifie reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>same as input data</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/copyDistributionPT.py">Copy proc distribution from one tree to another (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyDistribution (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Case</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart</span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">i</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">D2</span><span class="o">.</span><span class="n">_addProcNode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+    <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart</span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">i</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">t2</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">t2</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">copyDistribution</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.Mpi.redispatch">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.Mpi.</span></span><span class="sig-name descname"><span class="pre">redispatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Redispatch a tree where a new distribution is defined in the node &#8216;proc&#8217;.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modifie reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>same as input data</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/redispatchPT.py">Redispatch a tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - redispatch (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+<span class="kn">import</span> <span class="nn">Distributor2.Mpi</span> <span class="k">as</span> <span class="nn">D2mpi</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Case</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># lecture du squelette</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+
+<span class="c1"># equilibrage 1</span>
+<span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span> <span class="n">useCom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># load des zones locales dans le squelette</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+
+<span class="c1"># equilibrage 2 (a partir d&#39;un squelette charge)</span>
+<span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;gradient1&#39;</span><span class="p">,</span>
+                         <span class="n">useCom</span><span class="o">=</span><span class="s1">&#39;match&#39;</span><span class="p">)</span>
+
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">_convert2PartialTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">D2mpi</span><span class="o">.</span><span class="n">_redispatch</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># force toutes les zones sur 0</span>
+<span class="n">zones</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;Zone_t&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">zones</span><span class="p">:</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;proc&#39;</span><span class="p">)</span>
+    <span class="n">Internal</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">D2mpi</span><span class="o">.</span><span class="n">_redispatch</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># Reconstruit l&#39;arbre complet a l&#39;ecriture</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Distributor2.PyTree.printProcStats">
+<span class="sig-prename descclassname"><span class="pre">Distributor2.PyTree.</span></span><span class="sig-name descname"><span class="pre">printProcStats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NProc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Print statistics for each processor: number of points and list of zones names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>stats</strong> (<em>Python dictionary</em>) &#8211; dictionary obtained from Distributor2.distribute</p></li>
+<li><p><strong>NProc</strong> (<em>integer</em>) &#8211; number of processors</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Distributor2/printProcStatsPT.py">Print procs statistics after distribution of a tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - printProcStats (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># Distribute on 3 processors</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">D2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># With stats and NProc</span>
+<span class="n">D2</span><span class="o">.</span><span class="n">printProcStats</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="c1"># NProc is guessed from stats</span>
+<span class="n">D2</span><span class="o">.</span><span class="n">printProcStats</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">stats</span><span class="p">)</span>
+<span class="c1"># All are guessed from t</span>
+<span class="n">D2</span><span class="o">.</span><span class="n">printProcStats</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Distributor2: distribution of grids on processors</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Distributor2.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Distributor2 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Distributor2: distribution of grids on processors</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

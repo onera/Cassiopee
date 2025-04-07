@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+
+<html>
+
+<head> 
+  <meta charset="utf-8" />
+  <title>Release notes</title>
+  <link href="Cassiopee.css" rel="stylesheet" type="text/css">
+  <link rel="icon" type="image/png" href="Images/iconc.png"> </link>
+  <script type="text/javascript" src="_static/jquery.js"></script>
+  <script type="text/javascript" src="_static/searchtools.js"></script>
+  <script type="text/javascript" src="JavaScript/all.js" defer> </script>
+</head>
+
+<body>
+<h1>Release notes</h1>
+
+<HR><p>
+- All: release 4.0 (XX/2025) - in construction<br>
+    
+- CPlot: display360.<br>
+
+- OCC: readCAD, writeCAD.<br>
+
+- OCC: getNbEdges, getNbFaces, getFaceArea.<br>
+
+- OCC: translate, rotate.<br>
+
+- OCC: splitFaces, mergeFaces.<br>
+
+- Fast: loadFile, saveFile: suppress mpirun argument (useless now).<br>
+
+- FastC: save: suppress NP argument (useless now)<br>
+
+- FastC: "DES_DEBUG"=0 or 1 instead of "inactive" or "active"<br>
+
+- Converter: extractBCOfType change zone name separator from "/" to "\" <br>
+
+- CPlot: display solidStyle defaulting to 0. <br>
+
+- Converter: FlowSolution and FlowSolution#Centers must be float fields (no more int fields). <br>
+
+</p><HR><p>
+- All: release 3.7 (10/2023)<br>
+
+- Generator: checkMesh: check mesh quality <br>
+    
+- Generator: getAngleRegularityMap <br>
+    
+- CPlot: update of envmaps <br>
+    
+- CPlot: gamma correction + toneMapping <br>
+    
+- kcgnsview: improved node edit <br>
+    
+- kcgnsview: can view compressed nodes <br>
+
+- CPlot: rewrite keyboard, new icons <br>
+    
+- Intersector: xcellN: export "ratio" instead of "xcellN" <br>
+    
+- OCC: read edges/draft <br>
+    
+- Converter: read/write selig format (airfoils) <br>
+    
+- Converter: tecplot read version 101 (for coda) <br>
+
+- Converter: add jpeg load and write <br>
+    
+- CPlot: add jpeg texture load <br>
+    
+- CPlot: simplifyOnDrag: display BBox when dragging (set in tkPrefs) <br>
+    
+- Internal: adaptNGon32NGon4: adapt a CGNSv3 NGON to a CGNSv4 NGON <br>
+    
+- Internal.adaptNGon42NGon3: adapt a CGNSv4 NGON to a CGNSv3 NGON <br>
+    
+- Internal.adaptNFace2PE: create a ParentElement node from a NFACE node <br>
+    
+- Internal.adaptPE2NFace: create NFace node from ParentElement node <br>
+    
+- Converter: initVars by vectorized function <br>
+    
+- Connector: setHoleInterpolated point + octahedron stencil <br>
+
+    
+</p><HR><p>
+- All: release 3.6 (03/2023)<br>
+
+- CPlot: image sharpening in post-processing (CPlot.setState and tkEffects) <br>
+
+- RigidMotion: copyGrid2GridInit, copytGridInit2Grid <br>
+
+- Internal.checkPyTree/correctPyTree: add check/correct name length > 32 chars <br>
+
+- Geom: distrib1, distrib2: 1D distributions <br>
+
+- Connector.Mpi.setInterpData2: interpolation from one tree to another. <br>
+
+- Compressor.compressFields: add fpc lossless compression for doubles. <br>
+
+</p><HR><p>
+- All: release 3.5 (12/2022)<br>
+
+- Converter: Cmpi.trace : write CPU time and memory for each node<br>
+
+- Converter: extractBCOfType and extractBCOfName: shift option for structured grids<br>
+
+- Bug corrections<br>
+
+</p><HR><p>
+
+- All: release 3.4 (07/2022)<br>
+
+- suppress automatic elsA name conversion to CGNS names<br>
+
+- Converter: hdf write of periodic nodes in R8<br>
+
+- CPlot : tkTree: cut and paste nodes<br>
+
+- CPlot: save selected node<br>
+
+- Generator: cartRx : cartesian grids in parallel<br>
+
+- Generator: cartRx3: cartesian and geometric grids in parallel<br>
+
+- Generator: cartr1 : geometric cartesian grid<br>
+
+- Generator: cartr2 : geometric cartesian grid<br>
+
+- Transform: splitFullMatch : split to have full face match<br>
+
+- Post: Rotor module<br>
+
+
+</p><HR><p>
+
+- All: release 3.3 (11/2021)<br>
+
+- Connector: getInterpolatedPoints: optimized<br>
+
+- Connector: blankCells: optimized<br>
+
+- KCore: Adim: added Mtip<br>
+
+- tkState: added dim1,dim2,dim3<br>
+
+- tkVariables: use reference state<br>
+
+- CPlot: kcgnsview<br>
+
+- CPlot: colormap veridis,inferno,magma<br>
+
+- intersector: syncMatchPerioFaces: force periodicity for intersected/adapted meshes<br>
+
+- intersector: agglomerateSmallCells: improved algorithm<br>
+
+
+</p><HR><p>
+
+- All: release 3.2 (02/2021)<br>
+
+- CPlot: offscreen compositing with osmesa<br>
+
+- CPlot: parallel compositing with osmesa<br>
+
+- Compressor: compressCartesian<br>
+
+- Compressor: compressCellN<br>
+
+- Compressor: compressCoords<br>
+
+- Compressor: compressFields<br>
+
+- Compressor: uncompressAll<br>
+
+- Compressor: compressElements<br>
+
+- Internal: newZoneSubRegion<br>
+
+- Converter: isFinite<br>
+
+- Internal: getVal: direct return of numpy [1]<br>
+
+- Internal: getChildFromName: search limited to children<br>
+
+- Internal: getChildFromType: search limited to children<br>
+
+- Internal: moveNodeFromPaths: move a node from path1 to path2 in a pyTree<br>
+
+- Intersector: adaptCells: coarse-grain mutlithreading (parallelism per block)<br>
+
+- Intersector: adaptCells: BC/Joins/Field preservation<br>
+
+- Intersector: adaptCells: Mesh & Sensor hooks for incremental adaptation<br>  
+
+- Intersector: TurboMachine.py: specific wrappers to use the intersection strategy for mesh generation for turbo machine applications<br>
+
+</p><HR><p>
+
+- All: release 3.1 (06/2020)<br>
+
+- Generator: interface to MMG surface remesher<br>
+
+- OCC: STEP format, other meshing algorithm<br>
+
+- tkPlotXY: better interface, texts<br>
+
+- tkIJK: enable interactive subzoning of structured grids<br>
+
+- tkSplit: split following x,y,z or view<br>
+
+- Post:streamLine2 : optimized streamlines<br>
+
+- Converter: gltf format<br>
+
+- Dist2Walls: bug corrected for hybrid structured/unstructured grids<br>
+
+- Apps.IBM: extractIBMWallFields and loads for a family of zones<br>
+
+- Apps.ToolboxCODA: IBM toolbox for CODA solver (non opensource)<br>
+
+- Apps.Mesh: structured Cartesian (octree) mesh generation in parallel distributed (equivalent to Generator.octree2Struct in parallel)<br>
+
+- Intersector: XcellN: Chimera Post Processing feature for computing visibility coefficients on overset surface grids configurations of any kind (structured or polygonal unstructured) <br>
+
+- Intersector: adaptCells: smoothing_type option to extend the smoothing beyond the first neighborhood<br>
+
+- Intersector: booleanUnion: multi_zone option to preserve zoning of the configuration<br>
+
+</p><HR><p>
+- All: release 3.0 (12/2019)<br>
+
+- Internal: rmNodesFromType optimised<br>
+
+- Internal: rmNodesFromType1,2<br>
+
+- Filter: loadZones<br>
+
+- Filter: writeZones<br>
+
+- Filter: writeZonesWoVariables<br>
+
+- Filter: writeVariables<br>
+
+- Filter: writePyTreeFromPaths<br>
+
+- Filter: writePyTreeFromFilter<br>
+
+- Converter: bin_tp read with field in centers<br>
+
+- Transform: splitSize in place<br>
+
+- Transform: splitNParts in place<br>
+
+</p><HR><p>
+- All: release 2.9 (06/2019)<br>
+
+- Connector: setIBCTransfers + injection + imposed pressure<br>
+
+- Internal: getSizeOf<br>
+
+- Converter: ADF/HDF: high order elements read/write<br>
+
+- CPlot: gamma correction<br>
+
+- CPlot: doc for shader parameters<br>
+
+- CPlot: outlined solid style<br>
+
+- CPlot: improved vector mode<br>
+
+- CPlot: texture rendering<br>
+
+- Converter: convertHO2LO<br>
+
+- Converter: convertLO2HO (partial)<br>
+
+
+</p><HR><p>
+- All: release 2.8 (12/2018)<br>
+
+- tkCassiopee: open panel : enable partial load of files.<br>
+
+- Internal: getZonesPerIteration: return zone with BaseIterativeData.<br>
+
+- Filter: readNodesFromFilter: partial read of nodes<br>
+
+- Filter: Handle, loadZonesWoVariables, loadVariables (partial load for zones)<br>
+
+- Transform: doc improvement<br>
+
+- Post: computeDiv: compute divergence <br>
+
+- Filter: loadZonesWoVars + bbox : specify zones to load specifying their bounding boxes<br>
+
+- Geom: lineDrive, orthoDrive: creation of mesh y sweeping<br>
+
+- Post: isoSurf: vars argument<br>
+
+- Generator: T3Mesher2D: 2 new options to control generated mesh.<br>
+
+- Internal: elsAProfile.createElsaHybrid: option to generate parentElement topologically.<br>
+
+</p><HR><p>
+- All: release 2.7 (07/2018)<br>
+
+- Geom.naca: nouveaux profils (par F. Moens) <br>
+
+- Geom.uniformize: uniformisation de maillages 1D <br>
+
+- Geom.refine: raffinement de maillages 1D <br>
+
+- Geom.enforceh: remaillage de courbes 1D en imposant des tailles de mailles<br>
+
+- Compressor: doc sphinx<br>
+
+- Dist2Walls: doc sphinx<br>
+
+- RigidMotion: doc sphinx<br>
+
+- Distributor2: doc sphinx<br>
+
+- Post: doc sphinx<br>
+
+- Distributor2: meilleur algorithme pour prendre en compte les coms : 'graph'<br>
+
+- Internal: getParentFromType<br>
+
+- Internal: isChild<br>
+
+- Connector: corr. connectMatchHybrid (conditions aux limites deja definies)<br>
+
+- Internal: getNodeFromNameAndType<br>
+
+- Distributor2: fonction printProcStats pour ecrire les stats (nb de points, nom de zones) de chaque proc<br>
+
+- Converter: rmBCDataVars: suppression de variables dans les BCDataSet<br>
+
+- Post: computDiv2: calcul de la divergence d'un champ <br>
+
+</p><HR><p>
+- All : release 2.6 (03/2018)<br>
+
+- Connector: connect Match hybrid <br>
+
+- CPlot: Vector shader <br>
+
+- CPlot: composite rendering <br>
+
+- All: passage C++11 <br>
+
+- All: optimisations <br>
+
+
+</p><HR><p>
+- All : release 2.5 (09/2017)<br>
+
+- Transform : cart2Cyl<br>
+
+- Post : faster isoSurf and isoSurfMC<br>
+
+- Post : computeVariables work with primary variables<br>
+
+- tkCassiopee : improved tkBC<br>
+
+- tkCassiopee : search in applet Bar<br>
+
+- Internal : getPathLeaf, getPathAncestor<br>
+
+- Internal : new documentation<br>
+
+- Internal : faster path routines<br>
+
+- Converter : _createBCDataSetOfType<br>
+
+- Internal : getZonePaths<br>
+
+- Converter : getFamilyBCNamesDict<br>
+
+- Connector: setInterpTransfers + periodicity<br>
+
+- Connector: setInterpolatedPoints + NGON<br>
+
+</p><HR><p>
+
+- All : release 2.4 (05/2017)<br>
+
+-  Intersector: XCellN<br>
+
+- tkCassiopee: new tkPlotXY applet<br>
+
+- Intersector : new module (Boolean operators moved from Generator)<br>
+
+- Internal : groupBCByBCType<br>
+
+- tkCassiopee : collaborative (email image)<br>
+
+- Geom : axisym + variation of r<br>
+
+- Internal : getZones, getBases<br>
+
+- Converter : convert2SkeletonTree<br>
+
+- CPlot : travel<br>
+
+- Converter : listen/send<br>
+
+- Compressor : pack/unpack<br>
+
+- CPlot : moveCamera<br>
+
+</p><HR><p>
+
+- All : release 2.3 (11/2016)<br>
+
+- Compressor : deltaInterpolation (10/2016)<br>
+
+- Transform : scale (07/2016)<br>
+
+- CPlot : new mesh styles (07/2016)<br>
+
+- Internal : autoSetContainers (07/2016)<br>
+
+</p><HR><p>
+- All : release 2.2 (06/2016)<br>
+
+- Generator : Oriented bounded box everywhere (05/2016)<br>
+
+- Generator : various TFIs (05/2016)<br>
+
+- Internal : harmonization with pyCGNS/PAT (05/2016)<br>
+
+- Internal : addChild/createChild now return Child (05/2016)<br>
+
+- CPlot : loadView (04/2016)<br>
+
+- CPlot : addRender2Zone+addRender2PyTree moved to CPlot (04/2016)<br>
+
+- Transform : splitManifold (03/2016)<br>
+
+- Transform : reorderAll for TRI (03/2016)<br>
+
+- Generator : OBB, obboxIntersection (03/2016)<br>
+
+- Distributor2 : getProc (03/2016)<br>
+
+- Distributor2 : copyDistribution (03/2016)<br>
+
+- Distributor2 : addProcNode (03/2016)<br>
+
+- Converter : conformUnstr (03/2016)<br>
+
+- Converter : addGhostCells+nearMatch (03/2016)<br>
+
+- Connector : periodic chimera (03/2016)<br>
+
+</p><HR><p>
+- All : release 2.1 (01/2016)<br>
+
+- Connector : setInterpData open source (07/2016)<br>
+
+- Connector : opt. optimizeOverlap, setInterpData (07/2016)<br>
+
+- Connector : opt. + corr. blankCellsTetra (07/2016)<br>
+
+- Connector : blankCellsTri (08/2015)<br>
+
+- Connector : connectMatch for NGONs (12/2015)<br>
+
+- new module OCC : IGES reader (12/2015)<br>
+
+- tkCassiopee : tkDraw + hand draw (08/2015)<br>
+
+- CPlot : improvement of sphere shader (11/2015)<br>
+
+- tkCassiopee : improvement of tkPlot (11/2015)<br>
+
+- Internal : merge (01/2016)<br>
+
+- Internal : adaptNFace2PE, adaptPE2NFace (08/2015)<br>
+
+- Dist2Walls : optimisation ortho (01/2016)<br>
+
+- Generator : octree2Struct open source (07/2015)<br>
+
+- Generator : conformUnstr (12/2015)<br>
+
+- Geom : lineGenerate with multiple driving curves (08/2015)<br>
+
+- Post : opt. exteriorElements+basic (07/2015)<br>
+
+- Transform : projectOrthoSmooth (11/2015)<br>
+
+</p><HR><p>
+
+- All : release 2.0 (06/2015)<br>
+
+- All : portage Mac OSX (06/2015)<br>
+
+- All : more tutorials! (06/2015)<br>
+
+- Generator : optimization of close (cleanConnectivity) (06/2015)<br>
+
+- Connector : setIBCData improved (06/2015)<br>
+
+- Generator : polyedral boolean operations (06/2015)<br>
+
+- Converter : binary GMSH format (05/2015)<br>
+
+- Converter : formatted GMSH format (05/2015)<br>
+
+- Converter : addBC2Zone + subzone (05/2015)<br>
+
+- Converter : mergeConnectivity (05/2015)<br>
+
+- Converter : isNamePresent (05/2015)<br>
+
+- Generator : basic interface for tetgen (04/2015)<br>
+
+- Generator : basic interface for netgen (04/2015)<br>
+
+- CPlot : setActivePoint (04/2015)<br> 
+
+- Internal : checkPyTree + check CGNS types (03/2015)<br>
+
+- Internal : checkMultigrid (03/2015)<br>
+
+- Generator : getTriQualityMap (03/2015)<br>
+
+- Converter : getMeanRangeValue (03/2015)<br>
+
+- Converter : elsAProfile.addOutputFriction (03/2015)<br>
+
+- Converter : elsAProfile.addOutputForces (03/2015)<br>
+
+- Converter : elsAProfile.addFlowSolution (03/2015)<br>
+
+- Converter : elsAProfile.addGlobalConvergenceHistory (03/2015)<br>
+
+- Converter : elsAProfile.addReferenceState (03/2015)<br>
+
+</p><HR><p>
+
+- All : release R.4 (01/2015)<br>
+
+- Post : renameVars (01/2015)<br>
+
+- Converter : breakConnectivity (12/2014)<br>
+
+- Converter : identifySolutions (11/2014)<br>
+
+- Post : computeNormGrad, computeNormCurl (11/2014)<br>
+
+- Transform : subzone with negative indices (11/2014)<br>
+
+- CPlot : selectionStyle (09/2014)<br>
+
+- tkCassiopee : tkPlot (09/2014)<br>
+
+- Connector : blankCellsTetra (09/2014)<br>
+
+- Connector : chimeraInfo (09/2014)<br>
+
+- Connector : getOversetInfo (09/2014)<br>
+
+- tkCassiopee : save selected zones (09/2014)<br>
+
+- Generator : getEdgeRatio (09/2014)<br>
+
+- Internal : copyRef/copyTree (07/2014) <br>
+
+- Internal : createUniqueChild (07/2014)<br>
+
+- Internal : printTree (06/2014)<br>
+
+- Geom : sphereYinYang (06/2014)<br>
+
+</p><HR><p>
+
+- All : release R.3 (05/2014)<br>
+
+- tkCassiopee : applet customization (05/2014)<br> 
+
+- Transform : splitSize no longer perform connectMatch (05/2014)<br> 
+
+- Converter : getNCells, getNPts (04/2014)<br> 
+
+- Transform : splitSize + ressource (04/2014)<br>
+
+- Transform : splitNParts (04/2014)<br>
+
+- Distributor2 : redispatch (03/2014)<br>
+
+- Distributor2 : new options for useCom (03/2014)<br>
+
+- Internal : renameNodes (03/2014)<br>
+
+- Distributor2 : getProcDict (03/2014)<br>
+
+- Converter : Internal.getValue (03/2014)<br>
+
+- Converter : createBBoxTree, computeGraph, addXZones, rmXZones (03/2014)<br>
+
+- Converter : addState2Base -> addState (02/2014)<br>
+
+- Generator : optimisation close for structured grids (02/2014)<br>
+
+- Connector : setDegeneratedBC (02/2014)<br>
+
+- Connector : optimisation connectMatch (02/2014)<br>
+
+- tkMapEdge : for surface/volume meshes (02/2014)<br>
+
+- All : optimisation of KDTree (02/2014)<br>
+
+- Converter : fmt_su2 (without BCs) (02/2014)<br>
+
+- tkTreeOps : enables tree node modification (01/2014)<br>
+
+- Converter : fillMissingVariables reorder variables (12/2013)<br>
+
+- Converter : formatted plot3d (12/2013)<br>
+
+- tkCassiopee : tkFilter + simple formula (12/2013)<br>
+
+- Converter : Internal extended with XTree functions (12/2013)<br>
+
+</p><HR><p>
+
+- Release R.2 (11/2013) <br>
+
+- CPlot : tkBlader (11/2013) <br>
+
+- CPlot : tkIBC (11/2013) <br>
+
+- CPlot : tkBasicSurfs : access to parametric surfaces (11/2013)<br>
+
+- Geom : data base for UIUC airfoils (11/2013) <br>
+
+- Connector : setInterpData (09/2013) <br>
+
+- Converter : ghostcell speed improved (09/2013) <br>
+
+- Converter : center2Node+cellNType for unstructured grids (07/2013)<br>
+
+- Dist2Walls : body surfaces must be specified (06/2013) <br>
+
+- Connector : interface for blankCells changed (center_in) (06/2013) <br>
+
+- Connector : new double wall algorithm (06/2013) <br>
+
+- Geom : curvatureHeight (06/2013) <br>
+
+- Converter : node2ExtCenters + center field (06/2013) <br>
+
+- Transform : reorder, addkplane NGon (05/2013) <br>
+
+</p><HR><p>
+
+- Release R.1 (05/2013) <br>
+
+- Transform : patch + node list (05/2013) <br>
+
+- Converter : nearestNodes, nearestElts, nearestFaces (05/2013) <br>
+
+- Post : hook pour extract point (05/2013) <br>
+
+- Converter : getEmptyBC for NGONs (04/2013) <br>
+
+- Converter : geometrical identification (04/2013) <br>
+
+- Converter : bin_tp exports v112 instead of 75 (04/2013) <br>
+
+- Converter : hooks (04/2013) <br>
+
+- Converter : convertArray2Tetra + split (03/2013) <br>
+
+- tkCassiopee : tkNGon (02/2013) <br>
+
+- All : variable varString (02/2013) <br>
+
+- Transform : smooth NGon (02/2013) <br>
+
+- Transform : spliSharpEdges NGon (02/2013) <br>
+
+- Post : selectCells NGon (02/2013) <br>
+
+- Transform : split connexity NGon (02/2013) <br>
+
+- CPlot : mpeg export (01/2013) <br>
+
+- CPlot : resolution in export (01/2013) <br>
+
+- CPlot : visu orphan points (01/2013) <br>
+
+- CPlot : new isoShader antialiased (01/2013) <br>
+
+- CPlot : new tkView (01/2013) <br>
+
+- Post : silhouette (01/2013) <br>
+
+- Post : extrapolation in extractMesh (01/2013) <br>
+
+- CPlot : gooch shader (12/2012) <br>
+
+- Internal : checkPyTree, correctPyTree (12/2012) <br>
+
+- Post : exteriorElts + NGON (11/2012) <br>
+
+- Converter : extractBCOfName + BCFamily (11/2012) <br>
+
+- CPlot : support for NGON (11/2012) <br>
+
+- CPlot : support for PYRA (11/2012) <br>
+
+- Converter : bin_tp fix for PYRA (11/2012) <br>
+
+- Converter : fmt_tp fix for PENTA and PYRA (11/2012) <br>
+
+- Converter : fmt_tp read/write polyhedrons (11/2012) <br>
+
+</p><HR><p>
+  - Release 1.10. (11/2012) <br>
+
+  - Converter : zoneNames arg (read/write). (11/2012) <br>
+
+  - Transform : breakElements. (10/2012) <br>    
+
+  - Converter : convertArray2NGon. (10/2012) <br>
+
+  - Converter : fmt_cedre. (10/2012) <br>
+
+  - Connector : optimisation connectNearMatch. (10/2012) <br>
+
+  - Transform : optimisation join. (09/2012) <br>
+
+  - Generator : optimisation octree. (09/2012) <br>
+
+  - tkCassiopee : tkLuxRender. (09/2012) <br>
+
+  - tkCassiopee : read multiple files. (09/2012) <br>    
+
+  - Transform : merge+centers. (08/2012) <br>
+
+  - Transform : deformNormals. (08/2012) <br>
+
+  - Transform : join+centers. (08/2012) <br>
+
+  - Geom : new fonts. (08/2012) <br>
+
+  - Converter : getNobNozOfZone. (07/2012) <br>
+
+  - Converter : getConnectedZones. (07/2012) <br>
+
+  - Dist2Walls : distType -> type. (07/2012) <br>
+
+  - Post : exteriorElts. (07/2012) <br>
+
+  - Transform : reorder + toptree option. (07/2012) <br>
+
+  - Connector : connectMatchPeriodic. (07/2012) <br>
+
+  - Generator : octree+balancing for corner cells. (06/2012) <br>
+
+  - Converter : ply format. (06/2012) <br>
+
+  - Generator : BB. (06/2012) <br>
+
+  - RigidMotion : evalPosition (from Transform.move). (06/2012) <br>
+
+  - CPlot : shadow + DOF. (06/2012) <br>
+
+  - CPlot : shaders brick, cloud. (05/2012) <br>
+
+  - CPlot : diverging colormap. (05/2012) <br>
+
+  - Post : isoSurfMC generates QUAD dominant meshes. (05/2012) <br>
+
+  - Transform : reorder for TRI/QUAD mixed meshes. (05/2012) <br>
+
+  - Dist2Walls : signed distance. (04/2011) <br>
+
+  - Converter : supp. Cassiopee/elsA. (04/2012) <br>
+
+  - Connector : supp. Cassiopee/Kernel. (04/2012) <br>
+
+</p><HR><p>
+  - Release 1.9. (04/2012) <br>
+
+  - Connector : setInterpolations. (04/2012) <br>
+
+  - Converter : convert2elsAxdt. (03/2012) <br>
+
+  - CPlot : add/delete/replace. (03/2012) <br>
+
+  - Post : selectCells+formula. (03/2012) <br>
+
+  - Dist2Walls : ortho. (03/2012) <br>
+
+  - Generator : mapCurvature. (03/2012) <br>
+
+  - CPlot : tkDemo : orbite. (03/2012) <br>
+
+  - Generator : new enforceCurvature. (03/2012) <br>
+
+  - CPlot : anaglyph mode. (03/2012) <br>
+
+  - Transform : deform mesh. (03/2012) <br>
+
+  - Connector : connect near match. (03/2012) <br>
+
+  - Converter : png reader. (02/2012) <br>
+
+  - Generator : mesh qual for unstructured grids. (01/2012) <br>
+
+  - Generator : PC1M + case 4. (01/2012) <br>
+
+  - Converter : convertArray2Tetra/Hexa+centers. (01/2012) <br>
+
+  - Geom : point. (01/2012) <br>
+
+  - Geom : lineGenerate for unstructured grids. (01/2011) <br>
+
+  - Converter : initVars from a formula string. (01/2011) <br>
+
+  - Connector : interpolated points suppressed from blankCells. (12/2011) <br>
+
+  - Connector : setHoleInterpolatedPts. (12/2011) <br>
+
+  - Generator : refine. (11/2011) <br>
+
+  - Connector : blankCells NS + centers. (11/2011) <br>
+
+  - tkCassiopee : tkExtractMesh. (11/2011) <br>
+
+  - Distributor2 : possibilite de solveur different par bloc. (11/2011)<br>
+
+  - Kernel : ausmpup. (11/2011) <br>
+
+  - CPlot : drag selection. (11/2011) <br>
+
+  - CPlot : tkChimera. (11/2011) <br>
+
+  - Distributor2 : correction bug setBlocks. (11/2011) <br>
+
+  - Converter : Container names are now in Internal. (11/2011) <br>
+
+  - Converter : getFamilyZoneNames. (11/2011) <br>
+
+  - tkFamily : manage families. (11/2011) <br>
+
+  - tkTFI : O mesh, Half O, TRI. (11/2011) <br>
+
+  - Generator : barycenter + weights. (11/2011) <br>
+
+  - CPlot : sphere billboard shader. (10/2011) <br>
+
+  - Converter : fmt stl. (10/2011) <br>
+
+  - Generator : collarMesh. (10/2011) <br>
+
+  - Generator : surface walk. (10/2011) <br>
+
+  - tkCassiopee : bornes isos. (10/2011) <br>
+
+  - tkCassiopee : update auto de tkTree. (09/2011) <br>
+
+  - Converter : convertTri2Quad. (09/2011) <br>
+
+</p><HR><p>
+  - Release 1.8. (09/2011) <br>
+
+  - Post : isoSurf returns a list of zone by elt type. (09/2011) <br>
+
+  - Generator : getInCircleMap. (09/2011)<br>
+
+  - Converter : HDF5 file support. (08/2011)<br>
+
+  - Converter : getFamilyZones, getFamilyBCs. (07/2011)<br>
+
+  - Post : iso surf by marching cubes. (07/2011)<br>
+
+  - CPlot : improved render set.<br>
+
+  - CPlot : new iso + legend. (07/2011)<br>
+
+  - Converter : magnitude var name changed. (07/2011)<br>
+
+  - CPlot : offscreen rendering using OSMesa. (06/2011)<br>
+
+  - Post : computeExtraVariables : SkinFriction, skinFrictionTangential. (06/2011) <br>
+
+  - Post : computeExtraVariables : ShearStress. (06/2011)<br>
+
+  - Converter : convertArrays2File : option zoneNames. (05/2011)<br>
+
+  - Converter : convertArrays2File : option zoneNames. (05/2011)<br>
+
+  - CPlot : systeme de selection ameliore. (05/2011)<br>
+
+  - CPlot : zoom infini. (05/2011) <br>
+
+  - CPlot : shaders glass, chrome, stone, wood. (05/2011)<br>
+
+  - Converter : options par keywords dans convertArrays2File/convertFile2Arrays/convertPyTree2File/convertFile2PyTree. (05/2011)<br>   
+
+  - Transform : splitTBranches. (04/2011)<br>
+
+  - tkCassiopee : tkSurfaceWalk.  (04/2011)<br> 
+
+  - tkCassiopee : tkMapEdge.  (04/2011)<br> 
+
+  - Generator : getOrthogonalityMap pour les maillages structures. (04/2011)<br> 
+
+  - Transform : merge de maillages structures. (04/2011)<br> 
+
+  - CPlot : affichage node pour les BAR en mode mesh. (04/2011)<br> 
+
+</p><HR><p>
+  - Release 1.7 (03/2011).
+
+  - All : noeud version en numpy, noeud chaine en numpy strings.<br>
+
+  - Post : optimisation exteriorFaces.<br>    
+
+  - Generator : addNormalLayers with smooth normals.<br>
+
+  - tkCassiopee : tkTree selectionne les zones par famille.<br>
+
+  - CPlot : amelioration de la gestion des zones actives.<br>
+
+  - Converter : extractBCOfName.<br>
+
+  - Transform : splitSharpEdges.<br>
+
+  - Post : sharpEdges. <br>
+
+  - tkCassiopee : tkBasicSurfs. <br>
+
+  - tkCassiopee : edit node name in tkTree. <br>
+
+  - CPlot : affichage des PENTA. <br>
+
+  - All : acces naturel des numpy dans les pyTree. <br>
+
+  - All : noeud CGNSTree dans les pyTree. (12/10) <br>
+
+  -  Converter : amelioration de la detection du format des fichiers. (12/10) <br>
+
+  - Generator : octree2Struct+AMR. (12/10) <br>
+
+  - Converter : tagWithFamily. (12/10) <br>
+
+  - Generator : boolean operations. (11/10) <br>  
+
+  -  Connector : optim connectMatch. (11/10) <br>
+
+</p><HR><p>
+  -  Release 1.6. (10/10) <br>
+
+  - CPlot : can dump png. (10/10) <br>
+
+  - Transform : splitSize respects multigrid. (10/10) <br>
+
+  - Post : frontFaces. (10/10) <br>
+
+  - Connector : blankCells dans maillages non-structures. (10/10) <br>
+
+  - All : portage fulvio. (10/10) <br>
+
+  - CPlot : shader phong. (09/10) <br>
+
+  - Generator : barycenter. (09/10) <br>    
+
+  - Generator : gapsmanager. (09/10) <br>
+
+  - Kernel : IBC. (09/10) <br>
+
+  - Converter : magnitude. (08/10) <br>
+
+  - Kernel : nearmatch + openMP. (08/10) <br>
+
+  - Kernel : nearmatch + Cartesien. (08/10) <br>
+
+  - Generator : octree. (08/10) <br>
+
+  - Generator : stack. (08/10) <br>    
+
+  - Post : isoSurf. (07/10) <br>
+
+  - Transform : optimisation projectDir, projectOtho. (07/10) <br>
+
+  - Generator : optimisation close. (07/10) <br>
+
+  - Transform : collapse. (06/10) <br>
+
+  - Post : isoLine. (06/10) <br>
+
+  - Connector : testInterpolations. (06/10) <br>
+
+  - Converter : node2ExtCenter. (06/10) <br>
+
+  - Kernel : amelioration auto_attach. (05/10) <br>
+
+  - Post : importVariables : import aussi les grilles supplementaires. (05/10) <br>
+
+  - All : elargissement de la taille de la chaine de variables. (04/10) <br>
+
+  - Converter : rmVars : for arrays. (04/10) <br>
+
+  - Initiator : overlayField : for unstructured grids. (04/10) <br>
+
+  - Initiator : initScully : for unstructured grids. (04/10) <br>
+
+  - Initiator : initVisbal : for unstructured grids. (04/10) <br>
+
+  - Initiator : initLamb : for unstructured grids. (04/10) <br>
+
+</p><HR><p>
+  - Release 1.5 (03/10)<br>
+
+  - Generator : gapfixer.  (03/10)<br>
+
+  - Generator : T3mesher2D. (03/10)<br>
+
+  - Transform : projectDir (smooth). (03/10)<br>
+
+  - Post : strict option in selectCells. (03/10)<br>
+
+  - Post : selectCells2. (03/10)<br>
+
+  - Dist2Walls : optimisation par kdTree. (02/10)<br>
+
+  - Converter : optimisation de fillEmptyBC. (02/10)<br>
+
+  - Converter : optimisation de addvars. (02/10)<br>
+
+  - Converter : fmt_tp non-structure. (01/10)<br>
+
+  - Converter : addChimera2State. (01/10)<br>
+
+  - Converter : fillMissingVariables. (01/10)<br>
+
+  - Converter : mergeTrees. (01/10)<br>
+
+  - Converter : addState2Base. (01/10)<br>
+
+  - Converter : checkBC->getEmptyBC. (01/10)<br>
+
+  - Post : refine. (12/09)<br>
+
+  - Post : mergeElts->coarsen. (12/09)<br>
+
+  - CPlot : frustum culling. (12/09)<br>
+
+  - Cassiopee Kernel : changement interface setup et adimStateForStandardGas.  (11/09)<br>
+
+  - Generator : changement interface TTM. (11/09)<br>
+
+  - Connector : optimize overlap prend en compte des priorites. (11/09)<br>
+
+  - Cassiopee Kernel : schema AUSMP pour les grilles cartesiennes. (11/09)<br>
+
+  -  Cassiopee Kernel : chm_all_block_extrap est par defaut et est donc supprime de l'interface. (10/09)<br>
+
+  - Cassiopee Kernel : formule de dissipation Jameson O2 pour le 1 rang amelioree. (10/09)<br>
+
+  - Cassiopee Kernel : changement du critere d'interpolabilite des points EX. (10/09)<br>
+
+  - Cassiopee Kernel : schema de Roe pour les grilles cartesiennes. (10/09)<br>
+
+  - Connector : optimize overlap prend en compte le double wall. (10/09)<br>    
+
+  - CPlot : display des array NODE. (10/09)<br>
+
+  - Converter : lecture formattee tecplot multiblocs. (10/09)<br>
+
+  - Cassiopee Kernel : Path->xdt_path, Protocol->xdt_protocol, mesh_damping_radius->mesh_damping_coef. (10/09)<br>
+
+  - Geom : torus. (10/09) <br>   
+
+  - Converter : convertArray2Node. (10/09)<br>
+
+  - Converter : ne depend plus de elsAxdt. (09/09)<br>
+
+</p><HR><p>
+  - Release 1.4. (09/09)<br>        
+
+  - Transform : reorder pour les array TRI et QUAD. (09/09)<br>
+
+  - Transform : splitMultiplePts. (09/09)<br>
+
+  - CPlot : CPlot module ready. (09/09)<br>
+
+  - Transform : splitConnexity. (09/09)<br>
+
+  - Generator : mapSplit. (09/09)<br>
+
+  - Generator : split, splitSpline passe dans Transform. (09/09)<br>
+
+  - Post : reorderAll passe dans Transform. (09/09)<br>
+
+  - Converter : format obj. (08/09)<br>
+
+  - Geom : sphere6. (08/09)<br>
+
+  - Generator : selectInsideElts. (08/09)<br>
+
+  - Transform : prise en compte des CL dans oneovern, addkplane, reorder. (08/2009)<br>
+
+  - Generator : stitched hat. (08/2009)<br>
+
+  - Initiator : passage en pyTree. (07/2009)<br>
+
+  - Converter : center2node : prend en compte les raccords match. (07/2009)<br>
+
+  - Converter : rmNodes. (07/2009)<br>
+
+  - Cassiopee setup : motion+interface modifiee. (07/2009)<br>
+
+  - Connector : getCEBBIntersectingDomains. (07/2009)<br>
+
+  - Generator : bbox. (07/2009)<br>
+
+  - Generator : gencart + CL en pyTree. (07/2009)<br>
+
+  - Transform : projectRay. (07/2009)<br>
+
+  - Generator : close pour une liste de maillages structures. (07/2009)<br>
+
+  - Transform : projectOrtho. (07/2009)<br>
+
+  - Converter : rmVars, addVars avec une liste de variables. (06/2009)<br>
+
+  - Generator : polyLineMesher et polyC1Mesher sont en pyTree. (06/2009)<br>
+
+  - Converter : center2Node et node2Center sont maintenant dans Converter. (06/2009)<br>
+
+  - Connector : connectMatch : calcul automatique des raccords match dans un pyTree. (06/2009)<br>
+
+  - Transform : projection de maillages surfaciques. (06/2009)<br>
+
+  - Converter : sortie formatee tecplot non-structuree. (06/2009)<br>
+
+  - Converter : rmBCOfType. (06/2009)<br>
+
+  - Converter : ecriture bin_stl. (06/2009)<br>
+
+  - Depart de Gaelle. Arrivee de Pascal. (06/2009)<br>
+
+</p><HR><p>
+  - Release 1.3. (05/2009)<br>
+
+  - Generator : pointedHat. (04/2009) <br>
+
+  - Post : modification de l'interface de computeGrad et computeCurl. (04/2009) <br>
+
+  - Transform : modification de l'interface de deform. (04/2009) <br>
+
+  - Converter : cpVars, rmVars. (04/2009) <br>
+
+  - Post : mergeElts. (04/2009) <br>
+
+  - Generator : map dans une direction. (04/2009) <br>
+
+  - Generator : map pour les surfaces structurees. (04/2009) <br>
+
+  - All : portage Linux/Ubuntu. (04/2009) <br>
+
+  - Geom : axisym. (03/2009) <br>
+
+  - Converter : pyTree module etendu. (03/2009)<br>
+
+  - Converter : lecture/ecriture multiblocs bin_v3d. (03/2009)<br>
+
+  - Cassiopee Kernel : mask not. (01/2009)<br>
+
+  - Cassiopee Kernel : openmp sur le calcul des distances a la paroi. (12/2008)<br>
+
+  - Cassiopee Kernel : changement 'pre_con'->'pre_con_ang' et 'pre_lag'->'pre_lag_ang'. (12/2008)<br>
+
+  - Transform : join a list of arrays. (12/2008)<br>
+
+</p><HR><p>
+  - Livraison du solveur Cartesien (Cassiopee Kernel) et du elsAxdt associe en version 1.2. (12/2008)<br>
+
+  - Cassiopee Kernel : changement 'join_tolerance'->'match_tol'. (12/2008)<br>
+  - Cassiopee Kernel : changement 'node'->'proc'. (12/2008)<br>
+
+  - Livraison des modules KCore, Converter, Geom, Generator, Transform, Post en version 1.2. (11/2008)<br>
+
+  - Applicatifs : PLM, PC1M. (<11/2008)<br>
+
+  - Converter : options de lecture des formats vectoriels. (11/2008)<br>
+
+  - Converter : options de lecture des formats vectoriels. (11/2008)<br>   
+
+  - Converter : lecture tecplot 360-2008. (10/2008)<br>
+
+  - Generator : splitSpline. (10/2008)<br>
+
+  - Converter : conversion en DesObjects elsA. (10/2008)<br>
+
+  - Geom : spline. (10/2008)<br>
+
+  - Converter : changement de l'interface des options pour convertArrays2File et convertFile2Arrays. (10/2008)<br>
+
+  - Post : exteriorFaces. (09/2008)<br>
+
+  - Converter : format fmt_svg. (09/2008)<br>
+
+  - Generator : TFI3D structured, TFI TRI, TFI PENTA. (09/2008)<br>
+
+  - Geom : volumeFromCrossSections (experimental). (09/2008)<br>
+
+  - Generator : constrained delaunay. (09/2008)<br>
+
+  - Generator : delaunay. (08/2008)<br>
+
+  - Generator : polyLineMesher. (08/2008)<br>
+
+  - Converter : setValue. (08/2008)<br>
+
+  - Generator : monotonic enforce. (08/2008)<br>
+
+  - Converter : XFig format. (08/2008)<br>
+
+  - Post : extractPlane for unstructured meshes. (07/2008)<br>
+
+  - Cartesian Solver : la limitation une grille de corps par processeur a vecu! Penser a ajouter cfdpb.set('config',2/3) dans les scripts. (07/2008)<br>
+
+  - Post : streamLines, streamRibbons for unstructured meshes. (07/2008)<br>
+
+  - Post : extractPoint, extractMesh for unstructured meshes. (07/2008)<br>
+
+  - Geom : getCurvatureAngle for BAR-meshes. (07/2008)<br>
+
+  - Transform : addkplane for unstructured meshes. (07/2008)<br>
+
+  - Converter : read geometries in bin_tp (108). (07/2008)<br>
+
+</p><HR><p>
+  - Release KCore 1.1, Converter 1.1, Geom 1.1, Transform 1.1, Generator 1.1. (06/2008) <br>
+
+  - Transform : work on arrays. (06/2008) <br>
+
+  - Geom : getLength, getCurvilinearAbscissa for BAR-meshes. (06/2008) <br>
+
+  - Converter : interface change : addVars(a,b)->addVars([a,b]). (06/2008)<br>
+
+  - Post : computeCurl, computeGrad for unstructured grids. (06/2008) <br>
+
+  - Generator : simple patched cartesian generator (gencartmb). (06/2008) <br>
+
+  - Generator : close pour maillages non-structures. (06/2008) <br>
+
+  - Post : extractPoint, extractMesh, extractPlane from surface meshes. (05/2008) <br>
+
+  - Generator : addNormalLayers. (05/2008) <br>
+
+  - Generator : getNormalMap, grow. (05/2008) <br>
+
+  - Generator : getVolumeMap pour array non-structures. (05/2008) <br>
+
+  - Converter : fonction generique pour transformer un array en tetra, hexa. (05/08) <br>
+
+  - Post : grad, curl. (04/2008) <br>
+
+  - Post : node2Center et center2Node travaillent sur un array et non sur une liste de arrays. (04/2008) <br>
+
+  - Converter : fmt_pov, fmt_mesh. (04/2008) <br>
+
+  - Post : streams. (04/2008) <br>
+
+  - Post : select cells in solution. (04/2008) <br>
+
+</p><HR><p>
+  - Modules : distribution 1.0. (04/2008)<br>
+
+  - Transform : join non structure. (04/2008)<br>
+
+  - Cassiopee : cart_elts mask improved for multiple windows definition (03/2008)<br>
+
+  - Post : extractMesh when extracting surface is unstructured. (02/2008)<br>
+
+  - Post : extractMesh + extractPoint Order 3,5. (02/2008)<br>
+
+  - All : Isolation des modules. (02.2008) <br>
+
+  - Post : nouvelle fonction d'integration des moments. (01/2008)<br>
+
+  - Post : methode pour redresser les normales. (01/2008)<br>
+
+  - Converter : extractVars : les arguments sont maintenant une liste de noms de variables. (01/2008) <br>
+
+  - Converter : initVar : init a variable by a python function. (01/2008) <br>
+
+  -  Converter : min, max, mean. (01/2008) <br>
+
+  - Usurp disponible. (12/2007) <br>
+
+  - Modules avec install python (Converter, Geom, Generator, transform, Post, Initiator, Connector, Distributor). (12/2007)<br>
+
+  - Cas NACA_COUPLAGE ajoute dans la base de valid. (11/2007)<br>
+
+  - First realisation of elsA/Cassiopee coupling (11/2007)<br>
+
+  - Converter : function to deal with arrays (11/2007)<br>
+
+  - Connector : maskInfo2Array : return mask information (10/2007)<br>
+
+  - Generation automatique de la page de la non-regression  (10/2007)<br>
+
+  - Changement de nom des fonction post : extractPlane et extractMesh  (10/2007)<br>
+
+  - Optimisation metrique cartesienne : non stockage des centres des interfaces (10/2007)<br>
+
+  - Generateur cartesien externe (09/2007)<br>
+
+  - Maquette de pre-processeur chimere sous forme de module python. (07/2007)<br>
+  - cutPlane is accessible in a python script. (07/2007)<br>
+
+  - Converter can read and write unstructured binary tecplot files. (07/2007)<br>
+  - MeshTransform can move meshes with a prescribed motion (06/2007)<br>
+
+  - Converter reads tecplot 360 formated files (06/2007) <br>
+
+  - Converter reads tecplot 360 bin files (06/2007)<br>
+
+  - Integration sur des maillages surfaciques structures (06/2007)<br>
+
+  - Data conversion module (plot3d) (06/2007) <br>
+
+  -  Data conversion module (converter) (06/2007) <br>
+
+</p><HR>
+
+<p><a href="index.html">Return to main page.</a></p>
+
+<footer class="footerIndex">
+  <a href="http://www.onera.fr"><img src="Images/logo-onera2.png"></a>
+</footer>
+
+</body>
+
+</html>

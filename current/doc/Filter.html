@@ -1,0 +1,1172 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Converter.Filter: partial reading/writing of files &#8212; Converter 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Converter.Filter: partial reading/writing of files</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="converter-filter-partial-reading-writing-of-files">
+<h1>Converter.Filter: partial reading/writing of files</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>This module provides services for partially reading or writing cgns files (HDF or ADF).</p>
+<p>To use the module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+</pre></div>
+</div>
+<span class="target" id="module-Converter.Filter"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Low level layer</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.convertFile2SkeletonTree" title="Converter.Filter.convertFile2SkeletonTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.convertFile2SkeletonTree</span></code></a></p></td>
+<td><p>Read a file and return a skeleton tree.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.readNodesFromPaths" title="Converter.Filter.readNodesFromPaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.readNodesFromPaths</span></code></a></p></td>
+<td><p>Read nodes from file given their paths.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.readNodesFromFilter" title="Converter.Filter.readNodesFromFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.readNodesFromFilter</span></code></a></p></td>
+<td><p>Read nodes from file given a filter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.readPyTreeFromPaths" title="Converter.Filter.readPyTreeFromPaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.readPyTreeFromPaths</span></code></a></p></td>
+<td><p>Read nodes from file given their path and complete t.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.writeNodesFromPaths" title="Converter.Filter.writeNodesFromPaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.writeNodesFromPaths</span></code></a></p></td>
+<td><p>Write nodes to file given their paths.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.writePyTreeFromPaths" title="Converter.Filter.writePyTreeFromPaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.writePyTreeFromPaths</span></code></a></p></td>
+<td><p>Write some nodes of the pyTree given their paths.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.writePyTreeFromFilter" title="Converter.Filter.writePyTreeFromFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.writePyTreeFromFilter</span></code></a></p></td>
+<td><p>Write nodes to file given a filter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.deletePaths" title="Converter.Filter.deletePaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.deletePaths</span></code></a></p></td>
+<td><p>Delete nodes in file given their paths.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; High level layer</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.Handle" title="Converter.Filter.Handle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle</span></code></a></p></td>
+<td><p>Handle for partial reading.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.Handle.loadSkeleton" title="Converter.Filter.Handle.loadSkeleton"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.loadSkeleton</span></code></a></p></td>
+<td><p>Load a skeleton tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.Handle.getVariables" title="Converter.Filter.Handle.getVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.getVariables</span></code></a></p></td>
+<td><p>Return the variable names contained in file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.Handle.loadZones" title="Converter.Filter.Handle.loadZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.loadZones</span></code></a></p></td>
+<td><p>Fully load zones.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.Handle.loadZonesWoVars" title="Converter.Filter.Handle.loadZonesWoVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.loadZonesWoVars</span></code></a></p></td>
+<td><p>Load zones without loading variables.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.Handle.loadVariables" title="Converter.Filter.Handle.loadVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.loadVariables</span></code></a></p></td>
+<td><p>Load specified variables.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.Handle.writeZones" title="Converter.Filter.Handle.writeZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.writeZones</span></code></a></p></td>
+<td><p>Write specified zones.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.Handle.writeZonesWoVars" title="Converter.Filter.Handle.writeZonesWoVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.writeZonesWoVars</span></code></a></p></td>
+<td><p>Write specified zones without variables.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.Handle.writeVariables" title="Converter.Filter.Handle.writeVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.writeVariables</span></code></a></p></td>
+<td><p>Write specified variables.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.Handle.loadFromProc" title="Converter.Filter.Handle.loadFromProc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.loadFromProc</span></code></a></p></td>
+<td><p>Load and distribute zones from proc node.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Filter.Handle.loadAndDistribute" title="Converter.Filter.Handle.loadAndDistribute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.loadAndDistribute</span></code></a></p></td>
+<td><p>Load and distribute zones.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Filter.Handle.loadAndSplit" title="Converter.Filter.Handle.loadAndSplit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Filter.Handle.loadAndSplit</span></code></a></p></td>
+<td><p>Load and split a file.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="low-level-layer">
+<h3>Low level layer</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.convertFile2SkeletonTree">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">convertFile2SkeletonTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxFloatSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxDepth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">links</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read a skeleton tree.
+If float data array size of DataArray_t type nodes is lower than maxFloatSize then the
+array is loaded. Otherwise it is set to None.
+If maxDepth is specified, load is limited to maxDepth levels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>maxFloatSize</strong> (<em>int</em>) &#8211; the maxSize of float array to load</p></li>
+<li><p><strong>maxDepth</strong> (<em>int</em>) &#8211; max depth of load</p></li>
+<li><p><strong>links</strong> (<em>list</em><em> of </em><em>list</em><em> of </em><em>4 strings</em>) &#8211; if not None, return a list of links in file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Skeleton tree</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree node</p>
+</dd>
+</dl>
+<p>For documentation on links, see Converter read options.</p>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/convertFile2SkeletonTreeFPT.py">Read skeleton tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertFile2SkeletonTree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;in.cgns&#39;</span><span class="p">);</span> <span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [&#39;CGNSTree&#39;,None,[2 sons],&#39;CGNSTree_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;CGNSLibraryVersion&#39;,array([3.0999999046325684],dtype=&#39;float64&#39;),[0 son],&#39;CGNSLibraryVersion_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;Base&#39;,array(shape=(2,),dtype=&#39;int32&#39;,order=&#39;F&#39;),[1 son],&#39;CGNSBase_t&#39;]</span>
+<span class="c1">#&gt;&gt;       |_[&#39;cart&#39;,array(shape=(3, 3),dtype=&#39;int32&#39;,order=&#39;F&#39;),[2 sons],&#39;Zone_t&#39;]</span>
+<span class="c1">#&gt;&gt;           |_[&#39;ZoneType&#39;,array(&#39;Structured&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;ZoneType_t&#39;]</span>
+<span class="c1">#&gt;&gt;           |_[&#39;GridCoordinates&#39;,None,[3 sons],&#39;GridCoordinates_t&#39;]</span>
+<span class="c1">#&gt;&gt;               |_[&#39;CoordinateX&#39;,None,[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;               |_[&#39;CoordinateY&#39;,None,[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;               |_[&#39;CoordinateZ&#39;,None,[0 son],&#39;DataArray_t&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.readNodesFromPaths">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">readNodesFromPaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxFloatSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxDepth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataShape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipTypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read nodes specified by their paths.
+If maxFloatSize=-1, all data are loaded, otherwise data are loaded
+only if the number of elements is lower that maxFloatSize.
+If maxDepth=-1, the read is fully recursive. Otherwise, load is limited
+to maxDepth levels.
+If skipTypes is specified, children of nodes of given type are not loaded (HDF only).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
+<li><p><strong>paths</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; paths to read</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>maxFloatSize</strong> (<em>int</em>) &#8211; the maxSize of float array to load</p></li>
+<li><p><strong>maxDepth</strong> (<em>int</em>) &#8211; max depth of load</p></li>
+<li><p><strong>dataShape</strong> (<em>None</em><em> or </em><em>dictionary</em><em> of </em><em>shapes</em><em> of </em><em>data</em>) &#8211; dictionary of returned data shapes if not None</p></li>
+<li><p><strong>skipTypes</strong> (<em>None</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; list of CGNS types to skip</p></li>
+<li><p><strong>com</strong> (<em>MPI communicator</em>) &#8211; optional MPI communicator. If set, triggers parallel IO</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>read nodes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree node list</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/readNodesFromPathsPT.py">Read nodes from file (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - readNodesFromPaths (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Relit les noeuds par leur paths</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">readNodesFromPaths</span><span class="p">(</span><span class="s1">&#39;test.hdf&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CGNSTree/Base/cart/GridCoordinates&#39;</span><span class="p">])</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [&#39;GridCoordinates&#39;,None,[3 sons],&#39;GridCoordinates_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;CoordinateX&#39;,array(shape=(10, 10, 10),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;CoordinateY&#39;,array(shape=(10, 10, 10),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;CoordinateZ&#39;,array(shape=(10, 10, 10),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.readNodesFromFilter">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">readNodesFromFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bin_hdf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Partially read nodes from a file specified by a filter.
+Filter is a dictionary for each path to be read.
+It specifies the slice of array you want to load from file and write to memory.
+Each slice information is made of [ offset, stride, count, block ].
+Offset specifies the starting index of slice.
+Stride specifies the stride of slice (for example 1 means all elements, 2 means one over two, &#8230;).
+Count is the number of element to read.
+Block is always 1.</p>
+<p>For example, for structured grids: [[imin,jmin,kmin], [1,1,1], [imax-imin+1,jmax-jmin+1,kmax-kmin+1], [1,1,1]].</p>
+<p>For example, for unstructured grids: [[istart], [1], [iend-imax+1], [1]].</p>
+<p>Only for HDFfile format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
+<li><p><strong>filter</strong> (<em>dictionary</em><em> of </em><em>lists</em>) &#8211; paths and indices to be read</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_hdf</p></li>
+<li><p><strong>com</strong> (<em>MPI communicator</em>) &#8211; optional MPI communicator. If set, tirggers parralel IO</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary of read node data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dictionary of numpys</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/readNodesFromFilterPT.py">Partially read nodes from file (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - readNodesFromFilter (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Relit les noeuds par un filtre</span>
+<span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;/Base/cart/GridCoordinates/CoordinateX&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;/Base/cart/GridCoordinates/CoordinateY&#39;</span><span class="p">]</span>
+
+<span class="c1"># start/stride/count (nbre d&#39;entrees)/block</span>
+<span class="c1"># Read 2x2x2 data from file, starting from 1,1,1</span>
+<span class="n">DataSpaceMMRY</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="n">DataSpaceFILE</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="n">DataSpaceGLOB</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">]]</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">f</span><span class="p">[</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">DataSpaceMMRY</span><span class="o">+</span><span class="n">DataSpaceFILE</span><span class="o">+</span><span class="n">DataSpaceGLOB</span>
+<span class="n">f</span><span class="p">[</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">DataSpaceMMRY</span><span class="o">+</span><span class="n">DataSpaceFILE</span><span class="o">+</span><span class="n">DataSpaceGLOB</span>
+
+<span class="c1"># Lit seulement les chemins fournis, retourne un dictionnaire des chemins lus</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">readNodesFromFilter</span><span class="p">(</span><span class="s1">&#39;test.hdf&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+<span class="c1">#&gt;&gt; [1. 2. 1. 2. 1. 2. 1. 2.]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.readPyTreeFromPaths">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">readPyTreeFromPaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxFloatSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxDepth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataShape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipTypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read nodes of t specified by their paths.
+Exists also as in place function (_readPyTreeFromPaths) that modifies t
+and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
+<li><p><strong>paths</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; paths to read</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>maxFloatSize</strong> (<em>int</em>) &#8211; the maxSize of float array to load</p></li>
+<li><p><strong>maxDepth</strong> (<em>int</em>) &#8211; max depth of load</p></li>
+<li><p><strong>dataShape</strong> (<em>None</em><em> or </em><em>dictionary</em><em> of </em><em>shapes</em><em> of </em><em>data</em>) &#8211; dictionary of returned data shapes if not None</p></li>
+<li><p><strong>skipTypes</strong> (<em>None</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; list of CGNS types to skip</p></li>
+<li><p><strong>com</strong> (<em>MPI communicator</em>) &#8211; optional MPI communicator. If set, triggers parallel IO</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified tree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/readPyTreeFromPathsPT.py">Read nodes from file and modify tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - readPyTreeFromPaths (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.hdf&#39;</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;test.hdf&#39;</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># Complete t par leur paths</span>
+<span class="n">Filter</span><span class="o">.</span><span class="n">_readPyTreeFromPaths</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.hdf&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;/Base/cart/GridCoordinates&#39;</span><span class="p">,</span> <span class="s1">&#39;Base/cart.0/GridCoordinates&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.writeNodesFromPaths">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">writeNodesFromPaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxDepth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write given nodes to specified paths in file.
+If mode=0 (append), nodes are appened to path location. Nevertheless, if a node with identical name already
+exists in the path node children, it will be replaced by the appended ones.
+If mode=1 (replace), nodes are replaced to path location.
+If maxDepth&gt;0, replace mode kill children of replaced node.
+If maxDepth=0, replace mode replaces value and type of node (not the name).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to write to</p></li>
+<li><p><strong>paths</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; paths to write to</p></li>
+<li><p><strong>nodes</strong> (<em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; nodes to write</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>maxDepth</strong> (<em>int</em>) &#8211; max depth to write</p></li>
+<li><p><strong>mode</strong> (<em>int</em>) &#8211; writing mode (0: append, 1: replace)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/writeNodesFromPathsPT.py">Write nodes from paths (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - writeNodesFromPaths (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Append</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">Filter</span><span class="o">.</span><span class="n">writeNodesFromPaths</span><span class="p">(</span><span class="s1">&#39;out.hdf&#39;</span><span class="p">,</span> <span class="s1">&#39;CGNSTree/Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># Append and replace</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">Filter</span><span class="o">.</span><span class="n">writeNodesFromPaths</span><span class="p">(</span><span class="s1">&#39;out.hdf&#39;</span><span class="p">,</span> <span class="s1">&#39;CGNSTree/Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.writePyTreeFromPaths">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">writePyTreeFromPaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxDepth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write given paths of tree to the same specified paths in file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree node</em>) &#8211; input pyTree</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to write to</p></li>
+<li><p><strong>paths</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; paths to write to</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>maxDepth</strong> (<em>int</em>) &#8211; max depth to write</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/writePyTreeFromPathsPT.py">Write pyTree from paths (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - writePyTreeFromPaths (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span>
+<span class="n">Filter</span><span class="o">.</span><span class="n">writePyTreeFromPaths</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">,</span> <span class="s1">&#39;CGNSTree/Base/cart&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.writePyTreeFromFilter">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">writePyTreeFromFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bin_hdf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write partial data from tree t to file specified by a filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree node</em>) &#8211; input pyTree</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to write to</p></li>
+<li><p><strong>filter</strong> (<em>dictionary</em><em> of </em><em>lists</em>) &#8211; paths and indices to be read</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>com</strong> (<em>MPI communicator</em>) &#8211; optional MPI communicator. If set, triggers parallel IO</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/writePyTreeFromFilterPT.py">Write pyTree from filter (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - writePyTreeFromFilter (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+
+<span class="c1"># Ecrit la zone en entier</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Prend une subzone et la remplace dans le fichier</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">subzone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">));</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+<span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span>
+
+<span class="n">DataSpaceMMRY</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="n">DataSpaceFILE</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+<span class="n">DataSpaceGLOB</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">]]</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">f</span><span class="p">[</span><span class="s1">&#39;/Base/cart/GridCoordinates/CoordinateX&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DataSpaceMMRY</span><span class="o">+</span><span class="n">DataSpaceFILE</span><span class="o">+</span><span class="n">DataSpaceGLOB</span>
+
+<span class="c1"># skelData != None since node already exists</span>
+<span class="n">Filter</span><span class="o">.</span><span class="n">writePyTreeFromFilter</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">skelData</span><span class="o">=</span><span class="p">[])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.deletePaths">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">deletePaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Delete paths in file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
+<li><p><strong>paths</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; paths to read (relative to a)</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/deletePathsPT.py">Delete some nodes in file from paths (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - deletePaths (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Delete paths</span>
+<span class="n">Filter</span><span class="o">.</span><span class="n">deletePaths</span><span class="p">(</span><span class="s1">&#39;out.hdf&#39;</span><span class="p">,</span> <span class="s1">&#39;CGNSTree/Base&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="high-level-layer">
+<h3>High level layer</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.</span></span><span class="sig-name descname"><span class="pre">Handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Create a handle on a file to enable partial reading.
+The file must be a CGNS/ADF or CGNS/HDF file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>handle class</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/handlePT.py">Create a handle on a file (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Filter.Handle -</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+
+<span class="c1"># Create a handle on a CGNS file</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.loadSkeleton">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">loadSkeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxDepth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">readProcNode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Load a skeleton tree from file (a tree of depth maxDepth where no data are loaded).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>maxDepth</strong> (<em>int</em>) &#8211; the depth you want to load (-1 means all tree)</p></li>
+<li><p><strong>readProcNode</strong> (<em>boolean</em>) &#8211; if true, force reading of proc node. Usefull for maxDepth &lt;= 4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>a skeleton pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/loadSkeletonPT.py">Load a skeleton tree from file (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - loadSkeleton -</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Create test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create a handle on a CGNS file</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Load skeleton</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadSkeleton</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.getVariables">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">getVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get the names of variables contained in file.
+This function must be called after loadSkeleton.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cont</strong> &#8211; container name. Can be a CGNS name &#8216;FlowSolution&#8217;, &#8230; or &#8216;centers&#8217; or &#8216;nodes&#8217;</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of variable names contained in file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of strings</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getVariablesPT.py">Read variable list from file (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getVariables (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Create test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:G&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create a handle on a CGNS file</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Load skeleton</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadSkeleton</span><span class="p">()</span>
+
+<span class="c1"># Get variables from file</span>
+<span class="nb">vars</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">getVariables</span><span class="p">();</span> <span class="nb">print</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [&#39;FlowSolution/F&#39;, &#39;FlowSolution#Centers/G&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.loadZones">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">loadZones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">znp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Fully load specified zones (coordinates, fields, grid connectivity, boundary conditions) in tree.
+This function must be called after loadSkeleton.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree</em>) &#8211; modified pyTree</p></li>
+<li><p><strong>znp</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; paths of zones to load (must be a list of &#8216;BaseName/ZoneName&#8217;)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/loadZonesPT.py">Fully load zones (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - loadZonesVars (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Create test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">],</span> <span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create a handle on a CGNS file</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Load skeleton</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadSkeleton</span><span class="p">()</span>
+
+<span class="c1"># Fully load all zones</span>
+<span class="n">h</span><span class="o">.</span><span class="n">_loadZones</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># Fully load two zones</span>
+<span class="n">h</span><span class="o">.</span><span class="n">_loadZones</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">znp</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">,</span> <span class="s1">&#39;Base/cart.0&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.loadZonesWoVars">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">loadZonesWoVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">znp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Load specified zones (coordinates, grid connectivity, boundary conditions) in tree.
+If bbox=[xmin,ymin,zmin,xmax,ymax,zmax] is specified, load only zones
+intersecting this bbox.
+This function must be called after loadSkeleton.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree</em>) &#8211; modified pyTree</p></li>
+<li><p><strong>znp</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; path of zones to load from (starting from top)</p></li>
+<li><p><strong>bbox</strong> (<em>list</em><em> of </em><em>6 floats</em>) &#8211; optional bbox</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/loadZonesWoVarsPT.py">Load zones without variable (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - loadZonesWoVars (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Create test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create a handle on a CGNS file</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Load skeleton</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadSkeleton</span><span class="p">()</span>
+
+<span class="c1"># Load all zones without variable</span>
+<span class="n">h</span><span class="o">.</span><span class="n">_loadZonesWoVars</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># Load one zone without variable</span>
+<span class="n">h</span><span class="o">.</span><span class="n">_loadZonesWoVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">znp</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.loadVariables">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">loadVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">znp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Load specified variables in tree.
+This function must be called after loadSkeleton.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree</em>) &#8211; modified pyTree</p></li>
+<li><p><strong>var</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; variables to load</p></li>
+<li><p><strong>znp</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; path of zones to load from (starting from top)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/loadVariablesPT.py">Load given variables (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - loadVariables (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Create test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:G&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create a handle on a CGNS file</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;file.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Load skeleton</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadSkeleton</span><span class="p">()</span>
+
+<span class="c1"># Load all zones without variable</span>
+<span class="n">h</span><span class="o">.</span><span class="n">_loadZonesWoVars</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># Load given variables for all zones</span>
+<span class="n">h</span><span class="o">.</span><span class="n">_loadVariables</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;centers:G&#39;</span><span class="p">])</span>
+
+<span class="c1"># Load given variables for given zone</span>
+<span class="n">h</span><span class="o">.</span><span class="n">_loadVariables</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;centers:G&#39;</span><span class="p">],</span> <span class="n">znp</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.writeZones">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">writeZones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">znp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Fully write specified zones (coordinates, fields, grid connectivity, boundary conditions) in file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree</em><em> or </em><em>list</em><em> of </em><em>zones</em>) &#8211; input pyTree</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name if different of handle name</p></li>
+<li><p><strong>znp</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; path of zones to write to in file (starting from root)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/writeZonesFPT.py">Fully write zones (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - writeZones (pyTree) -</span>
+<span class="c1"># with Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:Density=1.&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;centers:Density=1.&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Interface sur arbre (mais a doit etre mis dans t)</span>
+<span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">]</span>
+<span class="n">h</span><span class="o">.</span><span class="n">writeZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">znp</span><span class="o">=</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">)</span>
+
+<span class="c1"># Interface sur zones</span>
+<span class="n">h</span><span class="o">.</span><span class="n">writeZones</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">znp</span><span class="o">=</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">)</span>
+<span class="n">h</span><span class="o">.</span><span class="n">writeZones</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">],</span> <span class="n">znp</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">,</span><span class="s1">&#39;Base/cart.0&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.writeZonesWoVars">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">writeZonesWoVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">znp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write specified zones without fields (coordinates, grid connectivity, boundary conditions) in file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree</em><em> or </em><em>list</em><em> of </em><em>zones</em>) &#8211; input pyTree</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name if different of handle name</p></li>
+<li><p><strong>znp</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; path of zones to write to in file (starting from root)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/writeZonesWoVarsPT.py">Write zones without fields (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - writeZones (pyTree) -</span>
+<span class="c1"># with Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:Density=1.&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;centers:Density=1.&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+<span class="n">h</span><span class="o">.</span><span class="n">writeZonesWoVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">znp</span><span class="o">=</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">)</span>
+<span class="n">h</span><span class="o">.</span><span class="n">writeZonesWoVars</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">],</span> <span class="n">znp</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">,</span><span class="s1">&#39;Base/cart.0&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.writeVariables">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">writeVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">znp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write specified variables in file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree</em><em> or </em><em>list</em><em> of </em><em>zones</em>) &#8211; input pyTree</p></li>
+<li><p><strong>var</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; variables to write</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name if different of handle name</p></li>
+<li><p><strong>znp</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; path of zones to write to in file (starting from root)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/writeVariablesPT.py">Write variables (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - writeVariables (pyTree) -</span>
+<span class="c1"># with Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:Density=1.&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;centers:Density=1.&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+<span class="n">h</span><span class="o">.</span><span class="n">writeZonesWoVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">znp</span><span class="o">=</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">)</span>
+<span class="n">h</span><span class="o">.</span><span class="n">writeVariables</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:Density&#39;</span><span class="p">,</span> <span class="n">znp</span><span class="o">=</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.loadFromProc">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">loadFromProc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loadVariables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Load on each processor the zones with the corresponding proc node.
+The zones in file must have a .Solver#Param/proc node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>loadVariables</strong> (<em>Boolean</em>) &#8211; If true, load all variables in file. Otherwise load only coordinates.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>partial tree on each processor</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/loadFromProcPT.py">Load tree from proc node (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - loadFromProc (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+
+<span class="c1"># Build case</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+    <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+    <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+    <span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">D2</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">))</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">splitNParts</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">D2</span><span class="o">.</span><span class="n">_distribute</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;case1.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;case1.cgns&#39;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadFromProc</span><span class="p">()</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.loadAndDistribute">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">loadAndDistribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'graph'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loadVariables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Load and distribute zones of file on the different processors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strategy</strong> (<em>string</em>) &#8211; strategy for distribution. Can be None (only the number of points of block is considered), &#8216;match&#8217; (use matching boundaries to optimize distribution)</p></li>
+<li><p><strong>algorithm</strong> (<em>string</em>) &#8211; algorithm for distribution. Can be &#8216;graph&#8217;, &#8216;fast&#8217;, &#8216;gradient&#8217;. See Distributor2 documentation.</p></li>
+<li><p><strong>loadVariables</strong> (<em>Boolean</em>) &#8211; If true, load all variables in file. Otherwise load only coordinates</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>partial tree on each processor</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/loadAndDistributePT.py">Load and distribute tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - loadAndDistribute (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+
+<span class="c1"># Build case</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+    <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+    <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">))</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">splitNParts</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;case1.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;case1.cgns&#39;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadAndDistribute</span><span class="p">()</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Filter.Handle.loadAndSplit">
+<span class="sig-prename descclassname"><span class="pre">Converter.Filter.Handle.</span></span><span class="sig-name descname"><span class="pre">loadAndSplit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NParts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NProc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Cmpi.size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitByBase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'graph'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Load and split zones of file on the different processors (only for structured zones).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>NParts</strong> (<em>int</em>) &#8211; number of parts to split file into. If None, use NProc instead.</p></li>
+<li><p><strong>NProc</strong> (<em>int</em>) &#8211; number of target processors.</p></li>
+<li><p><strong>splitByBase</strong> (<em>boolean</em>) &#8211; if true, split each base in NParts.</p></li>
+<li><p><strong>algorithm</strong> (<em>string</em>) &#8211; algorithm for distribution. Can be &#8216;graph&#8217;, &#8216;fast&#8217;, &#8216;gradient&#8217;. See Distributor2 documentation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>partial tree on each processor</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/loadAndSplitPT.py">Load and split tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - loadAndSplit (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Filter</span> <span class="k">as</span> <span class="nn">Filter</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+
+<span class="c1"># Build case</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># With skeleton</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadAndSplitSkeleton</span><span class="p">(</span><span class="n">NParts</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">h</span><span class="o">.</span><span class="n">_loadContainerPartial</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">variablesN</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GridCoordinates/CoordinateX&#39;</span><span class="p">,</span><span class="s1">&#39;GridCoordinates/CoordinateY&#39;</span><span class="p">,</span><span class="s1">&#39;GridCoordinates/CoordinateZ&#39;</span><span class="p">])</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+
+<span class="c1"># In one go</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">Handle</span><span class="p">(</span><span class="s1">&#39;out.hdf&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">loadAndSplit</span><span class="p">(</span><span class="n">NParts</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Converter.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Converter.Filter: partial reading/writing of files</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Filter.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Converter.Filter: partial reading/writing of files</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

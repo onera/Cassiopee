@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>tkCassiopee : mesh conversion</h1>
+<hr>
+      Cassiopee can be used to perform mesh conversion. <br>
+      You can of course convert to different file formats, but also
+change the topology of your mesh and add/convert boundary conditions.<br><br>
+
+   You should already have read <a href="../Controls/Controls.html">how to select zones</a> and <a href="../OpeningApplets/OpeningApplets.html">how to open applets</a>.<br>
+   If you don't have a file to manipulate, try this sample file:<br>
+   <a href="tryConversion.cgns">[Dowload sample file].</a><br>
+<hr>
+
+
+<h3>Converting file formats</h3>
+
+Open your file with Cassiopee by typing:
+<div class="code">
+   cassiopee "file"
+</div>
+To change the file format, simply use the menu "File:Save as", and
+simply change the file extension to select a given format.<br>
+
+Available formats are described <a href="../../Converter.html#Formats">here</a>.<br>
+In case of bug or missing format, dont hesitate to contact 
+<a href="mailto:cassiopee@onera.fr">cassiopee@onera.fr</a>.<br>
+
+
+<h3>Converting mesh topology</h3>
+
+- Open <strong>Block::tkBlock</strong> and <strong>Block::tkNGon</strong> by right-clicking on Block and chosing the right applet:<br>
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+<a href="tkBlock.png"><img border="0" src="tkBlock_.png"></a><br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <strong>tkBlock applet.</strong><br><br>
+
+- Select a zone (either by shift+click in the graphic window) or by shift-click
+in the tkTree window).<br>
+
+- Click on <strong>convert2Tetra</strong> to convert a block to a TETRA, TRI or
+BAR type, depending on element dimensions.<br>
+
+- Click on <strong>convert2Hexa</strong> to convert a block to a HEXA, QUAD or
+BAR type, depending on element dimensions.<br>
+
+- Click on <strong>convert2Node</strong> to convert a block to a NODE
+type.<br>
+
+- Click on <strong>convert2NGon</strong> to convert a block to a polyedral
+mesh.<br>
+
+- Click on <strong>close</strong> to "clean" a mesh, meaning suppressing
+identical points, identical faces and identical elements.
+ <br>
+
+
+<h3>Checking/modifying boundary conditions</h3>
+
+- Open <strong>BC::tkBC</strong>: <br>
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+<a href="tkBC.png"><img border="0" src="tkBC_.png"></a><br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <strong>tkBC applet.</strong><br><br>
+
+- Click on <strong>View Mesh/BC</strong> with a given type to view
+the boundaries of this type. <br>
+If you select a boundary by clicking on it in the graphic window,
+you can see it in tkTree by clicking on Tool bar Fit View.<br>
+Conversely, you can click on a boundary in the tkTree, and view it graphically,
+using also Tool bar Fit View.<br>
+
+- Clicking on <strong>View undefined BCs</strong> will display only undefined boundaries,
+that is mesh boundaries that are NOT tagged with a boundary condition.<br>
+
+- When undefined BCs are displayed, click on a boundary in the graphic
+window. Then, clicking on <strong>setBCWith</strong>
+will set the given to type to this boundary. <br>
+
+- Clicking on <strong>connectMatch</strong> will rebuild a missing
+inter-block connectivity.<br><br>
+
+
+
+      <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+      <table border="1", width="90%", height="40">
+      <tr>
+      <td>
+      <font size="-1" face="sans-serif">
+      <strong>More:</strong>  
+      <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+      <br>
+      </td>
+      </tr>
+      </table>
+      </div>
+
+      <hr>
+
+</body>
+</html>

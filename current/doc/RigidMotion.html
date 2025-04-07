@@ -1,0 +1,710 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>RigidMotion: compute/define rigid motions &#8212; RigidMotion 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">RigidMotion 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">RigidMotion: compute/define rigid motions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="rigidmotion-compute-define-rigid-motions">
+<h1>RigidMotion: compute/define rigid motions</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>RigidMotion enables to define or compute rigid motions for arrays (as defined in Converter documentation) or for CGNS/Python trees (pyTrees).</p>
+<p>This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.</p>
+<p>For use with the array interface, you have to import RigidMotion module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">RigidMotion</span>
+</pre></div>
+</div>
+<p>For use with the pyTree interface:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">RigidMotion</span>
+</pre></div>
+</div>
+<span class="target" id="module-RigidMotion"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Prescribed motions</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#RigidMotion.PyTree.setPrescribedMotion1" title="RigidMotion.PyTree.setPrescribedMotion1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigidMotion.PyTree.setPrescribedMotion1</span></code></a></p></td>
+<td><p>Define a motion of type 1 (time strings).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#RigidMotion.PyTree.setPrescribedMotion2" title="RigidMotion.PyTree.setPrescribedMotion2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigidMotion.PyTree.setPrescribedMotion2</span></code></a></p></td>
+<td><p>Define a motion of type 2 (rotor)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#RigidMotion.PyTree.setPrescribedMotion3" title="RigidMotion.PyTree.setPrescribedMotion3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigidMotion.PyTree.setPrescribedMotion3</span></code></a></p></td>
+<td><p>Define a motion of type 3 (constant rotation+translation speed).</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; General functions</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#RigidMotion.PyTree.evalPosition" title="RigidMotion.PyTree.evalPosition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigidMotion.PyTree.evalPosition</span></code></a></p></td>
+<td><p>Move the mesh with defined motion to time t.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#RigidMotion.PyTree.evalGridSpeed" title="RigidMotion.PyTree.evalGridSpeed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigidMotion.PyTree.evalGridSpeed</span></code></a></p></td>
+<td><p>Eval grid speed at given time.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#RigidMotion.PyTree.copyGrid2GridInit" title="RigidMotion.PyTree.copyGrid2GridInit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigidMotion.PyTree.copyGrid2GridInit</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#RigidMotion.PyTree.copyGridInit2Grid" title="RigidMotion.PyTree.copyGridInit2Grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RigidMotion.PyTree.copyGridInit2Grid</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="RigidMotion.PyTree.setPrescribedMotion1">
+<span class="sig-prename descclassname"><span class="pre">RigidMotion.PyTree.</span></span><span class="sig-name descname"><span class="pre">setPrescribedMotion1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motionName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ez</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set a prescribed motion defined by a translation of the origin (tx,ty,tz), the center of a rotation (cx,cy,cz), the second point of the rotation axis (ex,ey,ez) and the rotation angle in degrees. They can depend on time {t}.</p>
+<p>Exists also as an in-place version (_setPrescribedMotion1) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>tx</strong> (<em>string</em>) &#8211; translation in x motion string</p></li>
+<li><p><strong>ty</strong> (<em>string</em>) &#8211; translation in y motion string</p></li>
+<li><p><strong>tz</strong> (<em>string</em>) &#8211; translation in z motion string</p></li>
+<li><p><strong>cx</strong> (<em>string</em>) &#8211; rotation center x coordinate motion string</p></li>
+<li><p><strong>cy</strong> (<em>string</em>) &#8211; rotation center y coordinate motion string</p></li>
+<li><p><strong>cz</strong> (<em>string</em>) &#8211; rotation center z coordinate motion string</p></li>
+<li><p><strong>ex</strong> (<em>string</em>) &#8211; rotation axis x coordinate motion string</p></li>
+<li><p><strong>ey</strong> (<em>string</em>) &#8211; rotation axis y coordinate motion string</p></li>
+<li><p><strong>ez</strong> (<em>string</em>) &#8211; rotation axis z coordinate motion string</p></li>
+<li><p><strong>angle</strong> (<em>string</em>) &#8211; rotation angle motion string</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/RigidMotion/setPrescribedMotion1PT.py">Set a prescribed motion of type 1 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setPrescribedMotion1 (pyTree) -</span>
+<span class="c1"># Motion defined by time string</span>
+<span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">R</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">setPrescribedMotion1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;trans&#39;</span><span class="p">,</span> <span class="n">tx</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{t}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="RigidMotion.PyTree.setPrescribedMotion2">
+<span class="sig-prename descclassname"><span class="pre">RigidMotion.PyTree.</span></span><span class="sig-name descname"><span class="pre">setPrescribedMotion2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motionName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transl_speed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pis0_b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alp_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alp_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alp0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_omg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">del_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">del_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">del0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bet_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bet_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bet0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">betc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tet_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tet_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tet0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tetc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">span_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_lag_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_lag_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_lag_ang</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_con_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_con_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_con_ang</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set a prescribed motion defined by a rigid rotor motion. Arguments are identical to elsA rotor motion.</p>
+<p>Exists also as an in-place version (_setPrescribedMotion2) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>transl_speed</strong> (<em>a 3-tuple</em><em> of </em><em>floats</em>) &#8211; translation speed</p></li>
+<li><p><strong>psi0</strong> (<em>float</em>) &#8211; initial pitch angle (in degrees)</p></li>
+<li><p><strong>psi0_b</strong> (<em>float</em>) &#8211; angle for blade position wrt leading blade (in degrees)</p></li>
+<li><p><strong>alp_pnt</strong> (<em>a 3-tuple</em><em> of </em><em>floats</em>) &#8211; origin of rotor shaft</p></li>
+<li><p><strong>alp_vct</strong> (<em>a 3-tuple</em><em> of </em><em>floats</em>) &#8211; axis of rotor shaft</p></li>
+<li><p><strong>alp0</strong> (<em>float</em>) &#8211; rotor shaft angle (in degrees)</p></li>
+<li><p><strong>rot_pnt</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; rotation center</p></li>
+<li><p><strong>rot_vct</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; rotation axis</p></li>
+<li><p><strong>rot_omg</strong> (<em>float</em>) &#8211; rotor angular velocity (in radians per sec)</p></li>
+<li><p><strong>del_pnt</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; origin of lead-lag</p></li>
+<li><p><strong>del_vct</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; lead-lag axis</p></li>
+<li><p><strong>del0</strong> (<em>float</em>) &#8211; lead-lag angle (in degrees)</p></li>
+<li><p><strong>delc</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; cosine part of harmonics for lead-lag</p></li>
+<li><p><strong>dels</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; sine part of harmonics for lead-lag</p></li>
+<li><p><strong>bet_pnt</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; origin of flapping motion</p></li>
+<li><p><strong>bet_vct</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; flapping axis</p></li>
+<li><p><strong>bet0</strong> (<em>float</em>) &#8211; flapping angle (in degrees)</p></li>
+<li><p><strong>betc</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; cosine part of harmonics for conicity</p></li>
+<li><p><strong>bets</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; sine part of harmonics for conicity</p></li>
+<li><p><strong>tet_pnt</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; origin of pitching motion</p></li>
+<li><p><strong>tet_vct</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; pitching axis</p></li>
+<li><p><strong>tet0</strong> (<em>float</em>) &#8211; collective pitch angle (in degrees)</p></li>
+<li><p><strong>tetc</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; cyclic pitch cosine part</p></li>
+<li><p><strong>tets</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; cyclic pitch sine part</p></li>
+<li><p><strong>span_vct</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; reference blade spanwise axis</p></li>
+<li><p><strong>pre_lag_pnt</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; origin of pre-lag</p></li>
+<li><p><strong>pre_lag_vct</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; pre-lag axis</p></li>
+<li><p><strong>pre_lag_ang</strong> (<em>float</em>) &#8211; pre-lag angle (in degrees)</p></li>
+<li><p><strong>pre_con_pnt</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; origin of pre-conicity</p></li>
+<li><p><strong>pre_con_vct</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; pre-conicity axis</p></li>
+<li><p><strong>pre_con_ang</strong> (<em>float</em>) &#8211; pre-conicity angle (in degrees)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/RigidMotion/setPrescribedMotion2PT.py">Set a prescribed motion of type 2 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setPrescribedMotion2 (pyTree) -</span>
+<span class="c1"># Motion defined by a rotor motion</span>
+<span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">R</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Mime une pale suivant x, quart avant</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.2</span><span class="p">,</span><span class="o">-</span><span class="mf">0.075</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">131</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">RotorMotion</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Motion_Blade1&#39;</span><span class="p">:{</span><span class="s1">&#39;initial_angles&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="c1">#PSI0,PSI0_b</span>
+                              <span class="s1">&#39;alp0&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">12.013</span><span class="p">,</span><span class="s1">&#39;alp_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="s1">&#39;alp_vct&#39;</span><span class="p">:[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span>
+                              <span class="s1">&#39;rot_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;rot_vct&#39;</span><span class="p">:[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span><span class="s1">&#39;rot_omg&#39;</span><span class="p">:</span><span class="mf">104.71</span><span class="p">,</span>
+                              <span class="s1">&#39;span_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span>
+                              <span class="s1">&#39;pre_lag_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.075</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;pre_lag_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span><span class="s1">&#39;pre_lag_ang&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">4.</span><span class="p">,</span>
+                              <span class="s1">&#39;pre_con_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;pre_con_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;pre_con_ang&#39;</span> <span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+                              <span class="s1">&#39;del_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.075</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;del_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span><span class="s1">&#39;del0&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">0.34190</span><span class="p">,</span>
+                              <span class="s1">&#39;del1c&#39;</span> <span class="p">:</span> <span class="mf">0.48992E-01</span> <span class="p">,</span> <span class="s1">&#39;del1s&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.95018E-01</span><span class="p">,</span>
+                              <span class="s1">&#39;bet_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.076</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;bet_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;bet0&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">2.0890</span><span class="p">,</span>
+                              <span class="s1">&#39;bet1c&#39;</span> <span class="p">:</span> <span class="mf">3.4534</span><span class="p">,</span> <span class="s1">&#39;bet1s&#39;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                              <span class="s1">&#39;tet_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.156</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;tet_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;tet0&#39;</span> <span class="p">:</span> <span class="mf">12.807</span><span class="p">,</span>
+                              <span class="s1">&#39;tet1c&#39;</span> <span class="p">:</span> <span class="mf">1.5450</span><span class="p">,</span> <span class="s1">&#39;tet1s&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">3.4534</span><span class="p">}}</span>
+
+<span class="n">dictBlade</span> <span class="o">=</span> <span class="n">RotorMotion</span><span class="p">[</span><span class="s2">&quot;Motion_Blade1&quot;</span><span class="p">]</span>
+<span class="n">init_angles</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;initial_angles&quot;</span><span class="p">]</span>
+<span class="n">psi0</span> <span class="o">=</span> <span class="n">init_angles</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="n">psi0_b</span> <span class="o">=</span> <span class="n">init_angles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">transl_speed</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">87.9592</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+<span class="n">alp_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;alp_pnt&quot;</span><span class="p">]</span>
+<span class="n">alp_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;alp_vct&quot;</span><span class="p">]</span>
+<span class="n">alp0</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;alp0&quot;</span><span class="p">]</span>
+<span class="n">rot_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;rot_pnt&quot;</span><span class="p">]</span>
+<span class="n">rot_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;rot_vct&quot;</span><span class="p">]</span>
+<span class="n">rot_omg</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;rot_omg&quot;</span><span class="p">]</span>
+<span class="n">del_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del_pnt&quot;</span><span class="p">]</span>
+<span class="n">del_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del_vct&quot;</span><span class="p">]</span>
+<span class="n">del0</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del0&quot;</span><span class="p">]</span>
+<span class="n">delc</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del1c&quot;</span><span class="p">],)</span>
+<span class="n">dels</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del1s&quot;</span><span class="p">],)</span>
+<span class="n">bet_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet_pnt&quot;</span><span class="p">]</span>
+<span class="n">bet_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet_vct&quot;</span><span class="p">]</span>
+<span class="n">bet0</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet0&quot;</span><span class="p">]</span>
+<span class="n">betc</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet1c&quot;</span><span class="p">],)</span>
+<span class="n">bets</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet1s&quot;</span><span class="p">],)</span>
+<span class="n">tet_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet_pnt&quot;</span><span class="p">]</span>
+<span class="n">tet_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet_vct&quot;</span><span class="p">]</span>
+<span class="n">tet0</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet0&quot;</span><span class="p">]</span>
+<span class="n">tetc</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet1c&quot;</span><span class="p">],)</span>
+<span class="n">tets</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet1s&quot;</span><span class="p">],)</span>
+<span class="n">span_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s1">&#39;span_vct&#39;</span><span class="p">]</span>
+<span class="n">pre_lag_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_lag_pnt&quot;</span><span class="p">]</span>
+<span class="n">pre_lag_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_lag_vct&quot;</span><span class="p">]</span>
+<span class="n">pre_lag_ang</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_lag_ang&quot;</span><span class="p">]</span>
+<span class="n">pre_con_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_con_pnt&quot;</span><span class="p">]</span>
+<span class="n">pre_con_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_con_vct&quot;</span><span class="p">]</span>
+<span class="n">pre_con_ang</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_con_ang&quot;</span><span class="p">]</span>
+<span class="n">R</span><span class="o">.</span><span class="n">_setPrescribedMotion2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;Motion_Blade1&#39;</span><span class="p">,</span> <span class="n">transl_speed</span><span class="o">=</span><span class="n">transl_speed</span><span class="p">,</span>
+                        <span class="n">psi0</span><span class="o">=</span><span class="n">psi0</span><span class="p">,</span> <span class="n">psi0_b</span><span class="o">=</span><span class="n">psi0_b</span><span class="p">,</span>
+                        <span class="n">alp_pnt</span><span class="o">=</span><span class="n">alp_pnt</span><span class="p">,</span> <span class="n">alp_vct</span><span class="o">=</span><span class="n">alp_vct</span><span class="p">,</span> <span class="n">alp0</span><span class="o">=</span><span class="n">alp0</span><span class="p">,</span>
+                        <span class="n">rot_pnt</span><span class="o">=</span><span class="n">rot_pnt</span><span class="p">,</span> <span class="n">rot_vct</span><span class="o">=</span><span class="n">rot_vct</span><span class="p">,</span> <span class="n">rot_omg</span><span class="o">=</span><span class="n">rot_omg</span><span class="p">,</span>
+                        <span class="n">del_pnt</span><span class="o">=</span><span class="n">del_pnt</span><span class="p">,</span> <span class="n">del_vct</span><span class="o">=</span><span class="n">del_vct</span><span class="p">,</span> <span class="n">del0</span><span class="o">=</span><span class="n">del0</span><span class="p">,</span>
+                        <span class="n">delc</span><span class="o">=</span><span class="n">delc</span><span class="p">,</span> <span class="n">dels</span><span class="o">=</span><span class="n">dels</span><span class="p">,</span>
+                        <span class="n">bet_pnt</span><span class="o">=</span><span class="n">bet_pnt</span><span class="p">,</span> <span class="n">bet_vct</span><span class="o">=</span><span class="n">bet_vct</span><span class="p">,</span> <span class="n">bet0</span><span class="o">=</span><span class="n">bet0</span><span class="p">,</span>
+                        <span class="n">betc</span><span class="o">=</span><span class="n">betc</span><span class="p">,</span> <span class="n">bets</span><span class="o">=</span><span class="n">bets</span><span class="p">,</span>
+                        <span class="n">tet_pnt</span><span class="o">=</span><span class="n">tet_pnt</span><span class="p">,</span> <span class="n">tet_vct</span><span class="o">=</span><span class="n">tet_vct</span><span class="p">,</span> <span class="n">tet0</span><span class="o">=</span><span class="n">tet0</span><span class="p">,</span>
+                        <span class="n">tetc</span><span class="o">=</span><span class="n">tetc</span><span class="p">,</span> <span class="n">tets</span><span class="o">=</span><span class="n">tets</span><span class="p">,</span>
+                        <span class="n">span_vct</span><span class="o">=</span><span class="n">span_vct</span><span class="p">,</span>
+                        <span class="n">pre_lag_pnt</span><span class="o">=</span><span class="n">pre_lag_pnt</span><span class="p">,</span> <span class="n">pre_lag_vct</span><span class="o">=</span><span class="n">pre_lag_vct</span><span class="p">,</span> <span class="n">pre_lag_ang</span><span class="o">=</span><span class="n">pre_lag_ang</span><span class="p">,</span>
+                        <span class="n">pre_con_pnt</span><span class="o">=</span><span class="n">pre_con_pnt</span><span class="p">,</span> <span class="n">pre_con_vct</span><span class="o">=</span><span class="n">pre_con_vct</span><span class="p">,</span> <span class="n">pre_con_ang</span><span class="o">=</span><span class="n">pre_con_ang</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="RigidMotion.PyTree.setPrescribedMotion3">
+<span class="sig-prename descclassname"><span class="pre">RigidMotion.PyTree.</span></span><span class="sig-name descname"><span class="pre">setPrescribedMotion3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motionName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transl_speed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set a precribed motion defined by a constant speed rotation and constant translation vector.
+omega is in rad/time unit.
+Since rotation is applied before translation, the center of rotation (axis_pnt) is
+moving with translation speed also.</p>
+<p>Exists also as an in-place version (_setPrescribedMotion3) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>transl_speed</strong> (<em>tuple</em><em> of </em><em>3 floats</em>) &#8211; translation vector</p></li>
+<li><p><strong>axis_pnt</strong> (<em>tuple</em><em> of </em><em>3 floats</em>) &#8211; rotation axis (constant in translated frame)</p></li>
+<li><p><strong>axis_vect</strong> (<em>tuple</em><em> of </em><em>3 floats</em>) &#8211; vector axis (constant in traslated frame)</p></li>
+<li><p><strong>omega</strong> (<em>float</em>) &#8211; constant rotation speed</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/RigidMotion/setPrescribedMotion3PT.py">Set a prescribed motion of type 3 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setPrescribedMotion3 (pyTree) -</span>
+<span class="c1"># Motion defined by a constant rotation and translation speed</span>
+<span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">R</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">setPrescribedMotion3</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;mot&#39;</span><span class="p">,</span> <span class="n">transl_speed</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<section id="general-functions">
+<h3>General functions</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="RigidMotion.PyTree.evalPosition">
+<span class="sig-prename descclassname"><span class="pre">RigidMotion.PyTree.</span></span><span class="sig-name descname"><span class="pre">evalPosition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Evaluate the position at time t according to a motion.
+The motion must be defined in a with setPrescribedMotion.
+If GridCoordinates#Init is present, it is used to compute position.
+Otherwise, Grid coordinates in a must be the coordinates at time=0.</p>
+<p>Exists also as an in-place version (_evalPosition) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>time</strong> (<em>float</em>) &#8211; evaluation time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/RigidMotion/evalPositionPT.py">Evaluate position (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - evalPosition (PyTree) -</span>
+<span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">R</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># Coordonnees du centre de rotation dans le repere absolu</span>
+<span class="k">def</span> <span class="nf">centerAbs</span><span class="p">(</span><span class="n">t</span><span class="p">):</span> <span class="k">return</span> <span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Coordonnees du centre de la rotation dans le repere entraine</span>
+<span class="k">def</span> <span class="nf">centerRel</span><span class="p">(</span><span class="n">t</span><span class="p">):</span> <span class="k">return</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Matrice de rotation</span>
+<span class="k">def</span> <span class="nf">rot</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="n">omega</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="p">[[</span><span class="n">cos</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">t</span><span class="p">),</span> <span class="o">-</span><span class="n">sin</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">t</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span>
+         <span class="p">[</span><span class="n">sin</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">t</span><span class="p">),</span> <span class="n">cos</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">t</span><span class="p">),</span>  <span class="mi">0</span><span class="p">],</span>
+         <span class="p">[</span><span class="mi">0</span><span class="p">,</span>            <span class="mi">0</span><span class="p">,</span>             <span class="mi">1</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">m</span>
+
+<span class="c1"># Mouvement complet</span>
+<span class="k">def</span> <span class="nf">F</span><span class="p">(</span><span class="n">t</span><span class="p">):</span> <span class="k">return</span> <span class="p">(</span><span class="n">centerAbs</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">centerRel</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">rot</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="c1"># Move the mesh</span>
+<span class="n">time</span> <span class="o">=</span> <span class="mf">3.</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">evalPosition</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">F</span><span class="p">);</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;moved&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">],</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Evaluate position at given time, when motion is described by a function. F(t) is a
+function describing motion. F(t) = (centerAbs(t), centerRel(t), rot(t)),
+where centerAbs(t) are the coordinates of the rotation center in the absolute frame, centerRel(t) are the coordinates of the rotation center in the relative
+(that is array&#8217;s) frame and rot(t), the rotation matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>time</strong> (<em>float</em>) &#8211; evaluation time</p></li>
+<li><p><strong>F</strong> (<em>python function</em>) &#8211; motion function</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/RigidMotion/evalPosition2PT.py">Evaluate position with function (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - evalPosition pour motion 2 (pyTree) -</span>
+<span class="c1"># Rotor motion</span>
+<span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">R</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">time0</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.2</span><span class="p">,</span><span class="o">-</span><span class="mf">0.075</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">131</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="c1"># Mettre tous les parametres</span>
+<span class="n">RotorMotion</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Motion_Blade1&#39;</span><span class="p">:{</span><span class="s1">&#39;initial_angles&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="c1">#PSI0,PSI0_b</span>
+                              <span class="s1">&#39;alp0&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">12.013</span><span class="p">,</span><span class="s1">&#39;alp_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="s1">&#39;alp_vct&#39;</span><span class="p">:[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span>
+                              <span class="s1">&#39;rot_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;rot_vct&#39;</span><span class="p">:[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span><span class="s1">&#39;rot_omg&#39;</span><span class="p">:</span><span class="mf">104.71</span><span class="p">,</span>
+                              <span class="s1">&#39;span_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span>
+                              <span class="s1">&#39;pre_lag_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.075</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;pre_lag_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span><span class="s1">&#39;pre_lag_ang&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">4.</span><span class="p">,</span>
+                              <span class="s1">&#39;pre_con_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;pre_con_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;pre_con_ang&#39;</span> <span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+                              <span class="s1">&#39;del_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.075</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;del_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span><span class="s1">&#39;del0&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">0.34190</span><span class="p">,</span>
+                              <span class="s1">&#39;del1c&#39;</span> <span class="p">:</span> <span class="mf">0.48992E-01</span> <span class="p">,</span> <span class="s1">&#39;del1s&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.95018E-01</span><span class="p">,</span>
+                              <span class="s1">&#39;bet_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.076</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;bet_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;bet0&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">2.0890</span><span class="p">,</span>
+                              <span class="s1">&#39;bet1c&#39;</span> <span class="p">:</span> <span class="mf">3.4534</span><span class="p">,</span> <span class="s1">&#39;bet1s&#39;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                              <span class="s1">&#39;tet_pnt&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.156</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;tet_vct&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span><span class="s1">&#39;tet0&#39;</span> <span class="p">:</span> <span class="mf">12.807</span><span class="p">,</span>
+                              <span class="s1">&#39;tet1c&#39;</span> <span class="p">:</span> <span class="mf">1.5450</span><span class="p">,</span> <span class="s1">&#39;tet1s&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">3.4534</span><span class="p">}}</span>
+
+<span class="n">dictBlade</span> <span class="o">=</span> <span class="n">RotorMotion</span><span class="p">[</span><span class="s2">&quot;Motion_Blade1&quot;</span><span class="p">]</span>
+<span class="n">init_angles</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;initial_angles&quot;</span><span class="p">]</span>
+<span class="n">psi0</span> <span class="o">=</span> <span class="n">init_angles</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="n">psi0_b</span> <span class="o">=</span> <span class="n">init_angles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">transl_speed</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">87.9592</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+<span class="n">alp_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;alp_pnt&quot;</span><span class="p">]</span>
+<span class="n">alp_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;alp_vct&quot;</span><span class="p">]</span>
+<span class="n">alp0</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;alp0&quot;</span><span class="p">]</span>
+<span class="n">rot_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;rot_pnt&quot;</span><span class="p">]</span>
+<span class="n">rot_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;rot_vct&quot;</span><span class="p">]</span>
+<span class="n">rot_omg</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;rot_omg&quot;</span><span class="p">]</span>
+<span class="n">del_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del_pnt&quot;</span><span class="p">]</span>
+<span class="n">del_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del_vct&quot;</span><span class="p">]</span>
+<span class="n">del0</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del0&quot;</span><span class="p">]</span>
+<span class="n">delc</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del1c&quot;</span><span class="p">],)</span>
+<span class="n">dels</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;del1s&quot;</span><span class="p">],)</span>
+<span class="n">bet_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet_pnt&quot;</span><span class="p">]</span>
+<span class="n">bet_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet_vct&quot;</span><span class="p">]</span>
+<span class="n">bet0</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet0&quot;</span><span class="p">]</span>
+<span class="n">betc</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet1c&quot;</span><span class="p">],)</span>
+<span class="n">bets</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;bet1s&quot;</span><span class="p">],)</span>
+<span class="n">tet_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet_pnt&quot;</span><span class="p">]</span>
+<span class="n">tet_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet_vct&quot;</span><span class="p">]</span>
+<span class="n">tet0</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet0&quot;</span><span class="p">]</span>
+<span class="n">tetc</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet1c&quot;</span><span class="p">],)</span>
+<span class="n">tets</span> <span class="o">=</span> <span class="p">(</span><span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;tet1s&quot;</span><span class="p">],)</span>
+<span class="n">span_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s1">&#39;span_vct&#39;</span><span class="p">]</span>
+<span class="n">pre_lag_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_lag_pnt&quot;</span><span class="p">]</span>
+<span class="n">pre_lag_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_lag_vct&quot;</span><span class="p">]</span>
+<span class="n">pre_lag_ang</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_lag_ang&quot;</span><span class="p">]</span>
+<span class="n">pre_con_pnt</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_con_pnt&quot;</span><span class="p">]</span>
+<span class="n">pre_con_vct</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_con_vct&quot;</span><span class="p">]</span>
+<span class="n">pre_con_ang</span> <span class="o">=</span> <span class="n">dictBlade</span><span class="p">[</span><span class="s2">&quot;pre_con_ang&quot;</span><span class="p">]</span>
+<span class="n">R</span><span class="o">.</span><span class="n">_setPrescribedMotion2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;Motion_Blade1&#39;</span><span class="p">,</span> <span class="n">transl_speed</span><span class="o">=</span><span class="n">transl_speed</span><span class="p">,</span>
+                        <span class="n">psi0</span><span class="o">=</span><span class="n">psi0</span><span class="p">,</span> <span class="n">psi0_b</span><span class="o">=</span><span class="n">psi0_b</span><span class="p">,</span>
+                        <span class="n">alp_pnt</span><span class="o">=</span><span class="n">alp_pnt</span><span class="p">,</span> <span class="n">alp_vct</span><span class="o">=</span><span class="n">alp_vct</span><span class="p">,</span> <span class="n">alp0</span><span class="o">=</span><span class="n">alp0</span><span class="p">,</span>
+                        <span class="n">rot_pnt</span><span class="o">=</span><span class="n">rot_pnt</span><span class="p">,</span> <span class="n">rot_vct</span><span class="o">=</span><span class="n">rot_vct</span><span class="p">,</span> <span class="n">rot_omg</span><span class="o">=</span><span class="n">rot_omg</span><span class="p">,</span>
+                        <span class="n">del_pnt</span><span class="o">=</span><span class="n">del_pnt</span><span class="p">,</span> <span class="n">del_vct</span><span class="o">=</span><span class="n">del_vct</span><span class="p">,</span> <span class="n">del0</span><span class="o">=</span><span class="n">del0</span><span class="p">,</span>
+                        <span class="n">delc</span><span class="o">=</span><span class="n">delc</span><span class="p">,</span> <span class="n">dels</span><span class="o">=</span><span class="n">dels</span><span class="p">,</span>
+                        <span class="n">bet_pnt</span><span class="o">=</span><span class="n">bet_pnt</span><span class="p">,</span> <span class="n">bet_vct</span><span class="o">=</span><span class="n">bet_vct</span><span class="p">,</span> <span class="n">bet0</span><span class="o">=</span><span class="n">bet0</span><span class="p">,</span>
+                        <span class="n">betc</span><span class="o">=</span><span class="n">betc</span><span class="p">,</span> <span class="n">bets</span><span class="o">=</span><span class="n">bets</span><span class="p">,</span>
+                        <span class="n">tet_pnt</span><span class="o">=</span><span class="n">tet_pnt</span><span class="p">,</span> <span class="n">tet_vct</span><span class="o">=</span><span class="n">tet_vct</span><span class="p">,</span> <span class="n">tet0</span><span class="o">=</span><span class="n">tet0</span><span class="p">,</span>
+                        <span class="n">tetc</span><span class="o">=</span><span class="n">tetc</span><span class="p">,</span> <span class="n">tets</span><span class="o">=</span><span class="n">tets</span><span class="p">,</span>
+                        <span class="n">span_vct</span><span class="o">=</span><span class="n">span_vct</span><span class="p">,</span>
+                        <span class="n">pre_lag_pnt</span><span class="o">=</span><span class="n">pre_lag_pnt</span><span class="p">,</span> <span class="n">pre_lag_vct</span><span class="o">=</span><span class="n">pre_lag_vct</span><span class="p">,</span> <span class="n">pre_lag_ang</span><span class="o">=</span><span class="n">pre_lag_ang</span><span class="p">,</span>
+                        <span class="n">pre_con_pnt</span><span class="o">=</span><span class="n">pre_con_pnt</span><span class="p">,</span> <span class="n">pre_con_vct</span><span class="o">=</span><span class="n">pre_con_vct</span><span class="p">,</span> <span class="n">pre_con_ang</span><span class="o">=</span><span class="n">pre_con_ang</span><span class="p">)</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">evalPosition</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time0</span><span class="p">);</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;moved&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="RigidMotion.PyTree.evalGridSpeed">
+<span class="sig-prename descclassname"><span class="pre">RigidMotion.PyTree.</span></span><span class="sig-name descname"><span class="pre">evalGridSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Evaluate grid speed at given time.
+The position must already have been evaluated at this time.</p>
+<p>Exists also as an in-place version (_evalGridSpeed) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>time</strong> (<em>float</em>) &#8211; evaluation time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/RigidMotion/evalGridSpeedPT.py">Evaluate speed (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - evalGridSpeed (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">R</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">setPrescribedMotion3</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;motion&#39;</span><span class="p">,</span> <span class="n">transl_speed</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">evalPosition</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">R</span><span class="o">.</span><span class="n">_evalGridSpeed</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="RigidMotion.PyTree.copyGrid2GridInit">
+<span class="sig-prename descclassname"><span class="pre">RigidMotion.PyTree.</span></span><span class="sig-name descname"><span class="pre">copyGrid2GridInit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Copy GridCoordinates to GridCoordinates#Init.
+If mode=0, only if grid has a TimeMotion node.
+If mode=1, always copy.</p>
+<p>Exists also as an in-place version (_copyGrid2GridInit) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>mode</strong> (<em>0</em><em> or </em><em>1</em>) &#8211; behaviour</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/RigidMotion/copyGrid2GridInitPT.py">Copy GridCoordinates to GridCoordinates#Init (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyGrid2GridInit (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">R</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">R</span><span class="o">.</span><span class="n">_setPrescribedMotion3</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;motion&#39;</span><span class="p">,</span> <span class="n">transl_speed</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="n">R</span><span class="o">.</span><span class="n">_copyGrid2GridInit</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="RigidMotion.PyTree.copyGridInit2Grid">
+<span class="sig-prename descclassname"><span class="pre">RigidMotion.PyTree.</span></span><span class="sig-name descname"><span class="pre">copyGridInit2Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Copy GridCoordinates#Init to GridCoordinates if it exists.</p>
+<p>Exists also as an in-place version (_copyGridInit2Grid) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/RigidMotion/copyGridInit2GridPT.py">Copy GridCoordinates#Init to GridCoordinates (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - copyGridInit2Grid (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">RigidMotion.PyTree</span> <span class="k">as</span> <span class="nn">R</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">R</span><span class="o">.</span><span class="n">_copyGrid2GridInit</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">R</span><span class="o">.</span><span class="n">_copyGridInit2Grid</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">RigidMotion: compute/define rigid motions</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="RigidMotion.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">RigidMotion 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">RigidMotion: compute/define rigid motions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://onera.github.io/Cassiopee/current/developers/HowToArray3/">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>How to write universal array3 code - Cassiopee</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../css/version-select.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Cassiopee</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../guide4devs/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#how-to-write-universal-array3-code" class="nav-link">How to write universal array3 code</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#type-of-arrays" class="nav-link">Type of arrays</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#in-place-functions" class="nav-link">In place functions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#create-new-array" class="nav-link">Create new array</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#copy-functions" class="nav-link">Copy functions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="how-to-write-universal-array3-code">How to write universal array3 code</h1>
+<h2 id="type-of-arrays">Type of arrays</h2>
+<p>Arrays can be:
+- structured
+- unstructured:
+  - BE/ME
+  - NGON</p>
+<h2 id="in-place-functions">In place functions</h2>
+<p>Use getFromArray3 to pass from python object to FldArrays:</p>
+<pre><code>PyObject* o;
+if (!PyArg_ParseTuple(args, "O", &amp;o)) return NULL;
+E_Int ni, nj, nk;
+K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+char* varString; char* eltType;
+E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, c, eltType);
+</code></pre>
+<p>if ret = 1, it is a structured array
+if ret = 2, it is an unstructured array.</p>
+<p>Release memory. Dont forget at the end:</p>
+<pre><code>RELEASESHAREDB(ret, o, f, c);
+</code></pre>
+<p>Universal access on field size:</p>
+<pre><code>E_Int nfld = f-&gt;getNfld(); // nbre de champs
+E_Int npts = f-&gt;getSize(); // nbre de pts
+</code></pre>
+<p>Universal access on field pointers:</p>
+<pre><code>E_Float* x = f-&gt;begin(1); 
+for (E_Int i = 0; i &lt; 5; i++) printf(" " SF_F_ " ", x[i]);
+// modification
+x[0] = -0.05;
+</code></pre>
+<p>Universal access on field with operator()</p>
+<pre><code>FldArrayF&amp; fr = (*f);
+fr(1, 1) = +0.05;
+</code></pre>
+<p>Universal access on NGON connectivity (ret=2, eltType="NGON" or "NGON*"):</p>
+<pre><code>E_Int nfaces = c-&gt;getNFaces();
+E_Int nelts = c-&gt;getNElts();
+
+E_Int* ngon = c-&gt;getNGon();
+E_Int* nface = c-&gt;getNFace();
+E_Int* indPG = c-&gt;getIndPG(); // always exists, must be called
+E_Int* indPH = c-&gt;getIndPH();
+
+// Universal acces on face 0
+E_Int size;
+E_Int* face = c-&gt;getFace(0, size, ngon, indPG);
+printf("face " SF_D_ ":", E_Int(0));
+for (E_Int i = 0; i &lt; size; i++) printf(" " SF_D_ " ", face[i]);
+printf("\n");
+
+// Universal access on element 0
+E_Int* elt = c-&gt;getElt(0, size, nface, indPH);
+printf("elt " SF_D_ ":", E_Int(0));
+for (E_Int i = 0; i &lt; size; i++) printf(" " SF_D_ " ", elt[i]);
+printf("\n");
+</code></pre>
+<p>Universal access on NGON sizes (may be usefull for allocation):</p>
+<pre><code>E_Int sizeNGon = c-&gt;getSizeNGon(); // for NGONv3, contains face number and so is greater than for CGNSv4
+E_Int sizeNFace = c-&gt;getSizeNFace();
+</code></pre>
+<p>Universal access on BE/ME connectivity (ret=2, eltType="TRI","QUAD", "TRI,QUAD", "TRI*")</p>
+<pre><code>E_Int nc = c-&gt;getNConnect();
+// in case of BE, nc is 1
+
+// universal eltType split
+std::vector&lt;char*&gt; eltTypes;
+K_ARRAY::extractVars(eltType, eltTypes);
+
+// access all connectivities
+for (E_Int ic = 0; ic &lt; nc; ic++)
+{
+  FldArrayI&amp; cm = *(c-&gt;getConnect(ic));
+  E_Int nelts = cm.getSize(); // number of elements
+  E_Int nvpe = cm.getNfld(); // number of vertices by element
+  char* eltTypel = eltTypes[i]; // type of elements
+
+  for (E_Int i = 0; i &lt; nelts; i++)
+  {
+    cm(i,1) = 1; cm(i,2) = 2; cm(i,3) = 3; // dont use begin on connects
+  }
+}
+
+// delete eltType split
+for (size_t i = 0; i &lt; eltTypes.size(); i++) delete [] eltTypes[i];
+</code></pre>
+<p>Getting array api (internal storage information, rare usage):</p>
+<pre><code>E_Int apif = f-&gt;getApi();
+</code></pre>
+<p>if apif=1, it is an array1
+if apif=2, it is an array2 or an array3
+For structured array, there is no difference between array2 and array3.</p>
+<p>For NGONs:</p>
+<pre><code>E_Int isNGon = c-&gt;isNGon();
+// isNGon=1: NGON, NFACE CGNSv3 array1 compact
+// isNGON=2: NGON, NFACE, [indPG], [indPF] rake CGNSv3
+// isNGON=3: NGON, NFACE, indPG, indPF rake CGNSv4
+</code></pre>
+<h2 id="create-new-array">Create new array</h2>
+<p>Build empty arrays. Pass an api arg in your function.</p>
+<p>Structured:</p>
+<pre><code>PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", ni, nj, nk, api);
+</code></pre>
+<p>Then get pointers to fill values:</p>
+<pre><code>K_ARRAY::getFromArray3(tpl, f);
+</code></pre>
+<p>BE:</p>
+<pre><code>PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, ncells, 
+                                     eltType, false, api);
+</code></pre>
+<p>Then get pointers to fill values:</p>
+<pre><code>K_ARRAY::getFromArray3(tpl, f, cn);
+</code></pre>
+<p>ME:</p>
+<pre><code>PyObject* K_ARRAY::buildArray3(3, "x,y,z", npts,
+                               std::vector&lt;E_Int&gt;&amp; neltsPerConnect,
+                               "TRI,QUAD", false, api)
+</code></pre>
+<p>NGON:</p>
+<pre><code>PyObject* K_ARRAY::buildArray3(3, "x,y,z", npts, ncells, nfaces,
+                              "NGON", sizeNGon, sizeNFace, ngonType,
+                              false, api);
+</code></pre>
+<h2 id="copy-functions">Copy functions</h2>
+<p>If input is api=1, build api=1 else build api=3.</p>
+<p>Structured: build identical array to f. Varstring can change. If api=-1, use input api.</p>
+<pre><code>PyObject* K_ARRAY::buildArray3(f, "x,y,z",
+                               ni, nj, nk, api=-1)
+</code></pre>
+<p>BE/ME/NGON: build identical array to f and cn. Varstring can change. If api=-1, use input api.</p>
+<pre><code>PyObject* K_ARRAY::buildArray3(f, "x,y,z", varString, cn,
+                               "TRI", api=-1)
+</code></pre></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+        <script src="../../js/version-select.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
