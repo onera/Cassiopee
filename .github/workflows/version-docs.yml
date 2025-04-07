@@ -35,7 +35,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
-      - name: Deploy versioned docs with mike
+      - name: Deploy docs
         run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          mike deploy --push --update-aliases "$TAG_NAME" latest
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            mike deploy --push --update-aliases "$VERSION" latest
+          else
+            VERSION=current
+            mike deploy --push "$VERSION"
+          fi
