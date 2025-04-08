@@ -36,4 +36,3 @@ c = T.subzone(a, (50,1,1), (100,1,1) )
 c2 = D.getCurvilinearAbscissa([b,c])
 c2 = C.addVars([[b,c], c2])
 test.testA(c2,3)
-

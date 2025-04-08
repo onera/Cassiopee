@@ -15,7 +15,7 @@ nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
 ## HEXA static adaptation
-m = XOR.adaptCells(a, nodal_vals, sensor_type = 3, smoothing_type = 1)
+m = XOR.adaptCells(a, nodal_vals, sensor_type=3, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 C.convertArrays2File([m], 'out.plt')
@@ -25,8 +25,7 @@ n = C.getNCells(aTH4)
 nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
-m = XOR.adaptCells(aTH4, nodal_vals, sensor_type = 3, smoothing_type = 1)
+m = XOR.adaptCells(aTH4, nodal_vals, sensor_type=3, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 C.convertArrays2File([m], 'out2.plt')
-

@@ -37,7 +37,7 @@
 #endif
 
 
-namespace DELAUNAY{
+namespace DELAUNAY {
 
   /** Iso/Aniso Variable Metric Class.
 
@@ -314,7 +314,7 @@ namespace DELAUNAY{
     const Aniso2D& mi = _field[Ni];
      
     E_Float lambda0, lambda1, v0[2], v1[2];
-    K_LINEAR::DelaunayMath::eigen_vectors (mi[0], mi[2], mi[1], lambda0, lambda1, v0, v1);
+    K_LINEAR::DelaunayMath::eigen_vectors(mi[0], mi[2], mi[1], lambda0, lambda1, v0, v1);
     E_Float h1old2 = get_h2_along_dir(Ni, v0);
     E_Float h2old2 = get_h2_along_dir(Ni, v1);
     
@@ -969,8 +969,7 @@ namespace DELAUNAY{
     _field[Ni][1] = new_metric(0,1);
     _field[Ni][2] = new_metric(1,1);
     
-#ifdef DEBUG_METRIC
-    
+#ifdef DEBUG_METRIC 
 //    if (Ni == 112)
 //    {
 //    std::ostringstream o;
@@ -1277,7 +1276,7 @@ namespace DELAUNAY{
   VarMetric<Aniso3D>::smoothing_loop
   (const std::set<K_MESH::NO_Edge>& edges, E_Float gr, E_Int itermax, E_Int N0 /* threshold for metric changes*/)
   {
-    E_Int iter(0);
+    E_Int iter = 0;
     bool has_changed = false;
 
     do
@@ -1299,9 +1298,9 @@ namespace DELAUNAY{
   VarMetric<T>::smoothing_loop
   (const K_FLD::IntArray& connectB, E_Float gr, E_Int itermax, E_Int N0 /* threshold for metric changes*/)
   {
-    E_Int iter(0);
+    E_Int iter = 0;
     bool has_changed = false;
-    //
+    
     do
     {
       has_changed = false;
@@ -1322,11 +1321,11 @@ namespace DELAUNAY{
     K_MESH::NO_Edge e;
     E_Int stride, n0, n1, PGi, i;
 
-    for (PGi = 0; PGi < PGs.size(); PGi++) 
+    for (PGi = 0; PGi < PGs.size(); PGi++)
     { 
       stride = PGs.stride(PGi);
       const E_Int *pN = PGs.get_facets_ptr(PGi);
-      for (i = 0; i < stride; i++) 
+      for (i = 0; i < stride; i++)
       {
         n0 = pN[i]-1; n1 = pN[(i+1)%stride]-1;
         e.setNodes(n0, n1);
@@ -1622,7 +1621,7 @@ namespace DELAUNAY{
    std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes)
   {
     tmpNodes.clear();
-    E_Float   d = length(Ni, Nj, threshold, tmpNodes); // decoupe de l'edge
+    E_Float d = length(Ni, Nj, threshold, tmpNodes); // decoupe de l'edge (regulierement?)
     size_type n = std::max(size_type(d), size_type(1));
 
     // CBX: est-ce qu'il ne faudrait pas limiter la decoupe de l'edge?
@@ -1637,22 +1636,24 @@ namespace DELAUNAY{
     E_Float l = 0.;
     size_type Nstart = Ni, Nk = Ni, Nl = Ni;
     E_Float x = 1.;
-    std::vector<std::pair<E_Float, size_type> > length_to_point;
-    length_to_point.push_back(std::make_pair(0., Ni));
+    nb_nodes = (size_type)tmpNodes.size();
+    std::vector<std::pair<E_Float, size_type> > length_to_point(nb_nodes+2);
+    length_to_point[0] = std::make_pair(0., Ni);
+    
     E_Float* pNi = pos.col(Ni);
 
-    nb_nodes = (size_type)tmpNodes.size();
     for (size_type i = 0; i < nb_nodes; ++i)
     {
       Nk = tmpNodes[i];
       x = NUGA::sqrDistance(pNi, pos.col(Nk), dim);
-      length_to_point.push_back(std::make_pair(x, Nk));
+      length_to_point[i+1] = std::make_pair(x, Nk);
     }
-    length_to_point.push_back(std::make_pair(NUGA::FLOAT_MAX, Nj));
+    length_to_point[nb_nodes+1] = std::make_pair(NUGA::FLOAT_MAX, Nj);
 
     std::sort(length_to_point.begin(), length_to_point.end());
 
     E_Float newP[2], r, xx;
+
     while (ni++ < n)
     {
       l = 0.;
@@ -1662,13 +1663,14 @@ namespace DELAUNAY{
         Nl = length_to_point[++ii].second;
         if (Nl == Nj) break;
         x = lengthEval(Nk, /*metric*/(*this)[Nk], Nl, /*metric*/(*this)[Nl]);
+        // mettre une distance minimum?
         if ((l+x) < 1.) l += x;
         else break;
       }
 
       if (Nl == Nj) break;
 
-      r = ((1 - l)/x);
+      r = ((1. - l)/x);
       
       NUGA::diff<2>(pos.col(Nl), pos.col(Nk), newP);
 

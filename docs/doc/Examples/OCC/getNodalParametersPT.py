@@ -27,7 +27,7 @@ WALLBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal'
 
 # DISCRETIZED
 t = OCC.PyTree.convertCAD2PyTree(ifile, format=forma,
-                          h=400, chordal_err=0, growth_ratio = 0., algo=1)
+                                 h=400, chordal_err=0, growth_ratio=0., algo=1)
 
 
 # EXTRUDED
@@ -39,7 +39,7 @@ C._fillEmptyBCWith(t, 'wall', 'BCWall')
 (BCs, BCNames, BCTypes) = C.getBCs(t)
 
 # extrude
-t = XOR.extrudeSurf(t, layer_height = height, nlayers = nlays, strategy = 1)
+t = XOR.extrudeSurf(t, layer_height=height, nlayers=nlays, strategy=1)
 
 # put back BCs
 C._recoverBCs(t, (BCs, BCNames, BCTypes), tol=1.e-6)
@@ -92,7 +92,7 @@ t = C.setFields(v,t, 'nodes')
 #-------------------------------------------
 # updateFcadidFromNcadid
 #-------------------------------------------
-p = Internal.getNodeFromName(t, 'CADData'); 
+p = Internal.getNodeFromName(t, 'CADData');
 Internal.newDataArray('fcadid', value=fcadid, parent=p)
 
 occ.updateFcadidFromNcadid( c, wall_face_ids, ncadid, fcadid)
@@ -104,7 +104,7 @@ n = C.getNPts(t)
 nv = np.empty((n,), dtype=np.int32)
 nv[:] = 1
 
-t = XOR.adaptCells(t,nv, sensor_type=2,hmesh = hmsh)
+t = XOR.adaptCells(t,nv, sensor_type=2,hmesh=hmsh)
 t = XOR.conformizeHMesh(t, hmsh)
 t = XOR.closeCells(t)
 Internal._rmNodesByName(t, 'zid')
@@ -129,7 +129,7 @@ t = C.setFields(ncadid, t, 'nodes')
 # interpolateHMeshNodalField
 #-------------------------------------------
 t = XOR.interpolateHMeshNodalField(t, hmsh, ['u', 'v'])
-        
+
 
 #-------------------------------------------
 # getNodalParameters

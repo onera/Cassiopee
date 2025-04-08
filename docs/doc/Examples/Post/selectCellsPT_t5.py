@@ -56,7 +56,7 @@ a = P.selectCells(a, '({CoordinateX}-5.)**2+({CoordinateY}-5.)**2+({CoordinateZ}
 test.testT(a,3)
 
 
-# CAS 4 : tag au noeud + uniquement des champs aux noeuds 
+# CAS 4 : tag au noeud + uniquement des champs aux noeuds
 # =======================================================
 a = G.cartNGon( (0,0,0), (1,1,1), (11,11,11) )
 C._initVars(a,'{var1}=1.')
@@ -67,5 +67,3 @@ a = Internal.rmNodesByName(a, ':elsA#Hybrid')
 
 a = P.selectCells(a, '({CoordinateX}-5.)**2+({CoordinateY}-5.)**2+({CoordinateZ}-5.)**2>25.',strict=0)
 test.testT(a,4)
-
-

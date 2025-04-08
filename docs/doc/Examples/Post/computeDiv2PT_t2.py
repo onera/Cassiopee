@@ -31,7 +31,7 @@ test.testT(t,1)
 # #----------
 # # 3D STRUCT
 # #----------
-ni = 15; nj = 15; nk = 15 
+ni = 15; nj = 15; nk = 15
 m1 = G.cart(( 0, 0, 0), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))
 m2 = G.cart(( 0,10, 0), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))
 m3 = G.cart(( 0, 0, 2), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))
@@ -52,7 +52,7 @@ P._computeDiv2(t, 'centers:fld')
 test.testT(t,2)
 
 #----------
-# 2D NGON 
+# 2D NGON
 #----------
 ni = 15; nj = 15
 m1 = G.cartNGon(( 0, 0, 0), (10./(ni-1),10./(nj-1),1.), (ni,nj,2))
@@ -78,7 +78,7 @@ test.testT(t1,3)
 # #--------
 # # 3D NGON
 # #--------
-ni = 15; nj = 15; nk = 15 
+ni = 15; nj = 15; nk = 15
 m1 = G.cartNGon(( 0, 0, 0), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))
 m2 = G.cartNGon(( 0,10, 0), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))
 m3 = G.cartNGon(( 0, 0, 2), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))

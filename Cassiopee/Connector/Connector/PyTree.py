@@ -95,21 +95,21 @@ def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None,
                 if periodic == 1:
                     tsign = numpy.array([signT,signT,signT], dtype=numpy.float64)
                     rsign = numpy.array([signR,signR,signR], dtype=numpy.float64)
-                    C._addBC2Zone(zones[noz1],name1,'BCMatch',faceList=faceListR,\
+                    C._addBC2Zone(zones[noz1], name1, 'BCMatch', faceList=faceListR,\
                                   zoneDonor=z2OppName, faceListDonor=faceListD,tol=tol,\
                                   rotationCenter=rotationCenter, rotationAngle=rsign*rotationAngle,\
                                   translation=tsign*Translation, unitAngle=unitAngle)
 
                     tsign = numpy.array([-signT,-signT,-signT], dtype=numpy.float64)
                     rsign = numpy.array([-signR,-signR,-signR], dtype=numpy.float64)
-                    C._addBC2Zone(zones[noz2],name2,'BCMatch',faceList=faceListD,\
-                                  zoneDonor=z1OppName, faceListDonor=faceListR,tol=tol,\
+                    C._addBC2Zone(zones[noz2], name2, 'BCMatch', faceList=faceListD,\
+                                  zoneDonor=z1OppName, faceListDonor=faceListR, tol=tol,\
                                   rotationCenter=rotationCenter, rotationAngle=rsign*rotationAngle,\
                                   translation=tsign*Translation, unitAngle=unitAngle)
                 else:
-                    C._addBC2Zone(zones[noz1],name1,'BCMatch',faceList=faceListR,\
-                                  zoneDonor=z2OppName, faceListDonor=faceListD,tol=tol)
-                    C._addBC2Zone(zones[noz2],name2,'BCMatch',faceList=faceListD,\
+                    C._addBC2Zone(zones[noz1], name1, 'BCMatch', faceList=faceListR,\
+                                  zoneDonor=z2OppName, faceListDonor=faceListD, tol=tol)
+                    C._addBC2Zone(zones[noz2], name2, 'BCMatch', faceList=faceListD,\
                                   zoneDonor=z1OppName, faceListDonor=faceListR,tol=tol)
 
         C.setFields(tagsF, allExtFaces, 'centers')
@@ -183,9 +183,9 @@ def _connectMatchHybrid__(a, tol, dim, glob):
             name2 = 'match%d_%d'%(noz2+1,glob); glob += 1
             faceListR = allListRcvFaces[nm]
             faceListD = allListDnrFaces[nm]
-            C._addBC2Zone(zones[noz1],name1,'BCMatch', faceList=faceListR,\
+            C._addBC2Zone(zones[noz1], name1, 'BCMatch', faceList=faceListR,\
                           zoneDonor=z2OppName, faceListDonor=faceListD, tol=tol)
-            C._addBC2Zone(zones[noz2],name2,'BCMatch', faceList=faceListD,\
+            C._addBC2Zone(zones[noz2], name2, 'BCMatch', faceList=faceListD,\
                           zoneDonor=z1OppName, faceListDonor=faceListR, tol=tol)
         C.setFields(tagsF, allExtFaces, 'centers')
     # Sortie
@@ -617,14 +617,14 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
             # MAIS L ANGLE N EST PAS BON POUR LE 2E RACCORD SI PAS CE CORRECTIF
             if i == 1:
                 for angle in rotationAngle:
-                    if angle == 180. or angle==-180.:
+                    if angle == 180. or angle == -180.:
                         nogci = 0
                         for gc in gcnodes:
                             if Internal.getValue(gc)==Internal.getName(zonesS[noz]):
                                 rotation_angle = Internal.getNodeFromName(gc, "RotationAngle")
                                 if rotation_angle:
                                     nogci += 1
-                                    if nogci == 2:# changement de signe
+                                    if nogci == 2: # changement de signe
                                         rotation_angle = Internal.getValue(rotation_angle)
                                         for j in range(3): rotation_angle[j]=-rotation_angle[j]
 
@@ -678,19 +678,20 @@ def duplicatePeriodicZones__(t, rotationCenter=[0.,0.,0.], rotationAngle=[0.,0.,
     zones = Internal.getZones(a)
     dupZones = None
     if typePeriodic == 0: return None
-    elif typePeriodic == 1:
+    elif typePeriodic == 1: # translation pure
         zonesdupP = T.translate(zones,(translation[0],translation[1],translation[2]))# periodicite en +transVect
         zonesdupM = T.translate(zones,(-translation[0],-translation[1],-translation[2]))# periodicite en -transVect
         dupZones = [typePeriodic,zonesdupP,zonesdupM]
-    elif typePeriodic == 2:
+    elif typePeriodic == 2: # rotation pure
         zonesdupP = T.rotate(zones,(rotationCenter[0],rotationCenter[1],rotationCenter[2]),\
                              (rotationAngle[0],rotationAngle[1],rotationAngle[2]))
         zonesdupM = T.rotate(zones,(rotationCenter[0],rotationCenter[1],rotationCenter[2]),\
                              (-rotationAngle[0],-rotationAngle[1],-rotationAngle[2]))
+        if 180. in rotationAngle or -180. in rotationAngle:
+            dupZones = [typePeriodic,zonesdupP] # only one duplication
+        else: dupZones = [typePeriodic,zonesdupP,zonesdupM]
 
-        dupZones = [typePeriodic,zonesdupP,zonesdupM]
-
-    elif typePeriodic == 3:
+    elif typePeriodic == 3: # rotation + translation
         zonesdup0 = T.translate(zones,(translation[0],translation[1],translation[2]))# periodicite en +transVect
 
         # 1. Premier sens de translation

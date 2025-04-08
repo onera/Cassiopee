@@ -691,7 +691,7 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
 # main function
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
                     tbox=None, snearsf=None, check=False, to=None,
-                    ext=2, expand=3, octreeMode=0):
+                    ext=2, optimized=1, expand=3, octreeMode=0):
     """Generates the full Cartesian mesh for IBMs."""
     import KCore.test as test
     # refinementSurfFile: surface meshes describing refinement zones
@@ -861,7 +861,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
     if symmetry==0: extBnd = 0
     else: extBnd = ext-1 # nb de ghost cells = ext-1
-    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=1, extBnd=extBnd)
+    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=extBnd)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):
         Internal.newRind(value=rinds[noz], parent=zones[noz])
@@ -904,6 +904,7 @@ generateIBMMeshPara = generateIBMMesh
 # only in buildOctree
 def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
     tbSolid = Internal.rmNodesByName(tb, 'IBCFil*')
+
     if dim == 2:
         tbSolid = T.addkplane(tbSolid)
         tbSolid = T.translate(tbSolid, (0,0,-0.5))
@@ -936,7 +937,10 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
     G._getVolumeMap(to)
     volmin0 = C.getMinValue(to, 'centers:vol')
     # volume minimum au dela duquel on ne peut pas raffiner
-    volmin0 = 1.*volmin0
+    snears = Internal.getNodesFromName(tbSolid, 'snear')
+    if snears != []: minSneartb= min(snears, key=lambda x: x[1])[1][0]*(vmin-1)
+    else: minSneartb= min(snearsf)
+    volmin0 *= (min(1.0,min(snearsf)/minSneartb)**(dim))
     while end == 0:
         # Do not refine inside obstacles
         C._initVars(to,'cellN',1.)

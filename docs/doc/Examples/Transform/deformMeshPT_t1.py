@@ -28,7 +28,7 @@ m = D.sphere6((0,0,0),1,N=18)
 m = T.deformMesh(m, a1)
 test.testT(m,1)
 
-# 2D 
+# 2D
 m = D.sphere6((0,0,0),2,N=18)
 m2 = T.deformMesh(m, a1)
 test.testT(m2,2)

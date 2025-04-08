@@ -32,7 +32,7 @@ r = P.usurp([m,m2], [c,c2]); print(r)
 # Basic test cas 3
 #=============================================================================
 m3 = G.cart((10,0,0), (10.*sqrt(2)/(ni-1),10.*sqrt(2)/(nj-1),1), (ni,nj,1))
-m3 = T.rotate(m3, (10,0,0), (0,0,1), 45.) 
+m3 = T.rotate(m3, (10,0,0), (0,0,1), 45.)
 m3 = C.addVar(m3, 'ro')
 
 c3 = C.array('cellN', ni-1, nj-1, 1)
@@ -47,6 +47,5 @@ m3 = T.addkplane(m3)
 
 centers = C.node2Center([m,m3])
 res1 = C.addVars([centers[0], r[0]])
-res2 = C.addVars([centers[1], r[1]])           
+res2 = C.addVars([centers[1], r[1]])
 C.convertArrays2File([res1,res2], "centers.plt", "bin_tp")
-

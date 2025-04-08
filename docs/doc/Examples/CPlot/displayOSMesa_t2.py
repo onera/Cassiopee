@@ -8,7 +8,7 @@ import KCore.test as test
 
 LOCAL = test.getLocal()
 
-offscreen = 1 
+offscreen = 1
 
 def F(x): return x
 
@@ -19,7 +19,7 @@ C._addVars(a, 'p')
 a = C.initVars(a, 'p', F, ['x'])
 
 # mesh (mode 0)
-CPlot.display([a], mode='mesh', posCam=(40,-2,15), posEye=(8,13,0), 
+CPlot.display([a], mode='mesh', posCam=(40,-2,15), posEye=(8,13,0),
               offscreen=offscreen, export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 1)
@@ -42,7 +42,7 @@ a = C.initVars(a, 'p', F, ['x'])
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
-CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0), 
+CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0),
               offscreen=offscreen, export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 4)
@@ -62,7 +62,7 @@ a = G.cart((0,0,0),(1,1,1),(18,28,3))
 a = C.initVars(a, 'p', F, ['x'])
 
 # mesh (mode 0)
-CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0), 
+CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0),
               offscreen=offscreen, export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 7)
@@ -84,7 +84,7 @@ a = C.initVars(a, 'p', F, ['x'])
 a = C.convertArray2Tetra(a)
 
 # mesh (mode 0)
-CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0), 
+CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0),
               offscreen=offscreen, export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 10)
@@ -106,7 +106,7 @@ a = C.initVars(a, 'p', F, ['x'])
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
-CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0), 
+CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0),
               offscreen=offscreen, export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 13)
@@ -128,7 +128,7 @@ a = C.initVars(a, 'p', F, ['x'])
 a = C.convertArray2Tetra(a)
 
 # mesh (mode 0)
-CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0), 
+CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0),
               offscreen=offscreen, export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 16)
@@ -139,7 +139,7 @@ CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 17)
 
 # scalar field (mode 3)
-CPlot.display([a], mode=3, scalarField=0, offscreen=offscreen, 
+CPlot.display([a], mode=3, scalarField=0, offscreen=offscreen,
               export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 18)
@@ -151,7 +151,7 @@ a = C.initVars(a, 'p', F, ['x'])
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
-CPlot.display(a, mode=0, posCam=(40,-2,15), posEye=(8,13,0), 
+CPlot.display(a, mode=0, posCam=(40,-2,15), posEye=(8,13,0),
               offscreen=offscreen, export=LOCAL+'/out.png')
 CPlot.finalizeExport(offscreen)
 test.testF(LOCAL+"/out.png", 19)

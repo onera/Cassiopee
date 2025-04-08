@@ -6,7 +6,7 @@ import KCore.test as test
 a = G.cylinder((0,0,0), 1., 1.5, 0., 360., 1., (80,30,2))
 a = C.addBC2Zone(a,'wall','BCWall','imin')
 a = C.addBC2Zone(a,'overlap','BCOverlap','imax')
-a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',2.) 
+a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',2.)
 
 t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
 # Add state by value
@@ -30,4 +30,3 @@ test.testT(t, 3)
 t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
 t = C.addState(t, adim='dim2', UInf=35., TInf=294., RoInf=1.2, LInf=1.)
 test.testT(t, 3)
-

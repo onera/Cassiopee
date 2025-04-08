@@ -14,7 +14,7 @@ t = P.interiorFaces(t)
 test.testT(t,1)
 
 # test faces interieures au sens strict :
-# faces n'ayant que des noeuds interieurs 
+# faces n'ayant que des noeuds interieurs
 a = G.cartTetra((0,0,0), (1,1.,1), (20,3,1))
 C._addVars(a,'Density'); C._addVars(a,'centers:cellN')
 t = C.newPyTree(['Base',2,a])
@@ -24,7 +24,7 @@ test.testT(t,2)
 
 # test faces interieures au sens strict :
 # faces n'ayant que des noeuds interieurs
-# ici aucune 
+# ici aucune
 a = G.cartTetra((0,0,0), (1,1.,1), (20,2,1))
 C._addVars(a,'Density'); C._addVars(a,'centers:cellN')
 t = C.newPyTree(['Base',2,a])

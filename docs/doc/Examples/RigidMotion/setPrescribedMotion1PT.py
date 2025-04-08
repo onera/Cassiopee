@@ -1,4 +1,4 @@
-# - setPrescribedMotion1 (pyTree) - 
+# - setPrescribedMotion1 (pyTree) -
 # Motion defined by time string
 import RigidMotion.PyTree as R
 import Converter.PyTree as C

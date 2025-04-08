@@ -20,16 +20,15 @@ C._initVars(t, 'centers:cellN', 1.)
 
 # Matrice de masquage (arbre d'assemblage)
 BM = numpy.array([[1]])
-t2 = X.blankCells(t, bodies, BM)            
+t2 = X.blankCells(t, bodies, BM)
 test.testT(t2, 1)
 
 # in place
 C._initVars(t2, 'centers:cellN', 1.)
-X._blankCells(t2, bodies, BM)            
+X._blankCells(t2, bodies, BM)
 test.testT(t2,1)
 
 # masque inverse
 BM = numpy.array([[-1]])
-t2 = X.blankCells(t, bodies, BM)            
+t2 = X.blankCells(t, bodies, BM)
 test.testT(t2,2)
-

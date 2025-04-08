@@ -24,7 +24,7 @@ C._addVars(a,'Density'); C._addVars(a,'centers:cellN')
 b = P.exteriorFaces(a)
 test.testT(b,3)
 
-# cas avec indices 
+# cas avec indices
 indices = []
 a = G.cartTetra((0,0,0), (1,1.,1), (20,2,1))
 C._addVars(a,'Density'); C._addVars(a,'centers:cellN')

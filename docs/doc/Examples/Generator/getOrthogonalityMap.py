@@ -1,4 +1,4 @@
-# - getOrthogonalityMap (array) - 
+# - getOrthogonalityMap (array) -
 import Generator as G
 import Converter as C
 

@@ -4,16 +4,16 @@ import os, sys, distutils.sysconfig, platform, glob, subprocess
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
 DEBUG = False
 
-# Toggle to True for compiling Cassiopee in i8
+# Toggle to True for compiling all integers in i8
 EDOUBLEINT = False
-# Toggle to True for compiling pypart/paradigma in i8/i4
+# Toggle to True for compiling global index in i8
 GDOUBLEINT = False
 
 #==============================================================================
 # Check module import
 # Write SUCCESS or FAILED (with colored output)
 #==============================================================================
-def checkModuleImport(moduleName, raiseOnError=True):
+def checkModuleImport(moduleName):
     # Remove . from PYTHONPATH
     try: del sys.path[sys.path.index('')]
     except: pass
@@ -24,7 +24,7 @@ def checkModuleImport(moduleName, raiseOnError=True):
     if sys.stdout.isatty(): color = True
 
     # sec / lock
-    moduleBase = moduleName.split('.')[0]
+    #moduleBase = moduleName.split('.')[0]
     #os.chmod(moduleBase, 0o700)
 
     # try import module

@@ -10,7 +10,7 @@ import Transform as T
 # TFI 2D structured
 #------------------
 P0 = (0,0,0); P1 = (5,0,0); P2 = (0,7,0); P3 = (5,7,0)
-    
+
 # Geometrie
 d1 = D.line(P0, P1); d2 = D.line(P2, P3)
 
@@ -30,7 +30,7 @@ x[1] = 3.; y[1] = 2.; z[1] = 0.
 x[2] = 2.; y[2] = 3.; z[2] = 0.
 x[3] = 6.; y[3] = 5.; z[3] = 0.
 x[4] = 5.; y[4] = 7.; z[4] = 0.
-b2 = D.bezier( pts ) 
+b2 = D.bezier( pts )
 
 C.convertArrays2File([d1, d2, b1, b2], "geom.plt")
 
@@ -52,10 +52,10 @@ C.convertArrays2File([r1,r2,r3,r4,m], 'tfi2d.plt')
 # TFI 3D structured
 #------------------
 xo = 0.; yo = 0.; zo = 0.
-nx = 21; ny = 21; nz = 21 
+nx = 21; ny = 21; nz = 21
 hx = 1./(nx-1); hy = 1./(ny-1); hz = 1./(nz-1)
 
-# z = cste 
+# z = cste
 fzmin = G.cart((xo,yo,zo), (hx,hy,1.), (nx,ny,1))
 fzmax = T.translate(fzmin, (0.,0.,1.))
 

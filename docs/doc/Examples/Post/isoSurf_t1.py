@@ -11,7 +11,7 @@ a = C.initVars(a, '{field}={x}*{x}+{y}*{y}+{z}')
 iso = P.isoSurf(a, 'field', value=5.)
 test.testA(iso, 1)
 
-# Surface 
+# Surface
 b = D.sphere( (0,0,0), 1.)
 b = C.initVars(b, '{field}={x}*{x}+{y}*{y}+{z}')
 iso = P.isoSurf(b, 'field', value=0.5)

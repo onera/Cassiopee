@@ -4,7 +4,7 @@ import Transform as T
 import Converter as C
 import KCore.test as test
 
-# test1 lignes 
+# test1 lignes
 a1 = D.line((0.,0.,0.), (1.,0.,0), 100)
 a2 = D.line((1.,0.,0.), (1.,1,0), 100)
 a2 = T.reorder(a2,(-1,2,3))
@@ -42,4 +42,3 @@ test.testA([a],3)
 ac1 = C.node2Center(a1); ac2 = C.node2Center(a2)
 res = T.join (a1, a2, ac1, ac2)
 test.testA(res,23)
-

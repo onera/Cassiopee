@@ -1,4 +1,4 @@
-# - blankIntersectingCells (array) 
+# - blankIntersectingCells (array)
 import Converter as C
 import Generator as G
 import Geom as D
@@ -38,7 +38,7 @@ for i in range(len(st)):
     ac = C.node2Center(a); ac = C.initVars(ac,'cellN',1)
     Ac.append(ac); A.append(a)
 res = X.blankIntersectingCells(A, Ac, tol=1.e-8)
-test.testA(res,3) 
+test.testA(res,3)
 
 #------------------------------------------
 # extrusion vers l interieur : intersection

@@ -14,6 +14,6 @@ t = C.newPyTree(['Base',m1,m2])
 t = C.initVars(t, 'vx', 1.)
 t = C.initVars(t, '{vy}=cos({CoordinateX})')
 t = C.initVars(t, 'vz', 0.)
-x0=0.1; y0=5.; z0=0.5 
+x0=0.1; y0=5.; z0=0.5
 p = P.streamSurf(t, b, ['vx','vy','vz'])
 C.convertPyTree2File(p, "out.cgns")

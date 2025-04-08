@@ -69,11 +69,11 @@ def CPlotDisplay__(file):
         import Converter as C; import CPlot
         a = C.convertFile2Arrays(file, 'bin_pickle')
         CPlot.display(a); CPlot.setFileName__(file); infLoop();
-        
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:
         print ("cplot: cplot <file>")
     else:
-      file = sys.argv[1]
-      CPlotDisplay__(file)
+        file = sys.argv[1]
+        CPlotDisplay__(file)

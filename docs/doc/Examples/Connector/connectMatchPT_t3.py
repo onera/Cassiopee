@@ -11,14 +11,14 @@ t = C.newPyTree(['Base', a])
 t = X.connectMatch(t)
 test.testT(t,1)
 
-# 3D raccord i = 1 partiel profil NACA 
+# 3D raccord i = 1 partiel profil NACA
 a = D.naca(12., 5001)
 a2 = D.line((1.,0.,0.),(2.,0.,0.),5001); a = T.join(a, a2)
 a2 = D.line((2.,0.,0.),(1.,0.,0.),5001); a = T.join(a2, a)
 Ni = 300; Nj = 50
 distrib = G.cart((0,0,0), (1./(Ni-1), 0.5/(Nj-1),1), (Ni,Nj,1))
 naca = G.hyper2D(a, distrib, "C")
-a = T.addkplane(naca) 
+a = T.addkplane(naca)
 # --- champ aux centres
 C._initVars(a, 'centers:Density', 1.)
 # --- champ aux noeuds

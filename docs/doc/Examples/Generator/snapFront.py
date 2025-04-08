@@ -21,7 +21,7 @@ celln = C.array('cellN', ni, nj, nk)
 celln = C.initVars(celln, 'cellN', 1.)
 
 # Masquage
-cellno = X.blankCells([b], [celln], [s], blankingType=0, delta=0., dim=2) 
+cellno = X.blankCells([b], [celln], [s], blankingType=0, delta=0., dim=2)
 a = C.initVars(s, 'cellN', 1)
 b = C.addVars([b, cellno[0]])
 

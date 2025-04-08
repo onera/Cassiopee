@@ -48,7 +48,7 @@ PatchMaker::run
  E_Float angle_tolerance, std::vector<K_FLD::IntArray> & connectBout)
 {
 #ifdef E_TIME
-  DELAUNAY::chrono c;
+  NUGA::chrono c;
   c.start();
 #endif
   K_FLD::IntArray connectBin;

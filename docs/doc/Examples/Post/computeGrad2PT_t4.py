@@ -7,11 +7,11 @@ import Transform.PyTree   as T
 import Connector.PyTree   as X
 import KCore.test         as test
 
-# Cas 3D NGon avec raccord match  
+# Cas 3D NGon avec raccord match
 # ===============================
-ni = 30 
-nj = 30 
-nk = 10 
+ni = 30
+nj = 30
+nk = 10
 lx = 1.
 ly = 1.
 lz = 0.25
@@ -35,4 +35,3 @@ t = C.fillEmptyBCWith(t,"wall",'BCWall')
 P._computeGrad2(t, 'centers:F')
 
 test.testT(t,1)
-

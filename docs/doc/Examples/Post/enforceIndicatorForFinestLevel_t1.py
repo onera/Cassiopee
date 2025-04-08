@@ -1,4 +1,4 @@
-# - enforceIndicatorForFinestLevel (array) - 
+# - enforceIndicatorForFinestLevel (array) -
 import Generator as G
 import Converter as C
 import Geom as D
@@ -10,4 +10,3 @@ indic = C.node2Center(o)
 indic = C.initVars(indic,'indicator',1.)
 indic = P.enforceIndicatorForFinestLevel(indic,o)
 test.testA([indic],1)
-

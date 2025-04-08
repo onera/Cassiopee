@@ -71,7 +71,7 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   
   TopoDS_Shape* newshp = new TopoDS_Shape();
 
-  printf("splitting top shape\n");
+  printf("INFO: splitting top shape.\n");
 
   // Closed Shape Divide
   //ShapeUpgrade_ShapeDivideClosed splitter(*shp);

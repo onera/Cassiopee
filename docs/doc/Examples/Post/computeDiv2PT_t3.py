@@ -8,7 +8,7 @@ import KCore.test       as test
 # --------
 # 3D NGON
 #--------
-ni = 15; nj = 15; nk = 15 
+ni = 15; nj = 15; nk = 15
 m1 = G.cartNGon(( 0, 0, 0), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))
 m2 = G.cartNGon(( 0,10, 0), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))
 m3 = G.cartNGon(( 0, 0, 2), (10./(ni-1),10./(nj-1),2./(nk-1)), (ni,nj,nk))

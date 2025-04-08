@@ -3,7 +3,7 @@ import Generator.PyTree as G
 import Connector.PyTree as X
 import Converter.PyTree as C
 
-a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., 5., (11,11,11)) 
+a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., 5., (11,11,11))
 t = C.newPyTree(['Base',a])
 t = X.connectMatchPeriodic(t, rotationCenter=[0.,0.,0.],
                            translation=[0.,0.,5.])

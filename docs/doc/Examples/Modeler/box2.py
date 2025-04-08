@@ -20,7 +20,7 @@ for i in range(30):
     allObjects.append(a)
 
 pos = World.placeViewerAtCenter(zmap)
-CPlot.display(allObjects, displayInfo=0, bgColor=1, shadow=0, posCam=pos[0], 
+CPlot.display(allObjects, displayInfo=0, bgColor=1, shadow=0, posCam=pos[0],
               posEye=pos[1], meshStyle=3)
 World.simpleLoop2(zmap, pos)
 #C.convertArrays2File(allObjects, 'out.plt')

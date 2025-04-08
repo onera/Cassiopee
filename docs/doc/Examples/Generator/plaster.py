@@ -5,8 +5,8 @@ import Transform as T
 import Post as P
 import Geom as D
 
-a = D.sphere( (0,0,0), 1,N=30)
-a = T.subzone(a, (6,1,1), (a[2]/2,a[3],a[4]))
+a = D.sphere( (0,0,0), 1, N=30)
+a = T.subzone(a, (6,1,1), (a[2]//2,a[3],a[4]))
 a = C.convertArray2Hexa(a); a = G.close(a)
 
 # contours

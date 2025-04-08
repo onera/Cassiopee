@@ -45,9 +45,10 @@
 #include "TopoDS.hxx"
 #include "Poly_Triangulation.hxx"
 
-#include "Standard_Version.hxx"
 #include "ShapeFix_Shape.hxx"
 #include "ShapeFix_Wireframe.hxx"
+
+#include "Standard_Version.hxx"
 
 // ============================================================================
 /* Essai avec utilisation de BrepMesh d'open cascade */
@@ -248,13 +249,13 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     
     // copy the polygons
     Standard_Integer i1, i2, i3;
-#if OCEVERSION == 0
+#if OCC_VERSION_MAJOR < 7
     const Poly_Array1OfTriangle &tris = tri->Triangles();
 #endif
     for (Standard_Integer iCount = 1; iCount <= tri->NbTriangles(); iCount++) 
     {
       // get the node indexes for this triangle
-#if OCVERSION == 0
+#if OCC_VERSION_MAJOR < 7
       Poly_Triangle tril = tris(iCount);
 #else
       Poly_Triangle tril = tri->Triangle(iCount);

@@ -29,12 +29,10 @@
 // evalue une courbe u en x,y,z a partir de l'edge 
 void evalEdge__(E_Int npts, E_Float* u, const TopoDS_Edge& E,
                 E_Float* x, E_Float* y, E_Float* z)
-{
-  //Handle(Geom_Curve) edge = BRep_Tool::Curve(E);
-  BRepAdaptor_Curve C0(E);
-  
+{  
 #pragma omp parallel
 {
+  BRepAdaptor_Curve C0(E);
   gp_Pnt Pt;
 #pragma omp for
   for (E_Int i = 0; i < npts; i++)

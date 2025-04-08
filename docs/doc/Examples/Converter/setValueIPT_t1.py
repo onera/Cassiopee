@@ -9,7 +9,7 @@ node = Internal.createNode('node1', 'DataArray_t', value=12.)
 Internal.setValue(node, 1.)
 test.testO(node, 1)
 
-# Set a numpy array in node 
+# Set a numpy array in node
 Internal.setValue(node, numpy.zeros(10))
 test.testO(node, 2)
 

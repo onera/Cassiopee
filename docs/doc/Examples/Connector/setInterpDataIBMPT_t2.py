@@ -7,7 +7,7 @@ import Converter.Internal as Internal
 import Geom.PyTree as D
 import KCore.test as test
 
-# --- Front Type=1 
+# --- Front Type=1
 N = 30; h = 1./(N-1)
 s1 = D.sphere((0.,0.,0.),0.2,N//2); s1[0] = 'sphere'
 DIBM._setIBCType(s1, 'Musker')
@@ -20,8 +20,13 @@ C._fillEmptyBCWith(t, 'farfield', 'BCFarfield')
 XIBM._dist2wallIBM(t, tb, dimPb=3)
 XIBM._blankingIBM(t, tb, dimPb=3)
 tc = C.node2Center(t)
-t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3)
-XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=1)
+t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, cartesian=False)
+XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=1, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 1)
 test.testT(tc, 11)
 
@@ -38,8 +43,13 @@ C._fillEmptyBCWith(t, 'farfield', 'BCFarfield')
 XIBM._dist2wallIBM(t, tb, dimPb=3, frontType=42)
 XIBM._blankingIBM(t, tb, dimPb=3, frontType=42)
 tc = C.node2Center(t)
-t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42)
-XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42)
+t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, cartesian=False)
+XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 2)
 test.testT(tc, 21)
 
@@ -58,8 +68,13 @@ C._fillEmptyBCWith(t, 'farfield', 'BCFarfield')
 XIBM._dist2wallIBM(t, tb, dimPb=3, correctionMultiCorpsF42=True, frontType=42)
 XIBM._blankingIBM(t, tb, dimPb=3, correctionMultiCorpsF42=True, frontType=42)
 tc = C.node2Center(t)
-t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42)
-XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42)
+t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, cartesian=False)
+XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 3)
 test.testT(tc, 31)
 
@@ -76,8 +91,13 @@ C._fillEmptyBCWith(t, 'farfield', 'BCFarfield')
 XIBM._dist2wallIBM(t, tb, dimPb=3, frontType=42)
 XIBM._blankingIBM(t, tb, dimPb=3, frontType=42, blankingF42=True)
 tc = C.node2Center(t)
-t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42)
-XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42)
+t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, cartesian=False)
+XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 4)
 test.testT(tc, 41)
 
@@ -94,7 +114,12 @@ C._fillEmptyBCWith(t, 'farfield', 'BCFarfield')
 XIBM._dist2wallIBM(t, tb, dimPb=3, frontType=42)
 XIBM._blankingIBM(t, tb, dimPb=3, frontType=42, twoFronts=True)
 tc = C.node2Center(t)
-t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, twoFronts=True)
-XIBM._setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=3, frontType=42, twoFronts=True)
+t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, twoFronts=True, cartesian=False)
+XIBM._setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=3, frontType=42, twoFronts=True, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 5)
 test.testT(tc, 51)

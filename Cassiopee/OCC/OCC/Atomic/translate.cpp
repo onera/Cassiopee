@@ -25,6 +25,7 @@
 #include "TopoDS.hxx"
 #include "BRepBuilderAPI_Transform.hxx"
 #include "BRep_Builder.hxx"
+#include <BRepBuilderAPI_Sewing.hxx>
 
 //=====================================================================
 // Translate the full shape or some faces
@@ -99,7 +100,11 @@ PyObject* K_OCC::translate(PyObject* self, PyObject* args)
         builder2.Add(shc2, F);
       }
     }
-    *newshp = shc2;
+
+    BRepBuilderAPI_Sewing sewer(1.e-6);
+    sewer.Add(shc2);
+    sewer.Perform();
+    *newshp = sewer.SewedShape();
   }
 
   // Rebuild the hook

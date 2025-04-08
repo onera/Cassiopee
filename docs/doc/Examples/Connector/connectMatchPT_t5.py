@@ -29,7 +29,7 @@ C._addState(t[2][1], 'EquationDimension', 3)
 t[2][1][2] = X.connectMatch(t[2][1][2], tol=2.e-5)
 test.testT(t,2)
 
-# CAS NGON 
+# CAS NGON
 a1 = G.cartNGon((0.,0.,0.), (0.1, 0.1, 0.1), (11, 21, 11)); a1[0] = 'cart1'
 a2 = G.cartNGon((1.,0.,0.), (0.1, 0.1, 0.1), (11, 21, 11)); a2[0] = 'cart2'
 t = C.newPyTree(['Base']); t[2][1][2] += [a1,a2]

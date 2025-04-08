@@ -115,12 +115,6 @@ struct IMesh {
     }
 
     AABB AABB_face(const std::vector<E_Int> &pn) const;
-
-    E_Int RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
-        E_Float dy, E_Float dz, E_Int fid, TriangleIntersection &TI) const;
-    
-    E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
-        E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
     
     void triangulate_face_set(bool propagate = true);
 

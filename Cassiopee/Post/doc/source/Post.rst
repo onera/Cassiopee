@@ -1094,7 +1094,7 @@ Solution extraction
 
 .. py:function:: Post.Probe.Probe(fileName, t=None, X=(x,y,z), ind=None, blockName=None, tPermeable=None, fields=None, append=True, bufferSize=100)
 
-    Create a probe. 3 modes are possible :
+    Create a probe. 4 modes are possible :
     
     * mode 0 : if t and (x,y,z) are provided, the probe will extract given fields from t at single position (x,y,z).
     

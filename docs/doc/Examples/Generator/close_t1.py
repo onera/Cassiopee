@@ -3,7 +3,7 @@ import Converter as C
 import Generator as G
 import KCore.test as test
 
-a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0.01, 10., (20,20,10)) 
+a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0.01, 10., (20,20,10))
 a = C.addVars(a, 'F')
 
 # test structure
@@ -20,9 +20,11 @@ a3 = C.convertArray2Tetra(a)
 a3 = G.close(a3, 1.e-3)
 test.testA([a3], 3)
 
-# test close NGON
+# test close NGON avec retour de la table d indir. des vertices
+indices = []
 a4 =  G.cylinder((0.,0.,0.), 0.5, 1., 360., 0.01, 10., (10,10,10))
 a4 = C.convertArray2NGon(a4)
 a4 = C.addVars(a4, 'F')
-a4 = G.close(a4, 5.e-3)
+a4 = G.close(a4, 5.e-3, indices=indices)
 test.testA([a4], 4)
+test.testO(indices, 5)

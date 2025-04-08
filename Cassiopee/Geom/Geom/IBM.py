@@ -12,7 +12,16 @@ varsDeleteIBM = ['utau','StagnationEnthalpy','StagnationPressure',
                  'gradxVelocityX','gradyVelocityX','gradzVelocityX',
                  'gradxVelocityY','gradyVelocityY','gradzVelocityY',
                  'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
-                 'KCurv'         ,'yplus']
+                 'KCurv'         ,'yplus'         ,
+                 't11_model'     ,'t12_model'     ,'t22_model',
+                 't13_model'     ,'t23_model'     ,'t33_model']
+varsDeleteIBMRotTmp=['CoordinateX_PC#Init','CoordinateX_PC#Init','CoordinateX_PC#Init',
+                     'CoordinateX_PW#Init','CoordinateX_PW#Init','CoordinateX_PW#Init',
+                     'CoordinateX_PI#Init','CoordinateX_PI#Init','CoordinateX_PI#Init',
+                     'MotionType','omega',
+                     'transl_speedX','transl_speedY','transl_speedZ',
+                     'axis_pntX'    ,'axis_pntY'    ,'axis_pntZ'    ,
+                     'axis_vctX'    ,'axis_vctY'    ,'axis_vctZ'    ]
 #==============================================================================
 # Creation of a case with a symmetry plane
 #==============================================================================
@@ -423,11 +432,18 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, 
 #==============================================================================
 # Add variables to the IBC
 #==============================================================================
-def _addVariablesTcIbc(zsr, ibctype, nIBC):
+def _addVariablesTcIbc(zsr, ibctype, nIBC, nsModel='NSLaminar'):
     Nlength = numpy.zeros((nIBC),numpy.float64)
-    if ibctype in [2, 3, 6, 10, 11]:
+    if ibctype in [2, 3, 6, 10, 11, 31, 32, 331, 332]:
         zsr[2].append(['utau' , copy.copy(Nlength), [], 'DataArray_t'])
         zsr[2].append(['yplus', copy.copy(Nlength), [], 'DataArray_t'])
+        if ibctype in [331, 332] and nsModel=='NSLaminar':
+            zsr[2].append(['t11_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t12_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t22_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t13_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t23_model' , copy.copy(Nlength), [], 'DataArray_t'])
+            zsr[2].append(['t33_model' , copy.copy(Nlength), [], 'DataArray_t'])
 
     if ibctype == 5:
         Internal._createChild(zsr, 'StagnationEnthalpy', 'DataArray_t', value=copy.copy(Nlength))
@@ -474,6 +490,9 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
     """Change the IBC type in a connectivity tree from oldIBCType to newIBCType.
     Usage: changeIBCType(tc, oldIBCType, newIBCType)"""
     for z in Internal.getZones(tc):
+        govEqn     = Internal.getNodeFromName(z, 'GoverningEquations')
+        nsModel    = 'NSLaminar'
+        if govEqn: nsModel = Internal.getValue(govEqn)
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
             nameSubRegion = zsr[0]
@@ -487,7 +506,7 @@ def _changeIBCType(tc, oldIBCType, newIBCType):
                     for var_local in varsDeleteIBM:
                         Internal._rmNodesByName(zsr, var_local)
 
-                    _addVariablesTcIbc(zsr, newIBCType, nIBC)
+                    _addVariablesTcIbc(zsr, newIBCType, nIBC, nsModel)
 
     return None
 
@@ -666,7 +685,148 @@ def localWMMFlags__(tb,tbFilament):
     return isFilamentOnly,isWireModel
 
 
+###############
+# Special test-cases
+###############
+def flatPlate(snear=0.001, ibctype='Musker'):
+    """Generate an IBM case for the canonical flat plate test-case."""
+    Gamma = 1.4
+    UInf  = 0.2
+    RoInf = 1.
+    TInf  = 1.
+    PInf  = 1./Gamma
+    RoEInf = PInf/(Gamma-1.) + 0.5*RoInf*UInf*UInf
+    cvInf  = (RoEInf/RoInf - 0.5*UInf*UInf)/TInf
 
+    # plate
+    z_wall = D.line((0.,0.,0.), (2.,0.,0.), int(2./snear)); z_wall[0] = 'wall'
+    _setSnear(z_wall, snear)
+    _setIBCType(z_wall, ibctype)
+    _setDfar(z_wall, 0)
+
+    # sym
+    z_sym = D.line((-0.33,0.,0.), (0.,0.,0.), 1000); z_sym[0] = 'sym'
+    _setSnear(z_sym, snear)
+    _setIBCType(z_sym, 'slip')
+    _setDfar(z_sym, 0)
+
+    # farfield on top (treated as sym and push back at y=5m)
+    z_far = D.line((-0.33,5.,0.), (2.,5.,0.), 1000); z_far[0] = 'farfield'
+    _setSnear(z_far, 16*snear)
+    _setIBCType(z_far, 'slip')
+    _setDfar(z_far, 0)
+
+    # inflow
+    z_inj = D.line((-0.33,0.,0.), (-0.33,5.,0.), 1000); z_inj[0] = 'inflow'
+    _setSnear(z_inj, 16*snear)
+    _setIBCType(z_inj, 'inj')
+    _setDfar(z_inj, 0)
+    n = Internal.getNodeFromName(z_inj, '.Solver#define')
+    Internal.createUniqueChild(n, 'StagnationPressure', 'DataArray_t', value=PInf*1.02828)
+    Internal.createUniqueChild(n, 'StagnationEnthalpy', 'DataArray_t', value=TInf*1.008*Gamma*cvInf)
+    Internal.createUniqueChild(n, 'dirx', 'DataArray_t', value=1.)
+    Internal.createUniqueChild(n, 'diry', 'DataArray_t', value=0.)
+    Internal.createUniqueChild(n, 'dirz', 'DataArray_t', value=0.)
+    C._tagWithFamily(z_inj, 'INLET')
+
+    # outflow
+    z_out  = D.line((2.,0.,0.), (2.,5.,0.), 1000); z_out[0] = 'outflow'
+    _setSnear(z_out, 16*snear)
+    _setIBCType(z_out, 'outpress')
+    _setDfar(z_out, 0)
+    n = Internal.getNodeFromName(z_out, '.Solver#define')
+    Internal.createUniqueChild(n, 'pStatic',           'DataArray_t', value=PInf)
+    Internal.createUniqueChild(n, 'isDensityConstant', 'DataArray_t', value=0.)
+    C._tagWithFamily(z_out, 'OUTLET')
+
+    t = C.newPyTree([z_wall, z_sym, z_far, z_inj, z_out])
+
+    _setFluidInside(t)
+
+    C._addState(t, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6,\
+                MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
+
+    return t
+
+def bumpInChannel(snear=0.001, ibctype='Musker'):
+    """Generate an IBM case for the canonical bump-in-channel test-case."""
+    import math
+
+    Gamma = 1.4
+    UInf  = 0.2
+    RoInf = 1.
+    TInf  = 1.
+    PInf  = 1./Gamma
+    RoEInf  = PInf/(Gamma-1.) + 0.5*RoInf*UInf*UInf
+    cvInf = (RoEInf/RoInf - 0.5*UInf*UInf)/TInf
+
+    # bump
+    z_wall = D.line((0.,0.,0.), (1.5,0.,0.), int(1.5/snear)); z_wall[0] = 'wall'
+    x = Internal.getNodeFromName(z_wall, 'CoordinateX')[1]
+    y = Internal.getNodeFromName(z_wall, 'CoordinateY')[1]
+    for i, x_loc in enumerate(x):
+        if x_loc >= 0.3 and x_loc <= 1.2:
+            y_loc = 0.05*(math.sin(math.pi*x_loc/0.9-(math.pi/3.)))**4
+            y[i] = y_loc
+    _setSnear(z_wall, snear)
+    _setIBCType(z_wall, ibctype)
+    _setDfar(z_wall, 0)
+
+    # sym
+    z_symL = D.line((-25.,0.,0.), (0.,0.,0.), 1000); z_symL[0] = 'sym_left'
+    z_symR = D.line((1.5,0.,0.), (26.5,0.,0.), 1000); z_symR[0] = 'sym_right'
+    z_symT = D.line((-25.,5.,0.), (26.5,5.,0.), 1000); z_symT[0] = 'sym_top'
+    for z in [z_symL, z_symR, z_symT]:
+        _setSnear(z, 16*snear)
+        _setIBCType(z, 'slip')
+        _setDfar(z, 0)
+
+    # inflow
+    z_inj  = D.line((-25.,0.,0.), (-25.,5.,0.), 1000); z_inj[0] = 'inflow'
+    _setSnear(z_inj, 16*snear)
+    _setIBCType(z_inj, 'inj')
+    _setDfar(z_inj, 0)
+    n = Internal.getNodeFromName(z_inj, '.Solver#define')
+    Internal.createUniqueChild(n, 'StagnationPressure', 'DataArray_t', value=PInf*1.02828)
+    Internal.createUniqueChild(n, 'StagnationEnthalpy', 'DataArray_t', value=TInf*1.008*Gamma*cvInf)
+    Internal.createUniqueChild(n, 'dirx', 'DataArray_t', value=1.)
+    Internal.createUniqueChild(n, 'diry', 'DataArray_t', value=0.)
+    Internal.createUniqueChild(n, 'dirz', 'DataArray_t', value=0.)
+    C._tagWithFamily(z_inj, 'INLET')
+
+    # outflow
+    z_out  = D.line((26.5,0.,0.), (26.5,5.,0.), 1000); z_out[0] = 'outflow'
+    _setSnear(z_out, 16*snear)
+    _setIBCType(z_out, 'outpress')
+    _setDfar(z_out, 0)
+    n = Internal.getNodeFromName(z_out, '.Solver#define')
+    Internal.createUniqueChild(n, 'pStatic',           'DataArray_t', value=PInf)
+    Internal.createUniqueChild(n, 'isDensityConstant', 'DataArray_t', value=0.)
+    C._tagWithFamily(z_out, 'OUTLET')
+
+    t = C.newPyTree([z_wall, z_symL, z_symR, z_symT, z_inj, z_out])
+
+    _setFluidInside(t)
+
+    C._addState(t, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=3.e6,\
+                MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
+
+    return t
+
+def naca0012(snear=0.001, ibctype='Musker', alpha=0.):
+    """Generate an IBM case for the canonical subsonic NACA0012 test-case."""
+
+    z = D.naca('0012', N=int(1./snear))
+    t = C.newPyTree(['Base', z])
+
+    _setSnear(t, snear)
+    _setIBCType(t, ibctype)
+    _setDfar(t, 100)
+
+    C._addState(t, adim='adim1', MInf=0.15, alphaZ=alpha, alphaY=0., ReInf=6.e6,\
+                MutSMuInf=0.2, TurbLevelInf=0.0001, EquationDimension=2, GoverningEquations='NSTurbulent')
+
+    return t
 
 #====================================================================================
 #Add .Solver#Define with dirx,diry, & dirz to the base of the rectilinear in tbox

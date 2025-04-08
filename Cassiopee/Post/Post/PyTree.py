@@ -1502,15 +1502,13 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
     return None
 
 def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
-    """Compute the gradient of a variable defined in array.
-    Usage: computeGrad2(t, var)"""
+    """Compute the gradient of a variable defined in array."""
     tp = Internal.copyRef(t)
     _computeGrad2(tp, var, ghostCells, withCellN, withTNC)
     return tp
 
 def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
-    """Compute the gradient of a variable defined in array.
-    Usage: computeGrad2(t, var)"""
+    """Compute the gradient of a variable defined in array."""
 
     if type(var) == list:
         raise ValueError("computeGrad2: not available for lists of variables.")
@@ -1518,22 +1516,22 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
     if len(vare) > 1: vare = vare[1]
 
     # Test if field exist
-    solc = C.getFields(Internal.__FlowSolutionCenters__, t)[0]
-    if solc == []:
+    zones = Internal.getZones(t)
+    if len(zones) == 0: return None
+
+    cont = Internal.getNodeFromName1(zones[0], Internal.__FlowSolutionCenters__)
+    if cont is None:
         raise ValueError("_computeGrad2: no field detected (check container).")
 
     # Compute fields on BCMatch (for all match connectivities)
     if not ghostCells:
         allMatch = C.extractAllBCMatch(t, vare)
-        if withTNC:
-            allMatchTNC = C.extractAllBCMatchTNC(t,vare)
-        else:
-            allMatchTNC = {}
+        if withTNC: allMatchTNC = C.extractAllBCMatchTNC(t, vare)
+        else: allMatchTNC = {}
     else:
-        allMatch    = {}
+        allMatch = {}
         allMatchTNC = {}
 
-    zones = Internal.getZones(t)
     for z in zones:
 
         # Test if vol present
@@ -1585,8 +1583,8 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
                     if fldp is None: fldp = fgc
                     else: fldp = numpy.concatenate((fldp,fgc))
 
-                indp    = indFace.ravel(order='K')
-                fldp    = fldp.ravel(order='K')
+                indp = indFace.ravel(order='K')
+                fldp = fldp.ravel(order='K')
 
                 if indices is None: indices = indp
                 else: indices = numpy.concatenate((indices, indp))

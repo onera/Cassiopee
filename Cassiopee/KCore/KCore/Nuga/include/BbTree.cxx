@@ -311,7 +311,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__insert
 {
 
 #ifdef E_TIME1
-  DELAUNAY::chrono c1;
+  NUGA::chrono c1;
 #endif
 
   size_type size = end - begin;

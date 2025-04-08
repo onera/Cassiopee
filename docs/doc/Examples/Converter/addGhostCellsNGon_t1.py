@@ -27,6 +27,3 @@ a = C.convertArray2NGon(a)
 a = G.close(a)
 b = C.addGhostCellsNGon(a, depth=1)
 test.testA([b],4)
-
-
-

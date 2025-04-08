@@ -8,7 +8,7 @@ import KCore.test as test
 # NGON 2D ne contenant pas de faces externes
 a = D.sphere((0,0,0), 1., 15)
 a = C.convertArray2NGon(a); a = G.close(a)
-a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',1.); 
+a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',1.);
 res = T.dual(a)
 t = C.newPyTree(['Base']); t[2][1][2]+=[res]
 test.testT(t)

@@ -22,6 +22,11 @@ XIBM._blankingIBM(t, tb, dimPb=3)
 tc = C.node2Center(t)
 t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, cartesian=False)
 XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=1, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 1)
 test.testT(tc, 11)
 
@@ -40,6 +45,11 @@ XIBM._blankingIBM(t, tb, dimPb=3, frontType=42)
 tc = C.node2Center(t)
 t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, cartesian=False)
 XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 2)
 test.testT(tc, 21)
 
@@ -60,6 +70,11 @@ XIBM._blankingIBM(t, tb, dimPb=3, correctionMultiCorpsF42=True, frontType=42)
 tc = C.node2Center(t)
 t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, cartesian=False)
 XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 3)
 test.testT(tc, 31)
 
@@ -78,6 +93,11 @@ XIBM._blankingIBM(t, tb, dimPb=3, frontType=42, blankingF42=True)
 tc = C.node2Center(t)
 t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, cartesian=False)
 XIBM._setInterpDataIBM(t, tc, tb, front, dimPb=3, frontType=42, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 4)
 test.testT(tc, 41)
 
@@ -96,5 +116,10 @@ XIBM._blankingIBM(t, tb, dimPb=3, frontType=42, twoFronts=True)
 tc = C.node2Center(t)
 t, tc, front, front2, frontWMM = XIBM.buildFrontIBM(t, tc, dimPb=3, frontType=42, twoFronts=True, cartesian=False)
 XIBM._setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=3, frontType=42, twoFronts=True, cartesian=False)
+####
+# The following lines are to avoid regression since the bug fix for duplicate information in tc
+####
+Internal._rmNodesByName(tc, '.Solver#Param')
+####
 test.testT(t, 5)
 test.testT(tc, 51)

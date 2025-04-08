@@ -22,22 +22,14 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/common/Karray.cpp',
 
             'XCore/intersectMesh/split.cpp',
-
-            'XCore/intersectMesh/write.cpp',
-
             'XCore/intersectMesh/icapsule_init.cpp',
             'XCore/intersectMesh/icapsule_adapt.cpp',
             'XCore/intersectMesh/icapsule_intersect.cpp',
             'XCore/intersectMesh/icapsule_extract.cpp',
-
             'XCore/intersectMesh/icapsule_refine.cpp',
-
             'XCore/intersectMesh/triangulate.cpp',
-
             'XCore/intersectMesh/precise.cpp',
-
             'XCore/intersectMesh/mesh_io.cpp',
-
             'XCore/intersectMesh/smesh.cpp',
             'XCore/intersectMesh/smesh_locate.cpp',
             'XCore/intersectMesh/smesh_io.cpp',
@@ -46,22 +38,17 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/smesh_bvh.cpp',
             'XCore/intersectMesh/smesh_geom.cpp',
             'XCore/intersectMesh/smesh_reconstruct.cpp',
-
             'XCore/intersectMesh/dcel.cpp',
             'XCore/intersectMesh/dcel_extract.cpp',
             'XCore/intersectMesh/dcel_io.cpp',
             'XCore/intersectMesh/dcel_reconstruct.cpp',
-
             'XCore/intersectMesh/AABB.cpp',
-
             'XCore/intersectMesh/extract.cpp',
-
             'XCore/intersectMesh/IntersectMesh_Init.cpp',
             'XCore/intersectMesh/IntersectMesh_TriangulateFaceSet.cpp',
             'XCore/intersectMesh/IntersectMesh_ExtractMesh.cpp',
             'XCore/intersectMesh/IntersectMesh_Exit.cpp',
             'XCore/intersectMesh/IntersectMesh_ExtractFaceSet.cpp',
-
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
             'XCore/intersectMesh/mesh.cpp',
             'XCore/intersectMesh/meshRefine.cpp',
@@ -80,11 +67,6 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/AdaptMesh/AdaptMesh_Adapt.cpp',
             'XCore/AdaptMesh/AdaptMesh_Exit.cpp',
             'XCore/AdaptMesh/AdaptMesh_ExtractData.cpp',
-            'XCore/AdaptMesh/AdaptMesh_TagFaces.cpp',
-            'XCore/AdaptMesh/AdaptMesh_TriangulateFaces.cpp',
-            'XCore/AdaptMesh/AdaptMesh_GeneratePrisms.cpp',
-            'XCore/AdaptMesh/AdaptMesh_AdaptGeom.cpp',
-
             'XCore/AdaptMesh/MeshInit.cpp',
             'XCore/AdaptMesh/MeshOrient.cpp',
             'XCore/AdaptMesh/MeshClean.cpp',
@@ -96,8 +78,6 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/AdaptMesh/MeshRefine.cpp',
             'XCore/AdaptMesh/MeshIso.cpp',
             'XCore/AdaptMesh/MeshDir.cpp',
-            'XCore/AdaptMesh/MeshTriangulate.cpp',
-
             'XCore/AdaptMesh/H27.cpp',
             'XCore/AdaptMesh/H18.cpp',
             'XCore/AdaptMesh/Tetra.cpp',
@@ -107,20 +87,6 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/AdaptMesh/Q6.cpp',
             'XCore/AdaptMesh/Tri.cpp',
             'XCore/AdaptMesh/Edge.cpp',
-
-            'XCore/AdaptMesh/BVH.cpp',
-            'XCore/AdaptMesh/Box.cpp',
-            'XCore/AdaptMesh/FaceSort.cpp',
-            'XCore/AdaptMesh/MeshExtract.cpp',
-            'XCore/AdaptMesh/MeshLocate.cpp',
-            'XCore/AdaptMesh/Point.cpp',
-            'XCore/AdaptMesh/constants.cpp',
-            'XCore/AdaptMesh/Skin.cpp',
-            'XCore/AdaptMesh/Array.cpp',
-
-            'XCore/AdaptMesh/DynMesh.cpp',
-            'XCore/AdaptMesh/DynMeshTopo.cpp',
-            'XCore/AdaptMesh/TriGraph.cpp',
 
             'XCore/extractFacesFromPointTag.cpp',
             ]

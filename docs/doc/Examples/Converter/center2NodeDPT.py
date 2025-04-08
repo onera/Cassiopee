@@ -22,7 +22,7 @@ Cmpi.barrier()
 sk = Cmpi.convertFile2SkeletonTree('in.cgns')
 
 # equilibrage
-(sk, dic) = Distributor2.distribute(sk, NProc=Cmpi.size, algorithm='gradient0', 
+(sk, dic) = Distributor2.distribute(sk, NProc=Cmpi.size, algorithm='gradient0',
                                     useCom='match')
 
 # load des zones locales dans le squelette

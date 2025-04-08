@@ -1,5 +1,5 @@
 # - adapts a cells with respect to b points (PyTree) -
-# 
+#
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.PyTree as C

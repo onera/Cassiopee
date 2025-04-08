@@ -1,7 +1,7 @@
 # - setField (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
- 
+
 a = G.cart((0.,0.,0.),(0.1,0.1,0.1),(11,11,11))
 a = C.initVars(a, "F", 1.); a = C.initVars(a, "centers:Q", 1.2)
 t = C.newPyTree(['Cart',a])

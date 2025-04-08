@@ -10,4 +10,3 @@ C._initBCDataSet(a,'{var2}=2.')
 C._initBCDataSet(a,'{var3}=3.')
 a = C.rmBCDataVars(a,'var1')
 a = C.rmBCDataVars(a,['var2','var3'])
-
