@@ -1,0 +1,669 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Post.Rotor: rotor specific post-processing &#8212; Post 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.Rotor: rotor specific post-processing</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="post-rotor-rotor-specific-post-processing">
+<h1>Post.Rotor: rotor specific post-processing</h1>
+<p>Specific post-processing for rotors or propellers.</p>
+<p>Those functions work with a solution tree &#8220;t&#8221; or a blade surface tree &#8220;teff&#8221;.</p>
+<span class="target" id="module-Post.Rotor"></span><section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Force extractions</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Rotor.extractRadius" title="Post.Rotor.extractRadius"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Rotor.extractRadius</span></code></a></p></td>
+<td><p>Extract the radius field, using the rotation axis and center.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.Rotor.extractTheta" title="Post.Rotor.extractTheta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Rotor.extractTheta</span></code></a></p></td>
+<td><p>Extract the theta field, using the rotation axis and center.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Rotor.extractSlices" title="Post.Rotor.extractSlices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Rotor.extractSlices</span></code></a></p></td>
+<td><p>Extract slices on blade and compute Kp,Cf,CnM2,CmM2.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.Rotor.computeZb" title="Post.Rotor.computeZb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Rotor.computeZb</span></code></a></p></td>
+<td><p>Compute Zb.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Rotor.computeThrustAndTorque" title="Post.Rotor.computeThrustAndTorque"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Rotor.computeThrustAndTorque</span></code></a></p></td>
+<td><p>Compute thrust and torque.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Accumulator export</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Rotor.exportAccumulatorPerPsi" title="Post.Rotor.exportAccumulatorPerPsi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Rotor.exportAccumulatorPerPsi</span></code></a></p></td>
+<td><p>Export accumulator (psi,rad) in a zone for a given psi.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.Rotor.exportAccumulatorPerRadius" title="Post.Rotor.exportAccumulatorPerRadius"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Rotor.exportAccumulatorPerRadius</span></code></a></p></td>
+<td><p>Export accumulator (psi,rad) in a zone for a given radius.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Rotor.exportAccumulatorMap" title="Post.Rotor.exportAccumulatorMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Rotor.exportAccumulatorMap</span></code></a></p></td>
+<td><p>Export accumulator (psi,rad) in a map zone.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="force-extractions">
+<h3>Force extractions</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Rotor.extractRadius">
+<span class="sig-prename descclassname"><span class="pre">Post.Rotor.</span></span><span class="sig-name descname"><span class="pre">extractRadius</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'node'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Extract the radius field on a surface, using the rotation axis and center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface stress tree</p></li>
+<li><p><strong>axis_pnt</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; center of rotation</p></li>
+<li><p><strong>axis_vct</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; axis of rotation</p></li>
+<li><p><strong>loc</strong> (<em>string</em><em>, </em><em>'node'</em><em> or </em><em>'center'</em>) &#8211; location of the new field &#8216;Radius&#8217;</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>teff</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>same as input with new flow field</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractRadiusPT.py">Extract slices (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Post.Rotor</span> <span class="k">as</span> <span class="nn">Rotor</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
+<span class="n">coordZ</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CoordinateZ&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">coordX</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CoordinateX&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CoordinateZ&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">coordX</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CoordinateX&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">coordZ</span>
+
+<span class="n">axis_pnt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">axis_vct</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">25.</span>
+<span class="n">costheta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+<span class="n">sintheta</span> <span class="o">=</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="n">theta</span><span class="p">,</span><span class="mf">0.</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="n">theta</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">theta</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">))</span>
+
+<span class="c1">#rotation y</span>
+<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">axis_vct</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">costheta</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">z</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">costheta</span><span class="o">*</span><span class="n">z</span>
+
+<span class="c1">#rotation z</span>
+<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">axis_vct</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">costheta</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">y</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">costheta</span><span class="o">*</span><span class="n">y</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+
+<span class="c1">#rotation x</span>
+<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">axis_vct</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">costheta</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">z</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">costheta</span><span class="o">*</span><span class="n">z</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">Rotor</span><span class="o">.</span><span class="n">extractRadius</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">axis_pnt</span><span class="p">,</span> <span class="n">axis_vct</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Rotor.extractTheta">
+<span class="sig-prename descclassname"><span class="pre">Post.Rotor.</span></span><span class="sig-name descname"><span class="pre">extractTheta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_pnt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_vct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'node'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Extract the theta field on a surface, using the rotation axis and center.
+Theta values are comprised between 0 and 2*pi.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface stress tree</p></li>
+<li><p><strong>axis_pnt</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; center of rotation</p></li>
+<li><p><strong>axis_vct</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; axis of rotation</p></li>
+<li><p><strong>loc</strong> (<em>string</em><em>, </em><em>'node'</em><em> or </em><em>'center'</em>) &#8211; location of the new field &#8216;Theta&#8217;</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>teff</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>same as input with new flow field</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractThetaPT.py">Extract slices (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Post.Rotor</span> <span class="k">as</span> <span class="nn">Rotor</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
+<span class="n">coordZ</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CoordinateZ&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">coordX</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CoordinateX&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CoordinateZ&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">coordX</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;CoordinateX&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">coordZ</span>
+
+<span class="n">axis_pnt</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">axis_vct</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">25.</span>
+<span class="n">costheta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+<span class="n">sintheta</span> <span class="o">=</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="n">theta</span><span class="p">,</span><span class="mf">0.</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="n">theta</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">theta</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">))</span>
+
+<span class="c1">#rotation y</span>
+<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">axis_vct</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">costheta</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">z</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">costheta</span><span class="o">*</span><span class="n">z</span>
+
+<span class="c1">#rotation z</span>
+<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">axis_vct</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">costheta</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">y</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">costheta</span><span class="o">*</span><span class="n">y</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+
+<span class="c1">#rotation x</span>
+<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">axis_vct</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">costheta</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">z</span>
+<span class="n">axis_vct</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">sintheta</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">costheta</span><span class="o">*</span><span class="n">z</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">Rotor</span><span class="o">.</span><span class="n">extractTheta</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">axis_pnt</span><span class="p">,</span> <span class="n">axis_vct</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Rotor.extractSlices">
+<span class="sig-prename descclassname"><span class="pre">Post.Rotor.</span></span><span class="sig-name descname"><span class="pre">extractSlices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bladeName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radii</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RoInf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PInf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ASOUND</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CHORD</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MU</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adimCnM2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adimCmM2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adimKp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relativeShaft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">localFrame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotationCenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.,</span> <span class="pre">0.,</span> <span class="pre">0.]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CoordinateZ'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordSlice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CoordinateX'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sliceNature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'straight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulatorSlices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulatorCnM2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulatorCmM2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Extract slices on blades. Export Cp, Cf on those slices.
+Compute CnM2 and CmM2 on those slices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface stress tree</p></li>
+<li><p><strong>bladeName</strong> (<em>string</em>) &#8211; name of the blade base to work with</p></li>
+<li><p><strong>psi</strong> (<em>float</em>) &#8211; angular angle of blade in teff (in degree)</p></li>
+<li><p><strong>radii</strong> (<em>list</em><em> of </em><em>floats</em>) &#8211; list of radii at which the solution on the blade must be extracted</p></li>
+<li><p><strong>RoInf</strong> (<em>float</em>) &#8211; infinite flow density</p></li>
+<li><p><strong>PInf</strong> (<em>float</em>) &#8211; infinite flow pressure</p></li>
+<li><p><strong>ASOUND</strong> (<em>float</em>) &#8211; infinite flow sound speed</p></li>
+<li><p><strong>Mtip</strong> (<em>float</em>) &#8211; blade mach tip</p></li>
+<li><p><strong>AR</strong> (<em>float</em>) &#8211; blade length</p></li>
+<li><p><strong>CHORD</strong> (<em>float</em>) &#8211; blade mean chord</p></li>
+<li><p><strong>MU</strong> (<em>float</em>) &#8211; advance ratio</p></li>
+<li><p><strong>adimCnM2</strong> (<em>float</em>) &#8211; scaling value for CnM2. If adimCnM2=0, automatically computes the value with adimCnM2=0.5*RoInf*ASOUND**2*CHORD</p></li>
+<li><p><strong>adimCmM2</strong> (<em>float</em>) &#8211; scaling value for CmM2. If adimCmM2=0, automatically computes the value with adimCmM2=0.5*RoInf*ASOUND**2*CHORD</p></li>
+<li><p><strong>adimKp</strong> (<em>float</em>) &#8211; scaling value for adimKp. If adimKp=0, automatically computes the value with adimKp=0.5*RoInf*(abs(radius)*Mtip*ASOUND/AR+MU*Mtip*ASOUND*math.sin(psi))**2</p></li>
+<li><p><strong>relativeShaft</strong> (<em>float</em>) &#8211; relative shaft angle if the mesh is not in the wind frame</p></li>
+<li><p><strong>localFrame</strong> (<em>boolean</em>) &#8211; if True, return CnM2 and CmM2 in relative (blade section) frame</p></li>
+<li><p><strong>delta</strong> (<em>float</em>) &#8211; mean mesh step on blade in the span wise direction</p></li>
+<li><p><strong>rotationCenter</strong> (<em>list</em><em> of </em><em>floats</em>) &#8211; coordinates of the center of rotation</p></li>
+<li><p><strong>coordDir</strong> (<em>string</em><em> (</em><em>'CoordinateX'</em><em>, </em><em>'CooridnateY'</em><em> or </em><em>'CoordinateZ'</em><em>)</em>) &#8211; axis of rotation</p></li>
+<li><p><strong>coordSlice</strong> (<em>string</em><em> (</em><em>'CoordinateX'</em><em>, </em><em>'CooridnateY'</em><em> or </em><em>'CoordinateZ'</em><em>)</em>) &#8211; slicing direction</p></li>
+<li><p><strong>sliceNature</strong> (<em>string</em><em> (</em><em>'straight'</em><em> or </em><em>'curved'</em><em>)</em>) &#8211; if &#8216;straight&#8217;, slices the blade in the slicing direction. If &#8216;curved&#8217;, initializes the radius field using both the center and the axis of rotation, and slices at constant radii</p></li>
+<li><p><strong>accumulatorSlices</strong> (<em>dictionary with key values</em><em> (</em><em>psi</em><em>,</em><em>radius</em><em>)</em>) &#8211; if not None, accumulate slices</p></li>
+<li><p><strong>accumulatorCnM2</strong> (<em>dictionary with key values</em><em> (</em><em>psi</em><em>,</em><em>radius</em><em>)</em>) &#8211; if not None, accumulate CnM2</p></li>
+<li><p><strong>accumulatorCmM2</strong> (<em>dictionary with key values</em><em> (</em><em>psi</em><em>,</em><em>radius</em><em>)</em>) &#8211; if not None, accumulate CmM2</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of slices, list of CnM2, list of CmM2 (one for each radius)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of zones, list of 3 floats, list of 3 floats</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractSlicesPT.py">Extract slices (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractSlices (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Post.Rotor</span> <span class="k">as</span> <span class="nn">PR</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">Mtip</span> <span class="o">=</span> <span class="mf">0.6462</span><span class="p">;</span> <span class="n">MU</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">CHORD</span> <span class="o">=</span> <span class="mf">0.14</span><span class="p">;</span> <span class="n">AR</span> <span class="o">=</span> <span class="mf">2.1</span>
+<span class="n">RoInf</span> <span class="o">=</span> <span class="mf">1.225</span><span class="p">;</span> <span class="n">PInf</span> <span class="o">=</span> <span class="mf">101325.</span><span class="p">;</span> <span class="n">AINF</span> <span class="o">=</span> <span class="mf">340.1</span>
+<span class="n">SIGMA</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="n">CHORD</span> <span class="o">/</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">AR</span><span class="p">)</span>
+<span class="n">teff</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertFile2PyTree</span><span class="p">(</span><span class="s1">&#39;stress_419.cgns&#39;</span><span class="p">)</span>
+
+<span class="n">accu</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">psi</span> <span class="o">=</span> <span class="mf">419.</span><span class="p">;</span> <span class="n">radius</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">1.3</span><span class="p">,</span><span class="mf">2.</span><span class="p">]</span>
+<span class="n">slices</span><span class="p">,</span> <span class="n">CnM2</span><span class="p">,</span> <span class="n">CmM2</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">extractSlices</span><span class="p">(</span><span class="n">teff</span><span class="p">,</span> <span class="s1">&#39;Blade7A_00&#39;</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span>
+                                      <span class="n">RoInf</span><span class="p">,</span> <span class="n">PInf</span><span class="p">,</span> <span class="n">AINF</span><span class="p">,</span> <span class="n">Mtip</span><span class="p">,</span> <span class="n">AR</span><span class="p">,</span> <span class="n">CHORD</span><span class="p">,</span> <span class="n">MU</span><span class="p">,</span>
+                                      <span class="n">accumulatorCnM2</span><span class="o">=</span><span class="n">accu</span><span class="p">,</span> <span class="n">localFrame</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                      <span class="n">relativeShaft</span><span class="o">=-</span><span class="mf">12.12</span><span class="p">)</span>
+
+<span class="c1"># export for Cp, Cf</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">slices</span><span class="p">,</span> <span class="s1">&#39;slice.cgns&#39;</span><span class="p">)</span>
+
+<span class="c1"># export for CnM2 maps</span>
+<span class="n">exp</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">exportAccumulatorMap</span><span class="p">(</span><span class="n">accu</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CnM2x&#39;</span><span class="p">,</span><span class="s1">&#39;CnM2y&#39;</span><span class="p">,</span><span class="s1">&#39;CnM2z&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="s1">&#39;map.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Rotor.computeZb">
+<span class="sig-prename descclassname"><span class="pre">Post.Rotor.</span></span><span class="sig-name descname"><span class="pre">computeZb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RoInf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ASOUND</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SIGMA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relativeShaft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulatorZb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute Zb in the wind frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface stress tree</p></li>
+<li><p><strong>psi</strong> (<em>float</em>) &#8211; angular angle of blade in teff (in degree)</p></li>
+<li><p><strong>RoInf</strong> (<em>float</em>) &#8211; infinite flow density</p></li>
+<li><p><strong>ASOUND</strong> (<em>float</em>) &#8211; infinite flow sound speed</p></li>
+<li><p><strong>Mtip</strong> (<em>float</em>) &#8211; blade mach tip</p></li>
+<li><p><strong>AR</strong> (<em>float</em>) &#8211; blade length in m</p></li>
+<li><p><strong>SIGMA</strong> (<em>float</em>) &#8211; rotor solidity (= Nb*c / pi*AR)</p></li>
+<li><p><strong>relativeShaft</strong> (<em>float</em>) &#8211; relative shaft angle if the mesh is not in the wind frame</p></li>
+<li><p><strong>accumulatorZb</strong> (<em>dictionary</em>) &#8211; if not None, accumulate Zb</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>[Xb,Yb,Zb]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of 3 floats</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeZbPT.py">Compute Zb (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeZb (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Post.Rotor</span> <span class="k">as</span> <span class="nn">PR</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">Mtip</span> <span class="o">=</span> <span class="mf">0.6462</span><span class="p">;</span> <span class="n">MU</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">CHORD</span> <span class="o">=</span> <span class="mf">0.14</span><span class="p">;</span> <span class="n">AR</span> <span class="o">=</span> <span class="mf">2.1</span>
+<span class="n">RoInf</span> <span class="o">=</span> <span class="mf">1.225</span><span class="p">;</span> <span class="n">PInf</span> <span class="o">=</span> <span class="mf">101325.</span><span class="p">;</span> <span class="n">AINF</span> <span class="o">=</span> <span class="mf">340.1</span>
+<span class="n">SIGMA</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="n">CHORD</span> <span class="o">/</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">AR</span><span class="p">)</span>
+<span class="n">teff</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertFile2PyTree</span><span class="p">(</span><span class="s1">&#39;stress_419.cgns&#39;</span><span class="p">)</span>
+
+<span class="n">zb</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">computeZb</span><span class="p">(</span><span class="n">teff</span><span class="p">,</span> <span class="mf">419.</span><span class="p">,</span> <span class="n">RoInf</span><span class="p">,</span> <span class="n">AINF</span><span class="p">,</span> <span class="n">Mtip</span><span class="p">,</span> <span class="n">AR</span><span class="p">,</span> <span class="n">SIGMA</span><span class="p">,</span> <span class="n">relativeShaft</span><span class="o">=-</span><span class="mf">12.12</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">zb</span><span class="p">)</span>
+<span class="c1">#&gt; [-1.101453126880057, -0.11259440192933268, 10.18004327358801]</span>
+
+<span class="n">accu</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">zb</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">computeZb</span><span class="p">(</span><span class="n">teff</span><span class="p">,</span> <span class="mf">419.</span><span class="p">,</span> <span class="n">RoInf</span><span class="p">,</span> <span class="n">AINF</span><span class="p">,</span> <span class="n">Mtip</span><span class="p">,</span> <span class="n">AR</span><span class="p">,</span> <span class="n">SIGMA</span><span class="p">,</span> <span class="n">relativeShaft</span><span class="o">=-</span><span class="mf">12.12</span><span class="p">,</span> <span class="n">accumulatorZb</span><span class="o">=</span><span class="n">accu</span><span class="p">)</span>
+<span class="n">ret</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">exportAccumulatorPerRadius</span><span class="p">(</span><span class="n">accu</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Xb&#39;</span><span class="p">,</span><span class="s1">&#39;Yb&#39;</span><span class="p">,</span><span class="s1">&#39;Zb&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="s1">&#39;Zb.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Rotor.computeThrustAndTorque">
+<span class="sig-prename descclassname"><span class="pre">Post.Rotor.</span></span><span class="sig-name descname"><span class="pre">computeThrustAndTorque</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PInf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relativeShaft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulatorThrust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute Thrust in the rotor frame (that is orthogonal to rotor).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface stress tree</p></li>
+<li><p><strong>psi</strong> (<em>float</em>) &#8211; angular angle of blade in teff (in degree)</p></li>
+<li><p><strong>PInf</strong> (<em>float</em>) &#8211; infinite flow pressure</p></li>
+<li><p><strong>center</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; center for momentum computations</p></li>
+<li><p><strong>relativeShaft</strong> (<em>float</em>) &#8211; relative shaft angle if the mesh is not in the rotor frame</p></li>
+<li><p><strong>accumulatorThrust</strong> (<em>dictionary</em>) &#8211; if not None, accumulate thrust and torque</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>thrust=[tx,ty,tz] and torque=[mx,my,mz]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2 lists of 3 floats</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeThrustAndTorquePT.py">Compute thrust and torque (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeThrustAndTorque (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Post.Rotor</span> <span class="k">as</span> <span class="nn">PR</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">Mtip</span> <span class="o">=</span> <span class="mf">0.6462</span><span class="p">;</span> <span class="n">MU</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">CHORD</span> <span class="o">=</span> <span class="mf">0.14</span><span class="p">;</span> <span class="n">AR</span> <span class="o">=</span> <span class="mf">2.1</span>
+<span class="n">RoInf</span> <span class="o">=</span> <span class="mf">1.225</span><span class="p">;</span> <span class="n">PInf</span> <span class="o">=</span> <span class="mf">101325.</span><span class="p">;</span> <span class="n">AINF</span> <span class="o">=</span> <span class="mf">340.1</span>
+<span class="n">SIGMA</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="n">CHORD</span> <span class="o">/</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">AR</span><span class="p">)</span>
+<span class="n">teff</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertFile2PyTree</span><span class="p">(</span><span class="s1">&#39;stress_419.cgns&#39;</span><span class="p">)</span>
+
+<span class="n">thrust</span><span class="p">,</span><span class="n">torque</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">computeThrustAndTorque</span><span class="p">(</span><span class="n">teff</span><span class="p">,</span> <span class="mf">419.</span><span class="p">,</span> <span class="n">PInf</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">relativeShaft</span><span class="o">=</span><span class="mf">0.</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;thrust&#39;</span><span class="p">,</span> <span class="n">thrust</span><span class="p">,</span> <span class="s1">&#39;torque&#39;</span><span class="p">,</span><span class="n">torque</span><span class="p">)</span>
+<span class="c1">#&gt; thrust [368.952736931205, -39.172151751517326, 3543.2002154791667] torque [226.5518638611441, 950.9479780913017, -935.2791149345967]</span>
+
+<span class="n">accu</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">thrust</span><span class="p">,</span> <span class="n">torque</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">computeThrustAndTorque</span><span class="p">(</span><span class="n">teff</span><span class="p">,</span> <span class="mf">419.</span><span class="p">,</span> <span class="n">PInf</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">relativeShaft</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">accumulatorThrust</span><span class="o">=</span><span class="n">accu</span><span class="p">)</span>
+<span class="n">ret</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">exportAccumulatorPerRadius</span><span class="p">(</span><span class="n">accu</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ThrustX&#39;</span><span class="p">,</span><span class="s1">&#39;ThrustY&#39;</span><span class="p">,</span><span class="s1">&#39;ThrustZ&#39;</span><span class="p">,</span><span class="s1">&#39;TorqueX&#39;</span><span class="p">,</span><span class="s1">&#39;TorqueY&#39;</span><span class="p">,</span><span class="s1">&#39;TorqueZ&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="s1">&#39;Thrust.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="accumulator-export">
+<h3>Accumulator export</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Rotor.exportAccumulatorPerPsi">
+<span class="sig-prename descclassname"><span class="pre">Post.Rotor.</span></span><span class="sig-name descname"><span class="pre">exportAccumulatorPerPsi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">accumulator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['F1',</span> <span class="pre">'F2']</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Export a given psi of an accumulator (psi,rad) in a 1D zone.
+For distributed computations, the exported zone is identical on all processors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>accumulator</strong> (<em>dictionary</em>) &#8211; (psi,rad) accumulator</p></li>
+<li><p><strong>psi</strong> (<em>float</em>) &#8211; angular angle to be extracted (in degree)</p></li>
+<li><p><strong>vars</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; the name of variables stored in accumulator</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a single Zone with vars corresponding to psi</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/exportAccumulatorPerPsiPT.py">Export accumulator for given psi (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exportAccumulatorPerPsi (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Rotor</span> <span class="k">as</span> <span class="nn">PR</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="n">accu</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">psi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">rad</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="n">accu</span><span class="p">[(</span><span class="n">psi</span><span class="p">,</span><span class="n">rad</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span><span class="n">psi</span><span class="o">+</span><span class="n">rad</span><span class="o">*</span><span class="mf">0.1</span><span class="p">]</span>
+
+<span class="n">z</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">exportAccumulatorPerPsi</span><span class="p">(</span><span class="n">accu</span><span class="p">,</span> <span class="n">psi</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Rotor.exportAccumulatorPerRadius">
+<span class="sig-prename descclassname"><span class="pre">Post.Rotor.</span></span><span class="sig-name descname"><span class="pre">exportAccumulatorPerRadius</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">accumulator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['F1',</span> <span class="pre">'F2']</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Export a given radius of an accumulator (psi,rad) in a 1D zone.
+For distributed computations, the exported zone is identical on all processors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>accumulator</strong> (<em>dictionary</em>) &#8211; (psi,rad) accumulator</p></li>
+<li><p><strong>rad</strong> (<em>float</em>) &#8211; radius to be extracted</p></li>
+<li><p><strong>vars</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; the name of variables stored in accumulator</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a single Zone with vars corresponding to rad</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/exportAccumulatorPerRadiusPT.py">Export accumulator for given rad (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exportAccumulatorPerRadius (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Rotor</span> <span class="k">as</span> <span class="nn">PR</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="n">accu</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">psi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">rad</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="n">accu</span><span class="p">[(</span><span class="n">psi</span><span class="p">,</span><span class="n">rad</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span><span class="n">psi</span><span class="o">+</span><span class="n">rad</span><span class="o">*</span><span class="mf">0.1</span><span class="p">]</span>
+
+<span class="n">z</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">exportAccumulatorPerRadius</span><span class="p">(</span><span class="n">accu</span><span class="p">,</span> <span class="n">rad</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Rotor.exportAccumulatorMap">
+<span class="sig-prename descclassname"><span class="pre">Post.Rotor.</span></span><span class="sig-name descname"><span class="pre">exportAccumulatorMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">accumulator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Fx',</span> <span class="pre">'Fy',</span> <span class="pre">'Fz']</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Export accumulator (psi,rad) to a 2D zone.
+For distributed computations, the exported zone is identical on all processors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>accumulator</strong> (<em>dictionary</em>) &#8211; (psi,rad) accumulator</p></li>
+<li><p><strong>vars</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; the name of variables stored in accumulator</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a single Zone with fields</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/exportAccumulatorMapPT.py">Export accumulator to a map (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exportAccumulatorMap (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Rotor</span> <span class="k">as</span> <span class="nn">PR</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="n">accu</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">psi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">365</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">rad</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="n">accu</span><span class="p">[(</span><span class="n">psi</span><span class="p">,</span><span class="n">rad</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span><span class="n">psi</span><span class="o">+</span><span class="n">rad</span><span class="o">*</span><span class="mf">0.1</span><span class="p">]</span>
+
+<span class="n">z</span> <span class="o">=</span> <span class="n">PR</span><span class="o">.</span><span class="n">exportAccumulatorMap</span><span class="p">(</span><span class="n">accu</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Post.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Post.Rotor: rotor specific post-processing</a><ul>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Rotor.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.Rotor: rotor specific post-processing</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

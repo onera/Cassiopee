@@ -1,0 +1,947 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Initiator: solution Initialization Module &#8212; Initiator 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Initiator 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Initiator: solution Initialization Module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="initiator-solution-initialization-module">
+<h1>Initiator: solution Initialization Module</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>Initiator module works on arrays (as defined in Converter) or on CGNS/python trees (pyTrees)
+containing grid information (coordinates must be defined).</p>
+<p>This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.</p>
+<p>For use with the array interface, you have to import Initiator module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Initiator</span> <span class="k">as</span> <span class="nn">I</span>
+</pre></div>
+</div>
+<p>For use with the pyTree interface:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+</pre></div>
+</div>
+<span class="target" id="module-Initiator"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; CFD field initialisations</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Initiator.initConst" title="Initiator.initConst"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initConst</span></code></a></p></td>
+<td><p>Init a by a constant field.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Initiator.initLamb" title="Initiator.initLamb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initLamb</span></code></a></p></td>
+<td><p>Init a with a Lamb vortex of intensity Gamma and position (x0,y0).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Initiator.initVisbal" title="Initiator.initVisbal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initVisbal</span></code></a></p></td>
+<td><p>Init a with a Visbal vortex of intensity Gamma and position (x0,y0).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Initiator.initScully" title="Initiator.initScully"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initScully</span></code></a></p></td>
+<td><p>Init a with a Scully vortex of intensity Gamma, core radius coreRadius and position (x0,y0).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Initiator.initYee" title="Initiator.initYee"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initYee</span></code></a></p></td>
+<td><p>Init a with a Yee vortex of intensity Gamma and position (x0,y0).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Initiator.initWissocq" title="Initiator.initWissocq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initWissocq</span></code></a></p></td>
+<td><p>Init a with Wissocq's vortex of intensity Gamma and position (x0,y0).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Initiator.overlayField" title="Initiator.overlayField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlayField</span></code></a></p></td>
+<td><p>Overlay the field of a1 and a2.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Adimensioning</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Initiator.Adim.adim1" title="Initiator.Adim.adim1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Adim.adim1</span></code></a></p></td>
+<td><p>Return a state corresponding to adimensioning by density, sound speed and temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Initiator.Adim.adim2" title="Initiator.Adim.adim2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Adim.adim2</span></code></a></p></td>
+<td><p>Return a state corresponding to adimensioning by density, velocity and temperature.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Initiator.Adim.adim3" title="Initiator.Adim.adim3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Adim.adim3</span></code></a></p></td>
+<td><p>Return a state corresponding to adimensioning by density, sound speed and temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Initiator.Adim.dim1" title="Initiator.Adim.dim1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Adim.dim1</span></code></a></p></td>
+<td><p>Return a dimensioned state specifying velocity, temperature and pressure.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Initiator.Adim.dim2" title="Initiator.Adim.dim2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Adim.dim2</span></code></a></p></td>
+<td><p>Return a dimensioned state specifying velocity, temperature and density.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Initiator.Adim.dim3" title="Initiator.Adim.dim3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Adim.dim3</span></code></a></p></td>
+<td><p>Return a dimensioned state specifying velocity, pressure and density.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Mesh size</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeshSize.meshSize</span></code></p></td>
+<td><p>Return the height of first wall cell to match a certain y+.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="cfd-field-initialisations">
+<h3>CFD field initialisations</h3>
+<p>The input data defines a grid or a set of grids on which the solution has to be initialized.</p>
+<p>The created field variables are the variables defined in the input data.
+If the five conservative variables are not present, then the default output variables are the coordinates and the conservative variables.</p>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.initConst">
+<span class="sig-prename descclassname"><span class="pre">Initiator.</span></span><span class="sig-name descname"><span class="pre">initConst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'adim1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ReInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nodes'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Initialization by a constant field, given Mach number, incident flow angles and Reynolds number.</p>
+<p>Exists also as in place version (_initConst) that modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>adim</strong> (<em>string</em>) &#8211; Name of adim (&#8216;adim1&#8217;, &#8216;adim2&#8217;, &#8216;dim1&#8217;, &#8230;) - see Adimensioning section</p></li>
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; freestream Mach number</p></li>
+<li><p><strong>alphaZ</strong> (<em>float</em>) &#8211; Angle with respect to (0,Z) axe (in degrees)</p></li>
+<li><p><strong>alphaY</strong> (<em>float</em>) &#8211; Angle with respect to (0,Y) axe (in degrees)</p></li>
+<li><p><strong>ReInf</strong> (<em>float</em>) &#8211; Reynolds Number</p></li>
+<li><p><strong>loc</strong> (<em>string</em>) &#8211; created field localisation (&#8216;nodes&#8217; or &#8216;centers&#8217;) - only for pyTree interface</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to a</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/initConst.py">Constant field initialization (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initConst (array) -</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initConst</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/initConstPT.py">Constant field initialization (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initConst (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initConst</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.initLamb">
+<span class="sig-prename descclassname"><span class="pre">Initiator.</span></span><span class="sig-name descname"><span class="pre">initLamb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">(x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gamma=2.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MInf=0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc='nodes'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Initialization of conservative variables by a 2D Lamb vortex at position (x0,y0), intensity Gamma
+and infinite Mach number MInf.</p>
+<p>Exists also as in place version (_initLamb) that modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>Gamma</strong> (<em>float</em>) &#8211; Intensity of vortex</p></li>
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>loc</strong> &#8211; created field localisation (&#8216;nodes&#8217; or &#8216;centers&#8217;)  - only for pyTree interface</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to a</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/lamb.py">Field initialization with a lamb vortex (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initLamb (array) -</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">25.</span><span class="p">,</span><span class="mf">25.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/lambPT.py">Field initialization with a lamb vortex (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initLamb (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.initVisbal">
+<span class="sig-prename descclassname"><span class="pre">Initiator.</span></span><span class="sig-name descname"><span class="pre">initVisbal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">(x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gamma=2.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MInf=0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc='nodes'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Initialization of conservative variables by a 2D Visbal vortex at position (x0,y0), intensity Gamma
+and infinite Mach number MInf.</p>
+<p>Exists also as in place version (_initVisbal) that modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>Gamma</strong> (<em>float</em>) &#8211; Intensity of vortex</p></li>
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>loc</strong> &#8211; field localisation (&#8216;nodes&#8217; or &#8216;centers&#8217;)  - only for pyTree interface</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to a</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/visbal.py">Field initialization with a visbal vortex (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initVisbal (array) -</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">(</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initVisbal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">25.</span><span class="p">,</span><span class="mf">25.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/visbalPT.py">Field initialization with a visbal vortex (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initVisbal (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">MachInf</span> <span class="o">=</span> <span class="mf">0.8</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initVisbal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span><span class="mf">3.</span><span class="p">),</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">MachInf</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.initScully">
+<span class="sig-prename descclassname"><span class="pre">Initiator.</span></span><span class="sig-name descname"><span class="pre">initScully</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">(x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gamma=2.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coreRadius=1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MInf=0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc='nodes'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Initialization of conservative variables by a 2D Scully vortex at position (x0,y0), intensity Gamma
+and infinite Mach number MInf.</p>
+<p>Exists also as in place version (_initScully) that modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>Gamma</strong> (<em>float</em>) &#8211; Intensity of vortex</p></li>
+<li><p><strong>coreRadius</strong> (<em>float</em>) &#8211; radius of vortex core</p></li>
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>loc</strong> &#8211; field localisation (&#8216;nodes&#8217; or &#8216;centers&#8217;)  - only for pyTree interface</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to a</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/scully.py">Field initialization with a scully vortex (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initScully (array) -</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Initiator</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initScully</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/scullyPT.py">Field initialization with a scully vortex (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initScully (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initScully</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.initYee">
+<span class="sig-prename descclassname"><span class="pre">Initiator.</span></span><span class="sig-name descname"><span class="pre">initYee</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">(x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gamma=2.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MInf=0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc='nodes'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Initialization of conservative variables by a 2D Yee vortex at position (x0,y0), intensity Gamma
+and infinite Mach number MInf.</p>
+<p>Exists also as in place version (_initYee) that modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>Gamma</strong> (<em>float</em>) &#8211; Intensity of vortex</p></li>
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>loc</strong> &#8211; field localisation (&#8216;nodes&#8217; or &#8216;centers&#8217;)  - only for pyTree interface</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to a</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/yee.py">Field initialization with a Yee vortex (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initYee (array) -</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">(</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initYee</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">25.</span><span class="p">,</span><span class="mf">25.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/yeePT.py">Field initialization with a Yee vortex (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initYee (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">MachInf</span> <span class="o">=</span> <span class="mf">0.8</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initYee</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span><span class="mf">3.</span><span class="p">),</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">MachInf</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.initWissocq">
+<span class="sig-prename descclassname"><span class="pre">Initiator.</span></span><span class="sig-name descname"><span class="pre">initWissocq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">(x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gamma=0.07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MInf=0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc='nodes'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Initialization of conservative variables by a 2D Wissocq vortex at position (x0,y0), intensity Gamma
+and infinite Mach number MInf.</p>
+<p>Exists also as in place version (_initWissocq) that modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Input data</p></li>
+<li><p><strong>Gamma</strong> (<em>float</em>) &#8211; Intensity of vortex</p></li>
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>loc</strong> &#8211; field localisation (&#8216;nodes&#8217; or &#8216;centers&#8217;)  - only for pyTree interface</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to a</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/wissocq.py">Field initialization with a Wissocq vortex (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initWissocq (array) -</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Initiator</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initWissocq</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">),</span> <span class="mf">0.07</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/wissocqPT.py">Field initialization with a Wissocq vortex (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initWissocq (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initWissocq</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">),</span> <span class="mf">0.07</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.overlayField">
+<span class="sig-prename descclassname"><span class="pre">Initiator.</span></span><span class="sig-name descname"><span class="pre">overlayField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nodes'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Overlay the field of two solutions defined on the same grid (defined in a and b).
+Only density, velocity and energy stagnation density are overlaid.
+Both fields must use the same adimensioning, which corresponds to the
+same infinite Mach number MInf.</p>
+<p>Exists also as in place version (_overlayField) that modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; First input data</p></li>
+<li><p><strong>b</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; Second input data</p></li>
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>loc</strong> &#8211; field localisation (&#8216;nodes&#8217; or &#8216;centers&#8217;)  - only for pyTree interface</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to a</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/overlay.py">Field initialization by overlaying two solutions (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - overlayField (array) -</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">MachInf</span> <span class="o">=</span> <span class="mf">0.8</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">ac</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initVisbal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span><span class="mf">3.</span><span class="p">),</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">MachInf</span><span class="p">)</span>
+<span class="n">ac2</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initVisbal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">20.</span><span class="p">,</span><span class="mf">3.</span><span class="p">),</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">MachInf</span><span class="p">)</span>
+<span class="n">an</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">overlayField</span><span class="p">(</span><span class="n">ac</span><span class="p">,</span> <span class="n">ac2</span><span class="p">,</span> <span class="n">MachInf</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">an</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/overlayPT.py">Field initialization by overlaying two solutions (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - overlayField (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">MachInf</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">z1</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initVisbal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span><span class="mf">3.</span><span class="p">),</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">MachInf</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">);</span> <span class="n">z1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;cart1&#39;</span>
+<span class="n">z2</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initVisbal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">20.</span><span class="p">,</span><span class="mf">3.</span><span class="p">),</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">MachInf</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">);</span> <span class="n">z2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;cart2&#39;</span>
+<span class="n">zn</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">overlayField</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">,</span> <span class="n">MachInf</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">zn</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="adimensioning">
+<h3>Adimensioning</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.Adim.adim1">
+<span class="sig-prename descclassname"><span class="pre">Initiator.Adim.</span></span><span class="sig-name descname"><span class="pre">adim1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">MInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ReInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MutSMuInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TurbLevelInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return a reference state corresponding to an adimensioning by density, sound speed and temperature.
+Returned state is adimensioned. When using this state, the mesh must also be adimensioned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>alphaZ</strong> (<em>float</em>) &#8211; Angle with respect to (0,Z) axe (in degrees)</p></li>
+<li><p><strong>alphaY</strong> (<em>float</em>) &#8211; Angle with respect to (0,Y) axe (in degrees)</p></li>
+<li><p><strong>ReInf</strong> (<em>float</em>) &#8211; Reynolds Number</p></li>
+<li><p><strong>MutSMuInf</strong> (<em>float</em>) &#8211; ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity</p></li>
+<li><p><strong>TurbLevelInf</strong> &#8211; turbulence level at infinity</p></li>
+<li><p><strong>Mtip</strong> (<em>float</em><em> or </em><em>None</em>) &#8211; if not None, used as speed definition for viscous and turbulent values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>[RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
+ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+Mus, Cs, Ts, Pr]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/adim1.py">Get adimensioned state</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adim1 -</span>
+<span class="kn">import</span> <span class="nn">Initiator.Adim</span> <span class="k">as</span> <span class="nn">Adim</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">Adim</span><span class="o">.</span><span class="n">adim1</span><span class="p">(</span><span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">1.e6</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [1.0, 0.799878156125113, 0.01396192514982681, 0.0, 2.1057142857142863,</span>
+<span class="c1">#&gt;&gt; 0.7142857142857143, 1.0, 1.7857142857142863, 0.8, 1000000.0,</span>
+<span class="c1">#&gt;&gt; 0.3831337844872463, 1.4, 8e-09, 0.049999999999999996,</span>
+<span class="c1">#&gt;&gt; 1.6000000000000003e-07, 8.000000000000001e-07, 0.3831337844872463, 1.0, 0.70951]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.Adim.adim2">
+<span class="sig-prename descclassname"><span class="pre">Initiator.Adim.</span></span><span class="sig-name descname"><span class="pre">adim2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">MInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ReInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MutSMuInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TurbLevelInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-4</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return a reference state corresponding to an adimensioning by density, fluid velocity and temperature.
+Returned state is adimensioned. When using this state, the mesh must also be adimensioned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>alphaZ</strong> (<em>float</em>) &#8211; Angle with respect to (0,Z) axe (in degrees)</p></li>
+<li><p><strong>alphaY</strong> (<em>float</em>) &#8211; Angle with respect to (0,Y) axe (in degrees)</p></li>
+<li><p><strong>ReInf</strong> (<em>float</em>) &#8211; Reynolds Number</p></li>
+<li><p><strong>MutSMuInf</strong> (<em>float</em>) &#8211; ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity</p></li>
+<li><p><strong>TurbLevelInf</strong> &#8211; turbulence level at infinity</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>[RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
+ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+Mus, Cs, Ts, Pr]</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/adim2.py">Get adimensioned state 2</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adim2 -</span>
+<span class="kn">import</span> <span class="nn">Initiator.Adim</span> <span class="k">as</span> <span class="nn">Adim</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">Adim</span><span class="o">.</span><span class="n">adim2</span><span class="p">(</span><span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">1.e6</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [1.0, 0.9998476951563913, 0.01745240643728351, 0.0, 3.290178571428572,</span>
+<span class="c1">#&gt;&gt; 1.1160714285714286, 1.0, 2.790178571428572, 0.8, 1000000.0,</span>
+<span class="c1">#&gt;&gt; 0.3831337844872463, 1.4, 1e-08, 0.05, 2e-07, 1e-06, 0.3831337844872463,</span>
+<span class="c1">#&gt;&gt; 1.0, 0.70951]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.Adim.adim3">
+<span class="sig-prename descclassname"><span class="pre">Initiator.Adim.</span></span><span class="sig-name descname"><span class="pre">adim3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">MInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ReInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MutSMuInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TurbLevelInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return a reference state corresponding to an adimensioning by density, sound speed and temperature.
+Returned state is adimensioned. When using this state, the mesh doesn&#8217;t need to be adimensioned and
+has a characteritic length of LInf.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>MInf</strong> (<em>float</em>) &#8211; Mach number</p></li>
+<li><p><strong>alphaZ</strong> (<em>float</em>) &#8211; Angle with respect to (0,Z) axe (in degrees)</p></li>
+<li><p><strong>alphaY</strong> (<em>float</em>) &#8211; Angle with respect to (0,Y) axe (in degrees)</p></li>
+<li><p><strong>ReInf</strong> (<em>float</em>) &#8211; Reynolds Number</p></li>
+<li><p><strong>LInf</strong> (<em>float</em>) &#8211; Characteristic length of mesh (on which ReInf is based)</p></li>
+<li><p><strong>MutSMuInf</strong> (<em>float</em>) &#8211; ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity</p></li>
+<li><p><strong>TurbLevelInf</strong> &#8211; turbulence level at infinity</p></li>
+<li><p><strong>Mtip</strong> (<em>float</em><em> or </em><em>None</em>) &#8211; if not None, used as speed definition for viscous and turbulent values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>[RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
+ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+Mus, Cs, Ts, Pr]</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/adim3.py">Get adimensioned state 3</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adim3 -</span>
+<span class="kn">import</span> <span class="nn">Initiator.Adim</span> <span class="k">as</span> <span class="nn">Adim</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">Adim</span><span class="o">.</span><span class="n">adim3</span><span class="p">(</span><span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">LInf</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">1.e6</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [1.0, 0.799878156125113, 0.01396192514982681, 0.0, 2.1057142857142863,</span>
+<span class="c1">#&gt;&gt; 0.7142857142857143, 1.0, 1.7857142857142863, 0.8, 1000000.0,</span>
+<span class="c1">#&gt;&gt; 0.3831337844872463, 1.4, 8e-09, 0.02, 4e-07, 2e-06, 0.3831337844872463,</span>
+<span class="c1">#&gt;&gt; 1.0, 0.70951]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.Adim.dim1">
+<span class="sig-prename descclassname"><span class="pre">Initiator.Adim.</span></span><span class="sig-name descname"><span class="pre">dim1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">UInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.7777</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">298.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">101325.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MutSMuInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TurbLevelInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return a dimensioned reference state corresponding to dry air, considered as a perfect gaz.
+Returned a dimensioned state (USI).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>UInf</strong> (<em>float</em>) &#8211; Fluid velocity in m/s</p></li>
+<li><p><strong>TInf</strong> (<em>float</em>) &#8211; Temperature in K (0 degree=273.15K)</p></li>
+<li><p><strong>PInf</strong> (<em>float</em>) &#8211; Pressure in Pa</p></li>
+<li><p><strong>LInf</strong> (<em>float</em>) &#8211; Reference length (m). Usefull to compute Reynolds.</p></li>
+<li><p><strong>MutSMuInf</strong> (<em>float</em>) &#8211; ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity</p></li>
+<li><p><strong>TurbLevelInf</strong> &#8211; turbulence level at infinity</p></li>
+<li><p><strong>Mtip</strong> (<em>float</em><em> or </em><em>None</em>) &#8211; if not None, used as speed definition for viscous and turbulent values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>[RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
+ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+Mus, Cs, Ts, Pr]</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/dim1.py">Get dimensioned state</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dim1 -</span>
+<span class="kn">import</span> <span class="nn">Initiator.Adim</span> <span class="k">as</span> <span class="nn">Adim</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">Adim</span><span class="o">.</span><span class="n">dim1</span><span class="p">(</span><span class="n">UInf</span><span class="o">=</span><span class="mf">2.8</span><span class="p">,</span> <span class="n">TInf</span><span class="o">=</span><span class="mf">298.</span><span class="p">,</span> <span class="n">PInf</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">LInf</span><span class="o">=</span><span class="mf">12.</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">1.</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [1.1845087092749074, 3.3161192480113266, 0.05788307678374978, 0.0,</span>
+<span class="c1">#&gt;&gt; 253317.14327414043, 101325, 298.0, 717.6325, 0.00809104909572454,</span>
+<span class="c1">#&gt;&gt; 2167112.2969719185, 110.4, 1.4, 3.316624385969741e-08, 0.009029634570716328,</span>
+<span class="c1">#&gt;&gt; 3.673043864616362e-06, 1.78938e-05, 110.4, 288.15, 0.7084595175093612]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.Adim.dim2">
+<span class="sig-prename descclassname"><span class="pre">Initiator.Adim.</span></span><span class="sig-name descname"><span class="pre">dim2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">UInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.7777</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">298.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RoInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.225</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MutSMuInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TurbLevelInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return a dimensioned reference state corresponding to dry air, considered as a perfect gaz.
+Only the input is different from dim1.
+Returned a dimensioned state (USI).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>UInf</strong> (<em>float</em>) &#8211; Fluid velocity in m/s</p></li>
+<li><p><strong>TInf</strong> (<em>float</em>) &#8211; Temperature in K (0 degree=273.15K)</p></li>
+<li><p><strong>RoInf</strong> (<em>float</em>) &#8211; Input density (kg/m3)</p></li>
+<li><p><strong>LInf</strong> (<em>float</em>) &#8211; Reference length (m). Usefull to compute Reynolds.</p></li>
+<li><p><strong>MutSMuInf</strong> (<em>float</em>) &#8211; ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity</p></li>
+<li><p><strong>TurbLevelInf</strong> &#8211; turbulence level at infinity</p></li>
+<li><p><strong>Mtip</strong> (<em>float</em><em> or </em><em>None</em>) &#8211; if not None, used as speed definition for viscous and turbulent values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>[RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
+ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+Mus, Cs, Ts, Pr]</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/dim2.py">Get dimensioned state 2</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dim2 -</span>
+<span class="kn">import</span> <span class="nn">Initiator.Adim</span> <span class="k">as</span> <span class="nn">Adim</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">Adim</span><span class="o">.</span><span class="n">dim2</span><span class="p">(</span><span class="n">UInf</span><span class="o">=</span><span class="mf">2.8</span><span class="p">,</span> <span class="n">TInf</span><span class="o">=</span><span class="mf">298.</span><span class="p">,</span> <span class="n">RoInf</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">LInf</span><span class="o">=</span><span class="mf">12.</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">1.</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [1.2, 3.3594882557254744, 0.058640085629272594, 0.0, 256630.08600000004,</span>
+<span class="c1">#&gt;&gt; 102650.1528, 298.0, 717.6325000000002, 0.00809104909572454,</span>
+<span class="c1">#&gt;&gt; 2195454.314521849, 110.4, 1.4, 3.3599999999999996e-08, 0.009147726310507706,</span>
+<span class="c1">#&gt;&gt; 3.673043864616362e-06, 1.78938e-05, 110.4, 288.15, 0.7084595175093613]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Initiator.Adim.dim3">
+<span class="sig-prename descclassname"><span class="pre">Initiator.Adim.</span></span><span class="sig-name descname"><span class="pre">dim3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">UInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.7777</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">101325.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RoInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.225</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MutSMuInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TurbLevelInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return a dimensioned reference state corresponding to dry air, considered as a perfect gaz.
+Only the input is different from dim1.
+Returned a dimensioned state (USI).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>UInf</strong> (<em>float</em>) &#8211; Fluid velocity in m/s</p></li>
+<li><p><strong>PInf</strong> (<em>float</em>) &#8211; Pressure in Pa</p></li>
+<li><p><strong>RoInf</strong> (<em>float</em>) &#8211; Input density (kg/m3)</p></li>
+<li><p><strong>LInf</strong> (<em>float</em>) &#8211; Reference length (m). Usefull to compute Reynolds.</p></li>
+<li><p><strong>MutSMuInf</strong> (<em>float</em>) &#8211; ratio of mut/mu (turbulence viscosity/molecular viscosity) at infinity</p></li>
+<li><p><strong>TurbLevelInf</strong> &#8211; turbulence level at infinity</p></li>
+<li><p><strong>Mtip</strong> (<em>float</em><em> or </em><em>None</em>) &#8211; if not None, used as speed definition for viscous and turbulent values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>[RoInf, RouInf, RovInf, RowInf, RoEInf, PInf, TInf, cvInf, MInf,
+ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
+Mus, Cs, Ts, Pr]</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/dim3.py">Get dimensioned state 3</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dim3 -</span>
+<span class="kn">import</span> <span class="nn">Initiator.Adim</span> <span class="k">as</span> <span class="nn">Adim</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">Adim</span><span class="o">.</span><span class="n">dim3</span><span class="p">(</span><span class="n">UInf</span><span class="o">=</span><span class="mf">2.8</span><span class="p">,</span> <span class="n">PInf</span><span class="o">=</span><span class="mf">101325.</span><span class="p">,</span> <span class="n">RoInf</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">LInf</span><span class="o">=</span><span class="mf">12.</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">1.</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [1.1999999999999997, 3.3594882557254735, 0.05864008562927258, 0.0,</span>
+<span class="c1">#&gt;&gt; 253317.20400000006, 101325.0, 294.152996136602, 717.6325000000002,</span>
+<span class="c1">#&gt;&gt; 0.0081437855769486, 2217576.314799729, 110.4, 1.4, 3.359999999999999e-08,</span>
+<span class="c1">#&gt;&gt; 0.009239901311665535, 3.6364024751627385e-06, 1.78938e-05, 110.4,</span>
+<span class="c1">#&gt;&gt; 288.15, 0.7094696135544664]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="mesh-size">
+<h3>Mesh size</h3>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Initiator.MeshSize.meshSize(UInf,</span> <span class="pre">RoInf,</span> <span class="pre">ReInf,</span> <span class="pre">LInf,</span> <span class="pre">esurc=0.012,</span> <span class="pre">yplus=1.,</span> <span class="pre">algo='Turbulent'):</span></span></dt>
+<dd><p>Return the height of the first wall mesh cell that must be set to match a certain y+.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>UInf</strong> (<em>float</em>) &#8211; Inflow reference speed</p></li>
+<li><p><strong>RoInf</strong> (<em>float</em>) &#8211; Inflow reference density</p></li>
+<li><p><strong>ReInf</strong> (<em>float</em>) &#8211; Inflow reference Reynolds</p></li>
+<li><p><strong>LInf</strong> (<em>float</em>) &#8211; Reference length for Reynolds</p></li>
+<li><p><strong>esurc</strong> &#8211; profile thickness over chord (used only in Corr algorithms)</p></li>
+<li><p><strong>yplus</strong> (<em>float</em>) &#8211; target y+ to match</p></li>
+<li><p><strong>algo</strong> (<em>string</em>) &#8211; type of algorithm in &#8216;Turbulent&#8217;, &#8216;TurbulentCorr&#8217;, &#8216;LaminarCorr&#8217;</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>height of first cell</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Initiator/meshSizePT.py">Get the first mesh cell height</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - meshSize (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+
+<span class="n">hp</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">meshSize</span><span class="p">(</span><span class="n">UInf</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">RoInf</span><span class="o">=</span><span class="mf">1.223</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mi">6000</span><span class="p">,</span> <span class="n">LInf</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">yplus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="s1">&#39;Turbulent&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">hp</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Initiator: solution Initialization Module</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Initiator.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Initiator 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Initiator: solution Initialization Module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

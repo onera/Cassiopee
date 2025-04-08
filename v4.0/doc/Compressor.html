@@ -1,0 +1,634 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Compressor: Field compression module &#8212; Compressor 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Compressor 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Compressor: Field compression module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="compressor-field-compression-module">
+<h1>Compressor: Field compression module</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>Compressor enables fields compression for arrays/pyTrees.</p>
+<p>This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.</p>
+<p>To use the module with the Compressor array interface:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Compressor</span>
+</pre></div>
+</div>
+<p>To use the module with the CGNS/Python interface:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+</pre></div>
+</div>
+<span class="target" id="module-Compressor"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Index field compression</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.deltaIndex" title="Compressor.deltaIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.deltaIndex</span></code></a></p></td>
+<td><p>Return the delta between index and ref.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Object serializer/compression</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.pack" title="Compressor.pack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.pack</span></code></a></p></td>
+<td><p>Serialize or compress a.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.unpack" title="Compressor.unpack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.unpack</span></code></a></p></td>
+<td><p>Deserialize or decompress a.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; CGNS Zones/tree compression</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCartesian" title="Compressor.PyTree.compressCartesian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCartesian</span></code></a></p></td>
+<td><p>For Cartesian grids, replace Grid Coordinates with a compressed node.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.uncompressCartesian" title="Compressor.PyTree.uncompressCartesian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.uncompressCartesian</span></code></a></p></td>
+<td><p>For Cartesian grids, recreate Grid Coordinates from compressed zones.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCellN" title="Compressor.PyTree.compressCellN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCellN</span></code></a></p></td>
+<td><p>Compress cellN (0,1,2) lossless on 2 bits.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.compressCoords" title="Compressor.PyTree.compressCoords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressCoords</span></code></a></p></td>
+<td><p>Compress coordinates lossless or with a relative tolerance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressFields" title="Compressor.PyTree.compressFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressFields</span></code></a></p></td>
+<td><p>Compress fields lossless or with a relative tolerance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.compressElements" title="Compressor.PyTree.compressElements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressElements</span></code></a></p></td>
+<td><p>Compress lossless Element connectivity.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.PyTree.compressAll" title="Compressor.PyTree.compressAll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.compressAll</span></code></a></p></td>
+<td><p>Compress coords, fields and connectivity (lossless).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.PyTree.uncompressAll" title="Compressor.PyTree.uncompressAll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.PyTree.uncompressAll</span></code></a></p></td>
+<td><p>Uncompress all compressed data.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="index-field-compression">
+<h3>Index field compression</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.deltaIndex">
+<span class="sig-prename descclassname"><span class="pre">Compressor.</span></span><span class="sig-name descname"><span class="pre">deltaIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compress a list of indices using delta algorithm.
+The return Delta contains
+the number of added indices in a when compared to ref,
+the list of added indices, the
+number of suppressed indices, the list of suppressed indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>numpy</em><em> of </em><em>ints</em>) &#8211; input indices</p></li>
+<li><p><strong>ref</strong> (<em>numpy</em>) &#8211; compared indices</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of added indices, the number of supressed indices, list of suppress indices</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(numpy, int, numpy)</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/deltaIndex.py">Compression by delta (numpy)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - deltaIndex -</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">Compressor</span>
+
+<span class="c1"># Liste des indexes de reference</span>
+<span class="n">indRef</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int32&#39;</span><span class="p">)</span>
+
+<span class="c1"># Liste des indexes a comparer a la reference</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int32&#39;</span><span class="p">)</span>
+
+<span class="n">delta</span> <span class="o">=</span> <span class="n">Compressor</span><span class="o">.</span><span class="n">deltaIndex</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">indRef</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="object-serialize-compression">
+<h3>Object serialize/compression</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.pack">
+<span class="sig-prename descclassname"><span class="pre">Compressor.</span></span><span class="sig-name descname"><span class="pre">pack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Serialize/compress a python object a. For now, this is only a general interface
+to pickle module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>python object</em>) &#8211; any python object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>serialized stream</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/pack.py">Object serialization (numpy)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - pack -</span>
+<span class="kn">import</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">Compressor</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.unpack">
+<span class="sig-prename descclassname"><span class="pre">Compressor.</span></span><span class="sig-name descname"><span class="pre">unpack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Deserialize/decompress a serialized stream b. For now, this is only a general interface
+to pickle module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>serialized stream</em>) &#8211; a serialized stream as produced by pack</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>python object</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/unpack.py">Object deserialization (numpy)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - unpack -</span>
+<span class="kn">import</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">Compressor</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">Compressor</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.PyTree.compressCartesian">
+<span class="sig-prename descclassname"><span class="pre">Compressor.PyTree.</span></span><span class="sig-name descname"><span class="pre">compressCartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compress zones if they are regular Cartesian grids. Create a
+CartesianData node containing the 6 floats
+corresponding to first point and steps in 3 directions.</p>
+<p>Exists also as an in-place version (_compressCartesian) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/compressCartesianPT.py">Cartesian compression (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compressCartesian (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressCartesian</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.PyTree.uncompressCartesian">
+<span class="sig-prename descclassname"><span class="pre">Compressor.PyTree.</span></span><span class="sig-name descname"><span class="pre">uncompressCartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Uncompress zones that has been compressed with compressCartesian.
+Exists also as an in-place version (_uncompressCartesian) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/uncompressCartesianPT.py">Cartesian uncompression (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - uncompressCartesian (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressCartesian</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_uncompressCartesian</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.PyTree.compressCellN">
+<span class="sig-prename descclassname"><span class="pre">Compressor.PyTree.</span></span><span class="sig-name descname"><span class="pre">compressCellN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varNames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['cellN']</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compress cellN fields (valued 0,1,2).</p>
+<p>Exists also as an in-place version (_compressCellN) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>varNames</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; list of &#8216;cellN&#8217; names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/compressCellNPT.py">CellN compression (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compressCellN (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;{centers:cellN}=1.&#39;</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressCellN</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_uncompressAll</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.PyTree.compressCoords">
+<span class="sig-prename descclassname"><span class="pre">Compressor.PyTree.</span></span><span class="sig-name descname"><span class="pre">compressCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compress zone coordinates with sz, zfp or fpc libraries.</p>
+<p>Fpc is a lossless compression and doesn&#8217;t use tol.
+sz and zfp are approximative compressions controling error at a given relative tolerance.</p>
+<p>Exists also as an in-place version (_compressCoords) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; control relative error on output (sz, zfp)</p></li>
+<li><p><strong>ctype</strong> (<em>0</em><em> (</em><em>sz</em><em>)</em><em>, </em><em>1</em><em> (</em><em>zfp</em><em>)</em><em>, </em><em>5</em><em> (</em><em>fpc</em><em>)</em>) &#8211; compression algorithm</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/compressCoordsPT.py">Coordinates compression (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compressCoords (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressCoords</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-7</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_uncompressAll</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.PyTree.compressFields">
+<span class="sig-prename descclassname"><span class="pre">Compressor.PyTree.</span></span><span class="sig-name descname"><span class="pre">compressFields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varNames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compress zone fields with sz, zfp or fpc libraries.</p>
+<p>Fpc is a lossless compression and doesn&#8217;t use tol.
+sz and zfp are approximative compressions controling error at a given relative tolerance.</p>
+<p>Exists also as an in-place version (_compressFields) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; control relative error on output</p></li>
+<li><p><strong>ctype</strong> (<em>0</em><em> (</em><em>sz</em><em>)</em><em>, </em><em>1</em><em> (</em><em>zfp</em><em>)</em><em>, </em><em>5</em><em> (</em><em>fpc</em><em>)</em>) &#8211; compression algorithm</p></li>
+<li><p><strong>varNames</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; optional list of variable names to compress (e.g. [&#8216;f&#8217;, &#8216;centers:G&#8217;])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/compressFieldsPT.py">Field compression (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compressFields (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateY}&#39;</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressFields</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_uncompressAll</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.PyTree.compressElements">
+<span class="sig-prename descclassname"><span class="pre">Compressor.PyTree.</span></span><span class="sig-name descname"><span class="pre">compressElements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compress zone elements (connectivity).</p>
+<p>Exists also as an in-place version (_compressElements) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/compressElementsPT.py">Element compression (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compressElements (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">25</span><span class="p">,</span><span class="mi">23</span><span class="p">,</span><span class="mi">24</span><span class="p">))</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressElements</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_uncompressAll</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.PyTree.compressAll">
+<span class="sig-prename descclassname"><span class="pre">Compressor.PyTree.</span></span><span class="sig-name descname"><span class="pre">compressAll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compress zones (fields, connectivity) in the best and lossless way.</p>
+<p>Exists also as an in-place version (_compressAll) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/compressAllPT.py">Zone compression (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compressAll (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateY}&#39;</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressAll</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Compressor.PyTree.uncompressAll">
+<span class="sig-prename descclassname"><span class="pre">Compressor.PyTree.</span></span><span class="sig-name descname"><span class="pre">uncompressAll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Uncompress zones compressed with the previous compressors.</p>
+<p>Exists also as an in-place version (_uncompressAll) which modifies a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Compressor/uncompressAllPT.py">Zone decompression (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - uncompressAll (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Compressor.PyTree</span> <span class="k">as</span> <span class="nn">Compressor</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateY}&#39;</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressCoords</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_compressFields</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">)</span>
+<span class="n">Compressor</span><span class="o">.</span><span class="n">_uncompressAll</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Compressor: Field compression module</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Compressor.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Compressor 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Compressor: Field compression module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

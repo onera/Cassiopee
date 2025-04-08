@@ -1,0 +1,585 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Post.IBM: immersed boundary method specific post-processing &#8212; Post 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.IBM: immersed boundary method specific post-processing</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="post-ibm-immersed-boundary-method-specific-post-processing">
+<h1>Post.IBM: immersed boundary method specific post-processing</h1>
+<p>Specific post-processing for immersed boundaries (IB).</p>
+<p>These functions work with a solution tree &#8220;t&#8221;, a geometry tree &#8220;tb&#8221;, and/or a connectivity tree &#8220;tc&#8221;.</p>
+<p>All of these functions can be executed in both sequential and parallel contexts.</p>
+<span class="target" id="module-Post.IBM"></span><section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Extract additional IBM information in the connectivity tree</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractPressureGradients" title="Post.IBM.Post.IBM.extractPressureGradients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractPressureGradients</span></code></a></p></td>
+<td><p>Extracts the pressure gradients at the image points.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractPressureHighOrder" title="Post.IBM.Post.IBM.extractPressureHighOrder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractPressureHighOrder</span></code></a></p></td>
+<td><p>Extrapolates the wall pressure (1st or 2nd order) at the immersed boundaries.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractYplusAtImagePoints" title="Post.IBM.Post.IBM.extractYplusAtImagePoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractYplusAtImagePoints</span></code></a></p></td>
+<td><p>Extracts the yplus values at the image points.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; IBM post-processing</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.prepareSkinReconstruction" title="Post.IBM.Post.IBM.prepareSkinReconstruction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.prepareSkinReconstruction</span></code></a></p></td>
+<td><p>Prepares the flow solution extraction at immersed boundaries.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.computeSkinVariables" title="Post.IBM.Post.IBM.computeSkinVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.computeSkinVariables</span></code></a></p></td>
+<td><p>Computes the surface flow solution at the wall.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.computeAerodynamicLoads" title="Post.IBM.Post.IBM.computeAerodynamicLoads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.computeAerodynamicLoads</span></code></a></p></td>
+<td><p>Computes the aerodynamic loads at the wall.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.computeAerodynamicCoefficients" title="Post.IBM.Post.IBM.computeAerodynamicCoefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.computeAerodynamicCoefficients</span></code></a></p></td>
+<td><p>Normalizes aerodynamic coefficients and places integration information in the wind frame.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractPressureGradients">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractPressureGradients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondOrder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes and extracts the pressure gradients from the solution tree (t) to the image points. The pressure gradients are computed within  the fluid domain using a second order technique. The pressure gradients are finally obtained at the image points with the same interpolation technique as for the immersed boundary treatment used during the simulation. The updated information is stored in the connectivity tree (tc) within the IBCD* sub-regions. The solution tree (t) remains unchanged.</p>
+<p>Also available as in-place (_extractPressureGradients).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; solution tree</p></li>
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>secondOrder</strong> (<em>boolean</em>) &#8211; if True, also computes second order pressure gradients</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input with updated pressure gradient solution in each IBCD zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractPressureGradientsPT.py">extracts the pressure gradients at the image points (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractPressureGradients (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">adim</span><span class="o">=</span><span class="s1">&#39;adim1&#39;</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">alphaY</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">5.e6</span><span class="p">,</span> <span class="n">EquationDimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">GoverningEquations</span><span class="o">=</span><span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">ac</span> <span class="o">=</span> <span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">t_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tc_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">ac</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">extractPressureGradients</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">secondOrder</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">ac</span><span class="p">,</span><span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractPressureHighOrder">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractPressureHighOrder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Extrapolates the wall pressure (1st or 2nd order) at the immersed boundaries and stores the solution in the connectivity tree. This function requires the pressure gradient information stored in the IBCD* sub-regions in the x, y, and z directions (see Post.IBM.extractPressureGradients).</p>
+<p>Also available as in-place (_extractPressureHighOrder).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>order</strong> (<em>1</em><em> or </em><em>2</em>) &#8211; int</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input with updated pressure solution in each IBCD zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractPressureHighOrderPT.py">extrapolates the wall pressure (1st or 2nd order) at the immersed boundaries (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractPressureGradients (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">adim</span><span class="o">=</span><span class="s1">&#39;adim1&#39;</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">alphaY</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">5.e6</span><span class="p">,</span> <span class="n">EquationDimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">GoverningEquations</span><span class="o">=</span><span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">ac</span> <span class="o">=</span> <span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">t_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tc_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">ac</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">extractPressureGradients</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">secondOrder</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">ac</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">extractPressureHighOrder</span><span class="p">(</span><span class="n">ac</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">ac</span><span class="p">,</span><span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractYplusAtImagePoints">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractYplusAtImagePoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Extracts the yplus values at the image points and stores the solution in the connectivity tree. This function uses the yplus information located in the IBCD* subregions corresponding to the yplus values calculated at the target points during the simulation.</p>
+<p>Also available as in-place (_extractYplusAtImagePoints).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input with updated yplus solution (yplusIP) in each IBCD zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractYplusAtImagePointsPT.py">extracts the yplus values at the image points (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computePressureGradients (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">adim</span><span class="o">=</span><span class="s1">&#39;adim1&#39;</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">alphaY</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">5.e6</span><span class="p">,</span> <span class="n">EquationDimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">GoverningEquations</span><span class="o">=</span><span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">ac</span> <span class="o">=</span> <span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">t_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tc_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">ac</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">extractYplusAtImagePoints</span><span class="p">(</span><span class="n">ac</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">ac</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.prepareSkinReconstruction">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">prepareSkinReconstruction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibctypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Prepares the flow solution extraction at immersed boundaries. This function extracts the IBM wall points originally stored in the connectivity tree to create a cloud of points that can be projected onto the surface. This function then pre-calculates and stores the intepolation data for the MLS projection (Moving Least Square, 3rd order), which can be particularly useful when more than one on-the-fly force extraction is requested during the simulation.</p>
+<p>When run in parallel, this function also automatically splits the case tree into NP parts (where NP is the number of MPI processes) and dispatches them between procs.</p>
+<p>If ibctypes is not empty, only the information associated with some immersed boundary conditions is calculated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh (TRI-type) with density, pressure, utau, and velocity variables</p></li>
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>dimPb</strong> (<em>list</em><em> of </em><em>integers</em>) &#8211; problem dimension</p></li>
+<li><p><strong>ibctypes</strong> &#8211; list of IBC conditions</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Communication graph for IBM post-processing (for parallel use) and surface tree with interpolation data stored in each zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/prepareSkinReconstructionPT.py">prepares the flow solution extraction at immersed boundaries (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractSkinReconstruction (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">adim</span><span class="o">=</span><span class="s1">&#39;adim1&#39;</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">alphaY</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">5.e6</span><span class="p">,</span> <span class="n">EquationDimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">GoverningEquations</span><span class="o">=</span><span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">ac</span> <span class="o">=</span> <span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">t_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tc_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">graphIBCDPost</span><span class="p">,</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">prepareSkinReconstruction</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ibctypes</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="c1">#3: Musker</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.computeSkinVariables">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">computeSkinVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphIBCDPost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibctypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes the surface flow solution at the wall using the IBM information updated and stored in the connectivity tree at each iteration of the flow simulation.
+This function operates in conjunction with Post.IBM.prepareSkinReconstruction, which must be called beforehand.</p>
+<p>Density, pressure and velocity vector (VelocityX, VelocityY, VelocityZ) information is updated in each zone of the surface tree.
+Depending on the immersed boundary condition, additional variables may also be updated, such as utau and yplus when using wall models.</p>
+<p>Also available as in-place (_computeSkinVariables).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh (TRI-type) with interpolation data stored in each zone</p></li>
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>graphIBCDPost</strong> (<em>python dictionary</em>) &#8211; communication graph for IBM post-processing</p></li>
+<li><p><strong>dimPb</strong> (<em>list</em><em> of </em><em>integers</em>) &#8211; problem dimension</p></li>
+<li><p><strong>ibctypes</strong> &#8211; list of IBC conditions</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>surface tree with updated flow information</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeSkinVariablesPT.py">computes the surface flow solution at the wall (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeSkinVariables (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">adim</span><span class="o">=</span><span class="s1">&#39;adim1&#39;</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">alphaY</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">5.e6</span><span class="p">,</span> <span class="n">EquationDimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">GoverningEquations</span><span class="o">=</span><span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">ac</span> <span class="o">=</span> <span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">t_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tc_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">graphIBCDPost</span><span class="p">,</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">prepareSkinReconstruction</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ibctypes</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="c1">#3: Musker</span>
+<span class="n">P_IBM</span><span class="o">.</span><span class="n">_computeSkinVariables</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">graphIBCDPost</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ibctypes</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.computeAerodynamicLoads">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">computeAerodynamicLoads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ts2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">famZones</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.,</span> <span class="pre">0.,</span> <span class="pre">0.)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes the aerodynamic loads acting on the immersed boundaries (forces and moments). This function computes the pressure and friction contributions separately. If an additional surface tree solution (ts2) is specified, the pressure solution is extracted from ts2 to ts, since ts2 is usually used to extract the pressure solution further away from the wall. A list of family names can also be specified to integrate only some parts of the geometry.</p>
+<p>This function returns a list of four lists containing the integration information in the body frame (aeroLoads = [forcePressure, forceFriction, momentPressure, momentFriction]).</p>
+<p>If Pref is omitted, its value is extracted from the reference state stored in ts.</p>
+<p>Warning: the pressure and friction coefficients, as well as the aerodynamic loads are still dimensionalized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh (TRI-type) with updated flow solution</p></li>
+<li><p><strong>ts2</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; optional second surface mesh (TRI-type) with updated pressure solution</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>famZones</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; list of family names</p></li>
+<li><p><strong>Pref</strong> (<em>float</em>) &#8211; reference pressure for the pressure coefficient</p></li>
+<li><p><strong>center</strong> (<em>tuple</em><em> of </em><em>three floats</em>) &#8211; reference center for the integration of the aerodynamic moments</p></li>
+<li><p><strong>verbose</strong> (<em>0</em><em> or </em><em>1</em>) &#8211; if verbose &gt; 0, print integration information</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>surface tree with updated flow information (Cp, Cf, etc.) and aeroLoads</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeAerodynamicLoadsPT.py">computes the aerodynamic loads at the wall (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeAerodynamicLoads (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">adim</span><span class="o">=</span><span class="s1">&#39;adim1&#39;</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">alphaY</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">5.e6</span><span class="p">,</span> <span class="n">EquationDimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">GoverningEquations</span><span class="o">=</span><span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">ac</span> <span class="o">=</span> <span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">t_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tc_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">graphIBCDPost</span><span class="p">,</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">prepareSkinReconstruction</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ibctypes</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="c1">#3: Musker</span>
+<span class="n">P_IBM</span><span class="o">.</span><span class="n">_computeSkinVariables</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">graphIBCDPost</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ibctypes</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="n">wall</span><span class="p">,</span> <span class="n">aeroLoads</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">computeAerodynamicLoads</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ts2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">famZones</span><span class="o">=</span><span class="p">[],</span> <span class="n">Pref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">wall</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.computeAerodynamicCoefficients">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">computeAerodynamicCoefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aeroLoads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Qref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Normalizes aerodynamic coefficients and places integration information in the wind frame. This function uses the a priori information obtained with Post.IBM.computeAerodynamicLoads.</p>
+<p>If Qref is omitted, its value is extracted from the reference state stored in ts.</p>
+<p>If Sref is omitted, its value is calculated as the area of the geometry surface.</p>
+<p>If Lref is omitted, it is set to Lref = 1 by default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh (TRI-type) with extra information (dimensionalized pressure and friction coefficients)</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>Sref</strong> (<em>float</em>) &#8211; reference surface</p></li>
+<li><p><strong>Lref</strong> (<em>float</em>) &#8211; reference length</p></li>
+<li><p><strong>Qref</strong> (<em>float</em>) &#8211; reference dynamic pressure</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) &#8211; angle of attack (x-z plane)</p></li>
+<li><p><strong>beta</strong> (<em>float</em>) &#8211; angle of sideslip (x-y plane)</p></li>
+<li><p><strong>verbose</strong> (<em>0</em><em> or </em><em>1</em>) &#8211; if verbose &gt; 0, print integration information</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Surface tree with normalized Cp &amp; Cf and updated aeroLoads with adimensionalized integration information placed in the wind frame.</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeAerodynamicCoefficientsPT.py">normalizes aerodynamic coefficients and places integration information in the wind frame (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeAerodynamicCoefficients (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">adim</span><span class="o">=</span><span class="s1">&#39;adim1&#39;</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">alphaZ</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">alphaY</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">ReInf</span><span class="o">=</span><span class="mf">5.e6</span><span class="p">,</span> <span class="n">EquationDimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">GoverningEquations</span><span class="o">=</span><span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">ac</span> <span class="o">=</span> <span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">t_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tc_out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">graphIBCDPost</span><span class="p">,</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">prepareSkinReconstruction</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ibctypes</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="c1">#3: Musker</span>
+<span class="n">P_IBM</span><span class="o">.</span><span class="n">_computeSkinVariables</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ac</span><span class="p">,</span> <span class="n">graphIBCDPost</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ibctypes</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="n">wall</span><span class="p">,</span> <span class="n">aeroLoads</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">computeAerodynamicLoads</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ts2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">famZones</span><span class="o">=</span><span class="p">[],</span> <span class="n">Pref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">wall</span><span class="p">,</span> <span class="n">aeroLoads</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">computeAerodynamicCoefficients</span><span class="p">(</span><span class="n">wall</span><span class="p">,</span> <span class="n">aeroLoads</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Sref</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Lref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">wall</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Post.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Post.IBM: immersed boundary method specific post-processing</a><ul>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Post_IBM.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.IBM: immersed boundary method specific post-processing</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

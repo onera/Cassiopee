@@ -1,0 +1,590 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>OCC: interface to open-cascade &#8212; OCC 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">OCC 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">OCC: interface to open-cascade</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="occ-interface-to-open-cascade">
+<h1>OCC: interface to open-cascade</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>OCC performs CAD operations and meshing using open-cascade.</p>
+<p>To use the module with the Converter.array interface:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">OCC</span>
+</pre></div>
+</div>
+<p>To use the module with the CGNS/Python interface:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">OCC.PyTree</span> <span class="k">as</span> <span class="nn">OCC</span>
+</pre></div>
+</div>
+<span class="target" id="module-OCC"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; CAD/surface mesh conversion</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#OCC.convertCAD2Arrays" title="OCC.convertCAD2Arrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC.convertCAD2Arrays</span></code></a></p></td>
+<td><p>Convert a CAD (IGES or STEP) file to arrays.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#OCC.PyTree.convertCAD2PyTree" title="OCC.PyTree.convertCAD2PyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC.PyTree.convertCAD2PyTree</span></code></a></p></td>
+<td><p>Convert a CAD (IGES or STEP) file to pyTree.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; CAD manipulation</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#OCC.readCAD" title="OCC.readCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC.readCAD</span></code></a></p></td>
+<td><p>Read CAD file and return CAD hook.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#OCC.writeCAD" title="OCC.writeCAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC.writeCAD</span></code></a></p></td>
+<td><p>Write CAD file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#OCC.getNbEdges" title="OCC.getNbEdges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC.getNbEdges</span></code></a></p></td>
+<td><p>Return the number of edges in CAD hook.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#OCC.getNbFaces" title="OCC.getNbFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC.getNbFaces</span></code></a></p></td>
+<td><p>Return the number of faces in CAD hook.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#OCC.getFaceArea" title="OCC.getFaceArea"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC.getFaceArea</span></code></a></p></td>
+<td><p>Return the area of given faces.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#OCC._translate" title="OCC._translate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC._translate</span></code></a></p></td>
+<td><p>Translate all or given faces.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#OCC._rotate" title="OCC._rotate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC._rotate</span></code></a></p></td>
+<td><p>Rotate all or given faces.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#OCC._splitFaces" title="OCC._splitFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC._splitFaces</span></code></a></p></td>
+<td><p>Split all faces to be less than area.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#OCC._mergeFaces" title="OCC._mergeFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC._mergeFaces</span></code></a></p></td>
+<td><p>Merge some faces.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="cad-mesh-conversion">
+<h3>CAD/mesh conversion</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC.convertCAD2Arrays">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">convertCAD2Arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fmt_iges'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chordal_err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read a CAD and return arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; CAD file name</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; file format (&#8216;fmt_iges&#8217; or &#8216;fmt_step&#8217;)</p></li>
+<li><p><strong>h</strong> (<em>float</em>) &#8211; step size on output mesh. If 0., automatic setting [algo=1,2].</p></li>
+<li><p><strong>chordal_error</strong> (<em>float</em>) &#8211; max error between CAD and mesh. Result in curvature adaptation. If 0., automatic setting.</p></li>
+<li><p><strong>growth_ratio</strong> (<em>float</em>) &#8211; max growth ratio between adjacent triangles [algo=1,2].</p></li>
+<li><p><strong>algo</strong> (<em>int</em>) &#8211; algo=0: mesh with only respect to curvature, algo=1 or algo=2: mesh with regular triangles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>a list of TRI arrays</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/convertCAD2Arrays.py">Read a CAD (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertCAD2Arrays (arrays) -</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="c1"># IGES avec T3Mesher</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">convertCAD2Arrays</span><span class="p">(</span><span class="s1">&#39;hammer.iges&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;fmt_iges&#39;</span><span class="p">,</span>
+                          <span class="n">h</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">chordal_err</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">growth_ratio</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="s1">&#39;hammer1.plt&#39;</span><span class="p">)</span>
+
+<span class="c1"># IGES avec OCC</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">convertCAD2Arrays</span><span class="p">(</span><span class="s1">&#39;hammer.iges&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;fmt_iges&#39;</span><span class="p">,</span>
+                          <span class="n">chordal_err</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="s1">&#39;hammer2.plt&#39;</span><span class="p">)</span>
+
+<span class="c1"># STEP avec T3Mesher</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">convertCAD2Arrays</span><span class="p">(</span><span class="s1">&#39;as1-oc-214.stp&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;fmt_step&#39;</span><span class="p">,</span>
+                          <span class="n">h</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">chordal_err</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">growth_ratio</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="s1">&#39;as1.plt&#39;</span><span class="p">)</span>
+
+<span class="c1"># STEP avec OCC</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">convertCAD2Arrays</span><span class="p">(</span><span class="s1">&#39;as1-oc-214.stp&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;fmt_step&#39;</span><span class="p">,</span>
+                          <span class="n">chordal_err</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="s1">&#39;as2.plt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC.PyTree.convertCAD2PyTree">
+<span class="sig-prename descclassname"><span class="pre">OCC.PyTree.</span></span><span class="sig-name descname"><span class="pre">convertCAD2PyTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fmt_iges'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chordal_err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read a CAD and return a zone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; CAD file name</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; file format (&#8216;fmt_iges&#8217; or &#8216;fmt_step&#8217;)</p></li>
+<li><p><strong>h</strong> (<em>float</em>) &#8211; step size on output mesh. If 0., automatic setting [algo=1,2].</p></li>
+<li><p><strong>chordal_error</strong> (<em>float</em>) &#8211; max error between CAD and mesh. Result in curvature adaptation. If 0., automatic setting.</p></li>
+<li><p><strong>growth_ratio</strong> (<em>float</em>) &#8211; max growth ratio between adjacent triangles [algo=1,2].</p></li>
+<li><p><strong>algo</strong> (<em>int</em>) &#8211; algo=0: mesh with only respect to curvature, algo=1 or algo=2: mesh with regular triangles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>CGNS pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/convertCAD2PyTreePT.py">Read a CAD (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertIGES2PyTree (PyTree) -</span>
+<span class="kn">import</span> <span class="nn">OCC.PyTree</span> <span class="k">as</span> <span class="nn">OCC</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">convertCAD2PyTree</span><span class="p">(</span><span class="s1">&#39;hammer.iges&#39;</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">chordal_err</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="cad-manipulation">
+<h3>CAD manipulation</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC.readCAD">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">readCAD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fmt_step'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read a CAD file and return a CAD hook.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; CAD file name</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; file format (&#8216;fmt_iges&#8217; or &#8216;fmt_step&#8217;)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>CAD hook</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/readCAD.py">Read a CAD</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - readCAD (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC.writeCAD">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">writeCAD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fmt_step'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write a CAD hook to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; CAD file name</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; file format (&#8216;fmt_iges&#8217; or &#8216;fmt_step&#8217;)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/writeCAD.py">Write a CAD</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - writeCAD (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s2">&quot;out.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC.getNbEdges">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">getNbEdges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return the number of edges in a CAD hook.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/getNbEdges.py">Get the number of edges</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getNbEdges (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">OCC</span><span class="o">.</span><span class="n">getNbEdges</span><span class="p">(</span><span class="n">hook</span><span class="p">))</span>
+<span class="c1">#&gt; 12</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC.getNbFaces">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">getNbFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return the number of faces in a CAD hook.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/getNbFaces.py">Get the number of faces</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getNbFaces (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">OCC</span><span class="o">.</span><span class="n">getNbFaces</span><span class="p">(</span><span class="n">hook</span><span class="p">))</span>
+<span class="c1">#&gt; 6</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC._translate">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">_translate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Translate a CAD hook by a given vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>vector</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; translation vector (dx, dy, dz)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/translate.py">Translate a CAD</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - translate (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_translate</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_translate</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">listFaces</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s1">&#39;out.step&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt_step&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC._rotate">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">_rotate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Xc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Rotate a CAD hook around a given axis by a given angle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>Xc</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; rotation center (x, y, z)</p></li>
+<li><p><strong>axis</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; rotation axis</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) &#8211; rotation angle in degrees</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/rotate.py">Rotate a CAD</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - rotate (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_rotate</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="mf">30.</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_rotate</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="mf">30.</span><span class="p">,</span> <span class="n">listFaces</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s1">&#39;out.step&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt_step&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC._splitFaces">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">_splitFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Split faces in a CAD hook.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>area</strong> (<em>float</em>) &#8211; split face if area greater than this value</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/splitFaces.py">Split faces</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - splitFaces (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_splitFaces</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="mf">20.</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s2">&quot;out.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC._mergeFaces">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">_mergeFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listFaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Merge faces in a CAD hook.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>listFaces</strong> (<em>list</em><em> of </em><em>integers</em>) &#8211; list of faces number to merge.</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/mergeFaces.py">Merge faces</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - mergeFaces (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_splitFaces</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="mf">200.</span><span class="p">)</span>
+<span class="c1"># merge given faces</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_mergeFaces</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="c1"># merge all faces</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_mergeFaces</span><span class="p">(</span><span class="n">hook</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s2">&quot;out.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC.getFaceArea">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">getFaceArea</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listFaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return the area of given faces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>listFaces</strong> (<em>list</em><em> of </em><em>integers starting from 1</em>) &#8211; list of faces number to calculate the area.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/getFaceArea.py">Get face area</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getFaceArea (array) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s1">&#39;cube.step&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt_step&#39;</span><span class="p">)</span>
+
+<span class="c1"># Area of all model</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">OCC</span><span class="o">.</span><span class="n">getFaceArea</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+
+<span class="c1"># Area of seome faces</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">OCC</span><span class="o">.</span><span class="n">getFaceArea</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">OCC: interface to open-cascade</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="OCC.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">OCC 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">OCC: interface to open-cascade</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

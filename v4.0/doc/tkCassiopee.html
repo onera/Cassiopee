@@ -1,0 +1,501 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Preamble &#8212; CPlot 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Preamble</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="preamble">
+<h1>Preamble</h1>
+<p>tkCassiopee is the graphical user interface to Cassiopee modules.</p>
+<p>The application is made from different applets. Applets are stored in tabs (Tree,
+State, Edge, Surf, &#8230;).</p>
+<p>To call the application from shell:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cassiopee</span> <span class="o">&lt;</span><span class="n">file</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="general-guidelines">
+<h1>General guidelines</h1>
+<p>Each applet can be triggered from top menu <strong>Apps</strong> or
+by right clicking on a tab. It can be
+discarded by left clicking on its name at top of frame or by pressing
+CTRL+c.</p>
+<p>The default settings of an applet can be modified in the preference file
+by right clicking on the applet name and chosing &#8216;save&#8217;.
+Settings can be reset by chosing &#8216;reset&#8217; in the menu.
+An applet can be pinned, meaning that it will automatically
+be opened at next restart.</p>
+<p>The graphical window is called the CPlot window. You can rotate
+your model using left mouse button. You can move your model
+using left mouse button. You can tilt the model by pressing
+CTRL+right mouse button. You can move the way your looking without
+modifying your position by pressing CTRL+left mouse button.
+View can be quickly centered by left double clicking.</p>
+<p>A zone can be selected by using
+SHIFT + left mouse button, can be deactivated using
+SHIFT + right mouse button. Multiple selection is available
+by pressing SHIFT + CTRL + left mouse button or by draging
+mouse with SHIFT pressed.</p>
+<p>Some CPlot functions are available through the <strong>CPlot</strong>
+top menu. Other functions are described in the CPlot module
+documentation.</p>
+<p>Generally, functions of the applet work on selected zones.</p>
+<p>One level-undo is available in the <strong>CPlot</strong> top menu or by pressing
+CTRL+z or by pressing the back arrow in the tool bar.</p>
+<p>You can chose the location of displayed data (node/center) for
+structured zones by clicking on &#8216;change displayed location&#8217;
+in the <strong>CPlot</strong> top menu.</p>
+<p>Selecting &#8216;Quit&#8217; in <strong>File</strong> top menu exits cassiopee. You can
+also exits by pressing &#8216;q&#8217; when in CPlot window.</p>
+<section id="cassiopee-toolbar">
+<h2>Cassiopee:ToolBar</h2>
+<blockquote>
+<div><p>The tool bar is situated just under the menu bar. It contains:</p>
+<ul class="simple">
+<li><p>The save icon: click for quick save,</p></li>
+<li><p>The undo icon: click for undo (only one level),</p></li>
+<li><p>The delete block icon: click will delete selected blocks,</p></li>
+<li><p>The copy block icon: click will copy selected blocks,</p></li>
+<li><p>The fit view icon: click to fit view to selection,</p></li>
+<li><p>The select all blocks icon: select all zones,</p></li>
+<li><p>The view deactivated zones icon: enables to view deactivated zones as ghost grids,</p></li>
+<li><p>The main tree icon: force view on main tree.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-tree">
+<h2>Cassiopee:Tree</h2>
+<p>This tab gathers applets related to pyTree management.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkTree</strong>: enables the visualization of pyTrees as text trees.</p></li>
+</ul>
+<p>In tkTree window, left mouse button
+selects zone, right mouse button deactivates/activates zone,
+double clicking on a node name enables to change its name,
+&#8216;Suppr&#8217; key deletes selected node, CTRL+e extend the window size,
+CTRL+r shrink the window.</p>
+<ul class="simple">
+<li><p><strong>tkTreeOps</strong>: enables to move selection to another base, reorder tree nodes and edit node values.</p></li>
+<li><p><strong>tkCheckPyTree</strong>: enables to check your pyTree with different level of checking (node conformity, zone names, boundary condition consistency&#8230;).</p></li>
+<li><p><strong>tkFilter</strong>: enables to select/activate zones that match the filter rule.</p></li>
+</ul>
+<p>For filtering by name, you can use standard python regexp.
+For instance, Zone.[5-12] will filter zones between Zone.5 and Zone.12.
+You can also filter zones by size (number of points), by multigrid level,
+by affected processor, by Chimera priority, or by formula. With this,
+you can specify a rule like &#8216;{Density}&gt;0.1&#8217;: zones that match the rule
+for at least one grid point will be selected.</p>
+<ul class="simple">
+<li><p><strong>tkFamily</strong>: enables to create zone families or BC families.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-state">
+<h2>Cassiopee:State</h2>
+<p>This menu gathers applets related to state modification.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkState</strong>: modify the global state of your pyTree (dimension, equations,&#8230;).</p></li>
+</ul>
+<p>Pressing &#8216;Set state&#8217; save state in your pyTree.</p>
+<ul class="simple">
+<li><p><strong>tkPrefs</strong>: enables to change the mesh display style, the solid display style, &#8230;</p></li>
+</ul>
+<p>You can add applets that open automatically
+each time cassiopee starts in the &#8216;Auto open field&#8217;. For instance:
+&#8216;tkTree; tkBlock&#8217; will automatically open those two applets at next start.
+Save your preferences.</p>
+<ul class="simple">
+<li><p><strong>tkPerfo</strong>: settings to simplify the display and set the number of threads.</p></li>
+<li><p><strong>tkContainers</strong>: change containers.</p></li>
+</ul>
+<p>By default, all functions work on &#8216;GridCoordinates&#8217;,
+&#8216;FlowSolution&#8217; and &#8216;FlowSolution#Centers&#8217; containers. If you want
+functions to operate on other containers, change their name here.</p>
+<ul class="simple">
+<li><p><strong>tkRuler</strong>: measure your distance on your model using this applet.</p></li>
+</ul>
+<p>First click on model set first point, second click indicates the distance.
+Click again on &#8216;Measure mode&#8217; to end.</p>
+<ul class="simple">
+<li><p><strong>tkFind</strong>: find a given index in mesh.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-edge">
+<h2>Cassiopee:Edge</h2>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkCanvas</strong>: enables to create a canvas for mesh positioning or drawing. The position and size of the canvas can be modified.</p></li>
+<li><p><strong>tkPoint</strong>: enables to draw points.</p></li>
+<li><p><strong>tkDraw</strong>: enables to draw basic shapes.</p></li>
+<li><p><strong>tkExtractEdges</strong>: enables to extract edges generally from surfaces.</p></li>
+<li><p><strong>tkMapEdge</strong>: enables points redistribution (remap) on edges.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-surf">
+<h2>Cassiopee:Surf</h2>
+<p>This menu gathers applets related to surface creation/modification.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkBasicSurfs</strong>: create basic surfaces (sphere, tetra, &#8230;)</p></li>
+<li><p><strong>tkText</strong>: create a text.</p></li>
+<li><p><strong>tkFixer2</strong>: fix gaps in surfaces.</p></li>
+</ul>
+<p>This applet enables manual closure of holes in surfaces. Select the contour of your hole, then click on &#8216;Fix gap in contour&#8217;. You can bump the generated surface using the slider. This applet enables also automatic closure of all holes in a model. You must set surfaces defining a component into one zone, then click on &#8216;Fix gap in patches&#8217;.</p>
+<ul class="simple">
+<li><p><strong>tkBoolean</strong>: perform boolean operation between surfaces.</p></li>
+<li><p><strong>tkSculpt</strong>: very basic sculpting tool.</p></li>
+<li><p><strong>tkPaint</strong>: change field values by painting.</p></li>
+<li><p><strong>tkMapSurf</strong>: perform surface remeshing by projecting an octree on surface.</p></li>
+<li><p><strong>tkFilterSurfs</strong>: enables to filter or inflate a surface.</p></li>
+<li><p><strong>tkSurfaceWalk</strong>: create meshes by walking on surfaces.</p></li>
+<li><p><strong>tkProjection</strong>: project a surface on another surface.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-mesh">
+<h2>Cassiopee:Mesh</h2>
+<p>This menu gathers applets related to mesh creation/modification.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkCells</strong>: enables mesh cell modification (suppress/refine cells).</p></li>
+</ul>
+<p>Click on a mode, then click on your mesh. Click again on the mode
+button when done.</p>
+<ul class="simple">
+<li><p><strong>tkStretch</strong>: for structured grids, stretch, refine or uniformize the grid in given direction.</p></li>
+</ul>
+<p>For stretching, you must specify a grid step.
+This step is enforced where you have last clicked.</p>
+<ul class="simple">
+<li><p><strong>tkExtrusion</strong>: create meshes by extrusion.</p></li>
+<li><p><strong>tkTetraMesher</strong>: create tetra meshes.</p></li>
+<li><p><strong>tkTFI</strong>: create meshes by transfinite interpolation.</p></li>
+<li><p><strong>tkSmooth</strong>: provides mesh smoothing.</p></li>
+<li><p><strong>tkOctree</strong>: enables octree mesh generation.</p></li>
+<li><p><strong>tkCollarMesh</strong>: create collar mesh (for junction bteween two solid bodies).</p></li>
+<li><p><strong>tkBlader</strong>: a blade dedicated mesher.</p></li>
+<li><p><strong>tkMeshQual</strong>: enables to compute various grid quality map and check for negative volume cells.</p></li>
+<li><p><strong>tkMeshInfo</strong>: enables to get various informations from your model (number of points, min/max of values&#8230;).</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-block">
+<h2>Cassiopee:Block</h2>
+<p>This menu gathers applets related to block creation/modification.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkBlock</strong>: enables basic block operations (remove, copy&#8230;).</p></li>
+</ul>
+<p>Exterior faces returns the exterior faces of a zone as an unstructured
+zone. Close merge points in a mesh that are closer than epsilon, the
+resulting mesh connectivity is cleaned.</p>
+<ul class="simple">
+<li><p><strong>tkTransform</strong>: enables basic transformation of blocks (rotation, translation, &#8230;).</p></li>
+</ul>
+<p>When clicking on &#8216;Translate by clicking&#8217;, you
+must then click on a point of the zone to translate, then on
+the destination point.</p>
+<ul class="simple">
+<li><p><strong>tkNGon</strong>: preforms NGon (polyedral) operations.</p></li>
+<li><p><strong>tkSplit</strong>: enables splitting or join operations on a block.</p></li>
+</ul>
+<p>&#8216;Splitsize&#8217; splits each zone in order to get the required number of points.</p>
+<p>&#8216;SplitMP&#8217; eliminates multiple point junction in a structured mesh.</p>
+<p>&#8216;SplitConnexity&#8217; identifies connex parts in an unstructured block.</p>
+<ul class="simple">
+<li><p><strong>tkReorder</strong>: enables to reorder a zone.</p></li>
+</ul>
+<p>Unstructured zones are reordered in order to have normals with the same orientation on each zone.
+Structured zones are reordered by exchanging i- and j- numerotation.</p>
+</div></blockquote>
+</section>
+<section id="cassiopee-bc">
+<h2>Cassiopee:BC</h2>
+<p>This menu gathers applets related to boundary conditions
+creation/modification.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkBC</strong>: enables to set interactively the boundary conditions.</p></li>
+</ul>
+<p>&#8216;View Mesh/BC&#8217; enables to visualize the boundary conditions
+of a certain type. &#8216;View undefined BC&#8217; shows boundary conditions
+that are lacking. By clicking on BC, you can then set a
+boundary to a certain type using the &#8216;setBCWith&#8217; button.
+&#8216;ConnectMatch&#8217; automatically computes the matching boundary condition
+in your model.</p>
+<ul class="simple">
+<li><p><strong>tkChimera</strong>: perform hole cutting, overlap optimization between overset grids.</p></li>
+<li><p><strong>tkIBC</strong>: create data for immersed boundary conditions.</p></li>
+<li><p><strong>tkExtractBC</strong>: extract a certain type of BC to a zone.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-motion">
+<h2>Cassiopee:Motion</h2>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkRigidMotion</strong>: enables definition of rigid motions.</p></li>
+<li><p><strong>tkTime</strong>: manage time for motion visualization.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-solver">
+<h2>Cassiopee:Solver</h2>
+<p>This menu gathers applets related to solvers.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkInit</strong>: initialize solutions or wall distance.</p></li>
+<li><p><strong>tkDistributor</strong>: distributes blocks over processors.</p></li>
+</ul>
+<p>Enter the number of processors and the weight of communication cost relative to
+solver cost per iteration. Click on &#8216;Distribute tree&#8217;. Distribution stats
+are available when clicking on stats. &#8216;Set Proc Field&#8217; creates a field
+in zones containing the attributed processor number for each zone.</p>
+<ul class="simple">
+<li><p><strong>tkDist2Walls</strong>: computes wall distance.</p></li>
+<li><p><strong>tkCassiopeeSolver</strong>: export CGNS files suitable for Cartesian solver.</p></li>
+<li><p><strong>tkElsaSolver</strong>: export CGNS files suitable for elsAxdt.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-post">
+<h2>Cassiopee:Post</h2>
+<p>This menu gathers applets related to post-processing.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkVariables</strong>: add/rm variables in your solution pyTree.</p></li>
+<li><p><strong>tkExtractMesh</strong>: interpolate solution from one mesh to another.</p></li>
+<li><p><strong>tkStream</strong>: extract streamlines.</p></li>
+<li><p><strong>tkIsoLine</strong>: extract an iso-line or a set of isolines to a zone.</p></li>
+<li><p><strong>tkIsoSurf</strong>: extract an iso-surface to a zone.</p></li>
+<li><p><strong>tkInteg</strong>: perform field integration on surfaces.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="cassiopee-visu">
+<h2>Cassiopee:Visu</h2>
+<p>This menu gathers applets related to pyTree visualization.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkView</strong>: perform view settings.</p></li>
+<li><p><strong>tkPlot</strong>: perform 1D plot of data.</p></li>
+<li><p><strong>tkSlice</strong>: extract/view slices in mesh.</p></li>
+<li><p><strong>tkCelln</strong>: enables to display the location of interpolated,</p></li>
+</ul>
+<p>blanked points described by a &#8216;cellN&#8217; or &#8216;cellNF&#8217; field.
+- <strong>tkBackground</strong>: add a background.</p>
+</div></blockquote>
+</section>
+<section id="cassiopee-render">
+<h2>Cassiopee:Render</h2>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>tkRenderSet</strong>: enables to chose the color and material of each zone.</p></li>
+<li><p><strong>tkStereo</strong>: enable the stereo anaglyph mode.</p></li>
+<li><p><strong>tkEffects</strong>: enable special effects for view such as shadow, DOF.</p></li>
+<li><p><strong>tkDemo</strong>: rotate or move around your model automatically. Chose speed in slider.</p></li>
+<li><p><strong>tkPovRay</strong>: if povray is installed on your computer, you can use this applet to raytrace your scene using povray.</p></li>
+</ul>
+<p>Chose the name of your output (used for image and pov output), chose your background
+and the size of output image, then click on &#8216;Render scene&#8217;.
+- <strong>tkLuxRender</strong>: exports file for LuxRender.</p>
+</div></blockquote>
+</section>
+</section>
+<section id="for-gurus">
+<h1>For gurus</h1>
+<p>tkCassiopee is a fully modular GUI. You can add your own
+applet easily. First copy the file CPlot/apps/tkPersonalSample.py
+to tkMyApplet.py. Then add your own buttons and functions in this file.
+Finally, in cassiopee, go to top menu <strong>Tools</strong> and
+<strong>Add a personal app</strong>. Enter the file name. Your applet
+will appear in this menu.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="CPlot.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Preamble</a></li>
+<li><a class="reference internal" href="#general-guidelines">General guidelines</a><ul>
+<li><a class="reference internal" href="#cassiopee-toolbar">Cassiopee:ToolBar</a></li>
+<li><a class="reference internal" href="#cassiopee-tree">Cassiopee:Tree</a></li>
+<li><a class="reference internal" href="#cassiopee-state">Cassiopee:State</a></li>
+<li><a class="reference internal" href="#cassiopee-edge">Cassiopee:Edge</a></li>
+<li><a class="reference internal" href="#cassiopee-surf">Cassiopee:Surf</a></li>
+<li><a class="reference internal" href="#cassiopee-mesh">Cassiopee:Mesh</a></li>
+<li><a class="reference internal" href="#cassiopee-block">Cassiopee:Block</a></li>
+<li><a class="reference internal" href="#cassiopee-bc">Cassiopee:BC</a></li>
+<li><a class="reference internal" href="#cassiopee-motion">Cassiopee:Motion</a></li>
+<li><a class="reference internal" href="#cassiopee-solver">Cassiopee:Solver</a></li>
+<li><a class="reference internal" href="#cassiopee-post">Cassiopee:Post</a></li>
+<li><a class="reference internal" href="#cassiopee-visu">Cassiopee:Visu</a></li>
+<li><a class="reference internal" href="#cassiopee-render">Cassiopee:Render</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#for-gurus">For gurus</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="tkCassiopee.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Preamble</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

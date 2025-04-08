@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>tkCassiopee : slicing surfaces with surfaces</h1>
+<hr>
+
+      This tutorial demonstrates how to slice a surface mesh
+      with another one using the Cassiopee GUI. The two surfaces
+      are not necessarily closed surfaces.<br>
+      Written by Sam Landier.<br>
+
+      To get an example to work with:
+      <a href="lionPlane.cgns">[Dowload sample file].</a><br>
+<hr>
+     
+<br>  
+
+     First open <strong>Block::tkSplit</strong> by right-clicking
+     on the Block menu and choosing tkSplit.<br><br>
+
+     <strong>Step 1: joining all the surfaces into one zone</strong><br>
+     Select the lion head and the plane by shift+ctrl clicking 
+     on them in the graphical window or in the tkTree. Click
+     on <i>Join</i> in the tkSplit applet.<br>
+
+     &nbsp; &nbsp;
+     <a href="lion1.png"><img border="0" src="lion1_.png"></a><br>
+     &nbsp; &nbsp;<br><br>
+
+     <strong>Step 2: conformize the surface</strong><br>
+     By conformizing, we mean computing the intersection of the
+     two surfaces and create triangles in the intersecting region.
+     To perform that, open <strong>Surf::tkFixer2</strong>,
+     and click on <i>conformUnstr</i>. Generally the settings of
+     tolerance can be set to 0. (automatic computation of tolerance),
+     but sometimes can be adjusted to a geometrical small distance
+     in case of failure of the algorithm.<br><br>
+
+     &nbsp; &nbsp;
+     <a href="lion2.png"><img border="0" src="lion2_.png"></a><br>
+     &nbsp; &nbsp;<br><br>
+
+     <strong>Step 3: separate the components</strong><br>
+     We will now splitting the resulting surface to avoid non manifold
+     triangles (that is triangle edges connected to more than two
+     triangles). Back to <strong>Block::tkSplit</strong> and click
+     on <i>splitManifold</i>. You will then get 4 pieces, you can visualize
+     by shift+right clicking on them.<br><br>
+     
+     &nbsp; &nbsp;
+     <a href="lion3.png"><img border="0" src="lion3_.png"></a><br>
+     &nbsp; &nbsp;<br><br>
+
+     &nbsp; &nbsp;
+     <a href="lion4.png"><img border="0" src="lion4_.png"></a><br>
+     &nbsp; &nbsp;<br><br>
+
+     <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+
+     <table border="1", width="90%", height="40">
+     <tr>
+     <td>
+     <font size="-1" face="sans-serif">
+     <strong>More:</strong>
+     <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+     <br>
+
+     </td>
+     </tr>
+     </table>
+     </div> 
+
+     <hr>
+</body>
+</html>
+

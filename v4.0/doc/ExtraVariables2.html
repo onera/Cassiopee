@@ -1,0 +1,921 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Post.ExtraVariables2: derived fields from primitive variables &#8212; Post 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.ExtraVariables2: derived fields from primitive variables</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="post-extravariables2-derived-fields-from-primitive-variables">
+<h1>Post.ExtraVariables2: derived fields from primitive variables</h1>
+<p>This module compute derived fields from primitive variables.</p>
+<span class="target" id="module-Post.ExtraVariables2"></span><section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Volume fields</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractTree" title="Post.ExtraVariables2.extractTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractTree</span></code></a></p></td>
+<td><p>Create a mirror tree with less vars.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.ExtraVariables2.computeVorticity2" title="Post.ExtraVariables2.computeVorticity2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.computeVorticity2</span></code></a></p></td>
+<td><p>Compute vorticity from velocity in centers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.computeVorticityMagnitude2" title="Post.ExtraVariables2.computeVorticityMagnitude2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.computeVorticityMagnitude2</span></code></a></p></td>
+<td><p>Compute vorticity magnitude from velocity in centers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.ExtraVariables2.computeQCriterion2" title="Post.ExtraVariables2.computeQCriterion2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.computeQCriterion2</span></code></a></p></td>
+<td><p>Compute Q criterion from velocity in centers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.computeLambda2" title="Post.ExtraVariables2.computeLambda2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.computeLambda2</span></code></a></p></td>
+<td><p>Compute lambda2 criterion from velocity in centers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.ExtraVariables2.computeLogGradField2" title="Post.ExtraVariables2.computeLogGradField2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.computeLogGradField2</span></code></a></p></td>
+<td><p>Compute log(grad field) for field in centers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractPressure" title="Post.ExtraVariables2.extractPressure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractPressure</span></code></a></p></td>
+<td><p>Extract Pressure.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractVelocityMagnitude" title="Post.ExtraVariables2.extractVelocityMagnitude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractVelocityMagnitude</span></code></a></p></td>
+<td><p>Extract velocity magnitude.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractMach" title="Post.ExtraVariables2.extractMach"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractMach</span></code></a></p></td>
+<td><p>Extract Mach.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractViscosityMolecular" title="Post.ExtraVariables2.extractViscosityMolecular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractViscosityMolecular</span></code></a></p></td>
+<td><p>Extract Viscosity molecular.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractViscosityEddy" title="Post.ExtraVariables2.extractViscosityEddy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractViscosityEddy</span></code></a></p></td>
+<td><p>Extract eddy viscosity.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Surface fields</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractShearStress" title="Post.ExtraVariables2.extractShearStress"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractShearStress</span></code></a></p></td>
+<td><p>Extract shearStress.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractTaun" title="Post.ExtraVariables2.extractTaun"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractTaun</span></code></a></p></td>
+<td><p>Extract tau.n.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractPn" title="Post.ExtraVariables2.extractPn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractPn</span></code></a></p></td>
+<td><p>Extract p.n.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractForce" title="Post.ExtraVariables2.extractForce"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractForce</span></code></a></p></td>
+<td><p>Extract forces.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractFrictionVector" title="Post.ExtraVariables2.extractFrictionVector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractFrictionVector</span></code></a></p></td>
+<td><p>Extract tangential friction vector.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.ExtraVariables2.extractFrictionMagnitude" title="Post.ExtraVariables2.extractFrictionMagnitude"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.ExtraVariables2.extractFrictionMagnitude</span></code></a></p></td>
+<td><p>Extract friction magnitude.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="simple">
+<dt><strong>&#8211; 1D profiles</strong></dt><dd></dd>
+</dl>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="volume-fields">
+<h3>Volume fields</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractTree">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['centers:Density',</span> <span class="pre">'centers:VelocityX',</span> <span class="pre">'centers:VelocityY',</span> <span class="pre">'centers:VelocityZ',</span> <span class="pre">'centers:Temperature',</span> <span class="pre">'centers:TurbulentSANuTilde']</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Keep only some variables from tree. This is just a reference tree (no extra memory is used).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p></li>
+<li><p><strong>vars</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; list of vars to keep in returned tree</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with selected variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractTreePT.py">Extract tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractTree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">PE</span><span class="o">.</span><span class="n">extractTree</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;centers:Temperature&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.computeVorticity2">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">computeVorticity2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghostCells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute vorticity on t from Velocity field in centers.
+If t contains ghost cells, set argument to True.
+Exists also as in place function (_computeVoriticity2) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p></li>
+<li><p><strong>ghostCells</strong> (<em>boolean</em>) &#8211; must be true if t contains ghost cells</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;VorticityX,&#8221;VorticityY&#8221;,&#8221;VorticityZ&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeVorticity2PT.py">Compute vorticity (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeVorticity2 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_computeVorticity2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ghostCells</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.computeVorticityMagnitude2">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">computeVorticityMagnitude2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghostCells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute vorticity magnitude on t from Velocity field in centers.
+If t contains ghost cells, set argument to True.
+Exists also as in place function (_computeVoriticityMagnitude2) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p></li>
+<li><p><strong>ghostCells</strong> (<em>boolean</em>) &#8211; must be true if t contains ghost cells</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;VorticityMagnitude&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeVorticityMagnitude2PT.py">Compute vorticity magnitude (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeVorticityMagnitude2 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_computeVorticityMagnitude2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ghostCells</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.computeQCriterion2">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">computeQCriterion2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghostCells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute Q criterion on t from Velocity field in centers.
+If t contains ghost cells, set argument to True.
+Exists also as in place function (_computeQCriterion2) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p></li>
+<li><p><strong>ghostCells</strong> (<em>boolean</em>) &#8211; must be true if t contains ghost cells</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;QCriterion&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeQCriterion2PT.py">Compute Q criterion (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeQCriterion2 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_computeQCriterion2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ghostCells</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.computeLambda2">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">computeLambda2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghostCells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute lambda2 on t from Velocity field in centers.
+If t contains ghost cells, set argument to True.
+Exists also as in place function (_computeLambda2) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p></li>
+<li><p><strong>ghostCells</strong> (<em>boolean</em>) &#8211; must be true if t contains ghost cells</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;lambda2&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeLambda2PT.py">Compute lambda2 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeLambda2 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_computeLambda2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ghostCells</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.computeLogGradField2">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">computeLogGradField2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghostCells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute log(grad field) on t from field in centers.
+If t contains ghost cells, set argument to True.
+Exists also as in place function (_computeLogGradField2) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p></li>
+<li><p><strong>name</strong> (<em>string</em>) &#8211; name of field</p></li>
+<li><p><strong>ghostCells</strong> (<em>boolean</em>) &#8211; must be true if t contains ghost cells</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;LogGrad&#8221;+name in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeLogGradField2PT.py">Compute log(grad pressure) (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeLogGradField2 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_computeLogGradField2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:Density&#39;</span><span class="p">,</span> <span class="n">ghostCells</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractPressure">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractPressure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute Pressure on t from Temperature and Density field in centers with P = ro r T.
+The tree t must have a ReferenceState node.
+Cv and Gamma are taken from ReferenceState and r = Cv * (Gamma-1).
+Exists also as in place function (_extractPressure) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;Pressure&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractPressurePT.py">Extract pressure (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractPressure (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractPressure</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractVelocityMagnitude">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractVelocityMagnitude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute velocity magnitude on t from Velocity field in centers.
+Exists also as in place function (_extractVelocityMagnitude) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;VelocityMagnitude&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractVelocityMagnitudePT.py">Extract velocity magnitude (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractVelocityMagnitude (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractVelocityMagnitude</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractMach">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractMach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute Mach on t from Velocity, Temperature and Density field in centers with M = u/sqrt(gamma p/ro) and p = ro r T.
+The tree t must have a ReferenceState node.
+Cv and Gamma are taken from ReferenceState and r = Cv * (Gamma-1).
+Exists also as in place function (_extractMach) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;Mach&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractMachPT.py">Extract mach (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractMach (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractMach</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractViscosityMolecular">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractViscosityMolecular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute ViscosityMolecular on t from Temperature field in centers with Sutherland law.
+The tree t must have a ReferenceState node.
+Cs, Mus, Ts are taken from ReferenceState.
+Exists also as in place function (_extractViscosityMolecular) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;ViscosityMolecular&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractViscosityMolecularPT.py">Extract viscosity molecular (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractViscosityMolecular (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractViscosityMolecular</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractViscosityEddy">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractViscosityEddy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute ViscosityEddy on t from TurbulentSANuTilde, ViscosityMolecular and Density field in centers with
+kappa = ro * nutilde / mu
+and mut = ro * nutilde * kappa^3 / (kappa^3 + 7.1^3).
+Exists also as in place function (_extractViscosityEddy) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;ViscosityEddy&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractViscosityEddyPT.py">Extract viscosity eddy (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractViscosityEddy (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_initLamb</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">_cons2Prim</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractViscosityEddy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+</section>
+<hr class="docutils" />
+<section id="surface-fields">
+<h3>Surface fields</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractShearStress">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractShearStress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute ShearStress on teff
+from ViscosityMolecular and gradxVelocityX,&#8230; in centers.
+Exists also as in place function (_extractShearStress) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;ShearStressXX,XY,XZ,YY,YZ,ZZ&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractShearStressPT.py">Extract shearStress (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractShearStress (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ViscosityMolecular&#39;</span><span class="p">,</span> <span class="s1">&#39;gradxVelocityX&#39;</span><span class="p">,</span> <span class="s1">&#39;gradxVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradxVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradyVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradzVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityZ&#39;</span><span class="p">]:</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;{centers:</span><span class="si">%s</span><span class="s1">} = 1.&#39;</span><span class="o">%</span><span class="n">n</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractShearStress</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractTaun">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractTaun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute tau.n on teff from ShearStress in centers.
+Exists also as in place function (_extractTaun) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;taunx,y,z&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractTaunPT.py">Extract tau.n (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractTaun (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ViscosityMolecular&#39;</span><span class="p">,</span> <span class="s1">&#39;gradxVelocityX&#39;</span><span class="p">,</span> <span class="s1">&#39;gradxVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradxVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradyVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradzVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityZ&#39;</span><span class="p">]:</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;{centers:</span><span class="si">%s</span><span class="s1">} = 1.&#39;</span><span class="o">%</span><span class="n">n</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractShearStress</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractTaun</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractPn">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractPn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute P.n on teff from Pressure in centers.
+Exists also as in place function (_extractPn) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;Pnx,y,z&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractPnPT.py">Extract P.n (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractPn (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Pressure&#39;</span><span class="p">]:</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;{centers:</span><span class="si">%s</span><span class="s1">} = 1.&#39;</span><span class="o">%</span><span class="n">n</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractPn</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractForce">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractForce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">withPInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute the force field on teff from Pressure and ShearStress in centers.
+If withPinf is None: F = -p.n + tau.n
+Else: F = -(p-pinf).n + tau.n
+Exists also as in place function (_extractForce) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p></li>
+<li><p><strong>withPinf</strong> (<em>None</em><em> or </em><em>float</em>) &#8211; None or infinite field pressure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;Fx,y,z&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractForcePT.py">Extract Force (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractShearStress (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ViscosityMolecular&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradxVelocityX&#39;</span><span class="p">,</span> <span class="s1">&#39;gradxVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradxVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradyVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradzVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityZ&#39;</span><span class="p">]:</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;{centers:</span><span class="si">%s</span><span class="s1">} = 1.&#39;</span><span class="o">%</span><span class="n">n</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractShearStress</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractForce</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractFrictionVector">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractFrictionVector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute the friction vector on teff from ShearStress in centers
+with taut = tau.n - (n. tau.n) n.
+Exists also as in place function (_extractFrictionVector) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;FrictionX,FrictionY,FrictionZ&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractFrictionVectorPT.py">Extract friction vector (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractFrictionVector (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ViscosityMolecular&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradxVelocityX&#39;</span><span class="p">,</span> <span class="s1">&#39;gradxVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradxVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradyVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradzVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityZ&#39;</span><span class="p">]:</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;{centers:</span><span class="si">%s</span><span class="s1">} = 1.&#39;</span><span class="o">%</span><span class="n">n</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractShearStress</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractFrictionVector</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.ExtraVariables2.extractFrictionMagnitude">
+<span class="sig-prename descclassname"><span class="pre">Post.ExtraVariables2.</span></span><span class="sig-name descname"><span class="pre">extractFrictionMagnitude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">teff</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute the friction vector magnitude on teff from ShearStress in centers
+with norm of taut = tau.n - (n. tau.n) n.
+Exists also as in place function (_extractFrictionMagnitude) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>teff</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with &#8220;FrictionMagnitude&#8221; in centers</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractFrictionMagnitudePT.py">Extract friction magnitude (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractFrictionMagnitude (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Post.ExtraVariables2</span> <span class="k">as</span> <span class="nn">PE</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">13.</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ViscosityMolecular&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradxVelocityX&#39;</span><span class="p">,</span> <span class="s1">&#39;gradxVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradxVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradyVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradyVelocityZ&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;gradzVelocityX&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityY&#39;</span><span class="p">,</span><span class="s1">&#39;gradzVelocityZ&#39;</span><span class="p">]:</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;{centers:</span><span class="si">%s</span><span class="s1">} = 1.&#39;</span><span class="o">%</span><span class="n">n</span><span class="p">)</span>
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractShearStress</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">PE</span><span class="o">.</span><span class="n">_extractFrictionMagnitude</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Post.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Post.ExtraVariables2: derived fields from primitive variables</a><ul>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="ExtraVariables2.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.ExtraVariables2: derived fields from primitive variables</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

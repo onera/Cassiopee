@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>tkCassiopee : surface offset</h1>
+<hr>
+
+      This tutorial demonstrates how to obtain an offset
+      of a surface or a set of surfaces. An offset is a surface
+      situated at a constant distance of a starting surface. <br>
+
+      You should already have read <a href="../Controls/Controls.html">how to select zones</a> and <a href="../OpeningApplets/OpeningApplets.html">how to open applets</a>.<br>
+      <a href="trySurfOffset.cgns">[Dowload sample file].</a><br>
+<hr>
+     
+<br>  
+
+     First open <strong>Surf::tkFilterSurfs</strong> by right-clicking
+     on the Surf menu and choosing tkFilterSurfs.<br><br>
+
+     <strong>Step 1: setting the point density</strong><br>
+     This will set the point density of the offset surface,
+     that is the number of points for a length unit. 
+     For this tutorial, you can enter in the left text box: 10.<br>
+
+     &nbsp; &nbsp;
+     <a href="SurfOffset5.png"><img border="0" src="SurfOffset5_.png"></a><br>
+     &nbsp; &nbsp;<br><br>
+
+     To find this value by yourself, a good practice
+     is to use the point density of the input surface. To get it,
+     open <strong>State::tkRuler</strong>:<br>
+
+     &nbsp; &nbsp;
+     <a href="SurfOffset4.png"><img border="0" src="SurfOffset4_.png"></a><br>
+     &nbsp; &nbsp;<br><br>
+
+     Click on "Measure mode" to be able to measure distance on geometries. 
+     Then, shift+click two times on
+     the surface to get the approximate size of en element.
+     The distance appears in the text box, under the tool bar.
+     Enter the density as the inverse of this distance.
+     Finally, click again on "Measure mode" to exit the measure 
+     functionality.<br><br>
+
+     <strong>Step 2: set the offset distance</strong><br>
+     Enter the offset distance in the right text box of the
+     tkFilterSurf applet. If the surface
+     is closed, you can specify a negative offset value. That will
+     correspond to an offset inside the surface.<br>
+     For this tutorial, you can try: 0.1.<br><br>
+
+     <strong>Step 3: select Cartesian/octree</strong><br>
+     In the check box, select octree if the surface has many elements
+     or the offset distance is very far from the surface, otherwise
+     let the check box uncheck.<br><br>
+     
+     <strong>Step 4: select the surfaces you want to offset</strong><br>
+     Select the surface or surfaces you want to offset by shift+left+clicking
+     in the graphic window or in the tkTree.<br><br>
+
+     Then press, the Filter/Offset button. You should obtain :<br><br>
+     <a href="SurfOffset8.png"><img border="0" src="SurfOffset8_.png"></a><br>
+
+     More cases are in the <a href="../../Gallery/SurfOffset/SurfOffset.html">gallery.</a>
+
+     <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+
+     <table border="1", width="90%", height="40">
+     <tr>
+     <td>
+     <font size="-1" face="sans-serif">
+     <strong>More:</strong>
+     <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+     <br>
+
+     </td>
+     </tr>
+     </table>
+     </div> 
+
+     <hr>
+</body>
+</html>
+

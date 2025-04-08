@@ -1,0 +1,1258 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Converter.elsAProfile: specific elsA CGNS functions &#8212; Converter 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Converter.elsAProfile: specific elsA CGNS functions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="converter-elsaprofile-specific-elsa-cgns-functions">
+<h1>Converter.elsAProfile: specific elsA CGNS functions</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>This module provides functions to adapt a standard CGNS/python tree
+for use with ONERA aerodynamic solver <em>elsA</em>.</p>
+<p>To use the module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+</pre></div>
+</div>
+<span class="target" id="module-Converter.elsAProfile"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Conversion to elsA CGNS</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.adaptPeriodicMatch" title="Converter.elsAProfile.adaptPeriodicMatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.adaptPeriodicMatch</span></code></a></p></td>
+<td><p>Convert Periodic Match Grid Connectivity (GC) data to be compliant with elsA solver.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.adaptNearMatch" title="Converter.elsAProfile.adaptNearMatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.adaptNearMatch</span></code></a></p></td>
+<td><p>Convert Nearmatch Grid Connectivity (GC) to be compliant with elsA solver.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.rmGCOverlap" title="Converter.elsAProfile.rmGCOverlap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.rmGCOverlap</span></code></a></p></td>
+<td><p>Remove the Overlap boundary conditions described as Grid Connectivities (GC).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.overlapGC2BC" title="Converter.elsAProfile.overlapGC2BC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.overlapGC2BC</span></code></a></p></td>
+<td><p>Convert the Overlap boundary conditions from GC (Grid Connectivity) to BC (Boundary Condition) for elsA solver.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.fillNeighbourList" title="Converter.elsAProfile.fillNeighbourList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.fillNeighbourList</span></code></a></p></td>
+<td><p>Fill neighbour list by families of zones according to intersection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.prefixDnrInSubRegions" title="Converter.elsAProfile.prefixDnrInSubRegions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.prefixDnrInSubRegions</span></code></a></p></td>
+<td><p>Prefix zone subregion ID_* donor names with base name.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Addition of elsA specific nodes</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.addPeriodicDataInSolverParam" title="Converter.elsAProfile.addPeriodicDataInSolverParam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addPeriodicDataInSolverParam</span></code></a></p></td>
+<td><p>Add periodic data for grid connectivity in zone in a .Solver#Param node.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.addOutput" title="Converter.elsAProfile.addOutput"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addOutput</span></code></a></p></td>
+<td><p>Add a node '.Solver#Output'+name to extract required value from a node.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.addOutputForces" title="Converter.elsAProfile.addOutputForces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addOutputForces</span></code></a></p></td>
+<td><p>Add an output node for forces.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.addOutputFriction" title="Converter.elsAProfile.addOutputFriction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addOutputFriction</span></code></a></p></td>
+<td><p>Add an output node for frictions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.addGlobalConvergenceHistory" title="Converter.elsAProfile.addGlobalConvergenceHistory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addGlobalConvergenceHistory</span></code></a></p></td>
+<td><p>Create a node for global convergence history storage for each base.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.addReferenceState" title="Converter.elsAProfile.addReferenceState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addReferenceState</span></code></a></p></td>
+<td><p>Add a reference state for each base.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.addFlowSolution" title="Converter.elsAProfile.addFlowSolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addFlowSolution</span></code></a></p></td>
+<td><p>Add a node to extract the flow solution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.addFlowSolutionEoR" title="Converter.elsAProfile.addFlowSolutionEoR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addFlowSolutionEoR</span></code></a></p></td>
+<td><p>Add a node to extract the flow solution at the end of the run for each zone of the pyTree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.addTurbulentDistanceIndex" title="Converter.elsAProfile.addTurbulentDistanceIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.addTurbulentDistanceIndex</span></code></a></p></td>
+<td><p>Add the TurbulentDistance index node for elsA solver.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.createElsaHybrid" title="Converter.elsAProfile.createElsaHybrid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.createElsaHybrid</span></code></a></p></td>
+<td><p>Create elsAHybrid node necessary for NGON zones.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Miscellaneous</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.getCGNSkeys" title="Converter.elsAProfile.getCGNSkeys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.getCGNSkeys</span></code></a></p></td>
+<td><p>Return the CGNS name (if it exists) corresponding to the elsA key.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.elsAProfile.buildMaskFiles" title="Converter.elsAProfile.buildMaskFiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.buildMaskFiles</span></code></a></p></td>
+<td><p>Write the mask files for elsA solver.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.elsAProfile.convert2elsAxdt" title="Converter.elsAProfile.convert2elsAxdt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.elsAProfile.convert2elsAxdt</span></code></a></p></td>
+<td><p>Perform all necessary transformations to obtain a computable tree for elsA.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="conversion">
+<h3>Conversion</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.adaptPeriodicMatch">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">adaptPeriodicMatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Convert periodic grid connectivities to periodic information for elsA.
+A &#8216;.Solver#Property&#8217; node is added in the grid connectivity node with
+children nodes of name: &#8216;type&#8217;, &#8216;jtype&#8217;, &#8216;jtopo&#8217;, &#8216;ptype&#8217;&#8230;
+A &#8216;.Solver#Param&#8217; node is added in the zone, providing periodicity information.
+Children node names are: &#8216;axis_ang_1&#8217;, &#8216;axis_ang_2&#8217;,
+&#8216;axis_pnt_x&#8217;, &#8216;axis_pnt_y&#8217;, &#8216;axis_pnt_z&#8217;, &#8216;axis_vct_x&#8217;, &#8216;axis_vct_y&#8217;, &#8216;axis_vct_z&#8217;, &#8216;periodic_dir&#8217;.
+If &#8216;Periodic_t&#8217; nodes are not removed, if RotationAngle exists, it is set in radians if it was
+defined in degrees (regarding the AngleUnits subchild node).
+Exists also as an in-place function (_adaptPeriodicMatch) that modifies t and
+returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>list</em><em> of </em><em>bases</em><em>, </em><em>base</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>zone</em>) &#8211; input data</p></li>
+<li><p><strong>clean</strong> (<em>Boolean</em>) &#8211; if True, removes useless nodes (Periodic_t nodes) for elsA</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptPeriodicMatchPT.py">Adapt periodic match condition for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - connectMatch (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">90.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatchPeriodic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">rotationCenter</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span>
+                           <span class="n">translation</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">5.</span><span class="p">])</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatchPeriodic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">rotationCenter</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span>
+                           <span class="n">rotationAngle</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">90.</span><span class="p">])</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;match1_0&#39;</span><span class="p">))</span>
+<span class="c1">#&gt;&gt; [&#39;match1_0&#39;,array(&#39;cylinder&#39;,dtype=&#39;|S1&#39;),[4 sons],&#39;GridConnectivity1to1_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;PointRangeDonor&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;Transform&#39;,array(shape=(3,),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;&quot;int[IndexDimension]&quot;&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;GridConnectivityProperty&#39;,None,[1 son],&#39;GridConnectivityProperty_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;Periodic&#39;,None,[3 sons],&#39;Periodic_t&#39;]</span>
+<span class="c1">#&gt;&gt;            |_[&#39;RotationCenter&#39;,array(shape=(3,),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;            |_[&#39;RotationAngle&#39;,array(shape=(3,),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;            |_[&#39;Translation&#39;,array(shape=(3,),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">adaptPeriodicMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;match1_0&#39;</span><span class="p">))</span>
+<span class="c1">#&gt;&gt; [&#39;match1_0&#39;,array(&#39;cylinder&#39;,dtype=&#39;|S1&#39;),[5 sons],&#39;GridConnectivity1to1_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;PointRangeDonor&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;Transform&#39;,array(shape=(3,),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;&quot;int[IndexDimension]&quot;&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;GridConnectivityProperty&#39;,None,[1 son],&#39;GridConnectivityProperty_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |   |_[&#39;Periodic&#39;,None,[3 sons],&#39;Periodic_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |       |_[&#39;RotationCenter&#39;,array(shape=(3,),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |       |_[&#39;RotationAngle&#39;,array(shape=(3,),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |       |_[&#39;Translation&#39;,array(shape=(3,),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;.Solver#Property&#39;,None,[7 sons],&#39;UserDefinedData_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;type&#39;,array(&#39;join&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;jtopo&#39;,array(&#39;periodic&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;jtype&#39;,array(&#39;match&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;ptype&#39;,array(&#39;tra&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;xtran&#39;,array([0.0],dtype=&#39;float64&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;ytran&#39;,array([0.0],dtype=&#39;float64&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;ztran&#39;,array([5.0],dtype=&#39;float64&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.adaptNearMatch">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">adaptNearMatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Convert the nearmatch grid connectivities compliant with Cassiopee for
+use with elsA.
+In particular, a &#8220;.Solver#Property&#8221; node is added with all the information required for elsA.
+Exists also as an in-place function (_adaptNearMatch) that modifies t
+and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>list</em><em> of </em><em>bases</em><em>, </em><em>base</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>zone</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptNearmatchPT.py">Adapt nearmatch condition for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - connectNearMatch (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">3</span><span class="p">));</span> <span class="n">a1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart1&#39;</span>
+<span class="n">a2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">3</span><span class="p">));</span> <span class="n">a2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart2&#39;</span>
+<span class="n">a2</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">oneovern</span><span class="p">(</span><span class="n">a2</span><span class="p">,(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a1</span><span class="p">,</span><span class="n">a2</span><span class="p">])</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectNearMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;nmatch1_0&#39;</span><span class="p">))</span>
+<span class="c1">#&gt;&gt; [&#39;nmatch1_0&#39;,array(&#39;cart2&#39;,dtype=&#39;|S1&#39;),[4 sons],&#39;GridConnectivity_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;GridConnectivityType&#39;,array(&#39;Abutting&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;GridConnectivityType_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;PointListDonor&#39;,array(shape=(3, 1),dtype=&#39;int32&#39;,order=&#39;C&#39;),[0 son],&#39;IndexArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;UserDefinedData&#39;,None,[3 sons],&#39;UserDefinedData_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;PointRangeDonor&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;Transform&#39;,array(shape=(3,),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;NMRatio&#39;,array(shape=(3,),dtype=&#39;float64&#39;,order=&#39;F&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">adaptNearMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;nmatch1_0&#39;</span><span class="p">))</span>
+<span class="c1">#&gt;&gt; [&#39;nmatch1_0&#39;,array(&#39;cart2&#39;,dtype=&#39;|S1&#39;),[4 sons],&#39;GridConnectivity1to1_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;PointRangeDonor&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;Transform&#39;,array(shape=(3,),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;&quot;int[IndexDimension]&quot;&#39;]</span>
+<span class="c1">#&gt;&gt;    |_[&#39;.Solver#Property&#39;,None,[6 sons],&#39;UserDefinedData_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;jtype&#39;,array(&#39;nearmatch&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;type&#39;,array(&#39;join&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;matchside&#39;,array(&#39;fine&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;i_ratio&#39;,array([1],dtype=&#39;int32&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;j_ratio&#39;,array([2],dtype=&#39;int32&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;        |_[&#39;k_ratio&#39;,array([1],dtype=&#39;int32&#39;),[0 son],&#39;DataArray_t&#39;]</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.rmGCOverlap">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">rmGCOverlap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Remove the overlap grid connectivities described as a GridConnectivity type node
+of value &#8216;Overset&#8217; in the t.
+Exists also as an in-place function (_rmGCOverlap) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>list</em><em> of </em><em>bases</em><em>, </em><em>base</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>zone</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/rmGCOverlapPT.py">Remove the Overlap condition described as Grid Connectivity (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - rmGCOverlap (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">rmGCOverlap</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.overlapGC2BC">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">overlapGC2BC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Convert the &#8216;Overset&#8217; grid connectivity nodes compliant with Cassiopee to an &#8216;Overlap&#8217; BC compliant with elsA.
+The created BC node is attached to a family of BC of name &#8216;Fam_Ovlp&#8217;+baseName, where baseName is the name of the parent base. Prefix &#8216;Fam_Ovlp_&#8217; of the family BC of &#8216;Overlap&#8217; BCs can be redefined
+using Converter.elsAProfile.__FAMOVERLAPBC__ container (e.g. Converter.elsAProfile.__FAMOVERLAPBC__=&#8221;OVERLAP&#8221;).
+In case of a doubly defined overlap grid connectivity, the default name of the family of bcs is prefixed by &#8216;Fam_OvlpDD_&#8217;.
+In that case, there is one family of classical overlap BCs per receptor base and one family of doubly defined overlap BCs too (if classical and doubly defined overlap bcs exist
+in that base).
+A &#8216;.Solver#Overlap&#8217; node is created in each family of BCs and contains the node &#8216;NeighbourList&#8217; (where donor zones can be specified). The value is empty here.
+In case of a doubly defined family, a &#8216;doubly_defined&#8217; node is added (with value &#8216;active&#8217;).</p>
+<p>This function exists also as an in-place function (_overlapBC2GC) that modifies t
+and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/overlapGC2BCPT.py">Convert overlap GCs to overlap BCs with families of BCs attached to each receptor base (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - overlapGC2BC (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="c1"># - Structured grids -</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="p">(</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="c1"># Physical BC (here BCWall)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="c1"># Overlap BC (with automatic donor zones)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="c1"># Overlap BC (with given donor zones and doubly defined)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">,</span> <span class="n">zoneDonor</span><span class="o">=</span><span class="p">[</span><span class="n">b</span><span class="p">],</span>
+              <span class="n">rangeDonor</span><span class="o">=</span><span class="s1">&#39;doubly_defined&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;BaseA&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;BaseB&#39;</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+<span class="n">elsAProfile</span><span class="o">.</span><span class="n">_overlapGC2BC</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.fillNeighbourList">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">fillNeighbourList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sameBase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Fill the NeighbourList node with families of donor zones. Donor zones are obtained by intersection of the receptor base.
+For doubly defined overlap BCs, the NeighbourList node is made of the family of specified donor zones.
+If sameBase=1, allows for donor zones to be in the same base.</p>
+<p>This function exists also as an in-place function (_fillNeighbourList) that modifies t and
+returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>sameBase</strong> (<em>integer</em><em> (</em><em>0</em><em> or </em><em>1</em><em>)</em>) &#8211; if sameBase=1, donor zones are allowed on the same base as the receptor zone.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/fillNeighbourListPT.py">Fill NeighbourList nodes (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - fillNeighbourList (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="c1"># - Structured grids -</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="p">(</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="c1"># Physical BC (here BCWall)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="c1"># Overlap BC (with automatic donor zones)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="c1"># Overlap BC (with given donor zones and doubly defined)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">,</span> <span class="n">zoneDonor</span><span class="o">=</span><span class="p">[</span><span class="n">b</span><span class="p">],</span>
+              <span class="n">rangeDonor</span><span class="o">=</span><span class="s1">&#39;doubly_defined&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="s2">&quot;OverlapDD&quot;</span><span class="p">,</span><span class="s2">&quot;BCOverlap&quot;</span><span class="p">,</span><span class="s1">&#39;imin&#39;</span><span class="p">,</span><span class="n">zoneDonor</span><span class="o">=</span><span class="p">[</span><span class="n">a</span><span class="p">],</span><span class="n">rangeDonor</span><span class="o">=</span><span class="s1">&#39;doubly_defined&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;BaseA&#39;</span><span class="p">,</span><span class="s1">&#39;BaseB&#39;</span><span class="p">])</span>
+<span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">a</span><span class="p">];</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+<span class="n">elsAProfile</span><span class="o">.</span><span class="n">_overlapGC2BC</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">elsAProfile</span><span class="o">.</span><span class="n">_rmGCOverlap</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">elsAProfile</span><span class="o">.</span><span class="n">_fillNeighbourList</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.prefixDnrInSubRegions">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">prefixDnrInSubRegions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>When Chimera connectivity (computed by Connector.PyTree.setInterpolations) is stored in the pyTree
+as subregion nodes of name &#8216;ID*&#8217;, corresponding donor zone names are defined by the value of the node &#8216;ID_*&#8217;.
+To be read by elsA, the donor zone names are prefixed by their parent base name.</p>
+<p>This function exists also as an in-place function (_prefixDnrInSubRegions) that modifies t and
+returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/prefixDnrInSubRegionsPT.py">Prefix donor names by their base (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - prefixDnrInSubRegions (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="mf">3.</span><span class="p">,</span><span class="mi">360</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,(</span><span class="mi">200</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">2</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cylindre1&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;ov1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="mf">3.</span><span class="p">,</span><span class="mi">360</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,(</span><span class="mi">200</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">2</span><span class="p">));</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cylindre2&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;ov1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">5.</span><span class="p">,</span><span class="o">-</span><span class="mf">7.5</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">15.</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span><span class="mf">15.</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="mi">200</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Corps1&#39;</span><span class="p">,</span> <span class="s1">&#39;Corps2&#39;</span><span class="p">,</span> <span class="s1">&#39;Bgrd&#39;</span><span class="p">])</span>
+<span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">);</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;nref&#39;</span><span class="p">,</span><span class="s1">&#39;BCFarfield&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">applyBCOverlaps</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">setInterpolations</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;cell&#39;</span><span class="p">)</span>
+<span class="n">elsAProfile</span><span class="o">.</span><span class="n">_prefixDnrInSubRegions</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="addition-of-elsa-nodes">
+<h3>Addition of elsA nodes</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addPeriodicDataInSolverParam">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addPeriodicDataInSolverParam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotationCenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.,</span> <span class="pre">0.,</span> <span class="pre">0.]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotationAngle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.,</span> <span class="pre">0.,</span> <span class="pre">0.]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NAzimutalSectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isChimera</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add information about periodicity by rotation in &#8216;.Solver#Param&#8217; node of zones of t.
+Exists also as an in-place function (_addPeriodicDataInSolverParam) that
+modifies t ans returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>list</em><em> of </em><em>bases</em><em>, </em><em>base</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>zone</em>) &#8211; input data</p></li>
+<li><p><strong>rotationCenter</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; coordinates of rotation center</p></li>
+<li><p><strong>rotationAngle</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; rotation angle along each axis</p></li>
+<li><p><strong>NAzimutalSectors</strong> (<em>integer</em>) &#8211; number of azimuthal sectors to define 360 degrees</p></li>
+<li><p><strong>isChimera</strong> (<em>Boolean</em>) &#8211; to say that a zone is involved in a periodic Chimera configuration</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p>&#8216;Add periodic data (rotation) in &#8216;.Solver#Param&#8217; nodes for elsA &lt;Examples/Converter/addPeriodicDataInSolverParamPT.py&gt;&#8217;_:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - connectMatch (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">90.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">addPeriodicDataInSolverParam</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">rotationAngle</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">90.</span><span class="p">],</span> <span class="n">isChimera</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addOutput">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a &#8216;.Solver#Output&#8217; node suffixed by name in order to perform some extractions defined in a dictionary Dict.
+Dict is a python dictionary containing all output information. For example:
+&gt;&gt;&gt; Dict={}</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Dict</span><span class="p">[</span><span class="s2">&quot;var&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;convflux_rou convflux_rov convflux_row&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Dict</span><span class="p">[</span><span class="s2">&quot;loc&quot;</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Dict</span><span class="p">[</span><span class="s2">&quot;fluxcoef&quot;</span><span class="p">]</span><span class="o">=</span><span class="mf">1.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Dict</span><span class="p">[</span><span class="s2">&quot;period&quot;</span><span class="p">]</span><span class="o">=</span><span class="mi">10</span>
+</pre></div>
+</div>
+<p>Name is optional to suffix the &#8216;.Solver#Output&#8217; name.
+If the node &#8216;Solver#Output&#8217; already exists, it can be cleared and recreated (update=True).
+In the other case, if the value of the dictionary key is already set in the &#8216;.Solver#Output&#8217;, it is updated.
+Exists also as in place version (_addOutput) that modifies the node a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>standard node</em><em> (</em><em>zone</em><em>, </em><em>bc</em><em>,</em><em>...</em><em>)</em>) &#8211; input node defining topologically the extraction (e.g. a bc node)</p></li>
+<li><p><strong>Dict</strong> (<em>python dictionary</em>) &#8211; dictionary containing all the output information.</p></li>
+<li><p><strong>name</strong> (<em>string</em>) &#8211; to suffix the node &#8216;.Solver#Output&#8217; by name</p></li>
+<li><p><strong>update</strong> (<em>Boolean</em>) &#8211; if True, removes the existing node of name &#8216;.Solver#Output&#8217;+name in a</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addOutputPT.py">Add a &#8216;.Solver#Output&#8217; node for elsA extraction (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addOutput(pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
+<span class="n">bcs</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">)</span>
+<span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="nb">dict</span><span class="p">[</span><span class="s1">&#39;var&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;convflux_rou convflux_rov convflux_row&#39;</span>
+<span class="nb">dict</span><span class="p">[</span><span class="s1">&#39;loc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="nb">dict</span><span class="p">[</span><span class="s1">&#39;fluxcoef&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="nb">dict</span><span class="p">[</span><span class="s1">&#39;period&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bcs</span><span class="p">:</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">_addOutput</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="nb">dict</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addOutputForces">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addOutputForces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writingmode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pinf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluxcoef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">torquecoef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyztorque</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">governingEquations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NSTurbulent'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xtorque</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ytorque</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ztorque</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a .Solver#Output:Forces node in order to extract required value. name is a suffix that can be appened to the &#8216;.Solver#Output:Forces&#8217; name. loc is the location (integer value for elsA) for extraction. writingmode value is the integer corresponding to elsA. period is the extraction frequency</p>
+<p>Exists also as an in-place function (_addOutputForces) that modifies node a and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree node</em>) &#8211; input node</p></li>
+<li><p><strong>name</strong> (<em>string</em>) &#8211; suffix node name to add to &#8216;.Solver#Output:Forces&#8217;</p></li>
+<li><p><strong>var</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; list of variables names</p></li>
+<li><p><strong>loc</strong> (<em>string</em>) &#8211; suffix node name to add to &#8216;.Solver#Output:Forces&#8217;</p></li>
+<li><p><strong>writingmode</strong> (<em>integer</em>) &#8211; writingmode value for elsA</p></li>
+<li><p><strong>period</strong> (<em>integer</em>) &#8211; period of extraction</p></li>
+<li><p><strong>pinf</strong> (<em>float</em>) &#8211; value of farfield pressure</p></li>
+<li><p><strong>fluxcoef</strong> (<em>float</em>) &#8211; coefficient to correct the forces</p></li>
+<li><p><strong>torquecoef</strong> (<em>float</em>) &#8211; coefficient to correct the torques</p></li>
+<li><p><strong>xyztorque</strong> (<em>list</em><em> of </em><em>float</em>) &#8211; coordinates of the torque origin</p></li>
+<li><p><strong>frame</strong> (<em>string</em>) &#8211; writing frame (&#8216;relative&#8217;,&#8217;absolute&#8217;)</p></li>
+<li><p><strong>governingEquations</strong> (<em>string</em>) &#8211; governing equations of the model</p></li>
+<li><p><strong>xtorque</strong> (<em>float</em>) &#8211; X-coordinate of the torque origin</p></li>
+<li><p><strong>ytorque</strong> (<em>float</em>) &#8211; Y-coordinate of the torque origin</p></li>
+<li><p><strong>ztorque</strong> (<em>float</em>) &#8211; Z-coordinate of the torque origin</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>same as input node type</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addOutputForcesPT.py">Add a .Solver#Output:Forces node for elsA extraction (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addOutputForces (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
+<span class="n">bcs</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bcs</span><span class="p">:</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">_addOutputForces</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addOutputFriction">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addOutputFriction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writingmode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluxcoef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">torquecoef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writingframe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a .Solver#Output:Friction node in order to extract required value. name is a suffix that can be appened to the &#8216;.Solver#Output:Friction&#8217; name. loc is the location (integer value for elsA) for extraction. writingmode value is the integer corresponding to elsA. period is the extraction frequency.
+Exists also as in place version (_addOutputFriction) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>pyTree node</em>) &#8211; input node</p></li>
+<li><p><strong>name</strong> (<em>string</em>) &#8211; suffix node name to add to &#8216;.Solver#Output:Forces&#8217;</p></li>
+<li><p><strong>var</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; list of variables names</p></li>
+<li><p><strong>loc</strong> (<em>string</em>) &#8211; suffix node name to add to &#8216;.Solver#Output:Forces&#8217;</p></li>
+<li><p><strong>writingmode</strong> (<em>integer</em>) &#8211; writingmode value for elsA</p></li>
+<li><p><strong>period</strong> (<em>integer</em>) &#8211; period of extraction</p></li>
+<li><p><strong>fluxcoef</strong> (<em>float</em>) &#8211; coefficient to correct the forces</p></li>
+<li><p><strong>torquecoef</strong> (<em>float</em>) &#8211; coefficient to correct the torques</p></li>
+<li><p><strong>writingframe</strong> (<em>string</em>) &#8211; writing frame (&#8216;relative&#8217;,&#8217;absolute&#8217;)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of a</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to a</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addOutputFrictionPT.py">Add a .Solver#Output:Friction node for elsA solver extraction (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addOutputFriction (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
+<span class="n">bcs</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bcs</span><span class="p">:</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">_addOutputFriction</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addGlobalConvergenceHistory">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addGlobalConvergenceHistory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a convergence node in each base of the CGNS/Python tree. The type of norm used in residual computation can be specified (0: L0, 1: L2).
+Exists also as an in-place function (_addGlobalConvergenceHistory) modifying t and returning None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>normValue</strong> (<em>integer</em><em> (</em><em>0</em><em> or </em><em>1</em><em>)</em>) &#8211; an optional integer, specifying the type of norm as value of the GlobalConvergenceHistory node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addGlobalConvergenceHistoryPT.py">Add a global convergence history node for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addGlobalConvergenceHistory (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">addGlobalConvergenceHistory</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addReferenceState">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addReferenceState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conservative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turbmod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'spalart'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ReferenceState'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a ReferenceState node in each base. Turbulence model, reference variables constants are mandatory.
+Reference temperature can also be defined.
+Exists also as in place version (_addReferenceState) that modifies t and returns None.
+Depending on the turbulence model, one, two or 7 additional constants must be defined in conservative list, that define turbulence model variables (according to the CGNS standard names):</p>
+<ul class="simple">
+<li><p>For turbmod=&#8217;spalart&#8217;:&#8217;TurbulentSANuTildeDensity&#8217; constant.</p></li>
+<li><p>For turbmod=&#8217;komega&#8217;: [&#8216;TurbulentEnergyKineticDensity&#8217;,&#8217;TurbulentDissipationRateDensity&#8217;] constants</p></li>
+<li><p>For turbmod=&#8217;keps&#8217; or &#8216;chien&#8217; or &#8216;asm&#8217;: [&#8216;TurbulentEnergyKineticDensity&#8217;,&#8217;TurbulentDissipationDensity&#8217;]</p></li>
+<li><p>For turbmod=&#8217;smith&#8217;: [&#8216;TurbulentEnergyKineticDensity&#8217;,&#8217;TurbulentLengthScaleDensity&#8217;]</p></li>
+<li><p>For turbmod=&#8217;kkl&#8217; or &#8216;earsm&#8217;: [&#8216;TurbulentEnergyKineticDensity&#8217;,&#8217;TurbulentKineticPLSDensity&#8217;]</p></li>
+<li><p>For turbmod=&#8217;rsm&#8217;: [&#8220;ReynoldsStressXX&#8221;,&#8221;ReynoldsStressXY&#8221;,&#8221;ReynoldsStressXZ&#8221;,&#8221;ReynoldsStressYY&#8221;,&#8221;ReynoldsStressYZ&#8221;,&#8221;ReynoldsStressZZ&#8221;,&#8221;ReynoldsStressDissipationScale&#8221;]</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>conservative</strong> (<em>list</em><em> of </em><em>floats</em>) &#8211; list of constant values of reference variables [conservative + turbulence model variables].</p></li>
+<li><p><strong>temp</strong> (<em>float</em>) &#8211; reference temperature (optional).</p></li>
+<li><p><strong>turbmod</strong> (<em>string</em><em> (</em><em>possible values: 'spalart'</em><em>,</em><em>'komega'</em><em>,</em><em>'keps'</em><em>,</em><em>'chien'</em><em>,</em><em>'asm'</em><em>,</em><em>'smith'</em><em>,</em><em>'kkl'</em><em>,</em><em>'earsm'</em><em>,</em><em>'rsm'</em><em>)</em>) &#8211; turbulence model name.</p></li>
+<li><p><strong>name</strong> (<em>string</em>) &#8211; name of the ReferenceState node.</p></li>
+<li><p><strong>comments</strong> (<em>string</em>) &#8211; optional comments to describe the reference state (added to ReferenceStateDescription node).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addReferenceStatePT.py">Add a reference state for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addReferenceState (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">addReferenceState</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">conservative</span><span class="o">=</span><span class="p">[</span><span class="mf">1.</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">1.7</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addFlowSolution">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addFlowSolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CellCenter'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">governingEquations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writingMode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writingFrame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relative'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addBCExtract</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">protocol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a FlowSolution node for each zone. name is a suffix that can be appened to the &#8216;FlowSolution&#8217; name. loc must be &#8216;Vertex&#8217; or &#8216;CellCenter&#8217; or &#8216;cellfict&#8217;. governingEquation is the value of the &#8216;GoverningEquation&#8217; node. output can be optionaly a dictionary specifying the &#8216;.Solver#Output&#8217; node data. If addBCExtract is true, the boundary windows are also extracted. protocol is an optional string in &#8216;iteration&#8217;, &#8216;end&#8217;, &#8216;after&#8217;, specifying when extraction is performed.
+Note that if governingEquations is set to None, then the governing equations set in the GoverningEquations_t node in the pyTree are chosen.
+If variables=[], it does not create any variable in the FlowSolution node.
+Exists also as in place version (_addFlowSolution) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>name</strong> (<em>string</em>) &#8211; suffix to append to the name &#8216;FlowSolution&#8217;</p></li>
+<li><p><strong>loc</strong> (<em>string</em>) &#8211; location of extraction (&#8216;CellCenter&#8217;, &#8216;Vertex&#8217; or &#8216;cellfict&#8217;)</p></li>
+<li><p><strong>variables</strong> (<em>list</em><em> of </em><em>string</em>) &#8211; list of variables (elsA names)</p></li>
+<li><p><strong>governingEquations</strong> (<em>string</em>) &#8211; kind of governing equations (None or standard governing equations name (&#8216;Euler&#8217;, &#8216;NSTurbulent&#8217;&#8230;)). Optional: if already defined in the pyTree in the GoverningEquations_t node, its value is chosen.</p></li>
+<li><p><strong>writingMode</strong> (<em>integer</em>) &#8211; writingmode value for elsA</p></li>
+<li><p><strong>writingFrame</strong> (<em>string</em>) &#8211; frame of FlowSolution (&#8216;absolute&#8217;,&#8217;relative&#8217;)</p></li>
+<li><p><strong>period</strong> (<em>integer</em>) &#8211; period of extraction</p></li>
+<li><p><strong>output</strong> (<em>dictionary</em>) &#8211; an optional dictionary of node to add to &#8216;.Solver#Output&#8217; if necessary</p></li>
+<li><p><strong>addBCExtract</strong> (<em>Boolean</em>) &#8211; True to add extractions from BC windows (pseudo CellFict)</p></li>
+<li><p><strong>protocol</strong> (<em>string</em>) &#8211; Protocol node value (&#8216;iteration&#8217;,&#8217;end&#8217;,&#8217;after&#8217;) for extractions</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree: pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addFlowSolutionPT.py">Add the FlowSolution nodes for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addFlowSolution (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">addFlowSolution</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">governingEquations</span><span class="o">=</span><span class="s1">&#39;Euler&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addFlowSolutionEoR">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addFlowSolutionEoR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">governingEquations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writingFrame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relative'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addBCExtract</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">protocol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a FlowSolution#EndOfRun node located at cell centers for each zone. Parameter name is a suffix that can be appended to the &#8216;FlowSolution#EndOfRun&#8217; name.
+Parameter governingEquations is the value of the &#8216;GoverningEquations&#8217; node. If set to None, then its value is obtained from the &#8216;GoverningEquations_t&#8217; node in the pyTree.
+If variables=[], it does not create any variable in the FlowSolution node.
+If addBCExtract is True, the boundary windows are also extracted. Parameter protocol is an optional string in &#8216;iteration&#8217;, &#8216;end&#8217;, &#8216;after&#8217;, specifying when extraction is performed.
+Exists also as an in-place function (_addFlowSolutionEoR) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>name</strong> (<em>string</em>) &#8211; suffix to append to &#8216;FlowSolution#EndOfRun&#8217;</p></li>
+<li><p><strong>variables</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; list of variables (elsA names)</p></li>
+<li><p><strong>governingEquations</strong> (<em>string</em>) &#8211; kind of governing equations (&#8216;Euler&#8217;,&#8217;NSLaminar&#8217;,&#8217;NSTurbulent&#8217;)</p></li>
+<li><p><strong>writingFrame</strong> (<em>string</em>) &#8211; frame of FlowSolution (&#8216;absolute&#8217;,&#8217;relative&#8217;)</p></li>
+<li><p><strong>addBCExtract</strong> (<em>Boolean</em>) &#8211; if True, extractions are also achieved from BC windows (pseudo CellFict)</p></li>
+<li><p><strong>protocol</strong> (<em>string</em>) &#8211; Protocol node value (&#8216;iteration&#8217;,&#8217;end&#8217;,&#8217;after&#8217;) for extractions</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree: pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addFlowSolutionEoRPT.py">Add the FlowSolution#EndOfRun nodes for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addFlowSolutionEoR (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">addFlowSolutionEoR</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">governingEquations</span><span class="o">=</span><span class="s1">&#39;Euler&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addNeighbours__">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addNeighbours__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sameBase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Fill the NeighbourList nodes if needed with bounding-box domains intersection between bases. If sameBase=1, the intersecting domains are also searched in the current base.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>sameBase</strong> (<em>integer</em>) &#8211; choice for keeping the same current base in the bounding-box intersection (1 for yes, 0 else)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addNeighboursPT.py">Fill the NeighbourList nodes with bounding-box domains intersection (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addNeighbours (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">10.</span><span class="p">,</span><span class="o">-</span><span class="mf">10.</span><span class="p">,</span><span class="o">-</span><span class="mf">10.</span><span class="p">),(</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">0.4</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">))</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Cyl&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;Cart&#39;</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">applyBCOverlaps</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">buildBCOverlap</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">rmGCOverlap</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">addNeighbours__</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.addTurbulentDistanceIndex">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">addTurbulentDistanceIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a node &#8216;TurbulentDistanceIndex&#8217; initialized with -1 (float) in the container of flow solution at centers if TurbulentDistance node exists in the same container.
+To  set that node in the &#8216;FlowSolution#Init&#8217; container, be sure that the &#8216;TurbulentDistance&#8217; node is in that container too and set: Internal.__FlowSolutionCenters__=&#8217;FlowSolution#Init&#8217;.
+Exists also as in place version (_addTurbulentDistanceIndex) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Identical to t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addTurbulentDistanceIndexPT.py">Add the TurbulentDistance index node for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addTurbulentDistanceIndex (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">Internal</span><span class="o">.</span><span class="n">__FlowSolutionCenters__</span><span class="o">=</span><span class="s1">&#39;FlowSolution#Init&#39;</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;centers:TurbulentDistance&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">addTurbulentDistanceIndex</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.createElsaHybrid">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">createElsaHybrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axe2D</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">methodPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add nodes required by elsA Hybrid solver for NGON zones.
+For elsA &lt; 3.8.01, use method=0, for newer versions use method=1.
+If the mesh is 2D, use axe2D to specify 2D plane (1: (y,z), 2: (x,z), 3: (x,y)).
+If the mesh has poor quality cells (concave&#8230;) use methodPE=1 to build the ParentElement node in a topological manner.
+Exists also as in place version (_createElsaHybrid) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p></li>
+<li><p><strong>method</strong> (<em>0</em><em> or </em><em>1</em>) &#8211; 0 (if for elsA &lt; 3.8.01), 1 otherwise</p></li>
+<li><p><strong>axe2D</strong> (<em>int</em>) &#8211; 1 if (y,z), 2 if (x,z), 3 if (x,y)</p></li>
+<li><p><strong>methodPE</strong> (<em>0</em><em> or </em><em>1</em>) &#8211; 0 (for regular mesh), 1 otherwise</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>identical to t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/createElsaHybridPT.py">Create specific nodes for elsA Hybrid (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - createElsaHybrid (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="c1"># Must be NGon</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">fillEmptyBCWith</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+<span class="n">elsAProfile</span><span class="o">.</span><span class="n">_createElsaHybrid</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="miscellaneous">
+<h3>Miscellaneous</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.getCGNSkeys">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">getCGNSkeys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return the CGNS name corresponding to an elsA key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>string</em>) &#8211; elsA key</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CGNS name of elsA key</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getCGNSkeys.py">Return the CGNS name corresponding to an elsA key</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getCGNSKey (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="k">for</span> <span class="n">elsAkey</span> <span class="ow">in</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">keyselsA2CGNS</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;elsA </span><span class="si">%s</span><span class="s1"> corresponds to CGNS name </span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">elsAkey</span><span class="p">,</span><span class="n">elsAProfile</span><span class="o">.</span><span class="n">getCGNSkeys</span><span class="p">(</span><span class="n">elsAkey</span><span class="p">)))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.buildMaskFiles">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">buildMaskFiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepOversetHoles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefixBase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write the mask files in bin_v3d format. It can also keep or delete the OversetHoles nodes in the tree. The fileDir variable allows to choose the directory where the v3d hole files will be written.
+OversetHoles nodes can be created first by Connector.PyTree.cellN2OversetHoles.
+Exists also as an in-place function (_buildMaskFiles) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>keepOversetHoles</strong> (<em>boolean</em>) &#8211; choice for keeping or not the OversetHoles in the tree</p></li>
+<li><p><strong>fileDir</strong> (<em>string</em>) &#8211; path of directory for file writing</p></li>
+<li><p><strong>prefixBase</strong> (<em>Boolean</em>) &#8211; if True, add the base name to the zone name in the created file of name &#8216;hole_*&#8217;. Results in &#8216;hole_mybase_myzone.v3d&#8217; or &#8216;hole_myzone.v3d&#8217;</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/buildMaskFilesPT.py">Build the mask files for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - buildMaskFiles (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">elsAProfile</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Cart&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;centers:cellN=({centers:CoordinateX}&gt;0.)&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">cellN2OversetHoles</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;in.cgns&quot;</span><span class="p">)</span>
+<span class="n">tp</span> <span class="o">=</span> <span class="n">elsAProfile</span><span class="o">.</span><span class="n">buildMaskFiles</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">keepOversetHoles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">prefixBase</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.elsAProfile.convert2elsAxdt">
+<span class="sig-prename descclassname"><span class="pre">Converter.elsAProfile.</span></span><span class="sig-name descname"><span class="pre">convert2elsAxdt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Macro-function that converts some Cassiopee data stored in the pyTree into elsA-compliant nodes.
+It performs the following functions available as single functions:</p>
+<ul class="simple">
+<li><p>addTurbulentDistanceIndex(t)</p></li>
+<li><p>buildMaskFiles(t)</p></li>
+<li><p>adaptNearMatch(t)</p></li>
+<li><p>adaptPeriodicMatch(t)</p></li>
+<li><p>overlapGC2BC(t)</p></li>
+<li><p>rmGCOverlap(t)</p></li>
+<li><p>fillNeighbourList(t)</p></li>
+<li><p>prefixDnrInSubRegions(t)</p></li>
+</ul>
+<p>Exists also as in place version (_convert2elsAxdt) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree: pyTree</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/convert2elsAxdtPT.py">Convert a tree for elsA solver (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convert2elsAxdt (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Converter.elsAProfile</span> <span class="k">as</span> <span class="nn">CE</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="mf">3.</span><span class="p">,</span><span class="mi">360</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,(</span><span class="mi">200</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">2</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cylindre1&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;ov1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="mf">3.</span><span class="p">,</span><span class="mi">360</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,(</span><span class="mi">200</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">2</span><span class="p">));</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cylindre2&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;ov1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
+<span class="n">c1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">5.</span><span class="p">,</span><span class="o">-</span><span class="mf">7.5</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">15.</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span><span class="mf">15.</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">200</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">c2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">2.425</span><span class="p">,</span><span class="o">-</span><span class="mf">7.5</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">15.</span><span class="o">/</span><span class="mi">200</span><span class="p">,</span><span class="mf">15.</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Corps1&#39;</span><span class="p">,</span> <span class="s1">&#39;Corps2&#39;</span><span class="p">,</span> <span class="s1">&#39;Bgrd&#39;</span><span class="p">])</span>
+<span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">);</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">+=</span><span class="p">[</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">]</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectNearMatch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">applyBCOverlaps</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># blanking</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span><span class="s1">&#39;{centers:cellN}={centers:cellN}*(1.-({centers:CoordinateX}&lt;2)*({centers:CoordinateX}&gt;-2)*({centers:CoordinateY}&lt;2)*({centers:CoordinateY}&gt;-2))&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">setInterpolations</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span><span class="n">storage</span><span class="o">=</span><span class="s1">&#39;inverse&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;centers:TurbulentDistance&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+<span class="n">CE</span><span class="o">.</span><span class="n">_convert2elsAxdt</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Converter.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Converter.elsAProfile: specific elsA CGNS functions</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="elsAProfile.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Converter.elsAProfile: specific elsA CGNS functions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

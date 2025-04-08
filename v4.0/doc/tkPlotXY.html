@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>tkPlotXY: plot of curves &#8212; CPlot 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">tkPlotXY: plot of curves</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tkplotxy-plot-of-curves">
+<h1>tkPlotXY: plot of curves</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>tkPlotXY is a 2D plotting library based on Matplotlib. The aim of tkPlotXY is to provide
+to users an easier scriptable interface and a useful graphical interface for plotting data in
+arrays or pyTrees.</p>
+<p>tkPlotXY uses preferentially 1D-data from pyTrees but in the scriptable interface, some other ways to
+define datas are available and will be exposed in this document.</p>
+<p>This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.</p>
+<p>For use in a python script, you have to import tkPlotXY module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkPlotXY</span>
+</pre></div>
+</div>
+<span class="target" id="module-tkPlotXY"></span></section>
+<section id="one-line-plot-function">
+<h2>One line plot function</h2>
+<p>tkPlotXY can be used with a single function.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="tkPlotXY.tkPlotXY.plot">
+<span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangex=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangey=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">...</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Plot 1D zones of a.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>varx</strong> (<em>string</em>) &#8211; name of variable to plot in X</p></li>
+<li><p><strong>vary</strong> (<em>string</em>) &#8211; name of variable to plot in Y</p></li>
+<li><p><strong>rangex</strong> (<em>None</em><em> or </em><em>list</em><em> of </em><em>two floats</em>) &#8211; if not None, range for x variable. If None, automatic setting.</p></li>
+<li><p><strong>rangey</strong> (<em>None</em><em> or </em><em>list</em><em> of </em><em>two floats</em>) &#8211; if not None, range for y variable. If None, automatic setting.</p></li>
+<li><p><strong>xlabel</strong> (<em>None</em><em> or </em><em>string</em>) &#8211; if not None, name to display on x axis.</p></li>
+<li><p><strong>ylabel</strong> (<em>None</em><em> or </em><em>string</em>) &#8211; if not None, name to display on y axis.</p></li>
+<li><p><strong>xformat</strong> (<em>None</em><em> or </em><em>string like '9.3f'</em>) &#8211; if not None, format for x axis values.</p></li>
+<li><p><strong>yformat</strong> (<em>None</em><em> or </em><em>string like '9.3f'</em>) &#8211; if not None, format for y axis values.</p></li>
+<li><p><strong>legends</strong> (<em>None</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; if not None, the name of curves to be displayed in legend.</p></li>
+<li><p><strong>export</strong> (<em>None</em><em> or </em><em>name</em><em> of </em><em>export file</em>) &#8211; if None, interactive plot, otherwise name of export file.</p></li>
+<li><p><strong>lineWidth</strong> (<em>float</em><em> (</em><em>default: 1.5</em><em>) or </em><em>list</em><em> of </em><em>floats for each zone</em>) &#8211; width of plot lines</p></li>
+<li><p><strong>lineColor</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings for each zone</em>) &#8211; color of plot lines. Html string (#FFFFFF) or color name (&#8216;black).</p></li>
+<li><p><strong>markerStyle</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings for each zone</em>) &#8211; style of marker, &#8216;none&#8217;, &#8216;+&#8217;, &#8216;o&#8217;, &#8230;</p></li>
+<li><p><strong>markerWidth</strong> (<em>float</em><em> (</em><em>default: 6.5</em><em>) or </em><em>list</em><em> of </em><em>floats for each zone</em>) &#8211; width of markers</p></li>
+<li><p><strong>markerFaceColor</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>string for each zone</em>) &#8211; face color of markers. Html string (#FFFFFF) or color name (&#8216;black).</p></li>
+<li><p><strong>markerEdgeColor</strong> (<em>string</em>) &#8211; edge color of markers. Html string (#FFFFFF) or color name (&#8216;black).</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/CPlot/tkPlotXYSingleLine.py">Plot 1d zones (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+
+<span class="c1"># Cas test</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateX}&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateX}&#39;</span><span class="p">)</span>
+
+<span class="n">tkPlotXY</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">],</span> <span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span> <span class="n">vary</span><span class="o">=</span><span class="s1">&#39;centers:G&#39;</span><span class="p">,</span>
+              <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>
+              <span class="n">xformat</span><span class="o">=</span><span class="s1">&#39;03.1f&#39;</span><span class="p">,</span> <span class="n">yformat</span><span class="o">=</span><span class="s1">&#39;03.1f&#39;</span><span class="p">,</span>
+              <span class="n">legends</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;courbe1&#39;</span><span class="p">,</span> <span class="s1">&#39;courbe2&#39;</span><span class="p">],</span>
+              <span class="n">export</span><span class="o">=</span><span class="s1">&#39;fig.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="usage-with-classes">
+<h2>Usage with classes</h2>
+<p>In case of the previous function doesnt provide enough flexibility, you can use
+tkPlotXY with classes that provide access to a full customization. Here goes
+two simple examples, an interactive one and a batch one.</p>
+<blockquote>
+<div><p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/CPlot/tkPlotXYInteractive.py">Interactive tkPlotXY classes usage (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (interactive) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.e-3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateX}*{centers:CoordinateX}&#39;</span><span class="p">)</span>
+
+<span class="n">desktop</span><span class="p">,</span> <span class="n">win</span> <span class="o">=</span> <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">createTkDesktop</span><span class="p">()</span>
+<span class="n">desktop</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">graph0</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="c1"># La localisation des champs dans Curve doit etre homogene</span>
+<span class="n">curve0</span> <span class="o">=</span> <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span> <span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span>
+                        <span class="n">vary</span><span class="o">=</span><span class="s1">&#39;F@FlowSolution&#39;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span>
+                        <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span>
+                        <span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span>
+                        <span class="n">legend_label</span><span class="o">=</span><span class="s1">&#39;expe0&#39;</span><span class="p">)</span>
+<span class="n">graph0</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">,</span> <span class="n">curve0</span><span class="p">)</span>
+
+<span class="n">win</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/CPlot/tkPlotXYBatch.py">Batch tkPlotXY classes usage (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (batch) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+<span class="n">tkPlotXY</span><span class="o">.</span><span class="n">setBatch</span><span class="p">()</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateX}*{centers:CoordinateX}&#39;</span><span class="p">)</span>
+
+<span class="n">desktop</span> <span class="o">=</span> <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">Desktop</span><span class="p">()</span>
+<span class="n">desktop</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">graph0</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="n">curve0</span> <span class="o">=</span> <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span> <span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span>
+                        <span class="n">vary</span><span class="o">=</span><span class="s1">&#39;F@FlowSolution&#39;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span>
+                        <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span>
+                        <span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">)</span>
+<span class="n">graph0</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">,</span> <span class="n">curve0</span><span class="p">)</span>
+
+<span class="c1"># Modify axis range</span>
+<span class="n">axis</span> <span class="o">=</span> <span class="n">graph0</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_autoscale&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_min&#39;</span><span class="p">,</span> <span class="mf">30.</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_max&#39;</span><span class="p">,</span> <span class="mf">50.</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_autoscale&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_min&#39;</span><span class="p">,</span> <span class="mf">1000.</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_max&#39;</span><span class="p">,</span> <span class="mf">2000.</span><span class="p">)</span>
+<span class="n">graph0</span><span class="o">.</span><span class="n">updateGraph</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+
+<span class="n">graph0</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;fig.png&#39;</span><span class="p">)</span>
+<span class="n">graph0</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="CPlot.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">tkPlotXY: plot of curves</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#one-line-plot-function">One line plot function</a></li>
+<li><a class="reference internal" href="#usage-with-classes">Usage with classes</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="tkPlotXY.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">tkPlotXY: plot of curves</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

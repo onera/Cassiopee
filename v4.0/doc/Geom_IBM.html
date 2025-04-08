@@ -1,0 +1,672 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Geom.IBM: specific geometry modifications for IBMs &#8212; Geom 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Geom.html">Geom 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Geom.IBM: specific geometry modifications for IBMs</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="geom-ibm-specific-geometry-modifications-for-ibms">
+<h1>Geom.IBM: specific geometry modifications for IBMs</h1>
+<p>Specific geometry modification functions for immersed boundaries.</p>
+<p>These functions require a geometry tree &#8220;tb&#8221; or a connectivity tree &#8220;tc&#8221;.</p>
+<section id="notes-on-ibctypes">
+<h2>Notes on IBCTypes</h2>
+<p>Table outlining the various IBCs currently supported. Please note that the &#8220;Name&#8221; are case sensitive (e.g. Slip is not supported)</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>IBC Type</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Integer Identifier</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Wall slip</p></td>
+<td><p>slip</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wall no slip</p></td>
+<td><p>noslip</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>Wall model: Logarithmic</p></td>
+<td><p>Log</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wall model: Musker</p></td>
+<td><p>Musker</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p>Outflow pressure</p></td>
+<td><p>outpress</p></td>
+<td><p>4</p></td>
+</tr>
+<tr class="row-odd"><td><p>Injection</p></td>
+<td><p>inj</p></td>
+<td><p>5</p></td>
+</tr>
+<tr class="row-even"><td><p>Wall model: Thin Boundary Layer Equations (TBLE)</p></td>
+<td><p>TBLE</p></td>
+<td><p>6</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wall no slip with rotation (limited capabilities)</p></td>
+<td><p>MuskerMob</p></td>
+<td><p>7</p></td>
+</tr>
+<tr class="row-even"><td><p>Wall model: Pohlhausen</p></td>
+<td><p>Pohlhausen</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wall model: Thwaites</p></td>
+<td><p>Thwaites</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-even"><td><p>Wall model: Mafzal</p></td>
+<td><p>Mafzal</p></td>
+<td><p>10</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wall model: Full TBLE</p></td>
+<td><p>TBLE_FULL</p></td>
+<td><p>11</p></td>
+</tr>
+<tr class="row-even"><td><p>Wall no slip with curvature radius</p></td>
+<td><p>slip_cr</p></td>
+<td><p>100</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note: Wall no slip with rotation with an integer identifier of 7 assumes the x-axis (i.e. x=0) is the axis of rotation. A more complete IBM with rotation is in the process of being developed and will be shortly be available making the current IBC decrepit.</p>
+<span class="target" id="module-Geom.IBM"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Setting Snear &amp; Dfar</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Geom.IBM.setSnear" title="Geom.IBM.setSnear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.setSnear</span></code></a></p></td>
+<td><p>Set the value of snear in a geometry tree.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Geom.IBM.setDfar" title="Geom.IBM.setDfar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.setDfar</span></code></a></p></td>
+<td><p>Set the value of dfar in a geometry tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Geom.IBM.snearFactor" title="Geom.IBM.snearFactor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.snearFactor</span></code></a></p></td>
+<td><p>Multiply the value of snear in a geometry tree by a sfactor.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Setting IBC Type</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Geom.IBM.setIBCType" title="Geom.IBM.setIBCType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.setIBCType</span></code></a></p></td>
+<td><p>Set the IBC type in a geometry tree.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Geom.IBM.changeIBCType" title="Geom.IBM.changeIBCType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.changeIBCType</span></code></a></p></td>
+<td><p>Change the IBC type in a connectivity tree from oldIBCType to newIBCType.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Geom.IBM.initOutflow" title="Geom.IBM.initOutflow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.initOutflow</span></code></a></p></td>
+<td><p>Set the value of static pressure PStatic for the outflow pressure IBC with family name familyName.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Geom.IBM.initInj" title="Geom.IBM.initInj"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.initInj</span></code></a></p></td>
+<td><p>Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Geom.IBM.setFluidInside" title="Geom.IBM.setFluidInside"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.setFluidInside</span></code></a></p></td>
+<td><p>Set fluid inside a geometry tree.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<p>Note that all the functions have an in-place version, modifying directly the data without copy.
+The function names must be prefixed by an &#8216;_&#8217; (e.g. _setSnear for the in-place version of setSnear)</p>
+<section id="setting-snear-dfar">
+<h3>Setting Snear &amp; Dfar</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.setSnear">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">setSnear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snear</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set the snear for a geometry defined by tb. Exists also as in-place (_setSnear). Snear is the local Cartesian spacing close to  cells intersected by the immersed boundary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; geometry tree</p></li>
+<li><p><strong>snear</strong> (<em>float</em>) &#8211; snear value</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/setSnearPT.py">Set the values of the snears (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setSnear (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span> <span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.setDfar">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">setDfar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfar</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set the dfar for a geometry defined by tb. Exists also as in-place (_setDfar). Dfar is the distance from the center of the bounding box of the immersed boundary to the edge of the domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; geometry tree</p></li>
+<li><p><strong>dfar</strong> (<em>float</em>) &#8211; dfar value</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/setDfarPT.py">Set the value of the dfar (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setDfar (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span> <span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D_IBM</span><span class="o">.</span><span class="n">setDfar</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<blockquote>
+<div></div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.snearFactor">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">snearFactor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sfactor</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Multiply the snears in the geometry defined by tb by a factor. Exists also as in-place (_snearFactor).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; geometry tree</p></li>
+<li><p><strong>sfactor</strong> (<em>float</em>) &#8211; multiplying factor</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/snearFactorPT.py">Modifying the value of snears (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - snearFactor (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span> <span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_snearFactor</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="setting-ibc-type">
+<h3>Setting IBC Type</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.setIBCType">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">setIBCType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibctype</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set the type of IBC for the geometry defined by tb. Exists also as in-place (_setIBCType). See the table in &#8220;Notes on IBCTypes&#8221; for the IBCs currently supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; geometry tree</p></li>
+<li><p><strong>ibctype</strong> (<em>string</em>) &#8211; name of the type of IBC</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/setIBCTypePT.py">Set the type of IBC (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setIBCType (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span> <span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;Musker&quot;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.changeIBCType">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">changeIBCType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oldBCType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newBCType</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Change the IBC type in a connectivity tree. Exists also as in-place (_changeIBCType). Please refer to the table in &#8220;Notes on IBCTypes&#8221; for details on the integer identifies for the various IBC types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>oldBCType</strong> (<em>integer</em>) &#8211; type of ibc</p></li>
+<li><p><strong>newBCType</strong> (<em>integer</em>) &#8211; type of ibc</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/changeIBCTypePT.py">Change the type of IBC (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - changeIBCType (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;IBCD_2_&#39;</span><span class="o">+</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">Nlength</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">subRegions</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType1</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">zsr</span> <span class="ow">in</span> <span class="n">subRegions</span><span class="p">:</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;ZoneRole&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Donor&#39;</span><span class="p">)</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;GridLocation&#39;</span><span class="p">,</span> <span class="s1">&#39;GridLocation_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CellCenter&#39;</span><span class="p">)</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Pressure&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;VelocityX&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;VelocityY&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;VelocityZ&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D_IBM</span><span class="o">.</span><span class="n">changeIBCType</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.setFluidInside">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">setFluidInside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Define the fluid inside a surface defined by tb. In that case, the IBM mesh will be defined inside tb. Exists also as in-place (_setFluidInside).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; geometry tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/setFluidInsidePT.py">Define fluid inside surface (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setFluidInside (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="c1"># Geometry</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span> <span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span>
+
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setFluidInside</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.symetrizePb">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">symetrizePb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a symmetry plane and symmetrize the body base; input surface must be y&gt;=0 if the symmetry plane is at y=0.
+Creates the geometry for the symmetry plane, the snear and slip IBC type.
+:param tb: geometry tree
+:type  tb: [zone, list of zones, tree]
+:param bodyNameSym: name of the base where
+:type bodyNameSym: string
+:param snear_sym: mesh resolution at the symmetry plane
+:type snear_sym: float
+:param dir_sym: direction of the symmetry plane
+:type dir_sym: integer (1:x,2:y,3:z)
+:return: same as input</p>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/symetrizePbPT.py">Symmetrize the surface (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - symetrizePb (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="c1"># Geometry</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">cone</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span> <span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s2">&quot;BODY&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_symetrizePb</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span><span class="s2">&quot;BODY&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">dir_sym</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.initOutflow">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">initOutflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">familyName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pstatic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">InterpolPlane</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PressureVar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isDensityConstant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set the value of the static pressure Pstatic for the outflow pressure IBC with family name familyName. A plane InterpolPlane may also be provided with only static pressure variable or various variables with static pressure as the PressureVar (e.g. 2nd) variable).
+Exists also as in-place (_initOutflow).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>familyName</strong> (<em>string</em>) &#8211; familyName</p></li>
+<li><p><strong>Pstatic</strong> (<em>float</em>) &#8211; static pressure</p></li>
+<li><p><strong>PInterpolPlane</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; interpolation plane</p></li>
+<li><p><strong>PressureVar</strong> (<em>integer</em>) &#8211; variable number of static pressure</p></li>
+<li><p><strong>isDensityConstant</strong> (<em>boolean</em>) &#8211; is density at the outflow constant and equal to the reference density</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/initOutflowPT.py">Set outflow IBC (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initOutflow (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;IBCD_4_&#39;</span><span class="o">+</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+
+<span class="n">Nlength</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">subRegions</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType1</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">zsr</span> <span class="ow">in</span> <span class="n">subRegions</span><span class="p">:</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;ZoneRole&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Donor&#39;</span><span class="p">)</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;GridLocation&#39;</span><span class="p">,</span> <span class="s1">&#39;GridLocation_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CellCenter&#39;</span><span class="p">)</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Pressure&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;FamilyName&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilyName_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CART_LOCAL&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="o">=</span><span class="n">D_IBM</span><span class="o">.</span><span class="n">initOutflow</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;CART_LOCAL&#39;</span><span class="p">,</span><span class="mi">101325</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Geom.IBM.initInj">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">initInj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">familyName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ptot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Htot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">injDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1.,</span> <span class="pre">0.,</span> <span class="pre">0.]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">InterpolPlane</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PressureVar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EnthalpyVar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set the total pressure Ptot, total enthalpy Htot, and direction of the flow injDir (w.r.t the absolute frame of reference) for the injection IBC with family name familyName. A plane InterpolPlane may also be provided with at least the total pressure and total enthalpy variables with the former and latter as the PressureVar (e.g. 2nd) and EnthalpyVar (e.g. 4th) variables, respectively.
+Exists also as in-place (_initInj).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>familyName</strong> (<em>string</em>) &#8211; familyName</p></li>
+<li><p><strong>Ptot</strong> (<em>float</em>) &#8211; total pressure</p></li>
+<li><p><strong>Htot</strong> (<em>float</em>) &#8211; total enthalpy</p></li>
+<li><p><strong>injDir</strong> (<em>float list</em>) &#8211; direction of the injection w.r.t to the reference coordinate axis</p></li>
+<li><p><strong>PInterpolPlane</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; interpolation plane</p></li>
+<li><p><strong>PressureVar</strong> (<em>integer</em>) &#8211; variable number of total pressure</p></li>
+<li><p><strong>EnthalpyVar</strong> (<em>integer</em>) &#8211; variable number of total enthalpy</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Geom/initInjPT.py">Set injection IBC (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initInj (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;IBCD_5_&#39;</span><span class="o">+</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">Nlength</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">subRegions</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType1</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">zsr</span> <span class="ow">in</span> <span class="n">subRegions</span><span class="p">:</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;ZoneRole&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Donor&#39;</span><span class="p">)</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;GridLocation&#39;</span><span class="p">,</span> <span class="s1">&#39;GridLocation_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CellCenter&#39;</span><span class="p">)</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;StagnationEnthalpy&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;StagnationPressure&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;dirx&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;diry&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;dirz&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;FamilyName&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilyName_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CART_LOCAL&#39;</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D_IBM</span><span class="o">.</span><span class="n">initInj</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;CART_LOCAL&#39;</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="n">injDir</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.</span><span class="p">])</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Geom.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Geom.IBM: specific geometry modifications for IBMs</a><ul>
+<li><a class="reference internal" href="#notes-on-ibctypes">Notes on IBCTypes</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Geom_IBM.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Geom.html">Geom 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Geom.IBM: specific geometry modifications for IBMs</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

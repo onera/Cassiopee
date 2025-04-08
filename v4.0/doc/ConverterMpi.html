@@ -1,0 +1,1132 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Converter.Mpi: distributed pyTree services &#8212; Converter 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Converter.Mpi: distributed pyTree services</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="converter-mpi-distributed-pytree-services">
+<h1>Converter.Mpi: distributed pyTree services</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>This module provides services to deal with distributed pyTrees.</p>
+<p>A distributed pyTree is a tree where
+zones are distributed over different processes.</p>
+<p>The number of a process is called the rank.</p>
+<p>Three new concepts are introduced in addition to
+standard pyTrees: the <strong>skeleton tree</strong>, the <strong>loaded skeleton tree</strong> and
+the <strong>partial tree</strong>.</p>
+<p>A <strong>skeleton tree (S)</strong> is a full pyTree where numpy arrays
+of DataArray_t type nodes are replaced by None.</p>
+<p>A <strong>loaded skeleton tree (LS)</strong> is a skeleton tree for which zones
+attributed to the current rank are fully loaded.</p>
+<p>A <strong>partial tree (P)</strong> is a pyTree with only zones attributed
+to the current rank fully loaded and no skeleton zones.
+It can be viewed as a <em>loaded skeleton tree</em> with skeleton zones suppressed.</p>
+<p>Generally, Cassiopee functions will operate seamlessly on
+a partial tree, if the function doesn&#8217;t requires data exchanges.
+If the function requires exchanges, then a specific version exists
+in the Module.Mpi module. For instance, for Converter, only center2Node
+requires exchanges and is redefined in Converter.Mpi.</p>
+<p>To use the module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+</pre></div>
+</div>
+<p>To run a python script in parallel with two processes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="n">python</span> <span class="n">script</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<span class="target" id="module-Converter.Mpi"></span></section>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Input/output</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.convertFile2SkeletonTree" title="Converter.Mpi.convertFile2SkeletonTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.convertFile2SkeletonTree</span></code></a></p></td>
+<td><p>Read a file and return a skeleton tree.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.convertFile2PyTree" title="Converter.Mpi.convertFile2PyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.convertFile2PyTree</span></code></a></p></td>
+<td><p>Read a file and return a full tree or partial tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.readZones" title="Converter.Mpi.readZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.readZones</span></code></a></p></td>
+<td><p>Read some zones in a skeleton tree (by rank or name).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.writeZones" title="Converter.Mpi.writeZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.writeZones</span></code></a></p></td>
+<td><p>Write zones in parallel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.convertPyTree2File" title="Converter.Mpi.convertPyTree2File"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.convertPyTree2File</span></code></a></p></td>
+<td><p>Write a skeleton or partial tree.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Conversion</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.convert2PartialTree" title="Converter.Mpi.convert2PartialTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.convert2PartialTree</span></code></a></p></td>
+<td><p>Convert a tree to a partial tree.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.convert2SkeletonTree" title="Converter.Mpi.convert2SkeletonTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.convert2SkeletonTree</span></code></a></p></td>
+<td><p>Convert a tree to a skeleton tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.createBBoxTree" title="Converter.Mpi.createBBoxTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.createBBoxTree</span></code></a></p></td>
+<td><p>Return a bbox tree of t.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Communication Graphs</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.getProc" title="Converter.Mpi.getProc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.getProc</span></code></a></p></td>
+<td><p>Return the proc where zone is affected to.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.setProc" title="Converter.Mpi.setProc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.setProc</span></code></a></p></td>
+<td><p>Set the proc number to a zone or a set of zones.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.getProcDict" title="Converter.Mpi.getProcDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.getProcDict</span></code></a></p></td>
+<td><p>Return the dictionary proc['zoneName'].</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.computeGraph" title="Converter.Mpi.computeGraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.computeGraph</span></code></a></p></td>
+<td><p>Return the communication graph for different block relation types.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Exchanges</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.setCommunicator" title="Converter.Mpi.setCommunicator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.setCommunicator</span></code></a></p></td>
+<td><p>Set MPI communicator to com.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.addXZones" title="Converter.Mpi.addXZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.addXZones</span></code></a></p></td>
+<td><p>Add zones specified in graph on current proc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.rmXZones" title="Converter.Mpi.rmXZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.rmXZones</span></code></a></p></td>
+<td><p>Remove zones added by addXZones.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.allgatherTree" title="Converter.Mpi.allgatherTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.allgatherTree</span></code></a></p></td>
+<td><p>Gather a distributed tree on all processors.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Actions</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.trace" title="Converter.Mpi.trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.trace</span></code></a></p></td>
+<td><p>Write a trace of cpu and memory in a file or to stdout for current node.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.center2Node" title="Converter.Mpi.center2Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.center2Node</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="input-output">
+<h3>Input/output</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.convertFile2SkeletonTree">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">convertFile2SkeletonTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxFloatSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxDepth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">links</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read a skeleton tree (<strong>S</strong>) from file (adf or hdf file format only). The loaded in
+memory skeleton tree is identical on all processors.</p>
+<p>If float data array size of DataArray_t type nodes is lower than maxFloatSize then the
+array is loaded. Otherwise it is set to None.
+If maxDepth is specified, load is limited to maxDepth levels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>maxFloatSize</strong> (<em>int</em>) &#8211; the maxSize of float array to load</p></li>
+<li><p><strong>maxDepth</strong> (<em>int</em>) &#8211; max depth of load</p></li>
+<li><p><strong>links</strong> (<em>list</em><em> of </em><em>list</em><em> of </em><em>4 strings</em>) &#8211; if not None, return a list of links in file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Skeleton tree</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree node</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/convertFile2SkeletonTreePT.py">Read skeleton tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertFile2SkeletonTree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="n">t1</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;in.cgns&#39;</span><span class="p">);</span> <span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [&#39;CGNSTree&#39;,None,[2 sons],&#39;CGNSTree_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;CGNSLibraryVersion&#39;,array([3.0999999046325684],dtype=&#39;float64&#39;),[0 son],&#39;CGNSLibraryVersion_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;Base&#39;,array(shape=(2,),dtype=&#39;int32&#39;,order=&#39;F&#39;),[1 son],&#39;CGNSBase_t&#39;]</span>
+<span class="c1">#&gt;&gt;       |_[&#39;cart&#39;,array(shape=(3, 3),dtype=&#39;int32&#39;,order=&#39;F&#39;),[2 sons],&#39;Zone_t&#39;]</span>
+<span class="c1">#&gt;&gt;           |_[&#39;ZoneType&#39;,array(&#39;Structured&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;ZoneType_t&#39;]</span>
+<span class="c1">#&gt;&gt;           |_[&#39;GridCoordinates&#39;,None,[3 sons],&#39;GridCoordinates_t&#39;]</span>
+<span class="c1">#&gt;&gt;               |_[&#39;CoordinateX&#39;,None,[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;               |_[&#39;CoordinateY&#39;,None,[0 son],&#39;DataArray_t&#39;]</span>
+<span class="c1">#&gt;&gt;               |_[&#39;CoordinateZ&#39;,None,[0 son],&#39;DataArray_t&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.convertFile2PyTree">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">convertFile2PyTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>If proc=None, read a full tree. The fully loaded in
+memory tree is identical on all processors.</p>
+<p>If proc is given, read a partial tree of zones corresponding to proc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; any converter format (optional)</p></li>
+<li><p><strong>proc</strong> (<em>None</em><em> or </em><em>int</em>) &#8211; None or rank number</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>fully loaded or partial tree</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pyTree node</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/convertFile2PyTreeMPIPT.py">Read full tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertFile2PyTree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+<span class="c1"># Identique sur tous les procs</span>
+<span class="n">t1</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2PyTree</span><span class="p">(</span><span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.readZones">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">readZones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoneNames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Fill the data of skeleton zones of t following zone rank or zone name (adf or hdf).</p>
+<p>If rank is not None, zone must have been attributed to ranks either with
+Distributor2.distribute or setProc. If the zone rank corresponds to
+process rank, the zone is filled with data read from file.</p>
+<p>If zoneNames is not None, zone with corresponding name are filled with data read from file.</p>
+<p>Exists also as in place version (_readZones) that modifies t
+and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>rank</strong> (<em>int</em>) &#8211; the processor of zones to read</p></li>
+<li><p><strong>zoneNames</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; paths of zones to read (if rank is not set)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Identical to t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/readZonesPT.py">Read some zones in a skeleton tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - readZones (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Relit les zones par paths</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">_readZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">,</span> <span class="n">zoneNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">])</span>
+
+<span class="c1"># Relit des zones par procs</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.writeZones">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">writeZones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoneNames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write some zones in an existing file (adf or hdf) according to zone rank or zone name.
+If by rank, zone must have been attributed to processors either with
+Distributor2.distribute or setProc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to write to</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>rank</strong> (<em>int</em>) &#8211; the processor of written zones</p></li>
+<li><p><strong>zoneNames</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; paths of written zones (if rank is not set)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/writeZonesPT.py">Write some zones in an existing file (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - writeZones (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Distributed</span> <span class="k">as</span> <span class="nn">Distributed</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.adf&#39;</span><span class="p">)</span>
+<span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">]</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+<span class="n">Distributed</span><span class="o">.</span><span class="n">writeZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.adf&#39;</span><span class="p">,</span> <span class="n">proc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.convertPyTree2File">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">convertPyTree2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">links</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignoreProcNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write a skeleton tree (<strong>S</strong>), a loaded skeleton tree (<strong>LS</strong>) or a
+partial tree (<strong>P</strong>) to a file (adf or hdf).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to write to</p></li>
+<li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
+<li><p><strong>links</strong> (<em>list</em><em> of </em><em>list</em><em> of </em><em>4 strings</em>) &#8211; optional list of links to be written</p></li>
+<li><p><strong>ignoreProcNodes</strong> (<em>boolean</em>) &#8211; if true, only write zones with procNode set to rank, else write all proc zones</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/convertPyTree2FileMPI.py">Write a tree to a file (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertPyTree2File (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+    <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart0&#39;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+    <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart1&#39;</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="conversions">
+<h3>Conversions</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.convert2SkeletonTree">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">convert2SkeletonTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Convert a tree (<strong>LS</strong> or <strong>P</strong>) to a skeleton tree (S). In a skeleton tree,
+numpys in DataArray_t nodes are replaced by None.</p>
+<p>Exists also as in place version (_convert2SkeletonTree) that modifies t
+and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>maxSize</strong> (<em>int</em>) &#8211; numpy bigger than maxSize are remplace by None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/convert2SkeletonTreePT.py">Convert a tree to a skeleton tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convert2SkeletonTree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convert2SkeletonTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.convert2PartialTree">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">convert2PartialTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Convert a loaded skeleton tree (<strong>LS</strong>) to a partial tree (<strong>P</strong>).
+If rank=-1, all skeleton zones are suppressed.
+If rank&gt;=0, zones with proc != rank are suppressed.</p>
+<p>Exists also as in place version (_convert2PartialTree) that modifies t
+and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>rank</strong> &#8211; if rank=-1: suppress all skeleton zones, if rank&gt;=0: suppress zones with proc=rank</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/convert2PartialTreePT.py">Convert a tree to a partial tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convert2PartialTree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Relit des zones par procs</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">,</span> <span class="n">proc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="c1"># Arbre partiel (sans zones squelettes)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convert2PartialTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.createBBoxTree">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">createBBoxTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AABB'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>From a partial tree (<strong>P</strong>) or a loaded skeleton tree (<strong>LS</strong>), create a full tree containing
+the bbox of zones. A bbox is a structured grid made of 8 points englobing
+zone. The returned tree is identical on all processors.
+Argument method can be &#8216;AABB&#8217; (axis aligned bbox) or &#8216;OBB&#8217; (oriented bbox).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>method</strong> &#8211; &#8216;AABB&#8217;: axis aligned bbox, &#8216;OBB&#8217;: oriented bbox</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/createBBoxTreePT.py">Create a BBox tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - createBBoxTree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Relit des zones par procs</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="c1"># Cree le bbox tree</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">createBBoxTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="graphs">
+<h3>Graphs</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.getProc">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">getProc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get the rank of zone.
+It only returns the value stored in .Solver#Param/proc node.
+You can use setProc or Distributor2 to create the .Solver#Param/proc node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> (<em>[</em><em>zone</em><em>]</em>) &#8211; input zone</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getProcPT.py">Get the proc of a zone (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getProc (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+
+<span class="n">zones</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;Zone_t&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">zones</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39; -&gt; &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">getProc</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span>
+<span class="c1">#&gt;&gt; cart -&gt; 0</span>
+<span class="c1">#&gt;&gt; cart.0 -&gt; 1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.setProc">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">setProc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set rank in t. t can be a skeleton (<strong>S</strong>), partial (<strong>P</strong>) or full tree.
+It only creates a .Solver#Param/proc node for the zones of t.</p>
+<p>Exists also as in place version (_setProc) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>rank</strong> (<em>int</em>) &#8211; the rank value to set</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Identical to t</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/setProcPT.py">Set the rank in zones (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setProc (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">setProc</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">zones</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">zones</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39; -&gt; &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">getProc</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span>
+<span class="c1">#&gt;&gt; cart -&gt; 1</span>
+<span class="c1">#&gt;&gt; cart.0 -&gt; 1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.getProcDict">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">getProcDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return the rank information stored in .Solver#Param/proc as
+a dictionary proc[&#8216;zoneName&#8217;].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getProcDictPT.py">Get the dictionary of zone procs (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getProcDict (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Relit des zones par procs</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+
+<span class="n">procDict</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">getProcDict</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">procDict</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; {&#39;cart.0&#39;: 1, &#39;cart&#39;: 0}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.computeGraph">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">computeGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bbox'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">procDict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersectionsDict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute a communication graph. The graph is a dictionary such that graph[proc1][proc2] contains the names of zones of proc1 that are &#8220;connected&#8221; to at least one zone on proc2.</p>
+<ul class="simple">
+<li><p>If type=&#8217;bbox&#8217;, a zone is connected to another if their bbox intersects. A must be a bbox tree.</p></li>
+<li><p>If type=&#8217;bbox2&#8217;, a zone is connected to another if their bbox intersects and are not in the same base. A must be a bbox tree.</p></li>
+<li><p>If type=&#8217;bbox3&#8217;, a zone is connected to another of another tree if their bbox intersects. A and t2 must be a bbox tree.</p></li>
+<li><p>If type=&#8217;match&#8217; (S/LS/P), a zone is connected to another if they have a match between them. A can be a skeleton, loaded skeleton or a partial tree.</p></li>
+<li><p>If type=&#8217;ID&#8217; (S/LS/P), a zone is connected to another if they have interpolation data between them. A can be a skeleton, a loaded skeleton or a partial tree.</p></li>
+<li><p>If type=&#8217;IBCD&#8217; (S/LS/P), a zone is connected to another if they have IBC data between them. A can be a skeleton, a loaded skeleton or a partial tree.</p></li>
+<li><p>If type=&#8217;ALLD&#8217; (S/LS/P), a zone is connected to another if they have Interpolation or IBC data between them. A can be a skeleton, a loaded skeleton or a partial tree.</p></li>
+<li><p>If type=&#8217;proc&#8217;, a zone is attributed to another proc than the one it is loaded on. A can be a skeleton, a loaded skeleton tree or a partial tree.</p></li>
+<li><p>If type=&#8217;POST&#8217;, t defines the donor tree, where the interpolation data is stored and t2 the receptor tree, as they do not define the same zones. Requires procDict and procDict2</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>type</strong> (<em>string in 'bbox'</em><em>, </em><em>'bbox2'</em><em>, </em><em>'bbox3'</em><em>, </em><em>'match'</em><em>, </em><em>'ID'</em><em>, </em><em>'IBCD'</em><em>, </em><em>'ALLD'</em><em>, </em><em>'proc'</em>) &#8211; type of graph</p></li>
+<li><p><strong>t2</strong> (<em>pyTree</em>) &#8211; optional second tree for type=&#8217;bbox3&#8217;</p></li>
+<li><p><strong>procDict</strong> (<em>dictionary</em>) &#8211; if provided, used for zone affectation</p></li>
+<li><p><strong>intersectionDict</strong> (<em>python dictionary</em>) &#8211; dictionary of intersections</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>python dictionary of communications</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/computeGraphPT.py">Return the communication graph (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeGraph (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Relit des zones par procs</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">,</span> <span class="n">proc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="c1"># Cree le bbox tree</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">createBBoxTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="c1"># Cree le graph</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">computeGraph</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="exchanges">
+<h3>Exchanges</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.setCommunicator">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">setCommunicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">com</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set the MPI communicator for Cassiopee exchanges. By default,
+it is set to MPI.COMM_WORLD.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>com</strong> (<em>MPI communicator</em>) &#8211; communicator to set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.addXZones">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">addXZones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>For a partial tree, add zones loaded on a different process that are
+connected to local zones through the graph.</p>
+<p>Exists also as in place version (_addXZones) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input tree</p></li>
+<li><p><strong>graph</strong> (<em>dictionary</em>) &#8211; communication graph as defined by computeGraph</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>modified reference copy of t</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tree with connected zones added</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/addXZonesPT.py">Add connected zones to a partial tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addXZones (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Relit des zones par procs</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="c1"># Cree le bbox tree</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">createBBoxTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="c1"># Cree le graph</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">computeGraph</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
+<span class="c1"># Add X Zones</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">addXZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.rmXZones">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">rmXZones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>For a partial tree, remove zones created by addXZones.</p>
+<p>Exists also as in place version (_rmXZones) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tree with connected zones suppressed</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/rmXZonesPT.py">Remove connected zones from a partial tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - rmXZones (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Cree le fichier test</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Relit des zones par procs</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="c1"># Cree le bbox tree</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">createBBoxTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="c1"># Cree le graph</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">computeGraph</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
+<span class="c1"># Add X Zones</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">addXZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rmXZones</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.allgatherTree">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">allgatherTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Gather a distributed tree on all processors.
+All processors then see the same tree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>merged and gathered tree (identical on all processors)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/allgatherTreePT.py">Gather a distributed tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - allgatherTree (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="c1"># Create test file</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Reread in parallel</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;test.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;test.cgns&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convert2PartialTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allgatherTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="c1"># full tree on every processors</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="actions">
+<h3>Actions</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.trace">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stdout'</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Enable to monitor CPU usage and memory usage for each node/process.
+If fileName=&#8221;stdout&#8221;, information is written to standard output with the processor number.
+If fileName is another name, information is written in &#8220;filenameXXX&#8221; files, one for each process. If filename does not have a format for the process number and/or an file extension, it is appended &#8220;%03d&#8221; and &#8220;.out&#8221;, respectively.
+If cpu=True, time elapsed since the previous call to &#8220;trace&#8221; by this node is written.
+If mem=True, the current usage of memory of each process is written.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>string</em>) &#8211; text to write</p></li>
+<li><p><strong>cpu</strong> (<em>boolean</em>) &#8211; True to write cpu usage information</p></li>
+<li><p><strong>mem</strong> (<em>boolean</em>) &#8211; True to write memory usage information</p></li>
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; name of the file to write information to or &#8220;stdout&#8221;</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/tracePT.py">Write a trace (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - trace (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s1">&#39;&gt;&gt;&gt; Start&#39;</span><span class="p">,</span> <span class="n">fileName</span><span class="o">=</span><span class="s2">&quot;stdout&quot;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s1">&#39;&gt;&gt;&gt; After cart&#39;</span><span class="p">,</span> <span class="n">fileName</span><span class="o">=</span><span class="s2">&quot;stdout&quot;</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; 0: &gt;&gt;&gt; Start [0 secs][8.5 MB]</span>
+<span class="c1">#&gt;&gt; 0: &gt;&gt;&gt; After cart [0.0060176 secs][9.2 MB]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.center2Node">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">center2Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cellNType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Perform a center to node conversion for a distributed tree.
+If var is set, var can be a field name or a container name
+(Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__, &#8230;).
+Then, center2Node is performed in the given field.
+Otherwise, the zone with its coordinates is moved to node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input tree</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>merged and gathered tree (identical on all processors)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/center2NodeMpiPT.py">Perform center2Node for a distributed tree (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - center2Node distributed -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Distributor2.PyTree</span> <span class="k">as</span> <span class="nn">Distributor2</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Create test case</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">])</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">(</span> <span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="p">)</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Density} = </span><span class="si">{CoordinateX}</span><span class="s1"> + </span><span class="si">{CoordinateY}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+<span class="c1"># Reread in parallel</span>
+<span class="n">sk</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">convertFile2SkeletonTree</span><span class="p">(</span><span class="s1">&#39;in.cgns&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">dic</span><span class="p">)</span> <span class="o">=</span> <span class="n">Distributor2</span><span class="o">.</span><span class="n">distribute</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">NProc</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;gradient0&#39;</span><span class="p">,</span>
+                                    <span class="n">useCom</span><span class="o">=</span><span class="s1">&#39;match&#39;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">readZones</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="s1">&#39;in.cgns&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+
+<span class="c1"># center2Node</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">center2Node</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:Density&#39;</span><span class="p">)</span>
+<span class="c1"># a is now a partial tree</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">rmVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;centers:Density&#39;</span><span class="p">)</span>
+
+<span class="c1"># Rebuild full tree in file</span>
+<span class="n">Cmpi</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Converter.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Converter.Mpi: distributed pyTree services</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="ConverterMpi.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Converter.Mpi: distributed pyTree services</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

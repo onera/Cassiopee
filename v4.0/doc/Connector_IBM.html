@@ -1,0 +1,438 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Connector.IBM: immersed boundary method grid connectivity module &#8212; Connector 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Connector.html">Connector 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Connector.IBM: immersed boundary method grid connectivity module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-Connector.IBM">
+<span id="connector-ibm-immersed-boundary-method-grid-connectivity-module"></span><h1>Connector.IBM: immersed boundary method grid connectivity module</h1>
+<section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; IBM Connectivity</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.IBM.Connector.IBM.dist2wallIBM" title="Connector.IBM.Connector.IBM.dist2wallIBM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.IBM.dist2wallIBM</span></code></a></p></td>
+<td><p>Compute the wall distance for IBM pre-processing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.IBM.Connector.IBM.blankingIBM" title="Connector.IBM.Connector.IBM.blankingIBM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.IBM.blankingIBM</span></code></a></p></td>
+<td><p>Blank the computational tree by IBC bodies for IBM pre-processing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.IBM.Connector.IBM.buildFrontIBM" title="Connector.IBM.Connector.IBM.buildFrontIBM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.IBM.buildFrontIBM</span></code></a></p></td>
+<td><p>Build the IBM front for IBM pre-processing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.IBM.Connector.IBM.setInterpDataIBM" title="Connector.IBM.Connector.IBM.setInterpDataIBM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.IBM.setInterpDataIBM</span></code></a></p></td>
+<td><p>Compute the transfer coefficients and data for IBM pre-processing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.IBM.Connector.IBM.initializeIBM" title="Connector.IBM.Connector.IBM.initializeIBM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.IBM.initializeIBM</span></code></a></p></td>
+<td><p>Initialize the computational and connectivity trees for IBM pre-processing.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="main-functions">
+<h3>Main functions</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Connector.IBM.Connector.IBM.dist2wallIBM">
+<span class="sig-prename descclassname"><span class="pre">Connector.IBM.</span></span><span class="sig-name descname"><span class="pre">dist2wallIBM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frontType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Reynolds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yplus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correctionMultiCorpsF42</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heightMaxF42</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute the wall distance for IBM pre-processing. Exists also as in-place (_dist2wallIBM).</p>
+<p>The Reynolds number, yplus and Lref are used to calculate a custom modeling height when using frontType 42.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>tree</em>) &#8211; computational tree</p></li>
+<li><p><strong>tb</strong> (<em>tree</em>) &#8211; geometry tree</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>frontType</strong> (<em>0</em><em>, </em><em>1</em><em>, </em><em>2</em><em> or </em><em>42</em>) &#8211; type of IBM front</p></li>
+<li><p><strong>Reynolds</strong> (<em>float</em>) &#8211; Reynolds number (frontType 42)</p></li>
+<li><p><strong>yplus</strong> (<em>float</em>) &#8211; estimated yplus at the first computed cells (frontType 42)</p></li>
+<li><p><strong>Lref</strong> (<em>float</em>) &#8211; characteristic length of the geometry (frontType 42)</p></li>
+<li><p><strong>correctionMultiCorpsF42</strong> (<em>boolean</em>) &#8211; if True, computes the wall distance w.r.t each body that is not a symmetry plane (frontType 42)</p></li>
+<li><p><strong>heightMaxF42</strong> (<em>float</em>) &#8211; if heightMaxF42 &gt; 0: uses a maximum modeling height to speed up individual wall distance calculations when correctionMultiCorpsF42 is active (frontType 42)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Connector/dist2wallIBMPT.py">Compute the wall distance for IBM (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - dist2wallIBM (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">DIBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">XIBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">);</span> <span class="n">tb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span>
+<span class="n">DIBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">));</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_dist2wallIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Connector.IBM.Connector.IBM.blankingIBM">
+<span class="sig-prename descclassname"><span class="pre">Connector.IBM.</span></span><span class="sig-name descname"><span class="pre">blankingIBM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frontType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IBCType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Reynolds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yplus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twoFronts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correctionMultiCorpsF42</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blankingF42</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wallAdaptF42</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heightMaxF42</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Blank the computational tree by IBC bodies for IBM pre-processing. Exists also as in-place (_blankingIBM).</p>
+<p>The Reynolds number, yplus and Lref are used to calculate a custom modeling height when using frontType 42.</p>
+<p>The wallAdaptF42 file must be obtained with Connector.IBM.createWallAdapt().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>tree</em>) &#8211; computational tree</p></li>
+<li><p><strong>tb</strong> (<em>tree</em>) &#8211; geometry tree</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>frontType</strong> (<em>0</em><em>, </em><em>1</em><em>, </em><em>2</em><em> or </em><em>42</em>) &#8211; type of IBM front</p></li>
+<li><p><strong>IBCType</strong> (<em>-1</em><em> or </em><em>1</em>) &#8211; type of IBM, -1: IB target points are located inside the solid, 1: IB target points are located in the fluid</p></li>
+<li><p><strong>depth</strong> (<em>int</em>) &#8211; depth of overlapping regions</p></li>
+<li><p><strong>Reynolds</strong> (<em>float</em>) &#8211; Reynolds number (frontType 42)</p></li>
+<li><p><strong>yplus</strong> (<em>float</em>) &#8211; estimated yplus at the first computed cells (frontType 42)</p></li>
+<li><p><strong>Lref</strong> (<em>float</em>) &#8211; characteristic length of the geometry (frontType 42)</p></li>
+<li><p><strong>twoFronts</strong> (<em>boolean</em>) &#8211; if True, performs the IBM pre-processing for an additional image point positioned farther away</p></li>
+<li><p><strong>correctionMultiCorpsF42</strong> (<em>boolean</em>) &#8211; if True, ensures that there are calculated points between the immersed bodies by using individual wall distances (frontType 42)</p></li>
+<li><p><strong>blankingF42</strong> (<em>boolean</em>) &#8211; if True, reduces as much as possible the number of IB target points inside the boundary layer (frontType 42)</p></li>
+<li><p><strong>wallAdaptF42</strong> (<em>cloud</em><em> of </em><em>IB target points with yplus information</em>) &#8211; use a previous computation to adapt the positioning of IB target points around the geometry according to a target yplus (frontType 42)</p></li>
+<li><p><strong>heightMaxF42</strong> (<em>float</em>) &#8211; if heightMaxF42 &gt; 0: maximum modeling height for the location of IB target points around the geometry (frontType 42)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Connector/blankingIBMPT.py">Blanking for IBM (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - blankingIBM (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">DIBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">XIBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">);</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span>
+<span class="n">DIBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;SPH&#39;</span><span class="p">,</span><span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">s</span><span class="p">)])</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;CART&#39;</span><span class="p">,</span><span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">)])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_dist2wallIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_blankingIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Connector.IBM.Connector.IBM.buildFrontIBM">
+<span class="sig-prename descclassname"><span class="pre">Connector.IBM.</span></span><span class="sig-name descname"><span class="pre">buildFrontIBM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frontType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cartesian</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twoFronts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Build the IBM front for IBM pre-processing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>tree</em>) &#8211; computational tree</p></li>
+<li><p><strong>tc</strong> (<em>tree</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>frontType</strong> (<em>0</em><em>, </em><em>1</em><em>, </em><em>2</em><em> or </em><em>42</em>) &#8211; type of IBM front</p></li>
+<li><p><strong>cartesian</strong> (<em>boolean</em>) &#8211; if True, activates optimized algorithms for Cartesian meshes</p></li>
+<li><p><strong>twoFronts</strong> (<em>boolean</em>) &#8211; if True, performs the IBM pre-processing for an additional image point positioned farther away</p></li>
+<li><p><strong>check</strong> (<em>boolean</em>) &#8211; if True, saves front.cgns (and front2.cgns if twoFronts is active)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Connector/buildFrontIBMPT.py">Build the IBM front (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - buildFrontIBM (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">DIBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">XIBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">);</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span>
+<span class="n">DIBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;SPH&#39;</span><span class="p">,</span><span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">s</span><span class="p">)])</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;CART&#39;</span><span class="p">,</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">)])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_dist2wallIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_blankingIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">tc</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">front</span><span class="p">,</span> <span class="n">front2</span> <span class="o">=</span> <span class="n">XIBM</span><span class="o">.</span><span class="n">buildFrontIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Connector.IBM.Connector.IBM.setInterpDataIBM">
+<span class="sig-prename descclassname"><span class="pre">Connector.IBM.</span></span><span class="sig-name descname"><span class="pre">setInterpDataIBM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">front</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">front2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frontType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IBCType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Reynolds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yplus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cartesian</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twoFronts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Compute the transfer coefficients and data for IBM pre-processing. The information are stored in the connectivity tree (IBCD* zones). Exists also as in-place (_setInterpDataIBM).</p>
+<p>The Reynolds number, yplus and Lref are used to calculate a custom modeling height when using frontType 42.</p>
+<p>front and front2 must be obtained with Connector.IBM.buildFrontIBM().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>tree</em>) &#8211; computational tree</p></li>
+<li><p><strong>tc</strong> (<em>tree</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>front</strong> (<em>tree</em>) &#8211; front of image points</p></li>
+<li><p><strong>front2</strong> (<em>tree</em>) &#8211; front of second image points (optional)</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>frontType</strong> (<em>0</em><em>, </em><em>1</em><em>, </em><em>2</em><em> or </em><em>42</em>) &#8211; type of IBM front</p></li>
+<li><p><strong>IBCType</strong> (<em>-1</em><em> or </em><em>1</em>) &#8211; type of IBM, -1: IB target points are located inside the solid, 1: IB target points are located in the fluid</p></li>
+<li><p><strong>depth</strong> (<em>int</em>) &#8211; depth of overlapping regions</p></li>
+<li><p><strong>Reynolds</strong> (<em>float</em>) &#8211; Reynolds number (frontType 42)</p></li>
+<li><p><strong>yplus</strong> (<em>float</em>) &#8211; estimated yplus at the first computed cells (frontType 42)</p></li>
+<li><p><strong>Lref</strong> (<em>float</em>) &#8211; characteristic length of the geometry (frontType 42)</p></li>
+<li><p><strong>cartesian</strong> (<em>boolean</em>) &#8211; if True, activates optimized algorithms for Cartesian meshes</p></li>
+<li><p><strong>twoFronts</strong> (<em>boolean</em>) &#8211; if True, performs the IBM pre-processing for an additional image point positioned farther away</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Connector/setInterpDataIBMPT.py">Compute IBM coefficients (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setInterpDataIBM (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">DIBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">XIBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">);</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span>
+<span class="n">DIBM</span><span class="o">.</span><span class="n">_setIBCType</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;Musker&#39;</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;SPH&#39;</span><span class="p">,</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">s</span><span class="p">)])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;GoverningEquations&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">));</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cart&#39;</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;CART&#39;</span><span class="p">,</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">)])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;farfield&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
+
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_dist2wallIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_blankingIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">tc</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">front</span><span class="p">,</span> <span class="n">front2</span> <span class="o">=</span> <span class="n">XIBM</span><span class="o">.</span><span class="n">buildFrontIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">XIBM</span><span class="o">.</span><span class="n">_setInterpDataIBM</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">front</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">dimPb</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Connector.IBM.Connector.IBM.initializeIBM">
+<span class="sig-prename descclassname"><span class="pre">Connector.IBM.</span></span><span class="sig-name descname"><span class="pre">initializeIBM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tinit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimPb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twoFronts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Initialize the computational and connectivity trees for IBM pre-processing.</p>
+<p>tinit might be used to initialize the flow solution in t.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>tree</em>) &#8211; computational tree</p></li>
+<li><p><strong>tc</strong> (<em>tree</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>tb</strong> (<em>tree</em>) &#8211; geometry tree</p></li>
+<li><p><strong>tinit</strong> (<em>tree</em>) &#8211; computational tree from previous computation</p></li>
+<li><p><strong>dimPb</strong> (<em>2</em><em> or </em><em>3</em>) &#8211; problem dimension</p></li>
+<li><p><strong>twoFronts</strong> (<em>boolean</em>) &#8211; if True, creates a new connectivity tree that contains second image points information</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Connector.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Connector.IBM: immersed boundary method grid connectivity module</a><ul>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Connector_IBM.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Connector.html">Connector 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Connector.IBM: immersed boundary method grid connectivity module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>
