@@ -356,7 +356,7 @@ installDict = {
                'gfortran', # f77compiler
                'gfortran', # f90compiler
                'gcc', # Cppcompiler
-               ['-DCACHELINE=32','-DNB_SOCKET=1'], # CppAdditionalOptions
+               ['-DCACHELINE=64','-DNB_SOCKET=1'], # CppAdditionalOptions
                [], # f77AdditionalOptions
                True, # useOMP
                False, # static
@@ -1016,7 +1016,7 @@ installDict = {
                     'gfortran', # f77compiler
                     'gfortran', # f90compiler
                     'gcc', # Cppcompiler
-                    ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
+                    ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
                     [], # f77AdditionalOptions
                     True, # useOMP
                     False, # static
@@ -1031,7 +1031,7 @@ installDict = {
                    'ifort', # f77compiler
                    'ifort', # f90compiler
                    'icc', # Cppcompiler
-                   ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
+                   ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
                    [], # f77AdditionalOptions
                    True, # useOMP
                    False, # static
@@ -1061,7 +1061,7 @@ installDict = {
                    'gfortran', # f77compiler
                    'gfortran', # f90compiler
                    'gcc', # Cppcompiler
-                   ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
+                   ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
                    [], # f77AdditionalOptions
                    True, # useOMP
                    False, # static
@@ -1106,7 +1106,7 @@ installDict = {
                   'gfortran', # f77compiler
                   'gfortran', # f90compiler
                   'gcc', # Cppcompiler
-                  ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX512'], # CppAdditionalOptions
+                  ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX512'], # CppAdditionalOptions
                   [], # f77AdditionalOptions
                   True, # useOMP
                   False, # static
@@ -1121,7 +1121,7 @@ installDict = {
                    'gfortran', # f77compiler
                    'gfortran', # f90compiler
                    'gcc', # Cppcompiler
-                   ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX512'], # CppAdditionalOptions
+                   ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX512'], # CppAdditionalOptions
                    [], # f77AdditionalOptions
                    True, # useOMP
                    False, # static
@@ -1136,7 +1136,7 @@ installDict = {
               'ifort', # f77compiler
               'ifort', # f90compiler
               'icc', # Cppcompiler
-              ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX512'], # CppAdditionalOptions
+              ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX512'], # CppAdditionalOptions
               [], # f77AdditionalOptions
               True, # useOMP
               False, # static
