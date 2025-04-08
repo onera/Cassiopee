@@ -4,8 +4,8 @@ on:
   push:
     tags:
       - 'v*'
-    branches:
-      - 'pypi'
+#    branches:
+#      - 'pypi'
 
 jobs:
   build:
