@@ -144,7 +144,7 @@ elif [ "$MAC" = "ld_spack2" ]; then
     . /etc/profile.d/modules-onera.sh
     module purge
     export PATH="/tmp_user/ldaaa2323z/benoit/spack_installed/install2/bin":"/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/bin":"/tmp_user/ldaaa2323z/benoit/spack/bin":"/usr/local/sbin":"/usr/bin:/usr/sbin:/usr/local/bin"
-    export LD_LIBRARY_PATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib64:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/lib:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/lib64
+    export LD_LIBRARY_PATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/x64:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/emu:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/oclfpga/host/linux64/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/oclfpga/linux64/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/compiler/lib/intel64_lin:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/libfabric/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/lib/release:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib64
     export PYTHONPATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib/python3.9/site-packages:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/lib/python3.9/site-packages
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -240,9 +240,9 @@ elif [ "$MAC" = "spiro_gcc" ]; then
     module load hdf5/1.10.5-gnu831-ompi405
     export PYTHONEXE=python3
     export PRODMODE=1
-    export OMP_PLACES=cores
     unset $(env | grep SLURM | cut -d'=' -f 1)
-
+    unset OMP_PLACES
+    
 elif [ "$MAC" = "visung_gcc" ]; then
 #----------------------------- visung_gcc -------------------------------------
     export ELSAPROD=visung_gcc
@@ -297,7 +297,6 @@ elif [ "$MAC" = "giulia" ]; then
     ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
     ncpu=$((ncpu + 1 ))
     export OMP_NUM_THREADS=$ncpu
-    # modules
     module unload $(module -t list 2>&1 | grep -i intel)
     module load gcc/5.2
     module load python/2.7.8
@@ -316,8 +315,6 @@ elif [ "$MAC" = "cobalt" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=28
-
-    # modules
     module purge
     module load intel/17.0.6.256
     module load mpi/openmpi
@@ -332,7 +329,6 @@ elif [ "$MAC" = "tgcc_irene" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     module purge
     module load intel/20
     module load mpi/openmpi
@@ -348,7 +344,6 @@ elif [ "$MAC" = "jean-zay" ]; then
     module load gcc/9.1.0-cuda-openacc
     module load openmpi/4.1.1-cuda
     module load hdf5/1.10.5
-    # Set next two lines only if python is not python
     export PYTHONEXE=python3
     # Number of threads
     export OMP_NUM_THREADS=28
@@ -359,7 +354,6 @@ elif [ "$MAC" = "spiro" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     . /usr/local/Modules/init/bash
     module unload $(module -t list 2>&1 | grep -i intel)
     module unload impi/17
@@ -378,7 +372,6 @@ elif [ "$MAC" = "spiro_sky" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     . /usr/local/Modules/init/bash
     module unload $(module -t list 2>&1 | grep -i intel)
     module unload impi/17
@@ -396,7 +389,6 @@ elif [ "$MAC" = "spiro_cas" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     . /usr/local/Modules/init/bash
     module unload $(module -t list 2>&1 | grep -i intel)
     module unload impi/17
@@ -414,7 +406,6 @@ elif [ "$MAC" = "spiro_amdRM" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=32
-    # modules
     . /usr/local/Modules/init/bash
     module unload $(module -t list 2>&1 | grep -i intel)
     module unload impi/17
@@ -431,7 +422,6 @@ elif [ "$MAC" = "spiro_amdNP" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=32
-    # modules
     . /usr/local/Modules/init/bash
     module unload $(module -t list 2>&1 | grep -i intel)
     module unload impi/17
@@ -448,7 +438,6 @@ elif [ "$MAC" = "spiro_socle6" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     #. /usr/local/Modules/init/bash
     module purge
     module load socle-cfd/6.0-intel2220-impi
@@ -463,7 +452,6 @@ elif [ "$MAC" = "spiro_sonics" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     . /etc/profile.d/modules-onera.sh
     module purge
     source /scratchm/sonics/dist/spiro-el8.sh --compiler=intel@2022 --mpi=impi
@@ -476,7 +464,6 @@ elif [ "$MAC" = "spiro_python2" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     . /usr/local/Modules/init/bash
     module unload $(module -t list 2>&1 | grep -i intel)
     #module load CFD/4.0-intel-17.impi
@@ -491,7 +478,6 @@ elif [ "$MAC" = "spiro_anaconda" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     . /usr/local/Modules/init/bash
     module unload $(module -t list 2>&1 | grep -i intel)
     module unload impi/17
@@ -529,7 +515,7 @@ elif [ "$MAC" = "spiro_el8" ]; then
     unset I_MPI_TCP_NETMASK
     unset I_MPI_PMI_LIBRARY
     unset $(env | grep SLURM | cut -d'=' -f 1)
-    export OMP_PLACES=cores
+    unset OMP_PLACES
 
 elif [ "$MAC" = "spiro_intel" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -551,7 +537,6 @@ elif [ "$MAC" = "spiro_coda" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    # modules
     module purge
     source /stck/rhea/dist/spiro_v2023_10/source.sh --env coda_dev --compiler gcc@10 --mpi openmpi
     #module load hdf5/1.10.5-gnu831-ompi405
@@ -602,7 +587,6 @@ elif [ "$MAC" = "juno" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
-    # modules
     source /opt/tools/Modules/init/bash
     module purge
     module load socle-cfd/6.0-intel2220-impi
@@ -623,7 +607,7 @@ elif [ "$MAC" = "juno" ]; then
     unset I_MPI_PMI_LIBRARY
     unset I_MPI_HYDRA_BOOTSTRAP_EXEC_EXTRA_ARGS I_MPI_HYDRA_BOOTSTRAP HYDRA_BOOTSTRAP
     unset $(env | grep SLURM | cut -d'=' -f 1)
-    export OMP_PLACES=cores
+    unset OMP_PLACES
 
 elif [ "$MAC" = "juno_gcc" ]; then
 #----------------------------- juno gcc ---------------------------------------
@@ -660,7 +644,6 @@ elif [ "$MAC" = "juno_gpu" ]; then
     module load python/3.12.2-gnu850
     module load nvhpc/23.7-gnu850-full
     module load hdf5/1.10.5-gnu831-ompi405
-    # Set next two lines only if python is not python
     export PYTHONEXE=python3
     # Number of threads
     export OMP_NUM_THREADS=48
@@ -677,23 +660,24 @@ elif [ "$MAC" = "juno_coda" ]; then
     export OMP_NUM_THREADS=48
     # modules
     . /etc/profile.d/modules-onera.sh
+    export MODULEPATH=/stck/rhea/coda_modules:$MODULEPATH
     module purge
-    source /stck/rhea/dist/juno_v2024_08/source.sh --env coda_users
+    CASSIOPEESAVE=$CASSIOPEE
+    ELSAPRODSAVE=$ELSAPROD
+    module load fssuite/2025.02.0-gnu1210
+    export CASSIOPEE=$CASSIOPEESAVE
+    export ELSAPROD=$ELSAPRODSAVE
     module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
-    module load subversion/1.14.1-gnu831
-    module load emacs/27.2-gnu831
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset $(env | grep SLURM | cut -d'=' -f 1)
-    #unset OMP_PLACES
-    export OMP_PLACES=cores
-    export OMP_PROC_BIND=TRUE
+    unset OMP_PLACES
     #export OMP_DISPLAY_ENV=VERBOSE
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
-    export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "sator_brw" ]; then
 #----------------------------- sator for broadwell -----------------------------------------
@@ -707,14 +691,12 @@ elif [ "$MAC" = "sator_brw" ]; then
     module load emacs/27.2-gnu831
     module load occt/7.6.1-gnu831
     unset I_MPI_PMI_LIBRARY
-    # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    # Other aliases
     alias ffmpeg=/opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg
     # Number of threads
     export OMP_NUM_THREADS=28
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
-    #export KMP_AFFINITY="scatter,1,0,granularity=fine,verbose"
+    export OMP_PLACES=cores
 
 elif [ "$MAC" = "topaze" ]; then
 #----------------------------- topaze ccrt proc amd milan ---------------------------------------
@@ -747,18 +729,19 @@ elif [ "$MAC" = "sator_sky" ]; then
     module load emacs/27.2-gnu831
     module load occt/7.6.1-gnu831
     unset I_MPI_PMI_LIBRARY
-    # Set next two lines only if python is not python
     export PYTHONEXE=python3
     # Number of threads
     export OMP_NUM_THREADS=44
+    export OMP_PLACES=cores
 
 elif [ "$MAC" = "sator_cas" ]; then
-    #----------------------------- sator for cascade ---------------------------------------
+#----------------------------- sator for cascade ---------------------------------------
     export ELSAPROD=sat_cas_r8
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
+    export OMP_PLACES=cores
     . /etc/profile.d/module.sh
     module purge
     #module load socle-cfd/5.0-intel2120-impi
@@ -773,7 +756,7 @@ elif [ "$MAC" = "sator_cas" ]; then
     alias ffmpeg=/opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg
 
 elif [ "$MAC" = "sator_sph" ]; then
-    #----------------------------- sator for saphire ---------------------------------------
+#----------------------------- sator for saphire ---------------------------------------
     export ELSAPROD=sat_sph
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
@@ -797,7 +780,6 @@ elif [ "$MAC" = "sator_gcc" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
-    # modules
     source /opt/tools/Modules/init/bash
     module purge
     module load socle-cfd/7.0-gnu850-ompi502
@@ -820,23 +802,19 @@ elif [ "$MAC" = "adastra_cpu" ]; then
     export OMP_PLACES=cores
     export PRODMODE=1
     module purge
-
     # CPU craycc
     #module load craype-x86-genoa
     #module load PrgEnv-cray
     #module load cray-mpich/8.1.28
     #module load cray-libsci/23.05.1.4
     #module load CCE-CPU-3.1.0
-
     # CPU GCC
     module load PrgEnv-gnu
     export LD_LIBRARY_PATH="/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12":$LD_LIBRARY_PATH
-    
     module load cray-python/3.11.5
     module load cray-hdf5-parallel/1.12.2.5
     export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
-
     export PYTHONEXE=python3
 
 elif [ "$MAC" = "adastra_gpu" ]; then
@@ -846,13 +824,11 @@ elif [ "$MAC" = "adastra_gpu" ]; then
     export OMP_NUM_THREADS=12
     export OMP_PLACES=cores
     export PRODMODE=1
-
     #module purge
     #module load CCE-GPU-3.1.0
     #module load rocm
     #module load cray-python/3.11.5
     #module load cray-hdf5-parallel/1.12.2.5
-
     module purge
     module load cpe/23.12
     module load craype-accel-amd-gfx90a craype-x86-trento
@@ -860,7 +836,6 @@ elif [ "$MAC" = "adastra_gpu" ]; then
     module load rocm
     module load cray-python/3.11.5
     module load cray-hdf5-parallel/1.12.2.5
-
     #export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
     export PYTHONEXE=python3
@@ -871,7 +846,6 @@ elif [ "$MAC" = "aryen" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=2
-    # modules
     export PYTHONEXE=python3
     export PRODMODE=1
 
@@ -881,7 +855,6 @@ elif [ "$MAC" = "WDAAA161Z" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=4
-    # modules
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -892,7 +865,6 @@ elif [ "$MAC" = "msys2" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=4
-    # modules
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
