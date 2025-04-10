@@ -4427,8 +4427,7 @@ def _adaptNGon42NGon3(t, shiftPE=True, absFace=True):
         off = getNodeFromName1(c, 'ElementStartOffset')
         cn = getNodeFromName1(c, 'ElementConnectivity')
         if off is not None and cn is not None:
-          n = converter.adaptNGon42NGon3(cn[1], off[1])
-          if absFace: n = numpy.abs(n)
+          n = converter.adaptNGon42NGon3(cn[1], off[1], absFace)
           cn[1] = n
           off[1] = off[1][:-1]
           if c[1][0] == 22: off[0] = 'FaceIndex'
@@ -4440,10 +4439,8 @@ def _adaptNGon42NGon3(t, shiftPE=True, absFace=True):
         if parentElt is not None and parentElt[1] is not None: # parent element est present
           cFE = parentElt[1]
           erange = getNodeFromName1(c, 'ElementRange')
-          shift = numpy.min(cFE[numpy.nonzero(cFE)])
-          if shift > 1 and shift == erange[1][1]+1:
-            cFE = cFE+(1-shift)*(cFE>0)
-            parentElt[1] = cFE
+          cFE = converter.adaptShiftedPE2PE(cFE, erange[1][1])
+          if cFE is not None: parentElt[1] = cFE
   return None
 
 # -- Adapte un NGon(CGNSv3) en NGon(CGNSv4)
@@ -4475,10 +4472,8 @@ def _adaptNGon32NGon4(t, shiftPE=True):
         if parentElt is not None and parentElt[1] is not None: # parent element est present
           cFE = parentElt[1]
           erange = getNodeFromName1(c, 'ElementRange')
-          shift = numpy.min(cFE[numpy.nonzero(cFE)])
-          if shift == erange[1][1]+1:
-            cFE = cFE+(shift-1)*(cFE>0)
-            parentElt[1] = cFE
+          cFE = converter.adaptShiftedPE2PE(cFE, erange[1][1])
+          if cFE is not None: parentElt[1] = cFE
 
   return None
 

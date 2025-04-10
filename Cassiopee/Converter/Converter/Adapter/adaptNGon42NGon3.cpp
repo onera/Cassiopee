@@ -26,8 +26,9 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
 {
   PyObject* arrayConnect; PyObject* arrayOffset;
-  if (!PYPARSETUPLE_(args, OO_, 
-                     &arrayConnect, &arrayOffset)) return NULL;
+  E_Boolean absFace = true;
+  if (!PYPARSETUPLE_(args, OO_ B_, 
+                     &arrayConnect, &arrayOffset, &absFace)) return NULL;
 
   // Check numpy (connect)
   FldArrayI* connect;
@@ -64,19 +65,35 @@ PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
 #pragma omp parallel
   {
     E_Int d, d1, d2;
-    #pragma omp for
-    for (E_Int i = 0; i < ne; i++)
+    if (absFace)
     {
-      d = o[i+1]-o[i];
-      d1 = o[i];
-      d2 = o[i]+i;
-      co[d2] = d;
-      for (E_Int j = 0; j < d; j++) co[d2+j+1] = c[d1+j];
+      #pragma omp for
+      for (E_Int i = 0; i < ne; i++)
+      {
+        d = o[i+1]-o[i];
+        d1 = o[i];
+        d2 = o[i]+i;
+        co[d2] = d;
+        for (E_Int j = 0; j < d; j++) co[d2+j+1] = K_FUNC::E_abs(c[d1+j]);
+      }
+    }
+    else
+    {
+      #pragma omp for
+      for (E_Int i = 0; i < ne; i++)
+      {
+        d = o[i+1]-o[i];
+        d1 = o[i];
+        d2 = o[i]+i;
+        co[d2] = d;
+        for (E_Int j = 0; j < d; j++) co[d2+j+1] = c[d1+j];
+      }
     }
   }
 
   // Create index array from offset
-  for (E_Int i = 0; i < ne; i++) o[i] = o[i]+i;
+  #pragma omp simd
+  for (E_Int i = 0; i < ne; i++) o[i] += i;
  
   RELEASESHAREDN(arrayConnect, connect);
   RELEASESHAREDN(arrayOffset, offset);
