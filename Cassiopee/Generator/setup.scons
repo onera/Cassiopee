@@ -70,7 +70,6 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
        	if v in files:
            #print('altering', v,flags)
            srcs.cpp_srcs2[i] = env.Object(v, CXXFLAGS=flags)
-        
 if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler == 'x86_64-w64-mingw32-gcc':
     flags = ''
     for i in cppOpts: 
