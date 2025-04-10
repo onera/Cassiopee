@@ -658,11 +658,10 @@ else if ($MAC == "juno_coda") then
         setenv ELSAPROD "$ELSAPROD$EXT"
         # Number of threads
         setenv OMP_NUM_THREADS 48
-        # modules
-        module purge
         setenv MODULEPATH /stck/rhea/coda_modules:$MODULEPATH
         set CASSIOPEESAV=$CASSIOPEE
         set ELSAPRODSAV=$ELSAPROD
+        module purge
         module load fssuite/2025.02.0-gnu1210
         setenv CASSIOPEE $CASSIOPEESAV
         setenv ELSAPROD $ELSAPRODSAV

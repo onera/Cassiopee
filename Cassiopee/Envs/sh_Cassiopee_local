@@ -658,12 +658,11 @@ elif [ "$MAC" = "juno_coda" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
-    # modules
-    . /etc/profile.d/modules-onera.sh
+    #. /etc/profile.d/modules-onera.sh
     export MODULEPATH=/stck/rhea/coda_modules:$MODULEPATH
-    module purge
     CASSIOPEESAVE=$CASSIOPEE
     ELSAPRODSAVE=$ELSAPROD
+    module purge
     module load fssuite/2025.02.0-gnu1210
     export CASSIOPEE=$CASSIOPEESAVE
     export ELSAPROD=$ELSAPRODSAVE
