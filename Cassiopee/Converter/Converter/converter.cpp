@@ -140,6 +140,7 @@ static PyMethodDef Pyconverter [] =
   {"adaptBCFace2BCC", K_CONVERTER::adaptBCFace2BCC, METH_VARARGS},
   {"adaptNGon42NGon3", K_CONVERTER::adaptNGon42NGon3, METH_VARARGS},
   {"adaptNGon32NGon4", K_CONVERTER::adaptNGon32NGon4, METH_VARARGS},
+  {"adaptShiftedPE2PE", K_CONVERTER::adaptShiftedPE2PE, METH_VARARGS},
   {"signNGonFaces", K_CONVERTER::signNGonFaces, METH_VARARGS},
   {"unsignNGonFaces", K_CONVERTER::unsignNGonFaces, METH_VARARGS},
   {"makeParentElements", K_CONVERTER::makeParentElements, METH_VARARGS},
