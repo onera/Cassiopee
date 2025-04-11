@@ -34,3 +34,7 @@
 #define __MIN_SIZE_LIGHT__ 100
 #define __MIN_SIZE_MEAN__ 50
 #define __MIN_SIZE_HEAVY__ 20
+
+#ifndef CACHELINE
+#define CACHELINE 32
+#endif

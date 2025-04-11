@@ -464,9 +464,9 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   E_Float* final3 = final->begin(6);
   E_Float* final4 = final->begin(7);
 
-  E_Float tinf, tsup;
-  if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
-  else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
+  //E_Float tinf, tsup;
+  //if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
+  //else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
   E_Int ni1 = ni-1; // cube image
   E_Int nj1 = nj-1;
