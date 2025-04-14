@@ -714,7 +714,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         tbOneOverF1 = tbOneOver+tbF1
         tbox        = Internal.rmNodesByName(Internal.rmNodesByName(Internal.rmNodesByName(tbox, '*OneOver*'), '*KeepF1*'), '*RM*')
         if len(Internal.getBases(tbox))==0: tbox=None
-    
+
     # Octree identical on all procs
     if to is not None:
         if isinstance(to, str):
@@ -771,7 +771,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
     if tbRM:
         to       = C.newPyTree(["OCTREE",o])
-        ##loop is needed to avoid unwanted & unexpected behavior 
+        ##loop is needed to avoid unwanted & unexpected behavior
         for b in Internal.getBases(tbRM):
             bodies   = [b]
             nBasesRM = len(bodies)
@@ -786,7 +786,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
     if Cmpi.rank==0 and check: C.convertPyTree2File(o, 'octree.cgns')
     if isOnlyOctree: exit()
-    
+
     # Split octree
     bb = G.bbox(o)
     NPI = Cmpi.size
