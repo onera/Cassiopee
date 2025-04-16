@@ -98,7 +98,7 @@ int HDF_Get_Attribute_As_Integer(hid_t nodeid, const char *name, int *value)
 }
 
 /* ------------------------------------------------------------------------- */
-char *HDF_Get_Attribute_As_String(hid_t nodeid, const char *name, char *value)
+char* HDF_Get_Attribute_As_String(hid_t nodeid, const char* name, char* value)
 {
   hid_t aid, tid;
   value[0] = '\0';
@@ -140,7 +140,7 @@ int HDF_Set_Attribute_As_String(hid_t nodeid, const char *name, char *value)
 /* ------------------------------------------------------------------------- */
 char *HDF_Get_Attribute_As_Data(hid_t nodeid, const char *name, char *value)
 {
-  hid_t did ;
+  hid_t did;
   value[0] = '\0';
   did = H5Dopen2(nodeid, name, H5P_DEFAULT);
   if (did > 0)
@@ -161,16 +161,16 @@ char *HDF_Get_Attribute_As_Data(hid_t nodeid, const char *name, char *value)
 
 /* ------------------------------------------------------------------------- */
 #if H5_VERSION_LE(1,11,9)
-static herr_t count_children(hid_t id, const char *name, void *count)
+static herr_t count_children(hid_t id, const char* name, void* count)
 #elif H5_VERSION_LE(1,13,9)
-static herr_t count_children(hid_t id, const char *name, const H5L_info_t* linfo, void *count)
+static herr_t count_children(hid_t id, const char* name, const H5L_info_t* linfo, void* count)
 #else
-static herr_t count_children(hid_t id, const char *name, const H5L_info2_t* linfo, void *count)
+static herr_t count_children(hid_t id, const char* name, const H5L_info2_t* linfo, void* count)
 #endif
 {
   if (name && (name[0] != ' '))
   {
-    (*((int *)count))++;
+    (*((int*)count))++;
   }
   return 0;
 }
@@ -184,22 +184,22 @@ static herr_t gfind_name(hid_t id, const char *nm, const H5L_info2_t* linfo, voi
 #endif
 {
   /*  printf("GFIND [%s][%s]\n",nm,snm);fflush(stdout); */
-  if (!strcmp(nm,(char *)snm)) return 1;
+  if (!strcmp(nm, (char*)snm)) return 1;
   return 0;
 }
 #if H5_VERSION_LE(1,11,9)
-#define has_child(ID,NAME) H5Giterate(ID, ".", NULL, gfind_name, (void *)NAME)
+#define has_child(ID,NAME) H5Giterate(ID, ".", NULL, gfind_name, (void*)NAME)
 #else
 #define has_child(ID,NAME) H5Lexists(ID, NAME, H5P_DEFAULT)
-//#define has_child(ID,NAME) H5Literate2(ID, H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, NULL, gfind_name, (void *)NAME)
+//#define has_child(ID,NAME) H5Literate2(ID, H5_INDEX_CRT_ORDER, H5_ITER_NATIVE, NULL, gfind_name, (void*)NAME)
 #endif
 /* ------------------------------------------------------------------------- */
 #if H5_VERSION_LE(1,11,9)
-static herr_t delete_children(hid_t id, const char *name, void *data)
+static herr_t delete_children(hid_t id, const char* name, void* data)
 #elif H5_VERSION_LE(1,13,9)
-static herr_t delete_children(hid_t id, const char *name, const H5L_info_t* linfo, void *data)
+static herr_t delete_children(hid_t id, const char* name, const H5L_info_t* linfo, void* data)
 #else
-static herr_t delete_children(hid_t id, const char *name, const H5L_info2_t* linfo, void *data)
+static herr_t delete_children(hid_t id, const char* name, const H5L_info2_t* linfo, void* data)
 #endif
 {
   /* do not change link id with actual here, stop deletion at link node */
@@ -219,21 +219,6 @@ static herr_t delete_children(hid_t id, const char *name, const H5L_info2_t* lin
   }
   return 0;
 }
-/* ------------------------------------------------------------------------- */
-// static herr_t feed_children_ids_list(hid_t id, const char *name, void *idlist)
-// {
-//   hid_t cid;
-//   int n;
-
-//   /* skip names starting with a <space> */
-//   if (name && (name[0] == ' ')) return 0;
-//   cid = H5Gopen(id, name, H5P_DEFAULT); // group is closed in loadOne
-//   /* set id  */
-//   n = 0;
-//   while (((hid_t*)idlist)[n] != -1) n++;
-//   ((hid_t*)idlist)[n] = cid;
-//   return 0;
-// }
 
 /* ------------------------------------------------------------------------- */
 #if H5_VERSION_LE(1,13,9)
@@ -256,6 +241,7 @@ static herr_t feed_children_ids(hid_t id, const char* name,
   return 0;
 }
 
+/* ------------------------------------------------------------------------- */
 // Retourne 1 si path est dans links
 E_Int checkPathInLinks(const char* path, PyObject* links)
 {
@@ -279,16 +265,17 @@ E_Int checkPathInLinks(const char* path, PyObject* links)
 /* ------------------------------------------------------------------------- */
 hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
 {
-  hid_t *idlist;
+  hid_t* idlist;
   hid_t gpl;
   int nchildren, n;
   unsigned order=0;
 
   nchildren = 0;
 #if H5_VERSION_LE(1,11,9)
-  H5Giterate(nodeid, ".", NULL, count_children, (void *)&nchildren);
+  H5Giterate(nodeid, ".", NULL, count_children, (void*)&nchildren);
 #else
-  H5Literate2(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL, count_children, (void *)&nchildren);
+  //H5Literate2(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC, NULL, count_children, (void*)&nchildren);
+  H5Literate2(nodeid, H5_INDEX_NAME, H5_ITER_INC, NULL, count_children, (void*)&nchildren);
 #endif
   if (!nchildren) return NULL;
 
@@ -310,10 +297,10 @@ hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
     // avec order
 #if H5_VERSION_LE(1,11,9)
     H5Literate(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC,
-               NULL, feed_children_ids, (void *)idlist);
+               NULL, feed_children_ids, (void*)idlist);
 #else
     H5Literate2(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC,
-               NULL, feed_children_ids, (void *)idlist);
+               NULL, feed_children_ids, (void*)idlist);
 #endif
   }
   else
@@ -321,10 +308,10 @@ hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
     // sans order
 #if H5_VERSION_LE(1,11,9)
     H5Literate(nodeid, H5_INDEX_NAME, H5_ITER_INC,
-               NULL, feed_children_ids, (void *)idlist);
+               NULL, feed_children_ids, (void*)idlist);
 #else
     H5Literate2(nodeid, H5_INDEX_NAME, H5_ITER_INC,
-                NULL, feed_children_ids, (void *)idlist);
+                NULL, feed_children_ids, (void*)idlist);
 #endif
   }
 
