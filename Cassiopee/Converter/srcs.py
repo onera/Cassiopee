@@ -5,7 +5,7 @@ try:
     from KCore.config import *
     (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths, additionalIncludePaths)
     (netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf(additionalLibPaths, additionalIncludePaths)
-    
+
 except ModuleNotFoundError:
     hdf = True; netcdf = True
 
