@@ -343,7 +343,7 @@ def writeInstallPath():
         pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         Lib = pythonLib[-3]
-    if os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
+    if os.environ['ELSAPROD'][0:6] == 'ubuntu' and "pyenv" not in sys.executable: # debian style
         p.write('libPath = \'%s/local/%s\'\n'%(prefix,Lib))
     else:
         p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))

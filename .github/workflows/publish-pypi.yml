@@ -2,6 +2,7 @@ name: publish PyPI
 
 on:
   push:
+    workflow_dispatch:  # allows manual trigger
     tags:
       - 'v*'
 #    branches:

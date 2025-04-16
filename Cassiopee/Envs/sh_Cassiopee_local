@@ -884,8 +884,11 @@ if [ "$PYTHONEXE" = "python3" ]; then
 else
     pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 fi
+# Detect if pyenv is used
+pyenv=$($PYTHONEXE -c 'import sys; print("pyenv" in sys.executable)' 2>/dev/null)
+
 pylib="lib"
-if [ "$MAC" = "ubuntu" ]; then
+if [ "$MAC" = "ubuntu" ] && [ "$pyenv" == "False" ]; then
     pylib="local/"$pylib
     pysite="dist-packages"
 else
