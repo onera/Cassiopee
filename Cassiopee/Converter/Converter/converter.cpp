@@ -86,11 +86,16 @@ static PyMethodDef Pyconverter [] =
   {"convertFile2PartialPyTree", K_CONVERTER::convertFile2PartialPyTree, METH_VARARGS},
   {"convertPyTree2File", K_CONVERTER::convertPyTree2File, METH_VARARGS},
   {"convertFile2PyTreeFromPath", K_CONVERTER::convertFile2PyTreeFromPath, METH_VARARGS},
-  {"convertPyTree2FFD", K_CONVERTER::convertPyTree2FFD, METH_VARARGS},
   {"convertPyTree2FilePartial", K_CONVERTER::convertPyTree2FilePartial, METH_VARARGS},
   {"readPyTreeFromPaths", K_CONVERTER::readPyTreeFromPaths, METH_VARARGS},
   {"writePyTreePaths", K_CONVERTER::writePyTreePaths, METH_VARARGS},
   {"deletePyTreePaths", K_CONVERTER::deletePyTreePaths, METH_VARARGS},
+
+  {"convertFile2PyTreeTau", K_CONVERTER::convertFile2PyTreeTau, METH_VARARGS},
+  {"convertFile2PyTreeFsdm", K_CONVERTER::convertFile2PyTreeFsdm, METH_VARARGS},
+
+  {"convertPyTree2FFD", K_CONVERTER::convertPyTree2FFD, METH_VARARGS},
+  
   {"addGhostCellsNGonNodes", K_CONVERTER::addGhostCellsNGonNodes, METH_VARARGS},
   {"addGhostCellsNGonCenters", K_CONVERTER::addGhostCellsNGonCenters, METH_VARARGS},
   {"addGhostCellsNGonBoth", K_CONVERTER::addGhostCellsNGonBoth, METH_VARARGS},

@@ -499,7 +499,7 @@ E_Int K_IO::GenIO::svgwrite(
   
       if (elt != 1 && elt != 2 && elt != 3 && elt != 4 && elt != 6 && elt != 7)
       {                       
-        printf("Error: svg: unrecognised element type: %d.\n", elt);
+        printf("Error: svg: unrecognised element type: " SF_D_ ".\n", elt);
         continue;
       }
 
@@ -665,7 +665,7 @@ E_Int K_IO::GenIO::svgwrite(
             break;
 
           default:
-            printf("Error: svg: unrecognised element type: %d.\n", elt);
+            printf("Error: svg: unrecognised element type: " SF_D_ ".\n", elt);
         }
       }
     }

@@ -95,10 +95,12 @@ namespace K_CONVERTER
   PyObject* convertPyTree2File(PyObject* self, PyObject* args);
   PyObject* convertFile2PyTreeFromPath(PyObject* self, PyObject* args);
   PyObject* convertPyTree2FilePartial(PyObject* self, PyObject* args);
-  PyObject* convertPyTree2FFD(PyObject* self, PyObject* args);
   PyObject* readPyTreeFromPaths(PyObject* self, PyObject* args);
   PyObject* writePyTreePaths(PyObject* self, PyObject* args);
   PyObject* deletePyTreePaths(PyObject* self, PyObject* args);
+  PyObject* convertFile2PyTreeTau(PyObject* self, PyObject* args);
+  PyObject* convertFile2PyTreeFsdm(PyObject* self, PyObject* args);
+  PyObject* convertPyTree2FFD(PyObject* self, PyObject* args);
   PyObject* cpyGhost2Real(PyObject* self, PyObject* args);
   PyObject* cpyReal2Ghost(PyObject* self, PyObject* args);
   PyObject* cpyConnectA2ConnectP(PyObject* self, PyObject* args);

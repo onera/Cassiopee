@@ -2607,7 +2607,7 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
     from tempfile import mkstemp
     import os
     fd, tmpfl = mkstemp('.py')
-    os.write(fd, rep)
+    os.write(fd, rep.encode("utf8"))
     os.close(fd)
     os.system('%s %s ;rm -f %s' %(editor, tmpfl, tmpfl))
   if file:
@@ -2727,7 +2727,7 @@ def eltName2EltNo(name):
     elif nnodes == 9:  eltno = 9
     elif nnodes == 12: eltno = 27 # D'apres l'enumeration CGNS
     elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait etre QUAD_P4_16... Que faire ?
-    # Pour l'ordre 4,rien dans l'enumeration CGNS
+    # Pour l'ordre 4, rien dans l'enumeration CGNS
   elif name[0:5] == 'TETRA':
     if len(name) == 5: nnodes = 4
     else: nnodes = int(name[6:])

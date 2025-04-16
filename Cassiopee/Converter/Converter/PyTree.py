@@ -1041,6 +1041,19 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                     _upgradeTree(t)
                     return t
                 except: pass
+
+    elif format == 'bin_tau':
+        t = Converter.converter.convertFile2PyTreeTau(fileName, 'bin_tau')
+        t = Internal.createRootNode(children=t[2])
+        _upgradeTree(t, uncompress, oldcompress)
+        return t
+
+    elif format == 'bin_fsdm':
+        t = Converter.converter.convertFile2PyTreeFsdm(fileName, 'bin_fsdm')
+        t = Internal.createRootNode(children=t[2])
+        _upgradeTree(t, uncompress, oldcompress)
+        return t
+
     elif format == 'unknown':
         try:
             t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readMode)

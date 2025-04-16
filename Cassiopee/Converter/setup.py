@@ -27,6 +27,10 @@ from KCore.config import *
 (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
                                                      additionalIncludePaths)
 
+# Test if libnetcdf exists ======================================================
+(netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf(additionalLibPaths,
+                                                                    additionalIncludePaths)
+
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
@@ -44,6 +48,10 @@ libraries = ["converter", "kcore"]
 if hdf:
     libraryDirs.append(hdfLibDir)
     includeDirs.append(hdfIncDir)
+if netcdf:
+    libraryDirs.append(netcdfLibDir)
+    includeDirs.append(netcdfIncDir)
+
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
@@ -54,6 +62,9 @@ if mpi4py:
 
 if hdf:
     for l in hdflibs: libraries.append(l)
+if netcdf:
+    for l in netcdflibs: libraries.append(l)
+
 if mpi: libraries += mpiLibs
 
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)

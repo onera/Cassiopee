@@ -802,7 +802,7 @@ class GenIO
       std::vector<char*>& zoneNames);
     ///-
 
-    ///+ ADF functions
+    ///+ ADF/CGNS functions
     /* Lecture dans un arbre */
     E_Int adfcgnsread(char* file, PyObject*& tree, int skeleton=0,
                       int maxFloatSize=5, int maxDepth=-1);
@@ -819,7 +819,7 @@ class GenIO
     E_Int adfcgnsDeletePaths(char* file, PyObject* paths);
     ///-
 
-    ///+ HDF functions
+    ///+ HDF/CGNS functions
     /* Lecture dans un arbre */
     E_Int hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
                       PyObject* links, 
@@ -849,6 +849,18 @@ class GenIO
     void ripEndOfPath(char* path, char*& startPath);
     void getEndOfPath(char* path, char*& startPath);
     ///-
+
+    ///+ NETCDF3/TAU functions
+    /* Lecture dans un arbre */
+    E_Int tauread(char* file, PyObject*& tree);
+    /* Ecriture d'un arbre */
+    E_Int tauwrite(char* file, PyObject* tree);
+
+    ///+ HDF/FSDM functions
+    /* Lecture dans un arbre */
+    E_Int hdffsdmread(char* file, PyObject*& tree);
+    /* Ecriture d'un arbre */
+    E_Int hdffsdmwrite(char* file, PyObject* tree);
 
     ///+ CPlot functions
     /* Create the socket for communications */
