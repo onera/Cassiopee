@@ -24,7 +24,7 @@
 #include "kcore.h"
 
 /* ------------------------------------------------------------------------- */
-E_Int createGridElements4Tau(E_Int eltType, char* name, E_Int ncells, E_Int istart, 
+E_Int createGridElements4Tau(E_Int eltType, const char* name, E_Int ncells, E_Int istart, 
   PyArrayObject* rc, PyObject*& GE)
 {
   // GridElements
@@ -91,7 +91,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   PyArrayObject* pyra = NULL;
   PyArrayObject* tri = NULL;
   PyArrayObject* quad = NULL;
-  std::vector<PyArrayObject*> PL;
+  int32_t* bctag = NULL;
   E_Int nhexa=0; E_Int ntetra=0; E_Int npenta=0; E_Int npyra=0; E_Int ntri=0; E_Int nquad=0;
   E_Int nvertex=0; E_Int ncells=0;
 
@@ -227,7 +227,46 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
         for (size_t i = 0; i < size; i++) pp3[i] += 1;
       }
     }
-
+    else if (strcmp(name, "points_of_surfacetriangles") == 0)
+    {
+      if (dtype == NC_INT)
+      {
+        std::vector<npy_intp> npy_dim_vals(1);
+        size = dims[0]*dims[1];
+        npy_dim_vals[0] = size;
+        ntri = dims[0];
+        count[0] = dims[0]; count[1] = dims[1];
+        tri = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
+        int32_t* pp3 = (int32_t*)PyArray_DATA(tri);
+        nc_get_vara_int(ncid, id, start, count, pp3);
+        for (size_t i = 0; i < size; i++) pp3[i] += 1;
+      }
+    }
+    else if (strcmp(name, "points_of_surfacequadrilaterals") == 0)
+    {
+      if (dtype == NC_INT)
+      {
+        std::vector<npy_intp> npy_dim_vals(1);
+        size = dims[0]*dims[1];
+        npy_dim_vals[0] = size;
+        nquad = dims[0];
+        count[0] = dims[0]; count[1] = dims[1];
+        quad = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
+        int32_t* pp3 = (int32_t*)PyArray_DATA(quad);
+        nc_get_vara_int(ncid, id, start, count, pp3);
+        for (size_t i = 0; i < size; i++) pp3[i] += 1;
+      }
+    }
+    else if (strcmp(name, "boundarymarker_of_surfaces") == 0)
+    {
+      if (dtype == NC_INT)
+      {
+        size = dims[0];
+        count[0] = dims[0];
+        bctag = new int32_t [size];
+        nc_get_vara_int(ncid, id, start, count, bctag);
+      }
+    }
 
     switch (dtype)
     {
@@ -358,6 +397,76 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     istart += npyra;
     ncells += npyra;
   }
+  if (tri != NULL) 
+  {
+    createGridElements4Tau(5, "TRI", ntri, istart, tri, GE);
+    PyList_Append(children4, GE); Py_INCREF(GE);
+    istart += ntri;
+    ncells += ntri;
+  }
+  if (quad != NULL) 
+  {
+    createGridElements4Tau(7, "QUAD", nquad, istart, quad, GE);
+    PyList_Append(children4, GE); Py_INCREF(GE);
+    istart += nquad;
+    ncells += nquad;
+  }
+  if (bctag != NULL)
+  {
+    // Create ZoneBC
+    PyObject* children9 = PyList_New(0);
+    PyObject* nzbc = Py_BuildValue("[sOOs]", "ZoneBC", Py_None, children9, "ZoneBC_t");
+    PyList_Append(children4, nzbc); Py_INCREF(nzbc);
+
+    // Build PL corresponding to tags
+    size_t size = ntri+nquad;
+    size_t offset = ntetra + nhexa + npenta + npyra;
+    std::map<E_Int, E_Int> tagmap; // tag -> nbre elements tagged
+    for (size_t i = 0; i < size; i++)
+    {
+      //tagset.insert(bct[i]);
+      if (tagmap.find(bctag[i]) == tagmap.end()) tagmap[bctag[i]] = 0;
+      else tagmap[bctag[i]] += 1;
+    }
+    char bcname[256]; char bctype[256];
+    for (const auto& pair : tagmap) // for each tag
+    {
+      E_Int tag = pair.first; // tag
+      E_Int nfaces = pair.second; // nbre de faces pour ce tag
+      printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
+      // Create BC_t for tag
+      PyObject* children10 = PyList_New(0);
+      sprintf(bctype, "BCType%d", tag);
+      sprintf(bcname, "BC%d", tag);
+      npy_dim_vals[0] = strlen(bctype);
+      PyArrayObject* r10 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
+      char* pp10 = (char*)PyArray_DATA(r10);
+      strcpy(pp10, bctype);
+      PyObject* bc = Py_BuildValue("[sOOs]", bcname, r10, children10, "BC_t");
+      PyList_Append(children9, bc); Py_INCREF(bc);
+      // Create point list
+      npy_dim_vals[0] = nfaces;
+      PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT, 1);
+      int32_t* pp11 = (int32_t*)PyArray_DATA(r11);
+      E_Int c = 0;
+      for (size_t i = 0; i < size; i++)
+      {
+        if (bctag[i] == tag) { pp11[c] = i+1+offset; c++; }
+      }
+      PyObject* children11 = PyList_New(0);
+      PyObject* pl = Py_BuildValue("[sOOs]", "PointList", r11, children11, "IndexArray_t");
+      PyList_Append(children10, pl); Py_INCREF(pl);
+      // Create GridLocation
+      npy_dim_vals[0] = 10;
+      PyArrayObject* r12 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
+      char* pp12 = (char*)PyArray_DATA(r12);
+      strcpy(pp12, "FaceCenter");
+      PyObject* children12 = PyList_New(0);
+      PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r12, children12, "GridLocation_t");
+      PyList_Append(children10, gl); Py_INCREF(gl);
+    }
+
+  }
 
 
   // Modify the zone attribute
@@ -365,6 +474,8 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
 
   // close file
   nc_close(ncid);
+  
+  if (bctag != NULL) delete [] bctag;
   
   return 0;
 }

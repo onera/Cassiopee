@@ -304,7 +304,11 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   while (chids[nchildren] != -1) { nchildren++; }
   char** names = new char* [nchildren+1];
   for (E_Int i = 0; i < nchildren+1; i++) names[i] = NULL;
+#if H5_VERSION_LE(1,11,9)
+  H5Literate(uc, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
+#else
   H5Literate2(uc, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
+#endif
   hid_t id = 0; E_Int c = 0; PyObject* GE;
   E_Int ncells = 0; E_Int istart=1;
   E_Int* bct; // bc tags
