@@ -211,7 +211,7 @@ def getInstallPath(prefix, type=0):
     #    installPath = '%s/%s/%s/%s'%(prefix, Lib, pythonVersion, Site)
     #    if type == 0: return installPath
     #    else: return {'lib':Lib, 'pyversion':pythonVersion, 'site':Site}
-    
+
     import site
     a = site.getsitepackages()[0].split('/')[-4:]
     if type == 0:
@@ -256,7 +256,7 @@ def getInstallPath(prefix, type=0):
         Site = pythonLib[-1]
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
-    
+
     # temporary for tests
     if installPath != retn:
         print("WARNING: new installPath is not correct.")
