@@ -185,25 +185,32 @@ def checkNumpy():
 
 #=============================================================================
 # Retourne le chemin d'installation des modules comme cree par distUtils
+# if type=1, return Site
+# if type=2, return Lib
+# else return full installPath
 #=============================================================================
-def getInstallPath(prefix):
+def getInstallPath(prefix, type=0):
     mySystem = getSystem()[0]; bits = getSystem()[1]
 
     # from python3, better to use sysconfig than distutils.sysconfig
     # to find the "prefix" installation path from python
-    #import sysconfig
-    #schemes = sysconfig.get_scheme_names()
-    #defaultScheme = sysconfig.get_default_scheme()
-    #preferedScheme = sysconfig.get_preferred_scheme('prefix') # user or home?
-    #paths = sysconfig.get_paths("posix_prefix")
-    #paths = paths['platlib']
-    #pythonLib = paths.split('/')
-    #pythonVersion = pythonLib[-2]
-    #Site = pythonLib[-1]
-    #Lib = pythonLib[-3]
-    #installPath = '%s/%s/%s/%s'%(prefix, Lib, pythonVersion, Site)
-
-    # Based on distutils (to be su)
+    #if sys.version_info[0] >= 3: # python3
+    #    import sysconfig
+    #    schemes = sysconfig.get_scheme_names()
+    #    defaultScheme = sysconfig.get_default_scheme()
+    #    preferedScheme = sysconfig.get_preferred_scheme('prefix') # user or home?
+    #    paths = sysconfig.get_paths("posix_prefix")
+    #    paths = paths['platlib']
+    #    pythonLib = paths.split('/')
+    #    pythonVersion = pythonLib[-2]
+    #    Site = pythonLib[-1]
+    #    Lib = pythonLib[-3]
+    #    installPath = '%s/%s/%s/%s'%(prefix, Lib, pythonVersion, Site)
+    #    if type == 1: return Site
+    #    elif type == 2: return Lib
+    #    else: return installPath
+    
+    # Based on distutils (to be sure)
     if os.environ['ELSAPROD'][0:6] == 'msys64' or os.environ['ELSAPROD'] == 'win64':
         pythonLib = distutils.sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
@@ -237,7 +244,10 @@ def getInstallPath(prefix):
         Site = pythonLib[-1]
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
-    return installPath
+    
+    if type == 1: return Site
+    elif type == 2: return Lib
+    else: return installPath
 
 #==============================================================================
 # Functions returning the names of the remote repo & branch and the commit hash
