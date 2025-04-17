@@ -1,5 +1,9 @@
 # Functions used in *Cassiopee* modules setup.py
-import os, sys, distutils.sysconfig, platform, glob, subprocess
+import os, sys, platform, glob, subprocess
+from distutils import sysconfig
+from distutils.core import Extension
+#from setuptools import sysconfig
+#from setuptools import Extension
 
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
 DEBUG = False
@@ -148,16 +152,16 @@ def checkAll(summary=True):
 # Check python includes / libs
 #==============================================================================
 def checkPython():
-    pythonVersion = distutils.sysconfig.get_python_version()
-    vars = distutils.sysconfig.get_config_vars()
+    pythonVersion = sysconfig.get_python_version()
+    #vars = sysconfig.get_config_vars()
 
-    pythonIncDir = distutils.sysconfig.get_python_inc()
+    pythonIncDir = sysconfig.get_python_inc()
     if not os.path.exists(pythonIncDir):
         raise SystemError("Error: Python includes are required for the compilation of Cassiopee modules.")
 
-    pythonLibDir = distutils.sysconfig.get_python_lib()
+    pythonLibDir = sysconfig.get_python_lib()
     try:
-        a = distutils.sysconfig.get_config_var('LDLIBRARY')
+        a = sysconfig.get_config_var('LDLIBRARY')
         a = a.replace('lib', '')
         a = a.replace('.a', '')
         a = a.replace('.so', '')
@@ -185,9 +189,8 @@ def checkNumpy():
 
 #=============================================================================
 # Retourne le chemin d'installation des modules comme cree par distUtils
-# if type=1, return Site
-# if type=2, return Lib
-# else return full installPath
+# if type=0, return full install path
+# else return dict {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
 #=============================================================================
 def getInstallPath(prefix, type=0):
     mySystem = getSystem()[0]; bits = getSystem()[1]
@@ -206,20 +209,29 @@ def getInstallPath(prefix, type=0):
     #    Site = pythonLib[-1]
     #    Lib = pythonLib[-3]
     #    installPath = '%s/%s/%s/%s'%(prefix, Lib, pythonVersion, Site)
-    #    if type == 1: return Site
-    #    elif type == 2: return Lib
-    #    else: return installPath
+    #    if type == 0: return installPath
+    #    else: return {'lib':Lib, 'pyversion':pythonVersion, 'site':Site}
+    
+    import site
+    a = site.getsitepackages()[0].split('/')[-4:]
+    if type == 0:
+        if a[0] != 'local':
+            retn = '%s/%s/%s/%s'%(prefix, a[1], a[2], a[3])  # 'prefix/lib/python3.12/site-packages'
+        else:
+            retn = '%s/%s/%s/%s/%s'%(prefix, a[0], a[1], a[2], a[3])  # 'prefix/local/lib/python3.12/site-packages'
+    else:
+        retn = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}  # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
 
     # Based on distutils (to be sure)
     if os.environ['ELSAPROD'][0:6] == 'msys64' or os.environ['ELSAPROD'] == 'win64':
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]
         Site = pythonLib[-1]
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
     elif os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pversion = sys.version_info
         pythonVersion = "python{}.{}".format(pversion[0], pversion[1])
@@ -229,12 +241,12 @@ def getInstallPath(prefix, type=0):
     elif mySystem == 'Windows' or mySystem == 'mingw':
         installPath = prefix + "/Lib/site-packages"
     elif mySystem == 'Darwin':
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]
         installPath = prefix + '/lib/python'+pythonVersion+'/site-packages'
     else: # standard unix
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         # Based on python lib
         #installPath = prefix + '/' + '/'.join(pythonLib[-3:])
@@ -244,10 +256,15 @@ def getInstallPath(prefix, type=0):
         Site = pythonLib[-1]
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
+    
+    # temporary for tests
+    if installPath != retn:
+        print("WARNING: new installPath is not correct.")
+        print("WARNING: old: ", installPath)
+        print("WARNING: new: ", retn)
 
-    if type == 1: return Site
-    elif type == 2: return Lib
-    else: return installPath
+    if type == 0: return installPath
+    else: return {'lib': Lib, 'pyversion': pythonVersion, 'site': Site}
 
 #==============================================================================
 # Functions returning the names of the remote repo & branch and the commit hash
@@ -323,7 +340,7 @@ def writeInstallPath():
     if mySystem == 'Windows' or mySystem == 'mingw': Lib = 'Lib'
     elif mySystem == 'Darwin': Lib = 'lib'
     else:
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         Lib = pythonLib[-3]
     if os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
@@ -505,9 +522,9 @@ def writeSetupCfg():
 # ou dans config.py (installBase.py)
 #==============================================================================
 def getDistUtilsCompilers():
-    vars = distutils.sysconfig.get_config_vars('CC', 'CXX', 'OPT',
-                                               'BASECFLAGS', 'CCSHARED',
-                                               'LDSHARED', 'SO')
+    vars = sysconfig.get_config_vars('CC', 'CXX', 'OPT',
+                                     'BASECFLAGS', 'CCSHARED',
+                                     'LDSHARED', 'SO')
     for i, v in enumerate(vars):
         if v is None: vars[i] = ""
 
@@ -2198,7 +2215,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
     if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0:
         os.environ['CC'] = 'gcc'
         os.environ['CXX'] = 'g++'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2231,7 +2247,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
     if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
         os.environ['CC'] = 'icc' # forced to overide setup.cfg
         os.environ['CXX'] = 'icpc'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2264,7 +2279,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'icx' # forced to overide setup.cfg
         os.environ['CXX'] = 'icpx'
         os.environ['LDSHARED'] = 'ifx'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2293,7 +2307,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'pgc++' # forced to overide setup.cfg
         os.environ['CXX'] = 'pgc++'
         os.environ['LDSHARED'] = 'pgfortran'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2317,7 +2330,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'nvc++' # forced to overide setup.cfg
         os.environ['CXX'] = 'nvc++'
         os.environ['LDSHARED'] = 'nvfortran'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2341,7 +2353,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'craycc' # forced to overide setup.cfg
         os.environ['CXX'] = 'craycxx'
         os.environ['LDSHARED'] = 'crayftn'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2369,7 +2380,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'cc' # forced to overide setup.cfg
         os.environ['CXX'] = 'cc'
         os.environ['LDSHARED'] = 'ftn'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2604,7 +2614,6 @@ def symLinks():
 #==============================================================================
 def createExtensions(module, srcs, includeDirs, libraryDirs, libraries,
                      extraCompileArgs=[], extraLinkArgs=[]):
-    from distutils.core import Extension
     listExtensions = []
     minor = module.lower()
     # C/Api module
