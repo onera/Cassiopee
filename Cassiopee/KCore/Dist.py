@@ -209,7 +209,7 @@ def getInstallPath(prefix, type=0):
     #    if type == 1: return Site
     #    elif type == 2: return Lib
     #    else: return installPath
-    
+
     # Based on distutils (to be sure)
     if os.environ['ELSAPROD'][0:6] == 'msys64' or os.environ['ELSAPROD'] == 'win64':
         pythonLib = distutils.sysconfig.get_python_lib()
@@ -244,7 +244,7 @@ def getInstallPath(prefix, type=0):
         Site = pythonLib[-1]
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
-    
+
     if type == 1: return Site
     elif type == 2: return Lib
     else: return installPath
