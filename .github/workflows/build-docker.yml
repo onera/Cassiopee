@@ -41,4 +41,4 @@ jobs:
           push: true
           build-args: |
             PYTHON_VERSION=${{ matrix.python-version }}
-          tags: cassiopee486/cassiopee:${{ github.ref_name }}-py${{ matrix.python-version }}
+          tags: hystrath/cassiopee:${{ github.ref_name }}-py${{ matrix.python-version }}
