@@ -185,8 +185,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
                    snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, octreeMode=0,
                    IBCType=1, verbose=True, expand=3, ext=-1, optimized=1,
                    check=False, twoFronts=False, cartesian=True, cleanCellN=True,
-                   yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
-                   isOnlyOctree=False):
+                   yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
 
     import Generator.IBM as G_IBM
     import time as python_time
@@ -272,7 +271,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         test.printMem("Info: prepareIBMData: generate Cartesian mesh [start]")
         t = G_IBM.generateIBMMesh(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
                                   snearsf=snearsf, check=check, to=to, ext=ext, optimized=optimized,
-                                  expand=expand, dfarDir=dfarDir, octreeMode=octreeMode, isOnlyOctree=isOnlyOctree)
+                                  expand=expand, dfarDir=dfarDir, octreeMode=octreeMode)
         Internal._rmNodesFromName(tb,"SYM")
 
         _redispatch__(t=t)
