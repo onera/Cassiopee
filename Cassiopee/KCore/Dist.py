@@ -195,33 +195,18 @@ def checkNumpy():
 def getInstallPath(prefix, type=0):
     mySystem = getSystem()[0]; bits = getSystem()[1]
 
-    # from python3, better to use sysconfig than distutils.sysconfig
-    # to find the "prefix" installation path from python
-    #if sys.version_info[0] >= 3: # python3
-    #    import sysconfig
-    #    schemes = sysconfig.get_scheme_names()
-    #    defaultScheme = sysconfig.get_default_scheme()
-    #    preferedScheme = sysconfig.get_preferred_scheme('prefix') # user or home?
-    #    paths = sysconfig.get_paths("posix_prefix")
-    #    paths = paths['platlib']
-    #    pythonLib = paths.split('/')
-    #    pythonVersion = pythonLib[-2]
-    #    Site = pythonLib[-1]
-    #    Lib = pythonLib[-3]
-    #    installPath = '%s/%s/%s/%s'%(prefix, Lib, pythonVersion, Site)
-    #    if type == 0: return installPath
-    #    else: return {'lib':Lib, 'pyversion':pythonVersion, 'site':Site}
-
     import site
     a = site.getsitepackages()[0].split('/')[-4:]
     if type == 0:
         if a[0] != 'local':
-            retn = '%s/%s/%s/%s'%(prefix, a[1], a[2], a[3])  # 'prefix/lib/python3.12/site-packages'
+            installPath = '%s/%s/%s/%s'%(prefix, a[1], a[2], a[3])  # 'prefix/lib/python3.12/site-packages'
         else:
-            retn = '%s/%s/%s/%s/%s'%(prefix, a[0], a[1], a[2], a[3])  # 'prefix/local/lib/python3.12/site-packages'
+            installPath = '%s/%s/%s/%s/%s'%(prefix, a[0], a[1], a[2], a[3])  # 'prefix/local/lib/python3.12/site-packages'
     else:
-        retn = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}  # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
+        installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}  # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
+    return installPath
 
+    '''
     # Based on distutils (to be sure)
     if os.environ['ELSAPROD'][0:6] == 'msys64' or os.environ['ELSAPROD'] == 'win64':
         pythonLib = sysconfig.get_python_lib()
@@ -265,6 +250,7 @@ def getInstallPath(prefix, type=0):
 
     if type == 0: return installPath
     else: return {'lib': Lib, 'pyversion': pythonVersion, 'site': Site}
+    '''
 
 #==============================================================================
 # Functions returning the names of the remote repo & branch and the commit hash
@@ -336,6 +322,14 @@ def writeInstallPath():
     if p is None:
         raise SystemError("Error: can not open file installPath.py for writing.")
     p.write('installPath = \'%s\'\n'%installPath)
+    
+    import site
+    a = site.getsitepackages()[0].split('/')[-4:]
+    if a[0] != 'local': libPath = '%s/%s'%(prefix, a[1])  # 'prefix/lib'
+    else: libPath = '%s/%s/%s'%(prefix, a[0], a[1])  # 'prefix/local/lib'
+    p.write('libPath = \'%s\'\n'%libPath)
+
+    '''
     mySystem = getSystem()[0]; bits = getSystem()[1]
     if mySystem == 'Windows' or mySystem == 'mingw': Lib = 'Lib'
     elif mySystem == 'Darwin': Lib = 'lib'
@@ -344,9 +338,12 @@ def writeInstallPath():
         pythonLib = pythonLib.split('/')
         Lib = pythonLib[-3]
     if os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
-        p.write('libPath = \'%s/local/%s\'\n'%(prefix,Lib))
+        libPath = '%s/local/%s'%(prefix,Lib)
     else:
-        p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))
+        libPath = '%s/%s'%(prefix,Lib)
+    p.write('libPath = \'%s\'\n'%libPath)
+    '''
+    
     cwd = os.getcwd()
     p.write('includePath = \'%s\'\n'%(cwd))
     gitOrigin = getGitOrigin(cwd)
@@ -2602,8 +2599,14 @@ def symLinks():
             os.remove(libPath1); ex1 = False
         if not ex2 and lex2: # broken link 2
             os.remove(libPath2); ex2 = False
-        if ex1 and not ex2: os.symlink(libPath1, libPath2)
-        elif not ex1 and ex2: os.symlink(libPath2, libPath1)
+        if ex1 and not ex2: 
+            try: # may fail under windows disk system 
+                os.symlink(libPath1, libPath2)
+            except: pass
+        elif not ex1 and ex2: 
+            try: # may fail under windows disk system
+                os.symlink(libPath2, libPath1)
+            except: pass
 
 #==============================================================================
 # Cree les extensions d'un Module
