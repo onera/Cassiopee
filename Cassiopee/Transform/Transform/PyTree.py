@@ -549,7 +549,7 @@ def subzoneBCStruct__(t, z, dim, imin, imax, jmin, jmax, kmin, kmax,
 
 # Subzone la GridConnectivity de type BCOverlap
 def subzoneGCStruct__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
-                     dim0, nip, njp, nkp, ni0, nj0, nk0):
+                      dim0, nip, njp, nkp, ni0, nj0, nk0):
     nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
     if nodes == []: return z
     ranges = []; ddDnrs = []; bcnames = []
@@ -673,7 +673,7 @@ def subzoneStruct__(t, minIndex, maxIndex):
         subzoneBCStruct__(t2, z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
                           dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
         z2 = subzoneGCStruct__(z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
-                              dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
+                               dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
         noz += 1
         if parent is not None:
             if Internal.isStdNode(t2) == 0: parent[nb] = z2

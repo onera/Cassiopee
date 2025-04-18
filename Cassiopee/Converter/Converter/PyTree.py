@@ -5215,7 +5215,7 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
                             zp[0] = z[0]+Internal.SEP1+zbc[0]
                             _keepBCDataSet(zp, z, zbc, extrapFlow=extrapFlow)
                             res.append(zp)
-    
+
     if len(res) <= 1: return None
     z1 = res[0]
     for z2 in res[1:]:
