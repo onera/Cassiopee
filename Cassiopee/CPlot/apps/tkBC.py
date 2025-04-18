@@ -144,6 +144,7 @@ def updateFamilyBCNameList3_2(event=None):
         varsl.sort(key=str.lower)
         varsp += varsl
     if 'BCs2' in WIDGETS: WIDGETS['BCs2']['values'] = varsp
+
 #==============================================================================
 # Pour fillEmptyBC
 def updateFamilyBCNameList4(event=None):
@@ -206,8 +207,8 @@ def view(event=None):
     for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
 
     Z = []
-    for t in BCTypes:
-        Z += C.extractBCOfType(active, t, topTree=tp)
+    for type in BCTypes:
+        Z += C.extractBCOfType(active, type, topTree=tp)
         if t == 'BCWall': # Dans ce cas, affiche tous les types de BCWall
             Z += C.extractBCOfType(active, 'BCWallInviscid')
             Z += C.extractBCOfType(active, 'BCWallViscous')

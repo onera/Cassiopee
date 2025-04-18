@@ -425,7 +425,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     for (size_t i = 0; i < size; i++)
     {
       //tagset.insert(bct[i]);
-      if (tagmap.find(bctag[i]) == tagmap.end()) tagmap[bctag[i]] = 0;
+      if (tagmap.find(bctag[i]) == tagmap.end()) tagmap[bctag[i]] = 1;
       else tagmap[bctag[i]] += 1;
     }
     char bcname[256]; char bctype[256];
@@ -434,9 +434,10 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       E_Int tag = pair.first; // tag
       E_Int nfaces = pair.second; // nbre de faces pour ce tag
       printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
+      if (nfaces == 0) continue;
       // Create BC_t for tag
       PyObject* children10 = PyList_New(0);
-      sprintf(bctype, "BCType%d", tag);
+      strcpy(bctype, "FamilySpecified");
       sprintf(bcname, "BC%d", tag);
       npy_dim_vals[0] = strlen(bctype);
       PyArrayObject* r10 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
@@ -464,10 +465,17 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       PyObject* children12 = PyList_New(0);
       PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r12, children12, "GridLocation_t");
       PyList_Append(children10, gl); Py_INCREF(gl);
+      // Create BC FamilyName
+      PyObject* children13 = PyList_New(0);
+      sprintf(bctype, "BCType%d", tag);
+      npy_dim_vals[0] = strlen(bctype);
+      PyArrayObject* r13 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
+      char* pp13 = (char*)PyArray_DATA(r13);
+      strcpy(pp13, bctype);
+      PyObject* famName = Py_BuildValue("[sOOs]", "FamilyName", r13, children13, "FamilyName_t");
+      PyList_Append(children10, famName); Py_INCREF(famName);
     }
-
   }
-
 
   // Modify the zone attribute
   pp4[0] = nvertex; pp4[1] = ncells;

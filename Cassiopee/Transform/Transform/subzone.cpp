@@ -27,7 +27,7 @@ using namespace std;
 using namespace K_FLD;
 
 // ============================================================================
-/* Subzone a structured mesh */
+/* Subzone a structured mesh from imin,imax,... indices */
 // ============================================================================
 PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
 {
@@ -328,6 +328,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
   RELEASESHAREDU(tpl, f2, cn2); RELEASESHAREDU(array, f, cn);
   return tpl;
 }
+
 // ============================================================================
 /* Subzone a unstructured zone: input array is located here at centers       */
 // ============================================================================
@@ -1236,8 +1237,9 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
   RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
   return l;
 }
+
 // ============================================================================
-/* Subzone an unstructured mesh by face indices */
+/* Subzone an unstructured mesh by face indices as global index */
 // ============================================================================
 PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
 {
@@ -1557,6 +1559,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   RELEASESHAREDU(array, f, cn);
   return NULL;
 }
+
 // ============================================================================
 /* Subzone a unstructured mesh by face indices - fields located at centers
    are subzoned too */

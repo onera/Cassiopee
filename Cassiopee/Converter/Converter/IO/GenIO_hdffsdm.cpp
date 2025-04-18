@@ -120,18 +120,17 @@ E_Int createGridElements(hid_t id, E_Int eltType, char* name, E_Int istart, PyOb
     int32_t* bct = new int32_t [size];
     H5Dread(did, yid, mid, sid, H5P_DEFAULT, bct);
     // count tags
-    //std::set<E_Int> tagset;
     std::map<E_Int, E_Int> tagmap; // tag -> nbre elements
     for (E_Int i = 0; i < size; i++) 
     {
-      //tagset.insert(bct[i]);
       if (tagmap.find(bct[i]) == tagmap.end()) tagmap[bct[i]] = 0;
       else tagmap[bct[i]] += 1;
     }
     for (const auto& pair : tagmap)
     {
       E_Int tag = pair.first;
-      printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, pair.second);
+      E_Int nfaces = pair.second; // nbre de faces pour ce tag
+      printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
     }
   }
   return 0;
@@ -299,6 +298,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   delete [] r;
 
   // Create GridElements
+  E_Int nhexa=0; E_Int ntetra=0; E_Int npenta=0; E_Int npyra=0; E_Int ntri=0; E_Int nquad=0;
   hid_t* chids = HDF.getChildren(uc);
   E_Int nchildren = 0;
   while (chids[nchildren] != -1) { nchildren++; }
@@ -312,6 +312,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   hid_t id = 0; E_Int c = 0; PyObject* GE;
   E_Int ncells = 0; E_Int istart=1;
   E_Int* bct; // bc tags
+  std::vector<E_Int*> allbct;
   while (id != -1)
   {
     id = chids[c]; char* name = names[c]; c++;
@@ -322,42 +323,65 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         createGridElements(id, 17, name, istart, GE, ncells, bct);
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
+        nhexa = ncells;
+        delete [] bct;
       }
       else if (strcmp(name, "Prism6") == 0) 
       { 
         createGridElements(id, 14, name, istart, GE, ncells, bct);
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
+        npenta = ncells;
+        delete [] bct;
       }
       else if (strcmp(name, "Tetra4") == 0) 
       { 
         createGridElements(id, 10, name, istart, GE, ncells, bct);
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
+        ntetra = ncells;
+        delete [] bct;
       }
       else if (strcmp(name, "Pyra5") == 0) 
       { 
         createGridElements(id, 12, name, istart, GE, ncells, bct);
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
+        npyra = ncells;
+        delete [] bct;
       }
       else if (strcmp(name, "Tri3") == 0)
       { 
         createGridElements(id, 5, name, istart, GE, ncells, bct);
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
+        ntri = ncells;
+        allbct.push_back(bct);
       }
       else if (strcmp(name, "Quad4") == 0) 
       { 
         createGridElements(id, 7, name, istart, GE, ncells, bct);
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
+        nquad = ncells;
+        allbct.push_back(bct);
       }
     }
   }
   pp4[1] = istart-1;
 
+  // Add zoneBC
+  if (allbct.size() > 0)
+  {
+    // Create ZoneBC
+    PyObject* children9 = PyList_New(0);
+    PyObject* nzbc = Py_BuildValue("[sOOs]", "ZoneBC", Py_None, children9, "ZoneBC_t");
+    PyList_Append(children4, nzbc); Py_INCREF(nzbc);
+    
+  }
 
+  // Close file
+  H5Fclose(fid);
   return 0;
 }
 

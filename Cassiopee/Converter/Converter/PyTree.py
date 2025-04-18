@@ -4987,7 +4987,6 @@ def getEmptyBCForZone__(z, pbDim, splitFactor):
 # Renvoie une liste de ranges des BC empty
 def getEmptyBCForStructZone__(z, dims, pbDim, splitFactor):
     ni = dims[1]; nj = dims[2]; nk = dims[3]
-    ni1 = ni-1; nj1 = nj-1; nk1 = nk-1
     nwins = []; wins = []
 
     # BC classique
@@ -5139,8 +5138,7 @@ def _keepBCDataSet(zbc, zorig, bc, extrapFlow=True):
     elif datas != []:
         if not extrapFlow:
             Internal._rmNodesByName(zbc, Internal.__FlowSolutionCenters__)
-        f = Internal.createUniqueChild(zbc, Internal.__FlowSolutionCenters__,
-                                       'FlowSolution_t')
+        f = Internal.createUniqueChild(zbc, Internal.__FlowSolutionCenters__, 'FlowSolution_t')
         Internal.newGridLocation(value='CellCenter', parent=f)
         for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
     return None
@@ -5159,34 +5157,70 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
             PL = Internal.getNodeFromName(zbc, 'PointList')
             if PL is not None:
                 if Internal.getValue(gcl) == 'FaceCenter':
-                    PL = Internal.getValue(PL)
+                    PL = PL[1]
+                    PL = PL.ravel("k")
+                    zp = Internal.copyRef(z)
+                    connects = Internal.getNodesFromType1(z, 'Elements_t')
+
+                    '''
                     ermin = numpy.amin(PL)
                     ermax = numpy.amax(PL)
-                    zp = Internal.copyRef(z)
-                    connects = Internal.getNodesFromType(z,'Elements_t')
                     for cn in connects:
-                        ERLoc = Internal.getNodeFromName(cn,'ElementRange')
-                        ER_min = Internal.getValue(ERLoc)[0]
-                        ER_max = Internal.getValue(ERLoc)[1]
-                        if ermin >= ER_min and ermax <= ER_max:
+                        ERLoc = Internal.getNodeFromName1(cn, 'ElementRange')
+                        ERMin = Internal.getValue(ERLoc)[0]
+                        ERMax = Internal.getValue(ERLoc)[1]
+                        if ermin >= ERMin and ermax <= ERMax:
                             for cn2 in connects:
                                 if cn2[0] != cn[0]:
-                                    Internal._rmNodesFromName(zp,cn2[0])
-                            etype=Internal.getValue(cn)
-                            if etype[1]!= 0: etype[1]=0
-                            nfaces  = PL[0].shape[0]
+                                    Internal._rmNodesFromName(zp, cn2[0])
+                            etype = Internal.getValue(cn)
+                            if etype[1] != 0: etype[1] = 0
+                            nfaces = PL.size
                             facelist = numpy.zeros(nfaces, dtype=Internal.E_NpyInt)
-                            for noet in range(nfaces): facelist[noet] = PL[0][noet]-ER_min
-                            Internal._rmNodesFromType(zp,"ZoneBC_t")
-                            Internal._rmNodesFromType(zp,"ZoneGridConnectivity_t")
-                            Internal._rmNodesFromType(zp,"Family_t")
-                            Internal._rmNodesFromType(zp,"FamilyName_t")
-                            Internal._rmNodesFromName(zp,"ParentElement*")
-                            zp=T.subzone(zp,facelist,type='elements')
+                            facelist[:] = PL[:]-ERMin
+                            Internal._rmNodesFromType(zp, "ZoneBC_t")
+                            Internal._rmNodesFromType(zp, "ZoneGridConnectivity_t")
+                            Internal._rmNodesFromType(zp, "Family_t")
+                            Internal._rmNodesFromType(zp, "FamilyName_t")
+                            Internal._rmNodesFromName(zp, "ParentElement*")
+                            zp = T.subzone(zp, facelist, type='elements')
                             zp[0] = z[0]+Internal.SEP1+zbc[0]
                             _keepBCDataSet(zp, z, zbc, extrapFlow=extrapFlow)
                             res.append(zp)
                             break
+                    '''
+
+                    for cn in connects:
+                        ERLoc = Internal.getNodeFromName1(cn, 'ElementRange')
+                        ERMin = Internal.getValue(ERLoc)[0]
+                        ERMax = Internal.getValue(ERLoc)[1]
+                        filter = (PL >= ERMin) & (PL <= ERMax)
+                        PLf = PL[filter]
+                        if PLf.size > 0:
+                            zp = Internal.copyRef(z)
+                            for cn2 in connects:
+                                if cn2[0] != cn[0]:
+                                    Internal._rmNodesFromName(zp, cn2[0])
+                            etype = Internal.getValue(cn)
+                            if etype[1] != 0: etype[1] = 0
+                            nfaces = PLf.size
+                            facelist = numpy.zeros(nfaces, dtype=Internal.E_NpyInt)
+                            facelist[:] = PLf[:]-ERMin
+                            Internal._rmNodesFromType(zp, "ZoneBC_t")
+                            Internal._rmNodesFromType(zp, "ZoneGridConnectivity_t")
+                            Internal._rmNodesFromType(zp, "Family_t")
+                            Internal._rmNodesFromType(zp, "FamilyName_t")
+                            Internal._rmNodesFromName(zp, "ParentElement*")
+                            zp = T.subzone(zp, facelist, type='elements')
+                            zp[0] = z[0]+Internal.SEP1+zbc[0]
+                            _keepBCDataSet(zp, z, zbc, extrapFlow=extrapFlow)
+                            res.append(zp)
+    
+    if len(res) <= 1: return None
+    z1 = res[0]
+    for z2 in res[1:]:
+        z1 = mergeConnectivity(z1, z2)
+    res = [z1]
     return None
 
 # Get the geometrical BC and append it to res
@@ -5197,7 +5231,6 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
 # IN: extrapFlow: if True, get the BCDataSet field
 # IN: shift: if not 0, shift BC of index for structured grids only
 def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
-
     connects = Internal.getNodesFromType1(z, "Elements_t")
     zdim = Internal.getZoneDim(z)
     if zdim[0] == 'Unstructured': ztype = zdim[3]
@@ -5241,12 +5274,12 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
         res.append(zp)
 
     # IndexArray (PointList)
-    if r is None: r = Internal.getNodeFromName(i, Internal.__FACELIST__)
+    if r is None: r = Internal.getNodeFromName1(i, Internal.__FACELIST__)
     else: r = None
 
     if r is not None:
         loc = Internal.getNodeFromName1(i, 'GridLocation')
-        if loc is not None:
+        if loc is not None: # GridLocation present
             val = Internal.getValue(loc)
             if val == 'FaceCenter' or val == 'CellCenter': # Face list (BE ou NGON)
                 faceList = r[1]
@@ -5256,7 +5289,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
                     faceList2[:] = faceList[:]-rf[0]+1
                     zp = T.subzone(z, faceList2, type='faces')
                 else:
-                    if len(connects)>1 and ztype != 'NGON':
+                    if len(connects)>1 and ztype != 'NGON': # ME
                         return getBC2__(i, z, T, res, extrapFlow=extrapFlow)
                     else:
                         zp = T.subzone(z, faceList, type='faces') # BE
@@ -5462,8 +5495,8 @@ def _mergeGCs(z):
             else:
                 PLN = dictOfGCs[zoppname][0]
                 PLDN = dictOfGCs[zoppname][1]
-                dictOfGCs[zoppname][0]=numpy.concatenate([PLN,PL],axis=1)
-                dictOfGCs[zoppname][1]=numpy.concatenate([PLDN,PLD],axis=1)
+                dictOfGCs[zoppname][0] = numpy.concatenate([PLN,PL],axis=1)
+                dictOfGCs[zoppname][1] = numpy.concatenate([PLDN,PLD],axis=1)
                 Internal._rmNodesFromName(z,gcname)
 
     for zoppname in dictOfGCs:
@@ -5899,10 +5932,7 @@ def extractMatchOfName(t, bndName, reorder=True, extrapFlow=True):
             for match in zgc[2]:
                 if Internal.isName(match, bndName):
                     getBC__(match, z, T, tp, reorder=reorder, extrapFlow=extrapFlow)
-
     return tp
-
-
 
 # ===================================================================================
 # ** ATTENTION : Code non fonctionnel pour le moment. **
@@ -8148,11 +8178,11 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
             out = Converter.converter.convertMix2BE(p[1])
             # Replace et renumerotes
             if out[0] is not None:
-                Internal._rmNode(z,p[0])
+                Internal._rmNode(z, p[0])
             if out[1] is not None:
-                Internal._rmNode(z,p[0])
+                Internal._rmNode(z, p[0])
             if out[2] is not None:
-                Internal._rmNode(z,p[0])
+                Internal._rmNode(z, p[0])
             if out[3] is not None:
                 p = out[3]
                 e = Internal.newElements(n[0]+'_TETRA', etype='TETRA', econnectivity=p, erange=[1,p.size/4], parent=z)
@@ -8180,8 +8210,7 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
         except:
             pass
     if recoverBC:
-        Internal._rmNodesFromType(a,"ZoneBC_t")
-        nzones = len(Internal.getZones(a))
+        Internal._rmNodesFromType(a, "ZoneBC_t")
         AllBCs = []; AllBCNames = []; AllBCTypes = []
         dictOfBCsPerBCName={}
         for zs in Internal.getZones(tb):
@@ -8212,16 +8241,16 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
                     intersect = 1
                     if importG: intersect = G.bboxIntersection(z,zs)
 
-                    if intersect==1:
-                        bcname =Internal.getValue(Internal.getNodeFromName(zs,"BCName"))
+                    if intersect == 1:
+                        bcname = Internal.getValue(Internal.getNodeFromName(zs, "BCName"))
                         AllBCNames.append(bcname)
                         AllBCTypes.append('FamilySpecified:'+bcname)
-                        Internal._rmNodesFromType(z,"UserDefinedData_t")
+                        Internal._rmNodesFromType(z, "UserDefinedData_t")
                         AllBCs.append(zs)
             _recoverBCs(z, (AllBCs, AllBCNames, AllBCTypes))
 
         for base in Internal.getBases(a):
-            for famname in Internal.getNodesFromType(base,'FamilyName_t'):
+            for famname in Internal.getNodesFromType(base, 'FamilyName_t'):
                 name = Internal.getValue(famname)
                 _addFamily2Base(base, name, bndType='BCWall')
 
