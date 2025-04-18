@@ -322,7 +322,7 @@ def writeInstallPath():
     if p is None:
         raise SystemError("Error: can not open file installPath.py for writing.")
     p.write('installPath = \'%s\'\n'%installPath)
-    
+
     import site
     a = site.getsitepackages()[0].split('/')[-4:]
     if a[0] != 'local': libPath = '%s/%s'%(prefix, a[1])  # 'prefix/lib'
@@ -343,7 +343,7 @@ def writeInstallPath():
         libPath = '%s/%s'%(prefix,Lib)
     p.write('libPath = \'%s\'\n'%libPath)
     '''
-    
+
     cwd = os.getcwd()
     p.write('includePath = \'%s\'\n'%(cwd))
     gitOrigin = getGitOrigin(cwd)
@@ -2599,11 +2599,11 @@ def symLinks():
             os.remove(libPath1); ex1 = False
         if not ex2 and lex2: # broken link 2
             os.remove(libPath2); ex2 = False
-        if ex1 and not ex2: 
-            try: # may fail under windows disk system 
+        if ex1 and not ex2:
+            try: # may fail under windows disk system
                 os.symlink(libPath1, libPath2)
             except: pass
-        elif not ex1 and ex2: 
+        elif not ex1 and ex2:
             try: # may fail under windows disk system
                 os.symlink(libPath2, libPath1)
             except: pass
