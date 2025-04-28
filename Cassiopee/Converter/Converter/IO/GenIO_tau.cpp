@@ -424,7 +424,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     std::map<E_Int, E_Int> tagmap; // tag -> nbre elements tagged
     for (size_t i = 0; i < size; i++)
     {
-      //tagset.insert(bct[i]);
       if (tagmap.find(bctag[i]) == tagmap.end()) tagmap[bctag[i]] = 1;
       else tagmap[bctag[i]] += 1;
     }
