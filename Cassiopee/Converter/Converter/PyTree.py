@@ -7498,7 +7498,7 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
         hook = createHook(z1, 'nodes')
         ids = identifyNodes(hook, z2)
         z1[1] = numpy.copy(z1[1])
-        z1[1][0,2] += neb
+        #z1[1][0,2] += neb # must be suppressed to pass cgnscheck
 
         # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
         nebb = neb
