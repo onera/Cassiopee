@@ -28,7 +28,7 @@ E_Int createGridElements4Tau(E_Int eltType, const char* name, E_Int ncells, E_In
   PyArrayObject* rc, PyObject*& GE)
 {
   // GridElements
-  std::vector<npy_intp> npy_dim_vals(1);
+  std::vector<npy_intp> npy_dim_vals(2);
   npy_dim_vals[0] = 2;
 #ifdef E_DOUBLEINT
   PyArrayObject* r1 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);
@@ -37,7 +37,9 @@ E_Int createGridElements4Tau(E_Int eltType, const char* name, E_Int ncells, E_In
   PyArrayObject* r1 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);
   int32_t* pp1 = (int32_t*)PyArray_DATA(r1);
 #endif
-  pp1[0] = eltType; pp1[1] = 0;
+  pp1[0] = eltType; 
+  if (eltType == 5 || eltType == 7) pp1[1] = 1; // tag as BC connect
+  else pp1[1] = 0; 
   PyObject* children1 = PyList_New(0);
   GE = Py_BuildValue("[sOOs]", name, r1, children1, "Elements_t");
 
@@ -94,11 +96,12 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   int32_t* bctag = NULL;
   E_Int nhexa=0; E_Int ntetra=0; E_Int npenta=0; E_Int npyra=0; E_Int ntri=0; E_Int nquad=0;
   E_Int nvertex=0; E_Int ncells=0;
-
+  std::vector<npy_intp> npy_dim_vals(2);
+        
   // Get the number of datasets in the file
   int nd;
   ret = nc_inq_nvars(ncid, &nd);
-  printf("Number of datasets: %d\n", nd);
+  //printf("Number of datasets: %d\n", nd);
 
   // Iterate over all datasets
   nc_type dtype;
@@ -107,12 +110,12 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     // Get dataset name
     char name[NC_MAX_NAME + 1];
     nc_inq_varname(ncid, id, name);
-    printf(">> DataSet Name: %s\n", name);
+    //printf(">> DataSet Name: %s\n", name);
 
     // Get number of dimensions of dataset
     int ndims;
     nc_inq_varndims(ncid, id, &ndims);
-    printf("Number of dimensions: %d\n", ndims);
+    //printf("Number of dimensions: %d\n", ndims);
 
     // Retrieve dataset dims
     int dimsid[10]; dimsid[0] = 0; dimsid[1] = 0; dimsid[2] = 0;
@@ -134,7 +137,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_DOUBLE)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         npy_dim_vals[0] = dims[0];
         count[0] = dims[0];
         xc = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT64, 1);
@@ -147,7 +149,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_DOUBLE)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         npy_dim_vals[0] = dims[0];
         count[0] = dims[0];
         yc = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT64, 1);
@@ -159,7 +160,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_DOUBLE)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         npy_dim_vals[0] = dims[0];
         count[0] = dims[0];
         zc = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT64, 1);
@@ -171,7 +171,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_INT)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         size = dims[0]*dims[1];
         npy_dim_vals[0] = size;
         nhexa = dims[0];
@@ -186,7 +185,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_INT)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         size = dims[0]*dims[1];
         npy_dim_vals[0] = size;
         ntetra = dims[0];
@@ -201,7 +199,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_INT)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         size = dims[0]*dims[1];
         npy_dim_vals[0] = size;
         npenta = dims[0];
@@ -216,7 +213,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_INT)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         size = dims[0]*dims[1];
         npy_dim_vals[0] = size;
         npyra = dims[0];
@@ -231,7 +227,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_INT)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         size = dims[0]*dims[1];
         npy_dim_vals[0] = size;
         ntri = dims[0];
@@ -246,7 +241,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       if (dtype == NC_INT)
       {
-        std::vector<npy_intp> npy_dim_vals(1);
         size = dims[0]*dims[1];
         npy_dim_vals[0] = size;
         nquad = dims[0];
@@ -268,6 +262,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       }
     }
 
+    /*
     switch (dtype)
     {
       case NC_BYTE:
@@ -292,7 +287,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
         printf("Data Type: Unknown\n");
         break;
     }
-    
+    */
   }
 
   // Create tree
@@ -300,7 +295,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   tree = Py_BuildValue("[sOOs]", "tree", Py_None, children1, "CGNSTree");
   
   // Create version
-  std::vector<npy_intp> npy_dim_vals(1);
   npy_dim_vals[0] = 1;
   PyObject* children2 = PyList_New(0);
   PyArrayObject* r2 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT32, 1);
@@ -324,7 +318,6 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   PyList_Append(children1, base); Py_INCREF(base);
   
   // Create Zone
-  npy_dim_vals.reserve(2);
   npy_dim_vals[0] = 1; npy_dim_vals[1] = 3;
 #ifdef E_DOUBLEINT
   PyArrayObject* r4 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT64, 1);
@@ -392,7 +385,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   }
   if (pyra != NULL) 
   {
-    createGridElements4Tau(12, "PYRA", npyra, istart, penta, GE);
+    createGridElements4Tau(12, "PYRA", npyra, istart, pyra, GE);
     PyList_Append(children4, GE); Py_INCREF(GE);
     istart += npyra;
     ncells += npyra;
@@ -402,14 +395,14 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     createGridElements4Tau(5, "TRI", ntri, istart, tri, GE);
     PyList_Append(children4, GE); Py_INCREF(GE);
     istart += ntri;
-    ncells += ntri;
+    //ncells += ntri;
   }
   if (quad != NULL) 
   {
     createGridElements4Tau(7, "QUAD", nquad, istart, quad, GE);
     PyList_Append(children4, GE); Py_INCREF(GE);
     istart += nquad;
-    ncells += nquad;
+    //ncells += nquad;
   }
   if (bctag != NULL)
   {
@@ -432,7 +425,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       E_Int tag = pair.first; // tag
       E_Int nfaces = pair.second; // nbre de faces pour ce tag
-      printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
+      //printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
       if (nfaces == 0) continue;
       // Create BC_t for tag
       PyObject* children10 = PyList_New(0);
@@ -445,8 +438,9 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       PyObject* bc = Py_BuildValue("[sOOs]", bcname, r10, children10, "BC_t");
       PyList_Append(children9, bc); Py_INCREF(bc);
       // Create point list
+      npy_dim_vals[0] = 1;
       npy_dim_vals[0] = nfaces;
-      PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT, 1);
+      PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT, 1);
       int32_t* pp11 = (int32_t*)PyArray_DATA(r11);
       E_Int c = 0;
       for (size_t i = 0; i < size; i++)

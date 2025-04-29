@@ -50,7 +50,7 @@ E_Int createGridElements(hid_t id, E_Int eltType, char* name, E_Int istart, PyOb
   // Get ncells from id
   hid_t aid = H5Aopen_by_name(id, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
   H5Aread(aid, H5T_NATIVE_INT, &ncells); // care when long
-  printf("ncells=" SF_D_ "\n", ncells);
+  //printf("ncells=" SF_D_ "\n", ncells);
 
   // GridElements
   std::vector<npy_intp> npy_dim_vals(1);
@@ -62,7 +62,9 @@ E_Int createGridElements(hid_t id, E_Int eltType, char* name, E_Int istart, PyOb
   PyArrayObject* r1 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);
   int32_t* pp1 = (int32_t*)PyArray_DATA(r1);
 #endif
-  pp1[0] = eltType; pp1[1] = 0;
+  pp1[0] = eltType;
+  if (eltType == 5 || eltType == 7) pp1[1] = 1; // tag as BC connect
+  else pp1[1] = 0;
   PyObject* children1 = PyList_New(0);
   GE = Py_BuildValue("[sOOs]", name, r1, children1, "Elements_t");
 
@@ -175,7 +177,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   hid_t mid = H5S_ALL;
   int32_t* c2nc = new int32_t [ncells];
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, c2nc);
-  printf("I found %d cells.\n", ncells);
+  //printf("I found %d cells.\n", ncells);
   
   // read cell2node (cell -> nodes)  
   did = H5Dopen2(id, "Cell2NodeList", H5P_DEFAULT);
@@ -285,7 +287,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
     if (lcount >= c2fc[cell]) { pcell += c2nc[cell]; cell++; lcount = 0; }
     //printf("face=%d cell=%d\n", i, cell);
   }
-  printf("=> %d %d\n", ps, size);
+  //printf("=> %d %d\n", ps, size);
 
   // Element start offset
   npy_dim_vals[0] = nfaces+1;
@@ -465,7 +467,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   tree = Py_BuildValue("[sOOs]", "tree", Py_None, children1, "CGNSTree");
 
   // Create version
-  std::vector<npy_intp> npy_dim_vals(1);
+  std::vector<npy_intp> npy_dim_vals(2);
   npy_dim_vals[0] = 1;
   PyObject* children2 = PyList_New(0);
   PyArrayObject* r2 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT32, 1);
@@ -489,7 +491,6 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   PyList_Append(children1, base); Py_INCREF(base);
 
   // Create Zone
-  npy_dim_vals.reserve(2);
   npy_dim_vals[0] = 1; npy_dim_vals[1] = 3;
 #ifdef E_DOUBLEINT
   PyArrayObject* r4 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT64, 1);
@@ -525,7 +526,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   H5Aread(aid, H5T_NATIVE_INT, &nvertex); // care when long
   pp4[0] = nvertex;
   H5Gclose(node);
-  printf("nvertex=" SF_D_ "\n", nvertex);
+  //printf("nvertex=" SF_D_ "\n", nvertex);
 
   // Create GridCoordinates
   PyObject* children5 = PyList_New(0);
@@ -604,7 +605,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   H5Literate2(uc, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
 #endif
   hid_t id = 0; E_Int c = 0; PyObject* GE;
-  E_Int ncells = 0; E_Int istart=1;
+  E_Int ncells=0; E_Int istart=1; E_Int n3dcells=0; 
   std::map<E_Int, E_Int> tagmap; // map of bc tags
   int32_t* bct = NULL; size = 0; // bc tag merged
   while (id != -1)
@@ -618,6 +619,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
         nhexa = ncells;
+        n3dcells += ncells;
       }
       else if (strcmp(name, "Prism6") == 0) 
       { 
@@ -625,6 +627,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
         npenta = ncells;
+        n3dcells += ncells;
       }
       else if (strcmp(name, "Tetra4") == 0) 
       { 
@@ -632,6 +635,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
         ntetra = ncells;
+        n3dcells += ncells;
       }
       else if (strcmp(name, "Pyra5") == 0) 
       { 
@@ -639,6 +643,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         PyList_Append(children4, GE); Py_INCREF(GE);
         istart += ncells;
         npyra = ncells;
+        n3dcells += ncells;
       }
       else if (strcmp(name, "Tri3") == 0)
       { 
@@ -662,10 +667,11 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         //PyList_Append(children4, NFACE); Py_INCREF(NFACE);
         istart += ncells+nfaces;
         npoly3d = ncells;
+        n3dcells += ncells;
       }
     }
   }
-  pp4[1] = istart-1;
+  pp4[1] = n3dcells; // pas bon
 
   // Add zoneBC
   if (size > 0)
@@ -682,7 +688,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     {
       E_Int tag = pair.first; // tag
       E_Int nfaces = pair.second; // nbre de faces pour ce tag
-      printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
+      //printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
       if (nfaces == 0) continue;
       // Create BC_t for tag
       PyObject* children10 = PyList_New(0);
@@ -695,8 +701,9 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       PyObject* bc = Py_BuildValue("[sOOs]", bcname, r10, children10, "BC_t");
       PyList_Append(children9, bc); Py_INCREF(bc);
       // Create point list
-      npy_dim_vals[0] = nfaces;
-      PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT, 1);
+      npy_dim_vals[0] = 1;
+      npy_dim_vals[1] = nfaces;
+      PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT, 1);
       int32_t* pp11 = (int32_t*)PyArray_DATA(r11);
       E_Int c = 0;
       for (E_Int i = 0; i < size; i++)
