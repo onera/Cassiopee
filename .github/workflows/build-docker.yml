@@ -1,8 +1,8 @@
 name: docker
 
 on:
+  workflow_dispatch:  # allows manual trigger
   push:
-    workflow_dispatch:  # allows manual trigger
     tags:
       - 'v*'
     branches:
