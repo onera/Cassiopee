@@ -4,20 +4,19 @@ FROM ubuntu:latest
 # Set non-interactive mode for apt-get
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Set the default Python version to 3.12.3, can be passed as an argument
+ARG PYTHON_VERSION=3.12.3
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    python3-dev \
-    python3-numpy \
-    python3-distutils-extra \
-    python3-pip \
+    build-essential \
+    curl \
     scons \
     gcc \
     g++ \
     gfortran \
     libopenmpi-dev \
-    python3-mpi4py \
     libhdf5-openmpi-dev \
-    python3-tk \
     mesa-common-dev \
     libgl1-mesa-dev \
     libglu1-mesa-dev \
@@ -25,11 +24,54 @@ RUN apt-get update && apt-get install -y \
     xorg-dev \
     time
     
+# Install system dependencies required by pyenv
+RUN apt-get update && apt-get install -y \
+    git \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libffi-dev \
+    liblzma-dev \
+    python3-openssl \
+    libyaml-dev \
+    libgdbm-dev \
+    libdb-dev \
+    libpcap-dev \
+    libmysqlclient-dev
+
+# Set-up necessary Env vars for PyEnv
+ENV PYENV_ROOT /root/.pyenv
+ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+
+# Install pyenv and the requested Python version
+RUN curl https://pyenv.run | bash \
+    && pyenv update \
+    && pyenv install ${PYTHON_VERSION} \
+    && pyenv global ${PYTHON_VERSION} \
+    && pyenv rehash
+    
+# Install Python dependencies using pip
+RUN python -m ensurepip --upgrade && \
+    pip install --upgrade pip setuptools wheel build && \
+    pip install \
+        numpy>=1.23.3 \
+        mpi4py>=3.1.3 \
+        scons>=4.4.0
+
+# Verify the Python version
+RUN python3 --version && pip3 --version
+
 ENV PIP_ROOT_USER_ACTION=ignore
 
 # Install opencascade and remove cache files after installing packages
 RUN apt-get update && apt-get install -y \
-    build-essential \
     gedit \
     meld \
     cmake \
@@ -45,10 +87,10 @@ RUN apt-get update && apt-get install -y \
 # Install latest versions of HDF5 and CGNS tools
 # Adapted from James Clark's Dockerfile
 # https://github.com/jameshclrk/cgns-hdf5-parmetis-docker/blob/master/Dockerfile
-ARG HDF5_VERSION=1.10.5
-ARG CGNS_VERSION=4.4.0
-ARG HDF5_INSTALL_DIR="/opt/hdf5"
-ARG CGNS_INSTALL_DIR="/opt/cgns"
+ENV HDF5_VERSION=1.10.5
+ENV CGNS_VERSION=4.4.0
+ENV HDF5_INSTALL_DIR="/opt/hdf5"
+ENV CGNS_INSTALL_DIR="/opt/cgns"
 
 RUN curl -fSL "https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-$HDF5_VERSION.tar.gz" -o hdf5.tar.gz \
 	&& mkdir -p /usr/src/hdf5 \
