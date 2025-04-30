@@ -1233,6 +1233,10 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
         Internal._correctBaseZonesDim(tp, splitBases=False)
         _forceCGNSProfile__(tp)
         Converter.converter.convertPyTree2File(tp[2], fileName, format, links)
+    elif format == 'bin_tau':
+        Converter.converter.convertPyTree2FileTau(t, fileName, format)
+    elif format == 'bin_fsdm':
+        Converter.converter.convertPyTree2FileFsdm(t, fileName, format)
     elif format == 'bin_pickle':
         try: import cPickle as pickle
         except: import pickle

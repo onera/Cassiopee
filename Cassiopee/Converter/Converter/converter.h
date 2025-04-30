@@ -93,6 +93,8 @@ namespace K_CONVERTER
   PyObject* convertFile2PyTree(PyObject* self, PyObject* args);
   PyObject* convertFile2PartialPyTree(PyObject* self, PyObject* args);
   PyObject* convertPyTree2File(PyObject* self, PyObject* args);
+  PyObject* convertPyTree2FileTau(PyObject* self, PyObject* args);
+  PyObject* convertPyTree2FileFsdm(PyObject* self, PyObject* args);
   PyObject* convertFile2PyTreeFromPath(PyObject* self, PyObject* args);
   PyObject* convertPyTree2FilePartial(PyObject* self, PyObject* args);
   PyObject* readPyTreeFromPaths(PyObject* self, PyObject* args);

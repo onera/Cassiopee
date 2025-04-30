@@ -44,3 +44,22 @@ PyObject* K_CONVERTER::convertFile2PyTreeTau(PyObject* self, PyObject* args)
 
   return tree;
 }
+
+// ============================================================================
+/* Convert pyTree to file */
+// ============================================================================
+PyObject* K_CONVERTER::convertPyTree2FileTau(PyObject* self, PyObject* args)
+{
+  char* fileName; char* format;
+  PyObject* t;
+  if (!PYPARSETUPLE_(args, O_ SS_, &t, &fileName, &format)) return NULL;
+
+  printf("Writing %s (%s)...", fileName, format);
+  fflush(stdout);
+
+  K_IO::GenIO::getInstance()->tauwrite(fileName, t);
+  printf("done.\n");
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
