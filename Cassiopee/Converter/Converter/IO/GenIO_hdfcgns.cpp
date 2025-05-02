@@ -1966,7 +1966,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
   if (PyList_Check(paths) == false)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "hdfwrite: paths must be a list of strings.");
+                    "hdfcgnswrite: paths must be a list of strings.");
     return 1;
   }
   E_Int size = PyList_Size(paths);
@@ -1981,7 +1981,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
   if (fid < 0)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "hdfwrite: can not open file.");
+                    "hdfcgnswrite: can not open file.");
     return 1;
   }
 

@@ -450,14 +450,12 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     createGridElements4Tau(5, "TRI", ntri, istart, tri, GE);
     PyList_Append(children4, GE); Py_INCREF(GE);
     istart += ntri;
-    //ncells += ntri;
   }
   if (quad != NULL) 
   {
     createGridElements4Tau(7, "QUAD", nquad, istart, quad, GE);
     PyList_Append(children4, GE); Py_INCREF(GE);
     istart += nquad;
-    //ncells += nquad;
   }
   if (bctag != NULL)
   {
@@ -494,7 +492,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       PyList_Append(children9, bc); Py_INCREF(bc);
       // Create point list
       npy_dim_vals[0] = 1;
-      npy_dim_vals[0] = nfaces;
+      npy_dim_vals[1] = nfaces;
 #ifdef E_DOUBLEINT
       PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT64, 1);
       int64_t* pp11 = (int64_t*)PyArray_DATA(r11);

@@ -343,7 +343,6 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyObject* children7 = PyList_New(0);
   PyObject* ec2 = Py_BuildValue("[sOOs]", "ElementConnectivity", r7, children7, "DataArray_t");
   PyList_Append(children5, ec2); Py_INCREF(ec2);
-  E_Int c = 1;
   for (E_Int i = 0; i < ncells; i++)
     for (E_Int j = 0; j < c2fc[i]; j++)
       { pp7[i] = 1; }
@@ -671,7 +670,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       }
     }
   }
-  pp4[1] = n3dcells; // pas bon
+  pp4[1] = n3dcells;
 
   // Add zoneBC
   if (size > 0)
@@ -749,7 +748,309 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
 //=============================================================================
 E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
 {
-  printf("Error: Converter has been installed without FSDM/HDF support.\n");
-  printf("Error: please install libhdf5 first for FSDM/HDF support.\n");
+  if (tree == Py_None)
+  {
+    // nothing to write
+    return 1;
+  }
+
+  /* Ouverture du fichier pour l'ecriture */
+  hid_t fapl, fid, capl;
+  fapl = H5Pcreate(H5P_FILE_ACCESS);
+  H5Pset_fclose_degree(fapl, H5F_CLOSE_STRONG);  
+  H5Pset_libver_bounds(fapl, KHDFVERSION, KHDFVERSION);
+  capl = H5Pcreate(H5P_FILE_CREATE);
+  H5Pset_link_creation_order(capl, H5P_CRT_ORDER_TRACKED | H5P_CRT_ORDER_INDEXED);
+  fid = H5Fcreate(file, H5F_ACC_TRUNC, capl, fapl);
+  H5Pclose(fapl); H5Pclose(capl);
+
+  if (fid < 0)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "hdffsdmwrite: can not open file.");
+    return 1;
+  }
+
+  // Check only for one zone
+  std::vector<PyObject*> bases;
+  K_PYTREE::getNodesFromType1(tree, "CGNSBase_t", bases);
+  
+  std::vector<PyObject*> zones;
+  for (size_t i = 0; i < bases.size(); i++)
+  {
+    K_PYTREE::getNodesFromType1(bases[i], "Zone_t", zones);
+  }
+  if (zones.size() > 1)
+  {
+    printf("Warning: tauwrite: only first zone is written.\n");
+  }
+  if (zones.size() == 0) return 0;
+    
+  PyObject* zone = zones[0];
+ 
+  // Get ncells, nvertex
+  std::vector<PyArrayObject*> hook;
+  E_Int nvertex = K_PYTREE::getNumberOfPointsOfZone(zone, hook);
+
+  // Write
+  hid_t gid, aid, did, tid, vid;
+  hsize_t dims[2];
+
+  // write FS:Mesh group and version
+  gid = H5Gcreate(fid, "FS:Mesh", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  dims[0] = 1;
+  did = H5Screate_simple(1, dims, NULL);
+  aid = H5Acreate(gid, "Version", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+  int32_t version = 2;
+  H5Awrite(aid, H5T_NATIVE_INT, &version);
+  H5Aclose(aid); H5Sclose(did);
+
+  // Write UnstructuredCells
+  hid_t uc = H5Gcreate(gid, "UnstructuredCells", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  H5Gclose(gid);
+
+  // Write DataSets
+  hid_t ds = H5Gcreate(uc, "DataSets", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  // Write Coordinates
+  hid_t coord = H5Gcreate(ds, "Coordinates", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  dims[0] = 1;
+  did = H5Screate_simple(1, dims, NULL);
+  aid = H5Acreate(coord, "NumberOfCellTypes", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+  int32_t numberOfCellTypes = 1;
+  H5Awrite(aid, H5T_NATIVE_INT, &numberOfCellTypes);
+  H5Aclose(aid); H5Sclose(did);
+  dims[0] = 1;
+  did = H5Screate_simple(1, dims, NULL);
+  aid = H5Acreate(coord, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+  int32_t numberOfCells = nvertex;
+  H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+  H5Aclose(aid); H5Sclose(did);
+  dims[0] = 1;
+  did = H5Screate_simple(1, dims, NULL);
+  aid = H5Acreate(coord, "NumberOfVariables", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+  int32_t numberOfVariables = 3;
+  H5Awrite(aid, H5T_NATIVE_INT, &numberOfVariables);
+  H5Aclose(aid); H5Sclose(did);
+  dims[0] = 1;
+  did = H5Screate_simple(1, dims, NULL);
+  aid = H5Acreate(coord, "SpanAllCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+  int32_t span = 1;
+  H5Awrite(aid, H5T_NATIVE_INT, &span);
+  H5Aclose(aid); H5Sclose(did);
+
+  // Create CellType0
+  gid = H5Gcreate(coord, "CellType0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  did = H5Screate(H5S_SCALAR);
+  tid = H5Tcopy(H5T_C_S1);
+  H5Tset_size(tid, H5T_VARIABLE);
+  aid = H5Acreate(gid, "Name", tid, did, H5P_DEFAULT, H5P_DEFAULT);
+  //const char* name = "Node";
+  char* name = new char [20]; strcpy(name, "Node");
+  H5Awrite(aid, tid, &name);
+  H5Aclose(aid); H5Sclose(did); H5Tclose(tid);
+  H5Gclose(gid);
+
+  // Create Variables
+  gid = H5Gcreate(coord, "Variables0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  did = H5Screate(H5S_SCALAR);
+  tid = H5Tcopy(H5T_C_S1);
+  H5Tset_size(tid, H5T_VARIABLE);
+  aid = H5Acreate(gid, "Name", tid, did, H5P_DEFAULT, H5P_DEFAULT);
+  strcpy(name, "CoordinateX");
+  H5Awrite(aid, tid, &name);
+  H5Aclose(aid); H5Sclose(did); H5Tclose(tid); H5Gclose(gid);
+
+  gid = H5Gcreate(coord, "Variables1", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  did = H5Screate(H5S_SCALAR);
+  tid = H5Tcopy(H5T_C_S1);
+  H5Tset_size(tid, H5T_VARIABLE);
+  aid = H5Acreate(gid, "Name", tid, did, H5P_DEFAULT, H5P_DEFAULT);
+  strcpy(name, "CoordinateY");
+  H5Awrite(aid, tid, &name);
+  H5Aclose(aid); H5Sclose(did); H5Tclose(tid); H5Gclose(gid);
+
+  gid = H5Gcreate(coord, "Variables2", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  did = H5Screate(H5S_SCALAR);
+  tid = H5Tcopy(H5T_C_S1);
+  H5Tset_size(tid, H5T_VARIABLE);
+  aid = H5Acreate(gid, "Name", tid, did, H5P_DEFAULT, H5P_DEFAULT);
+  strcpy(name, "CoordinateZ");
+  H5Awrite(aid, tid, &name);
+  H5Aclose(aid); H5Sclose(did); H5Tclose(tid); H5Gclose(gid);
+
+  delete [] name;
+
+  // Write Coordinates/Values (compact)
+  PyObject* gc = K_PYTREE::getNodeFromName1(zone, "GridCoordinates");
+    
+  PyObject* xc = K_PYTREE::getNodeFromName1(gc, "CoordinateX");
+  E_Float* xcv = K_PYTREE::getValueAF(xc, hook);
+  PyObject* yc = K_PYTREE::getNodeFromName1(gc, "CoordinateY");
+  E_Float* ycv = K_PYTREE::getValueAF(yc, hook);
+  PyObject* zc = K_PYTREE::getNodeFromName1(gc, "CoordinateZ");
+  E_Float* zcv = K_PYTREE::getValueAF(zc, hook);
+
+  double* data = new double [nvertex*3];
+  for (E_Int i = 0; i < nvertex; i++)
+  {
+    data[3*i] = xcv[i];
+    data[3*i+1] = ycv[i];
+    data[3*i+2] = zcv[i];
+  }
+  dims[0] = nvertex;
+  dims[1] = 3;
+  did = H5Screate_simple(2, dims, NULL);
+  vid = H5Dcreate(coord, "Values", H5T_NATIVE_DOUBLE, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  H5Dwrite(vid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+  H5Dclose(vid); H5Sclose(did);
+  delete [] data;
+  
+  H5Gclose(coord);
+  H5Gclose(ds);
+
+  // Write connectivities
+  std::vector<PyObject*> connects;
+  K_PYTREE::getNodesFromType1(zone, "Elements_t", connects);
+
+  for (size_t i = 0; i < connects.size(); i++)
+  {
+    E_Int* cv = K_PYTREE::getValueAI(connects[i], hook);
+    PyObject* er = K_PYTREE::getNodeFromName1(connects[i], "ElementRange");
+    E_Int* erv = K_PYTREE::getValueAI(er, hook);
+    PyObject* ec = K_PYTREE::getNodeFromName1(connects[i], "ElementConnectivity");
+    E_Int* ecv = K_PYTREE::getValueAI(ec, hook);
+    E_Int eltType = cv[0];
+    E_Int size = erv[1]-erv[0]+1;
+    
+    if (eltType == 17) // HEXA
+    {
+      gid = H5Gcreate(uc, "Hexa8", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      dims[0] = 1;
+      did = H5Screate_simple(1, dims, NULL);
+      aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+      int32_t numberOfCells = size;
+      H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+      H5Aclose(aid); H5Sclose(did);
+      size *= 8;
+      int32_t* data = new int32_t [size];
+      for (E_Int i = 0; i < size; i++) data[i] = ecv[i]-1;
+      dims[0] = size;
+      did = H5Screate_simple(1, dims, NULL);
+      vid = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_DOUBLE, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+      H5Dclose(vid); H5Sclose(did);
+      H5Gclose(gid);
+      delete [] data;
+    }
+    else if (eltType == 10) // TETRA
+    {
+      gid = H5Gcreate(uc, "Tetra4", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      dims[0] = 1;
+      did = H5Screate_simple(1, dims, NULL);
+      aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+      int32_t numberOfCells = size;
+      H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+      H5Aclose(aid); H5Sclose(did);
+      size *= 4;
+      int32_t* data = new int32_t [size];
+      for (E_Int i = 0; i < size; i++) data[i] = ecv[i]-1;
+      dims[0] = size;
+      did = H5Screate_simple(1, dims, NULL);
+      vid = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_DOUBLE, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+      H5Dclose(vid); H5Sclose(did);
+      H5Gclose(gid);
+      delete [] data;
+    }
+    else if (eltType == 14) // PENTA
+    {
+      gid = H5Gcreate(uc, "Penta6", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      dims[0] = 1;
+      did = H5Screate_simple(1, dims, NULL);
+      aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+      int32_t numberOfCells = size;
+      H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+      H5Aclose(aid); H5Sclose(did);
+      size *= 6;
+      int32_t* data = new int32_t [size];
+      for (E_Int i = 0; i < size; i++) data[i] = ecv[i]-1;
+      dims[0] = size;
+      did = H5Screate_simple(1, dims, NULL);
+      vid = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_DOUBLE, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+      H5Dclose(vid); H5Sclose(did);
+      H5Gclose(gid);
+      delete [] data;
+    }
+    else if (eltType == 12) // PYRA
+    {
+      gid = H5Gcreate(uc, "Pyra5", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      dims[0] = 1;
+      did = H5Screate_simple(1, dims, NULL);
+      aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+      int32_t numberOfCells = size;
+      H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+      H5Aclose(aid); H5Sclose(did);
+      size *= 5;
+      int32_t* data = new int32_t [size];
+      for (E_Int i = 0; i < size; i++) data[i] = ecv[i]-1;
+      dims[0] = size;
+      did = H5Screate_simple(1, dims, NULL);
+      vid = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_DOUBLE, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+      H5Dclose(vid); H5Sclose(did);
+      H5Gclose(gid);
+      delete [] data;
+    }
+    else if (eltType == 5) // TRI
+    {
+      gid = H5Gcreate(uc, "Tri3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      dims[0] = 1;
+      did = H5Screate_simple(1, dims, NULL);
+      aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+      int32_t numberOfCells = size;
+      H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+      H5Aclose(aid); H5Sclose(did);
+      size *= 3;
+      int32_t* data = new int32_t [size];
+      for (E_Int i = 0; i < size; i++) data[i] = ecv[i]-1;
+      dims[0] = size;
+      did = H5Screate_simple(1, dims, NULL);
+      vid = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_DOUBLE, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+      H5Dclose(vid); H5Sclose(did);
+      H5Gclose(gid);
+      delete [] data;
+    }
+    else if (eltType == 7) // QUAD
+    {
+      gid = H5Gcreate(uc, "Quad4", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      dims[0] = 1;
+      did = H5Screate_simple(1, dims, NULL);
+      aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+      int32_t numberOfCells = size;
+      H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+      H5Aclose(aid); H5Sclose(did);
+      size *= 4;
+      int32_t* data = new int32_t [size];
+      for (E_Int i = 0; i < size; i++) data[i] = ecv[i]-1;
+      dims[0] = size;
+      did = H5Screate_simple(1, dims, NULL);
+      vid = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_DOUBLE, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+      H5Dclose(vid); H5Sclose(did);
+      H5Gclose(gid);
+      delete [] data;
+    }
+  }
+
+  H5Gclose(uc);
+  
+  H5Fclose(fid);
+
+  // Decref
+  for (size_t i = 0; i < hook.size(); i++) Py_DECREF(hook[i]);
+
   return 0;
 }
