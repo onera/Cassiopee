@@ -688,17 +688,9 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
                     OCTREEPARENTS.append(parento2)
     return OCTREEPARENTS
 
-# main function
-def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
-                    tbox=None, snearsf=None, check=False, to=None,
-                    ext=2, optimized=1, expand=3, octreeMode=0):
-    """Generates the full Cartesian mesh for IBMs."""
-    import KCore.test as test
-    # refinementSurfFile: surface meshes describing refinement zones
-    if tbox is not None:
-        if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
-        else: tbox = tbox
-
+def generateIBMOctree(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
+                      tbox=None, snearsf=None, check=False, to=None,
+                      expand=3, octreeMode=0):
     ## tbox = tbox(area refinement)[legacy tbox] + tb(area for one over)[tbOneOver] + tb(zones to keep as F1)[tbF1]
     ## here we divide tbox into tbOneOver (rectilinear region)  & tbF1 (WM F1 approach region) & tbox; tbox will henceforth only consist of the area that will be refined.
     ## Note: tb(zones to keep as F1)[tbF1] is still in development, is experimental, & subject to major/minor changes with time. Please use with a lot of caution & see A.Jost @ DAAA/DEFI [28/08/2024] as
@@ -706,11 +698,13 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     tbOneOverF1 = None
     tbOneOver   = None
     tbF1        = None
+    tbRM        = None
     if tbox:
+        tbRM        = Internal.getNodesFromNameAndType(tbox, '*RM*'     , 'CGNSBase_t')
         tbOneOver   = Internal.getNodesFromNameAndType(tbox, '*OneOver*', 'CGNSBase_t')
         tbF1        = Internal.getNodesFromNameAndType(tbox, '*KeepF1*' , 'CGNSBase_t')
         tbOneOverF1 = tbOneOver+tbF1
-        tbox        = Internal.rmNodesByName(Internal.rmNodesByName(tbox, '*OneOver*'), '*KeepF1*')
+        tbox        = Internal.rmNodesByName(Internal.rmNodesByName(Internal.rmNodesByName(tbox, '*OneOver*'), '*KeepF1*'), '*RM*')
         if len(Internal.getBases(tbox))==0: tbox=None
 
     # Octree identical on all procs
@@ -767,7 +761,37 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
             to = P.selectCells(to,'{centers:cellN}>0.')
             o = Internal.getZones(to)[0]
 
+    if tbRM:
+        to       = C.newPyTree(["OCTREE",o])
+        bodies   = [Internal.getBases(tbRM)]
+        nBasesRM = len(bodies)
+        BM2      = numpy.ones((2,nBasesRM),dtype=Internal.E_NpyInt)
+        if dimPb ==2:
+            XRAYDIM1 = 20000; XRAYDIM2 = XRAYDIM1
+            to = X.blankCells(to, bodies, BM2, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dimPb, cellNName='cellN')
+        else:
+            to = X.blankCellsTri(to, bodies, BM2, blankingType='node_in', cellNName='cellN')
+        to = P.selectCells(to,'{cellN}<=0.',strict=1)
+        C._initVars(to,'{cellN}=1')
+        o = Internal.getZones(to)[0]
+
     if Cmpi.rank==0 and check: C.convertPyTree2File(o, 'octree.cgns')
+    return o, parento, tbOneOver, tbF1, tbOneOverF1, symmetry
+
+# main function
+def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
+                    tbox=None, snearsf=None, check=False, to=None,
+                    ext=2, optimized=1, expand=3, octreeMode=0):
+    """Generates the full Cartesian mesh for IBMs."""
+    import KCore.test as test
+    # refinementSurfFile: surface meshes describing refinement zones
+    if tbox is not None:
+        if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
+        else: tbox = tbox
+
+    o, parento, tbOneOver, tbF1, tbOneOverF1, symmetry = generateIBMOctree(tb, dimPb=dimPb, vmin=vmin, snears=snears, dfars=dfars, dfarDir=dfarDir,
+                                                                           tbox=tbox, snearsf=snearsf, check=check, to=to,
+                                                                           expand=expand, octreeMode=octreeMode)
 
     # Split octree
     bb = G.bbox(o)
