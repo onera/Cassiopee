@@ -123,7 +123,7 @@ else:
 # setup ======================================================================
 setup(
     name="XCore",
-    version="4.0",
+    version="4.1",
     description="XCore for *Cassiopee* modules.",
     author="ONERA",
     url="https://cassiopee.onera.fr",
