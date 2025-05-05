@@ -20,6 +20,7 @@ if echo "$KC" | grep -q 'n'; then export MAC="sator_cas"; fi
 if echo "$KC" | grep -q 'ld'; then export MAC="ld"; fi
 if echo "$KC" | grep -q 'f0'; then export MAC="juno"; fi
 if echo "$KC" | grep -q 'n0'; then export MAC="juno"; fi
+if echo "$KC" | grep -q 'b0'; then export MAC="juno"; fi
 if echo "$KC" | grep -q 'v0'; then export MAC="juno"; fi
 if echo "$KC" | grep -q 'fv-az'; then export MAC="azure"; fi
 if echo "$KC" | grep -q 'clausius'; then export MAC="ld"; fi
