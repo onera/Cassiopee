@@ -2,7 +2,7 @@
 try:
     from . import Generator as G
     from . import generator
-except: 
+except:
     import Generator as G
     import generator
 try:
