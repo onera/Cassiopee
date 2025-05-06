@@ -655,7 +655,6 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
     dimids[0] = ni_hexa; dimids[1] = nj_hexa;
     nc_def_var(ncid, "points_of_hexaeders", NC_INT, 2, dimids, &var_hexa);
   }
-
   if (ntetra > 0) // TETRA
   {
     nc_def_dim(ncid, "no_of_tetraeders", ntetra, &ni_tetra);
@@ -825,11 +824,11 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
     delete [] ecv2;
   }
 
-  for (size_t i = 0; i < oldStart.size(); i++)
-  {
-    printf("oldStart[%d] = %d\n", i, oldStart[i]);
-    printf("newStart[%d] = %d\n", i, newStart[i]);
-  }
+  //for (size_t i = 0; i < oldStart.size(); i++)
+  //{
+  //  printf("oldStart[%d] = %d\n", i, oldStart[i]);
+  //  printf("newStart[%d] = %d\n", i, newStart[i]);
+  //}
   
   // Write coordinates
   PyObject* gc = K_PYTREE::getNodeFromName1(zone, "GridCoordinates");
