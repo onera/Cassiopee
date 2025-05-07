@@ -1,6 +1,10 @@
 # Various specific TFIs
-from . import Generator as G
-from . import generator
+try:
+    from . import Generator as G
+    from . import generator
+except:
+    import Generator as G
+    import generator
 try:
     import Converter as C
     import Transform as T

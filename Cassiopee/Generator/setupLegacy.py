@@ -39,9 +39,6 @@ libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
-# Hack: compilation of predicate
-#os.system(Cppcompiler+" -c -O0 -fPIC Generator/Tetgen/predicates.cxx -o build/temp.linux-x86_64-4.0/Generator/Tetgen/predicates.o")
-
 # Extensions =================================================================
 import srcs
 listExtensions = []
@@ -58,7 +55,7 @@ listExtensions.append(
 # setup =======================================================================
 setup(
     name="Generator",
-    version="4.0",
+    version="4.1",
     description="*Cassiopee* module of mesh generation.",
     author="Onera",
     package_dir={"":"."},

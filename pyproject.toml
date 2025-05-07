@@ -8,7 +8,7 @@ local_scheme = "node-and-date"
 
 [project]
 name = "Cassiopee"
-version = "4.0"
+version = "4.1"
 authors = [
   {name="ONERA", email="christophe.benoit@onera.fr"},
 ]
