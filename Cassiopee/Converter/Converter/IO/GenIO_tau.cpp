@@ -412,7 +412,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   npy_dim_vals[0] = 12;
   PyArrayObject* r9 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
   char* pp9 = (char*)PyArray_DATA(r9);
-  strcpy(pp9, "Unstructured");
+  K_STRING::cpy(pp9, "Unstructured", 12, false);
   PyObject* zoneType = Py_BuildValue("[sOOs]", "ZoneType", r9, children9, "ZoneType_t");
   PyList_Append(children4, zoneType); Py_INCREF(zoneType);
   
@@ -508,7 +508,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       npy_dim_vals[0] = strlen(bctype);
       PyArrayObject* r10 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp10 = (char*)PyArray_DATA(r10);
-      strcpy(pp10, bctype);
+      K_STRING::cpy(pp10, bctype, strlen(bctype), false);
       PyObject* bc = Py_BuildValue("[sOOs]", bcname, r10, children10, "BC_t");
       PyList_Append(children9, bc); Py_INCREF(bc);
       // Create point list
@@ -533,7 +533,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       npy_dim_vals[0] = 10;
       PyArrayObject* r12 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp12 = (char*)PyArray_DATA(r12);
-      strcpy(pp12, "FaceCenter");
+      K_STRING::cpy(pp12, "FaceCenter", 10, false);
       PyObject* children12 = PyList_New(0);
       PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r12, children12, "GridLocation_t");
       PyList_Append(children10, gl); Py_INCREF(gl);
@@ -543,7 +543,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       npy_dim_vals[0] = strlen(bctype);
       PyArrayObject* r13 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp13 = (char*)PyArray_DATA(r13);
-      strcpy(pp13, bctype);
+      K_STRING::cpy(pp13, bctype, strlen(bctype), false);
       PyObject* famName = Py_BuildValue("[sOOs]", "FamilyName", r13, children13, "FamilyName_t");
       PyList_Append(children10, famName); Py_INCREF(famName);
     }
@@ -618,32 +618,32 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
     PyObject* er = K_PYTREE::getNodeFromName1(connects[i], "ElementRange");
     E_Int* erv = K_PYTREE::getValueAI(er, hook);
     E_Int eltType = cv[0];
-    E_Int size = erv[1]-erv[0]+1;
+    E_Int size0 = erv[1]-erv[0]+1;
     
     // count elements
     if (eltType == 17) // HEXA
     {
-      nhexa += size;
+      nhexa += size0;
     }
     else if (eltType == 10) // TETRA
     {
-      ntetra += size;
+      ntetra += size0;
     }
     else if (eltType == 14) // PENTA
     {
-      npenta += size;
+      npenta += size0;
     }
     else if (eltType == 12) // PYRA
     {
-      npyra += size;
+      npyra += size0;
     }
     else if (eltType == 5) // TRI
     {
-      ntri += size;
+      ntri += size0;
     }
     else if (eltType == 7) // QUADS
     {
-      nquad += size;
+      nquad += size0;
     }
   }
 
@@ -718,9 +718,9 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
   int shexa=0, stetra=0, spenta=0, spyra=0, stri=0, squad=0;
   int phexa=1, ptetra=nhexa+1, ppenta=nhexa+ntetra+1, ppyra=nhexa+ntetra+npenta+1;
   int ptri=nhexa+ntetra+npenta+npyra+1, pquad=nhexa+ntetra+npenta+npyra+ntri+1;
-
   size_t start[2]; size_t scount[2];
   E_Int pos = 1; E_Int possurf = -1;
+
   for (size_t i = 0; i < connects.size(); i++)
   {
     E_Int* cv = K_PYTREE::getValueAI(connects[i], hook);
@@ -731,6 +731,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
     E_Int eltType = cv[0];
     E_Int size = erv[1]-erv[0]+1;
     E_Int size0 = size;
+
     if (eltType == 17) // HEXA
     { size *= 8; }
     else if (eltType == 10) // TETRA
@@ -859,7 +860,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
     if (er != NULL)
     {
       E_Int* erv = K_PYTREE::getValueAI(er, hook);
-      printf("BC %d: %d %d\n", count, erv[0], erv[1]);
+      //printf("BC %d: %d %d\n", count, erv[0], erv[1]);
       for (E_Int j = erv[0]; j <= erv[1]; j++)
       {
         //off = j-1-nvol;
