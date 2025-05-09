@@ -319,7 +319,7 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   /* Build output */
   E_Int np = out.numberofpoints;
   ne = out.numberoftetrahedra;
-  printf("INFO: tetgen: generate %d points and %d elements.\n",np,ne);
+  printf("INFO: tetgen: generate " SF_D_ " points and " SF_D_ " elements.\n", np, ne);
   pout = K_ARRAY::buildArray(3, "x,y,z", np, ne, 4, NULL, false, 0);
   E_Float* fp = K_ARRAY::getFieldPtr(pout);
   E_Float* fx = fp; E_Float* fy = fp+np; E_Float* fz = fp+2*np;
