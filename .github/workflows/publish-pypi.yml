@@ -138,23 +138,23 @@ jobs:
               ls wheelhouse
           "
             
-      - name: Publish to Test-PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
-        run: |
-          export CASSIOPEE=$GITHUB_WORKSPACE/
-          ls $CASSIOPEE
-          for kwheel in $(find $CASSIOPEE/wheels/wheelhouse/ -name '*.whl'); do
-              twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
-          done
-          
-#      - name: Publish to PyPI
+#      - name: Publish to Test-PyPI
 #        env:
 #          TWINE_USERNAME: __token__
-#          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+#          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
 #        run: |
-#          export CASSIOPEE=$GITHUB_WORKSPACE
-#          for kwheel in $(find $CASSIOPEE/wheelhouse/ -name '*.whl'); do
-#              twine upload --verbose $kwheel;
+#          export CASSIOPEE=$GITHUB_WORKSPACE/
+#          ls $CASSIOPEE
+#          for kwheel in $(find $CASSIOPEE/wheels/wheelhouse/ -name '*.whl'); do
+#              twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
 #          done
+          
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          export CASSIOPEE=$GITHUB_WORKSPACE
+          for kwheel in $(find $CASSIOPEE/wheels/wheelhouse/ -name '*.whl'); do
+              twine upload --verbose $kwheel;
+          done
