@@ -17,6 +17,8 @@ ValidData*
 Data*
 *~
 *.g
+*.grid
+*.h5
 *.pyc
 *.plt
 *.tp
