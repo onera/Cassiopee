@@ -98,18 +98,18 @@ jobs:
               for dir in \$(find . -maxdepth 1 -type d -name \"*-\${PKG_VERSION}\"); do
                   mv \$dir/* .
               done
-              mv XCore-\${PKG_VERSION}.dist-info \${PKG_NV}.dist-info
+              mv xcore-\${PKG_VERSION}.dist-info \${PKG_NV}.dist-info
               echo \$FREE_MODULES | tr ' ' '\n' > \${PKG_NV}.dist-info/toplevel.txt
               sed -i \"/Name: /c\Name: \${PKG_NAME}\" \${PKG_NV}.dist-info/METADATA
               sed -i '/Summary: /c\Summary: CFD pre- and post-processing python modules' \${PKG_NV}.dist-info/METADATA
-              for dir in \$(find . -maxdepth 1 -type d -name \"*-\${PKG_VERSION}\" -not -name '[K,X]Core*'); do
+              for dir in \$(find . -maxdepth 1 -type d -name \"*-\${PKG_VERSION}\" -not -name '[k,x]core*'); do
                   echo \"\" >> \${PKG_NV}.dist-info/RECORD && cat \${dir}.dist-info/RECORD >> \${PKG_NV}.dist-info/RECORD
               done
               sed -i \"/-\${PKG_VERSION}\.dist-info/d\" \${PKG_NV}.dist-info/RECORD
-              echo \"\" >> KCore-\${PKG_VERSION}.dist-info/RECORD
+              echo \"\" >> kcore-\${PKG_VERSION}.dist-info/RECORD
               cat \${PKG_NV}.dist-info/RECORD >> KCore-\${PKG_VERSION}.dist-info/RECORD
-              mv KCore-\${PKG_VERSION}.dist-info/RECORD \${PKG_NV}.dist-info/RECORD
-              sed -i \"s/KCore-\${PKG_VERSION}\.dist-info/\${PKG_NV}\.dist-info/g\" \${PKG_NV}.dist-info/RECORD
+              mv kcore-\${PKG_VERSION}.dist-info/RECORD \${PKG_NV}.dist-info/RECORD
+              sed -i \"s/kcore-\${PKG_VERSION}\.dist-info/\${PKG_NV}\.dist-info/g\" \${PKG_NV}.dist-info/RECORD
               cp \$CASSIOPEE/Cassiopee/KCore/Dist.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installPath.py KCore/
               cp \$CASSIOPEE/Cassiopee/KCore/installBase.py KCore/
@@ -145,7 +145,7 @@ jobs:
         run: |
           export CASSIOPEE=$GITHUB_WORKSPACE/
           ls $CASSIOPEE
-          for kwheel in $(find $CASSIOPEE/wheelhouse/ -name '*.whl'); do
+          for kwheel in $(find $CASSIOPEE/wheels/wheelhouse/ -name '*.whl'); do
               twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
           done
           
