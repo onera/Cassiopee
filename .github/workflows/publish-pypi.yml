@@ -94,7 +94,6 @@ jobs:
                   rm "\$kwheel";
               done
               cd \$CASSIOPEE/wheels/\$PKG_NAME
-              ls *
               for dir in \$(find . -maxdepth 1 -type d -name \"*-\${PKG_VERSION}\"); do
                   mv \$dir/* .
               done
