@@ -61,9 +61,8 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
   BRepBuilderAPI_Sewing sewer(tolerance);
   
   TopoDS_Shape* newshp = NULL;
-  E_Int nfaces = PyList_Size(listFaces);
   //nfaces = 0; // force car le code par subfaces semble ne pas marcher
-  if (nfaces == 0)
+  if (listFaces == Py_None)
   {
     // top shape
     TopoDS_Shape shc;
@@ -75,6 +74,7 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
   }
   else
   {
+    E_Int nfaces = PyList_Size(listFaces);
     // Build remaining faces list
     std::list<E_Int> pl;
     E_Int nf = surfaces.Extent();

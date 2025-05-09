@@ -45,15 +45,14 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
 
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
-  E_Int nfaces = PyList_Size(listFaces);
-
   TopoDS_Shape* shp = NULL;
-  if (nfaces == 0)
+  if (listFaces == Py_None)
   {
     shp = (TopoDS_Shape*)packet[0];
   }
   else
   {
+    E_Int nfaces = PyList_Size(listFaces);
     // Build compounds made of faces
     BRep_Builder builder;
     TopoDS_Compound compound;
@@ -79,14 +78,15 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
   
   TopoDS_Shape* newshp = NULL;
 
-  if (nfaces == 0)
+  if (listFaces == Py_None)
   {
     newshp = new TopoDS_Shape(unifiedShape);
   }
-  else if (nfaces > 0)
+  else
   {
     delete shp;
-
+    E_Int nfaces = PyList_Size(listFaces);
+    
     // rebuild compound
     E_Int* tag = new E_Int [surfaces.Extent()];
     for (E_Int i = 0; i < surfaces.Extent(); i++) tag[i] = 1;
@@ -116,11 +116,6 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
     sewer.Add(compound);
     sewer.Perform();
     newshp = new TopoDS_Shape(sewer.SewedShape());
-  }
-  else
-  {
-    // DBX
-    newshp = new TopoDS_Shape(*shp);
   }
 
   // export

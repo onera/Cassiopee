@@ -9,7 +9,7 @@ OCC: interface to open-cascade
 Preamble
 ########
 
-OCC performs CAD operations and meshing using open-cascade. 
+OCC performs CAD operations and surface meshing using open-cascade. 
 
 To use the module with the Converter.array interface::
 
@@ -26,7 +26,14 @@ To use the module with the CGNS/Python interface::
 List of functions
 ##################
 
-**-- CAD/surface mesh conversion**
+**-- CAD to surface mesh**
+
+.. autosummary::
+   :nosignatures:
+
+    OCC.PyTree/meshAll
+
+**-- CAD to surface mesh (legacy functions)**
 
 .. autosummary::
    :nosignatures:
@@ -54,9 +61,8 @@ Contents
 #########
 
 
-CAD/mesh conversion
-----------------------------
-
+CAD to surface mesh (legacy functions)
+---------------------------------------
 
 .. py:function:: OCC.convertCAD2Arrays(fileName, format='fmt_iges', h=0., chordal_err=0., growth_ratio=0., algo=1)
 
@@ -181,7 +187,7 @@ CAD manipulation
 
 ------------------------------------------
 
-.. py:function:: OCC._translate(hook, vector)
+.. py:function:: OCC._translate(hook, vector, listOfFaces=None)
 
     Translate a CAD hook by a given vector.
 
@@ -189,6 +195,8 @@ CAD manipulation
     :type hook: CAD hook
     :param vector: translation vector (dx, dy, dz)
     :type vector: tuple of floats
+    :param listOfFaces: if None, translate all else translate only given faces
+    :type listOfFaces: list of face indices (starts 1)
 
     *Example of use:*
 
@@ -198,7 +206,7 @@ CAD manipulation
 
 ------------------------------------------
 
-.. py:function:: OCC._rotate(hook, Xc, axis, angle)
+.. py:function:: OCC._rotate(hook, Xc, axis, angle, listOfFaces=None)
 
     Rotate a CAD hook around a given axis by a given angle.
 
@@ -210,6 +218,8 @@ CAD manipulation
     :type axis: tuple of floats
     :param angle: rotation angle in degrees
     :type angle: float
+    :param listOfFaces: if None, rotate all else rotate only given faces
+    :type listOfFaces: list of face indices (starts 1)
 
     *Example of use:*
 
@@ -225,7 +235,7 @@ CAD manipulation
 
     :param hook: CAD hook
     :type hook: CAD hook
-    :param area: split face if area greater than this value
+    :param area: split each face if area greater than this value
     :type area: float
 
     *Example of use:*
@@ -236,14 +246,14 @@ CAD manipulation
 
 ------------------------------------------
 
-.. py:function:: OCC._mergeFaces(hook, listFaces=[])
+.. py:function:: OCC._mergeFaces(hook, listFaces=None)
 
     Merge faces in a CAD hook.
 
     :param hook: CAD hook
     :type hook: CAD hook
-    :param listFaces: list of faces number to merge.
-    :type listFaces: list of integers
+    :param listFaces: if None, merge all faces else list of faces indices to merge
+    :type listFaces: list of face indices (starts 1)
 
     *Example of use:*
 
@@ -259,8 +269,8 @@ CAD manipulation
 
     :param hook: CAD hook
     :type hook: CAD hook
-    :param listFaces: list of faces number to calculate the area.
-    :type listFaces: list of integers starting from 1
+    :param listFaces: list of faces number to calculate the area
+    :type listFaces: list of face index (starts 1)
     :rtype: float
 
     *Example of use:*
