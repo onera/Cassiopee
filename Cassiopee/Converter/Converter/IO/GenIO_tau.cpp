@@ -499,7 +499,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     {
       E_Int tag = pair.first; // tag
       E_Int nfaces = pair.second; // nbre de faces pour ce tag
-      printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
+      //printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
       if (nfaces == 0) continue;
       // Create BC_t for tag
       PyObject* children10 = PyList_New(0);
@@ -746,7 +746,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
     { size *= 4; }
 
     int32_t* ecv2 = new int32_t [size];
-    for (E_Int i = 0; i < size; i++) { ecv2[i] = ecv[i]-1; }
+    for (E_Int j = 0; j < size; j++) { ecv2[j] = ecv[j]-1; }
 
     if (eltType == 17) // HEXA
     {
@@ -868,7 +868,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
         //if (off != j-1-nvol) 
         //printf("off=%d %d -> count=%d\n", off, j-1-nvol, count);
         off = std::min(off, nmarkers-1);
-        off = std::max(off, 0);
+        off = std::max(off, E_Int(0));
         markers[off] = count;
       }
     }
@@ -885,7 +885,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
         off = newIndex(plv[j], oldStart, newStart)-possurf+1;
         //printf("off=%d %d\n", off, plv[j]-1-nvol);
         off = std::min(off, nmarkers-1);
-        off = std::max(off, 0);
+        off = std::max(off, E_Int(0));
         markers[off] = count;
       }
     }

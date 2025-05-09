@@ -1143,7 +1143,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     { size *= 4; }
 
     int32_t* ecv2 = new int32_t [size];
-    for (E_Int i = 0; i < size; i++) ecv2[i] = ecv[i]-1;
+    for (E_Int j = 0; j < size; j++) ecv2[j] = ecv[j]-1;
 
     if (eltType == 17) // HEXA
     {
@@ -1276,14 +1276,14 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
         if (off < ntri) 
         { 
           off = std::min(off, ntri-1);
-          off = std::max(off, 0);
+          off = std::max(off, E_Int(0));
           markersTri[off] = count;
         }
         else 
         {
           off = off-ntri;
           off = std::min(off, nquad-1);
-          off = std::max(off, 0);
+          off = std::max(off, E_Int(0));
           markersQuad[off] = count;
         }
         //if (off != j-1-nvol) 
@@ -1304,14 +1304,14 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
         if (off < ntri) 
         { 
           off = std::min(off, ntri-1);
-          off = std::max(off, 0);
+          off = std::max(off, E_Int(0));
           markersTri[off] = count;
         }
         else 
         {
           off = off-ntri;
           off = std::min(off, nquad-1);
-          off = std::max(off, 0);
+          off = std::max(off, E_Int(0));
           markersQuad[off] = count;
         }
         //printf("off=%d %d\n", off, plv[j]-1-nvol);
