@@ -34,7 +34,7 @@ E_Int newIndex(E_Int index, std::vector<E_Int>& oldStart, std::vector<E_Int>& ne
   while (index < oldStart[i]) i--;
   if (i < 0) 
   {
-    printf("Error: tauwrite: PL index out of range: %d\n", index);
+    printf("Error: tauwrite: PL index out of range: " SF_D_ "\n", index);
     return 0;
   }
   E_Int offset = index-oldStart[i];
@@ -504,7 +504,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       // Create BC_t for tag
       PyObject* children10 = PyList_New(0);
       strcpy(bctype, "FamilySpecified");
-      sprintf(bcname, "BC%d", tag);
+      sprintf(bcname, "BC" SF_D_, tag);
       npy_dim_vals[0] = strlen(bctype);
       PyArrayObject* r10 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp10 = (char*)PyArray_DATA(r10);
@@ -539,7 +539,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       PyList_Append(children10, gl); Py_INCREF(gl);
       // Create BC FamilyName
       PyObject* children13 = PyList_New(0);
-      sprintf(bctype, "BCType%d", tag);
+      sprintf(bctype, "BCType" SF_D_, tag);
       npy_dim_vals[0] = strlen(bctype);
       PyArrayObject* r13 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp13 = (char*)PyArray_DATA(r13);
@@ -848,8 +848,8 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
   
   // Write boundary markers
   E_Int nmarkers = ntri+nquad;
-  E_Int nvol = ntetra+nhexa+npyra+npenta;
-  E_Int* markers = new E_Int [nmarkers];
+  //E_Int nvol = ntetra+nhexa+npyra+npenta;
+  int32_t* markers = new int32_t [nmarkers];
   for (E_Int i = 0; i < nmarkers; i++) markers[i] = 0;
 
   E_Int count = 1; // BC count (=marker count)
