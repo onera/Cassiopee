@@ -37,7 +37,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
    hdffsdmwrite
 */
 //=============================================================================
-E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree, PyObject* links)
+E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
 {
   printf("Error: Converter has been installed without HDF/FSDM support.\n");
   printf("Error: please install libhdf5 first for HDF/FSDM support.\n");

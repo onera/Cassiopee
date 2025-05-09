@@ -49,11 +49,9 @@ PyObject* K_OCC::translate(PyObject* self, PyObject* args)
   gp_Trsf myTrsf;
   myTrsf.SetTranslation(gp_Vec(dx, dy, dz)); // Translate by (dx, dy, dz)
 
-  E_Int nfaces = PyList_Size(listFaces);
-
   TopoDS_Shape* newshp = new TopoDS_Shape();
 
-  if (nfaces == 0) // on all shape
+  if (listFaces == Py_None) // on all shape
   {
     BRepBuilderAPI_Transform myTransform(*shp, myTrsf);
     TopoDS_Shape tShape = myTransform.Shape();
@@ -61,6 +59,7 @@ PyObject* K_OCC::translate(PyObject* self, PyObject* args)
   }
   else // on face list
   {
+    E_Int nfaces = PyList_Size(listFaces);
     // Build a compound
     BRep_Builder builder;
     TopoDS_Compound shc;
