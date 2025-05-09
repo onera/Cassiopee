@@ -208,7 +208,6 @@ else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
         setenv ELSAPROD "$ELSAPROD$EXT"
-        module load subversion/1.7.6
         module load python/2.7.8
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
@@ -227,7 +226,6 @@ else if ($MAC == "visung_gcc") then
         module load lapack/3.9.1-gnu831
         module load occt/7.6.1-gnu831
         module load socle-cfd/7.0-gnu850-ompi502
-        module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         setenv PRODMODE 1
         setenv PYTHONEXE python3
@@ -240,7 +238,6 @@ else if ($MAC == "visung") then
         module purge
         module load occt/7.6.1-gnu831
         module load emacs/27.2-gnu831
-        module load subversion/1.14.1-gnu831
         module load socle-cfd/6.0-intel2220-impi
         setenv I_MPI_FABRICS shm
         setenv PRODMODE 1
@@ -252,7 +249,6 @@ else if ($MAC == "visung_el8") then
         setenv ELSAPROD visung_el8
         setenv ELSAPROD "$ELSAPROD$EXT"
         module purge
-        module load subversion
         module load python/3.7.4-intel2120
         module load intel/21.2.0
         module load hdf5/1.10.5-intel2120-impi
@@ -354,7 +350,6 @@ else if ($MAC == "spiro") then
         module load hdf5/1.8.17-intel-17
         module load python/3.6.1
         module unload hdf5/1.8.8
-        module load subversion/1.14.1-gnu830
         setenv PYTHONEXE python3
         
 else if ($MAC == "spiro_sky") then
@@ -454,7 +449,6 @@ else if ($MAC == "spiro_socle6") then
         module purge
         module load socle-cfd/6.0-intel2220-impi
         module load occt/7.6.1-gnu831
-        module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         setenv PRODMODE 1
 
@@ -486,8 +480,7 @@ else if ($MAC == "spiro_anaconda") then
         module purge
         module load hdf5/1.8.17-intel-17
         module load anaconda/2021.05
-        module load subversion/1.14.1-gnu830
-
+        
 else if ($MAC == "spiro_el8") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_el8
@@ -500,7 +493,6 @@ else if ($MAC == "spiro_el8") then
         module purge
         module load socle-cfd/5.0-intel2120-impi
         module load occt/7.6.1-gnu831
-        module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         unsetenv I_MPI_FABRICS_LIST
         unsetenv I_MPI_FABRICS
@@ -553,8 +545,7 @@ else if ($MAC == "spiro_pgi") then
         module load python/3.6.1-gnu831
         module load nvhpc/22.2-gnu831-full
         module load hdf5/1.10.5-gnu831
-        module load subversion/1.14.1-gnu831
-
+        
 else if ($MAC == "spiro_gpu") then
 #----------------------------- spiro gpu ------------------------------------
         setenv ELSAPROD spiro_gpu
@@ -587,7 +578,7 @@ else if ($MAC == "juno") then
         module purge
         module load socle-cfd/6.0-intel2220-impi
         module load occt/7.6.1-gnu831
-        module load subversion/1.14.1-gnu831
+        module load netcdf/4.8.0-gnu831
         module load emacs/27.2-gnu831
         module load texlive/2021
         unsetenv I_MPI_FABRICS_LIST
@@ -618,8 +609,8 @@ else if ($MAC == "juno_gcc") then
         #module load hdf5/1.10.5-gnu831-ompi405
         module load lapack/3.9.1-gnu831
         module load occt/7.6.1-gnu831
+        module load netcdf/4.8.0-gnu831
         module load socle-cfd/7.0-gnu850-ompi502
-        module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         setenv PYTHONEXE python3
         setenv PRODMODE 1
@@ -684,7 +675,6 @@ else if ($MAC == "sator_brw") then
         module purge
         module load python/3.7.4-intel2120
         module load hdf5/1.10.5-intel2120-impi
-        module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         module load occt/7.6.1-gnu831
         unsetenv I_MPI_PMI_LIBRARY
@@ -701,7 +691,6 @@ else if ($MAC == "sator_sky") then
         #module load socle-cfd/5.0-intel2120-impi
         module load python/3.7.4-intel2120
         module load hdf5/1.10.5-intel2120-impi
-        module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         module load occt/7.6.1-gnu831
         unsetenv I_MPI_PMI_LIBRARY
@@ -717,7 +706,6 @@ else if ($MAC == "sator_cas") then
         #module load socle-cfd/5.0-intel2120-impi
         module load python/3.7.4-intel2120
         module load hdf5/1.10.5-intel2120-impi
-        module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         module load occt/7.6.1-gnu831
         unsetenv I_MPI_PMI_LIBRARY
@@ -756,7 +744,6 @@ else if ($MAC == "sator_gcc") then
         module purge
         module load socle-cfd/7.0-gnu850-ompi502
         module load occt/7.6.1-gnu831
-        module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         setenv OMP_PLACES cores
         setenv PYTHONEXE python3
