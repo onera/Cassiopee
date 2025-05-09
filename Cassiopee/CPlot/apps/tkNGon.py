@@ -8,6 +8,7 @@ import Transform.PyTree as T
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import CPlot.Panels as Panels
+import Converter.Internal as Internal
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -170,6 +171,84 @@ def conformize():
     CPlot.render()
 
 #==============================================================================
+# Converti des NGons v3 en v4
+# IN: t, cplot.selectedZones
+# OUT: t avec zones remplacees et affiche
+#==============================================================================
+def adaptNGon32NGon4():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+
+    fail = False; errors = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        try:
+            a = Internal.adaptNGon32NGon4(z)
+            CTK.replace(CTK.t, nob, noz, a)
+        except Exception as e:
+            fail = False; errors += [0,str(e)]
+
+    if not fail:
+        CTK.TXT.insert('START', 'Zones converted to NGon v4.\n')
+    else:
+        Panels.displayErrors(errors, header='Error: adaptNGon32NGon4')
+        CTK.TXT.insert('START', 'NGon conversion fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'Warning: ', 'Warning')
+    #C._fillMissingVariables(CTK.t)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+
+#==============================================================================
+# Converti des NGons v4 en v3
+# IN: t, cplot.selectedZones
+# OUT: t avec zones remplacees et affiche
+#==============================================================================
+def adaptNGon42NGon3():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+
+    fail = False; errors = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        try:
+            a = Internal.adaptNGon42NGon3(z)
+            CTK.replace(CTK.t, nob, noz, a)
+        except Exception as e:
+            fail = False; errors += [0,str(e)]
+
+    if not fail:
+        CTK.TXT.insert('START', 'Zones converted to NGon v3.\n')
+    else:
+        Panels.displayErrors(errors, header='Error: adaptNGon42NGon3')
+        CTK.TXT.insert('START', 'NGon conversion fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'Warning: ', 'Warning')
+    #C._fillMissingVariables(CTK.t)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+
+#==============================================================================
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
@@ -210,6 +289,16 @@ def createApp(win):
     B = TTK.Button(Frame, text="Conformize", command=conformize)
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Conformize a NGon (split faces to match hanging nodes).')
+
+    # - adaptNGONv3 to NGONv4
+    B = TTK.Button(Frame, text="NGonv3->v4", command=adaptNGon32NGon4)
+    B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Adapt a NGon with CGNSv3 format to NGon with CGNSv4 format.')
+
+    # - adaptNGONv4 to NGONv3
+    B = TTK.Button(Frame, text="NGonv4->v3", command=adaptNGon42NGon3)
+    B.grid(row=2, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Adapt a NGon with CGNSv4 format to NGon with CGNSv3 format.')
 
 #==============================================================================
 def showApp():
