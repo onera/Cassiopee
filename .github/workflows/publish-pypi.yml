@@ -88,12 +88,12 @@ jobs:
               find . -type f -name '*.whl' -exec mv {} \$CASSIOPEE \;
               find /tmp/ -type f -name 'KCore*.whl' -exec mv {} \$CASSIOPEE \;
               cd \$CASSIOPEE
-              mkdir \$CASSIOPEE/\$PKG_NAME
+              mkdir \$CASSIOPEE/wheels/\$PKG_NAME
               for kwheel in \$(find . -name '*.whl'); do
-                  wheel unpack "\$kwheel" --dest \$CASSIOPEE/\$PKG_NAME;
+                  wheel unpack "\$kwheel" --dest \$CASSIOPEE/wheels/\$PKG_NAME;
                   rm "\$kwheel";
               done
-              cd \$CASSIOPEE/\$PKG_NAME
+              cd \$CASSIOPEE/wheels/\$PKG_NAME
               for dir in \$(find . -maxdepth 1 -type d -name \"*-\${PKG_VERSION}\"); do
                   mv \$dir/* .
               done
