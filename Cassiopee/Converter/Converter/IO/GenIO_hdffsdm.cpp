@@ -1249,7 +1249,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   if (nquad > 0) { H5Dclose(vquad); H5Sclose(dquad); }
 
   // Write boundary markers
-  E_Int nvol = ntetra+nhexa+npyra+npenta;
+  //E_Int nvol = ntetra+nhexa+npyra+npenta;
   int32_t* markersTri = new int32_t [ntri];
   int32_t* markersQuad = new int32_t [nquad];
   E_Int off = 0;
