@@ -347,7 +347,7 @@ def convert2BEs():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         dim = Internal.getZoneDim(z)
-        
+
         if dim[0] == 'Structured':
             bes = [C.convertArray2Hexa(z)]
         else:
@@ -357,7 +357,7 @@ def convert2BEs():
         if nob not in toAdd: toAdd[nob] = []
         if len(bes) > 0: CTK.replace(CTK.t, nob, noz, bes[0])
         if len(bes) > 1: toAdd[nob] += bes[1:]
-    
+
     for nob in toAdd:
         for b in toAdd[nob]: CTK.add(CTK.t, nob, -1, b)
 
@@ -393,7 +393,7 @@ def convert2ME():
         Z.append(z)
         dels.append(CTK.t[2][nob][0]+Internal.SEP1+CTK.t[2][nob][2][noz][0])
     nob0 = CTK.Nb[nzs[0]]+1
-    
+
     try:
         a = Z[0]
         if Internal.getZoneDim(a)[4] != sdim: boundary = 1
