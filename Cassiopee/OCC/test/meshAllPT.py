@@ -8,4 +8,3 @@ m = OCC.meshAll(hook, hmin=1., hmax=1.)
 # varying h between hmin and hmax with deflection hausd
 m = OCC.meshAll(hook, hmin=1., hmax=5., hausd=1.)
 C.convertPyTree2File(m, 'out.cgns')
-
