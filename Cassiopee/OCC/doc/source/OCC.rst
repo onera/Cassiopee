@@ -55,11 +55,28 @@ List of functions
     OCC._rotate
     OCC._splitFaces
     OCC._mergeFaces
-
+    OCC._sewing
 
 Contents
 #########
 
+CAD to surface mesh
+--------------------
+
+
+.. py:function:: OCC.PyTree.meshAll(hook, hmin=-1, hmax=-1., hausd=-1.)
+
+    Mesh a CAD with triangles.
+    If hmin=hmax, mesh with a regular h.
+    If hmin, hmax and hausd are set, mesh with isotropic triangles with local size adapted to curvature. 
+    hausd is the max chordal error of mesh to CAD. 
+    This function returns a tree with two bases (EDGES and FACES).
+    EDGES contains discretized edges with a link to the global edge number in CAD.
+    FACES contains discretized faces with a link to the global face number in CAD.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :rtype: mesh
 
 CAD to surface mesh (legacy functions)
 ---------------------------------------
@@ -130,9 +147,9 @@ CAD manipulation
 
     *Example of use:*
 
-    * `Read a CAD <Examples/OCC/readCAD.py>`_:
+    * `Read a CAD <Examples/OCC/readCADPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/readCAD.py
+    .. literalinclude:: ../build/Examples/OCC/readCADPT.py
 
 ------------------------------------------
 
@@ -149,15 +166,15 @@ CAD manipulation
 
     *Example of use:*
 
-    * `Write a CAD <Examples/OCC/writeCAD.py>`_:
+    * `Write a CAD <Examples/OCC/writeCADPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/writeCAD.py
+    .. literalinclude:: ../build/Examples/OCC/writeCADPT.py
 
 ------------------------------------------
 
 .. py:function:: OCC.getNbEdges(hook)
 
-    Return the number of edges in a CAD hook.
+    Return the total number of edges in a CAD hook.
 
     :param hook: CAD hook
     :type hook: CAD hook
@@ -165,9 +182,9 @@ CAD manipulation
 
     *Example of use:*
 
-    * `Get the number of edges <Examples/OCC/getNbEdges.py>`_:
+    * `Get the number of edges <Examples/OCC/getNbEdgesPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/getNbEdges.py
+    .. literalinclude:: ../build/Examples/OCC/getNbEdgesPT.py
 
 ------------------------------------------
 
@@ -181,9 +198,27 @@ CAD manipulation
 
     *Example of use:*
 
-    * `Get the number of faces <Examples/OCC/getNbFaces.py>`_:
+    * `Get the number of faces <Examples/OCC/getNbFacesPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/getNbFaces.py
+    .. literalinclude:: ../build/Examples/OCC/getNbFacePT.py
+
+------------------------------------------
+
+.. py:function:: OCC.getFaceArea(hook, listFaces=[])
+
+    Return the area of given faces.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param listFaces: list of faces number to calculate the area
+    :type listFaces: list of face index (starts 1)
+    :rtype: float
+
+    *Example of use:*
+
+    * `Get face area <Examples/OCC/getFaceAreaPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/getFaceAreaPT.py
 
 ------------------------------------------
 
@@ -200,9 +235,9 @@ CAD manipulation
 
     *Example of use:*
 
-    * `Translate a CAD <Examples/OCC/translate.py>`_:
+    * `Translate a CAD <Examples/OCC/translatePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/translate.py
+    .. literalinclude:: ../build/Examples/OCC/translatePT.py
 
 ------------------------------------------
 
@@ -223,9 +258,9 @@ CAD manipulation
 
     *Example of use:*
 
-    * `Rotate a CAD <Examples/OCC/rotate.py>`_:
+    * `Rotate a CAD <Examples/OCC/rotatePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/rotate.py
+    .. literalinclude:: ../build/Examples/OCC/rotatePT.py
 
 ------------------------------------------
 
@@ -240,9 +275,9 @@ CAD manipulation
 
     *Example of use:*
 
-    * `Split faces <Examples/OCC/splitFaces.py>`_:
+    * `Split faces <Examples/OCC/splitFacesPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/splitFaces.py
+    .. literalinclude:: ../build/Examples/OCC/splitFacesPT.py
 
 ------------------------------------------
 
@@ -257,28 +292,28 @@ CAD manipulation
 
     *Example of use:*
 
-    * `Merge faces <Examples/OCC/mergeFaces.py>`_:
+    * `Merge faces <Examples/OCC/mergeFacesPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/mergeFaces.py
+    .. literalinclude:: ../build/Examples/OCC/mergeFacesPT.py
 
 ------------------------------------------
 
-.. py:function:: OCC.getFaceArea(hook, listFaces=[])
+.. py:function:: OCC._sewing(hook, listFaces=None, tol=1.e-6)
 
-    Return the area of given faces.
+    Sew faces. Supress redundant edges.
 
     :param hook: CAD hook
     :type hook: CAD hook
-    :param listFaces: list of faces number to calculate the area
-    :type listFaces: list of face index (starts 1)
-    :rtype: float
+    :param listFaces: if None, merge all faces else list of faces indices to merge
+    :type listFaces: list of face indices (starts 1)
+    :param tol: tolerance for sewing
+    :type tol: float
 
     *Example of use:*
 
-    * `Get face area <Examples/OCC/getFaceArea.py>`_:
+    * `Sew faces <Examples/OCC/sewingPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/getFaceArea.py
-
+    .. literalinclude:: ../build/Examples/OCC/sewingPT.py
 
     
 

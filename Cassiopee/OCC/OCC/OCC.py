@@ -19,7 +19,7 @@ __all__ = ['convertCAD2Arrays',
            'meshAllFacesTri', 'meshFaceWithMetric', 'identifyTags__',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
-           '_translate', '_rotate',
+           '_translate', '_rotate', '_sewing',
            '_splitFaces', '_mergeFaces']
 
 # algo=0: mailleur open cascade (chordal_error)

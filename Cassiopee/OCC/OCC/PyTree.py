@@ -1504,6 +1504,15 @@ def getComponents(t):
 
     return a
 
+# tell if component (as obtained by getComponent) is watertight
+def isWatertight(component, leaks=[]):
+    import Post.PyTree as P
+    import Transform.PyTree as T
+    leaks += P.exteriorFaces(component)
+    leaks += T.splitConnexity(leaks)
+    if len(leaks) != 0: return False
+    else: return True
+
 # print OCAF document
 def printOCAF(h):
     """Print OCAF document."""
