@@ -31,7 +31,7 @@ List of functions
 .. autosummary::
    :nosignatures:
 
-    OCC.PyTree/meshAll
+    OCC.PyTree.meshAll
 
 **-- CAD to surface mesh (legacy functions)**
 
@@ -200,7 +200,7 @@ CAD manipulation
 
     * `Get the number of faces <Examples/OCC/getNbFacesPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/OCC/getNbFacePT.py
+    .. literalinclude:: ../build/Examples/OCC/getNbFacesPT.py
 
 ------------------------------------------
 
