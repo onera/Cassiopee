@@ -128,7 +128,7 @@ bool Ray::intersect_AABB(const AABB &box) const
         E_Float bmin = boxMin[i];
         E_Float bmax = boxMax[i];
 
-        if (d != 0) {
+        if (D != 0) {
             E_Float t1 = (bmin - O) / D;
             E_Float t2 = (bmax - O) / D;
 
