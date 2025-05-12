@@ -29,6 +29,10 @@ installPath = Dist.getInstallPath(prefix)
 (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
                                                      additionalIncludePaths)
 
+# Test if libnetcdf exists ======================================================
+(netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf(additionalLibPaths,
+                                                                    additionalIncludePaths)
+
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
@@ -42,6 +46,9 @@ libraries = ["kcore"]
 if hdf:
     libraryDirs.append(hdfLibDir)
     includeDirs.append(hdfIncDir)
+if netcdf:
+    libraryDirs.append(netcdfLibDir)
+    includeDirs.append(netcdfIncDir)
 ADDITIONALCPPFLAGS = []
 if mpi and mpi4py:
     libraryDirs.append(mpiLibDir)
@@ -53,6 +60,9 @@ if mpi4py:
 if hdf: 
     libraries.append(hdflibs)
     ADDITIONALCPPFLAGS += ['-D_HDF5']
+if netcdf: 
+    libraries.append(netcdflibs)
+    ADDITIONALCPPFLAGS += ['-D_NETCDF']
 if mpi: libraries += mpiLibs
     
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)

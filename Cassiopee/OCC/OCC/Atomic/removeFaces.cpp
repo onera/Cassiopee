@@ -122,7 +122,7 @@ PyObject* K_OCC::removeFaces(PyObject* self, PyObject* args)
     if (noFace >= 1 && noFace <= nbFaces)
     {
       const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
-      printf("Info: removing face %d\n", noFace);
+      printf("Info: removing face " SF_D_ "\n", noFace);
       reshaper.Remove(F);
     }
     else printf("Warning: removeFaces: invalid face number.\n");

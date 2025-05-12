@@ -8,7 +8,7 @@ local_scheme = "node-and-date"
 
 [project]
 name = "Cassiopee"
-version = "4.0"
+version = "4.1"
 authors = [
   {name="ONERA", email="christophe.benoit@onera.fr"},
 ]
@@ -51,8 +51,20 @@ include = [
     "CPlot" 
 ]
 
+[tool.setuptools.data-files]
+"bin" = [
+    "Converter/kpython",
+    "CPlot/apps/cassiopee",
+    "CPlot/apps/kcgnsview"
+]
+
+#[tool.setuptools.scripts]
+#kpython = "Converter/kpython"
+#cassiopee = "CPlot/apps/cassiopee"
+#kcgnsview = "CPlot/apps/kcgnsview"
+
 [project.urls]
 Homepage = "https://github.com/onera/Cassiopee"
-Documentation = "https://cassiopee.onera.fr/"
+Documentation = "https://onera.github.io/Cassiopee/"
 Repository = "https://github.com/onera/Cassiopee.git"
 Issues = "https://github.com/onera/Cassiopee/issues"

@@ -1,6 +1,6 @@
 """Simple plotter for CFD.
 """
-__version__ = '4.0'
+__version__ = '4.1'
 __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier, Bertrand Michel"
 
 # cplot and cplotOSMesa must not be imported at the same time

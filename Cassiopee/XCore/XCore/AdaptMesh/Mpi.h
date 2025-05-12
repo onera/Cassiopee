@@ -13,11 +13,11 @@
 
 #define MPI_Isend(a, b, c, d, e, f, g)
 #define MPI_Irecv(a, b, c, d, e, f, g)
-#define MPI_Waitall(a) (void)
+//#define MPI_Waitall(a) ((void)0)
 
 #define MPI_Barrier(a)
 #define MPI_Allreduce(a, b, c, d, e, f)
-#define MPI_Waitall(a, b, c) (void)
+#define MPI_Waitall(a, b, c) ((void)0)
 
 #define MPI_Scan(a, b, c, d, e, f)
 

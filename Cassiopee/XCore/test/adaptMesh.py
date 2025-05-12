@@ -28,21 +28,21 @@ t, res = X.loadAndSplitNGon("case.cgns")
 gcells = res[5]
 gfaces = res[6]
 comm = res[1]
-normal2D = np.array([0.0,0.0,1.0]) 
+normal2D = np.array([0.0,0.0,1.0])
 normal2D = None
 
 AM = X.AdaptMesh_Init(t, normal2D, comm, gcells, gfaces)
 
-itermax = 7 # 7 
+itermax = 7 # 7
 
 for iter in range(itermax):
     if Cmpi.rank == 0:
         print("\niter:", iter, flush=True)
-    
+
     C._initVars(t, 'centers:F', Func, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
     f = I.getNodeFromName(t, 'F')[1]
     REF = f.astype(dtype=I.E_NpyInt)
-    
+
     X.AdaptMesh_AssignRefData(AM, REF)
 
     '''
@@ -52,7 +52,7 @@ for iter in range(itermax):
     '''
 
     X.AdaptMesh_LoadBalance(AM)
-    
+
     '''
     t = X.AdaptMesh_ExtractMesh(AM, conformize=1)
     I._adaptNGon42NGon3(t)

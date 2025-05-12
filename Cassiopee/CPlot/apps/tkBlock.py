@@ -328,6 +328,92 @@ def close():
     CPlot.render()
 
 #==============================================================================
+# Converti la section en une liste de zones BE
+#==============================================================================
+def convert2BEs():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+
+    toAdd = {}
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        dim = Internal.getZoneDim(z)
+
+        if dim[0] == 'Structured':
+            bes = [C.convertArray2Hexa(z)]
+        else:
+            if dim[3] == 'NGON':
+                bes = T.breakElements(z)
+            else: bes = C.breakConnectivity(z)
+        if nob not in toAdd: toAdd[nob] = []
+        if len(bes) > 0: CTK.replace(CTK.t, nob, noz, bes[0])
+        if len(bes) > 1: toAdd[nob] += bes[1:]
+
+    for nob in toAdd:
+        for b in toAdd[nob]: CTK.add(CTK.t, nob, -1, b)
+
+    CTK.TXT.insert('START', 'Zones converted to list of BE zones.\n')
+    #C._fillMissingVariables(CTK.t)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+
+#==============================================================================
+# Converti la selection en une zone ME
+#==============================================================================
+def convert2ME():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+
+    Z = []; dels = []; sdim = 1
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Structured': continue
+        if dim[3] == 'NGON': continue
+        sdim = max(dim[4], sdim)
+        Z.append(z)
+        dels.append(CTK.t[2][nob][0]+Internal.SEP1+CTK.t[2][nob][2][noz][0])
+    nob0 = CTK.Nb[nzs[0]]+1
+
+    try:
+        a = Z[0]
+        if Internal.getZoneDim(a)[4] != sdim: boundary = 1
+        else: boundary = 0
+        for z in Z: a = C.mergeConnectivity(a, z, boundary)
+        CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
+        CPlot.delete(dels)
+        CTK.add(CTK.t, nob0, -1, a)
+        CTK.TXT.insert('START', 'Selection merged in ME zone.\n')
+    except:
+        Panels.displayErrors([0,str(e)], header='Error: convert2ME')
+        CTK.TXT.insert('START', 'MergeConnectivity failed.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+
+    #C._fillMissingVariables(CTK.t)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+
+#==============================================================================
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
@@ -387,21 +473,31 @@ def createApp(win):
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Get the exterior faces of selection.\nAdded to tree.')
 
+    # - Convert ME to BE -
+    B = TTK.Button(Frame, text="convert2BEs", command=convert2BEs)
+    B.grid(row=3, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Convert selection to separate Basic Element zones.\nTree is modified.')
+
+    # - Convert a block to node -
+    B = TTK.Button(Frame, text="convert2ME", command=convert2ME)
+    B.grid(row=3, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Convert selection to Multiple Element zone.\nTree is modified.')
+
     # - Close -
     B = TTK.Button(Frame, text="Close", command=close)
-    B.grid(row=3, column=0, sticky=TK.EW)
+    B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Close mesh.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White')
     BB = CTK.infoBulle(parent=B, text='Close accuracy.')
-    B.grid(row=3, column=1, sticky=TK.EW)
+    B.grid(row=4, column=1, sticky=TK.EW)
 
     # - oneovern -
     B = TTK.Button(Frame, text="Oneovern", command=oneovern)
-    B.grid(row=4, column=0, sticky=TK.EW)
+    B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Extract one point over n points.\nTree is modified.')
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White')
     BB = CTK.infoBulle(parent=B, text='Steps in each direction.')
-    B.grid(row=4, column=1, sticky=TK.EW)
+    B.grid(row=5, column=1, sticky=TK.EW)
 
 #==============================================================================
 def showApp():

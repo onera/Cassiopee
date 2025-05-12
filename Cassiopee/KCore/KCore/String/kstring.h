@@ -104,8 +104,9 @@ namespace K_STRING
   /* cpy pour s1 non null terminated
      IN: s1: chaine (non null terminated)
      IN: s: taille de s1
-     OUT: s2: chaine null terminated (deja allouee a une taille >= s+1) */
-  void cpy(char* s2, char* s1, E_Int s);
+     IN: end: si end=true, ajoute null terminated a s2 (doit etre deja alloue a une taille >= s+1)
+     OUT: s2: chaine copiee de s1 */
+  void cpy(char* s2, const char* s1, E_Int s, bool end=true);
 }
 
 #endif

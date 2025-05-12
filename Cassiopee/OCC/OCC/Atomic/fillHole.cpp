@@ -178,7 +178,7 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   // a posteriori continuity improvement - no success for now (unnecessary?)
   if (continuity > 0)
   {
-    printf("Info: fillHole: imposing C%d continuity.\n", continuity);
+    printf("Info: fillHole: imposing C" SF_D_ " continuity.\n", continuity);
     ShapeUpgrade_ShapeDivideContinuity shapeDivider(shc);
     shapeDivider.SetBoundaryCriterion(crit);
     shapeDivider.SetSurfaceCriterion(crit);

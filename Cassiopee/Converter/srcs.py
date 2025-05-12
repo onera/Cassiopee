@@ -3,10 +3,11 @@ EXPRESSION = True
 try:
     import KCore.Dist as Dist
     from KCore.config import *
-    (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
-                                                         additionalIncludePaths)
+    (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths, additionalIncludePaths)
+    (netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf(additionalLibPaths, additionalIncludePaths)
+
 except ModuleNotFoundError:
-    hdf = True
+    hdf = True; netcdf = True
 
 #==============================================================================
 # Fichiers c++
@@ -52,6 +53,8 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/extCenter2Node.cpp',
              'Converter/center2ExtCenter.cpp',
              'Converter/convertFilePyTree.cpp',
+             'Converter/convertFilePyTreeTau.cpp',
+             'Converter/convertFilePyTreeFsdm.cpp',
              'Converter/setPartialFields.cpp',
              'Converter/setPartialFieldsToSum.cpp',
              'Converter/filterPartialFields.cpp',
@@ -127,6 +130,7 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/Adapter/adaptNFace2Index.cpp',
              'Converter/Adapter/adaptNGon42NGon3.cpp',
              'Converter/Adapter/adaptNGon32NGon4.cpp',
+             'Converter/Adapter/adaptShiftedPE2PE.cpp',
              'Converter/Adapter/signNGonFaces.cpp',
              'Converter/Adapter/unsignNGonFaces.cpp',
              'Converter/Adapter/makeParentElements.cpp',
@@ -153,13 +157,19 @@ if EXPRESSION:
                  'Converter/Expression/math_function.cpp',
                  'Converter/Expression/parser.cpp',
                  'Converter/Expression/symbol_table.cpp',
-                 'Converter/Expression/simd_vector_wrapper.cpp'
-                 ]
+                 'Converter/Expression/simd_vector_wrapper.cpp']
 
 if hdf:
-    cpp_srcs += ['Converter/IO/GenIO_hdfcgns.cpp']
+    cpp_srcs += ['Converter/IO/GenIO_hdfcgns.cpp',
+                 'Converter/IO/GenIO_hdffsdm.cpp']
 else:
-    cpp_srcs += ['Converter/IO/GenIO_hdfcgns_stub.cpp']
+    cpp_srcs += ['Converter/IO/GenIO_hdfcgns_stub.cpp',
+                 'Converter/IO/GenIO_hdffsdm_stub.cpp']
+
+if netcdf:
+    cpp_srcs += ['Converter/IO/GenIO_tau.cpp']
+else:
+    cpp_srcs += ['Converter/IO/GenIO_tau_stub.cpp']
 
 # png
 cpp_srcs += ['Converter/IO/GenIO_binpng.cpp']

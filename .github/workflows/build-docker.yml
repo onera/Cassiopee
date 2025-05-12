@@ -1,15 +1,20 @@
 name: docker
 
 on:
+  workflow_dispatch:  # allows manual trigger
   push:
     tags:
       - 'v*'
-#    branches:
-#      - 'main'
+    branches:
+      - 'docker'
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8.12, 3.10.5, 3.12.4]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -25,6 +30,7 @@ jobs:
           
       - name: Print GitHub context
         run: |
+          echo "Building for Python ${{ matrix.python-version }}"
           echo "Ref Name: ${{ github.ref_name }}"
           echo "SHA: ${{ github.sha }}"
           
@@ -33,5 +39,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: cassiopee486/cassiopee:${{ github.ref_name }}
-
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python-version }}
+          tags: cassiopee486/cassiopee:${{ github.ref_name }}-py${{ matrix.python-version }}

@@ -53,8 +53,6 @@ PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
   //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopExp_Explorer expl;
 
-  E_Int nfaces = PyList_Size(listFaces);
-
   //const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
 
   // By wire
@@ -71,7 +69,7 @@ PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
 
   // By face
   E_Float area = 0.;
-  if (nfaces == 0) // all faces of topshape
+  if (listFaces == Py_None) // all faces of topshape
   {
     for (E_Int i=1; i <= surfaces.Extent(); i++)
     {
@@ -82,6 +80,7 @@ PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
   }
   else
   {
+    E_Int nfaces = PyList_Size(listFaces);
     for (E_Int no = 0; no < nfaces; no++)
     {
       PyObject* noFaceO = PyList_GetItem(listFaces, no);

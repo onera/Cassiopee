@@ -2,7 +2,7 @@
 
 Computational Fluid Dynamics pre- and post-processing python modules.
 
-- [Release Notes](https://onera.github.io/Cassiopee/ReleaseNotes.html)
+- [Release Notes](https://onera.github.io/Cassiopee/current/ReleaseNotes.html)
 
 - [Documentation](https://onera.github.io/Cassiopee)
 

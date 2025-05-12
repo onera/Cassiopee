@@ -115,6 +115,27 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
                   CFLAGS=Dist.getCArgs()+ADDITIONALCFLAGS)
 
+# Optimisation en -O0 pour certains fichiers pour l'intersection
+cppOpts = Dist.getCppArgs()
+files = ['XCore/intersectMesh/dcel.cpp', 'XCore/intersectMesh/ray.cpp']
+if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
+    flags = ''
+    for i in cppOpts:
+        if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
+    flags += '-fp-model=strict -O0'
+    for i, v in enumerate(srcs.cpp_srcs):
+       	if v in files:
+           #print('altering', v, flags)
+           srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
+if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler == 'x86_64-w64-mingw32-gcc':
+    flags = ''
+    for i in cppOpts: 
+        if i[0:2] != '-O': flags += i+' '
+    for v, i in enumerate(srcs.cpp_srcs):
+        if v in files:
+            #print('altering', v, flags)
+            srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags+'-O0')
+
 ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
 env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
             

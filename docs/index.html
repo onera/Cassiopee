@@ -40,7 +40,7 @@
 
       <img src="Images/icon1_2_new.png" class="icon">
       <TEXTcenter>
-      <strong>Current release:</strong> <strong>4.0</strong> (07/2024) <a href="ReleaseNotes.html">[Release notes]</a>.<br>
+      <strong>Release:</strong> <strong>4.0</strong> (04/2025) <a href="ReleaseNotes.html">[Release notes]</a>.<br>
       </TEXTcenter>
 
       <!-- <img src="Images/icon6_new.png" class="icon"> -->
@@ -145,11 +145,33 @@
 </table>
 
 <!-- Other versions --> 
-<!-- <p><strong>Older versions of documentation:</strong> -->
-<!--   <a href="3.6/Userguide.html">3.6</a> - -->
-<!--   <a href="3.5/Userguide.html">3.5</a> - -->
-<!--   <a href="3.4/Userguide.html">3.4</a> -->
-<!-- </p> -->
+<p><strong>Older versions of documentation:</strong> 
+  <select id="version-select"></select>
+  <script>
+    fetch('/Cassiopee/versions.json')
+      .then(res => res.json())
+      .then(versions => {
+        const sel = document.getElementById('version-select');
+        const currentVersion = window.location.pathname.split('/')[2];
+  
+        versions.forEach(v => {
+          const version = v.version;  // Extract version name from the object
+          const opt = document.createElement('option');
+          opt.value = `/Cassiopee/${version}/`;  // Absolute path to version
+          opt.textContent = v.title + (v.aliases.length ? ` (${v.aliases.join(', ')})` : '') || version;  // Use title and append aliases in parentheses if available
+          
+          if (version === currentVersion) opt.selected = true;
+          
+          sel.appendChild(opt);
+        });
+  
+        sel.onchange = () => window.location.href = sel.value;
+      })
+      .catch(error => {
+        console.error('Error fetching versions:', error);
+      });
+  </script>
+</p>
 
 <footer>
   <a href="http://www.onera.fr"><img src="Images/logo-onera2.png"></a>

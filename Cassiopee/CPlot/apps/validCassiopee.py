@@ -601,6 +601,7 @@ def runSingleUnitaryTest(no, module, test, update=False):
     testr = os.path.splitext(test)
     modulesDir = MODULESDIR[BASE4COMPARE][module]
     path = os.path.join(modulesDir, module, 'test')
+    testName = module+'/'+test
 
     m1 = expTest1.search(test) # seq (True) ou distribue (False)
 
@@ -684,11 +685,11 @@ def runSingleUnitaryTest(no, module, test, update=False):
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
 
-    if update or (module+'/'+test not in TESTMETA):  # Update test metadata
+    if update or (testName not in TESTMETA) or (not TESTMETA[testName]['ref']):  # Update test metadata
         updateTestMetadata(module, test, CPUtime)
 
     # Recupere le tag local
-    tag = TESTMETA[module+'/'+test]['tag']
+    tag = TESTMETA[testName]['tag']
 
     # update status
     if success == 0: status = 'OK'
@@ -716,6 +717,7 @@ def runSingleCFDTest(no, module, test, update=False):
     global TESTS
     print('Info: Running CFD test %s.'%test)
     path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH, test)
+    testName = module+'/'+test
 
     m1 = None # si False=seq
     # force mpi test pour certains cas
@@ -787,11 +789,11 @@ def runSingleCFDTest(no, module, test, update=False):
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
 
-    if update or (module+'/'+test not in TESTMETA):  # Update test metadata
+    if update or (testName not in TESTMETA) or (not TESTMETA[testName]['ref']):  # Update test metadata
         updateTestMetadata(module, test, CPUtime)
 
     # Recupere le tag local
-    tag = TESTMETA[module+'/'+test]['tag']
+    tag = TESTMETA[testName]['tag']
 
     # update status
     if success == 0: status = 'OK'
@@ -1553,11 +1555,12 @@ def tagSelection(event=None):
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
+        testName = module+'/'+test
         tag = splits[6].strip()
         if not tag: tag = '*'
         else: tag = tagSymbols[(tagSymbols.index(tag)+1)%ntags]
-        if module+'/'+test in TESTMETA:
-            TESTMETA[module+'/'+test]['tag'] = tag
+        if testName in TESTMETA:
+            TESTMETA[testName]['tag'] = tag
         splits[6] = ' {} '.format(tag)
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
@@ -1580,8 +1583,9 @@ def untagSelection(event=None):
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
-        if module+'/'+test in TESTMETA:
-            TESTMETA[module+'/'+test]['tag'] = ' '
+        testName = module+'/'+test
+        if testName in TESTMETA:
+            TESTMETA[testName]['tag'] = ' '
         splits[6] = ' '*3
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')

@@ -16,13 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// conversion file / pyTrees
+// conversion file CGNS / pyTrees CGNS
 
 #ifdef _MPI
 #if defined(_WIN64)
 #define __int64 long long
 #endif
-
 #endif
 #include "converter.h"
 #include "kcore.h"
@@ -179,10 +178,9 @@ PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
 {
-  /* ***************************************************** */
-  char*     fileName;
-  char*     format;
-  int       skeleton;
+  char* fileName;
+  char* format;
+  int skeleton;
   PyObject* mpi4pyCom;
   PyObject* Filter;
   PyObject* t;

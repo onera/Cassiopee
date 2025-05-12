@@ -572,14 +572,15 @@ Set / Get functions
     
     .. A2.O0.D0
     
-    Return the active point index. For structured grids, return 
-    [ind, indc, i,j,k], where ind is the global index of the nearest node
+    Return the active point index. 
+    For structured grids, return [ind, indc, i,j,k], where ind is the global index of the nearest node
     to active point, indc is the global index of the nearest center to
-    active point and i,j,k are the indices of nearest node. For
-    unstructured grids, return [ind, indc, no, 0, 0],
+    active point and i,j,k are the indices of nearest node. 
+    For unstructured grids, return [ind, indc, no, 0, 0],
     where ind is the global index of nearest node, indc 
     is the nearest center to the clicked point and no is the number of ind
     in the center2node connectivity of indc.
+    If there is no active point, return [].
 
     :return: active point index
     :rtype: list of 4 ints

@@ -60,7 +60,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="KCore",
-    version="4.0",
+    version="4.1",
     description="Core for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},
