@@ -63,7 +63,7 @@ void IMesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "POINTS\n");
-    fprintf(fh, "%zu\n", new_pids.size());
+    fprintf(fh, "%lu\n", new_pids.size());
 
     std::vector<E_Float> nX(NP), nY(NP), nZ(NP);
     for (const auto &pids : new_pids) {
@@ -79,7 +79,7 @@ void IMesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
     }
 
     fprintf(fh, "INDPG\n");
-    fprintf(fh, "%zu\n", new_eids.size()+1);
+    fprintf(fh, "%lu\n", new_eids.size()+1);
     E_Int sizeNGon = -2;
     for (size_t i = 0; i < new_eids.size() + 1; i++) {
         sizeNGon += 2;

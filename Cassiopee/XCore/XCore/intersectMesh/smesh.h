@@ -34,12 +34,7 @@
 
 struct IMesh;
 struct Ray;
-
-struct HitData {
-    std::set<PointLoc> locs;
-    std::set<E_Int> tested;
-    std::set<E_Int> fids;
-};
+struct HitData;
 
 struct o_edge {
     E_Int p, q;
@@ -155,6 +150,9 @@ struct Smesh {
     void make_BVH(const std::set<E_Int> &fids);
     void update_node_bounds(E_Int node_idx);
     void BVH_subdivide(E_Int node_idx);
+    void ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
+        E_Float dx, E_Float dy, E_Float dz, E_Int node_idx,
+        std::vector<PointLoc> &plocs) const;
 
     // Adaptation
 

@@ -22,7 +22,6 @@
 #include "mesh.h"
 #include "ray.h"
 #include "io.h"
-#include "smesh.h"
 
 static
 void construct_faces(std::vector<std::vector<E_Int>> &faces,
@@ -56,6 +55,8 @@ void construct_faces(std::vector<std::vector<E_Int>> &faces,
     NF++;
 }
 
+#include <chrono>
+
 PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
 {
     E_Int ni = sarray.ni;
@@ -72,12 +73,17 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
 
     // Indices of points to be projected
     std::vector<E_Int> proj_points;
-    std::vector<E_Int> inside;
+
+    //using std::chrono::high_resolution_clock;
+    //using std::chrono::duration_cast;
+    //using std::chrono::milliseconds;
+    //auto t1 = high_resolution_clock::now();
 
     for (E_Int j = 0; j < nj; j++) {
         for (E_Int i = 0; i < ni; i++) {
 
             E_Int base = i + ni*j;
+            //bool was_inside = true;
 
             for (E_Int k = nk-1; k >= 0; k--) {
 
@@ -88,27 +94,37 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
                 E_Float pz = Zs[idx];
 
                 if (!Mf.is_point_inside(px, py, pz)) {
-                    assert(k >= 1);
+                //if (M->is_point_inside(px, py, pz)) {
                     kmax[base] = k-1;
-                    //kmax[base] = k;
 
                     // Cache the point to be projected
                     E_Int proj_id = base + nij*kmax[base];
                     proj_points.push_back(proj_id);
-                    inside.push_back(base + nij*k);
 
+                    //was_outside = false;
                     break;
                 }
             }
+            
+            /*
+            if (was_outside) {
+                // i-j line completely outside of M
+                // Projection points is the last point
+                kmax[base] = nk-2;
+                E_Int proj_id = base + nij*kmax[base];
+                proj_points.push_back(proj_id);
+            }
+            */
         }
     }
 
-
+    //auto t2 = high_resolution_clock::now();
+    //auto ms_int = duration_cast<milliseconds>(t2-t1);
+    //std::cout << ms_int.count() << "ms\n";
 
     assert(proj_points.size() == (size_t)nij);
 
     //point_write("proj_points.im", Xs, Ys, Zs, proj_points);
-    //point_write("inside.im", Xs, Ys, Zs, inside);
     //printf("points written!\n");
     //fflush(stdout);
 
@@ -135,22 +151,20 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
 
         dx /= NORM, dy /= NORM, dz /= NORM;
 
-        Ray ray(px, py, pz, dx, dy, dz, Ray::Policy::FORWARD);
-        HitData hit_data;
-        Mf.intersect_ray(ray, 0, hit_data);
+        std::vector<PointLoc> mlocs;
+        Mf.ray_intersect_BVH(px, py, pz, dx, dy, dz, Mf.root_node_idx, mlocs);
 
-        if (hit_data.locs.empty()) {
-            point_write("lost.im", px, py, pz);
-            fprintf(stderr, "WARNING: Failed to project point %d!\n", p);
-            assert(0);
-        }
+        //if (mlocs.empty()) {
+        //    point_write("lost.im", px, py, pz);
+        //}
 
+        assert(mlocs.size() > 0);
         PointLoc ploc;
         E_Float min_abs_t = EFLOATMAX;
-        for (const auto &loc : hit_data.locs) {
-            if (fabs(loc.t) < min_abs_t) {
-                min_abs_t = fabs(loc.t);
-                ploc = loc;
+        for (const auto &mloc : mlocs) {
+            if (fabs(mloc.t) < min_abs_t) {
+                min_abs_t = fabs(mloc.t);
+                ploc = mloc;
             }
         }
 
@@ -393,6 +407,160 @@ PyObject *handle_slave(const IMesh *M, const Smesh &Mf, Karray& sarray)
     return out;
 }
 
+E_Int get_kmax(IMesh *M, Karray& sarray)
+{
+    E_Int ni = sarray.ni;
+    E_Int nj = sarray.nj;
+    E_Int nk = sarray.nk;
+    E_Int nij = ni * nj;
+
+    E_Float *Xs = sarray.x;
+    E_Float *Ys = sarray.y;
+    E_Float *Zs = sarray.z;
+
+    E_Int kmax = -1;
+
+    for (E_Int k = 0; k < nk && kmax == -1; k++) {
+        for (E_Int j = 0; j < nj && kmax == -1; j++) {
+            for (E_Int i = 0; i < ni; i++) {
+                E_Int idx = i + ni*j + nij*k;
+
+                E_Float px = Xs[idx];
+                E_Float py = Ys[idx];
+                E_Float pz = Zs[idx];
+
+                if (M->is_point_inside(px, py, pz)) {
+                    kmax = k-1;
+                    return kmax;
+                }
+            }
+        }
+    }
+
+    assert(0);
+    return kmax;
+}
+
+PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
+{
+    E_Int ni = sarray.ni;
+    E_Int nj = sarray.nj;
+    E_Int nk = sarray.nk;
+    E_Int nij = ni * nj;
+
+    E_Float *Xs = sarray.x;
+    E_Float *Ys = sarray.y;
+    E_Float *Zs = sarray.z;
+
+    // Indices of points to be projected
+    std::vector<E_Int> proj_points;
+
+    for (E_Int j = 0; j < nj; j++) {
+        for (E_Int i = 0; i < ni; i++) {
+
+            E_Int idx = i + ni*j + nij*kmax;
+
+            proj_points.push_back(idx);
+        }
+    }
+
+    //point_write("proj_points", Xs, Ys, Zs, proj_points);
+
+    //E_Int np = ni*nj*nk;
+
+    // Project points onto marray surface
+    std::unordered_map<E_Int, TriangleIntersection> point_hit_table;
+
+    for (E_Int i = 0; i < nij; i++) {
+        E_Int p = proj_points[i];
+        E_Int q = p + nij;
+
+        E_Float px = Xs[p];
+        E_Float py = Ys[p];
+        E_Float pz = Zs[p];
+
+        E_Float dx = Xs[q] - Xs[p];
+        E_Float dy = Ys[q] - Ys[p];
+        E_Float dz = Zs[q] - Zs[p];
+
+        E_Float NORM = sqrt(dx*dx + dy*dy + dz*dz);
+
+        dx /= NORM, dy /= NORM, dz /= NORM;
+
+        TriangleIntersection TI;
+
+        E_Int hit = M->project_point(px, py, pz, dx, dy, dz, TI, i);
+
+        assert(hit);
+
+        TI.pid = p;
+
+        point_hit_table[p] = TI;
+    }
+
+    // Make out cartesian mesh
+    PyObject *tpl;
+    nk = kmax + 2;
+    tpl = K_ARRAY::buildArray3(3, "x,y,z", ni, nj, nk, 3);
+
+    K_FLD::FldArrayF *f;
+    K_FLD::FldArrayI *c;
+    char *varString, *eltType;
+    K_ARRAY::getFromArray3(tpl, varString, f, ni, nj, nk, c, eltType);
+
+    E_Float *xt = f->begin(1);
+    E_Float *yt = f->begin(2);
+    E_Float *zt = f->begin(3);
+
+    // Copy all the points up to kmax
+    for (E_Int k = 0; k < kmax+1; k++) {
+        for (E_Int j = 0; j < nj; j++) {
+            for (E_Int i = 0; i < ni; i++) {
+                E_Int ind = i + j*ni + k*nij;
+                xt[ind] = Xs[ind];
+                yt[ind] = Ys[ind];
+                zt[ind] = Zs[ind];
+            }
+        }
+    }
+
+    // Copy the projected points
+    E_Int ind = nij*(kmax+1);
+    for (E_Int i = 0; i < nij; i++) {
+        E_Int p = proj_points[i];
+        auto EH = point_hit_table[p];
+        E_Float x = EH.x;
+        E_Float y = EH.y;
+        E_Float z = EH.z;
+        xt[ind] = x;
+        yt[ind] = y;
+        zt[ind] = z;
+        ind++;
+    }
+
+    // Tag the projected points
+    npy_intp dims[2];
+    dims[1] = 1;
+    dims[0] = (npy_intp)ni*nj*nk;
+    PyArrayObject *tag = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    E_Float *ptag = (E_Float *)PyArray_DATA(tag);
+    for (E_Int i = 0; i < nij*(kmax+1); i++) ptag[i] = 0.0;
+    for (E_Int i = nij*(kmax+1); i < nij*nk; i++) ptag[i] = 1.0;
+
+    PyObject *out = PyList_New(0);
+    PyList_Append(out, tpl);
+    PyList_Append(out, (PyObject *)tag);
+    RELEASESHAREDS(tpl, f);
+    Py_DECREF(tpl);
+    Py_DECREF(tag);
+
+    return out;
+}
+
+#include "smesh.h"
+#include <random>
+//#include "precise.h"
+
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
     PyObject *MASTER, *SLAVES;
@@ -407,7 +575,40 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    /*
+    E_Float a = 2.654351;
+    E_Float b = 8.321359;
+    E_Float c = 11.63157;
+    E_Float d = 29.68484;
+    auto E = difference_of_products(a, b, c, d);
+    E.print();
+    printf("%d\n", E.sign());
+    exit(0);
+    */
+
     IMesh *M = (IMesh *)PyCapsule_GetPointer(MASTER, "IntersectMesh");
+
+    /*
+    E_Float lo = -1.0;
+    E_Float up = 1.0;
+    std::uniform_real_distribution<E_Float> unif(lo, up);
+    std::default_random_engine re;
+
+    E_Float px = 0, py = 0, pz = 0;
+    for (int i = 0; i < 1; i++) {
+        //E_Float dx = unif(re);
+        //E_Float dy = unif(re);
+        //E_Float dz = unif(re);
+        //E_Float n = sqrt(dx*dx + dy*dy + dz*dz);
+        //dx /= n; dy /= n; dz /= n;
+        E_Float dx = 1.0, dy = 0.0, dz = 0.0;
+        Ray ray(px, py, pz, dx, dy, dz);
+        bool inside = Mf.is_point_inside(ray);
+        assert(inside);
+    }
+
+    return Py_None;
+    */
 
     E_Int nslaves = PyList_Size(SLAVES);
     E_Int i, ret;
@@ -432,10 +633,23 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    /*
+    E_Int kmax = 10000000;
+
+    for (E_Int i = 0; i < nslaves; i++) {
+        E_Int k = get_kmax(M, sarrays[i]);
+        printf("k: %d\n", k);
+        if (k < kmax) kmax = k;
+    }
+
+    printf("kmax: %d\n", kmax);
+    */
+
     PyObject *slaves_out = PyList_New(0);
 
     for (E_Int i = 0; i < nslaves; i++) {
         printf("Projecting %d / %d\n", i+1, nslaves);
+        //PyObject *st = handle_slave2(M, sarrays[i], kmax);
         PyObject *st = handle_slave(M, M->Mf, sarrays[i]);
         PyList_Append(slaves_out, st);
         Py_DECREF(st);

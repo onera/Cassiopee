@@ -21,6 +21,12 @@
 #include "io.h"
 #include "ray.h"
 
+struct HitData {
+    std::set<E_Int> tested;
+    std::set<E_Int> fids;
+    std::set<Point3D> hits;
+};
+
 void Smesh::intersect_ray(const Ray &ray, E_Int node_idx, HitData &hit_data) const
 {
     const BVH_node &node = bvh_nodes[node_idx];
@@ -33,86 +39,33 @@ void Smesh::intersect_ray(const Ray &ray, E_Int node_idx, HitData &hit_data) con
     for (E_Int i = 0; i < node.tri_count; i++) {
         E_Int tri = tri_idx[node.first_tri_idx+i];
         hit_data.tested.insert(tri);
-        const auto &pn = Fc[tri];
-        const E_Float *fc = &fcenters[3*tri];
-
-        for (size_t j = 0; j < pn.size(); j++) {
-            E_Int p = pn[j];
-            E_Int q = pn[(j+1)%pn.size()];
-            E_Float u, v, w, t, x, y, z;
-            t = EFLOATMAX;
-
-            bool hit = ray.intersect_triangle({X[p], Y[p], Z[p]},
-                {X[q], Y[q], Z[q]}, {fc[0], fc[1], fc[2]},
-                u, v, w, t, x, y, z);
-
-            if (hit) {
-                hit_data.fids.insert(tri);
-                PointLoc ploc;
-                ploc.fid = tri;
-                ploc.bcrd[0] = u;
-                ploc.bcrd[1] = v;
-                ploc.bcrd[2] = w;
-                ploc.t = t;
-                ploc.x = x;
-                ploc.y = y;
-                ploc.z = z;
-                // on p
-                if      (Sign(1-u, NEAR_VERTEX_TOL) == 0) {
-                    ploc.v_idx = j;
-                    ploc.bcrd[0] = 1, ploc.bcrd[1] = 0, ploc.bcrd[2] = 0;
-                    ploc.x = X[p];
-                    ploc.y = Y[p];
-                    ploc.z = Z[p];
-                }
-                // on q
-                else if (Sign(1-v, NEAR_VERTEX_TOL) == 0) {
-                    ploc.v_idx = (j+1)%pn.size();
-                    ploc.bcrd[0] = 0, ploc.bcrd[1] = 1, ploc.bcrd[2] = 0;
-                    ploc.x = X[q];
-                    ploc.y = Y[q];
-                    ploc.z = Z[q];
-                }
-                // on edge {p, q}
-                else if (Sign(w, NEAR_EDGE_TOL) == 0) {
-                    ploc.e_idx = j;
-                    ploc.bcrd[0] = u, ploc.bcrd[1] = 1-u, ploc.bcrd[2] = 0;
-                    ploc.x = u*X[p] + (1-u)*X[q];
-                    ploc.y = u*Y[p] + (1-u)*Y[q];
-                    ploc.z = u*Z[p] + (1-u)*Z[q];
-                }
-                hit_data.locs.insert(ploc);
-                break;
-            }
+        const auto &pn = F[tri];
+        //write_face("tri.im", tri);
+        E_Float u, v, w, t, x, y, z;
+        u = v = w = 2.0;
+        bool hit = ray.intersect_triangle({X[pn[0]], Y[pn[0]], Z[pn[0]]},
+            {X[pn[1]], Y[pn[1]], Z[pn[1]]}, {X[pn[2]], Y[pn[2]], Z[pn[2]]},
+            u, v, w, t, x, y, z);
+        
+        if (hit) {
+            hit_data.fids.insert(tri);
+            hit_data.hits.insert({x, y, z});
         }
     }
 }
 
-#include <ctime>
-#include <random>
-
 bool Smesh::is_point_inside(E_Float px, E_Float py, E_Float pz) const
 {
-    E_Float dx = (E_Float) rand() / RAND_MAX;
-    E_Float dy = (E_Float) rand() / RAND_MAX;
-    E_Float dz = (E_Float) rand() / RAND_MAX; 
-    Ray ray(px, py, pz, dx, dy, dz, Ray::Policy::FORWARD);
+    Ray ray(px, py, pz, 1, 0, 0);
     return is_point_inside(ray);
 }
 
 bool Smesh::is_point_inside(const Ray &ray) const
 {
+    //if (!box.is_point_inside(ray.o)) return false;
     HitData hit_data;
     intersect_ray(ray, 0, hit_data);
-    /*point_write("o.im", ray.o[0], ray.o[1], ray.o[2]);
-    int i = 0;
-    for (const auto &loc : hit_data.locs) {
-        char name[64] = {0};
-        sprintf(name, "hit%d.im", i);
-        point_write(name, loc.x, loc.y, loc.z);
-        i++;
-    }*/
-    return hit_data.locs.size() % 2 == 1;
+    return hit_data.hits.size() % 2 == 1;
 }
 
 void Smesh::replace_by_projections(const std::vector<E_Int> &pids,

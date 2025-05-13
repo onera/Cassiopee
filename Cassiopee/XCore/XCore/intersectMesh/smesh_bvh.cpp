@@ -173,7 +173,6 @@ bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
     return true;
 }
 
-/*
 void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
     E_Float dx, E_Float dy, E_Float dz, E_Int node_idx,
     std::vector<PointLoc> &plocs) const
@@ -248,5 +247,4 @@ void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
     ray_intersect_BVH(ox, oy, oz, dx, dy, dz, node.left_node, plocs);
     ray_intersect_BVH(ox, oy, oz, dx, dy, dz, node.left_node+1, plocs);
 }
-*/
 

@@ -25,6 +25,98 @@
 #include "io.h"
 #include "primitives.h"
 
+E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
+{
+    size_t refM = 0, refS = 0;
+    E_Int iter = 0;
+
+    S.init_adaptation_data();
+    M.init_adaptation_data();
+
+    E_Int S_np_before = S.np;
+
+    do {
+        iter++;
+
+        // Refine M wrt S
+
+        S.make_point_faces();
+        M.make_bbox();
+        M.hash_skin(); // TODO(Imad): hash_patch!
+    
+        refM = M.refine(S);
+        printf("Refined mf: %zu\n", refM);
+
+        // Refine S wrt M
+        /*if (iter == 1 || (iter > 1 && refM > 0)) {
+            M.make_point_faces();
+            S.make_bbox();
+            S.hash_skin(); // TODO(Imad): hash_patch!
+
+            refS = S.refine_slave(M);
+            printf("Refined sf: %zu\n", refS);
+        }*/
+        
+    } while (refS > 0);
+
+    S.make_point_faces();
+
+    // Project all the new points from S onto M faces
+    // TODO(Imad): shouldn't this step be done after conformizing?
+
+    for (E_Int spid = S_np_before; spid < S.np; spid++) {
+        const auto &pf = S.P2F[spid];
+        std::vector<E_Int> stids;
+        for (auto stid : pf) {
+            if (S.F[stid].size() == 3) stids.push_back(stid);
+        }
+
+        // Compute the normal at spid := sum of the normals of stids
+        E_Float N[3] = {0};
+        for (auto stid : stids) {
+            const auto &pn = S.F[stid];
+            E_Int a = pn[0], b = pn[1], c = pn[2];
+            E_Float v0[3] = {S.X[b]-S.X[a], S.Y[b]-S.Y[a], S.Z[b]-S.Z[a]};
+            E_Float v1[3] = {S.X[c]-S.X[a], S.Y[c]-S.Y[a], S.Z[c]-S.Z[a]};
+            E_Float fN[3];
+            K_MATH::cross(v0, v1, fN);
+            N[0] += fN[0];
+            N[1] += fN[1];
+            N[2] += fN[2];
+        }
+
+        E_Float NORM = K_MATH::norm(N, 3);
+        assert(Sign(NORM) != 0);
+        N[0] /= NORM;
+        N[1] /= NORM;
+        N[2] /= NORM;
+
+        TriangleIntersection TI;
+        E_Int hit = 0;
+
+        if (M.is_point_inside(S.X[spid], S.Y[spid], S.Z[spid])) {
+            hit = M.project_point(S.X[spid], S.Y[spid], S.Z[spid],
+                -N[0], -N[1], -N[2], TI, spid - S_np_before);
+        } else {
+            hit = M.project_point(S.X[spid], S.Y[spid], S.Z[spid],
+                N[0], N[1], N[2], TI, spid - S_np_before);
+        }
+
+        assert(hit);
+        assert(M.patch.find(TI.face) != M.patch.end());
+
+        printf("Spid: %f %f %f -> Proj: %f %f %f (t = %f)\n",
+            S.X[spid], S.Y[spid], S.Z[spid], TI.x, TI.y, TI.z, TI.t);
+        
+        // Replace the point by its projection
+        S.X[spid] = TI.x;
+        S.Y[spid] = TI.y;
+        S.Z[spid] = TI.z;
+    }
+
+    return 0;
+}
+
 struct Fidn {
     E_Int fid;
     E_Float N[3];
