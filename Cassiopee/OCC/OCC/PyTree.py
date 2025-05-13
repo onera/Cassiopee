@@ -1508,8 +1508,10 @@ def getComponents(t):
 def isWatertight(component, leaks=[]):
     import Post.PyTree as P
     import Transform.PyTree as T
-    leaks += P.exteriorFaces(component)
-    leaks += T.splitConnexity(leaks)
+    try:
+        leaks += P.exteriorFaces(component)
+        leaks += T.splitConnexity(leaks)
+    except: pass
     if len(leaks) != 0: return False
     else: return True
 
