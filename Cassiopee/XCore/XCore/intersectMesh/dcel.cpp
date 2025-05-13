@@ -79,7 +79,7 @@ void Dcel::get_face_vertices(const Face *f, std::vector<Vertex *> &ret)
     }
 }
 
-struct Hit_Data {
+struct HitData {
     E_Float t, s;
 };
 
@@ -210,7 +210,7 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
 
             bool hit = false;
 
-            std::vector<Hit_Data> Hit_Data;
+            std::vector<HitData> hitData;
 
             for (size_t i = 0; i < pn.size(); i++) {
                 E_Int p = pn[i];
@@ -231,7 +231,7 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
                     t, s
                 );
 
-                Hit_Data.push_back({t, s});
+                hitData.push_back({t, s});
 
                 if (hit) {
                     if (s > RAY_EDGE_TOL && s < 1 - RAY_EDGE_TOL) {
@@ -315,7 +315,7 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
             }
             if (!hit) {
                 fprintf(stderr, "Failed to hit. Hit data:\n");
-                for (const auto &hd : Hit_Data) {
+                for (const auto &hd : hitData) {
                     printf("t = %.12e | s = %.12e\n", hd.t, hd.s);
                 }
                 fflush(stdout);
