@@ -174,7 +174,7 @@ E_Int createGridElements(hid_t id, E_Int eltType, char* name, E_Int istart, PyOb
 }
 
 /* ------------------------------------------------------------------------- */
-// Create GridElement node for polyedral (create NGON and NFACES)
+// Create GridElement node for polyedral connectivity (create NGON and NFACES)
 /* ------------------------------------------------------------------------- */
 E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex, 
   PyObject*& NGON, PyObject*& NFACE, E_Int& nfaces, E_Int& ncells)
@@ -212,7 +212,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   int32_t* c2n = new int32_t [size];
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, c2n);
 
-  // read cell2facecount (nbre de face par cellule)  
+  // read cell2facecount (nbre de faces par cellule)  
   did = H5Dopen2(id, "Cell2FaceCounts", H5P_DEFAULT);
   sid = H5Dget_space(did);
   ndims = H5Sget_simple_extent_ndims(sid);
@@ -225,6 +225,11 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   mid = H5S_ALL;
   int32_t* c2fc = new int32_t [size];
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, c2fc);
+
+  // Check total number of faces and number of faces per element * number of elts
+  E_Int size1 = 0;
+  for (E_Int i = 0; i < size; i++) size1 += c2fc[i];
+  printf("total number of faces by elements: %d\n", size1);
 
   // read face2nodecounts (face -> node cell indirect)  
   did = H5Dopen2(id, "Face2NodeCounts", H5P_DEFAULT);
@@ -239,8 +244,9 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   mid = H5S_ALL;
   int32_t* f2nc = new int32_t [nfaces];
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, f2nc);
+  printf("number of faces (duplicated): %d\n", nfaces);
 
-  // read face2node (face -> node cell indirect)  
+  // read face2node (face -> node cell indirect from elt)
   did = H5Dopen2(id, "Face2NodeList", H5P_DEFAULT);
   sid = H5Dget_space(did);
   ndims = H5Sget_simple_extent_ndims(sid);
@@ -252,7 +258,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   mid = H5S_ALL;
   int32_t* f2n = new int32_t [size];
-  H5Dread(did, yid, mid, sid, H5P_DEFAULT, f2n);
+  H5Dread(did, yid, mid, sid, H5P_DEFAULT, f2n);  
 
   // Create NGON
   npy_dim_vals[0] = 2;
@@ -276,6 +282,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   int32_t* pp2 = (int32_t*)PyArray_DATA(r2);
 #endif
   pp2[0] = istart; pp2[1] = istart+nfaces-1;
+  printf("istart=%d %d\n", istart, nfaces);
   PyObject* children2 = PyList_New(0);
   PyObject* er = Py_BuildValue("[sOOs]", "ElementRange", r2, children2, "IndexRange_t");
   PyList_Append(children1, er); Py_INCREF(er);
@@ -291,9 +298,9 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
 
   E_Int cell = 0; // current cell
   E_Int lcount = 0; // local cell count
-  E_Int ps = 0; // pointer faces
+  E_Int ps = 0; // pointer faces pp3
   E_Int pcell = 0; // pointer cells
-  for (E_Int i = 0; i < nfaces; i++) // pour chaque face
+  for (E_Int i = 0; i < nfaces; i++) // pour chaque face dup
   {
     for (E_Int j = 0; j < f2nc[i]; j++) // pour tous les noeuds de la face
     {
@@ -339,7 +346,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyArrayObject* r8 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);
   int32_t* pp8 = (int32_t*)PyArray_DATA(r8);
 #endif
-  pp8[0] = istart+nfaces; pp2[1] = istart+nfaces+ncells-1;
+  pp8[0] = istart+nfaces; pp8[1] = istart+nfaces+ncells-1;
   PyObject* children8 = PyList_New(0);
   PyObject* er2 = Py_BuildValue("[sOOs]", "ElementRange", r8, children8, "IndexRange_t");
   PyList_Append(children5, er2); Py_INCREF(er2);
@@ -362,9 +369,10 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyObject* children7 = PyList_New(0);
   PyObject* ec2 = Py_BuildValue("[sOOs]", "ElementConnectivity", r7, children7, "DataArray_t");
   PyList_Append(children5, ec2); Py_INCREF(ec2);
+  E_Int c = 0;
   for (E_Int i = 0; i < ncells; i++)
     for (E_Int j = 0; j < c2fc[i]; j++)
-      { pp7[i] = 1; }
+      { pp7[c] = c+1; c++; }
 
   delete [] c2nc; delete [] c2n; delete [] c2fc; 
   delete [] f2nc; delete [] f2n; 
@@ -579,8 +587,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   hid_t mid = H5S_ALL;
   double* r = new double [size];
   H5Dread(did, yid, mid, sid, H5P_DEFAULT, r);
-  H5Dclose(did);
-  H5Gclose(node);
+  H5Dclose(did); H5Gclose(node);
 
   // CoordinateX
   npy_dim_vals[0] = nvertex;
@@ -682,7 +689,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         PyObject* NGON; PyObject* NFACE; E_Int nfaces;
         createGridElementsNGon(id, istart, nvertex, NGON, NFACE, nfaces, ncells);
         PyList_Append(children4, NGON); Py_INCREF(NGON);
-        //PyList_Append(children4, NFACE); Py_INCREF(NFACE);
+        PyList_Append(children4, NFACE); Py_INCREF(NFACE);
         istart += ncells+nfaces;
         npoly3d = ncells;
         n3dcells += ncells;
@@ -1012,7 +1019,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     }
   }
 
-  // Create groups
+  // Create connectivities
   hid_t vhexa=0, vtetra=0, vpenta=0, vpyra=0, vtri=0, vquad=0; // connect dataset
   hid_t dhexa=0, dtetra=0, dpenta=0, dpyra=0, dtri=0, dquad=0; // connect dims
   hid_t mtri=0, mquad=0; // markers dataset
@@ -1117,6 +1124,8 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   E_Int ptri=nhexa+ntetra+npenta+npyra+1, pquad=nhexa+ntetra+npenta+npyra+ntri+1;
   hsize_t start[2]; hsize_t scount[2];
   E_Int pos = 1; E_Int possurf = -1;
+  E_Int* ngon = NULL; E_Int* ngonOffset = NULL; E_Int npolyFaces = -1;
+  E_Int* nface = NULL; E_Int* nfaceOffset = NULL; E_Int npolyCells = -1;
 
   for (size_t i = 0; i < connects.size(); i++)
   {
@@ -1141,7 +1150,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     { size *= 3; }
     else if (eltType == 7) // QUADS
     { size *= 4; }
-
+    else if (eltType == 22) // NGON
+    { size = 0; }
+    else if (eltType == 23) // NFACE
+    { size = 0; }
+    
     int32_t* ecv2 = new int32_t [size];
     for (E_Int j = 0; j < size; j++) ecv2[j] = ecv[j]-1;
 
@@ -1238,6 +1251,28 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       pquad += size0;
       pos += size0;
     }
+    else if (eltType == 22) // NGON
+    {
+      ngon = ecv;
+      npolyFaces = size0;
+      PyObject* off = K_PYTREE::getNodeFromName1(connects[i], "ElementStartOffset");
+      if (off != NULL)
+      {
+        E_Int* offv = K_PYTREE::getValueAI(off, hook);
+        ngonOffset = offv;
+      }
+    }
+    else if (eltType == 23)
+    {
+      npolyCells = size0;
+      nface = ecv;
+      PyObject* off = K_PYTREE::getNodeFromName1(connects[i], "ElementStartOffset"); // must be v4
+      if (off != NULL)
+      {
+        E_Int* offv = K_PYTREE::getValueAI(off, hook);
+        nfaceOffset = offv;
+      }
+    }
     delete [] ecv2;
   }
 
@@ -1248,91 +1283,258 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   if (ntri > 0) { H5Dclose(vtri); H5Sclose(dtri); }
   if (nquad > 0) { H5Dclose(vquad); H5Sclose(dquad); }
 
-  // Write boundary markers
-  //E_Int nvol = ntetra+nhexa+npyra+npenta;
-  int32_t* markersTri = new int32_t [ntri];
-  int32_t* markersQuad = new int32_t [nquad];
-  E_Int off = 0;
-  for (E_Int i = 0; i < ntri; i++) markersTri[i] = 0;
-  for (E_Int i = 0; i < nquad; i++) markersQuad[i] = 0;
-
+  // Boundary conditions
   PyObject* zbc = K_PYTREE::getNodeFromName1(zone, "ZoneBC");
   std::vector<PyObject*> BCs;
   if (zbc != NULL) K_PYTREE::getNodesFromType1(zbc, "BC_t", BCs);
 
-  E_Int count = 1; // BC count (=marker count)
-  for (size_t i = 0; i < BCs.size(); i++)
+  // Boundary conditions for ME
+  if (ntri > 0 || nquad > 0)
   {
-    // PointRange
-    PyObject* er = K_PYTREE::getNodeFromName1(BCs[i], "ElementRange");
-    if (er != NULL)
+    int32_t* markersTri = new int32_t [ntri];
+    int32_t* markersQuad = new int32_t [nquad];
+    E_Int off = 0;
+    for (E_Int i = 0; i < ntri; i++) markersTri[i] = 0;
+    for (E_Int i = 0; i < nquad; i++) markersQuad[i] = 0;
+
+    E_Int count = 1; // BC count (=marker count)
+    for (size_t i = 0; i < BCs.size(); i++)
     {
-      E_Int* erv = K_PYTREE::getValueAI(er, hook);
-      //printf("BC %d: %d %d\n", count, erv[0], erv[1]);
-      for (E_Int j = erv[0]; j <= erv[1]; j++)
+      // PointRange
+      PyObject* er = K_PYTREE::getNodeFromName1(BCs[i], "ElementRange");
+      if (er != NULL)
       {
-        //off = j-1-nvol;
-        off = newIndex2(j, oldStart, newStart)-possurf+1;
-        if (off < ntri) 
-        { 
-          off = std::min(off, ntri-1);
-          off = std::max(off, E_Int(0));
-          markersTri[off] = count;
-        }
-        else 
+        E_Int* erv = K_PYTREE::getValueAI(er, hook);
+        //printf("BC %d: %d %d\n", count, erv[0], erv[1]);
+        for (E_Int j = erv[0]; j <= erv[1]; j++)
         {
-          off = off-ntri;
-          off = std::min(off, nquad-1);
-          off = std::max(off, E_Int(0));
-          markersQuad[off] = count;
+          //off = j-1-nvol;
+          off = newIndex2(j, oldStart, newStart)-possurf+1;
+          if (off < ntri) 
+          {  
+            off = std::min(off, ntri-1);
+            off = std::max(off, E_Int(0));
+            markersTri[off] = count;
+          }
+          else 
+          {
+            off = off-ntri;
+            off = std::min(off, nquad-1);
+            off = std::max(off, E_Int(0));
+            markersQuad[off] = count;
+          }
+          //if (off != j-1-nvol) 
+          //printf("off=%d %d -> count=%d\n", off, j-1-nvol, count);
         }
-        //if (off != j-1-nvol) 
-        //printf("off=%d %d -> count=%d\n", off, j-1-nvol, count);
+      }
+
+      // PointList
+      PyObject* pl = K_PYTREE::getNodeFromName1(BCs[i], "PointList");
+      if (pl != NULL)
+      {
+        E_Int ni, nj;
+        E_Int* plv = K_PYTREE::getValueAI(pl, ni, nj, hook);
+        for (E_Int j = 0; j < ni*nj; j++)
+        {
+          //off = plv[j]-1-nvol;
+          off = newIndex2(plv[j], oldStart, newStart)-possurf+1;
+          if (off < ntri) 
+          { 
+            off = std::min(off, ntri-1);
+            off = std::max(off, E_Int(0));
+            markersTri[off] = count;
+          }
+          else 
+          {
+            off = off-ntri;
+            off = std::min(off, nquad-1);
+            off = std::max(off, E_Int(0));
+            markersQuad[off] = count;
+          }
+          //printf("off=%d %d\n", off, plv[j]-1-nvol);
+        }
+      }
+      count += 1;
+    }
+
+    if (ntri > 0)
+    {
+      H5Dwrite(mtri, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, markersTri);
+      H5Dclose(mtri);
+      delete [] markersTri;
+    }
+    if (nquad) 
+    {
+      H5Dwrite(mquad, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, markersQuad);
+      H5Dclose(mquad);
+      delete [] markersQuad;
+    }
+  }
+
+  // Create specific connectivities for NGON
+  if (ngon != NULL && ngonOffset != NULL && nface != NULL && nfaceOffset != NULL)
+  {
+    // Build cell2Node connectivity
+    int32_t* cell2NodeCount = new int32_t [npolyCells];
+    int32_t* cell2FaceCount = new int32_t [npolyCells];
+    int32_t* cell2NodeOffset = new int32_t [npolyCells+1]; // perso
+    cell2NodeOffset[0] = 0;
+    std::set<E_Int> nodes;
+
+    E_Int size1 = 0;
+    E_Int c = 0;
+    for (E_Int i = 0; i < npolyCells; i++)
+    {
+      nodes.clear();
+      for (E_Int j = nfaceOffset[i]; j < nfaceOffset[i+1]; j++)
+      {
+        E_Int f = nface[j]-1;
+        for (E_Int n = ngonOffset[f]; n < ngonOffset[f+1]; n++)
+        {
+          E_Int node = ngon[n]-1;
+          nodes.insert(node);
+        }
+      }
+      cell2NodeCount[i] = nodes.size();
+      size1 += nodes.size();      
+      cell2FaceCount[i] = nfaceOffset[i+1]-nfaceOffset[i];
+      cell2NodeOffset[i+1] += size1;
+    }
+
+    int32_t* cell2Node = new int32_t [size1];
+    c = 0;
+    for (E_Int i = 0; i < npolyCells; i++)
+    {
+      nodes.clear();
+      for (E_Int j = nfaceOffset[i]; j < nfaceOffset[i+1]; j++)
+      {
+        E_Int f = nface[j]-1;
+        for (E_Int n = ngonOffset[f]; n < ngonOffset[f+1]; n++)
+        {
+          E_Int node = ngon[n]-1;
+          nodes.insert(node);
+        }
+      }
+      for (auto n : nodes)
+      { 
+        cell2Node[c] = n; c++;
+      }
+    }
+    printf("%d %d\n",c, size1); fflush(stdout);
+
+    // Build face2node connectivity. No duplicated faces.
+    /*
+    int32_t* face2NodeCount = new int32_t [npolyFaces];
+    E_Int size2 = ngonOffset[npolyFaces];
+    int32_t* face2Node = new int32_t [size2];
+    c = 0;
+    E_Int loc = 0; E_Int elt = 0; // element containing face
+    for (E_Int i = 0; i < npolyFaces; i++)
+    {
+      for (E_Int j = ngonOffset[i]; j < ngonOffset[i+1]; j++)
+      {
+        E_Int node = ngon[j]-1; // node index
+        E_Int off = 0; // shift of node in cell
+        // Cherche le noeud dans elt
+        for (E_Int k = cell2NodeOffset[elt]; k < cell2NodeOffset[elt+1]; k++)
+        {
+          E_Int n = cell2Node[k];
+          if (n == node) break;
+          off++;
+        }
+        face2Node[c] = off; c++; // must be an offset on elt2Node
+      }
+      face2NodeCount[i] = ngonOffset[i+1] - ngonOffset[i];
+      loc++;
+      if (loc > cell2FaceCount[elt]) { elt++; loc = 0; }
+    }
+    */
+
+    // Build face2node connectivity. Faces are duplicated by elements.
+    E_Int npolyFacesD = 0;
+    for (E_Int i = 0; i < npolyCells; i++) npolyFacesD += cell2FaceCount[i];
+    int32_t* face2NodeCount = new int32_t [npolyFacesD];
+
+    E_Int size2 = 0; // size of face2Node
+    for (E_Int i = 0; i < npolyCells; i++) // pour chaque cellule
+    {
+      for (E_Int f = nfaceOffset[i]; f < nfaceOffset[i+1]; f++) // pour toutes les faces
+      {
+        // face orig dans le pytree
+        E_Int forig = nface[f]-1;
+        size2 += ngonOffset[forig+1] - ngonOffset[forig]; 
+      }
+    }
+    int32_t* face2Node = new int32_t [size2];
+
+    E_Int floc = 0; // numerotation par element des cellules fsdm
+    c = 0;
+    for (E_Int i = 0; i < npolyCells; i++) // pour chaque cellule
+    {
+      //E_Int nf = cell2FaceCount[i]; // nbre de faces de la cellule
+      for (E_Int f = nfaceOffset[i]; f < nfaceOffset[i+1]; f++) // pour toutes les faces
+      {
+        // face orig dans le pytree
+        E_Int forig = nface[f]-1;
+        for (E_Int j = ngonOffset[forig]; j < ngonOffset[forig+1]; j++) // pour tous les noeuds
+        {
+          E_Int node = ngon[j]-1; // node index
+          E_Int off = 0; // shift of node in cell
+          // Cherche le noeud dans elt
+          for (E_Int k = cell2NodeOffset[i]; k < cell2NodeOffset[i+1]; k++)
+          {
+            E_Int n = cell2Node[k];
+            if (n == node) break;
+            off++;
+          }
+          face2Node[c] = off; c++; // must be an offset on elt2Node
+        }
+        face2NodeCount[floc] = ngonOffset[i+1] - ngonOffset[i]; floc++;
       }
     }
 
-    // PointList
-    PyObject* pl = K_PYTREE::getNodeFromName1(BCs[i], "PointList");
-    if (pl != NULL)
-    {
-      E_Int ni, nj;
-      E_Int* plv = K_PYTREE::getValueAI(pl, ni, nj, hook);
-      for (E_Int j = 0; j < ni*nj; j++)
-      {
-        //off = plv[j]-1-nvol;
-        off = newIndex2(plv[j], oldStart, newStart)-possurf+1;
-        if (off < ntri) 
-        { 
-          off = std::min(off, ntri-1);
-          off = std::max(off, E_Int(0));
-          markersTri[off] = count;
-        }
-        else 
-        {
-          off = off-ntri;
-          off = std::min(off, nquad-1);
-          off = std::max(off, E_Int(0));
-          markersQuad[off] = count;
-        }
-        //printf("off=%d %d\n", off, plv[j]-1-nvol);
-      }
-    }
-    count += 1;
+    gid = H5Gcreate(uc, "Poly3D", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dims[0] = 1;
+    did = H5Screate_simple(1, dims, NULL);
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+    int32_t numberOfCells = npolyCells;
+    H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+    H5Aclose(aid); H5Sclose(did);
+    dims[0] = npolyCells;
+    did = H5Screate_simple(1, dims, NULL);
+    vid = H5Dcreate(gid, "Cell2NodeCounts", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2NodeCount);
+    H5Dclose(vid); H5Sclose(did);
+    dims[0] = size1;
+    did = H5Screate_simple(1, dims, NULL);
+    vid = H5Dcreate(gid, "Cell2NodeList", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2Node);
+    H5Dclose(vid); H5Sclose(did);
+    dims[0] = npolyCells;
+    did = H5Screate_simple(1, dims, NULL);
+    vid = H5Dcreate(gid, "Cell2FaceCounts", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2FaceCount);
+    H5Dclose(vid); H5Sclose(did);
+    dims[0] = npolyFacesD;
+    did = H5Screate_simple(1, dims, NULL);
+    vid = H5Dcreate(gid, "Face2NodeCounts", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, face2NodeCount);
+    H5Dclose(vid); H5Sclose(did);
+    dims[0] = size2;
+    did = H5Screate_simple(1, dims, NULL);
+    vid = H5Dcreate(gid, "Face2NodeList", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, face2Node);
+    H5Dclose(vid); H5Sclose(did);
+    H5Gclose(gid);
+
+    delete [] cell2NodeCount;
+    delete [] cell2FaceCount;
+    delete [] cell2NodeOffset;
+    delete [] cell2Node;
+    delete [] face2NodeCount;
+    delete [] face2Node;
   }
 
-  if (ntri > 0)
-  {
-    H5Dwrite(mtri, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, markersTri);
-    H5Dclose(mtri);
-    delete [] markersTri;
-  }
-  if (nquad) 
-  {
-    H5Dwrite(mquad, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, markersQuad);
-    H5Dclose(mquad);
-    delete [] markersQuad;
-  }
-  
   // Name of cell attribute values
   gid = H5Gcreate(uc, "NamesOfCellAttributeValues", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   gid2 = H5Gcreate(gid, "CADGroupID", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);

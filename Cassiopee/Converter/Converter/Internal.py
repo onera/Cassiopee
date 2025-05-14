@@ -4898,7 +4898,7 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
 # -- Purely internal (undocumented) --
 #==============================================================================
 
-# order nodes in FSC
+# order nodes in FlowSolution
 def _orderFlowSolution(t, loc='both'):
   if loc == 'nodes': loci=0
   elif loc == 'centers': loci=1
@@ -4907,7 +4907,7 @@ def _orderFlowSolution(t, loc='both'):
   noz = 0; orderedNodesC=[]; orderedNodesN=[]
   for z in getZones(t):
     if loci > 0:
-      FSC = getNodeFromName(z,__FlowSolutionCenters__)
+      FSC = getNodeFromName(z, __FlowSolutionCenters__)
       if FSC is not None:
         if noz == 0:
           for fieldnode in FSC[2]:
@@ -4915,9 +4915,9 @@ def _orderFlowSolution(t, loc='both'):
         else:
           newChildrens=[]
           for nodename in orderedNodesC:
-            nodel = getNodeFromName1(FSC,nodename)
+            nodel = getNodeFromName1(FSC, nodename)
             newChildrens.append(nodel)
-          FSC[2]=newChildrens
+          FSC[2] = newChildrens
     else:
       FSN = getNodeFromName(z,__FlowSolutionNodes__)
       if FSN is not None:
@@ -4927,9 +4927,9 @@ def _orderFlowSolution(t, loc='both'):
         else:
           newChildrens=[]
           for nodename in orderedNodesN:
-            nodel = getNodeFromName1(FSN,nodename)
+            nodel = getNodeFromName1(FSN, nodename)
             newChildrens.append(nodel)
-          FSN[2]=newChildrens
+          FSN[2] = newChildrens
     noz += 1
   return None
 # -- Convert an array with (i,j,k) numerotation to an array with 1D-index

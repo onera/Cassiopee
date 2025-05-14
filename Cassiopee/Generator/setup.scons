@@ -2,7 +2,7 @@ import os
 import KCore.Dist as Dist
 from KCore.config import *
 #==============================================================================
-# Generator requires :
+# Generator requires:
 # ELSAPROD variable defined in environment
 # C++ compiler
 # Fortran compiler
