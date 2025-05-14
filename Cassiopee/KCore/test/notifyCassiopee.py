@@ -267,14 +267,12 @@ def parseInstallLogs(userProd):
         installLogs = sorted(glob(os.path.join("/stck/cassiope/git/logs/", f"log_*_{userProd}_*")))
         for installLog in installLogs:
             with open(installLog, 'r') as f: contents = f.readlines()
-            print(len(contents))
             # Find start lines of each module
             startLine = 0
             endMarker = "correctly installed."
             for lineNo, line in enumerate(contents):
                 if endMarker in line:
                     startLine = lineNo+1
-                    print(line, startLine)
             if startLine < len(contents):
                 # Print log of the module that did not complete successfully
                 messageText += f"\n\nInstall log:\n-----------\n\n"
