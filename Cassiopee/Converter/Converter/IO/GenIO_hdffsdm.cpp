@@ -212,9 +212,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   size = 1;
   for (E_Int i = 0; i < ndims; i++) size *= dims[i];
   npy_dim_vals[0] = size;
+#ifdef E_DOUBLEINT  
+  tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
+#else
   tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
+#endif
   mid = H5S_ALL;
-  int32_t* c2n = new int32_t [size];
+  E_Int* c2n = new E_Int [size];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, c2n);
 
   // read cell2facecount (nbre de faces par cellule)  
@@ -225,9 +229,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   size = 1;
   for (E_Int i = 0; i < ndims; i++) size *= dims[i];
   npy_dim_vals[0] = size;
+#ifdef E_DOUBLEINT  
+  tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
+#else
   tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
+#endif
   mid = H5S_ALL;
-  int32_t* c2fc = new int32_t [size];
+  E_Int* c2fc = new E_Int [size];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, c2fc);
 
   // Check total number of faces and number of faces per element * number of elts
@@ -243,9 +251,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   nfaces = 1;
   for (E_Int i = 0; i < ndims; i++) nfaces *= dims[i];
   npy_dim_vals[0] = nfaces;
+#ifdef E_DOUBLEINT  
+  tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
+#else
   tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
+#endif
   mid = H5S_ALL;
-  int32_t* f2nc = new int32_t [nfaces];
+  E_Int* f2nc = new E_Int [nfaces];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2nc);
   printf("number of faces (duplicated): " SF_D_ "\n", nfaces);
 
@@ -257,9 +269,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   size = 1;
   for (E_Int i = 0; i < ndims; i++) size *= dims[i];
   npy_dim_vals[0] = size;
+#ifdef E_DOUBLEINT  
+  tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
+#else
   tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
+#endif
   mid = H5S_ALL;
-  int32_t* f2n = new int32_t [size];
+  E_Int* f2n = new E_Int [size];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2n);  
 
   // Create NGON
@@ -290,8 +306,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
 
   // Element connectivity
   npy_dim_vals[0] = size;
+#ifdef E_DOUBLEINT
+  PyArrayObject* r3 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
+  int64_t* pp3 = (int64_t*)PyArray_DATA(r3);
+#else
   PyArrayObject* r3 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
   int32_t* pp3 = (int32_t*)PyArray_DATA(r3);
+#endif
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, pp3);
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", r3, children3, "DataArray_t");
@@ -316,8 +337,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
 
   // Element start offset
   npy_dim_vals[0] = nfaces+1;
+#ifdef E_DOUBLEINT
+  PyArrayObject* r4 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
+  int64_t* pp4 = (int64_t*)PyArray_DATA(r4);
+#else
   PyArrayObject* r4 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
   int32_t* pp4 = (int32_t*)PyArray_DATA(r4);
+#endif
   pp4[0] = 0;
   for (E_Int i = 0; i < nfaces; i++) pp4[i+1] = pp4[i]+f2nc[i];
   PyObject* children4 = PyList_New(0);
@@ -352,8 +378,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
 
   // rebuild Element start offset
   npy_dim_vals[0] = ncells+1;
+#ifdef E_DOUBLEINT
   PyArrayObject* r6 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
   int32_t* pp6 = (int32_t*)PyArray_DATA(r6);
+#else
+  PyArrayObject* r6 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
+  int64_t* pp6 = (int64_t*)PyArray_DATA(r6);
+#endif
   PyObject* children6 = PyList_New(0);
   PyObject* eso2 = Py_BuildValue("[sOOs]", "ElementStartOffset", r6, children6, "DataArray_t");
   PyList_Append(children5, eso2); Py_INCREF(eso2);
@@ -363,8 +394,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   // rebuild Element connectivity
   size = pp6[ncells];
   npy_dim_vals[0] = size;
+#ifdef E_DOUBLEINT
   PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
   int32_t* pp7 = (int32_t*)PyArray_DATA(r7);
+#else
+  PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
+  int64_t* pp7 = (int64_t*)PyArray_DATA(r7);
+#endif
   PyObject* children7 = PyList_New(0);
   PyObject* ec2 = Py_BuildValue("[sOOs]", "ElementConnectivity", r7, children7, "DataArray_t");
   PyList_Append(children5, ec2); Py_INCREF(ec2);
@@ -579,8 +615,6 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
 
   E_Int size = 1;
   for (E_Int i = 0; i < ndims; i++) size *= dims[i];
-  //printf("ndims=" SF_D_ "\n", ndims);
-  //printf("size=" SF_D_ "\n", size);
   tid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
   hid_t yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   hid_t mid = H5S_ALL;
@@ -727,8 +761,13 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       // Create point list
       npy_dim_vals[0] = 1;
       npy_dim_vals[1] = nfaces;
+#ifdef E_DOUBLEINT
+      PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT64, 1);
+      int64_t* pp11 = (int64_t*)PyArray_DATA(r11);
+#else
       PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT, 1);
       int32_t* pp11 = (int32_t*)PyArray_DATA(r11);
+#endif
       E_Int c = 0;
       for (E_Int i = 0; i < size; i++)
       {
@@ -1380,24 +1419,25 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     cell2NodeOffset[0] = 0;
     std::set<E_Int> nodes;
 
-    E_Int size1 = 0;
+    E_Int size1 = 0; E_Int size0 = 0;
     E_Int c = 0;
     for (E_Int i = 0; i < npolyCells; i++)
     {
       nodes.clear();
       for (E_Int j = nfaceOffset[i]; j < nfaceOffset[i+1]; j++)
       {
-        E_Int f = nface[j]-1;
+        E_Int f = std::abs(nface[j])-1;
         for (E_Int n = ngonOffset[f]; n < ngonOffset[f+1]; n++)
         {
           E_Int node = ngon[n]-1;
           nodes.insert(node);
         }
       }
-      cell2NodeCount[i] = nodes.size();
-      size1 += nodes.size();      
+      size0 = nodes.size();
+      cell2NodeCount[i] = size0;
+      size1 += size0;
       cell2FaceCount[i] = nfaceOffset[i+1]-nfaceOffset[i];
-      cell2NodeOffset[i+1] += size1;
+      cell2NodeOffset[i+1] = cell2NodeOffset[i]+size0;
     }
 
     int32_t* cell2Node = new int32_t [size1];
@@ -1407,7 +1447,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       nodes.clear();
       for (E_Int j = nfaceOffset[i]; j < nfaceOffset[i+1]; j++)
       {
-        E_Int f = nface[j]-1;
+        E_Int f = std::abs(nface[j])-1;
         for (E_Int n = ngonOffset[f]; n < ngonOffset[f+1]; n++)
         {
           E_Int node = ngon[n]-1;
@@ -1448,7 +1488,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     }
     */
 
-    // Build face2node connectivity. Faces are duplicated by elements.
+    // Build face2node connectivity. Faces are duplicated by elements. They must be ordered.
     E_Int npolyFacesD = 0;
     for (E_Int i = 0; i < npolyCells; i++) npolyFacesD += cell2FaceCount[i];
     int32_t* face2NodeCount = new int32_t [npolyFacesD];
@@ -1459,12 +1499,12 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       for (E_Int f = nfaceOffset[i]; f < nfaceOffset[i+1]; f++) // pour toutes les faces
       {
         // face orig dans le pytree
-        E_Int forig = nface[f]-1;
+        E_Int forig = std::abs(nface[f])-1;
         size2 += ngonOffset[forig+1] - ngonOffset[forig]; 
       }
     }
     int32_t* face2Node = new int32_t [size2];
-
+    
     E_Int floc = 0; // numerotation par element des cellules fsdm
     c = 0;
     for (E_Int i = 0; i < npolyCells; i++) // pour chaque cellule
@@ -1473,21 +1513,42 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       for (E_Int f = nfaceOffset[i]; f < nfaceOffset[i+1]; f++) // pour toutes les faces
       {
         // face orig dans le pytree
-        E_Int forig = nface[f]-1;
-        for (E_Int j = ngonOffset[forig]; j < ngonOffset[forig+1]; j++) // pour tous les noeuds
+        E_Int forig = std::abs(nface[f])-1;
+
+        if (nface[f] > 0)
         {
-          E_Int node = ngon[j]-1; // node index
-          E_Int off = 0; // shift of node in cell
-          // Cherche le noeud dans elt
-          for (E_Int k = cell2NodeOffset[i]; k < cell2NodeOffset[i+1]; k++)
+          for (E_Int j = ngonOffset[forig]; j < ngonOffset[forig+1]; j++) // pour tous les noeuds
           {
-            E_Int n = cell2Node[k];
-            if (n == node) break;
-            off++;
+            E_Int node = ngon[j]-1; // node index
+            E_Int off = 0; // shift of node in cell
+            // Cherche le noeud dans elt
+            for (E_Int k = cell2NodeOffset[i]; k < cell2NodeOffset[i+1]; k++)
+            {
+              E_Int n = cell2Node[k];
+              if (n == node) break;
+              off++;
+            }
+            face2Node[c] = off; c++; // must be an ordered offset on elt2Node 
           }
-          face2Node[c] = off; c++; // must be an offset on elt2Node
         }
-        face2NodeCount[floc] = ngonOffset[i+1] - ngonOffset[i]; floc++;
+        else
+        {
+          for (E_Int j = ngonOffset[forig+1]-1; j >= ngonOffset[forig]; j--) // pour tous les noeuds
+          {
+            E_Int node = ngon[j]-1; // node index
+            E_Int off = 0; // shift of node in cell
+            // Cherche le noeud dans elt
+            for (E_Int k = cell2NodeOffset[i]; k < cell2NodeOffset[i+1]; k++)
+            {
+              E_Int n = cell2Node[k];
+              if (n == node) break;
+              off++;
+            }
+            face2Node[c] = off; c++; // must be an ordered offset on elt2Node 
+          }
+        }
+
+        face2NodeCount[floc] = ngonOffset[forig+1] - ngonOffset[forig]; floc++;
       }
     }
 
