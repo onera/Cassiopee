@@ -805,7 +805,7 @@ def createApp(win):
 
     # - Slider for splitFactor -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL,
-                  command=setSplitFactor, showvalue=0, borderwidth=1, value=0)
+                  command=setSplitFactor, showvalue=0, borderwidth=1, value=75)
     WIDGETS['splitFactor'] = B
     B.grid(row=3, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[8])
