@@ -284,58 +284,58 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
         E_Int ncon = PyList_GET_SIZE(tpl);
         if (ncon == 1) // pour compatibilite avec Array2, retourne un compact+stride
         {
-            ac = (PyArrayObject*)PyList_GetItem(tpl,0);
+          ac = (PyArrayObject*)PyList_GetItem(tpl,0);
+          E_Int s, nfld;
+          if (PyArray_NDIM(ac) == 2)
+          { 
+              // on suppose que c'est deja correctement dimensionne
+              s = PyArray_DIMS(ac)[0]; nfld = PyArray_DIMS(ac)[1]; 
+          }
+          else 
+          { 
+              // il faut trouver la dimension correcte
+              s = PyArray_DIMS(ac)[0]; nfld = 1;
+              E_Int nvpe, loc, typeId;
+              char eltTypeOut[12];
+              K_ARRAY::eltString2TypeId(eltType, eltTypeOut, nvpe, loc, typeId);
+              nfld = nvpe;
+              s = s / nvpe;
+          }
+          c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true, false);
+        }
+        else // ME: retourne un FldArrayI capsule de ncon compact+stride
+        {
+          std::vector< FldArrayI* > cv(ncon);
+          std::vector<char*> eltTypes;
+          extractVars(eltType, eltTypes);
+          //for (size_t i = 0; i < eltTypes.size(); i++) printf("%s \n", eltTypes[i]);
+          //fflush(stdout);
+
+          for (E_Int i = 0; i < ncon; i++)
+          {
+            ac = (PyArrayObject*)PyList_GetItem(tpl,i);
             E_Int s, nfld;
             if (PyArray_NDIM(ac) == 2)
             { 
-                // on suppose que c'est deja correctement dimensionne
-                s = PyArray_DIMS(ac)[0]; nfld = PyArray_DIMS(ac)[1]; 
+              // on suppose que c'est deja correctement dimensionne
+              s = PyArray_DIMS(ac)[0]; nfld = PyArray_DIMS(ac)[1]; 
             }
             else 
-            { 
-                // il faut trouver la dimension correcte
-                s = PyArray_DIMS(ac)[0]; nfld = 1;
-                E_Int nvpe, loc, typeId;
-                char eltTypeOut[12];
-                K_ARRAY::eltString2TypeId(eltType, eltTypeOut, nvpe, loc, typeId);
-                nfld = nvpe;
-                s = s / nvpe;
-            }
-            c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true, false);
-        }
-        else // retourne un FldArrayI capsule de ncon compact+stride
-        {
-            std::vector< FldArrayI* > cv(ncon);
-            std::vector<char*> eltTypes;
-            extractVars(eltType, eltTypes);
-            //for (size_t i = 0; i < eltTypes.size(); i++) printf("%s \n", eltTypes[i]);
-            //fflush(stdout);
-
-            for (E_Int i = 0; i < ncon; i++)
             {
-                ac = (PyArrayObject*)PyList_GetItem(tpl,i);
-                E_Int s, nfld;
-                if (PyArray_NDIM(ac) == 2)
-                { 
-                    // on suppose que c'est deja correctement dimensionne
-                    s = PyArray_DIMS(ac)[0]; nfld = PyArray_DIMS(ac)[1]; 
-                }
-                else 
-                {
-                    // il faut trouver la dimension correcte
-                    s = PyArray_DIMS(ac)[0]; nfld = 1;
-                    E_Int nvpe, loc, typeId;
-                    char eltTypeOut[12];
-                    K_ARRAY::eltString2TypeId(eltTypes[i], eltTypeOut, nvpe, loc, typeId);
-                    nfld = nvpe;
-                    s = s / nvpe;
-                }
-                //printf("%d %d\n",s,nfld); fflush(stdout);
-                c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true, false);
-                cv[i] = c;
+              // il faut trouver la dimension correcte
+              s = PyArray_DIMS(ac)[0]; nfld = 1;
+              E_Int nvpe, loc, typeId;
+              char eltTypeOut[12];
+              K_ARRAY::eltString2TypeId(eltTypes[i], eltTypeOut, nvpe, loc, typeId);
+              nfld = nvpe;
+              s = s / nvpe;
             }
-            c = new FldArrayI(cv);
-            for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];
+            //printf("%d %d\n",s,nfld); fflush(stdout);
+            c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true, false);
+            cv[i] = c;
+          }
+          c = new FldArrayI(cv);
+          for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];
         }
       }
     }

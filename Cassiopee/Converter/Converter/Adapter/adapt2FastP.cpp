@@ -63,11 +63,11 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   E_Int NbPtlist_rac = PyList_Size(Ptlist_rac );
   E_Int NbPtlist_racD= PyList_Size(Ptlist_racD);
 
-  E_Int size_ptlist_bc[  NbPtlist_bc  *3];
-  E_Int size_ptlist_rac[ NbPtlist_rac *3];
-  E_Int size_ptlist_racD[NbPtlist_racD*3];
+  E_Int* size_ptlist_bc = new E_Int [  NbPtlist_bc  *3];
+  E_Int* size_ptlist_rac = new E_Int [ NbPtlist_rac *3];
+  E_Int* size_ptlist_racD = new E_Int [NbPtlist_racD*3];
 
-  E_Int** ipt_ptlist_bc; E_Int** ipt_ptlist_rac;  E_Int** ipt_ptlist_racD;
+  E_Int** ipt_ptlist_bc; E_Int** ipt_ptlist_rac; E_Int** ipt_ptlist_racD;
   ipt_ptlist_bc  = new E_Int*[NbPtlist_bc + NbPtlist_rac + NbPtlist_racD ];
   ipt_ptlist_rac = ipt_ptlist_bc  + NbPtlist_bc;
   ipt_ptlist_racD= ipt_ptlist_rac + NbPtlist_rac;
@@ -343,6 +343,9 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
 //  }
 
   delete [] nn; delete [] nni; delete [] ipt_ptlist_bc;
+  delete [] size_ptlist_bc;
+  delete [] size_ptlist_rac;
+  delete [] size_ptlist_racD;
   RELEASESHAREDN(NGon, cNGon);
   RELEASESHAREDN(PE, cPE);
   RELEASESHAREDN(NFace, cNFace);

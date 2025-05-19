@@ -1841,24 +1841,25 @@ E_Int FldArray<T>::compact(FldArray& a, const Vector1& keep, Vector2& new_Ids)
 TEMPLATE_T
 FldArray<T>::FldArray(std::vector< FldArray<T>* >& list)
 {
-    _compact = false;
-    _nfldMax = 0;
-    _BEConnects = list;
+  _ngon = 0;
+  _compact = false;
+  _nfldMax = 0;
+  _BEConnects = list;
 }
 
 TEMPLATE_T
 FldArray<T>* FldArray<T>::getConnect(E_Int i)
 {
-    if (_BEConnects.size() == 0) return this;
-    else return _BEConnects[i];
+  if (_BEConnects.size() == 0) return this;
+  else return _BEConnects[i];
 }
 
 TEMPLATE_T
 size_t FldArray<T>::getNConnect()
 {
-    E_Int size = (E_Int)_BEConnects.size();
-    if (size == 0) return 1;
-    else return size;
+  E_Int size = (E_Int)_BEConnects.size();
+  if (size == 0) return 1;
+  else return size;
 }
 } // End namespace K_FLD
 #endif
