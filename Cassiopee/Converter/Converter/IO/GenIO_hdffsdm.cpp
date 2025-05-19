@@ -98,7 +98,7 @@ E_Int createGridElements(hid_t id, E_Int eltType, char* name, E_Int istart, PyOb
   pp2[0] = istart; pp2[1] = istart+ncells-1;
   PyObject* children2 = PyList_New(0);
   PyObject* er = Py_BuildValue("[sOOs]", "ElementRange", r2, children2, "IndexRange_t");
-  PyList_Append(children1, er); Py_INCREF(er);
+  PyList_Append(children1, er); Py_DECREF(er);
 
   // Element connectivity
   hid_t did = H5Dopen2(id, "Cell2Node", H5P_DEFAULT);
@@ -123,7 +123,7 @@ E_Int createGridElements(hid_t id, E_Int eltType, char* name, E_Int istart, PyOb
   for (E_Int i = 0; i < size2; i++) pp3[i] += 1;
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", r3, children3, "DataArray_t");
-  PyList_Append(children1, ec); Py_INCREF(ec);
+  PyList_Append(children1, ec); Py_DECREF(ec);
 
   // Get BC tag if any
   hid_t gid = H5Lexists(id, "CellAttributes", H5P_DEFAULT);
@@ -292,6 +292,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   NGON = Py_BuildValue("[sOOs]", "NGON", r1, children1, "Elements_t");
 
   // Element range
+  npy_dim_vals[0] = 2;
 #ifdef E_DOUBLEINT
   PyArrayObject* r2 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);
   int64_t* pp2 = (int64_t*)PyArray_DATA(r2);
@@ -302,7 +303,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   pp2[0] = istart; pp2[1] = istart+nfaces-1;
   PyObject* children2 = PyList_New(0);
   PyObject* er = Py_BuildValue("[sOOs]", "ElementRange", r2, children2, "IndexRange_t");
-  PyList_Append(children1, er); Py_INCREF(er);
+  PyList_Append(children1, er); Py_DECREF(er);
 
   // Element connectivity
   npy_dim_vals[0] = size;
@@ -316,7 +317,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, pp3);
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", r3, children3, "DataArray_t");
-  PyList_Append(children1, ec); Py_INCREF(ec);
+  PyList_Append(children1, ec); Py_DECREF(ec);
 
   E_Int cell = 0; // current cell
   E_Int lcount = 0; // local cell count
@@ -348,7 +349,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   for (E_Int i = 0; i < nfaces; i++) pp4[i+1] = pp4[i]+f2nc[i];
   PyObject* children4 = PyList_New(0);
   PyObject* eso = Py_BuildValue("[sOOs]", "ElementStartOffset", r4, children4, "DataArray_t");
-  PyList_Append(children1, eso); Py_INCREF(eso);
+  PyList_Append(children1, eso); Py_DECREF(eso);
 
   // Create NFACE
   npy_dim_vals[0] = 2;
@@ -364,6 +365,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   NFACE = Py_BuildValue("[sOOs]", "NFACE", r5, children5, "Elements_t");
   
   // Element range
+  npy_dim_vals[0] = 2;
 #ifdef E_DOUBLEINT
   PyArrayObject* r8 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);
   int64_t* pp8 = (int64_t*)PyArray_DATA(r8);
@@ -374,20 +376,20 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   pp8[0] = istart+nfaces; pp8[1] = istart+nfaces+ncells-1;
   PyObject* children8 = PyList_New(0);
   PyObject* er2 = Py_BuildValue("[sOOs]", "ElementRange", r8, children8, "IndexRange_t");
-  PyList_Append(children5, er2); Py_INCREF(er2);
+  PyList_Append(children5, er2); Py_DECREF(er2);
 
   // rebuild Element start offset
   npy_dim_vals[0] = ncells+1;
 #ifdef E_DOUBLEINT
-  PyArrayObject* r6 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
-  int32_t* pp6 = (int32_t*)PyArray_DATA(r6);
-#else
   PyArrayObject* r6 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
   int64_t* pp6 = (int64_t*)PyArray_DATA(r6);
+#else
+  PyArrayObject* r6 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
+  int32_t* pp6 = (int32_t*)PyArray_DATA(r6);
 #endif
   PyObject* children6 = PyList_New(0);
   PyObject* eso2 = Py_BuildValue("[sOOs]", "ElementStartOffset", r6, children6, "DataArray_t");
-  PyList_Append(children5, eso2); Py_INCREF(eso2);
+  PyList_Append(children5, eso2); Py_DECREF(eso2);
   pp6[0] = 0;
   for (E_Int i = 0; i < ncells; i++) pp6[i+1] = pp6[i]+c2fc[i];
   
@@ -395,15 +397,15 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   size = pp6[ncells];
   npy_dim_vals[0] = size;
 #ifdef E_DOUBLEINT
-  PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
-  int32_t* pp7 = (int32_t*)PyArray_DATA(r7);
-#else
   PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
   int64_t* pp7 = (int64_t*)PyArray_DATA(r7);
+#else
+  PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
+  int32_t* pp7 = (int32_t*)PyArray_DATA(r7);
 #endif
   PyObject* children7 = PyList_New(0);
   PyObject* ec2 = Py_BuildValue("[sOOs]", "ElementConnectivity", r7, children7, "DataArray_t");
-  PyList_Append(children5, ec2); Py_INCREF(ec2);
+  PyList_Append(children5, ec2); Py_DECREF(ec2);
   E_Int c = 0;
   for (E_Int i = 0; i < ncells; i++)
     for (E_Int j = 0; j < c2fc[i]; j++)
@@ -535,7 +537,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   float* pf2 = (float*)PyArray_DATA(r2);
   pf2[0] = 4.0;
   PyObject* version = Py_BuildValue("[sOOs]", "CGNSLibraryVersion", (PyObject*)r2, children2, "CGNSLibraryVersion_t");
-  PyList_Append(children1, version); Py_INCREF(version);
+  PyList_Append(children1, version); Py_DECREF(version);
 
   // Create Base
   npy_dim_vals[0] = 2;
@@ -549,7 +551,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   pp3[0] = 3; pp3[1] = 3;
   PyObject* children3 = PyList_New(0);
   PyObject* base = Py_BuildValue("[sOOs]", "Base", r3, children3, "CGNSBase_t");
-  PyList_Append(children1, base); Py_INCREF(base);
+  PyList_Append(children1, base); Py_DECREF(base);
 
   // Create Zone
   npy_dim_vals[0] = 1; npy_dim_vals[1] = 3;
@@ -563,7 +565,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   pp4[0] = 0; pp4[1] = 0; pp4[2] = 0;
   PyObject* children4 = PyList_New(0);
   PyObject* zone = Py_BuildValue("[sOOs]", "Zone", r4, children4, "Zone_t");
-  PyList_Append(children3, zone); Py_INCREF(zone);
+  PyList_Append(children3, zone); Py_DECREF(zone);
 
   // Create ZoneType
   PyObject* children9 = PyList_New(0);
@@ -572,7 +574,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   char* pp9 = (char*)PyArray_DATA(r9);
   K_STRING::cpy(pp9, "Unstructured", 12, false);
   PyObject* zoneType = Py_BuildValue("[sOOs]", "ZoneType", r9, children9, "ZoneType_t");
-  PyList_Append(children4, zoneType); Py_INCREF(zoneType);
+  PyList_Append(children4, zoneType); Py_DECREF(zoneType);
 
   // Get nvertex
   E_Int nvertex = 0; // nbre de vertex
@@ -592,7 +594,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   // Create GridCoordinates
   PyObject* children5 = PyList_New(0);
   PyObject* GC = Py_BuildValue("[sOOs]", "GridCoordinates", Py_None, children5, "GridCoordinates_t");
-  PyList_Append(children4, GC); Py_INCREF(GC);
+  PyList_Append(children4, GC); Py_DECREF(GC);
 
   node = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Datasets", H5P_DEFAULT);
   if (node < 0)
@@ -616,10 +618,9 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   E_Int size = 1;
   for (E_Int i = 0; i < ndims; i++) size *= dims[i];
   tid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
-  hid_t yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
   hid_t mid = H5S_ALL;
   double* r = new double [size];
-  H5Dread(did, yid, mid, sid, H5P_DEFAULT, r);
+  H5Dread(did, tid, mid, sid, H5P_DEFAULT, r);
   H5Dclose(did); H5Gclose(node);
 
   // CoordinateX
@@ -629,7 +630,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   for (E_Int i = 0; i < nvertex; i++) pxc[i] = r[3*i];
   PyObject* children6 = PyList_New(0);
   PyObject* nxc = Py_BuildValue("[sOOs]", "CoordinateX", xc, children6, "DataArray_t");
-  PyList_Append(children5, nxc); Py_INCREF(nxc);
+  PyList_Append(children5, nxc); Py_DECREF(nxc);
 
   // CoordinateY
   PyArrayObject* yc = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT64, 1);
@@ -637,7 +638,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   for (E_Int i = 0; i < nvertex; i++) pyc[i] = r[3*i+1];
   PyObject* children7 = PyList_New(0);
   PyObject* nyc = Py_BuildValue("[sOOs]", "CoordinateY", yc, children7, "DataArray_t");
-  PyList_Append(children5, nyc); Py_INCREF(nyc);
+  PyList_Append(children5, nyc); Py_DECREF(nyc);
 
   // CoordinateZ
   PyArrayObject* zc = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT64, 1);
@@ -645,13 +646,89 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   for (E_Int i = 0; i < nvertex; i++) pzc[i] = r[3*i+2];
   PyObject* children8 = PyList_New(0);
   PyObject* nzc = Py_BuildValue("[sOOs]", "CoordinateZ", zc, children8, "DataArray_t");
-  PyList_Append(children5, nzc); Py_INCREF(nzc);
+  PyList_Append(children5, nzc); Py_DECREF(nzc);
   delete [] r;
+
+  // Create FlowSolution
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Datasets/AugState", H5P_DEFAULT) > 0)
+  {
+    node = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Datasets/AugState", H5P_DEFAULT);
+    hid_t aid = H5Aopen_by_name(node, ".", "NumberOfVariables", H5P_DEFAULT, H5P_DEFAULT);
+    E_Int nvars = 0;
+    H5Aread(aid, H5T_NATIVE_INT, &nvars);
+    H5Aclose(aid);
+    aid = H5Aopen_by_name(node, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
+    E_Int ncells = 0;
+    H5Aread(aid, H5T_NATIVE_INT, &ncells);
+    H5Aclose(aid);
+    printf("nvars = %d, ncells=%d\n", nvars, ncells);
+
+    dims[0] = ncells; dims[1] = nvars;
+    did = H5Screate_simple(2, dims, NULL);
+    tid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
+    hid_t vid = H5Dopen2(node, "Values", H5P_DEFAULT);
+    
+    PyObject* childrenFS = PyList_New(0);
+    PyObject* FS = Py_BuildValue("[sOOs]", "FlowSolution#Centers", Py_None, childrenFS, "FlowSolution_t");
+    PyList_Append(children4, FS); Py_DECREF(FS);
+
+    npy_dim_vals[0] = 10;
+    PyObject* children14 = PyList_New(0);
+    PyArrayObject* r14 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
+    char* pp14 = (char*)PyArray_DATA(r14);
+    K_STRING::cpy(pp14, "CellCenter", npy_dim_vals[0], false);
+    PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r14, children14, "GridLocation_t");
+    PyList_Append(childrenFS, gl); Py_DECREF(gl);
+
+    hsize_t start[2]; hsize_t scount[2];
+    char name[20]; char name2[56];
+    for (E_Int n = 0; n < nvars; n++)
+    {
+      // Read name
+      sprintf(name, "Variable" SF_D_, n);
+      hid_t gid2 = H5Gopen(node, name, H5P_DEFAULT);
+      aid = H5Aopen_by_name(gid2, ".", "Name", H5P_DEFAULT, H5P_DEFAULT);
+      hid_t atype = H5Aget_type(aid);
+      size = H5Tget_size(atype);
+      H5Aread(aid, atype, name2);
+      name2[size] = '\0';
+      //H5Aread(aid, H5T_C_S1, name2);
+      H5Aclose(aid);
+      H5Gclose(gid2);
+
+      // Read values (partial)
+      npy_dim_vals[0] = ncells;
+      hid_t sid = H5Scopy(did);
+      start[0] = 0; start[1] = n;
+      scount[0] = ncells; scount[1] = 1;
+      H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
+      hid_t memspace = H5Screate_simple(2, scount, NULL);
+      PyArrayObject* f = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT64, 1);
+      E_Float* fp = (E_Float*)PyArray_DATA(f);
+      H5Dread(vid, tid, memspace, sid, H5P_DEFAULT, fp);
+      PyObject* fc = PyList_New(0);
+      PyObject* fl = Py_BuildValue("[sOOs]", name2, f, fc, "DataArray_t");
+      PyList_Append(childrenFS, fl); Py_DECREF(fl);
+    }
+    H5Dclose(vid); H5Sclose(did);
+    H5Gclose(node);
+  }
+
+  // Read MappingCellType2Index
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/MappingCellType2Index", H5P_DEFAULT) > 0)
+  {
+    char** names = new char* [20+1];
+    node = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/MappingCellType2Index", H5P_DEFAULT);
+    // Hard coded order: Tetra, Pyra, Penta, Hexa, Tri, Quad.
+    H5Gclose(node);
+    delete [] names;
+  }
 
   // Create GridElements
   E_Int nhexa=0; E_Int ntetra=0; E_Int npenta=0; E_Int npyra=0; 
   E_Int ntri=0; E_Int nquad=0;
   E_Int npoly3d=0; E_Int npoly2d=0;
+  /*
   hid_t* chids = HDF.getChildren(uc);
   E_Int nchildren = 0;
   while (chids[nchildren] != -1) { nchildren++; }
@@ -662,10 +739,90 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
 #else
   H5Literate2(uc, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
 #endif
+  */
   hid_t id = 0; E_Int c = 0; PyObject* GE;
   E_Int ncells=0; E_Int istart=1; E_Int n3dcells=0; 
   std::map<E_Int, E_Int> tagmap; // map of bc tags
   int32_t* bct = NULL; size = 0; // bc tag merged
+
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Tetra4", H5P_DEFAULT) > 0)
+  {
+    id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Tetra4", H5P_DEFAULT);
+    createGridElements(id, 10, "Tetra4", istart, GE, ncells, bct, size, tagmap);
+    PyList_Append(children4, GE); Py_DECREF(GE);
+    istart += ncells;
+    ntetra = ncells;
+    n3dcells += ncells;
+    H5Gclose(id);
+  }
+
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Pyra5", H5P_DEFAULT) > 0)
+  {
+    id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Pyra5", H5P_DEFAULT);
+    createGridElements(id, 12, "Pyra5", istart, GE, ncells, bct, size, tagmap);
+    PyList_Append(children4, GE); Py_DECREF(GE);
+    istart += ncells;
+    npyra = ncells;
+    n3dcells += ncells;
+    H5Gclose(id);
+  }
+
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Prism6", H5P_DEFAULT) > 0)
+  {
+    id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Prism6", H5P_DEFAULT);
+    createGridElements(id, 14, "Prism6", istart, GE, ncells, bct, size, tagmap);
+    PyList_Append(children4, GE); Py_DECREF(GE);
+    istart += ncells;
+    npenta = ncells;
+    n3dcells += ncells;
+    H5Gclose(id);
+  }
+
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Hexa8", H5P_DEFAULT) > 0)
+  {
+    id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Hexa8", H5P_DEFAULT);
+    createGridElements(id, 17, "Hexa8", istart, GE, ncells, bct, size, tagmap);
+    PyList_Append(children4, GE); Py_DECREF(GE);
+    istart += ncells;
+    nhexa = ncells;
+    n3dcells += ncells;
+    H5Gclose(id);
+  }
+
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Tri3", H5P_DEFAULT) > 0)
+  {
+    id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Tri3", H5P_DEFAULT);
+    createGridElements(id, 5, "Tri3", istart, GE, ncells, bct, size, tagmap);
+    PyList_Append(children4, GE); Py_DECREF(GE);
+    istart += ncells;
+    ntri = ncells;
+    H5Gclose(id);
+  }
+
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Quad4", H5P_DEFAULT) > 0)
+  {
+    id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Quad4", H5P_DEFAULT);
+    createGridElements(id, 7, "Quad4", istart, GE, ncells, bct, size, tagmap);
+    PyList_Append(children4, GE); Py_DECREF(GE);
+    istart += ncells;
+    nquad = ncells;
+    H5Gclose(id);
+  }
+
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Poly3D", H5P_DEFAULT) > 0)
+  {
+    id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Poly3D", H5P_DEFAULT);
+    PyObject* NGON; PyObject* NFACE; E_Int nfaces;
+    createGridElementsNGon(id, istart, nvertex, NGON, NFACE, nfaces, ncells);
+    PyList_Append(children4, NGON); Py_DECREF(NGON);
+    PyList_Append(children4, NFACE); Py_DECREF(NFACE);
+    istart += ncells+nfaces;
+    npoly3d = ncells;
+    n3dcells += ncells;
+    H5Gclose(id);
+  }
+
+  /*
   while (id != -1)
   {
     id = chids[c]; char* name = names[c]; c++;
@@ -674,7 +831,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       if (strcmp(name, "Hexa8") == 0) 
       { 
         createGridElements(id, 17, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_INCREF(GE);
+        PyList_Append(children4, GE); Py_DECREF(GE);
         istart += ncells;
         nhexa = ncells;
         n3dcells += ncells;
@@ -682,7 +839,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       else if (strcmp(name, "Prism6") == 0) 
       { 
         createGridElements(id, 14, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_INCREF(GE);
+        PyList_Append(children4, GE); Py_DECREF(GE);
         istart += ncells;
         npenta = ncells;
         n3dcells += ncells;
@@ -690,7 +847,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       else if (strcmp(name, "Tetra4") == 0) 
       { 
         createGridElements(id, 10, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_INCREF(GE);
+        PyList_Append(children4, GE); Py_DECREF(GE);
         istart += ncells;
         ntetra = ncells;
         n3dcells += ncells;
@@ -698,7 +855,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       else if (strcmp(name, "Pyra5") == 0) 
       { 
         createGridElements(id, 12, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_INCREF(GE);
+        PyList_Append(children4, GE); Py_DECREF(GE);
         istart += ncells;
         npyra = ncells;
         n3dcells += ncells;
@@ -706,14 +863,14 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       else if (strcmp(name, "Tri3") == 0)
       { 
         createGridElements(id, 5, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_INCREF(GE);
+        PyList_Append(children4, GE); Py_DECREF(GE);
         istart += ncells;
         ntri = ncells;
       }
       else if (strcmp(name, "Quad4") == 0) 
       { 
         createGridElements(id, 7, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_INCREF(GE);
+        PyList_Append(children4, GE); Py_DECREF(GE);
         istart += ncells;
         nquad = ncells;
       }
@@ -721,14 +878,16 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       { 
         PyObject* NGON; PyObject* NFACE; E_Int nfaces;
         createGridElementsNGon(id, istart, nvertex, NGON, NFACE, nfaces, ncells);
-        PyList_Append(children4, NGON); Py_INCREF(NGON);
-        PyList_Append(children4, NFACE); Py_INCREF(NFACE);
+        PyList_Append(children4, NGON); Py_DECREF(NGON);
+        PyList_Append(children4, NFACE); Py_DECREF(NFACE);
         istart += ncells+nfaces;
         npoly3d = ncells;
         n3dcells += ncells;
       }
     }
   }
+  */
+
   pp4[1] = n3dcells;
 
   // Add zoneBC
@@ -737,7 +896,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     // Create ZoneBC
     PyObject* children9 = PyList_New(0);
     PyObject* nzbc = Py_BuildValue("[sOOs]", "ZoneBC", Py_None, children9, "ZoneBC_t");
-    PyList_Append(children4, nzbc); Py_INCREF(nzbc);
+    PyList_Append(children4, nzbc); Py_DECREF(nzbc);
     
     // Build BCs
     char bcname[256]; char bctype[256];
@@ -757,7 +916,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       char* pp10 = (char*)PyArray_DATA(r10);
       K_STRING::cpy(pp10, bctype, npy_dim_vals[0], false);
       PyObject* bc = Py_BuildValue("[sOOs]", bcname, r10, children10, "BC_t");
-      PyList_Append(children9, bc); Py_INCREF(bc);
+      PyList_Append(children9, bc); Py_DECREF(bc);
       // Create point list
       npy_dim_vals[0] = 1;
       npy_dim_vals[1] = nfaces;
@@ -765,7 +924,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT64, 1);
       int64_t* pp11 = (int64_t*)PyArray_DATA(r11);
 #else
-      PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT, 1);
+      PyArrayObject* r11 = (PyArrayObject*)PyArray_EMPTY(2, &npy_dim_vals[0], NPY_INT32, 1);
       int32_t* pp11 = (int32_t*)PyArray_DATA(r11);
 #endif
       E_Int c = 0;
@@ -775,7 +934,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       }
       PyObject* children11 = PyList_New(0);
       PyObject* pl = Py_BuildValue("[sOOs]", "PointList", r11, children11, "IndexArray_t");
-      PyList_Append(children10, pl); Py_INCREF(pl);
+      PyList_Append(children10, pl); Py_DECREF(pl);
       // Create GridLocation
       npy_dim_vals[0] = 11;
       PyArrayObject* r12 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
@@ -783,7 +942,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       K_STRING::cpy(pp12, "FaceCenter", 11, false);
       PyObject* children12 = PyList_New(0);
       PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r12, children12, "GridLocation_t");
-      PyList_Append(children10, gl); Py_INCREF(gl);
+      PyList_Append(children10, gl); Py_DECREF(gl);
       // Create BC FamilyName
       PyObject* children13 = PyList_New(0);
       sprintf(bctype, "BCType%d", tag);
@@ -792,10 +951,10 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       char* pp13 = (char*)PyArray_DATA(r13);
       K_STRING::cpy(pp13, bctype, npy_dim_vals[0], false);
       PyObject* famName = Py_BuildValue("[sOOs]", "FamilyName", r13, children13, "FamilyName_t");
-      PyList_Append(children10, famName); Py_INCREF(famName);
+      PyList_Append(children10, famName); Py_DECREF(famName);
     }
     delete [] bct;
-  }
+  }  
 
   // Close nodes
   H5Gclose(uc);
@@ -1061,21 +1220,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   hid_t vhexa=0, vtetra=0, vpenta=0, vpyra=0, vtri=0, vquad=0; // connect dataset
   hid_t dhexa=0, dtetra=0, dpenta=0, dpyra=0, dtri=0, dquad=0; // connect dims
   hid_t mtri=0, mquad=0; // markers dataset
-  
-  if (nhexa > 0) // HEXA
-  {
-    gid = H5Gcreate(uc, "Hexa8", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    dims[0] = 1;
-    did = H5Screate_simple(1, dims, NULL);
-    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
-    int32_t numberOfCells = nhexa;
-    H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
-    H5Aclose(aid); H5Sclose(did);
-    dims[0] = nhexa; dims[1] = 8;
-    dhexa = H5Screate_simple(2, dims, NULL);
-    vhexa = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dhexa, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5Gclose(gid);
-  }
+
   if (ntetra > 0) // TETRA
   {
     gid = H5Gcreate(uc, "Tetra4", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -1088,6 +1233,20 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     dims[0] = ntetra; dims[1] = 4;
     dtetra = H5Screate_simple(2, dims, NULL);
     vtetra = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dtetra, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Gclose(gid);
+  }
+  if (npyra > 0) // PYRA
+  {
+    gid = H5Gcreate(uc, "Pyra5", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dims[0] = 1;
+    did = H5Screate_simple(1, dims, NULL);
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+    int32_t numberOfCells = npyra;
+    H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+    H5Aclose(aid); H5Sclose(did);
+    dims[0] = npyra; dims[1] = 5;
+    dpyra = H5Screate_simple(2, dims, NULL);
+    vpyra = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dpyra, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Gclose(gid);
   }
   if (npenta > 0) // PENTA
@@ -1104,18 +1263,18 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     vpenta = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dpenta, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Gclose(gid);
   }
-  if (npyra > 0) // PYRA
+  if (nhexa > 0) // HEXA
   {
-    gid = H5Gcreate(uc, "Pyra5", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    gid = H5Gcreate(uc, "Hexa8", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
-    int32_t numberOfCells = npyra;
+    int32_t numberOfCells = nhexa;
     H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
     H5Aclose(aid); H5Sclose(did);
-    dims[0] = npyra; dims[1] = 5;
-    dpyra = H5Screate_simple(2, dims, NULL);
-    vpyra = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dpyra, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dims[0] = nhexa; dims[1] = 8;
+    dhexa = H5Screate_simple(2, dims, NULL);
+    vhexa = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dhexa, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Gclose(gid);
   }
   if (ntri > 9) // TRI
@@ -1692,6 +1851,48 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     delete [] marker;
   }
 
+  // Mapping cellType to index
+  /*
+  gid = H5Gcreate(uc, "MappingCellType2Index", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  dims[0] = 1;
+  did = H5Screate_simple(1, dims, NULL);
+  aid = H5Acreate(gid, "Node", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+  int32_t value = 0;
+  H5Awrite(aid, H5T_NATIVE_INT, &value);
+  H5Aclose(aid); H5Sclose(did);
+
+  for (size_t i = 0; i < connects.size(); i++)
+  {
+    E_Int* cv = K_PYTREE::getValueAI(connects[i], hook);
+    E_Int eltType = cv[0];
+    if (eltType == 17) // HEXA
+    { strcpy(name, "Hexa8"); }
+    else if (eltType == 10) // TETRA
+    { strcpy(name, "Tetra4"); }
+    else if (eltType == 14) // PENTA
+    { strcpy(name, "Prism6"); }
+    else if (eltType == 12) // PYRA
+    { strcpy(name, "Pyra5"); }
+    else if (eltType == 5) // TRI
+    { strcpy(name, "Tri3"); }
+    else if (eltType == 7) // QUADS
+    { strcpy(name, "Quad7"); }
+    else if (eltType == 22) // NGON
+    { strcpy(name, "Poly3D"); }
+    else if (eltType == 23) // NFACE
+    { strcpy(name, "Poly2D"); }
+    else strcpy(name, "Unknown");
+
+    dims[0] = 1;
+    did = H5Screate_simple(1, dims, NULL);
+    aid = H5Acreate(gid, name, H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+    int32_t value = i;
+    H5Awrite(aid, H5T_NATIVE_INT, &value);
+    H5Aclose(aid); H5Sclose(did);
+  }
+  H5Gclose(gid);
+  */
+ 
   // Name of cell attribute values
   gid = H5Gcreate(uc, "NamesOfCellAttributeValues", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   gid2 = H5Gcreate(gid, "CADGroupID", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);

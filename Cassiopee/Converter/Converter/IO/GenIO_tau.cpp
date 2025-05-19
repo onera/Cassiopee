@@ -76,12 +76,12 @@ E_Int createGridElements4Tau(E_Int eltType, const char* name, E_Int ncells, E_In
   pp2[0] = istart; pp2[1] = istart+ncells-1;
   PyObject* children2 = PyList_New(0);
   PyObject* er = Py_BuildValue("[sOOs]", "ElementRange", r2, children2, "IndexRange_t");
-  PyList_Append(children1, er); Py_INCREF(er);
+  PyList_Append(children1, er); Py_DECREF(er);
 
   // Element connectivity
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", rc, children3, "DataArray_t");
-  PyList_Append(children1, ec); Py_INCREF(ec);
+  PyList_Append(children1, ec); Py_DECREF(ec);
 
   return 0;
 }
@@ -377,7 +377,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   float* pf2 = (float*)PyArray_DATA(r2);
   pf2[0] = 4.0;
   PyObject* version = Py_BuildValue("[sOOs]", "CGNSLibraryVersion", (PyObject*)r2, children2, "CGNSLibraryVersion_t");
-  PyList_Append(children1, version); Py_INCREF(version);
+  PyList_Append(children1, version); Py_DECREF(version);
   
   // Create Base
   npy_dim_vals[0] = 2;
@@ -391,7 +391,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   pp3[0] = 3; pp3[1] = 3;
   PyObject* children3 = PyList_New(0);
   PyObject* base = Py_BuildValue("[sOOs]", "Base", r3, children3, "CGNSBase_t");
-  PyList_Append(children1, base); Py_INCREF(base);
+  PyList_Append(children1, base); Py_DECREF(base);
   
   // Create Zone
   npy_dim_vals[0] = 1; npy_dim_vals[1] = 3;
@@ -405,7 +405,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   pp4[0] = 0; pp4[1] = 0; pp4[2] = 0;
   PyObject* children4 = PyList_New(0);
   PyObject* zone = Py_BuildValue("[sOOs]", "Zone", r4, children4, "Zone_t");
-  PyList_Append(children3, zone); Py_INCREF(zone);
+  PyList_Append(children3, zone); Py_DECREF(zone);
   
   // Create ZoneType
   PyObject* children9 = PyList_New(0);
@@ -414,68 +414,68 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
   char* pp9 = (char*)PyArray_DATA(r9);
   K_STRING::cpy(pp9, "Unstructured", 12, false);
   PyObject* zoneType = Py_BuildValue("[sOOs]", "ZoneType", r9, children9, "ZoneType_t");
-  PyList_Append(children4, zoneType); Py_INCREF(zoneType);
+  PyList_Append(children4, zoneType); Py_DECREF(zoneType);
   
   // Create GridCoordinates
   PyObject* children5 = PyList_New(0);
   PyObject* GC = Py_BuildValue("[sOOs]", "GridCoordinates", Py_None, children5, "GridCoordinates_t");
-  PyList_Append(children4, GC); Py_INCREF(GC);
+  PyList_Append(children4, GC); Py_DECREF(GC);
   
   // CoordinateX
   PyObject* children6 = PyList_New(0);
   PyObject* nxc = Py_BuildValue("[sOOs]", "CoordinateX", xc, children6, "DataArray_t");
-  PyList_Append(children5, nxc); Py_INCREF(nxc);
+  PyList_Append(children5, nxc); Py_DECREF(nxc);
 
   // CoordinateY
   PyObject* children7 = PyList_New(0);
   PyObject* nyc = Py_BuildValue("[sOOs]", "CoordinateY", yc, children7, "DataArray_t");
-  PyList_Append(children5, nyc); Py_INCREF(nyc);
+  PyList_Append(children5, nyc); Py_DECREF(nyc);
 
   // CoordinateZ
   PyObject* children8 = PyList_New(0);
   PyObject* nzc = Py_BuildValue("[sOOs]", "CoordinateZ", zc, children8, "DataArray_t");
-  PyList_Append(children5, nzc); Py_INCREF(nzc);
+  PyList_Append(children5, nzc); Py_DECREF(nzc);
 
   // Create GridElements
   PyObject* GE; E_Int istart=1;
   if (hexa != NULL) 
   {
     createGridElements4Tau(17, "HEXA", nhexa, istart, hexa, GE);
-    PyList_Append(children4, GE); Py_INCREF(GE);
+    PyList_Append(children4, GE); Py_DECREF(GE);
     istart += nhexa;
     ncells += nhexa;
   }
   if (tetra != NULL) 
   {
     createGridElements4Tau(10, "TETRA", ntetra, istart, tetra, GE);
-    PyList_Append(children4, GE); Py_INCREF(GE);
+    PyList_Append(children4, GE); Py_DECREF(GE);
     istart += ntetra;
     ncells += ntetra;
   }
   if (penta != NULL) 
   {
     createGridElements4Tau(14, "PENTA", npenta, istart, penta, GE);
-    PyList_Append(children4, GE); Py_INCREF(GE);
+    PyList_Append(children4, GE); Py_DECREF(GE);
     istart += npenta;
     ncells += npenta;
   }
   if (pyra != NULL) 
   {
     createGridElements4Tau(12, "PYRA", npyra, istart, pyra, GE);
-    PyList_Append(children4, GE); Py_INCREF(GE);
+    PyList_Append(children4, GE); Py_DECREF(GE);
     istart += npyra;
     ncells += npyra;
   }
   if (tri != NULL) 
   {
     createGridElements4Tau(5, "TRI", ntri, istart, tri, GE);
-    PyList_Append(children4, GE); Py_INCREF(GE);
+    PyList_Append(children4, GE); Py_DECREF(GE);
     istart += ntri;
   }
   if (quad != NULL) 
   {
     createGridElements4Tau(7, "QUAD", nquad, istart, quad, GE);
-    PyList_Append(children4, GE); Py_INCREF(GE);
+    PyList_Append(children4, GE); Py_DECREF(GE);
     istart += nquad;
   }
   if (bctag != NULL)
@@ -483,7 +483,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
     // Create ZoneBC
     PyObject* children9 = PyList_New(0);
     PyObject* nzbc = Py_BuildValue("[sOOs]", "ZoneBC", Py_None, children9, "ZoneBC_t");
-    PyList_Append(children4, nzbc); Py_INCREF(nzbc);
+    PyList_Append(children4, nzbc); Py_DECREF(nzbc);
 
     // Build PL corresponding to tags
     size_t size = ntri+nquad;
@@ -510,7 +510,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       char* pp10 = (char*)PyArray_DATA(r10);
       K_STRING::cpy(pp10, bctype, strlen(bctype), false);
       PyObject* bc = Py_BuildValue("[sOOs]", bcname, r10, children10, "BC_t");
-      PyList_Append(children9, bc); Py_INCREF(bc);
+      PyList_Append(children9, bc); Py_DECREF(bc);
       // Create point list
       npy_dim_vals[0] = 1;
       npy_dim_vals[1] = nfaces;
@@ -528,7 +528,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       }
       PyObject* children11 = PyList_New(0);
       PyObject* pl = Py_BuildValue("[sOOs]", "PointList", r11, children11, "IndexArray_t");
-      PyList_Append(children10, pl); Py_INCREF(pl);
+      PyList_Append(children10, pl); Py_DECREF(pl);
       // Create GridLocation
       npy_dim_vals[0] = 10;
       PyArrayObject* r12 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
@@ -536,7 +536,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       K_STRING::cpy(pp12, "FaceCenter", 10, false);
       PyObject* children12 = PyList_New(0);
       PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r12, children12, "GridLocation_t");
-      PyList_Append(children10, gl); Py_INCREF(gl);
+      PyList_Append(children10, gl); Py_DECREF(gl);
       // Create BC FamilyName
       PyObject* children13 = PyList_New(0);
       sprintf(bctype, "BCType" SF_D_, tag);
@@ -545,7 +545,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
       char* pp13 = (char*)PyArray_DATA(r13);
       K_STRING::cpy(pp13, bctype, strlen(bctype), false);
       PyObject* famName = Py_BuildValue("[sOOs]", "FamilyName", r13, children13, "FamilyName_t");
-      PyList_Append(children10, famName); Py_INCREF(famName);
+      PyList_Append(children10, famName); Py_DECREF(famName);
     }
   }
 
