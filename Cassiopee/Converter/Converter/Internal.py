@@ -4479,46 +4479,46 @@ def _adaptNGon32NGon4(t, shiftPE=True):
 
 # -- adaptSurfaceNGon
 def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
-    """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
-    to (B: NGON=polygon, NFACE=NULL), or vice versa.
-    """
-    # add NFace node if necessary
+  """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
+  to (B: NGON=polygon, NFACE=NULL), or vice versa.
+  """
+  # add NFace node if necessary
+  for z in getZones(a):
+    nFace = getNodeFromName(z, 'NFaceElements')
+    if nFace is None:
+      nGon = getNodeFromName(z, 'NGonElements')
+      offset = getNodeFromName(nGon, 'ElementStartOffset')
+      api = 3 if offset is not None else 2
+      rnGon = getNodeFromName(nGon, 'ElementRange')[1]
+
+      nface = createNode('NFaceElements', 'Elements_t', parent=z,
+                         value=numpy.array([23,0],
+                                           dtype=E_NpyInt, order='F'))
+
+      value = numpy.array([rnGon[1]+1, rnGon[1]+1],
+                          dtype=E_NpyInt, order='F')
+      createNode('ElementRange', 'IndexRange_t',
+                 parent=nface, value=value)
+      value = numpy.array([], dtype=E_NpyInt, order='F')
+      createNode('ElementConnectivity', 'DataArray_t',
+                 parent=nface, value=value)
+      if api == 3:
+        value = numpy.array([0], dtype=E_NpyInt, order='F')
+      else: value =  numpy.array([], dtype=E_NpyInt, order='F')
+      createNode('ElementStartOffset', 'DataArray_t',
+                 parent=nface, value=value)
+
+  import Converter.PyTree as C
+  import Converter
+  a = C.TZGC3(a, 'nodes', True, Converter.adaptSurfaceNGon)
+
+  if rmEmptyNFaceElements:
     for z in getZones(a):
-        nFace = getNodeFromName(z, 'NFaceElements')
-        if nFace is None:
-            nGon = getNodeFromName(z, 'NGonElements')
-            offset = getNodeFromName(nGon, 'ElementStartOffset')
-            api = 3 if offset is not None else 2
-            rnGon = getNodeFromName(nGon, 'ElementRange')[1]
+      nFace = getNodeFromName(z, 'NFaceElements')
+      cnFace = getNodeFromName(nFace, 'ElementConnectivity')[1]
+      if cnFace.size == 0: _rmNodesByName(z, 'NFaceElements')
 
-            nface = createNode('NFaceElements', 'Elements_t', parent=z,
-                                value=numpy.array([23,0],
-                                dtype=E_NpyInt, order='F'))
-
-            value = numpy.array([rnGon[1]+1, rnGon[1]+1],
-                                dtype=E_NpyInt, order='F')
-            createNode('ElementRange', 'IndexRange_t',
-                        parent=nface, value=value)
-            value = numpy.array([], dtype=E_NpyInt, order='F')
-            createNode('ElementConnectivity', 'DataArray_t',
-                        parent=nface, value=value)
-            if api == 3:
-                value = numpy.array([0], dtype=E_NpyInt, order='F')
-            else: value =  numpy.array([], dtype=E_NpyInt, order='F')
-            createNode('ElementStartOffset', 'DataArray_t',
-                        parent=nface, value=value)
-
-    import Converter.PyTree as C
-    import Converter
-    a = C.TZGC3(a, 'nodes', True, Converter.adaptSurfaceNGon)
-
-    if rmEmptyNFaceElements:
-        for z in getZones(a):
-            nFace = getNodeFromName(z, 'NFaceElements')
-            cnFace = getNodeFromName(nFace, 'ElementConnectivity')[1]
-            if cnFace.size == 0: _rmNodesByName(z, 'NFaceElements')
-
-    return a
+  return a
 
 # -- Adapte une condition aux limites definies par faces en conditions aux
 # limites definies avec une BCC

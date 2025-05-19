@@ -36,7 +36,7 @@ __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2',
            'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
            'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
            'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity',
-           'adaptSurfaceNGon', 
+           'adaptSurfaceNGon',
            '_signNGonFaces', '_unsignNGonFaces', 'makeParentElements']
 
 # -- Create an array --

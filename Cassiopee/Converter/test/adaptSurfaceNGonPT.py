@@ -14,4 +14,3 @@ Internal.printTree(b)
 # Back to type A
 c = Internal.adaptSurfaceNGon(b)
 Internal.printTree(c)
-
