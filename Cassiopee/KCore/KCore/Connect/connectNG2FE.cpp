@@ -53,7 +53,7 @@ void K_CONNECT::connectNG2FE(FldArrayI& cNG, FldArrayI& cFE)
     E_Int* elt = cNG.getElt(i, nf, nface, indPH);
     for (E_Int j = 0; j < nf; j++)
     {
-      face = elt[j]-1;
+      face = std::abs(elt[j])-1;
       if (facesp1[face] == 0) facesp1[face] = i+1;
       else facesp2[face] = i+1;
     }

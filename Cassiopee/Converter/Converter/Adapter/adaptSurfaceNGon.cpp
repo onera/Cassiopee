@@ -29,7 +29,7 @@ using namespace std;
 /* if INPUT is a NGON=bars, NFACE=polygon (Type A) -> OUTPUT is NGON=polygon, NFACE=NULL (Type B)
    if INPUT is NGON=polygon, NFACE=NULL (Type B) -> OUTPUT a NGON=bars, NFACE=polygon (Type A) */
 //=============================================================================
-PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
+PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
 {
   PyObject* o; 
   if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
@@ -76,7 +76,7 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
     E_Int sizeNGonA = 0;
     E_Int sizeNFaceA = sizeNGon;
     #ifdef PRINTINFO
-    printf("Info: convertSurfaceNGon: convert type B to type A\n");
+    printf("Info: adaptSurfaceNGon: convert type B to type A\n");
     #endif
     // Initialize sizeNGonA & sizeNFaceA
     std::set<vector<E_Int>> ngonSetsA;
@@ -106,8 +106,8 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
 
     // TYPE B
     #ifdef PRINTINFO
-    printf("Info: convertSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
-    printf("Info: convertSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
+    printf("Info: adaptSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
+    printf("Info: adaptSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
     #endif
     tpl = K_ARRAY::buildArray3(f->getNfld(), varString, f->getSize(), neltsA, nfacesA, 
                                "NGON", sizeNGonA, sizeNFaceA, isNGon, false, 3);
@@ -122,8 +122,8 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
 
     // TYPE A
     #ifdef PRINTINFO
-    printf("Info: convertSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfacesA, neltsA);
-    printf("Info: conertSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGonA, sizeNFaceA);
+    printf("Info: adaptSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfacesA, neltsA);
+    printf("Info: adaptSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGonA, sizeNFaceA);
     #endif
     // fill ngonA
     E_Int shiftNGonA = 0;
@@ -205,9 +205,9 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
 
     // TYPE A
     #ifdef PRINTINFO
-    printf("Info: convertSurfaceNGon: convert type A to type B\n");
-    printf("Info: convertSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
-    printf("Info: convertSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
+    printf("Info: adaptSurfaceNGon: convert type A to type B\n");
+    printf("Info: adaptSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
+    printf("Info: adaptSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
     #endif
     tpl = K_ARRAY::buildArray3(f->getNfld(), varString, f->getSize(), neltsB, nfacesB, 
                                "NGON", sizeNGonB, sizeNFaceB, isNGon, false, 3);
@@ -220,8 +220,8 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
 
     // TYPE B
     #ifdef PRINTINFO
-    printf("Info: convertSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfacesB, neltsB);
-    printf("Info: convertSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGonB, sizeNFaceB);
+    printf("Info: adaptSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfacesB, neltsB);
+    printf("Info: adaptSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGonB, sizeNFaceB);
     #endif
     // fill indPGB & ngonB
     E_Int shift = 0;

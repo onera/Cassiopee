@@ -248,6 +248,8 @@ List of functions
     Converter.Internal.adaptNGon42NGon3
     Converter.Internal.adaptNFace2PE
     Converter.Internal.adaptPE2NFace
+    Converter.adaptSurfaceNGon
+    
 
 Contents
 #########
@@ -3199,6 +3201,25 @@ Adapt NGON meshes
     .. literalinclude:: ../build/Examples/Converter/adaptPE2NFacePT.py
 
 ---------------------------------------------------------------------------
+
+.. py:function:: Internal.adaptSurfaceNGon(a, rmEmptyNFaceElements=True)
+
+    Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
+    to (B: NGON=polygon, NFACE=NULL), or vice versa.
+
+    :param a: input data (NGON)
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param rmEmptyNFaceElements: if True, remove all empty NFaceElements nodes from the zones.
+    :type tol: boolean
+    :rtype: Identical to input
+
+    *Example of use:*
+
+    * `NGON surface mesh adaptation (pyTree) <Examples/Converter/adaptSurfaceNGonPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptSurfaceNGonPT.py
+
+-----------------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 2   

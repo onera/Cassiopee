@@ -1,4 +1,4 @@
-# - convertSurfaceNGon (pyTree) -
+# - adaptSurfaceNGon (pyTree) -
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
@@ -10,11 +10,11 @@ import KCore.test as test
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,1), api=2)
 
 # type B : NGON=polygon, NFACE=NULL
-b = C.convertSurfaceNGon(a)
+b = Internal.adaptSurfaceNGon(a)
 #test.testT(b, 1)
 
 # type A : NGON=bars, NFACE=polygon
-c = C.convertSurfaceNGon(b)
+c = Internal.adaptSurfaceNGon(b)
 test.testT(c, 2)
 
 ## NGon v4 ##############################
@@ -23,9 +23,9 @@ test.testT(c, 2)
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,1), api=3)
 
 # type B : NGON=polygon, NFACE=NULL
-b = C.convertSurfaceNGon(a)
+b = Internal.adaptSurfaceNGon(a)
 #test.testT(b, 3)
 
 # type A : NGON=bars, NFACE=polygon
-c = C.convertSurfaceNGon(b)
+c = Internal.adaptSurfaceNGon(b)
 test.testT(c, 4)

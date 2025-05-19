@@ -200,7 +200,6 @@ List of functions
     Converter.convertHO2LO
     Converter.convertLO2HO
     Converter.conformizeNGon
-    Converter.convertSurfaceNGon
     Converter.node2Center
     Converter.center2Node
     Converter.PyTree.addGhostCells
@@ -1696,26 +1695,6 @@ Array / PyTree common manipulations
     * `NGON mesh conformization (pyTree) <Examples/Converter/conformizeNGonPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/conformizeNGonPT.py
-
-
------------------------------------------------------------------------------------
-
-.. py:function:: Converter.convertSurfaceNGon(a, rmEmptyNFaceElements=True)
-
-    Convert a surface NGon from (A: NGON=bars, NFACE=polygon)
-    to (B: NGON=polygon, NFACE=NULL), or vice versa.
-
-    :param a: input data (NGON)
-    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param rmEmptyNFaceElements: if True, remove all empty NFaceElements nodes from the zones.
-    :type tol: boolean
-    :rtype: Identical to input
-
-    *Example of use:*
-
-    * `NGON surface mesh conversion (pyTree) <Examples/Converter/convertSurfaceNGonPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/convertSurfaceNGonPT.py
 
 
 -----------------------------------------------------------------------------------

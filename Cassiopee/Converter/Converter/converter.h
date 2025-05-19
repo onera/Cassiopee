@@ -159,7 +159,7 @@ namespace K_CONVERTER
   PyObject* signNGonFaces(PyObject* self, PyObject* args);
   PyObject* unsignNGonFaces(PyObject* self, PyObject* args);
   PyObject* makeParentElements(PyObject* self, PyObject* args);
-  PyObject* convertSurfaceNGon(PyObject* self, PyObject* args);
+  PyObject* adaptSurfaceNGon(PyObject* self, PyObject* args);
   PyObject* adaptBCFace2BCC(PyObject* self, PyObject* args);
   PyObject* adaptBCC2BCFace(PyObject* self, PyObject* args);
   PyObject* adaptNGon42NGon3(PyObject* self, PyObject* args);

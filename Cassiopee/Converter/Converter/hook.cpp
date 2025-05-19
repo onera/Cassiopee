@@ -866,7 +866,7 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
         for (E_Int n = 0; n < nf; n++)
         { 
           // Acces universel face elem[n]-1
-          E_Int* face = cnl->getFace(elem[n]-1, nv, ngon, indPG);
+          E_Int* face = cnl->getFace(std::abs(elem[n])-1, nv, ngon, indPG);
           #ifdef QUADDOUBLE
           for (E_Int p = 0; p < nv; p++)
           {
