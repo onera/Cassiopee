@@ -63,7 +63,7 @@ static herr_t feed_children_names(hid_t id, const char* name,
 /* ------------------------------------------------------------------------- */
 // Create GridElement node for basic elements connectivity
 /* ------------------------------------------------------------------------- */
-E_Int createGridElements(hid_t id, E_Int eltType, char* name, E_Int istart, PyObject*& GE, E_Int& ncells, 
+E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart, PyObject*& GE, E_Int& ncells, 
   int32_t*& bct, E_Int& size, std::map<E_Int, E_Int>& tagmap)
 {
   // Get ncells from id
@@ -1040,27 +1040,51 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   hid_t coord = H5Gcreate(ds, "Coordinates", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   dims[0] = 1;
   did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+  aid = H5Acreate(coord, "NumberOfCellTypes", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+  int64_t numberOfCellTypes = 1;
+  H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCellTypes);
+#else
   aid = H5Acreate(coord, "NumberOfCellTypes", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
   int32_t numberOfCellTypes = 1;
   H5Awrite(aid, H5T_NATIVE_INT, &numberOfCellTypes);
+#endif
   H5Aclose(aid); H5Sclose(did);
   dims[0] = 1;
   did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+  aid = H5Acreate(coord, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+  int64_t numberOfCells = nvertex;
+  H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
   aid = H5Acreate(coord, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
   int32_t numberOfCells = nvertex;
   H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
   H5Aclose(aid); H5Sclose(did);
   dims[0] = 1;
   did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+  aid = H5Acreate(coord, "NumberOfVariables", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+  int64_t numberOfVariables = 3;
+  H5Awrite(aid, H5T_NATIVE_INT64, &numberOfVariables);
+#else
   aid = H5Acreate(coord, "NumberOfVariables", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
   int32_t numberOfVariables = 3;
   H5Awrite(aid, H5T_NATIVE_INT, &numberOfVariables);
+#endif
   H5Aclose(aid); H5Sclose(did);
   dims[0] = 1;
   did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+  aid = H5Acreate(coord, "SpansAllCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+  int64_t span = 1;
+  H5Awrite(aid, H5T_NATIVE_INT64, &span);
+#else
   aid = H5Acreate(coord, "SpansAllCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
   int32_t span = 1;
   H5Awrite(aid, H5T_NATIVE_INT, &span);
+#endif
   H5Aclose(aid); H5Sclose(did);
 
   // Create CellType0
@@ -1156,9 +1180,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   H5Gclose(coord); H5Gclose(ds);
 
   // Write AugmentedState
-  PyObject* gc = K_PYTREE::getNodeFromName1(zone, "FlowSolution#Centers");
-  if (gc != NULL)
-  { /* a finir */}
+  PyObject* FS = K_PYTREE::getNodeFromName1(zone, "FlowSolution#Centers");
+  if (FS != NULL)
+  { /* a finir */
+
+  }
 
   // Write Node
   gid = H5Gcreate(uc, "Node", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
