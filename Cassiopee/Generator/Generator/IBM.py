@@ -1154,7 +1154,7 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
 #==============================================================================
 #
 #==============================================================================
-def createRefinementBodies(tb, dimPb=3, hmod=0.01, pointsPerUnitLength=None):
+def createRefinementBodies(tb, dimPb=3, hmod=0.01, hmax=None, pointsPerUnitLength=None):
     """Creates refinement bodies from the immersed boundaries to extend the finest resolution in the fluid domain."""
     import Geom.IBM as D_IBM
     import Geom.Offset as O
@@ -1168,13 +1168,14 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01, pointsPerUnitLength=None):
     tb = Internal.rmNodesFromName(tb, "SYM")
     tb = Internal.rmNodesFromName(tb, "*_sym")
 
-    snears    = Internal.getNodesFromName(tb, 'snear')
-    h         = min(snears, key=lambda x: x[1])[1][0]
+    if hmax is None:
+        snears = Internal.getNodesFromName(tb, 'snear')
+        hmax   = min(snears, key=lambda x: x[1])[1][0]
 
     for z in Internal.getZones(tb):
         snear = Internal.getNodeFromName(z, 'snear')[1]
         zname = z[0]
-        if snear <= 1.5*h:
+        if snear <= 1.5*hmax:
             if dimPb == 2:
                 z2 = D_IBM.closeContour(z)
             else:
