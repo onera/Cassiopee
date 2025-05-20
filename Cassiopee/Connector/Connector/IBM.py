@@ -2376,8 +2376,8 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             snearl = xt[1]-xt[0]
             if twoFronts: snearl *= 2
             listOfSnearsLoc.append(snearl)
-            
-            if frontType == 42: 
+
+            if frontType == 42:
                 hmod = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
                 if twoFronts: hmod *= 2
                 listOfModelisationHeightsLoc.append(hmod)
@@ -2404,8 +2404,8 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             snearl = xt[1]-xt[0]
             if twoFronts: snearl *= 2
             listOfSnearsLoc.append(snearl)
-            
-            if frontType == 42: 
+
+            if frontType == 42:
                 hmod = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
                 if twoFronts: hmod *= 2
                 listOfModelisationHeightsLoc.append(hmod)
