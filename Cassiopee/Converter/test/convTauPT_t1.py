@@ -72,9 +72,7 @@ for c, e  in enumerate(ext):
         for r in res: C._addBC2Zone(m, 'far4', 'BCFarfield', subzone=r)
 
 #C.convertPyTree2File(m, 'mesh.cgns')
+C.convertPyTree2File(m, 'out.grid')
+t = C.convertFile2PyTree('out.grid')
 
-#C.convertPyTree2File(m, 'out.grid')
-
-#t = C.convertFile2PyTree('out.grid')
-
-#test.testT(t, 1)
+test.testT(t, 1)

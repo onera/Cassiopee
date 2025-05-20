@@ -7333,7 +7333,8 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
         if len(zones) > 1:
             # Merge all BE connectivities within z1
             return _mergeConnectivities(zones, boundary, shared)
-        else: return z1
+        else:
+            return z1
 
     # Analyse zone z2
     dims = Internal.getZoneDim(z2)
@@ -8098,7 +8099,7 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
             namebc = split[0]
             bctype = split[-1]
 
-            if len(split)>2:
+            if len(split) > 2:
                 for nosuff in range(1,len(split)-1): namebc+='-%s'%(split[nosuff])
 
             ebc = Internal.getNodeFromName1(z, namebc)
@@ -8130,7 +8131,7 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
     importG = False
     try:
         import Generator.PyTree as G
-        tb = G.close(tb,tol=1e-6)
+        tb = G.close(tb, tol=1e-6)
         importG = True
     except:
         pass
@@ -8185,19 +8186,19 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
             if bcname not in dictOfBCsPerBCName:
                 dictOfBCsPerBCName[bcname]=[zs]
             else:
-                #check connect
-                zsref=dictOfBCsPerBCName[bcname][0]
-                ecref = Internal.getNodeFromType(zsref,'Elements_t')
-                ecref = Internal.getNodeFromName(ecref,'ElementConnectivity')
+                # check connect
+                zsref = dictOfBCsPerBCName[bcname][0]
+                ecref = Internal.getNodeFromType(zsref, 'Elements_t')
+                ecref = Internal.getNodeFromName(ecref, 'ElementConnectivity')
                 ecref = Internal.getValue(ecref)
                 # to compare with
-                ec = Internal.getNodeFromType(zs,'Elements_t')
-                ec = Internal.getNodeFromName(ec,'ElementConnectivity')
+                ec = Internal.getNodeFromType(zs, 'Elements_t')
+                ec = Internal.getNodeFromName(ec, 'ElementConnectivity')
                 ec = Internal.getValue(ec)
                 if not numpy.array_equal(ecref, ec):
                     dictOfBCsPerBCName[bcname].append(zs)
                 else:
-                    print("WARNING: deux BCs identiques : %s : %s et %s !"%(bcname, zsref[0], zs[0]))
+                    print("WARNING: deux BCs identiques: %s : %s et %s !"%(bcname, zsref[0], zs[0]))
 
         for noz, z in enumerate(Internal.getZones(a)):
             AllBCs = []; AllBCNames = []; AllBCTypes = []

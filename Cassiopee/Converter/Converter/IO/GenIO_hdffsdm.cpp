@@ -241,7 +241,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   // Check total number of faces and number of faces per element * number of elts
   E_Int size1 = 0;
   for (E_Int i = 0; i < size; i++) size1 += c2fc[i];
-  printf("total number of faces by elements: " SF_D_ "\n", size1);
+  //printf("total number of faces by elements: " SF_D_ "\n", size1);
 
   // read face2nodecounts (face -> node cell indirect)  
   did = H5Dopen2(id, "Face2NodeCounts", H5P_DEFAULT);
@@ -259,7 +259,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   mid = H5S_ALL;
   E_Int* f2nc = new E_Int [nfaces];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2nc);
-  printf("number of faces (duplicated): " SF_D_ "\n", nfaces);
+  //printf("number of faces (duplicated): " SF_D_ "\n", nfaces);
 
   // read face2node (face -> node cell indirect from elt)
   did = H5Dopen2(id, "Face2NodeList", H5P_DEFAULT);
@@ -661,7 +661,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     E_Int ncells = 0;
     H5Aread(aid, H5T_NATIVE_INT, &ncells);
     H5Aclose(aid);
-    printf("nvars = %d, ncells=%d\n", nvars, ncells);
+    //printf("nvars = %d, ncells=%d\n", nvars, ncells);
 
     dims[0] = ncells; dims[1] = nvars;
     did = H5Screate_simple(2, dims, NULL);
@@ -1155,6 +1155,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   delete [] data;
   H5Gclose(coord); H5Gclose(ds);
 
+  // Write AugmentedState
+  PyObject* gc = K_PYTREE::getNodeFromName1(zone, "FlowSolution#Centers");
+  if (gc != NULL)
+  { /* a finir */}
+
   // Write Node
   gid = H5Gcreate(uc, "Node", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   dims[0] = 1;
@@ -1226,13 +1231,23 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     gid = H5Gcreate(uc, "Tetra4", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    int64_t numberOfCells = ntetra;
+    H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     int32_t numberOfCells = ntetra;
     H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
     H5Aclose(aid); H5Sclose(did);
     dims[0] = ntetra; dims[1] = 4;
     dtetra = H5Screate_simple(2, dims, NULL);
+#ifdef E_DOUBLEINT
+    vtetra = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT64, dtetra, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#else
     vtetra = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dtetra, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#endif
     H5Gclose(gid);
   }
   if (npyra > 0) // PYRA
@@ -1240,13 +1255,23 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     gid = H5Gcreate(uc, "Pyra5", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+    int64_t numberOfCells = npyra;
+    H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     int32_t numberOfCells = npyra;
     H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
     H5Aclose(aid); H5Sclose(did);
     dims[0] = npyra; dims[1] = 5;
     dpyra = H5Screate_simple(2, dims, NULL);
+#ifdef E_DOUBLEINT
+    vpyra = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT64, dpyra, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#else
     vpyra = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dpyra, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#endif
     H5Gclose(gid);
   }
   if (npenta > 0) // PENTA
@@ -1254,13 +1279,23 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     gid = H5Gcreate(uc, "Prism6", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    int64_t numberOfCells = npenta;
+    H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     int32_t numberOfCells = npenta;
     H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
     H5Aclose(aid); H5Sclose(did);
     dims[0] = npenta; dims[1] = 6;
     dpenta = H5Screate_simple(2, dims, NULL);
+#ifdef E_DOUBLEINT
+    vpenta = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT64, dpenta, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#else
     vpenta = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dpenta, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#endif
     H5Gclose(gid);
   }
   if (nhexa > 0) // HEXA
@@ -1268,13 +1303,23 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     gid = H5Gcreate(uc, "Hexa8", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    int64_t numberOfCells = nhexa;
+    H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     int32_t numberOfCells = nhexa;
     H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
     H5Aclose(aid); H5Sclose(did);
     dims[0] = nhexa; dims[1] = 8;
     dhexa = H5Screate_simple(2, dims, NULL);
+#ifdef E_DOUBLEINT
+    vhexa = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT64, dhexa, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#else
     vhexa = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dhexa, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#endif
     H5Gclose(gid);
   }
   if (ntri > 9) // TRI
@@ -1282,13 +1327,23 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     gid = H5Gcreate(uc, "Tri3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    int64_t numberOfCells = ntri;
+    H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     int32_t numberOfCells = ntri;
     H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
     H5Aclose(aid); H5Sclose(did);
     dims[0] = ntri; dims[1] = 3;
     dtri = H5Screate_simple(2, dims, NULL);
+#ifdef E_DOUBLEINT
+    vtri = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT64, dtri, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#else
     vtri = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dtri, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#endif
     gid2 = H5Gcreate(gid, "CellAttributes", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = ntri;
     did = H5Screate_simple(1, dims, NULL);
@@ -1300,13 +1355,23 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     gid = H5Gcreate(uc, "Quad4", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    int64_t numberOfCells = nquad;
+    H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     int32_t numberOfCells = nquad;
     H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
     H5Aclose(aid); H5Sclose(did);
     dims[0] = nquad; dims[1] = 4;
     dquad = H5Screate_simple(2, dims, NULL);
+#ifdef E_DOUBLEINT
+    vquad = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT64, dquad, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#else
     vquad = H5Dcreate(gid, "Cell2Node", H5T_NATIVE_INT, dquad, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+#endif
     hid_t gid2 = H5Gcreate(gid, "CellAttributes", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = nquad;
     did = H5Screate_simple(1, dims, NULL);
@@ -1352,7 +1417,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     else if (eltType == 23) // NFACE
     { size = 0; }
     
-    int32_t* ecv2 = new int32_t [size];
+    E_Int* ecv2 = new E_Int [size];
     for (E_Int j = 0; j < size; j++) ecv2[j] = ecv[j]-1;
 
     if (eltType == 17) // HEXA
@@ -1363,7 +1428,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       hid_t sid = H5Scopy(dhexa);     
       H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
       hid_t memspace = H5Screate_simple(2, scount, NULL);
+#ifdef E_DOUBLEINT
+      H5Dwrite(vhexa, H5T_NATIVE_INT64, memspace, sid, H5P_DEFAULT, ecv2);
+#else
       H5Dwrite(vhexa, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
+#endif
       shexa += size0;
       oldStart[i] = erv[0];
       newStart[i] = phexa;
@@ -1378,7 +1447,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       hid_t sid = H5Scopy(dtetra);     
       H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
       hid_t memspace = H5Screate_simple(2, scount, NULL);
+#ifdef E_DOUBLEINT
+      H5Dwrite(vtetra, H5T_NATIVE_INT64, memspace, sid, H5P_DEFAULT, ecv2);
+#else
       H5Dwrite(vtetra, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
+#endif
       stetra += size0;
       oldStart[i] = erv[0];
       newStart[i] = ptetra;
@@ -1393,7 +1466,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       hid_t sid = H5Scopy(dpenta);     
       H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
       hid_t memspace = H5Screate_simple(2, scount, NULL);
+#ifdef E_DOUBLEINT
+      H5Dwrite(vpenta, H5T_NATIVE_INT64, memspace, sid, H5P_DEFAULT, ecv2);
+#else
       H5Dwrite(vpenta, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
+#endif
       spenta += size0;
       oldStart[i] = erv[0];
       newStart[i] = ppenta;
@@ -1408,7 +1485,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       hid_t sid = H5Scopy(dpyra);     
       H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
       hid_t memspace = H5Screate_simple(2, scount, NULL);
+#ifdef E_DOUBLEINT
+      H5Dwrite(vpyra, H5T_NATIVE_INT64, memspace, sid, H5P_DEFAULT, ecv2);
+#else
       H5Dwrite(vpyra, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
+#endif
       spyra += size0;
       oldStart[i] = erv[0];
       newStart[i] = ppyra;
@@ -1423,7 +1504,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       hid_t sid = H5Scopy(dtri);     
       H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
       hid_t memspace = H5Screate_simple(2, scount, NULL);
+#ifdef E_DOUBLEINT
+      H5Dwrite(vtri, H5T_NATIVE_INT64, memspace, sid, H5P_DEFAULT, ecv2);
+#else
       H5Dwrite(vtri, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
+#endif
       stri += size0;
       oldStart[i] = erv[0];
       newStart[i] = ptri;
@@ -1440,7 +1525,11 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       H5Sselect_none(sid);
       H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
       hid_t memspace = H5Screate_simple(2, scount, NULL);
+#ifdef E_DOUBLEINT
+      H5Dwrite(vquad, H5T_NATIVE_INT64, memspace, sid, H5P_DEFAULT, ecv2);
+#else
       H5Dwrite(vquad, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
+#endif
       squad += size0;
       oldStart[i] = erv[0];
       newStart[i] = pquad;
@@ -1650,7 +1739,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     // Build face2node connectivity. Faces are duplicated by elements. They must be ordered.
     E_Int npolyFacesD = 0;
     for (E_Int i = 0; i < npolyCells; i++) npolyFacesD += cell2FaceCount[i];
-    int32_t* face2NodeCount = new int32_t [npolyFacesD];
+    E_Int* face2NodeCount = new E_Int [npolyFacesD];
 
     E_Int size2 = 0; // size of face2Node
     for (E_Int i = 0; i < npolyCells; i++) // pour chaque cellule
@@ -1662,7 +1751,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
         size2 += ngonOffset[forig+1] - ngonOffset[forig]; 
       }
     }
-    int32_t* face2Node = new int32_t [size2];
+    E_Int* face2Node = new E_Int [size2];
     
     E_Int floc = 0; // numerotation par element des cellules fsdm
     c = 0;
@@ -1706,7 +1795,6 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
             face2Node[c] = off; c++; // must be an ordered offset on elt2Node 
           }
         }
-
         face2NodeCount[floc] = ngonOffset[forig+1] - ngonOffset[forig]; floc++;
       }
     }
@@ -1714,34 +1802,65 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     gid = H5Gcreate(uc, "Poly3D", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    int64_t numberOfCells = npolyCells;
+    H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     int32_t numberOfCells = npolyCells;
     H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
     H5Aclose(aid); H5Sclose(did);
     dims[0] = npolyCells;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    vid = H5Dcreate(gid, "Cell2NodeCounts", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2NodeCount);
+#else
     vid = H5Dcreate(gid, "Cell2NodeCounts", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2NodeCount);
+#endif
     H5Dclose(vid); H5Sclose(did);
     dims[0] = size1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    vid = H5Dcreate(gid, "Cell2NodeList", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2Node);
+#else
     vid = H5Dcreate(gid, "Cell2NodeList", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2Node);
+#endif
     H5Dclose(vid); H5Sclose(did);
     dims[0] = npolyCells;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    vid = H5Dcreate(gid, "Cell2FaceCounts", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2FaceCount);
+#else
     vid = H5Dcreate(gid, "Cell2FaceCounts", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, cell2FaceCount);
+#endif
     H5Dclose(vid); H5Sclose(did);
     dims[0] = npolyFacesD;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    vid = H5Dcreate(gid, "Face2NodeCounts", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, face2NodeCount);
+#else
     vid = H5Dcreate(gid, "Face2NodeCounts", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, face2NodeCount);
+#endif
     H5Dclose(vid); H5Sclose(did);
     dims[0] = size2;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    vid = H5Dcreate(gid, "Face2NodeList", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(vid, H5T_NATIVE_INT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, face2Node);
+#else
     vid = H5Dcreate(gid, "Face2NodeList", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, face2Node);
+#endif
     H5Dclose(vid); H5Sclose(did);
     H5Gclose(gid);
 
@@ -1823,19 +1942,35 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       gid = H5Gcreate(uc, "Poly2D", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       dims[0] = 1;
       did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+      aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+      int64_t numberOfCells = nc;
+      H5Awrite(aid, H5T_NATIVE_INT64, &numberOfCells);
+#else
       aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
       int32_t numberOfCells = nc;
       H5Awrite(aid, H5T_NATIVE_INT, &numberOfCells);
+#endif
       H5Aclose(aid); H5Sclose(did);
       dims[0] = nc;
       did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+      vid = H5Dcreate(gid, "Cell2NodeCounts", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Dwrite(vid, H5T_NATIVE_INT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, poly2dCount);
+#else
       vid = H5Dcreate(gid, "Cell2NodeCounts", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, poly2dCount);
+#endif
       H5Dclose(vid); H5Sclose(did);
       dims[0] = size;
       did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+      vid = H5Dcreate(gid, "Cell2NodeList", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Dwrite(vid, H5T_NATIVE_INT64, H5S_ALL, H5S_ALL, H5P_DEFAULT, poly2d);
+#else
       vid = H5Dcreate(gid, "Cell2NodeList", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       H5Dwrite(vid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, poly2d);
+#endif
       H5Dclose(vid); H5Sclose(did);
       gid2 = H5Gcreate(gid, "CellAttributes", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       dims[0] = nc;
