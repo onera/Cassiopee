@@ -69,6 +69,7 @@ E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart
   // Get ncells from id
   hid_t aid = H5Aopen_by_name(id, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
   H5Aread(aid, H5T_NATIVE_INT, &ncells); // care when long
+  H5Aclose(aid);
   //printf("ncells=" SF_D_ "\n", ncells);
 
   // GridElements
@@ -120,6 +121,7 @@ E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart
   hid_t tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
 #endif
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, pp3);
+  H5Dclose(did);
   for (E_Int i = 0; i < size2; i++) pp3[i] += 1;
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", r3, children3, "DataArray_t");
@@ -142,8 +144,8 @@ E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart
     mid = H5S_ALL;
     // bct always int_32
     int32_t* bct2 = new int32_t [size2];
-    hid_t tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
     H5Dread(did, tid, mid, sid, H5P_DEFAULT, bct2);
+    H5Dclose(did);
     // count tags
     for (E_Int i = 0; i < size2; i++) 
     {
@@ -156,18 +158,20 @@ E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart
     //  E_Int nfaces = pair.second; // nbre de faces pour ce tag
     //  printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
     //}
-    if (bct == NULL) { bct = bct2; size = size2; }
-    else 
+    if (bct == NULL) { bct = bct2; size = size2; } // first pass
+    else // second pass
     {
-      // merge in connectivities order
+      // merge in fixed order (TRI then QUAD)
       int32_t* bct3 = new int32_t [size+size2];
-      for (E_Int i = 0; i < size; i++)
+      if (eltType == 5) // if second pass is TRI
       {
-        bct3[i] = bct[i];
+        for (E_Int i = 0; i < size2; i++) bct3[i] = bct[i];
+        for (E_Int i = 0; i < size; i++) bct3[i+size2] = bct2[i];
       }
-      for (E_Int i = 0; i < size2; i++)
+      else
       {
-        bct3[i+size] = bct2[i];
+        for (E_Int i = 0; i < size; i++) bct3[i] = bct[i];
+        for (E_Int i = 0; i < size2; i++) bct3[i+size] = bct2[i];
       }
       delete [] bct; delete [] bct2;
       bct = bct3; size = size+size2;
@@ -203,7 +207,8 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   hid_t mid = H5S_ALL;
   E_Int* c2nc = new E_Int [ncells];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, c2nc);
-  
+  H5Dclose(did);
+
   // read cell2node (cell -> nodes)  
   did = H5Dopen2(id, "Cell2NodeList", H5P_DEFAULT);
   sid = H5Dget_space(did);
@@ -220,6 +225,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   mid = H5S_ALL;
   E_Int* c2n = new E_Int [size];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, c2n);
+  H5Dclose(did);
 
   // read cell2facecount (nbre de faces par cellule)  
   did = H5Dopen2(id, "Cell2FaceCounts", H5P_DEFAULT);
@@ -237,6 +243,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   mid = H5S_ALL;
   E_Int* c2fc = new E_Int [size];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, c2fc);
+  H5Dclose(did);
 
   // Check total number of faces and number of faces per element * number of elts
   E_Int size1 = 0;
@@ -259,6 +266,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   mid = H5S_ALL;
   E_Int* f2nc = new E_Int [nfaces];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2nc);
+  H5Dclose(did);
   //printf("number of faces (duplicated): " SF_D_ "\n", nfaces);
 
   // read face2node (face -> node cell indirect from elt)
@@ -276,7 +284,8 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
 #endif
   mid = H5S_ALL;
   E_Int* f2n = new E_Int [size];
-  H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2n);  
+  H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2n);
+  H5Dclose(did);
 
   // Create NGON
   npy_dim_vals[0] = 2;
@@ -291,7 +300,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyObject* children1 = PyList_New(0);
   NGON = Py_BuildValue("[sOOs]", "NGON", r1, children1, "Elements_t");
 
-  // Element range
+  // Element range du NGON
   npy_dim_vals[0] = 2;
 #ifdef E_DOUBLEINT
   PyArrayObject* r2 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);
@@ -305,7 +314,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyObject* er = Py_BuildValue("[sOOs]", "ElementRange", r2, children2, "IndexRange_t");
   PyList_Append(children1, er); Py_DECREF(er);
 
-  // Element connectivity
+  // Element connectivity du NGON
   npy_dim_vals[0] = size;
 #ifdef E_DOUBLEINT
   PyArrayObject* r3 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
@@ -314,7 +323,8 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyArrayObject* r3 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
   int32_t* pp3 = (int32_t*)PyArray_DATA(r3);
 #endif
-  H5Dread(did, tid, mid, sid, H5P_DEFAULT, pp3);
+  //H5Dread(did, tid, mid, sid, H5P_DEFAULT, pp3);
+  for (E_Int i = 0; i < size; i++) pp3[i] = f2n[i];
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", r3, children3, "DataArray_t");
   PyList_Append(children1, ec); Py_DECREF(ec);
@@ -336,7 +346,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
     if (lcount >= c2fc[cell]) { pcell += c2nc[cell]; cell++; lcount = 0; }
   }
 
-  // Element start offset
+  // Element start offset du NGON
   npy_dim_vals[0] = nfaces+1;
 #ifdef E_DOUBLEINT
   PyArrayObject* r4 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
@@ -364,7 +374,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyObject* children5 = PyList_New(0);
   NFACE = Py_BuildValue("[sOOs]", "NFACE", r5, children5, "Elements_t");
   
-  // Element range
+  // Element range du NFACE
   npy_dim_vals[0] = 2;
 #ifdef E_DOUBLEINT
   PyArrayObject* r8 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);
@@ -378,7 +388,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyObject* er2 = Py_BuildValue("[sOOs]", "ElementRange", r8, children8, "IndexRange_t");
   PyList_Append(children5, er2); Py_DECREF(er2);
 
-  // rebuild Element start offset
+  // rebuild Element start offset du NFACE
   npy_dim_vals[0] = ncells+1;
 #ifdef E_DOUBLEINT
   PyArrayObject* r6 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
@@ -393,7 +403,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   pp6[0] = 0;
   for (E_Int i = 0; i < ncells; i++) pp6[i+1] = pp6[i]+c2fc[i];
   
-  // rebuild Element connectivity
+  // rebuild Element connectivity du NFACE
   size = pp6[ncells];
   npy_dim_vals[0] = size;
 #ifdef E_DOUBLEINT
@@ -507,7 +517,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     return 1;
   }
 
-  GenIOHdf HDF;
+  //GenIOHdf HDF;
 
   // Open FS:Mesh node
   hid_t node = H5Gopen(fid, "/FS:Mesh", H5P_DEFAULT);
@@ -588,7 +598,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   hid_t tid = H5Aget_type(aid);
   H5Aread(aid, H5T_NATIVE_INT, &nvertex); // care when long
   pp4[0] = nvertex;
-  H5Gclose(node);
+  H5Aclose(aid); H5Gclose(node);
   //printf("nvertex=" SF_D_ "\n", nvertex);
 
   // Create GridCoordinates
@@ -681,7 +691,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     PyList_Append(childrenFS, gl); Py_DECREF(gl);
 
     hsize_t start[2]; hsize_t scount[2];
-    char name[20]; char name2[56];
+    char name[35]; char name2[76];
     for (E_Int n = 0; n < nvars; n++)
     {
       // Read name
@@ -910,7 +920,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       // Create BC_t for tag
       PyObject* children10 = PyList_New(0);
       strcpy(bctype, "FamilySpecified");
-      sprintf(bcname, "BC%d", tag);
+      sprintf(bcname, "BC" SF_D_, tag);
       npy_dim_vals[0] = strlen(bctype);
       PyArrayObject* r10 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp10 = (char*)PyArray_DATA(r10);
@@ -936,16 +946,16 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       PyObject* pl = Py_BuildValue("[sOOs]", "PointList", r11, children11, "IndexArray_t");
       PyList_Append(children10, pl); Py_DECREF(pl);
       // Create GridLocation
-      npy_dim_vals[0] = 11;
+      npy_dim_vals[0] = 10;
       PyArrayObject* r12 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp12 = (char*)PyArray_DATA(r12);
-      K_STRING::cpy(pp12, "FaceCenter", 11, false);
+      K_STRING::cpy(pp12, "FaceCenter", 10, false);
       PyObject* children12 = PyList_New(0);
       PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r12, children12, "GridLocation_t");
       PyList_Append(children10, gl); Py_DECREF(gl);
       // Create BC FamilyName
       PyObject* children13 = PyList_New(0);
-      sprintf(bctype, "BCType%d", tag);
+      sprintf(bctype, "BCType" SF_D_, tag);
       npy_dim_vals[0] = strlen(bctype);
       PyArrayObject* r13 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp13 = (char*)PyArray_DATA(r13);
