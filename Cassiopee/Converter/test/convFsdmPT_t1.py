@@ -1,5 +1,5 @@
 # - convertFile2PyTree -
-# - tau grid format -
+# - FSDM format -
 import Converter.PyTree as C
 import Post.PyTree as P
 import Geom.PyTree as D
@@ -85,6 +85,6 @@ C._recoverBCs(m, bcs)
 C._signNGonFaces(m)
 Internal._adaptNGon32NGon4(m)
 #C.convertPyTree2File(m, 'mesh.cgns')
-#C.convertPyTree2File(m, 'out.h5')
-#t = C.convertFile2PyTree('out.h5')
-#test.testT(t, 2)
+C.convertPyTree2File(m, 'out.h5')
+t = C.convertFile2PyTree('out.h5')
+test.testT(t, 2)

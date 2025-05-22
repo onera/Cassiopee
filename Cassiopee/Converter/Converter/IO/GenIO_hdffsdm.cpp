@@ -145,7 +145,7 @@ E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart
     // bct always int_32
     int32_t* bct2 = new int32_t [size2];
     H5Dread(did, tid, mid, sid, H5P_DEFAULT, bct2);
-    H5Dclose(did);
+    H5Dclose(did); H5Gclose(gid);
     // count tags
     for (E_Int i = 0; i < size2; i++) 
     {
@@ -703,8 +703,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       H5Aread(aid, atype, name2);
       name2[size] = '\0';
       //H5Aread(aid, H5T_C_S1, name2);
-      H5Aclose(aid);
-      H5Gclose(gid2);
+      H5Aclose(aid); H5Gclose(gid2);
 
       // Read values (partial)
       npy_dim_vals[0] = ncells;
