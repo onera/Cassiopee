@@ -25,20 +25,25 @@
 /* ------------------------------------------------------------------------- */
 // return new index when input is global orig index in connectivities
 /* ------------------------------------------------------------------------- */
-E_Int newIndex2(E_Int index, std::vector<E_Int>& oldStart, std::vector<E_Int>& newStart)
+E_Int newIndex2(E_Int index, 
+                std::vector<E_Int>& oldStart, std::vector<E_Int>& oldEnd,
+                std::vector<E_Int>& newStart)
 {
-  // find previous bloc
-  E_Int i = oldStart.size()-1;
-  while (index < oldStart[i]) i--;
-  if (i < 0) 
+  E_Int b = -1;
+  for (size_t i = 0; i < oldStart.size(); i++)
   {
-    printf("Error: hdffsdmwrite: PL index out of range: " SF_D_ "\n", index);
+    if (index >= oldStart[i] && index <= oldEnd[i]) { b = i; break; }
+  }
+  if (b == -1)
+  {
+    printf("Error: tauwrite: PL index out of range: " SF_D_ "\n", index);
     return 0;
   }
-  E_Int offset = index-oldStart[i];
+
+  E_Int offset = index-oldStart[b];
   //printf("%d %d %d %d\n", index, oldStart[i], newStart[i], offset);
   //printf("%d %d\n", index, newStart[i]+offset);
-  return newStart[i]+offset-1;
+  return newStart[b]+offset-1;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1415,12 +1420,12 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   }
 
   std::vector<E_Int> oldStart(connects.size()); // old start of connect
+  std::vector<E_Int> oldEnd(connects.size()); // old end of connect
   std::vector<E_Int> newStart(connects.size()); // new start of connect
   E_Int shexa=0, stetra=0, spenta=0, spyra=0, stri=0, squad=0;
   E_Int phexa=1, ptetra=nhexa+1, ppenta=nhexa+ntetra+1, ppyra=nhexa+ntetra+npenta+1;
   E_Int ptri=nhexa+ntetra+npenta+npyra+1, pquad=nhexa+ntetra+npenta+npyra+ntri+1;
   hsize_t start[2]; hsize_t scount[2];
-  E_Int pos = 1; E_Int possurf = -1;
   E_Int* ngon = NULL; E_Int* ngonOffset = NULL; E_Int npolyFaces = -1;
   E_Int* nface = NULL; E_Int* nfaceOffset = NULL; E_Int npolyCells = -1;
 
@@ -1469,10 +1474,9 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       H5Dwrite(vhexa, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
 #endif
       shexa += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = phexa;
       phexa += size0;
-      pos += size0;
     }
     else if (eltType == 10) // TETRA
     {
@@ -1488,10 +1492,9 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       H5Dwrite(vtetra, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
 #endif
       stetra += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = ptetra;
       ptetra += size0;
-      pos += size0;
     }
     else if (eltType == 14) // PENTA
     {
@@ -1507,10 +1510,9 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       H5Dwrite(vpenta, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
 #endif
       spenta += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = ppenta;
       ppenta += size0;
-      pos += size0;
     }
     else if (eltType == 12) // PYRA
     {
@@ -1526,10 +1528,9 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       H5Dwrite(vpyra, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
 #endif
       spyra += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = ppyra;
       ppyra += size0;
-      pos += size0;
     }
     else if (eltType == 5) // TRI
     {
@@ -1545,11 +1546,9 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       H5Dwrite(vtri, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
 #endif
       stri += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = ptri;
-      if (possurf == -1) possurf = pos;
       ptri += size0;
-      pos += size0;
     }
     else if (eltType == 7) // QUAD
     {
@@ -1566,11 +1565,9 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       H5Dwrite(vquad, H5T_NATIVE_INT, memspace, sid, H5P_DEFAULT, ecv2);
 #endif
       squad += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = pquad;
-      if (possurf == -1) possurf = pos;
       pquad += size0;
-      pos += size0;
     }
     else if (eltType == 22) // NGON
     {
@@ -1597,6 +1594,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     delete [] ecv2;
   }
 
+  E_Int possurf = nhexa+ntetra+npenta+npyra;
   if (nhexa > 0) { H5Dclose(vhexa); H5Sclose(dhexa); }
   if (ntetra > 0) { H5Dclose(vtetra); H5Sclose(dtetra); }
   if (npenta > 0) { H5Dclose(vpenta); H5Sclose(dpenta); }
@@ -1623,6 +1621,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     {
       // PointRange
       PyObject* er = K_PYTREE::getNodeFromName1(BCs[i], "ElementRange");
+      if (er == NULL) er = K_PYTREE::getNodeFromName1(BCs[i], "PointRange");
       if (er != NULL)
       {
         E_Int* erv = K_PYTREE::getValueAI(er, hook);
@@ -1630,9 +1629,9 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
         for (E_Int j = erv[0]; j <= erv[1]; j++)
         {
           //off = j-1-nvol;
-          off = newIndex2(j, oldStart, newStart)-possurf+1;
+          off = newIndex2(j, oldStart, oldEnd, newStart)-possurf;
           if (off < ntri) 
-          {  
+          {
             off = std::min(off, ntri-1);
             off = std::max(off, E_Int(0));
             markersTri[off] = count;
@@ -1658,7 +1657,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
         for (E_Int j = 0; j < ni*nj; j++)
         {
           //off = plv[j]-1-nvol;
-          off = newIndex2(plv[j], oldStart, newStart)-possurf+1;
+          off = newIndex2(plv[j], oldStart, oldEnd, newStart)-possurf;
           if (off < ntri) 
           { 
             off = std::min(off, ntri-1);

@@ -27,20 +27,25 @@
 /* ------------------------------------------------------------------------- */
 // return new index when input is global orig index in connectivities
 /* ------------------------------------------------------------------------- */
-E_Int newIndex(E_Int index, std::vector<E_Int>& oldStart, std::vector<E_Int>& newStart)
+E_Int newIndex(E_Int index, 
+               std::vector<E_Int>& oldStart, std::vector<E_Int>& oldEnd,
+               std::vector<E_Int>& newStart)
 {
-  // find previous bloc
-  E_Int i = oldStart.size()-1;
-  while (index < oldStart[i]) i--;
-  if (i < 0) 
+  E_Int b = -1;
+  for (size_t i = 0; i < oldStart.size(); i++)
+  {
+    if (index >= oldStart[i] && index <= oldEnd[i]) { b = i; break; }
+  }
+  if (b == -1)
   {
     printf("Error: tauwrite: PL index out of range: " SF_D_ "\n", index);
     return 0;
   }
-  E_Int offset = index-oldStart[i];
+
+  E_Int offset = index-oldStart[b];
   //printf("%d %d %d %d\n", index, oldStart[i], newStart[i], offset);
   //printf("%d %d\n", index, newStart[i]+offset);
-  return newStart[i]+offset-1;
+  return newStart[b]+offset-1;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -714,12 +719,12 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
 
   // Write arrays, connectivities are concatenated
   std::vector<E_Int> oldStart(connects.size()); // old start of connect
+  std::vector<E_Int> oldEnd(connects.size()); // old end of connect
   std::vector<E_Int> newStart(connects.size()); // new start of connect
   int shexa=0, stetra=0, spenta=0, spyra=0, stri=0, squad=0;
   int phexa=1, ptetra=nhexa+1, ppenta=nhexa+ntetra+1, ppyra=nhexa+ntetra+npenta+1;
   int ptri=nhexa+ntetra+npenta+npyra+1, pquad=nhexa+ntetra+npenta+npyra+ntri+1;
   size_t start[2]; size_t scount[2];
-  E_Int pos = 1; E_Int possurf = -1;
 
   for (size_t i = 0; i < connects.size(); i++)
   {
@@ -755,10 +760,9 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
       scount[0]=size0; scount[1]=8;
       nc_put_vara_int(ncid, var_hexa, start, scount, ecv2);
       shexa += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = phexa;
       phexa += size0;
-      pos += size0;
     }
     else if (eltType == 10) // TETRA
     {
@@ -767,10 +771,9 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
       scount[0]=size0; scount[1]=4;
       nc_put_vara_int(ncid, var_tetra, start, scount, ecv2);
       stetra += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = ptetra;
       ptetra += size0;
-      pos += size0;
     }
     else if (eltType == 14) // PENTA
     {
@@ -779,10 +782,9 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
       scount[0]=size0; scount[1]=6;
       nc_put_vara_int(ncid, var_penta, start, scount, ecv2);
       spenta += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = ppenta;
       ppenta += size0;
-      pos += size0;
     }
     else if (eltType == 12) // PYRA
     {
@@ -791,10 +793,9 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
       scount[0]=size0; scount[1]=5;
       nc_put_vara_int(ncid, var_pyra, start, scount, ecv2);
       spyra += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = ppyra;
       ppyra += size0;
-      pos += size0;
     }
     else if (eltType == 5) // TRI
     {
@@ -803,11 +804,9 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
       scount[0]=size0; scount[1]=3;
       nc_put_vara_int(ncid, var_tri, start, scount, ecv2);
       stri += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = ptri;
-      if (possurf == -1) possurf = pos;
       ptri += size0;
-      pos += size0;
     }
     else if (eltType == 7) // QUADS
     {
@@ -816,18 +815,18 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
       scount[0]=size0; scount[1]=4;
       nc_put_vara_int(ncid, var_quad, start, scount, ecv2);
       squad += size0;
-      oldStart[i] = erv[0];
+      oldStart[i] = erv[0]; oldEnd[i] = erv[1];
       newStart[i] = pquad;
-      if (possurf == -1) possurf = pos;
       pquad += size0;
-      pos += size0;
     }
     delete [] ecv2;
   }
 
+  E_Int possurf = nhexa+ntetra+npenta+npyra;
+  //printf("possurf=%d\n", possurf);
   //for (size_t i = 0; i < oldStart.size(); i++)
   //{
-  //  printf("oldStart[%d] = %d\n", i, oldStart[i]);
+  //  printf("oldStart[%d] = %d | ", i, oldStart[i]);
   //  printf("newStart[%d] = %d\n", i, newStart[i]);
   //}
   
@@ -857,6 +856,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
   {
     // PointRange
     PyObject* er = K_PYTREE::getNodeFromName1(BCs[i], "ElementRange");
+    if (er == NULL) er = K_PYTREE::getNodeFromName1(BCs[i], "PointRange");
     if (er != NULL)
     {
       E_Int* erv = K_PYTREE::getValueAI(er, hook);
@@ -864,7 +864,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
       for (E_Int j = erv[0]; j <= erv[1]; j++)
       {
         //off = j-1-nvol;
-        off = newIndex(j, oldStart, newStart)-possurf+1;
+        off = newIndex(j, oldStart, oldEnd, newStart)-possurf;
         //if (off != j-1-nvol) 
         //printf("off=%d %d -> count=%d\n", off, j-1-nvol, count);
         off = std::min(off, nmarkers-1);
@@ -882,7 +882,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
       for (E_Int j = 0; j < ni*nj; j++)
       {
         //off = plv[j]-1-nvol;
-        off = newIndex(plv[j], oldStart, newStart)-possurf+1;
+        off = newIndex(plv[j], oldStart, oldEnd, newStart)-possurf;
         //printf("off=%d %d\n", off, plv[j]-1-nvol);
         off = std::min(off, nmarkers-1);
         off = std::max(off, E_Int(0));
