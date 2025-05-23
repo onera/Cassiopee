@@ -407,7 +407,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   size = pp6[ncells];
   npy_dim_vals[0] = size;
 #ifdef E_DOUBLEINT
-  PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
+  PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);
   int64_t* pp7 = (int64_t*)PyArray_DATA(r7);
 #else
   PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
@@ -749,7 +749,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   H5Literate2(uc, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
 #endif
   */
-  hid_t id = 0; E_Int c = 0; PyObject* GE;
+  hid_t id = 0; PyObject* GE;
   E_Int ncells=0; E_Int istart=1; E_Int n3dcells=0; 
   std::map<E_Int, E_Int> tagmap; // map of bc tags
   int32_t* bct = NULL; size = 0; // bc tag merged
@@ -1696,9 +1696,9 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   if (ngon != NULL && ngonOffset != NULL && nface != NULL && nfaceOffset != NULL)
   {
     // Build cell2Node connectivity
-    int32_t* cell2NodeCount = new int32_t [npolyCells];
-    int32_t* cell2FaceCount = new int32_t [npolyCells];
-    int32_t* cell2NodeOffset = new int32_t [npolyCells+1]; // perso
+    E_Int* cell2NodeCount = new E_Int [npolyCells];
+    E_Int* cell2FaceCount = new E_Int [npolyCells];
+    E_Int* cell2NodeOffset = new E_Int [npolyCells+1]; // perso
     cell2NodeOffset[0] = 0;
     std::set<E_Int> nodes;
 
@@ -1723,7 +1723,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       cell2NodeOffset[i+1] = cell2NodeOffset[i]+size0;
     }
 
-    int32_t* cell2Node = new int32_t [size1];
+    E_Int* cell2Node = new E_Int [size1];
     c = 0;
     for (E_Int i = 0; i < npolyCells; i++)
     {

@@ -366,8 +366,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   }
 
   E_Int nangles = PyList_Size(front);
-  printf("nangles=%d\n", nangles);
-
   char* varString;
   E_Int ni, nj, nk, res;
   FldArrayI* cn; char* eltType;

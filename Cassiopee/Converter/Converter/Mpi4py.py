@@ -32,6 +32,7 @@ KCOMM = COMM_WORLD
 
 rank = KCOMM.rank
 size = KCOMM.size
+master = (rank == 0)
 
 SUM = MPI.SUM
 MAX = MPI.MAX
