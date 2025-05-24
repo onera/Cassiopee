@@ -4389,7 +4389,7 @@ def _adaptBCFacePL2VertexPL(t, bcs=None):
   for z in zones:
     zdim = getZoneDim(z)
     if zdim[0] != 'Unstructured': continue
-    
+
     if bcs is None:
       zoneBCs = getNodeFromType1(z, 'ZoneBC_t')
       if zoneBCs is not None: zoneBCs = getNodesFromType1(zoneBCs, 'BC_t')
@@ -4398,10 +4398,10 @@ def _adaptBCFacePL2VertexPL(t, bcs=None):
       else: zoneBCs = bcs
     else: raise NotImplementedError
     if not zoneBCs: continue
-        
+
     from . import PyTree
     array = PyTree.getFields('coords', z)[0]
-    
+
     for bc in zoneBCs:
       r = getNodeFromName1(bc, __FACELIST__)  # IndexArray (PointList)
       loc = getNodeFromName1(bc, 'GridLocation')
