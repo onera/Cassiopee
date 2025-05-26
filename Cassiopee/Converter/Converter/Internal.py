@@ -4377,13 +4377,13 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
     if shiftPE: cFE[:] += nfaces
   return None
 
-def adaptBCFacePL2VertexPL(t, bcs=None):
+def adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
   """Adapt face point list into vertex point list for a list of BC_t nodes."""
   tp = copyRef(t)
-  _adaptBCFacePL2VertexPL(tp, bcs)
+  _adaptBCFacePL2VertexPL(tp, bcs, btype, remove)
   return tp
 
-def _adaptBCFacePL2VertexPL(t, bcs=None):
+def _adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
   """Adapt face point list into vertex point list for a list of BC_t nodes."""
   zones = getZones(t)
   for z in zones:
@@ -4397,23 +4397,23 @@ def _adaptBCFacePL2VertexPL(t, bcs=None):
       if len(bcs) == 4 and bcs[-1] == 'BC_t': zoneBCs = [bcs]
       else: zoneBCs = bcs
     else: raise NotImplementedError
+    if btype is not None:
+      zoneBCs = [i for i in zoneBCs if getValue(i) == btype]
     if not zoneBCs: continue
 
     from . import PyTree
-    array = PyTree.getFields('coords', z)[0]
+    array = PyTree.getFields('coords', z, api=1)[0]
 
     for bc in zoneBCs:
       r = getNodeFromName1(bc, __FACELIST__)  # IndexArray (PointList)
       loc = getNodeFromName1(bc, 'GridLocation')
-      if r is None or loc is None: continue
-      #if r is None: continue
-      #if loc is None:  # GridLocation node missing, assuming 'FaceCenter' TODO this is what is done in AAA
-      #  newGridLocation(value='FaceCenter', parent=bc)
-      #loc = getNodeFromName1(bc, 'GridLocation')
+      if loc is None:
+        raise ValueError(f"Node GridLocation missing in BC '{bc[0]}' of zone '{z[0]}'")
+      if r is None: continue
       if getValue(loc) in ['EdgeCenter', 'FaceCenter', 'CellCenter']:
         r[1] = converter.adaptBCFacePL2VertexPL(array, r[1])  # ME or NGON
         loc[1] = 'Vertex'
-        _rmNodesFromType1(bc, 'BCDataSet_t')  # Remove old datasets
+        if remove: _rmNodesFromType1(bc, 'BCDataSet_t')  # Remove old datasets
   return None
 
 # -- Adapte NGON en FaceIndex
