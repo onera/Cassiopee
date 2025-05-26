@@ -8,6 +8,8 @@ import Generator.PyTree as G
 import Converter.Internal as Internal
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 dz = 0.01
 xmin, ymin, zmin, xmax, ymax, zmax = [-0.5,-0.5,0,1.5,0.5,dz]
 mesh_name = "naca_curvi"
@@ -72,8 +74,8 @@ for c, e  in enumerate(ext):
         for r in res: C._addBC2Zone(m, 'far4', 'BCFarfield', subzone=r)
 
 #C.convertPyTree2File(m, 'mesh.cgns')
-C.convertPyTree2File(m, 'out.h5')
-t = C.convertFile2PyTree('out.h5')
+C.convertPyTree2File(m, LOCAL+'out.h5')
+t = C.convertFile2PyTree(LOCAL+'out.h5')
 test.testT(t, 1)
 
 # passage en NGON
@@ -85,6 +87,6 @@ C._recoverBCs(m, bcs)
 C._signNGonFaces(m)
 Internal._adaptNGon32NGon4(m)
 #C.convertPyTree2File(m, 'mesh.cgns')
-C.convertPyTree2File(m, 'out.h5')
-t = C.convertFile2PyTree('out.h5')
+C.convertPyTree2File(m, LOCAL+'out.h5')
+t = C.convertFile2PyTree(LOCAL+'out.h5')
 test.testT(t, 2)
