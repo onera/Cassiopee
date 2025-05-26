@@ -90,7 +90,7 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL_NGON(FldArrayI* cn, FldArrayI* fpl
   E_Int nv, npts, fidx;
   E_Int* ngon = cn->getNGon();
   E_Int* indPG = cn->getIndPG();
-  E_Int nfaces = fpl->getSize();
+  E_Int nfaces = fpl->getNfld();
   E_Int* fplp = fpl->begin();
   
   std::unordered_set<E_Int> vertexSet;
