@@ -100,10 +100,10 @@ FRAMESTYLE = TK.GROOVE
 
 #==============================================================================
 # Les types de fichiers lisibles par Converter
-fileTypes=[('bin 3ds', '*.3DS'),
+fileTypes=[('bin adf cgns','*.CGNS'),
+           ('bin 3ds', '*.3DS'),
            ('bin 3ds', '*.3ds'),
            ('bin adf cgns','*.ADF'),
-           ('bin adf cgns','*.CGNS'),
            ('bin adf cgns','*.adf'),
            ('bin adf cgns','*.cgns'),
            ('bin hdf cgns','*.HDF'),
