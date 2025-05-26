@@ -249,6 +249,7 @@ List of functions
     Converter.Internal.adaptNFace2PE
     Converter.Internal.adaptPE2NFace
     Converter.adaptSurfaceNGon
+    Converter.Internal.adaptBCFacePL2VertexPL
     
 
 Contents
@@ -3220,6 +3221,27 @@ Adapt NGON meshes
     .. literalinclude:: ../build/Examples/Converter/adaptSurfaceNGonPT.py
 
 -----------------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False)
+
+    Adapts face point list into vertex point list for a list of BC_t nodes. Exists also as in-place (_adaptBCFacePL2VertexPL). 
+
+    :param t:  unstructured mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param bcs:  BC nodes on which to adapt face point list into vertex point list. If None, considers all BC nodes
+    :type  bcs:  optional pyTree node or list of pyTree nodes
+    :param btype: type of BC (BCWall, BCFarfield, FamilySpecified...) to consider. If None, does not filter `bcs` by BCType
+    :type btype: string
+    :param remove: if True, removes all BCDataset nodes found in `bcs`
+    :type check: boolean
+
+    *Example of use:*
+
+    * `Creates ParentElements arrays (pyTree) <Examples/Converter/adaptBCFacePL2VertexPLPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptBCFacePL2VertexPLPT.py
+
+---------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 2   
