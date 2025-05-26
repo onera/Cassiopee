@@ -4402,7 +4402,7 @@ def _adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
     if not zoneBCs: continue
 
     from . import PyTree
-    array = PyTree.getFields('coords', z, api=1)[0]
+    array = PyTree.getFields('coords', z, api=3)[0]
 
     for bc in zoneBCs:
       r = getNodeFromName1(bc, __FACELIST__)  # IndexArray (PointList)
