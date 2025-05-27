@@ -6,4 +6,6 @@ TIXI=False; TIGL=False
 #==============================================================================
 cpp_srcs = []
 if TIXI:
-    cpp_srcs += [f.name for f in pathlib.Path("Tixi").glob("*.c")]
+    srcs = [f.name for f in pathlib.Path("../../Modeler/tixi/src").glob("*.c")]
+    for s in srcs: cpp_srcs.append("Modeler/tixi/src/"+s)
+    print(cpp_srcs)

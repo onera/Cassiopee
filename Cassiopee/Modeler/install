@@ -35,14 +35,38 @@ if [ "$PRODMODE" = "" ]; then
 fi
 
 # Compilation et installation
-if [ $PRODMODE -eq 0 ]; then # setup
-    python setup.py install --prefix="$INSTALLPATH"
+if [ $PRODMODE -le 2 ]; then
+    sconsf=`which scons`
+    if [ "$OMP_NUM_THREADS" != "" ]; then
+        export SCONSOPT="-j $OMP_NUM_THREADS"
+    else
+        export SCONSOPT=""
+    fi
+    if [ -x "$sconsf" ]; then
+        if head -c 100 "$sconsf" | grep -q python; then
+            python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+        else
+            $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+        fi
+    else
+        python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    fi
     [ $? != 0 ] && exit 1;
-elif [ $PRODMODE -eq 1 ]; then # pip
-    python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
-    [ $? != 0 ] && exit 1;
-elif [ $PRODMODE -eq 2 ]; then # pip+wheel
-    TMPDIR=$INSTALLPATH python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
+    #touch Modeler/modeler.cpp
+    rm -f build/lib.*/Modeler/modeler.*
+    rm -f build/lib.*/Modeler/modeler-*.*
+    if [ $PRODMODE -eq 0 ]; then # setup
+        python setup.py install --prefix="$INSTALLPATH"
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 1 ]; then # pip
+        python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 2 ]; then # pip+wheel
+        TMPDIR=$INSTALLPATH python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
+        [ $? != 0 ] && exit 1;
+    fi
+else
+    python setupLegacy.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 fi
 
