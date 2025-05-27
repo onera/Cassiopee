@@ -92,8 +92,8 @@ else: # try import (may fail - core or hang)
             return bboxDict
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
-# Previous times for CPU time measures (trace)
-PREVFULLTIME = None # full
+# Store state for trace
+TRACESTATE = { 'prevFullTime': None, 'method': 0, 'fileName': 'stdout', 'mem': True, 'cpu': True }
 
 #==============================================================================
 # IN: t: full/loaded skel/partial
@@ -214,48 +214,80 @@ def isFinite(t, var=None):
 # si stdout=True, ecrit a l'ecran
 # si reset, vide le fichier log
 # si filename="stdout", ecrit a l'ecran, sinon ecrit dans le fichier filename
-def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fileName="stdout"):
+# si method, tracemalloc(0), heap(1), Size(2), RSS(3)
+def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fileName=None, method=None):
     """Write a trace of cpu and memory in a file or to stdout for current node."""
-    global PREVFULLTIME
+    global TRACESTATE
     msg = text
-    if cpu:
-        if PREVFULLTIME is None:
+    if method is not None: TRACESTATE['method'] = method
+    if fileName is not None: 
+        TRACESTATE['fileName'] = fileName
+    if stdout is not None: TRACESTATE['fileName'] = "stdout"
+    if mem is not None: TRACESTATE['mem'] = mem
+    if cpu is not None: TRACESTATE['cpu'] = cpu
+
+    if TRACESTATE['mem'] and TRACESTATE['method'] == 0:
+        import tracemalloc
+        if TRACESTATE['prevFullTime'] is None: tracemalloc.start() 
+    if TRACESTATE['cpu']:
+        if TRACESTATE['prevFullTime'] is None:
             dt = 0.
-            PREVFULLTIME = timeit.default_timer()
+            TRACESTATE['prevFullTime'] = timeit.default_timer()
         else:
             t = timeit.default_timer()
-            dt = t - PREVFULLTIME
-            PREVFULLTIME = t
+            dt = t - TRACESTATE['prevFullTime']
+            TRACESTATE['prevFullTime'] = t
         msg += ' [%g secs]'%dt
-    if mem:
-        pid = os.getpid()
-        try:
-            f = open("/proc/%s/smaps"%(pid))
-            s = f.readlines()
-            f.close()
-        except: s = []
-
+    if TRACESTATE['mem']:
         tot = 0.
-        found = False
-        for ts in s:
-            if found:
-                tot += int(ts[5:-3])
-                found = False
-            if ts.find("heap") >= 0: found = True
+        if TRACESTATE['method'] == 0: # tracemalloc
+            tot, peak = tracemalloc.get_traced_memory()
+            tot = tot//1000 # in kb
+        elif TRACESTATE['method'] == 1: # heap in smaps
+            pid = os.getpid()
+            try:
+                f = open("/proc/%s/smaps"%pid)
+                s = f.readlines()
+                f.close()
+            except: s = []
+            found = False
+            for ts in s:
+                if found:
+                    tot += int(ts[5:-3])
+                    found = False
+                if ts.find("heap") >= 0: found = True
+        elif TRACESTATE['method'] == 2: # all size in smaps
+            pid = os.getpid()
+            try:
+                f = open("/proc/%s/smaps"%pid)
+                s = f.readlines()
+                f.close()
+            except: s = []
+            for ts in s:
+                if ts.split()[0] == "Size:":
+                    tot += int(ts[5:-3])
+        elif TRACESTATE['method'] == 3: # RSS in status
+            pid = os.getpid()
+            try:
+                f = open("/proc/%s/status"%pid)
+                s = f.readlines()
+                f.close()
+            except: s = []
+            for ts in s:
+                if ts.split()[0] == "VmRSS:":
+                    tot += int(ts[6:-3])
+
         if tot > 1.e6: msg += '[%f GB]'%(tot/1.e6)
         elif tot > 1000.: msg += '[%f MB]'%(tot/1000.)
         else: msg += '[%f kB]'%(tot)
+
     msg += '\n'
 
-    if stdout:
-        #print("Warning: trace: arg. stdout is obsolete. Please use fileName='stdout' instead.")
-        fileName = "stdout"
-
-    if fileName == "stdout":
+    if TRACESTATE['fileName'] == "stdout":
         print('%d: %s'%(rank, msg))
         sys.stdout.flush()
     else: # dans des fichiers par processes
-        fileName = fileName.split('.')
+        fileName = TRACESTATE['fileName'].split('.')
         if '%' in fileName[0]: fileName[0] = fileName[0]%rank
         else: fileName[0] += '%03d'%rank
         if len(fileName) == 1: fileName[0] += '.out'

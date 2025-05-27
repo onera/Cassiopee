@@ -4081,10 +4081,10 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
 
     # si subzone: on cree la connectivite BC, on passe en elementRange
     if subzone is not None and pointList is None:
-        bcn = Internal.getNodeFromName1(z, subzone[0])
+        bcn = Internal.getChildFromName(z, subzone[0])
         if bcn is None:
             _mergeConnectivity(z, subzone, boundary=1)
-        bcn = Internal.getNodeFromName1(z, subzone[0])
+        bcn = Internal.getChildFromName(z, subzone[0])
         bcnr = Internal.getNodeFromName1(bcn, 'ElementRange')
         elementRange = [bcnr[1][0], bcnr[1][1]]
 
