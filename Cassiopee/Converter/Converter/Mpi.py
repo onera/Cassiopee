@@ -220,7 +220,7 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fil
     global TRACESTATE
     msg = text
     if method is not None: TRACESTATE['method'] = method
-    if fileName is not None: 
+    if fileName is not None:
         TRACESTATE['fileName'] = fileName
     if stdout is not None: TRACESTATE['fileName'] = "stdout"
     if mem is not None: TRACESTATE['mem'] = mem
@@ -228,7 +228,7 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fil
 
     if TRACESTATE['mem'] and TRACESTATE['method'] == 0:
         import tracemalloc
-        if TRACESTATE['prevFullTime'] is None: tracemalloc.start() 
+        if TRACESTATE['prevFullTime'] is None: tracemalloc.start()
     if TRACESTATE['cpu']:
         if TRACESTATE['prevFullTime'] is None:
             dt = 0.
