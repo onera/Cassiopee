@@ -720,9 +720,9 @@ def generateIBMOctree(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
         # build parent octree 3 levels higher
         # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-        parento = buildParentOctrees__(o, tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=4., dfars=dfars, dfarDir=dfarDir, 
+        parento = buildParentOctrees__(o, tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=4., dfars=dfars, dfarDir=dfarDir,
                                        tbox=tbox, snearsf=snearsf, to=to, octreeMode=octreeMode)
-    
+
     # adjust the extent of the box defining the symmetry plane if in tb
     baseSYM = Internal.getNodeFromName1(tb,"SYM")
     dir_sym = 0; X_SYM = 0.; coordsym =  None; symmetry=0
