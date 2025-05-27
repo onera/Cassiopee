@@ -483,13 +483,14 @@ Exchanges
 Actions
 -------------
 
-.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, fileName="stdout")
+.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, fileName="stdout", method=0)
 
     Enable to monitor CPU usage and memory usage for each node/process.
     If fileName="stdout", information is written to standard output with the processor number. 
     If fileName is another name, information is written in "filenameXXX" files, one for each process. If filename does not have a format for the process number and/or an file extension, it is appended "%03d" and ".out", respectively.
     If cpu=True, time elapsed since the previous call to "trace" by this node is written.
     If mem=True, the current usage of memory of each process is written.
+    Method used to find memory: 0: trace_malloc, 1: heap, 2: all size, 3: RSS.
 
     :param text: text to write
     :type text: string
@@ -499,6 +500,8 @@ Actions
     :type mem: boolean
     :param fileName: name of the file to write information to or "stdout"
     :type fileName: string
+    :param method: method used to check memory
+    :type method: 0: trace_malloc, 1: heap, 2: all size, 3: RSS
 
     *Example of use:*
 
