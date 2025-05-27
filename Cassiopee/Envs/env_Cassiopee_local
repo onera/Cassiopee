@@ -225,6 +225,7 @@ else if ($MAC == "visung_gcc") then
         module purge
         module load lapack/3.9.1-gnu831
         module load occt/7.6.1-gnu831
+        module load netcdf/4.8.0-gnu831
         module load socle-cfd/7.0-gnu850-ompi502
         module load emacs/27.2-gnu831
         setenv PRODMODE 1
@@ -237,6 +238,7 @@ else if ($MAC == "visung") then
         setenv ELSAPROD "$ELSAPROD$EXT"
         module purge
         module load occt/7.6.1-gnu831
+        module load netcdf/4.8.0-gnu831
         module load emacs/27.2-gnu831
         module load socle-cfd/6.0-intel2220-impi
         setenv I_MPI_FABRICS shm
@@ -659,6 +661,7 @@ else if ($MAC == "juno_coda") then
         setenv ELSAPROD $ELSAPRODSAV
         module load lapack/3.9.1-gnu831
         module load occt/7.6.1-gnu831
+        module load netcdf/4.8.0-gnu831
         setenv PYTHONEXE python3
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
