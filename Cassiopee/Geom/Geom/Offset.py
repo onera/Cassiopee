@@ -28,6 +28,30 @@ def _compDistance__(b, a, loc):
         except: raise
     return None
 
+def computeH__(hi,hj,hk,dim=3, tol=1e-6):
+    if dim==2:
+        if hi > tol and hj > tol: h = min(hi, hj)
+        elif hi < tol: h = hj
+        elif hj < tol: h = hi
+
+    elif dim == 3:
+        if hi > tol and hj > tol and hk > tol:
+            h=min(hi,hj); h=min(h,hk)
+        else:
+            if hi<tol:
+                if hj<tol: h=hk
+                elif hk<tol: h=hj
+                else: h=min(hj,hk)
+            elif hj<tol:
+                if hi<tol: h=hk
+                elif hk<tol: h=hi
+                else: h=min(hi,hk)
+            elif hk<tol:
+                if hi<tol: h=hj
+                elif hj<tol: h=hi
+                else: h=min(hi,hj)
+    h = max(h,tol)
+    return h
 #==============================================================================
 def withCart__(a, offset, pointsPerUnitLength, dim=3):
     # Grille cartesienne
@@ -42,9 +66,9 @@ def withCart__(a, offset, pointsPerUnitLength, dim=3):
     if nj < 2: nj = 2
     if nk < 2: nk = 2
     hi = (xmax-xmin)/(ni-1); hj = (ymax-ymin)/(nj-1); hk = (zmax-zmin)/(nk-1)
-    h = min(hi, hj);
-    if dim == 3: h = min(h, hk);
-    h = max(h, 1.e-6)
+
+    h = computeH__(hi,hj,hk,dim)
+
     ni = int((xmax-xmin)/h)+7; nj = int((ymax-ymin)/h)+7
     nk = int((zmax-zmin)/h)+7
     ni += int(2*abs(offset)/h); nj += int(2*abs(offset)/h); nk += int(2*abs(offset)/h)
@@ -60,6 +84,7 @@ def withCart__(a, offset, pointsPerUnitLength, dim=3):
 
     # Calcul la distance a la paroi
     _compDistance__(b, a, loc='nodes')
+
     # Extraction isoSurf
     iso = P.isoSurfMC([b], 'TurbulentDistance', value=offset)
     C._rmVars(iso,'TurbulentDistance')
@@ -75,11 +100,13 @@ def withOctree__(a, offset, pointsPerUnitLength, dim=3):
     for z in Internal.getZones(a):
         bb = G.bbox(z)
         rx = bb[3]-bb[0]; ry = bb[4]-bb[1]; rz = bb[5]-bb[2]
-        snear = min(rx, ry);
-        if dim==3: snear = min(snear, rz)
+        #snear = min(rx, ry);
+        #if dim==3: snear = min(snear, rz)
+        snear = computeH__(rx,ry,rz,dim)
         snear = 0.1*snear
         sec = max(sec, snear)
         snears.append(snear)
+
     o = G.octree(a, snears, dfar=offset+sec)
     _compDistance__(o, a, loc='nodes')
 
@@ -109,7 +136,6 @@ def withOctree__(a, offset, pointsPerUnitLength, dim=3):
         nit += 1
 
     C._rmVars(o, ['centers:TurbulentDistance','centers:vol','centers:indicator'])
-    #C.convertPyTree2File(o, 'out.cgns')
 
     # Iso surface
     iso = P.isoSurfMC([o], 'TurbulentDistance', value=offset)

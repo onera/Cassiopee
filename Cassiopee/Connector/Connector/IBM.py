@@ -4172,7 +4172,7 @@ def _setInjOutlet__(tc, tb):
         if sol:
             ibctype = Internal.getValue(Internal.getNodeFromName(sol, 'ibctype'))
             if ibctype == 'outpress':
-                famName = Internal.getValue(Internal.getNodeFromName(z, 'FamilyName'));
+                famName = Internal.getValue(Internal.getNodeFromName(z, 'FamilyName'))
                 if Internal.getNodeFromName(sol, 'pStatic'):
                     pStatic  = Internal.getValue(Internal.getNodeFromName(sol, 'pStatic'));
                     isDensity = Internal.getValue(Internal.getNodeFromName(sol, 'isDensityConstant'));
