@@ -109,7 +109,7 @@ def withOctree__(a, offset, pointsPerUnitLength, dim=3):
 
     o = G.octree(a, snears, dfar=offset+sec)
     _compDistance__(o, a, loc='nodes')
-    C.convertPyTree2File(o,"toto.cgns")
+
     # iteration d'adaptation
     nit = 0
     while nit < 10:
