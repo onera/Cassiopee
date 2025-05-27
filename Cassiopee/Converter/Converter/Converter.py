@@ -1,7 +1,7 @@
 """Conversion module for Cassiopee package.
 """
 #from numpy import *
-__version__ = '4.0'
+__version__ = '4.1'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Benoit Rodriguez, Simon Verley, Bruno Maugars, Thomas Renaud"
 #
 # Python Interface for conversion between array / file / CGNS
@@ -36,6 +36,7 @@ __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2',
            'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
            'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
            'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity',
+           'adaptSurfaceNGon',
            '_signNGonFaces', '_unsignNGonFaces', 'makeParentElements']
 
 # -- Create an array --
@@ -730,7 +731,8 @@ def convertExt2Format__(fileName):
     elif extension == '.cgns': format = 'bin_cgns'
     elif extension == '.adf': format = 'bin_adf'
     elif extension == '.hdf': format = 'bin_hdf'
-    elif extension == '.hdf5': format = 'bin_hdf'
+    elif extension == '.grid': format = 'bin_tau'
+    elif extension == '.h5': format = 'bin_fsdm'
     elif extension == '.pickle': format = 'bin_pickle'
     elif extension == '.df3': format = 'bin_df3'
     elif extension == '.3ds': format = 'bin_3ds'
@@ -1230,17 +1232,17 @@ def conformizeNGon(array, tol=1.e-6):
         return converter.conformizeNGon(array, tol)
     else: return array
 
-def convertSurfaceNGon(array):
+def adaptSurfaceNGon(array):
     """Convert a surface NGon from one type (A: NGON=bars, NFACE=polygon)
     to another (B: NGON=polygon, NFACE=NULL).
-    Usage: convertSurfaceNGon(array)"""
+    """
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(converter.convertSurfaceNGon(i))
+            b.append(converter.adaptSurfaceNGon(i))
         return b
     else:
-        return converter.convertSurfaceNGon(array)
+        return converter.adaptSurfaceNGon(array)
 
 # -- interne --
 def convertArray2Tetra1__(array, arrayC=[], split='simple'):

@@ -475,7 +475,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
     if (posx != 0 && posy != 0 && posz != 0)
       K_CONNECT::cleanConnectivity(posx, posy, posz, 
-                                   1.e-12, newEltType, 
+                                   1.e-12, newEltType,
                                    *fnodes, *connect);
 
     PyObject* tpl2 = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType);

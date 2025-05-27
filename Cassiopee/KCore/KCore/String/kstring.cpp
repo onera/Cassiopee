@@ -74,10 +74,11 @@ E_Int K_STRING::cmp(const char* s1, const char* s2)
 // Sorte de strcpy pour s1 non null terminated
 // IN: s1: chaine (non null terminated)
 // IN: s: taille de s1
-// OUT: s2: chaine null terminated (deja allouee a une taille >= s+1)
+// si end=true, add \0 to s2 (doit etre deja allouee a une taille >= s+1)
+// OUT: s2: chaine null terminated ou non suivant end 
 //==============================================================================
-void K_STRING::cpy(char* s2, char* s1, E_Int s)
+void K_STRING::cpy(char* s2, const char* s1, E_Int s, bool end)
 {
   for (E_Int i = 0; i < s; i++) s2[i] = s1[i];
-  s2[s] = '\0';
+  if (end == true) s2[s] = '\0';
 }

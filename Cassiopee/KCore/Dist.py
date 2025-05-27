@@ -1,5 +1,9 @@
 # Functions used in *Cassiopee* modules setup.py
-import os, sys, distutils.sysconfig, platform, glob, subprocess
+import os, sys, platform, glob, subprocess
+from distutils import sysconfig
+from distutils.core import Extension
+#from setuptools import sysconfig
+#from setuptools import Extension
 
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
 DEBUG = False
@@ -148,16 +152,16 @@ def checkAll(summary=True):
 # Check python includes / libs
 #==============================================================================
 def checkPython():
-    pythonVersion = distutils.sysconfig.get_python_version()
-    vars = distutils.sysconfig.get_config_vars()
+    pythonVersion = sysconfig.get_python_version()
+    #vars = sysconfig.get_config_vars()
 
-    pythonIncDir = distutils.sysconfig.get_python_inc()
+    pythonIncDir = sysconfig.get_python_inc()
     if not os.path.exists(pythonIncDir):
         raise SystemError("Error: Python includes are required for the compilation of Cassiopee modules.")
 
-    pythonLibDir = distutils.sysconfig.get_python_lib()
+    pythonLibDir = sysconfig.get_python_lib()
     try:
-        a = distutils.sysconfig.get_config_var('LDLIBRARY')
+        a = sysconfig.get_config_var('LDLIBRARY')
         a = a.replace('lib', '')
         a = a.replace('.a', '')
         a = a.replace('.so', '')
@@ -185,34 +189,34 @@ def checkNumpy():
 
 #=============================================================================
 # Retourne le chemin d'installation des modules comme cree par distUtils
+# if type=0, return full install path
+# else return dict {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
 #=============================================================================
-def getInstallPath(prefix):
+def getInstallPath(prefix, type=0):
     mySystem = getSystem()[0]; bits = getSystem()[1]
 
-    # from python3, better to use sysconfig than distutils.sysconfig
-    # to find the "prefix" installation path from python
-    #import sysconfig
-    #schemes = sysconfig.get_scheme_names()
-    #defaultScheme = sysconfig.get_default_scheme()
-    #preferedScheme = sysconfig.get_preferred_scheme('prefix') # user or home?
-    #paths = sysconfig.get_paths("posix_prefix")
-    #paths = paths['platlib']
-    #pythonLib = paths.split('/')
-    #pythonVersion = pythonLib[-2]
-    #Site = pythonLib[-1]
-    #Lib = pythonLib[-3]
-    #installPath = '%s/%s/%s/%s'%(prefix, Lib, pythonVersion, Site)
+    import site
+    a = site.getsitepackages()[0].split('/')[-4:]
+    if type == 0:
+        if a[0] != 'local':
+            installPath = '%s/%s/%s/%s'%(prefix, a[1], a[2], a[3])  # 'prefix/lib/python3.12/site-packages'
+        else:
+            installPath = '%s/%s/%s/%s/%s'%(prefix, a[0], a[1], a[2], a[3])  # 'prefix/local/lib/python3.12/site-packages'
+    else:
+        installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}  # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
+    return installPath
 
-    # Based on distutils (to be su)
+    '''
+    # Based on distutils (to be sure)
     if os.environ['ELSAPROD'][0:6] == 'msys64' or os.environ['ELSAPROD'] == 'win64':
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]
         Site = pythonLib[-1]
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
     elif os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pversion = sys.version_info
         pythonVersion = "python{}.{}".format(pversion[0], pversion[1])
@@ -222,12 +226,12 @@ def getInstallPath(prefix):
     elif mySystem == 'Windows' or mySystem == 'mingw':
         installPath = prefix + "/Lib/site-packages"
     elif mySystem == 'Darwin':
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]
         installPath = prefix + '/lib/python'+pythonVersion+'/site-packages'
     else: # standard unix
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         # Based on python lib
         #installPath = prefix + '/' + '/'.join(pythonLib[-3:])
@@ -237,7 +241,16 @@ def getInstallPath(prefix):
         Site = pythonLib[-1]
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
-    return installPath
+
+    # temporary for tests
+    if installPath != retn:
+        print("WARNING: new installPath is not correct.")
+        print("WARNING: old: ", installPath)
+        print("WARNING: new: ", retn)
+
+    if type == 0: return installPath
+    else: return {'lib': Lib, 'pyversion': pythonVersion, 'site': Site}
+    '''
 
 #==============================================================================
 # Functions returning the names of the remote repo & branch and the commit hash
@@ -309,17 +322,28 @@ def writeInstallPath():
     if p is None:
         raise SystemError("Error: can not open file installPath.py for writing.")
     p.write('installPath = \'%s\'\n'%installPath)
+
+    import site
+    a = site.getsitepackages()[0].split('/')[-4:]
+    if a[0] != 'local': libPath = '%s/%s'%(prefix, a[1])  # 'prefix/lib'
+    else: libPath = '%s/%s/%s'%(prefix, a[0], a[1])  # 'prefix/local/lib'
+    p.write('libPath = \'%s\'\n'%libPath)
+
+    '''
     mySystem = getSystem()[0]; bits = getSystem()[1]
     if mySystem == 'Windows' or mySystem == 'mingw': Lib = 'Lib'
     elif mySystem == 'Darwin': Lib = 'lib'
     else:
-        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         Lib = pythonLib[-3]
     if os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
-        p.write('libPath = \'%s/local/%s\'\n'%(prefix,Lib))
+        libPath = '%s/local/%s'%(prefix,Lib)
     else:
-        p.write('libPath = \'%s/%s\'\n'%(prefix,Lib))
+        libPath = '%s/%s'%(prefix,Lib)
+    p.write('libPath = \'%s\'\n'%libPath)
+    '''
+
     cwd = os.getcwd()
     p.write('includePath = \'%s\'\n'%(cwd))
     gitOrigin = getGitOrigin(cwd)
@@ -495,9 +519,9 @@ def writeSetupCfg():
 # ou dans config.py (installBase.py)
 #==============================================================================
 def getDistUtilsCompilers():
-    vars = distutils.sysconfig.get_config_vars('CC', 'CXX', 'OPT',
-                                               'BASECFLAGS', 'CCSHARED',
-                                               'LDSHARED', 'SO')
+    vars = sysconfig.get_config_vars('CC', 'CXX', 'OPT',
+                                     'BASECFLAGS', 'CCSHARED',
+                                     'LDSHARED', 'SO')
     for i, v in enumerate(vars):
         if v is None: vars[i] = ""
 
@@ -1645,8 +1669,6 @@ def checkAdf(additionalLibPaths=[], additionalIncludePaths=[]):
 # liste des noms des libs)
 #=============================================================================
 def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
-    #print("INFO: dependance to HDF STUBED.")
-    #return (False, None, None, None)
     libnames = []
     l = checkLibFile__('libhdf5.so', additionalLibPaths)
     if l is not None: libnames.append('hdf5')
@@ -1671,6 +1693,33 @@ def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
         return (False, i, l, libnames)
     else:
         print('Info: libhdf5 and hdf5.h was not found on your system. No hdf5 support.')
+        return (False, i, l, libnames)
+
+#=============================================================================
+# Check for netcdf
+# additionalPaths: chemins d'installation non standards : ['/home/toto',...]
+# Retourne: (True/False, chemin des includes, chemin de la librairie,
+# liste des noms des libs)
+#=============================================================================
+def checkNetcdf(additionalLibPaths=[], additionalIncludePaths=[]):
+    libnames = []
+    l = checkLibFile__('libnetcdf.so', additionalLibPaths)
+    if l is not None: libnames.append('netcdf')
+    if l is None:
+        l = checkLibFile__('libnetcdf.a', additionalLibPaths)
+        if l is not None: libnames.append('netcdf')
+    i = checkIncFile__('netcdf.h', additionalIncludePaths)
+    if i is not None and l is not None:
+        print('Info: netcdf detected at %s.'%l)
+        return (True, i, l, libnames)
+    elif l is None and i is not None:
+        print('Info: libhnetcdf was not found on your system. No netcdf support.')
+        return (False, i, l, libnames)
+    elif l is not None and i is None:
+        print('Info: netcdf.h was not found on your system. No netcdf support.')
+        return (False, i, l, libnames)
+    else:
+        print('Info: libnetcdf and netcdf.h was not found on your system. No netcdf support.')
         return (False, i, l, libnames)
 
 #=============================================================================
@@ -2163,7 +2212,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
     if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0:
         os.environ['CC'] = 'gcc'
         os.environ['CXX'] = 'g++'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2196,7 +2244,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
     if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
         os.environ['CC'] = 'icc' # forced to overide setup.cfg
         os.environ['CXX'] = 'icpc'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2229,7 +2276,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'icx' # forced to overide setup.cfg
         os.environ['CXX'] = 'icpx'
         os.environ['LDSHARED'] = 'ifx'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2258,7 +2304,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'pgc++' # forced to overide setup.cfg
         os.environ['CXX'] = 'pgc++'
         os.environ['LDSHARED'] = 'pgfortran'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2282,7 +2327,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'nvc++' # forced to overide setup.cfg
         os.environ['CXX'] = 'nvc++'
         os.environ['LDSHARED'] = 'nvfortran'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2306,7 +2350,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'craycc' # forced to overide setup.cfg
         os.environ['CXX'] = 'craycxx'
         os.environ['LDSHARED'] = 'crayftn'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2334,7 +2377,6 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         os.environ['CC'] = 'cc' # forced to overide setup.cfg
         os.environ['CXX'] = 'cc'
         os.environ['LDSHARED'] = 'ftn'
-        from distutils import sysconfig
         cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
@@ -2462,6 +2504,12 @@ def writeBuildInfo():
     if hdf: dict['hdf'] = hdfLib
     else: dict['hdf'] = "None"
 
+    # Check netcdf
+    (netcdf, netcdfIncDir, netcdfLib, netcdflibnames) = checkNetcdf(config.additionalLibPaths,
+                                                                    config.additionalIncludePaths)
+    if netcdf: dict['netcdf'] = netcdfLib
+    else: dict['netcdf'] = "None"
+
     # Check mpi
     (mpi, mpiIncDir, mpiLib, mpiLibs) = checkMpi(config.additionalLibPaths,
                                                  config.additionalIncludePaths)
@@ -2472,7 +2520,7 @@ def writeBuildInfo():
     (cuda, cudaIndDir, cudaLib, cudalibNames, cudaexec) = checkCuda(config.additionalLibPaths,
                                                                     config.additionalIncludePaths)
     if cuda: dict['cuda'] = cudaLib
-    else:    dict['cuda'] = "None"
+    else: dict['cuda'] = "None"
 
     # Write dictionnary
     p.write("# This file is generated by Cassiopee installer.\n")
@@ -2551,8 +2599,14 @@ def symLinks():
             os.remove(libPath1); ex1 = False
         if not ex2 and lex2: # broken link 2
             os.remove(libPath2); ex2 = False
-        if ex1 and not ex2: os.symlink(libPath1, libPath2)
-        elif not ex1 and ex2: os.symlink(libPath2, libPath1)
+        if ex1 and not ex2:
+            try: # may fail under windows disk system
+                os.symlink(libPath1, libPath2)
+            except: pass
+        elif not ex1 and ex2:
+            try: # may fail under windows disk system
+                os.symlink(libPath2, libPath1)
+            except: pass
 
 #==============================================================================
 # Cree les extensions d'un Module
@@ -2563,7 +2617,6 @@ def symLinks():
 #==============================================================================
 def createExtensions(module, srcs, includeDirs, libraryDirs, libraries,
                      extraCompileArgs=[], extraLinkArgs=[]):
-    from distutils.core import Extension
     listExtensions = []
     minor = module.lower()
     # C/Api module

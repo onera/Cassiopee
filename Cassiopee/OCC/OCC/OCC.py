@@ -1,6 +1,6 @@
 """OpenCascade definition module.
 """
-__version__ = '4.0'
+__version__ = '4.1'
 __author__ = "Sam Landier, Christophe Benoit"
 
 from . import occ
@@ -19,7 +19,7 @@ __all__ = ['convertCAD2Arrays',
            'meshAllFacesTri', 'meshFaceWithMetric', 'identifyTags__',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
-           '_translate', '_rotate',
+           '_translate', '_rotate', '_sewing',
            '_splitFaces', '_mergeFaces']
 
 # algo=0: mailleur open cascade (chordal_error)
@@ -109,7 +109,6 @@ def _unscaleUV(edges, T, vu='x', vv='y'):
         e[1][pu,:] = e[1][pu,:]*du+umin
         e[1][pv,:] = e[1][pv,:]*dv+vmin
     return None
-
 
 # Mailleur structure de CAD
 # IN: N: the number of points for each patch boundary
@@ -740,7 +739,7 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
 
 # read CAD and return CAD hook
 def readCAD(fileName, format='fmt_step'):
-    """Read CAD file and return CAD hook."""
+    """Read CAD file and return a CAD hook."""
     h = occ.readCAD(fileName, format)
     return h
 
@@ -766,25 +765,25 @@ def getFileAndFormat(hook):
     return occ.getFileAndFormat(hook)
 
 # Return the area of specified faces
-def getFaceArea(hook, listFaces=[]):
+def getFaceArea(hook, listFaces=None):
     """Return the area of given faces."""
     return occ.getFaceArea(hook, listFaces)
 
 # Translate
-def _translate(hook, vector, listFaces=[]):
+def _translate(hook, vector, listFaces=None):
     """Translate all or given faces."""
     occ.translate(hook, vector, listFaces)
     return None
 
 # Rotate
-def _rotate(hook, Xc, axis, angle, listFaces=[]):
+def _rotate(hook, Xc, axis, angle, listFaces=None):
     """Rotate all or given faces."""
     occ.rotate(hook, Xc, axis, angle, listFaces)
     return None
 
 # sew a set of faces
 # faces: face list numbers
-def _sewing(hook, listFaces=[], tol=1.e-6):
+def _sewing(hook, listFaces=None, tol=1.e-6):
     """Sew some faces (suppress redundant edges)."""
     occ.sewing(hook, listFaces, tol)
     return None
@@ -802,7 +801,7 @@ def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
 
 # fill hole from edges
 # edges: edge list numbers (must be ordered)
-def _fillHole(hook, edges, listFaces=[], continuity=0):
+def _fillHole(hook, edges, listFaces=None, continuity=0):
     occ.fillHole(hook, edges, listFaces, continuity)
     return None
 
@@ -818,7 +817,7 @@ def _splitFaces(hook, area):
     return None
 
 # merge faces
-def _mergeFaces(hook, listFaces=[]):
+def _mergeFaces(hook, listFaces=None):
     """Merge some faces."""
     occ.mergeFaces(hook, listFaces)
     return None

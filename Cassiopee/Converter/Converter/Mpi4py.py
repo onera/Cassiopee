@@ -7,7 +7,7 @@ from . import converter
 # Acces a Distributed
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths, mergeGraph, splitGraph
 
-__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
+__all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
            'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
            'bcast', 'Bcast', 'gather', 'Gather',
            'reduce', 'Reduce', 'allreduce', 'Allreduce',
@@ -32,6 +32,7 @@ KCOMM = COMM_WORLD
 
 rank = KCOMM.rank
 size = KCOMM.size
+master = (rank == 0)
 
 SUM = MPI.SUM
 MAX = MPI.MAX

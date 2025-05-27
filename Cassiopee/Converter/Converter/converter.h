@@ -93,12 +93,16 @@ namespace K_CONVERTER
   PyObject* convertFile2PyTree(PyObject* self, PyObject* args);
   PyObject* convertFile2PartialPyTree(PyObject* self, PyObject* args);
   PyObject* convertPyTree2File(PyObject* self, PyObject* args);
+  PyObject* convertPyTree2FileTau(PyObject* self, PyObject* args);
+  PyObject* convertPyTree2FileFsdm(PyObject* self, PyObject* args);
   PyObject* convertFile2PyTreeFromPath(PyObject* self, PyObject* args);
   PyObject* convertPyTree2FilePartial(PyObject* self, PyObject* args);
-  PyObject* convertPyTree2FFD(PyObject* self, PyObject* args);
   PyObject* readPyTreeFromPaths(PyObject* self, PyObject* args);
   PyObject* writePyTreePaths(PyObject* self, PyObject* args);
   PyObject* deletePyTreePaths(PyObject* self, PyObject* args);
+  PyObject* convertFile2PyTreeTau(PyObject* self, PyObject* args);
+  PyObject* convertFile2PyTreeFsdm(PyObject* self, PyObject* args);
+  PyObject* convertPyTree2FFD(PyObject* self, PyObject* args);
   PyObject* cpyGhost2Real(PyObject* self, PyObject* args);
   PyObject* cpyReal2Ghost(PyObject* self, PyObject* args);
   PyObject* cpyConnectA2ConnectP(PyObject* self, PyObject* args);
@@ -155,11 +159,13 @@ namespace K_CONVERTER
   PyObject* signNGonFaces(PyObject* self, PyObject* args);
   PyObject* unsignNGonFaces(PyObject* self, PyObject* args);
   PyObject* makeParentElements(PyObject* self, PyObject* args);
-  PyObject* convertSurfaceNGon(PyObject* self, PyObject* args);
+  PyObject* adaptSurfaceNGon(PyObject* self, PyObject* args);
   PyObject* adaptBCFace2BCC(PyObject* self, PyObject* args);
   PyObject* adaptBCC2BCFace(PyObject* self, PyObject* args);
+  PyObject* adaptBCFacePL2VertexPL(PyObject* self, PyObject* args);
   PyObject* adaptNGon42NGon3(PyObject* self, PyObject* args);
   PyObject* adaptNGon32NGon4(PyObject* self, PyObject* args);
+  PyObject* adaptShiftedPE2PE(PyObject* self, PyObject* args);
   PyObject* adapt2FastP(PyObject* self, PyObject* args);
   PyObject* createElsaHybrid(PyObject* self, PyObject* args);
   PyObject* diffIndex(PyObject* self, PyObject* args);
@@ -184,6 +190,10 @@ namespace K_CONVERTER
   PyObject* intersect2(PyObject* self, PyObject* args);
   PyObject* deleteBBTree(PyObject* self, PyObject* args);
 
+  // Adapt BC face point list to vertex point list, NGON and ME
+  PyObject* adaptBCFacePL2VertexPL_NGON(FldArrayI* cn, FldArrayI* fpl);
+  PyObject* adaptBCFacePL2VertexPL_ME(FldArrayI* cn, FldArrayI* fpl);
+  
   // addGhostCells NGON
   void addGhostCellsNGon2D(E_Int depth,
                            K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,

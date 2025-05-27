@@ -200,7 +200,6 @@ List of functions
     Converter.convertHO2LO
     Converter.convertLO2HO
     Converter.conformizeNGon
-    Converter.convertSurfaceNGon
     Converter.node2Center
     Converter.center2Node
     Converter.PyTree.addGhostCells
@@ -1534,14 +1533,14 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.convertArray2NGon(a, recoverBC=1, api=1)
+.. py:function:: Converter.convertArray2NGon(a, recoverBC=True, api=1)
 
     Create NGON array from an any type of mesh.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param recoverBC: BCs can be recovered (=1) or not(=0) on the NGON a (not valid for arrays).
-    :type recoverBC: integer (0 or 1)
+    :param recoverBC: BCs can be recovered or not on the NGON a (not valid for arrays).
+    :type recoverBC: boolean
     :param api: CGNSv3 compact (=1), CGNSv3 (=2) or CGNSv4 (=3).
     :type api: integer (1, 2 or 3)
     :rtype: Identical to input
@@ -1696,26 +1695,6 @@ Array / PyTree common manipulations
     * `NGON mesh conformization (pyTree) <Examples/Converter/conformizeNGonPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/conformizeNGonPT.py
-
-
------------------------------------------------------------------------------------
-
-.. py:function:: Converter.convertSurfaceNGon(a, rmEmptyNFaceElements=True)
-
-    Convert a surface NGon from (A: NGON=bars, NFACE=polygon)
-    to (B: NGON=polygon, NFACE=NULL), or vice versa.
-
-    :param a: input data (NGON)
-    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param rmEmptyNFaceElements: if True, remove all empty NFaceElements nodes from the zones.
-    :type tol: boolean
-    :rtype: Identical to input
-
-    *Example of use:*
-
-    * `NGON surface mesh conversion (pyTree) <Examples/Converter/convertSurfaceNGonPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/convertSurfaceNGonPT.py
 
 
 -----------------------------------------------------------------------------------
@@ -2407,7 +2386,13 @@ Array / PyTree input/output
     +============+===========+=======================================+
     |bin_adf     | .adf      | binary CGNS ADF file                  |
     +------------+-----------+---------------------------------------+
-    |bin_hdf     | .cgns .hdf| binary CGNS HDF file                  |
+    |bin_hdf     | .hdf      | binary CGNS HDF file                  |
+    +------------+-----------+---------------------------------------+
+    |bin_cgns    | .cgns     | binary CGNS/HDF file                  |
+    +------------+-----------+---------------------------------------+
+    |bin_tau     | .grid     | binary TAU file                       |
+    +------------+-----------+---------------------------------------+
+    |bin_fsdm    | .h5       | binary FSDM file                       |
     +------------+-----------+---------------------------------------+
 
 

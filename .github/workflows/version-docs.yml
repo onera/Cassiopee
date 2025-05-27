@@ -1,0 +1,46 @@
+name: Deploy Versioned Docs with Mike
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+      
+permissions:
+  contents: write  # Required to push to gh-pages
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # To fetch tags
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install mike mkdocs
+
+      - name: Configure Git (for mike to push)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+
+      - name: Deploy docs
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            mike deploy --push --update-aliases "$VERSION" latest
+          else
+            VERSION=current
+            mike deploy --push "$VERSION"
+          fi

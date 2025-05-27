@@ -573,7 +573,7 @@ def meshAllPara(hook, hmin=-1, hmax=-1., hausd=-1.):
     import Distributor2.PyTree as D2
 
     # total area of top shape
-    areaTot = OCC.occ.getFaceArea(hook, [])
+    areaTot = OCC.occ.getFaceArea(hook)
 
     # area per proc
     area = areaTot / Cmpi.size
@@ -1255,25 +1255,25 @@ def getFileAndFormat(hook):
     return OCC.occ.getFileAndFormat(hook)
 
 # Return the area of specified faces
-def getFaceArea(hook, listFaces=[]):
+def getFaceArea(hook, listFaces=None):
     """Return the area of given faces."""
     return OCC.occ.getFaceArea(hook, listFaces)
 
 # Translate
-def _translate(hook, vector, listFaces=[]):
+def _translate(hook, vector, listFaces=None):
     """Translate all or given faces."""
     OCC.occ.translate(hook, vector, listFaces)
     return None
 
 # Rotate
-def _rotate(hook, Xc, axis, angle, listFaces=[]):
+def _rotate(hook, Xc, axis, angle, listFaces=None):
     """Rotate all or given faces."""
     OCC.occ.rotate(hook, Xc, axis, angle, listFaces)
     return None
 
 # sew a set of faces
 # faces: face list numbers
-def _sewing(hook, listFaces=[], tol=1.e-6):
+def _sewing(hook, listFaces=None, tol=1.e-6):
     """Sew some faces (suppress redundant edges)."""
     OCC.occ.sewing(hook, listFaces, tol)
     return None
@@ -1291,7 +1291,7 @@ def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
 
 # fill hole from edges
 # edges: edge list numbers (must be ordered)
-def _fillHole(hook, edges, faces=[], continuity=0):
+def _fillHole(hook, edges, faces=None, continuity=0):
     OCC.occ.fillHole(hook, edges, faces, continuity)
     return None
 
@@ -1307,7 +1307,7 @@ def _splitFaces(hook, area):
     return None
 
 # merge faces
-def _mergeFaces(hook, listFaces=[]):
+def _mergeFaces(hook, listFaces=None):
     """Merge some faces."""
     OCC.occ.mergeFaces(hook, listFaces)
     return None
@@ -1503,6 +1503,17 @@ def getComponents(t):
             C._tagWithFamily(z, 'Component%02d'%k, add=True)
 
     return a
+
+# tell if component (as obtained by getComponent) is watertight
+def isWatertight(component, leaks=[]):
+    import Post.PyTree as P
+    import Transform.PyTree as T
+    try:
+        leaks += P.exteriorFaces(component)
+        leaks += T.splitConnexity(leaks)
+    except: pass
+    if len(leaks) != 0: return False
+    else: return True
 
 # print OCAF document
 def printOCAF(h):

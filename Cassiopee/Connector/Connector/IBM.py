@@ -558,7 +558,7 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
 
     import time as python_time
 
-    if model is None: raise ValueError('prepareIBMDataAdapt: input tree is missing.')
+    if t_in is None: raise ValueError('prepareIBMDataAdapt: input tree is missing.')
 
     if isinstance(t_in, str): t = Cmpi.convertFile2PyTree(t_in, proc=Cmpi.rank)
     else: t = Internal.copyTree(t_in)
@@ -644,7 +644,7 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1)
 
-    t, tc, tc2 = initializeIBM(Internal.copyRef(t), tc, tb, dimPb=dimPb, twoFronts=twoFronts)
+    _, tc, tc2 = initializeIBM(None, tc, tb, dimPb=dimPb, twoFronts=twoFronts)
 
     _redispatch__(t=t, tc=tc, tc2=tc2)
 
@@ -1828,7 +1828,7 @@ def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False,
     if ibctypes is None: raise ValueError('initializeIBM: ibctype is missing in input geometry tree.')
     ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
 
-    if model != 'Euler':
+    if model != 'Euler' and t is not None:
         _recomputeDistForViscousWall__(t, tb, tbCurvi=tbCurvi, dimPb=dimPb, tbFilament=tbFilament)
         # if not cleanCellN: C._initVars(t, '{centers:TurbulentDistanceWallBC}={centers:TurbulentDistance}')
 
@@ -1845,7 +1845,7 @@ def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False,
         tc2 = None
 
     _tcInitialize__(tc, tc2=tc2, ibctypes=ibctypes, isWireModel=isWireModel)
-    if t: _tInitialize__(t, tinit=tinit, model=model, isWireModel=isWireModel)
+    if t is not None: _tInitialize__(t, tinit=tinit, model=model, isWireModel=isWireModel)
 
     return t, tc, tc2
 
@@ -2371,11 +2371,16 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             ah = C.getField('he', z)[0]
             if ah != []: an = Converter.addVars([an,ah])
             correctedPts = Connector.getInterpolatedPoints__(an)
+            allCorrectedPts.append(correctedPts)
             xt = C.getField('CoordinateX', z)[0][1][0]
             snearl = xt[1]-xt[0]
+            if twoFronts: snearl *= 2
             listOfSnearsLoc.append(snearl)
-            allCorrectedPts.append(correctedPts)
-            if frontType == 42: listOfModelisationHeightsLoc.append(G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref))
+
+            if frontType == 42:
+                hmod = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+                if twoFronts: hmod *= 2
+                listOfModelisationHeightsLoc.append(hmod)
             else:
                 listOfModelisationHeightsLoc.append(0.)
     else:
@@ -2397,9 +2402,13 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             allCorrectedPts.append(correctedPts)
             xt = C.getField('CoordinateX',z)[0][1][0]
             snearl = xt[1]-xt[0]
-
+            if twoFronts: snearl *= 2
             listOfSnearsLoc.append(snearl)
-            if frontType == 42: listOfModelisationHeightsLoc.append(G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref))
+
+            if frontType == 42:
+                hmod = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
+                if twoFronts: hmod *= 2
+                listOfModelisationHeightsLoc.append(hmod)
             else:
                 listOfModelisationHeightsLoc.append(0.)
     #-------------------------------------------

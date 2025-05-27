@@ -589,7 +589,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
 #endif
 
     // Definition des pointeurs
-    char* recvBuf = new char[nOctetsTot];
+    char* recvBuf = new char[nOctetsTot+8];
     char* initRecvBuf = recvBuf;
     
     // Nombre d octets du type E_Int

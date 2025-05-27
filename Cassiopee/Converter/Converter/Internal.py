@@ -2607,7 +2607,7 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
     from tempfile import mkstemp
     import os
     fd, tmpfl = mkstemp('.py')
-    os.write(fd, rep)
+    os.write(fd, rep.encode("utf8"))
     os.close(fd)
     os.system('%s %s ;rm -f %s' %(editor, tmpfl, tmpfl))
   if file:
@@ -2727,7 +2727,7 @@ def eltName2EltNo(name):
     elif nnodes == 9:  eltno = 9
     elif nnodes == 12: eltno = 27 # D'apres l'enumeration CGNS
     elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait etre QUAD_P4_16... Que faire ?
-    # Pour l'ordre 4,rien dans l'enumeration CGNS
+    # Pour l'ordre 4, rien dans l'enumeration CGNS
   elif name[0:5] == 'TETRA':
     if len(name) == 5: nnodes = 4
     else: nnodes = int(name[6:])
@@ -4377,6 +4377,45 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
     if shiftPE: cFE[:] += nfaces
   return None
 
+def adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
+  """Adapt face point list into vertex point list for a list of BC_t nodes."""
+  tp = copyRef(t)
+  _adaptBCFacePL2VertexPL(tp, bcs, btype, remove)
+  return tp
+
+def _adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
+  """Adapt face point list into vertex point list for a list of BC_t nodes."""
+  zones = getZones(t)
+  for z in zones:
+    zdim = getZoneDim(z)
+    if zdim[0] != 'Unstructured': continue
+
+    if bcs is None:
+      zoneBCs = getNodeFromType1(z, 'ZoneBC_t')
+      if zoneBCs is not None: zoneBCs = getNodesFromType1(zoneBCs, 'BC_t')
+    elif isinstance(bcs, list):
+      if len(bcs) == 4 and bcs[-1] == 'BC_t': zoneBCs = [bcs]
+      else: zoneBCs = bcs
+    else: raise NotImplementedError
+    if btype is not None:
+      zoneBCs = [i for i in zoneBCs if getValue(i) == btype]
+    if not zoneBCs: continue
+
+    from . import PyTree
+    array = PyTree.getFields('coords', z, api=3)[0]
+
+    for bc in zoneBCs:
+      r = getNodeFromName1(bc, __FACELIST__)  # IndexArray (PointList)
+      loc = getNodeFromName1(bc, 'GridLocation')
+      if loc is None:
+        raise ValueError(f"Node GridLocation missing in BC '{bc[0]}' of zone '{z[0]}'")
+      if r is None: continue
+      if getValue(loc) in ['EdgeCenter', 'FaceCenter', 'CellCenter']:
+        r[1] = converter.adaptBCFacePL2VertexPL(array, r[1])  # ME or NGON
+        loc[1] = 'Vertex'
+        if remove: _rmNodesFromType1(bc, 'BCDataSet_t')  # Remove old datasets
+  return None
+
 # -- Adapte NGON en FaceIndex
 def _adaptNGon2Index(t):
   zones = getZones(t)
@@ -4427,8 +4466,7 @@ def _adaptNGon42NGon3(t, shiftPE=True, absFace=True):
         off = getNodeFromName1(c, 'ElementStartOffset')
         cn = getNodeFromName1(c, 'ElementConnectivity')
         if off is not None and cn is not None:
-          n = converter.adaptNGon42NGon3(cn[1], off[1])
-          if absFace: n = numpy.abs(n)
+          n = converter.adaptNGon42NGon3(cn[1], off[1], absFace)
           cn[1] = n
           off[1] = off[1][:-1]
           if c[1][0] == 22: off[0] = 'FaceIndex'
@@ -4440,10 +4478,8 @@ def _adaptNGon42NGon3(t, shiftPE=True, absFace=True):
         if parentElt is not None and parentElt[1] is not None: # parent element est present
           cFE = parentElt[1]
           erange = getNodeFromName1(c, 'ElementRange')
-          shift = numpy.min(cFE[numpy.nonzero(cFE)])
-          if shift > 1 and shift == erange[1][1]+1:
-            cFE = cFE+(1-shift)*(cFE>0)
-            parentElt[1] = cFE
+          cFE = converter.adaptShiftedPE2PE(cFE, erange[1][1])
+          if cFE is not None: parentElt[1] = cFE
   return None
 
 # -- Adapte un NGon(CGNSv3) en NGon(CGNSv4)
@@ -4475,12 +4511,53 @@ def _adaptNGon32NGon4(t, shiftPE=True):
         if parentElt is not None and parentElt[1] is not None: # parent element est present
           cFE = parentElt[1]
           erange = getNodeFromName1(c, 'ElementRange')
-          shift = numpy.min(cFE[numpy.nonzero(cFE)])
-          if shift == erange[1][1]+1:
-            cFE = cFE+(shift-1)*(cFE>0)
-            parentElt[1] = cFE
+          cFE = converter.adaptShiftedPE2PE(cFE, erange[1][1])
+          if cFE is not None: parentElt[1] = cFE
 
   return None
+
+# -- adaptSurfaceNGon
+def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
+  """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
+  to (B: NGON=polygon, NFACE=NULL), or vice versa.
+  """
+  # add NFace node if necessary
+  for z in getZones(a):
+    nFace = getNodeFromName(z, 'NFaceElements')
+    if nFace is None:
+      nGon = getNodeFromName(z, 'NGonElements')
+      offset = getNodeFromName(nGon, 'ElementStartOffset')
+      api = 3 if offset is not None else 2
+      rnGon = getNodeFromName(nGon, 'ElementRange')[1]
+
+      nface = createNode('NFaceElements', 'Elements_t', parent=z,
+                         value=numpy.array([23,0],
+                                           dtype=E_NpyInt, order='F'))
+
+      value = numpy.array([rnGon[1]+1, rnGon[1]+1],
+                          dtype=E_NpyInt, order='F')
+      createNode('ElementRange', 'IndexRange_t',
+                 parent=nface, value=value)
+      value = numpy.array([], dtype=E_NpyInt, order='F')
+      createNode('ElementConnectivity', 'DataArray_t',
+                 parent=nface, value=value)
+      if api == 3:
+        value = numpy.array([0], dtype=E_NpyInt, order='F')
+      else: value =  numpy.array([], dtype=E_NpyInt, order='F')
+      createNode('ElementStartOffset', 'DataArray_t',
+                 parent=nface, value=value)
+
+  import Converter.PyTree as C
+  import Converter
+  a = C.TZGC3(a, 'nodes', True, Converter.adaptSurfaceNGon)
+
+  if rmEmptyNFaceElements:
+    for z in getZones(a):
+      nFace = getNodeFromName(z, 'NFaceElements')
+      cnFace = getNodeFromName(nFace, 'ElementConnectivity')[1]
+      if cnFace.size == 0: _rmNodesByName(z, 'NFaceElements')
+
+  return a
 
 # -- Adapte une condition aux limites definies par faces en conditions aux
 # limites definies avec une BCC
@@ -4903,7 +4980,7 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
 # -- Purely internal (undocumented) --
 #==============================================================================
 
-# order nodes in FSC
+# order nodes in FlowSolution
 def _orderFlowSolution(t, loc='both'):
   if loc == 'nodes': loci=0
   elif loc == 'centers': loci=1
@@ -4912,7 +4989,7 @@ def _orderFlowSolution(t, loc='both'):
   noz = 0; orderedNodesC=[]; orderedNodesN=[]
   for z in getZones(t):
     if loci > 0:
-      FSC = getNodeFromName(z,__FlowSolutionCenters__)
+      FSC = getNodeFromName(z, __FlowSolutionCenters__)
       if FSC is not None:
         if noz == 0:
           for fieldnode in FSC[2]:
@@ -4920,9 +4997,9 @@ def _orderFlowSolution(t, loc='both'):
         else:
           newChildrens=[]
           for nodename in orderedNodesC:
-            nodel = getNodeFromName1(FSC,nodename)
+            nodel = getNodeFromName1(FSC, nodename)
             newChildrens.append(nodel)
-          FSC[2]=newChildrens
+          FSC[2] = newChildrens
     else:
       FSN = getNodeFromName(z,__FlowSolutionNodes__)
       if FSN is not None:
@@ -4932,9 +5009,9 @@ def _orderFlowSolution(t, loc='both'):
         else:
           newChildrens=[]
           for nodename in orderedNodesN:
-            nodel = getNodeFromName1(FSN,nodename)
+            nodel = getNodeFromName1(FSN, nodename)
             newChildrens.append(nodel)
-          FSN[2]=newChildrens
+          FSN[2] = newChildrens
     noz += 1
   return None
 # -- Convert an array with (i,j,k) numerotation to an array with 1D-index

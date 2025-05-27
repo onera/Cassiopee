@@ -43,7 +43,7 @@ libraryDirs += paths; libraries += libs
 import srcs
 setup(
     name="Transform",
-    version="4.0",
+    version="4.1",
     description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

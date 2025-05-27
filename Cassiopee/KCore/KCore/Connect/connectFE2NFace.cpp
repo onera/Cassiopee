@@ -40,19 +40,19 @@ void K_CONNECT::connectFE2NFace(FldArrayI& cFE, FldArrayI& cNFace, E_Int& nelts)
   E_Int* facesp2 = cFE.begin(2);
 
   // Trouve le nbre d'elements (le max)
-  E_Int e1, e2;
   nelts = 0;
+  #pragma omp parallel for reduction(max:nelts)
   for (E_Int i = 0; i < nf; i++)
   {
-    e1 = facesp1[i]; e2 = facesp2[i];
+    E_Int e1 = facesp1[i]; E_Int e2 = facesp2[i];
     nelts = K_FUNC::E_max(nelts, e1, e2);
   }
-  vector< vector<E_Int> > a(nelts); // pour chaque element stocke les faces
+  vector< vector<E_Int> > a(nelts); // stocke les faces pour chaque element
+  for (E_Int i = 0; i < nelts; i++) a[i].reserve(6);
 
   for (E_Int i = 0; i < nf; i++)
   {
-    e1 = facesp1[i]-1; e2 = facesp2[i]-1;
-    //printf("%d %d\n", e1, e2);
+    E_Int e1 = facesp1[i]-1; E_Int e2 = facesp2[i]-1;
     if (e1 >= 0) a[e1].push_back(i+1);
     if (e2 >= 0) a[e2].push_back(i+1);
   }
@@ -62,28 +62,34 @@ void K_CONNECT::connectFE2NFace(FldArrayI& cFE, FldArrayI& cNFace, E_Int& nelts)
   {
     sort(a[i].begin(), a[i].end());
     a[i].erase(unique(a[i].begin(), a[i].end()), a[i].end());
-    //printf("%d %d\n", i, a[i].size());
   }
 
   // compactage
   E_Int size = 0;
+  FldArrayI off(nelts);
+  E_Int* o = off.begin();
   for (E_Int i = 0; i < nelts; i++)
   {
-    size += (a[i].size()+1);
+    o[i] = size;
+    size += a[i].size()+1;
   }
 
   cNFace.malloc(size);
   E_Int* cn = cNFace.begin();
 
-  size = 0;
-  for (E_Int i = 0; i < nelts; i++)
+  #pragma omp parallel
   {
-    nf = a[i].size();
-    cn[size] = nf;
-    for (E_Int j = 1; j <= nf; j++)
-    { cn[size+j] = a[i][j-1]; }
-    size += nf+1;
+    E_Int oi;
+    #pragma omp for
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      nf = a[i].size(); oi = o[i];
+      cn[oi] = nf;
+      for (E_Int j = 1; j <= nf; j++) cn[oi+j] = a[i][j-1];
+    }
   }
+  
+  off.malloc(0);
 }
 
 // NGON(CGNSv3) + index
@@ -94,19 +100,19 @@ void K_CONNECT::connectFE2NFace3(FldArrayI& cFE, FldArrayI& cNFace, FldArrayI& o
   E_Int* facesp2 = cFE.begin(2);
 
   // Trouve le nbre d'elements (le max)
-  E_Int e1, e2;
   nelts = 0;
+  #pragma omp parallel for reduction(max:nelts)
   for (E_Int i = 0; i < nf; i++)
   {
-    e1 = facesp1[i]; e2 = facesp2[i];
+    E_Int e1 = facesp1[i]; E_Int e2 = facesp2[i];
     nelts = K_FUNC::E_max(nelts, e1, e2);
   }
-  vector< vector<E_Int> > a(nelts); // pour chaque element stocke les faces
+  vector< vector<E_Int> > a(nelts); // stocke les faces pour chaque element
+  for (E_Int i = 0; i < nelts; i++) a[i].reserve(6);
 
   for (E_Int i = 0; i < nf; i++)
   {
-    e1 = facesp1[i]-1; e2 = facesp2[i]-1;
-    //printf("%d %d\n", e1, e2);
+    E_Int e1 = facesp1[i]-1; E_Int e2 = facesp2[i]-1;
     if (e1 >= 0) a[e1].push_back(i+1);
     if (e2 >= 0) a[e2].push_back(i+1);
   }
@@ -116,31 +122,31 @@ void K_CONNECT::connectFE2NFace3(FldArrayI& cFE, FldArrayI& cNFace, FldArrayI& o
   {
     sort(a[i].begin(), a[i].end());
     a[i].erase(unique(a[i].begin(), a[i].end()), a[i].end());
-    //printf("%d %d\n", i, a[i].size());
   }
 
   // compactage
   E_Int size = 0;
+  off.malloc(nelts);
+  E_Int* o = off.begin();
   for (E_Int i = 0; i < nelts; i++)
   {
-    size += (a[i].size()+1);
+    o[i] = size;
+    size += a[i].size()+1;
   }
 
   cNFace.malloc(size);
   E_Int* cn = cNFace.begin();
 
-  off.malloc(nelts);
-  E_Int* o = off.begin();
-
-  size = 0;
-  for (E_Int i = 0; i < nelts; i++)
+  #pragma omp parallel
   {
-    nf = a[i].size();
-    cn[size] = nf;
-    o[i] = size;
-    for (E_Int j = 1; j <= nf; j++)
-    { cn[size+j] = a[i][j-1]; }
-    size += nf+1;
+    E_Int oi;
+    #pragma omp for
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      nf = a[i].size(); oi = o[i];
+      cn[oi] = nf;
+      for (E_Int j = 1; j <= nf; j++) cn[oi+j] = a[i][j-1];
+    }
   }
 }
 
@@ -152,19 +158,19 @@ void K_CONNECT::connectFE2NFace4(FldArrayI& cFE, FldArrayI& cNFace, FldArrayI& o
   E_Int* facesp2 = cFE.begin(2);
 
   // Trouve le nbre d'elements (le max)
-  E_Int e1, e2;
   nelts = 0;
+  #pragma omp parallel for reduction(max:nelts)
   for (E_Int i = 0; i < nf; i++)
   {
-    e1 = facesp1[i]; e2 = facesp2[i];
+    E_Int e1 = facesp1[i]; E_Int e2 = facesp2[i];
     nelts = K_FUNC::E_max(nelts, e1, e2);
   }
-  vector< vector<E_Int> > a(nelts); // pour chaque element stocke les faces
+  vector< vector<E_Int> > a(nelts); // stocke les faces pour chaque element
+  for (E_Int i = 0; i < nelts; i++) a[i].reserve(6);
 
   for (E_Int i = 0; i < nf; i++)
   {
-    e1 = facesp1[i]-1; e2 = facesp2[i]-1;
-    //printf("%d %d\n", e1, e2);
+    E_Int e1 = facesp1[i]-1; E_Int e2 = facesp2[i]-1;
     if (e1 >= 0) a[e1].push_back(i+1);
     if (e2 >= 0) a[e2].push_back(i+1);
   }
@@ -174,31 +180,30 @@ void K_CONNECT::connectFE2NFace4(FldArrayI& cFE, FldArrayI& cNFace, FldArrayI& o
   {
     sort(a[i].begin(), a[i].end());
     a[i].erase(unique(a[i].begin(), a[i].end()), a[i].end());
-    //printf("%d %d\n", i, a[i].size());
   }
 
   // compactage
   E_Int size = 0;
+  off.malloc(nelts+1);
+  E_Int* o = off.begin();
   for (E_Int i = 0; i < nelts; i++)
   {
-    size += (a[i].size());
+    o[i] = size;
+    size += a[i].size();
   }
+  o[nelts] = size;
 
   cNFace.malloc(size);
   E_Int* cn = cNFace.begin();
 
-  off.malloc(nelts+1);
-  E_Int* o = off.begin();
-
-  size = 0;
-  for (E_Int i = 0; i < nelts; i++)
+  #pragma omp parallel
   {
-    o[i] = size;
-    nf = a[i].size();
-    for (E_Int j = 0; j < nf; j++)
-    { cn[size+j] = a[i][j]; }
-    size += nf;
+    E_Int oi;
+    #pragma omp for
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      nf = a[i].size(); oi = o[i];
+      for (E_Int j = 0; j < nf; j++) cn[oi+j] = a[i][j];
+    }
   }
-  o[nelts] = size;
 }
-

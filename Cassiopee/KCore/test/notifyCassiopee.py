@@ -229,6 +229,64 @@ def checkInstallStatus():
 
     return messageSubject, messageText
 
+# Parse install logs and return errors
+def parseInstallLogs(userProd):
+    log_entries = []
+    with open('/stck/cassiope/git/logs/installation_status.txt', 'r') as f:
+        for line in f:
+            log_entries.append(line.strip().split(' - '))
+    log_entries.sort(key=lambda x: x[3], reverse=True)
+
+    # Get git info
+    cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitInfo = "Git origin: {}".format(gitOrigin)
+
+    baseState = 'OK'
+    messageText = "Installation of Cassiopee and all "\
+        "PModules:\n{}\n\n{}\n\n".format(42*'-', gitInfo)
+    messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
+        "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
+    for log_machine in log_entries:
+        prod = log_machine[0]
+        if prod == userProd:
+            gitBranch = log_machine[1]
+            gitHash = log_machine[2]
+            date = strptime(log_machine[3], "%y%m%d-%H%M%S")
+            date = strftime("%d/%m/%y at %T", date)
+            status = log_machine[4]
+            messageText += '  {:<20} | {:^6} | {:^7} | {:^24} | {:^10}\n'.format(
+                prod, gitBranch, gitHash, date, status)
+            if 'FAILED' in log_machine: baseState = 'FAILED'
+            break
+        else: prod = None
+
+    if prod is None:
+        messageText += f"Prod. not found\n\n"
+    elif status == 'FAILED':
+        installLogs = sorted(glob(os.path.join("/stck/cassiope/git/logs/", f"log_*_{userProd}_*")))
+        for installLog in installLogs:
+            with open(installLog, 'r') as f: contents = f.readlines()
+            # Find start lines of each module
+            startLine = 0
+            endMarker = "correctly installed."
+            for lineNo, line in enumerate(contents):
+                if endMarker in line:
+                    startLine = lineNo+1
+            if startLine < len(contents):
+                # Print log of the module that did not complete successfully
+                messageText += f"\n\nInstall log:\n-----------\n\n"
+                messageText += "".join(l for l in contents[startLine:])
+                break
+
+    messageSubject = "[Install Cassiopee] State: {}".format(baseState)
+    if baseState == 'FAILED':
+        messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
+            'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
+            'vincent.casseau@onera.fr'
+
+    return messageSubject, messageText
+
 # Check checkout status
 def checkCheckoutStatus(sendEmail=False):
     log_entries = []
@@ -456,13 +514,17 @@ if __name__ == '__main__':
     if not recipients[0]: recipients = []
     if not (scriptArgs.install or scriptArgs.checkout or scriptArgs.valid):
         scriptArgs.install = True  # Show installation status by default
+    mode = "overview"
 
     if scriptArgs.install:
-        messageSubject, messageText = checkInstallStatus()
-    if scriptArgs.checkout:
+        if scriptArgs.prod: mode = "compare"
+        if mode == "overview":
+            messageSubject, messageText = checkInstallStatus()
+        else:
+            messageSubject, messageText = parseInstallLogs(userProd=scriptArgs.prod)
+    elif scriptArgs.checkout:
         messageSubject, messageText = checkCheckoutStatus(sendEmail=scriptArgs.email)
     elif scriptArgs.valid:
-        mode = "overview"
         if scriptArgs.prod:
             findRef = False if scriptArgs.logs == "latest" else True
             scriptArgs.logs = findLogs(scriptArgs.prod, findRef=findRef)

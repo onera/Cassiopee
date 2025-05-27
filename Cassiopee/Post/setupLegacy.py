@@ -61,7 +61,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Post",
-    version="4.0",
+    version="4.1",
     description="Post-processing of CFD solutions.",
     author="Onera",
     package_dir={"":"."},

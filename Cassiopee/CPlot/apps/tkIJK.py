@@ -180,7 +180,6 @@ def extract(event=None):
 # Met i,j,k dans Coordinates des zones
 def setIJK2Coordinates(z):
     dim = Internal.getZoneDim(z)
-    if dim[0] == 'Unstructured': pass
     zc = G.cart((0,0,0), (1,1,1), (dim[1], dim[2], dim[3]))
     FC = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
     FN = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
@@ -204,8 +203,9 @@ def viewIJK(event=None):
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        zp = setIJK2Coordinates(z)
-        sel.append(zp)
+        if Internal.getZoneType(z) == 1:
+            zp = setIJK2Coordinates(z)
+            sel.append(zp)
     CTK.dt = C.newPyTree(['Base'])
     CTK.dt[2][1][2] += sel
     XYZVIEWDATA = CPlot.getState('posCam') + CPlot.getState('posEye') + CPlot.getState('dirCam')
@@ -230,7 +230,7 @@ def backFromIJK(event=None):
         posEye = XYZVIEWDATA[3:6]
         dirCam = XYZVIEWDATA[6:9]
         CTK.display(CTK.t, posCam=posCam, posEye=posEye, dirCam=dirCam, mainTree=CTK.MAIN)
-        CTK.TXT.insert('START', 'Viewing real world.\n')
+        CTK.TXT.insert('START', 'Viewing full mesh.\n')
 
 #==============================================================================
 # Create app widgets

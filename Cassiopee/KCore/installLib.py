@@ -49,7 +49,3 @@ shutil.copyfile("buildInfo.py", installPath+"/buildInfo.py")
 
 # Ecrit les fichiers d'environnement
 Dist.writeEnvs()
-
-# Installe la licence
-f = open('KCore/installKey.py'); a = f.read(); f.close()
-exec(a)

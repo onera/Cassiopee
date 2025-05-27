@@ -57,7 +57,7 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="OCC",
-    version="4.0",
+    version="4.1",
     description="OpenCascade python module.",
     author="ONERA",
     url="https://cassiopee.onera.fr",

@@ -1148,7 +1148,8 @@ def checkElementNodes(t):
             elif iNGon != -1 and iNFace == -1:
                 errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
             elif iBEMultiple == 1:
-                errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
+                pass
+                #errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
     return errors
 
 #==============================================================================

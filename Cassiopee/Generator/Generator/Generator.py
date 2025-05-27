@@ -1,6 +1,6 @@
 """Grid generation module.
 """
-__version__ = '4.0'
+__version__ = '4.1'
 __author__ = "Stephanie Peron, Sam Landier, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Luis Bernardos"
 
 from . import generator

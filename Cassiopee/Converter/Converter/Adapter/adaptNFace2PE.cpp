@@ -106,19 +106,20 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
     E_Int* ptrNF = cNFace->begin();
     E_Int face, nf;
 
+    #pragma omp simd
     for (E_Int i = 0; i < nfaces*2; i++) cFE[i] = 0;
 
     for (E_Int i = 0; i < nelts; i++)
     {
-      nf = ptrNF[0]; // nb de face pour l'elt
+      nf = ptrNF[0]; // nb de faces pour l'elt
       for (E_Int j = 1; j <= nf; j++)
       {
         face = ptrNF[j]-1;
-	    if (facesp1[face] == 0) facesp1[face] = i+1;
+        if (facesp1[face] == 0) facesp1[face] = i+1;
         else facesp2[face] = i+1;
       }
       ptrNF += nf+1;
-	}
+    }
   
     // post - reordonne les PEs pour que les normales soient exterieures a gauche
     E_Int* ptrNG = cNGon->begin();
@@ -234,7 +235,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
 
     // Check
     bool check=false;
-    if (check == true)
+    if (check)
     {
       FldArrayF bilan(nelts,3); bilan.setAllValuesAtNull();
       E_Float* bilanx = bilan.begin(1);
@@ -313,13 +314,17 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   }
   else if (methodPE == 1) // TOPOLOGICAL => GENERAL CASE
   {
+    E_Float* xt = coordX->begin();
+    E_Float* yt = coordY->begin();
+    E_Float* zt = coordZ->begin();
     ngon_type ng(cNGon->begin(), cNGon->getSize(), nfaces, cNFace->begin(), cNFace->getSize(), nelts);
     K_FLD::FloatArray crd(3, coordX->getSize());
-    for (E_Int i= 0; i < coordX->getSize(); ++i)
+    #pragma omp simd
+    for (E_Int i = 0; i < coordX->getSize(); ++i)
     {
-      crd(0,i) = (*coordX)[i];
-      crd(1,i) = (*coordY)[i];
-      crd(2,i) = (*coordZ)[i];
+      crd(0,i) = xt[i];
+      crd(1,i) = yt[i];
+      crd(2,i) = zt[i];
     }
 
     // reorient skin
@@ -334,7 +339,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
       RELEASESHAREDN(arrayX, coordX);
       RELEASESHAREDN(arrayY, coordY);
       PyErr_SetString(PyExc_TypeError, 
-                    "adaptNFace2PE: method 2: failed to reorient external faces.");
+                      "adaptNFace2PE: method 2: failed to reorient external faces.");
       return NULL;
     }
 
@@ -345,10 +350,13 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
     ng.build_F2E(neighbors, F2E2);
 
     // fill cFE
-    for (E_Int i=0; i < nfaces; ++i)
+    #pragma omp simd
+    for (E_Int i = 0; i < nfaces; ++i)
     {
-      cFE[i] = (F2E2(0,i) == E_IDX_NONE) ? 0 : F2E2(0,i) + 1;          //left elt
-      cFE[i + nfaces] = (F2E2(1,i) == E_IDX_NONE) ? 0 : F2E2(1,i) + 1; //right elt
+      E_Int fli = F2E2(0,i);
+      E_Int fri = F2E2(1,i);
+      cFE[i] = (fli == E_IDX_NONE) ? 0 : fli+1;          //left elt
+      cFE[i + nfaces] = (fri == E_IDX_NONE) ? 0 : fri+1; //right elt
     }
 
     // replace NGON/NFACE
@@ -356,6 +364,28 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
     std::copy (ng.PGs._NGON.begin()+2, ng.PGs._NGON.end(), ptrNG2);
     //E_Int* ptrNF = cNFace->begin();
     //std::copy ( ng.PHs._NGON.begin()+2, ng.PHs._NGON.end(), ptrNF );
+  }
+  else // Unoriented ParentElements
+  {
+    E_Int* facesp1 = cFE;
+    E_Int* facesp2 = cFE + nfaces;
+    E_Int* ptrNF = cNFace->begin();
+    E_Int face, nf;
+
+    #pragma omp simd
+    for (E_Int i = 0; i < nfaces*2; i++) cFE[i] = 0;
+
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      nf = ptrNF[0]; // nb de faces pour l'elt
+      for (E_Int j = 1; j <= nf; j++)
+      {
+        face = ptrNF[j]-1;
+        if (facesp1[face] == 0) facesp1[face] = i+1;
+        else facesp2[face] = i+1;
+      }
+      ptrNF += nf+1;
+    }
   }
   
   RELEASESHAREDN(arrayNF, cNFace);

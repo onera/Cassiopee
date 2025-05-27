@@ -508,9 +508,9 @@ def isWindowInSubzone__(w, dim, imin, imax, jmin, jmax, kmin, kmax,
     return isout
 
 # subzone les BCs de z de l'arbre t
-def subzoneBC__(t, z, dim, imin, imax, jmin, jmax, kmin, kmax, \
-                dim0, nip, njp, nkp, ni0, nj0, nk0):
-    wins = Internal.getNodesFromType(z, 'BC_t')
+def subzoneBCStruct__(t, z, dim, imin, imax, jmin, jmax, kmin, kmax,
+                      dim0, nip, njp, nkp, ni0, nj0, nk0):
+    wins = Internal.getNodesFromType2(z, 'BC_t')
     for w in wins:
         pr = Internal.getNodeFromName1(w, 'PointRange')
         isout = isWindowInSubzone__(pr[1], dim,
@@ -522,8 +522,7 @@ def subzoneBC__(t, z, dim, imin, imax, jmin, jmax, kmin, kmax, \
             (parentw, dw) = Internal.getParentOfNode(z, w)
             del parentw[2][dw]
         else:
-            range0 = getBCRange__(pr[1],
-                                  imin, imax, jmin, jmax, kmin, kmax)
+            range0 = getBCRange__(pr[1], imin, imax, jmin, jmax, kmin, kmax)
             notvalid = 0
             if dim == 3:
                 if range0[0] == range0[1] and range0[2] == range0[3]: notvalid = 1
@@ -549,8 +548,8 @@ def subzoneBC__(t, z, dim, imin, imax, jmin, jmax, kmin, kmax, \
                 w[0] = C.getBCName(w[0])
 
 # Subzone la GridConnectivity de type BCOverlap
-def subzoneGC__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
-                dim0, nip, njp, nkp, ni0, nj0, nk0):
+def subzoneGCStruct__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
+                      dim0, nip, njp, nkp, ni0, nj0, nk0):
     nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
     if nodes == []: return z
     ranges = []; ddDnrs = []; bcnames = []
@@ -671,10 +670,10 @@ def subzoneStruct__(t, minIndex, maxIndex):
         dimt = Internal.getZoneDim(z2)
         ni0 = dimt[1]; nj0 = dimt[2]; nk0 = dimt[3]; dim = dimt[4]
         z2[0] = C.getZoneName(z2[0]) # ?? pourquoi changer le nom?
-        subzoneBC__(t2, z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
-                    dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
-        z2 = subzoneGC__(z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
-                         dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
+        subzoneBCStruct__(t2, z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
+                          dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
+        z2 = subzoneGCStruct__(z2, dim, imin, imax, jmin, jmax, kmin, kmax, \
+                               dimt0[4], dimt0[1], dimt0[2], dimt0[3], ni0, nj0, nk0)
         noz += 1
         if parent is not None:
             if Internal.isStdNode(t2) == 0: parent[nb] = z2

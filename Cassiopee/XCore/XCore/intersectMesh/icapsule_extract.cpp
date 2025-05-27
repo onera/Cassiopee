@@ -92,7 +92,7 @@ PyObject *K_XCORE::icapsule_extract_slaves(PyObject *self, PyObject *args)
     }
 
     PyList_Append(out, arrays);
-    Py_DECREF(arrays),
+    Py_DECREF(arrays);
     PyList_Append(out, ctags);
     Py_DECREF(ctags);
 
