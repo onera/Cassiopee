@@ -72,11 +72,12 @@ opt1_1 = ['-DSCOTCH_PTSCOTCH']
 
 if Dist.GDOUBLEINT: opt1 += ['-DINTSIZE64']
 else: opt1 += ['-DINTSIZE32']
-if cc == 'gcc': opt1 += ['-Drestrict=__restrict'] # ['-Wrestrict']
+if cc == 'gcc': opt1 += ['-Drestrict=__restrict', '-std=c99'] # scotch needs old c standard
 elif cc == 'pgcc': opt1 += []
 elif cc == 'nvc': opt1 += []
 elif cc == 'icx': opt1 += []
-elif cc == 'icc': opt1 += ['-restrict'] 
+elif cc == 'clang': opt1 += []
+elif cc == 'icc': opt1 += ['-restrict']
 else: opt1 += []
 
 # Specific options for paradigma - paradigma install path
@@ -85,7 +86,7 @@ else: PPATH = 'paradigma'
 opt2 = ['-I%s'%PPATH,'-I%s/mpi_wrapper'%PPATH,'-I%s/mesh'%PPATH,'-I%s/util'%PPATH,'-I%s/io'%PPATH,'-I%s/ppart'%PPATH,'-I%s/struct'%PPATH,'-I%s/pario'%PPATH,'-I%s/ext_wrapper'%PPATH]
 opt2 += ['-IXCore/scotch']
 opt2 += ['-std=c99', '-DSCOTCH_RENAME']
-opt2 +=['-DPDM_HAVE_PTSCOTCH'] #,'-DPDM_ENABLE_ANISO_AGGLO=0']
+opt2 +=['-DPDM_HAVE_PTSCOTCH'] #,'-DPDM_ENABLE_ANISO_AGGLO=0'
 
 # Specific options pour zoltan
 opt3 = ['-IXCore/zoltan/include', '-IXCore/zoltan/driver',

@@ -33,6 +33,27 @@ libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
+# Test if open-cascade is installed ===========================================
+(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
+                                                   additionalIncludePaths)
+
+if OCEPresent:
+    # Utilise la version installee dans le systeme
+    OCCIncDir = OCEIncDir
+    additionalIncludePaths += [OCCIncDir]
+
+# libxml (hardcoded)
+additionalIncludePaths += ['C:/Users/benoit/msys64/usr/include', 'C:/Users/benoit/msys64/usr/include/libxml2']
+additionalIncludePaths += ['Modeler/tixi/src', 'Modeler/tixi/bindings/cpp']
+additionalIncludePaths += ['Modeler/tigl/src', 'Modeler/tigl/src/api', 'Modeler/tigl/src/system']
+additionalIncludePaths += ['Modeler/tigl/src/common', 'Modeler/tigl/src/logging', 'Modeler/tigl/src/cpacs_other']
+additionalIncludePaths += ['Modeler/tigl/src/geometry', 'Modeler/tigl/src/exports', 'Modeler/tigl/src/wing']
+additionalIncludePaths += ['Modeler/tigl/src/control_devices', 'Modeler/tigl/src/math', 'Modeler/tigl/src/configuration']
+additionalIncludePaths += ['Modeler/tigl/src/ducts', 'Modeler/tigl/src/engine_nacelle', 'Modeler/tigl/src/fuselage']
+additionalIncludePaths += ['Modeler/tigl/src/engine_pylon', 'Modeler/tigl/src/fuelTanks', 'Modeler/tigl/src/structural_elements']
+additionalIncludePaths += ['Modeler/tigl/src/guide_curves', 'Modeler/tigl/src/rotor', 'Modeler/tigl/src/generated']
+additionalIncludePaths += ['Modeler/tigl/src/boolean_operations', 'Modeler/tigl/src/imports']
+
 # Env =========================================================================
 import srcs
 if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
@@ -45,7 +66,7 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons())
-env.Replace(CXXFLAGS=Dist.getCppArgs())
+env.Replace(CXXFLAGS=Dist.getCppArgs()+['-D_USE_MATH_DEFINES'])
 env.Replace(CFLAGS=Dist.getCArgs())
 
 ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
@@ -53,7 +74,19 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
 #==============================================================================
 
-myMod = env.StaticLibrary('modeler', source=srcs.cpp_srcs)
+env.Command('merge.l', 'merge.ar', "sed -e s/ELSAPROD/%s/g merge.ar > merge.l"%ELSAPROD)
+env.Command('libmodeler.a', ['libmodeler1.a', 'libmodeler2.a', 'libmodeler3.a', 
+    'libmodeler4.a', 'libmodeler5.a', 'libmodeler6.a', 'merge.l'], "ar -M < merge.l")
+
+myMod1 = env.StaticLibrary('modeler1', source=srcs.cpp_srcs[0:100])
+myMod2 = env.StaticLibrary('modeler2', source=srcs.cpp_srcs[100:200])
+myMod3 = env.StaticLibrary('modeler3', source=srcs.cpp_srcs[200:300])
+myMod4 = env.StaticLibrary('modeler4', source=srcs.cpp_srcs[300:400])
+myMod5 = env.StaticLibrary('modeler5', source=srcs.cpp_srcs[400:500])
+myMod6 = env.StaticLibrary('modeler6', source=srcs.cpp_srcs[500:])
+
+myMod = 'libmodeler.a'
+
 modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 

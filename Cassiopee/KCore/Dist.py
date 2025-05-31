@@ -1564,12 +1564,12 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
         return (False, i, l, libname)
 
 #=============================================================================
-# Check for OCE (open cascade edition library)
+# Check for OCC/OCE (open cascade classic or community edition)
 # additionalPaths: chemins d'installation non standards: ['/home/toto',...]
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
-    #print("INFO: dependance to OCE STUBED.")
+    #print("INFO: dependance to OCC/OCE STUBED.")
     #return (False, None, None)
     l = checkLibFile__('libTKernel.so', additionalLibPaths)
     if l is None:
@@ -1582,11 +1582,11 @@ def checkOCE(additionalLibPaths=[], additionalIncludePaths=[]):
         i = checkIncFile__('opencascade/TopTools.hxx', additionalIncludePaths)
         if i is not None: i = i+'/opencascade'
     if i is not None and l is not None:
-        print('Info: libOCE detected at %s.'%l)
+        print('Info: opencascade detected at %s.'%l)
         return (True, i, l)
     else:
-        # On n'affiche pas ici le message, car il peut y avoir un installation locale de OCE
-        #print('Info: libOCE or oce/*.hxx was not found on your system. No IGES/STEP support.')
+        # On n'affiche pas ici le message, car il peut y avoir un installation locale de OCC/OCE
+        #print('Info: libOCC/OCE or oce/*.hxx was not found on your system. No IGES/STEP support.')
         return (False, i, l)
 
 #=============================================================================

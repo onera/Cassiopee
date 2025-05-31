@@ -99,6 +99,7 @@ TRACESTATE = { 'prevFullTime': None, 'method': 0, 'fileName': 'stdout', 'mem': T
 # IN: t: full/loaded skel/partial
 #==============================================================================
 def center2Node(t, var=None, cellNType=0, graph=None):
+    """Convert zone/fields defined at centers to nodes."""
     allstructured = 1
     for z in Internal.getZones(t):
         type = Internal.getZoneType(z)

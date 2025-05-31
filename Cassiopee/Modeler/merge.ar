@@ -1,0 +1,9 @@
+create build/ELSAPROD/libmodeler.a
+addlib build/ELSAPROD/libmodeler1.a
+addlib build/ELSAPROD/libmodeler2.a
+addlib build/ELSAPROD/libmodeler3.a
+addlib build/ELSAPROD/libmodeler4.a
+addlib build/ELSAPROD/libmodeler5.a
+addlib build/ELSAPROD/libmodeler6.a
+save
+end
