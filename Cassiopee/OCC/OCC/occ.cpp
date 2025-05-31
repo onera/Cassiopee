@@ -121,7 +121,7 @@ extern "C"
 #endif
   {
     import_array();
-    printf("INFO: OCC version "OCC_VERSION_STRING"\n");
+    printf("INFO: OCC version " OCC_VERSION_STRING "\n");
 
 #if PY_MAJOR_VERSION >= 3
     PyObject* module = PyModule_Create(&moduledef);

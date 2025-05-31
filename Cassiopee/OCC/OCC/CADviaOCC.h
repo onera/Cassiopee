@@ -21,6 +21,7 @@
 #ifndef __CADVIAOCC_H__
 #define __CADVIAOCC_H__
 
+#include "OCCSurface.h"
 #include "TopoDS_Face.hxx"
 #include "TopExp.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
@@ -29,8 +30,7 @@
 #include "Def/DefTypes.h"
 #include <vector>
 #include <map>
-# include "Nuga/include/DynArray.h"
-#include "OCCSurface.h"
+#include "Nuga/include/DynArray.h"
 
 namespace K_OCC
 {

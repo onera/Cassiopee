@@ -20,6 +20,12 @@
 
 #define OCEVERSION 0
 
+#include "occ.h"
+#include "kcore.h"
+#include <stdio.h>
+#include <iostream>
+#include <iomanip>
+
 #include "STEPControl_Reader.hxx"
 #include "IGESControl_Reader.hxx"
 #include "StlAPI_Writer.hxx"
@@ -29,12 +35,7 @@
 
 #include "TopoDS_Shape.hxx"
 #include "Standard_ConstructionError.hxx"
-#include "occ.h"
-#include "kcore.h"
-#include <stdio.h>
 
-#include <iostream>
-#include <iomanip>
 #include "BRepPrimAPI_MakeCylinder.hxx"
 #include "BRepPrimAPI_MakeBox.hxx"
 #include "BRepAlgoAPI_Cut.hxx"

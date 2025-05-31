@@ -30,10 +30,10 @@
 #include "TopExp_Explorer.hxx"
 #include "TopoDS_Edge.hxx"
 #include "TopoDS.hxx"
-#include <ShapeAnalysis.hxx>
-#include <ShapeAnalysis_Surface.hxx>
-#include <StdFail_NotDone.hxx>
-#include <BRepAdaptor_Surface.hxx>
+#include "ShapeAnalysis.hxx"
+#include "ShapeAnalysis_Surface.hxx"
+#include "StdFail_NotDone.hxx"
+#include "BRepAdaptor_Surface.hxx"
 
 ///
 K_OCC::OCCSurface::OCCSurface(const TopoDS_Face& F, TopTools_IndexedMapOfShape& occ_edges, E_Int pid) 

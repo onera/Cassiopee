@@ -123,8 +123,26 @@ allMods75W = ["TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
               "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKXSBase",
               "TKPCAF", "TKPLCAF", "TKNIS", "TKPShape", "TKShapeSchema"]
 
+allMods78 = ["TKBO", "TKBRep", "TKBin", "TKBinL", "TKBinTObj",
+            "TKBinXCAF", "TKBool", "TKCAF", "TKCDF", "TKD3DHost",
+            "TKD3DHostTest", "TKDCAF", "TKDE", "TKDECascade", "TKDEGLTF",
+            "TKDEIGES", "TKDEOBJ", "TKDEPLY", "TKDESTEP", "TKDESTL",
+            "TKDEVRML", "TKDraw", "TKExpress", "TKFeat", "TKFillet",
+            "TKG2d", "TKG3d", "TKGeomAlgo", "TKGeomBase",
+            "TKHLR", "TKIVtk", "TKIVtkDraw", "TKLCAF",
+            "TKMath", "TKMesh", "TKMeshVS", "TKOffset",
+            "TKOpenGl", "TKOpenGlTest", "TKPrim", "TKQADraw",
+            "TKRWMesh", "TKService", "TKShHealing", "TKStd",
+            "TKStdL", "TKTObj", "TKTObjDRAW", "TKTopAlgo",
+            "TKTopTest", "TKV3d", "TKVCAF",
+            "TKViewerTest", "TKXCAF", "TKXDEDRAW",
+            "TKXMesh", "TKXSBase", "TKXSDRAW",
+            "TKXSDRAWDE", "TKXSDRAWGLTF", "TKXSDRAWIGES",
+            "TKXSDRAWOBJ", "TKXSDRAWPLY", "TKXSDRAWSTEP",
+            "TKXSDRAWSTL", "TKXSDRAWVRML", "TKXml",
+            "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKernel"]
 
-if Dist.getSystem()[0] == 'mingw': allMods = allMods75W
+if Dist.getSystem()[0] == 'mingw': allMods = allMods78
 else: allMods = allMods75
 
 mod_srcs = {}
