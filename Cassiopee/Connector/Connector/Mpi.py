@@ -69,15 +69,15 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
         for g in gcs:
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity_t')
             for n in nodes:
-                gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
-                if Internal.getValue(gctype)=='Abutting':
-                    nmratio = Internal.getNodeFromName(n,'NMRatio')
+                gctype = Internal.getNodeFromType(n, 'GridConnectivityType_t')
+                if Internal.getValue(gctype) == 'Abutting':
+                    nmratio = Internal.getNodeFromName(n, 'NMRatio')
                     nmratio = Internal.getValue(nmratio)
                     fratio = 1.
                     for i in nmratio: fratio *= i
 
-                    if fratio==1.:
-                        Internal._rmNodesByName(z,n[0])
+                    if fratio == 1.:
+                        Internal._rmNodesByName(z, n[0])
 
     # Suppression des XZones et correction des matchs
     Cmpi._rmBXZones(a)

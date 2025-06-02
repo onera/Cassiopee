@@ -1073,20 +1073,20 @@ vector<E_Int> K_CONVERTER::getElementTypesId(const char* eltType)
 PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format; 
-  E_Int maxFloatSize; E_Int maxDepth; E_Int readMode; 
+  E_Int maxFloatSize; E_Int maxDepth; E_Int readIntMode; 
   PyObject* paths; PyObject* skipTypes; PyObject* dataShape; PyObject* mpi4pyCom;
   if (!PYPARSETUPLE_(args, S_ O_ S_ III_ OOO_,
                      &fileName, &paths, &format, 
-                     &maxFloatSize, &maxDepth, &readMode, 
+                     &maxFloatSize, &maxDepth, &readIntMode, 
                      &dataShape, &skipTypes, &mpi4pyCom)) return NULL;
   
   if (skipTypes == Py_None) skipTypes = NULL;
   if (dataShape == Py_None) dataShape = NULL;
   PyObject* ret = NULL;
   if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readMode, dataShape, skipTypes, mpi4pyCom);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readIntMode, dataShape, skipTypes, mpi4pyCom);
   else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readMode, dataShape, skipTypes, mpi4pyCom);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readIntMode, dataShape, skipTypes, mpi4pyCom);
   else if (K_STRING::cmp(format, "bin_adf") == 0)
     ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
   else

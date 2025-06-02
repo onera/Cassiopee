@@ -818,10 +818,10 @@ PyObject* K_IO::GenIOHdf::getArrayI8(hid_t node, hid_t tid,
                                      hid_t sid)
 {
 #ifdef E_DOUBLEINT
-  if (_readMode == 0) return getArrayI8Raw(node, tid, dim, dims, mid, sid);
+  if (_readIntMode == 0) return getArrayI8Raw(node, tid, dim, dims, mid, sid);
   else return getArrayI8Raw(node, tid, dim, dims, mid, sid);
 #else  
-  if (_readMode == 0) return getArrayI82I4C(node, tid, dim, dims, mid, sid);
+  if (_readIntMode == 0) return getArrayI82I4C(node, tid, dim, dims, mid, sid);
   else return getArrayI8Raw(node, tid, dim, dims, mid, sid);
 #endif
 }
@@ -832,10 +832,10 @@ PyObject* K_IO::GenIOHdf::getArrayI4(hid_t node, hid_t tid,
                                      hid_t sid)
 {
 #ifdef E_DOUBLEINT
-  if (_readMode == 0) return getArrayI42I8(node, tid, dim, dims, mid, sid);
+  if (_readIntMode == 0) return getArrayI42I8(node, tid, dim, dims, mid, sid);
   else return getArrayI4Raw(node, tid, dim, dims, mid, sid);
 #else
-  if (_readMode == 0) return getArrayI4Raw(node, tid, dim, dims, mid, sid);
+  if (_readIntMode == 0) return getArrayI4Raw(node, tid, dim, dims, mid, sid);
   else return getArrayI4Raw(node, tid, dim, dims, mid, sid);
 #endif
 }
@@ -1123,12 +1123,12 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
    IN: skeleton: 0 (full), 1 (only skeleton loaded)
    IN: maxFloatSize: si skeleton=1, load si shape < maxFloatSize
    IN: maxDepth: profondeur max de load
-   IN: readMode: 0: convert int to Cassiopee compile type, 1: read as in file
+   IN: readIntMode: 0: convert int to Cassiopee compile type, 1: read as in file
    IN: skipTypes: types to skip
 */
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, PyObject* links, 
-                               int skeleton, int maxFloatSize, int maxDepth, int readMode,
+                               int skeleton, int maxFloatSize, int maxDepth, int readIntMode,
                                PyObject* skipTypes)
 {
   tree = PyList_New(4);
@@ -1148,7 +1148,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   }
   hid_t gid = H5Gopen(fid, "/", H5P_DEFAULT);
   GenIOHdf HDF;
-  HDF._readMode = readMode;
+  HDF._readIntMode = readIntMode;
 
   /* Prepare skip types */
   if (skipTypes != NULL)
@@ -1317,7 +1317,7 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 //=============================================================================
 PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                             E_Int maxFloatSize, E_Int maxDepth,
-                                            E_Int readMode, 
+                                            E_Int readIntMode, 
                                             PyObject* dataShape,
                                             PyObject* skipTypes,
                                             PyObject* mpi4pyCom)
@@ -1336,7 +1336,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
   
   PyObject* ret = PyList_New(0);
   GenIOHdf HDF;
-  HDF._readMode = readMode;
+  HDF._readIntMode = readIntMode;
   HDF._ismpi = 0;
   HDF._skeleton = 0;
   PyObject* node;
@@ -1722,7 +1722,8 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
    hdfcgnswrite
 */
 //=============================================================================
-E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
+E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links,
+                                int writeIntMode, int writeRealMode)
 {
   if (tree == Py_None)
   {
@@ -1755,6 +1756,10 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   GenIOHdf HDF;
   HDF._ismpi = 0;
   HDF._maxDepth = 1e6;
+  HDF._writeIntMode = writeIntMode;
+  HDF._writeRealMode = writeRealMode;
+  printf("writeIntMode=%d\n", writeIntMode);
+  printf("writeRealMode=%d\n", writeRealMode);
   
   // Ajout version... au root node
   hid_t gid = H5Gopen2(fid, "/", H5P_DEFAULT);
@@ -2266,9 +2271,11 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
           delete [] buf;
         }
         else
+        {
           setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+        }
 #else
-      setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+        setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
 #endif
       }
       else if (typeNum == NPY_INT || typeNum == NPY_INT64 || typeNum == NPY_LONG)
@@ -2543,10 +2550,12 @@ hid_t K_IO::GenIOHdf::setArrayI4(hid_t node, int* data, int idim, hsize_t* idims
 // write a i8 array raw or best.
 hid_t K_IO::GenIOHdf::setArrayI8(hid_t node, E_LONG* data, int idim, hsize_t* idims)
 {
-  if (_writeMode == 0) return setArrayI8Raw(node, data, idim, idims);
+  if (_writeIntMode == 0) return setArrayI8Raw(node, data, idim, idims);
   else return setArrayI8B(node, data, idim, idims);
 }
 
+//=============================================================================
+// export as i8 with i8 in memory
 //=============================================================================
 hid_t K_IO::GenIOHdf::setArrayI8Raw(hid_t node, E_LONG* data, int idim, hsize_t* idims)
 {
@@ -2570,7 +2579,8 @@ hid_t K_IO::GenIOHdf::setArrayI8Raw(hid_t node, E_LONG* data, int idim, hsize_t*
 }
 
 //=============================================================================
-// Best : if possible without loss export to i4
+// Best : if possible exports without loss to i4 else export to i8
+//=============================================================================
 hid_t K_IO::GenIOHdf::setArrayI8B(hid_t node, E_LONG* data, int idim, hsize_t* idims)
 {
   hsize_t dim; hsize_t* dims;
@@ -2610,6 +2620,9 @@ hid_t K_IO::GenIOHdf::setArrayI8B(hid_t node, E_LONG* data, int idim, hsize_t* i
   free(dims);
   return node;
 }
+
+//=============================================================================
+// export as R4 with R4 in memory
 //=============================================================================
 hid_t K_IO::GenIOHdf::setArrayR4(hid_t node, float* data,
                                  int idim, hsize_t* idims)
@@ -2637,6 +2650,16 @@ hid_t K_IO::GenIOHdf::setArrayR4(hid_t node, float* data,
 hid_t K_IO::GenIOHdf::setArrayR8(hid_t node, double* data,
                                  int idim, hsize_t* idims)
 {
+  if (_writeRealMode == 0) return setArrayR8Raw(node, data, idim, idims);
+  else return setArrayR82R4(node, data, idim, idims);
+}
+
+//=============================================================================
+// export as R8 with R8 in memory
+//=============================================================================
+hid_t K_IO::GenIOHdf::setArrayR8Raw(hid_t node, double* data,
+                                    int idim, hsize_t* idims)
+{
   hsize_t dim; hsize_t* dims;
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
   for (E_Int i = 0; i < idim; i++) dims[i] = idims[i];
@@ -2649,6 +2672,31 @@ hid_t K_IO::GenIOHdf::setArrayR8(hid_t node, double* data,
   hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   hid_t mid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
+  H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
+  H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
+  HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_R8);
+  free(dims);
+  return node;
+}
+
+//=============================================================================
+// export as R4 with R8 in memory
+//=============================================================================
+hid_t K_IO::GenIOHdf::setArrayR82R4(hid_t node, double* data,
+                                    int idim, hsize_t* idims)
+{
+  hsize_t dim; hsize_t* dims;
+  dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
+  for (E_Int i = 0; i < idim; i++) dims[i] = idims[i];
+
+  // data type
+  hid_t tid = H5Tcopy(H5T_NATIVE_FLOAT); H5Tset_precision(tid, 32);
+  // Create dataspace
+  hid_t sid = H5Screate_simple(dim, dims, NULL);
+  // Create dataset
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  hid_t mid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
   HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_R8);

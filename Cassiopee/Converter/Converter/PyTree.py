@@ -997,7 +997,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., skeletonData=None, dataShape=None,
                        links=None, skipTypes=None, uncompress=True,
                        hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=4,
-                       oldcompress=False, readMode=0, api=1):
+                       oldcompress=False, readIntMode=0, api=1):
     """Read a file and return a pyTree containing file data.
     Usage: convertFile2PyTree(fileName, format, options)"""
     if format is None:
@@ -1011,7 +1011,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
 
     if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':
         try:
-            t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes, readMode)
+            t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
             _upgradeTree(t, uncompress, oldcompress)
             CAD = Internal.getNodeFromName1(t, 'CAD')
@@ -1029,14 +1029,14 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         except:
             if format == 'bin_cgns' or format == 'bin_adf':
                 try:
-                    t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readMode)
+                    t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readIntMode)
                     t = Internal.createRootNode(children=t[2])
                     _upgradeTree(t, uncompress, oldcompress)
                     return t
                 except: pass
             else: # adf par defaut
                 try:
-                    t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readMode)
+                    t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readIntMode)
                     t = Internal.createRootNode(children=t[2])
                     _upgradeTree(t)
                     return t
@@ -1056,13 +1056,13 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
 
     elif format == 'unknown':
         try:
-            t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readMode)
+            t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
             _upgradeTree(t)
             return t
         except: pass
         try:
-            t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readMode)
+            t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
             _upgradeTree(t)
             return t
@@ -1218,8 +1218,9 @@ def _relaxCGNSProfile__(t):
     return None
 
 # -- convertPyTree2File
-def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
-                       endian='big', colormap=0, dataFormat='%.9e ', links=[]):
+def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
+                       endian='big', colormap=0, dataFormat='%.9e ', 
+                       links=[]):
     """Write a pyTree to a file.
     Usage: convertPyTree2File(t, fileName, format, options)"""
     if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
@@ -1232,7 +1233,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
         Internal._adaptZoneNamesForSlash(tp)
         Internal._correctBaseZonesDim(tp, splitBases=False)
         _forceCGNSProfile__(tp)
-        Converter.converter.convertPyTree2File(tp[2], fileName, format, links)
+        Converter.converter.convertPyTree2File(tp[2], fileName, format, links, isize, rsize)
     elif format == 'bin_tau':
         tp, ntype = Internal.node2PyTree(t)
         Converter.converter.convertPyTree2FileTau(tp, fileName, format)
@@ -1259,7 +1260,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
 # Fonction utilisee dans PPart
 def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
                                       format=None, nptsCurve=20, nptsLine=2,
-                                      density=-1., skeletonData=None, readMode=0):
+                                      density=-1., skeletonData=None, readIntMode=0):
     """Convert a file to pyTree.
     Usage: convertFile2PartialPyTree(fileName, format, options)"""
     if format is None:
@@ -1268,7 +1269,7 @@ def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
     try: file = open(fileName, 'r')
     except: raise IOError("convertFile2PartialPyTreeFromPath: file %s not found."%fileName)
     file.close()
-    t = Converter.converter.convertFile2PartialPyTree(fileName, format, skeletonData, comm, Filter, readMode)
+    t = Converter.converter.convertFile2PartialPyTree(fileName, format, skeletonData, comm, Filter, readIntMode)
     return t
 
 # Fonction utilisee dans PPart

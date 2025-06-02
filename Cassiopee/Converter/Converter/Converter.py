@@ -862,7 +862,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                     except:
                         return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
 
-def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
+def convertArrays2File(arrays, fileName, format=None, isize=8, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ',
                        zoneNames=[], BCFaces=[]):
     """Write arrays to output file.

@@ -9,11 +9,7 @@ import re
 import subprocess
 import shlex
 from collections import OrderedDict
-import imp
 import math
-
-try: range = xrange
-except: pass
 
 # Import Tkinter
 IMPORTOK = True
@@ -13034,9 +13030,12 @@ class DesktopFrameTK(TK.Frame):
         # WARNING : THE FOLLOWING IS ONLY WORKING FOR PYTHON 2.X
         cwd = os.getcwd()
         modulename = os.path.splitext(os.path.split(filename)[1])[0]
-        loadedModule = imp.load_source(modulename, filename)
-        loadedModule.loadVisu(self)
-        self.updateAllGraph()
+        try:
+            import imp
+            loadedModule = imp.load_source(modulename, filename)
+            loadedModule.loadVisu(self)
+            self.updateAllGraph()
+        except: pass
 
         # FOR PYTHON 3.X<3.4 TRY SOMETHING LIKE :
 #        from importlib.machinery import SourceFileLoader
@@ -13844,10 +13843,12 @@ class Desktop():
         # WARNING : THE FOLLOWING IS ONLY WORKING FOR PYTHON 2.X
         cwd = os.getcwd()
         modulename = os.path.splitext(os.path.split(filename)[1])[0]
-        loadedModule = imp.load_source(modulename, filename)
-        loadedModule.loadVisu(self)
-        self.updateAllGraph()
-
+        try:
+            import imp
+            loadedModule = imp.load_source(modulename, filename)
+            loadedModule.loadVisu(self)
+            self.updateAllGraph()
+        except: pass
         # FOR PYTHON 3.X<3.4 TRY SOMETHING LIKE :
 #        from importlib.machinery import SourceFileLoader
 #        foo = SourceFileLoader("module.name", "/path/to/file.py").load_module()
