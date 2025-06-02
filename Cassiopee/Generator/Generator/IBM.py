@@ -880,14 +880,16 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
     test.printMem(">>> cart grids --> rectilinear grids [end]")
 
-    zones = Internal.getZones(t)
-    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
     if symmetry==0: extBnd = 0
     else: extBnd = ext-1 # nb de ghost cells = ext-1
-    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=extBnd)
-    C.setFields(coords, zones, 'nodes')
-    for noz in range(len(zones)):
-        Internal.newRind(value=rinds[noz], parent=zones[noz])
+    if ext > 0:
+        zones = Internal.getZones(t)
+        coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+        coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=extBnd)
+        C.setFields(coords, zones, 'nodes')
+        for noz in range(len(zones)):
+            Internal.newRind(value=rinds[noz], parent=zones[noz])
+
     Cmpi._rmXZones(t)
     coords = None; zones = None
 
@@ -1500,7 +1502,7 @@ def _dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers', mo
         tbBB=G.BB(tb)
 
         ##PRT1 - Zones flagged by the intersection of the bounding boxes of t and tb
-        interDict = X.getIntersectingDomains(tBB, tbBB)
+        interDict = X.getIntersectingDomains(tBB, tbBB, taabb=tBB, taabb2=tbBB)
         zt       = []
         zt_names = []
         for i in interDict:
