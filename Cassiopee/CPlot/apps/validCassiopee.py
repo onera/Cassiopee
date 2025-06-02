@@ -182,11 +182,13 @@ def getInstallPaths():
         fastIncDir = os.path.dirname(fastIncDir)
     except:
         fastIncDir = None
-    pmodulesDir = os.path.join(os.path.dirname(os.path.dirname(cassiopeeIncDir)),
-                               'PModules')
+    parentDirname = os.path.dirname(os.path.dirname(cassiopeeIncDir))
+    pmodulesDir = os.path.join(parentDirname, 'PModules')
     if not os.path.isdir(pmodulesDir): pmodulesDir = None
-
-    return cassiopeeIncDir, fastIncDir, pmodulesDir
+    fspluginsDir = os.path.join(parentDirname, 'FSPlugins')
+    if not os.path.isdir(fspluginsDir):
+        fspluginsDir = os.getenv('FSPLUGINS', None)
+    return cassiopeeIncDir, fastIncDir, pmodulesDir, fspluginsDir
 
 def checkEnvironment():
     # Check environment
@@ -357,16 +359,16 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
 # CFDBase both locally and globally. Set paths for ValidData directories
 #==============================================================================
 def setPaths():
-    def _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='LOCAL'):
+    def _setModuleDirs(*args, **kwargs):
         global MODULESDIR
+        loc = kwargs.get('loc', 'LOCAL')
         if loc not in ['LOCAL', 'GLOBAL']: loc = 'LOCAL'
         notTested = ['Upmost', 'FastP']
-        paths = [fastIncDir, pmodulesIncDir]
+        cassiopeeIncDir = args[0]
+        paths = list(args)[1:]
         for path in paths:
             if path is None: continue
-            print('Info: getting {} module tests in: {}.'.format(
-                loc.lower(), path))
-
+            print('Info: getting {} module tests in: {}.'.format(loc.lower(), path))
             try: mods = os.listdir(path)
             except: mods = []
             for mod in mods:
@@ -381,8 +383,7 @@ def setPaths():
                         a = os.access(os.path.join(pathMod, mod, 'test'), os.F_OK) # PModules git
                         if a: MODULESDIR[loc][mod] = pathMod
 
-        print('Info: getting {} module names in: {}.'.format(
-            loc.lower(), cassiopeeIncDir))
+        print('Info: getting {} module names in: {}.'.format(loc.lower(), cassiopeeIncDir))
         try: mods = os.listdir(cassiopeeIncDir)
         except: mods = []
         for mod in mods:
@@ -395,8 +396,8 @@ def setPaths():
 
     global VALIDDIR
     # Module paths when the local base is used
-    cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
-    _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='LOCAL')
+    allPackageDirs = getInstallPaths()
+    _setModuleDirs(*allPackageDirs, loc='LOCAL')
 
     # Local valid paths
     VALIDDIR['LOCAL'] = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee',
