@@ -25,3 +25,7 @@ if TIGL:
     for d in dirs:
         srcs = [f.name for f in pathlib.Path("../../Modeler/tigl/src/"+d).glob("*.cpp")]
         for s in srcs: cpp_srcs.append("Modeler/tigl/src/%s/%s"%(d,s))
+if TIGL:
+    cpp_srcs += ['Modeler/CPACS/exportCAD.cpp']
+else:
+    cpp_srcs += ['Modeler/CPACS/exportCAD_stub.cpp']

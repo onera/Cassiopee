@@ -31,26 +31,22 @@ installPath = Dist.getInstallPath(prefix)
 (generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
 
 # Test if open-cascade is installed ===========================================
-(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
+(OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC(additionalLibPaths, 
                                                    additionalIncludePaths)
 
-if OCEPresent:
-        # Utilise la version installee dans le systeme
-        OCCIncDir = OCEIncDir
-else:
-        # Utilise la version installee dans OCC
-        # Hack: To make a full path name for the OCC include dir (the relative path to build/... doesn't contain everything, e.g fff is not copied
-        #import KCore.installPath
-        #OCCIncDir = KCore.installPath.includePath
-        #OCCIncDir = os.path.dirname(OCCIncDir)
-        #OCCIncDir = os.path.join(OCCIncDir, 'OCC/OCC/occ_inc')
-        print("Warning: open cascade not found on your system. OCC not installed.")
-        os._exit(0) # do not end compilation
+if not OCCPresent:
+    # Utilise la version installee dans OCC (non fonctionnel)
+    # Hack: To make a full path name for the OCC include dir (the relative path to build/... doesn't contain everything, e.g fff is not copied
+    #import KCore.installPath
+    #OCCIncDir = KCore.installPath.includePath
+    #OCCIncDir = os.path.dirname(OCCIncDir)
+    #OCCIncDir = os.path.join(OCCIncDir, 'OCC/OCC/occ_inc')
+    print("Warning: open cascade not found on your system. OCC not installed.")
+    os._exit(0) # do not end compilation
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, generatorLibDir]
 includeDirs = [OCCIncDir, generatorIncDir, pythonIncDir, numpyIncDir, kcoreIncDir]
-#includeDirs = [OCCIncDir, generatorIncDir, pythonIncDir, numpyIncDir, kcoreIncDir, kcoreIncDir+'/../../Converter/Converter']
 libraries = ["generator", "kcore"]
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
@@ -82,14 +78,14 @@ occ_cassiopee = env.StaticLibrary('occ_cassiopee', srcs.srcs)
 modDir = 'build/'+ELSAPROD
 allLibs = []; allDeps = []
 for m in srcs.allMods:
-  f = srcs.mod_srcs[m]
-  lib = env.StaticLibrary(m, f)
-  allLibs.append(lib)
-  allDeps.append(env.Install(modDir, lib))
+    f = srcs.mod_srcs[m]
+    lib = env.StaticLibrary(m, f)
+    allLibs.append(lib)
+    allDeps.append(env.Install(modDir, lib))
 
 dp0 = env.Install(modDir, occ_cassiopee)
 
-if OCEPresent:
-        env.Alias(target="install", source=[dp0])
+if OCCPresent:
+    env.Alias(target="install", source=[dp0])
 else:
-        env.Alias(target="install", source=[dp0]+allDeps)
+    env.Alias(target="install", source=[dp0]+allDeps)

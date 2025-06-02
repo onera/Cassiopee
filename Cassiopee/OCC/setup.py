@@ -24,10 +24,10 @@ Dist.writeSetupCfg()
 (generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
 
 # Test if open-cascade is already installed ==================================
-(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths,
+(OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC(additionalLibPaths,
                                                    additionalIncludePaths)
 
-if not OCEPresent: os._exit(0)
+if not OCCPresent: os._exit(0)
 
 # Compilation des fortrans ===================================================
 prod = os.getenv("ELSAPROD")
@@ -36,18 +36,17 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir, generatorIncDir]
-#libraries = ["occ_cassiopee", "generator", "converter", "kcore"]
 libraries = ["occ_cassiopee", "generator", "kcore"]
 
-if OCEPresent:
-    libraryDirs += [OCELibDir]
-    includeDirs += [OCEIncDir]
+if OCCPresent:
+    libraryDirs += [OCCLibDir]
+    includeDirs += [OCCIncDir]
 
 import srcs
-libOCE = srcs.allMods
-if OCEPresent and Dist.getSystem()[0] == 'mingw':
-    libOCE = [i+".dll" for i in libOCE]
-libraries += libOCE + libOCE
+libOCC = srcs.allMods
+if OCCPresent and Dist.getSystem()[0] == 'mingw':
+    libOCE = [i+".dll" for i in libOCC]
+libraries += libOCC + libOCC
 
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs

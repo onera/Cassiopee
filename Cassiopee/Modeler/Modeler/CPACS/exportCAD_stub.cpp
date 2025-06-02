@@ -16,15 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+// read cpacs, export CAD (use tigl)
 
-#ifndef _MODELER_MODELER_H_
-#define _MODELER_MODELER_H_
+#include "modeler.h"
 
-# include "kcore.h"
-
-namespace K_MODELER
+PyObject* K_MODELER::exportCAD(PyObject* self, PyObject* args)
 {
-  PyObject* exportCAD(PyObject* self, PyObject* args);
+  PyErr_SetString(PyExc_TypeError,
+                  "exportCAD: not available (no OCC or no TIGL).");
+  return NULL;
 }
-
-#endif

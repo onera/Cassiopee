@@ -1,6 +1,6 @@
-import os
 import KCore.Dist as Dist
 from KCore.config import *
+import os
 #==============================================================================
 # Modeler requires:
 # ELSAPROD variable defined in environment
@@ -34,12 +34,11 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # Test if open-cascade is installed ===========================================
-(OCEPresent, OCEIncDir, OCELibDir) = Dist.checkOCE(additionalLibPaths, 
+(OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC(additionalLibPaths, 
                                                    additionalIncludePaths)
 
-if OCEPresent:
+if OCCPresent:
     # Utilise la version installee dans le systeme
-    OCCIncDir = OCEIncDir
     additionalIncludePaths += [OCCIncDir]
 
 # libxml (hardcoded)

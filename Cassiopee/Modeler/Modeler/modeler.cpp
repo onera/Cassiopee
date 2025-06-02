@@ -28,6 +28,7 @@ using namespace K_CONST;
 // ============================================================================
 static PyMethodDef PyModeler[] =
 {
+  {"exportCAD", K_MODELER::exportCAD, METH_VARARGS},
   {NULL, NULL}
 };
 
