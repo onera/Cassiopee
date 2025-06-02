@@ -27,7 +27,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
     # zones = Internal.getZones(tl)
     # print('Rank %d has %d zones.'%(Cmpi.rank, len(zones)))
     tl = X.optimizeOverlap(tl, double_wall, priorities, intersectionsDict)
-    tl = Cmpi.rmXZones(tl)
+    Cmpi._rmXZones(tl)
     return tl
 
 #==============================================================================
@@ -759,7 +759,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 
     elif itype == 'chimeraOld': # ancienne version
         tbbc = Cmpi.createBBoxTree(aD)
-        interDict = X.getIntersectingDomains(tbbc)
+        interDict = X.getIntersectingDomains(tbbc, taabb=tbbc)
         # on ne conserve que les intersections inter base
         baseNames = {}
         for b in Internal.getBases(tbbc):
@@ -770,7 +770,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
             for z in interDict[i]:
                 if bi != baseNames[z]: out.append(z)
             interDict[i] = out
-
+            
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
         Cmpi._addXZones(aR, graph, variables=['centers:cellN'], noCoordinates=False,
                         cartesian=False, zoneGC=False, keepOldNodes=False)
@@ -786,7 +786,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 
     elif itype == 'chimera': # nouvelle version
         tbbc = Cmpi.createBBoxTree(aD)
-        interDict = X.getIntersectingDomains(tbbc)
+        interDict = X.getIntersectingDomains(tbbc, taabb=tbbc)
         procDict = Cmpi.getProcDict(aD)
 
         # Get baseName for each zone
@@ -913,14 +913,14 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
     procDicts = Cmpi.getProcDict(tsBB)
     tDBB = Cmpi.createBBoxTree(tD)
     procDictD = Cmpi.getProcDict(tDBB)
-    interDicts = X.getIntersectingDomains(tsBB, tDBB)
-    interDictD2R = X.getIntersectingDomains(tDBB, tsBB)
+    interDicts = X.getIntersectingDomains(tsBB, tDBB, taabb=tsBB, taabb2=tDBB)
+    interDictD2R = X.getIntersectingDomains(tDBB, tsBB, taabb=tDBB, taabb2=tsBB)
 
     graph = Cmpi.computeGraph(tDBB, type='bbox3', intersectionsDict=interDictD2R,
                               procDict=procDictD, procDict2=procDicts, t2=tsBB, reduction=True)
     graph2 = Cmpi.computeGraph(tsBB, type='bbox3', intersectionsDict=interDicts,
                                procDict=procDicts, procDict2=procDictD, t2=tDBB, reduction=True)
-    Cmpi._addXZones(tD, graph, variables=['cellN'], cartesian=cartesian, subr=False, keepOldNodes=False)
+    Cmpi._addXZones(tD, graph, variables=['cellN'], noCoordinates=False, cartesian=cartesian, subr=False, keepOldNodes=False, zoneGC=True)
 
     datas = {}
     for zs in Internal.getZones(tR):

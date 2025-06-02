@@ -818,7 +818,7 @@ def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.
             if dimPb == 3: tb2 = tb
             for body in Internal.getNodesFromType(tb2, 'Zone_t'):
                 if body[0] != "sym" and ("closure" not in body[0]):
-                    # Create extanded BBox around each body
+                    # Create extended BBox around each body
                     bboxBody = G.BB(body)
                     coordX = Internal.getNodeFromName(bboxBody, 'CoordinateX')[1]
                     coordX[0] = coordX[0] - shiftDist
@@ -1206,7 +1206,7 @@ def _pushBackImageFront2__(t, tc, tbbc, cartesian=True):
     # bboxDict needed for optimised AddXZones (i.e. "layers" not None)
     # Return a dict with the zones of t as keys and their specific bboxes as key values
     bboxDict  = Cmpi.createBboxDict(t)
-    interDict = X.getIntersectingDomains(tbbc)
+    interDict = X.getIntersectingDomains(tbbc, taabb=tbbc)
     graph     = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
 
     interpDataType = 0 if cartesian else 1
@@ -1220,7 +1220,7 @@ def _pushBackImageFront2__(t, tc, tbbc, cartesian=True):
 
     # Zones of tc are modified after addXZones, new tbbc, interDict and intersectionDict
     tbbcx             = G.BB(tc)
-    interDict         = X.getIntersectingDomains(tbbcx)
+    #interDict         = X.getIntersectingDomains(tbbcx)
     intersectionsDict = X.getIntersectingDomains(tbbcx, method='AABB', taabb=tbbcx)
 
     # Reconstruction of cellNFront and cellN from cellNIBC (reduce the communications)

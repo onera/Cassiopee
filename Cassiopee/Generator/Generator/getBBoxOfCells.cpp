@@ -20,7 +20,7 @@
 # include "generator.h"
 
 using namespace K_FLD;
-
+ 
 //=============================================================================
 /* Returns the bounding box of each cell of an array */
 //=============================================================================
@@ -68,17 +68,27 @@ PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
   }
   else 
   {
-    E_Int net = cn->getSize(); E_Int nvert = cn->getNfld();
-    PyObject* tpl = K_ARRAY::buildArray(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
-					net, net, -1, eltType, true);
-    E_Float* bbp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF bboxOfCells(net, 6, bbp, true);
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-    FldArrayI cnn(net, nvert, cnnp, true);
-    K_COMPGEOM::boundingBoxOfUnstrCells(cnn, f->begin(posx), f->begin(posy),
-                                        f->begin(posz), bboxOfCells);
-    RELEASESHAREDU(array, f, cn);
-    return tpl;
+    if (strcmp(eltType, "NGON") == 0) // pas implemente !!
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      PyErr_SetString(PyExc_TypeError,
+                      "getBBoxOfCells: not implemented for NGONs yet.");
+      return NULL; 
+    }
+    else
+    {
+      E_Int net = cn->getSize(); E_Int nvert = cn->getNfld();
+      PyObject* tpl = K_ARRAY::buildArray(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
+                                          net, net, -1, eltType, true);
+      E_Float* bbp = K_ARRAY::getFieldPtr(tpl);
+      FldArrayF bboxOfCells(net, 6, bbp, true);
+      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
+      K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
+      FldArrayI cnn(net, nvert, cnnp, true);
+      K_COMPGEOM::boundingBoxOfUnstrCells(cnn, f->begin(posx), f->begin(posy),
+                                          f->begin(posz), bboxOfCells);
+      RELEASESHAREDU(array, f, cn);
+      return tpl;
+    }
   }
 }
