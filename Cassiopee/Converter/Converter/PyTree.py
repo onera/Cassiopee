@@ -1219,7 +1219,7 @@ def _relaxCGNSProfile__(t):
 
 # -- convertPyTree2File
 def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
-                       endian='big', colormap=0, dataFormat='%.9e ', 
+                       endian='big', colormap=0, dataFormat='%.9e ',
                        links=[]):
     """Write a pyTree to a file.
     Usage: convertPyTree2File(t, fileName, format, options)"""
