@@ -1293,7 +1293,7 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                     if verbose == 3: # force cellN#Orphan=-1
                         listOrphan = resInterp[5]
                         if Internal.getNodeFromName2(z, 'cellN#Orphan') is None:
-                            C._initVars(z, "{%s:cellN#Orphan} = {%s:cellN}"%(loc,loc))                            
+                            C._initVars(z, "{%s:cellN#Orphan} = {%s:cellN}"%(loc,loc))
                         cellNOrphan = Converter.array('cellN#Orphan', listOrphan.size, 1, 1)
                         cellNOrphan = Converter.initVars(cellNOrphan, 'cellN#Orphan', -1.)
                         C._setPartialFields(z, [cellNOrphan], [listOrphan], loc=locR)

@@ -770,7 +770,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
             for z in interDict[i]:
                 if bi != baseNames[z]: out.append(z)
             interDict[i] = out
-            
+
         graph = Cmpi.computeGraph(tbbc, type='bbox', intersectionsDict=interDict, reduction=False)
         Cmpi._addXZones(aR, graph, variables=['centers:cellN'], noCoordinates=False,
                         cartesian=False, zoneGC=False, keepOldNodes=False)

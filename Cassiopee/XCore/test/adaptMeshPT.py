@@ -4,7 +4,7 @@ import XCore.PyTree as XC
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
 import KCore.test as test
-import numpy 
+import numpy
 
 # 2D QUAD
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
