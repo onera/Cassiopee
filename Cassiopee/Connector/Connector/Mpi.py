@@ -120,7 +120,7 @@ def _connectMatchNGon(z, tol=1.e-6):
     zf = P.exteriorFaces(z, indices=indicesF)
     indicesF = indicesF[0]
     hook = C.createHook(zf, function='elementCenters')
-    
+
     # get undefined BC faces of self
     bnds = Internal.getNodesFromType2(z, 'BC_t')
     bnds += Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
@@ -144,7 +144,7 @@ def _connectMatchNGon(z, tol=1.e-6):
         undefBC = True
         indicesE = indicesF
     if undefBC:
-        zu = T.subzone(z, indicesE, type='faces') 
+        zu = T.subzone(z, indicesE, type='faces')
     else: zu = None; indicesE = []
 
     data = [zu, indicesE]
@@ -155,7 +155,7 @@ def _connectMatchNGon(z, tol=1.e-6):
     # get the neighbour faces
     data = Cmpi.recv(source=Cmpi.rank-1)
     (zu, indicesE) = data
-    
+
     # identify faces and build matches
     ids = C.identifyElements(hook, zu, tol)
 
