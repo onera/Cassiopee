@@ -96,10 +96,10 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
                          unitAngle=None):
 
     # Ajout des bandelettes
-    Cmpi._addBXZones(a, depth=2,allB=True)
+    Cmpi._addBXZones(a, depth=2, allB=True)
 
     # Construction des raccords
-    a = X.connectMatchPeriodic(a,rotationCenter,rotationAngle,translation,tol,dim,unitAngle)
+    a = X.connectMatchPeriodic(a, rotationCenter, rotationAngle, translation, tol, dim, unitAngle)
 
     # Suppression des XZones et correction des matchs
     Cmpi._rmBXZones(a)
@@ -108,6 +108,65 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
     a = mergeWindows(a)
 
     return a
+
+#==============================================================================
+# parallel NGON connectMatch
+#==============================================================================
+def _connectMatchNGon(z, tol=1.e-6):
+    import Post.PyTree as P
+    import Transform.PyTree as T
+    # get exterior faces and indirection
+    indicesF = []
+    zf = P.exteriorFaces(z, indices=indicesF)
+    indicesF = indicesF[0]
+    hook = C.createHook(zf, function='elementCenters')
+    
+    # get undefined BC faces of self
+    bnds = Internal.getNodesFromType2(z, 'BC_t')
+    bnds += Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+    bnds += Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    indicesBC = []
+    for b in bnds:
+        f = Internal.getNodeFromName1(b, 'PointList')
+        indicesBC.append(f[1])
+    undefBC = False
+    if indicesBC != []:
+        indicesBC = numpy.concatenate(indicesBC, axis=1)
+        nfacesExt = indicesF.shape[0]
+        nfacesDef = indicesBC.shape[1]
+        if nfacesExt < nfacesDef:
+            print('Warning: zone %s: number of faces defined by BCs is greater than the number of external faces. Try to reduce the matching tolerance.'%(z[0]))
+        elif nfacesExt > nfacesDef:
+            indicesBC = indicesBC.reshape( (indicesBC.size) )
+            indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
+            undefBC = True
+    else:
+        undefBC = True
+        indicesE = indicesF
+    if undefBC:
+        zu = T.subzone(z, indicesE, type='faces') 
+    else: zu = None; indicesE = []
+
+    data = [zu, indicesE]
+
+    # pass faces to neighbour
+    Cmpi.send(data, dest=Cmpi.rank+1)
+
+    # get the neighbour faces
+    data = Cmpi.recv(source=Cmpi.rank-1)
+    (zu, indicesE) = data
+    
+    # identify faces and build matches
+    ids = C.identifyElements(hook, zu, tol)
+
+    sizebc = ids.size
+    if sizebc > 0:
+        id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
+        id2[:] = indicesE[ids[:]-1]
+        C._addBC2Zone(z, 'match', 'BCMatch', faceList=id2)
+
+    C.free(hook)
+    return None
 
 #==============================================================================
 def giveName2Window(p, zname, zopp):
@@ -146,7 +205,7 @@ def mergeWindows(t):
                     pr    = Internal.getNodeFromName1(n, 'PointRange')
                     p     = Internal.range2Window(pr[1])
                     zopp  = Internal.getValue(n)
-                    pos   = giveName2Window(p,z[0],zopp)
+                    pos   = giveName2Window(p, z[0],zopp)
 
                     if pos not in dico.keys(): dico[pos] = [n[0]]
                     else: dico[pos].append(n[0])
@@ -182,7 +241,7 @@ def mergeWindows(t):
                         # Fenetre du match donneur
                         pglobD   = [None]*6
                         for name in dico[match]:
-                            node    = Internal.getNodeFromName(z,name)
+                            node    = Internal.getNodeFromName(z, name)
                             prd     = Internal.getNodeFromName2(node, 'PointRangeDonor')
                             pd      = Internal.range2Window(prd[1])
                             #print(" name = %s, p = "%(name),p, prd)
@@ -205,7 +264,7 @@ def mergeWindows(t):
                             if first:
                                 first = False
                                 modifMatch = dico[match][0]
-                                node    = Internal.getNodeFromName(z,modifMatch)
+                                node    = Internal.getNodeFromName(z, modifMatch)
                                 pr      = Internal.getNodeFromName1(node, 'PointRange')
                                 prd     = Internal.getNodeFromName2(node, 'PointRangeDonor')
                                 pglob   = Internal.window2Range(pglob)
@@ -356,9 +415,9 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
                          graph=None, procDict=None, isWireModel_int=0):
 
     ##isWireModel_int: either -1, 0 , or 1
-    ## 1:: YES :wire model treatment
-    ## 0:: NO  :wire model treatment
-    ##-1:: NO  :wire model treatment BUT a treatment on locks for IBC for ___setInterpTransfers
+    ## 1:: YES: wire model treatment
+    ## 0:: NO : wire model treatment
+    ##-1:: NO : wire model treatment BUT a treatment on locks for IBC for ___setInterpTransfers
     isWireModel_intv2 = max(isWireModel_int,0)
     isSetPartialFieldsCheck = max(abs(isWireModel_int),0)
 
@@ -428,7 +487,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
             if isSetPartialFieldsCheck==1 and field != []:
                 minfld = numpy.ndarray.min(field[1][0])
                 maxfld = numpy.ndarray.max(field[1][0])
-                if (maxfld == minfld and maxfld < -1e05): isSetPartialFields=False
+                if maxfld == minfld and maxfld < -1.e05: isSetPartialFields=False
 
             if isSetPartialFields:
                 listIndices = n[2]
@@ -688,7 +747,6 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     # 6. envoie des numpys des donnees interpolees suivant le graphe
     #Cmpi.trace("6. transfer2")
     rcvDatas = Cmpi.sendRecvC(transferedDatas, graph)
-    #rcvDatas = Cmpi.sendRecv(transferedDatas, graph)
 
     # 7. remise des donnees interpolees chez les zones receveuses
     # une fois que tous les donneurs potentiels on calcule et envoye leurs donnees
