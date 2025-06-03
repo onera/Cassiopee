@@ -6,6 +6,8 @@ from . import xcore
 
 BCType_l = set(I.KNOWNBCS)
 
+# IN : a : zone
+# IN : cid : cell id as integer
 def extractCell(a, cid):
     z = I.getZones(a)[0]
     m = C.getFields(I.__GridCoordinates__, z, api=3)[0]
@@ -13,16 +15,18 @@ def extractCell(a, cid):
     return zmo
 
 # -- AdaptMesh_Init
-# Initialise une structure opaque pour l'adaptation
-# IN: t: arbre CGNS (1 zone)
+# Initialize a structure for mesh adaptation
+# IN: t : CGNS tree/base/zones, only a single zone is taken into account
 # IN: normal2D: vecteur 2D
 # IN: comm: tableaux de connectivités en parallèle issus de chunk2part
 # IN: gcells: indices globaux des cellules en parallèle
 # IN: gfaces: indices globaux des faces en parallèle
-# OUT: structure opaque de l'adaptation
+# OUT: hook on the structure required during the mesh adaptation process
 def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     zones = I.getZones(t)
-    assert(len(zones) == 1)
+    if len(zones) != 1:
+        print("WARNING: AdaptMesh_Init: only the first zone is taken into account.", flush=True)
+
     z = zones[0]
     array = C.getFields(I.__GridCoordinates__, z, api=3)[0]
 
@@ -45,20 +49,31 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     return xcore.AdaptMesh_Init(array, normal2D, bcs, comm, gcells, gfaces)
 
 # -- AdaptMesh_Exit
-# Libère la mémoire utilisée par la structure opaque
-# IN: AM: hook issu de AdaptMesh_Init
+# free the memory allocated by AdaptMesh_Init
+# IN: AM: hook created by AdaptMesh_Init
 def AdaptMesh_Exit(AM):
     return xcore.AdaptMesh_Exit(AM)
 
+# IN/OUT : AM: hook on the structure created by AdaptMesh_Init
+# IN : REF: numpy of 0/1 integers used as the adaptation indicator for each leaf of the current adaptation data structure
+# return None
 def AdaptMesh_AssignRefData(AM, REF):
     return xcore.AdaptMesh_AssignRefData(AM, REF)
 
+# load balance using ptsotch
+# IN/OUT: AM: hook on the structure created by AdaptMesh_Init
 def AdaptMesh_LoadBalance(AM):
     return xcore.AdaptMesh_LoadBalance(AM)
 
+# adaptation of the mesh
+# IN/OUT: hook on the structure refering to the adapted mesh
 def AdaptMesh_Adapt(AM):
     return xcore.AdaptMesh_Adapt(AM)
 
+# convert the hook into a mesh
+# IN: AM: data structure
+# IN: conformize: 0=HEXA, 1=NGON
+# OUT: return a zone per proc with 1to1 grid connectivities and bcs
 def AdaptMesh_ExtractMesh(AM, conformize=1):
     mesh, bcs, comm, procs = xcore.AdaptMesh_ExtractMesh(AM, conformize)
     name = 'Proc' + '%d'%Cmpi.rank
@@ -119,18 +134,18 @@ def exchangeFields(t, fldNames):
     for zone in zones:
         arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
         pe = I.getNodeFromName(zone, 'ParentElements')
-        if pe == None: raise ValueError('ParentElements not found.')
+        if pe is None: raise ValueError('ParentElements not found.')
         fsolc = I.getNodeFromName2(zone, I.__FlowSolutionCenters__)
-        if fsolc == None: raise ValueError('FlowSolutionCenters not found.')
+        if fsolc is None: raise ValueError('FlowSolutionCenters not found.')
         flds = []
         for fldName in fldNames:
             fld = I.getNodeFromName2(fsolc, fldName)
-            if fld == None: raise ValueError(fldName, 'not found.')
+            if fld is None: raise ValueError(fldName, 'not found.')
             flds.append(fld[1])
         zgc = I.getNodeFromType(zone, 'ZoneGridConnectivity_t')
-        if zgc == None: raise ValueError('ZoneGridConnectivity not found')
+        if zgc is None: raise ValueError('ZoneGridConnectivity not found')
         comms = I.getNodesFromType(zgc, 'GridConnectivity1to1_t')
-        if comms == None: raise ValueError('GridConnectivity1to1 not found')
+        if comms is None: raise ValueError('GridConnectivity1to1 not found')
         comm_list = []
         for comm in comms:
             nei_proc = int(I.getValue(comm))
@@ -293,7 +308,10 @@ def loadAndSplitNGon(fileName):
     return t, RES
 
 ######################################################
-
+######################################################
+# IntersectMesh functions
+######################################################
+######################################################
 def IntersectMesh_Exit(IM):
     return xcore.IntersectMesh_Exit(IM)
 
@@ -491,6 +509,7 @@ def icapsuleSetSlaves(IC, slaves):
 
     return xcore.icapsule_set_slaves(IC, sarrs, ptags, ctags)
 
+# Extract the master mesh corresponding to the capsule
 def icapsuleExtractMaster(IC):
     marr, ctag = xcore.icapsule_extract_master(IC)
     zm = I.createZoneNode("master", marr)
@@ -500,6 +519,7 @@ def icapsuleExtractMaster(IC):
     I.newDataArray("keep", value=ctag, parent=cont)
     return zm
 
+# Extract the slave mesh corresponding to the capsule
 def icapsuleExtractSlaves(IC):
     sarrs, ctags = xcore.icapsule_extract_slaves(IC)
     assert(len(sarrs) == len(ctags))
@@ -514,6 +534,8 @@ def icapsuleExtractSlaves(IC):
         zones.append(zs)
     return zones
 
+# Triangulates the external quads of a mesh
+# and modifies the corresponding BC PointList
 def triangulateSkin(m):
     m_copy = I.copyRef(m)
     _triangulateSkin(m_copy)
