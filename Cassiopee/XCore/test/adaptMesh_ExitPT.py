@@ -4,7 +4,7 @@ import XCore.PyTree as XC
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
 import KCore.test as test
-import numpy 
+import numpy
 import KCore.test as test
 
 # 2D QUAD

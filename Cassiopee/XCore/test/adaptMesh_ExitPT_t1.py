@@ -4,7 +4,7 @@ import XCore.PyTree as XC
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
 import KCore.test as test
-import numpy 
+import numpy
 import KCore.test as test
 
 # 2D QUAD
@@ -26,5 +26,5 @@ gfaces=numpy.arange(1,nfaces+1)
 for i in range(2):
     test.printMem("Creating hook on mesh adaptation")
     AM = XC.AdaptMesh_Init(a, normal2D, comm=[], gcells=gcells, gfaces=gfaces)
-    XC.AdaptMesh_Exit(AM)    
+    XC.AdaptMesh_Exit(AM)
     test.printMem("Releasing hook on mesh adaptation.")
