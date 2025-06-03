@@ -14,13 +14,9 @@ if TIGL:
 
     dirs = ['engine_nacelle', 'rotor', 'engine_pylon', 'structural_elements',
             'exports', 'system', 'api', 'fuelTanks' 'boolean_operations', 'fuselage',
-            'common',
-            'generated',
-            'wing', 'configuration',
-            'geometry',
-            'contrib',
-            'guide_curves', 'control_devices', 'imports',
-            'cpacs_other',
+            'common', 'generated', 'wing', 'configuration',
+            'geometry', 'contrib',
+            'guide_curves', 'control_devices', 'imports', 'cpacs_other',
             'logging', 'ducts', 'math']
     for d in dirs:
         srcs = [f.name for f in pathlib.Path("../../Modeler/tigl/src/"+d).glob("*.cpp")]

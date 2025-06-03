@@ -50,6 +50,9 @@ if OCCPresent and Dist.getSystem()[0] == 'mingw':
     libOCC = [i+".dll" for i in libOCC]
 libraries += libOCC + libOCC
 
+import srcs
+if srcs.TIXI: libraries += ["xml2", "xslt"]
+
 # Extensions ==================================================================
 listExtensions = []
 listExtensions.append(

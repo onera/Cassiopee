@@ -171,6 +171,8 @@ class GenIOHdf
     /* Method to setArray in HDF */
     hid_t setArrayR4(hid_t node, float*  data, int dim, hsize_t *dims);
     hid_t setArrayR8(hid_t node, double* data, int dim, hsize_t *dims);
+    hid_t setArrayR8Raw(hid_t node, double* data, int dim, hsize_t *dims);
+    hid_t setArrayR82R4(hid_t node, double* data, int dim, hsize_t *dims);
     hid_t setArrayI1(hid_t node, char*   data, int dim, hsize_t *dims);
     hid_t setArrayI4(hid_t node, int*    data, int dim, hsize_t *dims);
     hid_t setArrayI8(hid_t node, E_LONG* data, int dim, hsize_t *dims);
@@ -198,10 +200,12 @@ class GenIOHdf
     _skeleton=0; _maxFloatSize=1e6; _maxDepth=1e6;
 
     /* read mode. 0: convert int to Cassiopee compilation type, 1: return what is in the file. */
-    _readMode = 0; 
+    _readIntMode = 0;
 
-    /* write mode. 0: write what we have in memory, 1: write int32 if possible without loss. */
-    _writeMode = 0;
+    /* write mode. 0: write what we have in memory, 1: write int32 if possible without loss else write i8. */
+    _writeIntMode = 0;
+    /* write mode. 0: write what we have in memory, 1: write double, 2: write float */
+    _writeRealMode = 0;
 
     /* Create basic data types used everywhere */
     _NATIVE_FLOAT  = H5Tcopy(H5T_NATIVE_FLOAT ); H5Tset_precision(_NATIVE_FLOAT , 32);
@@ -228,8 +232,9 @@ class GenIOHdf
 
   /* Public attributes   */
   public:
-    int _readMode;
-    int _writeMode;
+    int _readIntMode;
+    int _writeIntMode;
+    int _writeRealMode;
     std::list<hid_t> _fatherStack;
     std::list<std::string> _stringStack;
     std::map<std::string, bool> _skipTypes;
