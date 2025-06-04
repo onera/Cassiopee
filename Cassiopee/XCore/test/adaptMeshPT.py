@@ -1,12 +1,10 @@
 import Generator.PyTree as G
 import Converter.PyTree as C
 import XCore.PyTree as XC
-import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
-import KCore.test as test
 import numpy
 
-# 2D QUAD
+# HEXA but no adaptation in the 3rd direction (2D adaptation)
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
 a = C.convertArray2NGon(a)
 C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=2)
