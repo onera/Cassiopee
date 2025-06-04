@@ -506,6 +506,7 @@ def _merge__(t):
 # sans zones (pour recuperer toutes les bases et les data des bases)
 #==============================================================================
 def convertPyTree2File(t, fileName, format=None, links=[],
+                       isize=8, rsize=8,
                        ignoreProcNodes=False, merge=True):
     """Write a skeleton or partial tree."""
     tp = convert2PartialTree(t)
@@ -516,7 +517,7 @@ def convertPyTree2File(t, fileName, format=None, links=[],
     nzones = len(Internal.getZones(tp))
     if rank == 0:
         if nzones > 0:
-            C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1
+            C.convertPyTree2File(tp, fileName, format=format, links=links, isize=isize, rsize=rsize); go = 1
         else: go = 0
         if size > 1: KCOMM.send(go, dest=1)
     else:
@@ -526,7 +527,7 @@ def convertPyTree2File(t, fileName, format=None, links=[],
             else: Distributed.writeZones(tp, fileName, format=format, proc=rank, links=links)
         else:
             if nzones > 0:
-                C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1
+                C.convertPyTree2File(tp, fileName, format=format, links=links, isize=isize, rsize=rsize); go = 1
         if rank < size-1: KCOMM.send(go, dest=rank+1)
     barrier()
 

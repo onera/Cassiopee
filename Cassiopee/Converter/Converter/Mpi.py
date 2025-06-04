@@ -35,7 +35,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def Allreduce(a, b, op=None): b[:] = a[:]; return None
         def seq(F, *args): F(*args)
         def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
-        def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links)
+        def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
         def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
         def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
         def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=2, subr=True): return None
@@ -77,7 +77,7 @@ else: # try import (may fail - core or hang)
         def Allreduce(a, b, op=None): b[:] = a[:]; return None
         def seq(F, *args): F(*args)
         def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
-        def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links)
+        def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
         def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
         def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
         def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=2, subr=True): return None
@@ -215,7 +215,8 @@ def isFinite(t, var=None):
 # si stdout=True, ecrit a l'ecran
 # si reset, vide le fichier log
 # si filename="stdout", ecrit a l'ecran, sinon ecrit dans le fichier filename
-# si method, tracemalloc(0), heap(1), Size(2), RSS(3)
+# si method, tracemalloc(0), Rss(1), heap(2), VmRss(3), Resident(4)
+# a noter: 0 ne prend pas en compte la memoire allouee par le C.
 def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fileName=None, method=None):
     """Write a trace of cpu and memory in a file or to stdout for current node."""
     global TRACESTATE
@@ -240,11 +241,22 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fil
             TRACESTATE['prevFullTime'] = t
         msg += ' [%g secs]'%dt
     if TRACESTATE['mem']:
-        tot = 0.
+        tot = 0.; peak = -1
         if TRACESTATE['method'] == 0: # tracemalloc
             tot, peak = tracemalloc.get_traced_memory()
             tot = tot//1000 # in kb
-        elif TRACESTATE['method'] == 1: # heap in smaps
+            peak = peak//1000 # in kb
+        elif TRACESTATE['method'] == 1: # Rss in smaps
+            pid = os.getpid()
+            try:
+                f = open("/proc/%s/smaps"%pid)
+                s = f.readlines()
+                f.close()
+            except: s = []
+            for ts in s:
+                if ts.split()[0] == "Rss:":
+                    tot += int(ts[4:-3])
+        elif TRACESTATE['method'] == 2: # heap in smaps
             pid = os.getpid()
             try:
                 f = open("/proc/%s/smaps"%pid)
@@ -257,17 +269,7 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fil
                     tot += int(ts[5:-3])
                     found = False
                 if ts.find("heap") >= 0: found = True
-        elif TRACESTATE['method'] == 2: # all size in smaps
-            pid = os.getpid()
-            try:
-                f = open("/proc/%s/smaps"%pid)
-                s = f.readlines()
-                f.close()
-            except: s = []
-            for ts in s:
-                if ts.split()[0] == "Size:":
-                    tot += int(ts[5:-3])
-        elif TRACESTATE['method'] == 3: # RSS in status
+        elif TRACESTATE['method'] == 3: # VmRSS in status
             pid = os.getpid()
             try:
                 f = open("/proc/%s/status"%pid)
@@ -277,11 +279,24 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fil
             for ts in s:
                 if ts.split()[0] == "VmRSS:":
                     tot += int(ts[6:-3])
+        elif TRACESTATE['method'] == 4: # Resident in statm
+            pid = os.getpid()
+            try:
+                f = open("/proc/%s/statm"%pid)
+                s = f.readlines()
+                f.close()
+            except: s = []
+            for ts in s:
+                tot += int(ts.split()[1])
 
-        if tot > 1.e6: msg += '[%f GB]'%(tot/1.e6)
-        elif tot > 1000.: msg += '[%f MB]'%(tot/1000.)
-        else: msg += '[%f kB]'%(tot)
-
+        if peak == -1: # peak is not known
+            if tot > 1.e6: msg += '[%f GB]'%(tot/1.e6)
+            elif tot > 1000.: msg += '[%f MB]'%(tot/1000.)
+            else: msg += '[%f kB]'%(tot)
+        else:
+            if tot > 1.e6: msg += '[%f GB/%f Gb]'%(tot/1.e6, peak/1.e6)
+            elif tot > 1000.: msg += '[%f MB/%f Mb]'%(tot/1000., peak/1000.)
+            else: msg += '[%f kB/%f kB]'%(tot, peak)
     msg += '\n'
 
     if TRACESTATE['fileName'] == "stdout":
