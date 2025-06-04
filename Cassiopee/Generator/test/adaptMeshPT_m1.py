@@ -20,12 +20,12 @@ splitInfos["graph"]=res[1]
 splitInfos["cellGlobalIndex"]=res[5]
 splitInfos["faceGlobalIndex"]=res[6]
 
-a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=2, 
-                 conformize=False, splitInfos=splitInfos)
+a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=2,
+                    conformize=False, splitInfos=splitInfos)
 test.testT(a2,Cmpi.rank)
 
-a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=2, 
-                conformize=True, splitInfos=splitInfos)
+a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=2,
+                    conformize=True, splitInfos=splitInfos)
 test.testT(a2,Cmpi.rank+Cmpi.size)
 
 
@@ -43,12 +43,12 @@ splitInfos["graph"]=res[1]
 splitInfos["cellGlobalIndex"]=res[5]
 splitInfos["faceGlobalIndex"]=res[6]
 
-a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=3, 
-                 conformize=False, splitInfos=splitInfos)
+a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=3,
+                    conformize=False, splitInfos=splitInfos)
 test.testT(a2,Cmpi.rank+2*Cmpi.size)
 
-a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=3, 
-                conformize=True, splitInfos=splitInfos)
+a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=3,
+                    conformize=True, splitInfos=splitInfos)
 test.testT(a2,Cmpi.rank+3*Cmpi.size)
 Cmpi.convertPyTree2File(a2,"out.cgns")
 C.convertPyTree2File(a2,"out_%d.cgns"%(Cmpi.rank))

@@ -40,7 +40,7 @@ test.testT(a2,7)
 a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=True)
 test.testT(a2,8)
 
-# Returns the hook on the tree structure 
+# Returns the hook on the tree structure
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,11))
 C._fillEmptyBCWith(a,'nref','BCFarfield',dim=3)
 C._initVars(a,"F",1.)
