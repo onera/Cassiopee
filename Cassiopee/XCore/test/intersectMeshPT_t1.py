@@ -1,9 +1,8 @@
+# - intersectMesh (pyTree) -
 import Converter.PyTree as C
 import Converter.Internal as I
 import XCore.PyTree as X
 import Generator.PyTree as G
-import Transform.PyTree as T 
-import Post.PyTree as P
 import KCore.test as test
 
 # Load master hexa mesh and transform it to NGon
@@ -43,7 +42,5 @@ X.icapsuleIntersect2(IC)
 # Extract the resulting meshes as zones
 Mi = X.icapsuleExtractMaster(IC)
 Si = X.icapsuleExtractSlaves(IC)
-t = C.newPyTree(['Base1','Base2'])
-t[2][1][2] = I.getZones(Mi)
-t[2][2][2] = I.getZones(Si)
-test.testT(t,1)
+t = C.newPyTree(['Base1', Mi, 'Base2', Si])
+test.testT(t, 1)

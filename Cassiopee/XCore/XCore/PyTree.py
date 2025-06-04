@@ -26,7 +26,7 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     zones = I.getZones(t)
     if len(zones) != 1:
         print("WARNING: AdaptMesh_Init: only the first zone is taken into account.", flush=True)
-        
+
     z = zones[0]
     array = C.getFields(I.__GridCoordinates__, z, api=3)[0]
 
@@ -49,18 +49,18 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     return xcore.AdaptMesh_Init(array, normal2D, bcs, comm, gcells, gfaces)
 
 # -- AdaptMesh_Exit
-# free the memory allocated by AdaptMesh_Init 
+# free the memory allocated by AdaptMesh_Init
 # IN: AM: hook created by AdaptMesh_Init
 def AdaptMesh_Exit(AM):
     return xcore.AdaptMesh_Exit(AM)
 
 # IN/OUT : AM: hook on the structure created by AdaptMesh_Init
-# IN : REF: numpy of 0/1 integers used as the adaptation indicator for each leaf of the current adaptation data structure 
+# IN : REF: numpy of 0/1 integers used as the adaptation indicator for each leaf of the current adaptation data structure
 # return None
 def AdaptMesh_AssignRefData(AM, REF):
     return xcore.AdaptMesh_AssignRefData(AM, REF)
 
-# load balance using ptsotch 
+# load balance using ptsotch
 # IN/OUT: AM: hook on the structure created by AdaptMesh_Init
 def AdaptMesh_LoadBalance(AM):
     return xcore.AdaptMesh_LoadBalance(AM)
@@ -509,7 +509,7 @@ def icapsuleSetSlaves(IC, slaves):
 
     return xcore.icapsule_set_slaves(IC, sarrs, ptags, ctags)
 
-# Extract the master mesh corresponding to the capsule 
+# Extract the master mesh corresponding to the capsule
 def icapsuleExtractMaster(IC):
     marr, ctag = xcore.icapsule_extract_master(IC)
     zm = I.createZoneNode("master", marr)
@@ -519,7 +519,7 @@ def icapsuleExtractMaster(IC):
     I.newDataArray("keep", value=ctag, parent=cont)
     return zm
 
-# Extract the slave mesh corresponding to the capsule 
+# Extract the slave mesh corresponding to the capsule
 def icapsuleExtractSlaves(IC):
     sarrs, ctags = xcore.icapsule_extract_slaves(IC)
     assert(len(sarrs) == len(ctags))

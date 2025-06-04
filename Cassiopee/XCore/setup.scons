@@ -56,7 +56,8 @@ if mpi: libraries += mpiLibs
 libraryDirs += paths; libraries += libs
 
 # Specific options for scotch
-opt1 =['-DCOMMON_FILE_COMPRESS_GZ',
+if srcs.SCOTCH:
+    opt1 =['-DCOMMON_FILE_COMPRESS_GZ',
        '-DCOMMON_PTHREAD',
        '-DCOMMON_RANDOM_FIXED_SEED',
        '-DSCOTCH_DETERMINISTIC',
@@ -65,38 +66,45 @@ opt1 =['-DCOMMON_FILE_COMPRESS_GZ',
        '-DSCOTCH_PTHREAD','-DSCOTCH_PTHREAD_MPI',
        '-DSCOTCH_VERSION_NUM=7','-DSCOTCH_RELEASE_NUM=0','-DSCOTCH_PATCHLEVEL_NUM=4',
        '-IXCore/scotch']
+       #if Dist.DEBUG: opt1 += ['-DSCOTCH_DEBUG_ALL']
+else:
+    opt1 = []
 
 opt1_1 = ['-DSCOTCH_PTSCOTCH']
 
-#if Dist.DEBUG: opt1 += ['-DSCOTCH_DEBUG_ALL']
-
 if Dist.GDOUBLEINT: opt1 += ['-DINTSIZE64']
 else: opt1 += ['-DINTSIZE32']
-if cc == 'gcc': opt1 += ['-Drestrict=__restrict', '-std=c99'] # scotch needs old c standard
-elif cc == 'pgcc': opt1 += []
-elif cc == 'nvc': opt1 += []
-elif cc == 'icx': opt1 += []
-elif cc == 'clang': opt1 += []
-elif cc == 'icc': opt1 += ['-restrict']
-else: opt1 += []
+
+if srcs.SCOTCH:
+    if cc == 'gcc': opt1 += ['-Drestrict=__restrict', '-std=c99'] # scotch needs old c standard
+    elif cc == 'pgcc': opt1 += []
+    elif cc == 'nvc': opt1 += []
+    elif cc == 'icx': opt1 += []
+    elif cc == 'clang': opt1 += []
+    elif cc == 'icc': opt1 += ['-restrict']
 
 # Specific options for paradigma - paradigma install path
-if srcs.PARADIGMA != 0: PPATH = srcs_paradigma.PPATH
-else: PPATH = 'paradigma'
-opt2 = ['-I%s'%PPATH,'-I%s/mpi_wrapper'%PPATH,'-I%s/mesh'%PPATH,'-I%s/util'%PPATH,'-I%s/io'%PPATH,'-I%s/ppart'%PPATH,'-I%s/struct'%PPATH,'-I%s/pario'%PPATH,'-I%s/ext_wrapper'%PPATH]
-opt2 += ['-IXCore/scotch']
-opt2 += ['-std=c99', '-DSCOTCH_RENAME']
-opt2 +=['-DPDM_HAVE_PTSCOTCH'] #,'-DPDM_ENABLE_ANISO_AGGLO=0'
+if srcs.PARADIGMA != 0: 
+    PPATH = srcs_paradigma.PPATH
+    opt2 = ['-I%s'%PPATH,'-I%s/mpi_wrapper'%PPATH,'-I%s/mesh'%PPATH,'-I%s/util'%PPATH,'-I%s/io'%PPATH,'-I%s/ppart'%PPATH,'-I%s/struct'%PPATH,'-I%s/pario'%PPATH,'-I%s/ext_wrapper'%PPATH]
+    opt2 += ['-IXCore/scotch']
+    opt2 += ['-std=c99', '-DSCOTCH_RENAME']
+    opt2 +=['-DPDM_HAVE_PTSCOTCH'] #,'-DPDM_ENABLE_ANISO_AGGLO=0'
+else: 
+    PPATH = 'paradigma'
+    opt2 = []
 
 # Specific options pour zoltan
-opt3 = ['-IXCore/zoltan/include', '-IXCore/zoltan/driver',
-'-IXCore/zoltan/zz', '-IXCore/zoltan/Utilities/shared',
-'-IXCore/zoltan/lb', '-IXCore/zoltan/params', '-IXCore/zoltan/order',
-'-IXCore/zoltan/par', '-IXCore/zoltan/all', '-IXCore/zoltan/ch',
-'-IXCore/zoltan/coloring', '-IXCore/zoltan/graph', '-IXCore/zoltan/ha',
-'-IXCore/zoltan/hier', '-IXCore/zoltan/hsfc', '-IXCore/zoltan/matrix',
-'-IXCore/zoltan/rcb', '-IXCore/zoltan/reftree', '-IXCore/zoltan/phg',
-'-IXCore/zoltan/tpls', '-IXCore/zoltan/simple', '-IXCore/zoltan/timer']
+if srcs.ZOLTAN:
+    opt3 = ['-IXCore/zoltan/include', '-IXCore/zoltan/driver',
+            '-IXCore/zoltan/zz', '-IXCore/zoltan/Utilities/shared',
+            '-IXCore/zoltan/lb', '-IXCore/zoltan/params', '-IXCore/zoltan/order',
+            '-IXCore/zoltan/par', '-IXCore/zoltan/all', '-IXCore/zoltan/ch',
+            '-IXCore/zoltan/coloring', '-IXCore/zoltan/graph', '-IXCore/zoltan/ha',
+            '-IXCore/zoltan/hier', '-IXCore/zoltan/hsfc', '-IXCore/zoltan/matrix',
+            '-IXCore/zoltan/rcb', '-IXCore/zoltan/reftree', '-IXCore/zoltan/phg',
+            '-IXCore/zoltan/tpls', '-IXCore/zoltan/simple', '-IXCore/zoltan/timer']
+else: opt3 = []
 
 ADDITIONALCPPFLAGS += ['-IXCore'] + opt3
 ADDITIONALCFLAGS = ADDITIONALCPPFLAGS

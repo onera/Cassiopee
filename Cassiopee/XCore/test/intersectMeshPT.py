@@ -1,9 +1,8 @@
+# - intersectMesh (pyTree) -
 import Converter.PyTree as C
 import Converter.Internal as I
 import XCore.PyTree as X
 import Generator.PyTree as G
-import Transform.PyTree as T 
-import Post.PyTree as P
 
 # Load master hexa mesh and transform it to NGon
 m = G.cartNGon((0,0,0),(0.1,0.1,0.1),(11,11,11))

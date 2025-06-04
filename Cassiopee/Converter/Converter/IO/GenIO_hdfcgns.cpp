@@ -1758,8 +1758,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links,
   HDF._maxDepth = 1e6;
   HDF._writeIntMode = writeIntMode;
   HDF._writeRealMode = writeRealMode;
-  printf("writeIntMode=%d\n", writeIntMode);
-  printf("writeRealMode=%d\n", writeRealMode);
+  //printf("writeIntMode=%d\n", writeIntMode);
+  //printf("writeRealMode=%d\n", writeRealMode);
   
   // Ajout version... au root node
   hid_t gid = H5Gopen2(fid, "/", H5P_DEFAULT);

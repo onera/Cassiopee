@@ -35,7 +35,7 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL(PyObject* self, PyObject* args)
 
   // Check numpy (face point list)
   FldArrayI* facePL;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayFPL, facePL, true);
+  E_Int res = K_NUMPY::getFromPointList(arrayFPL, facePL, true);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -90,7 +90,7 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL_NGON(FldArrayI* cn, FldArrayI* fpl
   E_Int nv, npts, fidx;
   E_Int* ngon = cn->getNGon();
   E_Int* indPG = cn->getIndPG();
-  E_Int nfaces = fpl->getNfld();
+  E_Int nfaces = fpl->getSize();
   E_Int* fplp = fpl->begin();
   
   std::unordered_set<E_Int> vertexSet;
