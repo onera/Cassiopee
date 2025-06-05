@@ -82,6 +82,14 @@ List of functions
    Generator.PyTree.cartRx
    Generator.PyTree.cartRx3
 
+**-- Hierarchical mesh adaptation**
+
+.. autosummary::
+   :nosignatures:   
+   Generator.PyTree.adaptMesh
+   Generator.PyTree.createHook4AdaptMesh
+   Generator.PyTree.freeHook4AdaptMesh
+
 **-- Operations on meshes**
 
 .. autosummary::
@@ -1199,6 +1207,76 @@ Cartesian grid generators
 
     .. literalinclude:: ../build/Examples/Generator/cartRx3PT.py
 
+---------------------------------------
+
+Hierarchical mesh adaptation
+-----------------------
+
+.. py:function:: Generator.PyTree.adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None)
+
+    Hierarchical mesh adaptation of a conformal mesh defined by an HEXA or a NGON (6 faces) zone according to a refinement indicator.
+    The zone a can be distributed in MPI, in that case splitInfos must be provided.    
+    splitInfos is a dictionary of comms between partitions, global indices of cells and faces.
+    They can be extracted from Converter.Filter2.loadAndSplit, e.g.:
+    a, res = Filter2.loadAndSplit('mesh.cgns')
+    splitInfos["graph"]=res[1]
+    splitInfos["cellGlobalIndex"]=res[5]
+    splitInfos["faceGlobalIndex"]=res[6]
+
+    :param a: zone to adapt 
+    :type  a: zone
+    :param indicator: name of the refinement indicator, located at cell centers
+    :type  indicator: string
+    :param dim: dimension of the problem
+    :type  dim: integer (2 or 3)
+    :param hook: hook of the hierarchical data structure
+    :type  hook: pointer or None
+    :param conformize: if True, a NGON conformal mesh is returned
+    :type  conformize: Boolean
+    :param splitInfos: dictionary of infos for parallel mode.
+    :type  splitInfos: dictionary
+    :return: adapted mesh (NGON or HEXA)
+    :rtype: zone
+
+    *Example of use:*
+
+    * `Hierarchical mesh adaptation of an HEXA mesh (pyTree) <Examples/Generator/adaptMeshPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/adaptMeshPT.py
+
+.. py:function:: Generator.PyTree.createHook4AdaptMesh(a, dim=3, splitInfos=None)
+
+    Create the hierarchical data structure from an initial conformal mesh (structured, HEXA or NGON).
+    splitInfos is required in parallel MPI mode (see adaptMesh doc).
+    In the in-place version, a is modified to a NGON v3 conformal mesh.
+
+    :param a: zone to adapt 
+    :type  a: zone
+    :param dim: dimension of the problem
+    :type  dim: integer (2 or 3)
+    :param splitInfos: dictionary of infos for parallel mode.
+    :type  splitInfos: dictionary
+    :return: Initial data structure for hierarchical mesh adaptation
+    :rtype: pointer on the C data structure
+
+    *Example of use:*
+
+    * `Initial data structure for hierarchical mesh adaptation of an HEXA mesh (pyTree) <Examples/Generator/createHook4AdaptMeshPTPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/createHook4AdaptMeshPT.py
+
+.. py:function:: Generator.PyTree.freeHook4AdaptMesh(hook)
+
+    Release the memory of the hierarchical data structure.
+    :param hook: 
+    :type  a: hierarchical mesh adaptation data structure
+    :return: None
+
+    *Example of use:*
+
+    * `Delete the C data structure for hierarchical mesh adaptation <Examples/Generator/freeHook4AdaptMeshPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/freeHook4AdaptMeshPT.py
 
 ---------------------------------------------------------------------------
 
