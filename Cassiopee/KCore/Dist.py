@@ -3018,7 +3018,7 @@ def createStaticLibrary(env, ppf, parentFolder, moduleName):
                 elsaprod, moduleName, c+1)
         mergeL += "save\nend"
         filename = os.path.join(parentFolder, 'merge.l')
-        with open(filename, 'w') as f: 
+        with open(filename, 'w') as f:
             f.write(mergeL)
             f.close()
         env.Command(
