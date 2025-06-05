@@ -2,7 +2,7 @@ import Generator.PyTree as G
 import Converter.PyTree as C
 import KCore.test as test
 
-# Returns the hook on the tree structure 
+# Returns the hook on the tree structure
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,11))
 C._fillEmptyBCWith(a,'nref','BCFarfield',dim=3)
 C._initVars(a,"F",1.)

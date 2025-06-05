@@ -124,12 +124,12 @@ def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0):
     return C.convertArrays2ZoneNode('conformized', [s])
 
 #------------------------------------------------------------------------------
-# Adapt a HEXA conformal mesh   
+# Adapt a HEXA conformal mesh
 # IN: a : HEXA or NGON (HEXA-like) mesh
 # IN: hook : hook on the adaptation structure; if hook is None, it is released
 # IN: dim: dim of the pb
-# IN: conformize: Boolean (True=returns a NGON, False: return a HEXA mesh) 
-# OUT: adapted mesh 
+# IN: conformize: Boolean (True=returns a NGON, False: return a HEXA mesh)
+# OUT: adapted mesh
 #------------------------------------------------------------------------------
 def adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False):
     return adaptMesh__(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None)
@@ -145,7 +145,7 @@ def adaptMesh__(a, indicator="indicator", hook=None, dim=3, conformize=False, sp
     if conformize: conformizei=1
 
     hangHook=True
-    if hook is None: 
+    if hook is None:
         hangHook=False
         hook = _createHook4AdaptMesh(a, dim=dim, splitInfos=None)
 
