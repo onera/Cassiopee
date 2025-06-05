@@ -8,6 +8,21 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import numpy
 
+def adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False,
+              splitInfos=None):
+
+    if splitInfos is None:
+        print("Warning: no input provided to adapt the parts of the mesh. They will be adapted independently.", flush=True)
+    a = Internal.getZones(a)[0]
+    dimZ = Internal.getZoneDim(a)
+    eltType=dimZ[3]
+    if eltType != 'NGON':
+        print("adaptMesh: input mesh must be NGON v4. No adaptation performed.", flush=True)
+        return a
+
+    return G.adaptMesh__(a, indicator=indicator, hook=hook, dim=dim,
+                         conformize=conformize, splitInfos=splitInfos)
+
 def bbox(t):
     """Return the bounding box of a pytree."""
     bb = PyTree.bbox(t)

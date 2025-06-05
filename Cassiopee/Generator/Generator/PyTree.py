@@ -124,6 +124,109 @@ def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0):
     return C.convertArrays2ZoneNode('conformized', [s])
 
 #------------------------------------------------------------------------------
+# Adapt a HEXA conformal mesh
+# IN : a : HEXA/QUAD or NGON (HEXA/QUAD-like) mesh
+# IN/OUT : hook : hook on the adaptation structure; if hook is [], it is returned, else it is released
+# IN : dim: dim of the pb
+# IN : conformize: Boolean (True=returns a NGON, False: return a HEXA mesh)
+# OUT : adapted mesh
+#------------------------------------------------------------------------------
+def adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False):
+    return adaptMesh__(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None)
+
+def adaptMesh__(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None):
+    import XCore.PyTree as XC
+
+    a = Internal.getZones(a)[0]
+    dimZ = Internal.getZoneDim(a)
+    eltType=dimZ[3]
+
+    conformizei = 0
+    if conformize: conformizei=1
+
+    hangHook=True
+    if hook is None: hangHook=False
+    if hook is None or hook==[]:
+        hook = _createHook4AdaptMesh(a, dim=dim, splitInfos=None)
+
+    FSC = Internal.getNodeFromName(a, Internal.__FlowSolutionCenters__)
+    if FSC is None: return a
+    f = Internal.getNodeFromName(FSC, indicator)
+    if f is None: return a
+    f = f[1]
+    REF = f.astype(dtype=Internal.E_NpyInt)
+
+    XC.AdaptMesh_AssignRefData(hook, REF)
+    XC.AdaptMesh_Adapt(hook)
+    a = XC.AdaptMesh_ExtractMesh(hook, conformize=conformizei)
+    a = Internal.getZones(a)[0]
+    if eltType=='NGON':
+        C._convertArray2NGon(a)
+    if not hangHook:
+        XC.AdaptMesh_Exit(hook)
+        return a
+    else:
+        return (a,hook)
+
+
+# Create the hook for adaptMesh -
+# IN : conformal mesh ; infos : dictionary
+# splitInfos["graph"]=comms between parts
+# splitInfos["cellGlobalIndex"] : global indices of the cells of the mesh
+# splitInfos["faceGlobalIndex"] : global indices of the faces in the mesh
+# splitInfos is only compatible with NGON !!!
+# otherwise a is modified & converted into a NGON v4 !!
+def createHook4AdaptMesh(a, dim=3, splitInfos=None):
+    a2 = Internal.copyRef(a)
+    return _createHook4AdaptMesh(a2, dim=dim, splitInfos=splitInfos)
+
+def _createHook4AdaptMesh(a, dim=3, splitInfos=None):
+    import XCore.PyTree as XC
+
+    dimZ = Internal.getZoneDim(a)
+    eltType=dimZ[3]
+    if dimZ[0]=='Unstructured':
+        if eltType == 'HEXA':
+            C._convertArray2NGon(a, recoverBC=True, api=3)
+            if splitInfos is not None:
+                print("Warning: createHook4AdaptMesh: splitInfos only valid for NGONs.", flush=True)
+        elif eltType=='NGON':
+            pass
+        else:
+            print("Warning: adaptMesh not implemented for elt type %s. No adaptation performed."%(eltType), flush=True)
+            return a
+    else:
+        if splitInfos is not None:
+            print("Warning: createHook4AdaptMesh: splitInfos only valid for NGONs.", flush=True)
+        C._convertArray2NGon(a, recoverBC=True, api=3)
+
+    Internal._adaptNGon32NGon4(a)
+
+    if dim==3: normal2D = None
+    else:normal2D = numpy.array([0.0,0.0,1.0])
+    if splitInfos is None or eltType != 'NGON':
+        ngonelts = Internal.getNodeFromName(a,"NGonElements")
+        ER = Internal.getNodeFromName(ngonelts,'ElementRange')[1]
+        nfaces = ER[1]
+        nfaceselts = Internal.getNodeFromName(a,"NFaceElements")
+        ER = Internal.getNodeFromName(nfaceselts,'ElementRange')[1]
+        ncells = ER[1]-ER[0]+1
+        gcells=numpy.arange(0, ncells)
+        gfaces=numpy.arange(1,nfaces+1)
+        hook = XC.AdaptMesh_Init(a, normal2D, comm=[], gcells=gcells, gfaces=gfaces)
+    else:
+        comms = splitInfos["graph"]
+        print(comms)
+        gcells = splitInfos["cellGlobalIndex"]
+        gfaces = splitInfos["faceGlobalIndex"]
+        hook = XC.AdaptMesh_Init(a, normal2D, comm=comms, gcells=gcells, gfaces=gfaces)
+    return hook
+
+def freeHook4AdaptMesh(hook):
+    import XCore.PyTree as XC
+    XC.AdaptMesh_Exit(hook)
+    return None
+#------------------------------------------------------------------------------
 # Conversion d'un maillage octree en ensemble de grilles cartesiennes
 #------------------------------------------------------------------------------
 def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
