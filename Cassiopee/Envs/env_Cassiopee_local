@@ -579,9 +579,9 @@ else if ($MAC == "juno") then
         setenv OMP_NUM_THREADS 48
         source /etc/profile.d/modules-onera.csh
         module purge
+        module load netcdf/4.8.0-gnu831
         module load socle-cfd/6.0-intel2220-impi
         module load occt/7.6.1-gnu831
-        module load netcdf/4.8.0-gnu831
         module load emacs/27.2-gnu831
         module load texlive/2021
         unsetenv I_MPI_FABRICS_LIST

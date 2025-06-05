@@ -74,8 +74,8 @@ for c, e  in enumerate(ext):
         for r in res: C._addBC2Zone(m, 'far4', 'BCFarfield', subzone=r)
 
 #C.convertPyTree2File(m, 'mesh.cgns')
-C.convertPyTree2File(m, LOCAL+'out.h5')
-t = C.convertFile2PyTree(LOCAL+'out.h5')
+C.convertPyTree2File(m, LOCAL+'/out.h5')
+t = C.convertFile2PyTree(LOCAL+'/out.h5')
 test.testT(t, 1)
 
 # passage en NGON
@@ -87,6 +87,6 @@ C._recoverBCs(m, bcs)
 C._signNGonFaces(m)
 Internal._adaptNGon32NGon4(m)
 #C.convertPyTree2File(m, 'mesh.cgns')
-C.convertPyTree2File(m, LOCAL+'out.h5')
-t = C.convertFile2PyTree(LOCAL+'out.h5')
+C.convertPyTree2File(m, LOCAL+'/out.h5')
+t = C.convertFile2PyTree(LOCAL+'/out.h5')
 test.testT(t, 2)

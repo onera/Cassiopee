@@ -584,9 +584,9 @@ elif [ "$MAC" = "juno" ]; then
     export OMP_NUM_THREADS=48
     source /opt/tools/Modules/init/bash
     module purge
+    module load netcdf/4.8.0-gnu831
     module load socle-cfd/6.0-intel2220-impi
     module load occt/7.6.1-gnu831
-    module load netcdf/4.8.0-gnu831
     module load emacs/27.2-gnu831
     module load texlive/2021
     alias inspxe-cl="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect mi3 -- python3 "
@@ -648,7 +648,7 @@ elif [ "$MAC" = "juno_gpu" ]; then
     unset OMP_PLACES
 
 elif [ "$MAC" = "juno_coda" ]; then
-#----------------------------- juno -----------------------------------------
+#----------------------------- juno coda --------------------------------------
     export ELSAPROD=juno_coda
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
