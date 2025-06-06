@@ -35,7 +35,7 @@ if prod is None: prod = 'xx'
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["modeler", "kcore", "modeler"]
+libraries = ["kcore", "modeler", "modeler"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
@@ -51,7 +51,7 @@ if OCCPresent and Dist.getSystem()[0] == 'mingw':
 libraries += libOCC + libOCC
 
 import srcs
-if srcs.TIXI: libraries += ["xml2", "xslt"]
+if srcs.TIXI: libraries += ["curl", "xml2", "xslt"]
 
 # Extensions ==================================================================
 listExtensions = []

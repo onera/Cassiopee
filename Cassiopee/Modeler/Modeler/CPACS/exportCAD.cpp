@@ -24,34 +24,39 @@
 
 PyObject* K_MODELER::exportCAD(PyObject* self, PyObject* args)
 {
-  char* cpacsFileName; char* exportFileName;
-  if (!PYPARSETUPLE_(args, SS_, &cpacsFileName, &exportFileName)) return NULL;
-
+  char* cpacsFileName; char* exportFileName; char* format;
+  if (!PYPARSETUPLE_(args, SSS_, &cpacsFileName, &exportFileName, &format)) return NULL;
+  
   TixiDocumentHandle tixiHandle;
   TiglCPACSConfigurationHandle tiglHandle;
   int nWings = 0;
   int nFuselages = 0;
   int i = 0;
   double x, y, z;
-        
+  
   // read in cpacs xml file
   if (tixiOpenDocument(cpacsFileName, &tixiHandle) != SUCCESS)
   {
     return NULL;
   }
-    
+  
   // enable logging of errors and warnings into file
   tiglLogSetFileEnding("txt");
   tiglLogSetTimeInFilenameEnabled(TIGL_FALSE);
   tiglLogToFileEnabled("demolog");
-    
+  
   // now open cpacs file with tigl
   if (tiglOpenCPACSConfiguration(tixiHandle, "", &tiglHandle) != TIGL_SUCCESS) 
   {
     printf("Error: exportCAD: reading in cpacs file with TiGL.\n");
     return NULL;
   }
-    
+  
+  // Check cpacs validity
+  TiglBoolean isValid;
+  tiglIsCPACSConfigurationHandleValid(tiglHandle, &isValid);
+  printf("Validation of cpacs: %d\n", isValid);
+
   // query number of wings and fuselages and their names
   tiglGetWingCount(tiglHandle, &nWings);
   tiglGetFuselageCount(tiglHandle, &nFuselages);
@@ -76,7 +81,7 @@ PyObject* K_MODELER::exportCAD(PyObject* self, PyObject* args)
   }
     
   // compute intersection of wing with a x-z plane
-  if (nWings > 0) 
+  if (nWings > 0)
   {
     char * wingUID = NULL;
     char* int_id = NULL;
@@ -104,16 +109,31 @@ PyObject* K_MODELER::exportCAD(PyObject* self, PyObject* args)
   }
     
   // Export geometry to iges file
-  if (tiglExportIGES(tiglHandle, "igesexport.igs") != TIGL_SUCCESS)
+  if (strcmp(format, "fmt_iges") == 0)
   {
-    printf("Error exporting geometry to IGES!\n");
+    if (tiglExportIGES(tiglHandle, exportFileName) != TIGL_SUCCESS)
+    {
+      printf("Error exporting geometry to IGES!\n");
+    }
   }
-    
+
+  // export geometry to step file
+  if (strcmp(format, "fmt_step") == 0)
+  {
+    if (tiglExportSTEP(tiglHandle, exportFileName) != TIGL_SUCCESS)
+    {
+      printf("Error exporting geometry to STEP!\n");
+    }
+  }
+
+  // export cpacs
+  //tiglSaveCPACSConfiguration("", tiglHandle);
+
   // close everything
   tiglCloseCPACSConfiguration(tiglHandle);
   tixiCloseDocument(tixiHandle);
   tixiCleanup();
-    
+
   Py_INCREF(Py_None);
   return Py_None;
 }

@@ -42,7 +42,7 @@ if OCCPresent:
     additionalIncludePaths += [OCCIncDir]
 
 # libxml (hardcoded)
-additionalIncludePaths += ['C:/Users/benoit/msys64/usr/include', 'C:/Users/benoit/msys64/usr/include/libxml2']
+additionalIncludePaths += ['C:/Users/benoit/msys64/usr/include', 'C:/Users/benoit/msys64/usr/include/libxml2', '/usr/include/libxml2']
 additionalIncludePaths += ['Modeler/tixi/src', 'Modeler/tixi/bindings/cpp']
 additionalIncludePaths += ['Modeler/tigl/src', 'Modeler/tigl/src/api', 'Modeler/tigl/src/system']
 additionalIncludePaths += ['Modeler/tigl/src/common', 'Modeler/tigl/src/logging', 'Modeler/tigl/src/cpacs_other']
@@ -51,7 +51,7 @@ additionalIncludePaths += ['Modeler/tigl/src/control_devices', 'Modeler/tigl/src
 additionalIncludePaths += ['Modeler/tigl/src/ducts', 'Modeler/tigl/src/engine_nacelle', 'Modeler/tigl/src/fuselage']
 additionalIncludePaths += ['Modeler/tigl/src/engine_pylon', 'Modeler/tigl/src/fuelTanks', 'Modeler/tigl/src/structural_elements']
 additionalIncludePaths += ['Modeler/tigl/src/guide_curves', 'Modeler/tigl/src/rotor', 'Modeler/tigl/src/generated']
-additionalIncludePaths += ['Modeler/tigl/src/boolean_operations', 'Modeler/tigl/src/imports']
+additionalIncludePaths += ['Modeler/tigl/src/boolean_operations', 'Modeler/tigl/src/imports', 'Modeler/tigl/src/contrib']
 
 # Env =========================================================================
 import srcs
