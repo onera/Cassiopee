@@ -25,12 +25,13 @@
 # include "KInterp/BlkInterp.h"
 
 # define SIZECF(type,meshtype,sizecf){                                  \
-    if      (type == 1                 ) sizecf=1;                      \
-    else if (type == 2 && meshtype == 1) sizecf=8;                      \
-    else if (type == 3 && meshtype == 1) sizecf=9;                      \
-    else if (type == 4 && meshtype == 1) sizecf=8;                      \
-    else if (type == 4 && meshtype == 2) sizecf=4;                      \
-    else if (type == 5 && meshtype == 1) sizecf=15;                     \
+    if      (type == 1                  ) sizecf=1;                     \
+    else if (type == 2  && meshtype == 1) sizecf=8;                     \
+    else if (type == 3  && meshtype == 1) sizecf=9;                     \
+    else if (type == 44 && meshtype == 1) sizecf=12;                    \
+    else if (type == 4  && meshtype == 1) sizecf=8;                     \
+    else if (type == 4  && meshtype == 2) sizecf=4;                     \
+    else if (type == 5  && meshtype == 1) sizecf=15;                    \
     else if (type == 22 && meshtype == 1) sizecf=4;                     \
     else sizecf=-1;                                                     \
   }

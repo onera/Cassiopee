@@ -70,7 +70,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     numero_min = 100000000
 
     ntab_int    = 18
-    sizefluxCons=4
+    sizefluxCons=7
 
     bases = Internal.getNodesFromType1(tc, 'CGNSBase_t')  # noeud
     c     = 0
@@ -877,6 +877,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         zd = zones[NozoneD]
         nbfluCons=0
         bcs   = Internal.getNodesFromType2(zd, 'BC_t')
+        nb_bc = len(bcs)
         no_bc = []
         for c1, bc in enumerate(bcs):
             bcname = bc[0].split('_')
@@ -884,13 +885,19 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             if 'BCFluxOctreeF' == btype and bcname[1] == zRname:
                 nbfluCons+=1
                 no_bc.append(c1)
-                param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
+                param_int_zD  = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
+                param_real_zD = Internal.getNodeFromName2( zd, 'Parameter_real' )[1]
 
         for c2 , no in enumerate(no_bc):
             pt_bcs = param_int_zD[70]  #70=PT_BC
             pt_bc  = param_int_zD[pt_bcs + 1 + no]
             idir_bc= param_int_zD[pt_bc + 1]
             sz_bc  =(param_int_zD[pt_bc +3]-param_int_zD[pt_bc+2]+1)*(param_int_zD[pt_bc +5]-param_int_zD[pt_bc+4]+1)*(param_int_zD[pt_bc +7]-param_int_zD[pt_bc+6]+1)
+            nbdata = param_int_zD[pt_bc + 8]
+            iptsize_data = pt_bc + 9
+            ipt_data = param_int_zD[pt_bcs + 1 + no + nb_bc]
+
+            #print("nbdata: ", nbdata, "sz0", param_int_zD[iptsize_data], "sz1", param_int_zD[iptsize_data+1], "ratio",  param_real_zD[ipt_data], param_real_zD[ipt_data+2], param_real_zD[ipt_data+3])
 
             pt_flu = ptFlux + c2*sizefluxCons
             param_int[ pt_flu   ]= idir_bc
@@ -901,7 +908,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             for bc in infoZoneList[zRname][1]:
                 if bc[0] == zd[0] and bc[1] == idir_bc: param_int[pt_flu+3] = bc[2]
 
-            print("Flux compact: zr=", zRname, "zd=", zd[0], 'idir', idir_bc, 'sz_bc', sz_bc, 'ptbc', pt_bc, 'NobcR', param_int[pt_flu +3] )
+            param_int[ pt_flu +4]= int( param_real_zD[ipt_data  ] )
+            param_int[ pt_flu +5]= int( param_real_zD[ipt_data+1] )
+            param_int[ pt_flu +6]= int( param_real_zD[ipt_data+2] )
+
+            print("Flux compact: zr=", zRname, "zd=", zd[0], 'idir', idir_bc, 'sz_bc', sz_bc, 'ptbc', pt_bc, 'NobcR', param_int[pt_flu +3], 'ratioK:', param_int[ pt_flu +6] )
         #
         #Fin flux conservatif
         #

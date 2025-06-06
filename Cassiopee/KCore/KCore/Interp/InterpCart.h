@@ -51,6 +51,11 @@ public:
                                       E_Float x, E_Float y, E_Float z,
                                       E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
                                       FldArrayF& cf);
+
+  short searchInterpolationCellCartO4(E_Int ni, E_Int nj, E_Int nk,
+                                      E_Float x, E_Float y, E_Float z,
+                                      E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
+                                      FldArrayF& cf);
   virtual 
   short searchExtrapolationCellCart(E_Int ni, E_Int nj, E_Int nk, 
                                     E_Float* xl, E_Float* yl, E_Float* zl,

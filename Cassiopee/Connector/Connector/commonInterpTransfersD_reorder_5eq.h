@@ -186,6 +186,36 @@ switch (type)
     }
     break;
       
+  case 44: // Lagrange O4
+    for (E_Int noind = pt_deb; noind < pt_fin; noind++)
+    {
+      indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
+      k     = indD0/imdjmd;
+      j     = (indD0-k*imdjmd)/imd;
+      i     = (indD0-j*imd-k*imdjmd);
+      val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; 
+
+      for (E_Int kk=0; kk<4; kk++)
+        for (E_Int jj=0; jj<4; jj++)
+          for (E_Int ii=0; ii<4; ii++)
+          {
+            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            val0 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[0][indD];               
+            val1 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[1][indD];               
+            val2 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[2][indD];               
+            val3 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[3][indD];               
+            val4 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[4][indD];               
+          }
+      vectOfRcvFields[0][noind] = val0;
+      vectOfRcvFields[1][noind] = val1;
+      vectOfRcvFields[2][noind] = val2;
+      vectOfRcvFields[3][noind] = val3;
+      vectOfRcvFields[4][noind] = val4;
+      noi      += 1;
+      indCoef  += sizecoefs;
+    }
+    break;
+      
   case 4: // Tetra O2
 // #ifdef _OPENMP4
 //     #pragma omp simd

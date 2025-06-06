@@ -1409,6 +1409,12 @@ short K_INTERP::InterpAdt::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_I
                                                          FldArrayF& cf)
 {return -1;}
 
+short K_INTERP::InterpAdt::searchInterpolationCellCartO4(E_Int ni, E_Int nj, E_Int nk,
+                                                         E_Float x, E_Float y, E_Float z,
+                                                         E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
+                                                         FldArrayF& cf)
+{return -1;}
+
 
 short K_INTERP::InterpAdt::searchExtrapolationCellCart(E_Int ni, E_Int nj, E_Int nk, 
                                                        E_Float* xl, E_Float* yl, E_Float* zl,

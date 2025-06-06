@@ -724,7 +724,7 @@ Overset connectivity
     donor zones given by aD. If storage='direct', then aR with interpolation data stored in receptor zones are returned, and if storage='inverse', then aD with interpolation data stored in donor zones are returned.
     Donor zones can be structured or unstructured TETRA. receptor zones can be structured or unstructured.
 
-    Interpolation order can be 2, 3 or 5 for structured donor zones, only order=2 for unstructured donor zones is performed.
+    Interpolation order can be 2, 3, 4 or 5 for structured donor zones, only order=2 for unstructured donor zones is performed.
 
     Parameter loc can 'nodes' or 'centers', meaning that receptor points are zone nodes or centers.
 

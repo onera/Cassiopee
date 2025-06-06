@@ -4,7 +4,7 @@ if (found > 0)
 {      
   foundSav = 1;
   // determination du cellN de la cellule d'interpolation
-  if (tmpType == 2 || tmpType == 3 || tmpType == 5)
+  if (tmpType == 2 || tmpType == 3 || tmpType == 5 || tmpType == 44)
   {
     firstCorner = tmpIndi[0]; 
     // calcul de cellvol

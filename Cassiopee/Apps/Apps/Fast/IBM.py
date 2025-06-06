@@ -2047,9 +2047,11 @@ class IBM(Common):
                 if h < hmin_loc : hmin_loc = h
             hmin_loc = Cmpi.allgather(hmin_loc)
             if Cmpi.size > 1 :
-                hmin=1e30
-                for h in hmin_loc:
-                    if h < hmin : hmin = h
+              hmin=1e30
+              for h in hmin_loc: 
+                if h < hmin : hmin = h
+            else:
+               hmin = hmin_loc
 
             ## go from dx to dx/dx_min
             Nlevels=1
@@ -2061,7 +2063,7 @@ class IBM(Common):
             levelZone = Cmpi.allgather(levelZone)
 
             #
-            #etape1: calcul interpolation entre grille de meme niveau (ordre2, nature1, pas d'extrap)a
+            #etape1: calcul interpolation si grille donneuse meme niveau ou plus fine que receuveuse (ordre2, nature1, pas d'extrap)
             #
             for level in range(Nlevels):
                 print("Interp level=",level)
@@ -2078,7 +2080,7 @@ class IBM(Common):
                     dnrZones = []
                     for zdname in interDict[zrname]:
                         zd = Internal.getNodeFromName2(tc, zdname)
-                        if levelZone[zd[0]]==level: dnrZones.append(zd)
+                        if levelZone[zd[0]]<=level: dnrZones.append(zd)
                     if dnrZones:
                         X._setInterpData(zrcv, dnrZones, nature=1, penalty=1, extrap=0,loc='centers', storage='inverse',
                                          sameName=1, interpDataType=self.input_var.interpDataType, order=2, itype='chimera')
@@ -2135,7 +2137,7 @@ class IBM(Common):
            '''
 
             #
-            #etape 3: calcul interpolation entre grille de niveau N (Receveur) et N+1, N-1 (donneurs)
+            #etape 3: calcul interpolation entre grille de niveau N (Receveur) et N+1 (donneurs)
             #
             for level in range(Nlevels):
                 print("Interp level=",level)
@@ -2152,7 +2154,7 @@ class IBM(Common):
                     dnrZones = []
                     for zdname in interDict[zrname]:
                         zd = Internal.getNodeFromName2(tc, zdname)
-                        if levelZone[zd[0]]==level+1 or  levelZone[zd[0]]==level-1 :
+                        if levelZone[zd[0]]==level+1:
                             dnrZones.append(zd)
                             print("ZoneD=", zd[0], levelZone[zd[0]])
                     if dnrZones:
