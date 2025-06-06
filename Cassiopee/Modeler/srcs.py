@@ -25,7 +25,7 @@ if TIGL:
             srcs.append(f.name)
         for s in srcs: cpp_srcs.append("Modeler/tigl/src/%s/%s"%(d,s))
     print(cpp_srcs)
-    
+
 if TIGL:
     cpp_srcs += ['Modeler/CPACS/exportCAD.cpp']
 else:
