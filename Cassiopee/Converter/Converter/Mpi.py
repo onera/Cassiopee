@@ -209,26 +209,25 @@ def isFinite(t, var=None):
     if val == size: return True
     else: return False
 
-# Ecrit une trace dans un fichier proc0.out
-# si cpu=True, ecrit le temps depuis le trace precedent
-# si mem=True, ecrit l'etat de la memoire du noeud
-# si stdout=True, ecrit a l'ecran
-# si reset, vide le fichier log
-# si filename="stdout", ecrit a l'ecran, sinon ecrit dans le fichier filename
-# si method, tracemalloc(0), Rss(1), heap(2), VmRss(3), Resident(4)
-# a noter: 0 ne prend pas en compte la memoire allouee par le C.
-def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fileName=None, method=None):
+# Trace memory and cpu time.
+# if cpu=True, write cpu time ellapsed from previous trace call.
+# if mem=True, write node used memory
+# if reset, empty log
+# if filename="stdout", write to screen, else write in file filename
+# if method is present: Rss(0), tracemalloc(1), heap(2), VmRss(3), Resident(4)
+# a noter: 1 counts only memory allocated by python and not the one allocated in pure C.
+# a noter: trace default arguments are defined in TRACESTATE (line 96)
+def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, method=None):
     """Write a trace of cpu and memory in a file or to stdout for current node."""
     global TRACESTATE
     msg = text
     if method is not None: TRACESTATE['method'] = method
     if fileName is not None:
         TRACESTATE['fileName'] = fileName
-    if stdout is not None: TRACESTATE['fileName'] = "stdout"
     if mem is not None: TRACESTATE['mem'] = mem
     if cpu is not None: TRACESTATE['cpu'] = cpu
 
-    if TRACESTATE['mem'] and TRACESTATE['method'] == 0:
+    if TRACESTATE['mem'] and TRACESTATE['method'] == 1:
         import tracemalloc
         if TRACESTATE['prevFullTime'] is None: tracemalloc.start()
     if TRACESTATE['cpu']:
@@ -242,11 +241,7 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fil
         msg += ' [%g secs]'%dt
     if TRACESTATE['mem']:
         tot = 0.; peak = -1
-        if TRACESTATE['method'] == 0: # tracemalloc
-            tot, peak = tracemalloc.get_traced_memory()
-            tot = tot//1000 # in kb
-            peak = peak//1000 # in kb
-        elif TRACESTATE['method'] == 1: # Rss in smaps
+        if TRACESTATE['method'] == 0: # Rss in smaps
             pid = os.getpid()
             try:
                 f = open("/proc/%s/smaps"%pid)
@@ -256,6 +251,10 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fil
             for ts in s:
                 if ts.split()[0] == "Rss:":
                     tot += int(ts[4:-3])
+        elif TRACESTATE['method'] == 1: # tracemalloc
+            tot, peak = tracemalloc.get_traced_memory()
+            tot = tot//1000 # in kb
+            peak = peak//1000 # in kb
         elif TRACESTATE['method'] == 2: # heap in smaps
             pid = os.getpid()
             try:
@@ -294,9 +293,9 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, stdout=None, reset=False, fil
             elif tot > 1000.: msg += '[%f MB]'%(tot/1000.)
             else: msg += '[%f kB]'%(tot)
         else:
-            if tot > 1.e6: msg += '[%f GB/%f Gb]'%(tot/1.e6, peak/1.e6)
-            elif tot > 1000.: msg += '[%f MB/%f Mb]'%(tot/1000., peak/1000.)
-            else: msg += '[%f kB/%f kB]'%(tot, peak)
+            if tot > 1.e6: msg += '[current: %f GB | peak: %f GB]'%(tot/1.e6, peak/1.e6)
+            elif tot > 1000.: msg += '[current: %f MB | peak: %f MB]'%(tot/1000., peak/1000.)
+            else: msg += '[current: %f kB | peak: %f kB]'%(tot, peak)
     msg += '\n'
 
     if TRACESTATE['fileName'] == "stdout":
