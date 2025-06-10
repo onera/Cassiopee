@@ -240,7 +240,7 @@ def intersect2(t, BBTree):
 #    return dictIntersect
 
 #==============================================================================
-# allGather dictionnaire 
+# allGather dictionnaire
 # si: dict[key] = [value], retourne dict[key] = [all values] (rejete les doublons de keys et doublons de values)
 # si: dict[key] = value, retour dict[key] = value (rejete les doublons de keys)
 #==============================================================================
