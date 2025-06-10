@@ -240,30 +240,31 @@ def intersect2(t, BBTree):
 #    return dictIntersect
 
 #==============================================================================
-# allGather dictionnaire (rejete les doublons de keys et values)
+# allGather dictionnaire 
+# si: dict[key] = [value], retourne dict[key] = [all values] (rejete les doublons de keys et doublons de values)
+# si: dict[key] = value, retour dict[key] = value (rejete les doublons de keys)
 #==============================================================================
 def allgatherDict(data):
     ret = KCOMM.allgather(data)
-    if isinstance(data, dict):
-        out = {}
-        for r in ret:
-            for k in r:
-                # if rank==0: print('PROC%d : k=%s'%(rank, k), flush=True)
-                if k not in out:
+    if not isinstance(data, dict): return ret
+    out = {}
+    for r in ret: # all proc return
+        for k in r: # for each key in dict
+            if k not in out:
+                if isinstance(r[k], list):
                     out[k] = []
                     for data in r[k]:
                         if data not in out[k]:
-                            # if rank==0: print('PROC%d : data=%s ; out[k] = '%(rank, k), out[k], flush=True)
                             out[k].append(data)
-                            # if rank==0: print('PROC%d : out[k] = '%(rank), out[k], flush=True)
-
                 else:
+                    out[k] = r[k]
+            else:
+                if isinstance(r[k], list):
                     for data in r[k]:
-                        # if rank==0: print('PROC%d : data=%s ; out[k] = '%(rank, k), out[k], flush=True)
                         if data not in out[k]: out[k].append(data)
-                        # if rank==0: print('PROC%d : out[k] = '%(rank), out[k], flush=True)
-        return out
-    else: return ret
+                else:
+                    out[k] = r[k]
+    return out
 
 #==============================================================================
 # allgather
