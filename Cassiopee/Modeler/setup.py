@@ -72,7 +72,7 @@ setup(
     description="Modeler module.",
     author="ONERA",
     url="https://cassiopee.onera.fr",
-    packages=['Modeler'],
+    packages=['Modeler', 'Modeler.CPACS'],
     package_dir={"":"."},
     ext_modules=listExtensions
 )
