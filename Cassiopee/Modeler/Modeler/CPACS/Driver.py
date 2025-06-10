@@ -26,7 +26,7 @@ class DesignParameter:
     def set(self, value):
 
         return
-        
+
 class Driver:
     """Driver"""
     def __init__(self, cpacsFile):
@@ -58,7 +58,7 @@ class Driver:
         solution = sympy.solve(eqs, vars)
         print(solution)
         for s in solution: print(s.name)
-    
+
         # check if all parameters are instantiated
         inst = 0
         for s in solution:
@@ -70,7 +70,7 @@ class Driver:
             print("Warning: some parameters were not instantiated.")
             print("Warning: please instantiate %d more.", inst - len(self.designParameters.keys()))
         return
-    
+
     def checkValuesInRange(self):
         for k in self.designParameters:
             p = self.designParameters[k]
@@ -79,7 +79,7 @@ class Driver:
             rangeMax = p.rangeMax
             if value < rangeMin: print("Warning: value out of range.")
             if value < rangeMax: print("Warning: value out of range.")
-            
+
     def instantiateCPACS(self):
         f = open(self.cpacsFile, "r")
         g = open(self.xmlFile, "w")
