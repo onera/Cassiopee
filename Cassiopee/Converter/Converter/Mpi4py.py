@@ -7,8 +7,11 @@ from . import converter
 # Acces a Distributed
 from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths, mergeGraph, splitGraph
 
-__all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
-           'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
+__all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM', 
+           'MIN', 'MAX', 'LAND',
+           'setCommunicator', 'barrier', 'send', 'isend', 'recv', 'requestWaitall',
+         
+           'sendRecv', 'sendRecvC',
            'bcast', 'Bcast', 'gather', 'Gather',
            'reduce', 'Reduce', 'allreduce', 'Allreduce',
            'bcastZone', 'gatherZones', 'allgatherZones',
@@ -90,6 +93,13 @@ def Isend(obj, dest=None, tag=0):
 #==============================================================================
 def recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG):
     return KCOMM.recv(source=source, tag=tag)
+
+#==============================================================================
+# Wait for all requests
+#==============================================================================
+def requestWaitall(reqs):
+    MPI.Request.waitall(reqs)
+    return None
 
 #==============================================================================
 # Reduce to root (using pickle, small data)

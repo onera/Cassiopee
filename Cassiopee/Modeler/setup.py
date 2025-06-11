@@ -52,6 +52,7 @@ libraries += libOCC + libOCC
 
 import srcs
 if srcs.TIXI: libraries += ["curl", "xml2", "xslt"]
+if srcs.TIGL: libraries += ["boost_system", "boost_filesystem", "boost_date_time"]
 
 # Extensions ==================================================================
 listExtensions = []
