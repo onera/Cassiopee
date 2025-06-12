@@ -2699,7 +2699,7 @@ hid_t K_IO::GenIOHdf::setArrayR82R4(hid_t node, double* data,
   hid_t mid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
-  HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_R8);
+  HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_R4);
   free(dims);
   return node;
 }

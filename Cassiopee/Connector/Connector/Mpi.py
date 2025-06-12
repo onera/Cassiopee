@@ -110,11 +110,12 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
     return a
 
 #==============================================================================
-# parallel NGON connectMatch
+# parallel NGON connectMatch for one zone
 #==============================================================================
 def _connectMatchNGon(z, tol=1.e-6):
     import Post.PyTree as P
     import Transform.PyTree as T
+    if Cmpi.size == 1: return None
     # get exterior faces and indirection
     indicesF = []
     zf = P.exteriorFaces(z, indices=indicesF)
@@ -148,12 +149,22 @@ def _connectMatchNGon(z, tol=1.e-6):
     else: zu = None; indicesE = []
 
     data = [zu, indicesE]
+    print("start", flush=True)
 
     # pass faces to neighbour
-    Cmpi.send(data, dest=Cmpi.rank+1)
+    reqs = []
+    if Cmpi.rank < Cmpi.size-1: s = Cmpi.isend(data, dest=Cmpi.rank+1)
+    else: s = Cmpi.isend(data, 0)
+    reqs.append(s)
+    print("send done", flush=True)
+    Cmpi.barrier()
 
     # get the neighbour faces
-    data = Cmpi.recv(source=Cmpi.rank-1)
+    if Cmpi.rank > 0: data = Cmpi.recv(source=Cmpi.rank-1)
+    else: data = Cmpi.recv(source=Cmpi.size-1)
+    print("receive done", flush=True)
+    Cmpi.requestWaitall(reqs)
+
     (zu, indicesE) = data
 
     # identify faces and build matches

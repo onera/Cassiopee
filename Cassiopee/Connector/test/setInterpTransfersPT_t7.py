@@ -1,4 +1,5 @@
-# - setInterpTransfers IBC + wallslip + curvature (pyTree) -
+# - setInterpTransfers (pyTree) -
+# IBC + wallslip + curvature
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
@@ -20,16 +21,16 @@ BM = N.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t, bodies, BM, blankingType='center_in')
 X._setHoleInterpolatedPoints(t, depth=-2)
 # Dist2Walls
-DTW._distance2Walls(t,[s],type='ortho',loc='centers',signed=1)
-t = C.center2Node(t,'centers:TurbulentDistance')
+DTW._distance2Walls(t, [s], type='ortho', loc='centers', signed=1)
+t = C.center2Node(t, 'centers:TurbulentDistance')
 # Gradient de distance localise en centres => normales
 t = P.computeGrad(t, 'TurbulentDistance')
-C._initVars(t,"centers:Density",1.)
-C._initVars(t,"centers:VelocityX",0.2)
-C._initVars(t,"centers:VelocityY",0.)
-C._initVars(t,"centers:VelocityZ",0.)
-C._initVars(t,"centers:Temperature",1.)
-C._addState(t, adim='adim1',MInf=0.2, GoverningEquations='Euler',EquationDimension=3)
+C._initVars(t, "centers:Density",1.)
+C._initVars(t, "centers:VelocityX",0.2)
+C._initVars(t, "centers:VelocityY",0.)
+C._initVars(t, "centers:VelocityZ",0.)
+C._initVars(t, "centers:Temperature",1.)
+C._addState(t, adim='adim1',MInf=0.2, GoverningEquations='Euler', EquationDimension=3)
 tc = C.node2Center(t)
 X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=100)
 
@@ -38,10 +39,10 @@ zones = Internal.getNodesFromType2(t, 'Zone_t')
 X.miseAPlatDonorTree__(zones, tc, graph=None)
 # attention compact=0 car t n est pas compacte
 vars=['Density','VelocityX','VelocityY','VelocityZ','Temperature']
-ZSR=Internal.getNodesFromType(tc,"ZoneSubRegion_t")
+ZSR=Internal.getNodesFromType(tc, "ZoneSubRegion_t")
 for zsr in ZSR:
     kcurv = Internal.getNodeFromName(zsr, XOD.__KCURV__)
     if kcurv is not None:
         for i in range(kcurv[1].shape[0]): kcurv[1][i]=0.01
-X._setInterpTransfers(t,tc, bcType=100,varType=2,variablesIBC=vars,compact=0, compactD=1)
-test.testT(t)
+X._setInterpTransfers(t, tc, bcType=100, varType=2, variablesIBC=vars, compact=0, compactD=1)
+test.testT(t, 1)

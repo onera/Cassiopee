@@ -26,7 +26,9 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allgatherTree(a): return a
         def allgatherDict(a): return a
         def send(a, dest=0, tag=0): return None
+        def isend(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
+        def requestWaitall(reqs): return None
         def sendRecv(a, source=0, dest=0): return []
         def sendRecvC(a, source=0, dest=0): return []
         def reduce(a, op=None, root=0): return a
@@ -68,7 +70,9 @@ else: # try import (may fail - core or hang)
         def allgatherTree(a): return a
         def allgatherDict(a): return a
         def send(a, dest=0, tag=0): return None
+        def isend(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
+        def requestWaitall(reqs): return None
         def sendRecv(a, source=0, dest=0): return []
         def sendRecvC(a, source=0, dest=0): return []
         def reduce(a, op=None, root=0): return a
