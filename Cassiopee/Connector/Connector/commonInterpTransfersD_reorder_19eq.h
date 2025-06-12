@@ -485,6 +485,65 @@ switch (type)
     }
     break;
       
+  case 44: // Lagrange O4
+    for (E_Int noind = pt_deb; noind < pt_fin; noind++)
+    {
+      indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
+      k     = indD0/imdjmd;
+      j     = (indD0-k*imdjmd)/imd;
+      i     = (indD0-j*imd-k*imdjmd);
+      val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; val5=0.; val6=0.; val7=0.; val8=0.; val9=0.;
+      val10=0.; val11=1.; val12=0.; val13=0.; val14=0.; val15=0.; val16=0.; val17=0.; val18=0.;
+
+      for (E_Int kk=0; kk<4; kk++)
+        for (E_Int jj=0; jj<4; jj++)
+          for (E_Int ii=0; ii<4; ii++)
+          {
+            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            val0 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[0][indD];               
+            val1 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[1][indD];               
+            val2 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[2][indD];               
+            val3 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[3][indD];               
+            val4 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[4][indD];               
+            val5 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[5][indD];
+            val6 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[6][indD];               
+            val7 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[7][indD];               
+            val8 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[8][indD];               
+            val9 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[9][indD];               
+            val10 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[10][indD];               
+            val11 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[11][indD];               
+            val12 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[12][indD];               
+            val13 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[13][indD];               
+            val14 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[14][indD];               
+            val15 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[15][indD];               
+            val16 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[16][indD];               
+            val17 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[17][indD];               
+            val18 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[18][indD];
+          }
+      vectOfRcvFields[0][noind] = val0;
+      vectOfRcvFields[1][noind] = val1;
+      vectOfRcvFields[2][noind] = val2;
+      vectOfRcvFields[3][noind] = val3;
+      vectOfRcvFields[4][noind] = val4;
+      vectOfRcvFields[5][noind] = val5;
+      vectOfRcvFields[6][noind] = val6;
+      vectOfRcvFields[7][noind] = val7;
+      vectOfRcvFields[8][noind] = val8;
+      vectOfRcvFields[9][noind] = val9;
+      vectOfRcvFields[10][noind]= val10;
+      vectOfRcvFields[11][noind]= val11;
+      vectOfRcvFields[12][noind]= val12;
+      vectOfRcvFields[13][noind]= val13;
+      vectOfRcvFields[14][noind]= val14;
+      vectOfRcvFields[15][noind]= val15;
+      vectOfRcvFields[16][noind]= val16;
+      vectOfRcvFields[17][noind]= val17;
+      vectOfRcvFields[18][noind]= val18;
+      noi      += 1;
+      indCoef  += sizecoefs;
+    }
+    break;
+
   case 4: // Tetra O2
 // #ifdef _OPENM4
 //     #pragma omp simd

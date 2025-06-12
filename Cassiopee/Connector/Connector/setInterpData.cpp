@@ -97,6 +97,11 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       ncfmax = 9; nindi = 1;
       break;
 
+    case 4:
+      interpType = K_INTERP::InterpData::O4ABC;
+      ncfmax = 12; nindi = 1;
+      break;
+
     case 5:
       interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
@@ -628,6 +633,11 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       ncfmax = 9; nindi = 1;
       break;
 
+    case 4:
+      interpType = K_INTERP::InterpData::O4ABC;
+      ncfmax = 12; nindi = 1;
+      break;
+
     case 5:
       interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
@@ -980,6 +990,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     for (E_Int ind = 0; ind < nbI; ind++)
     {
       x = xr[ind]; y = yr[ind]; z = zr[ind];
+
+
       ok = K_INTERP::getInterpolationCell(
         x, y, z, interpDatas, fields,
         a2, a3, a4, a5, posxs, posys, poszs, poscs,
@@ -1068,9 +1080,17 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
             break;
 
           case 5:
-            for (E_Int nocf = 0; nocf < 15; nocf++) 
+            for (E_Int nocf = 0; nocf < 15; nocf++)
               donorCf[sizecf+nocf] = cf[nocf];
             sizecf += 15;
+            donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+            sizeOfIndDonor1DForBlk++;
+            break;
+
+          case 44:  //lagrange 04
+            for (E_Int nocf = 0; nocf < 12; nocf++) 
+              donorCf[sizecf+nocf] = cf[nocf];
+            sizecf += 12;
             donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
             sizeOfIndDonor1DForBlk++;
             break;

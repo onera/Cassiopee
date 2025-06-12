@@ -36,7 +36,7 @@ public:
   
   enum InterpolationType
   {
-    O2CF, O2ABC, O3ABC, O5ABC
+    O2CF, O2ABC, O3ABC, O5ABC, O4ABC
   };
   
   ///+ 1- Constructor / Destructor
@@ -87,7 +87,11 @@ public:
                                         E_Float x, E_Float y, E_Float z,
                                         E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
                                         FldArrayF& cf)=0;
-
+    virtual
+    short searchInterpolationCellCartO4(E_Int ni, E_Int nj, E_Int nk,
+                                        E_Float x, E_Float y, E_Float z,
+                                        E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
+                                        FldArrayF& cf)=0;
     virtual 
     short searchExtrapolationCellCart(E_Int ni, E_Int nj, E_Int nk, 
                                       E_Float* xl, E_Float* yl, E_Float* zl,

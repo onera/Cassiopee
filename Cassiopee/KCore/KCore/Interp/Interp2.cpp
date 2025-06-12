@@ -37,17 +37,17 @@ extern "C"
     E_Float& xx, E_Float& yy, E_Float& zz, E_Int& err);
 }
 
-# define CELLNO3                             \
+# define CELLN(order)                        \
   if (nature == 0)                           \
   {                                          \
       val = 1.;                              \
-      for (E_Int kk = 0; kk < 3; kk++)       \
-        for (E_Int jj = 0; jj < 3; jj++)     \
-          for (E_Int ii = 0; ii < 3; ii++)   \
+      for (E_Int kk = 0; kk < order; kk++)       \
+        for (E_Int jj = 0; jj < order; jj++)     \
+          for (E_Int ii = 0; ii < order; ii++)   \
             {                                \
               ind = (ic + ii) + (jc + jj) *ni + (kc+kk)*ni*nj;\
               cellN0 = cellN[ind];           \
-              d = cf[ii]*cf[jj+3]*cf[kk+6] > 1.e-12;\
+              d = cf[ii]*cf[jj+order]*cf[kk+order*2] > 1.e-12;\
               val *= cellN0-d+1;             \
             }                                \
       if (K_FUNC::fEqualZero(val, geomCutOff) == true) return 0;\
@@ -55,16 +55,17 @@ extern "C"
   else                                       \
   {                                          \
     val = 0.;                                \
-    for (E_Int kk = 0; kk < 3; kk++)         \
-      for (E_Int jj = 0; jj < 3; jj++)       \
-        for (E_Int ii = 0; ii < 3; ii++)     \
+    for (E_Int kk = 0; kk < order; kk++)         \
+      for (E_Int jj = 0; jj < order; jj++)       \
+        for (E_Int ii = 0; ii < order; ii++)     \
           {                                  \
             ind = (ic+ii) + (jc+jj)*ni + (kc+kk)*ni*nj;\
             cellN0 = cellN[ind];             \
-            val += K_FUNC::E_abs(cf[ii]*cf[jj+3]*cf[kk+6])*K_FUNC::E_abs(1.-cellN0);\
+            val += K_FUNC::E_abs(cf[ii]*cf[jj+order]*cf[kk+order*2])*K_FUNC::E_abs(1.-cellN0);\
           }                                  \
     if (K_FUNC::fEqualZero(val,geomCutOff) == false) return 0;\
   }
+
 //=============================================================================
 /* a est la connectivite cEEN dans le cas non structure, NULL si pas besoin
    IN: x,y,z: point a extrapoler
@@ -368,7 +369,7 @@ E_Int K_INTERP::getInterpolationData(
         corr = compLagrangeCoefs(x, y, z, ics, jcs, kcs, ni, nj, nk, xl, yl, zl, 
                                  cf, interpType);
         type = 3; indi[0] = ic + jc*ni + kc*nij;
-        if (cellN != NULL) { CELLNO3; }
+        if (cellN != NULL) { CELLN(3); }
 
         if (corr == 1) // mauvaise approx de (x,y,z) -> ordre 2 type O2CF
         {
@@ -388,10 +389,66 @@ E_Int K_INTERP::getInterpolationData(
         ic = ic-1; jc = jc-1; kc = kc-1;// indices demarrent a 0
         type = 3; indi[0] = ic + jc*ni + kc*nij;
         if (ic == 0 || ic == ni-3 || jc == 0 || jc == nj-3 || kc == 0 || kc == nk-3) isBorder = 1;
-        if (cellN != NULL) { CELLNO3; }
+        if (cellN != NULL) { CELLN(3); }
       }
       break;
       
+    case K_INTERP::InterpData::O4ABC:
+      if (InterpData->_topology == 2) return -1;
+
+      if (ni < 4 || nj < 4 || nk < 4)
+      {
+        //printf("Error: getInterpolationData: 4rd order interpolation requires at least 4 points per direction.\n");
+        return -1;
+      }
+
+
+      if (InterpData->_topology == 1) //ADT sur maillage curviligne
+      {
+        found = InterpData->searchInterpolationCellStruct(ni, nj, nk, xl, yl, zl, x, y, z, ic, jc, kc, cf);
+
+        if (found < 1) return found;
+
+        if (ic   > 1 ) ic -=1;          //on decale le donneur de 1
+        if (ic+3 > ni) ic -= ic+3- ni;  // on decentre la cellule donneuse sitrop proche bord
+        if (jc   > 1 ) jc -=1;
+        if (jc+3 > nj) jc -= jc+3-nj;
+        if (kc   > 1 ) kc -=1;
+        if (kc+3 > nk) kc -= kc+3-nk;
+
+        corr = compLagrangeCoefs(x, y, z, ic, jc, kc, ni, nj, nk, xl, yl, zl, cf, interpType);
+        //ics = ic; jcs = jc; kcs = kc;// pour le Lagrange: decalage de 1
+
+        ic = ic-1; jc = jc-1; kc = kc-1;  // indices demarrent a 0 en c
+
+        if (ic == 0 || ic == ni-4 || jc == 0 || jc == nj-4 || kc == 0 || kc == nk-4) isBorder = 1;
+
+        type = 44; indi[0] = ic + jc*ni + kc*nij;
+        if (cellN != NULL) { CELLN(4); }
+
+        if (corr == 1) // mauvaise approx de (x,y,z) -> ordre 2 type O2CF
+        {
+          found = InterpData->searchInterpolationCellStruct(ni, nj, nk, xl, yl, zl, x, y, z, ic, jc, kc, cf);
+          if (found < 1) return found;
+          ic = ic-1; jc = jc-1; kc = kc-1;
+          if (ic == 0 || ic == ni-2 || jc == 0 || jc == nj-2 || kc == 0 || kc == nk-2) isBorder = 1;
+          else isBorder = 0;
+          type = 2; indi[0] = ic + jc*ni + kc*nij;
+        }
+      }
+      else if (InterpData->_topology == 0) // CART sur maillage cartesien
+      {
+        found = InterpData->searchInterpolationCellCartO4(ni, nj, nk, x, y, z, ic, jc, kc, cf);
+        if (found < 1) return found;
+
+        ic = ic-1; jc = jc-1; kc = kc-1;// indices demarrent a 0
+        type = 44; indi[0] = ic + jc*ni + kc*nij;
+        if (ic == 0 || ic == ni-4 || jc == 0 || jc == nj-4 || kc == 0 || kc == nk-4) isBorder = 1;
+        if (cellN != NULL) { CELLN(4); }
+      }
+      break;
+
+
     case K_INTERP::InterpData::O5ABC:
 
       if (InterpData->_topology == 2) return -1;
@@ -430,36 +487,7 @@ E_Int K_INTERP::getInterpolationData(
 
       if (ic == 0 || ic == ni-5 || jc == 0 || jc == nj-5 || kc == 0 || kc == nk-5) isBorder = 1;
 
-      if (cellN != NULL)
-      {
-        if (nature == 0) // traitement simple: pas de pt masque ds la molecule donneuse
-        {
-          val = 1.;
-          for (E_Int kk = 0; kk < 5; kk++)
-            for (E_Int jj = 0; jj < 5; jj++)
-              for (E_Int ii = 0; ii < 5; ii++)
-              {
-                ind = (ic + ii) + (jc + jj)*ni + (kc+kk)*nij;
-                cellN0 = cellN[ind];
-                d = cf[ii]*cf[jj+5]*cf[kk+10] > 1.e-12;
-                val *= cellN0-d+1;
-              }
-          if (K_FUNC::fEqualZero(val, geomCutOff) == true) return 0;// pas interpolable 
-        }
-        else // nature=1 pas de pt masque ou interpole dans la cellule
-        {
-          val = 0.;
-          for (E_Int kk = 0; kk < 5; kk++)
-            for (E_Int jj = 0; jj < 5; jj++)
-              for (E_Int ii = 0; ii < 5; ii++)
-              {
-                ind = (ic+ii) + (jc+jj)*ni + (kc+kk)*nij;
-                cellN0 = cellN[ind];
-                val += K_FUNC::E_abs(cf[ii]*cf[jj+5]*cf[kk+10])*K_FUNC::E_abs(1.-cellN0);
-              }
-          if (K_FUNC::fEqualZero(val, geomCutOff) == false) return 0;// pas interpolable 
-        } 
-      }
+      if (cellN != NULL) {  CELLN(5); }
       corr = compLagrangeCoefs(x, y, z, ics, jcs, kcs, ni, nj, nk, xl, yl, zl, 
                                cf, interpType);
       if (corr == 1) // mauvaise approx de (x,y,z) -> ordre 2
@@ -504,9 +532,13 @@ short K_INTERP::compLagrangeCoefs(E_Float x, E_Float y, E_Float z,
       npts_interp_1D = 2;
       npts_interp_3D = 8;
       break;
-    case K_INTERP::InterpData::O3ABC: 
+    case K_INTERP::InterpData::O3ABC:
       npts_interp_1D = 3;
       npts_interp_3D = 27;
+      break;
+    case K_INTERP::InterpData::O4ABC:
+      npts_interp_1D = 4;
+      npts_interp_3D = 64;
       break;
     case K_INTERP::InterpData::O5ABC:
       npts_interp_1D = 5;
@@ -538,6 +570,7 @@ short K_INTERP::compLagrangeCoefs(E_Float x, E_Float y, E_Float z,
     ksi, eta, zeta, err);
   if (err == 1)  return 1; // point interpole mal calcule 
 
+
   E_Float* cfp = cf.begin();
 
   //------------------------------
@@ -562,6 +595,8 @@ short K_INTERP::compLagrangeCoefs(E_Float x, E_Float y, E_Float z,
   E_Float zetap2 = 2.+zeta;
   E_Float zetam2 = 2.-zeta;
 
+  //printf("interpTyp %d  %f %f %f %f  %f \n",interpType, ksim2 , ksim,  ksi, ksip, ksip2);
+
   switch (interpType)
   {
     case K_INTERP::InterpData::O2ABC:
@@ -583,6 +618,23 @@ short K_INTERP::compLagrangeCoefs(E_Float x, E_Float y, E_Float z,
       cfp[6] = -K_CONST::ONE_HALF * zeta * zetam; //gamma0
       cfp[7] =  zetap * zetam; //gamma1
       cfp[8] =  K_CONST::ONE_HALF * zeta * zetap; //gamma2
+      break;
+
+    case K_INTERP::InterpData::O4ABC:
+      cfp[0] = -inv6              * ksim2  * ksim  * ksi ;  //alpha4  p
+      cfp[1] =  K_CONST::ONE_HALF * ksim2  * ksim  * ksip;  //alpha3  i
+      cfp[2] =  K_CONST::ONE_HALF * ksim2  * ksi   * ksip;  //alpha2  m
+      cfp[3] = -inv6              * ksim   * ksi   * ksip;  //alpha1  m2
+
+      cfp[4] = -inv6              * etam2  * etam  * eta ;  //beta4   p
+      cfp[5] =  K_CONST::ONE_HALF * etam2  * etam  * etap;  //beta3   i
+      cfp[6] =  K_CONST::ONE_HALF * etam2  * eta   * etap;  //beta2   m
+      cfp[7] = -inv6              * etam   * eta   * etap;  //beta1   m2
+
+      cfp[8] = -inv6              * zetam2 * zetam * zeta ; //zeta4   p
+      cfp[9] =  K_CONST::ONE_HALF * zetam2 * zetam * zetap; //zeta3   i
+      cfp[10]=  K_CONST::ONE_HALF * zetam2 * zeta  * zetap; //zeta2   m
+      cfp[11]= -inv6              * zetam  * zeta  * zetap; //zeta1   m2
       break;
 
     case K_INTERP::InterpData::O5ABC:

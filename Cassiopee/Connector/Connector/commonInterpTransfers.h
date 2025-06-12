@@ -98,7 +98,29 @@ switch (type)
     }
     noi += 1;
     break;
-      
+ 
+  case 44: // Lagrange O4
+    indD0 = donorPts[noind];
+    k = indD0/imdjmd;
+    j = (indD0-k*imdjmd)/imd;
+    i = (indD0-j*imd-k*imdjmd);
+    for (E_Int eq = eq_deb; eq < eq_fin; eq++)
+    {
+      E_Float* fieldR = vectOfRcvFields[eq];
+      E_Float* fieldD = vectOfDnrFields[eq];
+      val = 0.; 
+      for (E_Int kk=0; kk<4; kk++)
+        for (E_Int jj=0; jj<4; jj++)
+          for (E_Int ii=0; ii<4; ii++)
+          {
+            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            val += ptrCoefs[ii]*ptrCoefs[jj+4]*ptrCoefs[kk+8]*fieldD[indD];               
+          }
+      fieldR[indR]=val;
+    }
+    noi += 1;
+    break;
+     
   case 4: // Tetra O2
     indD0 = donorPts[noind];
     // indD0 est le no de l elt, et les coefs sont aux noeuds
