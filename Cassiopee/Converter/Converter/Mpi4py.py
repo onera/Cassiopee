@@ -15,7 +15,8 @@ __all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM',
            'bcast', 'Bcast', 'gather', 'Gather',
            'reduce', 'Reduce', 'allreduce', 'Allreduce',
            'bcastZone', 'gatherZones', 'allgatherZones',
-           'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
+           'createBBTree', 'intersect', 'intersect2', 
+           'allgatherDict', 'allgatherDict2', 
            'allgather', 'readZones', 'writeZones', 'convert2PartialTree',
            'convert2SkeletonTree',
            'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
@@ -251,8 +252,8 @@ def intersect2(t, BBTree):
 
 #==============================================================================
 # allGather dictionnaire
-# si: dict[key] = [value], retourne dict[key] = [all values] (rejete les doublons de keys et doublons de values)
-# si: dict[key] = value, retour dict[key] = value (rejete les doublons de keys)
+# si: dict[key] = [value], 
+# retourne dict[key] = [all values] (rejete les doublons de keys et doublons de values)
 #==============================================================================
 def allgatherDict(data):
     ret = KCOMM.allgather(data)
@@ -261,19 +262,25 @@ def allgatherDict(data):
     for r in ret: # all proc return
         for k in r: # for each key in dict
             if k not in out:
-                if isinstance(r[k], list):
-                    out[k] = []
-                    for data in r[k]:
-                        if data not in out[k]:
-                            out[k].append(data)
-                else:
-                    out[k] = r[k]
+                out[k] = []
+                for data in r[k]:
+                    if data not in out[k]: out[k].append(data)
             else:
-                if isinstance(r[k], list):
-                    for data in r[k]:
-                        if data not in out[k]: out[k].append(data)
-                else:
-                    out[k] = r[k]
+                for data in r[k]:
+                    if data not in out[k]: out[k].append(data)
+    return out
+
+#==============================================================================
+# allGather dictionnaire
+# si: dict[key] = value, retourne dict[key] = value (en choisi une value si doublon de key)
+#==============================================================================
+def allgatherDict2(data):
+    ret = KCOMM.allgather(data)
+    if not isinstance(data, dict): return ret
+    out = {}
+    for r in ret: # all proc return
+        for k in r: # for each key in dict
+            if k not in out: out[k] = r[k]
     return out
 
 #==============================================================================

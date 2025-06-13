@@ -893,15 +893,14 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
     minval     = Cmpi.allreduce(minval, op=Cmpi.MIN)
     if minval<0: isSkipDist=True
 
-    snear_min = 10e10
+    snear_min = 10.e10
     for z in Internal.getZones(tb):
         sdd = Internal.getNodeFromName1(z, ".Solver#define")
         if sdd is not None:
             snearl = Internal.getNodeFromName1(sdd, "snear")
             if snearl is not None:
                 snearl = Internal.getValue(snearl)
-                snear_min = min(snear_min,snearl)
-        #if snearl is not None:  snear_min = min(snear_min,snearl)
+                snear_min = min(snear_min, snearl)
     snear_min = Cmpi.allreduce(snear_min, op=Cmpi.MIN)
 
     cellNIBC_blank = Internal.getNodeFromName(t, 'cellNIBC_blank')

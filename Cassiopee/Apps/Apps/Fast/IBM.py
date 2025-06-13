@@ -2043,21 +2043,21 @@ class IBM(Common):
             hmin_loc = 1.e30
             for z in Internal.getZones(t):
                 h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-                levelZone[z[0]]=h
+                levelZone[z[0]] = h
                 if h < hmin_loc : hmin_loc = h
             hmin_loc = Cmpi.allgather(hmin_loc)
-            if Cmpi.size > 1 :
-                hmin=1e30
+            if Cmpi.size > 1:
+                hmin = 1.e30
                 for h in hmin_loc:
-                    if h < hmin : hmin = h
+                    if h < hmin: hmin = h
             else:
                 hmin = hmin_loc
 
             ## go from dx to dx/dx_min
-            Nlevels=1
+            Nlevels = 1
             for i in levelZone:
-                levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001)  , 2)
-                if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
+                levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001), 2)
+                if levelZone[i] +1  > Nlevels: Nlevels = int(levelZone[i]) +1
 
             ## partage des info level en mpi
             levelZone = Cmpi.allgather(levelZone)
