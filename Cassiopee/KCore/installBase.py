@@ -67,7 +67,7 @@ installDict = {
                [] # NvccAdditionalOptions
                ],
     ###############################################################################
-    'msys2': [ 'Windows win64+msys2',
+    'win64': [ 'Windows win64+msys2',
                'gfortran', # f77compiler
                'gfortran', # f90compiler
                'gcc', # Cppcompiler

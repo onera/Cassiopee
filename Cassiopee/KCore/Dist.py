@@ -2470,13 +2470,14 @@ def checkLibFile__(file, additionalLibPaths):
         if p1 is not None: p += p1.split(';')
     elif mySystem[0] == 'mingw':
         p1 = env.get('PATH', None)
-        if p1 is not None:
-            p += p1.split(';')
+        if p1 is not None: p += p1.split(';')
+        p1 = env.get('LD_LIBRARY_PATH', None)
+        if p1 is not None: p += p1.split(';')
     else: # unix
         p1 = env.get('LD_LIBRARY_PATH', None)
         if p1 is not None: p += p1.split(':')
         p1 = env.get('PATH', None)
-        if p1 is not None: p += p1.split(';')
+        if p1 is not None: p += p1.split(':')
     p1 = env.get('CMAKE_PREFIX_PATH', None)
     if p1 is not None: p += [path+'/lib' for path in p1.split(':')]
     #p += ['/usr/local/lib', '/opt/lib', '/usr/lib', '/opt/local/lib']
@@ -2499,20 +2500,24 @@ def checkIncFile__(file, additionalIncludePaths):
     if mySystem[0] == 'Windows':
         p1 = env.get('PATH', None)
         if p1 is not None: pp += p1.split(';')
+        sep = '\\'
     elif mySystem[0] == 'mingw':
         p1 = env.get('PATH', None)
-        if p1 is not None:
-            pp += p1.split(';')
+        if p1 is not None: pp += p1.split(';')
+        p1 = env.get('LD_LIBRARY_PATH', None)
+        if p1 is not None: pp += p1.split(';')
+        sep = '\\'
     else: # unix
         p1 = env.get('LD_LIBRARY_PATH', None)
         if p1 is not None: pp += p1.split(':')
         p1 = env.get('PATH', None)
         if p1 is not None: pp += p1.split(':')
+        sep = '/'
     #p += ['/usr/local/include', '/opt/include', '/usr/include', '/opt/local/include']
     p1 = env.get('CMAKE_PREFIX_PATH', None)
     if p1 is not None: pp += [path+'/lib' for path in p1.split(':')]
     for i, v in enumerate(pp):
-        s = v.split('/'); ls = len(s)
+        s = v.split(sep); ls = len(s)
         if ls > 0 and s[-1] == 'lib': s[-1] = 'include'
         if ls > 1 and s[-2] == 'lib': s[-2] = 'include'; s[-1] = ''
         if ls > 0 and s[-1] == 'lib64': s[-1] = 'include'

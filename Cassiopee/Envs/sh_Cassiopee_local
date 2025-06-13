@@ -37,7 +37,7 @@ if echo "$KC" | grep -q 'irene'; then export MAC="irene"; fi
 if echo "$KC" | grep -q 'jean-zay'; then export MAC="jean-zay"; fi
 if echo "$KC" | grep -q 'node6.cluster'; then export MAC="macosx"; fi
 if echo "$KC" | grep -q 'topaze'; then export MAC="topaze"; fi
-if echo "$KC" | grep -q 'Aryen'; then export MAC="aryen"; fi
+if echo "$KC" | grep -q 'atlas'; then export MAC="atlas"; fi
 if echo "$KC" | grep -q 'WDAAA161Z'; then export MAC="WDAAA161Z"; fi
 
 # Detect MAC environement from MACHINE
@@ -826,12 +826,12 @@ elif [ "$MAC" = "adastra_gpu" ]; then
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
     export PYTHONEXE=python3
     
-elif [ "$MAC" = "aryen" ]; then
-#----------------------------- Aryen msys2  ---------------------------------------
+elif [ "$MAC" = "atlas" ]; then
+#----------------------------- Atlas msys2  ---------------------------------------
     export ELSAPROD=win64
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
-    export OMP_NUM_THREADS=2
+    export OMP_NUM_THREADS=14
     export PYTHONEXE=python3
     export PRODMODE=1
 

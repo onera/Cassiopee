@@ -59,7 +59,8 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char * file, E_Int readIntMod
    hdfcgnswrite
 */
 //=============================================================================
-E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
+E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links,
+                                int writeIntMode, int writeRealMode)
 {
   printf("Error: Converter has been installed without CGNS/HDF support.\n");
   printf("Error: please install libhdf5 first for CGNS/HDF support.\n");
