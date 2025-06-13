@@ -27,7 +27,7 @@ Dist.writeSetupCfg()
 (OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC(additionalLibPaths,
                                                    additionalIncludePaths)
 
-if not OCCPresent: 
+if not OCCPresent:
     print("Warning: open cascade not found on your system. OCC not installed.")
     os._exit(0)
 
