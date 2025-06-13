@@ -15,8 +15,8 @@ __all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM',
            'bcast', 'Bcast', 'gather', 'Gather',
            'reduce', 'Reduce', 'allreduce', 'Allreduce',
            'bcastZone', 'gatherZones', 'allgatherZones',
-           'createBBTree', 'intersect', 'intersect2', 
-           'allgatherDict', 'allgatherDict2', 
+           'createBBTree', 'intersect', 'intersect2',
+           'allgatherDict', 'allgatherDict2',
            'allgather', 'readZones', 'writeZones', 'convert2PartialTree',
            'convert2SkeletonTree',
            'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
@@ -252,7 +252,7 @@ def intersect2(t, BBTree):
 
 #==============================================================================
 # allGather dictionnaire
-# si: dict[key] = [value], 
+# si: dict[key] = [value],
 # retourne dict[key] = [all values] (rejete les doublons de keys et doublons de values)
 #==============================================================================
 def allgatherDict(data):
