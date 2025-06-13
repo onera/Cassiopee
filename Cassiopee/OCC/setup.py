@@ -27,7 +27,9 @@ Dist.writeSetupCfg()
 (OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC(additionalLibPaths,
                                                    additionalIncludePaths)
 
-if not OCCPresent: os._exit(0)
+if not OCCPresent:
+    print("Warning: open cascade not found on your system. OCC not installed.")
+    os._exit(0)
 
 # Compilation des fortrans ===================================================
 prod = os.getenv("ELSAPROD")

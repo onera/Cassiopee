@@ -1,6 +1,5 @@
 from distutils.core import setup, Extension
 #from setuptools import setup
-from KCore.config import *
 import os
 
 #=============================================================================
@@ -16,6 +15,8 @@ import os
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
+from KCore.config import *
+
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
@@ -26,9 +27,11 @@ Dist.writeSetupCfg()
 (OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC(additionalLibPaths,
                                                    additionalIncludePaths)
 
-if not OCCPresent: os._exit(0)
+import srcs
+if srcs.TIGL and not OCCPresent:
+    print("Warning: open cascade not found on your system. Modeler.Tigl not installed.")
+    os._exit(0)
 
-from KCore.config import *
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
