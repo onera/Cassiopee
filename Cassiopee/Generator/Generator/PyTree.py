@@ -179,44 +179,43 @@ def createHook4AdaptMesh(a, dim=3, splitInfos=None):
 
 def _createHook4AdaptMesh(a, dim=3, splitInfos=None):
     import XCore.PyTree as XC
-
-    dimZ = Internal.getZoneDim(a)
+    z = Internal.getZones(a)[0]
+    dimZ = Internal.getZoneDim(z)
     eltType=dimZ[3]
     if dimZ[0]=='Unstructured':
         if eltType == 'HEXA':
-            C._convertArray2NGon(a, recoverBC=True, api=3)
+            C._convertArray2NGon(z, recoverBC=True, api=3)
             if splitInfos is not None:
                 print("Warning: createHook4AdaptMesh: splitInfos only valid for NGONs.", flush=True)
         elif eltType=='NGON':
             pass
         else:
             print("Warning: adaptMesh not implemented for elt type %s. No adaptation performed."%(eltType), flush=True)
-            return a
+            return z
     else:
         if splitInfos is not None:
             print("Warning: createHook4AdaptMesh: splitInfos only valid for NGONs.", flush=True)
-        C._convertArray2NGon(a, recoverBC=True, api=3)
+        C._convertArray2NGon(z, recoverBC=True, api=3)
 
-    Internal._adaptNGon32NGon4(a)
+    Internal._adaptNGon32NGon4(z)
 
     if dim==3: normal2D = None
     else:normal2D = numpy.array([0.0,0.0,1.0])
     if splitInfos is None or eltType != 'NGON':
-        ngonelts = Internal.getNodeFromName(a,"NGonElements")
+        ngonelts = Internal.getNodeFromName(z,"NGonElements")
         ER = Internal.getNodeFromName(ngonelts,'ElementRange')[1]
         nfaces = ER[1]
-        nfaceselts = Internal.getNodeFromName(a,"NFaceElements")
+        nfaceselts = Internal.getNodeFromName(z,"NFaceElements")
         ER = Internal.getNodeFromName(nfaceselts,'ElementRange')[1]
         ncells = ER[1]-ER[0]+1
         gcells=numpy.arange(0, ncells)
         gfaces=numpy.arange(1,nfaces+1)
-        hook = XC.AdaptMesh_Init(a, normal2D, comm=[], gcells=gcells, gfaces=gfaces)
+        hook = XC.AdaptMesh_Init(z, normal2D, comm=[], gcells=gcells, gfaces=gfaces)
     else:
         comms = splitInfos["graph"]
-        print(comms)
         gcells = splitInfos["cellGlobalIndex"]
         gfaces = splitInfos["faceGlobalIndex"]
-        hook = XC.AdaptMesh_Init(a, normal2D, comm=comms, gcells=gcells, gfaces=gfaces)
+        hook = XC.AdaptMesh_Init(z, normal2D, comm=comms, gcells=gcells, gfaces=gfaces)
     return hook
 
 def freeHook4AdaptMesh(hook):

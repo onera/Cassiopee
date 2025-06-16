@@ -52,5 +52,3 @@ test.testT(a2, Cmpi.rank+2*Cmpi.size)
 a2 = Gmpi.adaptMesh(a, indicator="indicator", hook=None, dim=3,
                     conformize=True, splitInfos=splitInfos)
 test.testT(a2, Cmpi.rank+3*Cmpi.size)
-#Cmpi.convertPyTree2File(a2, "out.cgns")
-#C.convertPyTree2File(a2, "out_%d.cgns"%(Cmpi.rank))
