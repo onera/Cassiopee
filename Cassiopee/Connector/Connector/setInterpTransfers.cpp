@@ -931,6 +931,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   E_Int nbtask   = ipt_omp[nstep-1]; 
   E_Int ptiter   = ipt_omp[nssiter+ nstep-1];
 
+
   for (E_Int nd = 0; nd < nidomR; nd++) {impli_local[nd]=0;}//par defaut pas de transfert
   for (E_Int ntask = 0; ntask < nbtask; ntask++)            //transfert sur les zones modifiees � la ssiter nstep
   {
@@ -940,11 +941,11 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   }
   E_Int maxlevel      =  iptdtloc[ 9];  //transfert sur les zones qui recupere leur valeur interpolees en LBM
   E_Int it_cycl_lbm   =  iptdtloc[10];
-  E_Int level_it      =  iptdtloc[12+it_cycl_lbm];
+  E_Int level_it      =  iptdtloc[13+it_cycl_lbm];
   E_Int max_it        = pow(2, maxlevel-1);
 
   E_Int level_next_it =  maxlevel;
-  if (it_cycl_lbm != max_it -1 ) { level_next_it = iptdtloc[12 +it_cycl_lbm +1];}
+  if (it_cycl_lbm != max_it -1 ) { level_next_it = iptdtloc[13 +it_cycl_lbm +1];}
 
   for (E_Int nd = 0; nd < nidomR; nd++)   
     {
@@ -957,11 +958,13 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
        //printf("implilocal %d %d %d \n", impli_local[nd], nd, it_cycl_lbm);
     }
 
+
   E_Int size_autorisation = nrac_steady+1;
   size_autorisation = K_FUNC::E_max(size_autorisation , nrac_inst+1);
   E_Int autorisation_transferts[pass_inst_fin][size_autorisation];
 
   E_Int ntab_int =18;
+
 
   // printf("nrac = %d, nrac_inst = %d, level= %d, it_target= %d , nitrun= %d \n",  nrac, nrac_inst, timelevel,it_target, NitRun);
   //on dimension tableau travail pour IBC
@@ -1031,6 +1034,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
         
     }
     }
+
 
   E_Int size = (nbRcvPts_mx/threadmax_sdm)+1; // on prend du gras pour gerer le residus
   E_Int r =  size % 8;
@@ -1275,7 +1279,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
               else if ( isWireModel == 0 and  ibcType==141) linterp = 0;
 
             if ( (nvars_loc==5 || (ibc==1 && solver_R==4)) && linterp==1 )
-            {
+            {  
 #           include "commonInterpTransfers_reorder_5eq.h"
             }
             else if (nvars_loc==6 and linterp== 1)

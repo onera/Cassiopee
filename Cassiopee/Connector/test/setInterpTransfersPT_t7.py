@@ -35,8 +35,7 @@ tc = C.node2Center(t)
 X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=100)
 
 #test avec arbre tc compact
-zones = Internal.getNodesFromType2(t, 'Zone_t')
-X.miseAPlatDonorTree__(zones, tc, graph=None)
+X.miseAPlatDonorTree__(t, tc, graph=None)
 # attention compact=0 car t n est pas compacte
 vars=['Density','VelocityX','VelocityY','VelocityZ','Temperature']
 ZSR=Internal.getNodesFromType(tc, "ZoneSubRegion_t")

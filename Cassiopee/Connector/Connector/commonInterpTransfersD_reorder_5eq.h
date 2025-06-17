@@ -160,16 +160,13 @@ switch (type)
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
-      k     = indD0/imdjmd;
-      j     = (indD0-k*imdjmd)/imd;
-      i     = (indD0-j*imd-k*imdjmd);
       val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; 
 
       for (E_Int kk=0; kk<3; kk++)
         for (E_Int jj=0; jj<3; jj++)
           for (E_Int ii=0; ii<3; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii +jj*imd + kk*imdjmd;
             val0 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfDnrFields[0][indD];               
             val1 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfDnrFields[1][indD];               
             val2 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfDnrFields[2][indD];               
@@ -190,16 +187,13 @@ switch (type)
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
-      k     = indD0/imdjmd;
-      j     = (indD0-k*imdjmd)/imd;
-      i     = (indD0-j*imd-k*imdjmd);
       val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; 
 
       for (E_Int kk=0; kk<4; kk++)
         for (E_Int jj=0; jj<4; jj++)
           for (E_Int ii=0; ii<4; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii +jj*imd + kk*imdjmd;
             val0 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[0][indD];               
             val1 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[1][indD];               
             val2 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[2][indD];               
@@ -266,16 +260,12 @@ switch (type)
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
-      k     = indD0/imdjmd;
-      j     = (indD0-k*imdjmd)/imd;
-      i     = (indD0-j*imd-k*imdjmd);
       val0=0.; val1=0.; val2=0.; val3=0.; val4=0.;
       for (E_Int kk=0; kk<5; kk++)
         for (E_Int jj=0; jj<5; jj++)
           for (E_Int ii=0; ii<5; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-
+            indD = indD0 + ii +jj*imd + kk*imdjmd;
             val0 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+5]*ptrCoefs[ indCoef + kk+10]*vectOfDnrFields[0][indD];               
             val1 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+5]*ptrCoefs[ indCoef + kk+10]*vectOfDnrFields[1][indD];               
             val2 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+5]*ptrCoefs[ indCoef + kk+10]*vectOfDnrFields[2][indD];               

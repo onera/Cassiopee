@@ -18,7 +18,7 @@ NEQ_LBM =  89
 # Mise a plat (compactage) arbre donneur au niveau de la base
 # fonctionne avec ___setInterpTransfer
 #==============================================================================
-def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=0):
+def miseAPlatDonorTree__(t, tc, graph=None, list_graph=None, nbpts_linelets=0):
     if isinstance(graph, list):
         ###########################IMPORTANT ######################################
         #test pour savoir si graph est une liste de dictionnaires (explicite local)
@@ -29,6 +29,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank
+
+    zones = Internal.getZones(t)
 
     if graph is not None and graphliste==False:
         procDict  = graph['procDict']
@@ -375,6 +377,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     #print("len graphIDrcv  is",len(graphIDrcv))
     #print("pos_IBC is",pos_IBC)
     #print("pos_ID  is",pos_ID)
+
+    npass_transfert=1  # valeur par defaut. Pourra valoir 2 si raccord ordre 4 ou 5
 
     param_int  = numpy.empty(size_int + len(graphIDrcv) + len(graphIBCrcv) + 2, dtype=Internal.E_NpyInt)
     param_real = numpy.empty(size_real, dtype=numpy.float64)
@@ -929,7 +933,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
         #recopie dans tableau a plat + tri par type
         if len(Nbtype) == 1:
-            triMonoType(Nbpts_D, Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
+            npass = triMonoType(Nbpts_D, Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                         Interptype, pointlist, pointlistD, param_int,
                         ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
                         ptdensity,ptpressure, ptkcurv,
@@ -972,8 +976,9 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                         yline,uline,nutildeline,psiline,matmline,matline,matpline,
                         alphasbetaline,indexline,
                         InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model,nbpts_linelets)
+
         else:
-            triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
+            npass = triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
                          Interptype, pointlist, pointlistD, param_int,
                          ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
                          ptdensity,ptpressure, ptkcurv,
@@ -1016,6 +1021,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
                          yline,uline,nutildeline,psiline,matmline,matline,matpline,
                          alphasbetaline,indexline,
                          InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model)
+
+        if npass==2: npass_transfert=2
 
         pointlist[ 1] = param_int[ lst             : lst              + Nbpts         ]    # supression numpy initial pointlist
         Interptype[1] = param_int[ ptTy + shift_typ: ptTy + shift_typ + Nbpts_D       ]    # supression numpy initial interpolantType
@@ -1230,6 +1237,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
         c += 1
 
+    tmp       = Internal.getNodeFromName1(t, '.Solver#ownData')
+    dtloc     = Internal.getNodeFromName1(tmp, '.Solver#dtloc')
+    if dtloc is not None: dtloc[1][12] = npass_transfert
+
     return None
 
 #==============================================================================
@@ -1278,6 +1289,9 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  yline,uline,nutildeline,psiline,matmline,matline,matpline,
                  alphasbetaline,indexline,
                  InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model):
+
+    npass_transfert = 1
+
     for ntype in Nbtype:
         noi_old   = 0
         nocoef_old= 0
@@ -1287,10 +1301,16 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
             if meshtype == 1:
                 if ltype == 1: sizecoef=1
                 elif ltype == 2: sizecoef=8
+                elif ltype ==44:
+                   sizecoef        =12
+                   npass_transfert = 2
                 elif ltype == 3: sizecoef=9
-                elif ltype == 4: sizecoef=8
-                elif ltype == 5: sizecoef=15
+                elif ltype == 5:
+                   sizecoef        =15
+                   npass_transfert = 2
                 elif ltype == 22: sizecoef=4
+                elif ltype == 4: sizecoef=8
+                
             else:
                 if ltype == 1: sizecoef=1
                 elif ltype == 4: sizecoef=4
@@ -1453,8 +1473,8 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
         param_int[ ptTy + ctyp +1 ] = l
         ctyp                        = ctyp +1
 
+    return npass_transfert
 
-    return None
 #==============================================================================
 # tri monotype
 #==============================================================================
@@ -1507,6 +1527,9 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
     nocoef_old= 0
     l         = 0
     ltype     = Interptype[1][0]
+
+    npass_transfert = 1
+    if ltype ==44 or ltype == 5: npass_transfert = 2
 
     #recopieinterpolantType
     ideb =  ptTy + shift_typ
@@ -1648,7 +1671,7 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
 
     param_int[ ptTy + ctyp +1 ] = Nbpts_D
 
-    return None
+    return npass_transfert
 
 #==============================================================================
 # Mise a plat (compactage) arbre donneur au niveau de la zone donneuse
