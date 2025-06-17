@@ -72,9 +72,13 @@ for c, e  in enumerate(ext):
         for r in res: C._addBC2Zone(m, 'far4', 'BCFarfield', subzone=r)
 
 #C.convertPyTree2File(m, 'mesh.cgns')
-C.convertPyTree2File(m, 'out.grid')
 
-import os.path
-if os.path.exists('out.grid'):
+import KCore.Dist as Dist
+from KCore.config import *
+(netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf(additionalLibPaths,
+                                                                    additionalIncludePaths)
+
+if netcdf:
+    C.convertPyTree2File(m, 'out.grid')
     t = C.convertFile2PyTree('out.grid')
     test.testT(t, 1)

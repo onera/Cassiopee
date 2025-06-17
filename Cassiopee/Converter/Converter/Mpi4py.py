@@ -81,13 +81,13 @@ def Send(obj, dest=None, tag=0):
 # isend - non blocking send data from a proc to another proc (using pickle, small data)
 #=====================================================================================
 def isend(obj, dest=None, tag=0):
-    KCOMM.isend(obj, dest, tag=tag)
+    return KCOMM.isend(obj, dest, tag=tag)
 
 #=====================================================================================
 # iSend - non blocking send data from a proc to another proc (for numpys)
 #=====================================================================================
 def Isend(obj, dest=None, tag=0):
-    KCOMM.Isend(obj, dest, tag=tag)
+    return KCOMM.Isend(obj, dest, tag=tag)
 
 #==============================================================================
 # receive - receive data from a proc
