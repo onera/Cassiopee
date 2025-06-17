@@ -185,7 +185,7 @@ def _connectMatchNGon(z, tol=1.e-6):
             print(Cmpi.rank, id2.shape)
             print(Cmpi.rank, id1.shape)
             C._addBC2Zone(z, 'match', 'BCMatch', faceList=id2, zoneDonor=zu[0], faceListDonor=id1)
-        
+
     C.freeHook(hook)
     return None
 
