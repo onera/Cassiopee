@@ -4264,36 +4264,36 @@ def _buildConservativeFlux(t, tc, verbose=0):
     level0 = Internal.getNodeFromName(zones[0],'niveaux_temps')
     hmin_loc=1e30
     for z in zones:
-        
-      coordz        = Internal.getNodeFromName(z,'CoordinateZ')[1]
-      dz            = coordz[0,0,1]-coordz[0,0,0]
-      deltaZ[ z[0] ]= dz
-      level = Internal.getNodeFromName(z,'niveaux_temps')
 
-      if level is not None:
-          levelZone[ z[0] ] = level[1][0]
-      else:
-          h              = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-          #print('h_loc=', h, z[0], flush=True)
-          levelZone[z[0]]= h
-          if h < hmin_loc : hmin_loc = h
+        coordz        = Internal.getNodeFromName(z,'CoordinateZ')[1]
+        dz            = coordz[0,0,1]-coordz[0,0,0]
+        deltaZ[ z[0] ]= dz
+        level = Internal.getNodeFromName(z,'niveaux_temps')
+
+        if level is not None:
+            levelZone[ z[0] ] = level[1][0]
+        else:
+            h              = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            #print('h_loc=', h, z[0], flush=True)
+            levelZone[z[0]]= h
+            if h < hmin_loc : hmin_loc = h
 
     #print('hmin_loc=', hmin_loc, flush=True)
     hmin = hmin_loc
     if Cmpi.size > 1 :
-       hmin_loc = Cmpi.allgather(hmin_loc)
-       hmin=1e30
-       for h in hmin_loc:
-          if h < hmin : hmin = h
+        hmin_loc = Cmpi.allgather(hmin_loc)
+        hmin=1e30
+        for h in hmin_loc:
+            if h < hmin : hmin = h
 
     #print("hminGlob", hmin, flush=True)
 
     ## go from dx to dx/dx_min
     if level0 is None:
-      Nlevels=1
-      for i in levelZone:
-         levelZone[i]= int( math.log( int(levelZone[i]/hmin + 0.00000001)  , 2) )
-         if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
+        Nlevels=1
+        for i in levelZone:
+            levelZone[i]= int( math.log( int(levelZone[i]/hmin + 0.00000001)  , 2) )
+            if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
 
     #construction arbre skeleton global (tcs) pour calcul graph
     if Cmpi.size > 1:
@@ -4572,32 +4572,32 @@ def _buildConservativeFlux(t, tc, verbose=0):
 
                         #creation BC sur grille fine
                         if name[2]=='i':
-                           name2= name[0:2]+'ax'
+                            name2= name[0:2]+'ax'
                         else:
-                           name2= name[0:2]+'in'
+                            name2= name[0:2]+'in'
                         name4 = 'Flux_'+ zRname +'_'+name2
                         C._addBC2Zone(zd_t, name4, name4, wrange=winD[:,idir])
                         bcs   = Internal.getNodesFromType2(zd_t, 'BC_t')
                         for bc in bcs:
-                          btype = Internal.getValue(bc)
-                          if btype == name4:
-                             Internal.setValue(bc,'BCFluxOctreeF')
-                             Prop = Internal.getNodeFromName(bc,'.Solver#Property')
-                             if Prop is None:
-                                Internal.createUniqueChild(bc,'.Solver#Property','UserDefinedData_t')
-                             Prop = Internal.getNodeFromName(bc,'.Solver#Property')
+                            btype = Internal.getValue(bc)
+                            if btype == name4:
+                                Internal.setValue(bc,'BCFluxOctreeF')
+                                Prop = Internal.getNodeFromName(bc,'.Solver#Property')
+                                if Prop is None:
+                                    Internal.createUniqueChild(bc,'.Solver#Property','UserDefinedData_t')
+                                Prop = Internal.getNodeFromName(bc,'.Solver#Property')
 
-                             ratioNM =  numpy.ones(3, numpy.float64)
-                             ratioNM[0]= ratio[zd_t[0]][0]
-                             ratioNM[1]= ratio[zd_t[0]][1]
-                             ratioNM[2]= ratio[zd_t[0]][2]
-                             Internal.createUniqueChild(Prop, 'ratioNM', 'DataArray_t', value=ratioNM)
+                                ratioNM =  numpy.ones(3, numpy.float64)
+                                ratioNM[0]= ratio[zd_t[0]][0]
+                                ratioNM[1]= ratio[zd_t[0]][1]
+                                ratioNM[2]= ratio[zd_t[0]][2]
+                                Internal.createUniqueChild(Prop, 'ratioNM', 'DataArray_t', value=ratioNM)
 
-                             ptrange = Internal.getNodesFromType1(bc, 'IndexRange_t')
-                             rg  = ptrange[0][1]
-                             sz  = max(1, rg[0,1]-rg[0,0]+1) * max(1, rg[1,1]-rg[1,0]+1) * max(1, rg[2,1]-rg[2,0]+1)
-                             tab =  numpy.ones(sz*neq, numpy.float64)
-                             Internal.createUniqueChild(Prop, 'FluxFaces', 'DataArray_t', value=tab)
+                                ptrange = Internal.getNodesFromType1(bc, 'IndexRange_t')
+                                rg  = ptrange[0][1]
+                                sz  = max(1, rg[0,1]-rg[0,0]+1) * max(1, rg[1,1]-rg[1,0]+1) * max(1, rg[2,1]-rg[2,0]+1)
+                                tab =  numpy.ones(sz*neq, numpy.float64)
+                                Internal.createUniqueChild(Prop, 'FluxFaces', 'DataArray_t', value=tab)
 
                     else:  print("Error: build flux conservative octree"+name, sz, count[idir],  win[:,idir])
 
