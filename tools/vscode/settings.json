@@ -1,0 +1,56 @@
+{
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "files.exclude": {
+        "**/build": true,
+        "Dist": true,
+        "Cassiopee/ThirdParty": true,
+        "**/.git": true,
+        "**/*.ref*": true,
+        "**/__pycache__": true,
+        "Cassiopee/OCC/OCC/occ_inc": true,
+        "Cassiopee/OCC/OCC/occ_src": true,
+        "**/.sconsign.dblite": true,
+        "**/*.pyc": true,
+        "**/Data": true,
+        "Cassiopee/KCore/doc/source": true,
+        "**/*~": true
+    },
+    "editor.acceptSuggestionOnEnter": "smart",
+    "editor.snippetSuggestions": "none",
+    "editor.autoClosingBrackets": "never",
+    "python.autoComplete.addBrackets": false,
+    "python.linting.pylintArgs": [
+        "--disable", "E1101", // no-member
+        "--disable", "C0103", // invalid-name (snake_cat)
+        "--disable", "W0311", // bad-identation
+        "--disable", "C0303", // trailing-whitespace
+        "--disable", "C0321", // multiple statement on a single line
+        "--disable", "C0415", // import outside toplevel
+        "--disable", "W0212", // protected-access acr nous utilisons _ pour le inplace et non le prive
+        "--disable", "C0301", // line too long
+        "--disable", "W0707", // raise-missing_from (python3)
+    ],
+   
+    "python.analysis.extraPaths": ["c:\\Users\\benoit\\Code\\Cassiopee\\Dist\\bin\\win64\\lib\\python3.12\\site-packages"],
+    "python.analysis.completeFunctionParens": true,
+
+    #"C_Cpp.default.compilerPath": "c:\\msys64\\mingw64\\bin\\gcc.exe",
+    "C_Cpp.default.includePath": [
+        "${default}", 
+        "/opt/tools/python/3.8.14-gnu831/bin/python3",
+        "/opt/tools/occt/7.6.1-gnu831/include/opencascade",
+        "/stck/benoit/Github/Cassiopee/Cassiopee/OCC/OCC",
+        "/stck/benoit/Github/Cassiopee/Cassiopee/KCore/KCore",
+        "/stck/benoit/Github/Cassiopee/Cassiopee/Converter/Converter",
+        "/stck/benoit/Github/Cassiopee/Cassiopee/Transform/Transform",
+        "/stck/benoit/Github/Cassiopee/Cassiopee/Connector/Connector",
+        "/stck/benoit/Github/Cassiopee/Cassiopee/Intersector/Intersector",
+        "/stck/benoit/Github/Cassiopee/Cassiopee/CPlot/CPlot",
+        "/stck/benoit/Github/Cassiopee/Cassiopee/CPlot/CPlot/Shaders",
+        "/stck/benoit/Github/Fast/Fast/FastS",
+        "/stck/benoit/Github/Fast/Fast/FastC",
+        "/stck/benoit/Github/Fast/Fast/FastLBM",
+    ],
+}
