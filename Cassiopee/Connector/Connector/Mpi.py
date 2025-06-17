@@ -34,7 +34,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
 # connectMatch
 #==============================================================================
 def connectMatch(a, tol=1.e-6, dim=3):
-
+    """Find matching boundaries."""
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=2)
 
@@ -94,7 +94,7 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
                          rotationAngle=[0.,0.,0.],
                          translation=[0.,0.,0.], tol=1.e-6, dim=3,
                          unitAngle=None):
-
+    """Find periodic matching boundaries."""
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=2, allB=True)
 
@@ -113,9 +113,12 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
 # parallel NGON connectMatch for one zone
 #==============================================================================
 def _connectMatchNGon(z, tol=1.e-6):
+    """Connect one ngon zone."""
     import Post.PyTree as P
     import Transform.PyTree as T
     if Cmpi.size == 1: return None
+
+    print(Cmpi.rank, 'has ', z[0])
     # get exterior faces and indirection
     indicesF = []
     zf = P.exteriorFaces(z, indices=indicesF)
@@ -148,35 +151,42 @@ def _connectMatchNGon(z, tol=1.e-6):
         zu = T.subzone(z, indicesE, type='faces')
     else: zu = None; indicesE = []
 
-    data = [zu, indicesE]
-    print("start", flush=True)
+    for trip in range(Cmpi.size-1):
 
-    # pass faces to neighbour
-    reqs = []
-    if Cmpi.rank < Cmpi.size-1: s = Cmpi.isend(data, dest=Cmpi.rank+1)
-    else: s = Cmpi.isend(data, 0)
-    reqs.append(s)
-    print("send done", flush=True)
-    Cmpi.barrier()
+        data = [zu, indicesE]
+        print(Cmpi.rank, "start trip", zu[0], flush=True)
 
-    # get the neighbour faces
-    if Cmpi.rank > 0: data = Cmpi.recv(source=Cmpi.rank-1)
-    else: data = Cmpi.recv(source=Cmpi.size-1)
-    print("receive done", flush=True)
-    Cmpi.requestWaitall(reqs)
+        # pass undefined faces zu to neighbour
+        reqs = []
+        if Cmpi.rank < Cmpi.size-1: s = Cmpi.isend(data, dest=Cmpi.rank+1)
+        else: s = Cmpi.isend(data, 0)
+        reqs.append(s)
+        print(Cmpi.rank, "send done", reqs, flush=True)
+        Cmpi.barrier()
 
-    (zu, indicesE) = data
+        # get the neighbour faces
+        if Cmpi.rank > 0: data = Cmpi.recv(source=Cmpi.rank-1)
+        else: data = Cmpi.recv(source=Cmpi.size-1)
+        Cmpi.requestWaitall(reqs)
 
-    # identify faces and build matches
-    ids = C.identifyElements(hook, zu, tol)
+        (zu, indicesE) = data
+        print(Cmpi.rank, "receive done", zu[0], flush=True)
 
-    sizebc = ids.size
-    if sizebc > 0:
-        id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
-        id2[:] = indicesE[ids[:]-1]
-        C._addBC2Zone(z, 'match', 'BCMatch', faceList=id2)
+        # identify faces and build matches
+        ids = C.identifyElements(hook, zu, tol)
+        ids = ids[ids[:]>=0]
 
-    C.free(hook)
+        sizebc = ids.size
+        if sizebc > 0:
+            id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
+            id2[:] = indicesF[ids[:]-1]
+            #id1 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
+            id1 = indicesE[ids[:]-1]
+            print(Cmpi.rank, id2.shape)
+            print(Cmpi.rank, id1.shape)
+            C._addBC2Zone(z, 'match', 'BCMatch', faceList=id2, zoneDonor=zu[0], faceListDonor=id1)
+        
+    C.freeHook(hook)
     return None
 
 #==============================================================================
@@ -1000,7 +1010,7 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
             dnrZones.append(zd)
 
         cellNPresent = C.isNamePresent(zs, varcelln)
-        if cellNPresent==-1: C._initVars(zs, varcelln, 2.) # interp all
+        if cellNPresent == -1: C._initVars(zs, varcelln, 2.) # interp all
 
         if dnrZones != []:
             X._setInterpData(zs, dnrZones, nature=1, penalty=1, order=order, loc=locR, storage='inverse',
