@@ -1789,14 +1789,14 @@ def conformOctree3(octree):
 def balanceOctree__(octree, ratio=2, corners=0):
     return generator.balanceOctree(octree, ratio, corners)
 
-def extendCartGrids(A, ext=0, optimized=0, extBnd=0):
-    A, rinds = generator.extendCartGrids(A, ext, optimized, extBnd)
+def extendCartGrids(A, ext=0, optimized=0, extBnd=0, tol=1.e-6):
+    A, rinds = generator.extendCartGrids(A, ext, optimized, extBnd, tol)
     return A, rinds
 
-def extendOctreeGrids__(A, ext, optimized, extBnd=0):
+def extendOctreeGrids__(A, ext, optimized, extBnd=0,tol=1.e-6):
     """Extend grids with ext cells. If optimized is ext, the minimum overlapping is ensured.
     Usage: extendOctreeGrids__(cartGrids, ext, optimized, extBnd)"""
-    A, rinds = extendCartGrids(A, ext, optimized, extBnd)
+    A, rinds = extendCartGrids(A, ext, optimized, extBnd, tol)
     return A
 
 def adaptOctree(octreeHexa, indicField, balancing=1, ratio=2):
