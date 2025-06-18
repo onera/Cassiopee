@@ -78,7 +78,6 @@ def _addCellN__(t, loc='centers', cellNName='cellN'):
 #=============================================================================
 # 1. CALCUL DES INTERSECTIONS ENTRE DOMAINES
 #=============================================================================
-
 def getIntersectingDomainsAABB(t, tol=1.e-10):
     """Return the intersection list of a list of bounding boxes."""
     m = C.getFields(Internal.__GridCoordinates__, t, api=2)
@@ -114,7 +113,7 @@ def getBBIntersectingDomains(A, B, tol=1.e-6):
 
 #------------------------------------------------------------------------------
 def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
-                           taabb2=None, tobb2=None):
+                           taabb2=None, tobb2=None, tol=1e-10):
     """Returns the dictionary of intersecting zones.
     Usage: getIntersectingDomains(t, t2, method, taabb, tobb, taabb2, tobb2)"""
     try: import Generator.PyTree as G
@@ -144,7 +143,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
         if not taabb: taabb = G.BB(t)
         if not t2:
             # fast: t, taabb=t avec t bbox
-            IntDict = getIntersectingDomainsAABB(taabb, tol=1.e-10)
+            IntDict = getIntersectingDomainsAABB(taabb, tol=tol)
             #TotInter = 0
         else:
             if not taabb2: taabb2 = G.BB(t2)
@@ -154,7 +153,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                 IntDict[z1[0]] = []
                 for z2 in zones2:
                     if z1[0] != z2[0]:
-                        if G.bboxIntersection(z1, z2, tol=1.e-10, isBB=True, method='AABB') == 1:
+                        if G.bboxIntersection(z1, z2, tol=tol, isBB=True, method='AABB') == 1:
                             IntDict[z1[0]].append(z2[0]) # saves the intersected zones names
                             #TotInter += 1
 
@@ -170,7 +169,7 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                 if z1 != z2:
                     obb2 = Internal.getZones(tobb2)
                     obb2 = Internal.getNodeFromName(obb2,z2)
-                    if G.bboxIntersection(obb1, obb2, isBB=True, method='OBB') == 1:
+                    if G.bboxIntersection(obb1, obb2, tol=tol, isBB=True, method='OBB') == 1:
                         IntDict[z1].append(z2) # saves the intersected zones names
                         #TotInter += 1
 
@@ -194,26 +193,26 @@ def getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None,
                     obb2 = Internal.getNodeFromName(obb2,z2)
                     aabb2 = Internal.getZones(taabb2)
                     aabb2 = Internal.getNodeFromName(aabb2,z2)
-                    if G.bboxIntersection(obb1, obb2, isBB=True,method='OBB') == 0:
+                    if G.bboxIntersection(obb1, obb2, tol=tol, isBB=True,method='OBB') == 0:
                         continue
-                    elif G.bboxIntersection(aabb1, aabb2, tol=1.e-10, isBB=True,method='AABB') == 0:
+                    elif G.bboxIntersection(aabb1, aabb2, tol=tol, isBB=True,method='AABB') == 0:
                         continue
-                    elif G.bboxIntersection(aabb1, obb2, isBB=True,method='AABBOBB') == 0:
+                    elif G.bboxIntersection(aabb1, obb2, tol=tol, isBB=True,method='AABBOBB') == 0:
                         continue
-                    elif G.bboxIntersection(aabb2, obb1, isBB=True,method='AABBOBB') == 0:
+                    elif G.bboxIntersection(aabb2, obb1, tol=tol, isBB=True,method='AABBOBB') == 0:
                         continue
                     else:
                         IntDict[z1].append(z2) # saves the intersected zones names
                         #TotInter += 1
     else:
         print('Warning: getIntersectingDomains: method %s not implemented. Switched to AABB.'%method)
-        return getIntersectingDomains(t, method='AABB', taabb=taabb, tobb=tobb)
+        return getIntersectingDomains(t, method='AABB', tol=tol, taabb=taabb, tobb=tobb)
 
     #print('Total zone/zone intersections: %d.'%TotInter)
     return IntDict
 
 #------------------------------------------------------------------------------
-def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
+def getCEBBIntersectingDomains(basis0, bases0, sameBase=0, tol=1e-6):
     """Return the list of interpolation domains defined in bases for any zone in basis.
     Usage: getCEBBIntersectingDomains(basis, bases, sameBase)"""
     try: import Generator.PyTree as G
@@ -225,7 +224,6 @@ def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
     if len(bases) < 1: raise TypeError("getCEBBIntersectingDomains: not a list of CGNS bases.")
     basis = basis[0]
     # precond : recherche des bases intersectantes
-    tol = 1e-6
     [xmin1,ymin1,zmin1,xmax1,ymax1,zmax1] = G.bbox(basis)
     basename1 = basis[0]
     bases2 = []
@@ -252,11 +250,11 @@ def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
                 for z2 in zones2:
                     name2 = z2[0]
                     if name1 != name2:
-                        if G.CEBBIntersection(z1, z2) == 1:
+                        if G.CEBBIntersection(z1, z2, tol=tol) == 1:
                             doms1.append(z2[0])
             else:
                 for z2 in zones2:
-                    if G.CEBBIntersection(z1, z2) == 1:
+                    if G.CEBBIntersection(z1, z2, tol=tol) == 1:
                         doms1.append(z2[0])
         doms.append(doms1)
     return doms
@@ -264,7 +262,7 @@ def getCEBBIntersectingDomains(basis0, bases0, sameBase=0):
 #==============================================================================
 def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
                                    inititer=0, niter=1, dt=1, \
-                                   sameBase=0):
+                                   sameBase=0, tol=1e-6):
     """Return the list domains defined in bases, that intersect in time
     with base. Func defines a python motion of base with respect to time.
     Usage: getCEBBTimeIntersectingDomains(base, func, bases, funcs,
@@ -292,7 +290,7 @@ def getCEBBTimeIntersectingDomains(base0, func, bases0, funcs, \
             else: bp = Internal.copyRef(b)
             basesp.append(bp)
             nob += 1
-        domsp = getCEBBIntersectingDomains(basep, basesp, sameBase)
+        domsp = getCEBBIntersectingDomains(basep, basesp, sameBase, tol=tol)
         if domsp != [[]]*nzones:
             # premieres intersections
             if doms == []: doms = domsp
