@@ -13,7 +13,7 @@ Cassiopee/Modeler/merge.l
 Cassiopee/KCore/buildInfo.py
 Cassiopee/KCore/installPath.py
 Cassiopee/KCore/doc/source/*.rst
-
+Cassiopee/CPlot/apps/Output
 ValidData*
 Data*
 *~

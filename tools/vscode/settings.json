@@ -15,6 +15,7 @@
         "**/*.pyc": true,
         "**/Data": true,
         "Cassiopee/KCore/doc/source": true,
+        "Cassiopee/ValidData*": true,
         "**/*~": true
     },
     "editor.acceptSuggestionOnEnter": "smart",
@@ -32,25 +33,25 @@
         "--disable", "C0301", // line too long
         "--disable", "W0707", // raise-missing_from (python3)
     ],
-   
-    "python.analysis.extraPaths": ["c:\\Users\\benoit\\Code\\Cassiopee\\Dist\\bin\\win64\\lib\\python3.12\\site-packages"],
+    
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/Dist/bin/win64/lib/python3.12/site-packages",
+        ],
     "python.analysis.completeFunctionParens": true,
 
-    #"C_Cpp.default.compilerPath": "c:\\msys64\\mingw64\\bin\\gcc.exe",
+    "C_Cpp.default.compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
     "C_Cpp.default.includePath": [
         "${default}", 
-        "/opt/tools/python/3.8.14-gnu831/bin/python3",
-        "/opt/tools/occt/7.6.1-gnu831/include/opencascade",
-        "/stck/benoit/Github/Cassiopee/Cassiopee/OCC/OCC",
-        "/stck/benoit/Github/Cassiopee/Cassiopee/KCore/KCore",
-        "/stck/benoit/Github/Cassiopee/Cassiopee/Converter/Converter",
-        "/stck/benoit/Github/Cassiopee/Cassiopee/Transform/Transform",
-        "/stck/benoit/Github/Cassiopee/Cassiopee/Connector/Connector",
-        "/stck/benoit/Github/Cassiopee/Cassiopee/Intersector/Intersector",
-        "/stck/benoit/Github/Cassiopee/Cassiopee/CPlot/CPlot",
-        "/stck/benoit/Github/Cassiopee/Cassiopee/CPlot/CPlot/Shaders",
-        "/stck/benoit/Github/Fast/Fast/FastS",
-        "/stck/benoit/Github/Fast/Fast/FastC",
-        "/stck/benoit/Github/Fast/Fast/FastLBM",
+        "C:/msys64/mingw64/include",
+        "C:/msys64/mingw64/include/python3.12",
+        "C:/msys64/mingw64/include/opencascade",
+        "${workspaceFolder}/Cassiopee/KCore/KCore",
+        "${workspaceFolder}/Cassiopee/Converter/Converter",
+        "${workspaceFolder}/Cassiopee/Transform/Transform",
+        "${workspaceFolder}/Cassiopee/Connector/Connector",
+        "${workspaceFolder}/Cassiopee/Intersector/Intersector",
+        "${workspaceFolder}/Cassiopee/CPlot/CPlot",
+        "${workspaceFolder}/Cassiopee/CPlot/CPlot/Shaders"
     ],
+
 }
