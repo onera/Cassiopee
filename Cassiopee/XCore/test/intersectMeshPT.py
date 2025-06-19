@@ -10,7 +10,6 @@ m = G.cartNGon((0,0,0),(0.1,0.1,0.1),(11,11,11))
 C._initVars(m, 'centers:keep', 1.0)
 # Triangulate the external quads
 X._triangulateSkin(m)
-I._adaptNGon42NGon3(m)
 
 # Initialize the IntersectMesh hook
 IM = X.IntersectMesh_Init(m)
@@ -24,7 +23,6 @@ c = G.close(c)
 cp = X.removeIntersectingKPlanes(IM, c)
 # Mark the original cells to keep
 C._initVars(cp, 'centers:keep', 1.0)
-I._adaptNGon42NGon3(cp)
 
 # Drop the IntersectMesh hook
 X.IntersectMesh_Exit(IM)
@@ -37,6 +35,7 @@ X.icapsuleSetMaster(IC, m)
 X.icapsuleSetSlaves(IC, [cp])
 
 # Intersect
+X.icapsuleAdapt2(IC)
 X.icapsuleIntersect2(IC)
 # Extract the resulting meshes as zones
 Mi = X.icapsuleExtractMaster(IC)

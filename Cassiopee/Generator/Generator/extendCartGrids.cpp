@@ -30,7 +30,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
 {
   PyObject *arrays;
   E_Int ext, optimized, extBnd;
-  if (!PYPARSETUPLE_(args, O_ III_, &arrays, &ext, &optimized, &extBnd)) return NULL;
+  E_Float tol=1.e-6;
+  if (!PYPARSETUPLE_(args, O_ III_ R_, &arrays, &ext, &optimized, &extBnd, &tol)) return NULL;
 
   if (ext < 0) 
   {
@@ -95,7 +96,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
   E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
   E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
-  E_Float tol = 1.e-6; E_Float tol2 = tol*tol;
+  E_Float tol2 = tol*tol;
   for (E_Int v = 0; v < nzones; v++)
   {
     K_COMPGEOM::boundingBox(

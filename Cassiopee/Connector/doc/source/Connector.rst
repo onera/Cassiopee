@@ -100,14 +100,19 @@ Multiblock connectivity
 
         ::
 
-         t = X.connectMatch(t, tol=1.e-6, dim=3)
+         t = X.connectMatch(t, tol=1.e-6, dim=3, type='all')
         
         Detect and set all matching windows in a zone node, a list of zone nodes or a complete pyTree.
         Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2.
-        If the CFD problem is 2D, then dim must be set to 2.
 
     :param t: input data
     :type  t: pyTree, base, zone, list of zones
+    :param tol: geometrical tolerance between abutting zones
+    :type tol: float
+    :param dim: dimension of the problem (2 or 3, only for structured grids)
+    :type dim: integer
+    :param type: can be 'structured', 'unstructured', 'hybrid' or 'all'
+    :type type: string
     :rtype:  identical to input
 
     Exists also as parallel distributed version (X.Mpi.connectMatch).
@@ -133,12 +138,22 @@ Multiblock connectivity
 
     :param t: input data
     :type  t: pyTree, base, zone, list of zones
+    :param tol: geometrical tolerance between periodical abutting zones
+    :type tol: float
+    :param dim: dimension of the problem (2 or 3, only for structured grids)
+    :type dim: integer
+    :param rotationCenter: coordinates of the rotation center for periodicity by rotation
+    :type rotationCenter: list of 3 floats
+    :param translation: translation vector for periodicity by translation
+    :type translation: list of 3 floats
+    :param rotationAngle: rotation angle, the only one non-zero provides the rotation axis
+    :type rotationAngle: list of 3 floats
+    :param unitAngle: angle unit ('Degree' or 'Radian' or None). None means 'Degree' (default value).
+    :type unitAngle: float
     :rtype:  identical to input
 
 
     Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2, and the 'GridConnectivityProperty/Periodic' for periodic matching BCs.
-
-    If the CFD problem is 2D, then dim must be set to 2.
 
     For periodicity by rotation, the rotation angle units can be specified by argument unitAngle, which can be 'Degree','Radian',None.
 
@@ -176,6 +191,12 @@ Multiblock connectivity
 
     :param t: input data
     :type  t: pyTree, base, zone, list of zones
+    :param ratio: defines the 1-over-ratio abutting grids in all the directions
+    :type ratio: integer or list of 3 integers
+    :param tol: tolerance between 1-to-n abutting grids
+    :type tol: float
+    :param dim: dimension of the problem (2 only valid for structured grids)
+    :type dim: integer
     :rtype:  identical to input
 
     *Example of use:*
@@ -193,6 +214,14 @@ Multiblock connectivity
     If the problem is 2D according to (i,j), then parameter 'dim' must be set to 2.
     Parameter 'tol' defines a distance below which a window is assumed degenerated.
     
+    :param t: input data
+    :type  t: pyTree, base, zone, list of zones
+    :param tol: tolerance under which cells are considered as degenerated
+    :type tol: float
+    :param dim: dimension of the problem (2 only valid for structured grids)
+    :type dim: integer
+    :rtype:  identical to input
+
     *Example of use:*
 
     * `Add degenerated line as BCs in a pyTree (pyTree) <Examples/Connector/setDegeneratedBCPT.py>`_:
@@ -525,7 +554,7 @@ Overset connectivity
 
         ::
 
-         t = X.optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0.)
+         t = X.optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersectionsDict=None)
 
         Optimize the overlapping between all structured zones defined in a pyTree t.
         The 'cellN' variable located at cell centers is modified, such that cellN=2 for a cell interpolable from another zone. 
@@ -548,7 +577,7 @@ Overset connectivity
 
 -----------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: Connector.maximizeBlankedCells(a, depth=2, dir=1)
+.. py:function:: Connector.maximizeBlankedCells(a, depth=2, dir=1, cellNName='cellN', addGC=True)
 
 
     Change useless interpolated points status (2) to blanked points (0).
@@ -617,7 +646,7 @@ Overset connectivity
  
 -----------------------------------------------------------------------------------------------------------------------------
     
-.. py:function:: Connector.getIntersectingDomains(t, t2=None, method='AABB', taabb=None, tobb=None, taabb2=None, tobb2=None)
+.. py:function:: Connector.getIntersectingDomains(t, t2=None, tol=1e-6, method='AABB', taabb=None, tobb=None, taabb2=None, tobb2=None)
     
     Create a Python dictionary describing the intersecting zones. If t2 is not provided, then the computed dictionary states the self-intersecting zone names, otherwise, it
     computes the intersection between t and t2. Mode can be 'AABB', for Axis-Aligned Bounding Box method, 'OBB' for Oriented Bounding Box method, or 'hybrid', using a combination
@@ -636,7 +665,7 @@ Overset connectivity
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: Connector.getCEBBIntersectingDomains(A, B, sameBase)
+.. py:function:: Connector.getCEBBIntersectingDomains(A, B, sameBase=0, tol=1e-6)
 
     Detect the domains defined in the list of bases B whose CEBB
     intersect domains defined in base A.
@@ -651,7 +680,7 @@ Overset connectivity
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: X.getCEBBTimeIntersectingDomains(base, func, bases, funcs, inititer=0, niter=1, dt=1, sameBase)
+.. py:function:: X.getCEBBTimeIntersectingDomains(base, func, bases, funcs, inititer=0, niter=1, dt=1, sameBase=0, tol=1.e-6)
 
     in a Chimera pre-processing for bodies in relative motion,
     it can be useful to determine intersecting domains at any iteration.
@@ -670,7 +699,7 @@ Overset connectivity
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function::  X.applyBCOverlaps(t, depth=2, loc='centers')
+.. py:function::  X.applyBCOverlaps(t, depth=2, loc='centers',val=2, cellNName='cellN')
 
     set the cellN to 2 for the fringe nodes or cells (depending on parameter 'loc'='nodes' or 'centers') near the overlap borders defined in the pyTree t.
     Parameter 'depth' defines the number of layers of interpolated points.
@@ -699,7 +728,7 @@ Overset connectivity
 -----------------------------------------------------------------------------------------------------------------------------
 
 
-.. py:function:: Connector.PyTree.cellN2OversetHoles(t)
+.. py:function:: Connector.PyTree.cellN2OversetHoles(t, append=False)
 
     Compute the OversetHoles node into a pyTree from the cellN field, located at nodes or centers. For structured zones, defines it as a list of ijk indices, located at nodes or centers.
     For unstructured zones, defines the OversetHoles node as a list of indices ind, defining the cell vertices that are of cellN=0 if the cellN is located at nodes, and defining the cell centers that are of cellN=0 if the cellN is located at centers.
@@ -718,8 +747,8 @@ Overset connectivity
    
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: Connector.PyTree.setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1, loc='nodes', storage='direct', topTreeRcv=None, topTreeDnr=None, sameName=0)
-
+.. py:function:: Connector.PyTree.setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1, method='lagrangian', loc='nodes', storage='direct', interpDataType=1, hook=None, verbose=2, topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both', dictOfModels=None)
+    
     Compute and store in a pyTree the interpolation information (donor and receptor points, interpolation type, interpolation coefficients) given receptors defined by aR,
     donor zones given by aD. If storage='direct', then aR with interpolation data stored in receptor zones are returned, and if storage='inverse', then aD with interpolation data stored in donor zones are returned.
     Donor zones can be structured or unstructured TETRA. receptor zones can be structured or unstructured.
