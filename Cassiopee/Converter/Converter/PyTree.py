@@ -3892,7 +3892,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
                         if isp[0]=='FamilySpecified': dnrZoneNames.append(isp[1])
 
                 elif Internal.getType(i)=="Zone_t": dnrZoneNames.append(Internal.getName(i))
-            if dnrZoneNames == []: raise ValueError("addBC2ZoneStruct: no donor zone for doubly defined overlap bc %s."%(zoneGC[0]))
+            if dnrZoneNames == []: raise ValueError("addBC2Zone: no donor zone for doubly defined overlap bc %s."%(zoneGC[0]))
             # donors donnes
             v = ",".join(dnrZoneNames)
             #print("addBC2ZoneStruct(overlap): liste des zones donneuses : ", v)
@@ -4139,7 +4139,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
             if isinstance(elementListDonor, numpy.ndarray):
                 r = elementListDonor
             else: r = numpy.array(elementListDonor, dtype=Internal.E_NpyInt)
-            r = r.reshape((1,r.size))
+            r = r.reshape((1, r.size))
             info[2].append([Internal.__ELEMENTLIST__+'Donor', r, [], 'IndexArray_t'])
         elif elementRangeDonor is not None:
             r = numpy.empty((1,2), dtype=Internal.E_NpyInt, order='F')
@@ -4149,7 +4149,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
         elif faceListDonor is not None:
             if isinstance(faceListDonor, numpy.ndarray): r = faceList
             else: r = numpy.array(faceListDonor, dtype=Internal.E_NpyInt)
-            r = r.reshape((1,r.size), order='F')
+            r = r.reshape((1, r.size), order='F')
             info[2].append([Internal.__FACELIST__+'Donor', r, [], 'IndexArray_t'])
 
         Internal.createChild(info, 'GridConnectivityType', 'GridConnectivityType_t', 'Abutting1to1')
@@ -5539,7 +5539,7 @@ def computeBCMatchField(z, allMatch, variables=None):
     if dim[0] == 'Structured': zoneType=1
     else:
         zoneType = 2; eltName = dim[3]
-        if eltName=='NGON': pass
+        if eltName == 'NGON': pass
         else: raise ValueError("computeBCMatchField: not yet implement for basic elements.")
 
     # Liste des variables
@@ -5549,7 +5549,7 @@ def computeBCMatchField(z, allMatch, variables=None):
         else: varList = variables
     else:
         varList=[]
-        FS = Internal.getNodeFromName1(z,Internal.__FlowSolutionCenters__)
+        FS = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         for fs in FS[2]:
             if Internal.getType(fs) == 'DataArray_t':
                 varList.append(Internal.getName(fs))
@@ -5659,7 +5659,7 @@ def computeBCMatchField(z, allMatch, variables=None):
             if key.split("/")[0] == z[0]:
                 [indR1,fldD] = allMatch[key]
 
-                fld1 = Converter.converter.buildBCMatchFieldNG(z,indR1,fldD, varL,
+                fld1 = Converter.converter.buildBCMatchFieldNG(z, indR1, fldD, varL,
                                                                Internal.__GridCoordinates__,
                                                                Internal.__FlowSolutionNodes__,
                                                                Internal.__FlowSolutionCenters__)
@@ -5689,7 +5689,7 @@ def computeBCMatchField(z, allMatch, variables=None):
 # indFaceR : indices des faces de la frontiere dans la zone receveuse
 # fldFace  : champ de la zone donneuse extrapole sur les faces frontieres
 # ===================================================================================
-def extractBCMatch(zdonor,gc,dimzR,variables=None):
+def extractBCMatch(zdonor, gc, dimzR, variables=None):
     # On verifie que gc donne le raccord dans zdonor
     # ==============================================
     # print("================================================")

@@ -83,13 +83,13 @@ def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDe
 #==============================================================================
 # Ecrit seulement un noeud de l'arbre ou ses enfants (suivant maxDepth)
 #==============================================================================
-def writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0):
+def writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0, isize=8, rsize=8):
     """Write nodes to file given their paths."""
     if format is None: format = Converter.convertExt2Format__(fileName)
     if not isinstance(paths, list): p = [paths]; n = [nodes]
     else: p = paths; n = nodes
     p = fixPaths__(p)
-    Converter.converter.writePyTreePaths(fileName, n, p, format, maxDepth, mode, None)
+    Converter.converter.writePyTreePaths(fileName, n, p, format, maxDepth, mode, None, isize, rsize)
     return None
 
 def writePyTreeFromPaths(t, fileName, paths, format=None, maxDepth=-1):
@@ -314,7 +314,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
 # si proc == -1: ecrit tout les zones de t
 # Warning: limite a adf et hdf
 #==============================================================================
-def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
+def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None, isize=8, rsize=8):
     """Write some zones in an existing file (adf or hdf)."""
     if zoneNames is None and proc is None: return None
     tp, ntype = Internal.node2PyTree(t)
@@ -349,7 +349,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
 
     print('Writing %s [%d zones]...'%(fileName,len(paths))),
     if format is None: format = Converter.convertExt2Format__(fileName)
-    Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0, links)
+    Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0, links, isize, rsize)
     print('done.')
     return None
 
@@ -656,14 +656,14 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
 
             list_graph_=[]
             for ssiter in range(3,4):#range(1,2*nssiter+1):
-                graph_={}
+                graph_ = {}
                 for z in zones:
                     proc = getProcLocal__(z, procDict)
                     subRegions2 = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
                     subRegions = []
                     for s in subRegions2:
                         sname = s[0][0:2]
-                        if sname=='ID': subRegions.append(s)
+                        if sname == 'ID': subRegions.append(s)
                     for s in subRegions:
                         donor = Internal.getValue(s)
                         levdnr_ = Internal.getNodesFromName1(s,'LevelZDnr')
@@ -713,7 +713,6 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     if idn != []: # la subRegion decrit des IBC
                         popp = getProcGlobal__(donor, t, procDict)
                         updateGraph__(graph, proc, popp, z[0])
-
 
         else:
             maxlevel=1
@@ -878,6 +877,11 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         for z in zones:
             proc = getProcLocal__(z, procDict)
             GC = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+            GC2 = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+            for c in GC2:
+                r = Internal.getNodeFromType1(c, 'GridConnectivityType_t')
+                if r is not None and Internal.getValue(r) == 'Abutting1to1':
+                    GC.append(c)
             for c in GC:
                 donor = Internal.getValue(c)
                 popp = getProcGlobal__(donor, t, procDict)

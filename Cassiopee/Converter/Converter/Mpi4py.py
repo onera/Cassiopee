@@ -541,8 +541,8 @@ def convertPyTree2File(t, fileName, format=None, links=[],
     else:
         go = KCOMM.recv(source=rank-1)
         if go == 1:
-            if ignoreProcNodes: Distributed.writeZones(tp, fileName, format=format, proc=-1, links=links)
-            else: Distributed.writeZones(tp, fileName, format=format, proc=rank, links=links)
+            if ignoreProcNodes: Distributed.writeZones(tp, fileName, format=format, proc=-1, links=links, isize=isize, rsize=rsize)
+            else: Distributed.writeZones(tp, fileName, format=format, proc=rank, links=links, isize=isize, rsize=rsize)
         else:
             if nzones > 0:
                 C.convertPyTree2File(tp, fileName, format=format, links=links, isize=isize, rsize=rsize); go = 1

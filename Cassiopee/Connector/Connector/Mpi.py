@@ -149,6 +149,7 @@ def _connectMatchNGon(z, tol=1.e-6):
         indicesE = indicesF
     if undefBC:
         zu = T.subzone(z, indicesE, type='faces')
+        zu[0] = z[0]
     else: zu = None; indicesE = []
 
     for trip in range(Cmpi.size-1):
@@ -174,6 +175,14 @@ def _connectMatchNGon(z, tol=1.e-6):
 
         # identify faces and build matches
         ids = C.identifyElements(hook, zu, tol)
+
+        # get the indices of ids where ids is not -1
+        # since they correspond to indices in zu
+        ids2 = numpy.copy(ids)
+        ids2[:] += 1
+        ids2 = numpy.argwhere(ids2)
+
+        # keep non -1 indices
         ids = ids[ids[:]>=0]
 
         sizebc = ids.size
@@ -181,9 +190,9 @@ def _connectMatchNGon(z, tol=1.e-6):
             id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
             id2[:] = indicesF[ids[:]-1]
             #id1 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
-            id1 = indicesE[ids[:]-1]
-            print(Cmpi.rank, id2.shape)
-            print(Cmpi.rank, id1.shape)
+            id1 = indicesE[ids2[:]-2]
+            #print(Cmpi.rank, id2.shape)
+            #print(Cmpi.rank, id1.shape)
             C._addBC2Zone(z, 'match', 'BCMatch', faceList=id2, zoneDonor=zu[0], faceListDonor=id1)
 
     C.freeHook(hook)

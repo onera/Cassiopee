@@ -1966,7 +1966,8 @@ void K_IO::GenIO::getEndOfPath(char* path, char*& EndPath)
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
                                      PyObject* paths, PyObject* links, 
-                                     E_Int maxDepth, E_Int mode)
+                                     E_Int maxDepth, E_Int mode,
+                                     E_Int isize, E_Int rsize)
 {
   if (PyList_Check(paths) == false)
   {
@@ -1993,6 +1994,8 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
   GenIOHdf HDF;
   if (maxDepth >= 0) HDF._maxDepth = maxDepth;
   else HDF._maxDepth = 1e6;
+  if (isize == 4) HDF._writeIntMode = 1; // force best i4/i8 write
+  if (rsize == 4) HDF._writeRealMode = 1; // force r4 write
 
   for (E_Int i = 0; i < size; i++)
   {

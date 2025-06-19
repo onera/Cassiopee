@@ -30,7 +30,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   // Return index of boundary faces in receiver zone and associated fields 
   // extracted from donor zone
   
-  PyObject *zone, *pyIndices, *pyVariables ; 
+  PyObject *zone, *pyIndices, *pyVariables;
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   
   if (!PYPARSETUPLE_(args, OOO_ SSS_, &zone, &pyIndices, &pyVariables, 
@@ -100,11 +100,11 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
         if (PyString_Check(tpl0)) 
         {
            char* varname = PyString_AsString(tpl0); 
-	         if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
-	         else
-	         {
-	           strcat(varStringOut, ","); strcat(varStringOut, varname);
-	         }
+           if (varStringOut[0] == '\0' ) strcpy(varStringOut, varname);
+           else
+           {
+             strcat(varStringOut, ","); strcat(varStringOut, varname);
+           }
            posvar = K_ARRAY::isNamePresent(varname, varString);  
            if (posvar != -1 ) posvars.push_back(posvar);
         }
@@ -132,9 +132,9 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   // Indices des faces 
   // ~~~~~~~~~~~~~~~~~
   FldArrayI* ind;
-  E_Int res = K_NUMPY::getFromNumpyArray(pyIndices, ind, true);
+  E_Int res = K_NUMPY::getFromPointList(pyIndices, ind, true);
 
-  if ( res == 0)
+  if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, "extractBCMatchNG: not a valid numpy for indices.");
     RELEASESHAREDZ(hook, varString, eltType);
@@ -168,9 +168,9 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
 
       for (E_Int noint = 0; noint < nint; noint++)
       {
-	E_Int indint   = ptrInd[noint]-1;        
+        E_Int indint   = ptrInd[noint]-1;
         E_Int indcell  = PE[indint]-1;
-	ptrFldD[noint] = fieldV[indcell];
+        ptrFldD[noint] = fieldV[indcell];
       }
   }
 
@@ -1031,8 +1031,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
                      &pyVariables, &GridCoordinates, &FlowSolutionNodes, 
                      &FlowSolutionCenters )) return NULL;
 
- //  // Zone 
- //  // ~~~~
+  // Zone
+  // ~~~~
   E_Int ni, nj, nk, cnSize, cnNfld ; 
   char* varString; char* eltType;
   vector<E_Float*> fields; vector<E_Int> locs;
@@ -1066,7 +1066,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
   
   // Champs de la zone donneuse
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~
-  E_Int ni2, nj2, nk2 ;
+  E_Int ni2, nj2, nk2;
   FldArrayF* fldD;
   FldArrayI* cn2;
   char* varStringOut;
@@ -1130,22 +1130,22 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
   // Indices des faces 
   // ~~~~~~~~~~~~~~~~~
   FldArrayI* indR;
-  E_Int res = K_NUMPY::getFromNumpyArray(pyIndR, indR, true);
+  E_Int res = K_NUMPY::getFromPointList(pyIndR, indR, true);
 
-  if ( res == 0)
+  if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldNG: not a valid numpy for indR.");
     RELEASESHAREDZ(hook, varString, eltType);
     return NULL;   
   }
 
- // Tableau des champs (output)
+  // Tableau des champs (output)
   // ~~~~~~~~~~~~~~~~~~
-  int nfld = fldD->getNfld();
-  int nind = indR->getSize();
-  PyObject* pyFld = K_ARRAY::buildArray2(nfld,varStringOut,nind,1,1,2); 
+  E_Int nfld = fldD->getNfld();
+  E_Int nind = indR->getSize();
+  PyObject* pyFld = K_ARRAY::buildArray2(nfld, varStringOut, nind, 1,1,2); 
 
-  FldArrayF*  fld; 
+  FldArrayF* fld;
   FldArrayI* cn3;
   char* varStringTmp;
   K_ARRAY::getFromArray2(pyFld, varStringTmp, fld, ni2, nj2, nk2, cn3, eltType);
