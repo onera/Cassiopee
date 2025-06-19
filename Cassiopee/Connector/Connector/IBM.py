@@ -4260,48 +4260,51 @@ def _buildConservativeFlux(t, tc, verbose=0):
     ## determine dx=dy for each zone & store per zone
     levelZone={}
     deltaZ={}
-    for z in Internal.getZones(t):
-        level = Internal.getNodeFromName(z,'niveaux_temps')
-        coordz = Internal.getNodeFromName(z,'CoordinateZ')[1]
-        dz = coordz[0,0,1]-coordz[0,0,0]
+    zones = Internal.getZones(t)
+    level0 = Internal.getNodeFromName(zones[0],'niveaux_temps')
+    hmin_loc=1e30
+    for z in zones:
+
+        coordz        = Internal.getNodeFromName(z,'CoordinateZ')[1]
+        dz            = coordz[0,0,1]-coordz[0,0,0]
         deltaZ[ z[0] ]= dz
+        level = Internal.getNodeFromName(z,'niveaux_temps')
 
         if level is not None:
             levelZone[ z[0] ] = level[1][0]
         else:
-            hmin_loc = 1.e30
-            for z in Internal.getZones(t):
-                h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-                levelZone[z[0]]=h
-                if h < hmin_loc : hmin_loc = h
-            hmin_loc = Cmpi.allgather(hmin_loc)
+            h              = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            #print('h_loc=', h, z[0], flush=True)
+            levelZone[z[0]]= h
+            if h < hmin_loc : hmin_loc = h
 
-            if Cmpi.size > 1 :
-                hmin=1e30
-                for h in hmin_loc:
-                    if h < hmin : hmin = h
-            else:
-                hmin = hmin_loc[0]
+    #print('hmin_loc=', hmin_loc, flush=True)
+    hmin = hmin_loc
+    if Cmpi.size > 1 :
+        hmin_loc = Cmpi.allgather(hmin_loc)
+        hmin=1e30
+        for h in hmin_loc:
+            if h < hmin : hmin = h
 
-            #print("hminLoc", hmin_loc, hmin)
+    #print("hminGlob", hmin, flush=True)
 
-            ## go from dx to dx/dx_min
-            Nlevels=1
-            for i in levelZone:
-                levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001)  , 2)
-                if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
-
+    ## go from dx to dx/dx_min
+    if level0 is None:
+        Nlevels=1
+        for i in levelZone:
+            levelZone[i]= int( math.log( int(levelZone[i]/hmin + 0.00000001)  , 2) )
+            if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
 
     #construction arbre skeleton global (tcs) pour calcul graph
     if Cmpi.size > 1:
         tcs_local = Cmpi.convert2SkeletonTree(tc)
         tcs       = Cmpi.allgatherTree(tcs_local)
-        graph     = Cmpi.computeGraph(tcs, type='ID', reduction=True)
         procDict  = Cmpi.getProcDict(tcs)
+        graph     = Cmpi.computeGraph(tcs, type='ID', reduction=True, procDict=procDict)
         rank      = Cmpi.rank
         ## partage des info level delta_z en mpi
-        levelZone = Cmpi.allgatherDict(levelZone)
-        deltaZ    = Cmpi.allgatherDict(deltaZ)
+        levelZone = Cmpi.allgatherDict2(levelZone)
+        deltaZ    = Cmpi.allgatherDict2(deltaZ)
     else:
         graph=None
         rank = 0
@@ -4316,7 +4319,7 @@ def _buildConservativeFlux(t, tc, verbose=0):
     for z in Internal.getZones(tc):
         dimR_loc[ z[0] ] = Internal.getZoneDim(z) # taille en centre
 
-    if Cmpi.size > 1: dimR_loc = Cmpi.allgatherDict(dimR_loc)
+    if Cmpi.size > 1: dimR_loc = Cmpi.allgatherDict2(dimR_loc)
 
     for z in Internal.getZones(tc):
 
@@ -4535,6 +4538,7 @@ def _buildConservativeFlux(t, tc, verbose=0):
 
                         name4 = 'Flux_'+zd_t[0]+'_'+name
 
+                        #creation BC sur grille grossiere
                         if proc == rank:
                             zr_t= Internal.getNodeFromName(t, zRname)
                             #on nome le type BC avec name4 pour la retrouver apres et eviter le renommage des node par cassiopee
@@ -4562,9 +4566,11 @@ def _buildConservativeFlux(t, tc, verbose=0):
                                     Internal.createUniqueChild(Prop, 'FluxFaces', 'DataArray_t', value=tab)
 
                         else:
-                            if proc not in datas: datas[proc] = [ [ zRname, name4, win[:,idir], ratio ] ]
-                            else: datas[proc] += [ [ zRname, name4, win[:,idir], ratio ] ]
+                            if proc not in datas: datas[proc] = [ [ zRname, name4, win[:,idir], ratioNM ] ]
+                            else: datas[proc] += [ [ zRname, name4, win[:,idir], ratioNM ] ]
 
+
+                        #creation BC sur grille fine
                         if name[2]=='i':
                             name2= name[0:2]+'ax'
                         else:

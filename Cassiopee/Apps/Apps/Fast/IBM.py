@@ -2060,7 +2060,8 @@ class IBM(Common):
                 if levelZone[i] +1  > Nlevels: Nlevels = int(levelZone[i]) +1
 
             ## partage des info level en mpi
-            levelZone = Cmpi.allgather(levelZone)
+            if Cmpi.size > 1:
+                levelZone = Cmpi.allgatherDict2(levelZone)
 
             #
             #etape1: calcul interpolation si grille donneuse meme niveau ou plus fine que receuveuse (ordre2, nature1, pas d'extrap)
