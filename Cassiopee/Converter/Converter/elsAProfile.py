@@ -149,11 +149,11 @@ def adaptPeriodicMatch(t, clean=False):
     return tp
 
 def _adaptPeriodicMatch(t, clean=False):
-    jointype = numpy.fromstring('join', 'c')
-    jtopo = numpy.fromstring('periodic', 'c')
-    ptype_rot = numpy.fromstring('rot', 'c')
-    ptype_tra = numpy.fromstring('tra', 'c')
-    jtype = numpy.fromstring('match', 'c')
+    jointype = numpy.array([c for c in 'join'], 'c')
+    jtopo = numpy.array([c for c in 'periodic'], 'c')
+    ptype_rot = numpy.array([c for c in 'rot'], 'c')
+    ptype_tra = numpy.array([c for c in 'tra'], 'c')
+    jtype = numpy.array([c for c in 'match'], 'c')
 
     for z in Internal.getZones(t):
         dim = Internal.getZoneDim(z)
@@ -1191,7 +1191,8 @@ def _addNeighbours__(t, sameBase=0):
                     listFamily = listFamily+fams[zi][l]
                     if l != len(fams[zi])-1:
                         listFamily = listFamily + ' '
-                v = numpy.fromstring(listFamily, 'c')
+                v = numpy.array([c for c in listFamily], 'c')
+
                 N[1] = v
                 Ovlp[2][numN] = N
                 F[2][numOvlp] = Ovlp
@@ -1272,7 +1273,7 @@ def buildBCOverlap(t):
                 # Creation de la famille
                 bases[i] = C.addFamily2Base(bases[i], familyName, 'UserDefined')
                 # Ajout pour la zone d'un noeud fils FamilyName, pour faire reference a la famille creee
-                famNameArray = numpy.fromstring(familyName, 'c')
+                famNameArray = numpy.array([c for c in familyName], 'c')
                 familyNameList = Internal.getNodesFromType1(zones[j], 'FamilyName_t')
                 if familyNameList == []:
                     zones[j][2].append(['FamilyName', famNameArray, [], 'FamilyName_t'])

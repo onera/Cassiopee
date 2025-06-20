@@ -16,6 +16,7 @@
         "**/Data": true,
         "Cassiopee/KCore/doc/source": true,
         "Cassiopee/ValidData*": true,
+        "docs/doc/*": true,
         "**/*~": true
     },
     "editor.acceptSuggestionOnEnter": "smart",

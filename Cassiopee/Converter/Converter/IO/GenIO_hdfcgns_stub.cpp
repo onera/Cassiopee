@@ -70,7 +70,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links,
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList, 
                                      PyObject* paths,  PyObject* links, 
-                                     E_Int maxDepth, E_Int mode)
+                                     E_Int maxDepth, E_Int mode,
+                                     E_Int isize, E_Int rsize)
 {
   printf("Error: Converter has been installed without CGNS/HDF support.\n");
   printf("Error: please install libhdf5 first for CGNS/HDF support.\n");
