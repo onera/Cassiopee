@@ -3250,7 +3250,7 @@ Adapt NGON meshes
 
     :param t:  unstructured mesh
     :type  t:  pyTree node or list of pyTree nodes
-    :param bcs:  BC nodes on which to adapt face point list into vertex point list. If None, considers all BC nodes
+    :param bcs:  BC nodes on which to adapt vertex point list into face point list. If None, considers all BC nodes
     :type  bcs:  optional pyTree node or list of pyTree nodes
     :param btype: type of BC (BCWall, BCFarfield, FamilySpecified...) to consider. If None, does not filter `bcs` by BCType
     :type btype: string
