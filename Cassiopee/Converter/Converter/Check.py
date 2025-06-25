@@ -1133,8 +1133,8 @@ def checkElementNodes(t):
                 print("Warning: CheckPyTree: multiple NGON connectivity for zone %s. Please merge NGON connectivities."%z[0])
             if len(iNFaces) > 1:
                 print("Warning: CheckPyTree: multiple NFACE connectivity for zone %s. Please merge NFACE connectivities."%z[0])
-            if len(iNGons) == 1 and len(iNFaces) == 0: 
-                errors += [z, b, 'NFace is missing for zone %s.'%z[0]]                
+            if len(iNGons) == 1 and len(iNFaces) == 0:
+                errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
 
             #if len(BE) > 1:
             #    errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
@@ -1147,7 +1147,7 @@ def checkElementNodes(t):
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
                         errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
-            
+
             #for iNFace in iNFaces: # check positive faces
             #    c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
             #    if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
