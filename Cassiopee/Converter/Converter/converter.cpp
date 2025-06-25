@@ -145,6 +145,7 @@ static PyMethodDef Pyconverter [] =
   {"adaptNFace2Index", K_CONVERTER::adaptNFace2Index, METH_VARARGS},
   {"adaptBCFace2BCC", K_CONVERTER::adaptBCFace2BCC, METH_VARARGS},
   {"adaptBCFacePL2VertexPL", K_CONVERTER::adaptBCFacePL2VertexPL, METH_VARARGS},
+  {"adaptBCVertexPL2FacePL", K_CONVERTER::adaptBCVertexPL2FacePL, METH_VARARGS},
   {"adaptNGon42NGon3", K_CONVERTER::adaptNGon42NGon3, METH_VARARGS},
   {"adaptNGon32NGon4", K_CONVERTER::adaptNGon32NGon4, METH_VARARGS},
   {"adaptShiftedPE2PE", K_CONVERTER::adaptShiftedPE2PE, METH_VARARGS},

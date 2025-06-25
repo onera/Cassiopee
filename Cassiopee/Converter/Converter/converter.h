@@ -163,6 +163,7 @@ namespace K_CONVERTER
   PyObject* adaptBCFace2BCC(PyObject* self, PyObject* args);
   PyObject* adaptBCC2BCFace(PyObject* self, PyObject* args);
   PyObject* adaptBCFacePL2VertexPL(PyObject* self, PyObject* args);
+  PyObject* adaptBCVertexPL2FacePL(PyObject* self, PyObject* args);
   PyObject* adaptNGon42NGon3(PyObject* self, PyObject* args);
   PyObject* adaptNGon32NGon4(PyObject* self, PyObject* args);
   PyObject* adaptShiftedPE2PE(PyObject* self, PyObject* args);
@@ -190,9 +191,11 @@ namespace K_CONVERTER
   PyObject* intersect2(PyObject* self, PyObject* args);
   PyObject* deleteBBTree(PyObject* self, PyObject* args);
 
-  // Adapt BC face point list to vertex point list, NGON and ME
+  // Adapt BC face point list to vertex point list and vice versa, NGON and ME
   PyObject* adaptBCFacePL2VertexPL_NGON(FldArrayI* cn, FldArrayI* fpl);
   PyObject* adaptBCFacePL2VertexPL_ME(FldArrayI* cn, FldArrayI* fpl);
+  PyObject* adaptBCVertexPL2FacePL_NGON(FldArrayI* cn, FldArrayI* vpl, E_Int npts);
+  PyObject* adaptBCVertexPL2FacePL_ME(FldArrayI* cn, FldArrayI* vpl, E_Int npts);
   
   // addGhostCells NGON
   void addGhostCellsNGon2D(E_Int depth,
