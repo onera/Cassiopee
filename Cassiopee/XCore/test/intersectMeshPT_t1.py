@@ -4,6 +4,7 @@ import Converter.Internal as I
 import XCore.PyTree as X
 import Generator.PyTree as G
 import Transform.PyTree as T
+import KCore.test as test
 
 # Load master hexa mesh and transform it to NGon
 m = G.cartNGon((0,0,0),(0.1,0.1,0.1),(11,11,11))
@@ -44,5 +45,6 @@ X.icapsuleIntersect2(IC)
 # Extract the resulting meshes as zones
 Mi = X.icapsuleExtractMaster(IC)
 Si = X.icapsuleExtractSlaves(IC)
-C.convertPyTree2File(Mi, "Mi.cgns")
-C.convertPyTree2File(Si, "Si.cgns")
+
+res = I.getZones(Mi)+I.getZones(Si)
+test.testT(res,1)
