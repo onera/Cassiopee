@@ -4416,7 +4416,7 @@ def _adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
         loc[1] = numpy.frombuffer('Vertex'.encode('ascii'), dtype='|S1')
         if remove: _rmNodesFromType1(bc, 'BCDataSet_t')  # Remove old datasets
   return None
-  
+
 def adaptBCVertexPL2FacePL(t, bcs=None, btype=None, remove=False):
   """Adapt vertex point list into face point list for a list of BC_t nodes."""
   tp = copyRef(t)
