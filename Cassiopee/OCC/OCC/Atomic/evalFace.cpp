@@ -69,8 +69,9 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   E_Float* pu = fi->begin(1);
   E_Float* pv = fi->begin(2);
   PyObject* o = NULL;
-  if (ret == 1) o = K_ARRAY::buildArray2(3, "x,y,z", ni, nj, nk, 1);
-  else o = K_ARRAY::buildArray2(3, "x,y,z", fi->getSize(), ci->getSize(), -1, eltType);
+  E_Int nfld = 3;
+  if (ret == 1) o = K_ARRAY::buildArray2(nfld, "x,y,z,u,v", ni, nj, nk, 1);
+  else o = K_ARRAY::buildArray2(nfld, "x,y,z,u,v", fi->getSize(), ci->getSize(), -1, eltType);
   FldArrayF* fo; FldArrayI* co;
   if (ret == 1) K_ARRAY::getFromArray2(o, fo);
   else 
@@ -83,6 +84,10 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   E_Float* py = fo->begin(2);
   E_Float* pz = fo->begin(3);
   evalFace__(fo->getSize(), pu, pv, F, px, py, pz);
+  //E_Float* pu2 = fo->begin(4);
+  //E_Float* pv2 = fo->begin(5);
+  //for (E_Int i = 0; i < fo->getSize(); i++) { pu2[i] = pu[i]; pv2[i] = pv[i]; } // keep uv
+  
   RELEASESHAREDB(ret, arrayUV, fi, ci);
   if (ret == 1) { RELEASESHAREDS(o, fo); }
   else { RELEASESHAREDU(o, fo, co); }

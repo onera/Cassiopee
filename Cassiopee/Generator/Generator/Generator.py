@@ -1090,8 +1090,7 @@ def collarMesh(s1, s2, distribj,distribk, niterj=100, niterk=100, ext=10,
                alphaRef=30., type='union',
                contour=[], constraints1=[], constraints2=[], toldist=1.e-6):
     """Generates a collar mesh starting from s1 and s2 surfaces, distributions along the surfaces
-    and along the normal direction, with respect to the assembly type between grids.
-    Usage: collarMesh(s1,s2,distribj,distribk,niterj,niterk,ext, alphaRef,type,contour,constraints1,constraints2,toldist)"""
+    and along the normal direction, with respect to the assembly type between grids."""
     try: from . import Collar
     except: raise ImportError("collarMesh: requires Collar module.")
     if isinstance(s1[0], list): surfaces1 = s1
@@ -1793,7 +1792,7 @@ def extendCartGrids(A, ext=0, optimized=0, extBnd=0, tol=1.e-6):
     A, rinds = generator.extendCartGrids(A, ext, optimized, extBnd, tol)
     return A, rinds
 
-def extendOctreeGrids__(A, ext, optimized, extBnd=0,tol=1.e-6):
+def extendOctreeGrids__(A, ext, optimized, extBnd=0, tol=1.e-6):
     """Extend grids with ext cells. If optimized is ext, the minimum overlapping is ensured.
     Usage: extendOctreeGrids__(cartGrids, ext, optimized, extBnd)"""
     A, rinds = extendCartGrids(A, ext, optimized, extBnd, tol)

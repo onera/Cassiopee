@@ -137,7 +137,7 @@ std::vector<PointLoc> Smesh::locate2(const Smesh &Sf) const
 {
     std::vector<PointLoc> plocs(Sf.np);
 
-    size_t on_vertex = 0, on_edge = 0;
+    //size_t on_vertex = 0, on_edge = 0;
 
     for (E_Int pid = 0; pid < Sf.np; pid++) {
         E_Float x = Sf.X[pid];
@@ -404,7 +404,8 @@ void Smesh::make_bbox()
     xmin = ymin = zmin = EFLOATMAX;
     xmax = ymax = zmax = EFLOATMIN;
 
-    for (E_Int i = 0; i < np; i++) {
+    for (E_Int i = 0; i < np; i++) 
+    {
         if (X[i] < xmin) xmin = X[i];
         if (Y[i] < ymin) ymin = Y[i];
         if (Z[i] < zmin) zmin = Z[i];
@@ -413,9 +414,9 @@ void Smesh::make_bbox()
         if (Z[i] > zmax) zmax = Z[i];
     }
 
-    E_Float dx = xmax - xmin;
-    E_Float dy = ymax - ymin;
-    E_Float dz = zmax - zmin;
+    //E_Float dx = xmax - xmin;
+    //E_Float dy = ymax - ymin;
+    //E_Float dz = zmax - zmin;
 
     //xmin = xmin - dx*0.01;
     //ymin = ymin - dy*0.01;

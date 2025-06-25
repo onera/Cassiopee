@@ -699,7 +699,7 @@ Overset connectivity
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function::  X.applyBCOverlaps(t, depth=2, loc='centers',val=2, cellNName='cellN')
+.. py:function::  X.applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN')
 
     set the cellN to 2 for the fringe nodes or cells (depending on parameter 'loc'='nodes' or 'centers') near the overlap borders defined in the pyTree t.
     Parameter 'depth' defines the number of layers of interpolated points.

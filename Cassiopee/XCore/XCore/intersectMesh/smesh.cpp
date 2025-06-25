@@ -308,7 +308,8 @@ void Smesh::make_edges()
 
     std::vector<E_Int> count(ne, 0);
 
-    for (E_Int i = 0; i < nf; i++) {
+    for (E_Int i = 0; i < nf; i++) 
+    {
         const auto &pe = F2E[i];
         const auto &pn = Fc[i];
         assert(pe.size() == pn.size());

@@ -262,7 +262,7 @@ void K_DIST2WALLS::computeOrthoDist(
   E_Int nwalls = cntw.size();
   E_Int nptsmax = 0;
   E_Int npts_local = 0;
-  vector<vector< vector<E_Int>  > >cVE_all;
+  vector<vector< vector<E_Int>  > > cVE_all;
   vector<E_Int> npts_walls_limit;
   for (E_Int v = 0; v < nwalls; v++)
   {
@@ -344,6 +344,7 @@ void K_DIST2WALLS::computeOrthoDist(
 
   // Build the kdtree
   ArrayAccessor<FldArrayF> coordAcc(*wallpts, 1,2,3);
+  //std::shuffle(coordAcc.begin(), coordAcc.end(), 0);
   KdTree<FldArrayF> kdt(coordAcc, E_EPSILON);
 
   // Build the bbtrees
@@ -376,9 +377,9 @@ void K_DIST2WALLS::computeOrthoDist(
       E_Float* zt = fields[v]->begin(posz);
       E_Float* distancep = distances[v]->begin(); 
       E_Int npts = distances[v]->getSize();
-      E_Int isFlagged=false;
+      E_Int isFlagged = false;
       E_Float* flagp = NULL;
-      if (posflag[v] > 0 )
+      if (posflag[v] > 0)
       { 
         flagp = fields[v]->begin(posflag[v]);
         isFlagged = true;

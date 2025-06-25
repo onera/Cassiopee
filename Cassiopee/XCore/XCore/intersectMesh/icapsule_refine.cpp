@@ -134,7 +134,7 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
         // Deduce mfids to refine
         std::vector<E_Int> mref_faces;
         Mf.deduce_ref_faces(spids, plocs_s, Sf, mref_faces);
-        printf("Fat mfids: %lu\n", mref_faces.size());
+        printf("Fat mfids: %zu\n", mref_faces.size());
 
         ref_M = mref_faces.size();
         if (ref_M > 0) {
@@ -167,7 +167,7 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
         // Deduce sfids to refine
         std::vector<E_Int> sref_faces;
         Sf.deduce_ref_faces(mpids, plocs_m, Mf, sref_faces);
-        printf("Fat sfids: %lu\n", sref_faces.size());
+        printf("Fat sfids: %zu\n", sref_faces.size());
 
         // Refine
         ref_S = sref_faces.size();
