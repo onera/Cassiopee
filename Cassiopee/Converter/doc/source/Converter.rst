@@ -149,6 +149,7 @@ List of functions
     Converter.PyTree.getNobNozOfZone
     Converter.PyTree.breakConnectivity
     Converter.PyTree.mergeConnectivity
+    Converter.PyTree.sliceNGonFaces
     Converter.PyTree.deleteEmptyZones
     Converter.PyTree.addState
     Converter.PyTree.addChimera2Base
@@ -532,6 +533,25 @@ pyTree creation and manipulation
     * `Merge connectivity (pyTree) <Examples/Converter/mergeConnectivityPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/mergeConnectivityPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.PyTree.sliceNGonFaces(z, indices=None)
+
+    Slice an NGON connectivity using a list of face indices. Return two numpy
+    arrays: an array of face vertices and an array of face offsets.
+
+    :param a: input data
+    :type a: CGNS Zone node
+    :param indices: face indices
+    :type indices: list of integers
+    :rtype: zone
+
+    *Example of use:*
+
+    * `Slice NGON connectivity (pyTree) <Examples/Converter/sliceNGonFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/sliceNGonFacesPT.py
 
 ---------------------------------------------------------------------------
 

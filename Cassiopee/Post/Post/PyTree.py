@@ -667,7 +667,8 @@ def exteriorFaces(t, indices=None):
 def _exteriorFaces(t, indices=None):
     C._deleteZoneBC__(t)
     C._deleteFlowSolutions__(t, 'centers')
-    return C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorFaces, indices)
+    C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorFaces, indices)
+    return None
 
 def exteriorElts(t):
     """Exterior (border) elts of a mesh.
@@ -679,7 +680,8 @@ def exteriorElts(t):
 def _exteriorElts(t):
     """Exterior (border) elts of a mesh."""
     C._deleteFlowSolutions__(t, 'centers')
-    return C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorElts)
+    C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorElts)
+    return None
 
 def exteriorEltsStructured(t, depth=1):
     """Exterior (border) elts of a mesh as a structured grid.
