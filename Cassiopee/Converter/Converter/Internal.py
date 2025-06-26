@@ -4413,7 +4413,7 @@ def _adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
       if getValue(loc) in ['EdgeCenter', 'FaceCenter', 'CellCenter']:
         r[1] = converter.adaptBCFacePL2VertexPL(array, r[1])  # ME or NGON
         r[1] = r[1].reshape((1, r[1].size), order='F')
-        loc[1] = numpy.frombuffer('Vertex'.encode('ascii'), dtype='|S1')
+        setValue(loc, 'Vertex')
         if remove: _rmNodesFromType1(bc, 'BCDataSet_t')  # Remove old datasets
   return None
 
@@ -4453,7 +4453,7 @@ def _adaptBCVertexPL2FacePL(t, bcs=None, btype=None, remove=False):
       if getValue(loc) == 'Vertex':
         r[1] = converter.adaptBCVertexPL2FacePL(array, r[1])  # ME or NGON
         r[1] = r[1].reshape((1, r[1].size), order='F')
-        loc[1] = numpy.frombuffer('FaceCenter'.encode('ascii'), dtype='|S1')
+        setValue(loc, 'FaceCenter')
         if remove: _rmNodesFromType1(bc, 'BCDataSet_t')  # Remove old datasets
   return None
 
