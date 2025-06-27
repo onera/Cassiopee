@@ -188,7 +188,7 @@ def _computeGrad2(t, var, withCellN=True):
 
     zones = Internal.getZones(t)
     export = {}
-    
+
     for z in zones:
         # adaptation needed by actual computeGrad2
         Internal._adaptNGon42NGon3(z)
@@ -197,13 +197,13 @@ def _computeGrad2(t, var, withCellN=True):
         # get face values
         GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
         for gc in GCs:
-            donor = Internal.getValue(gc) 
+            donor = Internal.getValue(gc)
             PL = Internal.getNodeFromName1(gc, 'PointList')[1]
             PLD = Internal.getNodeFromName1(gc, 'PointListDonor')[1]
             fld = Converter.converter.extractBCMatchNG(z, PL, [vare],
-                                                        Internal.__GridCoordinates__,
-                                                        Internal.__FlowSolutionNodes__,
-                                                        Internal.__FlowSolutionCenters__)
+                                                       Internal.__GridCoordinates__,
+                                                       Internal.__FlowSolutionNodes__,
+                                                       Internal.__FlowSolutionCenters__)
             oppNode = procDict[donor]
             n = [donor, z[0], fld, PLD.ravel('k')]
             if oppNode not in export: export[oppNode] = [n]
@@ -222,7 +222,7 @@ def _computeGrad2(t, var, withCellN=True):
             source = n[1]
             fld = n[2]
             PLD = n[3]
-            print(Cmpi.rank, donor, source) 
+            print(Cmpi.rank, donor, source)
             z = Internal.getNodeFromName2(t, donor)
             zn = z[0]
             #GCs = Internal.getNodesFromType2(gc, 'GridConnectivity_t')
@@ -231,11 +231,11 @@ def _computeGrad2(t, var, withCellN=True):
             #    if Internal.getValue(gc) == source:
             #        if PL is not None: print("Problem! Multiple matching PL found.")
             #        PL = Internal.getNodeFromName1(gc, 'PointList')[1]
-        
+
             fld1 = Converter.converter.buildBCMatchFieldNG(z, PLD, fld, [vare],
-                                                            Internal.__GridCoordinates__,
-                                                            Internal.__FlowSolutionNodes__,
-                                                            Internal.__FlowSolutionCenters__)
+                                                           Internal.__GridCoordinates__,
+                                                           Internal.__FlowSolutionNodes__,
+                                                           Internal.__FlowSolutionCenters__)
             print(Cmpi.rank, 'PLD', PLD, indices, flush=True)
             if zn not in indices: indices[zn] = PLD
             else: indices[zn] = numpy.concatenate((indices[zn], PLD))
