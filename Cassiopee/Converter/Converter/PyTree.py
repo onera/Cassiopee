@@ -5554,8 +5554,8 @@ def computeBCMatchField(z, allMatch, variables=None):
             if Internal.getType(fs) == 'DataArray_t':
                 varList.append(Internal.getName(fs))
 
-    # Traitement pour maillage struture
-    # =================================
+    # Traitement pour maillage structure
+    # ==================================
     if zoneType == 1: # Structured mesh
         # Tableau des champs a extraire
         for var in varList:

@@ -110,7 +110,7 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
     return a
 
 #==============================================================================
-# parallel NGON connectMatch for one zone
+# parallel NGON connectMatch for only one zone
 #==============================================================================
 def _connectMatchNGon(z, tol=1.e-6):
     """Connect one ngon zone."""
@@ -118,7 +118,7 @@ def _connectMatchNGon(z, tol=1.e-6):
     import Transform.PyTree as T
     if Cmpi.size == 1: return None
 
-    print(Cmpi.rank, 'has ', z[0])
+    #print(Cmpi.rank, 'has ', z[0])
     # get exterior faces and indirection
     indicesF = []
     zf = P.exteriorFaces(z, indices=indicesF)
