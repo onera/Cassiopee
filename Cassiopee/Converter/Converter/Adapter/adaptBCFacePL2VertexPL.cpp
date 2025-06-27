@@ -70,7 +70,6 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL(PyObject* self, PyObject* args)
       //tpl = adaptBCFacePL2VertexPL_ME(cn, facePL);
       PyErr_SetString(PyExc_TypeError,
                       "adaptBCFacePL2VertexPL: not implemented yet for ME arrays.");
-      return NULL;
     }
 
     RELEASESHAREDN(arrayFPL, facePL);
