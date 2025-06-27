@@ -147,7 +147,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
         #pragma omp for
         for (E_Int i = 0; i < nfaces; i++)
         {
-          i1 = cFE1[i] - 1; i2 = cFE2[i] - 1;
+          i1 = cFE1[i]-1; i2 = cFE2[i]-1;
           if (i2 != -1) fp[i] = 0.5*(s[i1] + s[i2]);
           else fp[i] = s[i1];
         }
@@ -204,7 +204,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     RELEASESHAREDN(indices, inds);
     RELEASESHAREDN(field, bfield);
   }
-
+  
   // Build unstructured NGON array from existing connectivity & empty fields
   FldArrayF* gp = new FldArrayF(nelts, nfld*3, true); gp->setAllValuesAtNull();
   PyObject* tpl = K_ARRAY::buildArray3(*gp, varStringOut, *cn, "NGON");
@@ -229,7 +229,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     E_Float* fp = faceField.begin(n+1);
     for (E_Int i = 0; i < nfaces; i++)
     {
-      i1 = cFE1[i] - 1; i2 = cFE2[i] - 1;
+      i1 = cFE1[i]-1; i2 = cFE2[i]-1;
       ff = fp[i];
       if (i1 != -1)
       {
@@ -248,20 +248,21 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   
   // free mem
   surf.malloc(0); faceField.malloc(0);
-  
-  FldArrayF vol(nelts);
-  E_Float* volp = vol.begin(1);
+
+  FldArrayF vol;
+  E_Float* volp = NULL;
+  FldArrayF* vols = NULL; 
   if (volc == Py_None)
-  {  
+  { 
+    vol.malloc(nelts);
+    volp = vol.begin(1);  
     K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
   			  f->begin(posz), *cn, volp);
   }
   else
   {
-    FldArrayF* vols=NULL; 
     K_NUMPY::getFromNumpyArray(volc, vols, true);
     volp = vols->begin();
-    RELEASESHAREDN(volc, vols);
   }
 
   #pragma omp parallel
@@ -287,6 +288,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   RELEASESHAREDU(arrayc, fc, cnc);
   RELEASESHAREDS(tpl, gp);
   if (cellNc != Py_None) Py_DECREF(cellNc);
+  if (volc != Py_None) RELEASESHAREDN(volc, vols);
 
   delete [] varStringOut;
   return tpl;

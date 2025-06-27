@@ -155,7 +155,7 @@ def _connectMatchNGon(z, tol=1.e-6):
     for trip in range(Cmpi.size-1):
 
         data = [zu, indicesE]
-        print(Cmpi.rank, "start trip", zu[0], flush=True)
+        #print(Cmpi.rank, "start trip", zu[0], flush=True)
 
         # pass undefined faces zu to neighbour
         reqs = []
@@ -179,8 +179,10 @@ def _connectMatchNGon(z, tol=1.e-6):
         # get the indices of ids where ids is not -1
         # since they correspond to indices in zu
         ids2 = numpy.copy(ids)
+        #if Cmpi.rank == 0: print(ids2.ravel('k'))
         ids2[:] += 1
         ids2 = numpy.argwhere(ids2)
+        #if Cmpi.rank == 0: print(ids2.ravel('k'))
 
         # keep non -1 indices
         ids = ids[ids[:]>=0]
@@ -190,9 +192,10 @@ def _connectMatchNGon(z, tol=1.e-6):
             id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
             id2[:] = indicesF[ids[:]-1]
             #id1 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
-            id1 = indicesE[ids2[:]-2]
-            #print(Cmpi.rank, id2.shape)
-            #print(Cmpi.rank, id1.shape)
+            #id1[:] = indicesE[ids2[:]]
+            id1 = indicesE[ids2[:]]
+            #print(Cmpi.rank, 'source', id2.shape, id2.ravel('k'))
+            #print(Cmpi.rank, 'donor', id1.shape, id1.ravel('k'))
             C._addBC2Zone(z, 'match', 'BCMatch', faceList=id2, zoneDonor=zu[0], faceListDonor=id1)
 
     C.freeHook(hook)
@@ -277,16 +280,16 @@ def mergeWindows(t):
                             #print(" name = %s, p = "%(name),p, prd)
 
                             if pglobD[0] is None:
-                                pglobD[0] = pd[0] ; pglobD[1] = pd[1]
-                                pglobD[2] = pd[2] ; pglobD[3] = pd[3]
-                                pglobD[4] = pd[4] ; pglobD[5] = pd[5]
+                                pglobD[0] = pd[0]; pglobD[1] = pd[1]
+                                pglobD[2] = pd[2]; pglobD[3] = pd[3]
+                                pglobD[4] = pd[4]; pglobD[5] = pd[5]
                             else:
-                                if pglobD[0] > pd[0] : pglobD[0] = pd[0]
-                                if pglobD[1] < pd[1] : pglobD[1] = pd[1]
-                                if pglobD[2] > pd[2] : pglobD[2] = pd[2]
-                                if pglobD[3] < pd[3] : pglobD[3] = pd[3]
-                                if pglobD[4] > pd[4] : pglobD[4] = pd[4]
-                                if pglobD[5] < pd[5] : pglobD[5] = pd[5]
+                                if pglobD[0] > pd[0]: pglobD[0] = pd[0]
+                                if pglobD[1] < pd[1]: pglobD[1] = pd[1]
+                                if pglobD[2] > pd[2]: pglobD[2] = pd[2]
+                                if pglobD[3] < pd[3]: pglobD[3] = pd[3]
+                                if pglobD[4] > pd[4]: pglobD[4] = pd[4]
+                                if pglobD[5] < pd[5]: pglobD[5] = pd[5]
 
                         # Modif du 1er match et suppression des autres
                         first = True
@@ -462,7 +465,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
     # Calcul des solutions interpolees par arbre donneur
     # On envoie aussi les indices receveurs pour l'instant
     datas = {}
-    nbcomIBC    = param_int[2]
+    nbcomIBC = param_int[2]
     shift_graph = nbcomIBC + param_int[3+nbcomIBC] + 3
 
     for comm_P2P in range(1,param_int[1]+1):
