@@ -5554,8 +5554,8 @@ def computeBCMatchField(z, allMatch, variables=None):
             if Internal.getType(fs) == 'DataArray_t':
                 varList.append(Internal.getName(fs))
 
-    # Traitement pour maillage struture
-    # =================================
+    # Traitement pour maillage structure
+    # ==================================
     if zoneType == 1: # Structured mesh
         # Tableau des champs a extraire
         for var in varList:
@@ -7626,24 +7626,24 @@ def _mergeConnectivities(z, boundary=0, shared=False):
 
 # -- sliceNGonFaces
 def sliceNGonFaces(z, indices=None):
-  """Slice an NGON connectivity using a list of face indices. Return two numpy
-  arrays: an array of face vertices and an array of face offsets."""
-  if indices is None:
-      return [], []
-  elif isinstance(indices, list):
-      indices = numpy.array(indices, dtype=Internal.E_NpyInt)
+    """Slice an NGON connectivity using a list of face indices. Return two numpy
+    arrays: an array of face vertices and an array of face offsets."""
+    if indices is None:
+        return [], []
+    elif isinstance(indices, list):
+        indices = numpy.array(indices, dtype=Internal.E_NpyInt)
 
-  faceVertices = []; faceOffset = []
-  zdim = Internal.getZoneDim(z)
-  if zdim[0] != 'Unstructured': return [], []
+    faceVertices = []; faceOffset = []
+    zdim = Internal.getZoneDim(z)
+    if zdim[0] != 'Unstructured': return [], []
 
-  elts = Internal.getNodesFromType1(z, 'Elements_t')
-  for elt in elts:
-      val = Internal.getValue(elt)[0]
-      if val in [22, 23]:  # NGon zone
-          array = getFields('coords', z, api=3)[0]
-          return Converter.converter.sliceNGonFaces(array, indices)
-  return faceVertices, faceOffset
+    elts = Internal.getNodesFromType1(z, 'Elements_t')
+    for elt in elts:
+        val = Internal.getValue(elt)[0]
+        if val in [22, 23]:  # NGon zone
+            array = getFields('coords', z, api=3)[0]
+            return Converter.converter.sliceNGonFaces(array, indices)
+    return faceVertices, faceOffset
 
 #============================================
 # Soit z une sous zone de zt

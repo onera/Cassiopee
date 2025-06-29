@@ -558,7 +558,7 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
 }
 
 #include "smesh.h"
-#include <random>
+//#include <random>
 //#include "precise.h"
 
 PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
