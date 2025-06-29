@@ -88,8 +88,8 @@ PyObject* K_CONVERTER::sliceNGonFaces(PyObject* self, PyObject* args)
         }
       }
       
-      E_Int npts = 0;
-      for (E_Int i = 0; i < nthreads+1; i++) npts += tnpts[i];
+      for (E_Int i = 1; i < nthreads+1; i++) tnpts[i] += tnpts[i-1];
+      E_Int npts = tnpts[nthreads];
       
       // Build the output numpy arrays
       PyObject* tplv = K_NUMPY::buildNumpyArray(npts, 1, 1);
