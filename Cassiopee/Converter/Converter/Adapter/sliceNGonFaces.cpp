@@ -119,7 +119,9 @@ PyObject* K_CONVERTER::sliceNGonFaces(PyObject* self, PyObject* args)
         }
       }
       faceOffset[nfaces] = npts;
-
+      
+      RELEASESHAREDN(arrayFPL, facePL);
+      RELEASESHAREDU(array, f, cn);
       return Py_BuildValue("(OO)", tplv, tplf);
     }
     else
