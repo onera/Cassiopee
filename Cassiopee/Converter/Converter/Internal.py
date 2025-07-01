@@ -5437,13 +5437,18 @@ def getBCDataSets(z, bcNode):
 # si la grille est structuree, retourne un indicage de faces
 # IN: z: zone node
 # IN: bcNode: BC node
+# IN: donor: if True, get PointListDonor or PointRangeDonor
 # OUT: facelist node
 #==============================================================================
-def getBCFaceNode(z, bcNode):
+def getBCFaceNode(z, bcNode, donor=False):
   dims = getZoneDim(z)
-  if dims[0] == 'Unstructured': return getNodeFromName1(bcNode, 'PointList')
+  if donor: name = 'PointListDonor'
+  else: name = 'PointList'
+  if dims[0] == 'Unstructured': return getNodeFromName1(bcNode, name)
 
-  r = getNodeFromName1(bcNode, 'PointRange') # structure maintenant
+  if donor: name = 'PointRangeDonor'
+  else: name = 'PointRange'
+  r = getNodeFromName1(bcNode, name) # structure maintenant
   ni = dims[1]; nj = dims[2]; nk = dims[3]
   wins = range2Window(r[1])
   listIndices = converter.range2PointList(wins[0], wins[1], wins[2], wins[3], wins[4], wins[5],

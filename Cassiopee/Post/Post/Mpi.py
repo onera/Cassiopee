@@ -184,59 +184,74 @@ def _computeGrad2(t, var, withCellN=True):
     procDict = Cmpi.getProcDict(t)
     #print(Cmpi.rank, procDict)
     graph = Cmpi.computeGraph(t, type='match', procDict=procDict)
-    #print(Cmpi.rank, graph)
+    #print(Cmpi.rank, 'graph', graph, flush=True)
 
     zones = Internal.getZones(t)
     export = {}
 
     for z in zones:
-        # adaptation needed by actual computeGrad2
-        Internal._adaptNGon42NGon3(z)
-        Internal._adaptNFace2PE(z, remove=False)
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Unstructured' and dim[3] == 'NGON':
+            # adaptation needed by actual computeGrad2
+            Internal._adaptNGon42NGon3(z)
+            Internal._adaptNFace2PE(z, remove=False)
 
-        # get face values
-        GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-        for gc in GCs:
-            donor = Internal.getValue(gc)
-            PL = Internal.getNodeFromName1(gc, 'PointList')[1]
-            PLD = Internal.getNodeFromName1(gc, 'PointListDonor')[1]
-            fld = Converter.converter.extractBCMatchNG(z, PL, [vare],
-                                                       Internal.__GridCoordinates__,
-                                                       Internal.__FlowSolutionNodes__,
-                                                       Internal.__FlowSolutionCenters__)
-            oppNode = procDict[donor]
-            n = [donor, z[0], fld, PLD.ravel('k')]
-            if oppNode not in export: export[oppNode] = [n]
-            else: export[oppNode] += [n]
-    #print(export)
+            # get face values
+            GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+            for gc in GCs:
+                donor = Internal.getValue(gc)
+                PL = Internal.getBCFaceNode(z, gc)[1] # PointList
+                PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointListDonor
+                fld = Converter.converter.extractBCMatchNG(z, PL, [vare],
+                                                            Internal.__GridCoordinates__,
+                                                            Internal.__FlowSolutionNodes__,
+                                                            Internal.__FlowSolutionCenters__)
+                oppNode = procDict[donor]
+                n = [donor, z[0], fld, PLD.ravel('k')]
+                if oppNode not in export: export[oppNode] = [n]
+                else: export[oppNode] += [n]
+        elif dim[0] == 'Structured':
+            # get face values
+            GCs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+            for gc in GCs:
+                donor = Internal.getValue(gc)
+                PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
+                PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
+                #fld = Converter.converter.extractBCMatchStruct(z, PL, [vare],
+                #                                            Internal.__GridCoordinates__,
+                #                                            Internal.__FlowSolutionNodes__,
+                #                                            Internal.__FlowSolutionCenters__)
+                fld = None
+                oppNode = procDict[donor]
+                n = [donor, z[0], fld, PLD.ravel('k')]
+                if oppNode not in export: export[oppNode] = [n]
+                else: export[oppNode] += [n]
 
     # sendrecv
     recvDatas = Cmpi.sendRecv(export, graph)
-    #print(Cmpi.rank, recvDatas)
+    #print(Cmpi.rank, 'recv', recvDatas)
 
     # Mean on faces (we must find the opposite face from donor name)
     indices = {}; BCField = {}
     for i in recvDatas:
         for n in recvDatas[i]:
-            donor = n[0] # donor is supposed to have a unique matching match
-            source = n[1]
-            fld = n[2]
-            PLD = n[3]
-            print(Cmpi.rank, donor, source)
+            # donor is supposed to have a unique matching match
+            (donor, source, fld, PLD) = n
             z = Internal.getNodeFromName2(t, donor)
             zn = z[0]
-            #GCs = Internal.getNodesFromType2(gc, 'GridConnectivity_t')
-            #PL = None
-            #for gc in GCs:
-            #    if Internal.getValue(gc) == source:
-            #        if PL is not None: print("Problem! Multiple matching PL found.")
-            #        PL = Internal.getNodeFromName1(gc, 'PointList')[1]
-
-            fld1 = Converter.converter.buildBCMatchFieldNG(z, PLD, fld, [vare],
+            dim = Internal.getZoneDim(z)
+            if dim[0] == 'Unstructured' and dim[4] == 'NGON':
+                fld1 = Converter.converter.buildBCMatchFieldNG(z, PLD, fld, [vare],
                                                            Internal.__GridCoordinates__,
                                                            Internal.__FlowSolutionNodes__,
                                                            Internal.__FlowSolutionCenters__)
-            print(Cmpi.rank, 'PLD', PLD, indices, flush=True)
+            elif dim[0] == 'Structured':
+                #fld1 = Converter.converter.buildBCMatchFieldStruct(z, PLD, fld, [vare],
+                #                                           Internal.__GridCoordinates__,
+                #                                           Internal.__FlowSolutionNodes__,
+                #                                           Internal.__FlowSolutionCenters__)
+                fld1 = None
+            #print(Cmpi.rank, 'PLD', PLD, indices, flush=True)
             if zn not in indices: indices[zn] = PLD
             else: indices[zn] = numpy.concatenate((indices[zn], PLD))
             if zn not in BCField: BCField[zn] = fld1[1][0].ravel('k')
@@ -254,7 +269,7 @@ def _computeGrad2(t, var, withCellN=True):
         vol = None
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         if cont is not None:
-            vol  = Internal.getNodeFromName1(cont, 'vol')
+            vol = Internal.getNodeFromName1(cont, 'vol')
             if vol is not None: vol = vol[1]
 
         # Test if cellN present
@@ -290,7 +305,12 @@ def _computeGrad2(t, var, withCellN=True):
         x = C.getFields(Internal.__GridCoordinates__, z)[0]
 
         if f != []:
-            centers = Post.computeGrad2(x, f, vol, cellN, indices=indices[zn], BCField=BCField[zn])
+            if zn in indices: inds = indices[zn]
+            else: inds = None
+            if zn in BCField: bcf = BCField[zn]
+            else: bcf = None
+            
+            centers = Post.computeGrad2(x, f, vol, cellN, indices=inds, BCField=bcf)
             C.setFields([centers], z, 'centers')
 
     return None
