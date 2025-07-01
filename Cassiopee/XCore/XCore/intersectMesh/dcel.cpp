@@ -27,7 +27,7 @@
 #include "smesh.h"
 #include "triangle.h"
 
-Dcel::Dcel()
+Dcel::Dcel() 
 {}
 
 void Dcel::init_vertices(const Smesh &Mf, const Smesh &Sf,
@@ -946,7 +946,8 @@ void Dcel::update_hedge_faces(std::vector<Face *> &new_F)
 {
     for (Hedge *h : H) h->left = NULL;
 
-    for (Face *f : new_F) {
+    for (Face *f : new_F) 
+    {
         assert(f);
 
         Hedge *h = f->rep;
@@ -958,7 +959,8 @@ void Dcel::update_hedge_faces(std::vector<Face *> &new_F)
         assert(f->rep->left == f);
 
         Hedge *w = h->next;
-        while (w != h) {
+        while (w != h) 
+        {
             assert(w->left == NULL);
             w->left = f;
             w = w->next;
