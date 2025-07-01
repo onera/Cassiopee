@@ -780,6 +780,28 @@ elif [ "$MAC" = "sator_gcc" ]; then
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
+elif [ "$MAC" = "sator_coda" ]; then
+#----------------------------- juno coda --------------------------------------
+    export ELSAPROD=sat_coda
+    export ELSAPROD=$ELSAPROD$EXT
+    # Nbre de threads
+    export OMP_NUM_THREADS=48
+    export MODULEPATH=/stck/rhea/coda_modules:$MODULEPATH
+    CASSIOPEESAVE=$CASSIOPEE
+    ELSAPRODSAVE=$ELSAPROD
+    module purge
+    module load fssuite/2025.02.0-gnu1210
+    export CASSIOPEE=$CASSIOPEESAVE
+    export ELSAPROD=$ELSAPRODSAVE
+    module load occt/7.6.1-gnu831
+    export OMP_PLACES=cores
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export ASAN_OPTIONS=verify_asan_link_order=false
+    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+
 elif [ "$MAC" = "adastra_cpu" ]; then
 #----------------------------- adastra cpu  ---------------------------------------
     export ELSAPROD=adastra_cpu
