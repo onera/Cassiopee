@@ -12,8 +12,6 @@ try: import tkinter.dnd as Tkdnd # drag and drop
 except: import Tkdnd
 import numpy
 
-try: range = xrange
-except: pass
 
 # local widgets list
 STATUS = 0

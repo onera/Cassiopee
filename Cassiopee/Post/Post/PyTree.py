@@ -3,9 +3,6 @@ from . import Post
 from . import post
 __version__ = Post.__version__
 
-try: range = xrange
-except: pass
-
 import math
 
 try:

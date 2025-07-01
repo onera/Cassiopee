@@ -6,9 +6,6 @@ from Apps.App import App
 import Converter.Filter as Filter
 import Converter.Mpi as Cmpi
 
-try: range = xrange
-except: pass
-
 #================================================================================
 # Redistribue les fichiers in place sans com pour l'instant
 # Change les noeuds procs seulement

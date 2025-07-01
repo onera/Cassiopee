@@ -32,14 +32,6 @@ import Connector.IBM as X_IBM
 import Generator.IBM as G_IBM
 import Generator.IBMmodelHeight as G_IBM_Height
 
-import timeit
-import getpass
-import socket
-import os
-
-
-try: range = xrange
-except: pass
 from mpi4py import MPI
 COMM_WORLD = MPI.COMM_WORLD
 KCOMM = COMM_WORLD

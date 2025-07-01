@@ -9,17 +9,12 @@ from . import intersector
 import Generator as G
 import Converter as C
 
-try: range = xrange
-except: pass
-
 def isSingleZone(a):
-    #print(a)
     if len(a) != 4: return False
     if a[3] != 'Zone_t': return False
     return True
 
 def isCGNSTree(a):
-    #print(a)
     if len(a) != 4: return False
     if a[3] != 'Zone_t': return False
     return True

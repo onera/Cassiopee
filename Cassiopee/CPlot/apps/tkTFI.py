@@ -15,9 +15,6 @@ import Transform.PyTree as T
 import Converter
 import Generator
 
-try: range = xrange
-except: pass
-
 # local widgets list
 WIDGETS = {}; VARS = []
 

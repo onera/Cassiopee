@@ -5,9 +5,6 @@ __version__ = G.__version__
 
 from Converter.Internal import E_NpyInt
 
-try: range = xrange
-except: pass
-
 #=============================================================================
 # PolyTriMesher pour les TRI-arrays
 #=============================================================================

@@ -11,9 +11,6 @@ from . import Internal
 from . import PyTree
 import numpy
 
-try: range = xrange
-except: pass
-
 #==============================================================================
 # Lit un arbre squelette
 # Warning: pour l'instant limite a hdf et adf

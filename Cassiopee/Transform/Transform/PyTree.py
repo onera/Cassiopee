@@ -8,9 +8,6 @@ from . import transform
 import numpy
 __version__ = Transform.__version__
 
-try: range = xrange
-except: pass
-
 try:
     import Converter.PyTree as C
     import Converter.Internal as Internal

@@ -12,9 +12,6 @@ from . import Ttk as TTK
 from . import iconics
 import time
 
-try: range = xrange
-except: pass
-
 #==============================================================================
 # LoadPanel
 LOADPANEL = None

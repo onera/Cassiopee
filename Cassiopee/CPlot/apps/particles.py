@@ -2,11 +2,7 @@
 # Ajoute des particules se deplacant suivant la vitesse definie dans un champ
 import Converter as C
 import Post as P
-import numpy
 import CPlot
-
-try: range = xrange
-except: pass
 
 # Solution en noeuds et en centres
 a = C.convertFile2Arrays('outputn.plt')

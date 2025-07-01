@@ -3,9 +3,6 @@
 from . import Connector
 import numpy
 
-try: range = xrange
-except: pass
-
 try:
     import Converter.Internal as Internal
     import Converter.PyTree as C

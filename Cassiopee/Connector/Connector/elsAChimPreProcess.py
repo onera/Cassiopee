@@ -3,9 +3,6 @@ import numpy
 import Compressor
 import Compressor.PyTree as Co
 
-try: range = xrange
-except: pass
-
 # =============================================================================
 # Initialization of dictionnary for unsteady preprocessing
 # OUT : hook: list of dictionnaries for blanking, center and face interpolations

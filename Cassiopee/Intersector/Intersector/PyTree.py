@@ -11,9 +11,6 @@ __version__ = XOR.__version__
 
 import numpy
 
-try: range = xrange
-except: pass
-
 try:
     import Converter.PyTree as C
     import Converter.Distributed as CD

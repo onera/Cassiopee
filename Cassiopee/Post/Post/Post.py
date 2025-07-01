@@ -7,10 +7,6 @@ import numpy
 try: import Converter
 except ImportError: raise ImportError("Post: requires Converter module.")
 
-try: range = xrange
-except: pass
-
-## [AJ - KEEP FOR NOW - FROM MASTER]
 __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable',
            'computeGrad', 'computeGrad2', 'computeGradLSQ',
            'computeDiv', 'computeDiv2', 'computeIndicatorField',

@@ -7,9 +7,6 @@ import Generator as G
 import numpy
 __version__ = Distributor2.__version__
 
-try: range = xrange
-except: pass
-
 #==============================================================================
 # Calcul la liste des bbox
 # IN: arrays: liste des zones sous forme array

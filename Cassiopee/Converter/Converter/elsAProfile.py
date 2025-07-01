@@ -1,7 +1,4 @@
 # Module for exporting to elsA
-try: range = xrange
-except: pass
-
 from . import PyTree as C
 from . import Internal
 import Connector.PyTree as X
