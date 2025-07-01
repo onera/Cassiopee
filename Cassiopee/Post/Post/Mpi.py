@@ -203,9 +203,9 @@ def _computeGrad2(t, var, withCellN=True):
                 PL = Internal.getBCFaceNode(z, gc)[1] # PointList
                 PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointListDonor
                 fld = Converter.converter.extractBCMatchNG(z, PL, [vare],
-                                                            Internal.__GridCoordinates__,
-                                                            Internal.__FlowSolutionNodes__,
-                                                            Internal.__FlowSolutionCenters__)
+                                                           Internal.__GridCoordinates__,
+                                                           Internal.__FlowSolutionNodes__,
+                                                           Internal.__FlowSolutionCenters__)
                 oppNode = procDict[donor]
                 n = [donor, z[0], fld, PLD.ravel('k')]
                 if oppNode not in export: export[oppNode] = [n]
@@ -242,9 +242,9 @@ def _computeGrad2(t, var, withCellN=True):
             dim = Internal.getZoneDim(z)
             if dim[0] == 'Unstructured' and dim[4] == 'NGON':
                 fld1 = Converter.converter.buildBCMatchFieldNG(z, PLD, fld, [vare],
-                                                           Internal.__GridCoordinates__,
-                                                           Internal.__FlowSolutionNodes__,
-                                                           Internal.__FlowSolutionCenters__)
+                                                               Internal.__GridCoordinates__,
+                                                               Internal.__FlowSolutionNodes__,
+                                                               Internal.__FlowSolutionCenters__)
             elif dim[0] == 'Structured':
                 #fld1 = Converter.converter.buildBCMatchFieldStruct(z, PLD, fld, [vare],
                 #                                           Internal.__GridCoordinates__,
@@ -309,7 +309,7 @@ def _computeGrad2(t, var, withCellN=True):
             else: inds = None
             if zn in BCField: bcf = BCField[zn]
             else: bcf = None
-            
+
             centers = Post.computeGrad2(x, f, vol, cellN, indices=inds, BCField=bcf)
             C.setFields([centers], z, 'centers')
 

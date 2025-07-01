@@ -156,7 +156,7 @@ def _connectMatchNGon(z, tol=1.e-6):
     for trip in range(Cmpi.size-1):
 
         data = [zu, indicesE]
-        
+
         # pass undefined faces zu to neighbour
         reqs = []
         if Cmpi.rank < Cmpi.size-1: s = Cmpi.isend(data, dest=Cmpi.rank+1)
