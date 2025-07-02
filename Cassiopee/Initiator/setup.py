@@ -1,12 +1,12 @@
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
+#from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import os
 
 #=============================================================================
-# Initiator requires :
+# Initiator requires:
 # [ENV] CASSIOPEE, ELSAPROD
 # C++ compiler
-# Fortran compiler : defined in config.py
+# Fortran compiler: defined in config.py
 # Numpy
 # KCore library
 #=============================================================================

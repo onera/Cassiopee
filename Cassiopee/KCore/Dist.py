@@ -1,9 +1,9 @@
 # Functions used in *Cassiopee* modules setup.py
 import os, sys, platform, glob, subprocess
-from distutils import sysconfig
-from distutils.core import Extension
-#from setuptools import sysconfig
-#from setuptools import Extension
+#from distutils import sysconfig
+#from distutils.core import Extension
+from setuptools._distutils import sysconfig
+from setuptools import Extension
 
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
 DEBUG = False
@@ -153,8 +153,7 @@ def checkAll(summary=True):
 #==============================================================================
 def checkPython():
     pythonVersion = sysconfig.get_python_version()
-    #vars = sysconfig.get_config_vars()
-
+    
     pythonIncDir = sysconfig.get_python_inc()
     if not os.path.exists(pythonIncDir):
         raise SystemError("Error: Python includes are required for the compilation of Cassiopee modules.")

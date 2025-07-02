@@ -42,7 +42,8 @@ if OCCPresent:
     additionalIncludePaths += [OCCIncDir]
 
 # libxml (hardcoded)
-additionalIncludePaths += ['C:/Users/benoit/msys64/usr/include', 'C:/Users/benoit/msys64/usr/include/libxml2', '/usr/include/libxml2']
+additionalIncludePaths  += ['C:/msys64/mingw64/include/libxml2', 'C:/Users/benoit/msys64/usr/include/libxml2', '/usr/include/libxml2']
+
 additionalIncludePaths += ['Modeler/tixi/src', 'Modeler/tixi/bindings/cpp']
 additionalIncludePaths += ['Modeler/tigl/src', 'Modeler/tigl/src/api', 'Modeler/tigl/src/system']
 additionalIncludePaths += ['Modeler/tigl/src/common', 'Modeler/tigl/src/logging', 'Modeler/tigl/src/cpacs_other']
