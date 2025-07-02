@@ -219,7 +219,7 @@ elif [ "$MAC" = "visio" ]; then
     export ELSAPROD=vis_r8
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-dri.sh
-    module load python/2.7.8
+    module load python/3.6.1
     module unload $(module -t list 2>&1 | grep -i intel)
     module load gcc/4.8.1
     module load intel/17.0.4

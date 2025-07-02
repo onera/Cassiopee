@@ -1,5 +1,4 @@
 # Class for FastS "IBM" prepare and compute
-import FastS.ToolboxChimera as TBX
 import Converter.PyTree as C
 import Geom.PyTree as D
 import Generator.PyTree as G
@@ -510,7 +509,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             zz   = Internal.getNodeFromName(z, "CoordinateZ")[1]
             yy   = Internal.getNodeFromName(z, "CoordinateY")[1]
 
-            r       = numpy.sqrt( zz**2+yy**2)
+            r    = numpy.sqrt( zz**2+yy**2)
 
             perio_loc = perio
             if c==1: period_loc= perio*1.5
@@ -781,6 +780,7 @@ def _modifcellNSymmetryPlan(t, depth=2,dim=3):
 # IN: t_curvi arbre curviligne   (with bc and connectivity but without ghost)
 #================================================================================
 def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, blankingBodies=None, extrusion=None, interpDataType=1, order=2, verbose=2, filter_zone=None):
+    import FastS.ToolboxChimera as TBX
     overlap = '14'
     InterpOrder = order
     Nproc =Cmpi.size
@@ -1105,8 +1105,6 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
                 C._tagWithFamily(bc, 'WALL_{}_DYNAMIC'.format(n))
 
     #C.convertPyTree2File(t_curvi, 'CHECK/t_test3_'+str(rank)+'.cgns')
-
-
 
     if Nproc==1:
         tBB2 = G.BB(t_curvi)

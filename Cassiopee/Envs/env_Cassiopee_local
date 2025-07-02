@@ -190,7 +190,7 @@ else if ($MAC == "fulvio") then
         # Nombre de threads
         setenv OMP_NUM_THREADS 8
 
-else if ($MAC == "visio_python3") then
+else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
         setenv ELSAPROD "$ELSAPROD$EXT"
@@ -205,7 +205,7 @@ else if ($MAC == "visio_python3") then
         # Nombre de threads
         setenv OMP_NUM_THREADS 16
         
-else if ($MAC == "visio") then
+else if ($MAC == "visio_python2") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
         setenv ELSAPROD "$ELSAPROD$EXT"
