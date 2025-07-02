@@ -153,7 +153,7 @@ def checkAll(summary=True):
 #==============================================================================
 def checkPython():
     pythonVersion = sysconfig.get_python_version()
-    
+
     pythonIncDir = sysconfig.get_python_inc()
     if not os.path.exists(pythonIncDir):
         raise SystemError("Error: Python includes are required for the compilation of Cassiopee modules.")
