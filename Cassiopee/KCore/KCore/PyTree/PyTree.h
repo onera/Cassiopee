@@ -147,9 +147,10 @@ namespace K_PYTREE
 
   /* Retourne le nombre d'éléments d'une zone d'un pyTree
      IN: zone
-     OUT: number of points
+     OUT: zoneType (1,2), nvertex, ncells
   */
-  E_Int getNumberOfPointsOfZone(PyObject* o, std::vector<PyArrayObject*>& hook);
+  E_Int getZoneDim(PyObject* o, E_Int& zoneType, E_Int& nvertex, E_Int& ncells,
+   std::vector<PyArrayObject*>& hook);
 
   /* Ajoute un noeud a o
      IN: o: objet representant un noeud de pyTree

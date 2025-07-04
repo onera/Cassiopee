@@ -699,7 +699,8 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
   nc_def_dim(ncid, "no_of_elements", nhexa+ntetra+npenta+npyra, &no_of_elements);
   nc_def_dim(ncid, "no_of_surfaceelements", ntri+nquad, &no_of_surfaceelements);
   
-  E_Int nvertex = K_PYTREE::getNumberOfPointsOfZone(zone, hook);
+  E_Int zoneType, nvertex, ncells;
+  K_PYTREE::getZoneDim(zone, zoneType, nvertex, ncells, hook);
     
   nc_def_dim(ncid, "no_of_points", nvertex, &no_of_points);
   dimids[0] = no_of_points;
