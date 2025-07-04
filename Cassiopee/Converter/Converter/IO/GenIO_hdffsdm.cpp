@@ -1249,6 +1249,10 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   delete [] data;
   H5Gclose(coord);
 
+  // Get connects
+  std::vector<PyObject*> connects;
+  K_PYTREE::getNodesFromType1(zone, "Elements_t", connects);
+
   // Write AugmentedState
   PyObject* FS = K_PYTREE::getNodeFromName1(zone, "FlowSolution#Centers");
   if (FS != NULL)
@@ -1256,21 +1260,93 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     std::vector<PyObject*> sols;
     K_PYTREE::getNodesFromType1(FS, "DataArray_t", sols);
     E_Int nvars = sols.size();
-    printf("detected nvars=%d\n", nvars);
+    //printf("detected nvars=%d\n", nvars);
   
     gid = H5Gcreate(ds, "AugState", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     
+    // number of vars
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfVariables", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, H5T_NATIVE_INT64, &nvars);
+#else
     aid = H5Acreate(gid, "NumberOfVariables", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     H5Awrite(aid, H5T_NATIVE_INT, &nvars);
+#endif
     H5Aclose(aid); H5Sclose(did);
 
+    // number of cells
     dims[0] = 1;
     did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, H5T_NATIVE_INT64, &ncells);
+#else
     aid = H5Acreate(gid, "NumberOfCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     H5Awrite(aid, H5T_NATIVE_INT, &ncells);
+#endif
     H5Aclose(aid); H5Sclose(did);
+
+    // number of cell types
+    E_Int ncellTypes = 0;
+    for (size_t i = 0; i < connects.size(); i++)
+    {
+      E_Int* cv = K_PYTREE::getValueAI(connects[i], hook);
+      E_Int eltType = cv[0];    
+      if (eltType == 17 || eltType == 10 || eltType == 14 || eltType == 12)
+      { ncellTypes += 1; }
+    }
+    dims[0] = 1;
+    did = H5Screate_simple(1, dims, NULL);
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "NumberOfCellTypes", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, H5T_NATIVE_INT64, &ncellTypes);
+#else
+    aid = H5Acreate(gid, "NumberOfCellTypes", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, H5T_NATIVE_INT, &ncellTypes);
+#endif
+    H5Aclose(aid); H5Sclose(did);
+    
+    dims[0] = 1;
+    did = H5Screate_simple(1, dims, NULL);
+    E_Int value = 1;
+#ifdef E_DOUBLEINT
+    aid = H5Acreate(gid, "SpanAllCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, H5T_NATIVE_INT64, &value);
+#else
+    aid = H5Acreate(gid, "SpanAllCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(aid, H5T_NATIVE_INT, &value);
+#endif
+    H5Aclose(aid); H5Sclose(did);
+
+    // Ecriture cellType
+    char name[35]; E_Int count = 0; E_Int pass;
+    for (size_t i = 0; i < connects.size(); i++)
+    {
+      E_Int* cv = K_PYTREE::getValueAI(connects[i], hook);
+      E_Int eltType = cv[0];
+
+      pass = 0;
+      if (eltType == 17) strcpy(name, "HEXA8");
+      else if (eltType == 10) strcpy(name, "TETRA4");
+      else if (eltType == 14) strcpy(name, "PENTA6");
+      else if (eltType == 12) strcpy(name, "PYRA5");
+      else pass = 1;
+
+      if (pass == 0)
+      {
+        gid2 = H5Gcreate(ds, "CellType0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        sprintf(name, "CellType" SF_D_, count);
+        did = H5Screate(H5S_SCALAR);
+        tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen("HEXA8")+1);
+        aid = H5Acreate(gid2, "Name", tid, did, H5P_DEFAULT, H5P_DEFAULT);
+        H5Awrite(aid, tid, "HEXA8");
+        H5Sclose(did); H5Aclose(aid); 
+        count += 1;
+        H5Gclose(gid2);
+      }
+    }
 
     // Write partial Values
     hsize_t start[2]; hsize_t scount[2];
@@ -1290,7 +1366,6 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     H5Sclose(did); H5Dclose(vid);
    
     // Write Variables
-    char name[35];
     for (E_Int n = 0; n < nvars; n++)
     {
       sprintf(name, "Variable" SF_D_, n);
@@ -1328,9 +1403,6 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   H5Gclose(gid);
 
   // Write and merge connectivities
-  std::vector<PyObject*> connects;
-  K_PYTREE::getNodesFromType1(zone, "Elements_t", connects);
-
   E_Int nhexa=0; E_Int ntetra=0; E_Int npenta=0; E_Int npyra=0; E_Int ntri=0; E_Int nquad=0;
 
   // count elements

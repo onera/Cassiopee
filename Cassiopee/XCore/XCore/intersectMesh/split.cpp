@@ -196,7 +196,7 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
             E_Int nfid = fids.second;
             assert(nfid < nf);
             E_Int NP = -1;
-            E_Int* pn = array.get_face(ofid, NP);
+            array.get_face(ofid, NP);
             indPG[nfid+1] = NP;
         }
         for (E_Int fid = 0; fid < nf; fid++) indPG[fid+1] += indPG[fid];
