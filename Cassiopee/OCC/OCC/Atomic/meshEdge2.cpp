@@ -228,7 +228,7 @@ void geom3(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& u
   }
   //for (E_Int i = 1; i < N; i++) ue[i] = ue[i-1] + h0*pow(r, i-1);  
   //ue[N-1] = u1; // force
-  for (E_Int i = 0; i < N; i++) printf("%d %f\n", i, ue[i]);
+  for (E_Int i = 0; i < N; i++) printf("%zu %f\n", i, ue[i]);
   printf("h0/r=%f real=%f\n", h0/r, ue[1]-ue[0]);
   printf("h1/r=%f real=%f\n", h1/r, ue[N-1]-ue[N-2]);
 }

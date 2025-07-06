@@ -288,19 +288,19 @@ E_Int K_PYTREE::getZoneDim(PyObject* o,
     { 
       ni = d[0];
       nvertex = ni;
-      ncells = std::max(ni-1,0);
+      ncells = std::max(ni-1,E_Int(0));
     }
     else if (s0 == 2) 
     { 
       ni = d[0]; nj = d[1];
       nvertex = ni*nj;
-      ncells = std::max((ni-1)*(nj-1),0);
+      ncells = std::max((ni-1)*(nj-1),E_Int(0));
     }
     else 
     { 
       ni = d[0]; nj = d[1]; nk = d[2];
       nvertex = ni*nj*nk;
-      ncells = std::max((ni-1)*(nj-1)*(nk-1),0);
+      ncells = std::max((ni-1)*(nj-1)*(nk-1),E_Int(0));
     }
   }
   else // unstructured
