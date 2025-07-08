@@ -1,5 +1,5 @@
 # Functions used in *Cassiopee* modules setup.py
-import os, sys, platform, glob, subprocess, shutils
+import os, sys, platform, glob, subprocess, shutil
 #from distutils import sysconfig
 #from distutils.core import Extension
 from setuptools._distutils import sysconfig
