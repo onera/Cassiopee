@@ -2618,28 +2618,38 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
     import sys
     sys.stdout.write(rep)
 
-# Mesure de la taille de a en octets
 def getSizeOf__(a, s):
-  s += len(a[0])
-  s += len(a[3])
-  r = a[1]
-  if r is not None:
-    if isinstance(r, numpy.ndarray):
-      if r.dtype == numpy.int32: s += r.size*4
-      elif r.dtype == numpy.float32: s += r.size*4
-      else: s += r.size*8
-  for i in a[2]:
-    s = getSizeOf__(i, s)
+  if isinstance(a, numpy.ndarray):
+    if a.dtype == numpy.int32: s += a.size*4
+    elif a.dtype == numpy.float32: s += a.size*4
+    else: s += a.size*8
+  elif isinstance(a, list):
+    for i in a:
+      s = getSizeOf__(i, s)
+  elif isinstance(a, dict):
+    for i in a:
+      s = getSizeOf__(a[i], s)
+  elif isStdNode(a) == -1:
+    s += len(a[0])
+    s += len(a[3])
+    r = a[1]
+    if r is not None:
+      if isinstance(r, numpy.ndarray):
+        if r.dtype == numpy.int32: s += r.size*4
+        elif r.dtype == numpy.float32: s += r.size*4
+        else: s += r.size*8
+    for i in a[2]:
+      s = getSizeOf__(i, s)
+  elif isinstance(a, str):
+    s += len(a)
   return s
 
+# Get the size of a pytree node in octets
+# Work also on numpys, list of numpys, dict of numpys
 def getSizeOf(a):
   """Return the size of a in octets."""
   s = 0
-  if isStdNode(a) == 0:
-    for i in a:
-      sl = 0
-      s += getSizeOf__(i, sl)
-  else: s = getSizeOf__(a, s)
+  s = getSizeOf__(a, s)
   return s
 
 #==============================================================================

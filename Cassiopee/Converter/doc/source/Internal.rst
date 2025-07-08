@@ -1325,9 +1325,10 @@ Check nodes
 .. py:function:: Converter.Internal.getSizeOf(node) 
 
     Return the size of input node and attached nodes in octets.
+    Works also on numpy, list of numpys, dict of numpys.
 
-    :param node:  input node
-    :type  node:  pyTree node of list of pyTree nodes
+    :param node: input node
+    :type  node: pyTree node of list of pyTree nodes
     :return: size of node in octets
     :rtype: int
 
