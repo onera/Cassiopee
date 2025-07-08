@@ -1,6 +1,6 @@
 # Interface pour MPI
 
-import os, time, timeit, sys
+import os, timeit, sys
 from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph, splitGraph, isZoneSkeleton__
 from . import PyTree as C
 from . import Internal
@@ -120,8 +120,6 @@ def center2Node1__(t, var=None, cellNType=0, graph=None):
     if graph is None: graph = computeGraph(t, type='match')
     tl = addXZones(t, graph)
     _convert2PartialTree(tl)
-    #zones = Internal.getZones(tl)
-    #print('Rank %d has %d zones.'%(rank, len(zones)))
     tl = C.center2Node(tl, var, cellNType)
     _rmXZones(tl)
     return tl
@@ -134,8 +132,6 @@ def center2Node2__(t, var=None, cellNType=0):
     else: noCoordinates = True
     _addMXZones(tl, variables=var, noCoordinates=noCoordinates, keepOldNodes=False)
     _convert2PartialTree(tl)
-    #zones = Internal.getZones(tl)
-    #print('Rank %d has %d zones.'%(rank, len(zones)))
     t2 = C.center2Node(tl, var, cellNType)
     _rmMXZones(tl)
     _rmMXZones(t2)
@@ -163,14 +159,6 @@ def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
     #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), C.getNPts(t)*1./1.e6), flush=True)
     Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
     _rmMXZones(t)
-
-    # ancienne version utilisant addXZones
-    #graph = computeGraph(t, type='match', reduction=True)
-    #_addXZones(t, graph, variables=variable, noCoordinates=False,
-    #           zoneGC=False, keepOldNodes=False)
-    #print("%d: addGC(max): Nblocs=%d, NPts(M)=%g"%(rank,len(Internal.getZones(t)), C.getNPts(t)*1./1.e6), flush=True)
-    #Internal._addGhostCells(t, t, d, adaptBCs, modified, fillCorner)
-    #_rmXZones(t)
     return None
 
 def getNPts(a):
@@ -326,7 +314,7 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, m
 # formees par des triangles. Pour cela, appliquer au prealable (par exemple):
 # createBBoxTree(C.convertArray2Tetra(P.exteriorFaces(t)),isOBB=1,weighting=1)
 #==============================================================================
-def createBBoxTree(t, method='AABB', weighting=0, tol=0.):
+def createBBoxTree(t, method='AABB', weighting=0, tol=0., keepOldNodes=True):
     """Return a bbox tree of t."""
     try: import Generator.PyTree as G
     except: raise ImportError("createBBoxTree requires Generator module.")
@@ -340,8 +328,10 @@ def createBBoxTree(t, method='AABB', weighting=0, tol=0.):
                 zbb = G.BB(z, method, weighting, tol=tol)
                 # ajoute baseName/zoneName
                 zbb[0] = b[0]+'/'+zbb[0]
-                # Clean up (zoneSubRegion)
-                Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
+                if keepOldNodes:
+                    # Clean up (zoneSubRegion)
+                    Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
+                else: C._extractVars(zbb, keepOldNodes=False)
                 zb.append(zbb)
 
     # Echanges des zones locales de bounding box

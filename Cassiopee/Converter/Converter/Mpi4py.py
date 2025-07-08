@@ -10,12 +10,10 @@ from .Distributed import readZones, _readZones, convert2PartialTree, _convert2Pa
 __all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM',
            'MIN', 'MAX', 'LAND',
            'setCommunicator', 'barrier', 'send', 'isend', 'recv', 'requestWaitall',
-
            'sendRecv', 'sendRecvC',
            'bcast', 'Bcast', 'gather', 'Gather',
            'reduce', 'Reduce', 'allreduce', 'Allreduce',
            'bcastZone', 'gatherZones', 'allgatherZones',
-           'createBBTree', 'intersect', 'intersect2',
            'allgatherDict', 'allgatherDict2',
            'allgather', 'readZones', 'writeZones', 'convert2PartialTree',
            'convert2SkeletonTree',
@@ -50,7 +48,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
     return None
 
 #==============================================================================
-# Change de communicateur
+# Change communicator
 #==============================================================================
 def setCommunicator(com):
     """Set MPI communicator to com."""
@@ -96,7 +94,7 @@ def recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG):
     return KCOMM.recv(source=source, tag=tag)
 
 #==============================================================================
-# Wait for all requests
+# Wait for all requests to finish
 #==============================================================================
 def requestWaitall(reqs):
     MPI.Request.waitall(reqs)
@@ -136,6 +134,7 @@ def Allreduce(dataIn, dataOut, op=MPI.SUM):
 # OUT: un dictionnaire des donnees recues par proc d'origine
 #==============================================================================
 def sendRecv(datas, graph):
+    """Send/receive with a graph."""
     if graph == {}: return {}
     reqs = []
 
@@ -143,16 +142,13 @@ def sendRecv(datas, graph):
         g = graph[rank] # graph du proc courant
         for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
-            #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
             if oppNode in datas: s = KCOMM.isend(datas[oppNode], dest=oppNode)
             else: s = KCOMM.isend(None, dest=oppNode)
             reqs.append(s)
     barrier()
     rcvDatas={}
     for node in graph:
-        #print(rank, graph[node],graph[node].keys(),flush=True)
         if rank in graph[node]:
-            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]),flush=True)
             rec = KCOMM.recv(source=node)
             if rec is not None: rcvDatas[node] = rec
     MPI.Request.waitall(reqs)
@@ -165,6 +161,7 @@ def sendRecv(datas, graph):
 # Attention: ne fonctionne que pour certaines datas (issues de transfer)
 #==============================================================================
 def sendRecvC(datas, graph):
+    """Send/receive with a graph (C version/no pickle)."""
     if graph == {}: return {}
     reqs = []
 
@@ -172,7 +169,6 @@ def sendRecvC(datas, graph):
         g = graph[rank] # graph du proc courant
         for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
-            #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
             if oppNode in datas:
                 s = converter.iSend(datas[oppNode], oppNode, rank, KCOMM)
             else:
@@ -181,9 +177,7 @@ def sendRecvC(datas, graph):
     barrier()
     rcvDatas={}
     for node in graph:
-        #print(rank, graph[node].keys())
         if rank in graph[node]:
-            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
             rec = converter.recv(node, rank, KCOMM)
             if rec is not None: rcvDatas[node] = rec
 
@@ -191,54 +185,21 @@ def sendRecvC(datas, graph):
     return rcvDatas
 
 #==============================================================================
-# Construction d'un arbre de recherche pour des BBox
-# IN : tBB arbre cgns de bbox
-# OUT : objet C BBtree (hook)
+# passnext
+# pass data to the next proc
 #==============================================================================
-def createBBTree(t):
-    zones = Internal.getZones(t)
-    minBBoxes = [] ; maxBBoxes = []
-    for z in zones:
-        # BBox de la zone
-        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
-        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
-        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
-        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
-        minBBoxes.append([numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)])
-        maxBBoxes.append([numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)])
+def passnext(data):
+    """Pass data to next proc."""
+    reqs = []
+    if rank < size-1: s = isend(data, dest=rank+1)
+    else: s = isend(data, 0)
+    reqs.append(s)
+    barrier()
 
-    return converter.createBBTree(minBBoxes, maxBBoxes)
-
-#==============================================================================
-# Recherche des intersections entre une bbox de zone et un arbre de BBox
-# IN : Bbox d'une zone + arbre de recherche de BBox
-# OUT : tableau de taille de nombre des BBox avec True or False
-#==============================================================================
-def intersect(zone, BBTree):
-    gc = Internal.getNodeFromName1(zone, Internal.__GridCoordinates__)
-    xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
-    yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
-    zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
-    minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
-    maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
-    return converter.intersect(minBBox, maxBBox, BBTree)
-
-def intersect2(t, BBTree):
-    zones = Internal.getZones(t)
-    inBB = numpy.empty((6*len(zones)), dtype=numpy.float64)
-    for c, z in enumerate(zones):
-        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
-        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
-        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
-        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
-        inBB[6*c  ] = xCoords[0,0,0]
-        inBB[6*c+1] = yCoords[0,0,0]
-        inBB[6*c+2] = zCoords[0,0,0]
-        inBB[6*c+3] = xCoords[1,0,0]
-        inBB[6*c+4] = yCoords[0,1,0]
-        inBB[6*c+5] = zCoords[0,0,1]
-
-    return converter.intersect2(inBB, BBTree)
+    if rank > 0: data = recv(source=rank-1)
+    else: data = recv(source=size-1)
+    requestWaitall(reqs)
+    return data
 
 #==============================================================================
 # Recherche des zones fixes non intersectees et ajout dans le dict

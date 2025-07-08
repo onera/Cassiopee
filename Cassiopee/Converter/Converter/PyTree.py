@@ -1,6 +1,5 @@
-from __future__ import print_function
-
 from . import Converter
+from . import converter
 from . import Internal
 import KCore
 import numpy, fnmatch, re, os.path
@@ -7305,6 +7304,57 @@ def _recoverGlobalIndex(a, b):
         fb[1] = fb[1]+fx[1]
     elif fb == []: fb = fx
     return __TZA2(a, 'nodes', Converter._recoverGlobalIndex, fb)
+
+#==============================================================================
+# Construction de la structure de recherche BBTree
+#==============================================================================
+def createBBTree(t):
+    """Create BBtree."""
+    zones = Internal.getZones(t)
+    minBBoxes = []; maxBBoxes = []
+    for z in zones:
+        # BBox de la zone
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+        minBBoxes.append([numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)])
+        maxBBoxes.append([numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)])
+
+    return converter.createBBTree(minBBoxes, maxBBoxes)
+
+#==============================================================================
+# Recherche des intersections entre une bbox de zone et un arbre de BBox
+# IN: Bbox d'une zone + arbre de recherche de BBox
+# OUT: tableau de taille de nombre des BBox avec True or False
+#==============================================================================
+def intersect(zone, BBTree):
+    """Check intersection using BBTree."""
+    gc = Internal.getNodeFromName1(zone, Internal.__GridCoordinates__)
+    xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+    yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+    zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+    minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
+    maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
+    return converter.intersect(minBBox, maxBBox, BBTree)
+
+def intersect2(t, BBTree):
+    """Check intersection using BBTree."""
+    zones = Internal.getZones(t)
+    inBB = numpy.empty((6*len(zones)), dtype=numpy.float64)
+    for c, z in enumerate(zones):
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+        inBB[6*c  ] = xCoords[0,0,0]
+        inBB[6*c+1] = yCoords[0,0,0]
+        inBB[6*c+2] = zCoords[0,0,0]
+        inBB[6*c+3] = xCoords[1,0,0]
+        inBB[6*c+4] = yCoords[0,1,0]
+        inBB[6*c+5] = zCoords[0,0,1]
+
+    return converter.intersect2(inBB, BBTree)
 
 #==============================================================================
 # -- Connectivity management --

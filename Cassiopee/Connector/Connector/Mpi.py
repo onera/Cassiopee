@@ -162,7 +162,7 @@ def _connectMatchNGon(z, tol=1.e-6):
         if Cmpi.rank < Cmpi.size-1: s = Cmpi.isend(data, dest=Cmpi.rank+1)
         else: s = Cmpi.isend(data, 0)
         reqs.append(s)
-        print(Cmpi.rank, "send done", reqs, flush=True)
+        #print(Cmpi.rank, "send done", reqs, flush=True)
         Cmpi.barrier()
 
         # get the neighbour faces

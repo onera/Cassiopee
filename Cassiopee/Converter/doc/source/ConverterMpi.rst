@@ -292,7 +292,7 @@ Conversions
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Mpi.createBBoxTree(t, method='AABB')
+.. py:function:: Converter.Mpi.createBBoxTree(t, method='AABB', keepOldNodes=True)
 
     From a partial tree (**P**) or a loaded skeleton tree (**LS**), create a full tree containing 
     the bbox of zones. A bbox is a structured grid made of 8 points englobing
@@ -302,6 +302,8 @@ Conversions
     :param t: input data
     :type t: [pyTree, base, zone, list of zones]
     :param method: 'AABB': axis aligned bbox, 'OBB': oriented bbox
+    :param keepOldNodes: if True, keep original zone attributes, if False, build a new zone with coordinates only.
+    :type keepOldNodes: boolean
     :rtype: Identical to t
 
     *Example of use:*
