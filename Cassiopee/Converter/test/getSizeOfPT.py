@@ -10,4 +10,3 @@ print(Internal.getSizeOf(a), 'octets')
 a = [numpy.zeros((100), dtype=numpy.float64)]
 print(Internal.getSizeOf(a), 'octets')
 #>> 800 octets
-

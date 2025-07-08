@@ -14,7 +14,7 @@ __all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM',
            'bcast', 'Bcast', 'gather', 'Gather',
            'reduce', 'Reduce', 'allreduce', 'Allreduce',
            'bcastZone', 'gatherZones', 'allgatherZones',
-           'allgatherDict', 'allgatherDict2', 'allgatherTree', 
+           'allgatherDict', 'allgatherDict2', 'allgatherTree',
            'allgather', 'passNext', 'allgatherNext',
            'getSizeOf',
            'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree',
@@ -24,7 +24,7 @@ __all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM',
            'createBboxDict', 'computeGraph', 'addXZones',
            '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
            'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict',
-           'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty', 
+           'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty',
            'COMM_WORLD']
 
 from mpi4py import MPI
@@ -258,7 +258,7 @@ def allgatherDict(data):
 
 #==============================================================================
 # gather a dict identical on all procs
-# if: dict[key] = value, 
+# if: dict[key] = value,
 # return dict[key] = value (en choisi une value si doublon de key)
 #==============================================================================
 def allgatherDict2(data):
@@ -310,7 +310,7 @@ def allgatherZones(zones, coord=True, variables=[]):
     return allZones
 
 #==============================================================================
-# gather from all procs to root, small data 
+# gather from all procs to root, small data
 #==============================================================================
 def gather(data, root=0):
     return KCOMM.gather(data, root)
@@ -577,7 +577,7 @@ def printA(A):
     seq(fprint, A)
 
 #==============================================================================
-# Calcule le dictionnaire des bbox de l'arbre complet, identique 
+# Calcule le dictionnaire des bbox de l'arbre complet, identique
 # sur tous les procs. Utile pour addXZones optimises
 #==============================================================================
 def createBboxDict(t):

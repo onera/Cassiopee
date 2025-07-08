@@ -12,4 +12,3 @@ if Cmpi.rank == 0: test.testO(s, 1)
 a = [numpy.zeros((100), dtype=numpy.float64)]
 s = Cmpi.getSizeOf(a, 'sum')
 if Cmpi.rank == 0: test.testO(s, 2)
-
