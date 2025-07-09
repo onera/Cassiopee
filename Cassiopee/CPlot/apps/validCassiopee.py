@@ -185,12 +185,19 @@ def getInstallPaths():
     parentDirname = os.path.dirname(os.path.dirname(cassiopeeIncDir))
     pmodulesDir = os.path.join(parentDirname, 'PModules')
     if not os.path.isdir(pmodulesDir): pmodulesDir = None
+    fspluginsDirs = []
     if '_coda' in os.getenv("ELSAPROD"):
         fspluginsDir = os.path.join(parentDirname, 'FSPlugins')
         if not os.path.isdir(fspluginsDir):
             fspluginsDir = os.getenv('FSPLUGINS', None)
-    else: fspluginsDir = None
-    return cassiopeeIncDir, fastIncDir, pmodulesDir, fspluginsDir
+        if fspluginsDir is not None:
+            for d in os.listdir(fspluginsDir):
+                absd = os.path.join(fspluginsDir, d)
+                if d.startswith('FS') and os.path.isdir(absd):
+                    pyPath = os.path.join(absd, 'py')
+                    if os.path.isdir(pyPath):
+                        fspluginsDirs.append(os.path.abspath(pyPath))
+    return cassiopeeIncDir, fastIncDir, pmodulesDir, *fspluginsDirs
 
 def checkEnvironment():
     # Check environment
