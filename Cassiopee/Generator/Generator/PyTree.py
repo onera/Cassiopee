@@ -660,10 +660,10 @@ def checkPointInCEBB(t, P):
 def bboxOfCells(t):
     """Compute the bounding box of all cells of a mesh.
     Usage: getBBoxOfCells(t)"""
-    return C.TZGC1(t, 'centers', True, Generator.bboxOfCells)
+    return C.TZGC3(t, 'centers', True, Generator.bboxOfCells)
 
 def _bboxOfCells(t):
-    return C._TZGC1(t, 'centers', False, Generator.bboxOfCells)
+    return C._TZGC3(t, 'centers', False, Generator.bboxOfCells)
 
 def getVolumeMap(t, method=0):
     """Return the volume map in an array.

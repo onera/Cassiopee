@@ -32,8 +32,8 @@ PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                    ni, nj, nk, cn, eltType);
   
   if (res != 1 && res != 2) 
   {
@@ -58,36 +58,50 @@ PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
     E_Int ni1 = K_FUNC::E_max(1,ni-1);
     E_Int nj1 = K_FUNC::E_max(1,nj-1);
     E_Int nk1 = K_FUNC::E_max(1,nk-1);
-    PyObject* tpl = K_ARRAY::buildArray(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
-					ni1, nj1, nk1);
-    E_Float* bbp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF bboxOfCells(ni1*nj1*nk1, 6, bbp, true);
-    K_COMPGEOM::boundingBoxOfStructCells(ni, nj, nk, *f, bboxOfCells);
+    PyObject* tpl = K_ARRAY::buildArray3(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
+      ni1, nj1, nk1);
+
+    char* varString2; FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, varString2, f2);
+
+    K_COMPGEOM::boundingBoxOfStructCells(ni, nj, nk, *f, *f2);
     RELEASESHAREDS(array, f);
+    RELEASESHAREDS(tpl, f2);
     return tpl;
   }
   else 
   {
-    if (strcmp(eltType, "NGON") == 0) // pas implemente !!
+    if (strcmp(eltType, "NGON") == 0)
     {
-      RELEASESHAREDB(res, array, f, cn);
-      PyErr_SetString(PyExc_TypeError,
-                      "getBBoxOfCells: not implemented for NGONs yet.");
-      return NULL; 
+      E_Int api = f->getApi();
+      E_Int nvertex = f->getSize();
+
+      PyObject* tpl = K_ARRAY::buildArray3(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
+        nvertex, *cn, "NGON", 1, 3, true); // center=1, api=3, copyConnect=true
+
+      FldArrayF* f2;  FldArrayI* cn2;
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+      K_COMPGEOM::boundingBoxOfNGonCells(*cn2, f->begin(posx), f->begin(posy),
+                                          f->begin(posz), *f2);
+      RELEASESHAREDU(array, f, cn);
+      RELEASESHAREDU(tpl, f2, cn2);
+      return tpl;
     }
     else
     {
-      E_Int net = cn->getSize(); E_Int nvert = cn->getNfld();
-      PyObject* tpl = K_ARRAY::buildArray(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
-                                          net, net, -1, eltType, true);
-      E_Float* bbp = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF bboxOfCells(net, 6, bbp, true);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-      FldArrayI cnn(net, nvert, cnnp, true);
-      K_COMPGEOM::boundingBoxOfUnstrCells(cnn, f->begin(posx), f->begin(posy),
-                                          f->begin(posz), bboxOfCells);
+      E_Int nvertex = f->getSize();
+      
+      PyObject* tpl = K_ARRAY::buildArray3(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
+        nvertex, *cn, eltType, 1, 3, true); // center=1, api=3, copyConnect=true
+
+      FldArrayF* f2;  FldArrayI* cn2;
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+      K_COMPGEOM::boundingBoxOfUnstrCells(*cn2, f->begin(posx), f->begin(posy),
+                                          f->begin(posz), *f2);
       RELEASESHAREDU(array, f, cn);
+      RELEASESHAREDU(tpl, f2, cn2);
       return tpl;
     }
   }
