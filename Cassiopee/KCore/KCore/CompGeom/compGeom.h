@@ -653,8 +653,7 @@ typedef struct {
      OUT: bbox(ncells,6): xmin, ymin, zmin, xmax,ymax,zmax
      bbox est alloue ici.
   */
-  void
-  boundingBoxOfStructCells(E_Int im, E_Int jm, E_Int km,
+  void boundingBoxOfStructCells(E_Int im, E_Int jm, E_Int km,
                            K_FLD::FldArrayF& coord,
                            K_FLD::FldArrayF& bbox);
   /* Bounding box de toutes les cellules d'une grille non structuree
@@ -663,22 +662,25 @@ typedef struct {
      OUT: bbox(nelts,6): xmin, ymin, zmin, xmax,ymax,zmax
      bbox est alloue ici.
   */
-  void 
-  boundingBoxOfUnstrCells(K_FLD::FldArrayI& connect,
+  void boundingBoxOfUnstrCells(K_FLD::FldArrayI& connect,
                           E_Float* xt, E_Float* yt, E_Float* zt,
                           K_FLD::FldArrayF& bbox);
- 
-  /* Bounding box d'une cellule issue d'une grille structuree
-     IN: im, jm, km: dimensions de l'array definissant la grille
+
+   /* Bounding box de toutes les cellules d'une grille NGon
+     IN: connect: connectivite de la grille
      IN: coord: coordonnees de la grille
-     IN: ind: indice de la cellule dont la bbox est calculee
-     OUT: xmax, ymax, zmax, xmin, ymin, zmin: bbox
+     OUT: bbox(nelts,6): xmin, ymin, zmin, xmax,ymax,zmax
+     bbox est alloue ici.
   */
-  void
-  boundingBoxOfCell(E_Int im, E_Int jm, E_Int km, E_Int ind,
-                    K_FLD::FldArrayF& coord,
-                    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                    E_Float& xmin, E_Float& ymin, E_Float& zmin);
+  void boundingBoxOfNGonCells(K_FLD::FldArrayI& connect,
+   E_Float* xt, E_Float* yt, E_Float* zt,
+   K_FLD::FldArrayF& bbox);
+
+  /* Bounding box d'une cellule issue d'une grille structuree. */
+  void boundingBoxOfStructCell(E_Int ind, E_Int im, E_Int jm, E_Int km,
+   E_Float* x, E_Float* y, E_Float* z,
+   E_Float& xmin, E_Float& ymin, E_Float& zmin,
+   E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
   /* Bounding box d'une cellule issue d'une grille non structuree. */
   void boundingBoxOfUnstrCell(
@@ -686,6 +688,13 @@ typedef struct {
     E_Float* xt, E_Float* yt, E_Float* zt,
     E_Float& xmax, E_Float& ymax, E_Float& zmax, 
     E_Float& xmin, E_Float& ymin, E_Float& zmin);
+
+   /* Bounding box d'une cellule issue d'une grille NGon. */
+  void boundingBoxOfNGonCell(
+   E_Int noet, K_FLD::FldArrayI& connect, 
+   E_Float* xt, E_Float* yt, E_Float* zt,
+   E_Float& xmax, E_Float& ymax, E_Float& zmax, 
+   E_Float& xmin, E_Float& ymin, E_Float& zmin);
 
   /* Intersection des bounding boxes de 2 grilles structurees
      IN: ni1, nj1, nk1: dimension de la grille1

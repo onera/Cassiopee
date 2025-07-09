@@ -16,7 +16,7 @@ a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
 a = G.bboxOfCells(a)
 test.testT(a,2)
 
-# test 3d structure
+# test 3D structure
 a = G.cart((0.,0.,0.),(0.1,0.1,1.),(20,20,20))
 a = C.addBC2Zone(a, 'wall1','BCWall','jmin')
 a = C.addBC2Zone(a, 'match1','BCMatch','imin',a,'imax',[1,2,3])
@@ -49,3 +49,21 @@ a = G.cart((0.,0.,0.),(0.1,0.1,1.),(10,10,10))
 a = C.convertArray2Hexa(a); a = G.bboxOfCells(a)
 a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
 test.testT(a,7)
+
+# test NGon 1D
+a = G.cart((0.,0.,0.),(0.1,0.1,1.),(20,1,1))
+a = C.convertArray2NGon(a); a = G.bboxOfCells(a)
+a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
+test.testT(a,8)
+
+# test NGon 2D
+a = G.cart((0.,0.,0.),(0.1,0.1,1.),(20,20,1))
+a = C.convertArray2NGon(a); a = G.bboxOfCells(a)
+a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
+test.testT(a,9)
+
+# test NGon 3D
+a = G.cart((0.,0.,0.),(0.1,0.1,1.),(20,20,20))
+a = C.convertArray2NGon(a); a = G.bboxOfCells(a)
+a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
+test.testT(a,10)
