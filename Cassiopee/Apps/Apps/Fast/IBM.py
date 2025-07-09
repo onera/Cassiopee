@@ -863,7 +863,7 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
         walls = C.extractBCOfType(t_curvi, 'BCWall')
         wall_gather = Cmpi.allgather(walls)
         #print(" apr wall gather: rank=", rank, flush=True)
-        if rank==0: C.convertPyTree2File(walls,'wall.cgns')
+        if rank == 0: C.convertPyTree2File(walls, 'wall.cgns')
         Cmpi.barrier()
         walls = []
         for i in wall_gather: walls += i
