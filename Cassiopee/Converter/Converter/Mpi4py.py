@@ -19,8 +19,8 @@ __all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM',
            'getSizeOf',
            'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree',
            'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
-           'convertFile2SkeletonTree', 'convertFile2PyTree',
-           'convertPyTree2File', 'seq', 'print0', 'printA',
+           'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File', 
+           'seq', 'print0', 'printA',
            'createBboxDict', 'computeGraph', 'addXZones',
            '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
            'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict',
@@ -203,7 +203,9 @@ def passNext(data):
     requestWaitall(reqs)
     return data
 
+#==============================================================================
 # gather data in a list identical on all procs with passNext algorithm
+#==============================================================================
 def allgatherNext(data):
     ret = [data]
     for trip in range(size-1):
@@ -213,9 +215,10 @@ def allgatherNext(data):
 
 #==============================================================================
 # gather data in a list identical on all processors
+# check data size to avoid mpi buffer overflow
 #==============================================================================
 def allgather(data):
-    s = getSizeOf(data)
+    s = getSizeOf(data, op='sum')
     if s < 1.e7: return KCOMM.allgather(data)
     else: return allgatherNext(data)
 
@@ -225,16 +228,6 @@ def allgather(data):
 #def allgather(data):
 #    ret = KCOMM.allgather(data)
 #    return ret
-
-#==============================================================================
-# Recherche des zones fixes non intersectees et ajout dans le dict
-# IN: liste des zones fixes, dict des intersects
-# OUT: dict a jour (reference ou pas?)
-#==============================================================================
-#def fillDict(zones, dictIntersect):
-#    for zone in zones:
-#        if zone[0] not in dictIntersect: dictIntersect[zone[0]] = []
-#    return dictIntersect
 
 #==============================================================================
 # gather a dictionary identical on all procs when: dict[key] = [value]
@@ -275,7 +268,7 @@ def allgatherDict2(data):
 #==============================================================================
 def allgatherTree(t):
     """Gather a distributed tree on all processors."""
-    d = KCOMM.allgather(t)
+    d = allgather(t) # with check size
     return Internal.merge(d)
 
 #==============================================================================
@@ -440,7 +433,7 @@ def bcastZone(z, root=0, coord=True, variables=[]):
 # get size of data
 # IN: op: max, min or sum
 #==============================================================================
-def getSizeOf(data, op='max'):
+def getSizeOf(data, op='sum'):
     """Get the size of data in octets."""
     s = Internal.getSizeOf(data)
     ret = KCOMM.allgather(s)

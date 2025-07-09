@@ -25,6 +25,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allgatherZones(a, root=0): return a
         def allgatherTree(a): return a
         def allgatherDict(a): return a
+        def allgatherNext(a): return [a]
         def send(a, dest=0, tag=0): return None
         def isend(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
@@ -36,6 +37,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): b[:] = a[:]; return None
         def getSizeOf(a): return Internal.getSizeOf(a)
+        def passNext(a): return a
         def seq(F, *args): F(*args)
         def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
@@ -70,6 +72,7 @@ else: # try import (may fail - core or hang)
         def allgatherZones(a, root=0): return a
         def allgatherTree(a): return a
         def allgatherDict(a): return a
+        def allgatherNext(a): return [a]
         def send(a, dest=0, tag=0): return None
         def isend(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
@@ -81,6 +84,7 @@ else: # try import (may fail - core or hang)
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): b[:] = a[:]; return None
         def getSizeOf(a): return Internal.getSizeOf(a)
+        def passNext(a): return a
         def seq(F, *args): F(*args)
         def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)

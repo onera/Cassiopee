@@ -156,22 +156,9 @@ def _connectMatchNGon(z, tol=1.e-6):
     for trip in range(Cmpi.size-1):
 
         data = [zu, indicesE]
-
-        # pass undefined faces zu to neighbour
-        reqs = []
-        if Cmpi.rank < Cmpi.size-1: s = Cmpi.isend(data, dest=Cmpi.rank+1)
-        else: s = Cmpi.isend(data, 0)
-        reqs.append(s)
-        #print(Cmpi.rank, "send done", reqs, flush=True)
-        Cmpi.barrier()
-
-        # get the neighbour faces
-        if Cmpi.rank > 0: data = Cmpi.recv(source=Cmpi.rank-1)
-        else: data = Cmpi.recv(source=Cmpi.size-1)
-        Cmpi.requestWaitall(reqs)
-
+        data = Cmpi.passNext(data)
         (zu, indicesE) = data
-        print(Cmpi.rank, "receive done", zu[0], flush=True)
+        #print(Cmpi.rank, "receive done", zu[0], flush=True)
 
         # identify faces and build matches
         ids = C.identifyElements(hook, zu, tol)
