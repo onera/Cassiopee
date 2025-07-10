@@ -686,6 +686,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   E_Int nc = cn.getNConnect();
   E_Int vidx;
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
+  if (nc > 1) api = 3; // force array3 for ME
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
