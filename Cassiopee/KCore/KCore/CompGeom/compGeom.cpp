@@ -92,6 +92,14 @@ void K_COMPGEOM::boundingBox(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
     ymin = K_FUNC::E_min(yminl[ithread], ymin);
     zmin = K_FUNC::E_min(zminl[ithread], zmin);
   }
+
+  //clean
+  delete [] xminl;
+  delete [] xmaxl;
+  delete [] yminl;
+  delete [] ymaxl;
+  delete [] zminl;
+  delete [] zmaxl;
 }
 
 //===========================================================================
@@ -252,6 +260,14 @@ void K_COMPGEOM::boundingBox(E_Int im, E_Int jm, E_Int km,
     ymin = K_FUNC::E_min(yminl[ithread], ymin);
     zmin = K_FUNC::E_min(zminl[ithread], zmin);
   }
+
+  //clean
+  delete [] xminl;
+  delete [] xmaxl;
+  delete [] yminl;
+  delete [] ymaxl;
+  delete [] zminl;
+  delete [] zmaxl;
 }
 
 //===========================================================================
