@@ -73,13 +73,13 @@ PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
   {
     if (strcmp(eltType, "NGON") == 0)
     {
-      E_Int api = f->getApi();
+      //E_Int api = f->getApi();
       E_Int nvertex = f->getSize();
 
       PyObject* tpl = K_ARRAY::buildArray3(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
         nvertex, *cn, "NGON", 1, 3, true); // center=1, api=3, copyConnect=true
 
-      FldArrayF* f2;  FldArrayI* cn2;
+      FldArrayF* f2; FldArrayI* cn2;
       K_ARRAY::getFromArray3(tpl, f2, cn2);
 
       K_COMPGEOM::boundingBoxOfNGonCells(*cn2, f->begin(posx), f->begin(posy),
@@ -95,7 +95,7 @@ PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
       PyObject* tpl = K_ARRAY::buildArray3(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
         nvertex, *cn, eltType, 1, 3, true); // center=1, api=3, copyConnect=true
 
-      FldArrayF* f2;  FldArrayI* cn2;
+      FldArrayF* f2; FldArrayI* cn2;
       K_ARRAY::getFromArray3(tpl, f2, cn2);
 
       K_COMPGEOM::boundingBoxOfUnstrCells(*cn2, f->begin(posx), f->begin(posy),
