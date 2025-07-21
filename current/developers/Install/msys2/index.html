@@ -107,8 +107,16 @@ pacman -S mingw64/mingw-w64-x86_64-scons
 pacman -S mingw64/mingw-w64-x86_64-python-pip
 pacman -S mingw64/mingw-w64-x86_64-python-pip-tools
 pacman -S mingw64/mingw-w64-x86_64-hdf5
-pacman -S mingw64/mingw-w64-x86_64-msmpi
-pacman -S mingw64/mingw-w64-x86_64-oce
+pacman -S mingw64/mingw-w64-x86_64-opencascade
+</code></pre>
+<p>For parallel:
+First install Microsoft mpi redistribution. Then:</p>
+<pre><code class="language-shell">pacman -S mingw64/mingw-w64-x86_64-msmpi
+pacman -S mingw-w64-x86_64-python-mpi4py
+</code></pre>
+<p>and export system paths (if not already done):</p>
+<pre><code class="language-shell">export PATH=/mingw64/bin:$PATH
+export LD_LIBRARY_PATH=/mingw64/lib:$LD_LIBRARY_PATH
 </code></pre>
 <h2 id="install-cassiopee">Install Cassiopee</h2>
 <pre><code class="language-shell">export CASSIOPEE=/d/johndo/Cassiopee
