@@ -14,6 +14,7 @@ except ModuleNotFoundError:
         for line in f:
             if '__version__' in line:
                 __version__ = line.split('=')[1].strip()
+                break
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

@@ -38,8 +38,8 @@ jobs:
       - name: Deploy docs
         run: |
           export CASSIOPEE=$GITHUB_WORKSPACE
-          cd $CASSIOPEE/Cassiopee/KCore/doc
-          ./install
+          cd $CASSIOPEE/Cassiopee
+          ./install --doc
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
             mike deploy --push --update-aliases "$VERSION" latest

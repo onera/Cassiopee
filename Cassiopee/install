@@ -46,14 +46,18 @@ if [ "$CASSIOPEE" = "" ]; then
     echo "This variable specifies the installation path of *Cassiopee*."
     usage
 fi
-if [ "$ELSAPROD" = "" ]; then
-    echo "You must specify a ELSAPROD in your environment."
-    echo "This variable identifies the processor type."
-    usage
+
+if [ "$INSTALL_MODS" -eq 1 ]; then
+    # Set install path
+    if [ "$ELSAPROD" = "" ]; then
+        echo "You must specify a ELSAPROD in your environment."
+        echo "This variable identifies the processor type."
+        usage
+    fi
+    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
 fi
 
-# Set install path and load module names
-INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+# Load module names
 . ./MODULES
 
 if [ "$PYTHONEXE" = "" ]; then
@@ -91,5 +95,7 @@ if [ "$INSTALL_DOCS" -eq 1 ]; then
 fi
 
 # Copy environment scripts
-cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
-cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
+if [ "$INSTALL_MODS" -eq 1 ]; then
+    cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
+    cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
+fi
