@@ -21,18 +21,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-    void k6compstructmetric_(
-    const E_Int& im, const E_Int& jm, const E_Int& km,
-    const E_Int& nbcells, const E_Int& nintt,
-    const E_Int& ninti, const E_Int& nintj,
-    const E_Int& nintk,
-    E_Float* x, E_Float* y, E_Float* z,
-    E_Float* vol, E_Float* surfx, E_Float* surfy, E_Float* surfz,
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
-}
-
 //=============================================================================
 /* Compute the divergence of a set of vector fields given in cell centers
    The divergence is given on cell centers. */
@@ -828,10 +816,11 @@ PyObject* K_POST::computeDiv2Struct3D(
   E_Float* snp = surfnorm.begin();
   FldArrayF vol(ncells); E_Float* volp = vol.begin();
 
-  k6compstructmetric_(ni, nj, nk, ncells, nbIntTot, nbIntI, nbIntJ, nbIntK,
-                      xt, yt, zt,
-                      volp, sxp, syp, szp, snp,
-                      centerInt.begin(1), centerInt.begin(2), centerInt.begin(3));
+  K_METRIC::compStructMetric(
+    ni, nj, nk, nbIntI, nbIntJ, nbIntK,
+    xt, yt, zt,
+    volp, sxp, syp, szp, snp,
+    centerInt.begin(1), centerInt.begin(2), centerInt.begin(3));
   centerInt.malloc(0); surfnorm.malloc(0);
 
   // divergence

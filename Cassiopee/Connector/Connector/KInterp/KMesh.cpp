@@ -22,6 +22,7 @@
 # include "KMesh.h"
 # include "Def/DefCplusPlusConst.h"
 # include "Def/DefFunction.h"
+# include "Metric/metric.h"
 
 using namespace K_FUNC;
 using namespace std;
@@ -71,16 +72,6 @@ extern "C"
                           const E_Float* nodeMax,
                           const E_Int& szCartElt,
                           E_Float* cartEltMin, E_Float* cartEltMax );
-
-  void k6compstructmetric_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-    const E_Int& nbCells, const E_Int& nbInt,
-    const E_Int& nbInti, const E_Int& nbIntj, 
-    const E_Int& nbIntk, 
-    const E_Float* x, const E_Float* y, const E_Float* z,  
-    E_Float* vol,
-    E_Float* surfx, E_Float* surfy, E_Float* surfz,
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz); 
 
   void k6compunstrmetric_(const E_Int& npts, const E_Int& nelts, 
                           const E_Int& nedges, const E_Int& nnodes, 
@@ -224,8 +215,8 @@ FldArrayF& K_KINTERP::KMesh::getCellVol()
     FldArrayF surf(nbInt,3);
     FldArrayF snorm(nbInt);
     FldArrayF centerInt(nbInt,3);
-    k6compstructmetric_(
-      _im, _jm, _km, nbCells, nbInt,
+    K_METRIC::compStructMetric(
+      _im, _jm, _km,
       nbInti, nbIntj, nbIntk,
       _coord.begin(1), _coord.begin(2), _coord.begin(3), 
       _cellVol.begin(),

@@ -34,15 +34,6 @@ using namespace K_FUNC;
 
 extern "C"
 {
-  void k6compstructmetric_(
-    const E_Int& im, const E_Int& jm, const E_Int& km,
-    const E_Int& nbcells, const E_Int& nintt,
-    const E_Int& ninti, const E_Int& nintj, 
-    const E_Int& nintk, 
-    E_Float* x, E_Float* y, E_Float* z, 
-    E_Float* vol, E_Float* surfx, E_Float* surfy, E_Float* surfz, 
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
-
   void k6structsurft_(
     const E_Int& ni, const E_Int& nj, const E_Int& nk, const E_Int& ncells, 
     const E_Float* xt, const E_Float* yt, const E_Float* zt, 
@@ -198,8 +189,8 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       FldArrayF surf(nint,3);
       FldArrayF snorm(nint);
       FldArrayF centerInt(nint, 3);
-      k6compstructmetric_(
-        im, jm, km, ncells, nint, ninti, nintj, nintk,
+      K_METRIC::compStructMetric(
+        im, jm, km, ninti, nintj, nintk,
         xp, yp, zp,
         vol.begin(), surf.begin(1), surf.begin(2), surf.begin(3), 
         snorm.begin(), 

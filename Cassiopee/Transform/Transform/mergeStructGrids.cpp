@@ -119,14 +119,6 @@ extern "C"
                       const E_Int& ncells, 
                       const E_Float* xt, const E_Float* yt, const E_Float* zt, 
                       E_Float* length);
-
-  void k6compstructmetric_(
-    const E_Int& im, const E_Int& jm, const E_Int& km,
-    const E_Int& nbcells, const E_Int& nintt,
-    const E_Int& ninti, const E_Int& nintj, 
-    const E_Int& nintk, E_Float* x, E_Float* y, E_Float* z, 
-    E_Float* vol, E_Float* surf, E_Float* surfy, E_Float* surfz, 
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
 }
 
 //=============================================================================
@@ -1736,8 +1728,8 @@ E_Int K_TRANSFORM::checkNegativeVolumeCells(
   if (dim == 2)
     k6structsurft_(im, jm, km, ncells, coords.begin(1), coords.begin(2), coords.begin(3), vol.begin());
   else 
-    k6compstructmetric_(
-      im, jm, km, ncells, nint, ninti, nintj, nintk, 
+    K_METRIC::compStructMetric(
+      im, jm, km, ninti, nintj, nintk, 
       coords.begin(1), coords.begin(2), coords.begin(3), 
       vol.begin(), surf.begin(1), surf.begin(2), surf.begin(3), 
       snorm.begin(), 
