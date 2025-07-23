@@ -423,7 +423,7 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
   K_METRIC::compNGonFacesSurf(xt, yt, zt, cn, sxp, syp, szp, snp, cFE);
   delete cFE;
   E_Float* volp = new E_Float [nelts];
-  K_METRIC::CompNGonVol(xt, yt, zt, cn, volp); 
+  K_METRIC::compNGonVol(xt, yt, zt, cn, volp); 
   // Connectivite Element/Noeuds
   vector< vector<E_Int> > cnEV(nelts);
   K_CONNECT::connectNG2EV(cn, cnEV); //deja calculee dans NGONVol

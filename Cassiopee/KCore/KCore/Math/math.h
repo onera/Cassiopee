@@ -39,7 +39,7 @@ namespace K_MATH
   inline void cross(
     const E_Float a1, const E_Float a2, const E_Float a3,
     const E_Float b1, const E_Float b2, const E_Float b3,
-    E_Float c1, E_Float c2, E_Float c3
+    E_Float& c1, E_Float& c2, E_Float& c3
   )
   {
     c1 = a2 * b3 - a3 * b2;

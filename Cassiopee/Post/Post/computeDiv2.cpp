@@ -268,7 +268,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   E_Float* volp = vol.begin(1);
   if (volc == Py_None)
   { 
-    K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
+    K_METRIC::compNGonVol(f->begin(posx), f->begin(posy),
                           f->begin(posz), *cn, volp);
   }
   else

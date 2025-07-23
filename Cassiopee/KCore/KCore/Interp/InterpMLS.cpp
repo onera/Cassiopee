@@ -1118,7 +1118,7 @@ void K_INTERP::getBestDonor(
       for (size_t i = 0; i < ENbrs.size(); i++)
       {
         E_Float volElt = 0.; 
-        K_METRIC::CompNGonVolOfElement(
+        K_METRIC::compNGonVolOfElement(
           xtDnr, ytDnr, ztDnr, cNG,
           ENbrs[i], vectOfcEV[no], vectOfPosElt[no],
           vectOfPosFace[no], vectOfDimElt[no],

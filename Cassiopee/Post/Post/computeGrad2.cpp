@@ -256,7 +256,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   { 
     vol.malloc(nelts);
     volp = vol.begin(1);  
-    K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
+    K_METRIC::compNGonVol(f->begin(posx), f->begin(posy),
   			  f->begin(posz), *cn, volp);
   }
   else
