@@ -27,10 +27,6 @@ using namespace K_FLD;
 
 extern "C"
 {
-  void k6normstructsurft_(const E_Int& ni, const E_Int& nj, const E_Int& npts,
-                          const E_Float* xt, const E_Float* yt, const E_Float* zt,
-                          E_Float* nxt, E_Float* nyt, E_Float* nzt);
-
   void k6normunstructsurf_(const E_Int& nt, const E_Int& nv,
                            E_Int* cn,
                            E_Float* coordx, E_Float* coordy, E_Float* coordz,
@@ -405,8 +401,9 @@ E_Int K_POST::integ2(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   E_Int ncells =(NI-1)*(NJ-1);
   E_Int npts = coordBlk.getSize();
   FldArrayF nsurf(ncells,3);
-  k6normstructsurft_(NI, NJ, npts, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-                     nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
+  K_METRIC::compNormStructSurf(
+    NI, NJ, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
 
   switch (center2node)
   {

@@ -26,12 +26,6 @@
 using namespace std;
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6compintsurfofcell_(E_Int& ind,  E_Int& ni, E_Int& nj, E_Int& nk, 
-                            E_Float* xt, E_Float* yt, E_Float* zt, 
-                            E_Float* surf);
-}
 
 //===========================================================================
 /* Fusion des elements d'un maillage surfacique TRI en fonction d'un critere

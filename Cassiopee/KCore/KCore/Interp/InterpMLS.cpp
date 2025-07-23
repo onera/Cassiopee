@@ -1076,7 +1076,7 @@ void K_INTERP::getBestDonor(
     E_Int* corres = vectOfCorres[no]->begin();
     indDnr = vectOfKdTrees[no]->getClosest(pt, dDnr);
     indDnr = corres[indDnr];
-    temp = indDnr;   // la fonction k6compminlengthofcell modifie l'indice de la cellule...
+    temp = indDnr;   // la fonction K_METRIC::compMeanLengthOfStructCell modifie l'indice de la cellule...
     //(pas k6compvolofstructcell)
 
     E_Float vol = 0.; //volume de la cellule donneuse eventuellement penalise

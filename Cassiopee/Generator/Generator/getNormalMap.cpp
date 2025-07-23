@@ -26,11 +26,6 @@ using namespace K_FLD;
 
 extern "C"
 {
-  void k6normstructsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& npts,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float* nxt, E_Float* nyt, E_Float* nzt);
-
   void k6unstructsurf_(
     E_Int& npts, E_Int& nelts,
     E_Int& nedges, E_Int& nnodes,
@@ -106,8 +101,9 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
       PyObject* tpl = K_ARRAY::buildArray(3, "sx,sy,sz", im1, jm1, km1);
       E_Float* nsurfp = K_ARRAY::getFieldPtr(tpl);
       FldArrayF nsurf(ncells,3, nsurfp, true);
-      k6normstructsurft_(im, jm, npts, f->begin(posx), f->begin(posy), f->begin(posz),
-                         nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
+      K_METRIC::compNormStructSurf(
+        im, jm, f->begin(posx), f->begin(posy), f->begin(posz),
+        nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
       RELEASESHAREDS(array, f);
       return tpl;
     }
