@@ -34,16 +34,6 @@ using namespace K_FUNC;
 
 extern "C"
 {
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6structsurf1dt_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
   void k6compunstrmetric_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
                           E_Int& nnodes, E_Int* cn, 
                           E_Float* coordx, E_Float* coordy, E_Float* coordz, 
@@ -177,13 +167,9 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     // calcul du volume
     FldArrayF vol(ncells);
     if (dim == 1)
-      k6structsurf1dt_(
-        im, jm , km , 
-        xp, yp, zp, vol.begin());
+      K_METRIC::compStructSurf1dt(im, jm, km, xp, yp, zp, vol.begin());
     else if (dim == 2)
-      k6structsurft_(
-        im, jm, km, ncells, 
-        xp, yp, zp, vol.begin());
+      K_METRIC::compStructSurft(im, jm, km, xp, yp, zp, vol.begin());
     else
     {
       FldArrayF surf(nint,3);

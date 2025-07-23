@@ -108,19 +108,6 @@ namespace K_TRANSFORM
   void deleteBlkInfo(Block* blk, list<Block*>& listOfBlks);
 }
 
-extern "C"
-{
-  void k6normstructsurft_(
-    const E_Int& im, const E_Int& jm, const E_Int npts, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* nx, const E_Float* ny, const E_Float* nz);
-
-  void k6structsurft_(const E_Int& ni, const E_Int& nj, const E_Int& nk,
-                      const E_Int& ncells, 
-                      const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-                      E_Float* length);
-}
-
 //=============================================================================
 /* Fusion des grilles surfaciques 2D (k=1) ou volumiques selon l'algorithme 
    de Rigby 
@@ -1726,7 +1713,9 @@ E_Int K_TRANSFORM::checkNegativeVolumeCells(
   FldArrayF centerInt(nint, 3);
 
   if (dim == 2)
-    k6structsurft_(im, jm, km, ncells, coords.begin(1), coords.begin(2), coords.begin(3), vol.begin());
+    K_METRIC::compStructSurft(
+      im, jm, km,
+      coords.begin(1), coords.begin(2), coords.begin(3), vol.begin());
   else 
     K_METRIC::compStructMetric(
       im, jm, km, ninti, nintj, nintk, 
