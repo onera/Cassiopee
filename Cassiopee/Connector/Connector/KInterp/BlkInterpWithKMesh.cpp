@@ -1300,7 +1300,7 @@ getExtrapolationCoeffForCell(E_Float x, E_Float y, E_Float z,
                            xr, yr, zr, xs, ys, zs, xi, yi, zi);
         
           /* transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cf[i] = cf0;
         
           for (i = 0; i < 4; i++)
@@ -1387,7 +1387,7 @@ getExtrapolationCoeffForCell(E_Float x, E_Float y, E_Float z,
                        xr, yr, zr, xs, ys, zs, xi, yi, zi);
     
       /* transforming to hexahedra coefficients */ 
-      cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+      cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
       for (i = 0; i < 8; i++) cf[i] = cf0;
     
       for (i = 0; i < 4; i++)
@@ -1691,7 +1691,7 @@ getExtrapolationCoeffForCell(E_Float x, E_Float y, E_Float z,
                            xr, yr, zr, xs, ys, zs, xi, yi, zi);
         
           /* transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cf[i] = cf0;
         
           for (i = 0; i < 4; i++)

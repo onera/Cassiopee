@@ -546,13 +546,13 @@ void K_KINTERP::KMesh::createExtendedCenterMesh(const KMesh& origMesh)
         pos2f = pos2d - imojmo;
         pos2g = pos2b - imojmo;
         xt[pos] =
-          K_CONST::ONE_EIGHT*(xo[pos2]  + xo[pos2a] + xo[pos2b] + xo[pos2c] +
+          K_CONST::ONE_EIGHTH*(xo[pos2]  + xo[pos2a] + xo[pos2b] + xo[pos2c] +
                               xo[pos2d]  + xo[pos2e] + xo[pos2f] + xo[pos2g] );
         yt[pos] =
-          K_CONST::ONE_EIGHT*(yo[pos2]  + yo[pos2a] + yo[pos2b] + yo[pos2c] +
+          K_CONST::ONE_EIGHTH*(yo[pos2]  + yo[pos2a] + yo[pos2b] + yo[pos2c] +
                               yo[pos2d] + yo[pos2e] + yo[pos2f] + yo[pos2g] );
         zt[pos] =
-          K_CONST::ONE_EIGHT*(zo[pos2]  + zo[pos2a] + zo[pos2b] + zo[pos2c] +
+          K_CONST::ONE_EIGHTH*(zo[pos2]  + zo[pos2a] + zo[pos2b] + zo[pos2c] +
                               zo[pos2d] + zo[pos2e] + zo[pos2f] + zo[pos2g] );
       }
 }
