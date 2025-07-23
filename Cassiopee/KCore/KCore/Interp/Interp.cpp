@@ -30,11 +30,6 @@ using namespace K_ARRAY;
 
 extern "C"
 {
-  void k6compvolofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk, 
-                              E_Int& indcell, E_Int& indnode, E_Float* x, 
-                              E_Float* y, E_Float* z, 
-                              E_Float& vol);
-
   void k6compvoloftetracell_(const E_Int& npts, 
                              const E_Int& ind1, const E_Int& ind2, 
                              const E_Int& ind3, const E_Int& ind4,

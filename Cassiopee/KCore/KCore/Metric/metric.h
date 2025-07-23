@@ -321,15 +321,17 @@ namespace K_METRIC
      On rentre soit l indice de la cellule indcell, soit indnode l indice du premier point
      d indices i et j min de la cellule. Si indnode est different de -1, c'est lui qui prime
   */
-  E_Float compVolOfStructCell2D(
+  void compVolOfStructCell2D(
     const E_Int ni, const E_Int nj,
+    const E_Int indcell, E_Int indnode,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Int indcell=-1, E_Int indnode=-1);
+    E_Float& area);
 
-  E_Float compVolOfStructCell3D(
+  void compVolOfStructCell3D(
     const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Int indcell, E_Int indnode,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Int indcell=-1, E_Int indnode=-1);
+    E_Float& vol);
 
   /* Compute barycenter of tetra cells.
      IN: ind1, ind2, ind3, ind4: Sommets du tetraedre

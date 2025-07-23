@@ -1083,7 +1083,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       #pragma omp for
       for (E_Int indcell = 0; indcell < ncells; indcell++)
       {
-        voli = K_METRIC::compVolOfStructCell2D(ni, nj, xt, yt, zt, indcell, -1);
+        K_METRIC::compVolOfStructCell2D(ni, nj, indcell, -1, xt, yt, zt, voli);
         voli = 1./K_FUNC::E_max(voli, K_CONST::E_MIN_VOL);
         gpx[indcell] *= voli; gpy[indcell] *= voli; gpz[indcell] *= voli;
       }

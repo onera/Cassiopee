@@ -26,13 +26,13 @@
 // d indices i et j min de la cellule. Si indnode est different de -1, c'est lui qui prime
 // IN: (xt, yt, zt): pointeurs sur les coordonnees du maillage
 //=============================================================================
-E_Float K_METRIC::compVolOfStructCell2D(
-  const E_Int ni, const E_Int nj, 
+void K_METRIC::compVolOfStructCell2D(
+  const E_Int ni, const E_Int nj,
+  const E_Int indcell, E_Int indnode,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  const E_Int indcell, E_Int indnode
+  E_Float& area
 )
 {
-  E_Float vol = K_CONST::E_ZERO_FLOAT;
   E_Int nic = K_FUNC::E_max(E_Int(1.), ni - 1);
 
   if (indcell > -1)
@@ -85,14 +85,14 @@ E_Float K_METRIC::compVolOfStructCell2D(
   E_Float surface2 = sqrt(surf2x * surf2x + surf2y * surf2y + surf2z * surf2z);
   
   E_Float ps = surf1x * surf2x + surf1y * surf2y + surf1z * surf2z;
-  vol = K_CONST::ONE_HALF * K_FUNC::E_sign(ps) * (surface1 + surface2);
-  return vol;
+  area = K_CONST::ONE_HALF * K_FUNC::E_sign(ps) * (surface1 + surface2);
 }
 
-E_Float K_METRIC::compVolOfStructCell3D(
+void K_METRIC::compVolOfStructCell3D(
   const E_Int ni, const E_Int nj, const E_Int nk,
+  const E_Int indcell, E_Int indnode,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  const E_Int indcell, E_Int indnode
+  E_Float& vol
 )
 {
   E_Int ninj, i, j, k, nicnjc, nic, njc;
@@ -105,7 +105,6 @@ E_Float K_METRIC::compVolOfStructCell3D(
   E_Float nx, ny, nz;
   E_Float v1, v2, v3, v4, v5, v6;
   const E_Float ONE_24TH = K_CONST::ONE_EIGHTH * K_CONST::ONE_THIRD;
-  E_Float vol = K_CONST::E_ZERO_FLOAT;
 
   ninj = ni * nj;
   nic = (ni > 1) ? ni - 1 : 1;
@@ -214,7 +213,5 @@ E_Float K_METRIC::compVolOfStructCell3D(
   K_MATH::cross(xv1, yv1, zv1, xv2, yv2, zv2, nx, ny, nz);
   v6 = xcc * nx + ycc * ny + zcc * nz;
 
-  vol = v2 - v1 + v4 - v3 + v6 - v5;
-  vol = K_FUNC::E_abs(vol) * ONE_24TH;
-  return vol;
+  vol = K_FUNC::E_abs(v2 - v1 + v4 - v3 + v6 - v5) * ONE_24TH;
 }
