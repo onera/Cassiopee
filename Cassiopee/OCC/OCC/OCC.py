@@ -19,7 +19,7 @@ __all__ = ['convertCAD2Arrays',
            'meshAllFacesTri', 'meshFaceWithMetric', 'identifyTags__',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
-           '_translate', '_rotate', '_sewing',
+           '_translate', '_rotate', '_scale', '_sewing',
            '_splitFaces', '_mergeFaces']
 
 # algo=0: mailleur open cascade (chordal_error)
@@ -655,7 +655,7 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
         edges = []
         for w in wires:
             e = Transform.join(w)
-            edges.append(e)
+            if e != []: edges.append(e)
 
         # sauvegarde des edges
         edgesSav = []
@@ -779,6 +779,12 @@ def _translate(hook, vector, listFaces=None):
 def _rotate(hook, Xc, axis, angle, listFaces=None):
     """Rotate all or given faces."""
     occ.rotate(hook, Xc, axis, angle, listFaces)
+    return None
+
+# Scale
+def _scale(hook, factor, X, listFaces=None):
+    """Scale all or given faces."""
+    occ.scale(hook, factor, X, listFaces)
     return None
 
 # sew a set of faces

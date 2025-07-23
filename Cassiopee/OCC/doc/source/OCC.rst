@@ -53,6 +53,7 @@ List of functions
     OCC.getFaceArea
     OCC._translate
     OCC._rotate
+    OCC._scale
     OCC._splitFaces
     OCC._mergeFaces
     OCC._sewing
@@ -261,6 +262,27 @@ CAD manipulation
     * `Rotate a CAD <Examples/OCC/rotatePT.py>`_:
 
     .. literalinclude:: ../build/Examples/OCC/rotatePT.py
+
+------------------------------------------
+
+.. py:function:: OCC._scale(hook, factor, X, listOfFaces=None)
+
+    Scale a CAD hook by a given factor.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param factor: scale factor
+    :type factor: float
+    :param X: invariant point (x, y, z)
+    :type X: tuple of floats
+    :param listOfFaces: if None, scale all else scale only given faces
+    :type listOfFaces: list of face indices (starts 1)
+
+    *Example of use:*
+
+    * `Rotate a CAD <Examples/OCC/scalePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/scalePT.py
 
 ------------------------------------------
 

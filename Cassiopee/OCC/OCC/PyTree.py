@@ -1271,6 +1271,12 @@ def _rotate(hook, Xc, axis, angle, listFaces=None):
     OCC.occ.rotate(hook, Xc, axis, angle, listFaces)
     return None
 
+# Scale
+def _scale(hook, factor, X, listFaces=None):
+    """Scale all or given faces."""
+    OCC.occ.scale(hook, factor, X, listFaces)
+    return None
+
 # sew a set of faces
 # faces: face list numbers
 def _sewing(hook, listFaces=None, tol=1.e-6):
