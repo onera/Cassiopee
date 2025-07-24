@@ -29,16 +29,6 @@ using namespace K_FLD;
 
 extern "C"
 {
-  void k6unstructsurf_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
-                       E_Int& nnodes, E_Int* cn, 
-                       E_Float* coordx, E_Float* coordy, E_Float* coordz,
-                       E_Float* snx, E_Float* sny, E_Float* snz,
-                       E_Float* surface);
-
-  void k6unstructsurf1d_(E_Int& npts, E_Int& nelts, 
-                         E_Int& nnodes, E_Int* cn, 
-                         E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                         E_Float* length);
   void k6integmomentstruct_(const E_Int& ni, const E_Int& nj,
                             const E_Float& cx, const E_Float& cy, 
                             const E_Float& cz, E_Float* ratio, 
@@ -575,16 +565,13 @@ E_Int K_POST::integUnstruct4(E_Int center2node,
   FldArrayF surfBlk(nbT);
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  E_Int nnodes = 3;
-  E_Int nedges = 1;
   FldArrayF snx(nbT); // normale a la surface  
   FldArrayF sny(nbT);
   FldArrayF snz(nbT);
-  k6unstructsurf_(size, nbT, nedges, nnodes, cnBlk.begin(),
-                  coordBlk.begin(posx), coordBlk.begin(posy), 
-                  coordBlk.begin(posz),
-                  snx.begin(), sny.begin(), snz.begin(), 
-                  surfBlk.begin());
+  K_METRIC::compUnstructSurf(
+    cnBlk, "TRI",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    snx.begin(), sny.begin(), snz.begin(), surfBlk.begin());
 
   switch (center2node)
   {
@@ -631,11 +618,11 @@ E_Int K_POST::integUnstruct41D(E_Int center2node,
   FldArrayF lengthBlk(nbT);
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  E_Int nnodes = 2;
-  k6unstructsurf1d_(size, nbT, nnodes, cnBlk.begin(),
-                    coordBlk.begin(posx), coordBlk.begin(posy), 
-                    coordBlk.begin(posz), lengthBlk.begin());
- 
+  K_METRIC::compUnstructSurf1d(
+    cnBlk, "BAR",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    lengthBlk.begin());
+
   switch (center2node) 
   { 
     case 1:
