@@ -27,11 +27,6 @@ using namespace K_FLD;
 
 extern "C"
 {
-  void k6normunstructsurf_(const E_Int& nt, const E_Int& nv,
-                           E_Int* cn,
-                           E_Float* coordx, E_Float* coordy, E_Float* coordz,
-                           E_Float* surf);
-
   void k6integnormstructnodecenter_(const E_Int& ni, const E_Int& nj,
                                     E_Float* ratio, E_Float* sx,
                                     E_Float* sy, E_Float* sz,
@@ -460,15 +455,15 @@ E_Int K_POST::integUnstruct2(E_Int center2node,
 
   E_Int size = coordBlk.getSize();
   E_Int nbT = cnBlk.getSize();
-  FldArrayF nsurfBlk(nbT,3);
+  FldArrayF nsurfBlk(nbT, 3);
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  k6normunstructsurf_(nbT, size, cnBlk.begin(),
-                      coordBlk.begin(posx), coordBlk.begin(posy),
-                      coordBlk.begin(posz),
-                      nsurfBlk.begin());
+  K_METRIC::compNormUnstructSurf(
+    cnBlk, "TRI",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    nsurfBlk.begin());
 
-  switch ( center2node)
+  switch (center2node)
   {
     case 1:
       for (E_Int n = 1; n <= numberOfVariables; n++)
