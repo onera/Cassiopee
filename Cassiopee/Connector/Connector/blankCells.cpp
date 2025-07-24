@@ -459,7 +459,7 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(coordArrays, i);
-    E_Int ret = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl,
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
                                        cn, eltType);
     if (ret != 1)
     {
@@ -504,7 +504,7 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(cellNArrays, i);
-    E_Int ret = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl,
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
                                        cn, eltType);
     if (ret != 1)
     {
@@ -555,8 +555,8 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(bodyArrays, i);
-    E_Int ret = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl,
-                                      cn, eltType, true);
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
+                                       cn, eltType);
     if (ret != 2)
     {
       RELEASEDATA1; RELEASEDATA2; RELEASEDATA3;
