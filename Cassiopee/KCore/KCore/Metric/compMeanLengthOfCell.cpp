@@ -47,9 +47,9 @@ void K_METRIC::compMeanLengthOfStructCell(
   E_Int beta = 1;
   E_Int gamma = 1;
 
-  if (i == ni - 1) i = i - 1;
-  if (j == nj - 1) j = j - 1;
-  if (k == nk - 1) k = k - 1;
+  if (i == ni - 1) i -= 1;
+  if (j == nj - 1) j -= 1;
+  if (k == nk - 1) k -= 1;
 
   // 2D case
   if (nk == 1) gamma = 0;

@@ -244,7 +244,7 @@ namespace K_METRIC
      OUT: xint, yint, zint: Coordonnees du centre des facettes
   */
   void compUnstructCenterInt(
-    const E_Int nedges, K_FLD::FldArrayI& cn,
+    K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* xint, E_Float* yint, E_Float* zint);
 
@@ -262,8 +262,7 @@ namespace K_METRIC
      OUT: vol: volume des cellules
   */
   void compUnstructMetric(
-    const E_Int nedges, const E_Int nnodes,
-    K_FLD::FldArrayI& cn,
+    K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* coordx, const E_Float* coordy, const E_Float* coordz,
     E_Float* xint, E_Float* yint, E_Float* zint,
     E_Float* snx, E_Float* sny, E_Float* snz,
@@ -274,37 +273,33 @@ namespace K_METRIC
      IN: xt, yt, zt: pointeurs sur les coordonnees du maillage
   */
   void compUnstructSurf(
-    const E_Int nedges, K_FLD::FldArrayI& cn,
+    K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
 
   // depend du type d'element considere 
   void compTriSurf(
-    K_FLD::FldArrayI& cm,
+    K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
   void compQuadSurf(
-    K_FLD::FldArrayI& cm,
+    K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
   void compTetraSurf(
-    K_FLD::FldArrayI& cm,
+    K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
   void compPyraSurf(
-    K_FLD::FldArrayI& cm,
+    K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
   void compPentaSurf(
-    K_FLD::FldArrayI& cm,
+    K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
   void compHexaSurf(
-    K_FLD::FldArrayI& cm,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
-  void compTriSurf(
-    K_FLD::FldArrayI& cm,
+    K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
 
@@ -312,7 +307,7 @@ namespace K_METRIC
 
   */
   void compUnstructSurf1d(
-    K_FLD::FldArrayI& cm,
+    K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* length);
 

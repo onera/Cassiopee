@@ -49,13 +49,6 @@ struct trifacette
 };
 extern "C"
 {
-//   void k6compstructmetric_(
-//     const E_Int& im, const E_Int& jm, const E_Int& km,
-//     const E_Int& nbcells, const E_Int& nintt,
-//     const E_Int& ninti, const E_Int& nintj, 
-//     const E_Int& nintk, E_Float* x, E_Float* y, E_Float* z, 
-//     E_Float* vol, E_Float* surf, E_Float* surfy, E_Float* surfz,
-//     E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
   void k6compunstrmetric_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
                           E_Int& nnodes, E_Int* cn, 
                           E_Float* coordx, E_Float* coordy, E_Float* coordz, 
