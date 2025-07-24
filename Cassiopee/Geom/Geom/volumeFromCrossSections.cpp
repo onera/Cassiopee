@@ -47,11 +47,11 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   char* varStringc2;
   char* eltTypec2;
   E_Int resc1 = 
-    K_ARRAY::getFromArray(contour1, varStringc1, fc1, imc1, jmc1, kmc1, 
-                          cnpoly1, eltTypec1);  
+    K_ARRAY::getFromArray3(contour1, varStringc1, fc1, imc1, jmc1, kmc1, 
+                           cnpoly1, eltTypec1);  
   E_Int resc2 = 
-    K_ARRAY::getFromArray(contour2, varStringc2, fc2, imc2, jmc2, kmc2, 
-                          cnpoly2, eltTypec2);
+    K_ARRAY::getFromArray3(contour2, varStringc2, fc2, imc2, jmc2, kmc2, 
+                           cnpoly2, eltTypec2);
   // check contours
   E_Int posxc1, posyc1, poszc1;
   E_Int posxc2, posyc2, poszc2;
@@ -102,22 +102,18 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
 
   // Extraction des triangles de Delaunay des 2 cross-sections
   E_Int im1, jm1, km1;
-  FldArrayF* f1;
-  FldArrayI* cn1;
-  char* varString1;
-  char* eltType1;
+  FldArrayF* f1; FldArrayI* cn1;
+  char* varString1; char* eltType1;
   E_Int im2, jm2, km2;
-  FldArrayF* f2;
-  FldArrayI* cn2;
-  char* varString2;
-  char* eltType2;
+  FldArrayF* f2; FldArrayI* cn2;
+  char* varString2; char* eltType2;
 
   E_Int res1 = 
-    K_ARRAY::getFromArray(array1, varString1, f1, im1, jm1, km1, cn1, 
-                          eltType1); 
+    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, cn1, 
+                           eltType1); 
   E_Int res2 = 
-    K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2, cn2, 
-                          eltType2);
+    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, cn2, 
+                           eltType2);
   // Check args
   if (res1 != 2 || strcmp(eltType1, "TRI") != 0)
   {
