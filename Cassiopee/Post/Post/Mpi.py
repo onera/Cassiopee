@@ -229,8 +229,8 @@ def _computeGrad2(t, var, withCellN=True):
                 tri = Internal.getValue(tri)
                 (t1,t2,t3) = tri
                 [indR,fld]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
-                                                                    (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
-                                                                    (niR,njR,nkR),(t1,t2,t3))
+                                                                       (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
+                                                                       (niR,njR,nkR),(t1,t2,t3))
                 oppNode = procDict[donor]
                 n = [donor, z[0], fld, PLD.ravel('k')]
                 if oppNode not in export: export[oppNode] = [n]
