@@ -310,8 +310,8 @@ def testO(objet, number=1):
         file.close()
         return True
     else:
-        try: import cPickle as pickle
-        except ImportError: import pickle
+        try: import pickle
+        except ImportError: import cPickle as pickle
         file = open(reference, 'rb')
         oldData = False
         if oldData: a = pickle.load(file, encoding='latin1')
@@ -767,7 +767,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
 
     # 11- NGON 1D
     try:
-        a = G.cartNGon((0,0,0), (1,1,1), (10,1,1) )
+        a = G.cartNGon((0,0,0), (1,1,1), (10,1,1))
         C._initVars(a, '{F}={x}+{y}+{z}')
         b = F(a, *keywords)
         res = checkType__(b)

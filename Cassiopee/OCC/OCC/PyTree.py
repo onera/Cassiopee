@@ -1298,11 +1298,13 @@ def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
 # fill hole from edges
 # edges: edge list numbers (must be ordered)
 def _fillHole(hook, edges, faces=None, continuity=0):
+    """Fill hole defined by close loop of edges."""
     OCC.occ.fillHole(hook, edges, faces, continuity)
     return None
 
 # trim two set of surfaces
 def _trimFaces(hook, faces1, faces2):
+    """Trim a set of faces with another set of faces."""
     OCC.occ.trimFaces(hook, faces1, faces2)
     return None
 
@@ -1442,8 +1444,7 @@ def identifyTags__(a):
 def _addOCAFCompoundNames(hook, t):
 
     # FACES
-    #ret = OCC.occ.getFaceNameInOCAF(hook)
-    ret = OCC.occ.getFaceNameInOCAF2(hook)
+    ret = getFaceNameInOCAF(hook)
     pos = getAllPos(t)
     r = len(ret)//2
     b = Internal.getNodeFromName1(t, 'FACES')
@@ -1512,6 +1513,7 @@ def getComponents(t):
 
 # tell if component (as obtained by getComponent) is watertight
 def isWatertight(component, leaks=[]):
+    """Tell of componenent is watertight."""
     import Post.PyTree as P
     import Transform.PyTree as T
     try:
@@ -1525,3 +1527,11 @@ def isWatertight(component, leaks=[]):
 def printOCAF(h):
     """Print OCAF document."""
     OCC.occ.printOCAF(h)
+
+def getFaceNameInOCAF(h):
+    """Return face names in OCAF."""
+    return OCC.occ.getFaceNameInOCAF2(h)
+
+def getEdgeNameInOCAF(h):
+    """Return edge names in OCAF."""
+    return OCC.occ.getEdgeNameInOCAF2(h)

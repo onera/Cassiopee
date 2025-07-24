@@ -57,6 +57,7 @@ List of functions
     OCC._splitFaces
     OCC._mergeFaces
     OCC._sewing
+    OCC._trimFaces
 
 Contents
 #########
@@ -337,6 +338,24 @@ CAD manipulation
 
     .. literalinclude:: ../build/Examples/OCC/sewingPT.py
 
+------------------------------------------
+
+.. py:function:: OCC._trimFaces(hook, faces1, faces2)
+
+    Trim set of faces1 with set of faces2.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param faces1: first set of faces
+    :type faces1: list of face indices (starts 1)
+    :param faces2: second set of faces
+    :type faces2: list of face indices (starts 1)
+
+    *Example of use:*
+
+    * `Trim faces <Examples/OCC/trimFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/trimFacesPT.py
     
 
 

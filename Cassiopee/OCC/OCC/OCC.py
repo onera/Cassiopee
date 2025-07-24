@@ -20,7 +20,8 @@ __all__ = ['convertCAD2Arrays',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
            '_translate', '_rotate', '_scale', '_sewing',
-           '_splitFaces', '_mergeFaces']
+           '_splitFaces', '_mergeFaces', '_trimFaces',
+           'printOCAF', 'getFaceNameInOCAF', 'getEdgeNameInOCAF']
 
 # algo=0: mailleur open cascade (chordal_error)
 # algo=1: algorithme T3mesher (h, chordal_error, growth_ratio)
@@ -622,6 +623,7 @@ def meshFaceWithPointedHat(hook, i, edges, mesh):
 
 # mesh all CAD edges with hmin, hmax, hausd
 def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
+    """Mesh all CAD edges with hmin, hmax, hausd."""
     if edgeList is None:
         nbEdges = occ.getNbEdges(hook)
         edgeList = range(1, nbEdges+1)
@@ -808,11 +810,13 @@ def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
 # fill hole from edges
 # edges: edge list numbers (must be ordered)
 def _fillHole(hook, edges, listFaces=None, continuity=0):
+    """Fill hole defined by close loop of edges."""
     occ.fillHole(hook, edges, listFaces, continuity)
     return None
 
 # trim two set of surfaces
 def _trimFaces(hook, listFaces1, listFaces2):
+    """Trim a set of faces with another set of faces."""
     occ.trimFaces(hook, listFaces1, listFaces2)
     return None
 
@@ -836,3 +840,11 @@ def identifyTags__(a):
 def printOCAF(h):
     """Print OCAF document."""
     occ.printOCAF(h)
+
+def getFaceNameInOCAF(h):
+    """Return face names in OCAF."""
+    return occ.getFaceNameInOCAF2(h)
+
+def getEdgeNameInOCAF(h):
+    """Return edge names in OCAF."""
+    return occ.getEdgeNameInOCAF2(h)
