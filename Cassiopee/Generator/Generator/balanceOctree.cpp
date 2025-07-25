@@ -41,8 +41,7 @@ PyObject* K_GENERATOR::balanceOctree(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, cn, eltType);
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(octree, f); 
