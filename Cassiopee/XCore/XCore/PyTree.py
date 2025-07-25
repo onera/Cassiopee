@@ -82,7 +82,7 @@ def AdaptMesh_ExtractMesh(AM, conformize=1, recoverBC=True):
     if recoverBC is False:
         t = C.newPyTree([name, zone])
         return t
-    
+
     if procs is not None and len(procs) > 0:
         I.newUserDefinedData(name='NeighbourProcessors', value=procs, parent=zone)
 
