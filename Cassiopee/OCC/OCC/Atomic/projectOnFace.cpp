@@ -142,13 +142,13 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 
     for (E_Int j = 0; j < nfaces; j++)
     {
-        const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
-        Handle(Geom_Surface) face = BRep_Tool::Surface(F);
+      const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
+      Handle(Geom_Surface) face = BRep_Tool::Surface(F);
         
 #if PROJMETHOD == 0
-        GeomAPI_ProjectPointOnSurf o;
+      GeomAPI_ProjectPointOnSurf o;
 #else
-        BRepExtrema_DistShapeShape tool;
+      BRepExtrema_DistShapeShape tool;
 #endif
 
 #pragma omp for

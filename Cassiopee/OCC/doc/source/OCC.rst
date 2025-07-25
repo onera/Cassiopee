@@ -33,6 +33,10 @@ List of functions
 
     OCC.PyTree.meshAll
 
+    OCC.PyTree._projectOnFaces
+
+    OCC.PyTree._meshDeviation
+
 **-- CAD to surface mesh (legacy functions)**
 
 .. autosummary::
@@ -79,7 +83,54 @@ CAD to surface mesh
 
     :param hook: CAD hook
     :type hook: CAD hook
+    :param hmin: minimum step size on output mesh.
+    :type hmin: float
+    :param hmax: maximum step size on output mesh.
+    :type hmax: float
+    :param hausd: maximum chordal error.
+    :type hausd: float
     :rtype: mesh
+
+    *Example of use:*
+
+    * `Mesh a CAD (pyTree) <Examples/OCC/meshAllPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/meshAllPT.py
+
+.. py:function:: OCC.PyTree._projectOnFaces(hook, t, faceList=None)
+
+    Project mesh on given CAD faces (in place).
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param t: mesh to project
+    :type t: zone, list of zones or tree
+    :param faceList: list of faces number to calculate the area
+    :type faceList: list of face index (starts 1)
+
+    *Example of use:*
+
+    * `Project a mesh on CAD faces (pyTree) <Examples/OCC/projectOnFaces.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/projectOnFacesPT.py
+
+.. py:function:: OCC.PyTree.meshDeviation(hook, t)
+
+    Mesaure deviation of mesh from CAD.
+    Project the center of mesh triangles on CAD and return the projection distance
+    in a field.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param t: mesh
+    :type t: zone, list of zones or tree
+
+    *Example of use:*
+
+    * `Measure deviation of mesh from CAD (pyTree) <Examples/OCC/meshDeviation.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/meshDeviationPT.py
+
 
 CAD to surface mesh (legacy functions)
 ---------------------------------------

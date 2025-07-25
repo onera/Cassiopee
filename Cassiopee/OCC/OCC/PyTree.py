@@ -949,6 +949,29 @@ def _projectOnFaces(hook, t, faceList=None):
         OCC.occ.projectOnFaces(hook, a, faceList)
     return None
 
+# deviation of mesh to CAD, add deviation field to t
+# from center position
+def _meshDeviation(hook, t):
+    FACES = Internal.getNodeFromName1(t, 'FACES')
+    zones = Internal.getZones(FACES)
+    for z in zones:
+        # no de la face
+        no = getNo(z)
+        # recupere le maillage en centre
+        zc = C.node2Center(z)
+        # Projete le maillage en centre sur la face associee
+        xp = Internal.getNodeFromName2(zc, 'CoordinateX')
+        yp = Internal.getNodeFromName2(zc, 'CoordinateY')
+        zp = Internal.getNodeFromName2(zc, 'CoordinateZ')
+        xp0 = xp[1].copy(); yp0 = yp[1].copy(); zp0 = zp[1].copy()
+        _projectOnFaces(hook, zc, [no])
+        diff = (xp[1]-xp0)*(xp[1]-xp0)+(yp[1]-yp0)*(yp[1]-yp0)+(zp[1]-zp0)*(zp[1]-zp0)
+        diff = numpy.sqrt(diff)
+        print("INFO: meshDeviation: face %d: %g"%(no, numpy.max(diff)))
+        C._initVars(z, 'centers:dev', 0.)
+        Internal.getNodeFromName2(z, 'dev')[1] = diff
+    return None
+
 # set color red to lonelyEdges
 def _setLonelyEdgesColor(t):
     import CPlot.PyTree as CPlot
