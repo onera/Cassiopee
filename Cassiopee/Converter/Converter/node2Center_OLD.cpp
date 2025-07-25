@@ -41,8 +41,8 @@ PyObject* K_CONVERTER::node2Center_OLD(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int res; 
   FldArrayF* FNode; FldArrayI* c;
-  res = K_ARRAY::getFromArray(array, varString, FNode, ni, nj, nk, 
-                              c, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, FNode, ni, nj, nk, 
+                               c, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError, 

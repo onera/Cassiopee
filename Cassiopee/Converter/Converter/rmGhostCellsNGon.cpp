@@ -39,8 +39,8 @@ PyObject* K_CONVERTER::rmGhostCellsNGonNodes(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(arrayN, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(arrayN, f);
@@ -170,8 +170,8 @@ PyObject* K_CONVERTER::rmGhostCellsNGonCenters(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   char* varStringC; char* eltTypec;
   FldArrayF* fc; FldArrayI* cn;
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringC, fc, nic, njc, nkc, 
-                                     cn, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringC, fc, nic, njc, nkc, 
+                                      cn, eltTypec);
   if (resc != 2)
   {
     if ( resc == 1) RELEASESHAREDS(arrayC,fc);
@@ -310,8 +310,8 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(arrayN, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(arrayN,f);
@@ -330,8 +330,8 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   char* varStringC; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringC, fc, nic, njc, nkc, 
-                                     cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringC, fc, nic, njc, nkc, 
+                                      cnc, eltTypec);
   if (resc != 2)
   {
     if (resc == 1) RELEASESHAREDS(arrayC, fc);

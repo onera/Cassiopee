@@ -22,9 +22,9 @@ using namespace std;
 using namespace K_FLD;
 
 //=============================================================================
-/* Conversion d un array en centres en centres étendus 
+/* Conversion d un array en centres en centres ï¿½tendus 
    Extrapolation des centres sur les faces externes
-   Attention : si les coordonnees sont fournies, sont aussi extrapolées ! */
+   Attention : si les coordonnees sont fournies, sont aussi extrapolï¿½es ! */
 //=============================================================================
 PyObject* K_CONVERTER::center2ExtCenter(PyObject* self, PyObject* args )
 {
@@ -35,8 +35,8 @@ PyObject* K_CONVERTER::center2ExtCenter(PyObject* self, PyObject* args )
   E_Int ni, nj, nk;
   FldArrayF* FCenter; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, FCenter, ni, nj, nk, 
-                                    cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, FCenter, ni, nj, nk, 
+                                     cn, eltType); 
   if (res != 1)
   {
     PyErr_SetString(PyExc_TypeError, "center2ExtCenter: array must be structured."); 
