@@ -39,7 +39,7 @@ public: // Common interface with meshIO
 
   // Writes a single zone into a file (element type must be specified to distinguish QUAD/TETRA, it is not ambiguous otherwise.)
   static E_Int write(const char* filename, const K_FLD::FloatArray& crd, const K_FLD::IntArray& cnt,
-	                 const char* elt_type=0, const std::vector<bool>* mask = 0, const std::vector<E_Int>* colors = 0);
+	                 const char* elt_type=0, const std::vector<bool>* mask=0, const std::vector<E_Int>* colors=0);
 
   // Writes a point cloud into a file.
   static E_Int write(const char* filename, const K_FLD::FloatArray& coord);
@@ -59,7 +59,7 @@ public : // Interface specific to DynArrayIO for reading/writing multiple zone f
   
   static E_Int write
   (const char* fileName, const K_FLD::FldArrayF& coords, const K_FLD::FldArrayI& connects,
-   const char* elt_type = 0, const std::vector<bool>* mask = 0, const std::vector<E_Int>* colors = 0);
+   const char* elt_type=0, const std::vector<bool>* mask=0, const std::vector<E_Int>* colors=0);
   
 private:
   static E_Int getElementTypeId(const char* eltType);
@@ -71,7 +71,6 @@ private:
   DynArrayIO();
   DynArrayIO(const DynArrayIO& orig);
   virtual ~DynArrayIO();
-
 };
 
 // Reads one single zone file
@@ -81,8 +80,7 @@ E_Int DynArrayIO::read(const char* filename, Crd_t& crd, Cnt_t& cnt)
   std::vector<Crd_t> coords;
   std::vector<Cnt_t> connects;
   E_Int ret = read(filename, coords, connects);
-  if (ret)
-    return ret;
+  if (ret) return ret;
   crd = coords[0];
   cnt = connects[0];
   return 0;

@@ -61,9 +61,8 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
 
   FldArrayF* fw; FldArrayI* cnw;
   char* varStringw; char* eltTypew;
-
-  E_Int res = K_ARRAY::getFromArray(Array, varString, f, im, jm, km, 
-                                    cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(Array, varString, f, im, jm, km, 
+                                     cn, eltType);
   if (res != 1)
   {
     if (res == 2 ) { delete f; delete cn; }
@@ -72,8 +71,8 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int resw = K_ARRAY::getFromArray(ArrayW, varStringw, fw, imw, jmw, kmw, 
-                                     cnw, eltTypew);
+  E_Int resw = K_ARRAY::getFromArray3(ArrayW, varStringw, fw, imw, jmw, kmw, 
+                                      cnw, eltTypew);
   if (resw != 1)
   {
     delete f;

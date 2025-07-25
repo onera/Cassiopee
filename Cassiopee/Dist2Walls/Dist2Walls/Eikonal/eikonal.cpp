@@ -45,8 +45,8 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl, 
-                              cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                               cn, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -82,8 +82,7 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
 
   // Construit l'array resultat et l'initialise par copie
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(nfld, varString, 
-                            nil, njl, nkl);
+  tpl = K_ARRAY::buildArray(nfld, varString, nil, njl, nkl);
   
   E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
   FldArrayF fn(npts, nfld, fnp, true);

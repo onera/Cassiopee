@@ -62,21 +62,21 @@ E_Int DynArrayIO::read
   
   E_Int ret = 1;
   
-  int l = strlen(fileName);
+  E_Int l = strlen(fileName);
   char* fname=0;
   
   if (rdir == "")
   {
     //const char* -> char*
-    fname = new char[l+1]();
-    strncpy(fname, fileName, l+1); 
+    fname = new char [l+1];
+    strcpy(fname, fileName); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+rdir.size()+1]();
-    strncpy(fname, rdir.c_str(), rdir.size()); 
-    strncat(fname, fileName, l+1); 
+    fname = new char [l+rdir.size()+1];
+    strcpy(fname, rdir.c_str()); 
+    strcat(fname, fileName); 
   }
   
   const char* fileFmt = get_fmt(fileName);
@@ -171,21 +171,21 @@ E_Int DynArrayIO::read
   std::vector<K_FLD::FldArrayF*> ufieldc; 
   E_Int ret = 1;
   
-  int l = strlen(fileName);
+  E_Int l = strlen(fileName);
   char* fname=0;
   
   if (rdir == "")
   {
     //const char* -> char*
-    fname = new char[l+1]();
-    strncpy(fname, fileName, l+1); 
+    fname = new char [l+1];
+    strcpy(fname, fileName); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+rdir.size()+1]();
-    strncpy(fname, rdir.c_str(), rdir.size()); 
-    strncat(fname, fileName, l+1);
+    fname = new char [l+rdir.size()+1];
+    strcpy(fname, rdir.c_str()); 
+    strcat(fname, fileName);
   }
   
   const char* fileFmt = get_fmt(fileName);
@@ -232,8 +232,7 @@ E_Int DynArrayIO::read
     
     //connectivity
     K_FLD::FldArrayI& cont = connects[i];
-    if (!structured)
-      cont = *c[i];
+    if (!structured) cont = *c[i];
     
     //coordinates
     K_FLD::FldArrayF& coord = coords[i];
@@ -320,15 +319,15 @@ const std::vector<K_FLD::IntArray>& connects,
   if (wdir == "")
   {
     //const char* -> char*
-    fname = new char[l+1]();
-    strncpy(fname, fileName, l+1); 
+    fname = new char [l+1];
+    strcpy(fname, fileName);
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+wdir.size()+1]();
-    strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l+1); 
+    fname = new char [l+wdir.size()+1];
+    strcpy(fname, wdir.c_str()); 
+    strcat(fname, fileName); 
   }
     
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot
@@ -436,21 +435,21 @@ E_Int DynArrayIO::write
   E_Int shift = (et[0] == 8) ? 0 : 1;
   connect1.convert(*c[0], shift);
       
-  int l = strlen(fileName);
+  E_Int l = strlen(fileName);
   char* fname=0;
   
   if (wdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
-    strncpy(fname, fileName, l+1); 
+    fname = new char [l+1];
+    strcpy(fname, fileName);
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+wdir.size() +1]();
-    strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l+1); 
+    fname = new char [l+wdir.size()+1];
+    strcpy(fname, wdir.c_str()); 
+    strcat(fname, fileName); 
   }
   
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot
@@ -552,15 +551,15 @@ E_Int DynArrayIO::write
   if (wdir == "")
   {
     //const char* -> char*
-    fname = new char[l+1]();
-    strncpy(fname, fileName, l+1); 
+    fname = new char [l+1];
+    strcpy(fname, fileName); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+wdir.size()+1]();
-    strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l+1); 
+    fname = new char [l+wdir.size()+1];
+    strcpy(fname, wdir.c_str()); 
+    strcat(fname, fileName); 
   }
   
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot

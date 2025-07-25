@@ -42,8 +42,8 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
   char* varString2; char* eltType2;
   
   // Driving curve
-  E_Int res2 = K_ARRAY::getFromArray(arrayLine, varString2, 
-                                     f2, im2, jm2, km2, cn2, eltType2);
+  E_Int res2 = K_ARRAY::getFromArray3(arrayLine, varString2, 
+                                      f2, im2, jm2, km2, cn2, eltType2);
 
   if (res2 == 2)
   {
@@ -59,8 +59,8 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int res1 = K_ARRAY::getFromArray(array, varString1, f1, im1, jm1, km1, 
-                                     cn1, eltType1);
+  E_Int res1 = K_ARRAY::getFromArray3(array, varString1, f1, im1, jm1, km1, 
+                                      cn1, eltType1);
 
   E_Int nfld = f1->getNfld();
 

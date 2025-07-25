@@ -41,7 +41,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   E_Int posx, posy, posz;
 
   if (res == 1 || res == 2)

@@ -53,9 +53,11 @@ List of functions
     OCC.getFaceArea
     OCC._translate
     OCC._rotate
+    OCC._scale
     OCC._splitFaces
     OCC._mergeFaces
     OCC._sewing
+    OCC._trimFaces
 
 Contents
 #########
@@ -264,6 +266,27 @@ CAD manipulation
 
 ------------------------------------------
 
+.. py:function:: OCC._scale(hook, factor, X, listOfFaces=None)
+
+    Scale a CAD hook by a given factor.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param factor: scale factor
+    :type factor: float
+    :param X: invariant point (x, y, z)
+    :type X: tuple of floats
+    :param listOfFaces: if None, scale all else scale only given faces
+    :type listOfFaces: list of face indices (starts 1)
+
+    *Example of use:*
+
+    * `Rotate a CAD <Examples/OCC/scalePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/scalePT.py
+
+------------------------------------------
+
 .. py:function:: OCC._splitFaces(hook, area)
 
     Split faces in a CAD hook.
@@ -315,6 +338,24 @@ CAD manipulation
 
     .. literalinclude:: ../build/Examples/OCC/sewingPT.py
 
+------------------------------------------
+
+.. py:function:: OCC._trimFaces(hook, faces1, faces2)
+
+    Trim set of faces1 with set of faces2.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param faces1: first set of faces
+    :type faces1: list of face indices (starts 1)
+    :param faces2: second set of faces
+    :type faces2: list of face indices (starts 1)
+
+    *Example of use:*
+
+    * `Trim faces <Examples/OCC/trimFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/trimFacesPT.py
     
 
 

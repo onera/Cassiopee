@@ -52,15 +52,11 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   K_FLD::FldArrayF *fV(0), *fS(0);
   K_FLD::FldArrayI *cV(0), *cS(0);
 
-  if (!PYPARSETUPLE_(args, OO_ R_,
-                    &maskV, &maskS, &tol))
-  {
-      return NULL;
-  }
+  if (!PYPARSETUPLE_(args, OO_ R_, &maskV, &maskS, &tol)) return NULL;
 
   // Extraction des donnees
   // Volumic mask
-  E_Int res = K_ARRAY::getFromArray(maskV, varStringV, fV, ni, nj, nk, cV, eltTypeV);
+  E_Int res = K_ARRAY::getFromArray3(maskV, varStringV, fV, ni, nj, nk, cV, eltTypeV);
   
   bool ok = (res == 2) && (strcmp(eltTypeV, "TETRA") == 0);
   if (!ok)
@@ -82,7 +78,7 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   void* maskingV = new K_CONNECTOR::maskGen(*fV, posx+1, posy+1, posz+1, *cV, K_CONNECTOR::maskGen::TH4, tol);
   
   // Mask exterior faces
-  res = K_ARRAY::getFromArray(maskS, varStringS, fS, ni, nj, nk, cS, eltTypeS);
+  res = K_ARRAY::getFromArray3(maskS, varStringS, fS, ni, nj, nk, cS, eltTypeS);
   ok = ( (res == 2) && (strcmp(eltTypeS, "TRI") == 0) );
   if (!ok)
   {
@@ -143,7 +139,7 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
   /////////////////////////////////////////////////////////////////////////
   // Extraction des donnees
   
-  E_Int res = K_ARRAY::getFromArray(maskT, varStringMsk, fmask, ni, nj, nk, cmask, eltTypeMsk);
+  E_Int res = K_ARRAY::getFromArray3(maskT, varStringMsk, fmask, ni, nj, nk, cmask, eltTypeMsk);
   bool err = (res != 2);
   err &=  (strcmp(eltTypeMsk, "TRI") != 0);
   if (err)
@@ -330,7 +326,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int res = K_ARRAY::getFromArray(mesh, varString, fmesh, ni, nj, nk, cmesh, eltType);
+  E_Int res = K_ARRAY::getFromArray3(mesh, varString, fmesh, ni, nj, nk, cmesh, eltType);
   std::unique_ptr<K_FLD::FldArrayF> afmesh(fmesh); // to avoid to call explicit delete at several places in the code.
   std::unique_ptr<K_FLD::FldArrayI> acmesh(cmesh); // to avoid to call explicit delete at several places in the code.
   
@@ -351,7 +347,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
     }
   }
 
-  res = K_ARRAY::getFromArray(celln, varStringC, fC, ni, nj, nk, cC, eltTypeC);
+  res = K_ARRAY::getFromArray3(celln, varStringC, fC, ni, nj, nk, cC, eltTypeC);
   std::unique_ptr<K_FLD::FldArrayF> afC(fC); // to avoid to call explicit delete at several places in the code.
   std::unique_ptr<K_FLD::FldArrayI> acC(cC); // to avoid to call explicit delete at several places in the code.
    

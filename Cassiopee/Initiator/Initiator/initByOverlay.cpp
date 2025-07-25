@@ -33,14 +33,7 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
   PyObject* array2;
   E_Float MInf;
 
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "OOd", &array1, &array2, &MInf))
-#else
-    if (!PyArg_ParseTuple(args, "OOf", &array1, &array2, &MInf))
-#endif
-    {
-      return NULL;
-    }
+  if (!PYPARSETUPLE_(args, OO_ R_, &array1, &array2, &MInf)) return NULL;
 
   // Check array
   E_Int im1, jm1, km1, im2, jm2, km2;
@@ -49,10 +42,10 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
   char *varString1; char *varString2;
   char* eltType1; char* eltType2;
   
-  E_Int res1 = K_ARRAY::getFromArray(array1, varString1, f1, im1, jm1, km1, 
-                                     cn1, eltType1); 
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2, 
-                                     cn2, eltType2);
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
+                                      cn1, eltType1); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+                                      cn2, eltType2);
 
   E_Int res0;
   E_Int posr1, posru1, posrv1, posrw1, posre1;

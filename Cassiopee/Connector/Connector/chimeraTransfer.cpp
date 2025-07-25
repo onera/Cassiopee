@@ -38,7 +38,6 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   PyObject *pyArrayTypes;
   PyObject *pyArrayCoefs;
   PyObject *arrayR, *arrayD;
-
   if (!PYPARSETUPLE_(args, OOOO_ OO_,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, &arrayR, &arrayD))
   {
@@ -109,8 +108,8 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringr, fr, 
-                                     imr, jmr, kmr, cnr, eltTyper, true); 
+  E_Int resr = K_ARRAY::getFromArray3(arrayR, varStringr, fr, 
+                                      imr, jmr, kmr, cnr, eltTyper); 
   if (resr != 1) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -129,8 +128,8 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringd; char* eltTyped;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringd, fd, 
-                                     imd, jmd, kmd, cnd, eltTyped, true); 
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringd, fd, 
+                                      imd, jmd, kmd, cnd, eltTyped); 
   if (resd != 1) 
   {
     PyErr_SetString(PyExc_TypeError,

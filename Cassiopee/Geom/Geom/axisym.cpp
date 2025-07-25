@@ -84,8 +84,8 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
   {
     E_Int niR, njR, nkR;
     char* varStringR; char* eltTypeR;    
-    useR = K_ARRAY::getFromArray(arrayR, varStringR, fR, 
-                                 niR, njR, nkR, cnR, eltTypeR, true);
+    useR = K_ARRAY::getFromArray3(arrayR, varStringR, fR, 
+                                  niR, njR, nkR, cnR, eltTypeR);
 
     if (useR != 1) { useR = 0; goto next; }
 
@@ -137,8 +137,8 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
   E_Int ni0, nj0, nk0;
   FldArrayF* f0; FldArrayI* cn0;
   char* varString0; char* eltType0;
-  E_Int res = K_ARRAY::getFromArray(array, varString0, f0, 
-                                    ni0, nj0, nk0, cn0, eltType0, true); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString0, f0, 
+                                     ni0, nj0, nk0, cn0, eltType0); 
   switch (res)
   {
     case 1:

@@ -36,44 +36,52 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   if (PyList_Check(blks) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
-                    "distance2Walls: 1st argument must be a list.");
+                    "dist2Walls: 1st argument must be a list.");
     return NULL;
   }
 
   if (PyList_Check(bodiesC) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
-                    "distance2Walls: 2nd argument must be a list.");
+                    "dist2Walls: 2nd argument must be a list.");
     return NULL;
   }
   
   // Maillage: les coordonnees doivent etre en premier
   vector<PyObject*> objst, objut;
-  vector<E_Int> res0;
   vector<char*> structVarString0; vector<char*> unstrVarString0;
   vector<FldArrayF*> structF0; vector<FldArrayF*> unstrF0;
   vector<E_Int> nit0; vector<E_Int> njt0; vector<E_Int> nkt0;
   vector<FldArrayI*> cnt0;
   vector<char*> eltType0;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
-  E_Int isOk = K_ARRAY::getFromArrays(
-    blks, res0, structVarString0, unstrVarString0,
-    structF0, unstrF0, nit0, njt0, nkt0, cnt0, eltType0, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
-  E_Int ns0 = structF0.size(); E_Int nu0 = unstrF0.size();
-  if (isOk == -1)
+  char* varStringl; char* eltTypel;
+  E_Int nil, njl, nkl;
+  FldArrayF* fl; FldArrayI* cnl;
+  PyObject* o; E_Int res;
+  E_Int nz = PyList_Size(blks);
+  for (E_Int i = 0; i < nz; i++)
   {
-    PyErr_SetString(PyExc_TypeError,
-                    "dist2Walls: invalid list of arrays.");
-    for (E_Int nos = 0; nos < ns0; nos++)
-      RELEASESHAREDS(objst[nos], structF0[nos]);
-    for (E_Int nos = 0; nos < nu0; nos++)
-      RELEASESHAREDU(objut[nos], unstrF0[nos], cnt0[nos]);
-    return NULL;
+    o = PyList_GetItem(blks, i);
+    res = K_ARRAY::getFromArray3(o, varStringl, fl, 
+                                 nil, njl, nkl, cnl, eltTypel);
+    if (res == 1)
+    {
+      structVarString0.push_back(varStringl);
+      structF0.push_back(fl);
+      nit0.push_back(nil); njt0.push_back(njl), nkt0.push_back(nkl);
+      objst.push_back(o);
+    }
+    else if (res == 2)
+    {
+      unstrVarString0.push_back(varStringl);
+      unstrF0.push_back(fl);
+      eltType0.push_back(eltTypel); cnt0.push_back(cnl);
+      objut.push_back(o);
+    }
+    else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
   }
+
+  E_Int ns0 = structF0.size(); E_Int nu0 = unstrF0.size();
   E_Int posx=-1, posy=-1, posz=-1; 
   vector<E_Int> ncellss; vector<E_Int> ncellsu; 
   // Verification de posxi, posyi, poszi dans listFields: vars 1,2,3 imposees
@@ -90,7 +98,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     if (posxi != posx || posyi != posy || poszi != posz) 
     {
       PyErr_SetString( PyExc_TypeError,
-        "distance2Walls: coordinates must be located at same position for all zones.");
+        "dist2Walls: coordinates must be located at same position for all zones.");
       for (E_Int nos = 0; nos < ns0; nos++)
         RELEASESHAREDS(objst[nos], structF0[nos]);
       for (E_Int nos = 0; nos < nu0; nos++)
@@ -112,7 +120,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     if (posxi != posx || posyi != posy || poszi != posz) 
     {
       PyErr_SetString( PyExc_TypeError,
-        "distance2Walls: coordinates must be located at same position for all zones.");
+        "dist2Walls: coordinates must be located at same position for all zones.");
       for (E_Int nos = 0; nos < ns0; nos++)
         RELEASESHAREDS(objst[nos], structF0[nos]);
       for (E_Int nos = 0; nos < nu0; nos++)
@@ -122,27 +130,40 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     ncellsu.push_back(unstrF0[i]->getSize());
   }
   // Extract infos from body surfaces + cellN
-  vector<E_Int> resl;
   vector<char*> structVarString; vector<char*> unstrVarString;
   vector<FldArrayF*> structF; vector<FldArrayF*> unstrF;
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt;
   vector<char*> eltTypeb;
-  vector<PyObject*> objs, obju;
-  skipNoCoord = true;
-  skipStructured = true;
-  skipUnstructured = false; 
-  skipDiffVars = true;
+  vector<PyObject*> objs, obju;  
+  nz = PyList_Size(bodiesC);
+  for (E_Int i = 0; i < nz; i++)
+  {
+    o = PyList_GetItem(bodiesC, i);
+    res = K_ARRAY::getFromArray3(o, varStringl, fl, 
+                                 nil, njl, nkl, cnl, eltTypel);
+    if (res == 1)
+    {
+      structVarString.push_back(varStringl);
+      structF.push_back(fl);
+      nit.push_back(nil); njt.push_back(njl), nkt.push_back(nkl);
+      objs.push_back(o);
+    }
+    else if (res == 2)
+    {
+      unstrVarString.push_back(varStringl);
+      unstrF.push_back(fl);
+      eltTypeb.push_back(eltTypel); cnt.push_back(cnl);
+      obju.push_back(o);
+    }
+    else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
+  }
 
-  K_ARRAY::getFromArrays(
-    bodiesC, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltTypeb, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nwalls = unstrF.size();
   if (nwalls == 0)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "distance2Walls: invalid list of blocks.");
+                    "dist2Walls: invalid list of blocks.");
     for (E_Int nos = 0; nos < ns0; nos++)
       RELEASESHAREDS(objst[nos], structF0[nos]);
     for (E_Int nos = 0; nos < nu0; nos++)
@@ -153,7 +174,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   }
 
   // verification de posxv, posyv, poszv dans bodiesC  
-  vector<E_Int> posxv;  vector<E_Int> posyv;  vector<E_Int> poszv;
+  vector<E_Int> posxv; vector<E_Int> posyv; vector<E_Int> poszv;
   vector<E_Int> poscv;
   for (E_Int v = 0; v < nwalls; v++)
   {

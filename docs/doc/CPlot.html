@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>CPlot: a light plotter for arrays/pyTree &#8212; CPlot 4.0 documentation</title>
+    <title>CPlot: a light plotter for arrays/pyTree &#8212; CPlot 4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">CPlot 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">CPlot 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">CPlot: a light plotter for arrays/pyTree</a></li> 
       </ul>
     </div>  
@@ -960,14 +960,15 @@ a list of three coordinates.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id=".CPlot.getActivePointIndex">
 <span class="sig-prename descclassname"><span class="pre">CPlot.</span></span><span class="sig-name descname"><span class="pre">getActivePointIndex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p>Return the active point index. For structured grids, return
-[ind, indc, i,j,k], where ind is the global index of the nearest node
+<dd><p>Return the active point index.
+For structured grids, return [ind, indc, i,j,k], where ind is the global index of the nearest node
 to active point, indc is the global index of the nearest center to
-active point and i,j,k are the indices of nearest node. For
-unstructured grids, return [ind, indc, no, 0, 0],
+active point and i,j,k are the indices of nearest node.
+For unstructured grids, return [ind, indc, no, 0, 0],
 where ind is the global index of nearest node, indc
 is the nearest center to the clicked point and no is the number of ind
-in the center2node connectivity of indc.</p>
+in the center2node connectivity of indc.
+If there is no active point, return [].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>active point index</p>
@@ -1865,7 +1866,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">CPlot 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">CPlot 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">CPlot: a light plotter for arrays/pyTree</a></li> 
       </ul>
     </div>

@@ -51,9 +51,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   E_Int imEX, jmEX, kmEX;
   FldArrayF* fEX; FldArrayI* cnEX;
   char* varStringEX; char* eltTypeEX;
-  E_Int res = K_ARRAY::getFromArray(arrayEX, varStringEX, 
-                                    fEX, imEX, jmEX, kmEX, cnEX, eltTypeEX, 
-                                    true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayEX, varStringEX, 
+                                     fEX, imEX, jmEX, kmEX, cnEX, eltTypeEX); 
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(arrayEX, fEX);
@@ -93,8 +92,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(arrayNodes, varString, f, im, jm, km, cn, 
-                              eltType, true); 
+  res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, 
+                               eltType); 
   if (res != 1) 
   {
     if (res == 2) RELEASESHAREDU(arrayNodes,f,cn);
@@ -121,8 +120,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   FldArrayF* fc;
   FldArrayI* cnc;
   char* varStringc;
-  res = K_ARRAY::getFromArray(arrayCenters, varStringc, fc, imc, jmc, kmc, 
-                              cnc, eltType, true); 
+  res = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, 
+                               cnc, eltType); 
   if (res != 1) 
   {
     RELEASESHAREDU(arrayEX,fEX,cnEX); 
@@ -162,8 +161,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   FldArrayI* cn1;
   char* varString1;
   char* eltType1;
-  res = K_ARRAY::getFromArray(firstWallCenters, varString1, f1, 
-                              im1, jm1, km1, cn1, eltType1, true); 
+  res = K_ARRAY::getFromArray3(firstWallCenters, varString1, f1, 
+                               im1, jm1, km1, cn1, eltType1); 
   if ( res != 2 ) 
   {
     RELEASESHAREDU(arrayEX,fEX,cnEX);
