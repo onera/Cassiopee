@@ -248,7 +248,7 @@ List of functions
     Converter.Internal.adaptNGon42NGon3
     Converter.Internal.adaptNFace2PE
     Converter.Internal.adaptPE2NFace
-    Converter.adaptSurfaceNGon
+    Converter.Internal.adaptSurfaceNGon
     Converter.Internal.adaptBCFacePL2VertexPL
     Converter.Internal.adaptBCVertexPL2FacePL
     
@@ -3262,7 +3262,7 @@ Adapt NGON meshes
 
     * `Creates face PointList arrays (pyTree) <Examples/Converter/adaptBCVertexPL2FacePLPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/adaptBCVertexPL2FacePLLPT.py
+    .. literalinclude:: ../build/Examples/Converter/adaptBCVertexPL2FacePLPT.py
     
 -----------------------------------------------------------------------------------
 

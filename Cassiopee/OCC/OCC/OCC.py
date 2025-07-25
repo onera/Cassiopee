@@ -20,7 +20,7 @@ __all__ = ['convertCAD2Arrays',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
            '_translate', '_rotate', '_scale', '_sewing',
-           '_splitFaces', '_mergeFaces', '_trimFaces',
+           '_splitFaces', '_mergeFaces', '_trimFaces', '_removeFaces',
            'printOCAF', 'getFaceNameInOCAF', 'getEdgeNameInOCAF']
 
 # algo=0: mailleur open cascade (chordal_error)
