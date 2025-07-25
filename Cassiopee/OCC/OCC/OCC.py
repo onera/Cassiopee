@@ -17,6 +17,7 @@ __all__ = ['convertCAD2Arrays',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
            'meshAllFacesTri', 'meshFaceWithMetric', 'identifyTags__',
+           '_projectOnFaces',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
            '_translate', '_rotate', '_scale', '_sewing',
@@ -735,6 +736,16 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
 
     return dfaces, nloct, nofacet
 
+# project arrays on faces
+def _projectOnFaces(hook, a, faceList=None):
+    """Project arrays on CAD."""
+    if isinstance(a[0], list):
+        for i in a: occ.projectOnFaces(hook, i, faceList)
+    else:
+        occ.projectOnFaces(hook, a, faceList)
+    return None
+
+
 #=============================================================================
 # CAD fixing
 #=============================================================================
@@ -767,33 +778,33 @@ def getFileAndFormat(hook):
     return occ.getFileAndFormat(hook)
 
 # Return the area of specified faces
-def getFaceArea(hook, listFaces=None):
+def getFaceArea(hook, faceList=None):
     """Return the area of given faces."""
-    return occ.getFaceArea(hook, listFaces)
+    return occ.getFaceArea(hook, faceList)
 
 # Translate
-def _translate(hook, vector, listFaces=None):
+def _translate(hook, vector, faceList=None):
     """Translate all or given faces."""
-    occ.translate(hook, vector, listFaces)
+    occ.translate(hook, vector, faceList)
     return None
 
 # Rotate
-def _rotate(hook, Xc, axis, angle, listFaces=None):
+def _rotate(hook, Xc, axis, angle, faceList=None):
     """Rotate all or given faces."""
-    occ.rotate(hook, Xc, axis, angle, listFaces)
+    occ.rotate(hook, Xc, axis, angle, faceList)
     return None
 
 # Scale
-def _scale(hook, factor, X, listFaces=None):
+def _scale(hook, factor, X, faceList=None):
     """Scale all or given faces."""
-    occ.scale(hook, factor, X, listFaces)
+    occ.scale(hook, factor, X, faceList)
     return None
 
 # sew a set of faces
 # faces: face list numbers
-def _sewing(hook, listFaces=None, tol=1.e-6):
+def _sewing(hook, faceList=None, tol=1.e-6):
     """Sew some faces (suppress redundant edges)."""
-    occ.sewing(hook, listFaces, tol)
+    occ.sewing(hook, faceList, tol)
     return None
 
 # add fillet from edges with given radius
@@ -802,22 +813,22 @@ def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
     return None
 
 # edgeMap and faceMap are new2old maps
-def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+def _removeFaces(hook, faceList, new2OldEdgeMap=[], new2OldFaceMap=[]):
     """Remove given faces."""
-    occ.removeFaces(hook, listFaces, new2OldEdgeMap, new2OldFaceMap)
+    occ.removeFaces(hook, faceList, new2OldEdgeMap, new2OldFaceMap)
     return None
 
 # fill hole from edges
 # edges: edge list numbers (must be ordered)
-def _fillHole(hook, edges, listFaces=None, continuity=0):
+def _fillHole(hook, edges, faceList=None, continuity=0):
     """Fill hole defined by close loop of edges."""
-    occ.fillHole(hook, edges, listFaces, continuity)
+    occ.fillHole(hook, edges, faceList, continuity)
     return None
 
 # trim two set of surfaces
-def _trimFaces(hook, listFaces1, listFaces2):
+def _trimFaces(hook, faceList1, faceList2):
     """Trim a set of faces with another set of faces."""
-    occ.trimFaces(hook, listFaces1, listFaces2)
+    occ.trimFaces(hook, faceList1, faceList2)
     return None
 
 # split all faces
@@ -827,9 +838,9 @@ def _splitFaces(hook, area):
     return None
 
 # merge faces
-def _mergeFaces(hook, listFaces=None):
+def _mergeFaces(hook, faceList=None):
     """Merge some faces."""
-    occ.mergeFaces(hook, listFaces)
+    occ.mergeFaces(hook, faceList)
     return None
 
 # identify tag component

@@ -940,6 +940,15 @@ def _meshAllFacesStruct(hook, t, faceList=None):
 
     return None
 
+# project t on faces
+def _projectOnFaces(hook, t, faceList=None):
+    """Project t on CAD."""
+    zones = Internal.getZones(t)
+    for z in zones:
+        a = C.getFields(Internal.__GridCoordinates__, z, api=2)[0]
+        OCC.occ.projectOnFaces(hook, a, faceList)
+    return None
+
 # set color red to lonelyEdges
 def _setLonelyEdgesColor(t):
     import CPlot.PyTree as CPlot
@@ -1255,33 +1264,33 @@ def getFileAndFormat(hook):
     return OCC.occ.getFileAndFormat(hook)
 
 # Return the area of specified faces
-def getFaceArea(hook, listFaces=None):
+def getFaceArea(hook, faceList=None):
     """Return the area of given faces."""
-    return OCC.occ.getFaceArea(hook, listFaces)
+    return OCC.occ.getFaceArea(hook, faceList)
 
 # Translate
-def _translate(hook, vector, listFaces=None):
+def _translate(hook, vector, faceList=None):
     """Translate all or given faces."""
-    OCC.occ.translate(hook, vector, listFaces)
+    OCC.occ.translate(hook, vector, faceList)
     return None
 
 # Rotate
-def _rotate(hook, Xc, axis, angle, listFaces=None):
+def _rotate(hook, Xc, axis, angle, faceList=None):
     """Rotate all or given faces."""
-    OCC.occ.rotate(hook, Xc, axis, angle, listFaces)
+    OCC.occ.rotate(hook, Xc, axis, angle, faceList)
     return None
 
 # Scale
-def _scale(hook, factor, X, listFaces=None):
+def _scale(hook, factor, X, faceList=None):
     """Scale all or given faces."""
-    OCC.occ.scale(hook, factor, X, listFaces)
+    OCC.occ.scale(hook, factor, X, faceList)
     return None
 
 # sew a set of faces
 # faces: face list numbers
-def _sewing(hook, listFaces=None, tol=1.e-6):
+def _sewing(hook, faceList=None, tol=1.e-6):
     """Sew some faces (suppress redundant edges)."""
-    OCC.occ.sewing(hook, listFaces, tol)
+    OCC.occ.sewing(hook, faceList, tol)
     return None
 
 # add fillet from edges with given radius
@@ -1290,9 +1299,9 @@ def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
     return None
 
 # edgeMap and faceMap are new2old maps
-def _removeFaces(hook, listFaces, new2OldEdgeMap=[], new2OldFaceMap=[]):
+def _removeFaces(hook, faceList, new2OldEdgeMap=[], new2OldFaceMap=[]):
     """Remove given faces."""
-    OCC.occ.removeFaces(hook, listFaces, new2OldEdgeMap, new2OldFaceMap)
+    OCC.occ.removeFaces(hook, faceList, new2OldEdgeMap, new2OldFaceMap)
     return None
 
 # fill hole from edges
@@ -1315,9 +1324,9 @@ def _splitFaces(hook, area):
     return None
 
 # merge faces
-def _mergeFaces(hook, listFaces=None):
+def _mergeFaces(hook, faceList=None):
     """Merge some faces."""
-    OCC.occ.mergeFaces(hook, listFaces)
+    OCC.occ.mergeFaces(hook, faceList)
     return None
 
 # IN: new2old: new2old map

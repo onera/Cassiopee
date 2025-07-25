@@ -207,14 +207,14 @@ CAD manipulation
 
 ------------------------------------------
 
-.. py:function:: OCC.getFaceArea(hook, listFaces=[])
+.. py:function:: OCC.getFaceArea(hook, faceList=[])
 
     Return the area of given faces.
 
     :param hook: CAD hook
     :type hook: CAD hook
-    :param listFaces: list of faces number to calculate the area
-    :type listFaces: list of face index (starts 1)
+    :param faceList: list of faces number to calculate the area
+    :type faceList: list of face index (starts 1)
     :rtype: float
 
     *Example of use:*
@@ -305,14 +305,14 @@ CAD manipulation
 
 ------------------------------------------
 
-.. py:function:: OCC._mergeFaces(hook, listFaces=None)
+.. py:function:: OCC._mergeFaces(hook, faceList=None)
 
     Merge faces in a CAD hook.
 
     :param hook: CAD hook
     :type hook: CAD hook
-    :param listFaces: if None, merge all faces else list of faces indices to merge
-    :type listFaces: list of face indices (starts 1)
+    :param faceList: if None, merge all faces else list of faces indices to merge
+    :type faceList: list of face indices (starts 1)
 
     *Example of use:*
 
@@ -322,14 +322,14 @@ CAD manipulation
 
 ------------------------------------------
 
-.. py:function:: OCC._sewing(hook, listFaces=None, tol=1.e-6)
+.. py:function:: OCC._sewing(hook, faceList=None, tol=1.e-6)
 
     Sew faces. Supress redundant edges.
 
     :param hook: CAD hook
     :type hook: CAD hook
-    :param listFaces: if None, merge all faces else list of faces indices to merge
-    :type listFaces: list of face indices (starts 1)
+    :param faceList: if None, merge all faces else list of faces indices to merge
+    :type faceList: list of face indices (starts 1)
     :param tol: tolerance for sewing
     :type tol: float
 
@@ -341,14 +341,14 @@ CAD manipulation
 
 ------------------------------------------
 
-.. py:function:: OCC._removeFaces(hook, listFaces)
+.. py:function:: OCC._removeFaces(hook, faceList)
 
     Remove given list of faces from CAD.
 
     :param hook: CAD hook
     :type hook: CAD hook
-    :param listFaces: list of faces
-    :type listFaces: list of face indices (starts 1)
+    :param faceList: list of faces
+    :type faceList: list of face indices (starts 1)
 
     *Example of use:*
 
