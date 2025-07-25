@@ -400,7 +400,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   for (E_Int i = 0; i < n1; i++)
   {
     tpl = PyList_GetItem(arrays1, i);
-    res = K_ARRAY::getFromArray(tpl, varString1, f, ni, nj, nk, cn, eltType1);
+    res = K_ARRAY::getFromArray3(tpl, varString1, f, ni, nj, nk, cn, eltType1);
 
     if ( res == 1 )
     {
@@ -438,7 +438,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   for (int i = 0; i < n2; i++)
   {
     tpl = PyList_GetItem(arrays2, i);
-    res = K_ARRAY::getFromArray(tpl, varString2, f, ni, nj, nk, cn, eltType2);
+    res = K_ARRAY::getFromArray3(tpl, varString2, f, ni, nj, nk, cn, eltType2);
     if (res == 1)
     {
       if (ni*nj*nk > 0)
@@ -474,7 +474,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   for (int i = 0; i < n3; i++)
   {
     tpl = PyList_GetItem(arrays3, i);
-    res = K_ARRAY::getFromArray(tpl, varString3, f, ni, nj, nk, cn, eltType3);
+    res = K_ARRAY::getFromArray3(tpl, varString3, f, ni, nj, nk, cn, eltType3);
     if (res == 1)
     {
       if (ni*nj*nk > 0)

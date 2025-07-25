@@ -38,8 +38,8 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -51,8 +51,8 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* fl; FldArrayI* cnl;
   char* varStringl; char* eltTypel;
-  E_Int resl = K_ARRAY::getFromArray(arrayF, varStringl, fl, nil, njl, nkl, 
-                                     cnl, eltTypel, true);
+  E_Int resl = K_ARRAY::getFromArray3(arrayF, varStringl, fl, nil, njl, nkl, 
+                                      cnl, eltTypel);
   if (resl != 1 && resl != 2) 
   {
     RELEASESHAREDB(res,array,f,cn);
@@ -163,8 +163,8 @@ PyObject* K_CONVERTER::setPartialFieldsPT(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* fl; FldArrayI* cnl;
   char* varStringl; char* eltTypel;
-  E_Int resl = K_ARRAY::getFromArray(arrayF, varStringl, fl, nil, njl, nkl, 
-                                     cnl, eltTypel, true);
+  E_Int resl = K_ARRAY::getFromArray3(arrayF, varStringl, fl, nil, njl, nkl, 
+                                      cnl, eltTypel);
   if (resl != 1 && resl != 2) 
   {
     RELEASESHAREDZ(hook, varString, eltType);
@@ -366,7 +366,7 @@ PyObject* K_CONVERTER::_setPartialFieldsAverage(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {
@@ -418,7 +418,7 @@ PyObject* K_CONVERTER::_setPartialFieldsAverage(PyObject* self, PyObject* args)
     E_Int ni2, nj2, nk2; 
     FldArrayF* f2; FldArrayI* cn2;
     char* varString2; char* eltType2;
-    E_Int res2 = K_ARRAY::getFromArray2(v, varString2, f2, ni2, nj2, nk2, 
+    E_Int res2 = K_ARRAY::getFromArray3(v, varString2, f2, ni2, nj2, nk2, 
                                         cn2, eltType2);
     if (res2 != 1 && res2 != 2)
     {

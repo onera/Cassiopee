@@ -39,8 +39,8 @@ PyObject* K_CONVERTER::convertArray2TetraBary(PyObject* self, PyObject* args)
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, ni, nj, nk, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, ni, nj, nk, cn, eltType);
   
   if (res != 1 && res != 2)
   {
@@ -335,8 +335,8 @@ PyObject* K_CONVERTER::convertArray2TetraBaryBoth(PyObject* self, PyObject* args
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, ni, nj, nk, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, ni, nj, nk, cn, eltType);
   
   if (res != 2 && res != 1)
   {
@@ -371,8 +371,8 @@ PyObject* K_CONVERTER::convertArray2TetraBaryBoth(PyObject* self, PyObject* args
   E_Int nic, njc, nkc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray(arrayc, varStringc, 
-                                     fc, nic, njc, nkc, cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayc, varStringc, 
+                                      fc, nic, njc, nkc, cnc, eltTypec);
   if (resc != 1 && resc != 2)
   {
     PyErr_SetString(PyExc_TypeError, 
