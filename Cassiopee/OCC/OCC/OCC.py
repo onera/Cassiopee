@@ -744,7 +744,7 @@ def _projectOnFaces(hook, a, faceList=None):
     else:
         occ.projectOnFaces(hook, a, faceList)
     return None
-    
+
 #=============================================================================
 # CAD fixing
 #=============================================================================
