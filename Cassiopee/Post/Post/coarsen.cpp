@@ -48,7 +48,7 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ RR_,
                     &surf, &aindic, &argqual, &eps))
   {
-      return NULL;
+    return NULL;
   }
   
   // check argqual: between 0 and 0.5
@@ -64,12 +64,11 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int nil, njl, nkl;
   E_Int res = 
-    K_ARRAY::getFromArray(surf, varString0, f, nil, njl, nkl, cn, eltType0);
+    K_ARRAY::getFromArray3(surf, varString0, f, nil, njl, nkl, cn, eltType0);
   
   if (res != 2 || strcmp(eltType0, "TRI") != 0)
   {
-    if (res == 1) delete f;
-    if (res == 2) { delete f; delete cn; }
+    RELEASESHAREDB(res, surf, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "coarsen: array is invalid.");
     return NULL;
@@ -84,7 +83,7 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "coarsen: array must contain coordinates.");
-    delete f; delete cn;
+    RELEASESHAREDU(surf, f, cn);
     return NULL;
   }
   posxu++; posyu++; poszu++;
@@ -97,14 +96,15 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayI* cn1 = NULL;
   char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray(aindic, varString1, findic, 
-                                     ni1, nj1, nk1, cn1, eltType1);
+  E_Int res1 = K_ARRAY::getFromArray3(aindic, varString1, findic, 
+                                      ni1, nj1, nk1, cn1, eltType1);
   E_Int nelts = cn->getSize();
   if (res1 == 1 )
   {
     if (ni1*nj1*nk1 != nelts)
     {
-      delete f; delete cn; delete findic;
+      RELEASESHAREDU(surf, f, cn);
+      RELEASESHAREDS(aindic, findic);
       PyErr_SetString(
         PyExc_TypeError,
         "coarsen: dimension of refinement indicator array must be equal to the number of elements.");
@@ -115,7 +115,8 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   {
     if ( findic->getSize() != nelts )
     {
-      delete f; delete cn; delete findic; delete cn1;
+      RELEASESHAREDU(surf, f, cn);
+      RELEASESHAREDU(aindic, findic, cn1);
       PyErr_SetString(
         PyExc_TypeError,
         "coarsen: dimension of refinement indicator array must be equal to the number of elements.");
@@ -125,7 +126,7 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   }
   else
   {
-    delete f; delete cn;
+    RELEASESHAREDU(surf, f, cn);  
     PyErr_SetString(PyExc_TypeError,
                     "coarsen: refinement indicator array is invalid.");
     return NULL;
@@ -142,7 +143,8 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
 
   /* retour */ 
   PyObject* t = K_ARRAY::buildArray(*f, varString0, *cn, -1, "TRI");
-  delete f; delete cn;
+  RELEASESHAREDU(surf, f, cn);
+    
   return t;
 }
 
