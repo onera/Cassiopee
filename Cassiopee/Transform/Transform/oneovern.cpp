@@ -57,7 +57,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray2(array, varString, f, im, jm, km, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 1 && res != 2)
   {

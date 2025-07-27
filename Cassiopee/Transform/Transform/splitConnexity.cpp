@@ -34,7 +34,7 @@ PyObject* K_TRANSFORM::splitConnexity(PyObject* self, PyObject* args)
   PyObject* array;
   if (!PyArg_ParseTuple(args, "O", &array))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
@@ -42,7 +42,7 @@ PyObject* K_TRANSFORM::splitConnexity(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   if (res != 1 && res != 2)
   {

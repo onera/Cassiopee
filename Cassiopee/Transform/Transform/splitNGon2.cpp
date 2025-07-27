@@ -38,14 +38,14 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ III_,
                     &array, &arrayc, &nparts, &nparts2, &shift))
   {
-      return NULL;
+    return NULL;
   }
   // Check array nodes
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, ni, nj, nk, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, ni, nj, nk, cn, eltType);
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(array, f);
@@ -69,8 +69,8 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  res = K_ARRAY::getFromArray(arrayc, varStringc, 
-                              fc, nic, njc, nkc, cnc, eltTypec, true);
+  res = K_ARRAY::getFromArray3(arrayc, varStringc, 
+                               fc, nic, njc, nkc, cnc, eltTypec);
 
   E_Int posc = K_ARRAY::isNamePresent("part", varStringc); posc++;  
   E_Float* fp = fc->begin(posc);

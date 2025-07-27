@@ -36,7 +36,6 @@ using namespace K_FLD;
 PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* normal;
-
   if (!PYPARSETUPLE_(args, OO_, &array, &normal))
     return NULL;
   
@@ -47,11 +46,11 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res1 = K_ARRAY::getFromArray(array, varString1, f1, 
-                                     im1, jm1, km1, cn1, eltType1, true);
+  E_Int res1 = K_ARRAY::getFromArray3(array, varString1, f1, 
+                                      im1, jm1, km1, cn1, eltType1);
   
-  E_Int res2 = K_ARRAY::getFromArray(normal, varString2, f2, 
-                                     im2, jm2, km2, cn2, eltType2, true);
+  E_Int res2 = K_ARRAY::getFromArray3(normal, varString2, f2, 
+                                      im2, jm2, km2, cn2, eltType2);
   
   // Vecteur et array valides (structure ou non structure) ?
   if (res1 == -1)

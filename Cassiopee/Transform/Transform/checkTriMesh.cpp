@@ -36,8 +36,8 @@ PyObject* K_TRANSFORM::checkTriMesh(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(o, varString,
-                                    f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(o, varString,
+                                     f, ni, nj, nk, cn, eltType);
   // Test non structure ?
   if (res != 2)
   {
@@ -98,8 +98,9 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
   E_Float ndir1, ndir2;
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
   E_Float ptD[3], dir2[3];
-  E_Float inverse1, rad1, rad2, ndirl;
-  E_Int indA, indB, indC, indD, ind5, ind6, swap;
+  E_Float inverse1, ndirl;
+  //E_Float rad1, rad2;
+  E_Int indA, indB, indC, indD, ind5, ind6;
 
   E_Int maillesEcrasees = 0;
   E_Int maillesInversees = 0;  
@@ -108,7 +109,6 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
   {
     ind1 = ct1[i]-1; ind2 = ct2[i]-1; ind3 = ct3[i]-1;
     vector<E_Int>& voisins = cEEN[i];
-    swap = -1;
 
     /* verification du triangle initial */
     ptA[0] = x[ind1]; ptA[1] = y[ind1]; ptA[2] = z[ind1];
@@ -164,9 +164,9 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
       dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
       dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
       ndir1 = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-      rad1 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
-                                            ptB[0], ptB[1], ptB[2],
-                                            ptC[0], ptC[1], ptC[2]);
+      //rad1 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+      //                                      ptB[0], ptB[1], ptB[2],
+      //                                      ptC[0], ptC[1], ptC[2]);
 
       // DC ^ DB
       dir2[0] = (ptC[1]-ptD[1])*(ptB[2]-ptD[2])-(ptC[2]-ptD[2])*(ptB[1]-ptD[1]);
@@ -175,9 +175,9 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
       ndir2 = sqrt(dir2[0]*dir2[0]+dir2[1]*dir2[1]+dir2[2]*dir2[2]);
       inverse1 = dir1[0]*dir2[0]+dir1[1]*dir2[1]+dir1[2]*dir2[2];
       if (ndir1 > 1.e-12 && ndir2 > 1.e-12) inverse1 = inverse1/(ndir1*ndir2);
-      rad2 = K_COMPGEOM::circumCircleRadius(ptB[0], ptB[1], ptB[2],
-                                            ptC[0], ptC[1], ptC[2],
-                                            ptD[0], ptD[1], ptD[2]);
+      //rad2 = K_COMPGEOM::circumCircleRadius(ptB[0], ptB[1], ptB[2],
+      //                                      ptC[0], ptC[1], ptC[2],
+      //                                      ptD[0], ptD[1], ptD[2]);
 
       if (inverse1 < -0.9)
       {

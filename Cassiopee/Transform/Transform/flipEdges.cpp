@@ -36,8 +36,8 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(o, varString,
-                                    f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(o, varString,
+                                     f, ni, nj, nk, cn, eltType);
   // Test non structure ?
   if (res != 2)
   {

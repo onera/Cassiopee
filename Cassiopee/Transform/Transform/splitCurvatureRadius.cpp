@@ -31,10 +31,9 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float Rs; // courbure seuil
-  if (!PYPARSETUPLE_(args, O_ R_,
-                    &array, &Rs))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &Rs))
   {
-      return NULL;
+    return NULL;
   }
   
   E_Float cvs = 1./K_FUNC::E_max(Rs, 1.e-10);
@@ -46,7 +45,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   char* varString;
   char* et;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, et);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, et);
   if ( res != 1 && res != 2 )
   {
     PyErr_SetString(PyExc_TypeError,
@@ -55,7 +54,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   }
   if ( res == 2 )
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);  
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureRadius: array must be an i-array.");
     return NULL;
@@ -66,7 +65,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if ( posx == -1 || posy == -1 || posz == -1 )
   {
-    delete f;
+    RELEASESHAREDS(array, f);  
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureRadius: coordinates not found in array.");
     return NULL;
@@ -75,7 +74,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
  
   if ( im < 2 || jm != 1 || km != 1 )
   {
-    delete f;
+    RELEASESHAREDS(array, f);  
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureRadius: structured array must be an i-array.");
     return NULL;         
@@ -84,7 +83,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   E_Int npts = f->getSize();
   if ( npts < 6 )
   {
-    delete f;
+    RELEASESHAREDS(array, f);  
     PyErr_SetString(PyExc_TypeError, 
                     "splitCurvatureRadius: not enough points in i-array.");
     return NULL;

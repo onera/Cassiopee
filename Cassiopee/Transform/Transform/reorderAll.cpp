@@ -59,10 +59,9 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
   // Load block arrays 
   PyObject* listBlks;
   E_Int dir=1; // direction of the normals
-  if (!PYPARSETUPLE_(args, O_ I_,
-                    &listBlks, &dir))
+  if (!PYPARSETUPLE_(args, O_ I_, &listBlks, &dir))
   {
-      return NULL;
+    return NULL;
   }
   // Check dir
   if (dir != 1 && dir != -1)
@@ -101,14 +100,11 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
     PyObject* tpl = PyList_GetItem(listBlks, i);
 
     char* eltType;
-    FldArrayF* f;
-    FldArrayI* cn;
+    FldArrayF* f; FldArrayI* cn;
     E_Int res = 
-      K_ARRAY::getFromArray(tpl, varString, f, nil, njl, nkl,cn,eltType);
+      K_ARRAY::getFromArray3(tpl, varString, f, nil, njl, nkl, cn, eltType);
     
-    nis.push_back(nil);
-    njs.push_back(njl);
-    nks.push_back(nkl);
+    nis.push_back(nil); njs.push_back(njl); nks.push_back(nkl);
       
     if (res != 1)
     {  
@@ -116,17 +112,17 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
                       "reorderAll: array is not structured.");      
       return NULL;
     }   
-    if ( nil == 1 ) 
+    if (nil == 1) 
     {
       nil = njl;
       njl = nkl;
     }
-    else if ( njl == 1)
+    else if (njl == 1)
     {
       njl = nkl;
       nkl = 1;
     }
-    else if ( nkl == 1)
+    else if (nkl == 1)
     {
       ;
     }
@@ -141,7 +137,7 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
     posy = K_ARRAY::isCoordinateYPresent(varString);
     posz = K_ARRAY::isCoordinateZPresent(varString);
     
-    if ( posx == -1 || posy == -1 || posz == -1)
+    if (posx == -1 || posy == -1 || posz == -1)
     {
       PyErr_SetString(PyExc_TypeError,
                       "reorderAll: coordinates not found.");
@@ -305,7 +301,7 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
   {
     tpl = K_ARRAY::buildArray(*vectOfFields[i], varString,
                              nis[i], njs[i], nks[i]);
-    delete vectOfFields[i];
+    RELEASESHAREDS(PyList_GetItem(listBlks, i), vectOfFields[i]);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
