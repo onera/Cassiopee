@@ -956,7 +956,10 @@ def _meshDeviation(hook, t):
     zones = Internal.getZones(FACES)
     for z in zones:
         # no de la face
-        no = getNo(z)
+        try: 
+            no = getNo(z)
+            faceList = [no]
+        except: faceList = None
         # recupere le maillage en centre
         zc = C.node2Center(z)
         # Projete le maillage en centre sur la face associee
@@ -964,7 +967,7 @@ def _meshDeviation(hook, t):
         yp = Internal.getNodeFromName2(zc, 'CoordinateY')
         zp = Internal.getNodeFromName2(zc, 'CoordinateZ')
         xp0 = xp[1].copy(); yp0 = yp[1].copy(); zp0 = zp[1].copy()
-        _projectOnFaces(hook, zc, [no])
+        _projectOnFaces(hook, zc, faceList)
         diff = (xp[1]-xp0)*(xp[1]-xp0)+(yp[1]-yp0)*(yp[1]-yp0)+(zp[1]-zp0)*(zp[1]-zp0)
         diff = numpy.sqrt(diff)
         print("INFO: meshDeviation: face %d: %g"%(no, numpy.max(diff)))

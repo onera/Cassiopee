@@ -43,7 +43,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOO_ R_ I_,
                     &arrays, &arrayBAR, &vectorNames, &signe, &npts))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check every array in arrays
@@ -94,7 +94,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cnBAR;
   char* eltTypeBAR; char* varStringBAR;
-  E_Int res = K_ARRAY::getFromArray(arrayBAR, varStringBAR, f, im, jm, km, cnBAR, eltTypeBAR, true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayBAR, varStringBAR, f, im, jm, km, cnBAR, eltTypeBAR); 
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(arrayBAR, f);

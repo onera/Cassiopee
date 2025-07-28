@@ -41,10 +41,9 @@ PyObject* K_POST::refineButterfly(PyObject* self, PyObject* args)
   // surf: maillage a raffiner (x,y,z+sol)
   // w: parametre pour le butterfly
   PyObject* surf; E_Float w;
-  if (!PYPARSETUPLE_(args, O_ R_,
-                    &surf, &w))
+  if (!PYPARSETUPLE_(args, O_ R_, &surf, &w))
   {
-      return NULL;
+    return NULL;
   }
 
   /*-----------------------------------------------*/
@@ -54,7 +53,7 @@ PyObject* K_POST::refineButterfly(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int nil, njl, nkl;
   E_Int res =
-    K_ARRAY::getFromArray(surf, varString, f, nil, njl, nkl, cn, eltType, true);
+    K_ARRAY::getFromArray3(surf, varString, f, nil, njl, nkl, cn, eltType);
 
   if (res != 1 && res != 2)
   {
