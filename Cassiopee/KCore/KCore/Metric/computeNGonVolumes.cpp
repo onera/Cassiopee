@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "metric.h"
+#include "Connect/connect.h"
 #include "Math/math.h"
 #include "String/kstring.h"
 #include <vector>
@@ -25,13 +26,14 @@
 #include <algorithm>
 #include <stack>
 #include <set>
-#include "Connect/connect.h"
 
 #define INTERNAL 0
 #define EXTERNAL 1
 
-void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
-  E_Int *pn, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa)
+void K_METRIC::compute_face_center_and_area(
+  E_Int id, E_Int stride,
+  E_Int *pn, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa
+)
 {
   // Init
   fa[0] = fa[1] = fa[2] = 0.0;
@@ -59,7 +61,8 @@ void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
   // Compute area vector and center of stride-2 triangles
   // formed by p0p1p2, p0p2p3, ... p0p(stride-2)p(stride-1)
   E_Int p0 = pn[0]-1;
-  for (E_Int i = 1; i < stride-1; i++) {
+  for (E_Int i = 1; i < stride-1; i++)
+  {
     E_Int p1 = pn[i]-1;
     E_Int p2 = pn[i+1]-1;
 
@@ -86,14 +89,17 @@ void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
   }
 
   // Deal with zero-area faces
-  if (sumA < K_MATH::SMALL) {
+  if (sumA < K_MATH::SMALL)
+  {
     fprintf(stderr, "compute_face_area_and_center(): "
       "Warning: Face: " SF_D_ " - Area: " SF_F_ " - Tol: %.2e\n", id, sumA, K_MATH::SMALL);
     for (E_Int i = 0; i < 3; i++) {
       fc[i] = fcenter[i];
       fa[i] = 0.0;
     }
-  } else {
+  }
+  else
+  {
     for (E_Int i = 0; i < 3; i++) {
       fc[i] = sumAc[i]/(3.0*sumA);
       fa[i] = 0.5*sumN[i];
@@ -147,17 +153,20 @@ void K_METRIC::compute_cell_center_and_volume(E_Int id, E_Int stride,
     vol += pyr3Vol;
   }
 
-  if (fabs(vol) >= K_MATH::SMALL) {
+  if (fabs(vol) >= K_MATH::SMALL)
+  {
     cx /= vol;
     cy /= vol;
     cz /= vol;
-  } else {
+  }
+  else
+  {
     cx = cEst[0];
     cy = cEst[1];
     cz = cEst[2];
   }
   
-  vol *= K_MATH::ONE_THIRD;
+  vol *= K_CONST::ONE_THIRD;
 
   if (vol < 0.0)
     fprintf(stderr, "Warning: cell " SF_D_ " has negative volume %.4e\n", id, vol);
@@ -246,7 +255,7 @@ void K_METRIC::compute_cell_volume(E_Int cell, K_FLD::FldArrayI &cn, E_Float *x,
     vol += pyr3Vol;
   }
 
-  vol *= K_MATH::ONE_THIRD;
+  vol *= K_CONST::ONE_THIRD;
 }
 
 // Assumes external faces oriented outwards + parent elements computed
@@ -323,7 +332,7 @@ void compute_volumes(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
   }
 
   for (E_Int i = 0; i < ncells; i++) {
-    vols[i] *= K_MATH::ONE_THIRD;
+    vols[i] *= K_CONST::ONE_THIRD;
     if (vols[i] < 0.0)
       fprintf(stderr, "Warning: cell " SF_D_ " has negative volume %.4e\n", i, vols[i]);
   }
@@ -354,13 +363,16 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
   E_Int bad_faces = K_CONNECT::check_overlapping_cells(cn);
   E_Int bad_cells = K_CONNECT::check_open_cells(cn, &is_cell_open[0]);
 
-  if (!bad_cells && !bad_faces) {
+  if (!bad_cells && !bad_faces)
+  {
     K_CONNECT::orient_boundary_ngon(x, y, z, cn);
     E_Int nfaces = cn.getNFaces();
     std::vector<E_Int> owner(nfaces), neigh(nfaces);
     K_CONNECT::build_parent_elements_ngon(cn, &owner[0], &neigh[0]);
     compute_volumes(cn, x, y, z, owner, neigh, vols);
-  } else {
+  }
+  else
+  {
     // Compute closed cells volumes
     for (E_Int i = 0; i < ncells; i++) {
       if (is_cell_open[i]) {
@@ -378,8 +390,10 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
   return ret;
 }
 
-void K_METRIC::compute_face_centers_and_areas(K_FLD::FldArrayI &cn, E_Float *x,
-  E_Float *y, E_Float *z, E_Float *fcenters, E_Float *fareas)
+void K_METRIC::compute_face_centers_and_areas(
+  K_FLD::FldArrayI &cn, E_Float *x,
+  E_Float *y, E_Float *z, E_Float *fcenters, E_Float *fareas
+)
 {
   E_Int nfaces = cn.getNFaces();
   E_Int *ngon = cn.getNGon();
@@ -393,8 +407,7 @@ void K_METRIC::compute_face_centers_and_areas(K_FLD::FldArrayI &cn, E_Float *x,
   }
 }
 
-void K_METRIC::compute_cell_centers_and_vols
-(
+void K_METRIC::compute_cell_centers_and_vols(
   K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
   E_Int *owner, E_Int *neigh, E_Float *fcenters, E_Float *fareas,
   E_Float *cx, E_Float *cy, E_Float *cz, E_Float *volumes

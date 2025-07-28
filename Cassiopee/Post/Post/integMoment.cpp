@@ -29,27 +29,6 @@ using namespace K_FLD;
 
 extern "C"
 {
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6structsurf1dt_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6unstructsurf_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
-                       E_Int& nnodes, E_Int* cn, 
-                       E_Float* coordx, E_Float* coordy, E_Float* coordz,
-                       E_Float* snx, E_Float* sny, E_Float* snz,
-                       E_Float* surface);
-
-  void k6unstructsurf1d_(E_Int& npts, E_Int& nelts, 
-                         E_Int& nnodes, E_Int* cn, 
-                         E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                         E_Float* length);
   void k6integmomentstruct_(const E_Int& ni, const E_Int& nj,
                             const E_Float& cx, const E_Float& cy, 
                             const E_Float& cz, E_Float* ratio, 
@@ -484,7 +463,10 @@ E_Int K_POST::integ4(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   FldArrayF surfBlk(ncells);
   
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  k6structsurft_(NI, NJ, 1, ncells, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), surfBlk.begin());
+  K_METRIC::compStructSurft(
+    NI, NJ, 1,
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    surfBlk.begin());
 
   if (center2node == 1)
   {
@@ -537,7 +519,10 @@ E_Int K_POST::integ41D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   
   FldArrayF lengthBlk(NI-1);
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  k6structsurf1dt_(NI, NJ, NK, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), lengthBlk.begin());
+  K_METRIC::compStructSurf1dt(
+    NI, NJ, NK,
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    lengthBlk.begin());
   
   if (center2node == 1)
   {
@@ -587,16 +572,13 @@ E_Int K_POST::integUnstruct4(E_Int center2node,
   FldArrayF surfBlk(nbT);
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  E_Int nnodes = 3;
-  E_Int nedges = 1;
   FldArrayF snx(nbT); // normale a la surface  
   FldArrayF sny(nbT);
   FldArrayF snz(nbT);
-  k6unstructsurf_(size, nbT, nedges, nnodes, cnBlk.begin(),
-                  coordBlk.begin(posx), coordBlk.begin(posy), 
-                  coordBlk.begin(posz),
-                  snx.begin(), sny.begin(), snz.begin(), 
-                  surfBlk.begin());
+  K_METRIC::compUnstructSurf(
+    cnBlk, "TRI",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    snx.begin(), sny.begin(), snz.begin(), surfBlk.begin());
 
   switch (center2node)
   {
@@ -643,11 +625,11 @@ E_Int K_POST::integUnstruct41D(E_Int center2node,
   FldArrayF lengthBlk(nbT);
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  E_Int nnodes = 2;
-  k6unstructsurf1d_(size, nbT, nnodes, cnBlk.begin(),
-                    coordBlk.begin(posx), coordBlk.begin(posy), 
-                    coordBlk.begin(posz), lengthBlk.begin());
- 
+  K_METRIC::compUnstructSurf1d(
+    cnBlk, "BAR",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    lengthBlk.begin());
+
   switch (center2node) 
   { 
     case 1:

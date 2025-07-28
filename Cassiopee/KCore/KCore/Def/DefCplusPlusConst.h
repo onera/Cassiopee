@@ -58,10 +58,13 @@ namespace K_CONST
   extern const E_Float E_ZERO_FLOAT;
 
 /** */
-  extern const E_Float ONE_EIGHT;
+  extern const E_Float ONE_EIGHTH;
 
 /** */
   extern const E_Float ONE_FOURTH;
+
+/** */
+  extern const E_Float ONE_THIRD;
 
 /** */
   extern const E_Float ONE_HALF;

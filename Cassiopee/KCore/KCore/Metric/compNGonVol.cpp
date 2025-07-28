@@ -34,8 +34,10 @@ using namespace std;
 // des elements (deja alloue)
 // Return 0 (OK), 1 (Failed)
 //=============================================================================
-E_Int K_METRIC::CompNGonVol(E_Float* xt,E_Float* yt,E_Float* zt, 
-                            FldArrayI& cn, E_Float* volp)
+E_Int K_METRIC::compNGonVol(
+  const E_Float* xt, const E_Float* yt, const E_Float* zt, 
+  FldArrayI& cn, E_Float* volp
+)
 {
   // Donnees liees a la connectivite - Acces non universel sur le ptrs
   E_Int* ngon = cn.getNGon();
@@ -46,7 +48,7 @@ E_Int K_METRIC::CompNGonVol(E_Float* xt,E_Float* yt,E_Float* zt,
   E_Int nelts = cn.getNElts(); // nombre total d elements
 
   // Connectivite Element/Noeuds
-  vector< vector<E_Int> > cnEV(nelts);
+  vector<vector<E_Int> > cnEV(nelts);
   K_CONNECT::connectNG2EV(cn, cnEV);
   // Tableau de la dimensions des elements
   FldArrayI dimElt(nelts); 
@@ -118,7 +120,7 @@ E_Int K_METRIC::CompNGonVol(E_Float* xt,E_Float* yt,E_Float* zt,
             E_Int* face = cn.getFace(elem[fa]-1, dummy, ngon, indPG);
             ind1 = face[0]-1;
             ind2 = face[1]-1;
-            // calcul de la normal au triangle (n, n+1, be)
+            // calcul de la normale au triangle (n, n+1, be)
             l1x = xt[ind2]-xt[ind1]; l1y = yt[ind2]-yt[ind1]; l1z = zt[ind2]-zt[ind1];
             l2x = xt[ind2]-xbe; l2y = yt[ind2]-ybe; l2z = zt[ind2]-zbe;
             surfnx = l1y*l2z-l1z*l2y; 
@@ -172,13 +174,13 @@ E_Int K_METRIC::CompNGonVol(E_Float* xt,E_Float* yt,E_Float* zt,
               if (sens > 0.) {surfnx = -surfnx; surfny = -surfny; surfnz = -surfnz;}
 
               // ajout de la contribution du triangle (n, n+1, bf) au volume de l element elt
-              xc = (xt[ind1]+xt[ind2]+xbf)/3.; 
-              yc = (yt[ind1]+yt[ind2]+ybf)/3.; // coordonnees du centre du triangle(n, n+1, bf) 
-              zc = (zt[ind1]+zt[ind2]+zbf)/3.; 
+              xc = ONE_THIRD * (xt[ind1] + xt[ind2] + xbf); 
+              yc = ONE_THIRD * (yt[ind1] + yt[ind2] + ybf); // coordonnees du centre du triangle(n, n+1, bf) 
+              zc = ONE_THIRD * (zt[ind1] + zt[ind2] + zbf); 
               volp[elt] += xc * surfnx + yc * surfny + zc * surfnz;
             }
           }
-          volp[elt] = volp[elt]/3.;
+          volp[elt] *= ONE_THIRD;
         }
         break;
         default:
@@ -201,12 +203,14 @@ E_Int K_METRIC::CompNGonVol(E_Float* xt,E_Float* yt,E_Float* zt,
 // OUT: vol: volume de l element calcule au centre
 // Return 0 (OK), 1 (Failed)
 //=============================================================================
-E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArrayI& cn,
-                                     E_Int indE, vector< vector<E_Int> > cnEV, FldArrayI& posElt, 
-                                     FldArrayI& posFace, FldArrayI& dimElt,
-                                     E_Float& vol)
+E_Int K_METRIC::compNGonVolOfElement(
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  FldArrayI& cn,
+  E_Int indE, vector<vector<E_Int> > cnEV, FldArrayI& posElt, 
+  FldArrayI& posFace, FldArrayI& dimElt,
+  E_Float& vol
+)
 {
-
   // Donnees liees a la connectivite - Acces non universel sur le ptrs
   E_Int* ngon = cn.getNGon();
   E_Int* nface = cn.getNFace();
@@ -306,13 +310,13 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
         E_Int* face = cn.getFace(elem[fa]-1, nbNodes, ngon, indPG);
         // calcul du barycentre bf (xbf, ybf, zbf) de la face
         xbf = 0.; ybf = 0.; zbf = 0.;
-        for (E_Int n=0; n <nbNodes; n++ ) // parcours des noeuds de la face fa
+        for (E_Int n=0; n <nbNodes; n++) // parcours des noeuds de la face fa
         {
           ind = face[n]-1;
           xbf += xt[ind]; ybf += yt[ind]; zbf += zt[ind];
         }
         xbf = xbf/nbNodes; ybf = ybf/nbNodes; zbf = zbf/nbNodes;                
-        for (E_Int n=0; n <nbNodes; n++ ) // parcours des noeuds de la face fa
+        for (E_Int n=0; n <nbNodes; n++) // parcours des noeuds de la face fa
         {
           ind1 = face[n]-1; // indice du point n
           ind2 = face[(n+1)%(nbNodes)]-1; // indice du point n+1
@@ -328,13 +332,13 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
           if (sens > 0.) {surfnx = -surfnx; surfny = -surfny; surfnz = -surfnz;}
 
           // ajout de la contribution du triangle (n, n+1, bf) au volume de l element indE
-          xc = (xt[ind1]+xt[ind2]+xbf)/3.; 
-          yc = (yt[ind1]+yt[ind2]+ybf)/3.; // coordonnees du centre du triangle(n, n+1, bf) 
-          zc = (zt[ind1]+zt[ind2]+zbf)/3.; 
+          xc = ONE_THIRD * (xt[ind1] + xt[ind2] + xbf); 
+          yc = ONE_THIRD * (yt[ind1] + yt[ind2] + ybf); // coordonnees du centre du triangle(n, n+1, bf) 
+          zc = ONE_THIRD * (zt[ind1] + zt[ind2] + zbf); 
           vol += xc * surfnx + yc * surfny + zc * surfnz;
         }
       }
-      vol = vol/3.;
+      vol *= ONE_THIRD;
     }
     break;
     default:

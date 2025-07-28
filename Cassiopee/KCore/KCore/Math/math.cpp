@@ -25,11 +25,11 @@ const E_Float K_MATH::SMALL     = 1.0e-15;
 void K_MATH::sqrmat_dot_vec(const E_Float *A, const E_Float *x, const E_Int n,
   E_Float *y)
 {
-  for (E_Int i = 0; i < n; i++) {
+  for (E_Int i = 0; i < n; i++)
+  {
     y[i] = 0.0;
     const E_Float *ptr = &A[i*n];
-    for (E_Int j = 0; j < n; j++)
-      y[i] += ptr[j]*x[j];
+    for (E_Int j = 0; j < n; j++) y[i] += ptr[j]*x[j];
   }
 }
 

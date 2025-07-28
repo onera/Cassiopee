@@ -1,5 +1,5 @@
 E_Int bestFound = 1;
-E_Int inddummy = -1;//a laisser a -1 absolument...pour k6compvolofstructcell
+E_Int inddummy = -1;  // a laisser a -1 absolument...pour K_METRIC::compVolOfStructCell3D
 if (found > 0)
 {      
   foundSav = 1;
@@ -8,8 +8,10 @@ if (found > 0)
   {
     firstCorner = tmpIndi[0]; 
     // calcul de cellvol
-    k6compvolofstructcell_(ni, nj, nk, inddummy, firstCorner, oneField.begin(posx0),
-                           oneField.begin(posy0), oneField.begin(posz0),vol);
+    K_METRIC::compVolOfStructCell3D(
+      ni, nj, nk, inddummy, firstCorner,
+      oneField.begin(posx0), oneField.begin(posy0), oneField.begin(posz0),
+      vol);
     if (penalty == 1 && isBorder == 1) vol += 1.e3;
     if (vol < best+K_CONST::E_GEOM_CUTOFF) 
     {
@@ -71,8 +73,10 @@ if (found > 0)
   {
     firstCorner = tmpIndi[0]; 
     // calcul de cellvol
-    vol = K_METRIC::compVolOfStructCell2D(ni,nj, oneField.begin(posx0),oneField.begin(posy0), oneField.begin(posz0),
-                                          -1, firstCorner);
+    K_METRIC::compVolOfStructCell2D(
+      ni, nj, -1, firstCorner,
+      oneField.begin(posx0),oneField.begin(posy0), oneField.begin(posz0),
+      vol);
     if (penalty == 1 && isBorder == 1) vol += 1.e3;
     if (vol < best+K_CONST::E_GEOM_CUTOFF) 
     {
