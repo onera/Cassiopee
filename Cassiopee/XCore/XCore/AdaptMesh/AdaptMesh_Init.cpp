@@ -48,7 +48,8 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
 
     if (CGIDS != Py_None) {
         ret = K_NUMPY::getFromNumpyArray(CGIDS, cgids, size, nfld, true);
-        if (ret != 1 || size != nc || nfld != 1) {
+        if (ret != 1 || size != nc || nfld != 1) 
+        {
             RAISE("Bad cell global ids.");
             Karray_free_ngon(karray);
             return NULL;

@@ -25,56 +25,60 @@
 namespace K_MATH
 {
   extern const E_Float ONE_THIRD;
-
   extern const E_Float PI;
-
   extern const E_Float SMALL;
 
-  inline
-  E_Float dot(const E_Float *a, const E_Float *b, const E_Int n)
+  inline E_Float dot(const E_Float* a, const E_Float* b, const E_Int n)
   {
     E_Float res = 0.0;
-    for (E_Int i = 0; i < n; i++)
-      res += a[i]*b[i];
+    for (E_Int i = 0; i < n; i++) res += a[i] * b[i];
     return res;
   }
   
-  inline
-  void cross(const E_Float a[3], const E_Float b[3], E_Float c[3])
+  // Compute the cross product of two vectors
+  inline void cross(
+    const E_Float a1, const E_Float a2, const E_Float a3,
+    const E_Float b1, const E_Float b2, const E_Float b3,
+    E_Float& c1, E_Float& c2, E_Float& c3
+  )
   {
-    c[0] = a[1]*b[2] - a[2]*b[1];
-    c[1] = a[2]*b[0] - a[0]*b[2];
-    c[2] = a[0]*b[1] - a[1]*b[0];
+    c1 = a2 * b3 - a3 * b2;
+    c2 = a3 * b1 - a1 * b3;
+    c3 = a1 * b2 - a2 * b1;
   }
 
-  inline
-  E_Float norm(const E_Float *a, const E_Int n)
+  inline void cross(const E_Float a[3], const E_Float b[3], E_Float c[3])
+  {
+    c[0] = a[1] * b[2] - a[2] * b[1];
+    c[1] = a[2] * b[0] - a[0] * b[2];
+    c[2] = a[0] * b[1] - a[1] * b[0];
+  }
+
+  inline E_Float norm(const E_Float* a, const E_Int n)
   {
     return sqrt(K_MATH::dot(a, a, n));
   }
 
-  inline
-  E_Int feq(const E_Float a, const E_Float b, const E_Float tol = 1e-12)
+  inline E_Int feq(const E_Float a, const E_Float b, const E_Float tol = 1e-12)
   {
-    return fabs(a-b) < tol;
+    return fabs(a - b) < tol;
   }
 
-  void sqrmat_dot_vec(const E_Float *, const E_Float *, const E_Int,
-    E_Float *);
+  void sqrmat_dot_vec(const E_Float*, const E_Float*, const E_Int, E_Float*);
     
-  void sym3mat_dot_vec(const E_Float *, const E_Float *, E_Float *);
+  void sym3mat_dot_vec(const E_Float*, const E_Float*, E_Float*);
   
   E_Float sign(const E_Float, const E_Float tol = 1e-15);
   
-  void sym3mat_dot_sym3mat(const E_Float *, const E_Float *, E_Float *);
+  void sym3mat_dot_sym3mat(const E_Float*, const E_Float*, E_Float*);
   
   E_Float sym3mat_det(const E_Float [6]);
   
   E_Float sym3mat_trace(const E_Float [6]);
   
-  E_Float sym3mat_second_invariant(const E_Float *);
+  E_Float sym3mat_second_invariant(const E_Float*);
   
-  E_Float sym3mat_third_invariant(const E_Float *);
+  E_Float sym3mat_third_invariant(const E_Float*);
 }
 
 #endif
