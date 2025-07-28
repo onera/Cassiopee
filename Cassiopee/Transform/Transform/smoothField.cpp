@@ -35,7 +35,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ R_ O_ II_ O_,
                     &array, &eps, &epsl, &niter, &type, &varList))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check varList
@@ -60,7 +60,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, 
                                      f, im, jm, km, cn, eltType);
 
   if (res != 2)

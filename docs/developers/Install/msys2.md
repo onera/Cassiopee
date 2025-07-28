@@ -25,6 +25,14 @@ pacman -S mingw64/mingw-w64-x86_64-msmpi
 pacman -S mingw-w64-x86_64-python-mpi4py
 ```
 
+<!-- For optional tigl:
+```shell
+pacman -S mingw64/mingw-w64-x86_64-libxml2
+pacman -S mingw-w64-x86_64-python-libxstl
+pacman -S mingw64/mingw-w64-x86_64-boost
+pacman -S mingw64/mingw-w64-x86_64-sympy
+``` -->
+
 and export system paths (if not already done):
 ```shell
 export PATH=/mingw64/bin:$PATH

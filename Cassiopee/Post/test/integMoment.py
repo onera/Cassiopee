@@ -12,7 +12,6 @@ res = P.integMoment([m], [c], [], (5.,5., 0.)); print(res)
 # Maillage en noeuds
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
-C.convertArrays2File([m], "new.plt", "bin_tp")
 
 # Champ a integrer en centres
 c = C.array('vx,vy,vz', ni-1, nj-1, 1)

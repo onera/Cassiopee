@@ -40,7 +40,6 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
 { 
   PyObject* blkArrays;
   PyObject* ibArrays;
-  
   if (!PyArg_ParseTuple(args, "OO",  &blkArrays, &ibArrays)) return NULL;
   
   // Check every arrays  
@@ -111,7 +110,6 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
       {        
         ni.push_back(nil); nj.push_back(njl); nk.push_back(nkl);
         fieldc.push_back(f);
-        
       }
       else 
       {
@@ -286,11 +284,9 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   // Deleting fields
   E_Int fieldcSize = fieldc.size();
   E_Int listOfCellNFSize = listOfCellNF.size();
-  for (E_Int i = 0; i < fieldcSize; i++)
-    delete fieldc[i];
   
-  for (E_Int i = 0; i < listOfCellNFSize; i++)
-    delete listOfCellNF[i];
+  for (E_Int i = 0; i < fieldcSize; i++) delete fieldc[i];
+  for (E_Int i = 0; i < listOfCellNFSize; i++) delete listOfCellNF[i];
 
   ni.clear();
   nj.clear();

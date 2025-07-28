@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Converter: CFD data conversion module &#8212; Converter 4.0 documentation</title>
+    <title>Converter: CFD data conversion module &#8212; Converter 4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Converter 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter: CFD data conversion module</a></li> 
       </ul>
     </div>  
@@ -247,88 +247,91 @@ recognised. Naming convention is described in the following table.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.mergeConnectivity" title="Converter.PyTree.mergeConnectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.mergeConnectivity</span></code></a></p></td>
 <td><p>Gather an additional zone connectivity in z1.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.deleteEmptyZones" title="Converter.PyTree.deleteEmptyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.deleteEmptyZones</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.sliceNGonFaces" title="Converter.PyTree.sliceNGonFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.sliceNGonFaces</span></code></a></p></td>
+<td><p>Slice an NGON connectivity using a list of face indices.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.deleteEmptyZones" title="Converter.PyTree.deleteEmptyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.deleteEmptyZones</span></code></a></p></td>
 <td><p>Delete zones with null number of points or elements.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#id2" title="Converter.PyTree.addState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addState</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id2" title="Converter.PyTree.addState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addState</span></code></a></p></td>
 <td><p>Add single state value or a full reference state.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addChimera2Base" title="Converter.PyTree.addChimera2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addChimera2Base</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addChimera2Base" title="Converter.PyTree.addChimera2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addChimera2Base</span></code></a></p></td>
 <td><p>Add chimera setting as node in base.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addBC2Zone" title="Converter.PyTree.addBC2Zone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addBC2Zone</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addBC2Zone" title="Converter.PyTree.addBC2Zone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addBC2Zone</span></code></a></p></td>
 <td><p>Add a BC to a zone node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.fillEmptyBCWith" title="Converter.PyTree.fillEmptyBCWith"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillEmptyBCWith</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.fillEmptyBCWith" title="Converter.PyTree.fillEmptyBCWith"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillEmptyBCWith</span></code></a></p></td>
 <td><p>Fill empty BCs with given type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfType" title="Converter.PyTree.rmBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfType</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfType" title="Converter.PyTree.rmBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfType</span></code></a></p></td>
 <td><p>Remove BCs of given type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfName" title="Converter.PyTree.rmBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfName</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfName" title="Converter.PyTree.rmBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfName</span></code></a></p></td>
 <td><p>Remove BCs of given name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCDataVars" title="Converter.PyTree.rmBCDataVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCDataVars</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCDataVars" title="Converter.PyTree.rmBCDataVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCDataVars</span></code></a></p></td>
 <td><p>Remove variables var from t in every BCDataSet.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfType" title="Converter.PyTree.extractBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfType</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfType" title="Converter.PyTree.extractBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfType</span></code></a></p></td>
 <td><p>Extract the grid coordinates of given BC type as zones.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfName" title="Converter.PyTree.extractBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfName</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfName" title="Converter.PyTree.extractBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfName</span></code></a></p></td>
 <td><p>Extract the grid coordinates of given BC name as zones.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getEmptyBC" title="Converter.PyTree.getEmptyBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getEmptyBC</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getEmptyBC" title="Converter.PyTree.getEmptyBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getEmptyBC</span></code></a></p></td>
 <td><p>Return the range or facelist of unset boundary conditions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getBCs" title="Converter.PyTree.getBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getBCs</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getBCs" title="Converter.PyTree.getBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getBCs</span></code></a></p></td>
 <td><p>Return geometry, names and types of boundary conditions.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.recoverBCs" title="Converter.PyTree.recoverBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.recoverBCs</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.recoverBCs" title="Converter.PyTree.recoverBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.recoverBCs</span></code></a></p></td>
 <td><p>Recover given BCs on a tree.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCFields" title="Converter.PyTree.extractBCFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCFields</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCFields" title="Converter.PyTree.extractBCFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCFields</span></code></a></p></td>
 <td><p>Extract fields on BCs.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getConnectedZones" title="Converter.PyTree.getConnectedZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getConnectedZones</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getConnectedZones" title="Converter.PyTree.getConnectedZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getConnectedZones</span></code></a></p></td>
 <td><p>Return the list of zones connected to a through match or nearMatch.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addFamily2Base" title="Converter.PyTree.addFamily2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addFamily2Base</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addFamily2Base" title="Converter.PyTree.addFamily2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addFamily2Base</span></code></a></p></td>
 <td><p>Add a family node to a base node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.tagWithFamily" title="Converter.PyTree.tagWithFamily"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.tagWithFamily</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.tagWithFamily" title="Converter.PyTree.tagWithFamily"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.tagWithFamily</span></code></a></p></td>
 <td><p>Tag a zone node or a BC node with a familyName.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZones" title="Converter.PyTree.getFamilyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZones</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZones" title="Converter.PyTree.getFamilyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZones</span></code></a></p></td>
 <td><p>Return all zones that have this familyName.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCs" title="Converter.PyTree.getFamilyBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCs</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCs" title="Converter.PyTree.getFamilyBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCs</span></code></a></p></td>
 <td><p>Return all BC nodes that have this familyName.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZoneNames" title="Converter.PyTree.getFamilyZoneNames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZoneNames</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZoneNames" title="Converter.PyTree.getFamilyZoneNames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZoneNames</span></code></a></p></td>
 <td><p>Return the family zone names in a tree or a base.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesOfType" title="Converter.PyTree.getFamilyBCNamesOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesOfType</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesOfType" title="Converter.PyTree.getFamilyBCNamesOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesOfType</span></code></a></p></td>
 <td><p>Return the family BC names of a given type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesDict" title="Converter.PyTree.getFamilyBCNamesDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesDict</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesDict" title="Converter.PyTree.getFamilyBCNamesDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesDict</span></code></a></p></td>
 <td><p>Return the dictionary of familyBCs.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getValue" title="Converter.PyTree.getValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getValue</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getValue" title="Converter.PyTree.getValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getValue</span></code></a></p></td>
 <td><p>Return the values for a point of index ind or (i,j,k).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.setValue" title="Converter.PyTree.setValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setValue</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.setValue" title="Converter.PyTree.setValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setValue</span></code></a></p></td>
 <td><p>Set the values in an array for a point of index ind or (i,j,k).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.setPartialFields" title="Converter.PyTree.setPartialFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setPartialFields</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.setPartialFields" title="Converter.PyTree.setPartialFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setPartialFields</span></code></a></p></td>
 <td><p>Set some field values for given indices.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addVars" title="Converter.PyTree.addVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addVars</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addVars" title="Converter.PyTree.addVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addVars</span></code></a></p></td>
 <td><p>Add variables to a pyTree.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.fillMissingVariables" title="Converter.PyTree.fillMissingVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillMissingVariables</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.fillMissingVariables" title="Converter.PyTree.fillMissingVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillMissingVariables</span></code></a></p></td>
 <td><p>Fill FlowSolution nodes with variables, such that all the zones have the same variables.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.cpVars" title="Converter.PyTree.cpVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.cpVars</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.cpVars" title="Converter.PyTree.cpVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.cpVars</span></code></a></p></td>
 <td><p>Copy field variables.</p></td>
 </tr>
 </tbody>
@@ -384,22 +387,19 @@ recognised. Naming convention is described in the following table.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#.Converter.conformizeNGon" title=".Converter.conformizeNGon"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.conformizeNGon</span></code></a></p></td>
 <td><p>Conformize topologically a NGON array.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#.Converter.convertSurfaceNGon" title=".Converter.convertSurfaceNGon"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.convertSurfaceNGon</span></code></a></p></td>
-<td><p>Convert a surface NGon from one type (A: NGON=bars, NFACE=polygon) to another (B: NGON=polygon, NFACE=NULL).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#.Converter.node2Center" title=".Converter.node2Center"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.node2Center</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#.Converter.node2Center" title=".Converter.node2Center"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.node2Center</span></code></a></p></td>
 <td><p>Convert array defined on nodes to array defined on centers.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#.Converter.center2Node" title=".Converter.center2Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.center2Node</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#.Converter.center2Node" title=".Converter.center2Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.center2Node</span></code></a></p></td>
 <td><p>Convert array defined on centers to array defined on nodes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addGhostCells" title="Converter.PyTree.addGhostCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addGhostCells</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addGhostCells" title="Converter.PyTree.addGhostCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addGhostCells</span></code></a></p></td>
 <td><p>Add ghost cells to pyTree.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmGhostCells" title="Converter.PyTree.rmGhostCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmGhostCells</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmGhostCells" title="Converter.PyTree.rmGhostCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmGhostCells</span></code></a></p></td>
 <td><p>Remove ghost cells to a pyTree.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.signNGonFaces" title="Converter.PyTree.signNGonFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.signNGonFaces</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.signNGonFaces" title="Converter.PyTree.signNGonFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.signNGonFaces</span></code></a></p></td>
 <td><p>Sign NFACE connectivity in NGON zones.</p></td>
 </tr>
 </tbody>
@@ -1005,6 +1005,39 @@ connectivity. If boundary=1, b will be a BC connectivity in a
 <span class="c1"># a volume TETRA connectivity.</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.PyTree.sliceNGonFaces">
+<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">sliceNGonFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Slice an NGON connectivity using a list of face indices. Return two numpy
+arrays: an array of face vertices and an array of face offsets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>CGNS Zone node</em>) &#8211; input data</p></li>
+<li><p><strong>indices</strong> (<em>list</em><em> of </em><em>integers</em>) &#8211; face indices</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/sliceNGonFacesPT.py">Slice NGON connectivity (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - sliceNGonFaces (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># - NGons -</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">faceIndices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">41</span><span class="p">]</span>
+<span class="n">faceVertices</span><span class="p">,</span> <span class="n">faceOffset</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">sliceNGonFaces</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="n">faceIndices</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2861,13 +2894,13 @@ If split=&#8217;withBarycenters&#8217;, barycenters of elements and faces are ad
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id=".Converter.convertArray2NGon">
-<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">convertArray2NGon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recoverBC</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">convertArray2NGon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recoverBC</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Create NGON array from an any type of mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
-<li><p><strong>recoverBC</strong> (<em>integer</em><em> (</em><em>0</em><em> or </em><em>1</em><em>)</em>) &#8211; BCs can be recovered (=1) or not(=0) on the NGON a (not valid for arrays).</p></li>
+<li><p><strong>recoverBC</strong> (<em>boolean</em>) &#8211; BCs can be recovered or not on the NGON a (not valid for arrays).</p></li>
 <li><p><strong>api</strong> (<em>integer</em><em> (</em><em>1</em><em>, </em><em>2</em><em> or </em><em>3</em><em>)</em>) &#8211; CGNSv3 compact (=1), CGNSv3 (=2) or CGNSv4 (=3).</p></li>
 </ul>
 </dd>
@@ -3173,47 +3206,6 @@ mesh with hanging nodes will be made conform.</p>
 <span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">conformizeNGon</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id=".Converter.convertSurfaceNGon">
-<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">convertSurfaceNGon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmEmptyNFaceElements</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Convert a surface NGon from (A: NGON=bars, NFACE=polygon)
-to (B: NGON=polygon, NFACE=NULL), or vice versa.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data (NGON)</p></li>
-<li><p><strong>rmEmptyNFaceElements</strong> &#8211; if True, remove all empty NFaceElements nodes from the zones.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Identical to input</p>
-</dd>
-</dl>
-<p><em>Example of use:</em></p>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/convertSurfaceNGonPT.py">NGON surface mesh conversion (pyTree)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertSurfaceNGon (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-
-<span class="c1"># type A : NGON=bars, NFACE=polygon</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">api</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-
-<span class="c1"># type B : NGON=polygon, NFACE=NULL</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertSurfaceNGon</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-
-<span class="c1"># Back to type A</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertSurfaceNGon</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4351,8 +4343,20 @@ For a list of available options, see <a class="reference internal" href="#writeo
 <td><p>binary CGNS ADF file</p></td>
 </tr>
 <tr class="row-odd"><td><p>bin_hdf</p></td>
-<td><p>.cgns .hdf</p></td>
+<td><p>.hdf</p></td>
 <td><p>binary CGNS HDF file</p></td>
+</tr>
+<tr class="row-even"><td><p>bin_cgns</p></td>
+<td><p>.cgns</p></td>
+<td><p>binary CGNS/HDF file</p></td>
+</tr>
+<tr class="row-odd"><td><p>bin_tau</p></td>
+<td><p>.grid</p></td>
+<td><p>binary TAU file</p></td>
+</tr>
+<tr class="row-even"><td><p>bin_fsdm</p></td>
+<td><p>.h5</p></td>
+<td><p>binary FSDM file</p></td>
 </tr>
 </tbody>
 </table>
@@ -4453,14 +4457,14 @@ of pointed node (in pointed file), &#8216;currentNodePath&#8217; is the path of 
 </thead>
 <tbody>
 <tr class="row-even"><td><p>isize</p></td>
-<td><p>Size of integer</p></td>
-<td><p>v3d, p3d</p></td>
+<td><p>Size of integers</p></td>
+<td><p>v3d, p3d, HDF</p></td>
 <td><p>4,8</p></td>
-<td><p>4</p></td>
+<td><p>8</p></td>
 </tr>
 <tr class="row-odd"><td><p>rsize</p></td>
-<td><p>Size of real</p></td>
-<td><p>v3d, p3d</p></td>
+<td><p>Size of reals</p></td>
+<td><p>v3d, p3d, HDF</p></td>
 <td><p>4,8</p></td>
 <td><p>8</p></td>
 </tr>
@@ -5626,7 +5630,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Converter 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter: CFD data conversion module</a></li> 
       </ul>
     </div>

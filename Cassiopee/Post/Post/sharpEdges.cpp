@@ -31,10 +31,9 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   E_Float dirVect[3];
   dirVect[0] = 0; dirVect[1] = 0; dirVect[2] = 1; 
   E_Float alpref;
-  if (!PYPARSETUPLE_(args, O_ R_,
-                    &array, &alpref))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &alpref))
   {
-      return NULL;
+    return NULL;
   }
   /*-----------------------------------------------*/
   /* Extraction des donnees du maillage surfacique */ 
@@ -42,8 +41,8 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   char* varString0; char* eltType0;
   FldArrayF* f; FldArrayI* cn;
   E_Int nil, njl, nkl;
-  E_Int res = K_ARRAY::getFromArray(array, varString0, f, nil, njl, nkl, 
-                                    cn, eltType0, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString0, f, nil, njl, nkl, 
+                                     cn, eltType0);
   
   if (res != 2)
   {

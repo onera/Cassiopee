@@ -29,18 +29,15 @@ using namespace K_FLD;
 PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
-  {
-      return NULL;
-  }
+  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
   
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, 
-                                    f, im, jm, km, cn, eltType); 
-  if (res != 2) 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, 
+                                     f, im, jm, km, cn, eltType); 
+  if (res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "collapse: array must be unstructured.");
@@ -59,7 +56,7 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
    
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "collapse: can't find coordinates in array.");
     return NULL;
@@ -120,7 +117,8 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
 
   K_CONNECT::cleanConnectivity(posx, posy, posz, eps, eltType2, *f, *cn2);
   PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn2, -1, eltType2);
-  delete f; delete cn; delete cn2;
+  RELEASESHAREDU(array, f, cn);
+  delete cn2;
   return tpl;
 }
 

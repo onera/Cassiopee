@@ -29,12 +29,13 @@ PyObject* K_POST::enforceIndicatorForFinestLevel(PyObject* self,
 {
   PyObject *indicator, *octree;
   if (!PyArg_ParseTuple(args, "OO", &indicator, &octree)) return NULL;
+
   // Verif octree HEXA/QUAD
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -64,8 +65,8 @@ PyObject* K_POST::enforceIndicatorForFinestLevel(PyObject* self,
   E_Int nii, nji, nki;
   FldArrayF* fi; FldArrayI* cni;
   char* varStringi; char* eltTypei;
-  E_Int resi = K_ARRAY::getFromArray(indicator, varStringi, fi, 
-                                     nii, nji, nki, cni, eltTypei, true);
+  E_Int resi = K_ARRAY::getFromArray3(indicator, varStringi, fi, 
+                                      nii, nji, nki, cni, eltTypei);
   if (resi != 1 && resi != 2) 
   {
     PyErr_SetString(PyExc_TypeError,

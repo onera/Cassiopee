@@ -32,33 +32,30 @@ namespace K_FLD
   class ArrayAccessor
   {
   public: /** Typedefs */
-    typedef           E_Int                 size_type;
-    typedef           ArrayType             array_type;
-    typedef  typename ArrayType::value_type value_type;
+    typedef          E_Int                 size_type;
+    typedef          ArrayType             array_type;
+    typedef typename ArrayType::value_type value_type;
 
     struct pt_t
     {
+      value_type e[3];
       pt_t() {};
       pt_t(value_type* p) {e[0]=p[0]; e[1]=p[1]; e[2]=p[2];}
       pt_t& operator=(pt_t const& r) {e[0]=r.e[0]; e[1]=r.e[1]; e[2]=r.e[2]; return *this;}
       pt_t(pt_t const & r){*this = r;}
-      value_type e[3];
       operator value_type*() { return e;}
-      //operator typename ArrayType::iterator() { return e;}
-      //value_type* operator+(E_Int i) {return e+i;}
     };
-
 
   public:
     /// Constuctors
 
 #ifndef NUGALIB
-    explicit ArrayAccessor(const array_type& arr, size_type posx, size_type posy, size_type posz = -1, E_Int shift = 0):_arr(&arr), _shift(shift)
+    explicit ArrayAccessor(const array_type& arr, size_type posx, size_type posy, size_type posz=-1, E_Int shift=0):_arr(&arr), _shift(shift)
     {
       _stride = (posz == -1) ? 2 : 3;
       _posX = new size_type[_stride];
-      _posX[0] = posx-NUMFIELD0;  _posX[1] = posy-NUMFIELD0;
-      if (_stride == 3)_posX[2] = posz-NUMFIELD0;
+      _posX[0] = posx-NUMFIELD0; _posX[1] = posy-NUMFIELD0;
+      if (_stride == 3) _posX[2] = posz-NUMFIELD0;
     }
 #endif
     
@@ -102,20 +99,20 @@ namespace K_FLD
     /// Returns the j-th entry's pointer to the i-th field.
     inline value_type* getValPtr(const E_Int& j, const E_Int& i) const
     {
-        if (_arr->_compact) // array1
-        {
-          return _arr->_data + _posX[i]*_arr->_sizeMax + j;
-        }
-        else // array2/3
-        {
-          return _arr->_rake[i] + j;
-        }
+      if (_arr->_compact) // array1
+      {
+        return _arr->_data + _posX[i]*_arr->_sizeMax + j;
+      }
+      else // array2/3
+      {
+        return _arr->_rake[i] + j;
+      }
     }
     
     /// Returns the j-th entry to the i-th field.
     inline value_type getVal(const E_Int& j, const E_Int& i) const
     {
-        return *getValPtr(j,i) + _shift;
+      return *getValPtr(j,i) + _shift;
     }
 
     /// Returns the j-th entry.
@@ -135,8 +132,10 @@ namespace K_FLD
       for (E_Int k = 0; k < _stride; ++k) p[k] = getVal(j,k);
     }
 
-    pt_t col(E_Int j) const { 
-      value_type e[3];
+    pt_t col(E_Int j) const 
+    { 
+      value_type e[3]; 
+      e[0] = 0; e[1] = 0; e[2] = 0;
       getEntry(j, e);
       return pt_t(e);
     }

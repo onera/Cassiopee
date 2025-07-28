@@ -68,7 +68,7 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOO_ TRRR_,
                     &coordArrays, &FArrays, &ratioArrays, &cx, &cy, &cz))
   {
-      return NULL;
+    return NULL;
   }
  
   // Check every array in listFields
@@ -140,12 +140,12 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
   FldArrayF resultat;
   E_Int res  = -1;
 
-  for (int i = 0; i < nCoordArrays; i++)
+  for (E_Int i = 0; i < nCoordArrays; i++)
   {
     coordObj = PyList_GetItem(coordArrays,i);
     FObj = PyList_GetItem(FArrays, i);
-    resc = K_ARRAY::getFromArray(coordObj, varStringc, fc, 
-                                 nic, njc, nkc, cnc, eltTypec); 
+    resc = K_ARRAY::getFromArray3(coordObj, varStringc, fc, 
+                                  nic, njc, nkc, cnc, eltTypec); 
     
     if (resc != 1 && resc != 2)
     {
@@ -160,16 +160,16 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
     if (posx == -1 || posy == -1 || posz == -1)
     {
       printf("Warning: integMomentNorm: coordinates not found in array %d. Array skipped...\n",i+1);
-      delete fc; if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       goto next;
     }
     posx++; posy++; posz++;
-    resf = K_ARRAY::getFromArray( FObj, varStringf, ff, nif, njf, nkf, 
+    resf = K_ARRAY::getFromArray3(FObj, varStringf, ff, nif, njf, nkf, 
                                   cnf, eltTypef); 
     if (resf != 1 && resf != 2)
     {
-      delete ff; delete fc;
-      if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
+      RELEASESHAREDS(FObj, ff);
       PyErr_SetString(PyExc_TypeError, 
                       "integMomentNorm: field is not a valid array.");
       return NULL;
@@ -188,8 +188,8 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
       if (ff->getNfld() != nFld)
       {
         printf("Warning: integMomentNorm: field must be a vector.\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       // check is variables are ordered in the same way
@@ -197,8 +197,8 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
       if (ids == -1) // varstrings are different
       {
         printf("Warning: integMoment: variables are in a different order than first array. Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
     }
@@ -213,8 +213,8 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
           (nic > 1 && njc > 1 && nkc > 1))
       {
         printf("Warning: integMomentNorm: arrays must be 2D. Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       
@@ -239,7 +239,8 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
         {
           printf("Warning: integMomentNorm: coord and field arrays do not represent the same zone.");
           printf(" Array skipped...\n");
-          delete ff; delete fc;
+          RELEASESHAREDS(FObj, ff);
+          RELEASESHAREDS(coordObj, ff);
           goto next;
         }
       }
@@ -252,11 +253,11 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
       else // coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(ratioObj, varStringr, ratio, 
-                                     nir, njr, nkr, cnr, eltTyper); 
+        resr = K_ARRAY::getFromArray3(ratioObj, varStringr, ratio, 
+                                      nir, njr, nkr, cnr, eltTyper); 
         if (resr != 1)
         {
-          if (resr == 2) {delete ratio; delete cnr;}
+          RELEASESHAREDB(resr, ratioObj, ratio, cnr);
           printf("Warning: integMomentNorm: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -270,12 +271,18 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
       
       if (res == 0)
       {
-        delete ff; delete fc; delete ratio;
+        RELEASESHAREDS(coordObj, fc);
+        RELEASESHAREDS(FObj, ff);
+        if (nRatioArrays == 0 || resr != 1) delete ratio;
+        else RELEASESHAREDS(ratioObj, ratio);        
         PyErr_SetString(PyExc_ValueError,
                         "integMomentNorm: integration computation fails.");
         return NULL;
       }    
-      delete ff; delete fc; delete ratio;
+      RELEASESHAREDS(coordObj, fc);
+      RELEASESHAREDS(FObj, ff);
+      if (nRatioArrays == 0 || resr != 1) delete ratio;
+      else RELEASESHAREDS(ratioObj, ratio);
     } //fin cas struct
     else if (resc == 2 && resf == 2) // cas non structure    
     {
@@ -285,8 +292,8 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
         center2node = 1;
       else
       {
-        delete fc; delete cnc;
-        delete ff; delete cnf;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
                         "integMomentNorm: only TRI unstructured arrays are possible.");
         return NULL;
@@ -303,11 +310,11 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
       else //coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray( ratioObj, varStringr, ratio, 
+        resr = K_ARRAY::getFromArray3(ratioObj, varStringr, ratio, 
                                       nir, njr, nkr, cnr, eltTyper); 
         if (resr != 2)
         {
-          if (resr == 1) delete ratio;
+          if (resr == 1) RELEASESHAREDS(ratioObj, ratio);
           printf("Warning: integMomentNorm: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -319,15 +326,18 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
                            *cnc, *fc, *ff, *ratio, resultat); 
       if (res == 0)
       {
-        delete ff; delete fc; delete cnf; delete cnc;
-        delete ratio; 
-        if (resr == 2) delete cnr;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
+        if (nRatioArrays == 0 || resr != 2) delete ratio;
+        else RELEASESHAREDB(resr, ratioObj, ratio, cnr); 
         PyErr_SetString(PyExc_ValueError,
                         "integMomentNorm: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete cnf; delete cnc; delete ratio; 
-      if (resr == 2) delete cnr;
+      RELEASESHAREDU(coordObj, fc, cnc);
+      RELEASESHAREDU(FObj, ff, cnf);
+      if (nRatioArrays == 0 || resr != 2) delete ratio;
+      else RELEASESHAREDB(resr, ratioObj, ratio, cnr); 
     }
     else
     {
@@ -337,6 +347,7 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
     }
     next:;
   }
+  
   if (res == -1)
   {
     PyErr_SetString(PyExc_TypeError,

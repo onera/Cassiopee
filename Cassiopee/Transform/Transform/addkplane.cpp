@@ -26,17 +26,14 @@ using namespace K_FLD;
 PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
 {
   PyObject* array; 
-  if (!PyArg_ParseTuple(args, "O", &array))
-  {
-      return NULL;
-  }
+  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
   
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+                                     cn, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -390,17 +387,14 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
   PyObject *arrayC, *arrayK;
   E_Int N;
   if (!PYPARSETUPLE_(args, OO_ I_,
-                    &arrayC, &arrayK, &N))
-  {
-      return NULL;
-  }
+                    &arrayC, &arrayK, &N)) return NULL;
 
   // Check array of centers
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringc, fc, imc, jmc, kmc, 
-                                     cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringc, fc, imc, jmc, kmc, 
+                                      cnc, eltTypec);
 
   if (resc != 1 && resc != 2)
   {
@@ -412,8 +406,8 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(arrayK, varString, f, im, jm, km, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayK, varString, f, im, jm, km, 
+                                     cn, eltType);
   
   if (res != 1 && res != 2)
   {

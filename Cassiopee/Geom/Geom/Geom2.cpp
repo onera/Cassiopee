@@ -39,7 +39,7 @@ PyObject* K_GEOM::getLength(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   
   E_Int posx, posy, posz;
   E_Float length;
@@ -151,7 +151,7 @@ PyObject* K_GEOM::getDistantIndex(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   E_Int imjm, kind, jind;
   E_Float t, dx, dy, dz;
@@ -266,7 +266,7 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   
   E_Int posx, posy, posz;
   E_Float length;

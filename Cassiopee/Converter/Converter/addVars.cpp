@@ -40,8 +40,8 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl, 
-                              cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                               cn, eltType);
   if (res != 1 && res != 2) return NULL; // errors are alread set
   PyObject* tpl; 
   // Check additional
@@ -137,8 +137,7 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
     E_Int ni2, nj2, nk2;
     FldArrayF* f2; FldArrayI* cn2;
     char* varString2; char* eltType2;
-    res2 = K_ARRAY::getFromArray(
-      additional, varString2, f2, ni2, nj2, nk2, cn2, eltType2, true);
+    res2 = K_ARRAY::getFromArray3(additional, varString2, f2, ni2, nj2, nk2, cn2, eltType2);
 
     if (res2 != 1 && res2 != 2) return NULL; // errors are alread set
 
@@ -384,8 +383,8 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   for (int l = 0; l < n; l++) 
   { 
     array = PyList_GetItem(arrays, l);
-    res = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl, 
-                                cn, eltType, true);
+    res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                                 cn, eltType);
 
     if (res != 1 && res != 2)
     {

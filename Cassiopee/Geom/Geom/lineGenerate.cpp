@@ -42,8 +42,8 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
   char* varString2; char* eltType2;
   
   // Driving curve
-  E_Int res2 = K_ARRAY::getFromArray(arrayLine, varString2, 
-                                     f2, im2, jm2, km2, cn2, eltType2);
+  E_Int res2 = K_ARRAY::getFromArray3(arrayLine, varString2, 
+                                      f2, im2, jm2, km2, cn2, eltType2);
 
   if (res2 == 2)
   {
@@ -59,8 +59,8 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int res1 = K_ARRAY::getFromArray(array, varString1, f1, im1, jm1, km1, 
-                                     cn1, eltType1);
+  E_Int res1 = K_ARRAY::getFromArray3(array, varString1, f1, im1, jm1, km1, 
+                                      cn1, eltType1);
 
   E_Int nfld = f1->getNfld();
 
@@ -75,8 +75,10 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     if (posx1 == -1 || posy1 == -1 || posz1 == -1 ||
         posx2 == -1 || posy2 == -1 || posz2 == -1)
     {
-      PyErr_SetString(PyExc_TypeError,"lineGenerate: coordinates not found.");
-      delete f1; delete f2; return NULL;
+      PyErr_SetString(PyExc_TypeError, "lineGenerate: coordinates not found.");
+      RELEASESHAREDS(array, f1);
+      RELEASESHAREDS(arrayLine, f2);
+      return NULL;
     }
     posx1++; posy1++; posz1++;
     posx2++; posy2++; posz2++;
@@ -208,7 +210,8 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
             zt[ind] = zt1[indm] + zt2[k] - zt2[0];
           }
     }
-    delete f1; delete f2;
+    RELEASESHAREDS(array, f1);
+    RELEASESHAREDS(arrayLine, f2);
     PyObject* tpl = K_ARRAY::buildArray(*coord, varString1, 
                                         im3, jm3, km3);
     delete coord;
@@ -222,7 +225,8 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     else if (strcmp(eltType1, "TRI") == 0) strcpy(eltType, "PENTA");
     else
     {
-      delete f2; delete f1; delete cn1;
+      RELEASESHAREDU(array, f1, cn1);
+      RELEASESHAREDS(arrayLine, f2);
       PyErr_SetString(PyExc_TypeError,
                       "lineGenerate: array must be structured, BAR, TRI or QUAD.");
       return NULL;
@@ -237,8 +241,10 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     if ( posx1 == -1 || posy1 == -1 || posz1 == -1 ||
          posx2 == -1 || posy2 == -1 || posz2 == -1)
     {
-      PyErr_SetString(PyExc_TypeError,"lineGenerate: coordinates not found.");
-      delete f2; delete f1; delete cn1; return NULL;
+      PyErr_SetString(PyExc_TypeError, "lineGenerate: coordinates not found.");
+      RELEASESHAREDU(array, f1, cn1);
+      RELEASESHAREDS(arrayLine, f2);
+      return NULL;
     }
     posx1++; posy1++; posz1++;
     posx2++; posy2++; posz2++;
@@ -331,7 +337,9 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
       }
     }
 
-    delete f2; delete f1; delete cn1;
+    RELEASESHAREDU(array, f1, cn1);
+    RELEASESHAREDS(arrayLine, f2);
+
     PyObject* tpl = K_ARRAY::buildArray(*coord, varString1, 
                                         *connect, -1, eltType);
     delete coord; delete connect;

@@ -32,21 +32,20 @@ using namespace std;
 PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int N; E_Int N2;
-  if (!PYPARSETUPLE_(args, O_ II_,
-                    &array, &N, &N2))
+  if (!PYPARSETUPLE_(args, O_ II_, &array, &N, &N2))
   {
-      return NULL;
+    return NULL;
   }
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   if (res == 1)
   {
-    delete f;
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "splitBAR: can not be used on a structured array.");
     return NULL;
@@ -60,7 +59,7 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
   
   if (strcmp(eltType, "BAR") != 0)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitBAR: must be used on a BAR-array.");
     return NULL;
@@ -72,7 +71,7 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
  
   if (N1 < 0 || N1 > npts-1)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_ValueError,
                     "splitBAR: N is incorrect.");
     return NULL;
@@ -109,6 +108,6 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
     if (cnnp[i] == N2+1) { cnnp[i] = npts+2; }
   }
 
-  delete f; delete cn;
+  RELEASESHAREDU(array, f, cn);  
   return tpl;
 }

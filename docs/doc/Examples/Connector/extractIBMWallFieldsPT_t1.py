@@ -46,8 +46,7 @@ X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=0)
 #test avec arbre tc compact
 vars=['Density','VelocityX','VelocityY','VelocityZ','Temperature']
 
-zones = Internal.getNodesFromType2(t, 'Zone_t')
-X.miseAPlatDonorTree__(zones, tc, graph=None)
+X.miseAPlatDonorTree__(t, tc, graph=None)
 # attention compact=0 car t n est pas compacte
 X._setInterpTransfers(t,tc, bcType=0,varType=2,variablesIBC=vars,compact=0,compactD=1)
 z = IBM.extractIBMWallFields(tc, tb=tb)
@@ -57,8 +56,7 @@ Internal._rmNodesFromName(t,"Parameter_int")
 Internal._rmNodesFromName(t,"Parameter_real")
 tc = C.node2Center(t)
 X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=3)
-zones = Internal.getNodesFromType2(t, 'Zone_t')
-X.miseAPlatDonorTree__(zones, tc, graph=None)
+X.miseAPlatDonorTree__(t, tc, graph=None)
 X._setInterpTransfers(t, tc, bcType=3, varType=2,variablesIBC=vars,compact=0,compactD=1)
 tb_out = IBM.extractIBMWallFields(tc, tb=tb)
 test.testT(tb_out,2)

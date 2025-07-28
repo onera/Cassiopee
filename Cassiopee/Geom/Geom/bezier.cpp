@@ -36,7 +36,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* et;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, et);  
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, et);  
 
   if (res != 1 && res != 2)
   {

@@ -31,17 +31,16 @@ using namespace std;
 PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int nparts;
-  if (!PYPARSETUPLE_(args, O_ I_,
-                    &array, &nparts))
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &nparts))
   {
-      return NULL;
+    return NULL;
   }
   // Check array
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, ni, nj, nk, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, ni, nj, nk, cn, eltType);
 
   if (res != 2)
   {

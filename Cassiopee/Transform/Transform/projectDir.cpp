@@ -35,7 +35,7 @@ PyObject* K_TRANSFORM::projectDir(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ TRRR_ I_,
                     &arrays, &array2, &nx, &ny, &nz, &oriented))
   {
-      return NULL;
+    return NULL;
   }
   // Extract infos from arrays
   vector<E_Int> resl;
@@ -85,8 +85,8 @@ PyObject* K_TRANSFORM::projectDir(PyObject* self, PyObject* args)
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 =  K_ARRAY::getFromArray(array2, varString2, 
-                                      f2, im2, jm2, km2, cn2, eltType2, true); 
+  E_Int res2 =  K_ARRAY::getFromArray3(array2, varString2, 
+                                       f2, im2, jm2, km2, cn2, eltType2); 
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)

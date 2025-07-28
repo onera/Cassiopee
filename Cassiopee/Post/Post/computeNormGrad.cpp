@@ -37,8 +37,7 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;// number of points of array
   E_Int posx = -1; E_Int posy = -1; E_Int posz = -1;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
   if (res != 1 && res != 2)
   {

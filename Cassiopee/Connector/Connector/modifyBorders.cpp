@@ -33,15 +33,15 @@ PyObject* K_CONNECTOR::modifyBorders(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ IIII_,
                     &a1, &iminL0, &imaxL0, &jminL0, &jmaxL0))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array of subzone of 1st layers of centers in extended centers mesh
   E_Int im1, jm1, km1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray(a1, varString1, f1, im1, jm1, km1, 
-                                     cn1, eltType1, true); 
+  E_Int res1 = K_ARRAY::getFromArray3(a1, varString1, f1, im1, jm1, km1, 
+                                      cn1, eltType1); 
   if (res1 != 1) 
   {
     PyErr_SetString(PyExc_TypeError, 

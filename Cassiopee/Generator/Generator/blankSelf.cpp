@@ -148,7 +148,7 @@ PyObject* K_GENERATOR::blankSelf(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 2 || strcmp(eltType, "HEXA") != 0) 
   {
@@ -175,7 +175,7 @@ PyObject* K_GENERATOR::blankSelf(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray2(cellNObject, varString1, f1, ni1, nj1, nk1, 
+  E_Int res1 = K_ARRAY::getFromArray3(cellNObject, varString1, f1, ni1, nj1, nk1, 
                                       cn1, eltType1);
   
   E_Int posCellN = K_ARRAY::isCellNatureField1Present(varString1);
@@ -284,7 +284,7 @@ PyObject* K_GENERATOR::blankFirst(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 2 || strcmp(eltType, "HEXA") != 0) 
   {
@@ -311,7 +311,7 @@ PyObject* K_GENERATOR::blankFirst(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray2(cellNObject, varString1, f1, ni1, nj1, nk1, 
+  E_Int res1 = K_ARRAY::getFromArray3(cellNObject, varString1, f1, ni1, nj1, nk1, 
                                       cn1, eltType1);
   
   E_Int posCellN = K_ARRAY::isCellNatureField1Present(varString1);
@@ -378,7 +378,7 @@ PyObject* K_GENERATOR::blankExt(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 2 || strcmp(eltType, "HEXA") != 0) 
   {
@@ -405,7 +405,7 @@ PyObject* K_GENERATOR::blankExt(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray2(cellNObject, varString1, f1, ni1, nj1, nk1, 
+  E_Int res1 = K_ARRAY::getFromArray3(cellNObject, varString1, f1, ni1, nj1, nk1, 
                                       cn1, eltType1);
   
   E_Int posCellN = K_ARRAY::isCellNatureField1Present(varString1);
@@ -493,7 +493,7 @@ PyObject* K_GENERATOR::blankPrev(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 2 || strcmp(eltType, "HEXA") != 0) 
   {
@@ -520,7 +520,7 @@ PyObject* K_GENERATOR::blankPrev(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray2(cellNObject, varString1, f1, ni1, nj1, nk1, 
+  E_Int res1 = K_ARRAY::getFromArray3(cellNObject, varString1, f1, ni1, nj1, nk1, 
                                       cn1, eltType1);
   
   E_Int posCellN = K_ARRAY::isCellNatureField1Present(varString1);
@@ -538,7 +538,7 @@ PyObject* K_GENERATOR::blankPrev(PyObject* self, PyObject* args)
   E_Int nip, njp, nkp;
   FldArrayF* fp; FldArrayI* cnp;
   char* varStringp; char* eltTypep;
-  E_Int resp = K_ARRAY::getFromArray2(arrayPrev, varStringp, fp, nip, njp, nkp, 
+  E_Int resp = K_ARRAY::getFromArray3(arrayPrev, varStringp, fp, nip, njp, nkp, 
                                       cnp, eltTypep);
   if (resp != 2 || strcmp(eltTypep, "HEXA") != 0) 
   {
@@ -572,7 +572,7 @@ PyObject* K_GENERATOR::blankPrev(PyObject* self, PyObject* args)
   E_Int nip1, njp1, nkp1;
   FldArrayF* fp1; FldArrayI* cnp1;
   char* varStringp1; char* eltTypep1;
-  E_Int resp1 = K_ARRAY::getFromArray2(cellNObjectPrev, varStringp1, fp1, nip1, njp1, nkp1, 
+  E_Int resp1 = K_ARRAY::getFromArray3(cellNObjectPrev, varStringp1, fp1, nip1, njp1, nkp1, 
                                        cnp1, eltTypep1);
   
   posCellN = K_ARRAY::isCellNatureField1Present(varStringp1);
