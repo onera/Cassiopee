@@ -1085,8 +1085,8 @@ void K_INTERP::getBestDonor(
       E_Int nk = *(E_Int*)a4[no];
       // Calcul du volume de la cellule donneuse
       if ((ni==1)||(nj==1)||(nk==1))   // 2D
-        K_METRIC::compVolOfStructCell3D(
-          ni, nj, nk, temp, -1,
+        K_METRIC::compSurfOfStructCell(
+          ni, nj, nk, temp,
           xtDnr, ytDnr, ztDnr, vol);
       else if ((ni>1)&&(nj>1)&&(nk>1)) //3D
         K_METRIC::compVolOfStructCell3D(
