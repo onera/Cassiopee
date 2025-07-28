@@ -41,8 +41,8 @@ PyObject* K_POST::selectExteriorFaces(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   
   PyObject* tpl = NULL;
   if (res == 1)

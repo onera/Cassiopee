@@ -45,7 +45,7 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
   if (res < 0)
   {
     PyErr_SetString(PyExc_TypeError,

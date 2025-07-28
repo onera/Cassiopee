@@ -31,10 +31,9 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float vx, vy, vz;
 
-  if (!PYPARSETUPLE_(args, O_ TRRR_,
-                    &array, &vx, &vy, &vz))
+  if (!PYPARSETUPLE_(args, O_ TRRR_, &array, &vx, &vy, &vz))
   {
-      return NULL;
+    return NULL;
   }
 
   /*-----------------------------------------------*/
@@ -43,8 +42,8 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* eltType; char* varString;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                                     cn, eltType);
   // check array contains TRI
   if (res != 2)
   {
