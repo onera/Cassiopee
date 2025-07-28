@@ -590,7 +590,7 @@ namespace K_CONNECTOR
   /* Determines the depth layers of interpolated points (nodes or centers) */
   void searchMaskInterpolatedNodesUnstr(E_Int depth, K_FLD::FldArrayI& cnEV,
                                         K_FLD::FldArrayI& blankedCells,
-                                        K_FLD::FldArrayI& cellN, E_Int typeUnstr=0);
+                                        K_FLD::FldArrayI& cellN);
   void searchMaskInterpolatedCellsNGON(E_Int depth, K_FLD::FldArrayI& cNG,
                                        K_FLD::FldArrayI& blankedCells,
                                        K_FLD::FldArrayI& cellN);

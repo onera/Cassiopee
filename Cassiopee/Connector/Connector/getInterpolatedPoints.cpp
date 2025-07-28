@@ -32,13 +32,14 @@ using namespace std;
 void K_CONNECTOR::searchMaskInterpolatedNodesUnstr(
   E_Int depth,  FldArrayI& connect,
   FldArrayI& blankedCells,
-  FldArrayI& cellN, E_Int typeUnstr)
+  FldArrayI& cellN)
 {
   E_Int nvert = blankedCells.getSize();
   std::vector< std::vector<E_Int> > cVN(nvert);
-  if (typeUnstr==0)
+  E_Int isNGon = connect.isNGon();
+  if (isNGon==0)
     K_CONNECT::connectEV2VNbrs(connect, cVN);
-  else if (typeUnstr==1)
+  else 
     K_CONNECT::connectNG2VNbrs(connect, cVN);
 
   E_Int nvoisins;
@@ -1153,10 +1154,10 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
       else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
     }
-    E_Int typeUnstr = 0;
-    if ( K_STRING::cmp(eltType,"NGON")==0) typeUnstr=1;
+    // WARNING: NGON is array1 type here !!! 
+    if ( K_STRING::cmp(eltType,"NGON")==0) cn->setNGon(1);
  
-    searchMaskInterpolatedNodesUnstr(depth, *cn, blankedCells, cellNatFld, typeUnstr);
+    searchMaskInterpolatedNodesUnstr(depth, *cn, blankedCells, cellNatFld);
     for (E_Int ind = 0; ind < npts; ind++)
     {
       if (cellNatFld[ind] == 0) cellNp[ind] = 2.;
