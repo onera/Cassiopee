@@ -956,7 +956,7 @@ def _meshDeviation(hook, t):
     zones = Internal.getZones(FACES)
     for z in zones:
         # no de la face
-        try: 
+        try:
             no = getNo(z)
             faceList = [no]
         except: faceList = None
