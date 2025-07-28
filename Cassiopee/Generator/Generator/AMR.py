@@ -1,10 +1,10 @@
 # IMPROVEMENTS
-# cartRX in offsets ? 
+# cartRX in offsets ?
 # snear to adjust as in FAST/IBM
 import Converter.PyTree as C
 import Converter.Filter2 as Filter2
 import Converter.Mpi as Cmpi
-import Transform.PyTree as T 
+import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
 import Dist2Walls.PyTree as DTW
@@ -36,13 +36,13 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3):
     xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
     xmax = BB[3]+delta; ymax = BB[4]+delta; zmax = BB[5]+delta
     # CARTRX
-    bb_tb = G.bbox(tb)  
-    xmin_core = bb_tb[0]-2*offsetValMin;  
-    ymin_core = bb_tb[1]-2*offsetValMin;  
-    zmin_core = bb_tb[2]-2*offsetValMin;  
-    xmax_core = bb_tb[3]+2*offsetValMin;  
-    ymax_core = bb_tb[4]+2*offsetValMin;  
-    zmax_core = bb_tb[5]+2*offsetValMin;  
+    bb_tb = G.bbox(tb)
+    xmin_core = bb_tb[0]-2*offsetValMin;
+    ymin_core = bb_tb[1]-2*offsetValMin;
+    zmin_core = bb_tb[2]-2*offsetValMin;
+    xmax_core = bb_tb[3]+2*offsetValMin;
+    ymax_core = bb_tb[4]+2*offsetValMin;
+    zmax_core = bb_tb[5]+2*offsetValMin;
 
     hi = (xmax-xmin)/(ni-1); hj = (ymax-ymin)/(nj-1)
     if dim == 2:
@@ -50,10 +50,10 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3):
         zmin_core = 0.; zmax_core = 0.
         hk = 0.
     else:
-        hk = (zmax-zmin)/(nk-1)    
+        hk = (zmax-zmin)/(nk-1)
 
     XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
-    XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)    
+    XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
     b = G.cartRx3(XC0, XC1, (hi,hj,hk), XF0, XF1, (1.2,1.2,1.2), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
     #
     DTW._distance2Walls(b, tb, type='mininterf', loc='nodes', signed=0)
@@ -87,7 +87,7 @@ def generateSkeletonMesh__(tb, dim=3, levelSkel=6):
     for c, z in enumerate(bodies):
         n = Internal.getNodeFromName2(z, 'dfar')
         n2 = Internal.getNodeFromName2(z, 'snear')
-        if n is not None: 
+        if n is not None:
             dfarloc = Internal.getValue(n)
             snearloc = Internal.getValue(n2)
             if dfarloc > -1:#body snear is only considered if dfar_loc > -1
@@ -106,11 +106,11 @@ def generateSkeletonMesh__(tb, dim=3, levelSkel=6):
         if C.getMaxValue(o,"centers:indicator")==1.:
             o = G.adaptOctree(o, 'centers:indicator', balancing=1)
             G._getVolumeMap(o)
-        else: 
+        else:
             refined=False
             break
     C._rmVars(o, ['centers:indicator','centers:vol'])
-   
+
     if dim==2: T._addkplane(o)
     o = C.convertArray2NGon(o)
     o = G.close(o)
@@ -124,22 +124,22 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
 
     if dim==2:
         offset1 = T.addkplane(offset1)
-        offset2 = T.addkplane(offset2)       
+        offset2 = T.addkplane(offset2)
     bodies1 = [Internal.getZones(offset1)] # tag for refinement outside of offset1
-    bodies2 = [Internal.getZones(offset2)] # tag for refinement inside of offset2 
-    
+    bodies2 = [Internal.getZones(offset2)] # tag for refinement inside of offset2
+
     BM = numpy.ones((1,1),dtype=Internal.E_NpyInt)
     XRAYDIM1 = 400; XRAYDIM2 = 400
 
     C._initVars(to, "cellNOut",1.)
-    C._initVars(to, "cellNIn",1.)   
+    C._initVars(to, "cellNIn",1.)
 
-    to = X.blankCells(to, bodies1, BM, blankingType='node_in', 
-                      XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim, 
+    to = X.blankCells(to, bodies1, BM, blankingType='node_in',
+                      XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
                       cellNName='cellNOut')
     to = X.setHoleInterpolatedPoints(to, depth=-1, cellNName='cellNOut', loc='nodes')
-    to = X.blankCells(to, bodies2, BM, blankingType='node_in', 
-                      XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim, 
+    to = X.blankCells(to, bodies2, BM, blankingType='node_in',
+                      XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
                       cellNName='cellNIn')
 
     C._initVars(to,'{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
@@ -219,11 +219,11 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
     flat_list_bigfaces = numpy.array([x for xs in list_bigface for x in xs])
 
     zsnc_big_internal = Internal.newZone(name="Zone",zsize=[[nb_vertices_a,len_new_faces,0]],ztype="Unstructured")
-    gcBI = Internal.newGridCoordinates(parent = zsnc_big_internal)
-    Internal.newDataArray('CoordinateX', value = coordsx_a, parent = gcBI)
-    Internal.newDataArray('CoordinateY', value = coordsy_a, parent = gcBI)
-    Internal.newDataArray('CoordinateZ', value = coordsz_a, parent = gcBI)
-    Internal.newElements(name = "GridElements", etype = 7, econnectivity = flat_list_bigfaces, erange = [1, len_new_faces], eboundary = 0, parent = zsnc_big_internal)
+    gcBI = Internal.newGridCoordinates(parent=zsnc_big_internal)
+    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gcBI)
+    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gcBI)
+    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gcBI)
+    Internal.newElements(name="GridElements", etype=7, econnectivity=flat_list_bigfaces, erange=[1, len_new_faces], eboundary=0, parent=zsnc_big_internal)
     return zsnc_big_internal
 
 def createQuadSurfaceFromNgonPointListSmallFace__(a,PL):
@@ -264,11 +264,11 @@ def createQuadSurfaceFromNgonPointListSmallFace__(a,PL):
                 idx_new += 1
 
     zone = Internal.newZone(name="Zone",zsize=[[nb_vertices_a,len_new_faces,0]],ztype="Unstructured")
-    gc = Internal.newGridCoordinates(parent = zone)
-    Internal.newDataArray('CoordinateX', value = coordsx_a, parent = gc)
-    Internal.newDataArray('CoordinateY', value = coordsy_a, parent = gc)
-    Internal.newDataArray('CoordinateZ', value = coordsz_a, parent = gc)
-    elt = Internal.newElements(name = "GridElements", etype = 7, econnectivity = new_EC_ngon_faces, erange = [1, len_new_faces], eboundary = 0, parent = zone)
+    gc = Internal.newGridCoordinates(parent=zone)
+    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gc)
+    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gc)
+    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gc)
+    elt = Internal.newElements(name="GridElements", etype=7, econnectivity=new_EC_ngon_faces, erange=[1, len_new_faces], eboundary=0, parent=zone)
     return zone
 
 def findFifthNode__(idx,offset_faces,length_faces,EC_faces,coordsx_a,coordsy_a,coordsz_a):
@@ -287,7 +287,7 @@ def findFifthNode__(idx,offset_faces,length_faces,EC_faces,coordsx_a,coordsy_a,c
     max_dist = numpy.max(dists_from_center)
     point5_to_remove = numpy.where(numpy.abs(dists_from_center)<0.8*max_dist)[0]
     return point5_to_remove
- 
+
 def createPseudoBCQuadNQuadIntra__(a, owners, levels, halo_levels, neighbours, cranges, dimPb=3):
     point_list_small = []
     point_list_big = []
@@ -346,8 +346,8 @@ def createPseudoBCQuadNQuadInter__(a, owners, levels, halo_levels, neighbours, c
         zsnc_big_MPI = createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners, dimPb)
     else:
         zsnc_big_MPI = createEmptyQuadZone__()
-  
-    zone_nonconformal_between_procs = T.join(zsnc_big_MPI, zsnc_small_MPI)    
+
+    zone_nonconformal_between_procs = T.join(zsnc_big_MPI, zsnc_small_MPI)
     return zone_nonconformal_between_procs
 
 def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
@@ -387,7 +387,7 @@ def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
     else:
         point2 = conn_face1[(pos_point4-2)%4]
         point1 = conn_face1[(pos_point4+1)%4]
-        
+
     if point1>point3:
         tmp = point1
         point1 = point3
@@ -439,11 +439,11 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
 
 def createEmptyQuadZone__():
     zone = Internal.newZone(name="empty",zsize=[[0,0]],ztype="Unstructured")
-    gc = Internal.newGridCoordinates(parent = zone)
-    Internal.newDataArray('CoordinateX', value = numpy.empty(0), parent = gc)
-    Internal.newDataArray('CoordinateY', value = numpy.empty(0), parent = gc)
-    Internal.newDataArray('CoordinateZ', value = numpy.empty(0), parent = gc)
-    elt = Internal.newElements(name = "GridElements", etype = 7, econnectivity = numpy.empty(0), erange = [1, 0], eboundary = 0, parent = zone)
+    gc = Internal.newGridCoordinates(parent=zone)
+    Internal.newDataArray('CoordinateX', value=numpy.empty(0), parent=gc)
+    Internal.newDataArray('CoordinateY', value=numpy.empty(0), parent=gc)
+    Internal.newDataArray('CoordinateZ', value=numpy.empty(0), parent=gc)
+    elt = Internal.newElements(name="GridElements", etype=7, econnectivity=numpy.empty(0), erange=[1, 0], eboundary=0, parent=zone)
     return zone
 
 def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
@@ -496,7 +496,7 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
     )
     C._addBC2Zone(zones[0], bcname, bctype, elementRange=[maxElt + 1, maxElt + len_new_faces])
     return None
- 
+
 def _createBCNearMatch__(a_hexa, bcnearmatch):
     z = Internal.getZones(a_hexa)
     if Internal.getValue(bcnearmatch)[0][1]>0:
@@ -504,9 +504,9 @@ def _createBCNearMatch__(a_hexa, bcnearmatch):
         hook = C.createHook(f,"elementCenters")
         ids = C.identifyElements(hook, bcnearmatch, tol=__TOL__)
 
-        ids = ids[ids[:] > -1] 
+        ids = ids[ids[:] > -1]
         ids = ids.tolist()
-        ids = [ids[i]-1 for i in range(len(ids))] 
+        ids = [ids[i]-1 for i in range(len(ids))]
         if len(ids)>0:
             zf = T.subzone(f,ids, type='elements')
             _addBC2Zone__(z[0], "QuadNQuad", "FamilySpecified:QuadNQuad", zf)
@@ -535,13 +535,13 @@ def adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=None, dim=3):
     offset_zones = Internal.getZones(toffset)
     noffsets = len(offset_zones)
     offset_inside = Internal.getZones(tb)
-    for i in range(noffsets-1, -1,-1):        
-        #XC.AdaptMesh_LoadBalance(hookAM)       
+    for i in range(noffsets-1, -1,-1):
+        #XC.AdaptMesh_LoadBalance(hookAM)
         offsetloc = offset_zones[i]
-        hx = hmin * 2**i 
+        hx = hmin * 2**i
 
         adapting=True
-        while adapting:        
+        while adapting:
             o = tagInsideOffset__(o, offset1=offset_inside, offset2=offsetloc, dim=dim, h_target=hx)
             indicMax = C.getMaxValue(o,"centers:indicator")
             indicMax = Cmpi.allgather(indicMax)
@@ -554,7 +554,7 @@ def adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=None, dim=3):
                 f = Internal.getNodeFromName(o, 'indicator')[1]
                 REF = f.astype(dtype=Internal.E_NpyInt)
                 XC.AdaptMesh_AssignRefData(hookAM, REF)
-                #XC.AdaptMesh_LoadBalance(hookAM)       
+                #XC.AdaptMesh_LoadBalance(hookAM)
                 XC.AdaptMesh_Adapt(hookAM)
                 o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                 o = Internal.getZones(o)[0]
@@ -564,21 +564,21 @@ def adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=None, dim=3):
     levels = XC.AdaptMesh_ExtractCellLevels(hookAM)
     halo_levels = XC.AdaptMesh_ExtractHaloCellLevels(hookAM)
     neighbours = XC.AdaptMesh_ExtractNeighbours(hookAM)
-    cranges = XC.AdaptMesh_ExtractCellRanges(hookAM)    
-    
+    cranges = XC.AdaptMesh_ExtractCellRanges(hookAM)
+
     cart_hexa = XC.AdaptMesh_ExtractMesh(hookAM, conformize=0)
     XC.AdaptMesh_Exit(hookAM)
-    cart_hexa = Internal.getZones(cart_hexa)[0] 
-        
+    cart_hexa = Internal.getZones(cart_hexa)[0]
+
     zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
     zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
-    zone_nonconformal = T.join(zone_nonconformal_inter, zone_nonconformal_intra) 
+    zone_nonconformal = T.join(zone_nonconformal_inter, zone_nonconformal_intra)
 
     _createBCNearMatch__(cart_hexa,zone_nonconformal)
     _createBCStandard__(cart_hexa, o)
     del o
 
-    Cmpi._setProc(cart_hexa, Cmpi.rank)  
+    Cmpi._setProc(cart_hexa, Cmpi.rank)
     return cart_hexa
 
 def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
@@ -620,9 +620,9 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
                                    value=bndType2)
 
     Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t',
-                                value='FaceCenter')
+                               value='FaceCenter')
     Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t',
-                                value=numpy.array([[maxElt+1,maxElt+neb]]))
+                               value=numpy.array([[maxElt+1,maxElt+neb]]))
     return None
 
 #==================================================================
@@ -630,8 +630,8 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
 #==================================================================
 def addPhysicalBCs__(z_ngon, tb, dim=3):
     bbo = G.bbox(z_ngon)
-    
-    # determine where the symmetry plane is 
+
+    # determine where the symmetry plane is
     baseSYM = Internal.getNodeFromName1(tb,"SYM")
     dir_sym = 0
     if baseSYM is not None:
@@ -645,7 +645,7 @@ def addPhysicalBCs__(z_ngon, tb, dim=3):
             else: dir_sym=1
         elif abs(ymax-ymin) < __TOL__:
             if abs(ymin)< __TOL__: dir_sym=-2
-            else: dir_sym=2            
+            else: dir_sym=2
         elif abs(zmax-zmin)<__TOL__:
             if abs(zmin)< __TOL__: dir_sym=-3
             else: dir_sym=3
@@ -668,7 +668,7 @@ def addPhysicalBCs__(z_ngon, tb, dim=3):
         elif dy < __TOL__ and abs(ymaxe-ymax)<__TOL__: zbc_ymax.append(e)
         elif dz < __TOL__ and abs(zmine-zmin)<__TOL__: zbc_zmin.append(e)
         elif dz < __TOL__ and abs(zmaxe-zmax)<__TOL__: zbc_zmax.append(e)
-    
+
     zbc_xmin = T.join(zbc_xmin); zbc_xmin[0]='xmin'
     zbc_xmax = T.join(zbc_xmax); zbc_xmax[0]='xmax'
     zbc_ymin = T.join(zbc_ymin); zbc_ymin[0]='ymin'
@@ -678,59 +678,59 @@ def addPhysicalBCs__(z_ngon, tb, dim=3):
     if dir_sym==-1:
         zbc_xmin[0] = C.getZoneName("BCSymmetryPlane")
         C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_xmin)
-    else:        
+    else:
         zbc_xmin[0] = C.getZoneName("BCFarfield")
         C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_xmin)
 
     if dir_sym== 1:
         zbc_xmax[0] = C.getZoneName("BCSymmetryPlane")
         C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_xmax)
-    else:        
+    else:
         zbc_xmax[0] = C.getZoneName("BCFarfield")
         C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_xmax)
-                       
+
     if dir_sym==-2:
         zbc_ymin[0] = C.getZoneName("BCSymmetryPlane")
         C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_ymin)
-    else:        
+    else:
         zbc_ymin[0] = C.getZoneName("BCFarfield")
         C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_ymin)
 
     if dir_sym==2:
         zbc_ymax[0] = C.getZoneName("BCSymmetryPlane")
         C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_ymax)
-    else:        
+    else:
         zbc_ymax[0] = C.getZoneName("BCFarfield")
         C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_ymax)
-                
+
     if dim==2:
         zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
-        zbc_zmax[0] = C.getZoneName("BCSymmetryPlane")              
+        zbc_zmax[0] = C.getZoneName("BCSymmetryPlane")
         C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_zmin)
         C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_zmax)
     else:
         if dir_sym==-3:
             zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
             C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_zmin)
-        else:        
+        else:
             zbc_zmin[0] = C.getZoneName("BCFarfield")
             C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_zmin)
 
         if dir_sym==3:
             zbc_zmax[0] = C.getZoneName("BCSymmetryPlane")
             C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_zmax)
-        else:        
+        else:
             zbc_zmax[0] = C.getZoneName("BCFarfield")
             C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_zmax)
     return None
 
 #==================================================================
-# Generation of the AMR mesh for IBMs 
+# Generation of the AMR mesh for IBMs
 #==================================================================
 def generateAMRMesh(tb, levelMax=7, vmins=11, dim=3, check=False):
     FILE_SKELETON = 'skeleton.cgns'
     # levelSkel: initial refinement level of the skeleton octree
-    # might be tuned 
+    # might be tuned
     o = generateSkeletonMesh__(tb, dim=dim, levelSkel=levelMax)
     G._getVolumeMap(o)
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
@@ -738,7 +738,7 @@ def generateAMRMesh(tb, levelMax=7, vmins=11, dim=3, check=False):
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.rank==0:
         C.convertPyTree2File(o,FILE_SKELETON)
-    Cmpi.barrier()  
+    Cmpi.barrier()
 
     # layers of offsets that are inside the bbox of the domain (dfar_max)
     dfar_max = 0.
@@ -757,8 +757,8 @@ def generateAMRMesh(tb, levelMax=7, vmins=11, dim=3, check=False):
         offsetloc = offsetprev+hmin*(2**no_adapt)*vmins[no_adapt]
         if offsetloc < 0.99*dfarmax:
             offsetValues.append(offsetloc)
-            offsetprev=offsetloc    
-    #generate list of offsets 
+            offsetprev=offsetloc
+    #generate list of offsets
     print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
     toff = generateListOfOffsets__(tb, offsetValues=offsetValues, dim=dim)
     if check and Cmpi.rank==0: C.convertPyTree2File(toff,"offset.cgns")
