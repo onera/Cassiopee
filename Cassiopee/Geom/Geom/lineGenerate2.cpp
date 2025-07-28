@@ -325,5 +325,4 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
 
   delete coord;
   return tpl; 
-
 }

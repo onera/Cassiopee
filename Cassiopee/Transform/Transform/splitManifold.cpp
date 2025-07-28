@@ -36,7 +36,7 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
   PyObject *array;
   if (!PyArg_ParseTuple(args, "O", &array))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array

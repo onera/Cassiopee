@@ -46,15 +46,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 {
   PyObject* array; PyObject* deltas;
   E_Float beta;
-  if (!PYPARSETUPLE_(args, OO_ R_,
-                     &array, &deltas, &beta))
+  if (!PYPARSETUPLE_(args, OO_ R_, &array, &deltas, &beta))
     return NULL;
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   
   if (res == -1)
   {

@@ -435,7 +435,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   E_Int n2 = PyList_Size(arrays2);
   vector<FldArrayF*> fieldsr;
 
-  for (int i = 0; i < n2; i++)
+  for (E_Int i = 0; i < n2; i++)
   {
     tpl = PyList_GetItem(arrays2, i);
     res = K_ARRAY::getFromArray3(tpl, varString2, f, ni, nj, nk, cn, eltType2);
@@ -471,7 +471,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   E_Int n3 = PyList_Size(arrays3);
   vector<FldArrayF*> fieldsm;
 
-  for (int i = 0; i < n3; i++)
+  for (E_Int i = 0; i < n3; i++)
   {
     tpl = PyList_GetItem(arrays3, i);
     res = K_ARRAY::getFromArray3(tpl, varString3, f, ni, nj, nk, cn, eltType3);
@@ -707,9 +707,22 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
     delete vectOfExtCenters[no];
     delete adts[no];
   }
+
+  for (size_t i = 0; i < fieldmr.size(); i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(arrays1, i), fieldmr[i]);
+  }
+  for (size_t i = 0; i < fieldsr.size(); i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(arrays2, i), fieldsr[i]);
+  }
+  for (size_t i = 0; i < fieldsm.size(); i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(arrays3, i), fieldsm[i]);
+  }
+
   /* Sauvegarde de errors sous forme de liste python */
   PyObject* l = PyList_New(0);
-
   for (E_Int i = 0; i < sizeerrors; i++)
   {
     tpl = K_ARRAY::buildArray(*errors[i], varString, 

@@ -265,15 +265,14 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
       Py_DECREF(tpl);
     }
     delete [] varString;
-    delete f1; delete f2;
+    RELEASESHAREDS(array1, f1);
+    RELEASESHAREDS(array2, f2);
     return l; 
   }
   else if (res1 == 2 || res2 == 2)
   {
-    if (res1 >= 1) delete f1;
-    if (res1 == 2) delete cn1;
-    if (res2 >= 1) delete f2;
-    if (res2 == 2) delete cn2;
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(res2, array2, f2, cn2);
     PyErr_SetString(PyExc_TypeError,
                     "addSeparationLine: not used for unstructured array.");
     return NULL;

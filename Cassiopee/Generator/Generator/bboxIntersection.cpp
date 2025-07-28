@@ -30,7 +30,6 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
   E_Float tol;
-
   if (!PYPARSETUPLE_(args, OO_ R_,
                     &array1, &array2, &tol)) return NULL;
 
@@ -38,8 +37,7 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray(
-    array1, varString1, f1, ni1, nj1, nk1, cn1, eltType1, true);
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, ni1, nj1, nk1, cn1, eltType1);
     
   if (res1 != 1 && res1 != 2)
   {
@@ -53,8 +51,7 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
   FldArrayI* cn2;
   char* varString2;
   char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(
-    array2, varString2, f2, ni2, nj2, nk2, cn2, eltType2, true);
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, ni2, nj2, nk2, cn2, eltType2);
   
   if (res2 != 1 && res2 != 2)
   {

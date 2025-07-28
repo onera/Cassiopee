@@ -34,7 +34,7 @@ PyObject* K_TRANSFORM::_alignVectorFieldWithRadialCylindricProjection(PyObject* 
   if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ O_,
                     &array, &CenterX, &CenterY, &CenterZ, &AxisX, &AxisY, &AxisZ, &varList))
   {
-      return NULL;
+    return NULL;
   }
 
 
@@ -60,7 +60,7 @@ PyObject* K_TRANSFORM::_alignVectorFieldWithRadialCylindricProjection(PyObject* 
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString,
+  E_Int res = K_ARRAY::getFromArray3(array, varString,
                                      f, im, jm, km, cn, eltType);
 
   // position des variables
@@ -115,8 +115,6 @@ PyObject* K_TRANSFORM::_alignVectorFieldWithRadialCylindricProjection(PyObject* 
   qcx = CenterX - qx;
   qcy = CenterY - qy;
   qcz = CenterZ - qz;
-
-
 
   #pragma omp parallel
   {

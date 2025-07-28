@@ -45,7 +45,7 @@ PyObject* K_GENERATOR::checkPointInCEBBOfMesh(PyObject* self,
   FldArrayF cartEltArray;// alloue ds compCartEltsArray
   E_Float *xtm, *ytm, *ztm, *xtp, *ytp, *ztp;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   E_Int npts;
   short isok;
