@@ -150,7 +150,7 @@ def merge():
                     else: zoneNames[s[0]] = [n]
                 else: zoneNames['__Pool__'] += [n]
             else: zoneNames['__Pool__'] += [n]
-        # Reconstitue les listes de zone
+        # Reconstitue les listes de zones
         out = []
         for k in zoneNames:
             l = []

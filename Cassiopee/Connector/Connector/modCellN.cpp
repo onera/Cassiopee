@@ -28,15 +28,14 @@
 PyObject* K_CONNECTOR::_modCellN1(PyObject* self, PyObject* args)
 {
   PyObject* array; char* cellNName;
-  if (!PYPARSETUPLE_(args, O_ S_,
-                    &array, &cellNName))
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &cellNName))
       return NULL;
   
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {
@@ -91,7 +90,7 @@ PyObject* K_CONNECTOR::_modCellN2(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {

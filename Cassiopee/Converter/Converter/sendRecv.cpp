@@ -260,8 +260,8 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 PyObject* PyFields = PyList_GetItem(listData, 2);
                 char* fieldNames; FldArrayF* interpFields; E_Int nPts; E_Int nj, nk;
                 FldArrayI* cn; char* eltType;
-                E_Int oka = K_ARRAY::getFromArray(PyFields, fieldNames, 
-                                                 interpFields, nPts, nj, nk, cn, eltType, true);
+                E_Int oka = K_ARRAY::getFromArray3(PyFields, fieldNames, 
+                                                   interpFields, nPts, nj, nk, cn, eltType);
                 E_Int nFlds = interpFields->getNfld();
                 E_Float* fields = interpFields->begin();
                 E_Int size_fieldNames = strlen(fieldNames);
@@ -330,8 +330,8 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 PyObject* PyFields = PyList_GetItem(listData, 1);
                 char* fieldNames; FldArrayF* interpFields; E_Int nPts; E_Int nj, nk;
                 FldArrayI* cn; char* eltType;
-                E_Int oka = K_ARRAY::getFromArray(PyFields, fieldNames, 
-                                                 interpFields, nPts, nj, nk, cn, eltType, true);
+                E_Int oka = K_ARRAY::getFromArray3(PyFields, fieldNames, 
+                                                   interpFields, nPts, nj, nk, cn, eltType);
                 E_Int nFlds = interpFields->getNfld();
                 E_Float* fields = interpFields->begin();
                 E_Int size_fieldNames = strlen(fieldNames);

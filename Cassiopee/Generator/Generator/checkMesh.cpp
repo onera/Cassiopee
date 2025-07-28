@@ -41,13 +41,11 @@ PyObject* K_GENERATOR::checkMesh( PyObject* self,
  
   // Check array
   E_Int im, jm, km;
-  FldArrayF* f;
-  char* varString;
-  char* eltType;
-  FldArrayI* cn;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
 
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   if (res == 1)
   {
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -65,11 +63,11 @@ PyObject* K_GENERATOR::checkMesh( PyObject* self,
       
     // Check mesh
     k6checkmesh_(im, jm, km, f->begin(posx), f->begin(posy), f->begin(posz));
-    delete f;
+    RELEASESHAREDS(array, f);
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "check: not used for unstructured arrays.");
   }

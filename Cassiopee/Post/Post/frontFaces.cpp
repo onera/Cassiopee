@@ -43,8 +43,8 @@ PyObject* K_POST::frontFaces(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                              cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                               cn, eltType);
 
   PyObject* tpl = NULL;
   if (res == 2)
@@ -54,8 +54,8 @@ PyObject* K_POST::frontFaces(PyObject* self, PyObject* args)
     FldArrayF* tag; FldArrayI* cnt;
     E_Int nit, njt, nkt;
     E_Int rest;
-    rest = K_ARRAY::getFromArray(tagArray, varStringt, tag, nit, njt, nkt, 
-                                 cnt, eltTypet, true);
+    rest = K_ARRAY::getFromArray3(tagArray, varStringt, tag, nit, njt, nkt, 
+                                  cnt, eltTypet);
     if (rest != 1 && rest != 2)
     {
       RELEASESHAREDU(array, f, cn); 

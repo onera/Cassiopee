@@ -30,8 +30,7 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int extraPoints; // 0: pas de pts en plus des centres, 1: points en plus sur les faces externes
-  if (!PYPARSETUPLE_(args, O_ I_,
-                    &array, &extraPoints))
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &extraPoints))
   {
       return NULL;
   }
@@ -39,8 +38,8 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+                                     cn, eltType);
 
   if (res != 2)
   {

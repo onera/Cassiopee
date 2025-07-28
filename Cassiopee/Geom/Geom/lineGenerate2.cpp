@@ -62,8 +62,8 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
   E_Int im1, jm1, km1;
-  E_Int res1 = K_ARRAY::getFromArray(array, varString1, f1, im1, jm1, km1, 
-                                     cn1, eltType1, true);
+  E_Int res1 = K_ARRAY::getFromArray3(array, varString1, f1, im1, jm1, km1, 
+                                      cn1, eltType1);
 
   if (res1 == 2)
   {
@@ -325,5 +325,4 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
 
   delete coord;
   return tpl; 
-
 }

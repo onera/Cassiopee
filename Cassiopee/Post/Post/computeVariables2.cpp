@@ -71,7 +71,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ RRRR_ RRR_, 
                     &array, &vars0, &gamma, &rgp, &s0, &betas, &Cs, &mus, &Ts))
   {
-      return NULL;
+    return NULL;
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -80,7 +80,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {
@@ -208,8 +208,8 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
           K_ARRAY::addFieldInArray(array, vars[v]);
       }
 
-      E_Int res2 = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
-					    cn, eltType); // utile si posvar > 0 ??
+      E_Int res2 = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+					                      cn, eltType); // utile si posvar > 0 ??
 
       posvar = K_ARRAY::isNamePresent(vars[v],varString);
       posvar++;

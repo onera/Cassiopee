@@ -22,7 +22,7 @@ using namespace std;
 using namespace K_FLD;
 
 //=============================================================================
-/* Conversion d un array en centres étendus en noeuds */
+/* Conversion d un array en centres ï¿½tendus en noeuds */
 //=============================================================================
 PyObject* K_CONVERTER::extCenter2Node(PyObject* self, PyObject* args)
 {
@@ -33,8 +33,8 @@ PyObject* K_CONVERTER::extCenter2Node(PyObject* self, PyObject* args)
   E_Int nie, nje, nke;
   FldArrayF* FExtCenters; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, FExtCenters, 
-                                    nie, nje, nke, cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, FExtCenters, 
+                                     nie, nje, nke, cn, eltType); 
   if (res != 1)
   {
     PyErr_SetString(PyExc_TypeError, "node2ExtCenter: array must be structured."); 

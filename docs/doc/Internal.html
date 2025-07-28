@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Converter.Internal: CGNS/Python tree management &#8212; Converter 4.0 documentation</title>
+    <title>Converter.Internal: CGNS/Python tree management &#8212; Converter 4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter.Internal: CGNS/Python tree management</a></li> 
       </ul>
     </div>  
@@ -526,6 +526,15 @@ list of pyTree nodes that are the children of this node.</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.adaptPE2NFace" title="Converter.Internal.adaptPE2NFace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptPE2NFace</span></code></a></p></td>
 <td><p>Creates NFaceElements nodes from ParentElements arrays in each zone.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptSurfaceNGon</span></code></p></td>
+<td><p>Adapt a surface NGon from (A: NGON=bars, NFACE=polygon) to (B: NGON=polygon, NFACE=NULL), or vice versa.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.adaptBCFacePL2VertexPL" title="Converter.Internal.adaptBCFacePL2VertexPL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptBCFacePL2VertexPL</span></code></a></p></td>
+<td><p>Adapt face point list into vertex point list for a list of BC_t nodes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.adaptBCVertexPL2FacePL" title="Converter.Internal.adaptBCVertexPL2FacePL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.adaptBCVertexPL2FacePL</span></code></a></p></td>
+<td><p>Adapt vertex point list into face point list for a list of BC_t nodes.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2502,7 +2511,8 @@ Return 1 if zone is structured, 2 if unstructured, 0 if failed.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="Converter.Internal.getSizeOf">
 <span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">getSizeOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Return the size of input node and attached nodes in octets.</p>
+<dd><p>Return the size of input node and attached nodes in octets.
+Works also on numpy, list of numpys, dict of numpys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>node</strong> (<em>pyTree node</em><em> of </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; input node</p>
@@ -2521,10 +2531,15 @@ Return 1 if zone is structured, 2 if unstructured, 0 if failed.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getSizeOf (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getSizeOf</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="s1">&#39;octets&#39;</span><span class="p">)</span>
 <span class="c1">#&gt;&gt; 24242 octets</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">100</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getSizeOf</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="s1">&#39;octets&#39;</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; 800 octets</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -6008,6 +6023,124 @@ If parent is not None, attach it to parent node.</p>
 </dd></dl>
 
 <hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.Internal.adaptSurfaceNGon">
+<span class="sig-prename descclassname"><span class="pre">Internal.</span></span><span class="sig-name descname"><span class="pre">adaptSurfaceNGon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmEmptyNFaceElements</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
+to (B: NGON=polygon, NFACE=NULL), or vice versa.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data (NGON)</p></li>
+<li><p><strong>rmEmptyNFaceElements</strong> &#8211; if True, remove all empty NFaceElements nodes from the zones.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptSurfaceNGonPT.py">NGON surface mesh adaptation (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptSurfaceNGon (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># type A : NGON=bars, NFACE=polygon</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">api</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="c1"># type B : NGON=polygon, NFACE=NULL</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptSurfaceNGon</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+<span class="c1"># Back to type A</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">adaptSurfaceNGon</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.adaptBCFacePL2VertexPL">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptBCFacePL2VertexPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">btype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Adapts face point list into vertex point list for a list of BC_t nodes. Exists also as in-place (_adaptBCFacePL2VertexPL).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; unstructured mesh</p></li>
+<li><p><strong>bcs</strong> (<em>optional pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; BC nodes on which to adapt face point list into vertex point list. If None, considers all BC nodes</p></li>
+<li><p><strong>btype</strong> (<em>string</em>) &#8211; type of BC (BCWall, BCFarfield, FamilySpecified&#8230;) to consider. If None, does not filter <cite>bcs</cite> by BCType</p></li>
+<li><p><strong>remove</strong> &#8211; if True, removes all BCDataset nodes found in <cite>bcs</cite></p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptBCFacePL2VertexPLPT.py">Creates vertex PointList arrays (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptBCFacePL2VertexPL (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># - NGons -</span>
+
+<span class="c1"># Adapt face PL into vertex PL for all BC nodes with name &#39;wall*&#39;, keep BCDatasets</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">41</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCViscousWall&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initBCDataSet</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">=1.&#39;</span><span class="p">)</span>
+<span class="n">bcs</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall*&#39;</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">_adaptBCFacePL2VertexPL</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">bcs</span><span class="o">=</span><span class="n">bcs</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.adaptBCVertexPL2FacePL">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptBCVertexPL2FacePL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">btype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Adapts vertex point list into face point list for a list of BC_t nodes. Exists also as in-place (_adaptBCVertexPL2FacePL).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; unstructured mesh</p></li>
+<li><p><strong>bcs</strong> (<em>optional pyTree node</em><em> or </em><em>list</em><em> of </em><em>pyTree nodes</em>) &#8211; BC nodes on which to adapt vertex point list into face point list. If None, considers all BC nodes</p></li>
+<li><p><strong>btype</strong> (<em>string</em>) &#8211; type of BC (BCWall, BCFarfield, FamilySpecified&#8230;) to consider. If None, does not filter <cite>bcs</cite> by BCType</p></li>
+<li><p><strong>remove</strong> &#8211; if True, removes all BCDataset nodes found in <cite>bcs</cite></p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/adaptBCVertexPL2FacePLPT.py">Creates face PointList arrays (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptBCVertexPL2FacePL (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># - NGons -</span>
+
+<span class="c1"># Adapt vertex PL into face PL for all BC nodes with name &#39;wall*&#39;, keep BCDatasets</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">41</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCViscousWall&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initBCDataSet</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">=1.&#39;</span><span class="p">)</span>
+<span class="n">bcs</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall*&#39;</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">_adaptBCFacePL2VertexPL</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">bcs</span><span class="o">=</span><span class="n">bcs</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># create a vertex PL</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">_adaptBCVertexPL2FacePL</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">bcs</span><span class="o">=</span><span class="n">bcs</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># PL: vertex to face</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -6151,7 +6284,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter.Internal: CGNS/Python tree management</a></li> 
       </ul>
     </div>

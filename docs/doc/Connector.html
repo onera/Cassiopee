@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Connector: Grid connectivity module &#8212; Connector 4.0 documentation</title>
+    <title>Connector: Grid connectivity module &#8212; Connector 4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Connector 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Connector 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Connector: Grid connectivity module</a></li> 
       </ul>
     </div>  
@@ -154,16 +154,20 @@ Parameter sameZone must be set to 1 if a1 and a2 define the same zone.</p>
 </dl>
 <p><em>Using the PyTree interface:</em></p>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Detect and set all matching windows in a zone node, a list of zone nodes or a complete pyTree.
-Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2.
-If the CFD problem is 2D, then dim must be set to 2.</p>
+Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2.</p>
 </div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; geometrical tolerance between abutting zones</p></li>
+<li><p><strong>dim</strong> (<em>integer</em>) &#8211; dimension of the problem (2 or 3, only for structured grids)</p></li>
+<li><p><strong>type</strong> (<em>string</em>) &#8211; can be &#8216;structured&#8217;, &#8216;unstructured&#8217;, &#8216;hybrid&#8217; or &#8216;all&#8217;</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>identical to input</p>
@@ -217,14 +221,21 @@ If the CFD problem is 2D, then dim must be set to 2.</p>
 Periodicity can be defined either by rotation or translation or by a composition of rotation and translation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; geometrical tolerance between periodical abutting zones</p></li>
+<li><p><strong>dim</strong> (<em>integer</em>) &#8211; dimension of the problem (2 or 3, only for structured grids)</p></li>
+<li><p><strong>rotationCenter</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; coordinates of the rotation center for periodicity by rotation</p></li>
+<li><p><strong>translation</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; translation vector for periodicity by translation</p></li>
+<li><p><strong>rotationAngle</strong> (<em>list</em><em> of </em><em>3 floats</em>) &#8211; rotation angle, the only one non-zero provides the rotation axis</p></li>
+<li><p><strong>unitAngle</strong> (<em>float</em>) &#8211; angle unit (&#8216;Degree&#8217; or &#8216;Radian&#8217; or None). None means &#8216;Degree&#8217; (default value).</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>identical to input</p>
 </dd>
 </dl>
 <p>Set automatically the Transform node corresponding to the transformation from matching block 1 to block 2, and the &#8216;GridConnectivityProperty/Periodic&#8217; for periodic matching BCs.</p>
-<p>If the CFD problem is 2D, then dim must be set to 2.</p>
 <p>For periodicity by rotation, the rotation angle units can be specified by argument unitAngle, which can be &#8216;Degree&#8217;,&#8217;Radian&#8217;,None.</p>
 <p>If unitAngle=None or &#8216;Degree&#8217;: parameter rotationAngle is assumed to be defined in degrees.</p>
 <p>If unitAngle=&#8217;Radian&#8217;: parameter rotationAngle is assumed in radians.</p>
@@ -268,7 +279,12 @@ the nearmatching direction to test (less CPU-consuming).
 If the CFD problem is 2D, then dim must be set to 2.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p></li>
+<li><p><strong>ratio</strong> (<em>integer</em><em> or </em><em>list</em><em> of </em><em>3 integers</em>) &#8211; defines the 1-over-ratio abutting grids in all the directions</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; tolerance between 1-to-n abutting grids</p></li>
+<li><p><strong>dim</strong> (<em>integer</em>) &#8211; dimension of the problem (2 only valid for structured grids)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>identical to input</p>
@@ -302,6 +318,18 @@ If the CFD problem is 2D, then dim must be set to 2.</p>
 type is defined.
 If the problem is 2D according to (i,j), then parameter &#8216;dim&#8217; must be set to 2.
 Parameter &#8216;tol&#8217; defines a distance below which a window is assumed degenerated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em>) &#8211; input data</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; tolerance under which cells are considered as degenerated</p></li>
+<li><p><strong>dim</strong> (<em>integer</em>) &#8211; dimension of the problem (2 only valid for structured grids)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>identical to input</p>
+</dd>
+</dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/setDegeneratedBCPT.py">Add degenerated line as BCs in a pyTree (pyTree)</a>:</p></li>
@@ -813,7 +841,7 @@ If the priorities are not specified, the cell volume criterion is applied also:<
 </div></blockquote>
 <p><em>Using the pyTree interface:</em></p>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">optimizeOverlap</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">double_wall</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">priorities</span><span class="o">=</span><span class="p">[],</span> <span class="n">planarTol</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">optimizeOverlap</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">double_wall</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">priorities</span><span class="o">=</span><span class="p">[],</span> <span class="n">planarTol</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">intersectionsDict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Optimize the overlapping between all structured zones defined in a pyTree t.
@@ -871,7 +899,7 @@ zones from base of name &#8216;baseName2&#8217;:</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Connector.maximizeBlankedCells">
-<span class="sig-prename descclassname"><span class="pre">Connector.</span></span><span class="sig-name descname"><span class="pre">maximizeBlankedCells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Connector.</span></span><span class="sig-name descname"><span class="pre">maximizeBlankedCells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cellNName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cellN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addGC</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Change useless interpolated points status (2) to blanked points (0).
 If dir=0, uses a directional stencil of depth points, if dir=1,
 uses a full depth x depth x depth stencil.</p>
@@ -1029,7 +1057,7 @@ The cellN variable is defined as a FlowSolution#Center node. The cellN is set to
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Connector.getIntersectingDomains">
-<span class="sig-prename descclassname"><span class="pre">Connector.</span></span><span class="sig-name descname"><span class="pre">getIntersectingDomains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AABB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taabb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tobb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taabb2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tobb2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Connector.</span></span><span class="sig-name descname"><span class="pre">getIntersectingDomains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AABB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taabb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tobb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taabb2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tobb2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Create a Python dictionary describing the intersecting zones. If t2 is not provided, then the computed dictionary states the self-intersecting zone names, otherwise, it
 computes the intersection between t and t2. Mode can be &#8216;AABB&#8217;, for Axis-Aligned Bounding Box method, &#8216;OBB&#8217; for Oriented Bounding Box method, or &#8216;hybrid&#8217;, using a combination
 of AABB and OBB which gives the most accurate result. Depending on the selected mode, the user can provide the corresponding AABB and/or OBB PyTrees of t and/or t2, so that the
@@ -1076,7 +1104,7 @@ algorithm will reuse those BB PyTrees instead of calculating them.</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Connector.getCEBBIntersectingDomains">
-<span class="sig-prename descclassname"><span class="pre">Connector.</span></span><span class="sig-name descname"><span class="pre">getCEBBIntersectingDomains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sameBase</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Connector.</span></span><span class="sig-name descname"><span class="pre">getCEBBIntersectingDomains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sameBase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-6</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Detect the domains defined in the list of bases B whose CEBB
 intersect domains defined in base A.
 Return the list of zone names for each basis.
@@ -1106,7 +1134,7 @@ If sameBase=1, the intersecting domains are also searched in base:</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Connector.X.getCEBBTimeIntersectingDomains">
-<span class="sig-prename descclassname"><span class="pre">X.</span></span><span class="sig-name descname"><span class="pre">getCEBBTimeIntersectingDomains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">funcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inititer=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sameBase</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">X.</span></span><span class="sig-name descname"><span class="pre">getCEBBTimeIntersectingDomains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">funcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inititer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sameBase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-6</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>in a Chimera pre-processing for bodies in relative motion,
 it can be useful to determine intersecting domains at any iteration.
 niter defines the number of iterations on which CEBB intersections are detected, starting from iteration inititer.
@@ -1181,7 +1209,7 @@ func defines a python function defining the motion of base, funcs is the list of
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Connector.X.applyBCOverlaps">
-<span class="sig-prename descclassname"><span class="pre">X.</span></span><span class="sig-name descname"><span class="pre">applyBCOverlaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'centers'</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">X.</span></span><span class="sig-name descname"><span class="pre">applyBCOverlaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'centers'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cellNName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cellN'</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>set the cellN to 2 for the fringe nodes or cells (depending on parameter &#8216;loc&#8217;=&#8217;nodes&#8217; or &#8216;centers&#8217;) near the overlap borders defined in the pyTree t.
 Parameter &#8216;depth&#8217; defines the number of layers of interpolated points.</p>
 <p>Exists also as in place version (_applyBCOverlaps) that modifies a and returns None.</p>
@@ -1238,7 +1266,7 @@ Parameter &#8216;depth&#8217; defines the number of layers of interpolated point
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Connector.PyTree.cellN2OversetHoles">
-<span class="sig-prename descclassname"><span class="pre">Connector.PyTree.</span></span><span class="sig-name descname"><span class="pre">cellN2OversetHoles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Connector.PyTree.</span></span><span class="sig-name descname"><span class="pre">cellN2OversetHoles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Compute the OversetHoles node into a pyTree from the cellN field, located at nodes or centers. For structured zones, defines it as a list of ijk indices, located at nodes or centers.
 For unstructured zones, defines the OversetHoles node as a list of indices ind, defining the cell vertices that are of cellN=0 if the cellN is located at nodes, and defining the cell centers that are of cellN=0 if the cellN is located at centers.</p>
 <p>The OversetHoles nodes can be then dumped to files, defined by the indices of blanked nodes or cells.</p>
@@ -1292,11 +1320,11 @@ For unstructured zones, defines the OversetHoles node as a list of indices ind, 
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Connector.PyTree.setInterpData">
-<span class="sig-prename descclassname"><span class="pre">Connector.PyTree.</span></span><span class="sig-name descname"><span class="pre">setInterpData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aD</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nodes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'direct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topTreeRcv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topTreeDnr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sameName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Connector.PyTree.</span></span><span class="sig-name descname"><span class="pre">setInterpData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aD</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lagrangian'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nodes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'direct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpDataType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topTreeRcv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topTreeDnr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sameName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dictOfModels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Compute and store in a pyTree the interpolation information (donor and receptor points, interpolation type, interpolation coefficients) given receptors defined by aR,
 donor zones given by aD. If storage=&#8217;direct&#8217;, then aR with interpolation data stored in receptor zones are returned, and if storage=&#8217;inverse&#8217;, then aD with interpolation data stored in donor zones are returned.
 Donor zones can be structured or unstructured TETRA. receptor zones can be structured or unstructured.</p>
-<p>Interpolation order can be 2, 3 or 5 for structured donor zones, only order=2 for unstructured donor zones is performed.</p>
+<p>Interpolation order can be 2, 3, 4 or 5 for structured donor zones, only order=2 for unstructured donor zones is performed.</p>
 <p>Parameter loc can &#8216;nodes&#8217; or &#8216;centers&#8217;, meaning that receptor points are zone nodes or centers.</p>
 <p>penalty=1 means that a candidate donor cell located at a zone border is penalized against interior candidate cell.</p>
 <p>nature=0 means that a candidate donor cell containing a blanked point(cellN=0) is not valid. If nature=1 all the nodes of the candidate donor cell must be cellN=1 to be valid.</p>
@@ -2059,7 +2087,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Connector 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Connector 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Connector: Grid connectivity module</a></li> 
       </ul>
     </div>

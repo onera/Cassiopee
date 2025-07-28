@@ -3262,7 +3262,7 @@ Adapt NGON meshes
 
     * `Creates face PointList arrays (pyTree) <Examples/Converter/adaptBCVertexPL2FacePLPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/adaptBCVertexPL2FacePLLPT.py
+    .. literalinclude:: ../build/Examples/Converter/adaptBCVertexPL2FacePLPT.py
     
 -----------------------------------------------------------------------------------
 

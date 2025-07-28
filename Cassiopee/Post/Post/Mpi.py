@@ -211,17 +211,26 @@ def _computeGrad2(t, var, withCellN=True):
                 if oppNode not in export: export[oppNode] = [n]
                 else: export[oppNode] += [n]
         elif dim[0] == 'Structured':
+            fields = C.getField(vare, z, api=2)
             # get face values
             GCs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
             for gc in GCs:
                 donor = Internal.getValue(gc)
-                PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
-                PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
-                #fld = Converter.converter.extractBCMatchStruct(z, PL, [vare],
-                #                                            Internal.__GridCoordinates__,
-                #                                            Internal.__FlowSolutionNodes__,
-                #                                            Internal.__FlowSolutionCenters__)
-                fld = None
+                #PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
+                #PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
+                prr = Internal.getNodeFromName1(gc, 'PointRange')
+                prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
+                wr = Internal.range2Window(prr[1])
+                wd = Internal.range2Window(prd[1])
+                (iminR,imaxR,jminR,jmaxR,kminR,kmaxR) = wr
+                (iminD,imaxD,jminD,jmaxD,kminD,kmaxD) = wd
+                niR = dim[1]; njR = dim[2]; nkR = dim[3]
+                tri = Internal.getNodeFromName1(gc, 'Transform')
+                tri = Internal.getValue(tri)
+                (t1,t2,t3) = tri
+                [indR,fld]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
+                                                                       (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
+                                                                       (niR,njR,nkR),(t1,t2,t3))
                 oppNode = procDict[donor]
                 n = [donor, z[0], fld, PLD.ravel('k')]
                 if oppNode not in export: export[oppNode] = [n]
@@ -240,17 +249,16 @@ def _computeGrad2(t, var, withCellN=True):
             z = Internal.getNodeFromName2(t, donor)
             zn = z[0]
             dim = Internal.getZoneDim(z)
-            if dim[0] == 'Unstructured' and dim[4] == 'NGON':
+            if dim[0] == 'Unstructured' and dim[3] == 'NGON':
                 fld1 = Converter.converter.buildBCMatchFieldNG(z, PLD, fld, [vare],
                                                                Internal.__GridCoordinates__,
                                                                Internal.__FlowSolutionNodes__,
                                                                Internal.__FlowSolutionCenters__)
             elif dim[0] == 'Structured':
-                #fld1 = Converter.converter.buildBCMatchFieldStruct(z, PLD, fld, [vare],
-                #                                           Internal.__GridCoordinates__,
-                #                                           Internal.__FlowSolutionNodes__,
-                #                                           Internal.__FlowSolutionCenters__)
-                fld1 = None
+                fields = C.getAllFields(z, 'centers', api=2)
+                fld1 = Converter.converter.buildBCMatchFieldStruct(fields, PLD, fld, None)
+            else:
+                raise(TypeError, "computeGrad2: invalid grid type.")
             #print(Cmpi.rank, 'PLD', PLD, indices, flush=True)
             if zn not in indices: indices[zn] = PLD
             else: indices[zn] = numpy.concatenate((indices[zn], PLD))

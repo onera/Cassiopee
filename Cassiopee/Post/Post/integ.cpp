@@ -138,11 +138,11 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
   FldArrayF resultat;
   E_Int res = -1;
   
-  for (int i = 0; i < nCoordArrays; i++)
+  for (E_Int i = 0; i < nCoordArrays; i++)
   {
     coordObj = PyList_GetItem(coordArrays, i);
-    resc = K_ARRAY::getFromArray(coordObj, varStringc, fc, 
-                                 nic, njc, nkc, cnc, eltTypec); 
+    resc = K_ARRAY::getFromArray3(coordObj, varStringc, fc, 
+                                  nic, njc, nkc, cnc, eltTypec); 
     if (resc != 1 && resc != 2)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -156,19 +156,19 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
     {
       printf("Warning: integ: coordinates not found in array %d.", i+1);
       printf(" Array skipped...\n");
-      delete fc; if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       goto next; 
     }
     posx++; posy++; posz++;
 
     FObj = PyList_GetItem(FArrays, i);
-    resf = K_ARRAY::getFromArray(FObj, varStringf, ff, 
-                                 nif, njf, nkf, cnf, eltTypef); 
+    resf = K_ARRAY::getFromArray3(FObj, varStringf, ff, 
+                                  nif, njf, nkf, cnf, eltTypef); 
 
     if (resf != 1 && resf != 2)
     {
-      delete ff; delete fc;
-      if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
+      RELEASESHAREDS(FObj, ff);
       PyErr_SetString(PyExc_TypeError, 
                       "integ: field is not a valid array.");
       return NULL;
@@ -187,8 +187,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       {
         printf("Warning: integ: array %d doesn t have a valid number of variables.", i+1); 
         printf("Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
 
@@ -198,8 +198,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       {
         printf("Warning: integ: variables are in a different order than first array.");
         printf(" Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
     }
@@ -212,8 +212,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       if (nic > 1 && njc > 1 && nkc > 1) 
       {
         printf("Warning: integ: 3D arrays not valid. Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       // 1D ou 2D ?
@@ -242,7 +242,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
         {
           printf("Warning: integ: coord and field arrays do not represent the same zone.");
           printf(" Array skipped...\n");
-          delete ff; delete fc;
+          RELEASESHAREDB(resc, coordObj, fc, cnc);
+          RELEASESHAREDB(resf, FObj, ff, cnf);
           goto next;
         }
       }
@@ -256,11 +257,11 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       else // coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(ratioObj, varStringr, ratio, 
-                                     nir, njr, nkr, cnr, eltTyper); 
+        resr = K_ARRAY::getFromArray3(ratioObj, varStringr, ratio, 
+                                      nir, njr, nkr, cnr, eltTyper); 
         if (resr != 1)
         {
-          if (resr == 2) {delete ratio; delete cnr;}
+          RELEASESHAREDB(resr, ratioObj, ratio, cnr);
           printf("Warning: integ: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -283,12 +284,18 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
     
       if (res == 0) 
       {
-        delete ff; delete fc; delete ratio;
+        RELEASESHAREDS(coordObj, fc);
+        RELEASESHAREDS(FObj, ff);
+        if (nRatioArrays == 0 || resr != 1) delete ratio;
+        else RELEASESHAREDS(ratioObj, ratio);
         PyErr_SetString(PyExc_ValueError,
                         "integ: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete ratio; 
+      RELEASESHAREDS(coordObj, fc);
+      RELEASESHAREDS(FObj, ff);
+      if (nRatioArrays == 0 || resr != 1) delete ratio;
+      else RELEASESHAREDS(ratioObj, ratio);
     }
     else if (resc == 2 && resf == 2) // Cas non structure
     {
@@ -300,8 +307,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
         center2node = 1;
       else
       {
-        delete fc; delete cnc;
-        delete ff; delete cnf;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
                         "integ: only TRI or BAR unstructured arrays are possible.");
         return NULL;
@@ -318,12 +325,12 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       else // coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(
+        resr = K_ARRAY::getFromArray3(
           ratioObj, varStringr, ratio, nir, njr, nkr, cnr, eltTyper); 
 
         if (resr != 2)
         {
-          if (resr == 1) delete ratio;
+          if (resr == 1) RELEASESHAREDS(ratioObj, ratio);
           printf("Warning: integ: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -341,14 +348,18 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
         
       if (res == 0)
       {
-        delete ff; delete fc; delete cnf; delete cnc; 
-        delete ratio; if (resr == 2) delete cnr;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
+        if (nRatioArrays == 0 || resr != 2) delete ratio;
+        else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
         PyErr_SetString(PyExc_ValueError,
                         "integ: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete cnf; delete cnc; delete ratio; 
-      if (resr == 2) delete cnr;
+      RELEASESHAREDU(coordObj, fc, cnc);
+      RELEASESHAREDU(FObj, ff, cnf);
+      if (nRatioArrays == 0 || resr != 2) delete ratio;
+      else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
     }
     else 
     {
@@ -368,19 +379,11 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
   PyObject* tpl;
   PyObject* l = PyList_New(0);
   
-#ifdef E_DOUBLEREAL
   for (E_Int i = 0; i < nFld; i++)
   {
-    tpl = Py_BuildValue("d", resultat[i]);
+    tpl = Py_BuildValue(R_, resultat[i]);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
-#else
-  for (E_Int i = 0; i < nFld; i++)
-  {
-    tpl = Py_BuildValue("f", resultat[i]);
-    PyList_Append(l, tpl); Py_DECREF(tpl);
-  }
-#endif  
   return l;
 }
 

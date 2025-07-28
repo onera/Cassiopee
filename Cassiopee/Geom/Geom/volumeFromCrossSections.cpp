@@ -39,19 +39,17 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   E_Int imc1, jmc1, kmc1;
   FldArrayF* fc1;
   FldArrayI* cnpoly1;
-  char* varStringc1;
-  char* eltTypec1;
+  char* varStringc1; char* eltTypec1;
   E_Int imc2, jmc2, kmc2;
   FldArrayF* fc2;
   FldArrayI* cnpoly2;
-  char* varStringc2;
-  char* eltTypec2;
+  char* varStringc2; char* eltTypec2;
   E_Int resc1 = 
-    K_ARRAY::getFromArray(contour1, varStringc1, fc1, imc1, jmc1, kmc1, 
-                          cnpoly1, eltTypec1);  
+    K_ARRAY::getFromArray3(contour1, varStringc1, fc1, imc1, jmc1, kmc1, 
+                           cnpoly1, eltTypec1);  
   E_Int resc2 = 
-    K_ARRAY::getFromArray(contour2, varStringc2, fc2, imc2, jmc2, kmc2, 
-                          cnpoly2, eltTypec2);
+    K_ARRAY::getFromArray3(contour2, varStringc2, fc2, imc2, jmc2, kmc2, 
+                           cnpoly2, eltTypec2);
   // check contours
   E_Int posxc1, posyc1, poszc1;
   E_Int posxc2, posyc2, poszc2;
@@ -60,7 +58,8 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   {
     if ( strcmp(eltTypec1, "BAR") != 0 || strcmp(eltTypec2, "BAR") != 0)
     {
-      delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
+      RELEASESHAREDU(contour1, fc1, cnpoly1);
+      RELEASESHAREDU(contour2, fc2, cnpoly2);
       PyErr_SetString(PyExc_ValueError,
                       "volumeFromCrossSections: contours must be BAR-arrays.");
       return NULL;
@@ -76,7 +75,8 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
     if (posxc1 == -1 || posyc1 == -1 || poszc1 == -1 ||
         posxc2 == -1 || posyc2 == -1 || poszc2 == -1 )
     {
-      delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
+      RELEASESHAREDU(contour1, fc1, cnpoly1);
+      RELEASESHAREDU(contour2, fc2, cnpoly2);
       PyErr_SetString(PyExc_ValueError,
                       "volumeFromCrossSections: coordinates not found in contours.");
       return NULL;
@@ -85,8 +85,8 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   }
   else 
   {
-    if ( resc1 == 1 ) delete fc1;
-    if ( resc2 == 1 ) delete fc2;
+    if ( resc1 == 1 ) RELEASESHAREDS(contour1, fc1);
+    if ( resc2 == 1 ) RELEASESHAREDS(contour2, fc2);
     PyErr_SetString(PyExc_ValueError,
                     "volumeFromCrossSections: contours must be BAR-arrays.");
     return NULL;
@@ -102,30 +102,25 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
 
   // Extraction des triangles de Delaunay des 2 cross-sections
   E_Int im1, jm1, km1;
-  FldArrayF* f1;
-  FldArrayI* cn1;
-  char* varString1;
-  char* eltType1;
+  FldArrayF* f1; FldArrayI* cn1;
+  char* varString1; char* eltType1;
   E_Int im2, jm2, km2;
-  FldArrayF* f2;
-  FldArrayI* cn2;
-  char* varString2;
-  char* eltType2;
+  FldArrayF* f2; FldArrayI* cn2;
+  char* varString2; char* eltType2;
 
   E_Int res1 = 
-    K_ARRAY::getFromArray(array1, varString1, f1, im1, jm1, km1, cn1, 
-                          eltType1); 
+    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, cn1, 
+                           eltType1); 
   E_Int res2 = 
-    K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2, cn2, 
-                          eltType2);
+    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, cn2, 
+                           eltType2);
   // Check args
   if (res1 != 2 || strcmp(eltType1, "TRI") != 0)
   {
-    if (res1 == 1) delete f1;
-    else if (res1 == 2) { delete f1; delete cn1; }
-    if (res2 == 1) delete f2;
-    else if (res2 == 2) { delete f2; delete cn2; }
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(res2, array2, f2, cn2);    
     delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
+
           
     PyErr_SetString(PyExc_ValueError,
                     "volumeFromCrossSections: array1 must be a TRI-array.");
@@ -133,11 +128,10 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   }
   if (res2 != 2 || strcmp(eltType2, "TRI") != 0)
   {
-    delete f1; delete cn1;
-    if (res2 == 1) delete f2;
-    else if (res2 == 2) { delete f2; delete cn2; }
-    delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
-
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(res2, array2, f2, cn2);    
+    RELEASESHAREDU(contour1, fc1, cnpoly1);
+    RELEASESHAREDU(contour2, fc2, cnpoly2);
     PyErr_SetString(PyExc_ValueError,
                     "volumeFromCrossSections: array2 must be a TRI-array.");
     return NULL;
@@ -148,9 +142,10 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   E_Int posz1 = K_ARRAY::isCoordinateZPresent( varString1);
   if (posx1 == -1 || posy1 == -1 || posz1 == -1)
   {
-    delete f1; delete cn1; delete f2; delete cn2;
-    delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
-
+    RELEASESHAREDU(array1, f1, cn1);
+    RELEASESHAREDU(array2, f2, cn2);
+    RELEASESHAREDU(contour1, fc1, cnpoly1);
+    RELEASESHAREDU(contour2, fc2, cnpoly2);
     PyErr_SetString(PyExc_TypeError,
                     "volumeFromCrossSections: can't find coordinates in array.");
     return NULL;
@@ -162,9 +157,10 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
   E_Int posz2 = K_ARRAY::isCoordinateZPresent( varString2 );
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
-    delete f1; delete cn1; delete f2; delete cn2;
-    delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
-
+    RELEASESHAREDU(array1, f1, cn1);
+    RELEASESHAREDU(array2, f2, cn2);
+    RELEASESHAREDU(contour1, fc1, cnpoly1);
+    RELEASESHAREDU(contour2, fc2, cnpoly2);
     PyErr_SetString(PyExc_TypeError,
                     "volumeFromCrossSections: can't find coordinates in array.");
     return NULL;
@@ -233,8 +229,10 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
 
   PyObject* tpl = K_ARRAY::buildArray(coord, "x,y,z", cn, 4, "TETRA");
   delete an; delete cni;
-  delete f1; delete cn1; delete f2; delete cn2;
-  delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
+  RELEASESHAREDU(array1, f1, cn1);
+  RELEASESHAREDU(array2, f2, cn2); 
+  RELEASESHAREDU(contour1, fc1, cnpoly1);
+  RELEASESHAREDU(contour2, fc2, cnpoly2);
   return tpl;
 }
 

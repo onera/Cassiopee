@@ -52,15 +52,11 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   K_FLD::FldArrayF *fV(0), *fS(0);
   K_FLD::FldArrayI *cV(0), *cS(0);
 
-  if (!PYPARSETUPLE_(args, OO_ R_,
-                    &maskV, &maskS, &tol))
-  {
-      return NULL;
-  }
+  if (!PYPARSETUPLE_(args, OO_ R_, &maskV, &maskS, &tol)) return NULL;
 
   // Extraction des donnees
   // Volumic mask
-  E_Int res = K_ARRAY::getFromArray(maskV, varStringV, fV, ni, nj, nk, cV, eltTypeV);
+  E_Int res = K_ARRAY::getFromArray3(maskV, varStringV, fV, ni, nj, nk, cV, eltTypeV);
   
   bool ok = (res == 2) && (strcmp(eltTypeV, "TETRA") == 0);
   if (!ok)
@@ -82,7 +78,7 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   void* maskingV = new K_CONNECTOR::maskGen(*fV, posx+1, posy+1, posz+1, *cV, K_CONNECTOR::maskGen::TH4, tol);
   
   // Mask exterior faces
-  res = K_ARRAY::getFromArray(maskS, varStringS, fS, ni, nj, nk, cS, eltTypeS);
+  res = K_ARRAY::getFromArray3(maskS, varStringS, fS, ni, nj, nk, cS, eltTypeS);
   ok = ( (res == 2) && (strcmp(eltTypeS, "TRI") == 0) );
   if (!ok)
   {
@@ -120,6 +116,9 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   hook = PyCapsule_New(packet, NULL, NULL);
 #endif
   
+  //RELEASESHAREDU(maskV, fV, cV);
+  //RELEASESHAREDU(maskS, fS, cS);
+  
   return hook;
 }
 
@@ -135,15 +134,13 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
   K_FLD::FldArrayF *fmask(0);
   K_FLD::FldArrayI *cmask(0);
   
-  if (!PYPARSETUPLE_(args, O_ R_, &maskT, &tol))
-  {
-      return NULL;
-  }
+  if (!PYPARSETUPLE_(args, O_ R_, &maskT, &tol)) return NULL;
+  
 
   /////////////////////////////////////////////////////////////////////////
   // Extraction des donnees
   
-  E_Int res = K_ARRAY::getFromArray(maskT, varStringMsk, fmask, ni, nj, nk, cmask, eltTypeMsk);
+  E_Int res = K_ARRAY::getFromArray3(maskT, varStringMsk, fmask, ni, nj, nk, cmask, eltTypeMsk);
   bool err = (res != 2);
   err &=  (strcmp(eltTypeMsk, "TRI") != 0);
   if (err)
@@ -181,6 +178,7 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
   hook = PyCapsule_New(packet, NULL, NULL);
 #endif
   
+  //RELEASESHAREDU(maskT, fmask, cmask);
   return hook;
 }
 
@@ -192,10 +190,7 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::deleteTetraMask(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PyArg_ParseTuple(args, "O", &hook))
-  {
-      return NULL;
-  }
+  if (!PyArg_ParseTuple(args, "O", &hook)) return NULL;
 
   // recupere le hook
   void** packet = NULL;
@@ -210,9 +205,9 @@ PyObject* K_CONNECTOR::deleteTetraMask(PyObject* self, PyObject* args)
 
   K_CONNECTOR::maskGen* ptMask = (K_CONNECTOR::maskGen*)packet[1];
   delete ptMask;
-  K_FLD::FldArrayF * ptFldF = (K_FLD::FldArrayF*)packet[2];
+  K_FLD::FldArrayF* ptFldF = (K_FLD::FldArrayF*)packet[2];
   delete ptFldF;
-  K_FLD::FldArrayI * ptFldI = (K_FLD::FldArrayI*)packet[3];
+  K_FLD::FldArrayI* ptFldI = (K_FLD::FldArrayI*)packet[3];
   delete ptFldI;
   ptMask = (K_CONNECTOR::maskGen*)packet[4];
   delete ptMask;
@@ -234,10 +229,7 @@ PyObject* K_CONNECTOR::deleteTetraMask(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::deleteTriMask(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PyArg_ParseTuple(args, "O", &hook))
-  {
-      return NULL;
-  }
+  if (!PyArg_ParseTuple(args, "O", &hook)) return NULL;
 
   // recupere le hook
   void** packet = NULL;
@@ -253,9 +245,9 @@ PyObject* K_CONNECTOR::deleteTriMask(PyObject* self, PyObject* args)
   K_CONNECTOR::maskGen* pt = (K_CONNECTOR::maskGen*)packet[1];
   delete pt;
   
-  K_FLD::FldArrayF * ptfmask = (K_FLD::FldArrayF*)packet[2];
+  K_FLD::FldArrayF* ptfmask = (K_FLD::FldArrayF*)packet[2];
   delete ptfmask;
-  K_FLD::FldArrayI * ptcmask = (K_FLD::FldArrayI*)packet[3];
+  K_FLD::FldArrayI* ptcmask = (K_FLD::FldArrayI*)packet[3];
   delete ptcmask;
   
   delete type; delete [] packet;
@@ -293,7 +285,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOO_ III_ S_, 
                     &mesh, &celln, &maskHook, &blankingType, &CELLNVAL, &overwrite, &cellNName))
   {
-      return NULL;
+    return NULL;
   }
 
   if (blankingType < 0 || blankingType > 1) 
@@ -330,7 +322,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int res = K_ARRAY::getFromArray(mesh, varString, fmesh, ni, nj, nk, cmesh, eltType);
+  E_Int res = K_ARRAY::getFromArray3(mesh, varString, fmesh, ni, nj, nk, cmesh, eltType);
   std::unique_ptr<K_FLD::FldArrayF> afmesh(fmesh); // to avoid to call explicit delete at several places in the code.
   std::unique_ptr<K_FLD::FldArrayI> acmesh(cmesh); // to avoid to call explicit delete at several places in the code.
   
@@ -351,17 +343,17 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
     }
   }
 
-  res = K_ARRAY::getFromArray(celln, varStringC, fC, ni, nj, nk, cC, eltTypeC);
+  E_Int res2 = K_ARRAY::getFromArray3(celln, varStringC, fC, ni, nj, nk, cC, eltTypeC);
   std::unique_ptr<K_FLD::FldArrayF> afC(fC); // to avoid to call explicit delete at several places in the code.
   std::unique_ptr<K_FLD::FldArrayI> acC(cC); // to avoid to call explicit delete at several places in the code.
    
-  if (res == -1)
+  if (res2 == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                       "blankCellsTetra: cellN must be specified upon entry.");
     return NULL;
   }
-  bool struct_celln = (res == 1);
+  bool struct_celln = (res2 == 1);
 
   // Blanking
   K_CONNECTOR::maskGen* mask = (K_CONNECTOR::maskGen*)(packet[1]);
@@ -369,8 +361,6 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString) +1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString) +1;
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString) +1;
-  
-  //std::cout << "px py pz " << posx << " " << posy << " " << posz << std::endl;
   
   if (mask == 0)
   {
@@ -392,7 +382,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
 
   if (blankingType == 1 && *type == TETRA_HOOK_ID) //tetra mask
   {
-    maske._auxiliary=(K_CONNECTOR::maskGen*)(packet[4]);
+    maske._auxiliary = (K_CONNECTOR::maskGen*)(packet[4]);
   }
 
   size_t sz = 0;
@@ -409,16 +399,15 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
 
   if (sz == 0)
   {
-    //std::cout << "nb points/tets : " << mask->nb_points() << "/" << mask->nb_elts() << std::endl;
     PyErr_SetString(PyExc_ValueError,
        "blankCellsTetra: the input combination is not handled.");
     return NULL;
   }
 
   K_FLD::FldArrayI cN(sz);
-  for (size_t i = 0; i < sz; ++i) cN[i]=E_Int((*fC)[i]);
+  for (size_t i = 0; i < sz; ++i) cN[i] = E_Int((*fC)[i]);
   
-  E_Int err =0;
+  E_Int err = 0;
   if (eltType && strstr(eltType, "TETRA") != 0)
     err = do_the_blanking<K_MESH::Tetrahedron>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
   else if (eltType && strstr(eltType, "PYRA") != 0)
@@ -441,12 +430,17 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   }
   
   K_FLD::FldArrayF cellnout(sz);
-  for (size_t i = 0; i < sz; ++i) cellnout[i]=E_Float(cN[i]);
+  for (size_t i = 0; i < sz; ++i) cellnout[i] = E_Float(cN[i]);
   
+  PyObject* tpl = NULL;
   if (struct_celln)
-    return K_ARRAY::buildArray(cellnout, cellNName, ni, nj, nk);
+    tpl = K_ARRAY::buildArray(cellnout, cellNName, ni, nj, nk);
   else
-    return K_ARRAY::buildArray(cellnout, cellNName, *cC, -1, eltTypeC, false);
+    tpl = K_ARRAY::buildArray(cellnout, cellNName, *cC, -1, eltTypeC, false);
+  
+  //RELEASESHAREDB(res, mesh, fmesh, cmesh);
+  //RELEASESHAREDB(res2, celln, fC, cC);
+  return tpl;
 }
 
 ///
@@ -464,8 +458,7 @@ inline E_Int __do_the_node_blanking
   K_FLD::ArrayAccessor<K_FLD::FldArrayF > acrd(fmesh, posx, posy, posz);
   extractor.getInBox<3>(bb->minB, bb->maxB, E_EPSILON, acrd, subset);
   
-  if (subset.empty())
-    return 0;
+  if (subset.empty()) return 0;
   size_t sz = subset.size();
   
   K_FLD::FldArrayF fzoom;
@@ -562,8 +555,7 @@ inline E_Int __do_the_cell_blanking
   Connectivity_t cellNzoom(ZoomCentroids.getSize(), 1);
   cellNzoom.setAllValuesAt(1);
   E_Int err = maskE._main->blank(ZoomCentroids, 1,2,3, cellNzoom, CELLNVAL, overwrite);
-  if (err)
-    return err;
+  if (err) return err;
         
   // reduce the work set to those inside the zoom but not masked yet
   E_Int sz2=0, k=0;
@@ -667,8 +659,7 @@ inline E_Int __do_the_cell_blanking<K_MESH::Polyhedron<UNKNOWN> >
   K_FLD::ArrayAccessor< ngon_type > acnt(ng, -1);
   extractor.getInBox<3, ELT_t>(bb->minB, bb->maxB, E_EPSILON, acrd, acnt, subset);
     
-  if (subset.empty())
-    return 0;
+  if (subset.empty()) return 0;
   
   //std::cout << "nb of extracted : " << subset.size() << std::endl;
   size_t sz1 = subset.size();
@@ -701,8 +692,7 @@ inline E_Int __do_the_cell_blanking<K_MESH::Polyhedron<UNKNOWN> >
   Connectivity_t cellNzoom(ZoomCentroids.getSize(), 1);
   cellNzoom.setAllValuesAt(1);
   E_Int err = maskE._main->blank(ZoomCentroids, 1,2,3, cellNzoom, CELLNVAL, overwrite);
-  if (err)
-    return err;
+  if (err) return err;
         
   // reduce the work set to those inside the zoom but not masked yet
   E_Int sz2=0;

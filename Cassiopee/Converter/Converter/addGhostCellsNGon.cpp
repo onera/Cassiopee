@@ -39,8 +39,8 @@ PyObject* K_CONVERTER::addGhostCellsNGonNodes(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(arrayN, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(arrayN,f);
@@ -159,8 +159,8 @@ PyObject* K_CONVERTER::addGhostCellsNGonCenters(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   char* varStringC; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringC, fc, nic, njc, nkc, 
-                                     cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringC, fc, nic, njc, nkc, 
+                                      cnc, eltTypec);
   if (resc != 2)
   {
     if (resc == 1) RELEASESHAREDS(arrayC,fc);
@@ -168,7 +168,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonCenters(PyObject* self, PyObject* args)
                     "addGhostCellsNGon: array is invalid.");
     return NULL;
   }
-  if (strcmp(eltTypec,"NGON*") != 0) 
+  if (strcmp(eltTypec, "NGON*") != 0) 
   {
     
     PyErr_SetString(PyExc_TypeError,
@@ -359,8 +359,8 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(arrayN, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(arrayN,f);
@@ -379,8 +379,8 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   char* varStringC; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringC, fc, nic, njc, nkc, 
-                                     cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringC, fc, nic, njc, nkc, 
+                                      cnc, eltTypec);
   if (resc != 2)
   {
     if (resc == 1) RELEASESHAREDS(arrayC, fc);

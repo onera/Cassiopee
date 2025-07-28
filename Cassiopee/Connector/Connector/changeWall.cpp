@@ -52,8 +52,8 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(arrayCenters, varStringc, fc, 
-                                    imc, jmc, kmc, cnc, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, 
+                                     imc, jmc, kmc, cnc, eltType); 
   if (res != 1)
   {
     if (res == 2) RELEASESHAREDU(arrayCenters,fc,cnc);
@@ -85,8 +85,8 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
   E_Int im1, jm1, km1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  res = K_ARRAY::getFromArray(firstWallCenters, varString1, f1, 
-                              im1, jm1, km1, cn1, eltType1, true); 
+  res = K_ARRAY::getFromArray3(firstWallCenters, varString1, f1, 
+                               im1, jm1, km1, cn1, eltType1); 
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(firstWallCenters, f1);

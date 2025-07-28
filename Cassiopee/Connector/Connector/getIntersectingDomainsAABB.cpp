@@ -41,8 +41,8 @@ PyObject* K_CONNECTOR::getIntersectingDomainsAABB(PyObject* self, PyObject* args
       FldArrayF* f; FldArrayI* cn;
       char* varString; char* eltType;
       PyObject* array = PyList_GetItem(arrays, i);
-      E_Int ret = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
-                                       cn, eltType);
+      E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                                         cn, eltType);
       if (ret != 1) 
       {
         RELEASESHAREDB(ret, array, f, cn);

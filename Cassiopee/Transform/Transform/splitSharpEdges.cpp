@@ -37,10 +37,9 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
   E_Float dirVect[3];
   dirVect[0] = 0.; dirVect[1] = 0.; dirVect[2] = 1.;
 
-  if (!PYPARSETUPLE_(args, O_ R_,
-                    &array, &alphaRef))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &alphaRef))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
@@ -48,7 +47,7 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   if (res == 1)
   {
@@ -474,7 +473,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   if (res != 2)
   {

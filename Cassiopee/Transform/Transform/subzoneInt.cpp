@@ -36,7 +36,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType); 
   if ( res == 1 ) ;
   else if (res == 2)
   {
@@ -233,7 +233,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(arrayN, varString, f, ni, nj, nk, cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, cn, eltType); 
   if (res == 1);
   else if (res == 2)
   {
@@ -251,7 +251,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  res = K_ARRAY::getFromArray(arrayC, varStringc, fc, nic, njc, nkc, cnc, eltTypec, true); 
+  res = K_ARRAY::getFromArray3(arrayC, varStringc, fc, nic, njc, nkc, cnc, eltTypec); 
   if (res == 1);
   else if (res == 2)
   {

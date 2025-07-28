@@ -46,8 +46,8 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
   FldArrayI* c; FldArrayF* FCenter;
   char* eltType; char* varString;
   E_Int res; 
-  res = K_ARRAY::getFromArray(array, varString, FCenter, 
-                              ni, nj, nk, c, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, FCenter, 
+                               ni, nj, nk, c, eltType);
   if (res != 1 && res != 2) return NULL;
 
   /* Essaie de trouver la variables cellN. Les traitements sont un peu
@@ -120,8 +120,8 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
     {
       //PyObject* indR = PyList_GetItem(BCFields, 0);
       //PyObject* fields = PyList_GetItem(BCFields, 1);
-      //E_Int res = K_ARRAY::getFromArray(fields, varString, FCenter, 
-      //                                  ni, nj, nk, c, eltType, true);
+      //E_Int res = K_ARRAY::getFromArray3(fields, varString, FCenter, 
+      //                                   ni, nj, nk, c, eltType);
       //center2NodeStructBorder(FNode, nin, njn, nkn);
       //RELEASESHAREDB(res, fields, );
     }

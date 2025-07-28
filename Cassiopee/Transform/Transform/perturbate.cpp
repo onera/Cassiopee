@@ -34,14 +34,14 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ R_ I_,
                     &array, &radius, &dim))
   {
-      return NULL;
+    return NULL;
   }
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType); 
+  res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   E_Int posx, posy, posz;
   E_Float rx, ry, rz;
@@ -56,7 +56,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
     posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "perturbate: can't find coordinates in array.");
       return NULL;
@@ -129,7 +129,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
       
     // Build array
     PyObject* tpl = K_ARRAY::buildArray(*f, varString, im, jm, km);
-    delete f;
+    RELEASESHAREDS(array, f);  
     return tpl;
   }
   else if (res == 2)
@@ -139,7 +139,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
     posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f; delete cn;
+      RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "perturbate: can't find coordinates in array.");
       return NULL;
@@ -167,7 +167,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
       if (dim > 2) rz = K_NOISE::stdRand(&idum);
       vector<E_Int>& pt = cVN[i];
       l = 1.e6;
-      for (unsigned int j = 0; j < pt.size(); j++)
+      for (size_t j = 0; j < pt.size(); j++)
       {
         ind = pt[j]-1;
         lx = fx[i] - fx[ind];
@@ -183,7 +183,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
     
     // Build array
     PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     return tpl;
   }
   else

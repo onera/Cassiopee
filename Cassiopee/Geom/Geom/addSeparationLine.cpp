@@ -43,10 +43,10 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
   char* varString1; char* varString2;
   char* eltType1; char* eltType2;
 
-  E_Int res1 = K_ARRAY::getFromArray(array1, varString1, f1, 
-                                     im, jm, km, cn1, eltType1); 
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, f2, 
-                                     im2, jm2, km2, cn2, eltType2);
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, 
+                                      im, jm, km, cn1, eltType1); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, 
+                                      im2, jm2, km2, cn2, eltType2);
   FldArrayF* coord0 = new FldArrayF();
   FldArrayF& coord = *coord0;
   FldArrayF* coord1 = new FldArrayF();
@@ -251,8 +251,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     
     if (npt1 > 0)
     {
-      PyObject* tpl = K_ARRAY::buildArray(*coord0, varString, 
-                                          npt1, 1, 1);
+      PyObject* tpl = K_ARRAY::buildArray(*coord0, varString, npt1, 1, 1);
       delete coord0;
       PyList_Append(l, tpl);
       Py_DECREF(tpl);
@@ -260,22 +259,20 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     
     if (npt2 > 0)
     {
-      PyObject* tpl = K_ARRAY::buildArray(*coord1, varString, 
-                                          npt2, 1, 1);
+      PyObject* tpl = K_ARRAY::buildArray(*coord1, varString, npt2, 1, 1);
       delete coord1;
       PyList_Append(l, tpl);
       Py_DECREF(tpl);
     }
     delete [] varString;
-    delete f1; delete f2;
+    RELEASESHAREDS(array1, f1);
+    RELEASESHAREDS(array2, f2);
     return l; 
   }
   else if (res1 == 2 || res2 == 2)
   {
-    if (res1 >= 1) delete f1;
-    if (res1 == 2) delete cn1;
-    if (res2 >= 1) delete f2;
-    if (res2 == 2) delete cn2;
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(res2, array2, f2, cn2);
     PyErr_SetString(PyExc_TypeError,
                     "addSeparationLine: not used for unstructured array.");
     return NULL;

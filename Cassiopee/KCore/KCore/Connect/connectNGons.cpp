@@ -47,7 +47,7 @@ using namespace std;
 //=============================================================================
 E_Int K_CONNECT::getPosFaces(FldArrayI& cn, FldArrayI& posFaces)
 {
-  if (cn.isNGon() == 2) // aray2
+  if (cn.isNGon() == 2) // array2
     return getPosFacets(cn.getNGon(), 0, cn.getNFaces(), posFaces);
   else // array1
     return getPosFacets(cn.begin(), BEGINFACESARR+2, cn[BEGINFACESARR], posFaces);

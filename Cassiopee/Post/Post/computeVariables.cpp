@@ -134,8 +134,8 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* c;
   E_Int res; 
   E_Int ni, nj, nk; // number of points of array
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, c, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, c, eltType);
+  
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,

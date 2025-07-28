@@ -34,9 +34,7 @@ PyObject* K_CONVERTER::getValueOfArray(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int i0, j0, k0;
   E_Int ind0;
-  E_Int i = -1; 
-  E_Int j = -1; 
-  E_Int k = -1; 
+  E_Int i = -1; E_Int j = -1; E_Int k = -1; 
   E_Int ind = -1;
 
   if (PYPARSETUPLE_(args, O_ TIII_, &array, &i0, &j0, &k0))
@@ -48,8 +46,8 @@ PyObject* K_CONVERTER::getValueOfArray(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;  
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    im, jm, km, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                     im, jm, km, cn, eltType);
   E_Int npts = f->getSize();
   E_Int nfld = f->getNfld();
   if (res != 1 && res != 2) 

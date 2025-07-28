@@ -113,13 +113,13 @@ PyObject* K_GENERATOR::closeMeshLegacy(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
 
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f;
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "close: can't find coordinates in array.");
     return NULL;
@@ -130,14 +130,14 @@ PyObject* K_GENERATOR::closeMeshLegacy(PyObject* self, PyObject* args)
   {
     closeStructuredMesh(f->begin(posx), f->begin(posy), f->begin(posz), im, jm, km, eps);
     PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km); 
-    delete f;
+    RELEASESHAREDS(array, f);
     return tpl;
   }
   else if (res == 2)
   { 
     if (strchr(eltType, '*') != NULL)
     {
-      delete f; delete cn;
+      RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "close: array must be defined at vertices.");
       return NULL;
@@ -145,7 +145,7 @@ PyObject* K_GENERATOR::closeMeshLegacy(PyObject* self, PyObject* args)
 
     closeUnstructuredMesh(posx, posy, posz, eps, eltType, *f, *cn, removeDegen);
     PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     return tpl;
   }
   else

@@ -107,6 +107,12 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#OCC._sewing" title="OCC._sewing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC._sewing</span></code></a></p></td>
 <td><p>Sew some faces (suppress redundant edges).</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#OCC._removeFaces" title="OCC._removeFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC._removeFaces</span></code></a></p></td>
+<td><p>Remove given faces.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#OCC._trimFaces" title="OCC._trimFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OCC._trimFaces</span></code></a></p></td>
+<td><p></p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -426,6 +432,35 @@ FACES contains discretized faces with a link to the global face number in CAD.</
 
 <hr class="docutils" />
 <dl class="py function">
+<dt class="sig sig-object py" id="OCC._scale">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listOfFaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Scale a CAD hook by a given factor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>factor</strong> (<em>float</em>) &#8211; scale factor</p></li>
+<li><p><strong>X</strong> (<em>tuple</em><em> of </em><em>floats</em>) &#8211; invariant point (x, y, z)</p></li>
+<li><p><strong>listOfFaces</strong> (<em>list</em><em> of </em><em>face indices</em><em> (</em><em>starts 1</em><em>)</em>) &#8211; if None, scale all else scale only given faces</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/scalePT.py">Rotate a CAD</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - scale (pyTre) -</span>
+<span class="kn">import</span> <span class="nn">OCC.PyTree</span> <span class="k">as</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_scale</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s1">&#39;out.step&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt_step&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
 <dt class="sig sig-object py" id="OCC._splitFaces">
 <span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">_splitFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Split faces in a CAD hook.</p>
@@ -506,6 +541,72 @@ FACES contains discretized faces with a link to the global face number in CAD.</
 <span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cube.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
 <span class="n">OCC</span><span class="o">.</span><span class="n">_sewing</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">,</span> <span class="n">listFaces</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
 <span class="n">OCC</span><span class="o">.</span><span class="n">_sewing</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s1">&#39;out.step&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt_step&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC._removeFaces">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">_removeFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listFaces</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Remove given list of faces from CAD.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>listFaces</strong> (<em>list</em><em> of </em><em>face indices</em><em> (</em><em>starts 1</em><em>)</em>) &#8211; list of faces</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/removeFacesPT.py">Remove faces</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - removeFaces (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cubeNoTrim.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+
+<span class="n">ret</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">getFaceNameInOCAF</span><span class="p">(</span><span class="n">hook</span><span class="p">)</span>
+<span class="n">cube1</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_removeFaces</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">cube1</span><span class="p">)</span>
+
+<span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s1">&#39;out.step&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt_step&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="OCC._trimFaces">
+<span class="sig-prename descclassname"><span class="pre">OCC.</span></span><span class="sig-name descname"><span class="pre">_trimFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces2</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Trim set of faces1 with set of faces2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> (<em>CAD hook</em>) &#8211; CAD hook</p></li>
+<li><p><strong>faces1</strong> (<em>list</em><em> of </em><em>face indices</em><em> (</em><em>starts 1</em><em>)</em>) &#8211; first set of faces</p></li>
+<li><p><strong>faces2</strong> (<em>list</em><em> of </em><em>face indices</em><em> (</em><em>starts 1</em><em>)</em>) &#8211; second set of faces</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/OCC/trimFacesPT.py">Trim faces</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - trimFaces (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">OCC.PyTree</span> <span class="k">as</span> <span class="nn">OCC</span>
+
+<span class="n">hook</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">readCAD</span><span class="p">(</span><span class="s2">&quot;cubeNoTrim.step&quot;</span><span class="p">,</span> <span class="s2">&quot;fmt_step&quot;</span><span class="p">)</span>
+
+<span class="n">ret</span> <span class="o">=</span> <span class="n">OCC</span><span class="o">.</span><span class="n">getFaceNameInOCAF</span><span class="p">(</span><span class="n">hook</span><span class="p">)</span>
+<span class="n">cube1</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">cube2</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+<span class="c1">#OCC._translate(hook, (+300.,0,0), cube2)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_trimFaces</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">cube1</span><span class="p">,</span> <span class="n">cube2</span><span class="p">)</span>
+<span class="n">OCC</span><span class="o">.</span><span class="n">_sewing</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-2</span><span class="p">)</span>
+
 <span class="n">OCC</span><span class="o">.</span><span class="n">writeCAD</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="s1">&#39;out.step&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt_step&#39;</span><span class="p">)</span>
 </pre></div>
 </div>

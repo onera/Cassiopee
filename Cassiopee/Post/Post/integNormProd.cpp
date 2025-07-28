@@ -137,12 +137,12 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
   E_Float resultat = 0.;
   E_Int res = -1;
 
-  for (int i = 0; i < nCoordArrays; i++)
+  for (E_Int i = 0; i < nCoordArrays; i++)
   {
     coordObj = PyList_GetItem(coordArrays,i);
     FObj = PyList_GetItem(FArrays,i);
-    resc = K_ARRAY::getFromArray(coordObj, varStringc, fc, 
-                                 nic, njc, nkc, cnc, eltTypec); 
+    resc = K_ARRAY::getFromArray3(coordObj, varStringc, fc, 
+                                  nic, njc, nkc, cnc, eltTypec); 
     
     if (resc != 1 && resc != 2)
     {
@@ -156,19 +156,19 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varStringc);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete fc; if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       printf("Warning: integNormProduct: coordinates not found in array %d.", i+1);
       printf(" Array skipped...\n");
       goto next; 
     }    
     posx++; posy++; posz++;
 
-    resf = K_ARRAY::getFromArray(FObj, varStringf, ff, nif, njf, nkf, 
-                                 cnf, eltTypef); 
+    resf = K_ARRAY::getFromArray3(FObj, varStringf, ff, nif, njf, nkf, 
+                                  cnf, eltTypef); 
     if (resf != 1 && resf != 2)
     {
-      delete ff; delete fc;
-      if (resc == 2) delete cnc;
+      RELEASESHAREDS(FObj, ff);
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       PyErr_SetString(PyExc_TypeError, 
                       "integNormProduct: field is not a valid array.");
       return NULL;
@@ -179,8 +179,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       if (ff->getNfld() != 3)
       {
         printf("Warning: integNormProduct: vector array %d must be 3D.\n", i+1);
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       strcpy(varString0, varStringf);
@@ -192,8 +192,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       {
         printf("Warning: integNormProduct: invalid number of variables for field array %d.", i+1);
         printf(" Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
 
@@ -202,8 +202,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       if (ids == -1) // varstrings are different
       {
         printf("Warning: integNormProduct: variables are in a different order to the first array. Array skipped...\n");
-        delete ff;if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
     }
@@ -218,8 +218,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
            (nic > 1 && njc > 1 && nkc > 1))
       {
         printf("Warning: integNormProduct: coordinates array must be 2D. Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       
@@ -243,7 +243,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
         else 
         {
           printf("Warning: integNormProduct: coord and f arrays do not represent the same zone. Array skipped...\n");
-          delete ff; delete fc;
+          RELEASESHAREDS(FObj, ff);
+          RELEASESHAREDS(coordObj, ff);
           goto next;
         }
       }
@@ -257,11 +258,11 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       else // coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(
+        resr = K_ARRAY::getFromArray3(
           ratioObj, varStringr, ratio, nir, njr, nkr, cnr, eltTyper); 
         if (resr != 1)
         {
-          if ( resr == 2 ) {delete ratio; delete cnr;}
+          RELEASESHAREDB(resr, ratioObj, ratio, cnr);
           printf("Warning: integNormProduct: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -271,14 +272,20 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       res = 0;
       res = integ3(nic, njc, nkc, center2node, posx, posy, posz,
                    *fc, *ff, *ratio, resultat);
-      if ( res == 0 ) 
+      if (res == 0) 
       {
-        delete ff; delete fc;delete ratio;
+        RELEASESHAREDS(coordObj, fc);
+        RELEASESHAREDS(FObj, ff);
+        if (nRatioArrays == 0 || resr != 1) delete ratio;
+        else RELEASESHAREDS(ratioObj, ratio);
         PyErr_SetString(PyExc_ValueError,
                         "integNormProduct: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete ratio;
+      RELEASESHAREDS(coordObj, fc);
+      RELEASESHAREDS(FObj, ff);
+      if (nRatioArrays == 0 || resr != 1) delete ratio;
+      else RELEASESHAREDS(ratioObj, ratio);
     }
     else if (resc == 2 && resf == 2)//cas non structure
     {
@@ -288,8 +295,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
         center2node = 1;
       else
       {
-        delete fc; delete cnc;
-        delete ff; delete cnf;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
                         "integNormProduct: only TRI unstructured arrays are possible.");
         return NULL;
@@ -306,11 +313,11 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       else //coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(
+        resr = K_ARRAY::getFromArray3(
           ratioObj, varStringr, ratio, nir, njr, nkr, cnr, eltTyper); 
         if (resr != 2)
         {
-          if ( resr == 1 ) delete ratio;
+          if (resr == 1) RELEASESHAREDS(ratioObj, ratio);
           printf("Warning: integNormProduct: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -323,15 +330,18 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
                            *cnc, *fc, *ff, *ratio, resultat);
       if ( res == 0 ) 
       {
-        delete ff; delete fc; delete cnf; delete cnc;
-        delete ratio; 
-        if (resr == 2) delete cnr;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
+        if (nRatioArrays == 0 || resr != 2) delete ratio;
+        else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
         PyErr_SetString(PyExc_ValueError,
                         "integNormProduct: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete cnf; delete cnc; delete ratio; 
-      if (resr == 2) delete cnr;
+      RELEASESHAREDU(coordObj, fc, cnc);
+      RELEASESHAREDU(FObj, ff, cnf);
+      if (nRatioArrays == 0 || resr != 2) delete ratio;
+      else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
     }
     else 
     {
@@ -341,7 +351,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     }
     next:;
   }
-   if ( res == -1 )
+   
+  if (res == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "integNormProduct: integration failed.");
