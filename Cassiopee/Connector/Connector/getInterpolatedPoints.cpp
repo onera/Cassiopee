@@ -26,16 +26,22 @@ using namespace std;
 /* Search for the fringe of interpolated nodes near blanked points; depth is
    the number of layers of interpolated nodes.
    IN: blankedCells: -1, point masque, 0: point interpole, 1, point normal.
+   IN: typeUnstr: 0 : EB, 1 : NGON : connect is thus the cEV or NGON connectivity 
    IN/OUT: cellN: -1, point masque, 0, point interpole, 1, point normal.*/
 //=============================================================================
 void K_CONNECTOR::searchMaskInterpolatedNodesUnstr(
-  E_Int depth,  FldArrayI& cnEV,
+  E_Int depth,  FldArrayI& connect,
   FldArrayI& blankedCells,
   FldArrayI& cellN)
 {
   E_Int nvert = blankedCells.getSize();
   std::vector< std::vector<E_Int> > cVN(nvert);
-  K_CONNECT::connectEV2VNbrs(cnEV, cVN);
+  E_Int isNGon = connect.isNGon();
+  if (isNGon==0)
+    K_CONNECT::connectEV2VNbrs(connect, cVN);
+  else 
+    K_CONNECT::connectNG2VNbrs(connect, cVN);
+
   E_Int nvoisins;
 
   for (E_Int ind = 0; ind < nvert; ind++)
@@ -1148,12 +1154,9 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
       else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
     }
-    if ( K_STRING::cmp(eltType,"NGON")==0)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "getOversetHolesInterpNodes: not implemented for NGON zones.");
-      delete field; delete cn; return NULL;
-    }
+    // WARNING: NGON is array1 type here !!! 
+    if ( K_STRING::cmp(eltType,"NGON")==0) cn->setNGon(1);
+ 
     searchMaskInterpolatedNodesUnstr(depth, *cn, blankedCells, cellNatFld);
     for (E_Int ind = 0; ind < npts; ind++)
     {
