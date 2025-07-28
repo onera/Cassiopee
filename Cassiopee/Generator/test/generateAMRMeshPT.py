@@ -3,7 +3,7 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 import Generator.PyTree as G
-import Geom.PyTree as D 
+import Geom.PyTree as D
 import Geom.IBM as D_IBM
 import Connector.AMR as X_AMR
 

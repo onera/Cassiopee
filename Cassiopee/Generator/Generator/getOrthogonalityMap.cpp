@@ -25,15 +25,6 @@ using namespace K_CONST;
 using namespace K_FLD;
 using namespace K_FUNC;
 
-extern "C"
-{
-  void k6unstructsurf_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
-                       E_Int& nnodes, E_Int* cn, 
-                       E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                       E_Float* snx, E_Float* sny, E_Float* snz,
-                       E_Float* surface);
-}
-
 // ============================================================================
 /* Return orthogonality map */
 /* angle is given in degree */
@@ -44,7 +35,7 @@ extern "C"
 PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -233,7 +224,6 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     // Cas non structure
     E_Int nelts = cn->getSize();
     E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-    E_Int npts = f->getSize();
 
     E_Float* x = f->begin(posx);
     E_Float* y = f->begin(posy);
@@ -313,19 +303,23 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     else if (strcmp(eltType, "TETRA") == 0)
     {
       // Compute surface normals
-      E_Int nedges = 4;
-      FldArrayF nsurfx(nelts, nedges);
-      FldArrayF nsurfy(nelts, nedges);
-      FldArrayF nsurfz(nelts, nedges);
-      FldArrayF surf(nelts, nedges);
-      k6unstructsurf_(npts, nelts, nedges, nnodes, cn->begin(), 
-                      f->begin(posx), f->begin(posy), f->begin(posz), 
-                      nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), 
-                      surf.begin());
+      E_Int nvpe = cn->getNfld();
+      FldArrayF nsurfx(nelts, nvpe);
+      FldArrayF nsurfy(nelts, nvpe);
+      FldArrayF nsurfz(nelts, nvpe);
+      FldArrayF surf(nelts, nvpe);
+      K_METRIC::compUnstructSurf(
+        *cn, "TETRA", 
+        f->begin(posx), f->begin(posy), f->begin(posz), 
+        nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), surf.begin());
+
       // Compute dihedral angle
-      E_Float* nsurf1x = nsurfx.begin(1); E_Float* nsurf2x = nsurfx.begin(2); E_Float* nsurf3x = nsurfx.begin(3);E_Float* nsurf4x = nsurfx.begin(4);
-      E_Float* nsurf1y = nsurfy.begin(1); E_Float* nsurf2y = nsurfy.begin(2); E_Float* nsurf3y = nsurfy.begin(3);E_Float* nsurf4y = nsurfy.begin(4);
-      E_Float* nsurf1z = nsurfz.begin(1); E_Float* nsurf2z = nsurfz.begin(2); E_Float* nsurf3z = nsurfz.begin(3);E_Float* nsurf4z = nsurfz.begin(4);
+      E_Float* nsurf1x = nsurfx.begin(1); E_Float* nsurf2x = nsurfx.begin(2);
+      E_Float* nsurf3x = nsurfx.begin(3);E_Float* nsurf4x = nsurfx.begin(4);
+      E_Float* nsurf1y = nsurfy.begin(1); E_Float* nsurf2y = nsurfy.begin(2);
+      E_Float* nsurf3y = nsurfy.begin(3);E_Float* nsurf4y = nsurfy.begin(4);
+      E_Float* nsurf1z = nsurfz.begin(1); E_Float* nsurf2z = nsurfz.begin(2);
+      E_Float* nsurf3z = nsurfz.begin(3);E_Float* nsurf4z = nsurfz.begin(4);
       E_Float* surf1 = surf.begin(1); E_Float* surf2 = surf.begin(2); 
       E_Float* surf3 = surf.begin(3); E_Float* surf4 = surf.begin(4);
     
@@ -362,21 +356,25 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     else if (strcmp(eltType, "PENTA") == 0)
     {
       // Compute surface normals
-      E_Int nedges = 5;
-      FldArrayF nsurfx(nelts, nedges);
-      FldArrayF nsurfy(nelts, nedges);
-      FldArrayF nsurfz(nelts, nedges);
-      FldArrayF surf(nelts, nedges);
-      k6unstructsurf_(npts, nelts, nedges, nnodes, cn->begin(), 
-                      f->begin(posx), f->begin(posy), f->begin(posz), 
-                      nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), 
-                      surf.begin());
+      E_Int nvpe = cn->getNfld();
+      FldArrayF nsurfx(nelts, nvpe);
+      FldArrayF nsurfy(nelts, nvpe);
+      FldArrayF nsurfz(nelts, nvpe);
+      FldArrayF surf(nelts, nvpe);
+      K_METRIC::compUnstructSurf(
+        *cn, "PENTA",
+        f->begin(posx), f->begin(posy), f->begin(posz), 
+        nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), surf.begin());
+
       // Compute dihedral angle
-      E_Float* nsurf1x = nsurfx.begin(1); E_Float* nsurf2x = nsurfx.begin(2); E_Float* nsurf3x = nsurfx.begin(3);
+      E_Float* nsurf1x = nsurfx.begin(1); E_Float* nsurf2x = nsurfx.begin(2);
+      E_Float* nsurf3x = nsurfx.begin(3);
       E_Float* nsurf4x = nsurfx.begin(4); E_Float* nsurf5x = nsurfx.begin(5);
-      E_Float* nsurf1y = nsurfy.begin(1); E_Float* nsurf2y = nsurfy.begin(2); E_Float* nsurf3y = nsurfy.begin(3);
+      E_Float* nsurf1y = nsurfy.begin(1); E_Float* nsurf2y = nsurfy.begin(2);
+      E_Float* nsurf3y = nsurfy.begin(3);
       E_Float* nsurf4y = nsurfy.begin(4); E_Float* nsurf5y = nsurfy.begin(5);
-      E_Float* nsurf1z = nsurfz.begin(1); E_Float* nsurf2z = nsurfz.begin(2); E_Float* nsurf3z = nsurfz.begin(3);
+      E_Float* nsurf1z = nsurfz.begin(1); E_Float* nsurf2z = nsurfz.begin(2);
+      E_Float* nsurf3z = nsurfz.begin(3);
       E_Float* nsurf4z = nsurfz.begin(4); E_Float* nsurf5z = nsurfz.begin(5);
       E_Float* surf1 = surf.begin(1); E_Float* surf2 = surf.begin(2); 
       E_Float* surf3 = surf.begin(3); E_Float* surf4 = surf.begin(4); E_Float* surf5 = surf.begin(5);
@@ -412,15 +410,16 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     else if (strcmp(eltType, "HEXA") == 0)
     {
       // Compute surface normals
-      E_Int nedges = 6;
-      FldArrayF nsurfx(nelts, nedges);
-      FldArrayF nsurfy(nelts, nedges);
-      FldArrayF nsurfz(nelts, nedges);
-      FldArrayF surf(nelts, nedges);
-      k6unstructsurf_(npts, nelts, nedges, nnodes, cn->begin(), 
-                      f->begin(posx), f->begin(posy), f->begin(posz), 
-                      nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), 
-                      surf.begin());
+      E_Int nvpe = cn->getNfld();
+      FldArrayF nsurfx(nelts, nvpe);
+      FldArrayF nsurfy(nelts, nvpe);
+      FldArrayF nsurfz(nelts, nvpe);
+      FldArrayF surf(nelts, nvpe);
+      K_METRIC::compUnstructSurf(
+        *cn, "HEXA",
+        f->begin(posx), f->begin(posy), f->begin(posz), 
+        nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), surf.begin());
+
       // Compute dihedral angle
       E_Float* nsurf1x = nsurfx.begin(1); E_Float* nsurf2x = nsurfx.begin(2); E_Float* nsurf3x = nsurfx.begin(3);
       E_Float* nsurf4x = nsurfx.begin(4); E_Float* nsurf5x = nsurfx.begin(5); E_Float* nsurf6x = nsurfx.begin(6);

@@ -23,13 +23,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-}
 
 // ============================================================================
 /* Projete un surface array1 sur un surface array2 (TRI).
@@ -228,8 +221,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     if (im == 1) im1 = 1;
     if (jm == 1) jm1 = 1;
     if (km == 1) km1 = 1;
-    k6structsurft_(im, jm, km, im1*jm1*km1,
-                   x, y, z, q);
+    K_METRIC::compStructSurft(im, jm, km, x, y, z, q);
     no++;
   }
   for (E_Int nou = 0; nou < nu; nou++)

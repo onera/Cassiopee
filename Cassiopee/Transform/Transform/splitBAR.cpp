@@ -71,7 +71,7 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
  
   if (N1 < 0 || N1 > npts-1)
   {
-    RELEASESHAREDS(array, f);
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_ValueError,
                     "splitBAR: N is incorrect.");
     return NULL;
@@ -108,6 +108,6 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
     if (cnnp[i] == N2+1) { cnnp[i] = npts+2; }
   }
 
-  RELEASESHAREDS(array, f);  
+  RELEASESHAREDU(array, f, cn);  
   return tpl;
 }

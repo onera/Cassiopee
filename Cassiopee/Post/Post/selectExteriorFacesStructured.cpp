@@ -41,8 +41,8 @@ PyObject* K_POST::selectExteriorFacesStructured(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   
   if (res != 1 && res != 2)
   {

@@ -33,15 +33,15 @@ PyObject* K_POST::perlinNoise(PyObject* self,PyObject* args)
   if (!PYPARSETUPLE_(args, O_ RR_ I_,
                     &array, &alpha, &beta, &n))
   {
-      return NULL;
+    return NULL;
   }
   // Check array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk; // number of points of array
 
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, 
+                                     eltType);
 
   if (res != 1 && res != 2)
   {

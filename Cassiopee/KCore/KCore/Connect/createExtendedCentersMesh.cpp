@@ -294,17 +294,17 @@ K_CONNECT::createExtendedCentersMesh(E_Int imo, E_Int jmo, E_Int kmo,
         pos2f = pos2-1-imo-imjmo;
         pos2g = pos2-imo-imjmo;
         xe[pos] =
-          K_CONST::ONE_EIGHT*(xt[pos2] + xt[pos2a]
+          K_CONST::ONE_EIGHTH*(xt[pos2] + xt[pos2a]
                        + xt[pos2b] + xt[pos2c]
                        + xt[pos2d] + xt[pos2e]
                        + xt[pos2f] + xt[pos2g]);
         ye[pos] =
-          K_CONST::ONE_EIGHT*(yt[pos2] + yt[pos2a]
+          K_CONST::ONE_EIGHTH*(yt[pos2] + yt[pos2a]
                        + yt[pos2b] + yt[pos2c]
                        + yt[pos2d] + yt[pos2e]
                        + yt[pos2f] + yt[pos2g]);
         ze[pos] =
-          K_CONST::ONE_EIGHT*( zt[pos2] + zt[pos2a]
+          K_CONST::ONE_EIGHTH*( zt[pos2] + zt[pos2a]
                                + zt[pos2b] + zt[pos2c]
                                + zt[pos2d] + zt[pos2e]
                                + zt[pos2f] + zt[pos2g]);      

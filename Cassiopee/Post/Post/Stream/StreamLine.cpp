@@ -40,11 +40,10 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   PyObject* vectorNames;
   E_Int nStreamPtsMax;
   E_Float signe;
-
   if (!PYPARSETUPLE_(args, OO_ TRRR_ O_ R_ I_,
                     &arrays, &surfArray, &x0, &y0, &z0, &vectorNames, &signe, &nStreamPtsMax))
   {
-      return NULL;
+    return NULL;
   }
   // Check every array in arrays
   if (PyList_Check(arrays) == 0)
@@ -154,8 +153,8 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   E_Int ress = -1000;
   if ((PyList_Check(surfArray) != 0) && (PyList_Size(surfArray) != 0))
   {
-    ress = K_ARRAY::getFromArray(surfArray, varStringSurf, f, 
-                                 imSurf, jmSurf, kmSurf, cnSurf, eltTypeSurf, true); 
+    ress = K_ARRAY::getFromArray3(surfArray, varStringSurf, f, 
+                                  imSurf, jmSurf, kmSurf, cnSurf, eltTypeSurf); 
     
     E_Int nfldSurf = K_ARRAY::getNumberOfVariables(varStringSurf);
     if (ress == -1 || nfldSurf == -1)

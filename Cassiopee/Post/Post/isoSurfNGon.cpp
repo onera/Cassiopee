@@ -51,7 +51,7 @@ PyObject* K_POST::isoSurfNGon(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int nil, njl, nkl;
   E_Int res = 
-    K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
+    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
                           cn, eltType);
 
   if (res != 1 && res != 2)

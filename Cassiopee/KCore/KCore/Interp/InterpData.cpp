@@ -299,7 +299,7 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
   {
     /* Transforming tetrahedra interpolation coefficient into */
     /* hexahedra interpolation coefficients */
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     
     cfp[0] = cf0;
     cfp[1] = cf0;
@@ -358,7 +358,7 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
             (zi > -EPS)&&(xi+yi+zi < K_CONST::ONE+3*EPS))
         {
           /* Transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cfp[i] = cf0;
           
           for (i = 0; i < 4; i++)
@@ -618,7 +618,7 @@ E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float
     /* transforming tetrahedra interpolation coefficient into */
     /* hexahedra interpolation coefficients */
       
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     for (i = 0; i < 8; i++) cfp[i] = cf0;
     
     for (i = 0; i < 4; i++)
@@ -664,7 +664,7 @@ E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float
             (zi > -EPS)&&(xi+yi+zi < K_CONST::ONE+3*EPS))
         {
           /* transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cfp[i] = cf0;
 
           for (i = 0; i < 4; i++)
@@ -785,7 +785,7 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
         coeffInterpTetra(x, y, z, xp, yp, zp, xq, yq, zq,
                          xr, yr, zr, xs, ys, zs, xi, yi, zi);       
         /* transforming to hexahedra coefficients */ 
-        cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+        cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
         for (E_Int i = 0; i < 8; i++) cfp[i] = cf0;
         
         for (E_Int i = 0; i < 4; i++)

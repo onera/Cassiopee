@@ -34,25 +34,6 @@ using namespace K_FUNC;
 
 extern "C"
 {
-  void k6compstructmetric_(
-    const E_Int& im, const E_Int& jm, const E_Int& km,
-    const E_Int& nbcells, const E_Int& nintt,
-    const E_Int& ninti, const E_Int& nintj, 
-    const E_Int& nintk, 
-    E_Float* x, E_Float* y, E_Float* z, 
-    E_Float* vol, E_Float* surfx, E_Float* surfy, E_Float* surfz, 
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
-
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6structsurf1dt_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
   void k6compunstrmetric_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
                           E_Int& nnodes, E_Int* cn, 
                           E_Float* coordx, E_Float* coordy, E_Float* coordz, 
@@ -186,20 +167,16 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     // calcul du volume
     FldArrayF vol(ncells);
     if (dim == 1)
-      k6structsurf1dt_(
-        im, jm , km , 
-        xp, yp, zp, vol.begin());
+      K_METRIC::compStructSurf1dt(im, jm, km, xp, yp, zp, vol.begin());
     else if (dim == 2)
-      k6structsurft_(
-        im, jm, km, ncells, 
-        xp, yp, zp, vol.begin());
+      K_METRIC::compStructSurft(im, jm, km, xp, yp, zp, vol.begin());
     else
     {
       FldArrayF surf(nint,3);
       FldArrayF snorm(nint);
       FldArrayF centerInt(nint, 3);
-      k6compstructmetric_(
-        im, jm, km, ncells, nint, ninti, nintj, nintk,
+      K_METRIC::compStructMetric(
+        im, jm, km, ninti, nintj, nintk,
         xp, yp, zp,
         vol.begin(), surf.begin(1), surf.begin(2), surf.begin(3), 
         snorm.begin(), 

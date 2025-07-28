@@ -40,8 +40,8 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
   E_Int res, ni, nj, nk;
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cnp, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cnp, 
+                               eltType);
 
   if (res != 1 && res != 2)
   {
@@ -54,9 +54,9 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
   char* varStringa; char* eltTypea;
   FldArrayF* tag; FldArrayI* cnpa;
   E_Int nia, nja, nka;
-  E_Int resa = K_ARRAY::getFromArray(taga, varStringa, 
-                                     tag, nia, nja, nka, cnpa, 
-                                     eltTypea, true);
+  E_Int resa = K_ARRAY::getFromArray3(taga, varStringa, 
+                                      tag, nia, nja, nka, cnpa, 
+                                      eltTypea);
 
   if (resa != 1 && resa != 2)
   {
@@ -521,8 +521,8 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
   E_Int res, ni, nj, nk;
-  res = K_ARRAY::getFromArray(arrayNodes, varString, f, ni, nj, nk, cnp, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(arrayNodes, varString, f, ni, nj, nk, cnp, 
+                               eltType);
 
 
   if (res != 1 && res != 2)
@@ -536,8 +536,8 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   char* varStringC; char* eltTypeC;
   FldArrayF* fC; FldArrayI* cnpC;
   E_Int resC, niC, njC, nkC;
-  resC = K_ARRAY::getFromArray(arrayCenters, varStringC, fC, niC, njC, nkC, cnpC, 
-                              eltTypeC, true);
+  resC = K_ARRAY::getFromArray3(arrayCenters, varStringC, fC, niC, njC, nkC, cnpC, 
+                                eltTypeC);
   
   if (resC != 1 && resC != 2)
   {
@@ -551,9 +551,9 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   char* varStringa; char* eltTypea;
   FldArrayF* tag; FldArrayI* cnpa;
   E_Int nia, nja, nka;
-  E_Int resa = K_ARRAY::getFromArray(taga, varStringa, 
-                                     tag, nia, nja, nka, cnpa, 
-                                     eltTypea, true);
+  E_Int resa = K_ARRAY::getFromArray3(taga, varStringa, 
+                                      tag, nia, nja, nka, cnpa, 
+                                      eltTypea);
 
   if (resa != 1 && resa != 2)
   {
