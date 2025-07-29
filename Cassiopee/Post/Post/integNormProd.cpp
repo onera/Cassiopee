@@ -433,7 +433,7 @@ E_Int K_POST::integUnstruct3(E_Int center2node,
   K_METRIC::compNormUnstructSurf(
     cnBlk, "TRI",
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    nsurfBlk.begin());  
+    nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3));
   if (center2node == 1)
   {
     // Compute integral, coordinates defined in node 

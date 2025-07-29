@@ -28,7 +28,7 @@
 void K_METRIC::compNormUnstructSurf(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* nsurf
+  E_Float* nsurfx, E_Float* nsurfy, E_Float* nsurfz
 )
 {
   E_Int offset = 0;
@@ -38,10 +38,9 @@ void K_METRIC::compNormUnstructSurf(
 
   for (E_Int ic = 0; ic < nc; ic++)
   {
-    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-    
     if (strcmp(eltTypes[ic], "TRI") == 0)
     {
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
       E_Int nelts = cm.getSize();
 
       #pragma omp parallel
@@ -70,15 +69,13 @@ void K_METRIC::compNormUnstructSurf(
           surfy = l1z * l2x - l1x * l2z;
           surfz = l1x * l2y - l1y * l2x;
 
-          pos = offset + i; // * 3;
-          nsurf[pos] = K_CONST::ONE_HALF * surfx;
-          pos = offset + nelts + i; // * 3;
-          nsurf[pos] = K_CONST::ONE_HALF * surfy;
-          pos = offset + 2*nelts + i; // * 3;
-          nsurf[pos] = K_CONST::ONE_HALF * surfz;
+          pos = offset + i;
+          nsurfx[pos] = K_CONST::ONE_HALF * surfx;
+          nsurfy[pos] = K_CONST::ONE_HALF * surfy;
+          nsurfz[pos] = K_CONST::ONE_HALF * surfz;
         }
       }
-      offset += nelts * 3;
+      offset += nelts;
     }
     else
     {
@@ -87,6 +84,8 @@ void K_METRIC::compNormUnstructSurf(
       exit(0);
     }
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
 void K_METRIC::compNormUnstructSurft(
@@ -149,4 +148,6 @@ void K_METRIC::compNormUnstructSurft(
       exit(0);
     }
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
