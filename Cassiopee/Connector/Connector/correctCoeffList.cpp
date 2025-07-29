@@ -50,11 +50,10 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
   PyObject *typ;
   E_Int nb_ind;
   E_Int ni, nj, nk;
-
   if (!PYPARSETUPLE_(args, OOO_ IIII_,
 		     &indiceslist, &coefflist, &typ, &nb_ind,  &ni, &nj, &nk))
   {
-      return NULL;
+    return NULL;
   }
 
   E_Int i, j, k;
@@ -70,13 +69,13 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
  
  /// Recuperation du tableau de stockage des valeurs
   FldArrayI* ind_list;
-  K_NUMPY::getFromNumpyArray(indiceslist, ind_list, true); E_Int* ipt_ind_list = ind_list->begin();
+  K_NUMPY::getFromNumpyArray(indiceslist, ind_list); E_Int* ipt_ind_list = ind_list->begin();
 
   FldArrayF* coefflist_;
-  K_NUMPY::getFromNumpyArray(coefflist, coefflist_, true);  E_Float* ipt_coefflist = coefflist_->begin();
+  K_NUMPY::getFromNumpyArray(coefflist, coefflist_);  E_Float* ipt_coefflist = coefflist_->begin();
 
   FldArrayI* typ_;
-  K_NUMPY::getFromNumpyArray(typ, typ_, true);  E_Int* ipt_typ = typ_->begin();
+  K_NUMPY::getFromNumpyArray(typ, typ_);  E_Int* ipt_typ = typ_->begin();
 
   //cout << "nb_ind= " << nb_ind << endl;
 

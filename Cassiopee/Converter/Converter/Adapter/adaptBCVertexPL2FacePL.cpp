@@ -32,7 +32,7 @@ PyObject* K_CONVERTER::adaptBCVertexPL2FacePL(PyObject* self, PyObject* args)
 
   // Check numpy (vertex point list)
   FldArrayI* vertexPL;
-  E_Int res = K_NUMPY::getFromPointList(arrayVPL, vertexPL, true);
+  E_Int res = K_NUMPY::getFromPointList(arrayVPL, vertexPL);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,

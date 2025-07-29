@@ -32,14 +32,14 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "OOOO",
                         &pyIndRcv, &pyIndExtrap, &pyArrayTypes, &pyArrayCoefs))
   {
-      return NULL;
+    return NULL;
   }
 
   /*--------------------------------------*/
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  E_Int res = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   if (res == 0) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -50,7 +50,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /* Extraction des indices des extrapoles */
   /*---------------------------------------*/
   FldArrayI* extrapPtsI;
-  res = K_NUMPY::getFromNumpyArray(pyIndExtrap, extrapPtsI, true);
+  res = K_NUMPY::getFromNumpyArray(pyIndExtrap, extrapPtsI);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -63,7 +63,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /* Extraction des types */
   /*----------------------*/
   FldArrayI* typesI;
-  res = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI, true);
+  res = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -77,8 +77,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /* Extraction des coefs  */
   /*-----------------------*/
   FldArrayF* donorCoefsF;
-  E_Boolean shared=true;
-  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, shared);
+  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);

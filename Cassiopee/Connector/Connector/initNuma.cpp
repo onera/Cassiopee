@@ -34,7 +34,7 @@ PyObject* K_CONNECTOR::initNuma(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int iDeb    = E_Int(ideb   );
+  E_Int iDeb = E_Int(ideb);
   E_Int varType = E_Int(vartype);
   E_Int size_BC = E_Int(size_bc);
  
@@ -45,10 +45,11 @@ PyObject* K_CONNECTOR::initNuma(PyObject* self, PyObject* args)
   { // gestion des tableau Float
     FldArrayF* source; FldArrayF* target;
     E_Float* iptsource = NULL;
-    if (option == 0) {
-      K_NUMPY::getFromNumpyArray(sourceArray, source, true); iptsource = source->begin();
+    if (option == 0) 
+    {
+      K_NUMPY::getFromNumpyArray(sourceArray, source); iptsource = source->begin();
     }
-    K_NUMPY::getFromNumpyArray(targetArray, target, true); E_Float* ipttarget = target->begin();
+    K_NUMPY::getFromNumpyArray(targetArray, target); E_Float* ipttarget = target->begin();
 
     # pragma omp parallel default(shared)
     {
@@ -85,12 +86,13 @@ PyObject* K_CONNECTOR::initNuma(PyObject* self, PyObject* args)
   {// gestion des tableau Int
     FldArrayI* source = NULL; FldArrayI* target;
     E_Int* iptsource = NULL;
-    if (option == 0) {
-      K_NUMPY::getFromNumpyArray(sourceArray, source, true); 
+    if (option == 0) 
+    {
+      K_NUMPY::getFromNumpyArray(sourceArray, source); 
       assert(source != NULL);
       iptsource = source->begin();
     }
-    K_NUMPY::getFromNumpyArray(targetArray, target, true); E_Int* ipttarget = target->begin();
+    K_NUMPY::getFromNumpyArray(targetArray, target); E_Int* ipttarget = target->begin();
 
     # pragma omp parallel default(shared)
     {

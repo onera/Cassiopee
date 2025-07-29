@@ -94,7 +94,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
       if (jm == 1) jm1 = 1;
       if (km == 1) km1 = 1;
      
-      E_Int ncells = im1*jm1*km1;
+      //E_Int ncells = im1*jm1*km1;
       E_Int ninti = im*jm1*km1;
       E_Int nintj = im1*jm*km1;
       E_Int nintk = im1*jm1*km;

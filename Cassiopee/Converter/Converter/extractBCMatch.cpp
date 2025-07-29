@@ -37,7 +37,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
                &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters )) 
      return NULL;
   
-  // Zone 
+  // Zone
   // ~~~~
   E_Int ni, nj, nk, cnSize, cnNfld ; 
   char* varString; char* eltType;
@@ -132,7 +132,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   // Indices des faces 
   // ~~~~~~~~~~~~~~~~~
   FldArrayI* ind;
-  E_Int res = K_NUMPY::getFromPointList(pyIndices, ind, true);
+  E_Int res = K_NUMPY::getFromPointList(pyIndices, ind);
 
   if (res == 0)
   {
@@ -1120,7 +1120,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
   // Indices des faces 
   // ~~~~~~~~~~~~~~~~~
   FldArrayI* indR;
-  E_Int res = K_NUMPY::getFromPointList(pyIndR, indR, true);
+  E_Int res = K_NUMPY::getFromPointList(pyIndR, indR);
 
   if (res == 0)
   {
