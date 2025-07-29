@@ -1101,7 +1101,7 @@ def buildTestList(sessionName=None, modules=[]):
 
 #=============================================================================
 # Parse some entries of a test string
-#=============================================================================   
+#=============================================================================
 def parseCPUTimeStr(s):
     try:
         s = s.strip().replace('m', ':').replace('s', '')
@@ -1109,19 +1109,19 @@ def parseCPUTimeStr(s):
         return minutes * 60 + seconds  # total time in seconds
     except ValueError:  # undefined as in "..."
         return -1.
-    
+
 def parseDateStr(s):
     try:
         return time.strptime(s.strip(), "%d/%m/%y %Hh%M")
     except ValueError:  # undefined as in "..."
         return time.strptime(f"01/01/1970 00h00")
-    
+
 def parseCoverageStr(s):
     try:
         return float(s.strip('%'))
     except ValueError:  # undefined as in "..."
         return -1.
-    
+
 #==============================================================================
 # Sort tests
 #==============================================================================
@@ -1140,7 +1140,7 @@ def sortTests(tests):
     elif SORT_BY == 'Date':
         return sorted(tests, key=lambda t: parseDateStr(splitTestString(t)[sortIndex]), reverse=REV_SORT)
     return sorted(tests, key=lambda t: splitTestString(t)[sortIndex], reverse=REV_SORT)
-    
+
 def sortTestList(event=None, entry='Name', force=False):
     global SORT_BY
     if entry in SORT_CATEGORIES and (force or entry != SORT_BY):
@@ -1148,14 +1148,14 @@ def sortTestList(event=None, entry='Name', force=False):
         Listbox.delete(0, 'end')
         for s in sortTests(TESTS): Listbox.insert('end', s)
     updateSortLabels()
-        
+
 def updateSortLabels():
     if not INTERACTIVE: return
     for i, c in enumerate(SORT_CATEGORIES):
         if c == SORT_BY: label = f'(*) By {c}'
         else: label = f'    By {c}'
         sortTab.entryconfig(i, label=label)
-        
+
 def updateSortingOrderLabel(event=None):
     global REV_SORT
     REV_SORT = not REV_SORT
@@ -1931,7 +1931,7 @@ if __name__ == '__main__':
         viewTab.add_separator()
         viewTab.add_command(label='Select all visible tests', command=selectAll,
                             accelerator='Ctrl+A')
-        
+
         sortTab.add_command(label='(*) By Name', command=lambda: sortTestList(entry="Name"))
         sortTab.add_command(label='    By CPU time', command=lambda: sortTestList(entry="CPU time"))
         sortTab.add_command(label='    By Ref. CPU time', command=lambda: sortTestList(entry="Ref. CPU time"))
