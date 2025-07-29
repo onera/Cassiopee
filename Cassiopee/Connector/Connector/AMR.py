@@ -27,7 +27,7 @@ TOL = 1.e-9
 
 def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
     sym3D=False; forceAlignment=False; DIRECTORY='./'
-    
+
     t_prep_start = time.perf_counter()
     frontTypeIP = IBM_parameters["integration points"]["front type"]
     if frontTypeIP not in ["1","2"]:
@@ -143,12 +143,12 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
     print(" Removing blanked cells...")
 
     t = P.selectCells(t,"{cellN}==1.",strict=1)
-    
+
     Internal._rmNodesFromName(t,"FlowSolution")
     for node in Internal.getNodesFromType(t,"Elements_t"):
         if node[0] != "GridElements":
             Internal._rmNode(t,node)
-    Internal._rmNodesFromType(t,"Family_t") 
+    Internal._rmNodesFromType(t,"Family_t")
     t_rem_end = time.perf_counter()
     t_frontip_start = time.perf_counter()
     print("Gathering front IP..")
@@ -212,32 +212,32 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
         t_frontdp_end = time.perf_counter()
         if dimfrontIP>0:
             if IBM_parameters["spatial discretization"]["type"] == "FV":
-                t_normals_start = time.perf_counter()  
+                t_normals_start = time.perf_counter()
                 print(" Computing normals via project ortho..")
                 _computeNormalsViaProjectOrtho(frontIP,tb2)
-                t_normals_end = time.perf_counter()  
-                t_ipcenters_start = time.perf_counter()  
+                t_normals_end = time.perf_counter()
+                t_ipcenters_start = time.perf_counter()
                 print(" Computing frontIP_C...")
                 frontIP_C = C.node2Center(frontIP)
                 Internal._rmNodesByType(frontIP_C,"Elements_t")
-                t_ipcenters_end = time.perf_counter()  
+                t_ipcenters_end = time.perf_counter()
             elif IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
                 frontIP_C = computeSurfaceQuadraturePoints(t,IBM_parameters,frontIP)
                 frontIP_C = computeNormalsForDG(frontIP_C,tb2)
-            t_ibpoints_start = time.perf_counter()  
+            t_ibpoints_start = time.perf_counter()
             print(" Extracting IBM Points...")
             ip_pts, image_pts, wall_pts = extractIBMPoints(tb2,frontIP,frontIP_C,frontDP_gath,bbo,IBM_parameters,check,dim,forceAlignment,DIRECTORY=DIRECTORY)
-            t_ibpoints_end = time.perf_counter()  
-            t_dataset_start = time.perf_counter()  
+            t_ibpoints_end = time.perf_counter()
+            t_dataset_start = time.perf_counter()
             print(" Adding IBCDatasets...")
             _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters)
-            t_dataset_end = time.perf_counter()  
+            t_dataset_end = time.perf_counter()
     else:
         if dimfrontIP>0:
             _addIBC2Zone(t, f, frontIP)
-    
+
     C._rmVars(t,['cellNFront'])
-    
+
     if IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
         _computeTurbulentDistanceForDG(t,tb2,IBM_parameters)
     for z in Internal.getZones(t):
@@ -257,9 +257,9 @@ def computationDistancesNormals(t,tb,dim=3):
         tb2 = T.addkplane(tb)
         T._contract(tb2, (0,0,0), (1,0,0), (0,1,0), dz)
     else: tb2 = tb
-    
+
     #if Cmpi.rank==0: C.convertPyTree2File(tb2,"tb2.plt")
-    
+
     tc = C.node2Center(t)
     tb_WD = getBodiesForWallDistanceComputation(tb2)
     DTW._distance2Walls(t, tb_WD, type='ortho', signed=0, dim=3, loc='centers')
@@ -273,67 +273,67 @@ def computationDistancesNormals(t,tb,dim=3):
     Xmpi._setInterpTransfers(t, tc, variables=varsn, cellNVariable='cellNChim', compact=0, type='ID')
     for v in varsn: t = C.center2Node(t,'centers:'+v)
     t = C.center2Node(t,'centers:TurbulentDistance')
-    return t    
+    return t
 
 def extractFrontDP(t,frontIP_gath,dim,sym3D,check,DIRECTORY='./'):
-  if Cmpi.rank == 0:
-      C._deleteEmptyZones(frontIP_gath)
-      frontIP_gath = T.join(frontIP_gath)
-      frontIP_gath = C.convertArray2Tetra(frontIP_gath)
-      frontIP_gath = G.close(frontIP_gath)
-      frontIP_gath[0] = "frontIP_gath"
-      if dim ==3 and sym3D:
-        print("Symmetry of frontIP gathered")
-        # symmetry plane xz
-        point = (0.0,0.0,0.0)
-        vector1 = (1.0,0.0,0.0)
-        vector2 = (0.0,0.0,1.0)
-        z_sym = T.symetrize(frontIP_gath, point, vector1, vector2)
-        z_sym[0] = "sym"
-        frontIP_gath = Internal.getZones(frontIP_gath)[0]
-        z_sym = Internal.getZones(z_sym)[0]
-        frontIP_gath = T.join(frontIP_gath,z_sym)
+    if Cmpi.rank == 0:
+        C._deleteEmptyZones(frontIP_gath)
+        frontIP_gath = T.join(frontIP_gath)
+        frontIP_gath = C.convertArray2Tetra(frontIP_gath)
         frontIP_gath = G.close(frontIP_gath)
-  else:
-      frontIP_gath = Internal.newZone(name="front",zsize=[[0,0]],ztype="Unstructured")
-      gc = Internal.newGridCoordinates(parent = frontIP_gath)
-      Internal.newDataArray('CoordinateX', value = numpy.empty(0), parent = gc)
-      Internal.newDataArray('CoordinateY', value = numpy.empty(0), parent = gc)
-      Internal.newDataArray('CoordinateZ', value = numpy.empty(0), parent = gc)
-  frontIP_gath = Cmpi.bcastZone(frontIP_gath, root=0, coord=True)
-  frontIP_gath = C.newPyTree(["body",frontIP_gath])
-  C._initVars(t,'cellNFront',1.)
-  X_IBM._blankByIBCBodies(t, frontIP_gath, 'nodes', 3,cellNName="cellNFront")
-  del frontIP_gath
-  frontDP = P.frontFaces(t,'cellNFront')
-  del t
-  frontDP_gath = Cmpi.allgatherZones(frontDP)
-  frontDP_gath = T.join(frontDP_gath)
-  frontDP_gath = C.newPyTree(["frontDP",frontDP_gath])
-  if check:
-    print("Exporting front DP...")
-    if Cmpi.rank==0:
-        C.convertPyTree2File(frontDP_gath,DIRECTORY+"frontDP_gath.cgns")
-        C.convertPyTree2File(frontDP_gath,DIRECTORY+"frontDP_gath.plt")
+        frontIP_gath[0] = "frontIP_gath"
+        if dim ==3 and sym3D:
+            print("Symmetry of frontIP gathered")
+            # symmetry plane xz
+            point = (0.0,0.0,0.0)
+            vector1 = (1.0,0.0,0.0)
+            vector2 = (0.0,0.0,1.0)
+            z_sym = T.symetrize(frontIP_gath, point, vector1, vector2)
+            z_sym[0] = "sym"
+            frontIP_gath = Internal.getZones(frontIP_gath)[0]
+            z_sym = Internal.getZones(z_sym)[0]
+            frontIP_gath = T.join(frontIP_gath,z_sym)
+            frontIP_gath = G.close(frontIP_gath)
+    else:
+        frontIP_gath = Internal.newZone(name="front",zsize=[[0,0]],ztype="Unstructured")
+        gc = Internal.newGridCoordinates(parent=frontIP_gath)
+        Internal.newDataArray('CoordinateX', value=numpy.empty(0), parent=gc)
+        Internal.newDataArray('CoordinateY', value=numpy.empty(0), parent=gc)
+        Internal.newDataArray('CoordinateZ', value=numpy.empty(0), parent=gc)
+    frontIP_gath = Cmpi.bcastZone(frontIP_gath, root=0, coord=True)
+    frontIP_gath = C.newPyTree(["body",frontIP_gath])
+    C._initVars(t,'cellNFront',1.)
+    X_IBM._blankByIBCBodies(t, frontIP_gath, 'nodes', 3,cellNName="cellNFront")
+    del frontIP_gath
+    frontDP = P.frontFaces(t,'cellNFront')
+    del t
+    frontDP_gath = Cmpi.allgatherZones(frontDP)
+    frontDP_gath = T.join(frontDP_gath)
+    frontDP_gath = C.newPyTree(["frontDP",frontDP_gath])
+    if check:
+        print("Exporting front DP...")
+        if Cmpi.rank==0:
+            C.convertPyTree2File(frontDP_gath,DIRECTORY+"frontDP_gath.cgns")
+            C.convertPyTree2File(frontDP_gath,DIRECTORY+"frontDP_gath.plt")
 
-  return frontDP_gath
+    return frontDP_gath
 
 def computeCellNForIBMFronts(t,dim,IBM_parameters,VPM=False):
-  if VPM == False:
-      frontTypeIP = IBM_parameters["integration points"]["front type"]
-      print("frontTypeIP=",frontTypeIP)
+    if VPM == False:
+        frontTypeIP = IBM_parameters["integration points"]["front type"]
+        print("frontTypeIP=",frontTypeIP)
 
-      if frontTypeIP == "2":
-        distance_IP = IBM_parameters["integration points"]["distance IntegrationPoints"]
-        C._initVars(t,'distance_IP',distance_IP)
-        C._initVars(t,'{cellN}=({TurbulentDistance}>{distance_IP})*{cellN}')
-  else:
+        if frontTypeIP == "2":
+            distance_IP = IBM_parameters["integration points"]["distance IntegrationPoints"]
+            C._initVars(t,'distance_IP',distance_IP)
+            C._initVars(t,'{cellN}=({TurbulentDistance}>{distance_IP})*{cellN}')
+    else:
         snear = IBM_parameters["IBM type"]["size elements body"]
         C._initVars(t,'distance_IP',2*snear)
         C._initVars(t,'{cellN}=1-({TurbulentDistance}<-{distance_IP})')
 
-  frontIP = P.frontFaces(t,'cellN')
-  return frontIP
+    frontIP = P.frontFaces(t,'cellN')
+    return frontIP
 
 def extractIBMPoints(tb,frontIP, frontIP_C, frontDP, bbo, IBM_parameters,check,dim,forceAlignment=False, DIRECTORY='./'):
 
@@ -342,13 +342,13 @@ def extractIBMPoints(tb,frontIP, frontIP_C, frontDP, bbo, IBM_parameters,check,d
     IBMType = IBM_parameters["IBM type"]["type"]
 
     if frontTypeIP == "1":
-      depth_IP = IBM_parameters["integration points"]["depth IntegrationPoints"]
+        depth_IP = IBM_parameters["integration points"]["depth IntegrationPoints"]
     elif frontTypeIP == "2":
-      distance_IP = IBM_parameters["integration points"]["distance IntegrationPoints"]
+        distance_IP = IBM_parameters["integration points"]["distance IntegrationPoints"]
 
     if frontTypeDP == "2":
-      distance_DP = IBM_parameters["donor points"]["distance DonorPoints"]
-      C._initVars(frontIP_C,'dist',distance_DP)
+        distance_DP = IBM_parameters["donor points"]["distance DonorPoints"]
+        C._initVars(frontIP_C,'dist',distance_DP)
 
     ip_pts = C.getAllFields(frontIP_C,loc='nodes')[0]
     ip_pts = Converter.convertArray2Node(ip_pts)
@@ -358,51 +358,51 @@ def extractIBMPoints(tb,frontIP, frontIP_C, frontDP, bbo, IBM_parameters,check,d
     bodies = []; listOfIBCTypes=[]
 
     for noz,zone in enumerate(Internal.getZones(tb)):
-      body = C.getFields(Internal.__GridCoordinates__,zone)
-      body = Converter.convertArray2Tetra(body)
-      body = Transform.join(body)
-      bodies.append(body)
-      listOfIBCTypes.append("IBMWall%d" %noz)
+        body = C.getFields(Internal.__GridCoordinates__,zone)
+        body = Converter.convertArray2Tetra(body)
+        body = Transform.join(body)
+        bodies.append(body)
+        listOfIBCTypes.append("IBMWall%d" %noz)
 
     varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 
     if frontTypeDP == "2":
-      res = connector.getIBMPtsWithoutFront(ip_pts, bodies, varsn, 'dist', 1)
-      wallpts = res[0]
-      imagepts = res[1]
+        res = connector.getIBMPtsWithoutFront(ip_pts, bodies, varsn, 'dist', 1)
+        wallpts = res[0]
+        imagepts = res[1]
     elif frontTypeDP == "1":
-      frontDP = C.getFields(Internal.__GridCoordinates__,frontDP)
-      frontDP = Converter.convertArray2Tetra(frontDP)
-      listOfSnearsLoc=[]
-      listOfModelingHeightsLoc = []
-      snear = IBM_parameters["IBM type"]["size elements body"]
-      if isinstance(snear,list): snear = min(snear)
-      listOfSnearsLoc.append(snear)
-      if frontTypeIP == "2": listOfModelingHeightsLoc.append(distance_IP)
-      else: listOfModelingHeightsLoc.append(0.)
-      res = connector.getIBMPtsWithFront(ip_pts, listOfSnearsLoc, listOfModelingHeightsLoc, bodies, frontDP, varsn, 1, 2, False, False)
-      wallpts = res[0]
-      imagepts = res[1]
+        frontDP = C.getFields(Internal.__GridCoordinates__,frontDP)
+        frontDP = Converter.convertArray2Tetra(frontDP)
+        listOfSnearsLoc=[]
+        listOfModelingHeightsLoc = []
+        snear = IBM_parameters["IBM type"]["size elements body"]
+        if isinstance(snear,list): snear = min(snear)
+        listOfSnearsLoc.append(snear)
+        if frontTypeIP == "2": listOfModelingHeightsLoc.append(distance_IP)
+        else: listOfModelingHeightsLoc.append(0.)
+        res = connector.getIBMPtsWithFront(ip_pts, listOfSnearsLoc, listOfModelingHeightsLoc, bodies, frontDP, varsn, 1, 2, False, False)
+        wallpts = res[0]
+        imagepts = res[1]
 
-      if frontTypeDP == "1": imagepts = moveIBMPoints(ip_pts,imagepts,wallpts,varsn,1e-8)
+        if frontTypeDP == "1": imagepts = moveIBMPoints(ip_pts,imagepts,wallpts,varsn,1e-8)
 
     # Check if any of the image points lays outside the bbox. In this case we modify it.
     if isIBMPointInBox(bbo,imagepts)[0] == False:
-      print("Warning: At least one donor point lays outside the bbox. The point is being moved closer to the wall...")
-      list_ids_outside_box = isIBMPointInBox(bbo,imagepts)[1]
-      epsilon = 0.9
-      while (epsilon >= 0.1):
-        print("Moving the badly located image point at epsilon %.2f %% of the initial distance from the wall." %epsilon)
-        imagepts2correct = copy.deepcopy(imagepts)
-        imagepts_modified = moveIBMPoints(ip_pts,imagepts2correct,wallpts,varsn,epsilon,list_ids_outside_box,tb)
+        print("Warning: At least one donor point lays outside the bbox. The point is being moved closer to the wall...")
+        list_ids_outside_box = isIBMPointInBox(bbo,imagepts)[1]
+        epsilon = 0.9
+        while (epsilon >= 0.1):
+            print("Moving the badly located image point at epsilon %.2f %% of the initial distance from the wall." %epsilon)
+            imagepts2correct = copy.deepcopy(imagepts)
+            imagepts_modified = moveIBMPoints(ip_pts,imagepts2correct,wallpts,varsn,epsilon,list_ids_outside_box,tb)
 
-        if isIBMPointInBox(bbo,imagepts_modified)[0] == False:
-            epsilon = epsilon - 0.1
-        else:
-            imagepts = imagepts_modified
-            break
-      if isIBMPointInBox(bbo,imagepts)[0] == False:
-        raise ValueError("Moving the points has not worked. Exiting..")
+            if isIBMPointInBox(bbo,imagepts_modified)[0] == False:
+                epsilon = epsilon - 0.1
+            else:
+                imagepts = imagepts_modified
+                break
+        if isIBMPointInBox(bbo,imagepts)[0] == False:
+            raise ValueError("Moving the points has not worked. Exiting..")
 
     wallpts = Converter.extractVars(wallpts,['CoordinateX','CoordinateY','CoordinateZ'])
     imagepts = Converter.extractVars(imagepts,['CoordinateX','CoordinateY','CoordinateZ'])
@@ -422,24 +422,24 @@ def extractIBMPoints(tb,frontIP, frontIP_C, frontDP, bbo, IBM_parameters,check,d
     dictOfTargetPtsByIBCName={}
     dictOfWallPtsByIBCName={}
     if (len(res)==3 and frontTypeDP=="2") or (len(res)==4 and frontTypeDP=="1"):
-      noz = 0 #we always have only one zone
-      indicesByTypeForZone = res[2][noz]
-      nbTypes = len(indicesByTypeForZone)
-      for nob in range(nbTypes):
-          ibcTypeL = listOfIBCTypes[nob]
-          indicesByTypeL = indicesByTypeForZone[nob]
-          if indicesByTypeL.shape[0] > 0:
-              ipPtsL = Transform.subzone(ip_pts[noz], indicesByTypeL)
-              imagePtsL = Transform.subzone(imagepts[noz], indicesByTypeL)
-              wallPtsL = Transform.subzone(wallpts[noz], indicesByTypeL)
-          else:
-              ipPtsL=[]; imagePtsL = []; wallPtsL = []
+        noz = 0 #we always have only one zone
+        indicesByTypeForZone = res[2][noz]
+        nbTypes = len(indicesByTypeForZone)
+        for nob in range(nbTypes):
+            ibcTypeL = listOfIBCTypes[nob]
+            indicesByTypeL = indicesByTypeForZone[nob]
+            if indicesByTypeL.shape[0] > 0:
+                ipPtsL = Transform.subzone(ip_pts[noz], indicesByTypeL)
+                imagePtsL = Transform.subzone(imagepts[noz], indicesByTypeL)
+                wallPtsL = Transform.subzone(wallpts[noz], indicesByTypeL)
+            else:
+                ipPtsL=[]; imagePtsL = []; wallPtsL = []
 
-          dictOfTargetPtsByIBCName[ibcTypeL] = [ipPtsL]
-          dictOfWallPtsByIBCName[ibcTypeL] = [wallPtsL]
-          dictOfImagePtsByIBCName[ibcTypeL] = [imagePtsL]
+            dictOfTargetPtsByIBCName[ibcTypeL] = [ipPtsL]
+            dictOfWallPtsByIBCName[ibcTypeL] = [wallPtsL]
+            dictOfImagePtsByIBCName[ibcTypeL] = [imagePtsL]
     else:
-      raise ValueError("The function connector.getIBMPtsWith/WithoutFront has not worked properly.")
+        raise ValueError("The function connector.getIBMPtsWith/WithoutFront has not worked properly.")
 
     return dictOfTargetPtsByIBCName, dictOfImagePtsByIBCName,  dictOfWallPtsByIBCName
 
@@ -468,26 +468,26 @@ def moveWallPoints(ip_pts,imagepts,wallpts,array_check,tb):
     zsize = numpy.empty((1,3), E_NpyInt, order='F')
     zsize[0,0] = nb_image_pts; zsize[0,1] = 0; zsize[0,2] = 0
     zone_targetPts = Internal.newZone(name='TargetPoints',zsize=zsize,ztype='Unstructured')
-    gc = Internal.newGridCoordinates(parent = zone_targetPts)
-    Internal.newDataArray('CoordinateX', value = ip_pts[0][1][0], parent = gc)
-    Internal.newDataArray('CoordinateY', value = ip_pts[0][1][1], parent = gc)
-    Internal.newDataArray('CoordinateZ', value = ip_pts[0][1][2], parent = gc)
+    gc = Internal.newGridCoordinates(parent=zone_targetPts)
+    Internal.newDataArray('CoordinateX', value=ip_pts[0][1][0], parent=gc)
+    Internal.newDataArray('CoordinateY', value=ip_pts[0][1][1], parent=gc)
+    Internal.newDataArray('CoordinateZ', value=ip_pts[0][1][2], parent=gc)
 
     DTW._distance2Walls(zone_targetPts, tb, type='ortho', signed=0, dim=3, loc='nodes')
     array_turb_dist = Internal.getNodeFromName(zone_targetPts,"TurbulentDistance")
     f_wall = open("wall_misaligned_after_proc%s.dat" %Cmpi.rank,"w")
     for count in array_check:
-      dist = array_turb_dist[1][count]
-      dirx0 = (imagepts[0][1][0][count]-ip_pts[0][1][0][count])
-      diry0 = (imagepts[0][1][1][count]-ip_pts[0][1][1][count])
-      dirz0 = (imagepts[0][1][2][count]-ip_pts[0][1][2][count])
-      dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
-      dist0 = dist/dirn
-      wallpts[0][1][0][count] = ip_pts[0][1][0][count] - dirx0*dist0
-      wallpts[0][1][1][count] = ip_pts[0][1][1][count] - diry0*dist0
-      wallpts[0][1][2][count] = ip_pts[0][1][2][count] - dirz0*dist0
+        dist = array_turb_dist[1][count]
+        dirx0 = (imagepts[0][1][0][count]-ip_pts[0][1][0][count])
+        diry0 = (imagepts[0][1][1][count]-ip_pts[0][1][1][count])
+        dirz0 = (imagepts[0][1][2][count]-ip_pts[0][1][2][count])
+        dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
+        dist0 = dist/dirn
+        wallpts[0][1][0][count] = ip_pts[0][1][0][count] - dirx0*dist0
+        wallpts[0][1][1][count] = ip_pts[0][1][1][count] - diry0*dist0
+        wallpts[0][1][2][count] = ip_pts[0][1][2][count] - dirz0*dist0
 
-      f_wall.write("%f %f %f\n" %(wallpts[0][1][0][count],wallpts[0][1][1][count],wallpts[0][1][2][count]))
+        f_wall.write("%f %f %f\n" %(wallpts[0][1][0][count],wallpts[0][1][1][count],wallpts[0][1][2][count]))
     f_wall.close()
     return wallpts
 
@@ -500,42 +500,42 @@ def moveIBMPoints(ip_pts,imagepts,wallpts,varsn,epsilon,indices_outside_box=None
     if indices_outside_box is None:
         dist = epsilon
         for count in range(nb_image_pts):
-          dirx0 = (imagepts[0][1][0][count]-wallpts[0][1][0][count])
-          diry0 = (imagepts[0][1][1][count]-wallpts[0][1][1][count])
-          dirz0 = (imagepts[0][1][2][count]-wallpts[0][1][2][count])
-          dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
-          dist0 = dist/dirn
-          imagepts[0][1][0][count] = imagepts[0][1][0][count] + dirx0*dist0
-          imagepts[0][1][1][count] = imagepts[0][1][1][count] + diry0*dist0
-          imagepts[0][1][2][count] = imagepts[0][1][2][count] + dirz0*dist0
+            dirx0 = (imagepts[0][1][0][count]-wallpts[0][1][0][count])
+            diry0 = (imagepts[0][1][1][count]-wallpts[0][1][1][count])
+            dirz0 = (imagepts[0][1][2][count]-wallpts[0][1][2][count])
+            dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
+            dist0 = dist/dirn
+            imagepts[0][1][0][count] = imagepts[0][1][0][count] + dirx0*dist0
+            imagepts[0][1][1][count] = imagepts[0][1][1][count] + diry0*dist0
+            imagepts[0][1][2][count] = imagepts[0][1][2][count] + dirz0*dist0
     else:
 
         zsize = numpy.empty((1,3), E_NpyInt, order='F')
         zsize[0,0] = nb_image_pts; zsize[0,1] = 0; zsize[0,2] = 0
         zone_imagePts = Internal.newZone(name='ImagePoints',zsize=zsize,ztype='Unstructured')
-        gc = Internal.newGridCoordinates(parent = zone_imagePts)
-        Internal.newDataArray('CoordinateX', value = imagepts[0][1][0], parent = gc)
-        Internal.newDataArray('CoordinateY', value = imagepts[0][1][1], parent = gc)
-        Internal.newDataArray('CoordinateZ', value = imagepts[0][1][2], parent = gc)
+        gc = Internal.newGridCoordinates(parent=zone_imagePts)
+        Internal.newDataArray('CoordinateX', value=imagepts[0][1][0], parent=gc)
+        Internal.newDataArray('CoordinateY', value=imagepts[0][1][1], parent=gc)
+        Internal.newDataArray('CoordinateZ', value=imagepts[0][1][2], parent=gc)
 
         DTW._distance2Walls(zone_imagePts, tb, type='ortho', signed=0, dim=3, loc='nodes')
         array_turb_dist = Internal.getNodeFromName(zone_imagePts,"TurbulentDistance")
         for idx in indices_outside_box:
-          dist = epsilon * array_turb_dist[1][idx]
-          dist = epsilon * array_turb_dist[1][idx]
-          dirx0 = (imagepts[0][1][0][idx]-wallpts[0][1][0][idx])
-          diry0 = (imagepts[0][1][1][idx]-wallpts[0][1][1][idx])
-          dirz0 = (imagepts[0][1][2][idx]-wallpts[0][1][2][idx])
-          dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
-          dist0 = dist/dirn
-          imagepts[0][1][0][idx] = wallpts[0][1][0][idx] + dirx0*dist0
-          imagepts[0][1][1][idx] = wallpts[0][1][1][idx] + diry0*dist0
-          imagepts[0][1][2][idx] = wallpts[0][1][2][idx] + dirz0*dist0
+            dist = epsilon * array_turb_dist[1][idx]
+            dist = epsilon * array_turb_dist[1][idx]
+            dirx0 = (imagepts[0][1][0][idx]-wallpts[0][1][0][idx])
+            diry0 = (imagepts[0][1][1][idx]-wallpts[0][1][1][idx])
+            dirz0 = (imagepts[0][1][2][idx]-wallpts[0][1][2][idx])
+            dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
+            dist0 = dist/dirn
+            imagepts[0][1][0][idx] = wallpts[0][1][0][idx] + dirx0*dist0
+            imagepts[0][1][1][idx] = wallpts[0][1][1][idx] + diry0*dist0
+            imagepts[0][1][2][idx] = wallpts[0][1][2][idx] + dirz0*dist0
 
     return imagepts
 
 def _recoverBoundaryConditions(t, f_pytree, zbcs, bctypes, bcnames):
-    meshgen = "AMR"    
+    meshgen = "AMR"
     for z in Internal.getZones(t):
         if z is not None:
             nobc = len(zbcs)
@@ -562,14 +562,14 @@ def _recoverBoundaryConditions(t, f_pytree, zbcs, bctypes, bcnames):
                     elts = Internal.getNodesFromType(z,"Elements_t")
                     maxElt = Internal.getNodeFromName(elts[-1],"ElementRange")[1][1]
                     CODABCType="QuadNQuad"
-                    Internal.newElements(name = CODABCType, etype = 7, econnectivity = numpy.empty(0),
-                                        erange =[maxElt+1, maxElt], eboundary = 1, parent = z)
+                    Internal.newElements(name=CODABCType, etype=7, econnectivity=numpy.empty(0),
+                                         erange=[maxElt+1, maxElt], eboundary=1, parent=z)
                     C._addBC2Zone(z,CODABCType,"FamilySpecified:"+CODABCType, elementRange=[maxElt+1,maxElt])
                     zone_bc =  Internal.getNodeFromType(z,"ZoneBC_t")
                     lastbcname = C.getLastBCName(CODABCType)
                     node_bc = Internal.getNodeFromName(zone_bc,lastbcname)
                     node_bc[0] = CODABCType
-                
+
                 C.freeHook(hook)
             z[0] = z[0]+str(Cmpi.rank)
     if meshgen == "AMR": f_pytree[2][1][2] = [f]
@@ -578,16 +578,16 @@ def _recoverBoundaryConditions(t, f_pytree, zbcs, bctypes, bcnames):
 def _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
 
     if IBM_parameters["spatial discretization"]["type"]=="FV":
-      N_IP_per_face = 1
+        N_IP_per_face = 1
     else:
-      degree = IBM_parameters["spatial discretization"]["degree"]
-      if IBM_parameters["spatial discretization"]["type"] == "DG":
-        integrationDegree = 2*degree+1
-        quadratureType = "GaussLegendre"
-      elif IBM_parameters["spatial discretization"]["type"] == "DGSEM":
-        integrationDegree = 2*degree-1
-        quadratureType = "GaussLobatto"
-      N_IP_per_face = GetReferencePointsQuad(integrationDegree, quadratureType)[0]
+        degree = IBM_parameters["spatial discretization"]["degree"]
+        if IBM_parameters["spatial discretization"]["type"] == "DG":
+            integrationDegree = 2*degree+1
+            quadratureType = "GaussLegendre"
+        elif IBM_parameters["spatial discretization"]["type"] == "DGSEM":
+            integrationDegree = 2*degree-1
+            quadratureType = "GaussLobatto"
+        N_IP_per_face = GetReferencePointsQuad(integrationDegree, quadratureType)[0]
     list_suffix_datasets = [""]
     list_suffix_datasets.extend(range(1, N_IP_per_face))
 
@@ -597,50 +597,50 @@ def _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
         if IBM_parameters["spatial discretization"]["type"] == "FV":
 
             for nobc,ibc in enumerate(list(ip_pts.values())):
-              if ibc!=[[]]:
-               coords_IBC_x = Converter.extractVars(ibc,["CoordinateX"])[0][1][0]
-               coords_IBC_y = Converter.extractVars(ibc,["CoordinateY"])[0][1][0]
-               coords_IBC_z = Converter.extractVars(ibc,["CoordinateZ"])[0][1][0]
-               zibc = Internal.newZone(name = "IntegrationPoints",zsize=[[len(coords_IBC_x),0]],ztype="Unstructured")
-               gc = Internal.newGridCoordinates(parent = zibc)
-               Internal.newDataArray('CoordinateX', value = coords_IBC_x, parent = gc)
-               Internal.newDataArray('CoordinateY', value = coords_IBC_y, parent = gc)
-               Internal.newDataArray('CoordinateZ', value = coords_IBC_z, parent = gc)
-               ids = C.identifyNodes(hook, zibc, tol=TOL)
-               ids = ids[ids[:] > -1]
-               ids = ids.tolist()
-               ids = [ids[i]-1 for i in range(len(ids))]
-               zf = T.subzone(f,ids, type='elements')
-               G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zf)
+                if ibc!=[[]]:
+                    coords_IBC_x = Converter.extractVars(ibc,["CoordinateX"])[0][1][0]
+                    coords_IBC_y = Converter.extractVars(ibc,["CoordinateY"])[0][1][0]
+                    coords_IBC_z = Converter.extractVars(ibc,["CoordinateZ"])[0][1][0]
+                    zibc = Internal.newZone(name="IntegrationPoints",zsize=[[len(coords_IBC_x),0]],ztype="Unstructured")
+                    gc = Internal.newGridCoordinates(parent=zibc)
+                    Internal.newDataArray('CoordinateX', value=coords_IBC_x, parent=gc)
+                    Internal.newDataArray('CoordinateY', value=coords_IBC_y, parent=gc)
+                    Internal.newDataArray('CoordinateZ', value=coords_IBC_z, parent=gc)
+                    ids = C.identifyNodes(hook, zibc, tol=TOL)
+                    ids = ids[ids[:] > -1]
+                    ids = ids.tolist()
+                    ids = [ids[i]-1 for i in range(len(ids))]
+                    zf = T.subzone(f,ids, type='elements')
+                    G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zf)
 
         for bc in Internal.getNodesFromType(z,'BC_t'):
-          famName = Internal.getNodeFromName(bc,'FamilyName')
-          if famName is not None:
-            if Internal.getValue(famName)=='IBMWall':
-              namebc = bc[0]
-              print(namebc)
-              ibcdataset=Internal.createNode('BCDataSet','BCDataSet_t',parent=bc,value='Null')
-              for i in range(N_IP_per_face):
-                  dnrPts = Internal.createNode("DonorPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t',parent=ibcdataset)
-                  wallPts = Internal.createNode("WallPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t',parent=ibcdataset)
+            famName = Internal.getNodeFromName(bc,'FamilyName')
+            if famName is not None:
+                if Internal.getValue(famName)=='IBMWall':
+                    namebc = bc[0]
+                    print(namebc)
+                    ibcdataset=Internal.createNode('BCDataSet','BCDataSet_t',parent=bc,value='Null')
+                    for i in range(N_IP_per_face):
+                        dnrPts = Internal.createNode("DonorPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t',parent=ibcdataset)
+                        wallPts = Internal.createNode("WallPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t',parent=ibcdataset)
 
-                  coordsPD = Converter.extractVars(image_pts[namebc], ['CoordinateX','CoordinateY','CoordinateZ'])
-                  coordsPW = Converter.extractVars(wall_pts[namebc], ['CoordinateX','CoordinateY','CoordinateZ'])
+                        coordsPD = Converter.extractVars(image_pts[namebc], ['CoordinateX','CoordinateY','CoordinateZ'])
+                        coordsPW = Converter.extractVars(wall_pts[namebc], ['CoordinateX','CoordinateY','CoordinateZ'])
 
-                  Internal.newDataArray('CoordinateX', value = coordsPD[0][1][0,:][i::N_IP_per_face], parent = dnrPts)
-                  Internal.newDataArray('CoordinateY', value = coordsPD[0][1][1,:][i::N_IP_per_face], parent = dnrPts)
-                  Internal.newDataArray('CoordinateZ', value = coordsPD[0][1][2,:][i::N_IP_per_face], parent = dnrPts)
+                        Internal.newDataArray('CoordinateX', value=coordsPD[0][1][0,:][i::N_IP_per_face], parent=dnrPts)
+                        Internal.newDataArray('CoordinateY', value=coordsPD[0][1][1,:][i::N_IP_per_face], parent=dnrPts)
+                        Internal.newDataArray('CoordinateZ', value=coordsPD[0][1][2,:][i::N_IP_per_face], parent=dnrPts)
 
-                  Internal.newDataArray('CoordinateX', value = coordsPW[0][1][0,:][i::N_IP_per_face], parent = wallPts)
-                  Internal.newDataArray('CoordinateY', value = coordsPW[0][1][1,:][i::N_IP_per_face], parent = wallPts)
-                  Internal.newDataArray('CoordinateZ', value = coordsPW[0][1][2,:][i::N_IP_per_face], parent = wallPts)
+                        Internal.newDataArray('CoordinateX', value=coordsPW[0][1][0,:][i::N_IP_per_face], parent=wallPts)
+                        Internal.newDataArray('CoordinateY', value=coordsPW[0][1][1,:][i::N_IP_per_face], parent=wallPts)
+                        Internal.newDataArray('CoordinateZ', value=coordsPW[0][1][2,:][i::N_IP_per_face], parent=wallPts)
 
-                  if IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
-                    coordsPI = Converter.extractVars(ip_pts[bc[0]], ['CoordinateX','CoordinateY','CoordinateZ'])
-                    integrationPts = Internal.createNode("IntegrationPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t',parent=ibcdataset)
-                    Internal.newDataArray('CoordinateX', value = coordsPI[0][1][0,:][i::N_IP_per_face], parent = integrationPts)
-                    Internal.newDataArray('CoordinateY', value = coordsPI[0][1][1,:][i::N_IP_per_face], parent = integrationPts)
-                    Internal.newDataArray('CoordinateZ', value = coordsPI[0][1][2,:][i::N_IP_per_face], parent = integrationPts)
+                        if IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
+                            coordsPI = Converter.extractVars(ip_pts[bc[0]], ['CoordinateX','CoordinateY','CoordinateZ'])
+                            integrationPts = Internal.createNode("IntegrationPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t',parent=ibcdataset)
+                            Internal.newDataArray('CoordinateX', value=coordsPI[0][1][0,:][i::N_IP_per_face], parent=integrationPts)
+                            Internal.newDataArray('CoordinateY', value=coordsPI[0][1][1,:][i::N_IP_per_face], parent=integrationPts)
+                            Internal.newDataArray('CoordinateZ', value=coordsPI[0][1][2,:][i::N_IP_per_face], parent=integrationPts)
 
     return None
 
@@ -652,11 +652,11 @@ def getMinimumSpacing(t,dim,snear=1e-1):
     return min(locsize)
 
 def computeDistance_IP_DP_front42_nonAdaptive(t,Reynolds,yplus_target,Lref,dim,snear=1e-2):
-  distance_IP = D_IBM.computeModelisationHeight(Re=Reynolds, yplus=yplus_target, L=Lref)
-  locsize = getMinimumSpacing(t,dim,snear)
-  distance_DP = distance_IP+2*(dim**0.5)*locsize
-  distance_DP = min(Cmpi.allgather(distance_DP))
-  return distance_IP, distance_DP
+    distance_IP = D_IBM.computeModelisationHeight(Re=Reynolds, yplus=yplus_target, L=Lref)
+    locsize = getMinimumSpacing(t,dim,snear)
+    distance_DP = distance_IP+2*(dim**0.5)*locsize
+    distance_DP = min(Cmpi.allgather(distance_DP))
+    return distance_IP, distance_DP
 
 def checkRelativeOffset(ip_pts,wallpts,imagepts,forceAlignment=False):
 
@@ -688,20 +688,20 @@ def checkRelativeOffset(ip_pts,wallpts,imagepts,forceAlignment=False):
     array_check =  numpy.where(offsetcheck>(epsDonorPointOffset * donorPointWallPointDist))[0]
     print("Check not aligned points: size array=",array_check.size)
     if array_check.size!=0:
-      if forceAlignment:
-        print("ATTENTION!!!!!!! Max offset on rank %d = " %Cmpi.rank,numpy.max(offsetcheck))
-        f_wall = open("wall_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
-        f_target = open("target_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
-        f_image = open("image_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
-        for i in range(array_check.size):
-          f_wall.write("%f %f %f\n" %(x_wall[array_check[i]],y_wall[array_check[i]],z_wall[array_check[i]]))
-          f_target.write("%f %f %f\n" %(x_intp[array_check[i]],y_intp[array_check[i]],z_intp[array_check[i]]))
-          f_image.write("%f %f %f\n" %(x_image[array_check[i]],y_image[array_check[i]],z_image[array_check[i]]))
-        f_wall.close()
-        f_target.close()
-        f_image.close()
-      else:
-        raise ValueError("The maximum allowed relative tangential offset was exceeded by one of the donor points.\nMax offset on rank %d = " %Cmpi.rank,numpy.max(offsetcheck))
+        if forceAlignment:
+            print("ATTENTION!!!!!!! Max offset on rank %d = " %Cmpi.rank,numpy.max(offsetcheck))
+            f_wall = open("wall_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
+            f_target = open("target_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
+            f_image = open("image_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
+            for i in range(array_check.size):
+                f_wall.write("%f %f %f\n" %(x_wall[array_check[i]],y_wall[array_check[i]],z_wall[array_check[i]]))
+                f_target.write("%f %f %f\n" %(x_intp[array_check[i]],y_intp[array_check[i]],z_intp[array_check[i]]))
+                f_image.write("%f %f %f\n" %(x_image[array_check[i]],y_image[array_check[i]],z_image[array_check[i]]))
+            f_wall.close()
+            f_target.close()
+            f_image.close()
+        else:
+            raise ValueError("The maximum allowed relative tangential offset was exceeded by one of the donor points.\nMax offset on rank %d = " %Cmpi.rank,numpy.max(offsetcheck))
     return array_check
 
 def checkCoincidentPoints(ip_pts,imagepts):
@@ -723,19 +723,19 @@ def checkCoincidentPoints(ip_pts,imagepts):
     return
 
 def getBodiesForWallDistanceComputation(tb2):
-  zones_tb = Internal.getZones(tb2)
-  zones_tb_WD = []
-  for z_tb in zones_tb:
-    ibctype = Internal.getNodeFromName(z_tb, "ibctype")
-    if ibctype == None:
-        ibctype = 0
-    else:
-        ibctype = ibctype[1][0]
-    if ibctype == 0:
-        zones_tb_WD.append(z_tb)
-    #print("ibctype=",ibctype)
-  tb_WD = C.newPyTree(["tbWD", zones_tb_WD])
-  return tb_WD
+    zones_tb = Internal.getZones(tb2)
+    zones_tb_WD = []
+    for z_tb in zones_tb:
+        ibctype = Internal.getNodeFromName(z_tb, "ibctype")
+        if ibctype == None:
+            ibctype = 0
+        else:
+            ibctype = ibctype[1][0]
+        if ibctype == 0:
+            zones_tb_WD.append(z_tb)
+        #print("ibctype=",ibctype)
+    tb_WD = C.newPyTree(["tbWD", zones_tb_WD])
+    return tb_WD
 
 def _computeNormalsViaProjectOrtho(front,tb2):
 
@@ -757,9 +757,9 @@ def _computeNormalsViaProjectOrtho(front,tb2):
     dirz0 = dirz0/dirn
     zone = Internal.getZones(front)
     FS = Internal.newFlowSolution(name='FlowSolution#Centers', gridLocation='CellCenter', parent=zone[0])
-    Internal.newDataArray(varsn[0], value = dirx0, parent = FS)
-    Internal.newDataArray(varsn[1], value = diry0, parent = FS)
-    Internal.newDataArray(varsn[2], value = dirz0, parent = FS)
+    Internal.newDataArray(varsn[0], value=dirx0, parent=FS)
+    Internal.newDataArray(varsn[1], value=diry0, parent=FS)
+    Internal.newDataArray(varsn[2], value=dirz0, parent=FS)
     return None
 
 def _addIBC2Zone(t, f, frontIP):
@@ -774,153 +774,153 @@ def _addIBC2Zone(t, f, frontIP):
     return None
 
 def computeSurfaceQuadraturePoints(t,IBM_parameters,frontIP):
-  zones = Internal.getZones(t)
-  f = P.exteriorFaces(zones[0])
-  dims_f = Internal.getZoneDim(f)
-  #print(dims_f)
-  for elt_t in Internal.getNodesFromType(f, "Elements_t"):
-    if not elt_t[0].startswith("GridElements"):
-      Internal._rmNode(f,elt_t)
+    zones = Internal.getZones(t)
+    f = P.exteriorFaces(zones[0])
+    dims_f = Internal.getZoneDim(f)
+    #print(dims_f)
+    for elt_t in Internal.getNodesFromType(f, "Elements_t"):
+        if not elt_t[0].startswith("GridElements"):
+            Internal._rmNode(f,elt_t)
 
-  hook = C.createHook(f, 'elementCenters')
-  ids = C.identifyElements(hook, frontIP, tol=TOL)
-  ids = ids[ids[:] > -1]
-  ids = ids.tolist()
-  ids_IBMWall = [ids[i]-1 for i in range(len(ids))]
-  zf = T.subzone(f,ids_IBMWall, type='elements')
-  G_AMR._addBC2Zone__(zones[0], 'IBMWall0', 'FamilySpecified:IBMWall',zf)
+    hook = C.createHook(f, 'elementCenters')
+    ids = C.identifyElements(hook, frontIP, tol=TOL)
+    ids = ids[ids[:] > -1]
+    ids = ids.tolist()
+    ids_IBMWall = [ids[i]-1 for i in range(len(ids))]
+    zf = T.subzone(f,ids_IBMWall, type='elements')
+    G_AMR._addBC2Zone__(zones[0], 'IBMWall0', 'FamilySpecified:IBMWall',zf)
 
-  ## Computation of the surface quadrature points
-  degree = IBM_parameters["spatial discretization"]["degree"]
-  if IBM_parameters["spatial discretization"]["type"] == "DG":
-    integrationDegree = 2*degree+1
-    quadratureType = "GaussLegendre"
-  elif IBM_parameters["spatial discretization"]["type"] == "DGSEM":
-    integrationDegree = 2*degree-1
-    quadratureType = "GaussLobatto"
-  else:
-    raise ValueError("Unkown discretization type; options are: FV, DG or DGSEM.")
+    ## Computation of the surface quadrature points
+    degree = IBM_parameters["spatial discretization"]["degree"]
+    if IBM_parameters["spatial discretization"]["type"] == "DG":
+        integrationDegree = 2*degree+1
+        quadratureType = "GaussLegendre"
+    elif IBM_parameters["spatial discretization"]["type"] == "DGSEM":
+        integrationDegree = 2*degree-1
+        quadratureType = "GaussLobatto"
+    else:
+        raise ValueError("Unkown discretization type; options are: FV, DG or DGSEM.")
 
-  coordsX = Internal.getNodeFromName(t,"CoordinateX")[1]
-  coordsY = Internal.getNodeFromName(t,"CoordinateY")[1]
-  coordsZ = Internal.getNodeFromName(t,"CoordinateZ")[1]
-  elts = Internal.getNodesFromType(t,"Elements_t")
-  IBMWall_node = Internal.getNodeFromName(elts,"IBMWall0")
-  N_IBM_cells = IBMWall_node[1][1]
-  IBMWall_EC = (Internal.getNodeFromName(IBMWall_node,"ElementConnectivity")[1]).reshape(N_IBM_cells,4)
-  cellType = 4
-  N_IP_per_face = GetReferencePointsQuad(integrationDegree, quadratureType)[0]
-  N_IP = N_IP_per_face * N_IBM_cells
-  tic = time.perf_counter()
-  weights, interpolationMatrix = GetReferencePointsData(integrationDegree, quadratureType, cellType)
-  quadPoints_surf_location = numpy.empty((N_IP,3))
-  for i,j in zip(range(0,N_IP,N_IP_per_face), range(N_IBM_cells)):
-    connectivity_IBMFace = IBMWall_EC[j]-1
-    pos_first = numpy.argmin(connectivity_IBMFace)
-    pos_second_array_min = numpy.array([connectivity_IBMFace[(pos_first+1)%4], connectivity_IBMFace[pos_first-1]])
-    value_second = numpy.min(pos_second_array_min)
-    pos_second = numpy.argwhere(connectivity_IBMFace==value_second)[0][0]
-    index_right_left = numpy.argmin(pos_second_array_min)
-    if index_right_left == 0:
-      pos_third = (pos_second+1)%4
-      pos_fourth = (pos_third+1)%4
-    elif index_right_left ==1:
-      pos_third = (pos_second-1)
-      pos_fourth = (pos_third-1)
-    connectivity_IBMFace[[0,1,2,3]] = connectivity_IBMFace[[pos_first, pos_second, pos_third, pos_fourth]]
-    nodalData = numpy.hstack([coordsX[connectivity_IBMFace].reshape(4,1),coordsY[connectivity_IBMFace].reshape(4,1),coordsZ[connectivity_IBMFace].reshape(4,1)])
-    quadPoints_surf_location[i:i+N_IP_per_face,:] = interpolationMatrix.dot(nodalData)
+    coordsX = Internal.getNodeFromName(t,"CoordinateX")[1]
+    coordsY = Internal.getNodeFromName(t,"CoordinateY")[1]
+    coordsZ = Internal.getNodeFromName(t,"CoordinateZ")[1]
+    elts = Internal.getNodesFromType(t,"Elements_t")
+    IBMWall_node = Internal.getNodeFromName(elts,"IBMWall0")
+    N_IBM_cells = IBMWall_node[1][1]
+    IBMWall_EC = (Internal.getNodeFromName(IBMWall_node,"ElementConnectivity")[1]).reshape(N_IBM_cells,4)
+    cellType = 4
+    N_IP_per_face = GetReferencePointsQuad(integrationDegree, quadratureType)[0]
+    N_IP = N_IP_per_face * N_IBM_cells
+    tic = time.perf_counter()
+    weights, interpolationMatrix = GetReferencePointsData(integrationDegree, quadratureType, cellType)
+    quadPoints_surf_location = numpy.empty((N_IP,3))
+    for i,j in zip(range(0,N_IP,N_IP_per_face), range(N_IBM_cells)):
+        connectivity_IBMFace = IBMWall_EC[j]-1
+        pos_first = numpy.argmin(connectivity_IBMFace)
+        pos_second_array_min = numpy.array([connectivity_IBMFace[(pos_first+1)%4], connectivity_IBMFace[pos_first-1]])
+        value_second = numpy.min(pos_second_array_min)
+        pos_second = numpy.argwhere(connectivity_IBMFace==value_second)[0][0]
+        index_right_left = numpy.argmin(pos_second_array_min)
+        if index_right_left == 0:
+            pos_third = (pos_second+1)%4
+            pos_fourth = (pos_third+1)%4
+        elif index_right_left ==1:
+            pos_third = (pos_second-1)
+            pos_fourth = (pos_third-1)
+        connectivity_IBMFace[[0,1,2,3]] = connectivity_IBMFace[[pos_first, pos_second, pos_third, pos_fourth]]
+        nodalData = numpy.hstack([coordsX[connectivity_IBMFace].reshape(4,1),coordsY[connectivity_IBMFace].reshape(4,1),coordsZ[connectivity_IBMFace].reshape(4,1)])
+        quadPoints_surf_location[i:i+N_IP_per_face,:] = interpolationMatrix.dot(nodalData)
 
-  toc = time.perf_counter()
+    toc = time.perf_counter()
 
-  print("Time to compute the surface quadrature points : ", toc-tic)
+    print("Time to compute the surface quadrature points : ", toc-tic)
 
-  N_IP_surf = N_IBM_cells * N_IP_per_face
+    N_IP_surf = N_IBM_cells * N_IP_per_face
 
-  z_IP = Internal.newZone(name = "SurfaceIntegrationPoints",zsize=[[N_IP_surf,0]],ztype="Unstructured")
-  gc = Internal.newGridCoordinates(parent = z_IP)
-  Internal.newDataArray('CoordinateX', value = quadPoints_surf_location[:,0], parent = gc)
-  Internal.newDataArray('CoordinateY', value = quadPoints_surf_location[:,1], parent = gc)
-  Internal.newDataArray('CoordinateZ', value = quadPoints_surf_location[:,2], parent = gc)
-  return z_IP
+    z_IP = Internal.newZone(name="SurfaceIntegrationPoints",zsize=[[N_IP_surf,0]],ztype="Unstructured")
+    gc = Internal.newGridCoordinates(parent=z_IP)
+    Internal.newDataArray('CoordinateX', value=quadPoints_surf_location[:,0], parent=gc)
+    Internal.newDataArray('CoordinateY', value=quadPoints_surf_location[:,1], parent=gc)
+    Internal.newDataArray('CoordinateZ', value=quadPoints_surf_location[:,2], parent=gc)
+    return z_IP
 
 def computeNormalsForDG(z_IP,tb):
-  wall_Points = T.projectOrtho(z_IP,tb)
-  x_wallPoints = Internal.getNodeFromName(wall_Points,"CoordinateX")[1]
-  y_wallPoints = Internal.getNodeFromName(wall_Points,"CoordinateY")[1]
-  z_wallPoints = Internal.getNodeFromName(wall_Points,"CoordinateZ")[1]
+    wall_Points = T.projectOrtho(z_IP,tb)
+    x_wallPoints = Internal.getNodeFromName(wall_Points,"CoordinateX")[1]
+    y_wallPoints = Internal.getNodeFromName(wall_Points,"CoordinateY")[1]
+    z_wallPoints = Internal.getNodeFromName(wall_Points,"CoordinateZ")[1]
 
-  x_integrationPoints = Internal.getNodeFromName(z_IP,"CoordinateX")[1]
-  y_integrationPoints = Internal.getNodeFromName(z_IP,"CoordinateY")[1]
-  z_integrationPoints = Internal.getNodeFromName(z_IP,"CoordinateZ")[1]
+    x_integrationPoints = Internal.getNodeFromName(z_IP,"CoordinateX")[1]
+    y_integrationPoints = Internal.getNodeFromName(z_IP,"CoordinateY")[1]
+    z_integrationPoints = Internal.getNodeFromName(z_IP,"CoordinateZ")[1]
 
-  dirx0 = (x_wallPoints-x_integrationPoints)
-  diry0 = (y_wallPoints-y_integrationPoints)
-  dirz0 = (z_wallPoints-z_integrationPoints)
+    dirx0 = (x_wallPoints-x_integrationPoints)
+    diry0 = (y_wallPoints-y_integrationPoints)
+    dirz0 = (z_wallPoints-z_integrationPoints)
 
-  dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
+    dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
 
-  dirx0 = dirx0/dirn
-  diry0 = diry0/dirn
-  dirz0 = dirz0/dirn
-  varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
-  #varsn = ["nx","ny","nz"]
-  FS = Internal.newFlowSolution(name='FlowSolution', gridLocation='Vertex', parent=z_IP)
-  Internal.newDataArray(varsn[0], value = dirx0, parent = FS)
-  Internal.newDataArray(varsn[1], value = diry0, parent = FS)
-  Internal.newDataArray(varsn[2], value = dirz0, parent = FS)
-  return z_IP
+    dirx0 = dirx0/dirn
+    diry0 = diry0/dirn
+    dirz0 = dirz0/dirn
+    varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
+    #varsn = ["nx","ny","nz"]
+    FS = Internal.newFlowSolution(name='FlowSolution', gridLocation='Vertex', parent=z_IP)
+    Internal.newDataArray(varsn[0], value=dirx0, parent=FS)
+    Internal.newDataArray(varsn[1], value=diry0, parent=FS)
+    Internal.newDataArray(varsn[2], value=dirz0, parent=FS)
+    return z_IP
 
 def _computeTurbulentDistanceForDG(t,tb,IBM_parameters):
 
-  degree = IBM_parameters["spatial discretization"]["degree"]
-  if IBM_parameters["spatial discretization"]["type"] == "DG":
-    integrationDegree = 2*degree+1
-    quadratureType = "GaussLegendre"
-  elif IBM_parameters["spatial discretization"]["type"] == "DGSEM":
-    integrationDegree = 2*degree-1
-    quadratureType = "GaussLobatto"
-  else:
-    raise ValueError("Unkown discretization type; options are: FV, DG or DGSEM.")
-  coordsX = Internal.getNodeFromName(t,"CoordinateX")[1]
-  coordsY = Internal.getNodeFromName(t,"CoordinateY")[1]
-  coordsZ = Internal.getNodeFromName(t,"CoordinateZ")[1]
-  elts = Internal.getNodesFromType(t,"Elements_t")
-  GE_node = Internal.getNodeFromName(elts,"GridElements")
-  GE_EC_ravel = Internal.getNodeFromName(GE_node,"ElementConnectivity")[1]
-  N_volume_cells = len(GE_EC_ravel)//8
-  GE_EC = GE_EC_ravel.reshape(N_volume_cells,8)
+    degree = IBM_parameters["spatial discretization"]["degree"]
+    if IBM_parameters["spatial discretization"]["type"] == "DG":
+        integrationDegree = 2*degree+1
+        quadratureType = "GaussLegendre"
+    elif IBM_parameters["spatial discretization"]["type"] == "DGSEM":
+        integrationDegree = 2*degree-1
+        quadratureType = "GaussLobatto"
+    else:
+        raise ValueError("Unkown discretization type; options are: FV, DG or DGSEM.")
+    coordsX = Internal.getNodeFromName(t,"CoordinateX")[1]
+    coordsY = Internal.getNodeFromName(t,"CoordinateY")[1]
+    coordsZ = Internal.getNodeFromName(t,"CoordinateZ")[1]
+    elts = Internal.getNodesFromType(t,"Elements_t")
+    GE_node = Internal.getNodeFromName(elts,"GridElements")
+    GE_EC_ravel = Internal.getNodeFromName(GE_node,"ElementConnectivity")[1]
+    N_volume_cells = len(GE_EC_ravel)//8
+    GE_EC = GE_EC_ravel.reshape(N_volume_cells,8)
 
-  cellType = 8
-  N_IP_per_cell = GetReferencePointsHexa(integrationDegree, quadratureType)[0]
-  tic = time.perf_counter()
-  weights, interpolationMatrix = GetReferencePointsData(integrationDegree, quadratureType, cellType)
-  N_IP = N_IP_per_cell * N_volume_cells
-  quadPoints_vol_location = numpy.empty((N_IP,3))
-  for i,j in zip(range(0,N_IP,N_IP_per_cell), range(N_volume_cells)):
-    nodalData = numpy.hstack([coordsX[GE_EC[j]-1].reshape(8,1),coordsY[GE_EC[j]-1].reshape(8,1),coordsZ[GE_EC[j]-1].reshape(8,1)])
-    quadPoints_vol_location[i:i+N_IP_per_cell,:] = interpolationMatrix.dot(nodalData)
+    cellType = 8
+    N_IP_per_cell = GetReferencePointsHexa(integrationDegree, quadratureType)[0]
+    tic = time.perf_counter()
+    weights, interpolationMatrix = GetReferencePointsData(integrationDegree, quadratureType, cellType)
+    N_IP = N_IP_per_cell * N_volume_cells
+    quadPoints_vol_location = numpy.empty((N_IP,3))
+    for i,j in zip(range(0,N_IP,N_IP_per_cell), range(N_volume_cells)):
+        nodalData = numpy.hstack([coordsX[GE_EC[j]-1].reshape(8,1),coordsY[GE_EC[j]-1].reshape(8,1),coordsZ[GE_EC[j]-1].reshape(8,1)])
+        quadPoints_vol_location[i:i+N_IP_per_cell,:] = interpolationMatrix.dot(nodalData)
 
-  toc = time.perf_counter()
-  print("Time to compute the position of the volume quadrature points : ", toc-tic)
+    toc = time.perf_counter()
+    print("Time to compute the position of the volume quadrature points : ", toc-tic)
 
-  N_IP_vol = N_volume_cells * N_IP_per_cell
-  z_IP = Internal.newZone(name = "VolumeIntegrationPoints",zsize=[[N_IP_vol,0]],ztype="Unstructured")
-  gc = Internal.newGridCoordinates(parent = z_IP)
-  Internal.newDataArray('CoordinateX', value = quadPoints_vol_location[:,0], parent = gc)
-  Internal.newDataArray('CoordinateY', value = quadPoints_vol_location[:,1], parent = gc)
-  Internal.newDataArray('CoordinateZ', value = quadPoints_vol_location[:,2], parent = gc)
-  DTW._distance2Walls(z_IP, tb, type='ortho', signed=0, loc='nodes')
+    N_IP_vol = N_volume_cells * N_IP_per_cell
+    z_IP = Internal.newZone(name="VolumeIntegrationPoints",zsize=[[N_IP_vol,0]],ztype="Unstructured")
+    gc = Internal.newGridCoordinates(parent=z_IP)
+    Internal.newDataArray('CoordinateX', value=quadPoints_vol_location[:,0], parent=gc)
+    Internal.newDataArray('CoordinateY', value=quadPoints_vol_location[:,1], parent=gc)
+    Internal.newDataArray('CoordinateZ', value=quadPoints_vol_location[:,2], parent=gc)
+    DTW._distance2Walls(z_IP, tb, type='ortho', signed=0, loc='nodes')
 
-  if N_IP_vol%N_volume_cells != 0: raise ValueError("The division between the number of the integration points divided by the number of IBM faces is not exact. Every face should have the same number of integration points.")
+    if N_IP_vol%N_volume_cells != 0: raise ValueError("The division between the number of the integration points divided by the number of IBM faces is not exact. Every face should have the same number of integration points.")
 
-  list_suffix_datasets = [""]
-  list_suffix_datasets.extend(range(1, N_IP_per_cell))
-  walldistance_volume_ip = Internal.getNodeFromName(z_IP,"TurbulentDistance")[1]
+    list_suffix_datasets = [""]
+    list_suffix_datasets.extend(range(1, N_IP_per_cell))
+    walldistance_volume_ip = Internal.getNodeFromName(z_IP,"TurbulentDistance")[1]
 
-  zones = Internal.getZones(t) #always one single zone
-  for i in range(N_IP_per_cell):
-    walldistance_dataset=Internal.newFlowSolution('FlisWallDistance'+str(list_suffix_datasets[i]),parent=zones[0],gridLocation="CellCenter")
-    Internal.newDataArray('TurbulentDistance',value = walldistance_volume_ip[i::N_IP_per_cell],parent = walldistance_dataset)
+    zones = Internal.getZones(t) #always one single zone
+    for i in range(N_IP_per_cell):
+        walldistance_dataset=Internal.newFlowSolution('FlisWallDistance'+str(list_suffix_datasets[i]),parent=zones[0],gridLocation="CellCenter")
+        Internal.newDataArray('TurbulentDistance',value=walldistance_volume_ip[i::N_IP_per_cell],parent=walldistance_dataset)
 
-  return None
+    return None

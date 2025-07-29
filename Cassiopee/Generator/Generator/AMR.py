@@ -57,7 +57,7 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3):
 
     XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
     XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
-    
+
     b = G.cartRx3(XC0, XC1, (hi_core,hj_core,hk_core), XF0, XF1, (1.2,1.2,1.2), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
     #
     DTW._distance2Walls(b, tb, type='mininterf', loc='nodes', signed=0)
