@@ -18,7 +18,7 @@ t = C.newPyTree(["CARTESIAN",o])
 ## ===========================================
 ##                 Prep IBM
 ## ===========================================
-Reynolds     = 1.e6 
+Reynolds     = 1.e6
 yplus_target = 300
 Lref         = 1.0
 depth_IP     = 1
@@ -26,27 +26,27 @@ distance_IP  = D_IBM.computeModelisationHeight(Re=Reynolds, yplus=yplus_target, 
 print("distance_IP=", distance_IP,flush=True)
 #
 IBM_parameters = {
-"donor points": 
-{
-"front type": "1",
-"depth DonorPoints": 1,  # for type 1
-# "distance DonorPoints": distance_DP,  # for type 2
-},
-"integration points": 
-{
-"front type": "2",
-#"depth IntegrationPoints": depth_IP,  # for type 1
-"distance IntegrationPoints": distance_IP,  # for type 2
-},
-"IBM type": 
-{
-"type": "global",
-"size elements body": 0.0050048828125,
-},
-"spatial discretization": 
-{
-"type": "FV",
-}
+    "donor points":
+    {
+        "front type": "1",
+        "depth DonorPoints": 1,  # for type 1
+        # "distance DonorPoints": distance_DP,  # for type 2
+    },
+    "integration points":
+    {
+        "front type": "2",
+        #"depth IntegrationPoints": depth_IP,  # for type 1
+        "distance IntegrationPoints": distance_IP,  # for type 2
+    },
+    "IBM type":
+    {
+        "type": "global",
+        "size elements body": 0.0050048828125,
+    },
+    "spatial discretization":
+    {
+        "type": "FV",
+    }
 }
 t = X.prepareAMRData(tb, t, IBM_parameters=IBM_parameters, dim=dimPb)
 C.convertPyTree2File(t,"out.cgns")
