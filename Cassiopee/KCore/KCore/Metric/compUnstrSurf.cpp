@@ -83,6 +83,8 @@ void K_METRIC::compUnstructSurf(
     nfpc = nfpe*nelts;
     fcOffset += nfpc;
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
 void K_METRIC::compTriSurf(
@@ -861,4 +863,6 @@ void K_METRIC::compUnstructSurf1d(
       exit(0);
     }
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }

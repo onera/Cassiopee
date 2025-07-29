@@ -28,7 +28,7 @@
 void K_METRIC::compNormUnstructSurf(
   K_FLD::FldArrayI& cn,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* nsurf
+  E_Float* nsurfx, E_Float* nsurfy, E_Float* nsurfz
 )
 {
   K_FLD::FldArrayI& cm = *(cn.getConnect(0));
@@ -36,13 +36,46 @@ void K_METRIC::compNormUnstructSurf(
 
   #pragma omp parallel
   {
-    E_Int ind1, ind2, ind3;
-    E_Float l1x, l1y, l1z;
-    E_Float l2x, l2y, l2z;
-    E_Float surfx, surfy, surfz;
+    if (strcmp(eltTypes[ic], "TRI") == 0)
+    {
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      E_Int nelts = cm.getSize();
 
-    #pragma omp for
-    for (E_Int i = 0; i < nt; i++)
+      #pragma omp parallel
+      {
+        E_Int ind1, ind2, ind3, pos;
+        E_Float l1x, l1y, l1z;
+        E_Float l2x, l2y, l2z;
+        E_Float surfx, surfy, surfz;
+
+        #pragma omp for
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          ind1 = cm(i, 1);
+          ind2 = cm(i, 2);
+          ind3 = cm(i, 3);
+
+          l1x = xt[ind1] - xt[ind2];
+          l1y = yt[ind1] - yt[ind2];
+          l1z = zt[ind1] - zt[ind2];
+
+          l2x = xt[ind1] - xt[ind3];
+          l2y = yt[ind1] - yt[ind3];
+          l2z = zt[ind1] - zt[ind3];
+
+          surfx = l1y * l2z - l1z * l2y;
+          surfy = l1z * l2x - l1x * l2z;
+          surfz = l1x * l2y - l1y * l2x;
+
+          pos = offset + i;
+          nsurfx[pos] = K_CONST::ONE_HALF * surfx;
+          nsurfy[pos] = K_CONST::ONE_HALF * surfy;
+          nsurfz[pos] = K_CONST::ONE_HALF * surfz;
+        }
+      }
+      offset += nelts;
+    }
+    else
     {
       ind1 = cm(i, 1);
       ind2 = cm(i, 2);
@@ -65,6 +98,8 @@ void K_METRIC::compNormUnstructSurf(
       nsurf[i*3+2] = K_CONST::ONE_HALF * surfz;
     }
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
 void K_METRIC::compNormUnstructSurft(
@@ -107,4 +142,6 @@ void K_METRIC::compNormUnstructSurft(
       nzt[i] = K_CONST::ONE_HALF * surfz;
     }
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }

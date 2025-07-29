@@ -351,4 +351,6 @@ void K_METRIC::compUnstructCenterInt(
     nfpc = nfpe*nelts;
     fcOffset += nfpc;
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
