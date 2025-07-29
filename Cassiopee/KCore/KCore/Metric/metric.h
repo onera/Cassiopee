@@ -160,12 +160,12 @@ namespace K_METRIC
      OUT: nsurf: normales aux facettes
   */
   void compNormUnstructSurf(
-    K_FLD::FldArrayI& cn,
+    K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* nsurfx, E_Float* nsurfy, E_Float* nsurfz);
 
   void compNormUnstructSurft(
-    K_FLD::FldArrayI& cn,
+    K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* nxt, E_Float* nyt, E_Float* nzt);
     
@@ -266,7 +266,8 @@ namespace K_METRIC
     const E_Float* coordx, const E_Float* coordy, const E_Float* coordz,
     E_Float* xint, E_Float* yint, E_Float* zint,
     E_Float* snx, E_Float* sny, E_Float* snz,
-    E_Float* surf, E_Float* vol);
+    E_Float* surf,
+    E_Float* vol);
 
   /* Calcul des normales pour un maillage BE.
      Les normales aux surfaces sont orientees vers l'exterieur de l'element.

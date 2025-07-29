@@ -29,11 +29,6 @@ using namespace K_FLD;
 
 extern "C"
 {
-  void k6normunstructsurf_(const E_Int& nt, const E_Int& nv,
-                           E_Int* cn, 
-                           E_Float* coordx, E_Float* coordy, E_Float* coordz,
-                           E_Float* surf);
-
   void k6integnormprodstruct_(const E_Int& ni, const E_Int& nj, E_Float* ratio,
                               E_Float* sx, E_Float* sy, E_Float* sz, 
                               E_Float* vx, E_Float* vy, E_Float* vz, 
@@ -435,9 +430,10 @@ E_Int K_POST::integUnstruct3(E_Int center2node,
   
   // Compute surface of each "block" i cell, with coordinates coordBlk
   FldArrayF nsurfBlk(nbT, 3);
-  k6normunstructsurf_(nbT, size, cnBlk.begin(), coordBlk.begin(posx), 
-                      coordBlk.begin(posy), coordBlk.begin(posz),
-                      nsurfBlk.begin());  
+  K_METRIC::compNormUnstructSurf(
+    cnBlk, "TRI",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3));
   if (center2node == 1)
   {
     // Compute integral, coordinates defined in node 

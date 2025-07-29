@@ -27,11 +27,6 @@ using namespace K_FLD;
 
 extern "C"
 {
-  void k6normunstructsurf_(const E_Int& nt, const E_Int& nv,
-                           E_Int* cn,
-                           E_Float* coordx, E_Float* coordy, E_Float* coordz,
-                           E_Float* surf);
-
   void k6integnormstructnodecenter_(const E_Int& ni, const E_Int& nj,
                                     E_Float* ratio, E_Float* sx,
                                     E_Float* sy, E_Float* sz,
@@ -354,31 +349,17 @@ PyObject* K_POST::integNorm(PyObject* self, PyObject* args)
   E_Float* res2 = resultat.begin(2);
   E_Float* res3 = resultat.begin(3);
 
-#ifdef E_DOUBLEREAL
   for (E_Int i = 0; i < nFld; i++)
   {
     in = PyList_New(0);
-    tpl = Py_BuildValue("d", res1[i]);
+    tpl = Py_BuildValue(R_, res1[i]);
     PyList_Append(in, tpl); Py_DECREF(tpl);
-    tpl = Py_BuildValue("d", res2[i]);
+    tpl = Py_BuildValue(R_, res2[i]);
     PyList_Append(in, tpl); Py_DECREF(tpl);
-    tpl = Py_BuildValue("d", res3[i]);
-    PyList_Append(in, tpl); Py_DECREF(tpl);
-    PyList_Append(l, in); Py_DECREF(in);
-  }
-#else
-  for (E_Int i = 0; i < nFld; i++)
-  {
-    in = PyList_New(0);
-    tpl = Py_BuildValue("f", res1[i]);
-    PyList_Append(in, tpl); Py_DECREF(tpl);
-    tpl = Py_BuildValue("f", res2[i]);
-    PyList_Append(in, tpl); Py_DECREF(tpl);
-    tpl = Py_BuildValue("f", res3[i]);
+    tpl = Py_BuildValue(R_, res3[i]);
     PyList_Append(in, tpl); Py_DECREF(tpl);
     PyList_Append(l, in); Py_DECREF(in);
   }
-#endif
 
   return l;
 }
@@ -462,7 +443,7 @@ E_Int K_POST::integUnstruct2(E_Int center2node,
   FldArrayF resultBlk(3);
   resultBlk.setAllValuesAtNull();
 
-  E_Int numberOfVariables = FBlk.getNfld();
+  E_Int nvars = FBlk.getNfld();
 
   E_Float* res1 = resultat.begin(1);
   E_Float* res2 = resultat.begin(2);
@@ -470,25 +451,27 @@ E_Int K_POST::integUnstruct2(E_Int center2node,
 
   E_Int size = coordBlk.getSize();
   E_Int nbT = cnBlk.getSize();
-  FldArrayF nsurfBlk(nbT,3);
+  FldArrayF nsurfBlk(nbT, 3);
+  E_Float* nsurfBlk1 = nsurfBlk.begin(1);
+  E_Float* nsurfBlk2 = nsurfBlk.begin(2);
+  E_Float* nsurfBlk3 = nsurfBlk.begin(3);
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  k6normunstructsurf_(nbT, size, cnBlk.begin(),
-                      coordBlk.begin(posx), coordBlk.begin(posy),
-                      coordBlk.begin(posz),
-                      nsurfBlk.begin());
+  K_METRIC::compNormUnstructSurf(
+    cnBlk, "TRI",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    nsurfBlk1, nsurfBlk2, nsurfBlk3);
 
-  switch ( center2node)
+  switch (center2node)
   {
     case 1:
-      for (E_Int n = 1; n <= numberOfVariables; n++)
+      for (E_Int n = 1; n <= nvars; n++)
       {
         // Compute integral, coordinates defined in node
         // and field FBlk in center
         k6integnormunsnodecenter_(nbT, ratioBlk.begin(),
-                                  nsurfBlk.begin(1),nsurfBlk.begin(2),
-                                  nsurfBlk.begin(3), FBlk.begin(n),
-                                  resultBlk.begin());
+                                  nsurfBlk1, nsurfBlk2, nsurfBlk3,
+                                  FBlk.begin(n), resultBlk.begin());
 
         res1[n-1] = res1[n-1] + resultBlk[0];
         res2[n-1] = res2[n-1] + resultBlk[1];
@@ -497,13 +480,12 @@ E_Int K_POST::integUnstruct2(E_Int center2node,
       break;
 
     default:
-      for (E_Int n = 1; n <= numberOfVariables; n++)
+      for (E_Int n = 1; n <= nvars; n++)
       {
         // Compute integral, coordinates and field have the same size
         k6integnormunstruct_(nbT, size, cnBlk.begin(), ratioBlk.begin(),
-                             nsurfBlk.begin(1),nsurfBlk.begin(2),
-                             nsurfBlk.begin(3), FBlk.begin(n),
-                             resultBlk.begin());
+                             nsurfBlk1, nsurfBlk2, nsurfBlk3,
+                             FBlk.begin(n), resultBlk.begin());
 
         res1[n-1] = res1[n-1] + resultBlk[0];
         res2[n-1] = res2[n-1] + resultBlk[1];
