@@ -36,25 +36,29 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3):
     xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
     xmax = BB[3]+delta; ymax = BB[4]+delta; zmax = BB[5]+delta
     # CARTRX
-    bb_tb = G.bbox(tb)
-    xmin_core = bb_tb[0]-2*offsetValMin;
-    ymin_core = bb_tb[1]-2*offsetValMin;
-    zmin_core = bb_tb[2]-2*offsetValMin;
-    xmax_core = bb_tb[3]+2*offsetValMin;
-    ymax_core = bb_tb[4]+2*offsetValMin;
-    zmax_core = bb_tb[5]+2*offsetValMin;
+    delta2 = min(2*offsetValMin, 0.5*offsetValMax)
+    delta2 = max(1.2*offsetValMin, delta2)
+    xmin_core = BB[0]-delta2
+    ymin_core = BB[1]-delta2
+    zmin_core = BB[2]-delta2
+    xmax_core = BB[3]+delta2
+    ymax_core = BB[4]+delta2
+    zmax_core = BB[5]+delta2
 
-    hi = (xmax-xmin)/(ni-1); hj = (ymax-ymin)/(nj-1)
+    ni_core = 51; nj_core = 51; nk_core = 51
+    hi_core = (xmax_core-xmin_core)/(ni_core-1)
+    hj_core = (ymax_core-ymin_core)/(nj_core-1)
+    hk_core = (zmax_core-zmin_core)/(nk_core-1)
+
     if dim == 2:
         zmin = 0; zmax = 0
         zmin_core = 0.; zmax_core = 0.
         hk = 0.
-    else:
-        hk = (zmax-zmin)/(nk-1)
 
     XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
     XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
-    b = G.cartRx3(XC0, XC1, (hi,hj,hk), XF0, XF1, (1.2,1.2,1.2), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
+    
+    b = G.cartRx3(XC0, XC1, (hi_core,hj_core,hk_core), XF0, XF1, (1.2,1.2,1.2), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
     #
     DTW._distance2Walls(b, tb, type='mininterf', loc='nodes', signed=0)
     bodies = []
@@ -727,7 +731,7 @@ def addPhysicalBCs__(z_ngon, tb, dim=3):
 #==================================================================
 # Generation of the AMR mesh for IBMs
 #==================================================================
-def generateAMRMesh(tb, levelMax=7, vmins=11, dim=3, check=False):
+def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, dim=3, check=False):
     FILE_SKELETON = 'skeleton.cgns'
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
@@ -750,22 +754,23 @@ def generateAMRMesh(tb, levelMax=7, vmins=11, dim=3, check=False):
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
     if dim==3: dfarmax = min(dfarmax,bbo[5]-bbo[2])
 
-    offsetValues = []
-    offsetprev = 0.
-    print(" Minimum spacing = ", hmin, flush=True)
-    for no_adapt in range(len(vmins)):
-        offsetloc = offsetprev+hmin*(2**no_adapt)*vmins[no_adapt]
-        if offsetloc < 0.99*dfarmax:
-            offsetValues.append(offsetloc)
-            offsetprev=offsetloc
-    #generate list of offsets
-    print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-    toff = generateListOfOffsets__(tb, offsetValues=offsetValues, dim=dim)
-    if check and Cmpi.rank==0: C.convertPyTree2File(toff,"offset.cgns")
+    if toffset==None:
+        offsetValues = []
+        offsetprev = 0.
+        print(" Minimum spacing = ", hmin, flush=True)
+        for no_adapt in range(len(vmins)):
+            offsetloc = offsetprev+hmin*(2**no_adapt)*vmins[no_adapt]
+            if offsetloc < 0.99*dfarmax:
+                offsetValues.append(offsetloc)
+                offsetprev=offsetloc
+        #generate list of offsets
+        print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
+        toffset = generateListOfOffsets__(tb, offsetValues=offsetValues, dim=dim)
+        if check and Cmpi.rank==0: C.convertPyTree2File(toff,"offset.cgns")
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
-    o = adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=toff, dim=dim)
+    o = adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=toffset, dim=dim)
     Cmpi._setProc(o, Cmpi.rank)
     t = C.newPyTree(['AMR',o])
     return t
