@@ -48,11 +48,9 @@ c0 = C.initVars(c0,'vx', f1, ['x','y'])
 c0 = C.initVars(c0,'vy', f2, ['x','y'])
 c = C.extractVars(c0, ['vx','vy'])
 res = P.integNorm([m], [c], [])
-print(res)
 out = C.array('resvx,resvy', 3, 1, 1)
 out[1][0,0] = res[0][0]; out[1][0,1] = res[0][1]; out[1][0,2] = res[0][2];
 out[1][0,0] = res[1][0]; out[1][0,1] = res[1][1]; out[1][0,2] = res[1][2];
-print(out)
 test.testA([out], 3)
 
 # TRI NODE / CENTER
