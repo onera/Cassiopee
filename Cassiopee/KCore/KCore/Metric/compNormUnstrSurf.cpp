@@ -53,9 +53,9 @@ void K_METRIC::compNormUnstructSurf(
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          ind1 = cm(i, 1);
-          ind2 = cm(i, 2);
-          ind3 = cm(i, 3);
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+          ind3 = cm(i, 3) - 1;
 
           l1x = xt[ind1] - xt[ind2];
           l1y = yt[ind1] - yt[ind2];
@@ -117,9 +117,9 @@ void K_METRIC::compNormUnstructSurft(
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          ind1 = cm(i, 1);
-          ind2 = cm(i, 2);
-          ind3 = cm(i, 3);
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+          ind3 = cm(i, 3) - 1;
 
           l1x = xt[ind1] - xt[ind2];
           l1y = yt[ind1] - yt[ind2];
