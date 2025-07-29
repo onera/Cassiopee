@@ -162,7 +162,7 @@ namespace K_METRIC
   void compNormUnstructSurf(
     K_FLD::FldArrayI& cn,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float* nsurf);
+    E_Float* nsurfx, E_Float* nsurfy, E_Float* nsurfz);
 
   void compNormUnstructSurft(
     K_FLD::FldArrayI& cn,
