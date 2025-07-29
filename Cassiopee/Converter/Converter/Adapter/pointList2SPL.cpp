@@ -34,7 +34,7 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
 
   // Check numpy (pointlist)
   FldArrayI* PL;
-  E_Int res1 = K_NUMPY::getFromPointList(PLarray, PL, true);
+  E_Int res1 = K_NUMPY::getFromPointList(PLarray, PL);
 
   if (res1 == 0)
   {
@@ -44,7 +44,7 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
   }
   // Chekc numpy (pointList donor)
   FldArrayI* PLD;
-  E_Int res2 = K_NUMPY::getFromPointList(PLDarray, PLD, true);
+  E_Int res2 = K_NUMPY::getFromPointList(PLDarray, PLD);
 
   if (res2 == 0)
   {

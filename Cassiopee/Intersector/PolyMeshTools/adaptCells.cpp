@@ -503,7 +503,7 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
     {
       PyObject * pyBCptList = PyList_GetItem(py_bcptlists, i);
       E_Int *ptL, size, nfld;
-      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld, true/* shared*/);
+      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld);
       //std::cout << "res2/size/nfld : " << res2 << "/" << size << "/" << nfld << std::endl;
 
       std::vector<E_Int> vPtL(ptL, ptL+size);
@@ -1758,7 +1758,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     {
       PyObject * pyBCptList = PyList_GetItem(py_bcptlists, i);
       E_Int *ptL, size, nfld;
-      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld, true/* shared*/);
+      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld);
       //std::cout << "res2/size/nfld : " << res2 << "/" << size << "/" << nfld << std::endl;
 
       std::vector<E_Int> vPtL(ptL, ptL+size);

@@ -74,10 +74,14 @@ def AdaptMesh_Adapt(AM):
 # IN: AM: data structure
 # IN: conformize: 0=HEXA, 1=NGON
 # OUT: return a zone per proc with 1to1 grid connectivities and bcs
-def AdaptMesh_ExtractMesh(AM, conformize=1):
+def AdaptMesh_ExtractMesh(AM, conformize=1, recoverBC=True):
     mesh, bcs, comm, procs = xcore.AdaptMesh_ExtractMesh(AM, conformize)
     name = 'Proc' + '%d'%Cmpi.rank
     zone = I.createZoneNode(name, mesh)
+
+    if recoverBC is False:
+        t = C.newPyTree([name, zone])
+        return t
 
     if procs is not None and len(procs) > 0:
         I.newUserDefinedData(name='NeighbourProcessors', value=procs, parent=zone)

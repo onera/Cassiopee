@@ -30,7 +30,7 @@ using namespace K_FLD;
   RELEASESHAREDB(resr, receiverArray, fr, cnr);                         \
   RELEASESHAREDN(numpyIndicesR, IndicesR);                              \
   for (E_Int no = 0; no < nDnrZones; no++)                              \
-  { RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);    \
+  { RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  \
     PyObject* tpld = PyList_GetItem(listOfNumpyIndicesD, no);           \
     RELEASESHAREDN(tpld, listOfIndicesD[no]);  } 
 
@@ -98,8 +98,8 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
 
   // Extraction of indirection tab for receptor zone 
   FldArrayI* IndicesR;// structured indices corresponding to NGON indices of the receptor zone
-  E_Int resi = K_NUMPY::getFromNumpyArray(numpyIndicesR, IndicesR, true);
-  if ( resi == 0)
+  E_Int resi = K_NUMPY::getFromNumpyArray(numpyIndicesR, IndicesR);
+  if (resi == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setInterpDataCons: 2nd arg must be a numpy of integers.");
@@ -121,8 +121,8 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   {  
     FldArrayI* IndicesD;
     PyObject* tpli = PyList_GetItem(listOfNumpyIndicesD, no);
-    resi = K_NUMPY::getFromNumpyArray(tpli, IndicesD, true);
-    if ( resi == 0)
+    resi = K_NUMPY::getFromNumpyArray(tpli, IndicesD);
+    if (resi == 0)
     {
       PyErr_SetString(PyExc_TypeError,
                       "setInterpDataCons: 2nd arg must be a numpy of integers.");

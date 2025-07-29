@@ -76,7 +76,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_bc,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true);
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist);
     ipt_ptlist_bc[i]   = Ptlist->begin();
     size_ptlist_bc[i]  = Ptlist->getSize();
     //printf(" fen bc= %d %d %d \n", size_ptlist_bc[i], Ptlist->getSize(),  i);
@@ -85,18 +85,18 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_rac,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
-    ipt_ptlist_rac[i]          = Ptlist->begin();
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist); 
+    ipt_ptlist_rac[i] = Ptlist->begin();
 
-    size_ptlist_rac[i]= Ptlist->getSize();
+    size_ptlist_rac[i] = Ptlist->getSize();
      //printf(" fen rac= %d %d \n",  size_ptlist_rac[i], i);
   }
   for (E_Int i = 0; i < NbPtlist_rac; i++)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_racD,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
-    ipt_ptlist_racD[i]         = Ptlist->begin();
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist); 
+    ipt_ptlist_racD[i] = Ptlist->begin();
 
     size_ptlist_racD[i]= Ptlist->getSize();
     // printf(" fen racD= %d %d \n", size_ptlist_racD[i], i);
@@ -257,7 +257,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     for (E_Int j = 0; j < size_ptlist_bc[i]; j++)
     {
-      E_Int face          = ipt_ptlist_bc[i][j];
+      E_Int face = ipt_ptlist_bc[i][j];
       ipt_ptlist_bc[i][j] = nn[face-1]+1;
       //printf(" pt rac= %d %d %d %d\n", nn[face-1]+1, face, j,i);
     }
@@ -267,7 +267,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     for (E_Int j = 0; j < size_ptlist_rac[i]; j++)
     {
-      E_Int face          = ipt_ptlist_rac[i][j];
+      E_Int face = ipt_ptlist_rac[i][j];
       ipt_ptlist_rac[i][j] = nn[face-1]+1;
     }
   }
@@ -276,7 +276,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     for (E_Int j = 0; j < size_ptlist_racD[i]; j++)
     {
-      E_Int face          = ipt_ptlist_racD[i][j];
+      E_Int face = ipt_ptlist_racD[i][j];
       ipt_ptlist_racD[i][j] = nn[face-1]+1;
     }
   }

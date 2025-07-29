@@ -52,7 +52,7 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
     }
     posx++; posy++; posz++;
 
-    E_Int npts = f->getSize();
+    //E_Int npts = f->getSize();
     if (res == 1) // cas structure
     {
       E_Int im1 = im-1;
@@ -151,8 +151,7 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
         {
           PyErr_SetString(PyExc_TypeError,
                           "getNormalMap: elements must be TRI or QUAD.");
-          RELEASESHAREDU(array, f, cn);
-          return NULL;
+          RELEASESHAREDU(array, f, cn); return NULL;
         }
         PyObject* tpl = K_ARRAY::buildArray(3, "sx,sy,sz", nelts, nelts, -1, eltType, true);
         E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);

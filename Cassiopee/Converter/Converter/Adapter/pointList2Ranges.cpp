@@ -115,7 +115,7 @@ PyObject* K_CONVERTER::pointList2Ranges(PyObject* self, PyObject* args)
 
   // Check numpy (pointlist)
   FldArrayI* PL;
-  E_Int res = K_NUMPY::getFromPointList(array, PL, true);
+  E_Int res = K_NUMPY::getFromPointList(array, PL);
 
   if (res == 0)
   {

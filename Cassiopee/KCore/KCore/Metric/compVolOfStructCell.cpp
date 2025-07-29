@@ -137,10 +137,10 @@ void K_METRIC::compVolOfStructCell3D(
   i = indnode - k * ninj - j * ni;
 
   // Decalages a gauche
-  if (i == ni - 1) indnode = indnode - 1;
-  if (j == nj - 1) indnode = indnode - ni;
-  if (k == nk - 1) indnode = indnode - ninj;
-
+  if (i == ni-1) indnode = indnode - 1;
+  if (j == nj-1) indnode = indnode - ni;
+  if (k == nk-1) indnode = indnode - ninj;
+  
   indA = indnode;
   indB = indA + 1;
   indC = indB + ni;

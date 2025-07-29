@@ -13,9 +13,9 @@ E_Int parse_pointlists_and_rfields(PyObject *ptlists, PyObject *rfields,
   rflds.resize(psize);
   npfaces.resize(psize);
     
-  for (E_Int i = 0; i < psize; i++) {
+  for (E_Int i = 0; i < psize; i++) 
+  {
     PyObject *patch = PyList_GetItem(ptlists, i);
-
     E_Int ret = K_NUMPY::getFromNumpyArray(patch, pfaces[i], npfaces[i], true);
     assert(ret == 1);
   }
@@ -23,11 +23,13 @@ E_Int parse_pointlists_and_rfields(PyObject *ptlists, PyObject *rfields,
   E_Int rsize = PyList_Size(rfields);
   assert(rsize == psize);
 
-  for (E_Int i = 0; i < rsize; i++) {
+  for (E_Int i = 0; i < rsize; i++) 
+  {
     PyObject *flds = PyList_GetItem(rfields, i);
     E_Int nfld = PyList_Size(flds);
     rflds[i].resize(nfld);
-    for (E_Int j = 0; j < nfld; j++) {
+    for (E_Int j = 0; j < nfld; j++) 
+    {
       PyObject *fld = PyList_GetItem(flds, j);
       E_Int size = -1;
       E_Int ret = K_NUMPY::getFromNumpyArray(fld, rflds[i][j], size, true);

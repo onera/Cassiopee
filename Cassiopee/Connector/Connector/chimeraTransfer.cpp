@@ -48,7 +48,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  E_Int res = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   if (res == 0) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -59,7 +59,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   /* Extraction des indices des donneurs */
   /*-------------------------------------*/
   FldArrayI* donorPtsI;
-  res = K_NUMPY::getFromNumpyArray(pyIndDonor, donorPtsI, true);
+  res = K_NUMPY::getFromNumpyArray(pyIndDonor, donorPtsI);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -71,7 +71,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   /* Extraction des types */
   /*----------------------*/
   FldArrayI* typesI;
-  res = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI, true);
+  res = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -85,7 +85,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   /* Extraction des coefs  */
   /*-----------------------*/
   FldArrayF* donorCoefsF;
-  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, true);
+  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF);
 
   if (res == 0) 
   {
