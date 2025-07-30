@@ -68,7 +68,7 @@ STOP = 0
 WIDGETS = {}
 
 # Sort test strings
-SORT_CATEGORIES = ['Name', 'CPU time', 'Ref. CPU time', 'Date', 'Coverage', 'Tag', 'Status']
+SORT_CATEGORIES = ['Name', 'CPU time', 'Ref. CPU time', 'Date', 'Coverage', 'Tag', 'Status', 'CPU time relDiff.']
 SORT_BY = 'Name'
 REV_SORT = False
 
@@ -1109,6 +1109,12 @@ def parseCPUTimeStr(s):
         return minutes * 60 + seconds  # total time in seconds
     except ValueError:  # undefined as in "..."
         return -1.
+        
+def parseCPUTimeRelDiffStr(s1, s2):
+    t1 = parseCPUTimeStr(s1)
+    t2 = parseCPUTimeStr(s2)
+    if t1 <= 0. or t2 <= 0.: return 1e9
+    else: return (t2 - t1)/t2
 
 def parseDateStr(s):
     try:
@@ -1134,19 +1140,41 @@ def sortTests(tests):
     if SORT_BY == 'Name': return sorted(tests, reverse=REV_SORT)
     sortIndex = SORT_CATEGORIES.index(SORT_BY) + 1
     if SORT_BY == 'Coverage':
-        return sorted(tests, key=lambda t: parseCoverageStr(splitTestString(t)[sortIndex]), reverse=REV_SORT)
+        return sorted(
+            tests,
+            key=lambda t: parseCoverageStr(splitTestString(t)[sortIndex]),
+            reverse=REV_SORT)
     elif SORT_BY in ['CPU time', 'Ref. CPU time']:
-        return sorted(tests, key=lambda t: parseCPUTimeStr(splitTestString(t)[sortIndex]), reverse=REV_SORT)
+        return sorted(
+            tests,
+            key=lambda t: parseCPUTimeStr(splitTestString(t)[sortIndex]),
+            reverse=REV_SORT)
+    elif SORT_BY == 'CPU time relDiff.':
+        sortIndex1 = SORT_CATEGORIES.index('CPU time') + 1
+        sortIndex2 = SORT_CATEGORIES.index('Ref. CPU time') + 1
+        return sorted(
+            tests,
+            key=lambda t: parseCPUTimeRelDiffStr(
+                splitTestString(t)[sortIndex1],
+                splitTestString(t)[sortIndex2]),
+            reverse=REV_SORT)
     elif SORT_BY == 'Date':
-        return sorted(tests, key=lambda t: parseDateStr(splitTestString(t)[sortIndex]), reverse=REV_SORT)
-    return sorted(tests, key=lambda t: splitTestString(t)[sortIndex], reverse=REV_SORT)
+        return sorted(
+            tests,
+            key=lambda t: parseDateStr(splitTestString(t)[sortIndex]),
+            reverse=REV_SORT)
+    return sorted(
+        tests,
+        key=lambda t: splitTestString(t)[sortIndex],
+        reverse=REV_SORT)
 
 def sortTestList(event=None, entry='Name', force=False):
     global SORT_BY
     if entry in SORT_CATEGORIES and (force or entry != SORT_BY):
         SORT_BY = entry
+        tests = Listbox.get(0, 'end')
         Listbox.delete(0, 'end')
-        for s in sortTests(TESTS): Listbox.insert('end', s)
+        for s in sortTests(tests): Listbox.insert('end', s)
     updateSortLabels()
 
 def updateSortLabels():
@@ -1160,8 +1188,6 @@ def updateSortingOrderLabel(event=None):
     global REV_SORT
     REV_SORT = not REV_SORT
     sortTestList(event=event, entry=SORT_BY, force=True)
-    if REV_SORT: sortTab.entryconfig(8, label="Ascending order")
-    else: sortTab.entryconfig(8, label="Descending order")
 
 #==============================================================================
 # Filtre la liste des tests avec la chaine de filter
@@ -1898,10 +1924,10 @@ if __name__ == '__main__':
         menu.add_cascade(label='File', menu=fileTab)
         toolsTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='Tools', menu=toolsTab)
-        viewTab = TK.Menu(menu, tearoff=0)
-        menu.add_cascade(label='View', menu=viewTab)
         sortTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='Sort', menu=sortTab)
+        viewTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='View', menu=viewTab)
 
         loadSessionWithArgs = partial(buildTestList, "session")
         fileTab.add_command(label='Load last session', command=loadSessionWithArgs)
@@ -1939,8 +1965,9 @@ if __name__ == '__main__':
         sortTab.add_command(label='    By Coverage', command=lambda: sortTestList(entry="Coverage"))
         sortTab.add_command(label='    By Tag', command=lambda: sortTestList(entry="Tag"))
         sortTab.add_command(label='    By Status', command=lambda: sortTestList(entry="Status"))
+        sortTab.add_command(label='    By CPU time relDiff.', command=lambda: sortTestList(entry="CPU time relDiff."))
         sortTab.add_separator()
-        sortTab.add_command(label='Descending order', command=updateSortingOrderLabel)
+        sortTab.add_command(label='Reverse order', command=updateSortingOrderLabel)
 
         toolsTab.add_command(label='Tag selection', command=tagSelection)
         toolsTab.add_command(label='Untag selection', command=untagSelection)
