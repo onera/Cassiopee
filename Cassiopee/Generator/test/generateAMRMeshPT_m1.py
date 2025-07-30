@@ -1,4 +1,4 @@
-
+# - generateAMRMesh (pyTree) -
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
@@ -7,7 +7,7 @@ import Geom.PyTree as D
 import Geom.IBM as D_IBM
 import KCore.test as test
 
-#2D
+# 2D
 a = D.naca(12.)
 dimPb = 2
 D_IBM._setSnear(a, 0.5)

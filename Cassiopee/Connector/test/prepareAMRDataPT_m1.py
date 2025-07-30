@@ -1,4 +1,5 @@
-# prepareAMRData: IBM preprocessing
+# - prepareAMRData (pyTree) -
+# IBM preprocessing
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G

@@ -1,4 +1,5 @@
-# prepareAMRData : IBM preprocessing for HEXA/AMR grids
+# - prepareAMRData (pyTree) -
+# IBM preprocessing for HEXA/AMR grids
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Geom.PyTree as D
