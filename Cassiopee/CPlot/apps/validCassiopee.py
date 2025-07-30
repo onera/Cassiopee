@@ -1109,7 +1109,7 @@ def parseCPUTimeStr(s):
         return minutes * 60 + seconds  # total time in seconds
     except ValueError:  # undefined as in "..."
         return -1.
-        
+
 def parseCPUTimeRelDiffStr(s1, s2):
     t1 = parseCPUTimeStr(s1)
     t2 = parseCPUTimeStr(s2)
