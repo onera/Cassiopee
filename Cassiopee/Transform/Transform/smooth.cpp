@@ -503,7 +503,7 @@ void  K_TRANSFORM::umbrella(FldArrayF& coord, FldArrayF& coordo,
           dz = projz[ind]-cz[ind];
           E_Float distP = sqrt(dx*dx + dy*dy + dz*dz);
           distP = K_FUNC::E_max(distP, 1.e-10);
-          //E_Boolean edge = false;
+          //E_Bool edge = false;
 
           /* Cherche le rayon le plus proche de la direction de proj */
           E_Float v1x = dx/distP; E_Float v1y = dy/distP; E_Float v1z = dz/distP;

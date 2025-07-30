@@ -30,7 +30,7 @@ using namespace K_CONST;
 /* Test if edge1 (coord1) and edge2 (coord2) coming from different
    triangles are matching */
 //=============================================================================
-E_Boolean testIfEdgesAreMatching(E_Float matchTol, 
+E_Bool testIfEdgesAreMatching(E_Float matchTol, 
                                  FldArrayF& field1, FldArrayF& field2)
 {
   // premier cote 
@@ -130,7 +130,7 @@ E_Int testIfPointsAreMatching(E_Float matchTol, E_Int i1,
 //==========================================================================
 void writeSingleSegments(vector<SingleSegment*>& singleSegments)
 {
-  //E_Boolean add = false;
+  //E_Bool add = false;
   E_Int ssSize = singleSegments.size();
   for (E_Int v = 0; v < ssSize; v++)
   {
@@ -176,7 +176,7 @@ void buildPocket(E_Float matchTol,
   dejaVu.setAllValuesAtNull();
   FldArrayIS tag(size);
 
-  E_Boolean closed;
+  E_Bool closed;
   E_Int iprev, inext, iend;
   E_Int vprev, vend;
   E_Int v2;
@@ -316,7 +316,7 @@ void eraseDoublePts(E_Int sizeIni, E_Int nfld,
   E_Int c = 0;
   for (E_Int i = 0; i < sizeIni; i++)
   {
-    E_Boolean found = false;
+    E_Bool found = false;
     for (E_Int j = 0; j < i; j++)
     {
       dx = globalTab(i,1) - globalTab(j,1);
@@ -352,7 +352,7 @@ void eraseDoublePts(E_Int sizeIni, E_Int nfld,
    OUT : distProj : distance between (x,y,z) and (xp,yp,zp)
 */
 //=========================================================================
-E_Boolean projectPointOnPlane(E_Float x, E_Float y, E_Float z,
+E_Bool projectPointOnPlane(E_Float x, E_Float y, E_Float z,
                               E_Float x0, E_Float y0, E_Float z0,
                               E_Float x1, E_Float y1, E_Float z1,
                               E_Float x2, E_Float y2, E_Float z2,

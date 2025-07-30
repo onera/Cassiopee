@@ -138,7 +138,7 @@ K_TRANSFORM::collapseMinVertexInTriangle(FldArrayI& cn,
   E_Int* cn1 = cn.begin(1); E_Int* cn2 = cn.begin(2); E_Int* cn3 = cn.begin(3);
   E_Float p1[3], p2[3], p3[3];
   E_Float xp, yp, zp;
-  E_Boolean in;
+  E_Bool in;
   E_Float h1, h2, h3, d12, d13, d23, h, d;
   E_Int ind1, ind2;
 

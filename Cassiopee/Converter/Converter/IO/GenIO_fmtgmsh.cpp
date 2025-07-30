@@ -111,7 +111,7 @@ printf("Elements BAR_3=" SF_D_ " TRI_6=" SF_D_ " QUAD_9=" SF_D_ " TETRA_10=" SF_
        nBAR_3, nTRI_6, nQUAD_9, nTETRA_10, nHEXA_27, nPENTA_18, nPYRA_14);
 
   /* Allocations */
-  E_Boolean fo = true;
+  E_Bool fo = true;
 #include "GenIO_gmsh4.h"
   
   /* Lecture reelle des elements par type */
@@ -572,7 +572,7 @@ E_Int K_IO::GenIO::gmshwrite(
 {
   E_Int nzones = unstructField.size();
   E_Int nvalidZones = 0;
-  vector<E_Boolean> isZoneValid(nzones, false);
+  vector<E_Bool> isZoneValid(nzones, false);
   for (E_Int zn = 0; zn < nzones; zn++)
   {
     vector<E_Int>& eltTypeZn = eltType[zn];

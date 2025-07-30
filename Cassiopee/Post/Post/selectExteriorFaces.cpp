@@ -889,7 +889,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   E_Int ngonType = 1; // CGNSv3 compact array1
   if (api == 2) ngonType = 2; // CGNSv3, array2
   else if (api == 3) ngonType = 3; // force CGNSv4, array3
-  E_Boolean center = false;
+  E_Bool center = false;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nfacesExt,
                                        nedgesExt, "NGON", sizeFN2, sizeEF2,
                                        ngonType, center, api);
@@ -1074,7 +1074,7 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   E_Int ngonType = 1; // CGNSv3 compact array1
   if (api == 2) ngonType = 2; // CGNSv3, array2
   else if (api == 3) ngonType = 3; // force CGNSv4, array3
-  E_Boolean center = false;
+  E_Bool center = false;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nedgesExt,
                                        nptsExt, "NGON", sizeFN2, sizeEF2,
                                        ngonType, center, api);

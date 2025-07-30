@@ -433,10 +433,10 @@ class BlkInterpData
           This function returns true if the point (x,y,z) is inside the cell,
           E_False otherwise.
     */
-    E_Boolean coeffInterpHexa(E_Float x, E_Float y, E_Float z,
+    E_Bool coeffInterpHexa(E_Float x, E_Float y, E_Float z,
                               E_Float* xt, E_Float* yt, E_Float* zt,
                               FldArrayF& cf);
-    E_Boolean coeffInterpHexav(E_Int index, E_Int index2,
+    E_Bool coeffInterpHexav(E_Int index, E_Int index2,
                                E_Float x, E_Float y, E_Float z,
                                FldArrayF& xtv, FldArrayF& ytv, FldArrayF& ztv,
                                FldArrayF& cfv);
@@ -462,13 +462,13 @@ class BlkInterpData
                           E_Float &xi, E_Float &yi, E_Float &zi);
     
     /* Find if the cell contains the point interpolated */
-    E_Boolean getCellJump(E_Float x, E_Float y, E_Float z,
+    E_Bool getCellJump(E_Float x, E_Float y, E_Float z,
                           E_Float* xt, E_Float* yt, E_Float* zt,
                           E_Int& isomm,
                           E_Float& xi, E_Float& yi, E_Float& zi);
 
     /* Get the interp coeff in an hexa cell */
-    E_Boolean getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
+    E_Bool getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
                                  E_Int isomm,
                                  E_Float xi, E_Float yi, E_Float zi, 
                                  E_Float* xt, E_Float* yt, E_Float* zt,

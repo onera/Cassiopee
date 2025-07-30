@@ -721,7 +721,7 @@ K_COMPGEOM::compCEBBIntersection(E_Int ni1, E_Int nj1, E_Int nk1,
   
   FldArrayF cartEltArray1;
   FldArrayF cartEltArray2;
-  E_Boolean isDegenerated = true;
+  E_Bool isDegenerated = true;
 
   for (E_Int dir1 = 1; dir1 <= 3; dir1++)
   {

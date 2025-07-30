@@ -26,7 +26,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
 {
   PyObject* arrayConnect; PyObject* arrayOffset;
-  E_Boolean absFace = true;
+  E_Bool absFace = true;
   if (!PYPARSETUPLE_(args, OO_ B_, 
                      &arrayConnect, &arrayOffset, &absFace)) return NULL;
 

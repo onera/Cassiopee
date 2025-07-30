@@ -329,7 +329,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     E_Int ngonType = 1; // CGNSv3 compact array1
     if (api == 2) ngonType = 2; // CGNSv3, array2
     else if (api == 3) ngonType = 3; // force CGNSv4, array3
-    E_Boolean center = false;
+    E_Bool center = false;
     tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueElts,
                                nuniqueFaces, "NGON", sizeFN2, sizeEF2,
                                ngonType, center, api);
@@ -852,7 +852,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   // --- 4. Create resized connectivity ---
   if (rmOverlappingPts || rmDirtyElts)
   {  
-    E_Boolean center = false;
+    E_Bool center = false;
     tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueElts,
                                eltType, center, api);
     FldArrayF* f2; FldArrayI* cn2;

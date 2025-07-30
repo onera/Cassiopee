@@ -212,10 +212,10 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     projectSurfArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
@@ -342,7 +342,7 @@ void K_CONNECTOR::changeWallEX(
   E_Int noet, ind1, ind2, indil, indt1, indt2, indt3;
   E_Int nob, nov1, nov2, nov3;
   E_Int nbB, dir1, dir2, dir3, dir, indA;
-  E_Boolean isProjected;
+  E_Bool isProjected;
   E_Float xA, yA, zA, xaEX, yaEX, zaEX, xbEX, ybEX, zbEX, dAP2;
   E_Float dxa, dya, dza, hmax1, hmax2, hmax, distnew;
   vector<E_Int> indicesElts; vector<E_Int> candidates;

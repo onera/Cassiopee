@@ -157,7 +157,7 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
       nall = referenceNfield;
       for (E_Int p = 0; p < varsSize; p++)
       {
-        E_Boolean found = false; 
+        E_Bool found = false; 
         for (E_Int n = 0; n < referenceNfield; n++)
         {
           if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
@@ -422,7 +422,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
       nall = referenceNfield;
       for (E_Int p = 0; p < varsSize; p++)
       {
-        E_Boolean found = false; 
+        E_Bool found = false; 
         for (E_Int n = 0; n < referenceNfield; n++)
         {
           if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)

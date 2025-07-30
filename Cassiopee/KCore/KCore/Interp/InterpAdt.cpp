@@ -1285,7 +1285,7 @@ short K_INTERP::InterpAdt::searchInterpolationCellStruct(
   if (found == 0) return 0; // listOfCandidateCells vide
   
   list<E_Int>::iterator itr;
-  E_Boolean JUMP;
+  E_Bool JUMP;
   E_Int ind, i, isomm, is, js, ks;
   E_Float xi, yi, zi;
   E_Float xt[15], yt[15], zt[15];

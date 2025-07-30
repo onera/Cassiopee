@@ -41,7 +41,7 @@ using namespace K_FLD;
 E_Int K_IO::GenIO::readInt(E_Int& value,
                            E_Int size, 
                            FILE* ptrFile, 
-                           E_Boolean convertEndian,
+                           E_Bool convertEndian,
                            E_Int sizeInt, E_Int sizeLong)
 {
   int ib; E_LONG lb; E_Int ret;
@@ -72,7 +72,7 @@ E_Int K_IO::GenIO::readInt(E_Int& value,
 void K_IO::GenIO::writeInt(E_Int value, 
                            E_Int size, 
                            FILE* ptrFile, 
-                           E_Boolean convertEndian,
+                           E_Bool convertEndian,
                            E_Int sizeInt, E_Int sizeLong)
 {
   int ib; E_LONG lb;
@@ -388,7 +388,7 @@ E_Int K_IO::GenIO::v3dwrite(
   vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
   vector<FldArrayF*>& field,
   vector<char*>& zoneNames, E_Int isize, E_Int rsize, 
-  E_Boolean convertEndian)
+  E_Bool convertEndian)
 {
   FILE* ptrFile;
   E_Int c, i, l, n;

@@ -143,7 +143,7 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     }
       
     E_Int nb = 0;
-    E_Boolean compact = false;
+    E_Bool compact = false;
     if (api == 1) compact = true;
 
     if (K_STRING::cmp(eltType, "NGON*") == 0)

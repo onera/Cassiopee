@@ -72,7 +72,7 @@ PyObject* K_ARRAY::buildArray(const DynArray<E_Float>& field, const char* varStr
 //=============================================================================
 PyObject* K_ARRAY::buildArray(const DynArray<E_Float>& field, const char* varString,
                               const DynArray<E_Int>& c, E_Int et, const char* etString,
-			                        E_Boolean center)
+			                        E_Bool center)
 {
   npy_intp dim[2];
   PyArrayObject* a;

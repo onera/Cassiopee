@@ -185,7 +185,7 @@ void StructBlock::updateIBlankArray()
 //=============================================================================
 /* Test the bounding box intersection of blk1 and blk2 */
 //=============================================================================
-E_Boolean StructBlock::testBBIntersection(StructBlock& block1,
+E_Bool StructBlock::testBBIntersection(StructBlock& block1,
                                           StructBlock& block2)
 {
   E_Float xmax1, ymax1, zmax1, xmin1, ymin1, zmin1;
@@ -226,7 +226,7 @@ StructBlock::compInterpolationInformation(vector<StructBlock*>& vectOfBlks)
   E_Int cnt = 0;
  
   E_Int ind;
-  E_Boolean test;
+  E_Bool test;
   E_Int i,j;
   E_Float x, y, z;
   //E_Float xmax1, ymax1, zmax1, xmin1, ymin1, zmin1;
@@ -326,7 +326,7 @@ void StructBlock::selectTypeOfBlks(vector<StructBlock*>& vectOfBlks)
 //   cout << "For block "<<_id<<" : "<<endl;
 
   // Find if this block has interpolated or solid points
-  E_Boolean isChimera = false;
+  E_Bool isChimera = false;
   for (E_Int i = 0; i < _nMeshPts; i++ )
   {
     cellNF = E_Int(_cfdField(i, _nfld));

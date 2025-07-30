@@ -59,7 +59,7 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
                             E_Int& ni, E_Int& nj, E_Int& nk,
                             FldArrayI*& c,
                             char*& eltType,
-                            E_Boolean shared)
+                            E_Bool shared)
 {
   PyObject* tpl;
   PyArrayObject* a; PyArrayObject* ac;

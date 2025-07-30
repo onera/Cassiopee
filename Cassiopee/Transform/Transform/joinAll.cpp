@@ -525,7 +525,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   K_ARRAY::getFromArray3(tpln, f, cno);
 
   // Nouveaux champs aux centres (la connectivite sera identique a cno)
-  E_Boolean compact = false;
+  E_Bool compact = false;
   if (api == 1) compact = true;
   FldArrayF* fc = new FldArrayF(neltstot, nfldc, compact);
 

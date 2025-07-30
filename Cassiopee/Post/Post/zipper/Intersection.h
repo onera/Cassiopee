@@ -25,7 +25,7 @@
 # define FldArrayF K_FLD::FldArrayF
 
 /* teste l'intersection des cellules */
-E_Boolean testIntersectionOfCells(StructBlock* blk1, 
+E_Bool testIntersectionOfCells(StructBlock* blk1, 
                                   StructBlock* blk2,
                                   E_Int ind1, E_Int ind2,
                                   E_Float eps);
@@ -43,7 +43,7 @@ void createListOfTriangles(StructBlock* blk, E_Int ind,
                            std::list<TriangleZ*>& triangles);
 
 /* Test si le triangle t est degenere ou non */
-E_Boolean isDegenerated(TriangleZ* t, E_Float eps);
+E_Bool isDegenerated(TriangleZ* t, E_Float eps);
 
 /* Compute epsilon tolerance from real frame to new frame */
 void compEpsilonInNewFrame(E_Float eps, 
@@ -53,7 +53,7 @@ void compEpsilonInNewFrame(E_Float eps,
 /*Calcul des matrices de passage du repere R0(x,y,z) vers R1(X,Y,Z), et 
   de R1 vers R0. Retourne false si le determinant est nul.
   R1 est le repere tel que le triangle t est unitaire dans le plan Z=0*/
-E_Boolean compMatrix(TriangleZ* t, FldArrayF& mat10, FldArrayF& mat01);
+E_Bool compMatrix(TriangleZ* t, FldArrayF& mat10, FldArrayF& mat01);
 
 /* teste si le triangle est plan dans la direction Z=0 
    Retourne 1 si oui, -1 si plan parallele,0 si secant */
@@ -62,7 +62,7 @@ E_Int isPlanar(E_Float epsZ,
 
 /* Teste si le triangle unite dans le plan (u,v) et le triangle ABC 
    s'intersectent dans le cas ou ils sont coplanaires */
-E_Boolean 
+E_Bool 
 testIntersectionInPlane(FldArrayF& eps12, FldArrayF& ptA2, 
                         FldArrayF& ptB2, FldArrayF& ptC2,
                         FldArrayF& eps21, FldArrayF& ptA1, 
@@ -70,15 +70,15 @@ testIntersectionInPlane(FldArrayF& eps12, FldArrayF& ptA2,
 
 /* Teste si le segment [AB] de l'espace et les aretes du triangle unite
    de R2 s'intersectent*/
-E_Boolean 
+E_Bool 
 testIntersectionInSpace(FldArrayF& ptA1, FldArrayF& ptB1, FldArrayF& ptC1,
                         FldArrayF& eps01, FldArrayF& intersect1);
 
 /* Teste si le point ptA est dans le triangle unite */
-E_Boolean testIfPtInTriangle(FldArrayF& eps, FldArrayF& ptA);
+E_Bool testIfPtInTriangle(FldArrayF& eps, FldArrayF& ptA);
 
 /* Teste si le triangle ABC est dans le triangle unite */
-E_Boolean testIfTriangleInterior(FldArrayF& ptA, FldArrayF& ptB, 
+E_Bool testIfTriangleInterior(FldArrayF& ptA, FldArrayF& ptB, 
                                  FldArrayF& ptC, FldArrayF& eps);
 
 
@@ -102,7 +102,7 @@ void compPtsInNewFrame(FldArrayF& mat10, FldArrayF& x0_1,
 
 /* Etant donnees 2 combinaisons de points sur la meme droite de l espace
    (2 segts, 1segt+1point, 2 points), teste s'ils s'intersectent */
-E_Boolean 
+E_Bool 
 testIntersectionOfSegments(FldArrayF& mat10, TriangleZ* T1,
                            FldArrayF& mat20, TriangleZ* T2,
                            FldArrayF& eps10, FldArrayF& eps20,

@@ -89,7 +89,7 @@ void computeIBlank(vector<StructBlock*>& structBlocks)
   /* Temporary save : overlap eliminated */
   /*-------------------------------------*/
   printf("Saving blanked file blanked.tp..."); fflush(stdout);
-  E_Boolean add0 = false;
+  E_Bool add0 = false;
   for (E_Int i = 0; i < nzone; i++)
   {
     printf("."); fflush(stdout);
@@ -126,7 +126,7 @@ void computeStringing(vector<StructBlock*>& structBlocks,
   }
   printf("done.\n");
   
-  E_Boolean add = false;
+  E_Bool add = false;
   for (E_Int i = 0; i < nzone; i++)
   {
     list<FldArrayI*>& st = structBlocks[i]->getStrings();
@@ -200,7 +200,7 @@ void computeMatchingSegments(vector<CString*>& strings,
   printf("done.\n");
 
   E_Int nSeg = segPairs.size();
-  E_Boolean add = false;
+  E_Bool add = false;
   for (E_Int i = 0; i < nSeg; i++)
   {
     FldArrayI& s1 = segPairs[i]->getIndArray1();
@@ -309,7 +309,7 @@ void closePockets(vector<CString*>& strings,
         if (dejaVu[v2] == 0 && v2 != v1)
         {      
           FldArrayF& field2 = *(vectOfLastEdges[v2]);     
-          E_Boolean isId = testIfEdgesAreMatching(matchTol, field1, field2);
+          E_Bool isId = testIfEdgesAreMatching(matchTol, field1, field2);
           if (isId == true)
           {
             dejaVu[v1] = 1;
@@ -353,7 +353,7 @@ void closePockets(vector<CString*>& strings,
   printf("done.\n");
   
   // write pockets
-  E_Boolean add = false;
+  E_Bool add = false;
   for (E_Int p = 0; p < pocketsSize; p++)
   {
     pockets[p]->writeLine((char*)"pockets.tp", add);

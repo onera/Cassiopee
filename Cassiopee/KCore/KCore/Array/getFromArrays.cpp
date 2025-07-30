@@ -62,11 +62,11 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
                              vector<char*>& eltType,
                              vector<PyObject*>& objs,
                              vector<PyObject*>& obju,
-                             E_Boolean skipDiffVars,
-                             E_Boolean skipNoCoord,
-                             E_Boolean skipStructured,
-                             E_Boolean skipUnstructured,
-                             E_Boolean shared)
+                             E_Bool skipDiffVars,
+                             E_Bool skipNoCoord,
+                             E_Bool skipStructured,
+                             E_Bool skipUnstructured,
+                             E_Bool shared)
 {
   char* varString; char* eltT;
   E_Int nil, njl, nkl;
@@ -211,11 +211,11 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
                              vector<void*>& a3, 
                              vector<void*>& a4,
                              vector<PyObject*>& obj,
-                             E_Boolean skipDiffVars,
-                             E_Boolean skipNoCoord,
-                             E_Boolean skipStructured,
-                             E_Boolean skipUnstructured,
-                             E_Boolean shared)
+                             E_Bool skipDiffVars,
+                             E_Bool skipNoCoord,
+                             E_Bool skipStructured,
+                             E_Bool skipUnstructured,
+                             E_Bool shared)
 {
   char* varStringl; char* eltT;
   E_Int nil, njl, nkl;

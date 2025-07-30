@@ -177,7 +177,7 @@ inline void E_swap(E_Int a, E_Int b)
 
 /** Equality test with given accuracy */
 inline
-E_Boolean fEqual(E_Float lhs, E_Float rhs, 
+E_Bool fEqual(E_Float lhs, E_Float rhs, 
                  E_Float precision=K_CONST::E_CUTOFF)
 {
   E_Float t = lhs - rhs;
@@ -187,7 +187,7 @@ E_Boolean fEqual(E_Float lhs, E_Float rhs,
 
 /** Equality test with given accuracy */
 inline
-E_Boolean fEqualZero(E_Float lhs, E_Float precision=K_CONST::E_CUTOFF)
+E_Bool fEqualZero(E_Float lhs, E_Float precision=K_CONST::E_CUTOFF)
 {
   return (lhs >= -precision && lhs <= precision) ? true : false;
 }

@@ -789,7 +789,7 @@ PyObject* K_IO::GenIOHdf::getArrayI82I4C(hid_t node, hid_t tid,
   H5Tclose(yid); H5Dclose(did);
 
   int* ptr2 = (int*)::malloc(sizem*sizeof(int));
-  E_Boolean exceed = false;
+  E_Bool exceed = false;
   int64_t val;
   int64_t maxInt = 2;
   maxInt = (maxInt<<31)-2;
@@ -2600,7 +2600,7 @@ hid_t K_IO::GenIOHdf::setArrayI8B(hid_t node, E_LONG* data, int idim, hsize_t* i
   // check int size in array
   int64_t maxInt = 2;
   maxInt = (maxInt<<31)-2;
-  E_Boolean exceed = false;
+  E_Bool exceed = false;
   for (int64_t i = 0; i < size; i++)
   {
     if (data[i] > maxInt) { exceed = true; break; }

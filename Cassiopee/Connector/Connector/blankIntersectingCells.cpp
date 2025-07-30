@@ -95,9 +95,9 @@ PyObject* K_CONNECTOR::blankIntersectingCells(PyObject* self, PyObject* args)
     return NULL;
   }
   
-  E_Boolean skipNoCoord = true; E_Boolean skipDiffVars = true;
-  E_Boolean skipStructured = false; E_Boolean skipUnstructured = false;
-  E_Boolean skipNoCoordc = false;
+  E_Bool skipNoCoord = true; E_Bool skipDiffVars = true;
+  E_Bool skipStructured = false; E_Bool skipUnstructured = false;
+  E_Bool skipNoCoordc = false;
   // Extract infos from arrays
   vector<E_Int> resl;
   vector<char*> structVarString; vector<char*> unstrVarString;

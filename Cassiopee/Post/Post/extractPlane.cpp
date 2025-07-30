@@ -70,10 +70,10 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false; 
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false; 
+  E_Bool skipDiffVars = true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listFields, res, structVarString, unstrVarString,

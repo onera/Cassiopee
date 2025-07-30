@@ -60,10 +60,10 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
   K_SEARCH::KdTree<FldArrayF>* globalKdt = (K_SEARCH::KdTree<FldArrayF>*) packet[3];
   
   // Receptor zones
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = false;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = false;
   
   vector<E_Int> resR;  vector<char*> varStringR;
   vector<FldArrayF*> coordsR;

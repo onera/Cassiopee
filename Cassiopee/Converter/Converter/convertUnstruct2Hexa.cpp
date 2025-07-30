@@ -53,7 +53,7 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
   E_Int npts = f->getSize(), api = f->getApi(), nfld = f->getNfld();
   E_Int nelts, loc = 0;
   vector<E_Int> neltsConn(nc);
-  E_Boolean center = false;
+  E_Bool center = false;
 
   // Boucle sur toutes les connectivites pour determiner les types des
   // nouveaux elements afin de construire la nouvelle connectivite ME

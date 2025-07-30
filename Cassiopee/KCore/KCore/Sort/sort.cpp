@@ -133,7 +133,7 @@ void K_SORT::removeDoublePoints(FldArrayF& vectOfPoints, FldArrayF& norm2)
   FldArrayF work(npts, nfld);
   FldArrayF workn2(npts);
   E_Float dx, dy, dz;
-  E_Boolean found;
+  E_Bool found;
   E_Int c=0;
   E_Float* vx = vectOfPoints.begin(1);
   E_Float* vy = vectOfPoints.begin(2);

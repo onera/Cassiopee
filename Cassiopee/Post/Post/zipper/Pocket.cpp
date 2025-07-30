@@ -40,7 +40,7 @@ Pocket::~Pocket()
 //=============================================================================
 /* Write the pocket*/
 //=============================================================================
-void Pocket::writeLine(char* fileName, E_Boolean add)
+void Pocket::writeLine(char* fileName, E_Bool add)
 { 
   E_Int size1 = _size+1;
   FldArrayF field(size1, _nfld);
@@ -70,10 +70,10 @@ void Pocket::writeLine(char* fileName, E_Boolean add)
 //============================================================================
 /* Close pocket by building triangles. Return true if triangles are created */
 //============================================================================
-E_Boolean Pocket::closePocket(FldArrayF& field, FldArrayI& connect)
+E_Bool Pocket::closePocket(FldArrayF& field, FldArrayI& connect)
 {
   vector<TriangleZ*> triangles;
-  E_Boolean closed = false;
+  E_Bool closed = false;
   FldArrayF fieldA(_nfld);
   FldArrayF fieldB(_nfld);
   FldArrayF fieldC(_nfld);
@@ -106,14 +106,14 @@ E_Boolean Pocket::closePocket(FldArrayF& field, FldArrayI& connect)
 //=============================================================================
 /* Computes triangles starting from istart */
 //=============================================================================
-E_Boolean Pocket::computeTriangulation(vector<TriangleZ*>& triangles)
+E_Bool Pocket::computeTriangulation(vector<TriangleZ*>& triangles)
 {
   E_Int iA, iB, iC, iD;
   FldArrayF fieldA(_nfld);
   FldArrayF fieldB(_nfld);
   FldArrayF fieldC(_nfld);
   FldArrayF fieldD(_nfld);
-  E_Boolean closed = false;
+  E_Bool closed = false;
   
   /*-----------------*/
   /* triangulation   */
@@ -136,7 +136,7 @@ E_Boolean Pocket::computeTriangulation(vector<TriangleZ*>& triangles)
     
     while ( iB != iC && iB < _size)
     {
-      E_Boolean isOK = compDelaunay(iA, iB, iC, iD, 
+      E_Bool isOK = compDelaunay(iA, iB, iC, iD, 
                                     _field, _field, 
                                     triangles);
       if ( isOK == false )
@@ -205,7 +205,7 @@ void Pocket::compConnectivity( vector<TriangleZ*>& triangles,
 //=============================================================================
 /* Compute triangulation for the quad PiPi+1PjPj+1 of the pocket */
 //=============================================================================
-E_Boolean Pocket::compDelaunay( E_Int& iA, E_Int& iB,
+E_Bool Pocket::compDelaunay( E_Int& iA, E_Int& iB,
                                 E_Int& iC, E_Int& iD,
                                 FldArrayF& field1, FldArrayF& field2,
                                 vector<TriangleZ*>& triangles)
@@ -229,14 +229,14 @@ E_Boolean Pocket::compDelaunay( E_Int& iA, E_Int& iB,
   TriangleZ* t1 = new TriangleZ(fieldA, fieldD, fieldC);
   //diagonal AC
   E_Float diagAC = compDistanceBetweenPoints(fieldA, fieldC);
-  E_Boolean isValid1 = checkTriangles( diagType, fieldA, fieldB,
+  E_Bool isValid1 = checkTriangles( diagType, fieldA, fieldB,
                                        fieldC, fieldD);
   //triangle ABD
   diagType = 2;
   TriangleZ* t2 = new TriangleZ(fieldA, fieldD, fieldB);
   //diagonal AD
   E_Float diagBD = compDistanceBetweenPoints(fieldB, fieldD);
-  E_Boolean isValid2 = checkTriangles( diagType, fieldA, fieldB,
+  E_Bool isValid2 = checkTriangles( diagType, fieldA, fieldB,
                                        fieldC, fieldD);
       
   if ( isValid1 == true && isValid2 == true )
@@ -296,7 +296,7 @@ E_Float Pocket::compDistanceBetweenPoints(FldArrayF& field1, FldArrayF& field2)
    if the point B is outside the circum radius of ACD.
 */
 //=============================================================================
-E_Boolean Pocket::checkTriangles( E_Int diagType,
+E_Bool Pocket::checkTriangles( E_Int diagType,
                                   FldArrayF& fieldA, FldArrayF& fieldB,
                                   FldArrayF& fieldC, FldArrayF& fieldD)
 {
@@ -403,7 +403,7 @@ E_Boolean Pocket::checkTriangles( E_Int diagType,
 //=============================================================================
 /* Check if a set of contiguous points are aligned */
 //=============================================================================
-E_Boolean Pocket::checkIfPtsAreAligned(FldArrayF& field1, FldArrayF& field2)
+E_Bool Pocket::checkIfPtsAreAligned(FldArrayF& field1, FldArrayF& field2)
 {
   E_Int size = _field.getSize();
   E_Int size1, size2;
@@ -536,7 +536,7 @@ void Pocket::closeSpecificPocket(FldArrayF& field1, FldArrayF& field2,
   
   while ( iA < imax1-1 && iD > 0 )
   {    
-    E_Boolean isOK = compDelaunay(iA, iB, iC, iD, 
+    E_Bool isOK = compDelaunay(iA, iB, iC, iD, 
                                   field1, field2, triangles);
      if ( isOK == false )
      {

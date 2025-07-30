@@ -378,7 +378,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       E_Int np = myBCFaces.getSize();
       FldArrayI indir(np);
       E_Int l, k, nbc;
-      E_Boolean exist;
+      E_Bool exist;
       
       for (E_Int i = 0; i < np; i++) // pour chaque face frontiere
       {
@@ -669,8 +669,8 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
         // Ecriture non structuree
         vector<E_Int> ids = getElementTypesId(eltType);
         E_Int nc = ids.size();
-        E_Boolean allNodes = true;
-        E_Boolean allValid = true;
+        E_Bool allNodes = true;
+        E_Bool allValid = true;
         for (E_Int ic = 0; ic < nc; ic++)
         {
           if (ids[ic] < 0)

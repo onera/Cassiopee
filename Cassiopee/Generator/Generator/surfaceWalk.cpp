@@ -233,10 +233,10 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true;
+  E_Bool skipDiffVars = true;
   K_ARRAY::getFromArrays(
     constraintsa, resl, structVarString, unstrVarString,
     constraints, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 

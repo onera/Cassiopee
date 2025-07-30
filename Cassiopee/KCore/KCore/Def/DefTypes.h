@@ -59,7 +59,6 @@
 // Int (int or long long)
 #ifdef E_DOUBLEINT
   typedef int64_t E_Int;
-  typedef int E_Boolean;
   typedef int E_Bool;
   #ifdef E_MPI
     #define E_PCM_INT MPI_LONG
@@ -70,7 +69,6 @@
   #define E_IDX_NONE E_Int(9223372036854775807)
 #else
   typedef int E_Int;
-  typedef int E_Boolean;
   typedef int E_Bool;
   #ifdef E_MPI
     #define E_PCM_INT MPI_INT

@@ -105,7 +105,7 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
   E_Float* xp = f->begin(posx);
   E_Float* yp = f->begin(posy);
   E_Float* zp = f->begin(posz);
-  E_Boolean in;
+  E_Bool in;
 
   // Contraction
 #pragma omp parallel default(shared)

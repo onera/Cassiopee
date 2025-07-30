@@ -108,10 +108,10 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objs;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, varString, fields, a2, a3, a4, objs,  
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);

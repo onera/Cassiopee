@@ -287,7 +287,7 @@ E_Int K_POST::testFusion(E_Int et, E_Int ind1, E_Int ind2, FldArrayI& connect,
       p[0] = xt[ind1]; p[1] = yt[ind1]; p[2] = zt[ind1]; 
       
       // 1 - verification critere de distance
-      E_Boolean in = false;
+      E_Bool in = false;
       K_COMPGEOM::distanceToTriangle(
         p1, p2, p3, p, 1,
         dist2, in, xp, yp, zp, sigma0, sigma1);

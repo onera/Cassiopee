@@ -43,7 +43,7 @@
 E_Int K_COMPGEOM::distanceToTriangle(
   E_Float* p0, E_Float* p1, E_Float* p2,
   E_Float* p, E_Int treatment,
-  E_Float& dist2, E_Boolean& in, 
+  E_Float& dist2, E_Bool& in, 
   E_Float& xp, E_Float& yp, E_Float& zp,
   E_Float& sigma0, E_Float& sigma1)
 {
@@ -115,7 +115,7 @@ E_Int K_COMPGEOM::distanceToTriangle(
   {
     E_Float d0, d1, d2, d3;
     E_Float xp1, yp1, zp1, xp2, yp2, zp2, xp3, yp3, zp3;
-    E_Boolean in1, in2, in3;
+    E_Bool in1, in2, in3;
     distanceToBar(p0, p1, p, 0, xp1, yp1, zp1, in1, d1);
     distanceToBar(p0, p2, p, 0, xp2, yp2, zp2, in2, d2);
     distanceToBar(p1, p2, p, 0, xp3, yp3, zp3, in3, d3);
@@ -180,7 +180,7 @@ E_Int K_COMPGEOM::distanceToTriangle(
 E_Int K_COMPGEOM::distanceToBar(E_Float* pA, E_Float* pB,
                                 E_Float* p, E_Int treatment,
                                 E_Float& xp, E_Float& yp, E_Float& zp,
-                                E_Boolean& in, E_Float& dist2)
+                                E_Bool& in, E_Float& dist2)
 {
   in = false;
 

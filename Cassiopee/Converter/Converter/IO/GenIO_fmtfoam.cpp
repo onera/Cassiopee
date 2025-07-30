@@ -957,7 +957,7 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
 
   // Passe comments
   char buf[1024]; E_Int l;
-  E_Boolean cont = true;
+  E_Bool cont = true;
   while (cont)
   {
     readline(ptrFile, buf, 1024);
@@ -1010,7 +1010,7 @@ E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
 
   // Passe comments
   char buf[1024]; E_Int l;
-  E_Boolean cont = true;
+  E_Bool cont = true;
   while (cont)
   {
     readline(ptrFile, buf, 1024);
@@ -1079,7 +1079,7 @@ E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
   // Passe comments
   char buf[1024]; E_Int l;
 
-  E_Boolean cont = true;
+  E_Bool cont = true;
   while (cont)
   {
     readline(ptrFile, buf, 1024);
@@ -1124,7 +1124,7 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
   // Passe comments
   char buf[1024]; E_Int l;
 
-  E_Boolean cont = true;
+  E_Bool cont = true;
   while (cont)
   {
     readline(ptrFile, buf, 1024);
@@ -1184,7 +1184,7 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file,
   // Passe comments
   char buf[1024]; E_Int l;
 
-  E_Boolean cont = true;
+  E_Bool cont = true;
   while (cont)
   {
     readline(ptrFile, buf, 1024);

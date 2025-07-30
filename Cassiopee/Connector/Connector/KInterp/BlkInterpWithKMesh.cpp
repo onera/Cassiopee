@@ -458,7 +458,7 @@ searchInterpolationCellByJump(E_Float x, E_Float y, E_Float z,
   E_Int is, js, ks;  
   E_Float xi, yi, zi;
     
-  E_Boolean jump = false;
+  E_Bool jump = false;
   if ( ic != -1 )
   {
     E_Int ind = (ic-1) + (jc-1)*ni + (kc-1)*nij;
@@ -567,7 +567,7 @@ searchInterpolationCellByJumpv(FldArrayF& coord,E_Int istart, E_Int iend,
     E_Int icl = ic[ii];
     E_Int jcl = jc[ii];
     E_Int kcl = kc[ii];
-    E_Boolean jump = false;
+    E_Bool jump = false;
     
     if ( icl != -1 )
     {

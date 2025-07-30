@@ -335,7 +335,7 @@ PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
   char* pt = (char*)path;
   PyObject* next = o;
   E_Int c = 0;
-  E_Boolean found;
+  E_Bool found;
 
   while (1)
   {

@@ -27,7 +27,7 @@ using namespace K_CONST;
 //=============================================================================
 /* Teste l'intersection des cellules */
 //=============================================================================
-E_Boolean testIntersectionOfCells(StructBlock* blk1, StructBlock* blk2,
+E_Bool testIntersectionOfCells(StructBlock* blk1, StructBlock* blk2,
                                   E_Int ind1, E_Int ind2,
                                   E_Float eps)
 {
@@ -35,7 +35,7 @@ E_Boolean testIntersectionOfCells(StructBlock* blk1, StructBlock* blk2,
   //R1 : repere dans lequel T1 est unitaire dans le plan Z1=0 (X1,Y1,Z1)
   //R2 : repere dans lequel T2 est unitaire dans le plan Z2=0 (X2,Y2,Z2)
   E_Int pl;
-  E_Boolean test1, test2;
+  E_Bool test1, test2;
   FldArrayF mat10(3,3); // matrice de passage du repere 1 au repere 0 
   FldArrayF mat20(3,3); // matrice de passage du repere 2 au repere 0
   FldArrayF mat01(3,3); // matrice de passage du repere 0 au repere 1 
@@ -200,7 +200,7 @@ void createListOfTriangles(StructBlock* blk, E_Int ind,
 //=============================================================================
 /* Test si le triangle t est degenere ou non */
 //=============================================================================
-E_Boolean isDegenerated(TriangleZ* t, E_Float eps)
+E_Bool isDegenerated(TriangleZ* t, E_Float eps)
 {
   FldArrayF& ptA = t->getField1();
   FldArrayF& ptB = t->getField2();
@@ -247,7 +247,7 @@ E_Boolean isDegenerated(TriangleZ* t, E_Float eps)
    Le point pris comme reference (xA,yA,xA) est le 1er pt du triangle
 */
 //=============================================================================
-E_Boolean compMatrix(TriangleZ* t, FldArrayF& mat10, FldArrayF& mat01)
+E_Bool compMatrix(TriangleZ* t, FldArrayF& mat10, FldArrayF& mat01)
 {
   E_Int dir;
   E_Float invdet;
@@ -417,7 +417,7 @@ void compCoordInNewFrame(TriangleZ* t1, TriangleZ* t2, FldArrayF& mat,
    MODIFIER LES NOMS DE VARIABLES->PAS TRES CLAIRES
 */
 //=============================================================================
-E_Boolean 
+E_Bool 
 testIntersectionInPlane(FldArrayF& eps12, FldArrayF& ptA2, 
                         FldArrayF& ptB2, FldArrayF& ptC2,
                         FldArrayF& eps21, FldArrayF& ptA1, 
@@ -659,7 +659,7 @@ testIntersectionInPlane(FldArrayF& eps12, FldArrayF& ptA2,
 OUT : intersect1 : coordonnees des pts d intersection
 */
 //=============================================================================
-E_Boolean 
+E_Bool 
 testIntersectionInSpace(FldArrayF& ptA1, FldArrayF& ptB1, FldArrayF& ptC1,
                         FldArrayF& eps01, FldArrayF& intersect1)
 {
@@ -793,7 +793,7 @@ testIntersectionInSpace(FldArrayF& ptA1, FldArrayF& ptB1, FldArrayF& ptC1,
   E_Float xi, yi, zi;
   for (E_Int i = 0; i < cnt; i++)
   {
-    E_Boolean found = false;
+    E_Bool found = false;
     xi = tmpPts(i,1);
     yi = tmpPts(i,2);
     zi = tmpPts(i,3);
@@ -899,7 +899,7 @@ void compEpsilonInNewFrame(E_Float eps,
 //=============================================================================
 /* Teste si le point ptA est dans le triangle unite */
 //=============================================================================
-E_Boolean testIfPtInTriangle(FldArrayF& eps, FldArrayF& ptA)
+E_Bool testIfPtInTriangle(FldArrayF& eps, FldArrayF& ptA)
 {
   E_Float epsX = eps[0];
   E_Float epsY = eps[1];
@@ -916,7 +916,7 @@ E_Boolean testIfPtInTriangle(FldArrayF& eps, FldArrayF& ptA)
 //=============================================================================
 /* Teste si le triangle ABC est dans le triangle unite */
 //=============================================================================
-E_Boolean testIfTriangleInterior(FldArrayF& ptA, FldArrayF& ptB, 
+E_Bool testIfTriangleInterior(FldArrayF& ptA, FldArrayF& ptB, 
                                  FldArrayF& ptC, FldArrayF& eps)
 {
   if ( testIfPtInTriangle(eps, ptA) == true)
@@ -958,7 +958,7 @@ void compPtsInNewFrame(FldArrayF& mat10, FldArrayF& x0_1,
 /* Etant donnees 2 combinaisons de points sur la meme droite de l espace
    (2 segts, 1segt+1point, 2 points), teste s'ils s'intersectent */
 //=============================================================================
-E_Boolean testIntersectionOfSegments(FldArrayF& mat10, TriangleZ* T1,
+E_Bool testIntersectionOfSegments(FldArrayF& mat10, TriangleZ* T1,
                                      FldArrayF& mat20, TriangleZ* T2,
                                      FldArrayF& eps10, 
                                      FldArrayF& eps20,

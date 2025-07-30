@@ -97,7 +97,7 @@ class FldArray
     /** Constructor with number of elements (size) and
         number of field (nfld) */
     explicit FldArray(E_Int size, E_Int nfld=NUMFIELD0,
-                      E_Boolean compact=true, E_Boolean fortranOrdered=true);
+                      E_Bool compact=true, E_Bool fortranOrdered=true);
     /** Copy constructor. We take the size of
         the right hand FldArrayI to build the new FldArray.
         Constructed object has new (duplicated) datas */
@@ -113,8 +113,8 @@ class FldArray
         on data.
         Forcement compact. */
     FldArray(E_Int size, E_Int nfld,
-             const value_type* listofvalues, E_Boolean shared=false,
-             E_Boolean fortranOrdered=true);
+             const value_type* listofvalues, E_Bool shared=false,
+             E_Bool fortranOrdered=true);
     /** Constructor from T**.
         if shared=false, data are copied from listofvalues
         if shared=true, data is just a pointer on listofvalues,
@@ -122,8 +122,8 @@ class FldArray
         on data.
         Forcement non compact. */
     FldArray(E_Int size, E_Int nfld,
-             value_type** listofvalues, E_Boolean shared=false,
-             E_Boolean fortranOrdered=true);
+             value_type** listofvalues, E_Bool shared=false,
+             E_Bool fortranOrdered=true);
     /** Constructor for NGON connectivity (shared, array1). */
     FldArray(E_Int nfaces, E_Int nelts, E_Int sizeNGon, E_Int sizeNFace,
              value_type* ngonCompact);
@@ -182,7 +182,7 @@ class FldArray
     /** Get stride */
     inline E_Int getStride() const { return _stride; }
     /** Return true if array is compact */
-    inline E_Boolean getCompact() const { return _compact; }
+    inline E_Bool getCompact() const { return _compact; }
     /** GetApi (1: compact, 2: rake) */
     inline E_Int getApi() { if (_compact == false) return 2; else return 1; }
 
@@ -250,7 +250,7 @@ class FldArray
      if shared=true, listofvalues is shared
      if shared=false, listofvalues is copied. */
     void malloc(E_Int nsize, E_Int nnfld,
-              const T* listofvalues, E_Boolean shared=false);
+              const T* listofvalues, E_Bool shared=false);
     /** Resize with new array allocation WITH copy. */
     void reAlloc(E_Int nsize, E_Int nnfld=NUMFIELD0);
     /** Resize with new array allocation WITH copy, keeping
@@ -347,9 +347,9 @@ class FldArray
     /* The number of allocated fields: when using the static interface, we always have _nfldMax == _nfldLoc */
     E_Int _nfldMax;
     /* data is shared (owned by someone else)? */
-    E_Boolean _shared;
+    E_Bool _shared;
     /* is data compact? */
-    E_Boolean _compact;
+    E_Bool _compact;
     /* stride */
     E_Int _stride;
 
@@ -375,7 +375,7 @@ typedef FldArray<E_Float> FldArrayF;
 typedef FldArray<E_Int> FldArrayI;
 typedef FldArray<short> FldArrayIS;
 typedef FldArray<int> FldArrayI4;
-typedef FldArray<E_Boolean> FldArrayB;
+typedef FldArray<E_Bool> FldArrayB;
 
 //INLINING
 
@@ -785,8 +785,8 @@ FldArray<T>::FldArray()
 //OK-----------------------------------------------------------------------------
 // Constructeur pour des champs (size, nfld) (compact+stride)
 TEMPLATE_T
-FldArray<T>::FldArray(E_Int size, E_Int nfld, E_Boolean compact,
-    E_Boolean fortranOrdered)
+FldArray<T>::FldArray(E_Int size, E_Int nfld, E_Bool compact,
+    E_Bool fortranOrdered)
   : _sizeTot(size*nfld), _sizeLoc(size), _sizeMax(size),
     _nfldLoc(nfld), _nfldMax(nfld), _shared(false), _compact(compact),
     _stride(1), _ngon(0), _nfaces(0), _nelts(0), 
@@ -858,8 +858,8 @@ FldArray<T>::FldArray(const FldArray& rhs, E_Int begin, E_Int end)
 //OK forcement compact---------------------------------------------------------
 TEMPLATE_T
 FldArray<T>::FldArray(E_Int size, E_Int nfld,
-                      const T* listofvalues, E_Boolean shared,
-                      E_Boolean fortranOrdered)
+                      const T* listofvalues, E_Bool shared,
+                      E_Bool fortranOrdered)
  : _sizeTot(size*nfld),
    _sizeLoc(size),
    _sizeMax(size),
@@ -896,8 +896,8 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
 //OK forcement non compact------------------------------------------------------
 TEMPLATE_T
 FldArray<T>::FldArray(E_Int size, E_Int nfld,
-                      T** listofvalues, E_Boolean shared,
-                      E_Boolean fortranOrdered)
+                      T** listofvalues, E_Bool shared,
+                      E_Bool fortranOrdered)
  : _sizeTot(size*nfld),
    _sizeLoc(size),
    _sizeMax(size),
@@ -1325,7 +1325,7 @@ void FldArray<T>::resize(E_Int size, E_Int nfld)
 //-----------------------------------------------------------------------------
 SPECIALISE inline E_Float FldArray<E_Float>::badValue() {return K_CONST::E_BADVALUE_F;}
 SPECIALISE inline E_Int FldArray<E_Int>::badValue() {return K_CONST::E_BADVALUE_I;}
-//SPECIALISE inline E_Boolean FldArray<E_Boolean>::badValue() {return K_CONST::E_BADVALUE_B;}
+//SPECIALISE inline E_Bool FldArray<E_Bool>::badValue() {return K_CONST::E_BADVALUE_B;}
 
 SPECIALISE inline E_Float FldArray<E_Float>::Zero() {return K_CONST::E_ZERO_FLOAT;}
 SPECIALISE inline E_Int FldArray<E_Int>::Zero() {return K_CONST::E_ZERO_INT;}
@@ -1362,7 +1362,7 @@ void FldArray<T>::malloc(E_Int size, E_Int nfld)
 //-----------------------------------------------------------------------------
 TEMPLATE_T
 void FldArray<T>::malloc(E_Int size, E_Int nfld, const T* listofvalues,
-                         E_Boolean shared)
+                         E_Bool shared)
 {
   assert(nfld > 0);
   assert(size >= 0);

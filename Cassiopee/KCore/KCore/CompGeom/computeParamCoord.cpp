@@ -32,7 +32,7 @@ E_Int K_COMPGEOM::computeParamCoord(E_Float* p1, E_Float* p2, E_Float* p3,
                                     E_Float& s, E_Float& t)
 {
   E_Float dist2;
-  E_Boolean in;
+  E_Bool in;
   E_Float xp, yp, zp;
   distanceToTriangle(p1, p2, p3, P, 1, 
                      dist2, in, 
