@@ -77,7 +77,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
-  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Number of vector fields whose divergence to compute (three components for each)
   E_Int nfld = fc->getNfld(); // total number of scalar fields
@@ -202,10 +202,10 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   if (indices != Py_None && fieldX != Py_None && fieldY != Py_None
                                               && fieldZ != Py_None)
   {
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
-    K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
-    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(fieldX, bfieldX);
+    K_NUMPY::getFromNumpyArray(fieldY, bfieldY);
+    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pind = inds->begin();
@@ -262,7 +262,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   else
   {
     FldArrayF* vols=NULL; 
-    K_NUMPY::getFromNumpyArray(volc, vols, true);
+    K_NUMPY::getFromNumpyArray(volc, vols);
     volp = vols->begin();
     RELEASESHAREDN(volc, vols);
   }
@@ -373,7 +373,7 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
-  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Number of vector fields whose divergence to compute (dimPb components for each)
   E_Int nfld = fc->getNfld(); // total number of scalar fields
@@ -769,10 +769,10 @@ PyObject* K_POST::computeDiv2Struct3D(
   {
     FldArrayI* inds = NULL; FldArrayF* bfieldX = NULL;
     FldArrayF* bfieldY = NULL; FldArrayF* bfieldZ = NULL;
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
-    K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
-    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(fieldX, bfieldX);
+    K_NUMPY::getFromNumpyArray(fieldY, bfieldY);
+    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();
@@ -1098,10 +1098,10 @@ PyObject* K_POST::computeDiv2Struct2D(
   {
     FldArrayI* inds = NULL; FldArrayF* bfieldX = NULL;
     FldArrayF* bfieldY = NULL; FldArrayF* bfieldZ = NULL;
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    if (ixyz != 2) K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
-    if (ixyz != 1) K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
-    if (ixyz != 0) K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    if (ixyz != 2) K_NUMPY::getFromNumpyArray(fieldX, bfieldX);
+    if (ixyz != 1) K_NUMPY::getFromNumpyArray(fieldY, bfieldY);
+    if (ixyz != 0) K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();

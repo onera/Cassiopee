@@ -381,7 +381,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
                                const char* varString,
                                E_Int nvertex,
                                FldArrayI& cn,
-                               char* eltType,
+                               const char* eltType,
                                E_Int center, E_Int api,
                                E_Bool copyConnect)
 {

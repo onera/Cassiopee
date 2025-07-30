@@ -247,7 +247,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     {
       PyObject* o = PyList_GetItem(fixedEdges, l); // BAR connect numpy
       E_Int* ptr; E_Int nelts; E_Int nfld;
-      K_NUMPY::getFromNumpyArray(o, ptr, nelts, nfld, true);
+      K_NUMPY::getFromNumpyArray(o, ptr, nelts, nfld);
       na += nelts;
       Py_DECREF(o);
     }
@@ -285,7 +285,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     {
       PyObject* o = PyList_GetItem(fixedNodes, l);
       E_Int* ptr; E_Int npts; E_Int nfld;
-      K_NUMPY::getFromNumpyArray(o, ptr, npts, nfld, true);
+      K_NUMPY::getFromNumpyArray(o, ptr, npts, nfld);
       for (E_Int i = 0; i < npts; i++) MMGS_Set_requiredVertex(mesh, ptr[i]); // +1?
       Py_DECREF(o);
     }
@@ -299,7 +299,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     {
       PyObject* o = PyList_GetItem(fixedEdges, l); // BAR connect numpy
       E_Int* ptr; E_Int nelts; E_Int nfld;
-      K_NUMPY::getFromNumpyArray(o, ptr, nelts, nfld, true);
+      K_NUMPY::getFromNumpyArray(o, ptr, nelts, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
         int v0 = ptr[i];

@@ -424,7 +424,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     {
       // Check numpy (parentElement)
       FldArrayI* cFE;
-      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE);
       
       if (res == 0)
       {
@@ -974,7 +974,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     {
       // Check numpy (parentElement)
       FldArrayI* cFE;
-      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE);
       
       if (res == 0)
       {

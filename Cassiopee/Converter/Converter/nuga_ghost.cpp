@@ -241,7 +241,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       
     if (oo != Py_None)
     {
-      ok = K_NUMPY::getFromNumpyArray(oo, f2es[i], c, r, true/*shared*/);
+      ok = K_NUMPY::getFromNumpyArray(oo, f2es[i], c, r);
       buildit = !ok;
     }
 
@@ -278,7 +278,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 
     E_Int r, c, *donIds;
 
-    ok = K_NUMPY::getFromNumpyArray(pyo_j_donIds, donIds, c, r, true/*shared*/);
+    ok = K_NUMPY::getFromNumpyArray(pyo_j_donIds, donIds, c, r);
     if (!ok)
     {
     	std::cout << "ERROR: could not get donnor ids" << std::endl; 

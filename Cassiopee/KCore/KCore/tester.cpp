@@ -79,7 +79,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   //f.setAllValuesAt(2.);
   PyObject* a = K_NUMPY::buildNumpyArray(f, 1);
   K_FLD::FldArrayF* out;
-  K_NUMPY::getFromNumpyArray(a , out, true);
+  K_NUMPY::getFromNumpyArray(a , out);
   return a;
 #endif
 
@@ -87,8 +87,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   PyObject* o;
   if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
   E_Float* t = new E_Float[1]; t[0] = 12.;
-  PyObject* p = K_PYTREE::createChild(o, "coucou", "DataArray_t", 
-                                      t, 1, 1);
+  PyObject* p = K_PYTREE::createChild(o, "coucou", "DataArray_t", t, 1, 1);
   delete [] t;
   return p;
 #endif

@@ -16,7 +16,7 @@ E_Int parse_pointlists_and_rfields(PyObject *ptlists, PyObject *rfields,
   for (E_Int i = 0; i < psize; i++) 
   {
     PyObject *patch = PyList_GetItem(ptlists, i);
-    E_Int ret = K_NUMPY::getFromNumpyArray(patch, pfaces[i], npfaces[i], true);
+    E_Int ret = K_NUMPY::getFromNumpyArray(patch, pfaces[i], npfaces[i]);
     assert(ret == 1);
   }
 
@@ -32,7 +32,7 @@ E_Int parse_pointlists_and_rfields(PyObject *ptlists, PyObject *rfields,
     {
       PyObject *fld = PyList_GetItem(flds, j);
       E_Int size = -1;
-      E_Int ret = K_NUMPY::getFromNumpyArray(fld, rflds[i][j], size, true);
+      E_Int ret = K_NUMPY::getFromNumpyArray(fld, rflds[i][j], size);
       assert(ret == 1);
       assert(size == npfaces[i]);
     }
@@ -263,7 +263,7 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   E_Int nfaces = cn->getNFaces();
   E_Int *PE = NULL;
   E_Int size = -1;
-  ret = K_NUMPY::getFromNumpyArray(pe, PE, size, true);
+  ret = K_NUMPY::getFromNumpyArray(pe, PE, size);
   if (ret != 1 || size != 2*nfaces) {
     RELEASESHAREDU(arr, f, cn);
     PyErr_SetString(PyExc_ValueError, "Bad parent elements array");
@@ -276,9 +276,9 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   E_Int ncells = cn->getNElts();
   E_Float *CX, *CY, *CZ;
   CX = CY = CZ = NULL;
-  ret = K_NUMPY::getFromNumpyArray(cx, CX, size, true);
-  ret &= K_NUMPY::getFromNumpyArray(cy, CY, size, true);
-  ret &= K_NUMPY::getFromNumpyArray(cz, CZ, size, true);
+  ret = K_NUMPY::getFromNumpyArray(cx, CX, size);
+  ret &= K_NUMPY::getFromNumpyArray(cy, CY, size);
+  ret &= K_NUMPY::getFromNumpyArray(cz, CZ, size);
   if (ret != 1 || size != ncells) {
     RELEASESHAREDU(arr, f, cn);
     PyErr_SetString(PyExc_ValueError, "Bad cell centers array");
@@ -287,7 +287,7 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
 
   // Face centers
   E_Float *FC = NULL;
-  ret = K_NUMPY::getFromNumpyArray(fcenters, FC, size, true);
+  ret = K_NUMPY::getFromNumpyArray(fcenters, FC, size);
   if (ret != 1 || size != 3*nfaces) {
     RELEASESHAREDU(arr, f, cn);
     PyErr_SetString(PyExc_ValueError, "Bad face centers array");
@@ -296,10 +296,11 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
 
   // Fields
   std::vector<E_Float *> Fields(fsize);
-  for (E_Int i = 0; i < fsize; i++) {
+  for (E_Int i = 0; i < fsize; i++) 
+  {
     PyObject *field = PyList_GetItem(fields, i);
     E_Int size = -1;
-    ret = K_NUMPY::getFromNumpyArray(field, Fields[i], size, true);
+    ret = K_NUMPY::getFromNumpyArray(field, Fields[i], size);
     assert(size == ncells && ret == 1);
   }
 

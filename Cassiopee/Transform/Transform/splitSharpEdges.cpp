@@ -497,7 +497,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   }
 
   FldArrayI* indexI;
-  res = K_NUMPY::getFromNumpyArray(arrayI, indexI, true);
+  res = K_NUMPY::getFromNumpyArray(arrayI, indexI);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

@@ -89,7 +89,7 @@ std::vector<E_Int> getFacesVector (PyObject* arrf)
   {
     FldArrayI* inds=NULL;
     E_Int res=0;
-    if (arrf != Py_None) res = K_NUMPY::getFromNumpyArray(arrf, inds, true);
+    if (arrf != Py_None) res = K_NUMPY::getFromNumpyArray(arrf, inds);
 
     std::unique_ptr<FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
   
@@ -364,7 +364,7 @@ PyObject* K_OCC::updateFcadidFromNcadid(PyObject* self, PyObject* args)
   
 // fcadid array
   FldArrayI* Fid;
-  res = K_NUMPY::getFromNumpyArray(fcad, Fid, true); if (res != 1 && res != 2) return NULL;
+  res = K_NUMPY::getFromNumpyArray(fcad, Fid); if (res != 1 && res != 2) return NULL;
   E_Int* pFid = Fid->begin(1);
 
 // Update fcadid
@@ -447,7 +447,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
   
 // Array fcadid
   FldArrayF* arr_fcad;
-  res = K_NUMPY::getFromNumpyArray(fcad, arr_fcad, true); if (res != 1 && res != 2) return NULL;
+  res = K_NUMPY::getFromNumpyArray(fcad, arr_fcad); if (res != 1 && res != 2) return NULL;
   E_Float* pfcad = arr_fcad->begin(1);
   
 

@@ -43,17 +43,17 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
                      &kx, &ky, &kz)) return NULL;
   // Check numpys
   E_Float* x; E_Int size;
-  K_NUMPY::getFromNumpyArray(xo, x, size, true);
+  K_NUMPY::getFromNumpyArray(xo, x, size);
   E_Float* y;
-  K_NUMPY::getFromNumpyArray(yo, y, size, true);
+  K_NUMPY::getFromNumpyArray(yo, y, size);
   E_Float* z;
-  K_NUMPY::getFromNumpyArray(zo, z, size, true);
+  K_NUMPY::getFromNumpyArray(zo, z, size);
   E_Float* sx;
-  K_NUMPY::getFromNumpyArray(sxo, sx, size, true);
+  K_NUMPY::getFromNumpyArray(sxo, sx, size);
   E_Float* sy;
-  K_NUMPY::getFromNumpyArray(syo, sy, size, true);
+  K_NUMPY::getFromNumpyArray(syo, sy, size);
   E_Float* sz;
-  K_NUMPY::getFromNumpyArray(szo, sz, size, true);
+  K_NUMPY::getFromNumpyArray(szo, sz, size);
   
 #pragma omp parallel
   {

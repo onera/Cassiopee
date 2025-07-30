@@ -30,7 +30,6 @@
 using namespace std;
 using namespace NUGA;
 
-
 //=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
@@ -56,7 +55,7 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
   {
     skipPGids = new std::vector<E_Int>;
     E_Int *ptL, size, nfld;
-    K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld, true/* shared*/);
+    K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld);
     skipPGids->insert(skipPGids->end(), ptL, ptL + size);
   }
     

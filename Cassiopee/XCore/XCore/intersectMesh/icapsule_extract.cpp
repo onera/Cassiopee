@@ -57,12 +57,14 @@ PyObject *K_XCORE::icapsule_extract_slaves(PyObject *self, PyObject *args)
 {
     PyObject *ICAPSULE;
 
-    if (!PYPARSETUPLE_(args, O_, &ICAPSULE)) {
+    if (!PYPARSETUPLE_(args, O_, &ICAPSULE)) 
+    {
         RAISE("Bad input.");
         return NULL;
     }
 
-    if (!PyCapsule_IsValid(ICAPSULE, "ICAPSULE")) {
+    if (!PyCapsule_IsValid(ICAPSULE, "ICAPSULE")) 
+    {
         RAISE("Bad ICapsule hook.");
         return NULL;
     }

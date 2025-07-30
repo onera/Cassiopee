@@ -542,7 +542,7 @@ namespace K_ARRAY
                         const char* varString,
                         E_Int nvertex,
                         FldArrayI& cn, // provides ncells, ...
-                        char* eltType,
+                        const char* eltType,
                         E_Int center=-1, E_Int api=1,
                         E_Bool copyConnect=false);
 

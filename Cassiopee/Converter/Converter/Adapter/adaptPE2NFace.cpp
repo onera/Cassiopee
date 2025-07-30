@@ -31,7 +31,7 @@ PyObject* K_CONVERTER::adaptPE2NFace(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  E_Int res = K_NUMPY::getFromNumpyArray(array, cFE, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(array, cFE);
 
   if (res == 0)
   {

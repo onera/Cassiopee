@@ -77,7 +77,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   {
     PyObject* tpl = PyList_GetItem(dataBC, v);
     FldArrayF* bcFieldR;
-    K_NUMPY::getFromNumpyArray(tpl, bcFieldR, true);
+    K_NUMPY::getFromNumpyArray(tpl, bcFieldR);
     listOfBCFieldsR.push_back(bcFieldR);
     listOfNumBCArrays.push_back(tpl);
     PyObject* win = PyList_GetItem(BCRanges, v); // list of integers

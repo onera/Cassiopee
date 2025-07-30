@@ -448,11 +448,11 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   //check grid velocity numpys
   E_Int size; E_Int nfld;
   E_Float* sx;
-  K_NUMPY::getFromNumpyArray(sxo, sx, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(sxo, sx, size, nfld);
   E_Float* sy;
-  K_NUMPY::getFromNumpyArray(syo, sy, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(syo, sy, size, nfld);
   E_Float* sz;
-  K_NUMPY::getFromNumpyArray(szo, sz, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(szo, sz, size, nfld);
   size = size*nfld;
 
   E_Float s01 = s0[0]; E_Float s02 = s0[1]; E_Float s03 = s0[2];

@@ -216,7 +216,7 @@ PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyOb
   E_Int* pgsList=NULL;
   E_Int size=0, nfld=1;
   if (py_pgs != Py_None)
-    K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true);
+    K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld);
 
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngio(cnt);

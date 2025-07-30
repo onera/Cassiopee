@@ -29,7 +29,7 @@ PyObject* K_KCORE::copyto(PyObject* self, PyObject* args)
   }
 
   FldArrayF* f;
-  K_NUMPY::getFromNumpyArray(numpyArray, f, true); 
+  K_NUMPY::getFromNumpyArray(numpyArray, f); 
 
 #ifdef _OPENACC
   E_Float* ipttarget = f->begin();

@@ -87,10 +87,10 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
   /*-------------------------------------*/
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
-  FldArrayI* param_int;E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
+  FldArrayI* param_int;E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
   E_Int* ipt_param_int = param_int->begin();
   
-  FldArrayF* param_real;res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real, true);
+  FldArrayF* param_real;res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
   E_Float* ipt_param_real = param_real->begin();
 
   //On recupere le nom de la 1ere variable a recuperer 
@@ -515,10 +515,10 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
   FldArrayI* param_int;
-  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
+  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
-  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real, true);
+  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
   E_Float* ipt_param_real = param_real->begin();
   //On recupere le nom de la 1ere variable a recuperer 
   PyObject* tpl0= PyList_GetItem(pyVariables, 0); 

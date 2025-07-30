@@ -94,7 +94,7 @@ PyObject* K_KCORE::indiceStruct2Unstr(PyObject* self, PyObject* args)
   // Indices des points du maillage structure a traiter
   E_Int nind, nf; E_Int* indices;
   E_Int ret = K_NUMPY::getFromNumpyArray(arrayOfStructIndices, indices, 
-                                         nind, nf, true);
+                                         nind, nf);
 
   if (ret == 0)
   {

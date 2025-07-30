@@ -376,7 +376,7 @@ bool getUnionArgs(PyObject* args,
     E_Int res=0;
     K_FLD::FldArrayI* inds=NULL;
     if (pgs != Py_None)
-      res = K_NUMPY::getFromNumpyArray(pgs, inds, true);
+      res = K_NUMPY::getFromNumpyArray(pgs, inds);
 
     std::unique_ptr<K_FLD::FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
   

@@ -2,7 +2,6 @@
 import Generator.PyTree as G
 import Converter.PyTree as C
 import XCore.PyTree as XC
-import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
 import KCore.test as test
 import numpy
@@ -14,7 +13,7 @@ a = C.convertArray2NGon(a)
 C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=2)
 Internal._adaptNGon32NGon4(a)
 
-normal2D = numpy.array([0.0,0.0,1.0])
+normal2D = numpy.array([0.0,0.0,1.0], dtype=numpy.float64)
 ngonelts = Internal.getNodeFromName(a, 'NGonElements')
 ER = Internal.getNodeFromName(ngonelts, 'ElementRange')[1]
 nfaces = ER[1]
@@ -29,3 +28,4 @@ for i in range(2):
     AM = XC.AdaptMesh_Init(a, normal2D, comm=[], gcells=gcells, gfaces=gfaces)
     XC.AdaptMesh_Exit(AM)
     test.printMem("Releasing hook on mesh adaptation.")
+print("done.")

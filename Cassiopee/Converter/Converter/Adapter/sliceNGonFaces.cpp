@@ -33,7 +33,7 @@ PyObject* K_CONVERTER::sliceNGonFaces(PyObject* self, PyObject* args)
 
   // Check numpy
   FldArrayI* facePL;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayFPL, facePL, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayFPL, facePL);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,

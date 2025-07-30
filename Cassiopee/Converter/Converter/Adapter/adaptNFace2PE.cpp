@@ -39,7 +39,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
 
   // Check numpy (NFace)
   FldArrayI* cNFace;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayNF, cNFace, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayNF, cNFace);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -48,7 +48,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   }
   // Check numpy (NGon)
   FldArrayI* cNGon;
-  res = K_NUMPY::getFromNumpyArray(arrayNG, cNGon, true);
+  res = K_NUMPY::getFromNumpyArray(arrayNG, cNGon);
   if (res == 0)
   {
     RELEASESHAREDN(arrayNF, cNFace);
@@ -58,7 +58,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   }
   // Check numpy (CoordinateX)
   FldArrayF* coordX;
-  res = K_NUMPY::getFromNumpyArray(arrayX, coordX, true);
+  res = K_NUMPY::getFromNumpyArray(arrayX, coordX);
   if (res == 0)
   {
     RELEASESHAREDN(arrayNF, cNFace);
@@ -69,7 +69,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   }
   // Check numpy (CoordinateY)
   FldArrayF* coordY;
-  res = K_NUMPY::getFromNumpyArray(arrayY, coordY, true);
+  res = K_NUMPY::getFromNumpyArray(arrayY, coordY);
   if (res == 0)
   {
     RELEASESHAREDN(arrayNF, cNFace);
@@ -81,7 +81,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   }
   // Check numpy (CoordinateZ)
   FldArrayF* coordZ;
-  res = K_NUMPY::getFromNumpyArray(arrayZ, coordZ, true);
+  res = K_NUMPY::getFromNumpyArray(arrayZ, coordZ);
   if (res == 0)
   {
     RELEASESHAREDN(arrayNF, cNFace);

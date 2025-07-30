@@ -1041,7 +1041,7 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1157,7 +1157,7 @@ PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1299,7 +1299,7 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1412,7 +1412,7 @@ PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1540,7 +1540,7 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1730,7 +1730,7 @@ PyObject* K_INTERSECTOR::volume(PyObject* self, PyObject* args)
   // {
   //   std::cout << "get numpy " << std::endl;
 
-  //   res = K_NUMPY::getFromNumpyArray(py_xcelln, xcelln, true);
+  //   res = K_NUMPY::getFromNumpyArray(py_xcelln, xcelln);
   //   std::cout << xcelln << std::endl;
   //   if (res == 1) use_xcelln = true;
   // }
@@ -2105,7 +2105,7 @@ PyObject* K_INTERSECTOR::extrudeBC(PyObject* self, PyObject* args)
     FldArrayI* inds=NULL;
     E_Int res=0;
     if (pgs != Py_None)
-      res = K_NUMPY::getFromNumpyArray(pgs, inds, true);
+      res = K_NUMPY::getFromNumpyArray(pgs, inds);
 
     std::unique_ptr<FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
   
@@ -2309,7 +2309,7 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   E_Int* pgsList=NULL;
   E_Int size, nfld;
   if (py_pgs != Py_None)
-    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/);
+    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld);
 
   //std::cout << "after numpy" << std::endl;
 
@@ -2523,7 +2523,7 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
     {
       keep.resize(ef.ncells(), true);
       E_Int *ptL, size, nfld;
-      K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld, true/* shared*/);
+      K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld);
 
       discard_ids.insert(ptL, ptL+size);
 
@@ -3876,7 +3876,7 @@ PyObject* K_INTERSECTOR::getNthNeighborhood(PyObject* self, PyObject* args)
 
   // Check numpy array
   FldArrayI* fids;
-  K_NUMPY::getFromNumpyArray(py_ids, fids, true);
+  K_NUMPY::getFromNumpyArray(py_ids, fids);
 
   std::vector<E_Int> ids(fids->getSize());
   for (size_t i=0; i < ids.size();++i)
@@ -4540,7 +4540,7 @@ PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
   E_Int* ids{nullptr};
   E_Int size, nfld;
   if (arr2 != Py_None)
-      K_NUMPY::getFromNumpyArray(arr2, ids, size, nfld, true/*shared*/);
+      K_NUMPY::getFromNumpyArray(arr2, ids, size, nfld);
 
   if (ids == nullptr) return NULL;
 
@@ -4624,7 +4624,7 @@ PyObject* K_INTERSECTOR::getFaces(PyObject* self, PyObject* args)
   E_Int* pgids=NULL;
   E_Int size, nfld;
   if (arr2 != Py_None)
-      K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld, true/*shared*/);
+      K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld);
 
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;

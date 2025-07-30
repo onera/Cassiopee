@@ -40,14 +40,14 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
 
     E_Float *ctag = NULL;
     E_Int size = -1;
-    E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctag, size, true);
+    E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctag, size);
     if (ret != 1 || size != nc) {
         RAISE("Bad ctag array.");
         return NULL;
     }
 
     E_Float *ptag = NULL;
-    ret = K_NUMPY::getFromNumpyArray(PTAG, ptag, size, true);
+    ret = K_NUMPY::getFromNumpyArray(PTAG, ptag, size);
     if (ret != 1 || size != np) 
     {
         RAISE("Bad ptag array.");

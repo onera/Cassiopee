@@ -832,20 +832,20 @@ PyObject* K_POST::projectCloudSolution2TriangleWithInterpData(PyObject* self, Py
       return NULL;
   }
 
-	/*-----------------------------------------------*/
+  /*-----------------------------------------------*/
   /* Extraction des donnees d interpolation        */
   /*-----------------------------------------------*/
-	FldArrayI* offsetI;
-	K_NUMPY::getFromNumpyArray(pyOffset, offsetI, true);
-  E_Int* offset  = offsetI->begin();
+  FldArrayI* offsetI;
+  K_NUMPY::getFromNumpyArray(pyOffset, offsetI);
+  E_Int* offset = offsetI->begin();
 
 	FldArrayI* interpDonorI;
-  K_NUMPY::getFromNumpyArray(pyInterpDonor, interpDonorI, true);
-  E_Int* interpDonor  = interpDonorI->begin();
+  K_NUMPY::getFromNumpyArray(pyInterpDonor, interpDonorI);
+  E_Int* interpDonor = interpDonorI->begin();
 
 	FldArrayF* interpCoefF;
-  K_NUMPY::getFromNumpyArray(pyInterpCoef, interpCoefF, true);
-  E_Float* interpCoef  = interpCoefF->begin();
+  K_NUMPY::getFromNumpyArray(pyInterpCoef, interpCoefF);
+  E_Float* interpCoef = interpCoefF->begin();
 
   /*-----------------------------------------------*/
   /* Extraction des infos sur le domaine recepteur */

@@ -1216,7 +1216,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   // Get index of boundary faces in current zone
   // ============================================
   FldArrayI* indR;
-  E_Int resi = K_NUMPY::getFromNumpyArray(pyIndR, indR, true);
+  E_Int resi = K_NUMPY::getFromNumpyArray(pyIndR, indR);
   if ( resi == 0)
   {
      PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldStruct: not a valid numpy for indices of BC (indR).");
@@ -1233,7 +1233,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
     
   if (pyNcnt != Py_None)
   {
-    E_Int resi = K_NUMPY::getFromNumpyArray(pyNcnt, ncount, true);
+    E_Int resi = K_NUMPY::getFromNumpyArray(pyNcnt, ncount);
     if (resi == 0)
     {
       PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldStruct: not a valid numpy for ncount array.");

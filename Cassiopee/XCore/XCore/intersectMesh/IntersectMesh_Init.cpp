@@ -45,7 +45,7 @@ PyObject *K_XCORE::IntersectMesh_Init(PyObject *self, PyObject *args)
 
         E_Float *tags = NULL;
 
-        ret = K_NUMPY::getFromNumpyArray(TAGS, tags, size, nfld, true);
+        ret = K_NUMPY::getFromNumpyArray(TAGS, tags, size, nfld);
 
         if (ret != 1 || size != M->nc || nfld != 1) {
             RAISE("Bad cell tags.")

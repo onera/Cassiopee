@@ -165,6 +165,7 @@ void computeFrustumPlanes(ViewInfo& view)
 }
 
 // Compute frustum planes from view matrices
+/*
 void computeFrustumPlanes2()
 {
   // need further check
@@ -239,7 +240,7 @@ void computeFrustumPlanes2()
   //printf("a=%g; b=%g; c=%g; d=%g\n", planes[4].a, planes[4].b, planes[4].c, planes[2].d);
   //printf("a=%g; b=%g; c=%g; d=%g\n", planes[5].a, planes[5].b, planes[5].c, planes[3].d);
   return;
-}
+} */
 
 //=============================================================================
 // Return 1 if zone is in frustum

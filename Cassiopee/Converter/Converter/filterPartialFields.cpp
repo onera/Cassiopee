@@ -97,7 +97,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
-  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices, true);
+  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices);
   if (resi == 0)
   {
     RELEASESHAREDZ(hook, varStringZ, eltTypeZ);

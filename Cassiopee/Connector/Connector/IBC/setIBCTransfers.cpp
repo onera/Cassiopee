@@ -2935,7 +2935,7 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  E_Int res_rcv = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int res_rcv = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   nbRcvPts      = rcvPtsI->getSize();
   E_Int* rcvPts = rcvPtsI->begin();
 
@@ -3248,7 +3248,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();  
 
@@ -3470,18 +3470,18 @@ PyObject* K_CONNECTOR::_setIBCTransfersForPressureGradientsOrder1(PyObject* self
 
   # include "extract_interpD.h"
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray(pyArrayPressure, pressF);
   E_Float* pressure = pressF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
@@ -3662,42 +3662,42 @@ PyObject* K_CONNECTOR::_setIBCTransfersForPressureGradientsOrder2(PyObject* self
 
   # include "extract_interpD.h"
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray(pyArrayPressure, pressF);
   E_Float* pressure = pressF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
 
   FldArrayF* gradxxPressF; FldArrayF* gradxyPressF; FldArrayF* gradxzPressF;
-  E_Int okGxxP = K_NUMPY::getFromNumpyArray(pyArrayGradxxP , gradxxPressF , true);
-  E_Int okGxyP = K_NUMPY::getFromNumpyArray(pyArrayGradxyP , gradxyPressF , true);
-  E_Int okGxzP = K_NUMPY::getFromNumpyArray(pyArrayGradxzP , gradxzPressF , true);
+  E_Int okGxxP = K_NUMPY::getFromNumpyArray(pyArrayGradxxP, gradxxPressF);
+  E_Int okGxyP = K_NUMPY::getFromNumpyArray(pyArrayGradxyP, gradxyPressF);
+  E_Int okGxzP = K_NUMPY::getFromNumpyArray(pyArrayGradxzP, gradxzPressF);
   E_Float* gradxxP = gradxxPressF->begin();
   E_Float* gradxyP = gradxyPressF->begin();
   E_Float* gradxzP = gradxzPressF->begin();
 
   FldArrayF* gradyxPressF; FldArrayF* gradyyPressF; FldArrayF* gradyzPressF;
-  E_Int okGyxP = K_NUMPY::getFromNumpyArray(pyArrayGradyxP , gradyxPressF , true);
-  E_Int okGyyP = K_NUMPY::getFromNumpyArray(pyArrayGradyyP , gradyyPressF , true);
-  E_Int okGyzP = K_NUMPY::getFromNumpyArray(pyArrayGradyzP , gradyzPressF , true);
+  E_Int okGyxP = K_NUMPY::getFromNumpyArray(pyArrayGradyxP, gradyxPressF);
+  E_Int okGyyP = K_NUMPY::getFromNumpyArray(pyArrayGradyyP, gradyyPressF);
+  E_Int okGyzP = K_NUMPY::getFromNumpyArray(pyArrayGradyzP, gradyzPressF);
   E_Float* gradyxP = gradyxPressF->begin();
   E_Float* gradyyP = gradyyPressF->begin();
   E_Float* gradyzP = gradyzPressF->begin();
 
   FldArrayF* gradzxPressF; FldArrayF* gradzyPressF; FldArrayF* gradzzPressF;
-  E_Int okGzxP = K_NUMPY::getFromNumpyArray(pyArrayGradzxP , gradzxPressF , true);
-  E_Int okGzyP = K_NUMPY::getFromNumpyArray(pyArrayGradzyP , gradzyPressF , true);
-  E_Int okGzzP = K_NUMPY::getFromNumpyArray(pyArrayGradzzP , gradzzPressF , true);
+  E_Int okGzxP = K_NUMPY::getFromNumpyArray(pyArrayGradzxP, gradzxPressF);
+  E_Int okGzyP = K_NUMPY::getFromNumpyArray(pyArrayGradzyP, gradzyPressF);
+  E_Int okGzzP = K_NUMPY::getFromNumpyArray(pyArrayGradzzP, gradzzPressF);
   E_Float* gradzxP = gradzxPressF->begin();
   E_Float* gradzyP = gradzyPressF->begin();
   E_Float* gradzzP = gradzzPressF->begin();
@@ -3909,18 +3909,18 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF);
   E_Float* pressure = pressF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
@@ -4143,42 +4143,42 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP2(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF);
   E_Float* pressure = pressF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
 
   FldArrayF* gradxxPressF; FldArrayF* gradxyPressF; FldArrayF* gradxzPressF;
-  E_Int okGxxP = K_NUMPY::getFromNumpyArray(pyArrayGradxxP , gradxxPressF , true);
-  E_Int okGxyP = K_NUMPY::getFromNumpyArray(pyArrayGradxyP , gradxyPressF , true);
-  E_Int okGxzP = K_NUMPY::getFromNumpyArray(pyArrayGradxzP , gradxzPressF , true);
+  E_Int okGxxP = K_NUMPY::getFromNumpyArray(pyArrayGradxxP, gradxxPressF);
+  E_Int okGxyP = K_NUMPY::getFromNumpyArray(pyArrayGradxyP, gradxyPressF);
+  E_Int okGxzP = K_NUMPY::getFromNumpyArray(pyArrayGradxzP, gradxzPressF);
   E_Float* gradxxP = gradxxPressF->begin();
   E_Float* gradxyP = gradxyPressF->begin();
   E_Float* gradxzP = gradxzPressF->begin();
 
   FldArrayF* gradyxPressF; FldArrayF* gradyyPressF; FldArrayF* gradyzPressF;
-  E_Int okGyxP = K_NUMPY::getFromNumpyArray(pyArrayGradyxP , gradyxPressF , true);
-  E_Int okGyyP = K_NUMPY::getFromNumpyArray(pyArrayGradyyP , gradyyPressF , true);
-  E_Int okGyzP = K_NUMPY::getFromNumpyArray(pyArrayGradyzP , gradyzPressF , true);
+  E_Int okGyxP = K_NUMPY::getFromNumpyArray(pyArrayGradyxP, gradyxPressF);
+  E_Int okGyyP = K_NUMPY::getFromNumpyArray(pyArrayGradyyP, gradyyPressF);
+  E_Int okGyzP = K_NUMPY::getFromNumpyArray(pyArrayGradyzP, gradyzPressF);
   E_Float* gradyxP = gradyxPressF->begin();
   E_Float* gradyyP = gradyyPressF->begin();
   E_Float* gradyzP = gradyzPressF->begin();
 
   FldArrayF* gradzxPressF; FldArrayF* gradzyPressF; FldArrayF* gradzzPressF;
-  E_Int okGzxP = K_NUMPY::getFromNumpyArray(pyArrayGradzxP , gradzxPressF , true);
-  E_Int okGzyP = K_NUMPY::getFromNumpyArray(pyArrayGradzyP , gradzyPressF , true);
-  E_Int okGzzP = K_NUMPY::getFromNumpyArray(pyArrayGradzzP , gradzzPressF , true);
+  E_Int okGzxP = K_NUMPY::getFromNumpyArray(pyArrayGradzxP, gradzxPressF );
+  E_Int okGzyP = K_NUMPY::getFromNumpyArray(pyArrayGradzyP, gradzyPressF);
+  E_Int okGzzP = K_NUMPY::getFromNumpyArray(pyArrayGradzzP, gradzzPressF);
   E_Float* gradzxP = gradzxPressF->begin();
   E_Float* gradzyP = gradzyPressF->begin();
   E_Float* gradzzP = gradzzPressF->begin();
@@ -4417,14 +4417,14 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP3(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
@@ -4556,17 +4556,17 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP4(PyObject* self, PyObject* args)
     }
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
 
   FldArrayF* gradxPress_newF; FldArrayF* gradyPress_newF; FldArrayF* gradzPress_newF;
-  E_Int okGxP_new = K_NUMPY::getFromNumpyArray(pyArrayGradxP_new , gradxPress_newF , true);
-  E_Int okGyP_new = K_NUMPY::getFromNumpyArray(pyArrayGradyP_new , gradyPress_newF , true);
-  E_Int okGzP_new = K_NUMPY::getFromNumpyArray(pyArrayGradzP_new , gradzPress_newF , true);
+  E_Int okGxP_new = K_NUMPY::getFromNumpyArray(pyArrayGradxP_new, gradxPress_newF);
+  E_Int okGyP_new = K_NUMPY::getFromNumpyArray(pyArrayGradyP_new, gradyPress_newF);
+  E_Int okGzP_new = K_NUMPY::getFromNumpyArray(pyArrayGradzP_new, gradzPress_newF);
   E_Float* gradxP_new = gradxPress_newF->begin();
   E_Float* gradyP_new = gradyPress_newF->begin();
   E_Float* gradzP_new = gradzPress_newF->begin();
@@ -4674,52 +4674,52 @@ PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();
 
   // # include "IBC/extract_IBC.h"
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF);
   E_Float* pressure = pressF->begin();
 
   FldArrayF* UF; FldArrayF* VF; FldArrayF* WF;
-  E_Int okU = K_NUMPY::getFromNumpyArray(pyArrayU , UF , true);
-  E_Int okV = K_NUMPY::getFromNumpyArray(pyArrayV , VF , true);
-  E_Int okW = K_NUMPY::getFromNumpyArray(pyArrayW , WF , true);
+  E_Int okU = K_NUMPY::getFromNumpyArray(pyArrayU , UF);
+  E_Int okV = K_NUMPY::getFromNumpyArray(pyArrayV , VF);
+  E_Int okW = K_NUMPY::getFromNumpyArray(pyArrayW , WF);
   E_Float* U = UF->begin();
   E_Float* V = VF->begin();
   E_Float* W = WF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
 
   FldArrayF* gradxVelocityXF; FldArrayF* gradyVelocityXF; FldArrayF* gradzVelocityXF;
-  E_Int okGxU = K_NUMPY::getFromNumpyArray(pyArrayGradxU , gradxVelocityXF , true);
-  E_Int okGyU = K_NUMPY::getFromNumpyArray(pyArrayGradyU , gradyVelocityXF , true);
-  E_Int okGzU = K_NUMPY::getFromNumpyArray(pyArrayGradzU , gradzVelocityXF , true);
+  E_Int okGxU = K_NUMPY::getFromNumpyArray(pyArrayGradxU, gradxVelocityXF);
+  E_Int okGyU = K_NUMPY::getFromNumpyArray(pyArrayGradyU, gradyVelocityXF);
+  E_Int okGzU = K_NUMPY::getFromNumpyArray(pyArrayGradzU, gradzVelocityXF);
   E_Float* gradxU = gradxVelocityXF->begin();
   E_Float* gradyU = gradyVelocityXF->begin();
   E_Float* gradzU = gradzVelocityXF->begin();
 
   FldArrayF* gradxVelocityYF; FldArrayF* gradyVelocityYF; FldArrayF* gradzVelocityYF;
-  E_Int okGxV = K_NUMPY::getFromNumpyArray(pyArrayGradxV , gradxVelocityYF , true);
-  E_Int okGyV = K_NUMPY::getFromNumpyArray(pyArrayGradyV , gradyVelocityYF , true);
-  E_Int okGzV = K_NUMPY::getFromNumpyArray(pyArrayGradzV , gradzVelocityYF , true);
+  E_Int okGxV = K_NUMPY::getFromNumpyArray(pyArrayGradxV, gradxVelocityYF);
+  E_Int okGyV = K_NUMPY::getFromNumpyArray(pyArrayGradyV, gradyVelocityYF);
+  E_Int okGzV = K_NUMPY::getFromNumpyArray(pyArrayGradzV, gradzVelocityYF);
   E_Float* gradxV = gradxVelocityYF->begin();
   E_Float* gradyV = gradyVelocityYF->begin();
   E_Float* gradzV = gradzVelocityYF->begin();
 
   FldArrayF* gradxVelocityZF; FldArrayF* gradyVelocityZF; FldArrayF* gradzVelocityZF;
-  E_Int okGxW = K_NUMPY::getFromNumpyArray(pyArrayGradxW , gradxVelocityZF , true);
-  E_Int okGyW = K_NUMPY::getFromNumpyArray(pyArrayGradyW , gradyVelocityZF , true);
-  E_Int okGzW = K_NUMPY::getFromNumpyArray(pyArrayGradzW , gradzVelocityZF , true);
+  E_Int okGxW = K_NUMPY::getFromNumpyArray(pyArrayGradxW, gradxVelocityZF);
+  E_Int okGyW = K_NUMPY::getFromNumpyArray(pyArrayGradyW, gradyVelocityZF);
+  E_Int okGzW = K_NUMPY::getFromNumpyArray(pyArrayGradzW, gradzVelocityZF);
   E_Float* gradxW = gradxVelocityZF->begin();
   E_Float* gradyW = gradyVelocityZF->begin();
   E_Float* gradzW = gradzVelocityZF->begin();
@@ -4997,52 +4997,52 @@ PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE2(PyObject* self, PyObject* args
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();
 
   // # include "IBC/extract_IBC.h"
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray(pyArrayPressure, pressF);
   E_Float* pressure = pressF->begin();
 
   FldArrayF* UF; FldArrayF* VF; FldArrayF* WF;
-  E_Int okU = K_NUMPY::getFromNumpyArray(pyArrayU , UF , true);
-  E_Int okV = K_NUMPY::getFromNumpyArray(pyArrayV , VF , true);
-  E_Int okW = K_NUMPY::getFromNumpyArray(pyArrayW , WF , true);
+  E_Int okU = K_NUMPY::getFromNumpyArray(pyArrayU, UF);
+  E_Int okV = K_NUMPY::getFromNumpyArray(pyArrayV, VF);
+  E_Int okW = K_NUMPY::getFromNumpyArray(pyArrayW, WF);
   E_Float* U = UF->begin();
   E_Float* V = VF->begin();
   E_Float* W = WF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
 
   FldArrayF* gradxVelocityXF; FldArrayF* gradyVelocityXF; FldArrayF* gradzVelocityXF;
-  E_Int okGxU = K_NUMPY::getFromNumpyArray(pyArrayGradxU , gradxVelocityXF , true);
-  E_Int okGyU = K_NUMPY::getFromNumpyArray(pyArrayGradyU , gradyVelocityXF , true);
-  E_Int okGzU = K_NUMPY::getFromNumpyArray(pyArrayGradzU , gradzVelocityXF , true);
+  E_Int okGxU = K_NUMPY::getFromNumpyArray(pyArrayGradxU, gradxVelocityXF);
+  E_Int okGyU = K_NUMPY::getFromNumpyArray(pyArrayGradyU, gradyVelocityXF);
+  E_Int okGzU = K_NUMPY::getFromNumpyArray(pyArrayGradzU, gradzVelocityXF);
   E_Float* gradxU = gradxVelocityXF->begin();
   E_Float* gradyU = gradyVelocityXF->begin();
   E_Float* gradzU = gradzVelocityXF->begin();
 
   FldArrayF* gradxVelocityYF; FldArrayF* gradyVelocityYF; FldArrayF* gradzVelocityYF;
-  E_Int okGxV = K_NUMPY::getFromNumpyArray(pyArrayGradxV , gradxVelocityYF , true);
-  E_Int okGyV = K_NUMPY::getFromNumpyArray(pyArrayGradyV , gradyVelocityYF , true);
-  E_Int okGzV = K_NUMPY::getFromNumpyArray(pyArrayGradzV , gradzVelocityYF , true);
+  E_Int okGxV = K_NUMPY::getFromNumpyArray(pyArrayGradxV, gradxVelocityYF);
+  E_Int okGyV = K_NUMPY::getFromNumpyArray(pyArrayGradyV, gradyVelocityYF);
+  E_Int okGzV = K_NUMPY::getFromNumpyArray(pyArrayGradzV, gradzVelocityYF);
   E_Float* gradxV = gradxVelocityYF->begin();
   E_Float* gradyV = gradyVelocityYF->begin();
   E_Float* gradzV = gradzVelocityYF->begin();
 
   FldArrayF* gradxVelocityZF; FldArrayF* gradyVelocityZF; FldArrayF* gradzVelocityZF;
-  E_Int okGxW = K_NUMPY::getFromNumpyArray(pyArrayGradxW , gradxVelocityZF , true);
-  E_Int okGyW = K_NUMPY::getFromNumpyArray(pyArrayGradyW , gradyVelocityZF , true);
-  E_Int okGzW = K_NUMPY::getFromNumpyArray(pyArrayGradzW , gradzVelocityZF , true);
+  E_Int okGxW = K_NUMPY::getFromNumpyArray(pyArrayGradxW, gradxVelocityZF);
+  E_Int okGyW = K_NUMPY::getFromNumpyArray(pyArrayGradyW, gradyVelocityZF);
+  E_Int okGzW = K_NUMPY::getFromNumpyArray(pyArrayGradzW, gradzVelocityZF);
   E_Float* gradxW = gradxVelocityZF->begin();
   E_Float* gradyW = gradyVelocityZF->begin();
   E_Float* gradzW = gradzVelocityZF->begin();
@@ -5275,18 +5275,18 @@ PyObject* K_CONNECTOR::_WM_getVal2tc(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts  = rcvPtsI->begin();
   E_Int nbRcvPts = rcvPtsI->getSize();
 
   FldArrayF* dens_F; FldArrayF* velx_F; FldArrayF* vely_F;
   FldArrayF* velz_F; FldArrayF* temp_F; FldArrayF* sanu_F;
-  E_Int okdens = K_NUMPY::getFromNumpyArray(pyArrayDensWM , dens_F , true);
-  E_Int okvelx = K_NUMPY::getFromNumpyArray(pyArrayVelXWM , velx_F , true);
-  E_Int okvely = K_NUMPY::getFromNumpyArray(pyArrayVelYWM , vely_F , true);
-  E_Int okvelz = K_NUMPY::getFromNumpyArray(pyArrayVelZWM , velz_F , true);
-  E_Int oktemp = K_NUMPY::getFromNumpyArray(pyArrayTempWM , temp_F , true);
-  E_Int oksanu = K_NUMPY::getFromNumpyArray(pyArraySaNuWM , sanu_F , true);
+  E_Int okdens = K_NUMPY::getFromNumpyArray(pyArrayDensWM, dens_F);
+  E_Int okvelx = K_NUMPY::getFromNumpyArray(pyArrayVelXWM, velx_F);
+  E_Int okvely = K_NUMPY::getFromNumpyArray(pyArrayVelYWM, vely_F);
+  E_Int okvelz = K_NUMPY::getFromNumpyArray(pyArrayVelZWM, velz_F);
+  E_Int oktemp = K_NUMPY::getFromNumpyArray(pyArrayTempWM, temp_F);
+  E_Int oksanu = K_NUMPY::getFromNumpyArray(pyArraySaNuWM, sanu_F);
   E_Float* dens = dens_F->begin();
   E_Float* velx = velx_F->begin();
   E_Float* vely = vely_F->begin();
@@ -5410,12 +5410,12 @@ PyObject* K_CONNECTOR::_WM_setVal2tc(PyObject* self, PyObject* args)
 
   FldArrayF* densF; FldArrayF* velxF; FldArrayF* velyF;
   FldArrayF* velzF; FldArrayF* tempF; FldArrayF* sanuF;
-  E_Int okdens = K_NUMPY::getFromNumpyArray(pyArraydens, densF , true);
-  E_Int okvelx = K_NUMPY::getFromNumpyArray(pyArrayvelx, velxF , true);
-  E_Int okvely = K_NUMPY::getFromNumpyArray(pyArrayvely, velyF , true);
-  E_Int okvelz = K_NUMPY::getFromNumpyArray(pyArrayvelz, velzF , true);
-  E_Int oktemp = K_NUMPY::getFromNumpyArray(pyArraytemp, tempF , true);
-  E_Int oksanu = K_NUMPY::getFromNumpyArray(pyArraysanu, sanuF , true);
+  E_Int okdens = K_NUMPY::getFromNumpyArray(pyArraydens, densF);
+  E_Int okvelx = K_NUMPY::getFromNumpyArray(pyArrayvelx, velxF);
+  E_Int okvely = K_NUMPY::getFromNumpyArray(pyArrayvely, velyF);
+  E_Int okvelz = K_NUMPY::getFromNumpyArray(pyArrayvelz, velzF);
+  E_Int oktemp = K_NUMPY::getFromNumpyArray(pyArraytemp, tempF);
+  E_Int oksanu = K_NUMPY::getFromNumpyArray(pyArraysanu, sanuF);
   E_Float* dens = densF->begin();
   E_Float* velx = velxF->begin();
   E_Float* vely = velyF->begin();
@@ -5425,12 +5425,12 @@ PyObject* K_CONNECTOR::_WM_setVal2tc(PyObject* self, PyObject* args)
 
   FldArrayF* densF_new; FldArrayF* velxF_new; FldArrayF* velyF_new;
   FldArrayF* velzF_new; FldArrayF* tempF_new; FldArrayF* sanuF_new;
-  okdens = K_NUMPY::getFromNumpyArray(pyArraydens_new, densF_new, true);
-  okvelx = K_NUMPY::getFromNumpyArray(pyArrayvelx_new, velxF_new, true);
-  okvely = K_NUMPY::getFromNumpyArray(pyArrayvely_new, velyF_new, true);
-  okvelz = K_NUMPY::getFromNumpyArray(pyArrayvelz_new, velzF_new, true);
-  oktemp = K_NUMPY::getFromNumpyArray(pyArraytemp_new, tempF_new, true);
-  oksanu = K_NUMPY::getFromNumpyArray(pyArraysanu_new, sanuF_new, true);
+  okdens = K_NUMPY::getFromNumpyArray(pyArraydens_new, densF_new);
+  okvelx = K_NUMPY::getFromNumpyArray(pyArrayvelx_new, velxF_new);
+  okvely = K_NUMPY::getFromNumpyArray(pyArrayvely_new, velyF_new);
+  okvelz = K_NUMPY::getFromNumpyArray(pyArrayvelz_new, velzF_new);
+  oktemp = K_NUMPY::getFromNumpyArray(pyArraytemp_new, tempF_new);
+  oksanu = K_NUMPY::getFromNumpyArray(pyArraysanu_new, sanuF_new);
   E_Float* dens_new = densF_new->begin();
   E_Float* velx_new = velxF_new->begin();
   E_Float* vely_new = velyF_new->begin();
