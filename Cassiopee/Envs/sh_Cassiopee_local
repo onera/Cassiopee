@@ -795,7 +795,7 @@ elif [ "$MAC" = "sator_gcc" ]; then
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "sator_coda" ]; then
-#----------------------------- juno coda --------------------------------------
+#----------------------------- sator coda --------------------------------------
     export ELSAPROD=sat_coda
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads

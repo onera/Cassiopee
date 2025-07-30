@@ -67,6 +67,11 @@ STOP = 0
 # WIDGETS dict
 WIDGETS = {}
 
+# Sort test strings
+SORT_CATEGORIES = ['Name', 'CPU time', 'Ref. CPU time', 'Date', 'Coverage', 'Tag', 'Status']
+SORT_BY = 'Name'
+REV_SORT = False
+
 
 #==============================================================================
 # Classes used to by-pass tkinter in the absence of a display environment or
@@ -476,16 +481,16 @@ def getCFDBaseTests():
     path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH)
     try: reps = os.listdir(path)
     except: reps = []
-    out = []
+    tests = []
     for r in reps: # a terme a supprimer
-        if r == 'NACA': out.append(r) # MB 2D Euler
-        elif r == 'NACA_IBC': out.append(r) # IBC 2D Euler
-        elif r == 'DAUPHIN': out.append(r) # MB 3D Euler
-        elif r == 'FLATPLATE': out.append(r) # MB 3D SA
-        elif r == 'RAE2822': out.append(r) # MB 2D SA
-        elif r == 'RAE2822_IBC': out.append(r) # IBC 2D SA
-        elif r == 'CUBE_IBC': out.append(r) # IBC 3D SA
-    return sorted(out)
+        if r == 'NACA': tests.append(r) # MB 2D Euler
+        elif r == 'NACA_IBC': tests.append(r) # IBC 2D Euler
+        elif r == 'DAUPHIN': tests.append(r) # MB 3D Euler
+        elif r == 'FLATPLATE': tests.append(r) # MB 3D SA
+        elif r == 'RAE2822': tests.append(r) # MB 2D SA
+        elif r == 'RAE2822_IBC': tests.append(r) # IBC 2D SA
+        elif r == 'CUBE_IBC': tests.append(r) # IBC 3D SA
+    return sorted(tests)
 
 #==============================================================================
 # Ecrit un fichier contenant date, CPUtime, coverage
@@ -1094,6 +1099,70 @@ def buildTestList(sessionName=None, modules=[]):
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
 
+#=============================================================================
+# Parse some entries of a test string
+#=============================================================================
+def parseCPUTimeStr(s):
+    try:
+        s = s.strip().replace('m', ':').replace('s', '')
+        minutes, seconds = map(float, s.split(':'))
+        return minutes * 60 + seconds  # total time in seconds
+    except ValueError:  # undefined as in "..."
+        return -1.
+
+def parseDateStr(s):
+    try:
+        return time.strptime(s.strip(), "%d/%m/%y %Hh%M")
+    except ValueError:  # undefined as in "..."
+        return time.strptime(f"01/01/1970 00h00")
+
+def parseCoverageStr(s):
+    try:
+        return float(s.strip('%'))
+    except ValueError:  # undefined as in "..."
+        return -1.
+
+#==============================================================================
+# Sort tests
+#==============================================================================
+def splitTestString(test):
+    return [entry.strip() for entry in test.split(":")]
+
+def sortTests(tests):
+    global SORT_BY
+    if SORT_BY not in SORT_CATEGORIES: SORT_BY = 'Name'
+    if SORT_BY == 'Name': return sorted(tests, reverse=REV_SORT)
+    sortIndex = SORT_CATEGORIES.index(SORT_BY) + 1
+    if SORT_BY == 'Coverage':
+        return sorted(tests, key=lambda t: parseCoverageStr(splitTestString(t)[sortIndex]), reverse=REV_SORT)
+    elif SORT_BY in ['CPU time', 'Ref. CPU time']:
+        return sorted(tests, key=lambda t: parseCPUTimeStr(splitTestString(t)[sortIndex]), reverse=REV_SORT)
+    elif SORT_BY == 'Date':
+        return sorted(tests, key=lambda t: parseDateStr(splitTestString(t)[sortIndex]), reverse=REV_SORT)
+    return sorted(tests, key=lambda t: splitTestString(t)[sortIndex], reverse=REV_SORT)
+
+def sortTestList(event=None, entry='Name', force=False):
+    global SORT_BY
+    if entry in SORT_CATEGORIES and (force or entry != SORT_BY):
+        SORT_BY = entry
+        Listbox.delete(0, 'end')
+        for s in sortTests(TESTS): Listbox.insert('end', s)
+    updateSortLabels()
+
+def updateSortLabels():
+    if not INTERACTIVE: return
+    for i, c in enumerate(SORT_CATEGORIES):
+        if c == SORT_BY: label = f'(*) By {c}'
+        else: label = f'    By {c}'
+        sortTab.entryconfig(i, label=label)
+
+def updateSortingOrderLabel(event=None):
+    global REV_SORT
+    REV_SORT = not REV_SORT
+    sortTestList(event=event, entry=SORT_BY, force=True)
+    if REV_SORT: sortTab.entryconfig(8, label="Ascending order")
+    else: sortTab.entryconfig(8, label="Descending order")
+
 #==============================================================================
 # Filtre la liste des tests avec la chaine de filter
 # Update la listbox
@@ -1190,9 +1259,9 @@ def filterTestList(event=None):
 
     Listbox.delete(0, 'end')
     if filters:
-        for s in sorted(insertedTests): Listbox.insert('end', s)
+        for s in sortTests(insertedTests): Listbox.insert('end', s)
     else:
-        for s in TESTS: Listbox.insert('end', s)
+        for s in sortTests(TESTS): Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     return True
@@ -1831,6 +1900,8 @@ if __name__ == '__main__':
         menu.add_cascade(label='Tools', menu=toolsTab)
         viewTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='View', menu=viewTab)
+        sortTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='Sort', menu=sortTab)
 
         loadSessionWithArgs = partial(buildTestList, "session")
         fileTab.add_command(label='Load last session', command=loadSessionWithArgs)
@@ -1860,6 +1931,16 @@ if __name__ == '__main__':
         viewTab.add_separator()
         viewTab.add_command(label='Select all visible tests', command=selectAll,
                             accelerator='Ctrl+A')
+
+        sortTab.add_command(label='(*) By Name', command=lambda: sortTestList(entry="Name"))
+        sortTab.add_command(label='    By CPU time', command=lambda: sortTestList(entry="CPU time"))
+        sortTab.add_command(label='    By Ref. CPU time', command=lambda: sortTestList(entry="Ref. CPU time"))
+        sortTab.add_command(label='    By Date', command=lambda: sortTestList(entry="Date"))
+        sortTab.add_command(label='    By Coverage', command=lambda: sortTestList(entry="Coverage"))
+        sortTab.add_command(label='    By Tag', command=lambda: sortTestList(entry="Tag"))
+        sortTab.add_command(label='    By Status', command=lambda: sortTestList(entry="Status"))
+        sortTab.add_separator()
+        sortTab.add_command(label='Descending order', command=updateSortingOrderLabel)
 
         toolsTab.add_command(label='Tag selection', command=tagSelection)
         toolsTab.add_command(label='Untag selection', command=untagSelection)
