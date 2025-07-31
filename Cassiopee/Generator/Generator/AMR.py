@@ -40,7 +40,7 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
 
     offsetValMin = min(offsetValues)
     offsetValMax = max(offsetValues)
-    
+
     alpha=1.1
     delta = alpha*offsetValMax
     xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
@@ -140,7 +140,7 @@ def generateSkeletonMesh__(tb, dim=3, levelSkel=6):
     # determine where the symmetry plane is
     dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
     [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(o)
-    if dir_sym == 1: 
+    if dir_sym == 1:
         coordsym = 'CoordinateX'
         valsym = 0.5*(xmin+xmax)
     elif dir_sym == 2:
@@ -613,7 +613,7 @@ def adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=None, dim=3, loadBalancing
                 XC.AdaptMesh_Adapt(hookAM)
                 o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                 o = Internal.getZones(o)[0]
-    
+
     if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
 
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
@@ -686,18 +686,18 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
 def getSymmetryPlaneInfo__(tb, dim=3):
     baseSYM = Internal.getNodesFromName1(tb,"SYM")
     dir_sym = 0
-    if baseSYM is not None:        
+    if baseSYM is not None:
         zones_sym = Internal.getZones(baseSYM)
         [xmin_sym,ymin_sym,zmin_sym,xmax_sym,ymax_sym,zmax_sym] = G.bbox(zones_sym)
 
         zones_non_sym = []
         for base in Internal.getBases(tb):
             if base[0] != 'SYM': zones_non_sym += Internal.getZones(base)
-        [xmin_non_sym,ymin_non_sym,zmin_non_sym,xmax_non_sym,ymax_non_sym,zmax_non_sym] = G.bbox(zones_non_sym)        
+        [xmin_non_sym,ymin_non_sym,zmin_non_sym,xmax_non_sym,ymax_non_sym,zmax_non_sym] = G.bbox(zones_non_sym)
         if abs(xmax_sym-xmin_non_sym) < __TOL__:
             dir_sym=1
         elif abs(ymax_sym-ymin_non_sym) < __TOL__:
-            dir_sym=2      
+            dir_sym=2
         elif abs(zmax_sym-zmin_non_sym) < __TOL__ and dim==3:
             dir_sym=3
     return dir_sym
