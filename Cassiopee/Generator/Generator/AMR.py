@@ -613,7 +613,7 @@ def adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=None, dim=3, loadBalancing
                 XC.AdaptMesh_Adapt(hookAM)
                 o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                 o = Internal.getZones(o)[0]
-    
+
     #if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
 
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
