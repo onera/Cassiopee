@@ -614,7 +614,7 @@ def adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=None, dim=3, loadBalancing
                 o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                 o = Internal.getZones(o)[0]
     
-    if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
+    #if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
 
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
     owners = XC.AdaptMesh_ExtractOwners(hookAM)
