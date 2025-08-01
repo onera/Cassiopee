@@ -18,6 +18,7 @@
 */
 # include "post.h"
 # include "Array/Array.h"
+# include <vector>
 
 /* Calcul des valeurs d un champ aux faces des elements a partir des 
    des valeurs aux noeuds.
@@ -35,7 +36,7 @@ void K_POST::compUnstrNodes2Faces(
   K_ARRAY::extractVars(eltType, eltTypes);
 
   // Pre-compute element offset
-  vector<E_Int> nepc(nc+1); nepc[0] = 0;;
+  std::vector<E_Int> nepc(nc+1); nepc[0] = 0;;
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
@@ -59,9 +60,9 @@ void K_POST::compUnstrNodes2Faces(
         # pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          ind1 = cm[i*3] - 1;
-          ind2 = cm[i*3 + 1] - 1;
-          ind3 = cm[i*3 + 2] - 1;
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+          ind3 = cm(i, 3) - 1;
 
           f1 = fieldn[ind1];
           f2 = fieldn[ind2];
@@ -81,10 +82,10 @@ void K_POST::compUnstrNodes2Faces(
         # pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          ind1 = cm[i*4] - 1;
-          ind2 = cm[i*4 + 1] - 1;
-          ind3 = cm[i*4 + 2] - 1;
-          ind4 = cm[i*4 + 3] - 1;
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+          ind3 = cm(i, 3) - 1;
+          ind4 = cm(i, 4) - 1;
 
           f1 = fieldn[ind1];
           f2 = fieldn[ind2];
@@ -106,10 +107,10 @@ void K_POST::compUnstrNodes2Faces(
         # pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          ind1 = cm[i*4] - 1;
-          ind2 = cm[i*4 + 1] - 1;
-          ind3 = cm[i*4 + 2] - 1;
-          ind4 = cm[i*4 + 3] - 1;
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+          ind3 = cm(i, 3) - 1;
+          ind4 = cm(i, 4) - 1;
 
           f1 = fieldn[ind1];
           f2 = fieldn[ind2];
@@ -131,11 +132,11 @@ void K_POST::compUnstrNodes2Faces(
         # pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          ind1 = cm[i*5] - 1;
-          ind2 = cm[i*5 + 1] - 1;
-          ind3 = cm[i*5 + 2] - 1;
-          ind4 = cm[i*5 + 3] - 1;
-          ind5 = cm[i*5 + 4] - 1;
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+          ind3 = cm(i, 3) - 1;
+          ind4 = cm(i, 4) - 1;
+          ind5 = cm(i, 5) - 1;
 
           f1 = fieldn[ind1];
           f2 = fieldn[ind2];
@@ -160,12 +161,12 @@ void K_POST::compUnstrNodes2Faces(
         # pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          ind1 = cm[i*6] - 1;
-          ind2 = cm[i*6 + 1] - 1;
-          ind3 = cm[i*6 + 2] - 1;
-          ind4 = cm[i*6 + 3] - 1;
-          ind5 = cm[i*6 + 4] - 1;
-          ind6 = cm[i*6 + 5] - 1;
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+          ind3 = cm(i, 3) - 1;
+          ind4 = cm(i, 4) - 1;
+          ind5 = cm(i, 5) - 1;
+          ind6 = cm(i, 6) - 1;
 
           f1 = fieldn[ind1];
           f2 = fieldn[ind2];
@@ -190,14 +191,14 @@ void K_POST::compUnstrNodes2Faces(
         # pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          ind1 = cm[i*8] - 1;
-          ind2 = cm[i*8 + 1] - 1;
-          ind3 = cm[i*8 + 2] - 1;
-          ind4 = cm[i*8 + 3] - 1;
-          ind5 = cm[i*8 + 4] - 1;
-          ind6 = cm[i*8 + 5] - 1;
-          ind7 = cm[i*8 + 6] - 1;
-          ind8 = cm[i*8 + 7] - 1;
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+          ind3 = cm(i, 3) - 1;
+          ind4 = cm(i, 4) - 1;
+          ind5 = cm(i, 5) - 1;
+          ind6 = cm(i, 6) - 1;
+          ind7 = cm(i, 7) - 1;
+          ind8 = cm(i, 8) - 1;
 
           f1 = fieldn[ind1];
           f2 = fieldn[ind2];

@@ -24,9 +24,9 @@
 # include "kcore.h"
 # include <vector>
 
-#define FldArrayF K_FLD::FldArrayF
-#define FldArrayI K_FLD::FldArrayI
-#define FldArrayIS K_FLD::FldArrayIS
+#define FldArrayF FldArrayF
+#define FldArrayI FldArrayI
+#define FldArrayIS FldArrayIS
 
 namespace K_POST
 {
@@ -440,16 +440,71 @@ namespace K_POST
    OUT: varStringOut "divvar1, ...." */
   void computeDivVarsString(char* varString, char*& varStringOut);
 
-/* gradx, grady, gradz must be allocated previously */
+  /* gradx, grady, gradz must be allocated previously */
   E_Int computeGradStruct(E_Int ni, E_Int nj, E_Int nk,
                           E_Float* xt, E_Float* yt, E_Float* zt, E_Float* field,
                           E_Float* gradx, E_Float* grady, E_Float* gradz);
-  E_Int computeGradNS(char* eltType, E_Int npts, FldArrayI& cn,
-                      E_Float* xt, E_Float* yt, E_Float* zt, E_Float* field,
-                      E_Float* gradx, E_Float* grady, E_Float* gradz);
+  E_Int computeGradUnstr(const E_Float* xt, const E_Float* yt, const E_Float* zt,
+                         FldArrayI& cn, const char* eltType,
+                         E_Float* field,
+                         E_Float* gradx, E_Float* grady, E_Float* gradz);
   E_Int computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
                         E_Float* fp, FldArrayI& cn,
                         E_Float* gradx, E_Float* grady, E_Float* gradz);
+  
+  /* Calcul du gradient d'un champ defini aux noeuds d une grille non structuree
+   retourne le gradient defini aux centres des elts.
+   CAS 1D.
+   IN: xt, yt, zt: coordonnees x, y, z des pts de la grille
+   IN: cn: connectivite elts-noeuds
+   IN: eltType: list of BE element types forming the ME mesh
+   IN: field: champ defini aux noeuds auquel on applique grad
+   OUT: gradx, grady, gradz: gradient de field %x, %y, %z
+  */
+  void compGradUnstr1D(
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    FldArrayI& cn, const char* eltType, const E_Float* field,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
+  /* Calcul du gradient d'un champ defini aux noeuds d une grille non structuree
+   retourne le gradient defini aux centres des elts.
+   CAS 2D.
+   IN: xt, yt, zt: coordonnees x, y, z des pts de la grille
+   IN: cn: connectivite elts-noeuds
+   IN: eltType: list of BE element types forming the ME mesh
+   IN: field: champ defini aux noeuds auquel on applique grad
+   OUT: snx, sny, snz: normales aux facettes %x, %y, %z
+   OUT: surf: aires des facettes
+   OUT: gradx, grady, gradz: gradient de field %x, %y, %z
+  */
+  void compGradUnstr2D(
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    FldArrayI& cn, const char* eltType, const E_Float* field,
+    E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
+  /* Calcul du gradient d'un champ defini aux noeuds d une grille non structuree
+   retourne le gradient defini aux centres des elts.
+   CAS 3D.
+   IN: xt, yt, zt: coordonnees x, y, z des pts de la grille
+   IN: cn: connectivite elts-noeuds
+   IN: eltType: list of BE element types forming the ME mesh
+   IN: field: champ defini aux noeuds auquel on applique grad
+   OUT: fieldf: ieme champ defini aux facettes des elts
+   OUT: snx, sny, snz: normales aux facettes %x, %y, %z
+   OUT: surf: aires des facettes
+   OUT: vol: Volume of the elements
+   OUT: xint, yint, zint: Coordonnees du centre des facettes
+   OUT: gradx, grady, gradz: gradient de field %x, %y, %z
+*/
+  void compGradUnstr3D(
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    FldArrayI& cn, const char* eltType, const E_Float* field,
+    E_Float* fieldf,
+    E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf, E_Float* vol,
+    E_Float* xint, E_Float* yint, E_Float* zint,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
   /* Idem for div */
   E_Int computeDivStruct(E_Int ni, E_Int nj, E_Int nk,
                          E_Float* xt, E_Float* yt, E_Float* zt,
@@ -486,6 +541,15 @@ namespace K_POST
                             FldArrayI& c,
                             E_Int cellN, E_Int mod,
                             FldArrayF& FCenter);
+  /* Calcul des valeurs d un champ aux faces des elements a partir des 
+    des valeurs aux noeuds.
+    IN: cn: connectivite elts-noeuds
+    IN: fieldn: champs aux noeuds
+    OUT: fieldf: champs aux centres des faces
+  */
+  void compUnstrNodes2Faces(FldArrayI& cn, const char* eltType,
+                            const E_Float* fieldn,
+                            E_Float* fieldf);
   /* Convertit les centres en noeuds pour les array structures */
   E_Int center2nodeStruct(FldArrayF& FCenter,
                           E_Int ni, E_Int nj, E_Int nk,
