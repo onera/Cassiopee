@@ -30,8 +30,8 @@ E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
   E_Float bnorm2 = K_MATH::norm(b, n);
   if (K_MATH::feq(bnorm2, 0.0)) bnorm2 = 1.0;
 
-  E_Float* r = (E_Float*)calloc(n, sizeof(E_Float));
-  E_Float* Ax = (E_Float*)calloc(n, sizeof(E_Float));
+  E_Float* r = (E_Float*)malloc(n * sizeof(E_Float));
+  E_Float* Ax = (E_Float*)malloc(n * sizeof(E_Float));
 
   K_MATH::sqrmat_dot_vec(A, x, n, Ax);
   for (E_Int i = 0; i < n; i++) r[i] = b[i] - Ax[i];
@@ -39,21 +39,20 @@ E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
   E_Float err = K_MATH::norm(r, n);
   if (err < tol) 
   {
-    free(r);
-    free(Ax);
+    free(r); free(Ax);
     return converged;
   }
 
   E_Float omega, rho, beta, rho0, alpha;
   omega = rho = beta = rho0 = alpha = 1.;
 
-  E_Float* rhat = (E_Float *)calloc(n, sizeof(E_Float));
+  E_Float* rhat = (E_Float *)malloc(n * sizeof(E_Float));
   memcpy(rhat, r, n*sizeof(E_Float));
 
-  E_Float* p = (E_Float*)calloc(n, sizeof(E_Float));
-  E_Float* v = (E_Float*)calloc(n, sizeof(E_Float));
-  E_Float* s = (E_Float*)calloc(n, sizeof(E_Float));
-  E_Float* t = (E_Float*)calloc(n, sizeof(E_Float));
+  E_Float* p = (E_Float*)malloc(n * sizeof(E_Float));
+  E_Float* v = (E_Float*)malloc(n * sizeof(E_Float));
+  E_Float* s = (E_Float*)malloc(n * sizeof(E_Float));
+  E_Float* t = (E_Float*)malloc(n * sizeof(E_Float));
 
   // TODO(Imad): maxiter should be exactly n theoretically...
   E_Int maxiter = n*10;
@@ -67,10 +66,13 @@ E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
       break;
     }
 
-    if (i > 1) {
+    if (i > 1) 
+    {
       beta = rho/rho0 * alpha/omega;
       for (E_Int j = 0; j < n; j++) p[j] = r[j] + beta*(p[j] - omega*v[j]);
-    } else {
+    } 
+    else 
+    {
       memcpy(p, r, n*sizeof(E_Float));
     }
 
@@ -81,7 +83,8 @@ E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
     for (E_Int j = 0; j < n; j++) s[j] = r[j] - alpha*v[j];
 
     err = K_MATH::norm(s, n);
-    if (err < tol) {
+    if (err < tol) 
+    {
       for (E_Int j = 0; j < n; j++) x[j] += alpha*p[j];
       err /= bnorm2;
       converged = 1;
@@ -97,7 +100,8 @@ E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
     for (E_Int j = 0; j < n; j++) r[j] = s[j] - omega*t[j];
 
     err = K_MATH::norm(r, n);
-    if (err < tol) {
+    if (err < tol) 
+    {
       converged = 1;
       break;
     }
@@ -106,12 +110,9 @@ E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
     assert(!K_MATH::feq(omega, 0.0));
   }
 
-  free(r);
-  free(Ax);
-  free(s);
-  free(t);
-  free(p);
-  free(v);
+  free(r); free(Ax);
+  free(s); free(t);
+  free(p); free(v);
   free(rhat);
 
   return converged;

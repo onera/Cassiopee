@@ -418,7 +418,7 @@ E_Int K_POST::integ5(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   else return 0;
  
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  E_Int npts = coordBlk.getSize();
+  //E_Int npts = coordBlk.getSize();
   E_Int ncells =(NI-1)*(NJ-1); 
   FldArrayF nsurfBlk(ncells,3);  
 

@@ -1449,17 +1449,19 @@ void FldArray<T>::reAllocMat(E_Int size, E_Int nfld)
   E_Int nf = K_FUNC::E_min(nfld, _nfldLoc);
 
 #pragma omp parallel default(shared) if (sizeTot > __MIN_SIZE_MEAN__)
-  for (E_Int j = 0; j < nf; j++)
   {
-#pragma omp for
-    for (E_Int i = 0; i < sz; i++)
-      newdata[i+j*size] = _data[i+j*_sizeLoc];
-#pragma omp for
-    for (E_Int i = sz; i < size; i++)
-      newdata[i+j*size] = 0;
+    for (E_Int j = 0; j < nf; j++)
+    {
+      #pragma omp for
+      for (E_Int i = 0; i < sz; i++)
+        newdata[i+j*size] = _data[i+j*_sizeLoc];
+      #pragma omp for
+      for (E_Int i = sz; i < size; i++)
+        newdata[i+j*size] = 0;
+    }
+    #pragma omp for
+    for (E_Int i = size*nf; i < sizeTot; i++) newdata[i] = 0;
   }
-#pragma omp for
-  for (E_Int i = size*nf; i < sizeTot; i++) newdata[i] = 0;
 
   releaseMemory();
   _shared = false;
