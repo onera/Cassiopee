@@ -408,11 +408,11 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   free(b);
 
   RELEASESHAREDU(arr, f, cn);
-  RELEASESHAREDN(fcenters, FC);
-  RELEASESHAREDN(cx, CX);
-  RELEASESHAREDN(cy, CY);
-  RELEASESHAREDN(cz, CZ);
-  RELEASESHAREDN(pe, PE);
+  Py_DECREF(fcenters);
+  Py_DECREF(cx);
+  Py_DECREF(cy);
+  Py_DECREF(cz);
+  Py_DECREF(pe);
   
   return out;
 }
