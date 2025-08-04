@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2025 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "post.h"
 
 static
@@ -17,7 +35,11 @@ E_Int parse_pointlists_and_rfields(PyObject *ptlists, PyObject *rfields,
   {
     PyObject *patch = PyList_GetItem(ptlists, i);
     E_Int ret = K_NUMPY::getFromNumpyArray(patch, pfaces[i], npfaces[i]);
-    assert(ret == 1);
+    if (ret != 1)
+    {     
+      PyErr_SetString(PyExc_TypeError, "computeGradLSQ: incorrect numpy.");
+      return 0;
+    }
   }
 
   E_Int rsize = PyList_Size(rfields);
@@ -33,7 +55,11 @@ E_Int parse_pointlists_and_rfields(PyObject *ptlists, PyObject *rfields,
       PyObject *fld = PyList_GetItem(flds, j);
       E_Int size = -1;
       E_Int ret = K_NUMPY::getFromNumpyArray(fld, rflds[i][j], size);
-      assert(ret == 1);
+      if (ret != 1)
+      {     
+        PyErr_SetString(PyExc_TypeError, "computeGradLSQ: incorrect numpy.");
+        return 0;
+      }
       assert(size == npfaces[i]);
     }
   }
@@ -231,8 +257,9 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
 {
   PyObject *arr, *fields, *pe, *cx, *cy, *cz, *fcenters, *ptlists, *rfields;
   if (!PYPARSETUPLE_(args, OOOO_ OOOO_ O_, &arr, &fields, &pe, &cx, &cy, &cz,
-    &fcenters, &ptlists, &rfields)) {
-    PyErr_SetString(PyExc_ValueError, "Wrong input.");
+    &fcenters, &ptlists, &rfields)) 
+  {
+    PyErr_SetString(PyExc_ValueError, "computeGradLSQ: wrong input.");
     return NULL;
   }
 
@@ -248,13 +275,15 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   char* varString; char* eltType;
   ret = K_ARRAY::getFromArray3(arr, varString, f, ni, nj, nk, cn, eltType);
   
-  if (ret <= 0) {
-    PyErr_SetString(PyExc_TypeError, "Bad mesh.");
+  if (ret <= 0) 
+  {
+    PyErr_SetString(PyExc_TypeError, "computeGradLSQ: bad mesh.");
     return NULL;
   }
 
-  if (ret == 1) { 
-    PyErr_SetString(PyExc_TypeError, "Only for NGons."); 
+  if (ret == 1) 
+  { 
+    PyErr_SetString(PyExc_TypeError, "computeGradLSQ: only for NGons."); 
     RELEASESHAREDS(arr, f);
     return NULL; 
   }
@@ -264,9 +293,10 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   E_Int *PE = NULL;
   E_Int size = -1;
   ret = K_NUMPY::getFromNumpyArray(pe, PE, size);
-  if (ret != 1 || size != 2*nfaces) {
+  if (ret != 1 || size != 2*nfaces) 
+  {
     RELEASESHAREDU(arr, f, cn);
-    PyErr_SetString(PyExc_ValueError, "Bad parent elements array");
+    PyErr_SetString(PyExc_ValueError, "computeGradLSQ: bad parent elements array.");
     return NULL;
   }
   E_Int *owner = PE;
@@ -279,18 +309,20 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   ret = K_NUMPY::getFromNumpyArray(cx, CX, size);
   ret &= K_NUMPY::getFromNumpyArray(cy, CY, size);
   ret &= K_NUMPY::getFromNumpyArray(cz, CZ, size);
-  if (ret != 1 || size != ncells) {
+  if (ret != 1 || size != ncells) 
+  {
     RELEASESHAREDU(arr, f, cn);
-    PyErr_SetString(PyExc_ValueError, "Bad cell centers array");
+    PyErr_SetString(PyExc_ValueError, "computeGradLSQ: bad cell centers array.");
     return NULL;
   }
 
   // Face centers
   E_Float *FC = NULL;
   ret = K_NUMPY::getFromNumpyArray(fcenters, FC, size);
-  if (ret != 1 || size != 3*nfaces) {
+  if (ret != 1 || size != 3*nfaces) 
+  {
     RELEASESHAREDU(arr, f, cn);
-    PyErr_SetString(PyExc_ValueError, "Bad face centers array");
+    PyErr_SetString(PyExc_ValueError, "computeGradLSQ: bad face centers array.");
     return NULL;
   }
 
@@ -308,17 +340,16 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   std::vector<E_Int *> pfaces;
   std::vector<std::vector<E_Float *>> rflds;
   std::vector<E_Int> npfaces;
-  E_Int parRun = parse_pointlists_and_rfields(ptlists, rfields, pfaces, npfaces,
-    rflds);
+  E_Int parRun = parse_pointlists_and_rfields(ptlists, rfields, pfaces, npfaces, rflds);
 
   // Make lsq A matrices 
   E_Int sizeNFace = cn->getSizeNFace();
   E_Float *lsqG = (E_Float *)malloc(3*sizeNFace * sizeof(E_Float));
   E_Int *count_neis = (E_Int *)malloc(ncells * sizeof(E_Int));
-  make_A_grad_matrices(*cn, owner, neigh, count_neis, FC, CX, CY, CZ,
-    lsqG);
+  make_A_grad_matrices(*cn, owner, neigh, count_neis, FC, CX, CY, CZ, lsqG);
 
-  if (parRun) {
+  if (parRun) 
+  {
     correct_A_grad_matrices(*cn, owner, count_neis, CX, CY, CZ, pfaces, npfaces,
       rflds, lsqG);
   }
@@ -335,7 +366,8 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   dims[1] = 1;
 
   E_Int tsize = parRun ? fsize-3 : fsize;
-  for (E_Int i = 0; i < tsize; i++) {
+  for (E_Int i = 0; i < tsize; i++) 
+  {
     const auto &Field = Fields[i];
 
     PyArrayObject *Gx = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
@@ -349,7 +381,8 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
     // Make b vectors
     make_RHS_vector(*cn, count_neis, owner, neigh, Field, b);
 
-    if (parRun) {
+    if (parRun) 
+    {
       correct_RHS_vector(*cn, count_neis, owner, Field, pfaces, npfaces, rflds,
         i, b);
     }
@@ -373,7 +406,13 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
   free(lsqGG);
   free(count_neis);
   free(b);
-  RELEASESHAREDU(arr, f, cn);
 
+  RELEASESHAREDU(arr, f, cn);
+  Py_DECREF(fcenters);
+  Py_DECREF(cx);
+  Py_DECREF(cy);
+  Py_DECREF(cz);
+  Py_DECREF(pe);
+  
   return out;
 }

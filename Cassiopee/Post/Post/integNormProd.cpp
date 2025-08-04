@@ -84,7 +84,7 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
   {
     PyErr_SetString(
       PyExc_TypeError, 
-      "integNormProduct : third argument must be a list.");
+      "integNormProduct: third argument must be a list.");
     return NULL;
   }
   E_Int nCoordArrays = PyList_Size(coordArrays);
@@ -387,7 +387,7 @@ E_Int K_POST::integ3(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   // Compute surface of each "block" i cell, with coordinates coordBlk
   FldArrayF nsurfBlk((NI-1)*(NJ-1),3);
 
-  E_Int npts = coordBlk.getSize();
+  //E_Int npts = coordBlk.getSize();
   K_METRIC::compNormStructSurf(
     NI, NJ, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
     nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3));
