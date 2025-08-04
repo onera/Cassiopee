@@ -157,7 +157,7 @@ SIGTHROW:
 idx_t MlevelRecursiveBisection(ctrl_t *ctrl, graph_t *graph, idx_t nparts, 
           idx_t *part, real_t *tpwgts, idx_t fpart)
 {
-  idx_t i, j, nvtxs, ncon, objval;
+  idx_t i, nvtxs, ncon, objval;
   idx_t *label, *where;
   graph_t *lgraph, *rgraph;
   real_t wsum, *tpwgts2;
