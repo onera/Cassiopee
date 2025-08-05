@@ -44,9 +44,9 @@ a = C.convertArray2Tetra(a); a = G.bboxOfCells(a)
 a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
 test.testT(a,6)
 
-# test HEXA
+# test HEXA, inplace
 a = G.cart((0.,0.,0.),(0.1,0.1,1.),(10,10,10))
-a = C.convertArray2Hexa(a); a = G.bboxOfCells(a)
+a = C.convertArray2Hexa(a); G._bboxOfCells(a)
 a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
 test.testT(a,7)
 
@@ -62,8 +62,8 @@ a = C.convertArray2NGon(a); a = G.bboxOfCells(a)
 a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
 test.testT(a,9)
 
-# test NGon 3D
+# test NGon 3D, inplace
 a = G.cart((0.,0.,0.),(0.1,0.1,1.),(20,20,20))
-a = C.convertArray2NGon(a); a = G.bboxOfCells(a)
+a = C.convertArray2NGon(a); G._bboxOfCells(a)
 a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
 test.testT(a,10)
