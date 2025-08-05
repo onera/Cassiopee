@@ -832,7 +832,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
   //}
   
   // Write coordinates
-  PyObject* gc = K_PYTREE::getNodeFromName1(zone, "GridCoordinates");
+  PyObject* gc = K_PYTREE::getNodeFromType1(zone, "GridCoordinates_t");
     
   PyObject* xc = K_PYTREE::getNodeFromName1(gc, "CoordinateX");
   E_Float* xcv = K_PYTREE::getValueAF(xc, hook);
