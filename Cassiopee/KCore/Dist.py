@@ -2331,7 +2331,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             l = checkLibFile__('libirc.a', additionalLibPaths)
         if l is not None:
             libs += ['irc']; paths += [l]
-            
+
         if useOMP:
             l = checkLibFile__('libguide.so*', additionalLibPaths)
             if l is None:
