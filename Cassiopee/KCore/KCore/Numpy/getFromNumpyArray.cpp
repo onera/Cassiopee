@@ -203,3 +203,17 @@ E_Int K_NUMPY::getFromPointList(PyObject* o, E_Int*& f, E_Int& size,
   f = (E_Int*)PyArray_DATA(a);
   return 1;
 }
+
+//===========================================================================
+E_Int K_NUMPY::getFromNumpyArray(PyObject* o, FldArrayI*& f, E_Bool shared) //#OBSOLETE
+{ return K_NUMPY::getFromNumpyArray(o, f); }
+E_Int K_NUMPY::getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Bool shared) //#OBSOLETE
+{ return K_NUMPY::getFromNumpyArray(o, f); }
+E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld, E_Bool shared) //#OBSOLETE
+{ return K_NUMPY::getFromNumpyArray(o, f, size, nfld); }
+//E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Bool shared) //#OBSOLETE
+//{ return K_NUMPY::getFromNumpyArray(o, f, size); }
+E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Int& nfld, E_Bool shared) //#OBSOLETE 
+{ return K_NUMPY::getFromNumpyArray(o, f, size, nfld); }
+//E_Int K_NUMPY::getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Bool shared) //#OBSOLETE
+//{ return K_NUMPY::getFromNumpyArray(o, f, size); }

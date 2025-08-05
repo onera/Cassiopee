@@ -207,10 +207,14 @@ def passNext(data):
 # gather data in a list identical on all procs with passNext algorithm
 #==============================================================================
 def allgatherNext(data):
-    ret = [data]
+    ret = [None]*size
+    ret[rank] = data
+    dest = rank
     for trip in range(size-1):
         data = passNext(data)
-        ret.append(data)
+        dest = dest-1
+        if dest < 0: dest = size-1
+        ret[dest] = data
     return ret
 
 #==============================================================================

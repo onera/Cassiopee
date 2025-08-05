@@ -51,6 +51,13 @@ namespace K_NUMPY
   E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Int& nfld); 
   E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size);
 
+  E_Int getFromNumpyArray(PyObject* o, FldArrayI*& f, E_Bool shared); //#OBSOLETE
+  E_Int getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Bool shared); //#OBSOLETE
+  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld, E_Bool shared); //#OBSOLETE
+  //E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Bool shared); //#OBSOLETE
+  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Int& nfld, E_Bool shared); //#OBSOLETE 
+  //E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Bool shared); //#OBSOLETE
+
   // identical to getFromNumpy but return a flat array in case of (1,nb) arrays
   E_Int getFromPointList(PyObject* o, FldArrayI*& f);
   E_Int getFromPointList(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld);
