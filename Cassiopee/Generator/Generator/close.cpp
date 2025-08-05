@@ -100,6 +100,7 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
   }
 }
 
+// ============================================================================
 PyObject* K_GENERATOR::closeMeshLegacy(PyObject* self, PyObject* args)
 {
   PyObject* array;
