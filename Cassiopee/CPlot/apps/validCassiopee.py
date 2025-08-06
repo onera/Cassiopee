@@ -1913,7 +1913,7 @@ def loadPrefFile():
         for k, v in localPrefs.items(): PREFS[k] = v
     else:
         savePrefFile()
-    
+
 #==============================================================================
 # Save user settings to $HOME/.cassiopee/config_validCassiopee.json
 #==============================================================================
@@ -1953,7 +1953,7 @@ if __name__ == '__main__':
         from functools import partial
         # Load user settings
         loadPrefFile()
-        
+
         # Main window
         Master = TK.Tk()
         setGUITitleBar()
