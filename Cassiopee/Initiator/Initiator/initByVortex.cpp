@@ -24,45 +24,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6lamb_(const E_Float& x0, const E_Float& y0,
-               const E_Float& Gamma, const E_Float& MInf,
-               const E_Int& npts,
-               const E_Float* xc, const E_Float* yc, const E_Float* zc,
-               E_Float* ro, E_Float* rou, E_Float* rov, E_Float* row, E_Float* roe);
-
-  void k6visbal_(const E_Float& x0, const E_Float& y0,
-                 const E_Float& Gamma, const E_Float& MInf,
-                 const E_Int& npts,
-                 const E_Float* xc, const E_Float* yc, const E_Float* zc,
-                 E_Float* ro, E_Float* rou, E_Float* rov, E_Float* row, E_Float* roe);
-
-  void k6scully_(const E_Float& x0, const E_Float& y0,
-                 const E_Float& Gamma, const E_Float& a, const E_Float& MInf,
-                 const E_Int& npts,
-                 const E_Float* xc, const E_Float* yc, const E_Float* zc,
-                 E_Float* ro, E_Float* rou, E_Float* rov, E_Float* row, E_Float* roe);
-
-  void k6scully2_(const E_Float& x0, const E_Float& y0,
-                  const E_Float& Gamma, const E_Float& a, const E_Float& MInf,
-                  const E_Int& npts,
-                  const E_Float* xc, const E_Float* yc, const E_Float* zc,
-                  E_Float* ro, E_Float* rou, E_Float* rov, E_Float* row, E_Float* roe);
-
-  void k6yee_(const E_Float& x0, const E_Float& y0,
-              const E_Float& Gamma, const E_Float& Minf,
-              const E_Int& npts,
-              const E_Float* xc, const E_Float* yc, const E_Float* zc,
-              E_Float* ro, E_Float* rou, E_Float* rov, E_Float* row, E_Float* roe);
-
-  void k6wissocq_(const E_Float& x0, const E_Float& y0,
-                  const E_Float& Gamma, const E_Float& MInf,
-                  const E_Int& npts,
-                  const E_Float* xc, const E_Float* yc, const E_Float* zc,
-                  E_Float* ro, E_Float* rou, E_Float* rov, E_Float* row, E_Float* roe);
-}
-
 /*
   Lamb-Oseen vortex initialization
 */
@@ -576,10 +537,10 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
     }
   }
   // init with lamb
-  k6lamb_(x0, y0, Gam, MInf, npts,
-          f->begin(posx), f->begin(posy), f->begin(posz),
-          f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
-          f2->begin(posrow), f2->begin(posroe));
+  k6lamb(x0, y0, Gam, MInf, npts,
+         f->begin(posx), f->begin(posy), f->begin(posz),
+         f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
+         f2->begin(posrow), f2->begin(posroe));
 
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDS(tpl, f2);
@@ -676,10 +637,10 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
   }
 
   // init with visbal
-  k6visbal_(x0, y0, Gam, MInf, npts,
-            f->begin(posx), f->begin(posy), f->begin(posz),
-            f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
-            f2->begin(posrow), f2->begin(posroe));
+  k6visbal(x0, y0, Gam, MInf, npts,
+           f->begin(posx), f->begin(posy), f->begin(posz),
+           f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
+           f2->begin(posrow), f2->begin(posroe));
 
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDS(tpl, f2);
@@ -779,15 +740,15 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
   switch (model)
   {
     case 0:
-      k6scully_(x0, y0, Gam, coreRadius, MInf, npts,
-                f->begin(posx), f->begin(posy), f->begin(posz),
-                f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
-                f2->begin(posrow), f2->begin(posroe));
+      k6scully(x0, y0, Gam, coreRadius, MInf, npts,
+               f->begin(posx), f->begin(posy), f->begin(posz),
+               f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
+               f2->begin(posrow), f2->begin(posroe));
     default:
-      k6scully2_(x0, y0, Gam, coreRadius, MInf, npts,
-                  f->begin(posx), f->begin(posy), f->begin(posz),
-                  f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
-                  f2->begin(posrow), f2->begin(posroe));
+      k6scully2(x0, y0, Gam, coreRadius, MInf, npts,
+                 f->begin(posx), f->begin(posy), f->begin(posz),
+                 f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
+                 f2->begin(posrow), f2->begin(posroe));
   }
 
   RELEASESHAREDB(res, array, f, cn);
@@ -884,10 +845,10 @@ PyObject* K_INITIATOR::initYee(PyObject* self, PyObject* args)
     }
   }
 
-  k6yee_(x0, y0, Gam, Minf, npts,
-          f->begin(posx), f->begin(posy), f->begin(posz),
-          f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
-          f2->begin(posrow), f2->begin(posroe));
+  k6yee(x0, y0, Gam, Minf, npts,
+        f->begin(posx), f->begin(posy), f->begin(posz),
+        f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
+        f2->begin(posrow), f2->begin(posroe));
 
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDS(tpl, f2);
@@ -970,7 +931,7 @@ PyObject* K_INITIATOR::initWissocq(PyObject* self, PyObject* args)
     fp = f->begin(posx); f2p = f2->begin(1);
     for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i]; 
     fp = f->begin(posy); f2p = f2->begin(2);
-    for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i]; 
+    for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
     fp = f->begin(posz); f2p = f2->begin(3);
     for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
   }
@@ -983,10 +944,10 @@ PyObject* K_INITIATOR::initWissocq(PyObject* self, PyObject* args)
     }
   }
 
-  k6wissocq_(x0, y0, Gam, MInf, npts,
-              f->begin(posx), f->begin(posy), f->begin(posz),
-              f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
-              f2->begin(posrow), f2->begin(posroe));
+  k6wissocq(x0, y0, Gam, MInf, npts,
+            f->begin(posx), f->begin(posy), f->begin(posz),
+            f2->begin(posro), f2->begin(posrou), f2->begin(posrov), 
+            f2->begin(posrow), f2->begin(posroe));
 
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDS(tpl, f2);

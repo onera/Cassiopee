@@ -59,13 +59,13 @@ t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = G.bboxOfCells(t)
 test.testT(t,6)
 
-# test HEXA
+# test HEXA, inplace
 a = G.cart((0.,0.,0.),(0.1,0.1,1.),(10,10,10))
 a = C.convertArray2Hexa(a)
 t = C.newPyTree(['Base']); t[2][1][2].append(a)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
-t = G.bboxOfCells(t)
+G._bboxOfCells(t)
 test.testT(t,7)
 
 # test NGon 1D
@@ -86,11 +86,11 @@ t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = G.bboxOfCells(t)
 test.testT(t,9)
 
-# test NGon 3D
+# test NGon 3D, inplace
 a = G.cart((0.,0.,0.),(0.1,0.1,1.),(20,20,20))
 a = C.convertArray2NGon(a)
 t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
-t = G.bboxOfCells(t)
+G._bboxOfCells(t)
 test.testT(t,10)
