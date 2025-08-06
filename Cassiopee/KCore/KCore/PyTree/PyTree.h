@@ -104,13 +104,13 @@ namespace K_PYTREE
   char* getNodeName(PyObject* o);
   
   /* Retourne le nom d'un noeud (partage avec python) */
-  char* getNodeName(PyObject* o, std::vector<PyArrayObject*>& hook);  // OBSOLETE
+  char* getNodeName(PyObject* o, std::vector<PyArrayObject*>& hook);  //#OBSOLETE
 
   /* Retourne le type d'un noeud (partage avec python) */
   char* getNodeType(PyObject* o);
   
   /* Retourne le type d'un noeud (partage avec python) */
-  char* getNodeType(PyObject* o, std::vector<PyArrayObject*>& hook);  // OBSOLETE
+  char* getNodeType(PyObject* o, std::vector<PyArrayObject*>& hook);  //#OBSOLETE
 
   /* Recupere la chaine de char si le noeud o contient une string 
      ou un numpy char. Le tableau de char retourne est partage avec python.

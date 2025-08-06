@@ -112,6 +112,7 @@ char* K_PYTREE::getNodeName(PyObject* o)
   return NULL;
 }
 
+//#OBSOLETE
 char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
 {
   return getNodeName(o);
@@ -135,6 +136,7 @@ char* K_PYTREE::getNodeType(PyObject* o)
   return NULL;
 }
 
+//#OBSOLETE
 char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
 {
   return getNodeType(o);
