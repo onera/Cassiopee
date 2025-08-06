@@ -369,31 +369,38 @@ void K_POST::compGradUnstr3D(
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
   
-  // Pre-compute element and face offsets
+  // Pre-compute element and facet offsets
   std::vector<E_Int> nepc(nc+1), nfpc(nc+1);
   nepc[0] = 0; nfpc[0] = 0;
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    E_Int nvpe = cm.getNfld();
+    E_Int nfpe;
+
+    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 1;
+    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 1;
+    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe = 4;
+    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe = 5;
+    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe = 5;
+    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe = 6;
 
     nepc[ic+1] = nepc[ic] + nelts;
-    nfpc[ic+1] = nfpc[ic] + nvpe*nelts;
+    nfpc[ic+1] = nfpc[ic] + nfpe*nelts;
   }
   
   #pragma omp parallel
   {
-    E_Int pos, elOffset, fcOffset;
+    E_Int pos, nelts, nfpe, elOffset, fctOffset;
     E_Float sumx, sumy, sumz, invvol;
     
     for (E_Int ic = 0; ic < nc; ic++)
     {
       K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-      E_Int nelts = cm.getSize();
-      E_Int nvpe = cm.getNfld();
+      nelts = cm.getSize();
+      nfpe = (nfpc[ic+1] - nfpc[ic])/nelts;  // number of facets per element
       elOffset = nepc[ic];
-      fcOffset = nfpc[ic];
+      fctOffset = nfpc[ic];
 
       #pragma omp for
       for (E_Int i = 0; i < nelts; i++)
@@ -403,9 +410,9 @@ void K_POST::compGradUnstr3D(
         sumz = K_CONST::E_ZERO_FLOAT;
         invvol = K_CONST::ONE / K_FUNC::E_max(vol[i], K_CONST::E_MIN_VOL);
 
-        for (E_Int fi = 0; fi < nvpe; fi++)
+        for (E_Int fi = 0; fi < nfpe; fi++)
         {
-          pos = fcOffset + i * nvpe + fi;
+          pos = fctOffset + i * nfpe + fi;
           sumx += snx[pos] * fieldf[pos];
           sumy += sny[pos] * fieldf[pos];
           sumz += snz[pos] * fieldf[pos];
@@ -421,3 +428,4 @@ void K_POST::compGradUnstr3D(
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
+
