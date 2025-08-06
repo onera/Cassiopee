@@ -112,6 +112,11 @@ char* K_PYTREE::getNodeName(PyObject* o)
   return NULL;
 }
 
+char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
+{
+  return getNodeName(o);
+}
+
 //==============================================================================
 // Retourne le type du noeud
 // Le tableau de char retourne est partage avec python.
@@ -128,6 +133,11 @@ char* K_PYTREE::getNodeType(PyObject* o)
   { char* r = (char*)PyUnicode_AsUTF8(v); return r; }
 #endif
   return NULL;
+}
+
+char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
+{
+  return getNodeType(o);
 }
 
 //==============================================================================
