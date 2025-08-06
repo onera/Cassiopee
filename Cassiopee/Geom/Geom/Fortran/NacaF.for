@@ -97,7 +97,7 @@ C
       nr = 1
       DO n = 1, npt
          is = (n-2)/nps2 
-         is = 2*is-1 
+         is = 2*is-1
          si = is
          en = n-nps2-1 
          en = SQRT(1.008930411365D0)*SIN(0.5D0*pi*en*usnps2)

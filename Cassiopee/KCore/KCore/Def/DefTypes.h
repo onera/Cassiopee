@@ -60,6 +60,7 @@
 #ifdef E_DOUBLEINT
   typedef int64_t E_Int;
   typedef int E_Bool;
+  typedef int E_Boolean; //#OBSOLETE
   #ifdef E_MPI
     #define E_PCM_INT MPI_LONG
   #else
@@ -70,6 +71,7 @@
 #else
   typedef int E_Int;
   typedef int E_Bool;
+  typedef int E_Boolean; //#OBSOLETE
   #ifdef E_MPI
     #define E_PCM_INT MPI_INT
   #else

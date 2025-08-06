@@ -103,21 +103,21 @@ PyObject* K_TEMPLATE::pyTreeExample1(PyObject* self, PyObject* args)
   vector<PyObject*> bases;
   K_PYTREE::getNodesFromType1(t, "CGNSBase_t", bases);
 
-  for (unsigned int i = 0; i < bases.size(); i++)
+  for (size_t i = 0; i < bases.size(); i++)
   {
-    char* baseName = K_PYTREE::getNodeName(bases[i], hook);
+    char* baseName = K_PYTREE::getNodeName(bases[i]);
     printf("Detected bases: %s\n", baseName);
   }
 
   /* Recupere les noeuds zones pour chaque base */
-  for (unsigned int i = 0; i < bases.size(); i++)
+  for (size_t i = 0; i < bases.size(); i++)
   {
     vector<PyObject*> zones;
     PyObject* base = bases[i];
     K_PYTREE::getNodesFromType1(base, "Zone_t", zones);
-    for (unsigned int j = 0; i < zones.size(); j++)
+    for (size_t j = 0; i < zones.size(); j++)
     {
-      char* zoneName = K_PYTREE::getNodeName(zones[j], hook);
+      char* zoneName = K_PYTREE::getNodeName(zones[j];
       printf("Detected zones: %s\n", zoneName);
 
       // Recuperation du noeud GridCoordinates

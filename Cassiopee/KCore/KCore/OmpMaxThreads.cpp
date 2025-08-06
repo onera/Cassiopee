@@ -23,11 +23,11 @@
 //=============================================================================
 PyObject* K_KCORE::getOmpMaxThreads(PyObject* self, PyObject* args)
 {
-  E_Int i = 1;
+  int i = 1;
 #ifdef _OPENMP
   i = omp_get_max_threads();
 #endif
-  return Py_BuildValue("l", long(i));
+  return Py_BuildValue("i", i);
 }
 
 //=============================================================================
@@ -35,8 +35,8 @@ PyObject* K_KCORE::getOmpMaxThreads(PyObject* self, PyObject* args)
 //=============================================================================
 PyObject* K_KCORE::setOmpMaxThreads(PyObject* self, PyObject* args)
 {
-  E_Int i;
-  if (!PyArg_ParseTuple(args, "l", &i)) return NULL;
+  int i;
+  if (!PyArg_ParseTuple(args, "i", &i)) return NULL;
 #ifdef _OPENMP
   omp_set_num_threads(i);
 #endif

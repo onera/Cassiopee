@@ -1107,7 +1107,10 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   hid_t ds = H5Gcreate(uc, "Datasets", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   // Write Coordinates
-  hid_t coord = H5Gcreate(ds, "Coordinates", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  PyObject* gc = K_PYTREE::getNodeFromType1(zone, "GridCoordinates_t");
+  char* coordsName = K_PYTREE::getNodeName(gc);
+  if (strcmp(coordsName, "GridCoordinates") == 0) coordsName = "Coordinates";
+  hid_t coord = H5Gcreate(ds, coordsName, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   dims[0] = 1;
   did = H5Screate_simple(1, dims, NULL);
 #ifdef E_DOUBLEINT
@@ -1226,8 +1229,6 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   H5Gclose(gid2); H5Gclose(gid);
 
   // Write Coordinates/Values (compact)
-  PyObject* gc = K_PYTREE::getNodeFromName1(zone, "GridCoordinates");
-    
   PyObject* xc = K_PYTREE::getNodeFromName1(gc, "CoordinateX");
   E_Float* xcv = K_PYTREE::getValueAF(xc, hook);
   PyObject* yc = K_PYTREE::getNodeFromName1(gc, "CoordinateY");
@@ -1369,7 +1370,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     for (E_Int n = 0; n < nvars; n++)
     {
       sprintf(name, "Variable" SF_D_, n);
-      char* name2 = K_PYTREE::getNodeName(sols[n], hook); 
+      char* name2 = K_PYTREE::getNodeName(sols[n]); 
       gid2 = H5Gcreate(gid, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       did = H5Screate(H5S_SCALAR);
       tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen(name)+1);
@@ -2247,7 +2248,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   gid2 = H5Gcreate(gid, "CADGroupID", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   for (size_t i = 0; i < BCs.size(); i++)
   {
-    char* bcname = K_PYTREE::getNodeName(BCs[i], hook);
+    char* bcname = K_PYTREE::getNodeName(BCs[i]);
     did = H5Screate(H5S_SCALAR); 
     tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen(bcname)+1);
     sprintf(name, "%zu", i+1);

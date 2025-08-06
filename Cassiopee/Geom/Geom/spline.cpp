@@ -33,7 +33,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ IIII_ R_,
                     &Array, &ordern, &N, &orderm, &M, &density))
   {
-      return NULL;
+    return NULL;
   }
  
   if ((ordern < 1) || (orderm < 1))
