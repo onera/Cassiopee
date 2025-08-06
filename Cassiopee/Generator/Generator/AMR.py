@@ -12,6 +12,7 @@ import Post.PyTree as P
 import Geom.IBM as D_IBM
 import XCore.PyTree as XC
 from . import PyTree as G
+import os
 import numpy
 from Converter.Internal import E_NpyInt as E_NpyInt
 __TOL__ = 1e-9
@@ -308,7 +309,7 @@ def createQuadSurfaceFromNgonPointListSmallFace__(a,PL):
     len_EC_faces = len(PL)*4
     new_EC_ngon_faces = numpy.zeros(len_EC_faces,dtype=E_NpyInt)
     idx_new = 0
-    for idx in PL :
+    for idx in PL:
         idx_face_init = offset_faces[idx-1]
         len_face = length_faces[idx-1]
         if len_face !=4:
@@ -778,11 +779,9 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # opt = True : for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, dim=3, check=False,
-                    opt=False, loadBalancing=False):
-    import os
-    import KCore.test as test
+                    opt=False, loadBalancing=False, localDir='.'):
     fileSkeleton = 'skeleton.cgns'
-    pathSkeleton = os.path.join(test.getLocal(), fileSkeleton)
+    pathSkeleton = os.path.join(localDir, fileSkeleton)
     #
     C._initVars(tb,"centers:cellN", 1.)
     baseSym = Internal.getNodeFromName1(tb,"SYM")
@@ -822,12 +821,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, dim=3, check=False,
         #generate list of offsets
         print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
         toffset = generateListOfOffsets__(tb, offsetValues=offsetValues, dim=dim, opt=opt)
-        if check and Cmpi.rank==0: C.convertPyTree2File(toffset,"offset.cgns")
+        if check and Cmpi.rank==0:
+            C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
     Cmpi.barrier()
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
     o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing)
     Cmpi._setProc(o, Cmpi.rank)
-    t = C.newPyTree(['AMR',o])
+    t = C.newPyTree(['AMR', o])
     return t
