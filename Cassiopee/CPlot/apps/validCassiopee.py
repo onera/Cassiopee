@@ -51,6 +51,11 @@ VALIDDIR = {'LOCAL': None, 'GLOBAL': None}
 # Base used for comparisons. Default is the global base.
 BASE4COMPARE = 'GLOBAL'
 
+# User settings dictionary
+PREFS = {
+    "editor": "emacs"
+}
+
 # Si THREAD est None, les test unitaires ne tournent pas
 # Sinon, THREAD vaut le thread lance
 THREAD = None
@@ -1293,9 +1298,10 @@ def filterTestList(event=None):
     return True
 
 #==============================================================================
-# Ouvre un editeur sur le test (emacs)
+# Ouvre un editeur sur le test
 #==============================================================================
 def viewTest(event=None):
+    editor = PREFS.get("editor", "emacs")
     selection = Listbox.curselection()
     for s in selection:
         t = Listbox.get(s)
@@ -1312,9 +1318,9 @@ def viewTest(event=None):
             pathl = os.path.join(modulesDir, module, 'test')
         if mySystem == 'mingw' or mySystem == 'windows':
             pathl = pathl.replace('/', '\\')
-            cmd = 'cd '+pathl+' && emacs '+test
+            cmd = f"cd {pathl} && {editor} {test}"
         else:
-            cmd = 'cd '+pathl+'; emacs '+test
+            cmd = f"cd {pathl}; {editor} {test}"
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 
 #==============================================================================
@@ -1885,6 +1891,47 @@ def setGUITitleBar(loc='GLOBAL'):
     Master.title(title)
 
 #==============================================================================
+# Load a dict storing user settings for validCassiopee and amend the PREFS dict
+# Located in $HOME/.cassiopee/config_validCassiopee.json
+#==============================================================================
+def loadPrefFile():
+    import json
+    global PREFS
+    homePath = os.path.expanduser('~')
+    if homePath is None: homePath = os.getenv('HOME')
+    if homePath is None: homePath = os.getenv('USERPROFILE')
+    if homePath is None: homePath = ''
+    kdir = os.path.join(homePath, '.cassiopee')
+    kdirExist = os.path.exists(kdir) and os.path.isdir(kdir)
+    try:
+        if not kdirExist: os.makedir(kdir)
+    except: return
+    configFile = os.path.join(kdir, 'config_validCassiopee.json')
+    if os.path.isfile(configFile) and os.access(configFile, os.R_OK):
+        with open(configFile, 'r') as f:
+            localPrefs = json.load(f)
+        for k, v in localPrefs.items(): PREFS[k] = v
+    else:
+        savePrefFile()
+    
+#==============================================================================
+# Save user settings to $HOME/.cassiopee/config_validCassiopee.json
+#==============================================================================
+def savePrefFile():
+    import json
+    homePath = os.path.expanduser('~')
+    if homePath is None: homePath = os.getenv('HOME')
+    if homePath is None: homePath = os.getenv('USERPROFILE')
+    if homePath is None: homePath = ''
+    kdir = os.path.join(homePath, '.cassiopee')
+    try: os.makedirs(kdir, exist_ok=True)
+    except OSError as e: return
+    if not os.access(kdir, os.W_OK): return
+    configFile = os.path.join(kdir, 'config_validCassiopee.json')
+    with open(configFile, 'w') as f:
+        json.dump(PREFS, f, indent=4)
+
+#==============================================================================
 # Main
 #==============================================================================
 
@@ -1904,6 +1951,9 @@ if __name__ == '__main__':
         try: import tkFont as Font
         except: import tkinter.font as Font
         from functools import partial
+        # Load user settings
+        loadPrefFile()
+        
         # Main window
         Master = TK.Tk()
         setGUITitleBar()
