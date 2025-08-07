@@ -35,7 +35,8 @@ void Dcel::init_vertices(const Smesh &Mf, const Smesh &Sf,
 {
     E_Int duplicate_vertices = 0;
 
-    for (E_Int i = 0; i < Mf.np; i++) {
+    for (E_Int i = 0; i < Mf.np; i++) 
+    {
         Vertex *v = new Vertex(Mf.X[i], Mf.Y[i], Mf.Z[i]);
         v->oids[Dcel::RED] = i;
         vertex_set.insert(v);
@@ -278,7 +279,9 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
                     } else {
                         // Hit an edge endpoint
                         bool hit_p = (s <= RAY_EDGE_TOL);
+                        #ifndef NDEBUG
                         bool hit_q = (s >= 1 - RAY_EDGE_TOL);
+                        #endif
                         assert(!(hit_p && hit_q));
                         last_edge = -1;
                         if (hit_p) last_vertex = p;
@@ -348,9 +351,12 @@ Dcel Dcel::intersect(const Smesh &Mf, const Smesh &Sf,
     //point_write("xpoints.im", xpoints);
 
     // Cut
-    for (auto &h2x : D.hedge_intersections) {
+    for (auto &h2x : D.hedge_intersections) 
+    {
         Hedge *h = h2x.first;
+        #ifndef NDEBUG
         auto it = D.hedge_intersections.find(h->twin);
+        #endif
         assert(it == D.hedge_intersections.end());
 
         auto &xs = h2x.second;
@@ -952,7 +958,9 @@ void Dcel::update_hedge_faces(std::vector<Face *> &new_F)
 
         Hedge *h = f->rep;
         assert(h);
+        #ifndef NDEBUG
         Cycle *c = h->cycle;
+        #endif
         assert(c->inout == Cycle::INNER);
 
         h->left = f;
@@ -967,18 +975,25 @@ void Dcel::update_hedge_faces(std::vector<Face *> &new_F)
         }
     }
 
-    for (Face *f : new_F) {
+    #ifndef NDEBUG
+    for (Face *f : new_F) 
+    {
         assert(f->rep->left == f);
     }
+    #endif
 
-    for (Hedge *h : H) {
+    #ifndef NDEBUG
+    for (Hedge *h : H) 
+    {
         Face *f = h->left;
         Hedge *w = h->next;
-        while (w != h) {
+        while (w != h) 
+        {
             assert(w->left == f);
             w = w->next;
         }
     }
+    #endif
 }
 
 E_Int Dcel::check_faces(const std::vector<Hedge *> &H,
@@ -1009,13 +1024,16 @@ void Dcel::set_face_labels(std::vector<Face *> &new_F)
 {
     // Label each face with the ids of the original faces containing it
 
-    for (size_t i = 0; i < new_F.size(); i++) {
+    for (size_t i = 0; i < new_F.size(); i++) 
+    {
         Face *f = new_F[i];
 
         // Get the first RED and BLACK half-edges in the face cycle
         Hedge *h = f->rep;
 
+        #ifndef NDEBUG
         Cycle *c = h->cycle;
+        #endif
         assert(c->inout == Cycle::INNER);
 
         Hedge *R = NULL;
@@ -1258,15 +1276,18 @@ void Dcel::sort_leaving_hedges(std::vector<Hedge *> &leaving,
         Hedge *h = leaving[i];
         Hedge *w = leaving[j];
 
-        if (h->color == w->color) {
+        if (h->color == w->color) 
+        {
             write_hedge("h.im", h);
             write_hedge("w.im", w);
         }
 
         assert(h->color != w->color);
 
+        #ifndef NDEBUG
         Vertex *O_h = h->orig;
         Vertex *T_h = h->twin->orig;
+        #endif
 
         Vertex *O_w = w->orig;
         Vertex *T_w = w->twin->orig;

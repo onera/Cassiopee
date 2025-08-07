@@ -42,22 +42,30 @@ void Smesh::get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
         // O could be on a boundary edge
         if (pf[1] != -1) ret.push_back(pf[1]);
     }
-    else if (loc.v_idx != -1) {
+    else if (loc.v_idx != -1) 
+    {
         assert(loc.e_idx == -1);
         const auto &pn = Fc[fid];
         pid = pn[loc.v_idx];
         const auto &pf = P2F[pid];
         // For consistency
+#ifndef NDEBUG
         bool found_fid = false;
-        for (auto face : pf) {
+#endif
+        for (auto face : pf) 
+        {
             ret.push_back(face);
-            if (face == fid) {
+#ifndef NDEBUG
+            if (face == fid)
+            {
                 found_fid = true;
             }
+#endif
         }
         assert(found_fid == true);
     }
-    else {
+    else 
+    {
         ret.push_back(fid);
     }
 }
@@ -235,7 +243,8 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
                 );
 
                 if (hit) {
-                    if (s > TOL && s < 1 - TOL) {
+                    if (s > TOL && s < 1 - TOL) 
+                    {
                         const auto &pe = F2E[cur_fid];
                         E_Int eid = pe[i];
                         last_edge = eid;
@@ -247,9 +256,13 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
                         next_pos[0] = cur_pos[0] + t * proj[0];
                         next_pos[1] = cur_pos[1] + t * proj[1];
                         next_pos[2] = cur_pos[2] + t * proj[2];
-                    } else {
+                    } 
+                    else 
+                    {
                         bool hit_p = (s <= TOL);
+                        #ifndef NDEBUG
                         bool hit_q = (s >= 1 - TOL);
+                        #endif
                         assert(!(hit_p && hit_q));
                         last_edge = -1;
                         if (hit_p) last_vertex = p;

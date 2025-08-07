@@ -27,7 +27,8 @@ void Smesh::get_leaves(E_Int fid, std::vector<E_Int> &leaves) const
     if (it == fchildren.end()) return;
 
     const auto &children_lists = it->second;
-    for (const auto &children_list : children_lists) {
+    for (const auto &children_list : children_lists) 
+    {
         for (E_Int child : children_list)
             get_leaves(child, leaves);
     }
@@ -123,8 +124,11 @@ void Smesh::reconstruct(IMesh &M)
     }
 
 
-    for (E_Int fid : conf_faces) {
+    for (E_Int fid : conf_faces) 
+    {
+        #ifndef NDEBUG
         auto it = g2lf.find(fid);
+        #endif
         assert (it == g2lf.end());
 
         const auto &pn = M.F[fid];
