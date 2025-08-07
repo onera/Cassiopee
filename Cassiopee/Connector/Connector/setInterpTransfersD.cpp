@@ -1476,7 +1476,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
         continue;
       }
 
-      E_Int nvars_loc            = ipt_param_int[shift_rac + nrac*13];  //nbre variable a transferer pour rans/LES
+      E_Int nvars_loc = ipt_param_int[shift_rac + nrac*13];  //nbre variable a transferer pour rans/LES
 
       if ( strcmp( varname, "Density" ) == 0 ) 
       {
