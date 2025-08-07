@@ -507,7 +507,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float tmp_x,tmp_y,tmp_z;
   E_Float uGrid_local,vGrid_local,wGrid_local;
   E_Float normalVelGrid_local;
-  E_Int c_ale = max(0,min(1,motionType));
+  E_Int c_ale = K_FUNC::E_max(E_Int(0), K_FUNC::E_min(E_Int(1), motionType));
     
   E_Float* pressPtr = densPtr + 1*nbRcvPts;
   E_Float* vxPtr    = densPtr + 2*nbRcvPts;
