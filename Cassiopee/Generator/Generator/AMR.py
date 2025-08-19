@@ -281,17 +281,17 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                 # non quad faces
                 i=0
                 for face_idx in non_quad_indices:
-                  f_start = offset_faces[face_idx - 1]
-                  f_len = length_faces[face_idx - 1]
-                  face_nodes = EC_faces[f_start : f_start + f_len]
-                  
-                  xyz = numpy.vstack((coords_x[face_nodes - 1], coords_y[face_nodes - 1], coords_z[face_nodes - 1]))
-                  center = (xyz.max(axis=1) + xyz.min(axis=1)) / 2
-                  dist = numpy.sqrt(numpy.sum((xyz - center[:, numpy.newaxis])**2, axis=0))
-                  mask = dist >= 0.8 * dist.max()
-                  filtered_nodes = face_nodes[mask]
-                  conn_Nfaces_non_quad[i, :len(filtered_nodes)] = filtered_nodes
-                  i+=1
+                    f_start = offset_faces[face_idx - 1]
+                    f_len = length_faces[face_idx - 1]
+                    face_nodes = EC_faces[f_start : f_start + f_len]
+
+                    xyz = numpy.vstack((coords_x[face_nodes - 1], coords_y[face_nodes - 1], coords_z[face_nodes - 1]))
+                    center = (xyz.max(axis=1) + xyz.min(axis=1)) / 2
+                    dist = numpy.sqrt(numpy.sum((xyz - center[:, numpy.newaxis])**2, axis=0))
+                    mask = dist >= 0.8 * dist.max()
+                    filtered_nodes = face_nodes[mask]
+                    conn_Nfaces_non_quad[i, :len(filtered_nodes)] = filtered_nodes
+                    i+=1
                 conn_Nfaces = numpy.concatenate((conn_Nfaces_quad, conn_Nfaces_non_quad))
 
                 # Reconstitution du gros quadrangle
@@ -661,69 +661,69 @@ def createEmptyQuadZone__():
     return zone
 
 def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
-  faces = Internal.getNodeFromName(a, "NGonElements")
-  vol_cells = Internal.getNodeFromName(a, "NFaceElements")
+    faces = Internal.getNodeFromName(a, "NGonElements")
+    vol_cells = Internal.getNodeFromName(a, "NFaceElements")
 
-  EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-  offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-  length_faces = offset_faces[1:] - offset_faces[:-1]
+    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
+    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
+    length_faces = offset_faces[1:] - offset_faces[:-1]
 
-  coords_x = Internal.getNodeFromName(a, "CoordinateX")[1]
-  coords_y = Internal.getNodeFromName(a, "CoordinateY")[1]
-  coords_z = Internal.getNodeFromName(a, "CoordinateZ")[1]
+    coords_x = Internal.getNodeFromName(a, "CoordinateX")[1]
+    coords_y = Internal.getNodeFromName(a, "CoordinateY")[1]
+    coords_z = Internal.getNodeFromName(a, "CoordinateZ")[1]
 
-  # --- Initialisation ---
-  estimated_len = len(PL) * 4
-  new_connectivity = numpy.zeros(estimated_len, dtype=E_NpyInt)
-  idx_new = 0
+    # --- Initialisation ---
+    estimated_len = len(PL) * 4
+    new_connectivity = numpy.zeros(estimated_len, dtype=E_NpyInt)
+    idx_new = 0
 
-  # --- Boucle optimisée ---
-  # Face indices à traiter
-  PL2 = numpy.array(PL)
+    # --- Boucle optimisée ---
+    # Face indices à traiter
+    PL2 = numpy.array(PL)
 
-  # Longueurs des faces sélectionnées
-  face_lengths = length_faces[PL2 - 1]
+    # Longueurs des faces sélectionnées
+    face_lengths = length_faces[PL2 - 1]
 
-  # Masque des faces à 4 noeuds
-  quad_mask = face_lengths == 4
-  non_quad_mask = ~quad_mask
+    # Masque des faces à 4 noeuds
+    quad_mask = face_lengths == 4
+    non_quad_mask = ~quad_mask
 
-  # Indices quads et non quads
-  quad_indices = PL2[quad_mask]
-  non_quad_indices = PL2[non_quad_mask]
+    # Indices quads et non quads
+    quad_indices = PL2[quad_mask]
+    non_quad_indices = PL2[non_quad_mask]
 
-  # Préallocation (optimiste)
-  new_connectivity = numpy.zeros(len(PL2) * 4, dtype=E_NpyInt)
-  idx_new = 0
+    # Préallocation (optimiste)
+    new_connectivity = numpy.zeros(len(PL2) * 4, dtype=E_NpyInt)
+    idx_new = 0
 
-  # --- 1. Traitement des faces quad 
-  for idx in quad_indices:
-    start = offset_faces[idx - 1]
-    new_connectivity[idx_new : idx_new + 4] = EC_faces[start : start + 4]
-    idx_new += 4
+    # --- 1. Traitement des faces quad
+    for idx in quad_indices:
+        start = offset_faces[idx - 1]
+        new_connectivity[idx_new : idx_new + 4] = EC_faces[start : start + 4]
+        idx_new += 4
 
-  # --- 2. Traitement des faces non quad ---
-  for idx in non_quad_indices:
-    start = offset_faces[idx - 1]
-    n_nodes = length_faces[idx - 1]
-    nodes = EC_faces[start : start + n_nodes]
-    
-    xyz = numpy.vstack((coords_x[nodes - 1], coords_y[nodes - 1], coords_z[nodes - 1]))
-    center = (xyz.max(axis=1) + xyz.min(axis=1)) / 2
-    dist = numpy.sqrt(numpy.sum((xyz - center[:, numpy.newaxis])**2, axis=0))
-    keep_mask = dist >= 0.8 * dist.max()
-    
-    kept = nodes[keep_mask]
-    count = len(kept)
-    new_connectivity[idx_new : idx_new + count] = kept
-    idx_new += count
+    # --- 2. Traitement des faces non quad ---
+    for idx in non_quad_indices:
+        start = offset_faces[idx - 1]
+        n_nodes = length_faces[idx - 1]
+        nodes = EC_faces[start : start + n_nodes]
 
-  # --- Ajout des nouveaux éléments à la zone ---
-  elt_nodes = Internal.getNodesFromType(a_hexa, "Elements_t")
-  last_id = Internal.getNodeFromName(elt_nodes[-1], "ElementRange")[1][1]
-  zone = Internal.getZones(a_hexa)[0]
+        xyz = numpy.vstack((coords_x[nodes - 1], coords_y[nodes - 1], coords_z[nodes - 1]))
+        center = (xyz.max(axis=1) + xyz.min(axis=1)) / 2
+        dist = numpy.sqrt(numpy.sum((xyz - center[:, numpy.newaxis])**2, axis=0))
+        keep_mask = dist >= 0.8 * dist.max()
 
-  Internal.newElements(
+        kept = nodes[keep_mask]
+        count = len(kept)
+        new_connectivity[idx_new : idx_new + count] = kept
+        idx_new += count
+
+    # --- Ajout des nouveaux éléments à la zone ---
+    elt_nodes = Internal.getNodesFromType(a_hexa, "Elements_t")
+    last_id = Internal.getNodeFromName(elt_nodes[-1], "ElementRange")[1][1]
+    zone = Internal.getZones(a_hexa)[0]
+
+    Internal.newElements(
         name=bcname,
         etype=7,
         econnectivity=new_connectivity[:idx_new],
