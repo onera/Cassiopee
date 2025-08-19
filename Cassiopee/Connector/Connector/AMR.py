@@ -25,7 +25,7 @@ from Converter.Internal import E_NpyInt as E_NpyInt
 from .QuadratureDG import *
 TOL = 1.e-9
 
-OPT = True # distance aux noeuds uniquement - a valider !!! 
+OPT = True # distance aux noeuds uniquement - a valider !!!
 def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
     sym3D=False; forceAlignment=False; DIRECTORY='./'
 
@@ -269,7 +269,7 @@ def computationDistancesNormals(t,tb,dim=3):
     Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dim, itype='chimera', order=2, cartesian=False)
     varsn=["gradxTurbulentDistance",'gradyTurbulentDistance','gradzTurbulentDistance']
 
-    # A COMPARER !! 
+    # A COMPARER !!
     if OPT: t = P.computeGrad(t, 'TurbulentDistance')
     else: P._computeGrad2(t, 'centers:TurbulentDistance', ghostCells=True, withCellN=False)
 

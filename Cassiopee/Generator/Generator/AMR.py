@@ -276,7 +276,7 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                 # quad faces
                 f_start = offset_faces[quad_indices - 1]
                 for i in range(4):
-                  conn_Nfaces_quad[:, i] = EC_faces[f_start + i]
+                    conn_Nfaces_quad[:, i] = EC_faces[f_start + i]
 
                 # non quad faces
                 i=0
@@ -308,7 +308,7 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
     Internal.newDataArray("CoordinateZ", coords_z, parent=gc)
     Internal.newElements("GridElements", etype=7, econnectivity=flattened_faces, erange=[1, n_faces], eboundary=0, parent=zone)
     return zone
-    
+
 def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[], dimPb=3):
     faces = Internal.getNodeFromName(a,"NGonElements")
     vol_cells = Internal.getNodeFromName(a,"NFaceElements")
@@ -730,8 +730,8 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
         erange=[last_id + 1, last_id + len(PL)],
         eboundary=0,
         parent=zone)
-  C._addBC2Zone(zone, bcname, bctype, elementRange=[last_id + 1, last_id + len(PL)])
-  return None
+    C._addBC2Zone(zone, bcname, bctype, elementRange=[last_id + 1, last_id + len(PL)])
+    return None
 
 def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype):
     faces = Internal.getNodeFromName(a, "NGonElements")
