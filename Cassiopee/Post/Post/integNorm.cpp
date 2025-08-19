@@ -390,7 +390,7 @@ E_Int K_POST::integ2(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
   E_Int ncells =(NI-1)*(NJ-1);
-  E_Int npts = coordBlk.getSize();
+  //E_Int npts = coordBlk.getSize();
   FldArrayF nsurf(ncells,3);
   K_METRIC::compNormStructSurf(
     NI, NJ, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),

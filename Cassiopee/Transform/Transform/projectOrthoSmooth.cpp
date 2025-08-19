@@ -23,7 +23,6 @@
 using namespace K_FLD;
 using namespace std;
 
-
 // ============================================================================
 /* Projete un surface array1 sur un surface array2 (TRI).
    La normale est lissee si le projete n'est pas regulier. */
@@ -31,8 +30,7 @@ using namespace std;
 PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
 {
   PyObject* arrays; PyObject* array2;
-  if (!PyArg_ParseTuple(args, "OO",
-                        &arrays, &array2))
+  if (!PyArg_ParseTuple(args, "OO", &arrays, &array2))
   {
     return NULL;
   }
@@ -217,10 +215,6 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
       nz[i] = z[i]-zo[i];
     }
     E_Int im = nit[nos]; E_Int jm = njt[nos]; E_Int km = nkt[nos];
-    E_Int im1 = im-1; E_Int jm1 = jm-1; E_Int km1 = km-1;
-    if (im == 1) im1 = 1;
-    if (jm == 1) jm1 = 1;
-    if (km == 1) km1 = 1;
     K_METRIC::compStructSurft(im, jm, km, x, y, z, q);
     no++;
   }

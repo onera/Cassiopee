@@ -267,8 +267,7 @@ def getDistribution(t):
     return C.TZGC1(t, 'nodes', True, Geom.getDistribution)
 
 def getTangent(t):
-    """
-    Makes the tangent of a 1D curve. The input argument shall be a structured
+    """Makes the tangent of a 1D curve. The input argument shall be a structured
     1D curve. Each node of the output represents the unitary tangent vector, 
     pointing towards the tangent direction of the input 1D curve.
     Usage: b = getTangent(t)"""
@@ -280,8 +279,8 @@ def getTangent(t):
 def addSeparationLine(t, line0):
     """Add a separation line defined in line0 to a mesh defined in t.
     Usage: addSeparationLine(t, line0)"""
-    al = C.getFields(Internal.__GridCoordinates__, line0)[0]
-    at = C.getFields(Internal.__GridCoordinates__, t)[0]
+    al = C.getFields(Internal.__GridCoordinates__, line0, api=3)[0]
+    at = C.getFields(Internal.__GridCoordinates__, t, api=3)[0]
     arrays = Geom.addSeparationLine(at, al)
     zones = []
     for i in arrays:

@@ -467,7 +467,7 @@ def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a,PL):
     len_EC_faces = len(PL)*4
     new_EC_ngon_faces = np.zeros(len_EC_faces,dtype=E_NpyInt)
     idx_new = 0
-    for idx in PL :
+    for idx in PL:
         idx_face_init = offset_faces[idx-1]
         len_face = length_faces[idx-1]
         if len_face !=4:
@@ -809,8 +809,8 @@ def _createBCStandard__(a_hexa, a):
         _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype)
     return None
 
-def adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False):
-    o, res = XC.loadAndSplitNGon(FILE_SKELETON)
+def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False):
+    o, res = XC.loadAndSplitNGon(fileSkeleton)
     Cmpi.barrier()
     gcells = res[5]
     gfaces = res[6]
@@ -845,7 +845,7 @@ def adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=None, dim=3, loadBalancing
                 XC.AdaptMesh_Adapt(hookAM)
                 o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                 o = Internal.getZones(o)[0]
-    
+
     #if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
 
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
@@ -1009,13 +1009,15 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # MAIN FUNCTION
 # opt = True : for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
-def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, dim=3, check=False, opt=False, loadBalancing=False):
-    FILE_SKELETON = 'skeleton.cgns'
+def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, dim=3, check=False,
+                    opt=False, loadBalancing=False, localDir='.'):
+    fileSkeleton = 'skeleton.cgns'
+    pathSkeleton = os.path.join(localDir, fileSkeleton)
     #
-    C._initVars(tb,"centers:cellN",1.)
+    C._initVars(tb,"centers:cellN", 1.)
     baseSym = Internal.getNodeFromName1(tb,"SYM")
     if baseSym is not None:
-        C._initVars(baseSym,"centers:cellN",0.)
+        C._initVars(baseSym,"centers:cellN", 0.)
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
     o = generateSkeletonMesh__(tb, dim=dim, levelSkel=levelMax)
@@ -1026,36 +1028,37 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, dim=3, check=False, 
 
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.rank==0:
-        C.convertPyTree2File(o,FILE_SKELETON)
+        C.convertPyTree2File(o, pathSkeleton)
     Cmpi.barrier()
 
     # layers of offsets that are inside the bbox of the domain (dfar_max)
     dfar_max = 0.
     for z in Internal.getZones(tb):
-        dfarloc = Internal.getValue(Internal.getNodeFromName(z,"dfar"))
-        dfar_max = max(dfarloc,dfar_max)
+        dfarloc = Internal.getValue(Internal.getNodeFromName(z, "dfar"))
+        dfar_max = max(dfarloc, dfar_max)
 
     bbo = G.bbox(o)
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
-    if dim==3: dfarmax = min(dfarmax,bbo[5]-bbo[2])
+    if dim==3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
 
     if toffset==None:
         offsetValues = []
         offsetprev = 0.
         for no_adapt in range(len(vmins)):
-            offsetloc = offsetprev+hmin*(2**no_adapt)*vmins[no_adapt]
+            offsetloc = offsetprev + hmin*(2**no_adapt)*vmins[no_adapt]
             if offsetloc < 0.99*dfarmax:
                 offsetValues.append(offsetloc)
                 offsetprev=offsetloc
         #generate list of offsets
         print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
         toffset = generateListOfOffsets__(tb, offsetValues=offsetValues, dim=dim, opt=opt)
-        if check and Cmpi.rank==0: C.convertPyTree2File(toffset,"offset.cgns")
+        if check and Cmpi.rank==0:
+            C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
     Cmpi.barrier()
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
-    o = adaptMesh__(FILE_SKELETON, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing)
+    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing)
     Cmpi._setProc(o, Cmpi.rank)
-    t = C.newPyTree(['AMR',o])
+    t = C.newPyTree(['AMR', o])
     return t

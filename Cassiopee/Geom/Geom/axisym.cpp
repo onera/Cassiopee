@@ -21,14 +21,69 @@
 
 using namespace K_FLD;
 
-extern "C"
+void k6axisym(E_Int npts,
+              const E_Float* x, const E_Float* y, const E_Float* z,
+              const E_Float& xc, const E_Float& yc, const E_Float& zc,
+              const E_Float& nx, const E_Float& ny, const E_Float& nz,
+              const E_Float& teta, const E_Float& rmod,
+              E_Float* xo, E_Float* yo, E_Float* zo)
 {
-  void k6axisym_(const E_Int& npts,
-                 const E_Float* x, const E_Float* y, const E_Float* z,
-                 const E_Float& xc, const E_Float& yc, const E_Float& zc,
-                 const E_Float& nx, const E_Float& ny, const E_Float& nz,
-                 const E_Float& teta, const E_Float& rmod,
-                 E_Float* xo, E_Float* yo, E_Float* zo);
+  E_Float unx, uny, unz;
+  E_Float norm;
+  E_Float e0, e1, e2, e3;
+  E_Float a1, sinteta, sinteta5;
+
+  //  nx,ny,nz must be unit vector
+  norm = nx*nx + ny*ny + nz*nz;
+  if (norm <= 1.e-12)
+  {
+    printf("Warning: k6axisym: nx,ny,nz has null norm.\n");
+    return;
+  }
+
+  norm = 1.0 / sqrt(norm);
+  unx = nx * norm;
+  uny = ny * norm;
+  unz = nz * norm;
+
+  sinteta = sin(teta);
+  sinteta5 = sin(teta * 0.5);
+  /* quaternion */
+  e0 = cos(teta * 0.5);
+  e1 = -unx * sinteta5;
+  e2 = -uny * sinteta5;
+  e3 = -unz * sinteta5;
+  a1 = e0*e0 - e1*e1 - e2*e2 - e3*e3;
+
+  E_Float a, c1x, c1y, c1z, c2x, c2y, c2z;
+  E_Float rx, ry, rz;
+  E_Float px, py, pz, a2;
+
+  for (E_Int ind = 0; ind < npts; ind++)
+  {
+    rx = x[ind] - xc;
+    ry = y[ind] - yc;
+    rz = z[ind] - zc;
+
+    a = rx*nx + ry*ny + rz*nz;
+    c1x = a * nx;
+    c1y = a * ny;
+    c1z = a * nz;
+    c2x = rx - c1x;
+    c2y = ry - c1y;
+    c2z = rz - c1z;
+    rx = c1x + rmod * c2x;
+    ry = c1y + rmod * c2y;
+    rz = c1z + rmod * c2z;
+
+    a2 = e1*rx + e2*ry + e3*rz;
+    px = a1*rx + 2*e1*a2 - (ry*unz - rz*uny)*sinteta;
+    py = a1*ry + 2*e2*a2 - (rz*unx - rx*unz)*sinteta;
+    pz = a1*rz + 2*e3*a2 - (rx*uny - ry*unx)*sinteta;
+    xo[ind] = xc + px;
+    yo[ind] = yc + py;
+    zo[ind] = zc + pz;
+  }
 }
 
 //=========================================================================
@@ -47,7 +102,7 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ I_ O_,
                     &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta, &nteta, &arrayR))
   {
-      return NULL;
+    return NULL;
   }
   // check axis vector
   if (K_FUNC::fEqualZero(nx) == true && 
@@ -255,8 +310,8 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
       //tetai = k*dteta;
     }
     else tetai = k*dteta;
-    k6axisym_(npts0, xt0, yt0, zt0, xc, yc, zc, nx, ny, nz, tetai, rm,
-              xo, yo, zo);
+    k6axisym(npts0, xt0, yt0, zt0, xc, yc, zc, nx, ny, nz, tetai, rm,
+             xo, yo, zo);
     
     for (E_Int eq = 1; eq <= nfld0; eq++)
     {

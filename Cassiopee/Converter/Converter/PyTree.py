@@ -1,3 +1,4 @@
+# Converter PyTree interface
 from . import Converter
 from . import converter
 from . import Internal
@@ -1911,9 +1912,9 @@ def _TZGCX(api, t, locout, writeDim, F, *args):
 def _TZGC1(t, locout, writeDim, F, *args):
     return _TZGCX(1, t, locout, writeDim, F, *args)
 def _TZGC2(t, locout, writeDim, F, *args):
-    return _TZGCX(2, t, F, locout, writeDim, F, *args)
+    return _TZGCX(2, t, locout, writeDim, F, *args)
 def _TZGC3(t, locout, writeDim, F, *args):
-    return _TZGCX(3, t, F, locout, writeDim, F, *args)
+    return _TZGCX(3, t, locout, writeDim, F, *args)
 
 def TZGCX(api, t, locout, writeDim, F, *args):
     tp = Internal.copyRef(t)
