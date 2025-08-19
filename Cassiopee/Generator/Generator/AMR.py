@@ -12,7 +12,7 @@ import Post.PyTree as P
 import Geom.IBM as D_IBM
 import XCore.PyTree as XC
 from . import PyTree as G
-import numpy as np
+import numpy
 from Converter.Internal import E_NpyInt as E_NpyInt
 __TOL__ = 1e-9
 
@@ -97,7 +97,7 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
             bodies.append(Internal.getZones(baseB)+bodiesSYM)
 
     nbodies = len(bodies)
-    BM = np.ones((1, nbodies), dtype=np.int32)
+    BM = numpy.ones((1, nbodies), dtype=numpy.int32)
     t = C.newPyTree(["BASE",Internal.getZones(b)])
     X._blankCells(t, bodies, BM, blankingType='node_in',dim=dim,XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
     C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
@@ -183,7 +183,7 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
     bodies1 = [Internal.getZones(offset1)] # tag for refinement outside of offset1
     bodies2 = [Internal.getZones(offset2)] # tag for refinement inside of offset2
 
-    BM = np.ones((1,1),dtype=Internal.E_NpyInt)
+    BM = numpy.ones((1,1),dtype=Internal.E_NpyInt)
 
     bb1 = G.bbox(offset1)
     bb2 = G.bbox(offset2)
@@ -246,7 +246,7 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
     # Traitement des volumes
     for idx_vol in indices_owners:
         stride = cranges[idx_vol]
-        stride_offset = np.cumsum(stride)
+        stride_offset = numpy.cumsum(stride)
         start = offset_volcells[idx_vol]
 
         # Faces candidates à fusionner
@@ -255,9 +255,9 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                 start_idx = stride_offset[side - 1] if side > 0 else 0
                 indices_faces = EC_volcells[start + start_idx : start + stride_offset[side]]
 
-                conn_Nfaces = np.zeros((n_smallfaces, 4), dtype=E_NpyInt)
+                conn_Nfaces = numpy.zeros((n_smallfaces, 4), dtype=E_NpyInt)
 
-                indices_faces = np.array(indices_faces)
+                indices_faces = numpy.array(indices_faces)
                 face_lengths = length_faces[indices_faces - 1]
                 quad_mask = face_lengths == 4
                 non_quad_mask = ~quad_mask
@@ -270,8 +270,8 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                 n_non_quad_indices = len(non_quad_indices)
 
                 # Création du tableau pour stocker les connectivités quad
-                conn_Nfaces_quad = np.zeros((n_quad_indices, 4), dtype=E_NpyInt)
-                conn_Nfaces_non_quad = np.zeros((n_non_quad_indices, 4), dtype=E_NpyInt)
+                conn_Nfaces_quad = numpy.zeros((n_quad_indices, 4), dtype=E_NpyInt)
+                conn_Nfaces_non_quad = numpy.zeros((n_non_quad_indices, 4), dtype=E_NpyInt)
 
                 # quad faces
                 f_start = offset_faces[quad_indices - 1]
@@ -285,20 +285,20 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                   f_len = length_faces[face_idx - 1]
                   face_nodes = EC_faces[f_start : f_start + f_len]
                   
-                  xyz = np.vstack((coords_x[face_nodes - 1], coords_y[face_nodes - 1], coords_z[face_nodes - 1]))
+                  xyz = numpy.vstack((coords_x[face_nodes - 1], coords_y[face_nodes - 1], coords_z[face_nodes - 1]))
                   center = (xyz.max(axis=1) + xyz.min(axis=1)) / 2
-                  dist = np.sqrt(np.sum((xyz - center[:, np.newaxis])**2, axis=0))
+                  dist = numpy.sqrt(numpy.sum((xyz - center[:, numpy.newaxis])**2, axis=0))
                   mask = dist >= 0.8 * dist.max()
                   filtered_nodes = face_nodes[mask]
                   conn_Nfaces_non_quad[i, :len(filtered_nodes)] = filtered_nodes
                   i+=1
-                conn_Nfaces = np.concatenate((conn_Nfaces_quad, conn_Nfaces_non_quad))
+                conn_Nfaces = numpy.concatenate((conn_Nfaces_quad, conn_Nfaces_non_quad))
 
                 # Reconstitution du gros quadrangle
                 reorder = reorderNodesInCanonicalOrderForBigFace3D if dimPb == 3 else reorderNodesInCanonicalOrderForBigFace2D
                 big_faces.append(reorder(conn_Nfaces))
     # Flatten et finalisation
-    flattened_faces = np.array([pt for quad in big_faces for pt in quad], dtype=E_NpyInt)
+    flattened_faces = numpy.array([pt for quad in big_faces for pt in quad], dtype=E_NpyInt)
     n_faces = len(big_faces)
 
     zone = Internal.newZone(name="Zone", zsize=[[nb_vertices, n_faces, 0]], ztype="Unstructured")
@@ -324,8 +324,8 @@ def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[
 
     length_volcells = offset_volcells[1:] - offset_volcells[:-1]
     length_faces = offset_faces[1:] - offset_faces[:-1]
-    lens_vol = np.unique(length_volcells)
-    lens_faces = np.unique(length_faces)
+    lens_vol = numpy.unique(length_volcells)
+    lens_faces = numpy.unique(length_faces)
     coordsx_a = Internal.getNodeFromName(a,"CoordinateX")[1]
     coordsy_a = Internal.getNodeFromName(a,"CoordinateY")[1]
     coordsz_a = Internal.getNodeFromName(a,"CoordinateZ")[1]
@@ -340,7 +340,7 @@ def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[
     list_bigface = []
     for index_volume in indices_owners:
         stride = cranges[index_volume]
-        stride_offset = np.cumsum(stride)
+        stride_offset = numpy.cumsum(stride)
         idx_vol_init = offset_volcells[index_volume]
 
         idx_sides = []
@@ -354,7 +354,7 @@ def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[
                 for i in range(start_idx,stride_offset[idx_side]):
                     face = EC_volcells[idx_vol_init+i]
                     indices_faces.append(face)
-                conn_Nfaces = np.zeros((n_smallfaces,4),dtype=E_NpyInt)
+                conn_Nfaces = numpy.zeros((n_smallfaces,4),dtype=E_NpyInt)
                 for i,idx_face in enumerate(indices_faces):
                     idx_face_init = offset_faces[idx_face-1]
                     len_face = length_faces[idx_face-1]
@@ -371,7 +371,7 @@ def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[
                 list_bigface.append([point0,point1,point2,point3])
 
     len_new_faces = len(list_bigface)
-    flat_list_bigfaces = np.array([x for xs in list_bigface for x in xs])
+    flat_list_bigfaces = numpy.array([x for xs in list_bigface for x in xs])
 
     zsnc_big_internal = Internal.newZone(name="Zone",zsize=[[nb_vertices_a,len_new_faces,0]],ztype="Unstructured")
     gcBI = Internal.newGridCoordinates(parent=zsnc_big_internal)
@@ -395,7 +395,7 @@ def createQuadSurfaceFromNgonPointListSmallFace__(a, PL):
     nb_vertices = len(coords_x)
 
     estimated_size = len(PL) * 4
-    new_EC_faces = np.zeros(estimated_size, dtype=E_NpyInt)
+    new_EC_faces = numpy.zeros(estimated_size, dtype=E_NpyInt)
     idx_new = 0
 
     for idx in PL:
@@ -413,7 +413,7 @@ def createQuadSurfaceFromNgonPointListSmallFace__(a, PL):
             cx = (x.max() + x.min()) / 2
             cy = (y.max() + y.min()) / 2
             cz = (z.max() + z.min()) / 2
-            dist = np.sqrt((x - cx)**2 + (y - cy)**2 + (z - cz)**2)
+            dist = numpy.sqrt((x - cx)**2 + (y - cy)**2 + (z - cz)**2)
             mask = dist >= 0.8 * dist.max()
 
             kept = face_nodes[mask]
@@ -455,8 +455,8 @@ def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a,PL):
 
     length_volcells = offset_volcells[1:] - offset_volcells[:-1]
     length_faces = offset_faces[1:] - offset_faces[:-1]
-    lens_vol = np.unique(length_volcells)
-    lens_faces = np.unique(length_faces)
+    lens_vol = numpy.unique(length_volcells)
+    lens_faces = numpy.unique(length_faces)
 
     coordsx_a = Internal.getNodeFromName(a,"CoordinateX")[1]
     coordsy_a = Internal.getNodeFromName(a,"CoordinateY")[1]
@@ -465,7 +465,7 @@ def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a,PL):
 
     len_new_faces = len(PL)
     len_EC_faces = len(PL)*4
-    new_EC_ngon_faces = np.zeros(len_EC_faces,dtype=E_NpyInt)
+    new_EC_ngon_faces = numpy.zeros(len_EC_faces,dtype=E_NpyInt)
     idx_new = 0
     for idx in PL:
         idx_face_init = offset_faces[idx-1]
@@ -493,13 +493,13 @@ def findFifthNode__(idx,offset_faces,length_faces,EC_faces,coordsx_a,coordsy_a,c
     y_5 = coordsy_a[EC_ngon_faces-1]
     z_5 = coordsz_a[EC_ngon_faces-1]
 
-    x_center = (np.max(x_5)+np.min(x_5))/2
-    y_center = (np.max(y_5)+np.min(y_5))/2
-    z_center = (np.max(z_5)+np.min(z_5))/2
+    x_center = (numpy.max(x_5)+numpy.min(x_5))/2
+    y_center = (numpy.max(y_5)+numpy.min(y_5))/2
+    z_center = (numpy.max(z_5)+numpy.min(z_5))/2
 
     dists_from_center = ((x_5-x_center)**2+(y_5-y_center)**2+(z_5-z_center)**2)**0.5
-    max_dist = np.max(dists_from_center)
-    point5_to_remove = np.where(np.abs(dists_from_center)<0.8*max_dist)[0]
+    max_dist = numpy.max(dists_from_center)
+    point5_to_remove = numpy.where(numpy.abs(dists_from_center)<0.8*max_dist)[0]
     return point5_to_remove
 
 def createPseudoBCQuadNQuadIntra__(a, owners, levels, halo_levels, neighbours, cranges, dimPb=3):
@@ -555,7 +555,7 @@ def createPseudoBCQuadNQuadInter__(a, owners, levels, halo_levels, neighbours, c
         zsnc_small_MPI = createEmptyQuadZone__()
 
     if len(point_list_big)>0:
-        point_list_big = np.array(point_list_big)
+        point_list_big = numpy.array(point_list_big)
         indices_owners = owners[point_list_big-1]
         zsnc_big_MPI = createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners, dimPb)
     else:
@@ -566,10 +566,10 @@ def createPseudoBCQuadNQuadInter__(a, owners, levels, halo_levels, neighbours, c
 
 def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
     point0=None; point1=None;point2=None;point3=None
-    unique, counts = np.unique(conn_2faces, return_counts=True)
-    indices_count_2 = np.argwhere(counts==2)
+    unique, counts = numpy.unique(conn_2faces, return_counts=True)
+    indices_count_2 = numpy.argwhere(counts==2)
     indices_count_2 = indices_count_2.reshape(2)
-    indices_count_1 = np.argwhere(counts==1)
+    indices_count_1 = numpy.argwhere(counts==1)
     indices_count_1 = indices_count_1.reshape(4)
     points45 = unique[indices_count_2]
     corners_sort = unique[indices_count_1]
@@ -581,7 +581,7 @@ def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
         face0 = 1
         face1 = 0
     conn_face0 = conn_2faces[face0]
-    pos_point0 = np.where(conn_face0==point0)[0][0]
+    pos_point0 = numpy.where(conn_face0==point0)[0][0]
 
     if conn_face0[(pos_point0+1)%4] in points45:
         point4 = conn_face0[(pos_point0+1)%4]
@@ -593,7 +593,7 @@ def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
         point3 = conn_face0[(pos_point0-3)%4]
 
     conn_face1 = conn_2faces[face1]
-    pos_point4 = np.where(conn_face1==point4)[0][0]
+    pos_point4 = numpy.where(conn_face1==point4)[0][0]
 
     if conn_face1[(pos_point4+1)%4] in points45:
         point2 = conn_face1[(pos_point4+2)%4]
@@ -610,9 +610,9 @@ def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
 
 def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
     point0=None; point1=None;point2=None;point3=None
-    unique, counts = np.unique(conn_4faces, return_counts=True)
-    index_count_4 = np.argwhere(counts==4)[0][0]
-    indices_count_1 = np.argwhere(counts==1)
+    unique, counts = numpy.unique(conn_4faces, return_counts=True)
+    index_count_4 = numpy.argwhere(counts==4)[0][0]
+    indices_count_1 = numpy.argwhere(counts==1)
     indices_count_1 = indices_count_1.reshape(4)
     point8 = unique[index_count_4]
     corners = unique[indices_count_1]
@@ -620,19 +620,19 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
     corner_points = []
     pos_corner_points = []
     for EC in conn_4faces:
-        pos8 = np.where(EC == point8)[0][0]
+        pos8 = numpy.where(EC == point8)[0][0]
         pos_corner_point = (pos8 + 2) % 4
         pos_corner_points.append(pos_corner_point)
         corner_points.append(EC[pos_corner_point])
 
-    elt0 = np.argmin(corner_points)
+    elt0 = numpy.argmin(corner_points)
     point0 = corner_points[elt0]
     pos_corner_in_elt0 = pos_corner_points[elt0]
 
     point4 = conn_4faces[elt0][(pos_corner_in_elt0+1)%4]
     point7 = conn_4faces[elt0][(pos_corner_in_elt0-1)]
 
-    elt1 = np.where(conn_4faces==point4)[0]
+    elt1 = numpy.where(conn_4faces==point4)[0]
     elt1 = elt1[elt1!=elt0][0]
 
     point1 = corner_points[elt1]
@@ -640,7 +640,7 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
 
     point5 = list(set(conn_4faces[elt1])-set([point4,point8,point1]))[0]
 
-    elt2 = np.where(conn_4faces==point5)[0]
+    elt2 = numpy.where(conn_4faces==point5)[0]
     elt2 = elt2[elt2!=elt1][0]
 
     point2 = corner_points[elt2]
@@ -654,10 +654,10 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
 def createEmptyQuadZone__():
     zone = Internal.newZone(name="empty",zsize=[[0,0]],ztype="Unstructured")
     gc = Internal.newGridCoordinates(parent=zone)
-    Internal.newDataArray('CoordinateX', value=np.empty(0), parent=gc)
-    Internal.newDataArray('CoordinateY', value=np.empty(0), parent=gc)
-    Internal.newDataArray('CoordinateZ', value=np.empty(0), parent=gc)
-    elt = Internal.newElements(name="GridElements", etype=7, econnectivity=np.empty(0), erange=[1, 0], eboundary=0, parent=zone)
+    Internal.newDataArray('CoordinateX', value=numpy.empty(0), parent=gc)
+    Internal.newDataArray('CoordinateY', value=numpy.empty(0), parent=gc)
+    Internal.newDataArray('CoordinateZ', value=numpy.empty(0), parent=gc)
+    elt = Internal.newElements(name="GridElements", etype=7, econnectivity=numpy.empty(0), erange=[1, 0], eboundary=0, parent=zone)
     return zone
 
 def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
@@ -674,12 +674,12 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
 
   # --- Initialisation ---
   estimated_len = len(PL) * 4
-  new_connectivity = np.zeros(estimated_len, dtype=E_NpyInt)
+  new_connectivity = numpy.zeros(estimated_len, dtype=E_NpyInt)
   idx_new = 0
 
   # --- Boucle optimisée ---
   # Face indices à traiter
-  PL2 = np.array(PL)
+  PL2 = numpy.array(PL)
 
   # Longueurs des faces sélectionnées
   face_lengths = length_faces[PL2 - 1]
@@ -693,7 +693,7 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
   non_quad_indices = PL2[non_quad_mask]
 
   # Préallocation (optimiste)
-  new_connectivity = np.zeros(len(PL2) * 4, dtype=E_NpyInt)
+  new_connectivity = numpy.zeros(len(PL2) * 4, dtype=E_NpyInt)
   idx_new = 0
 
   # --- 1. Traitement des faces quad 
@@ -708,9 +708,9 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
     n_nodes = length_faces[idx - 1]
     nodes = EC_faces[start : start + n_nodes]
     
-    xyz = np.vstack((coords_x[nodes - 1], coords_y[nodes - 1], coords_z[nodes - 1]))
+    xyz = numpy.vstack((coords_x[nodes - 1], coords_y[nodes - 1], coords_z[nodes - 1]))
     center = (xyz.max(axis=1) + xyz.min(axis=1)) / 2
-    dist = np.sqrt(np.sum((xyz - center[:, np.newaxis])**2, axis=0))
+    dist = numpy.sqrt(numpy.sum((xyz - center[:, numpy.newaxis])**2, axis=0))
     keep_mask = dist >= 0.8 * dist.max()
     
     kept = nodes[keep_mask]
@@ -748,8 +748,8 @@ def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype
 
     length_volcells = offset_volcells[1:] - offset_volcells[:-1]
     length_faces = offset_faces[1:] - offset_faces[:-1]
-    lens_vol = np.unique(length_volcells)
-    lens_faces = np.unique(length_faces)
+    lens_vol = numpy.unique(length_volcells)
+    lens_faces = numpy.unique(length_faces)
 
     coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
     coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
@@ -758,7 +758,7 @@ def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype
 
     len_new_faces = len(PL)
     len_EC_faces = len(PL) * 4
-    new_EC_ngon_faces = np.zeros(len_EC_faces, dtype=E_NpyInt)
+    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=E_NpyInt)
     idx_new = 0
     for idx in PL:
         idx_face_init = offset_faces[idx - 1]
@@ -816,7 +816,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     gfaces = res[6]
     comm = res[1]
     if dim==3: normal2D=None
-    else: normal2D = np.array([0.0,0.0,1.0])
+    else: normal2D = numpy.array([0.0,0.0,1.0])
     hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
 
     offset_zones = Internal.getZones(toffset)
@@ -893,7 +893,7 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
     Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
                                value=[maxElt+1,maxElt+neb])
     oldc = Internal.getNodeFromName2(zbc, 'ElementConnectivity')[1]
-    newc = np.copy(oldc)
+    newc = numpy.copy(oldc)
     hook = C.createHook(z, 'nodes')
     ids = C.identifyNodes(hook, zbc)
     newc[:] = ids[oldc[:]-1]
@@ -910,7 +910,7 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
     Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t',
                                value='FaceCenter')
     Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t',
-                               value=np.array([[maxElt+1,maxElt+neb]]))
+                               value=numpy.array([[maxElt+1,maxElt+neb]]))
     return None
 
 # determine where the symmetry plane is by dir
