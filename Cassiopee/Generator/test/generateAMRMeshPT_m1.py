@@ -31,10 +31,9 @@ D_IBM._setDfar(a, 5.)
 tb = C.newPyTree(["BODY",a])
 Cmpi.barrier()
 
-
-tb = C.newPyTree(["BODY",a])
 toffset = C.newPyTree(['R1'])
 toffset[2][1][2] = [D.sphere((0.,0.,0.),0.5)]
+
 t = G.generateAMRMesh(tb, toffset=toffset, levelMax=4, vmins=[5], dim=dimPb, check=False)
 if Cmpi.rank == 0: test.testT(t,2)
 else: test.testT(t,22)
