@@ -12,8 +12,9 @@ import Post.PyTree as P
 import Geom.IBM as D_IBM
 import XCore.PyTree as XC
 from . import PyTree as G
+import os
 import numpy
-from Converter.Internal import E_NpyInt as E_NpyInt
+
 __TOL__ = 1e-9
 
 # Generation of the list of offset surfaces starting from tb
@@ -255,7 +256,7 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                 start_idx = stride_offset[side - 1] if side > 0 else 0
                 indices_faces = EC_volcells[start + start_idx : start + stride_offset[side]]
 
-                conn_Nfaces = numpy.zeros((n_smallfaces, 4), dtype=E_NpyInt)
+                conn_Nfaces = numpy.zeros((n_smallfaces, 4), dtype=Internal.E_NpyInt)
 
                 indices_faces = numpy.array(indices_faces)
                 face_lengths = length_faces[indices_faces - 1]
@@ -270,8 +271,8 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                 n_non_quad_indices = len(non_quad_indices)
 
                 # Création du tableau pour stocker les connectivités quad
-                conn_Nfaces_quad = numpy.zeros((n_quad_indices, 4), dtype=E_NpyInt)
-                conn_Nfaces_non_quad = numpy.zeros((n_non_quad_indices, 4), dtype=E_NpyInt)
+                conn_Nfaces_quad = numpy.zeros((n_quad_indices, 4), dtype=Internal.E_NpyInt)
+                conn_Nfaces_non_quad = numpy.zeros((n_non_quad_indices, 4), dtype=Internal.E_NpyInt)
 
                 # quad faces
                 f_start = offset_faces[quad_indices - 1]
@@ -298,7 +299,7 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                 reorder = reorderNodesInCanonicalOrderForBigFace3D if dimPb == 3 else reorderNodesInCanonicalOrderForBigFace2D
                 big_faces.append(reorder(conn_Nfaces))
     # Flatten et finalisation
-    flattened_faces = numpy.array([pt for quad in big_faces for pt in quad], dtype=E_NpyInt)
+    flattened_faces = numpy.array([pt for quad in big_faces for pt in quad], dtype=Internal.E_NpyInt)
     n_faces = len(big_faces)
 
     zone = Internal.newZone(name="Zone", zsize=[[nb_vertices, n_faces, 0]], ztype="Unstructured")
@@ -354,7 +355,7 @@ def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[
                 for i in range(start_idx,stride_offset[idx_side]):
                     face = EC_volcells[idx_vol_init+i]
                     indices_faces.append(face)
-                conn_Nfaces = numpy.zeros((n_smallfaces,4),dtype=E_NpyInt)
+                conn_Nfaces = numpy.zeros((n_smallfaces,4),dtype=Internal.E_NpyInt)
                 for i,idx_face in enumerate(indices_faces):
                     idx_face_init = offset_faces[idx_face-1]
                     len_face = length_faces[idx_face-1]
@@ -395,7 +396,7 @@ def createQuadSurfaceFromNgonPointListSmallFace__(a, PL):
     nb_vertices = len(coords_x)
 
     estimated_size = len(PL) * 4
-    new_EC_faces = numpy.zeros(estimated_size, dtype=E_NpyInt)
+    new_EC_faces = numpy.zeros(estimated_size, dtype=Internal.E_NpyInt)
     idx_new = 0
 
     for idx in PL:
@@ -465,7 +466,7 @@ def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a,PL):
 
     len_new_faces = len(PL)
     len_EC_faces = len(PL)*4
-    new_EC_ngon_faces = numpy.zeros(len_EC_faces,dtype=E_NpyInt)
+    new_EC_ngon_faces = numpy.zeros(len_EC_faces,dtype=Internal.E_NpyInt)
     idx_new = 0
     for idx in PL:
         idx_face_init = offset_faces[idx-1]
@@ -674,7 +675,7 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
 
     # --- Initialisation ---
     estimated_len = len(PL) * 4
-    new_connectivity = numpy.zeros(estimated_len, dtype=E_NpyInt)
+    new_connectivity = numpy.zeros(estimated_len, dtype=Internal.E_NpyInt)
     idx_new = 0
 
     # --- Boucle optimisée ---
@@ -693,7 +694,7 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
     non_quad_indices = PL2[non_quad_mask]
 
     # Préallocation (optimiste)
-    new_connectivity = numpy.zeros(len(PL2) * 4, dtype=E_NpyInt)
+    new_connectivity = numpy.zeros(len(PL2) * 4, dtype=Internal.E_NpyInt)
     idx_new = 0
 
     # --- 1. Traitement des faces quad
@@ -758,7 +759,7 @@ def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype
 
     len_new_faces = len(PL)
     len_EC_faces = len(PL) * 4
-    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=E_NpyInt)
+    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=Internal.E_NpyInt)
     idx_new = 0
     for idx in PL:
         idx_face_init = offset_faces[idx - 1]
