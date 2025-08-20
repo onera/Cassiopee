@@ -10,8 +10,8 @@ E_Int nb_dist    = ipt_param_intR[NoR][NEQ_LBM];
 E_Int coll_model = ipt_param_intR[NoR][LBM_COLL_MODEL];
 if ( coll_model==4 ) flag_psi = 1;
 
-E_Int shift_macro = 0;
-E_Int shift_sij   = 5;
+//E_Int shift_macro = 0;
+//E_Int shift_sij   = 5;
 E_Int shift_psi   = 11;
 E_Int shift_q     = 17;
 

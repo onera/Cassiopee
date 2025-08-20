@@ -55,8 +55,6 @@ void k6axisym(E_Int npts,
   e3 = -unz * sinteta5;
   a1 = e0*e0 - e1*e1 - e2*e2 - e3*e3;
 
-#pragma omp parallel
-{
   E_Float a, c1x, c1y, c1z, c2x, c2y, c2z;
   E_Float rx, ry, rz;
   E_Float px, py, pz, a2;
@@ -86,7 +84,6 @@ void k6axisym(E_Int npts,
     yo[ind] = yc + py;
     zo[ind] = zc + pz;
   }
-}
 }
 
 //=========================================================================

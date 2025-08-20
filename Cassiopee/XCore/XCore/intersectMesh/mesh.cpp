@@ -149,8 +149,9 @@ void IMesh::triangulate_face_set(bool propagate)
 
         pf.push_back(NF);
 
+        #ifndef NDEBUG
         E_Int nei = neigh[fid];
-
+        #endif
         assert(nei == -1);
 
         skin.push_back(NF);

@@ -25,6 +25,7 @@ from Converter.Internal import E_NpyInt as E_NpyInt
 from .QuadratureDG import *
 TOL = 1.e-9
 
+OPT = True # distance aux noeuds uniquement - a valider !!!
 def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
     sym3D=False; forceAlignment=False; DIRECTORY='./'
 
@@ -92,15 +93,15 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
         if different_front_flag == True: #True is default
             tb_WD = getBodiesForWallDistanceComputation(tb2)
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
-            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
+            if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
         else: #False
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
-            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
+            if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
     else:
         if different_front_flag == False: #True is default
             Internal._renameNode(t, "TurbulentDistance", "TurbulentDistanceForCFDComputation")
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
-            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
+            if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
 
     t_wdist_end = time.perf_counter()
     t_blank_start = time.perf_counter()
@@ -267,12 +268,16 @@ def computationDistancesNormals(t,tb,dim=3):
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')
     Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dim, itype='chimera', order=2, cartesian=False)
     varsn=["gradxTurbulentDistance",'gradyTurbulentDistance','gradzTurbulentDistance']
-    P._computeGrad2(t, 'centers:TurbulentDistance', ghostCells=True, withCellN=False)
+
+    # A COMPARER !!
+    if OPT: t = P.computeGrad(t, 'TurbulentDistance')
+    else: P._computeGrad2(t, 'centers:TurbulentDistance', ghostCells=True, withCellN=False)
+
     for v in varsn: C._cpVars(t, 'centers:'+v, tc, v)
     C._cpVars(t,'centers:cellNChim',tc,'cellNChim')
     Xmpi._setInterpTransfers(t, tc, variables=varsn, cellNVariable='cellNChim', compact=0, type='ID')
     for v in varsn: t = C.center2Node(t,'centers:'+v)
-    t = C.center2Node(t,'centers:TurbulentDistance')
+    if not OPT: t = C.center2Node(t,'centers:TurbulentDistance')
     return t
 
 def extractFrontDP(t,frontIP_gath,dim,sym3D,check,DIRECTORY='./'):
@@ -494,9 +499,6 @@ def moveWallPoints(ip_pts,imagepts,wallpts,array_check,tb):
 def moveIBMPoints(ip_pts,imagepts,wallpts,varsn,epsilon,indices_outside_box=None,tb=None):
 
     nb_image_pts = imagepts[0][1][0].size
-    array_varsn_ip = Converter.extractVars(ip_pts,varsn)
-    array_turb_dist = Converter.extractVars(ip_pts,"TurbulentDistance")
-
     if indices_outside_box is None:
         dist = epsilon
         for count in range(nb_image_pts):

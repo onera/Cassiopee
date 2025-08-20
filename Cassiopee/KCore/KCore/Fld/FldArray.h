@@ -314,18 +314,7 @@ class FldArray
   public:
     ///+ 9- Specific to FldArrayI
     ///- Adds val to all values.
-    void shift (T val);
-
-  public:
-    T& getitems(int i, int j);
-    T& getitem(int i);
-
-    void setitem(int i, T value);
-    void setitems(int i, int j, T value);
-    void setNGonType(int i) {
-      if (i < 1 && i > 3) return;
-      _ngon = i;
-    };
+    void shift(T val);
 
   private:
     // set all elements to val
@@ -498,34 +487,6 @@ const T* FldArray<T>::end(E_Int fld) const
   //return (_data + _sizeMax*(fld-1) + _sizeLoc);
   return _rake[fld-1]+_sizeLoc*_stride;
 }
-//OK============================================================================
-TEMPLATE_T
-inline T& FldArray<T>::getitems(int i, int j)
-{
-  return this->operator()(i,j);
-}
-
-//OK============================================================================
-TEMPLATE_T
-inline T& FldArray<T>::getitem(int i)
-{
-  return this->operator[](i);
-}
-
-//OK============================================================================
-TEMPLATE_T
-void FldArray<T>::setitem(int i, T value)
-{
-  this->operator[](i) = value;
-}
-
-//OK============================================================================
-TEMPLATE_T
-void FldArray<T>::setitems(int i, int j, T value)
-{
-  this->operator()(i,j) = value;
-}
-
 //==============================================================================
 TEMPLATE_T
 E_Int FldArray<T>::getNFaces()

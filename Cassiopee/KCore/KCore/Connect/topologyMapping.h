@@ -106,7 +106,7 @@ struct Topology
 };
 
 // Same as Topology but optimised (no dynamic allocation)
-const std::size_t nmaxitems = 8; // nbre d'index par item
+const std::size_t nmaxitems = 9; // nbre d'index par item
 struct TopologyOpt
 {
   E_Bool isDegen_; // whether the Topology is degenerated
