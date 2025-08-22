@@ -62,7 +62,7 @@ extern "C" void k6setallbvaluesatf_(const E_Int& sizeLoc,
 #define SETRAKE                                                         \
   if (_stride == 1)                                                     \
   { for (E_Int i = 0; i < _nfldLoc; i++) _rake[i] = _data+i*_sizeLoc; } \
-  else                                                              \
+  else                                                                  \
   { for (E_Int i = 0; i < _nfldLoc; i++) _rake[i] = _data+i; }
 
 namespace K_FLD
@@ -133,7 +133,7 @@ class FldArray
              value_type* indPG, value_type* indPH, 
              E_Int sizeNGon, E_Int sizeNFace, value_type* PE=NULL);
     /** Constructor for ME connectivities (shared, array3). */
-    FldArray(std::vector< FldArray<T>* >& list);
+    FldArray(std::vector<FldArray<T>* >& list);
     
     /** Destructor */
     ~FldArray();
@@ -148,9 +148,9 @@ class FldArray
 
     ///+ 3- Operators
     /** Result of = operator has new (duplicated) data. */
-    FldArray& operator=  (const FldArray& rhs);
+    FldArray& operator= (const FldArray& rhs);
     /** Init a already dimensionned array to a value */
-    FldArray& operator=  (T val);
+    FldArray& operator= (T val);
     /** Copy from indice beg the field rhs as a subpart of the
         current array (static interface only). */
     void copyFrom(E_Int beg, const FldArray& rhs);
@@ -186,13 +186,17 @@ class FldArray
     /** GetApi (1: compact, 2: rake) */
     inline E_Int getApi() { if (_compact == false) return 2; else return 1; }
 
+    /** Get dimensionality, NGon and ME. */
+    inline E_Int getDim(char* eltType=NULL);
+    /** Get number of elements, NGon and ME. */
+    inline E_Int getNElts();
+
     /** Get/Set NGon */
     inline E_Int isNGon() const { return _ngon; }
     // 1: compact array1 CGNSv3, 2: rake CGNSv3, 3: rake CGNSv4
     void setNGon(E_Int ngon) { _ngon = ngon; };
-    /** Only if  ngon */
+    /** Only if NGon */
     inline E_Int getNFaces();
-    inline E_Int getNElts();
     inline E_Int* getNGon();
     inline E_Int* getNFace();
     inline E_Int* getIndPG();
@@ -352,7 +356,7 @@ class FldArray
     E_Int _sizeNFace; // taille de la connectivite NFace (NGON)
 
     /* si multiple element connectivities */
-    std::vector< FldArray<T>* > _BEConnects; 
+    std::vector<FldArray<T>* > _BEConnects; 
 
     /* The data array (deprecated) */
     value_type* _data;
@@ -499,22 +503,67 @@ E_Int FldArray<T>::getNFaces()
 
 //==============================================================================
 TEMPLATE_T
+E_Int FldArray<T>::getDim(char* eltType)
+{
+  E_Int size0;  // number of vertices of the first face
+  E_Int dim = 3;
+  if (_ngon > 0)  // NGon
+  {
+    if (_ngon == 3)  // Array3
+    {
+      E_Int* ngon = _rake[0];
+      E_Int* indPG = _rake[2];
+      E_Int pos0 = indPG[0];
+      size0 = indPG[1] - pos0;
+    }
+    else if (_ngon == 2)  // Array 2
+    {
+      E_Int* ngon = _rake[0];
+      E_Int* indPG = _rake[2];
+      E_Int pos0 = indPG[0];
+      size0 = ngon[pos0];
+    }
+    else // Array1
+    {
+      E_Int* ngon = _rake[0]+2;
+      E_Int* indPG = getIndPG();
+      E_Int pos0 = indPG[0];
+      size0 = ngon[pos0];
+    }
+    if (size0 == 1) dim = 1;
+    else if (size0 == 2) dim = 2;
+  }
+  else  // ME connectivity
+  {
+    assert((eltType != NULL) && "The first eltType must be provided.");
+    if (strcmp(eltType, "NODE") == 0) dim = 0;
+    else if (strcmp(eltType, "BAR") == 0) dim = 1;
+    else if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0) dim = 2;
+  }
+  return dim;
+}
+
+//==============================================================================
+TEMPLATE_T
 E_Int FldArray<T>::getNElts()
 {
   if (_ngon >= 2) // Array2/3
   {
     return _nelts;
   }
-  else // Array1
+  else if (_ngon == 1) // Array1
   {
     E_Int sizeNGon = _rake[0][1];
     return _rake[0][sizeNGon+2]; 
   }
-  /*
-  else // suppose a BE connectivity
+  else // ME connectivity
   {
-      return _sizeLoc;
-  }*/
+    if (_nelts > 0) { return _nelts; }
+    _nelts = 0;
+    for (size_t i = 0; i < _BEConnects.size(); i++)
+      _nelts += _BEConnects[i]->getSize();
+    return _nelts;
+  }
 }
 
 //==============================================================================
@@ -1764,7 +1813,7 @@ TEMPLATE_T
 template <typename Vector1, typename Vector2>
 E_Int FldArray<T>::compact(FldArray& a, const Vector1& keep, Vector2& new_Ids)
 {
-  E_Int   cols(a._sizeLoc);
+  E_Int cols(a._sizeLoc);
   // Fast returns
   if (cols == 0)   return 0;
 
