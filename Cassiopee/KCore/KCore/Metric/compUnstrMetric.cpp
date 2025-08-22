@@ -97,4 +97,6 @@ void K_METRIC::compUnstructMetric(
     fcOffset += nfpc;
     elOffset += nelts;
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }

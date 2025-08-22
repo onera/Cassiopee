@@ -89,9 +89,69 @@ namespace K_POST
   PyObject* sharpEdges(PyObject* self, PyObject* args);
   PyObject* silhouette(PyObject* self, PyObject* args);
 
-  E_Int compute_gradients_ngon(FldArrayI &cn, E_Float *x,
-    E_Float *y, E_Float *z, E_Int *owner, E_Int *neigh, E_Float *centers,
-    const std::vector<E_Float *> &flds, std::vector<E_Float *> &Gs);
+// ******************************* INTEGRATION ****************************** //
+// ============================================================================
+// Compute surface integral of the field F, coordinates 
+// and field have the same size
+//   I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
+//   Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
+// ============================================================================
+  void integStruct(
+    const E_Int ni, const E_Int nj,
+    const E_Float* ratio, const E_Float* surf, const E_Float* field,
+    E_Float& result);
+// ============================================================================
+// Compute linear integral of field F, structured 1D case
+//   I(AB) = Length(AB)*(F(A)+F(B))/2
+// ============================================================================
+  void integStruct1d(
+    const E_Int ni,
+    const E_Float* ratio, const E_Float* length, const E_Float* field,
+    E_Float& result);
+// ============================================================================
+// Compute surface integral of field F, coordinates in nodes,
+// field defined in centers, structured case
+// IN: ni1, nj1 : dim en centres
+// ============================================================================
+  void integStructNodeCenter(
+    const E_Int ni1, const E_Int nj1,
+    const E_Float* ratio, const E_Float* surf, const E_Float* field,
+    E_Float& result);
+// ============================================================================
+// Compute linear integral of field F, node/center case, 1D
+// ============================================================================
+  void integStructNodeCenter1d(
+    const E_Int ni,
+    const E_Float* ratio, const E_Float* length, const E_Float* field,
+    E_Float& result);
+
+// ============================================================================
+// Compute surface integral of the field F, unstructured case
+// Coordinates and field have the same size
+//   I(ABC) = Aire(ABC)*(F(A)+F(B)+F(C))/3        TRI
+//   I(ABC) = Aire(ABC)*(F(A)+F(B)+F(C)+F(D))/4   QUAD
+//   Aire(ABC) = ||AB^AC||/2
+// ============================================================================
+  void integUnstruct(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* ratio, const E_Float* surf, const E_Float* field,
+    E_Float& result);
+// ============================================================================
+// Compute linear integral of field F, unstructured 1D case
+//   I(AB) = Length(AB)*(F(A)+F(B))/2
+// ============================================================================
+  void integUnstruct1d(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* ratio, const E_Float* length, const E_Float* field,
+    E_Float& result);
+// ============================================================================
+// Compute surface integral of field F, coordinates in nodes,
+// field defined in centers, unstructured case
+// ============================================================================
+  void integUnstructNodeCenter(
+    FldArrayI& cn,
+    const E_Float* ratio, const E_Float* surf, const E_Float* field,
+    E_Float& result);
 
 /*
   Compute the surface integral of field F
@@ -309,6 +369,7 @@ namespace K_POST
                        FldArrayF& FBlk, FldArrayF& ratioBlk,
                        FldArrayF& resultat);
 
+// ***************************** COMPUTE FIELDS ***************************** //
 /* Extrait de la chaine vars0 les variables a calculer. Une verification
    est effectuee sur les noms de variables. La chaine varStringOut est
    aussi construite pour l array de sortie
@@ -430,6 +491,7 @@ namespace K_POST
                          E_Float& overlapTol,
                          E_Float& matchTol);
 
+// ***************************** GRAD, DIV, CURL **************************** //
 /* Creation de la chaine de caracteres pour la  fonction computeGrad
    IN: varString: "x,y,z, var1..." avec var1... variables calculees
    OUT: varStringOut "gradxvar1, gradyvar1, gradzvar1...." */
@@ -450,6 +512,11 @@ namespace K_POST
   E_Int computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
                         E_Float* fp, FldArrayI& cn,
                         E_Float* gradx, E_Float* grady, E_Float* gradz);
+  E_Int compute_gradients_ngon(
+    FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
+    E_Int *owner, E_Int *neigh, E_Float *centers,
+    const std::vector<E_Float *> &flds, std::vector<E_Float *> &Gs);
+
   /* Idem for div */
   E_Int computeDivStruct(E_Int ni, E_Int nj, E_Int nk,
                          E_Float* xt, E_Float* yt, E_Float* zt,
@@ -462,6 +529,36 @@ namespace K_POST
   E_Int computeDivNGon(E_Float* xt, E_Float* yt, E_Float* zt,
                        E_Float* fpx, E_Float* fpy, E_Float* fpz, FldArrayI& cn,
                        E_Float* div);
+
+  PyObject* computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
+                                 const char* varStringOut, E_Float* cellNp,
+                                 E_Float* xt, E_Float* yt, E_Float* zt,
+                                 FldArrayF& fc, FldArrayF& faceField,
+                                 E_Int* cellG, E_Int* cellD,
+                                 PyObject* indices, PyObject* field);
+  PyObject* computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
+                                 E_Int nic, E_Int njc, E_Int nkc,
+                                 const char* varStringOut, E_Float* cellNp,
+                                 E_Float* xt, E_Float* yt, E_Float* zt,
+                                 FldArrayF& fc, FldArrayF& faceField,
+                                 E_Int* cellG, E_Int* cellD,
+                                 PyObject* indices, PyObject* field);
+  PyObject* computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
+                                E_Int ixyz, const char* varStringOut, E_Float* cellNp,
+                                E_Float* xt, E_Float* yt, E_Float* zt,
+                                FldArrayF& fc, FldArrayF& faceField,
+                                E_Int* cellG, E_Int* cellD,
+                                PyObject* indices, PyObject* fieldX,
+                                PyObject* fieldY, PyObject* fieldZ);
+  PyObject* computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
+                                E_Int nic, E_Int njc, E_Int nkc,
+                                const char* varStringOut, E_Float* cellNp,
+                                E_Float* xt, E_Float* yt, E_Float* zt,
+                                FldArrayF& fc, FldArrayF& faceField,
+                                E_Int* cellG, E_Int* cellD,
+                                PyObject* indices, PyObject* fieldX,
+                                PyObject* fieldY, PyObject* fieldZ);
+
   /* Idem for curl */
   E_Int computeCurlStruct(E_Int ni, E_Int nj, E_Int nk,
                           E_Float* xt, E_Float* yt, E_Float* zt,
@@ -476,6 +573,7 @@ namespace K_POST
                         E_Float* fxp, E_Float* fyp, E_Float* fzp, FldArrayI& cn,
                         E_Float* curlx, E_Float* curly, E_Float* curlz);
 
+// ******************************* NODE2CENTER ****************************** //
   /* Convertit les noeuds en centres pour les array structures */
   E_Int node2centerStruct(FldArrayF& FNode,
                           E_Int ni, E_Int nj, E_Int nk,
@@ -494,6 +592,7 @@ namespace K_POST
                           FldArrayF& FNode,
                           E_Int& nin, E_Int& njn, E_Int& nkn);
 
+// ************************************************************************** //
   PyObject* exteriorFacesStructured(char* varString, FldArrayF& f,
                                     E_Int ni, E_Int nj, E_Int nk,
                                     PyObject* Indices);
@@ -665,35 +764,6 @@ namespace K_POST
                                    FldArrayF& tag);
 
   short buildFaceInfo(E_Int et, FldArrayI& cn, FldArrayI& face);
-
-  PyObject* computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
-                                 const char* varStringOut, E_Float* cellNp,
-                                 E_Float* xt, E_Float* yt, E_Float* zt,
-                                 FldArrayF& fc, FldArrayF& faceField,
-                                 E_Int* cellG, E_Int* cellD,
-                                 PyObject* indices, PyObject* field);
-  PyObject* computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
-                                 E_Int nic, E_Int njc, E_Int nkc,
-                                 const char* varStringOut, E_Float* cellNp,
-                                 E_Float* xt, E_Float* yt, E_Float* zt,
-                                 FldArrayF& fc, FldArrayF& faceField,
-                                 E_Int* cellG, E_Int* cellD,
-                                 PyObject* indices, PyObject* field);
-  PyObject* computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
-                                E_Int ixyz, const char* varStringOut, E_Float* cellNp,
-                                E_Float* xt, E_Float* yt, E_Float* zt,
-                                FldArrayF& fc, FldArrayF& faceField,
-                                E_Int* cellG, E_Int* cellD,
-                                PyObject* indices, PyObject* fieldX,
-                                PyObject* fieldY, PyObject* fieldZ);
-  PyObject* computeDiv2Struct3D(E_Int ni, E_Int nj, E_Int nk,
-                                E_Int nic, E_Int njc, E_Int nkc,
-                                const char* varStringOut, E_Float* cellNp,
-                                E_Float* xt, E_Float* yt, E_Float* zt,
-                                FldArrayF& fc, FldArrayF& faceField,
-                                E_Int* cellG, E_Int* cellD,
-                                PyObject* indices, PyObject* fieldX,
-                                PyObject* fieldY, PyObject* fieldZ);
 }
 #undef FldArrayF
 #undef FldArrayI

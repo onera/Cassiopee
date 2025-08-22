@@ -1,0 +1,119 @@
+/*    
+    Copyright 2013-2025 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
+# include "post.h"
+
+// ============================================================================
+// Compute surface integral of the field F, coordinates 
+// and field have the same size
+//   I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
+//   Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
+// ============================================================================
+void K_POST::integStruct(
+  const E_Int ni, const E_Int nj,
+  const E_Float* ratio, const E_Float* surf, const E_Float* field,
+  E_Float& result
+)
+{
+  E_Int ni1 = ni - 1;
+  result = 0.0;
+
+  for (E_Int j = 0; j <= nj - 2; j++)
+  {
+    for (E_Int i = 0; i <= ni - 2; i++)
+    {
+      E_Int ind1 = i + j * ni;
+      E_Int ind2 = ind1 + ni;
+      E_Int ind3 = ind1 + 1;
+      E_Int ind4 = ind3 + ni;
+      E_Int ind = i + j * ni1;
+
+      E_Float f1 = ratio[ind1] * field[ind1];
+      E_Float f2 = ratio[ind2] * field[ind2];
+      E_Float f3 = ratio[ind3] * field[ind3];
+      E_Float f4 = ratio[ind4] * field[ind4];
+
+      result += surf[ind] * (f1 + f2 + f3 + f4);
+    }
+  }
+  result /= K_CONST::FOUR;
+}
+
+// ============================================================================
+// Compute linear integral of field F, structured 1D case
+//   I(AB) = Length(AB)*(F(A)+F(B))/2
+// ============================================================================
+void K_POST::integStruct1d(
+  const E_Int ni,
+  const E_Float* ratio, const E_Float* length, const E_Float* field,
+  E_Float& result
+)
+{
+  result = 0.0;
+  for (E_Int i = 0; i <= ni - 2; i++)
+  {
+    E_Int ind1 = i;
+    E_Int ind2 = i + 1;
+    E_Int ind = i;
+
+    E_Float f1 = ratio[ind1] * field[ind1];
+    E_Float f2 = ratio[ind2] * field[ind2];
+
+    result += length[ind] * (f1 + f2);
+  }
+  result *= K_CONST::ONE_HALF;
+}
+
+// ============================================================================
+// Compute surface integral of field F, coordinates in nodes,
+// field defined in centers, structured case
+// IN: ni1, nj1 : dim en centres
+// ============================================================================
+void K_POST::integStructNodeCenter(
+  const E_Int ni1, const E_Int nj1,
+  const E_Float* ratio, const E_Float* surf, const E_Float* field,
+  E_Float& result
+)
+{
+  result = 0.0;
+
+  for (E_Int j = 0; j <= nj1 - 1; j++)
+  {
+    for (E_Int i = 0; i <= ni1 - 1; i++)
+    {
+      E_Int ind = i + j * ni1;
+      result += ratio[ind] * surf[ind] * field[ind];
+    }
+  }
+}
+
+// ============================================================================
+// Compute linear integral of field F, node/center case, 1D
+// ============================================================================
+void K_POST::integStructNodeCenter1d(
+  const E_Int ni,
+  const E_Float* ratio, const E_Float* length, const E_Float* field,
+  E_Float& result
+)
+{
+  result = 0.0;
+  for (E_Int i = 0; i <= ni - 1; i++)
+  {
+    result += ratio[i] * length[i] * field[i];
+  }
+}
