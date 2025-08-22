@@ -10,7 +10,7 @@ if [ "$CASSIOPEE" = "" ]; then
 fi
 
 # Environment
-ulimit -s unlimited
+[ "$(ulimit -Hs)" = "unlimited" ] && ulimit -s unlimited
 
 # Compilation on different machines:
 
