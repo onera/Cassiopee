@@ -69,6 +69,7 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   FldArrayF fd;
   FldArrayI cNGD;
   E_Int nvpf0;
+  E_Int api = f->getApi();
   E_Int* ngon = cn->getNGon();
   E_Int* indPG = cn->getIndPG();
   cn->getFace(0, nvpf0, ngon, indPG);
@@ -94,9 +95,15 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   }
   // build array
   RELEASESHAREDU(array, f, cn);
+  PyObject* tpl = NULL;
   if (extraPoints == 1)
-    K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, fd, cNGD);
-  PyObject* tpl = K_ARRAY::buildArray(fd, varString, cNGD, 8, eltType);
+  {
+    tpl = K_CONNECT::V_cleanConnectivityNGon(posx, posy, posz, varString, fd, cNGD, 1.e-10);
+  }
+  else
+  {
+    tpl = K_ARRAY::buildArray3(fd, varString, cNGD, eltType, api);
+  }
   return tpl;
 }
 //=============================================================================
