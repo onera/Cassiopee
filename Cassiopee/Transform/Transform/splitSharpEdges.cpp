@@ -243,15 +243,9 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
 
   for (i = 0; i < size; i++)
   {
-    FldArrayF* f0 = new FldArrayF(*f);
-    FldArrayF& fp = *f0;
-    FldArrayI& cnp = *components[i];
-    K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType,
-                                 fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, eltType);
-    delete &fp; delete &cnp;
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
+    tpl = K_CONNECT::V_cleanConnectivity(varString, *f, *components[i], eltType, 1.e-10);
+    PyList_Append(l, tpl); Py_DECREF(tpl);
+    delete components[i];
   }
   return l;
 }
