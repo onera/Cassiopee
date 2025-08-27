@@ -326,7 +326,14 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   if (posx > 0 && posy > 0 && posz > 0)
   {
     PyObject* tpl2 = K_CONNECT::V_cleanConnectivity(
-      unstructVarString[0], *f, *cno, newEltType, tol);
+      unstructVarString[0], *f, *cno, newEltType, tol,
+      true,  // rmOverlappingPts
+      false,  // rmOrphanPts
+      true,  // rmDuplicatedFaces
+      true,  // rmDuplicatedElts
+      false,  // rmDegeneratedFaces
+      false  // rmDegeneratedElts
+    );
     RELEASESHAREDU(tpl, f, cno); Py_DECREF(tpl);
     return tpl2;
   }
@@ -672,7 +679,14 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   if (posx > 0 && posy > 0 && posz > 0)
   {
     PyObject* tpln2 = K_CONNECT::V_cleanConnectivity(
-      unstructVarString[0], *f, *cno, newEltType, tol);
+      unstructVarString[0], *f, *cno, newEltType, tol,
+      true,  // rmOverlappingPts
+      false,  // rmOrphanPts
+      true,  // rmDuplicatedFaces
+      true,  // rmDuplicatedElts
+      false,  // rmDegeneratedFaces
+      false  // rmDegeneratedElts
+    );
     PyList_Append(l, tpln2); Py_DECREF(tpln2);
   }
   else
