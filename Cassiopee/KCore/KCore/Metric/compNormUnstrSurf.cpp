@@ -38,11 +38,11 @@ void K_METRIC::compNormUnstructSurf(
 
   for (E_Int ic = 0; ic < nc; ic++)
   {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+      
     if (strcmp(eltTypes[ic], "TRI") == 0)
     {
-      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-      E_Int nelts = cm.getSize();
-
       #pragma omp parallel
       {
         E_Int ind1, ind2, ind3, pos;
